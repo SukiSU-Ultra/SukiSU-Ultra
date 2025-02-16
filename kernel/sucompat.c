@@ -22,6 +22,10 @@
 
 extern void escape_to_root();
 
+#ifndef CONFIG_KPROBES
+static bool ksu_sucompat_non_kp __read_mostly = true;
+#endif
+
 static void __user *userspace_stack_buffer(const void *d, size_t len)
 {
 	/* To avoid having to mmap a page in userspace, just write below the stack
@@ -50,6 +54,12 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 {
 	const char su[] = SU_PATH;
 
+#ifndef CONFIG_KPROBES
+	if (!ksu_sucompat_non_kp) {
+ 		return 0;
+ 	}
+#endif
+
 	if (!ksu_is_allow_uid(current_uid().val)) {
 		return 0;
 	}
@@ -71,6 +81,11 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 	// const char sh[] = SH_PATH;
 	const char su[] = SU_PATH;
 
+#ifndef CONFIG_KPROBES
+	if (!ksu_sucompat_non_kp) {
+ 		return 0;
+ 	}
+#endif
 	if (!ksu_is_allow_uid(current_uid().val)) {
 		return 0;
 	}
@@ -115,6 +130,11 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 	const char sh[] = KSUD_PATH;
 	const char su[] = SU_PATH;
 
+#ifndef CONFIG_KPROBES
+	if (!ksu_sucompat_non_kp) {
+ 		return 0;
+ 	}
+#endif
 	if (unlikely(!filename_ptr))
 		return 0;
 
@@ -144,6 +164,11 @@ int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
 	const char su[] = SU_PATH;
 	char path[sizeof(su) + 1];
 
+#ifndef CONFIG_KPROBES
+	if (!ksu_sucompat_non_kp){
+ 		return 0;
+ 	}
+#endif
 	if (unlikely(!filename_user))
 		return 0;
 
@@ -237,6 +262,9 @@ void ksu_sucompat_init()
 	su_kps[0] = init_kprobe(SYS_EXECVE_SYMBOL, execve_handler_pre);
 	su_kps[1] = init_kprobe(SYS_FACCESSAT_SYMBOL, faccessat_handler_pre);
 	su_kps[2] = init_kprobe(SYS_NEWFSTATAT_SYMBOL, newfstatat_handler_pre);
+#else
+	ksu_sucompat_non_kp = true;
+ 	pr_info("ksu_sucompat_init: hooks enabled: execve/execveat_su, faccessat, stat\n");
 #endif
 }
 
@@ -246,5 +274,8 @@ void ksu_sucompat_exit()
 	for (int i = 0; i < ARRAY_SIZE(su_kps); i++) {
 		destroy_kprobe(&su_kps[i]);
 	}
+#else
+	ksu_sucompat_non_kp = false;
+ 	pr_info("ksu_sucompat_exit: hooks disabled: execve/execveat_su, faccessat, stat\n");
 #endif
 }
