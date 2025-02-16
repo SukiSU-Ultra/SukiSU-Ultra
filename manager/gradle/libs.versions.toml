@@ -1,7 +1,7 @@
 [versions]
-agp = "8.8.0"
+agp = "8.8.1"
 kotlin = "2.1.10"
-ksp = "2.1.10-1.0.29"
+ksp = "2.1.10-1.0.30"
 compose-bom = "2025.02.00"
 lifecycle = "2.8.7"
 navigation = "2.8.7"
