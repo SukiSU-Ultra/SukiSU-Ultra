@@ -55,4 +55,12 @@ config KPM
 	  This option is suitable for scenarios where you need to force KPM to be enabled.
 	  but it may affect system stability.
 
+config KSU_LSM_SECURITY_HOOKS
+	bool "use lsm security hooks"
+        depends on KSU
+        default y
+	help
+	  Disabling this is mostly only useful for kernel 4.1 and older.
+	  Make sure to implement manual hooks on security/security.c.
+
 endmenu
