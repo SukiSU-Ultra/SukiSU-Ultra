@@ -48,6 +48,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.saveable.rememberSaveable
+import shirkneko.zako.sukisu.ui.theme.CardConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>(start = true)
@@ -69,22 +70,21 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         topBar = {
             TopBar(
                 kernelVersion,
-                onSettingsClick = {
-                    navigator.navigate(SettingScreenDestination)
-                },
-                onInstallClick = {
-                    navigator.navigate(InstallScreenDestination)
-                },
+                onInstallClick = { navigator.navigate(InstallScreenDestination) },
+                onSettingsClick = { navigator.navigate(SettingScreenDestination) },
                 scrollBehavior = scrollBehavior
             )
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+        contentWindowInsets = WindowInsets.safeDrawing.only(
+            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
+        )
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
+                .padding(top = 12.dp)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -115,8 +115,10 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             if (checkUpdate) {
                 UpdateCard()
             }
-            var clickCount by remember { mutableStateOf(0) }
-            if (!isSimpleMode) {
+            val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
+            var clickCount by rememberSaveable { mutableStateOf(prefs.getInt("click_count", 0)) }
+
+            if (!isSimpleMode && clickCount < 3) {
                 AnimatedVisibility(
                     visible = clickCount < 3,
                     exit = shrinkVertically() + fadeOut()
@@ -130,6 +132,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                                 .fillMaxWidth()
                                 .clickable {
                                     clickCount++
+                                    prefs.edit().putInt("click_count", clickCount).apply()
                                 }
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -218,30 +221,27 @@ private fun TopBar(
     onSettingsClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    val cardColor = MaterialTheme.colorScheme.secondaryContainer
+    val cardAlpha = CardConfig.cardAlpha
+
     TopAppBar(
         title = { Text(stringResource(R.string.app_name)) },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = cardColor.copy(alpha = cardAlpha),
+            scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
+        ),
         actions = {
             if (kernelVersion.isGKI()) {
                 IconButton(onClick = onInstallClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Archive,
-                        contentDescription = stringResource(id = R.string.install)
-                    )
+                    Icon(Icons.Filled.Archive, stringResource(R.string.install))
                 }
             }
 
             var showDropdown by remember { mutableStateOf(false) }
-            IconButton(onClick = {
-                showDropdown = true
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = stringResource(id = R.string.reboot)
-                )
-
-                DropdownMenu(expanded = showDropdown, onDismissRequest = {
-                    showDropdown = false
-                }) {
+            IconButton(onClick = { showDropdown = true }) {
+                Icon(Icons.Filled.Refresh, stringResource(R.string.reboot))
+                DropdownMenu(expanded = showDropdown, onDismissRequest = { showDropdown = false }
+                ) {
 
                     RebootDropdownItem(id = R.string.reboot)
 
@@ -256,13 +256,6 @@ private fun TopBar(
                     RebootDropdownItem(id = R.string.reboot_edl, reason = "edl")
                 }
             }
-
-            //IconButton(onClick = onSettingsClick) {
-            //    Icon(
-            //        imageVector = Icons.Filled.Settings,
-            //        contentDescription = stringResource(id = R.string.settings)
-            //    )
-            // }
         },
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
