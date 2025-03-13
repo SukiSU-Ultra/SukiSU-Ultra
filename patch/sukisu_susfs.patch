@@ -1,7 +1,10 @@
 diff -u a/kernel/Kconfig b/kernel/Kconfig
 --- a/kernel/Kconfig
 +++ b/kernel/Kconfig
-@@ -23,14 +23,6 @@ config KSU_ALLOWLIST_WORKAROUND
+@@ -20,20 +20,12 @@
+     depends on KSU
+     default n
+     help
        Enable session keyring init workaround for problematic devices.
        Useful for situations where the SU allowlist is not kept after a reboot.
  
@@ -16,9 +19,15 @@ diff -u a/kernel/Kconfig b/kernel/Kconfig
  config KSU_MANUAL_HOOK
  	bool "Manual hooking GKI kernels without kprobes"
  	depends on KSU && KSU != m
-@@ -42,4 +34,136 @@ config KSU_MANUAL_HOOK
- 	  This function only available on GKI kernels, non-GKI are not
- 	  affected.
+ 	depends on KPROBES
+ 	default n
+ 	help
+@@ -46,7 +38,139 @@
+     bool "Enable KernelSU Hook"
+     default n
+     help
+       This option enables the KernelSU Hook feature. If enabled, it will
+       override the kernel version check and enable the hook functionality.
  
 +menu "KernelSU - SUSFS"
 +config KSU_SUSFS
@@ -150,58 +159,10 @@ diff -u a/kernel/Kconfig b/kernel/Kconfig
 +      - Effective only on processes with uid < 2000.
 +      - Please be reminded that process with open access to the target and redirected path can be detected.
 +
-+endmenu
-+
  endmenu
-diff -u a/kernel/Makefile b/kernel/Makefile
---- a/kernel/Makefile
-+++ b/kernel/Makefile
-@@ -39,24 +39,13 @@ ifeq ($(CONFIG_KSU),m)
- $(error CONFIG_KSU_MANUAL_HOOK cannot be enabled when compiling KernelSU as LKM!)
- endif
- else
--ccflags-y += -DKSU_HOOK_WITH_KPROBES
-+ccflags-$(CONFIG_KPROBES) += -DKSU_HOOK_WITH_KPROBES
- endif
- endif
- 
- obj-$(CONFIG_KSU) += kernelsu.o
- 
--# .git is a text file while the module is imported by 'git submodule add'.
--ifeq ($(shell test -e $(srctree)/$(src)/../.git; echo $$?),0)
--$(shell cd $(srctree)/$(src); /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin [ -f ../.git/shallow ] && git fetch --unshallow)
--KSU_GIT_VERSION := $(shell cd $(srctree)/$(src); /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git rev-list --count HEAD)
--# ksu_version: major * 10000 + git version + 600 for historical reasons
--$(eval KSU_VERSION=$(shell expr 10000 + $(KSU_GIT_VERSION) + 600))
--$(info -- KernelSU version: $(KSU_VERSION))
--ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
--else # If there is no .git file, the default version will be passed.
--$(warning "KSU_GIT_VERSION not defined! It is better to make KernelSU a git submodule!")
--ccflags-y += -DKSU_VERSION=16
--endif
-+ccflags-y += -DKSU_VERSION=12560
- 
- # SELinux drivers check
- ifeq ($(shell grep -q " current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-@@ -121,4 +110,18 @@ ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
- ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
- ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
- 
-+ifneq ($(shell grep -Eq "^int path_umount" $(srctree)/fs/internal.h; echo $$?),0)
-+$(shell sed -i '/^extern void __init mnt_init/a int path_umount(struct path *path, int flags);' $(srctree)/fs/internal.h;)
-+$(info -- KSU_SUSFS: adding 'int path_umount(struct path *path, int flags);' to $(srctree)/fs/internal.h)
-+endif
 +
-+## For susfs stuff ##
-+ifeq ($(shell test -e $(srctree)/fs/susfs.c; echo $$?),0)
-+$(eval SUSFS_VERSION=$(shell cat $(srctree)/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g'))
-+$(info )
-+$(info -- SUSFS_VERSION: $(SUSFS_VERSION))
-+else
-+$(info -- You have not integrate susfs in your kernel.)
-+$(info -- Read: https://gitlab.com/simonpunk/susfs4ksu)
-+endif
- # Keep a new line here!! Because someone may append config
++endmenu
+
 diff -u a/kernel/allowlist.c b/kernel/allowlist.c
 --- a/kernel/allowlist.c
 +++ b/kernel/allowlist.c

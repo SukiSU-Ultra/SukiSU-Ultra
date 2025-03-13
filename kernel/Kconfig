@@ -42,4 +42,11 @@ config KSU_MANUAL_HOOK
 	  This function only available on GKI kernels, non-GKI are not
 	  affected.
 
+config KSU_VFS
+    bool "Enable KernelSU Hook"
+    default n
+    help
+      This option enables the KernelSU Hook feature. If enabled, it will
+      override the kernel version check and enable the hook functionality.
+
 endmenu
