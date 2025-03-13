@@ -106,7 +106,7 @@ struct apk_path_hash {
 	struct list_head list;
 };
 
-static struct list_head apk_path_hash_list = LIST_HEAD_INIT(apk_path_hash_list);
+static struct list_head apk_path_hash_list;
 
 struct my_dir_context {
 	struct dir_context ctx;
@@ -117,7 +117,10 @@ struct my_dir_context {
 	int *stop;
 };
 // https://docs.kernel.org/filesystems/porting.html
-// filldir_t (readdir callbacks) calling conventions have changed. Instead of returning 0 or -E... it returns bool now. false means "no more" (as -E... used to) and true - "keep going" (as 0 in old calling conventions). Rationale: callers never looked at specific -E... values anyway. -> iterate_shared() instances require no changes at all, all filldir_t ones in the tree converted.
+// filldir_t (readdir callbacks) calling conventions have changed.
+// Instead of returning 0 or -E... it returns bool now.
+// false means "no more" (as -E... used to) and true - "keep going" (as 0 in old calling conventions).
+// Rationale: callers never looked at specific -E... values anyway. -> iterate_shared() instances require no changes at all, all filldir_t ones in the tree converted.
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 #define FILLDIR_RETURN_TYPE bool
 #define FILLDIR_ACTOR_CONTINUE true
@@ -169,8 +172,12 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 		list_add_tail(&data->list, my_ctx->data_path_list);
 	} else {
 		if ((namelen == 8) && (strncmp(name, "base.apk", namelen) == 0)) {
-			struct apk_path_hash *pos, *n;
+			struct apk_path_hash *pos;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
+			unsigned int hash = full_name_hash(dirpath, strlen(dirpath));
+#else
 			unsigned int hash = full_name_hash(NULL, dirpath, strlen(dirpath));
+#endif
 			list_for_each_entry(pos, &apk_path_hash_list, list) {
 				if (hash == pos->hash) {
 					pos->exists = true;
@@ -179,22 +186,16 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 			}
 
 			bool is_manager = is_manager_apk(dirpath);
+#ifdef CONFIG_KSU_DEBUG
 			pr_info("Found new base.apk at path: %s, is_manager: %d\n",
 				dirpath, is_manager);
+#endif
 			if (is_manager) {
+#ifndef CONFIG_KSU_DEBUG
+				pr_info("Found new KernelSU base.apk at path: %s\n", dirpath);
+#endif
 				crown_manager(dirpath, my_ctx->private_data);
 				*my_ctx->stop = 1;
-
-				// Manager found, clear APK cache list
-				list_for_each_entry_safe(pos, n, &apk_path_hash_list, list) {
-					list_del(&pos->list);
-					kfree(pos);
-				}
-			} else {
-				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
-				apk_data->hash = hash;
-				apk_data->exists = true;
-				list_add_tail(&apk_data->list, &apk_path_hash_list);
 			}
 		}
 	}
@@ -207,6 +208,7 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 	int i, stop = 0;
 	struct list_head data_path_list;
 	INIT_LIST_HEAD(&data_path_list);
+	INIT_LIST_HEAD(&apk_path_hash_list);
 
 	// Initialize APK cache list
 	struct apk_path_hash *pos, *n;
@@ -249,12 +251,11 @@ skip_iterate:
 		}
 	}
 
-	// Remove stale cached APK entries
+	// clear apk_path_hash_list unconditionally
+	pr_info("search manager: cleanup!\n");
 	list_for_each_entry_safe(pos, n, &apk_path_hash_list, list) {
-		if (!pos->exists) {
-			list_del(&pos->list);
-			kfree(pos);
-		}
+		list_del(&pos->list);
+		kfree(pos);
 	}
 }
 

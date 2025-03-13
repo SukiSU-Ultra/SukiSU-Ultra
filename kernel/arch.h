@@ -18,11 +18,23 @@
 #define __PT_SP_REG sp
 #define __PT_IP_REG pc
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
 #define PRCTL_SYMBOL "__arm64_sys_prctl"
 #define SYS_READ_SYMBOL "__arm64_sys_read"
 #define SYS_NEWFSTATAT_SYMBOL "__arm64_sys_newfstatat"
+#define SYS_FSTATAT64_SYMBOL "__arm64_sys_fstatat64"
 #define SYS_FACCESSAT_SYMBOL "__arm64_sys_faccessat"
 #define SYS_EXECVE_SYMBOL "__arm64_sys_execve"
+#define SYS_EXECVE_COMPAT_SYMBOL "__arm64_compat_sys_execve"
+#else
+#define PRCTL_SYMBOL "sys_prctl"
+#define SYS_READ_SYMBOL "sys_read"
+#define SYS_NEWFSTATAT_SYMBOL "sys_newfstatat"
+#define SYS_FSTATAT64_SYMBOL "sys_fstatat64"
+#define SYS_FACCESSAT_SYMBOL "sys_faccessat"
+#define SYS_EXECVE_SYMBOL "sys_execve"
+#define SYS_EXECVE_COMPAT_SYMBOL "compat_sys_execve"
+#endif
 
 #elif defined(__x86_64__)
 
@@ -39,14 +51,28 @@
 #define __PT_RC_REG ax
 #define __PT_SP_REG sp
 #define __PT_IP_REG ip
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
 #define PRCTL_SYMBOL "__x64_sys_prctl"
 #define SYS_READ_SYMBOL "__x64_sys_read"
 #define SYS_NEWFSTATAT_SYMBOL "__x64_sys_newfstatat"
+#define SYS_FSTATAT64_SYMBOL "__x64_sys_fstatat64"
 #define SYS_FACCESSAT_SYMBOL "__x64_sys_faccessat"
 #define SYS_EXECVE_SYMBOL "__x64_sys_execve"
+#define SYS_EXECVE_COMPAT_SYMBOL "__x64_compat_sys_execve"
+#else
+#define PRCTL_SYMBOL "sys_prctl"
+#define SYS_READ_SYMBOL "sys_read"
+#define SYS_NEWFSTATAT_SYMBOL "sys_newfstatat"
+#define SYS_FSTATAT64_SYMBOL "sys_fstatat64"
+#define SYS_FACCESSAT_SYMBOL "sys_faccessat"
+#define SYS_EXECVE_SYMBOL "sys_execve"
+#define SYS_EXECVE_COMPAT_SYMBOL "compat_sys_execve"
+#endif
 
 #else
+#ifdef KSU_HOOK_WITH_KPROBES
 #error "Unsupported arch"
+#endif
 #endif
 
 /* allow some architecutres to override `struct pt_regs` */
@@ -67,6 +93,10 @@
 #define PT_REGS_SP(x) (__PT_REGS_CAST(x)->__PT_SP_REG)
 #define PT_REGS_IP(x) (__PT_REGS_CAST(x)->__PT_IP_REG)
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
 #define PT_REAL_REGS(regs) ((struct pt_regs *)PT_REGS_PARM1(regs))
+#else
+#define PT_REAL_REGS(regs) ((regs))
+#endif
 
 #endif
