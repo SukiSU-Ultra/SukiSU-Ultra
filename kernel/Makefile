@@ -114,6 +114,13 @@ $(info -- Supported Unofficial Manager: ShirkNeko (GKI) (Non-GKI))
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 
+# Checks if CONFIG_KSU_HOOK is defined.
+ifeq ($(strip $(CONFIG_KSU_VFS)),y)
+    $(info -- CONFIG_KSU_VFS is enabled.)
+    ccflags-y += -DCONFIG_KSU_VFS
+else
+    $(info -- CONFIG_KSU_VFS is not enabled.)
+endif
 
 ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
 ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"

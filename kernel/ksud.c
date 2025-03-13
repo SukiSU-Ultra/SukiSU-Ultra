@@ -27,6 +27,8 @@
 #include "kernel_compat.h"
 #include "selinux/selinux.h"
 
+#define KERNEL_VERSION_5_10 KERNEL_VERSION(5, 10, 0)
+
 static const char KERNEL_SU_RC[] =
 	"\n"
 
@@ -64,7 +66,14 @@ bool ksu_execveat_hook __read_mostly = true;
 bool ksu_input_hook __read_mostly = true;
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION_5_10 || defined(CONFIG_KSU_VFS)
+bool ksu_vfs_read_hook __read_mostly = true;
+bool ksu_execveat_hook __read_mostly = true;
+bool ksu_input_hook __read_mostly = true;
+#endif
+
 u32 ksu_devpts_sid;
+static bool is_boot_phase = true;
 
 void on_post_fs_data(void)
 {
@@ -81,6 +90,7 @@ void on_post_fs_data(void)
 
 	ksu_devpts_sid = ksu_get_devpts_sid();
 	pr_info("devpts sid: %d\n", ksu_devpts_sid);
+	is_boot_phase = false;
 }
 
 #define MAX_ARG_STRINGS 0x7FFFFFFF
@@ -434,7 +444,7 @@ int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 	if (*type == EV_KEY && *code == KEY_VOLUMEDOWN) {
 		int val = *value;
 		pr_info("KEY_VOLUMEDOWN val: %d\n", val);
-		if (val) {
+		if (val && is_boot_phase) {
 			// key pressed, count it
 			volumedown_pressed_count += 1;
 			if (is_volumedown_enough(volumedown_pressed_count)) {
@@ -664,4 +674,5 @@ void ksu_ksud_exit()
 	// unregister_kprobe(&vfs_read_kp);
 	unregister_kprobe(&input_event_kp);
 #endif
+is_boot_phase = false;
 }
