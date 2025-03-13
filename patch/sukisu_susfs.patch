@@ -986,7 +986,10 @@ diff -u a/kernel/ksu.c b/kernel/ksu.c
 diff -u a/kernel/ksud.c b/kernel/ksud.c
 --- a/kernel/ksud.c
 +++ b/kernel/ksud.c
-@@ -64,17 +64,22 @@ bool ksu_execveat_hook __read_mostly = true;
+@@ -69,24 +69,29 @@
+ #if LINUX_VERSION_CODE < KERNEL_VERSION_5_10 || defined(CONFIG_KSU_VFS)
+ bool ksu_vfs_read_hook __read_mostly = true;
+ bool ksu_execveat_hook __read_mostly = true;
  bool ksu_input_hook __read_mostly = true;
  #endif
  
@@ -996,6 +999,7 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
 +#endif // #ifdef CONFIG_KSU_SUSFS_SUS_SU
 +
  u32 ksu_devpts_sid;
+ static bool is_boot_phase = true;
  
 -void on_post_fs_data(void)
 +void ksu_on_post_fs_data(void)
@@ -1012,7 +1016,13 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  	ksu_load_allow_list();
  	// sanity check, this may influence the performance
  	stop_input_hook();
-@@ -197,7 +202,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
+ 
+ 	ksu_devpts_sid = ksu_get_devpts_sid();
+ 	pr_info("devpts sid: %d\n", ksu_devpts_sid);
+@@ -204,13 +209,13 @@
+ 				ksu_strncpy_from_user_nofault(
+ 					first_arg, p, sizeof(first_arg));
+ 				pr_info("/system/bin/init first arg: %s\n",
  					first_arg);
  				if (!strcmp(first_arg, "second_stage")) {
  					pr_info("/system/bin/init second_stage executed\n");
@@ -1021,7 +1031,13 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  					init_second_stage_executed = true;
  					ksu_android_ns_fs_check();
  				}
-@@ -221,7 +226,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
+ 			} else {
+ 				pr_err("/system/bin/init parse args err!\n");
+ 			}
+@@ -228,13 +233,13 @@
+ 				char first_arg[16];
+ 				ksu_strncpy_from_user_nofault(
+ 					first_arg, p, sizeof(first_arg));
  				pr_info("/init first arg: %s\n", first_arg);
  				if (!strcmp(first_arg, "--second-stage")) {
  					pr_info("/init second_stage executed\n");
@@ -1030,7 +1046,13 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  					init_second_stage_executed = true;
  					ksu_android_ns_fs_check();
  				}
-@@ -258,7 +263,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
+ 			} else {
+ 				pr_err("/init parse args err!\n");
+ 			}
+@@ -265,13 +270,13 @@
+ 					// Check if the environment variable name and value are matching
+ 					if (!strcmp(env_name,
+ 						    "INIT_SECOND_STAGE") &&
  					    (!strcmp(env_value, "1") ||
  					     !strcmp(env_value, "true"))) {
  						pr_info("/init second_stage executed\n");
@@ -1039,7 +1061,13 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  						init_second_stage_executed =
  							true;
  						ksu_android_ns_fs_check();
-@@ -273,7 +278,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
+ 					}
+ 				}
+ 			}
+@@ -280,13 +285,13 @@
+ 
+ 	if (unlikely(first_app_process && !memcmp(filename->name, app_process,
+ 						  sizeof(app_process) - 1))) {
  		first_app_process = false;
  		pr_info("exec app_process, /data prepared, second_stage: %d\n",
  			init_second_stage_executed);
@@ -1048,7 +1076,13 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  		stop_execve_hook();
  	}
  
-@@ -616,6 +621,10 @@ static void stop_execve_hook()
+ 	return 0;
+ }
+ 
+@@ -623,12 +628,16 @@
+ 	bool ret = schedule_work(&stop_execve_hook_work);
+ 	pr_info("unregister execve kprobe: %d!\n", ret);
+ #else
  	ksu_execveat_hook = false;
  	pr_info("stop execve_hook\n");
  #endif
@@ -1059,6 +1093,10 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  }
  
  static void stop_input_hook()
+ {
+ #ifdef KSU_HOOK_WITH_KPROBES
+ 	static bool input_hook_stopped = false;
+
 diff -u a/kernel/ksud.h b/kernel/ksud.h
 --- a/kernel/ksud.h
 +++ b/kernel/ksud.h
