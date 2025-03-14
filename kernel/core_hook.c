@@ -1,5 +1,4 @@
 #include <linux/capability.h>
-#include <linux/cred.h>
 #include <linux/dcache.h>
 #include <linux/err.h>
 #include <linux/init.h>
@@ -45,10 +44,6 @@
 #include "throne_tracker.h"
 #include "kernel_compat.h"
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0) ||	\
-	defined(KSU_COMPAT_GET_CRED_RCU)
-#define KSU_GET_CRED_RCU
-#endif
 
 static bool ksu_module_mounted = false;
 
@@ -137,27 +132,6 @@ static void disable_seccomp(void)
 #endif
 }
 
-/* 
- * If kernel devs not backport this, we'll enable this function
- * (Must put this on kernel_compat.c, but anyway)
- */
-#ifndef KSU_GET_CRED_RCU
-static inline const struct cred *get_cred_rcu(const struct cred *cred)
-{
-	struct cred *nonconst_cred = (struct cred *) cred;
-	if (!cred)
-		return NULL;
-#ifdef KSU_COMPAT_ATOMIC_LONG
-	if (!atomic_long_inc_not_zero(&nonconst_cred->usage))
-#else
-	if (!atomic_inc_not_zero(&nonconst_cred->usage))
-#endif		
-		return NULL;
-	validate_creds(cred);
-	nonconst_cred->non_rcu = 0;
-	return cred;
-}
-#endif
 
 void escape_to_root(void)
 {
@@ -256,6 +230,26 @@ int ksu_handle_rename(struct dentry *old_dentry, struct dentry *new_dentry)
 	return 0;
 }
 
+static void nuke_ext4_sysfs() {
+ 	struct path path;
+ 	int err = kern_path("/data/adb/modules", 0, &path);
+ 	if (err) {
+ 		pr_err("nuke path err: %d\n", err);
+ 		return;
+ 	}
+ 
+ 	struct super_block* sb = path.dentry->d_inode->i_sb;
+ 	const char* name = sb->s_type->name;
+ 	if (strcmp(name, "ext4") != 0) {
+ 		pr_info("nuke but module aren't mounted\n");
+ 		path_put(&path);
+ 		return;
+ 	}
+ 
+ 	ext4_unregister_sysfs(sb);
+  	path_put(&path);
+ }
+ 
 int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		     unsigned long arg4, unsigned long arg5)
 {
@@ -350,6 +344,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		case EVENT_MODULE_MOUNTED: {
 			ksu_module_mounted = true;
 			pr_info("module mounted!\n");
+			nuke_ext4_sysfs();
 			break;
 		}
 		default:
@@ -480,6 +475,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		bool enabled = (arg3 != 0);
 		if (enabled == ksu_su_compat_enabled) {
 			pr_info("cmd enable su but no need to change.\n");
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {// return the reply_ok directly
+ 				pr_err("prctl reply error, cmd: %lu\n", arg2);
+ 			}
 			return 0;
 		}
 		if (enabled) {
@@ -552,6 +550,7 @@ static void try_umount(const char *mnt, bool check_mnt, int flags)
 		return;
 	}
 
+	pr_info("%s: %s\n", __func__, mnt);
 	ksu_umount_mnt(&path, flags);
 }
 
@@ -624,28 +623,6 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 	return 0;
 }
 
-#ifdef MODULE
-static int renameat_handler_pre(struct kprobe *p, struct pt_regs *regs)
-{
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
-	// https://elixir.bootlin.com/linux/v5.12-rc1/source/include/linux/fs.h
-	struct renamedata *rd = PT_REGS_PARM1(regs);
-	struct dentry *old_entry = rd->old_dentry;
-	struct dentry *new_entry = rd->new_dentry;
-#else
-	struct dentry *old_entry = (struct dentry *)PT_REGS_PARM2(regs);
-	struct dentry *new_entry = (struct dentry *)PT_REGS_CCALL_PARM4(regs);
-#endif
-
-	return ksu_handle_rename(old_entry, new_entry);
-}
-
-static struct kprobe renameat_kp = {
-	.symbol_name = "vfs_rename",
-	.pre_handler = renameat_handler_pre,
-};
-#endif /* MODULE */
-
 static int ksu_task_prctl(int option, unsigned long arg2, unsigned long arg3,
 			  unsigned long arg4, unsigned long arg5)
 {
@@ -706,6 +683,27 @@ void __init ksu_lsm_hook_init(void)
 }
 
 #else
+// keep renameat_handler for LKM support
+ static int renameat_handler_pre(struct kprobe *p, struct pt_regs *regs)
+ {
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
+ 	// https://elixir.bootlin.com/linux/v5.12-rc1/source/include/linux/fs.h
+ 	struct renamedata *rd = PT_REGS_PARM1(regs);
+ 	struct dentry *old_entry = rd->old_dentry;
+ 	struct dentry *new_entry = rd->new_dentry;
+ #else
+ 	struct dentry *old_entry = (struct dentry *)PT_REGS_PARM2(regs);
+ 	struct dentry *new_entry = (struct dentry *)PT_REGS_CCALL_PARM4(regs);
+ #endif
+ 
+ 	return ksu_handle_rename(old_entry, new_entry);
+ }
+ 
+ static struct kprobe renameat_kp = {
+ 	.symbol_name = "vfs_rename",
+ 	.pre_handler = renameat_handler_pre,
+ };
+ 
 static int override_security_head(void *head, const void *new_head, size_t len)
 {
 	unsigned long base = (unsigned long)head & PAGE_MASK;

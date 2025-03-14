@@ -604,6 +604,36 @@ static void do_stop_input_hook(struct work_struct *work)
 {
 	unregister_kprobe(&input_event_kp);
 }
+#else
+ /* 
+  * ksu_handle_execve_ksud, execve_ksud handler for non kprobe
+  * adapted from sys_execve_handler_pre 
+  * https://github.com/tiann/KernelSU/commit/2027ac3
+  */
+ __maybe_unused int ksu_handle_execve_ksud(const char __user *filename_user,
+ 			const char __user *const __user *__argv)
+ {
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct filename filename_in, *filename_p;
+ 	char path[32];
+ 
+ 	// return early if disabled.
+ 	if (!ksu_execveat_hook) {
+ 		return 0;
+ 	}
+ 
+ 	if (!filename_user)
+ 		return 0;
+ 
+ 	memset(path, 0, sizeof(path));
+ 	ksu_strncpy_from_user_nofault(path, filename_user, 32);
+ 
+ 	// this is because ksu_handle_execveat_ksud calls it filename->name
+ 	filename_in.name = path;
+ 	filename_p = &filename_in;
+     
+ 	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, &argv, NULL, NULL);
+ }
 #endif
 
 static void stop_vfs_read_hook()
