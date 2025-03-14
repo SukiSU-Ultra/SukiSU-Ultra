@@ -4,8 +4,8 @@ on:
   push:
     branches: [ "mian" ]
     paths:
-      - '.github/workflows/susfsd.yml'
-      - 'userspace/susdfs/**'
+      - '.github/workflows/zakomksd.yml'
+      - 'userspace/zakomksd/**'
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   build-susfs:
-    name: Build userspace susfsd
+    name: Build userspace zakomksd
     runs-on: ubuntu-latest
 
     steps:
@@ -28,8 +28,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build susfsd
-        working-directory: ./userspace/susfsd
+      - name: Build zakomksd
+        working-directory: ./userspace/zakomksd
         run: |
           $ANDROID_NDK_HOME/ndk-build
 
@@ -37,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: susfsd-aarch64-linux-android
-          path: ./userspace/susfsd/libs
+          path: ./userspace/zakomksd/libs

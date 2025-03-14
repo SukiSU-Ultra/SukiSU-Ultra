@@ -8,7 +8,7 @@ on:
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/ksud/**'
-      - 'userspace/susfsd/**'
+      - 'userspace/zakomksd/**'
   pull_request:
     branches: [ "main" ]
     paths:
@@ -82,7 +82,7 @@ jobs:
     with:
       upload: ${{ needs.check-build-lkm.outputs.upload_lkm == 'true' }}
     secrets: inherit
-  build-susfsd:
+  build-zakomksd:
     if: ${{ always() }}
     needs: [ check-build-lkm, build-lkm ]
     strategy:
@@ -90,7 +90,7 @@ jobs:
         include:
           - target: aarch64-linux-android
             os: ubuntu-latest
-    uses: ./.github/workflows/susfsd.yml
+    uses: ./.github/workflows/zakomksd.yml
     with:
       target: ${{ matrix.target }}
       os: ${{ matrix.os }}
@@ -160,10 +160,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Download arm64 susfsd
+      - name: Download arm64 zakomksd
         uses: actions/download-artifact@v4
         with:
-          name: susfsd-aarch64-linux-android
+          name: zakomksd-aarch64-linux-android
           path: .
 
       - name: Download arm64 ksud
@@ -185,7 +185,7 @@ jobs:
           cp -f ../aarch64-linux-android/release/zakomk ../manager/app/src/main/jniLibs/arm64-v8a/libzakomk.so
           cp -f ../x86_64-linux-android/release/zakomk ../manager/app/src/main/jniLibs/x86_64/libzakomk.so
 
-      - name: Copy susfsd to app jniLibs
+      - name: Copy zakomksd to app jniLibs
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
           cp -f ../arm64-v8a/zakomksd ../manager/app/src/main/jniLibs/arm64-v8a/libzakomksd.so
