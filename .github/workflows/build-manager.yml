@@ -19,7 +19,7 @@ on:
       build_lkm:
         required: true
         type: choice
-        default: "auto"
+        default: "false"
         options:
           - "true"
           - "false"
