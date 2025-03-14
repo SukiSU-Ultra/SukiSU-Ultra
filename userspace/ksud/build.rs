@@ -15,7 +15,7 @@ fn get_git_version() -> Result<(u32, String), std::io::Error> {
         .trim()
         .parse()
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "Failed to parse git count"))?;
-    let version_code = 10000 + 200 + version_code; // For historical reasons
+    let version_code = 10000 + 600 + version_code; // For historical reasons
 
     let version_name = String::from_utf8(
         Command::new("git")
