@@ -1,4 +1,4 @@
-name: Build susfsd
+name: Build zakomksd
 
 on:
   push:
@@ -36,5 +36,5 @@ jobs:
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: susfsd-aarch64-linux-android
+          name: zakomksd-aarch64-linux-android
           path: ./userspace/zakomksd/libs
