@@ -1118,6 +1118,21 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  					}
  				}
  			}
+@@ -280,13 +280,13 @@
+ 
+ 	if (unlikely(first_app_process && !memcmp(filename->name, app_process,
+ 						  sizeof(app_process) - 1))) {
+ 		first_app_process = false;
+ 		pr_info("exec app_process, /data prepared, second_stage: %d\n",
+ 			init_second_stage_executed);
+-		on_post_fs_data(); // we keep this for old ksud
++		ksu_on_post_fs_data(); // we keep this for old ksud
+ 		stop_execve_hook();
+ 	}
+ 
+ 	return 0;
+ }
+ 
 
 diff -u a/kernel/ksud.h b/kernel/ksud.h
 --- a/kernel/ksud.h
