@@ -151,6 +151,33 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 	return 0;
 }
 
+int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
+ 			       void *__never_use_argv, void *__never_use_envp,
+ 			       int *__never_use_flags)
+ {
+ 	const char su[] = SU_PATH;
+ 	char path[sizeof(su) + 1];
+ 
+ 	if (unlikely(!filename_user))
+ 		return 0;
+ 
+ 	memset(path, 0, sizeof(path));
+ 	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+ 
+ 	if (likely(memcmp(path, su, sizeof(su))))
+ 		return 0;
+ 
+ 	if (!ksu_is_allow_uid(current_uid().val))
+ 		return 0;
+ 
+ 	pr_info("sys_execve su found\n");
+ 	*filename_user = ksud_user_path();
+ 
+ 	escape_to_root();
+ 
+ 	return 0;
+ }
+ 
 int ksu_handle_devpts(struct inode *inode)
 {
 #ifndef KSU_HOOK_WITH_KPROBES
@@ -188,33 +215,6 @@ int ksu_handle_devpts(struct inode *inode)
 }
 
 #ifdef KSU_HOOK_WITH_KPROBES
-
-int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
-			       void *__never_use_argv, void *__never_use_envp,
-			       int *__never_use_flags)
-{
-	const char su[] = SU_PATH;
-	char path[sizeof(su) + 1];
-
-	if (unlikely(!filename_user))
-		return 0;
-
-	memset(path, 0, sizeof(path));
-	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
-
-	if (likely(memcmp(path, su, sizeof(su))))
-		return 0;
-
-	if (!ksu_is_allow_uid(current_uid().val))
-		return 0;
-
-	pr_info("sys_execve su found\n");
-	*filename_user = ksud_user_path();
-
-	escape_to_root();
-
-	return 0;
-}
 
 static int faccessat_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {

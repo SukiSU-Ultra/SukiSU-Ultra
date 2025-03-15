@@ -20,7 +20,7 @@ $(error -- Backporting path_umount is mandatory !! Read: https://kernelsu.org/gu
 endif
 
 # https://github.com/tiann/KernelSU/pull/2102/files#diff-3a325663233178293ee38b8161f3be511a466af7e0156b9d03d5aed0497564bfR19
-NEED_KPROBES := $(strip $(shell \
+IS_GKI := $(strip $(shell \
     if [ "$(VERSION)" -ge "5" -a "$(PATCHLEVEL)" -ge "10" ]; then \
       echo TRUE; \
     else \
@@ -29,13 +29,13 @@ NEED_KPROBES := $(strip $(shell \
   ))
 
 
-ifeq ($(NEED_KPROBES),TRUE)
-$(info -- KernelSU: Kernel version is greater or equal to 5.10!)
+ifeq ($(IS_GKI),TRUE)
+$(info -- KernelSU: Kernel version is GKI.)
 # GKI manual hook checks
 # https://github.com/Pzqqt/android_kernel_xiaomi_marble/commit/5b8596b5604bcd0e6e12697a01136a0bb9eb0257
-ifeq ($(CONFIG_KSU_MANUAL_HOOK),y)
+ifeq ($(strip $(CONFIG_KSU_MANUAL_HOOK)),y)
 $(info -- KernelSU: Hooks with Manual hook!)
-ifeq ($(CONFIG_KSU),m)
+ifeq ($(strip $(CONFIG_KSU)),m)
 $(error CONFIG_KSU_MANUAL_HOOK cannot be enabled when compiling KernelSU as LKM!)
 endif
 else
