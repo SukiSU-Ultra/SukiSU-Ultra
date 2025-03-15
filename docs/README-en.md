@@ -1,4 +1,4 @@
-# Sukisu
+# SukiSU
 
 **Enlish** | [简体中文](README.md)
 
@@ -21,7 +21,7 @@ curl -LSs “https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/se
 
 
 
-## How to use 
+## How to use integrated susfs
 
 Use the susfs-dev branch directly without any patching
 
@@ -29,9 +29,37 @@ Use the susfs-dev branch directly without any patching
 Or use the default branch for patching, with files in [patch](../patch)
 
 ## More links
-Projects compiled based on MKSU-SKN and susfs
+Projects compiled based on Sukisu and susfs
 - [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
+
+## Hook method
+- This method references the hook manual to (https://github.com/rsuntk/KernelSU)
+
+1. **KPROBES hook:**
+    - This fork only supports GKI (5.10 - 6.x) kernels, all non-GKI kernels must use manual hooks.
+    - For Loadable Kernel Modules (LKM)
+    - Default hooking method for GKI kernels
+    - Requires `CONFIG_KPROBES=y`. 2.
+2. **Hooks manual:**
+    - For GKI (5.10 - 6.x) kernels, add `CONFIG_KSU_MANUAL_HOOK=y` to the kernel defconfig and make sure to protect KernelSU hooks by using `#ifdef CONFIG_KSU_MANUAL_HOOK` instead of `#ifdef CONFIG_KSU`.
+    - Standard KernelSU hooks: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+    - backslashxx syscall hooks: https://github.com/backslashxx/KernelSU/issues/5
+    - Some non-GKI devices that manually integrate KPROBES do not require the manual VFS hook `new_hook.patch` patch
+
+
+## Usage
+[GKI]
+1. such as millet redmi samsung and other devices (does not include the magic kernel manufacturers such as: meizu, a plus real me oppo)
+2. find more links in the GKI build project to find the device kernel version directly download with TWRP or kernel flashing tool to brush into the zip with AnyKernel3 suffix can be
+3. General without the suffix of the .zip compressed package is universal, gz suffix for the special TianGui models, lz4 suffix for Google models, general brush without the suffix can be!
+
+[OnePlus]
+1. Find the Yiga project in the More link and fill in your own, then build it with cloud compilation, and finally brush in the zip with AnyKernel3 suffix.
+Note: You only need to fill in the first two kernel versions, such as 5.10, 5.15, 6.1, 6.6.
+- Please search for the processor codename by yourself, usually it is all English without numbers.
+- Branching and configuration files, please fill in the kernel open source address.
+
 
 
 ## Features
@@ -39,8 +67,8 @@ Projects compiled based on MKSU-SKN and susfs
 1. Kernel-based `su` and root access management.
 2. Not based on [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) module system. 3.
 3. [Application Profiles](https://kernelsu.org/guide/app-profile.html): Lock root privileges in a cage. 4.
-4. more customization
-5. More customizable interface and features.
+4. Bringing back non-GKI/GKI 1.0 support
+5. More customization
 
 
 
