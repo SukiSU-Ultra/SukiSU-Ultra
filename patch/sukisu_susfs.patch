@@ -844,7 +844,7 @@ diff -u a/kernel/core_hook.c b/kernel/core_hook.c
  	// this hook is used for umounting overlayfs for some uid, if there isn't any module mounted, just ignore it!
  	if (!ksu_module_mounted) {
  		return 0;
-@@ -570,59 +946,89 @@
+@@ -570,59 +946,96 @@
  
  	if (0 != old_uid.val) {
  		// old process is not root, ignore it.
@@ -936,6 +936,13 @@ diff -u a/kernel/core_hook.c b/kernel/core_hook.c
 -
 +	ksu_try_umount("/debug_ramdisk", false, MNT_DETACH);
 +	ksu_try_umount("/sbin", false, MNT_DETACH);
++	
++	// try umount hosts file
++ 	ksu_try_umount("/system/etc/hosts", false, MNT_DETACH);
++	
++	// try umount lsposed dex2oat bins
++	ksu_try_umount("/apex/com.android.art/bin/dex2oat64", false, MNT_DETACH);
++	ksu_try_umount("/apex/com.android.art/bin/dex2oat32", false, MNT_DETACH);
 +#endif
  	return 0;
  }
@@ -967,7 +974,10 @@ diff -u a/kernel/kernel_compat.c b/kernel/kernel_compat.c
 diff -u a/kernel/kernel_compat.h b/kernel/kernel_compat.h
 --- a/kernel/kernel_compat.h
 +++ b/kernel/kernel_compat.h
-@@ -38,6 +38,7 @@ extern struct key *init_session_keyring;
+@@ -55,14 +55,15 @@
+ 	defined(CONFIG_IS_HW_HISI) ||	\
+ 	defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
+ extern struct key *init_session_keyring;
  #endif
  
  extern void ksu_android_ns_fs_check();
@@ -975,6 +985,12 @@ diff -u a/kernel/kernel_compat.h b/kernel/kernel_compat.h
  extern struct file *ksu_filp_open_compat(const char *filename, int flags,
  					 umode_t mode);
  extern ssize_t ksu_kernel_read_compat(struct file *p, void *buf, size_t count,
+ 				      loff_t *pos);
+ extern ssize_t ksu_kernel_write_compat(struct file *p, const void *buf,
+ 				       size_t count, loff_t *pos);
+ 
+ #endif
+
 diff -u a/kernel/ksu.c b/kernel/ksu.c
 --- a/kernel/ksu.c
 +++ b/kernel/ksu.c
@@ -1032,18 +1048,10 @@ diff -u a/kernel/ksu.c b/kernel/ksu.c
 diff -u a/kernel/ksud.c b/kernel/ksud.c
 --- a/kernel/ksud.c
 +++ b/kernel/ksud.c
-@@ -69,24 +69,29 @@
- #if LINUX_VERSION_CODE < KERNEL_VERSION_5_10 || defined(CONFIG_KSU_VFS)
- bool ksu_vfs_read_hook __read_mostly = true;
- bool ksu_execveat_hook __read_mostly = true;
+@@ -72,21 +72,21 @@
  bool ksu_input_hook __read_mostly = true;
  #endif
  
-+#ifdef CONFIG_KSU_SUSFS_SUS_SU
-+bool ksu_devpts_hook = false;
-+bool susfs_is_sus_su_ready = false;
-+#endif // #ifdef CONFIG_KSU_SUSFS_SUS_SU
-+
  u32 ksu_devpts_sid;
  static bool is_boot_phase = true;
  
@@ -1065,7 +1073,7 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  
  	ksu_devpts_sid = ksu_get_devpts_sid();
  	pr_info("devpts sid: %d\n", ksu_devpts_sid);
-@@ -204,13 +209,13 @@
+@@ -204,13 +204,13 @@
  				ksu_strncpy_from_user_nofault(
  					first_arg, p, sizeof(first_arg));
  				pr_info("/system/bin/init first arg: %s\n",
@@ -1080,7 +1088,7 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  			} else {
  				pr_err("/system/bin/init parse args err!\n");
  			}
-@@ -228,13 +233,13 @@
+@@ -228,13 +228,13 @@
  				char first_arg[16];
  				ksu_strncpy_from_user_nofault(
  					first_arg, p, sizeof(first_arg));
@@ -1095,7 +1103,7 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  			} else {
  				pr_err("/init parse args err!\n");
  			}
-@@ -265,13 +270,13 @@
+@@ -265,13 +265,13 @@
  					// Check if the environment variable name and value are matching
  					if (!strcmp(env_name,
  						    "INIT_SECOND_STAGE") &&
@@ -1110,38 +1118,6 @@ diff -u a/kernel/ksud.c b/kernel/ksud.c
  					}
  				}
  			}
-@@ -280,13 +285,13 @@
- 
- 	if (unlikely(first_app_process && !memcmp(filename->name, app_process,
- 						  sizeof(app_process) - 1))) {
- 		first_app_process = false;
- 		pr_info("exec app_process, /data prepared, second_stage: %d\n",
- 			init_second_stage_executed);
--		on_post_fs_data(); // we keep this for old ksud
-+		ksu_on_post_fs_data(); // we keep this for old ksud
- 		stop_execve_hook();
- 	}
- 
- 	return 0;
- }
- 
-@@ -623,12 +628,16 @@
- 	bool ret = schedule_work(&stop_execve_hook_work);
- 	pr_info("unregister execve kprobe: %d!\n", ret);
- #else
- 	ksu_execveat_hook = false;
- 	pr_info("stop execve_hook\n");
- #endif
-+#ifdef CONFIG_KSU_SUSFS_SUS_SU
-+	susfs_is_sus_su_ready = true;
-+	pr_info("susfs: sus_su is ready\n");
-+#endif
- }
- 
- static void stop_input_hook()
- {
- #ifdef KSU_HOOK_WITH_KPROBES
- 	static bool input_hook_stopped = false;
 
 diff -u a/kernel/ksud.h b/kernel/ksud.h
 --- a/kernel/ksud.h
@@ -1507,7 +1483,10 @@ diff -u a/kernel/sucompat.c b/kernel/sucompat.c
 diff -u a/kernel/throne_tracker.c b/kernel/throne_tracker.c
 --- a/kernel/throne_tracker.c
 +++ b/kernel/throne_tracker.c
-@@ -185,7 +185,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
+@@ -189,13 +189,13 @@
+ 				if (hash == pos->hash) {
+ 					pos->exists = true;
+ 					return FILLDIR_ACTOR_CONTINUE;
  				}
  			}
  
@@ -1516,7 +1495,13 @@ diff -u a/kernel/throne_tracker.c b/kernel/throne_tracker.c
  #ifdef CONFIG_KSU_DEBUG
  			pr_info("Found new base.apk at path: %s, is_manager: %d\n",
  				dirpath, is_manager);
-@@ -275,7 +275,7 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
+ #endif
+ 			if (is_manager) {
+ #ifndef CONFIG_KSU_DEBUG
+@@ -279,13 +279,13 @@
+ 			break;
+ 		}
+ 	}
  	return exist;
  }
  
@@ -1525,6 +1510,10 @@ diff -u a/kernel/throne_tracker.c b/kernel/throne_tracker.c
  {
  	struct file *fp =
  		ksu_filp_open_compat(SYSTEM_PACKAGES_LIST_PATH, O_RDONLY, 0);
+ 	if (IS_ERR(fp)) {
+ 		pr_err("%s: open " SYSTEM_PACKAGES_LIST_PATH " failed: %ld\n",
+ 		       __func__, PTR_ERR(fp));
+
 diff -u a/kernel/throne_tracker.h b/kernel/throne_tracker.h
 --- a/kernel/throne_tracker.h
 +++ b/kernel/throne_tracker.h
