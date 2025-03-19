@@ -72,7 +72,7 @@ private fun AboutCardContent() {
                 shape = CircleShape
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher),
+                    painter = painterResource(id = R.drawable.ic_launcher_monochrome),
                     contentDescription = "icon",
                     modifier = Modifier.scale(1.4f)
                 )
