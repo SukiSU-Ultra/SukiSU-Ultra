@@ -275,7 +275,7 @@ private class HorizonKernelWorker(private val context: Context) : Thread() {
     }
 
     private fun cleanup() {
-        runCommand(false, "rm -rf ${context.filesDir.absolutePath}/*")
+        runCommand(false, "find ${context.filesDir.absolutePath} -type f ! -name '*.jpg' ! -name '*.png' -delete")
     }
 
     private fun copy() {
@@ -445,6 +445,7 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
             is InstallMethod.SelectFile, is InstallMethod.HorizonKernel -> {
                 selectImageLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
                     type = "application/*"
+                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("application/octet-stream", "application/zip"))
                 })
             }
             is InstallMethod.DirectInstall -> {
