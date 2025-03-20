@@ -140,13 +140,17 @@ private fun BottomBar(navController: NavHostController) {
                 },
                 icon = {
                     if (isCurrentDestOnBackStack) {
-                        Icon(destination.iconSelected, stringResource(destination.label))
+                        Icon(destination.iconSelected, stringResource(destination.label), tint = Color.White)
                     } else {
                         Icon(destination.iconNotSelected, stringResource(destination.label))
                     }
                 },
                 label = { Text(stringResource(destination.label)) },
-                alwaysShowLabel = false
+                alwaysShowLabel = false,
+                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                    selectedTextColor = Color.Black,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         }
     }

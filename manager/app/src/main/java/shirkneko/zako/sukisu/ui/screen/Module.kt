@@ -111,6 +111,7 @@ import shirkneko.zako.sukisu.ui.viewmodel.ModuleViewModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.zip.ZipInputStream
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
@@ -121,6 +122,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
     val confirmDialog = rememberConfirmDialog()
+    val buttonTextColor = androidx.compose.ui.graphics.Color.Black
 
     val selectZipLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -354,7 +356,12 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                             contentDescription = moduleInstall
                         )
                     },
-                    text = { Text(text = moduleInstall) }
+                    text = {
+                        Text(
+                            text = moduleInstall,
+                            color = buttonTextColor
+                        )
+                    }
                 )
             }
         },
@@ -768,7 +775,11 @@ fun ModuleItem(
                             navigator.navigate(ExecuteModuleActionScreenDestination(module.dirId))
                             viewModel.markNeedRefresh()
                         },
-                        contentPadding = ButtonDefaults.TextButtonContentPadding
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = Color.White,
+                            contentColor =  Color.Black
+                        )
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
@@ -794,7 +805,11 @@ fun ModuleItem(
                         enabled = !module.remove && module.enabled,
                         onClick = { onClick(module) },
                         interactionSource = interactionSource,
-                        contentPadding = ButtonDefaults.TextButtonContentPadding
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        )
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
@@ -820,7 +835,11 @@ fun ModuleItem(
                         enabled = !module.remove,
                         onClick = { onUpdate(module) },
                         shape = ButtonDefaults.textShape,
-                        contentPadding = ButtonDefaults.TextButtonContentPadding
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        )
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
@@ -843,7 +862,11 @@ fun ModuleItem(
                 FilledTonalButton(
                     modifier = Modifier.defaultMinSize(52.dp, 32.dp),
                     onClick = { onUninstallClicked(module) },
-                    contentPadding = ButtonDefaults.TextButtonContentPadding
+                    contentPadding = ButtonDefaults.TextButtonContentPadding,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    )
                 ) {
                     if (!module.remove) {
                         Icon(
@@ -856,6 +879,7 @@ fun ModuleItem(
                             modifier = Modifier.size(20.dp).rotate(180f),
                             imageVector = Icons.Outlined.Refresh,
                             contentDescription = null,
+
                         )
                     }
                     if (!module.hasActionScript && !module.hasWebUi && updateUrl.isEmpty()) {
