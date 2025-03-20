@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import shirkneko.zako.sukisu.R
 import java.io.BufferedReader
-import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
@@ -45,29 +44,24 @@ object ModuleModify {
             try {
                 val busyboxPath = "/data/adb/ksu/bin/busybox"
                 val moduleDir = "/data/adb/modules"
-                val tempFile = File(context.cacheDir, "backup_${System.currentTimeMillis()}.tar.gz")
-                val tempPath = tempFile.absolutePath
 
+                // 直接将tar输出重定向到用户选择的文件
                 val command = """
                     cd "$moduleDir" &&
-                    $busyboxPath tar -czvf "$tempPath" ./*
+                    $busyboxPath tar -cz ./* > /proc/self/fd/1
                 """.trimIndent()
 
                 val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
-                process.waitFor()
+
+                // 直接将tar输出写入到用户选择的文件
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    process.inputStream.copyTo(output)
+                }
 
                 val error = BufferedReader(InputStreamReader(process.errorStream)).readText()
                 if (process.exitValue() != 0) {
                     throw IOException(context.getString(R.string.command_execution_failed, error))
                 }
-
-                context.contentResolver.openOutputStream(uri)?.use { output ->
-                    tempFile.inputStream().use { input ->
-                        input.copyTo(output)
-                    }
-                }
-
-                tempFile.delete()
 
                 withContext(Dispatchers.Main) {
                     snackBarHost.showSnackbar(
@@ -96,31 +90,21 @@ object ModuleModify {
             try {
                 val busyboxPath = "/data/adb/ksu/bin/busybox"
                 val moduleDir = "/data/adb/modules"
-                val tempFile = File(context.cacheDir, "temp_restore.tar.gz").apply {
-                    if (exists()) delete()
-                }
+
+                // 直接从用户选择的文件读取并解压
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "$busyboxPath tar -xz -C $moduleDir"))
 
                 context.contentResolver.openInputStream(uri)?.use { input ->
-                    tempFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
+                    input.copyTo(process.outputStream)
                 }
+                process.outputStream.close()
 
-                val command = """
-                    cd "$moduleDir" &&
-                    rm -rf * && 
-                    $busyboxPath tar -xzvf "${tempFile.absolutePath}"
-                """.trimIndent()
-
-                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
                 process.waitFor()
 
                 val error = BufferedReader(InputStreamReader(process.errorStream)).readText()
                 if (process.exitValue() != 0) {
                     throw IOException(context.getString(R.string.command_execution_failed, error))
                 }
-
-                tempFile.delete()
 
                 withContext(Dispatchers.Main) {
                     val snackbarResult = snackBarHost.showSnackbar(
@@ -166,24 +150,18 @@ object ModuleModify {
         withContext(Dispatchers.IO) {
             try {
                 val allowlistPath = "/data/adb/ksu/.allowlist"
-                val tempFile = File(context.cacheDir, "allowlist_backup_${System.currentTimeMillis()}")
 
-                val command = "cp $allowlistPath ${tempFile.absolutePath}"
-                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
-                process.waitFor()
+                // 直接复制文件到用户选择的位置
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat $allowlistPath"))
+
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    process.inputStream.copyTo(output)
+                }
 
                 val error = BufferedReader(InputStreamReader(process.errorStream)).readText()
                 if (process.exitValue() != 0) {
                     throw IOException(context.getString(R.string.command_execution_failed, error))
                 }
-
-                context.contentResolver.openOutputStream(uri)?.use { output ->
-                    tempFile.inputStream().use { input ->
-                        input.copyTo(output)
-                    }
-                }
-
-                tempFile.delete()
 
                 withContext(Dispatchers.Main) {
                     snackBarHost.showSnackbar(
@@ -211,26 +189,21 @@ object ModuleModify {
         withContext(Dispatchers.IO) {
             try {
                 val allowlistPath = "/data/adb/ksu/.allowlist"
-                val tempFile = File(context.cacheDir, "allowlist_restore_temp").apply {
-                    if (exists()) delete()
-                }
+
+                // 直接从用户选择的文件读取并写入到目标位置
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat > $allowlistPath"))
 
                 context.contentResolver.openInputStream(uri)?.use { input ->
-                    tempFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
+                    input.copyTo(process.outputStream)
                 }
+                process.outputStream.close()
 
-                val command = "cp ${tempFile.absolutePath} $allowlistPath"
-                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
                 process.waitFor()
 
                 val error = BufferedReader(InputStreamReader(process.errorStream)).readText()
                 if (process.exitValue() != 0) {
                     throw IOException(context.getString(R.string.command_execution_failed, error))
                 }
-
-                tempFile.delete()
 
                 withContext(Dispatchers.Main) {
                     snackBarHost.showSnackbar(
@@ -349,5 +322,9 @@ object ModuleModify {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/octet-stream"
         }
+    }
+
+    private fun reboot() {
+        Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
     }
 }
