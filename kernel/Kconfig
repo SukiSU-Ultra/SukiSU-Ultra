@@ -17,11 +17,10 @@ config KSU_DEBUG
 	  Enable KernelSU debug mode.
 
 config KSU_HOOK
-  bool "Enable KernelSU Hook"
-  default n
-  help
-    This option enables the KernelSU Hook feature. If enabled, it will
-    override the kernel version check and enable the hook functionality.
-
+	bool "Enable KernelSU Hook"
+	default n
+	help
+	  This option enables the KernelSU Hook feature. If enabled, it will
+	  override the kernel version check and enable the hook functionality.
 
 endmenu
