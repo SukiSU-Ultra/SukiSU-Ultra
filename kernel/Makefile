@@ -44,7 +44,7 @@ endif
 
 obj-$(CONFIG_KSU) += kernelsu.o
 
-KSU_MANUAL_VERSION := 12524
+KSU_MANUAL_VERSION := 12525
 
 ifeq ($(strip $(KSU_MANUAL_VERSION)),)
     ifeq ($(shell test -e $(srctree)/$(src)/../.git; echo $$?),0)
@@ -57,7 +57,7 @@ ifeq ($(strip $(KSU_MANUAL_VERSION)),)
     else
         # .git is a text file while the module is imported by 'git submodule add'.
         $(warning "KSU_GIT_VERSION not defined! Using default version.")
-        KSU_VERSION := 12524
+        KSU_VERSION := 12525
         $(info -- KernelSU version (Default): $(KSU_VERSION))
         ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
     endif
