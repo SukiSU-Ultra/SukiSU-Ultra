@@ -193,6 +193,8 @@
     <string name="hide_kernel_kernelsu_version_summary">隐藏内核部分的 KernelSU 版本号</string>
     <string name="hide_other_info">强迫症开关</string>
     <string name="hide_other_info_summary">隐藏主页上的超级用户数、模块数和 KPM 模块数信息</string>
+    <string name="hide_susfs_status">隐藏 SuSFS 状态信息</string>
+    <string name="hide_susfs_status_summary">隐藏主页上的 SuSFS 状态信息</string>
     <string name="theme_mode">主题模式</string>
     <string name="theme_follow_system">跟随系统</string>
     <string name="theme_light">浅色</string>

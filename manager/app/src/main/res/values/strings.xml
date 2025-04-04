@@ -194,6 +194,8 @@
     <string name="hide_kernel_kernelsu_version_summary">Hide kernel version</string>
     <string name="hide_other_info">Hide other info</string>
     <string name="hide_other_info_summary">Hides information about the number of super users, modules and KPM modules on the home page</string>
+    <string name="hide_susfs_status">Hide SuSFS status</string>
+    <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
     <string name="theme_mode">Theme Mode</string>
     <string name="theme_follow_system">follow-up system</string>
     <string name="theme_light">light color</string>

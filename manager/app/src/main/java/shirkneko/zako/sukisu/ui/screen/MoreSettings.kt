@@ -128,6 +128,17 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
         isHideOtherInfo = newValue
     }
 
+    // 隐藏 SuSFS 状态开关状态
+    var isHideSusfsStatus by remember {
+        mutableStateOf(prefs.getBoolean("is_hide_susfs_status", false))
+    }
+
+    // 隐藏 SuSFS 状态开关状态
+    val onHideSusfsStatusChange = { newValue: Boolean ->
+        prefs.edit { putBoolean("is_hide_susfs_status", newValue) }
+        isHideSusfsStatus = newValue
+    }
+    
     // SELinux 状态
     var selinuxEnabled by remember {
         mutableStateOf(Shell.cmd("getenforce").exec().out.firstOrNull() == "Enforcing")
@@ -272,6 +283,20 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                     checked = isHideOtherInfo
                 ) {
                     onHideOtherInfoChange(it)
+                }
+            }
+            AnimatedVisibility(
+                visible = isExpanded,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            ) {
+                // SuSFS 状态信息
+                SwitchItem(
+                    icon = Icons.Filled.VisibilityOff,
+                    title = stringResource(R.string.hide_susfs_status),
+                    summary = stringResource(R.string.hide_susfs_status_summary),
+                    checked = isHideSusfsStatus
+                ) {
+                    onHideSusfsStatusChange(it)
                 }
             }
 
