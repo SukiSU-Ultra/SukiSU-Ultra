@@ -1,5 +1,6 @@
 package shirkneko.zako.sukisu.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -23,6 +24,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -219,8 +221,10 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                     isExpanded = !isExpanded
                 }
             )
-
-            if (isExpanded) {
+            AnimatedVisibility(
+                visible = isExpanded,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            ) {
                 // 添加简洁模块开关
                 SwitchItem(
                     icon = Icons.Filled.Brush,
@@ -230,7 +234,11 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 ) {
                     onSimpleModeChange(it)
                 }
-
+            }
+            AnimatedVisibility(
+                visible = isExpanded,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            ) {
                 // 隐藏内核部分版本号
                 SwitchItem(
                     icon = Icons.Filled.VisibilityOff,
