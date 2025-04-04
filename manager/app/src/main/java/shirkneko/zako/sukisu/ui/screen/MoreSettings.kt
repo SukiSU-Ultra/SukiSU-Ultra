@@ -355,7 +355,9 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 }
             }
             // 只在未启用动态颜色时显示主题色选择
-            if (!useDynamicColor) {
+            AnimatedVisibility(
+                visible = !useDynamicColor
+            ) {
                 ListItem(
                     leadingContent = { Icon(Icons.Default.Palette, null) },
                     headlineContent = { Text("主题颜色") },
