@@ -254,5 +254,5 @@
     <string name="kpm_invalid_file">Invalid KPM file</string>
     <string name="kernel_patched">Kernel not patched</string>
     <string name="kernel_not_enabled">Kernel not configured</string>
-    <string name="more_settings_simplicity_mode">simplicity mode</string>
+    <string name="custom_settings">Custom settings</string>
 </resources>

@@ -237,8 +237,8 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
             var isExpanded by remember { mutableStateOf(false) }
 
             ListItem(
-                leadingContent = { Icon(Icons.Filled.FormatPaint, null) },
-                headlineContent = { Text(stringResource(R.string.more_settings_simplicity_mode)) },
+                leadingContent = { Icon(Icons.Filled.AutoFixHigh, null) },
+                headlineContent = { Text(stringResource(R.string.custom_settings)) },
                 modifier = Modifier.clickable {
                     isExpanded = !isExpanded
                 }

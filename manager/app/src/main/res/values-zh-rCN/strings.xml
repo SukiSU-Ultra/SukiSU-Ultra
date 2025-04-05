@@ -251,5 +251,5 @@
     <string name="kernel_module_notice">以下内核模块功能由 KernelPatch 开发，经过修改后加入 SukiSU Ultra 的内核模块功能</string>
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未来将会成为一个相对独立的 KSU 分支，但是依然感谢官方 KernelSU 和 MKSU 等做出的贡献</string>
-    <string name="more_settings_simplicity_mode">简洁模式</string>
+    <string name="custom_settings">个性化设置</string>
 </resources>
