@@ -181,7 +181,7 @@
     <string name="su_not_allowed">Granting superuser to %s is not allowed</string>
     <string name="settings_disable_su">Disable su compatibility</string>
     <string name="settings_disable_su_summary">Temporarily disable any applications from obtaining root privileges via the ⁠su command (existing root processes will not be affected).</string>
-    <string name="using_mksu_manager">You are using the SukiSU beta manager</string>
+    <string name="using_mksu_manager">You are using the SukiSU Beta manager</string>
     <string name="module_install_multiple_confirm">Are you sure you want to install the selected %d modules?</string>
     <string name="module_install_multiple_confirm_with_names">Sure you want to install the following %1$d modules? \n\n%2$s</string>
     <string name="more_settings">more settings</string>
