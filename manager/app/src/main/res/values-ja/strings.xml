@@ -35,7 +35,7 @@
     <string name="settings">設定</string>
     <string name="reboot_userspace">通常の再起動</string>
     <string name="reboot_recovery">リカバリーへ再起動</string>
-    <string name="reboot_bootloader">ブートローダー へ再起動</string>
+    <string name="reboot_bootloader">ブートローダーへ再起動</string>
     <string name="reboot_download">ダウンロードモードへ再起動</string>
     <string name="reboot_edl">EDL へ再起動</string>
     <string name="about">アプリについて</string>
