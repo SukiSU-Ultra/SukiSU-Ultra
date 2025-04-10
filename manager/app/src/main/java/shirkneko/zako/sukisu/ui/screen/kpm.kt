@@ -39,6 +39,8 @@ import androidx.core.content.edit
 import shirkneko.zako.sukisu.ui.theme.ThemeConfig
 import shirkneko.zako.sukisu.ui.component.rememberCustomDialog
 import shirkneko.zako.sukisu.ui.component.ConfirmDialogHandle
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 /**
  * KPM 管理界面
@@ -145,8 +147,6 @@ fun KpmScreen(
         )
     }
 
-
-
     val selectPatchLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -156,7 +156,8 @@ fun KpmScreen(
 
         scope.launch {
             val fileName = uri.lastPathSegment ?: "unknown.kpm"
-            val tempFile = File(context.cacheDir, fileName)
+            val encodedFileName = URLEncoder.encode(fileName, "UTF-8")
+            val tempFile = File(context.cacheDir, encodedFileName)
 
             context.contentResolver.openInputStream(uri)?.use { input ->
                 tempFile.outputStream().use { output ->
@@ -281,10 +282,10 @@ fun KpmScreen(
                                         snackBarHost = snackBarHost,
                                         kpmUninstallSuccess = kpmUninstallSuccess,
                                         kpmUninstallFailed = kpmUninstallFailed,
-                                        confirmDialog = confirmDialog,
                                         FailedtoCheckModuleFile = FailedtoCheckModuleFile,
                                         uninstall = uninstall,
-                                        cancel = cancel
+                                        cancel = cancel,
+                                        confirmDialog = confirmDialog
                                     )
                                 }
                             },
@@ -307,11 +308,21 @@ private suspend fun handleModuleInstall(
     kpmInstallSuccess: String,
     kpmInstallFailed: String
 ) {
-    val moduleName = tempFile.nameWithoutExtension
+    val moduleId = extractModuleId(tempFile.name)
+    if (moduleId == null) {
+        Log.e("KsuCli", "Failed to extract module ID from file: ${tempFile.name}")
+        snackBarHost.showSnackbar(
+            message = kpmInstallFailed,
+            duration = SnackbarDuration.Short
+        )
+        tempFile.delete()
+        return
+    }
+
+    val targetPath = "/data/adb/kpm/$moduleId.kpm"
 
     try {
         if (isEmbed) {
-            val targetPath = "/data/adb/kpm/$moduleName.kpm"
             Runtime.getRuntime().exec(arrayOf("su", "-c", "mkdir -p /data/adb/kpm")).waitFor()
             Runtime.getRuntime().exec(arrayOf("su", "-c", "cp ${tempFile.absolutePath} $targetPath")).waitFor()
         }
@@ -340,6 +351,18 @@ private suspend fun handleModuleInstall(
     tempFile.delete()
 }
 
+private fun extractModuleId(fileName: String): String? {
+    return try {
+        val decodedFileName = URLDecoder.decode(fileName, "UTF-8")
+        val pattern = "([^/]*?)\\.kpm$".toRegex()
+        val matchResult = pattern.find(decodedFileName)
+        matchResult?.groupValues?.get(1)
+    } catch (e: Exception) {
+        Log.e("KsuCli", "Failed to extract module ID: ${e.message}", e)
+        null
+    }
+}
+
 private suspend fun handleModuleUninstall(
     module: KpmViewModel.ModuleInfo,
     viewModel: KpmViewModel,
@@ -351,7 +374,7 @@ private suspend fun handleModuleUninstall(
     cancel: String,
     confirmDialog: ConfirmDialogHandle
 ) {
-    val moduleFileName = "primary:${module.id}.kpm"
+    val moduleFileName = "${module.id}.kpm"
     val moduleFilePath = "/data/adb/kpm/$moduleFileName"
 
     val fileExists = try {
