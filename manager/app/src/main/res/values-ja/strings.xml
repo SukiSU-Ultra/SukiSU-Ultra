@@ -15,7 +15,7 @@
     <string name="home_susfs_sus_su">SuS SU</string>
     <string name="home_manager_version">マネージャーのバージョン</string>
     <string name="home_fingerprint">Fingerprint</string>
-    <string name="home_selinux_status">SELinux の状態</string>
+    <string name="home_selinux_status">SELinux のステータス</string>
     <string name="selinux_status_disabled">無効</string>
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
