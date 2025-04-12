@@ -262,4 +262,5 @@
     <string name="confirm_uninstall_title">Confirm uninstallation</string>
     <string name="confirm_uninstall_confirm">removing</string>
     <string name="confirm_uninstall_dismiss">abolish</string>
+    <string name="custom_theme_color">Select theme color</string>
 </resources>
