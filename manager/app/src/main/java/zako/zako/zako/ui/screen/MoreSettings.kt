@@ -360,7 +360,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
             ) {
                 ListItem(
                     leadingContent = { Icon(Icons.Default.Palette, null) },
-                    headlineContent = { Text("主题颜色") },
+                    headlineContent = { Text(stringResource(id = R.string.custom_theme_color)) },
                     supportingContent = {
                         val currentThemeName = when (ThemeConfig.currentTheme) {
                             is ThemeColors.Default -> stringResource(R.string.color_default)
