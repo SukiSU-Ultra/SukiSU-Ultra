@@ -3,14 +3,14 @@
     <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Home</string>
     <string name="home_not_installed">Chưa cài đặt</string>
-    <string name="home_click_to_install">Nhấn để cài đặt</string>
-    <string name="home_working">Đang làm việc</string>
+    <string name="home_click_to_install">Nhấn vào đây để cài đặt</string>
+    <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %d</string>
     <string name="home_superuser_count">Superusers: %d</string>
     <string name="home_module_count">Mô-đun: %d</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">Không phát hiện được trình điều khiển KernelSU trên kernel của bạn.</string>
-    <string name="home_kernel">Kernel</string>
+    <string name="home_kernel">Phiên bản Kernel</string>
     <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_susfs_sus_su">SuS SU</string>
@@ -39,7 +39,7 @@
     <string name="reboot_bootloader">Khởi động lại vào Bootloader</string>
     <string name="reboot_download">Khởi động lại vào Download mode</string>
     <string name="reboot_edl">Khởi động lại vào EDL</string>
-    <string name="about">Thông tin</string>
+    <string name="about">Thông tin thêm</string>
     <string name="module_uninstall_confirm">Bạn có chắc chắn muốn gỡ cài đặt mô-đun %s không?</string>
     <string name="module_uninstall_success">%s đã gỡ cài đặt</string>
     <string name="module_uninstall_failed">Không thể gỡ cài đặt: %s</string>
@@ -242,7 +242,7 @@
     <string name="home_kpm_version">Phiên bản KPM</string>
     <string name="close_notice">đóng</string>
     <string name="kernel_module_notice">Các chức năng mô-đun kernel sau đây được KernelPatch phát triển và sửa đổi để bao gồm các chức năng mô-đun hạt nhân của SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra Mong đợi</string>
+    <string name="home_ContributionCard_kernelsu">SukiSU Ultra mong đợi:</string>
     <string name="kpm_control_success">thành công</string>
     <string name="kpm_control_failed">thất bại</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng xin cảm ơn KernelSU và MKSU chính thức vì những đóng góp của họ!</string>
@@ -250,8 +250,8 @@
     <string name="supported">được hỗ trợ</string>
     <string name="home_kpm_module">Số lượng mô-đun KPM：%d </string>
     <string name="kpm_invalid_file">Tệp KPM không hợp lệ</string>
-    <string name="kernel_patched">Kernel chưa được vá</string>
-    <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
+    <string name="kernel_patched">chưa được vá</string>
+    <string name="kernel_not_enabled">chưa được vá</string>
     <string name="custom_settings">Cài đặt tùy chỉnh</string>
     <string name="kpm_install_mode">cài đặt</string>
     <string name="kpm_install_mode_load">tải</string>
@@ -262,4 +262,5 @@
     <string name="confirm_uninstall_title">Xác nhận gỡ cài đặt</string>
     <string name="confirm_uninstall_confirm">loại bỏ</string>
     <string name="confirm_uninstall_dismiss">bãi bỏ</string>
+    <string name="theme_color">Màu chủ đề</string>
 </resources>
