@@ -8,7 +8,7 @@ on:
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/ksud/**'
-      - 'userspace/zakomksd/**'
+      - 'userspace/susfs/**'
       - 'userspace/kpmmgr/**'
   pull_request:
     branches: [ "main" ]
@@ -83,7 +83,7 @@ jobs:
     with:
       upload: ${{ needs.check-build-lkm.outputs.upload_lkm == 'true' }}
     secrets: inherit
-  build-zakomksd:
+  build-susfs:
     if: ${{ always() }}
     needs: [ check-build-lkm, build-lkm ]
     strategy:
@@ -91,7 +91,7 @@ jobs:
         include:
           - target: aarch64-linux-android
             os: ubuntu-latest
-    uses: ./.github/workflows/zakomksd.yml
+    uses: ./.github/workflows/susfs.yml
     with:
       target: ${{ matrix.target }}
       os: ${{ matrix.os }}
@@ -174,10 +174,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Download arm64 zakomksd
+      - name: Download arm64 susfs
         uses: actions/download-artifact@v4
         with:
-          name: zakomksd-aarch64-linux-android
+          name: susfs-aarch64-linux-android
           path: .
 
       - name: Download arm64 kpmmgr
@@ -202,18 +202,18 @@ jobs:
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
           mkdir -p app/src/main/jniLibs/x86_64
-          cp -f ../aarch64-linux-android/release/zakomk ../manager/app/src/main/jniLibs/arm64-v8a/libzakomk.so
-          cp -f ../x86_64-linux-android/release/zakomk ../manager/app/src/main/jniLibs/x86_64/libzakomk.so
+          cp -f ../aarch64-linux-android/release/zakozako ../manager/app/src/main/jniLibs/arm64-v8a/libzakozako.so
+          cp -f ../x86_64-linux-android/release/zakozako ../manager/app/src/main/jniLibs/x86_64/libzakozako.so
 
       - name: Copy kpmmgr to app jniLibs
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
           cp -f ../arm64-v8a/kpmmgr ../manager/app/src/main/jniLibs/arm64-v8a/libkpmmgr.so
       
-      - name: Copy zakomksd to app jniLibs
+      - name: Copy susfs to app jniLibs
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
-          cp -f ../arm64-v8a/zakomksd ../manager/app/src/main/jniLibs/arm64-v8a/libzakomksd.so
+          cp -f ../arm64-v8a/zakozakozako ../manager/app/src/main/jniLibs/arm64-v8a/libzakozakozako.so
 
       - name: Build with Gradle
         run: |

@@ -12,7 +12,7 @@
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_becomeManager(JNIEnv *env, jobject, jstring pkg) {
+Java_zako_zako_zako_Natives_becomeManager(JNIEnv *env, jobject, jstring pkg) {
     auto cpkg = env->GetStringUTFChars(pkg, nullptr);
     auto result = become_manager(cpkg);
     env->ReleaseStringUTFChars(pkg, cpkg);
@@ -21,13 +21,13 @@ Java_shirkneko_zako_sukisu_Natives_becomeManager(JNIEnv *env, jobject, jstring p
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_shirkneko_zako_sukisu_Natives_getVersion(JNIEnv *env, jobject) {
+Java_zako_zako_zako_Natives_getVersion(JNIEnv *env, jobject) {
     return get_version();
 }
 
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_shirkneko_zako_sukisu_Natives_getAllowList(JNIEnv *env, jobject) {
+Java_zako_zako_zako_Natives_getAllowList(JNIEnv *env, jobject) {
     int uids[1024];
     int size = 0;
     bool result = get_allow_list(uids, &size);
@@ -42,13 +42,13 @@ Java_shirkneko_zako_sukisu_Natives_getAllowList(JNIEnv *env, jobject) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_isSafeMode(JNIEnv *env, jclass clazz) {
+Java_zako_zako_zako_Natives_isSafeMode(JNIEnv *env, jclass clazz) {
     return is_safe_mode();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_isLkmMode(JNIEnv *env, jclass clazz) {
+Java_zako_zako_zako_Natives_isLkmMode(JNIEnv *env, jclass clazz) {
     return is_lkm_mode();
 }
 
@@ -111,7 +111,7 @@ static void fillArrayWithList(JNIEnv *env, jobject list, int *data, int count) {
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_shirkneko_zako_sukisu_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, jint uid) {
+Java_zako_zako_zako_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, jint uid) {
     if (env->GetStringLength(pkg) > KSU_MAX_PACKAGE_NAME) {
         return nullptr;
     }
@@ -129,7 +129,7 @@ Java_shirkneko_zako_sukisu_Natives_getAppProfile(JNIEnv *env, jobject, jstring p
 
     bool useDefaultProfile = !get_app_profile(key, &profile);
 
-    auto cls = env->FindClass("shirkneko/zako/sukisu/Natives$Profile");
+    auto cls = env->FindClass("zako/zako/zako/Natives$Profile");
     auto constructor = env->GetMethodID(cls, "<init>", "()V");
     auto obj = env->NewObject(cls, constructor);
     auto keyField = env->GetFieldID(cls, "name", "Ljava/lang/String;");
@@ -207,8 +207,8 @@ Java_shirkneko_zako_sukisu_Natives_getAppProfile(JNIEnv *env, jobject, jstring p
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_setAppProfile(JNIEnv *env, jobject clazz, jobject profile) {
-    auto cls = env->FindClass("shirkneko/zako/sukisu/Natives$Profile");
+Java_zako_zako_zako_Natives_setAppProfile(JNIEnv *env, jobject clazz, jobject profile) {
+    auto cls = env->FindClass("zako/zako/zako/Natives$Profile");
 
     auto keyField = env->GetFieldID(cls, "name", "Ljava/lang/String;");
     auto currentUidField = env->GetFieldID(cls, "currentUid", "I");
@@ -293,16 +293,16 @@ Java_shirkneko_zako_sukisu_Natives_setAppProfile(JNIEnv *env, jobject clazz, job
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_uidShouldUmount(JNIEnv *env, jobject thiz, jint uid) {
+Java_zako_zako_zako_Natives_uidShouldUmount(JNIEnv *env, jobject thiz, jint uid) {
     return uid_should_umount(uid);
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_isSuEnabled(JNIEnv *env, jobject thiz) {
+Java_zako_zako_zako_Natives_isSuEnabled(JNIEnv *env, jobject thiz) {
     return is_su_enabled();
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_shirkneko_zako_sukisu_Natives_setSuEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+Java_zako_zako_zako_Natives_setSuEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_su_enabled(enabled);
 }

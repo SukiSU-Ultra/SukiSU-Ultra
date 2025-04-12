@@ -27,6 +27,7 @@
 #include "kpm.h"
 #include "compact.h"
 #include "../allowlist.h"
+#include "../manager.h"
 
 unsigned long sukisu_compact_find_symbol(const char* name);
 
@@ -49,6 +50,16 @@ int sukisu_is_uid_should_umount(uid_t uid) {
     return ksu_uid_should_umount(uid) ? 1 : 0;
 }
 
+static
+int sukisu_is_current_uid_manager() {
+    return is_manager();
+}
+
+static
+uid_t sukisu_get_manager_uid() {
+    return ksu_manager_uid;
+}
+
 // ======================================================================
 
 struct CompactAddressSymbol {
@@ -62,7 +73,9 @@ static struct CompactAddressSymbol address_symbol [] = {
     { "is_run_in_sukisu_ultra", (void*)1 },
     { "is_su_allow_uid", &sukisu_is_su_allow_uid },
     { "get_ap_mod_exclude", &sukisu_get_ap_mod_exclude },
-    { "is_uid_should_umount", &sukisu_is_uid_should_umount }
+    { "is_uid_should_umount", &sukisu_is_uid_should_umount },
+    { "is_current_uid_manager", &sukisu_is_current_uid_manager },
+    { "get_manager_uid", &sukisu_get_manager_uid }
 };
 
 unsigned long sukisu_compact_find_symbol(const char* name) {

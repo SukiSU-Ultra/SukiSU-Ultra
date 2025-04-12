@@ -71,4 +71,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ksud-${{ inputs.target }}
-        path: userspace/ksud/target/**/release/zakomk*
+        path: userspace/ksud/target/**/release/zakozako*
