@@ -155,6 +155,33 @@ DYNAMIC_STRUCT_BEGIN(netlink_kernel_cfg)
 #endif
 DYNAMIC_STRUCT_END(netlink_kernel_cfg)
 
+
+#include <linux/sched.h>
+DYNAMIC_STRUCT_BEGIN(task_struct)
+    DEFINE_MEMBER(task_struct, pid)
+    DEFINE_MEMBER(task_struct, tgid)
+    DEFINE_MEMBER(task_struct, cred)
+    DEFINE_MEMBER(task_struct, real_cred)
+    DEFINE_MEMBER(task_struct, comm)
+    DEFINE_MEMBER(task_struct, parent)
+    DEFINE_MEMBER(task_struct, group_leader)
+    DEFINE_MEMBER(task_struct, mm)
+    DEFINE_MEMBER(task_struct, active_mm)
+    DEFINE_MEMBER(task_struct, thread_pid)
+    DEFINE_MEMBER(task_struct, files)
+    DEFINE_MEMBER(task_struct, seccomp)
+#ifdef CONFIG_THREAD_INFO_IN_TASK
+    DEFINE_MEMBER(task_struct, thread_info)
+#endif
+#ifdef CONFIG_CGROUPS
+    DEFINE_MEMBER(task_struct, cgroups)
+#endif
+#ifdef CONFIG_SECURITY
+    DEFINE_MEMBER(task_struct, security)
+#endif
+    DEFINE_MEMBER(task_struct, thread)
+DYNAMIC_STRUCT_END(task_struct)
+
 // =====================================================================================================================
 
 #define STRUCT_INFO(name) &(name##_info)
@@ -169,7 +196,8 @@ struct DynamicStructInfo* dynamic_struct_infos[] = {
     #endif
     STRUCT_INFO(vm_area_struct),
     STRUCT_INFO(vm_operations_struct),
-    STRUCT_INFO(netlink_kernel_cfg)
+    STRUCT_INFO(netlink_kernel_cfg),
+    STRUCT_INFO(task_struct)
 };
 
 // return 0 if successful

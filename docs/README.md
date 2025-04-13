@@ -52,7 +52,12 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/
 - 我们基于KernelPatch去掉了和KSU重复的功能，保留了KPM支持
 - 我们将会引入更多的兼容APatch的函数来确保KPM功能的完整性
 
+
 开源地址: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
+
+
+KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
+
 
 ## 更多链接
 基于 SukiSU 和 susfs 编译的项目

@@ -64,7 +64,7 @@ jobs:
             cd ..
             rm -rf tmp
           fi
-          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == 'refs/heads/susfs' ]; then
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == 'refs/heads/main' ]; then
             need_upload=true
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             need_upload="${{ inputs.upload_lkm }}"
