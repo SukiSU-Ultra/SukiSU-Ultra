@@ -10,7 +10,7 @@
     <string name="home_module_count">Modules: %d</string>
     <string name="home_unsupported">Unsupported</string>
     <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?.</string>
-    <string name="home_kernel">Kernel</string>
+    <string name="home_kernel">Kernel version</string>
     <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">Version de SuSFS</string>
     <string name="home_susfs_sus_su">SuS SU</string>
@@ -214,7 +214,7 @@
     <string name="color_ivory">ivory</string>
     <string name="flash_option">Brush Options</string>
     <string name="flash_option_tip">Select the file to be flashed</string>
-    <string name="horizon_kernel">Anykernel3 Flush</string>
+    <string name="horizon_kernel">Anykernel3 Flash</string>
     <string name="root_required">Requires root privileges</string>
     <string name="copy_failed">File Copy Failure</string>
     <string name="reboot_complete_title">Scrubbing complete</string>
