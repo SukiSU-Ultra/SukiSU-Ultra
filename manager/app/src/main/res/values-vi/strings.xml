@@ -228,13 +228,13 @@
     <string name="color_yellow">Vàng</string>
     <string name="kpm">Mô-đun kpm</string>
     <string name="kpm_title">Mô-đun KPM</string>
-    <string name="kpm_empty">Không có mô-đun kernel nào được cài đặt tại thời điểm này</string>
+    <string name="kpm_empty">Không có mô-đun nào được cài đặt.</string>
     <string name="kpm_version">Phát hành</string>
     <string name="kpm_author">Tác giả</string>
     <string name="kpm_uninstall">Gỡ cài đặt</string>
     <string name="kpm_uninstall_success">Đã gỡ cài đặt thành công</string>
     <string name="kpm_uninstall_failed">Không thể gỡ cài đặt</string>
-    <string name="kpm_install">Chọn Cài đặt</string>
+    <string name="kpm_install">Cài đặt</string>
     <string name="kpm_install_success">Tải module kpm thành công</string>
     <string name="kpm_install_failed">Tải module kpm không thành công</string>
     <string name="kpm_args">thông số kpm</string>
