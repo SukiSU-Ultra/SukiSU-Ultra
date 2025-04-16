@@ -89,24 +89,24 @@ Note: You only need to fill in the first two parts of kernel versions, such as 5
 - All other parts except the “kernel” directory are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
 ## スポンサーシップの一覧
-- [Ktouls](https://github.com/Ktouls) Thanks so much for bringing me support
-- [zaoqi123](https://github.com/zaoqi123) It's not a bad idea to buy me a milk tea
-- [wswzgdg](https://github.com/wswzgdg) Many thanks for supporting this project
-- [yspbwx2010](https://github.com/yspbwx2010) Many thanks
+- [Ktouls](https://github.com/Ktouls) 応援をしてくれたことに感謝。
+- [zaoqi123](https://github.com/zaoqi123) ミルクティーを買ってあげるのも良い考えですね。
+- [wswzgdg](https://github.com/wswzgdg) このプロジェクトを支援していただき、ありがとうございます。
+- [yspbwx2010](https://github.com/yspbwx2010) どうもありがとう。
 
 
 
 
-If the above list does not have your name, I will update it as soon as possible, and thanks again for your support!
+上記の一覧にあなたの名前がない場合は、できるだけ早急に更新しますので再度ご支援をお願いします。
 
 ## 貢献者
 
-- [KernelSU](https://github.com/tiann/KernelSU): オリジナルのプロジェクト
-- [MKSU](https://github.com/5ec1cff/KernelSU): 使用しているプロジェクト
-- [RKSU](https://github.com/rsuntk/KernelsU): Reintroduced the support of non-GKI devices using the kernel of this project
-- [susfs](https://gitlab.com/simonpunk/susfs4ksu)：使用している susfs ファイルシステム
-- [KernelSU](https://git.zx2c4.com/kernel-assisted-superuser/about/): KernelSU conceptualization
-- [Magisk](https://github.com/topjohnwu/Magisk): パワフルな root ユーティリティ
-- [genuine](https://github.com/brevent/genuine/): APK v2 署名認証
-- [Diamorphine](https://github.com/m0nad/Diamorphine): いくつかの rootkit ユーティリティ
-- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch はカーネルモジュールの APatch 実装での重要な部分となります
+- [KernelSU](https://github.com/tiann/KernelSU): オリジナルのプロジェクトです。
+- [MKSU](https://github.com/5ec1cff/KernelSU): 使用しているプロジェクトです。
+- [RKSU](https://github.com/rsuntk/KernelsU): このプロジェクトのカーネルを使用して非 GKI デバイスのサポートを追加しています。
+- [susfs](https://gitlab.com/simonpunk/susfs4ksu)：使用している susfs ファイルシステムです。
+- [KernelSU](https://git.zx2c4.com/kernel-assisted-superuser/about/): KernelSU について。
+- [Magisk](https://github.com/topjohnwu/Magisk): パワフルな root ユーティリティです。
+- [genuine](https://github.com/brevent/genuine/): APK v2 署名認証で使用しています。
+- [Diamorphine](https://github.com/m0nad/Diamorphine): いくつかの rootkit ユーティリティを使用しています。
+- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch はカーネルモジュールの APatch 実装での重要な部分となります。
