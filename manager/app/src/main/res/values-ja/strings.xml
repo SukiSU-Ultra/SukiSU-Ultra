@@ -9,7 +9,7 @@
     <string name="home_module_count">モジュール: %d</string>
     <string name="home_unsupported">非対応</string>
     <string name="home_unsupported_reason">カーネルの KernelSU ドライバが未検出です。カーネルが間違ってませんか？</string>
-    <string name="home_kernel">カーネル</string>
+    <string name="home_kernel">カーネルのバージョン</string>
     <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">SuSFS のバージョン</string>
     <string name="home_susfs_sus_su">SuS SU</string>
@@ -47,13 +47,13 @@
     <string name="refresh">更新</string>
     <string name="show_system_apps">システムアプリを表示</string>
     <string name="hide_system_apps">システムアプリを非表示</string>
-    <string name="send_log">ログを送信</string>
+    <string name="send_log">ログを送信する</string>
     <string name="safe_mode">セーフモード</string>
     <string name="reboot_to_apply">再起動すると有効化されます</string>
     <string name="module_magisk_conflict">モジュールが Magisk との競合により利用できません！</string>
     <string name="home_learn_kernelsu">KernelSU について学ぶ</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/ja_JP/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">KernelSU のインストール方法やモジュールの使い方を学習できます</string>
+    <string name="home_click_to_learn_kernelsu">KernelSU のインストール方法やモジュールの使い方を学習できます。</string>
     <string name="home_support_title">支援する</string>
     <string name="home_support_content">KernelSU は今後も無料でオープンソースです。ですが、寄付をして頂けると開発者への貢献になります。</string>
     <string name="about_source_code"><![CDATA[ソースコードは %1$s で確認できます。<br/>%2$s チャンネルにご参加ください。]]></string>
@@ -71,7 +71,7 @@
     <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
     <string name="require_kernel_version" formatted="false">現在の KernelSU のバージョン %d は低すぎるため、マネージャーは正常に動作しません。バージョン %d 以上に更新してください！</string>
-    <string name="settings_umount_modules_default">デフォルトでモジュールのマウントを解除</string>
+    <string name="settings_umount_modules_default">デフォルトでモジュールのマウントを解除する</string>
     <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通のデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="settings_susfs_toggle">Kprobe フックを非表示にする</string>
     <string name="settings_susfs_toggle_summary">KSU によって生成された Kprobe フックを無効化して、代替となる組み込みの非 Kprobe を有効化します。Kprobe をサポートしない 非 GKI カーネルに適用される同等の機能を実装します。</string>
@@ -88,7 +88,7 @@
     <string name="failed_to_update_sepolicy">SELinux ルールの更新に失敗しました %s</string>
     <string name="module_changelog">変更履歴</string>
     <string name="settings_profile_template">アプリプロファイルのテンプレート</string>
-    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理する</string>
+    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します。</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
     <string name="app_profile_template_id">ID</string>
@@ -109,8 +109,8 @@
     <string name="app_profile_template_save_failed">テンプレートの保存に失敗しました</string>
     <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="module_changelog_failed">変更ログの取得に失敗しました: %s</string>
-    <string name="settings_check_update">更新を確認</string>
-    <string name="settings_check_update_summary">アプリを開いたときに更新を自動的に確認します</string>
+    <string name="settings_check_update">更新を確認する</string>
+    <string name="settings_check_update_summary">アプリを開いたときに更新を自動的に確認します。</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
@@ -172,7 +172,7 @@
     <string name="backup_allowlist">許可リストをバックアップ</string>
     <string name="restore_allowlist">許可リストを復元</string>
     <string name="settings_custom_background">カスタム背景を設定</string>
-    <string name="settings_custom_background_summary">カスタム背景を設定します</string>
+    <string name="settings_custom_background_summary">カスタム背景を設定します。</string>
     <string name="settings_card_manage">カードの管理</string>
     <string name="settings_card_alpha">カードのアルファ</string>
     <string name="settings_restore_default">デフォルトに復元</string>
@@ -189,13 +189,13 @@
     <string name="selinux_enabled">有効</string>
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
-    <string name="simple_mode_summary">ON にすると不要なカードを隠します</string>
+    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします。</string>
     <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示にする</string>
-    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします</string>
+    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
     <string name="hide_other_info">その他の情報を非表示にする</string>
-    <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を隠します。</string>
+    <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示にする</string>
-    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を隠します</string>
+    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
     <string name="theme_mode">テーマモード</string>
     <string name="theme_follow_system">システムに従う</string>
     <string name="theme_light">ライトカラー</string>
@@ -248,7 +248,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra は将来的に KSU から比較的に独立したブランチになりますが、公式の KernelSU や MKSU などの貢献に繋がるでしょう！</string>
     <string name="not_supported">非対応</string>
     <string name="supported">対応</string>
-    <string name="home_kpm_module">KPM モジュール数：%d </string>
+    <string name="home_kpm_module">KPM モジュール数: %d </string>
     <string name="kpm_invalid_file">無効な KPM ファイル</string>
     <string name="kernel_patched">カーネルはパッチされていません</string>
     <string name="kernel_not_enabled">カーネルは設定されていません</string>
@@ -262,4 +262,8 @@
     <string name="confirm_uninstall_title">アンインストールを確認</string>
     <string name="confirm_uninstall_confirm">アンインストール中</string>
     <string name="confirm_uninstall_dismiss">中止</string>
+    <string name="theme_color">テーマカラー</string>
+    <string name="invalid_file_type">ファイルの種類が正しくありません。.kpm ファイルを選択してください。</string>
+    <string name="confirm_uninstall_title_with_filename">アンインストール</string>
+    <string name="confirm_uninstall_content">次の KPM モジュールがアンインストールされます:\n%s</string>
 </resources>
