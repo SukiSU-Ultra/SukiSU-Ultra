@@ -4,7 +4,8 @@
 
 基于 [KernelSU](https://github.com/tiann/KernelSU) 的安卓设备 root 解决方案
 
-**实验性!使用风险自负!**
+**实验性! 使用风险自负!**
+
 
 >
 > 这是非官方分支，保留所有权利 [@tiann](https://github.com/tiann)
@@ -29,22 +30,21 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/
 
 ## 如何集成 susfs
 
-1. 直接使用 susfs-dev 分支，不需要再集成 susfs
-   
+1. 直接使用 susfs-stable 或者 susfs-dev 分支，不需要再集成 susfs
 
 ## 钩子方法
 - 此部分引用自 [rsuntk 的钩子方法](https://github.com/rsuntk/KernelSU)
 
 1. **KPROBES 钩子：**
-    - 此方法仅支持 GKI 2.0（5.10 - 6.x）内核,所有非 GKI 2.0 内核都必须使用手动钩子
+    - 此方法仅支持 GKI 2.0 (5.10 - 6.x) 内核, 所有非 GKI 2.0 内核都必须使用手动钩子
     - 用于可加载内核模块 (LKM)
     - GKI 2.0 内核的默认钩子方法
     - 需要 `CONFIG_KPROBES=y`
 2. **手动钩子：**
-    - 对于 GKI 2.0（5.10 - 6.x）内核，需要在对应设备的 defconfig 文件中添加 `CONFIG_KSU_MANUAL_HOOK=y` 并确保使用 `#ifdef CONFIG_KSU_MANUAL_HOOK` 而不是 `#ifdef CONFIG_KSU` 来保护 KernelSU 钩子
+    - 对于 GKI 2.0 (5.10 - 6.x) 内核，需要在对应设备的 defconfig 文件中添加 `CONFIG_KSU_MANUAL_HOOK=y` 并确保使用 `#ifdef CONFIG_KSU_MANUAL_HOOK` 而不是 `#ifdef CONFIG_KSU` 来保护 KernelSU 钩子
     - 标准的 KernelSU 钩子：https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
     - backslashxx 的 syscall 手动钩子：https://github.com/backslashxx/KernelSU/issues/5
-    - 部分手动集成KPROBES的非 GKI 2.0 设备不需要手动 VFS 钩子 `new_hook.patch` 补丁
+    - 部分手动集成 KPROBES 的非 GKI 2.0 设备不需要手动 VFS 钩子 `new_hook.patch` 补丁
 
 
 ## KPM支持
@@ -52,7 +52,12 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/
 - 我们基于KernelPatch去掉了和KSU重复的功能，保留了KPM支持
 - 我们将会引入更多的兼容APatch的函数来确保KPM功能的完整性
 
+
 开源地址: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
+
+
+KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
+
 
 ## 更多链接
 基于 SukiSU 和 susfs 编译的项目
@@ -63,7 +68,7 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/
 ## 使用方法
 
 ### GKI
-1. 适用于如小米红米三星等的 GKI 2.0 的设备（不包含魔改内核的厂商如魅族、一加、真我和 oppo）
+1. 适用于如小米红米三星等的 GKI 2.0 的设备 (不包含魔改内核的厂商如魅族、一加、真我和 oppo)
 2. 找到更多链接里的 GKI 构建的项目找到设备内核版本直接下载用TWRP或者内核刷写工具刷入带 AnyKernel3 后缀的压缩包即可
 3. 一般不带后缀的 .zip 压缩包是通用，gz 后缀的为天玑机型专用，lz4 后缀的为谷歌系机型专用，一般刷不带后缀的即可
 
@@ -98,7 +103,9 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/
 - [yspbwx2010](https://github.com/yspbwx2010) 非常感谢
 
 
-如何以上名单没有你的名称，我会及时更新，再次感谢大家的支持
+
+
+如果以上名单没有你的名称，我会及时更新，再次感谢大家的支持
 
 ## 贡献
 

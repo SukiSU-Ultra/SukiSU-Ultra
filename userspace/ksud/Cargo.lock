@@ -784,7 +784,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "zakomk"
+name = "zakozako"
 version = "0.1.0"
 dependencies = [
  "android-properties",

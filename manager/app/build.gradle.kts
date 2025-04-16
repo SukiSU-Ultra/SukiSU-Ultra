@@ -25,7 +25,7 @@ apksign {
 }
 
 android {
-    namespace = "shirkneko.zako.sukisu"
+    namespace = "zako.zako.zako"
 
     buildTypes {
         release {

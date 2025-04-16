@@ -101,12 +101,8 @@ pub fn on_post_data_fs() -> Result<()> {
 
     run_stage("post-mount", true);
 
-    for entry in std::fs::read_dir(kpm::KPM_DIR)? {
-        let path = entry?.path();
-        if path.extension().is_some_and(|ext| ext == "kpm") {
-            let _ = kpm::load_kpm(&path);
-        }
-    }
+    // load kpm modules
+    kpm::load_kpm_modules()?;
 
     Ok(())
 }

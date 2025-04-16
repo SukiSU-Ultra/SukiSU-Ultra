@@ -258,4 +258,8 @@
     <string name="confirm_uninstall_title">确认卸载</string>
     <string name="confirm_uninstall_confirm">删除</string>
     <string name="confirm_uninstall_dismiss">取消</string>
+    <string name="theme_color">主题颜色</string>
+    <string name="invalid_file_type">文件类型不正确，请选择 .kpm 文件</string>
+    <string name="confirm_uninstall_title_with_filename">卸载</string>
+    <string name="confirm_uninstall_content">将卸载以下 kpm 模块：\n%s</string>
 </resources>

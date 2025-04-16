@@ -3,9 +3,9 @@ on:
   workflow_call:
     inputs:
       upload:
-        required: false
+        required: true
         type: boolean
-        default: false
+        default: true
         description: "Whether to upload to branch"
     secrets:
       # username:github_pat
@@ -14,9 +14,9 @@ on:
   workflow_dispatch:
     inputs:
       upload:
-        required: false
+        required: true
         type: boolean
-        default: false
+        default: true
         description: "Whether to upload to branch"
 jobs:
   build-lkm:
