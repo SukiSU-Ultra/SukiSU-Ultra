@@ -9,8 +9,8 @@
 
 >
 > これは非公式なフォークです。すべての権利は [@tiann](https://github.com/tiann) に帰属します。
-> ただし、将来的には KSU とは別に管理されるブランチとなる予定です。
 >
+>ただし、将来的には KSU とは別に管理されるブランチとなる予定です。
 
 - GKI 非対応なデバイスに完全に適応 (susfs-dev と unsusfs-patched dev ブランチのみ)
 
@@ -29,7 +29,7 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setu
 1. パッチを当てずに susfs-dev ブランチを直接使用してください。
 
 ## KPM に対応
-- カーネルパッチに基づいて重複した KSU の機能を削除、KPM の対応を維持させています。
+- KernelPatch に基づいて重複した KSU の機能を削除、KPM の対応を維持させています。
 - KPM 機能の整合性を確保するために、APatch の互換機能を更に向上させる予定です。
 
 
@@ -44,18 +44,18 @@ SukiSU と susfs をベースにコンパイルされたプロジェクトです
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
 ## フックの方式
-- This method references the hook method from (https://github.com/rsuntk/KernelSU)
+- この方式は (https://github.com/rsuntk/KernelSU) のフック方式を参照してください。
 
 1. **KPROBES フック:**
-    - This method only supports GKI (5.10 - 6.x) kernels, and all non-GKI kernels must use manual hooks.
-    - For Loadable Kernel Modules (LKM)
-    - Default hooking method for GKI kernels
-    - Requires `CONFIG_KPROBES=y`.
+    - この方式は GKI (5.10 - 6.x) のカーネルのみに対応しています。GKI 以外のカーネルは手動でフックを使用する必要があります。
+    - 読み込み可能なカーネルモジュールの場合 (LKM)
+    - GKI カーネルのデフォルトとなるフック方式
+    - `CONFIG_KPROBES=y` が必要です。
 2. **手動でフック:**
-    - For GKI (5.10 - 6.x) kernels, add `CONFIG_KSU_MANUAL_HOOK=y` to the kernel defconfig and make sure to protect KernelSU hooks by using `#ifdef CONFIG_KSU_MANUAL_HOOK` instead of `#ifdef CONFIG_KSU`.
+    - GKI (5.10 - 6.x) のカーネルの場合、カーネルの defconfig に `CONFIG_KSU_MANUAL_HOOK=y` を追加して `#ifdef CONFIG_KSU` ではなく `#ifdef CONFIG_KSU_MANUAL_HOOK` を使用して KernelSU フックを保護するようにしてください。
     - 標準の KernelSU フック: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
     - backslashxx syscall フック: https://github.com/backslashxx/KernelSU/issues/5
-    - Some non-GKI devices that manually integrate KPROBES do not require the manual VFS hook `new_hook.patch` patch
+    - KPROBES を手動で統合する一部の非 GKI デバイスでは手動の VFS フック `new_hook.patch` パッチは不要です。
 
 
 ## Usage
@@ -78,8 +78,8 @@ Note: You only need to fill in the first two parts of kernel versions, such as 5
 2. Not based on [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) module system, but based on [Magic Mount](https://github.com/5ec1cff/KernelSU) from 5ec1cff
 3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock root privileges in a cage. 
 4. Bringing back non-GKI/GKI 1.0 support
-5. More customization
-6. Support for KPM kernel modules
+5. その他のカスタマイズ
+6. KPM カーネルモジュールに対応
 
 
 
@@ -101,12 +101,12 @@ If the above list does not have your name, I will update it as soon as possible,
 
 ## 貢献者
 
-- [KernelSU](https://github.com/tiann/KernelSU): original project
-- [MKSU](https://github.com/5ec1cff/KernelSU): Used project
+- [KernelSU](https://github.com/tiann/KernelSU): オリジナルのプロジェクト
+- [MKSU](https://github.com/5ec1cff/KernelSU): 使用しているプロジェクト
 - [RKSU](https://github.com/rsuntk/KernelsU): Reintroduced the support of non-GKI devices using the kernel of this project
-- [susfs](https://gitlab.com/simonpunk/susfs4ksu)：Used susfs file system
+- [susfs](https://gitlab.com/simonpunk/susfs4ksu)：使用している susfs ファイルシステム
 - [KernelSU](https://git.zx2c4.com/kernel-assisted-superuser/about/): KernelSU conceptualization
-- [Magisk](https://github.com/topjohnwu/Magisk): Powerful root utility
-- [genuine](https://github.com/brevent/genuine/): APK v2 Signature Verification
-- [Diamorphine](https://github.com/m0nad/Diamorphine): Some rootkit utilities.
-- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch is a key part of the APatch implementation of the kernel module
+- [Magisk](https://github.com/topjohnwu/Magisk): パワフルな root ユーティリティ
+- [genuine](https://github.com/brevent/genuine/): APK v2 署名認証
+- [Diamorphine](https://github.com/m0nad/Diamorphine): いくつかの rootkit ユーティリティ
+- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch はカーネルモジュールの APatch 実装での重要な部分となります
