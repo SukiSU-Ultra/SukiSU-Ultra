@@ -1,66 +1,60 @@
 # SukiSU
 
-**English** | [简体中文](README.md) | [日本語](README-ja.md)
+**日本語** | [简体中文](README.md) | [English](README-en.md)
 
+[KernelSU](https://github.com/tiann/KernelSU) をベースとした Android デバイスの root ソリューション
 
-Android device root solution based on [KernelSU](https://github.com/tiann/KernelSU)
-
-**Experimental! Use at your own risk!** This solution is based on [KernelSU](https://github.com/tiann/KernelSU) and is experimental!
+**試験中なビルドです！自己責任で使用してください！**<br>
+このソリューションは [KernelSU](https://github.com/tiann/KernelSU) に基づいていますが、試験中なビルドです。
 
 >
-> This is an unofficial fork. All rights are reserved to [@tiann](https://github.com/tiann)
-> However, we will be a separately maintained branch of KSU in the future
+> これは非公式なフォークです。すべての権利は [@tiann](https://github.com/tiann) に帰属します。
+> ただし、将来的には KSU とは別に管理されるブランチとなる予定です。
 >
 
-- Fully adapted for non-GKI devices (susfs-dev and unsusfs-patched dev branches only)
+- GKI 非対応なデバイスに完全に適応 (susfs-dev と unsusfs-patched dev ブランチのみ)
 
-## How to add
-
-Use the susfs-stable or susfs-dev branch (integrated susfs with support for non-GKI devices)
+## 追加方法
+susfs-stable または susfs-dev ブランチ (GKI 非対応デバイスに対応する統合された susfs) 使用してください。
 
 ```
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 ```
 
-Use the main branch
+メインブランチを使用する場合
 ```
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s main
 ```
+## 統合された susfs の使い方
+1. パッチを当てずに susfs-dev ブランチを直接使用してください。
 
-## How to use integrated susfs
-
-1. Use the susfs-dev branch directly without any patching
-
-
-
-## KPM support
-
-- We have removed duplicate KSU functions based on KernelPatch and retained KPM support.
-- We will introduce more APatch-compatible functions to ensure the integrity of KPM functionality.
+## KPM に対応
+- カーネルパッチに基づいて重複した KSU の機能を削除、KPM の対応を維持させています。
+- KPM 機能の整合性を確保するために、APatch の互換機能を更に向上させる予定です。
 
 
-Open source address: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
+オープンソースアドレス: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
 
 
-KPM template address: https://github.com/udochina/KPM-Build-Anywhere
+KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Anywhere
 
-## More links
-Projects compiled based on Sukisu and susfs
+## その他のリンク
+SukiSU と susfs をベースにコンパイルされたプロジェクトです。
 - [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
-## Hook method
+## フックの方式
 - This method references the hook method from (https://github.com/rsuntk/KernelSU)
 
-1. **KPROBES hook:**
+1. **KPROBES フック:**
     - This method only supports GKI (5.10 - 6.x) kernels, and all non-GKI kernels must use manual hooks.
     - For Loadable Kernel Modules (LKM)
     - Default hooking method for GKI kernels
     - Requires `CONFIG_KPROBES=y`.
-2. **Manual hooks:**
+2. **手動でフック:**
     - For GKI (5.10 - 6.x) kernels, add `CONFIG_KSU_MANUAL_HOOK=y` to the kernel defconfig and make sure to protect KernelSU hooks by using `#ifdef CONFIG_KSU_MANUAL_HOOK` instead of `#ifdef CONFIG_KSU`.
-    - Standard KernelSU hooks: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
-    - backslashxx syscall hooks: https://github.com/backslashxx/KernelSU/issues/5
+    - 標準の KernelSU フック: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+    - backslashxx syscall フック: https://github.com/backslashxx/KernelSU/issues/5
     - Some non-GKI devices that manually integrate KPROBES do not require the manual VFS hook `new_hook.patch` patch
 
 
@@ -78,7 +72,7 @@ Note: You only need to fill in the first two parts of kernel versions, such as 5
 
 
 
-## Features
+## 機能
 
 1. Kernel-based `su` and root access management.
 2. Not based on [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) module system, but based on [Magic Mount](https://github.com/5ec1cff/KernelSU) from 5ec1cff
@@ -89,12 +83,12 @@ Note: You only need to fill in the first two parts of kernel versions, such as 5
 
 
 
-## License
+## ライセンス
 
 - The file in the “kernel” directory is under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
 - All other parts except the “kernel” directory are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
-## Sponsorship list
+## スポンサーシップの一覧
 - [Ktouls](https://github.com/Ktouls) Thanks so much for bringing me support
 - [zaoqi123](https://github.com/zaoqi123) It's not a bad idea to buy me a milk tea
 - [wswzgdg](https://github.com/wswzgdg) Many thanks for supporting this project
@@ -105,7 +99,7 @@ Note: You only need to fill in the first two parts of kernel versions, such as 5
 
 If the above list does not have your name, I will update it as soon as possible, and thanks again for your support!
 
-## Contributions
+## 貢献者
 
 - [KernelSU](https://github.com/tiann/KernelSU): original project
 - [MKSU](https://github.com/5ec1cff/KernelSU): Used project
