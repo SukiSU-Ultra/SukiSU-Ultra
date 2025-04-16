@@ -181,7 +181,7 @@
     <string name="su_not_allowed">%s にスーパーユーザー権限を付与することはできません</string>
     <string name="settings_disable_su">su の互換性を無効化する</string>
     <string name="settings_disable_su_summary">su コマンドを使用してアプリが root 権限を取得する動作を一時的に無効化します (既存の root プロセスは影響を受けません)。</string>
-    <string name="using_mksu_manager">SukiSU Beta Manager を使用中です</string>
+    <string name="using_mksu_manager">SukiSU Beta Manager を使用しています。</string>
     <string name="module_install_multiple_confirm">選択した %d 個のモジュールをインストールしてもよろしいですか？</string>
     <string name="module_install_multiple_confirm_with_names">%1$d 個のモジュールをインストールしてもよろしいですか？\n\n%2$s</string>
     <string name="more_settings">その他の設定</string>
