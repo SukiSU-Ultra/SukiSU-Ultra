@@ -65,14 +65,15 @@ Projects compiled based on Sukisu and susfs
 
 
 ## Usage
-[GKI]
+### GKI
 1. such as Xiaomi, Redmi, Samsung, and other devices (does not include manufacturers that modified the kernel like Meizu, OnePlus, RealMe, and OPPO)
 2. Use the prebuilt GKI kernel, the ones with their name ending with AnyKernel3, mentioned in the 'More Links' section, and then flash it with recoveries like TWRP
 3. Generally, packages with a plain .zip suffix are universal. However, if your device has a MediaTek processor, you should use the ones with .gz suffix, and packages with .lz4 suffix are dedicated to Google devices.
 
-[OnePlus]
+### OnePlus
 1. Use the link mentioned in the 'More Links' section to create a customized build with your device information, and then flash the zip file with the AnyKernel3 suffix.
-Note: You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
+> [!Note]
+> You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
 - Please search for the processor codename by yourself, usually it is all English without numbers.
 - You can find the branch and configuration files from the OnePlus open-source kernel repository.
 
