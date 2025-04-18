@@ -75,7 +75,7 @@ SukiSU と susfs をベースにコンパイルされたプロジェクトです
 ## 機能
 
 1. カーネルベースな `su` および root アクセスの管理。
-2. [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) モジュールシステムではなく、 5ec1cff氏の [Magic Mount](https://github.com/5ec1cff/KernelSU) に基づいています。
+2. [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) モジュールシステムではなく、 5ec1cff 氏の [Magic Mount](https://github.com/5ec1cff/KernelSU) に基づいています。
 3. [アプリプロファイル](https://kernelsu.org/guide/app-profile.html): root 権限をケージ内にロックします。 
 4. 非 GKI / GKI 1.0 の対応を復活
 5. その他のカスタマイズ
