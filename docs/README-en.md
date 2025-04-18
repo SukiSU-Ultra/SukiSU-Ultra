@@ -73,9 +73,9 @@ Projects compiled based on Sukisu and susfs
 ### OnePlus
 1. Use the link mentioned in the 'More Links' section to create a customized build with your device information, and then flash the zip file with the AnyKernel3 suffix.
 > [!Note]
-> You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
-- Please search for the processor codename by yourself, usually it is all English without numbers.
-- You can find the branch and configuration files from the OnePlus open-source kernel repository.
+> - You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
+> - Please search for the processor codename by yourself, usually it is all English without numbers.
+> - You can find the branch and configuration files from the OnePlus open-source kernel repository.
 
 
 
