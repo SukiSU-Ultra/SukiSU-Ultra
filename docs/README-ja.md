@@ -58,26 +58,26 @@ SukiSU と susfs をベースにコンパイルされたプロジェクトです
     - KPROBES を手動で統合する一部の非 GKI デバイスでは手動の VFS フック `new_hook.patch` パッチは不要です。
 
 
-## Usage
-[GKI]
-1. such as Xiaomi, Redmi, Samsung, and other devices (does not include manufacturers that modified the kernel like Meizu, OnePlus, RealMe, and OPPO)
-2. Use the prebuilt GKI kernel, the ones with their name ending with AnyKernel3, mentioned in the 'More Links' section, and then flash it with recoveries like TWRP
-3. Generally, packages with a plain .zip suffix are universal. However, if your device has a MediaTek processor, you should use the ones with .gz suffix, and packages with .lz4 suffix are dedicated to Google devices.
+## 使い方
+#### GKI
+1. Xiaomi、Redmi、Samsung などのデバイス (Meizu、OnePlus、Realme、OPPO などのカーネルを変更したメーカー以外)
+2. `その他のリンク`の項目で言及されているカーネル名が、AnyKernel3 で終わるビルド済みの GKI カーネルを TWRP などのリカバリーでフラッシュします。
+3. 一般的な .zip の接頭辞を持つパッケージは汎用的になります。ただし、デバイスに MediaTek 製の SoC が搭載されている場合は、.gz の接頭辞を持つパッケージを使用する必要があります。その他に .lz4 の接頭辞を持つパッケージは Google 製デバイス専用です。
 
-[OnePlus]
-1. Use the link mentioned in the 'More Links' section to create a customized build with your device information, and then flash the zip file with the AnyKernel3 suffix.
-Note: You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
-- Please search for the processor codename by yourself, usually it is all English without numbers.
-- You can find the branch and configuration files from the OnePlus open-source kernel repository.
-
+#### OnePlus
+1. `その他のリンク`の項目に記載されているリンクを開き、デバイス情報を使用してカスタマイズされたカーネルをビルドし、AnyKernel3 の接頭辞を持つ .zip ファイルをフラッシュします。
+>[!Note]
+>5.10、5.15、6.1、6.6 などのカーネルバージョンの最初の 2 文字のみを入力する必要があります。
+- SoC のコードネームは自分で検索してください。通常は、数字がなく英語表記のみです。
+- ブランチと構成ファイルは、OnePlus オープンソースカーネルリポジトリから見つけることができます。
 
 
 ## 機能
 
-1. Kernel-based `su` and root access management.
-2. Not based on [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) module system, but based on [Magic Mount](https://github.com/5ec1cff/KernelSU) from 5ec1cff
-3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock root privileges in a cage. 
-4. Bringing back non-GKI/GKI 1.0 support
+1. カーネルベースな `su` および root アクセスの管理。
+2. [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) モジュールシステムではなく、 5ec1cff氏の [Magic Mount](https://github.com/5ec1cff/KernelSU) に基づいています。
+3. [アプリプロファイル](https://kernelsu.org/guide/app-profile.html): root 権限をケージ内にロックします。 
+4. 非 GKI / GKI 1.0 の対応を復活
 5. その他のカスタマイズ
 6. KPM カーネルモジュールに対応
 
@@ -85,8 +85,8 @@ Note: You only need to fill in the first two parts of kernel versions, such as 5
 
 ## ライセンス
 
-- The file in the “kernel” directory is under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
-- All other parts except the “kernel” directory are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
+- “kernel” ディレクトリ内のファイルは [GPL-2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.ja.html) のみライセンス下にあります。
+- “kernel” ディレクトリを除くその他すべての部分は [GPL-3.0 またはそれ以降](https://www.gnu.org/licenses/gpl-3.0.html) のライセンス下にあります。
 
 ## スポンサーシップの一覧
 - [Ktouls](https://github.com/Ktouls) 応援をしてくれたことに感謝。
