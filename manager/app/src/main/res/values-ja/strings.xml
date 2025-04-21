@@ -34,10 +34,10 @@
     <string name="reboot">再起動</string>
     <string name="settings">設定</string>
     <string name="reboot_userspace">ソフトリブート</string>
-    <string name="reboot_recovery">リカバリーへ再起動</string>
-    <string name="reboot_bootloader">ブートローダーへ再起動</string>
-    <string name="reboot_download">ダウンロードモードへ再起動</string>
-    <string name="reboot_edl">EDL へ再起動</string>
+    <string name="reboot_recovery">リカバリーで再起動</string>
+    <string name="reboot_bootloader">ブートローダーで再起動</string>
+    <string name="reboot_download">ダウンロードモードで再起動</string>
+    <string name="reboot_edl">EDL で再起動</string>
     <string name="about">アプリについて</string>
     <string name="module_uninstall_confirm">モジュール %s をアンインストールしますか？</string>
     <string name="module_uninstall_success">%s はアンインストールされました</string>
@@ -72,7 +72,7 @@
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
     <string name="require_kernel_version" formatted="false">現在の KernelSU のバージョン %d は低すぎるため、マネージャーは正常に動作しません。バージョン %d 以上に更新してください！</string>
     <string name="settings_umount_modules_default">デフォルトでモジュールのマウントを解除する</string>
-    <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通のデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
+    <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通となるデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="settings_susfs_toggle">Kprobe フックを非表示にする</string>
     <string name="settings_susfs_toggle_summary">KSU によって生成された Kprobe フックを無効化して、代替となる組み込みの非 Kprobe を有効化します。Kprobe をサポートしない 非 GKI カーネルに適用される同等の機能を実装します。</string>
     <string name="profile_umount_modules_summary">このオプションを有効にすると、KernelSU はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
@@ -88,7 +88,7 @@
     <string name="failed_to_update_sepolicy">SELinux ルールの更新に失敗しました %s</string>
     <string name="module_changelog">変更履歴</string>
     <string name="settings_profile_template">アプリプロファイルのテンプレート</string>
-    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します。</string>
+    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
     <string name="app_profile_template_id">ID</string>
@@ -110,12 +110,12 @@
     <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="module_changelog_failed">変更ログの取得に失敗しました: %s</string>
     <string name="settings_check_update">更新を確認する</string>
-    <string name="settings_check_update_summary">アプリを開いたときに更新を自動的に確認します。</string>
+    <string name="settings_check_update_summary">アプリを開いたときに更新を自動的に確認します</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
-    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合にのみ有効にしてください。</string>
+    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
     <string name="select_file">ファイルを選択</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
@@ -172,7 +172,7 @@
     <string name="backup_allowlist">許可リストをバックアップ</string>
     <string name="restore_allowlist">許可リストを復元</string>
     <string name="settings_custom_background">カスタム背景を設定</string>
-    <string name="settings_custom_background_summary">カスタム背景を設定します。</string>
+    <string name="settings_custom_background_summary">カスタム背景を設定します</string>
     <string name="settings_card_manage">カードの管理</string>
     <string name="settings_card_alpha">カードのアルファ</string>
     <string name="settings_restore_default">デフォルトに復元</string>
@@ -189,13 +189,13 @@
     <string name="selinux_enabled">有効</string>
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
-    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします。</string>
+    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします</string>
     <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示にする</string>
-    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
+    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします</string>
     <string name="hide_other_info">その他の情報を非表示にする</string>
-    <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を非表示にします。</string>
+    <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を非表示にします</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示にする</string>
-    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
+    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします</string>
     <string name="theme_mode">テーマモード</string>
     <string name="theme_follow_system">システムに従う</string>
     <string name="theme_light">ライトカラー</string>
@@ -215,6 +215,7 @@
     <string name="flash_option">ブラシの設定</string>
     <string name="flash_option_tip">フラッシュするファイルを選択</string>
     <string name="horizon_kernel">AnyKernel3 をフラッシュ</string>
+    <string name="horizon_kernel_summary">AnyKernel3 をフラッシュします</string>
     <string name="root_required">root 権限が必要です</string>
     <string name="copy_failed">ファイルのコピーに失敗しました</string>
     <string name="reboot_complete_title">スクラブが完了しました</string>
@@ -251,7 +252,7 @@
     <string name="home_kpm_module">KPM モジュール数: %d </string>
     <string name="kpm_invalid_file">無効な KPM ファイル</string>
     <string name="kernel_patched">カーネルはパッチされていません</string>
-    <string name="kernel_not_enabled">カーネルは設定されていません</string>
+    <string name="kernel_not_enabled">カーネルは未設定です</string>
     <string name="custom_settings">カスタム設定</string>
     <string name="kpm_install_mode">インストール</string>
     <string name="kpm_install_mode_load">読み込む</string>
