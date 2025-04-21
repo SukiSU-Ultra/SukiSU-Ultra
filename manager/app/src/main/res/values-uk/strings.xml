@@ -50,7 +50,6 @@
     <string name="home_click_to_learn_kernelsu">Дізнайтеся, як інсталювати KernelSU і використовувати модулі</string>
     <string name="home_support_title">Підтримати нас</string>
     <string name="home_support_content">KernelSU є, і завжди буде безкоштовним та з відкритим кодом. Однак, якщо вам не байдуже, можете зробити невеличке пожертвування.</string>
-    <string name="profile">Профіль додатка</string>
     <string name="profile_default">Типовий</string>
     <string name="profile_template">Шаблон</string>
     <string name="profile_custom">Власний</string>

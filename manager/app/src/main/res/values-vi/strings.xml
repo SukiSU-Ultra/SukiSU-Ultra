@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Home</string>
     <string name="home_not_installed">Chưa cài đặt</string>
     <string name="home_click_to_install">Nhấn vào đây để cài đặt</string>
@@ -58,7 +57,6 @@
     <string name="home_support_title">Hỗ trợ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp.</string>
     <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Tham gia kênh %2$s của chúng tôi]]></string>
-    <string name="profile" translatable="false">Hồ sơ ứng dụng</string>
     <string name="profile_default">Mặc định</string>
     <string name="profile_template">Bản mẫu</string>
     <string name="profile_custom">Tùy chỉnh</string>

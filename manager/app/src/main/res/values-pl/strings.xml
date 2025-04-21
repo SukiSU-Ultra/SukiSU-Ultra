@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">KernelSU</string>
     <string name="home">Strona główna</string>
     <string name="home_not_installed">Nie zainstalowano</string>
     <string name="home_click_to_install">Kliknij, aby zainstalować</string>
@@ -51,7 +50,6 @@
     <string name="home_click_to_learn_kernelsu">Dowiedz się jak zainstalować KernelSU i jak korzystać z modułów</string>
     <string name="home_support_title">Wesprzyj nas</string>
     <string name="home_support_content">KernelSU jest i zawsze będzie darmowy oraz otwarty. Niemniej jednak możesz nam pokazać, że Ci zależy, wysyłając darowiznę.</string>
-    <string name="profile" translatable="false">Profil aplikacji</string>
     <string name="profile_default">Domyślny</string>
     <string name="profile_template">Szablon</string>
     <string name="profile_custom">Własny</string>
