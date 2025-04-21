@@ -172,7 +172,6 @@
     <string name="restore_allowlist">Restore Allowlist</string>
     <string name="settings_custom_background">Custom App Background</string>
     <string name="settings_custom_background_summary">Select an image as background</string>
-    <string name="settings_card_manage">card manage</string>
     <string name="settings_card_alpha">Navigation bar transparency</string>
     <string name="settings_restore_default">Restore default</string>
     <string name="home_android_version">Android version</string>

@@ -171,7 +171,6 @@
     <string name="restore_allowlist">Khôi phục danh sách cho phép</string>
     <string name="settings_custom_background">Cài đặt nền tùy chỉnh</string>
     <string name="settings_custom_background_summary">Cài đặt tùy chỉnh nền</string>
-    <string name="settings_card_manage">Quản lý thẻ</string>
     <string name="settings_card_alpha">Thẻ alpha</string>
     <string name="settings_restore_default">Khôi phục mặc định</string>
     <string name="home_android_version">Phiên bản Android</string>
