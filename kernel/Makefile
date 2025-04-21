@@ -22,14 +22,14 @@ obj-$(CONFIG_KPM) += kpm/
 # .git is a text file while the module is imported by 'git submodule add'.
 ifeq ($(shell test -e $(srctree)/$(src)/../.git; echo $$?),0)
 $(shell cd $(srctree)/$(src); /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin [ -f ../.git/shallow ] && git fetch --unshallow)
-KSU_GIT_VERSION := $(shell cd $(srctree)/$(src); /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git rev-list --count HEAD)
+KSU_GIT_VERSION := $(shell cd $(srctree)/$(src); /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git rev-list --count main)
 # ksu_version: major * 10000 + git version + 606 for historical reasons
 $(eval KSU_VERSION=$(shell expr 10000 + $(KSU_GIT_VERSION) + 606))
-$(info -- KernelSU version: $(KSU_VERSION))
+$(info -- SukiSU version: $(KSU_VERSION))
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 else # If there is no .git file, the default version will be passed.
-$(warning "KSU_GIT_VERSION not defined! It is better to make KernelSU a git submodule!")
-ccflags-y += -DKSU_VERSION=16
+$(warning "KSU_GIT_VERSION not defined! It is better to make SukiSU a git submodule!")
+ccflags-y += -DKSU_VERSION=12800
 endif
 
 ifndef KSU_EXPECTED_SIZE
@@ -42,12 +42,22 @@ endif
 
 ifdef KSU_MANAGER_PACKAGE
 ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
-$(info -- KernelSU Manager package name: $(KSU_MANAGER_PACKAGE))
+$(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
 endif
 
-$(info -- KernelSU Manager signature size: $(KSU_EXPECTED_SIZE))
-$(info -- KernelSU Manager signature hash: $(KSU_EXPECTED_HASH))
-$(info -- Supported Unofficial Manager: 5ec1cff (GKI) ShirkNeko udochina (GKI and KPM))
+$(info -- SukiSU Manager signature size: $(KSU_EXPECTED_SIZE))
+$(info -- SukiSU Manager signature hash: $(KSU_EXPECTED_HASH))
+$(info -- Supported Unofficial Manager: 5ec1cff (GKI) rsuntk (Non-GKI) ShirkNeko udochina (GKI and non-GKI and KPM))
+
+ifeq ($(strip $(CONFIG_KSU_HOOK_KPROBES)),y)
+$(info -- SukiSU: KPROBES hooking enabled!)
+else
+$(info -- SukiSU: Manual hooking enabled!)
+ifeq ($(strip $(CONFIG_KSU)),m)
+$(error CONFIG_KSU_MANUAL_HOOK cannot be enabled when compiling SukiSU as LKM!)
+endif
+endif
+
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
 KERNEL_TYPE := Non-GKI
 # Check for GKI 2.0 (5.10+ or 6.x+)
@@ -62,7 +72,7 @@ endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
-$(info -- KERNEL_VERSION: $(KERNEL_VERSION))
+# Check if KPM is enabled
 ifeq ($(CONFIG_KPM),y)
 $(info -- KPM is enabled)
 else
