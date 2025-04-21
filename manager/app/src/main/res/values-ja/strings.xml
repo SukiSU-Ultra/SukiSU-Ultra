@@ -174,7 +174,7 @@
     <string name="settings_custom_background">カスタム背景を設定</string>
     <string name="settings_custom_background_summary">カスタム背景を設定します</string>
     <string name="settings_card_manage">カードの管理</string>
-    <string name="settings_card_alpha">カードのアルファ</string>
+    <string name="settings_card_alpha">ナビゲーションバーの透過</string>
     <string name="settings_restore_default">デフォルトに復元</string>
     <string name="home_android_version">Android のバージョン</string>
     <string name="home_device_model">デバイスモデル</string>
