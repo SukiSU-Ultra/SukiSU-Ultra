@@ -1,4 +1,4 @@
-# SukiSU
+# SukiSU Ultra
 
 **日本語** | [简体中文](README.md) | [English](README-en.md)
 
