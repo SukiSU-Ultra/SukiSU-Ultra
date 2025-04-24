@@ -253,7 +253,7 @@
     <string name="kpm_install_mode">Cài đặt</string>
     <string name="kpm_install_mode_load">Tải</string>
     <string name="kpm_install_mode_embed">Nhúng</string>
-    <string name="kpm_install_mode_description">Vui lòng chọn chế độ cài đặt mô-đun: \n\nTải: Tải tạm thời mô-đun \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
+    <string name="kpm_install_mode_description">Vui lòng：%1\$s chọn chế độ cài đặt mô-đun \n\nTải: Tải tạm thời mô-đun \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
     <string name="log_failed_to_check_module_file">Không kiểm tra được sự tồn tại của tệp mô-đun</string>
     <string name="snackbar_failed_to_check_module_file">Không thể kiểm tra xem tệp mô-đun có tồn tại không</string>
     <string name="confirm_uninstall_title">Xác nhận gỡ cài đặt</string>

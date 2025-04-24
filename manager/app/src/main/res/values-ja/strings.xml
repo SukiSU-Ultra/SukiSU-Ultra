@@ -257,7 +257,7 @@
     <string name="kpm_install_mode">インストール</string>
     <string name="kpm_install_mode_load">読み込む</string>
     <string name="kpm_install_mode_embed">埋め込む</string>
-    <string name="kpm_install_mode_description">モジュールのインストールモードを選択してください:\n\n読み込む: モジュールを一時的に読み込みます\n埋め込む: システムに恒久的にインストールします</string>
+    <string name="kpm_install_mode_description">モジュール：%1\$s のインストールモードを選択してください \n\n読み込む: モジュールを一時的に読み込みます\n埋め込む: システムに恒久的にインストールします</string>
     <string name="log_failed_to_check_module_file">モジュールファイルの存在を確認できませんでした</string>
     <string name="snackbar_failed_to_check_module_file">モジュールファイルが存在するか確認できません</string>
     <string name="confirm_uninstall_title">アンインストールを確認</string>

@@ -253,7 +253,7 @@
     <string name="kpm_install_mode">安装</string>
     <string name="kpm_install_mode_load">加载</string>
     <string name="kpm_install_mode_embed">嵌入</string>
-    <string name="kpm_install_mode_description">请选择模块安装模式：\n\n加载：临时加载模块\n嵌入：永久安装到系统</string>
+    <string name="kpm_install_mode_description">请选择: %1\$s 模块的安装模式 \n\n加载：临时加载模块\n嵌入：永久安装到系统</string>
     <string name="snackbar_failed_to_check_module_file">无法检查模块文件是否存在</string>
     <string name="confirm_uninstall_title">确认卸载</string>
     <string name="confirm_uninstall_confirm">删除</string>
@@ -262,5 +262,4 @@
     <string name="invalid_file_type">文件类型不正确，请选择 .kpm 文件</string>
     <string name="confirm_uninstall_title_with_filename">卸载</string>
     <string name="confirm_uninstall_content">将卸载以下 kpm 模块：\n%s</string>
-
 </resources>

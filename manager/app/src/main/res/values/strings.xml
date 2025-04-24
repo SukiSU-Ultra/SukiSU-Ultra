@@ -255,7 +255,7 @@
     <string name="kpm_install_mode">KPM Install</string>
     <string name="kpm_install_mode_load">Load</string>
     <string name="kpm_install_mode_embed">Embed</string>
-    <string name="kpm_install_mode_description">Please select the module installation mode: \n\nLoad: Temporarily load the module \nEmbedded: Permanently install into the system</string>
+    <string name="kpm_install_mode_description">Please select: %1\$s Module Installation Mode \n\nLoad: Temporarily load the module \nEmbedded: Permanently install into the system</string>
     <string name="log_failed_to_check_module_file">Failed to check module file existence</string>
     <string name="snackbar_failed_to_check_module_file">Unable to check if module file exists</string>
     <string name="confirm_uninstall_title">Confirm uninstallation</string>

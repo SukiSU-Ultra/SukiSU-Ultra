@@ -19,7 +19,7 @@ public class UltraShellHelper {
     }
 
     public static boolean isPathExists(String path) {
-        return !runCmd("file " + path).contains("No such file or directory");
+        return runCmd("file " + path).contains("No such file or directory");
     }
 
     public static void CopyFileTo(String path, String target) {

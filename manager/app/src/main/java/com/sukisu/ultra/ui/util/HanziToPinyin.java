@@ -549,7 +549,7 @@ public class HanziToPinyin {
                 }
             }
         }
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
             addToken(sb, tokens, tokenType);
         }
         return tokens;

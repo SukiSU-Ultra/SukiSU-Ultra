@@ -32,15 +32,16 @@ import com.sukisu.ultra.ui.util.*
 import java.io.File
 import androidx.core.content.edit
 import com.sukisu.ultra.R
+import java.io.BufferedReader
 import java.io.FileInputStream
+import java.io.InputStreamReader
 import java.net.*
 
 /**
  * KPM 管理界面
  * 以下内核模块功能由KernelPatch开发，经过修改后加入SukiSU Ultra的内核模块功能
- * 开发者：zako, Liaokong
+ * 开发者：ShirkNeko, Liaokong
  */
-var globalModuleFileName: String = ""
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
@@ -58,6 +59,11 @@ fun KpmScreen(
         MaterialTheme.colorScheme.secondaryContainer
     }
 
+    val moduleConfirmContentMap = viewModel.moduleList.associate { module ->
+        val moduleFileName = module.id
+        module.id to stringResource(R.string.confirm_uninstall_content, moduleFileName)
+    }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     val kpmInstallSuccess = stringResource(R.string.kpm_install_success)
@@ -70,13 +76,33 @@ fun KpmScreen(
     val kpmInstallMode = stringResource(R.string.kpm_install_mode)
     val kpmInstallModeLoad = stringResource(R.string.kpm_install_mode_load)
     val kpmInstallModeEmbed = stringResource(R.string.kpm_install_mode_embed)
-    val kpmInstallModeDescription = stringResource(R.string.kpm_install_mode_description)
     val invalidFileTypeMessage = stringResource(R.string.invalid_file_type)
     val confirmTitle = stringResource(R.string.confirm_uninstall_title_with_filename)
-    val confirmContent = stringResource(R.string.confirm_uninstall_content, globalModuleFileName)
 
     var tempFileForInstall by remember { mutableStateOf<File?>(null) }
     val installModeDialog = rememberCustomDialog { dismiss ->
+        var moduleName by remember { mutableStateOf<String?>(null) }
+
+        LaunchedEffect(tempFileForInstall) {
+            tempFileForInstall?.let { tempFile ->
+                try {
+                    val command = arrayOf("su", "-c", "strings ${tempFile.absolutePath} | grep 'name='")
+                    val process = Runtime.getRuntime().exec(command)
+                    val inputStream = process.inputStream
+                    val reader = BufferedReader(InputStreamReader(inputStream))
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        if (line!!.startsWith("name=")) {
+                            moduleName = line.substringAfter("name=").trim()
+                            break
+                        }
+                    }
+                    process.waitFor()
+                } catch (e: Exception) {
+                    Log.e("KsuCli", "Failed to get module name: ${e.message}", e)
+                }
+            }
+        }
         AlertDialog(
             onDismissRequest = {
                 dismiss()
@@ -84,7 +110,7 @@ fun KpmScreen(
                 tempFileForInstall = null
             },
             title = { Text(kpmInstallMode) },
-            text = { Text(kpmInstallModeDescription) },
+            text = { moduleName?.let { Text(stringResource(R.string.kpm_install_mode_description, it)) } },
             confirmButton = {
                 Column {
                     Button(
@@ -288,6 +314,7 @@ fun KpmScreen(
                             module = module,
                             onUninstall = {
                                 scope.launch {
+                                    val confirmContent = moduleConfirmContentMap[module.id] ?: ""
                                     handleModuleUninstall(
                                         module = module,
                                         viewModel = viewModel,
@@ -327,7 +354,7 @@ private suspend fun handleModuleInstall(
         val command = arrayOf("su", "-c", "strings ${tempFile.absolutePath} | grep 'name='")
         val process = Runtime.getRuntime().exec(command)
         val inputStream = process.inputStream
-        val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream))
+        val reader = BufferedReader(InputStreamReader(inputStream))
         var line: String?
         while (reader.readLine().also { line = it } != null) {
             if (line!!.startsWith("name=")) {
@@ -396,7 +423,6 @@ private suspend fun handleModuleUninstall(
     confirmDialog: ConfirmDialogHandle
 ) {
     val moduleFileName = "${module.id}.kpm"
-    globalModuleFileName = moduleFileName
     val moduleFilePath = "/data/adb/kpm/$moduleFileName"
 
     val fileExists = try {
@@ -571,7 +597,7 @@ private fun checkStringsCommand(tempFile: File): Int {
     val command = arrayOf("su", "-c", "strings ${tempFile.absolutePath} | grep -E 'name=|version=|license=|author='")
     val process = Runtime.getRuntime().exec(command)
     val inputStream = process.inputStream
-    val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream))
+    val reader = BufferedReader(InputStreamReader(inputStream))
     var line: String?
     var matchCount = 0
     val keywords = listOf("name=", "version=", "license=", "author=")
