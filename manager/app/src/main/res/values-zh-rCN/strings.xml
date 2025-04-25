@@ -236,7 +236,7 @@
     <string name="kpm_install_success">加载 kpm 模块成功</string>
     <string name="kpm_install_failed">加载 kpm 模块失败</string>
     <string name="home_kpm_version">KPM 版本</string>
-    <string name="kpm_control">执行</string>
+    <string name="kpm_control">调参</string>
     <string name="close_notice">关闭</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">错误</string>
