@@ -7,24 +7,11 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
@@ -32,41 +19,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.stringResource
@@ -105,7 +65,6 @@ import com.sukisu.ultra.ui.webui.WebUIActivity
 import okhttp3.OkHttpClient
 import com.sukisu.ultra.ui.util.ModuleModify
 import com.sukisu.ultra.ui.theme.getCardColors
-import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -254,7 +213,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
 
     val hideInstallButton = isSafeMode || hasMagisk
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val webUILauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -275,7 +234,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
-                            contentDescription = stringResource(id = R.string.settings)
+                            contentDescription = stringResource(id = R.string.settings),
+                            tint = MaterialTheme.colorScheme.primary
                         )
 
                         DropdownMenu(
@@ -284,7 +244,16 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.module_sort_action_first)) },
-                                trailingIcon = { Checkbox(viewModel.sortActionFirst, null) },
+                                trailingIcon = {
+                                    Checkbox(
+                                        checked = viewModel.sortActionFirst,
+                                        onCheckedChange = null,
+                                        colors = CheckboxDefaults.colors(
+                                            checkedColor = MaterialTheme.colorScheme.primary,
+                                            uncheckedColor = MaterialTheme.colorScheme.outline
+                                        )
+                                    )
+                                },
                                 onClick = {
                                     viewModel.sortActionFirst = !viewModel.sortActionFirst
                                     prefs.edit {
@@ -300,23 +269,34 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.module_sort_enabled_first)) },
-                                trailingIcon = { Checkbox(viewModel.sortEnabledFirst, null) },
+                                trailingIcon = {
+                                    Checkbox(
+                                        checked = viewModel.sortEnabledFirst,
+                                        onCheckedChange = null,
+                                        colors = CheckboxDefaults.colors(
+                                            checkedColor = MaterialTheme.colorScheme.primary,
+                                            uncheckedColor = MaterialTheme.colorScheme.outline
+                                        )
+                                    )
+                                },
                                 onClick = {
                                     viewModel.sortEnabledFirst = !viewModel.sortEnabledFirst
                                     prefs.edit {
-                                            putBoolean("module_sort_enabled_first", viewModel.sortEnabledFirst)
-                                        }
+                                        putBoolean("module_sort_enabled_first", viewModel.sortEnabledFirst)
+                                    }
                                     scope.launch {
                                         viewModel.fetchModuleList()
                                     }
                                 }
                             )
+                            HorizontalDivider(thickness = Dp.Hairline, modifier = Modifier.padding(vertical = 4.dp))
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.backup_modules)) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Outlined.Download,
-                                        contentDescription = stringResource(R.string.backup)
+                                        contentDescription = stringResource(R.string.backup),
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -329,7 +309,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Outlined.Refresh,
-                                        contentDescription = stringResource(R.string.restore)
+                                        contentDescription = stringResource(R.string.restore),
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -349,7 +330,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 val cardColor = if (!ThemeConfig.useDynamicColor) {
                     ThemeConfig.currentTheme.ButtonContrast
                 } else {
-                    MaterialTheme.colorScheme.secondaryContainer
+                    MaterialTheme.colorScheme.primaryContainer
                 }
                 ExtendedFloatingActionButton(
                     onClick = {
@@ -363,16 +344,24 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     icon = {
                         Icon(
                             imageVector = Icons.Filled.Add,
-                            contentDescription = moduleInstall
+                            contentDescription = moduleInstall,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     },
                     text = {
                         Text(
-                            text = moduleInstall
+                            text = moduleInstall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     },
-                    containerColor = cardColor.copy(alpha = 1f),
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    containerColor = cardColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp
+                    ),
+                    expanded = true,
+                    modifier = Modifier.padding(16.dp)
                 )
             }
         },
@@ -389,10 +378,25 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        stringResource(R.string.module_magisk_conflict),
-                        textAlign = TextAlign.Center,
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .padding(bottom = 16.dp)
+                        )
+                        Text(
+                            stringResource(R.string.module_magisk_conflict),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
             else -> {
@@ -591,10 +595,25 @@ private fun ModuleList(
                             modifier = Modifier.fillParentMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                stringResource(R.string.module_empty),
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Extension,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                    modifier = Modifier
+                                        .size(96.dp)
+                                        .padding(bottom = 16.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.module_empty),
+                                    textAlign = TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -677,8 +696,16 @@ fun ModuleItem(
     onClick: (ModuleViewModel.ModuleInfo) -> Unit
 ) {
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            )
     ) {
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough
         val interactionSource = remember { MutableInteractionSource() }
@@ -706,6 +733,7 @@ fun ModuleItem(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 val moduleVersion = stringResource(id = R.string.module_version)
                 val moduleAuthor = stringResource(id = R.string.module_author)
@@ -720,6 +748,7 @@ fun ModuleItem(
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
                         textDecoration = textDecoration,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
@@ -727,7 +756,8 @@ fun ModuleItem(
                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                        textDecoration = textDecoration
+                        textDecoration = textDecoration,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
@@ -735,7 +765,8 @@ fun ModuleItem(
                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                    textDecoration = textDecoration
+                        textDecoration = textDecoration,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -749,7 +780,15 @@ fun ModuleItem(
                         enabled = !module.update,
                         checked = module.enabled,
                         onCheckedChange = onCheckChanged,
-                        interactionSource = if (!module.hasWebUi) interactionSource else null
+                        interactionSource = if (!module.hasWebUi) interactionSource else null,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            checkedIconColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                     )
                 }
             }
@@ -764,23 +803,23 @@ fun ModuleItem(
                 fontWeight = MaterialTheme.typography.bodySmall.fontWeight,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 4,
-                textDecoration = textDecoration
+                textDecoration = textDecoration,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalDivider(thickness = Dp.Hairline)
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 if (module.hasActionScript) {
                     FilledTonalButton(
-                        modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                        modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                         enabled = !module.remove && module.enabled,
                         onClick = {
                             navigator.navigate(ExecuteModuleActionScreenDestination(module.dirId))
@@ -809,13 +848,11 @@ fun ModuleItem(
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.weight(0.1f, true))
                 }
 
                 if (module.hasWebUi) {
                     FilledTonalButton(
-                        modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                        modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                         enabled = !module.remove && module.enabled,
                         onClick = { onClick(module) },
                         interactionSource = interactionSource,
@@ -848,7 +885,7 @@ fun ModuleItem(
 
                 if (updateUrl.isNotEmpty()) {
                     Button(
-                        modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                        modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                         enabled = !module.remove,
                         onClick = { onUpdate(module) },
                         shape = ButtonDefaults.textShape,
@@ -868,20 +905,20 @@ fun ModuleItem(
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.weight(0.1f, true))
                 }
 
                 FilledTonalButton(
-                    modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                    modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                     onClick = { onUninstallClicked(module) },
                     contentPadding = ButtonDefaults.TextButtonContentPadding,
                     colors = if (!ThemeConfig.useDynamicColor) {
                         ButtonDefaults.filledTonalButtonColors(
-                            containerColor = ThemeConfig.currentTheme.ButtonContrast
+                            containerColor = if (!module.remove) MaterialTheme.colorScheme.errorContainer else ThemeConfig.currentTheme.ButtonContrast
                         )
                     } else {
-                        ButtonDefaults.filledTonalButtonColors()
+                        ButtonDefaults.filledTonalButtonColors(
+                            containerColor = if (!module.remove) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
+                        )
                     }
                 ) {
                     if (!module.remove) {
@@ -889,13 +926,13 @@ fun ModuleItem(
                             modifier = Modifier.size(20.dp),
                             imageVector = Icons.Outlined.Delete,
                             contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer
                         )
                     } else {
                         Icon(
                             modifier = Modifier.size(20.dp).rotate(180f),
                             imageVector = Icons.Outlined.Refresh,
-                            contentDescription = null,
-
+                            contentDescription = null
                         )
                     }
                     if (!module.hasActionScript && !module.hasWebUi && updateUrl.isEmpty()) {
@@ -903,7 +940,8 @@ fun ModuleItem(
                             modifier = Modifier.padding(start = 7.dp),
                             fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
                             fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                            text = stringResource(if (!module.remove) R.string.uninstall else R.string.restore)
+                            text = stringResource(if (!module.remove) R.string.uninstall else R.string.restore),
+                            color = if (!module.remove) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -932,4 +970,3 @@ fun ModuleItemPreview() {
     )
     ModuleItem(EmptyDestinationsNavigator, module, "", {}, {}, {}, {})
 }
-

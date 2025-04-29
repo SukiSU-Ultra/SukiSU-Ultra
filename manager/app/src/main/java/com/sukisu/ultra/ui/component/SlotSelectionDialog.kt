@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.theme.ThemeConfig
-import com.sukisu.ultra.ui.theme.getCardElevation
 import androidx.compose.foundation.shape.CornerSize
 
 /**
@@ -60,7 +59,7 @@ fun SlotSelectionDialog(
                 colors = CardDefaults.cardColors(
                     containerColor = backgroundColor
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
                     modifier = Modifier

@@ -50,7 +50,6 @@ import com.sukisu.ultra.flash.HorizonKernelWorker
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.theme.ThemeConfig
 import com.sukisu.ultra.ui.theme.getCardColors
-import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.*
 
 /**
@@ -584,7 +583,7 @@ fun rememberSelectKmiDialog(onSelected: (String?) -> Unit): DialogHandle {
             },
             containerColor = getCardColors(cardColor.copy(alpha = 0.9f)).containerColor.copy(alpha = 0.9f),
             shape = MaterialTheme.shapes.medium,
-            tonalElevation = getCardElevation()
+            tonalElevation = 0.dp
         )
     }
 }

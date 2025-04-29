@@ -68,9 +68,9 @@ class SuperUserViewModel : ViewModel() {
 
     // 批量操作相关状态
     var showBatchActions by mutableStateOf(false)
-        private set
+        internal set
     var selectedApps by mutableStateOf<Set<String>>(emptySet())
-        private set
+        internal set
 
     private val sortedList by derivedStateOf {
         val comparator = compareBy<AppInfo> {

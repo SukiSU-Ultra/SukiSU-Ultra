@@ -1,20 +1,24 @@
 package com.sukisu.ultra.ui.screen
 
-import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +40,7 @@ import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.net.*
+import android.app.Activity
 
 /**
  * KPM 管理界面
@@ -56,7 +61,7 @@ fun KpmScreen(
     val cardColor = if (!ThemeConfig.useDynamicColor) {
         ThemeConfig.currentTheme.ButtonContrast
     } else {
-        MaterialTheme.colorScheme.secondaryContainer
+        MaterialTheme.colorScheme.primaryContainer
     }
 
     val moduleConfirmContentMap = viewModel.moduleList.associate { module ->
@@ -64,7 +69,7 @@ fun KpmScreen(
         module.id to stringResource(R.string.confirm_uninstall_content, moduleFileName)
     }
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val kpmInstallSuccess = stringResource(R.string.kpm_install_success)
     val kpmInstallFailed = stringResource(R.string.kpm_install_failed)
@@ -103,16 +108,33 @@ fun KpmScreen(
                 }
             }
         }
+
         AlertDialog(
             onDismissRequest = {
                 dismiss()
                 tempFileForInstall?.delete()
                 tempFileForInstall = null
             },
-            title = { Text(kpmInstallMode) },
-            text = { moduleName?.let { Text(stringResource(R.string.kpm_install_mode_description, it)) } },
+            title = {
+                Text(
+                    text = kpmInstallMode,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                moduleName?.let {
+                    Text(
+                        text = stringResource(R.string.kpm_install_mode_description, it),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
             confirmButton = {
-                Column {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Button(
                         onClick = {
                             scope.launch {
@@ -129,11 +151,20 @@ fun KpmScreen(
                                 }
                                 tempFileForInstall = null
                             }
-                        }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
+                        Icon(
+                            imageVector = Icons.Filled.Download,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                        )
                         Text(kpmInstallModeLoad)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+
                     Button(
                         onClick = {
                             scope.launch {
@@ -150,8 +181,17 @@ fun KpmScreen(
                                 }
                                 tempFileForInstall = null
                             }
-                        }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
                     ) {
+                        Icon(
+                            imageVector = Icons.Filled.Inventory,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp).padding(end = 4.dp)
+                        )
                         Text(kpmInstallModeEmbed)
                     }
                 }
@@ -166,14 +206,16 @@ fun KpmScreen(
                 ) {
                     Text(cancel)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = MaterialTheme.shapes.extraLarge
         )
     }
 
     val selectPatchLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode != RESULT_OK) return@rememberLauncherForActivityResult
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
 
         val uri = result.data?.data ?: return@rememberLauncherForActivityResult
 
@@ -236,10 +278,13 @@ fun KpmScreen(
                 onClearClick = { viewModel.search = "" },
                 scrollBehavior = scrollBehavior,
                 dropdownContent = {
-                    IconButton(onClick = { viewModel.fetchModuleList() }) {
+                    IconButton(
+                        onClick = { viewModel.fetchModuleList() }
+                    ) {
                         Icon(
-                            imageVector = Icons.Outlined.Refresh,
-                            contentDescription = stringResource(R.string.refresh)
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = stringResource(R.string.refresh),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -256,39 +301,78 @@ fun KpmScreen(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.kpm_install)
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.kpm_install),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
-                text = { Text(stringResource(R.string.kpm_install)) },
-                containerColor = cardColor.copy(alpha = 1f),
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                text = {
+                    Text(
+                        text = stringResource(R.string.kpm_install),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                },
+                containerColor = cardColor,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 0.dp
+                ),
+                expanded = true,
+                modifier = Modifier.padding(16.dp)
             )
         },
         snackbarHost = { SnackbarHost(snackBarHost) }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             if (!isNoticeClosed) {
-                Row(
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(16.dp)
+                        .clip(MaterialTheme.shapes.medium)
                 ) {
-                    Text(
-                        text = stringResource(R.string.kernel_module_notice),
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
-                    )
-                    IconButton(onClick = {
-                        isNoticeClosed = true
-                        sharedPreferences.edit { putBoolean("is_notice_closed", true) }
-                    }) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
-                            imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.close_notice)
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .size(24.dp)
                         )
+
+                        Text(
+                            text = stringResource(R.string.kernel_module_notice),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+
+                        IconButton(
+                            onClick = {
+                                isNoticeClosed = true
+                                sharedPreferences.edit { putBoolean("is_notice_closed", true) }
+                            },
+                            modifier = Modifier.size(24.dp),
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.close_notice)
+                            )
+                        }
                     }
                 }
             }
@@ -298,15 +382,30 @@ fun KpmScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        stringResource(R.string.kpm_empty),
-                        textAlign = TextAlign.Center
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Code,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                            modifier = Modifier
+                                .size(96.dp)
+                                .padding(bottom = 16.dp)
+                        )
+                        Text(
+                            stringResource(R.string.kpm_empty),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(viewModel.moduleList) { module ->
@@ -489,13 +588,34 @@ private fun KpmModuleItem(
     if (viewModel.showInputDialog && viewModel.selectedModuleId == module.id) {
         AlertDialog(
             onDismissRequest = { viewModel.hideInputDialog() },
-            title = { Text(stringResource(R.string.kpm_control)) },
+            title = {
+                Text(
+                    text = stringResource(R.string.kpm_control),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
             text = {
                 OutlinedTextField(
                     value = viewModel.inputArgs,
                     onValueChange = { viewModel.updateInputArgs(it) },
-                    label = { Text(stringResource(R.string.kpm_args)) },
-                    placeholder = { Text(module.args) }
+                    label = {
+                        Text(
+                            text = stringResource(R.string.kpm_args),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            text = module.args,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
             },
             confirmButton = {
@@ -512,23 +632,39 @@ private fun KpmModuleItem(
                         }
                     }
                 ) {
-                    Text(stringResource(R.string.confirm))
+                    Text(
+                        text = stringResource(R.string.confirm),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.hideInputDialog() }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = MaterialTheme.shapes.extraLarge
         )
     }
 
-    ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -538,54 +674,77 @@ private fun KpmModuleItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = module.name,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
                         text = "${stringResource(R.string.kpm_version)}: ${module.version}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Text(
                         text = "${stringResource(R.string.kpm_author)}: ${module.author}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Text(
                         text = "${stringResource(R.string.kpm_args)}: ${module.args}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = module.description,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FilledTonalButton(
+                Button(
                     onClick = { viewModel.showInputDialog(module.id) },
-                    enabled = module.hasAction
+                    enabled = module.hasAction,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = null
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.kpm_control))
                 }
 
-                FilledTonalButton(
-                    onClick = onUninstall
+                Button(
+                    onClick = onUninstall,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = null
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.kpm_uninstall))
                 }
             }

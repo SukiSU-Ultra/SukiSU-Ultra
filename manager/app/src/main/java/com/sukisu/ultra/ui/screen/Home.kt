@@ -2,12 +2,15 @@ package com.sukisu.ultra.ui.screen
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.system.Os
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,10 +22,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
@@ -41,7 +47,6 @@ import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import com.sukisu.ultra.ui.theme.getCardColors
-import com.sukisu.ultra.ui.theme.getCardElevation
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -71,24 +76,19 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     LaunchedEffect(Unit) {
         isSimpleMode = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .getBoolean("is_simple_mode", false)
-    }
-    // 从 SharedPreferences 加载隐藏 KernelSU 版本号开关状态
-    LaunchedEffect(Unit) {
+
         isHideVersion = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .getBoolean("is_hide_version", false)
-    }
-    // 从 SharedPreferences 加载隐藏模块数量等信息开关状态
-    LaunchedEffect(Unit) {
+
         isHideOtherInfo = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .getBoolean("is_hide_other_info", false)
-    }
-    // 从 SharedPreferences 加载隐藏 SuSFS 状态开关状态
-    LaunchedEffect(Unit) {
+
         isHideSusfsStatus = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .getBoolean("is_hide_susfs_status", false)
     }
+
     val kernelVersion = getKernelVersion()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val isManager = Natives.becomeManager(ksuApp.packageName)
     val deviceModel = getDeviceModel(context)
@@ -126,7 +126,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 .padding(innerPadding)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
-                .padding(top = 12.dp)
+                .padding(top = 16.dp)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -143,6 +143,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             StatusCard(kernelVersion, ksuVersion, lkmMode) {
                 navigator.navigate(InstallScreenDestination)
             }
+
             if (isManager && Natives.requireNewKernel()) {
                 WarningCard(
                     stringResource(id = R.string.require_kernel_version).format(
@@ -150,28 +151,39 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     )
                 )
             }
+
             if (ksuVersion != null && !rootAvailable()) {
                 WarningCard(
                     stringResource(id = R.string.grant_root_failed)
                 )
             }
+
             val checkUpdate =
                 LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
                     .getBoolean("check_update", true)
             if (checkUpdate) {
                 UpdateCard()
             }
+
             val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
             var clickCount by rememberSaveable { mutableIntStateOf(prefs.getInt("click_count", 0)) }
 
             if (!isSimpleMode && clickCount < 3) {
                 AnimatedVisibility(
                     visible = clickCount < 3,
+                    enter = fadeIn() + expandVertically(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     ElevatedCard(
                         colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-                        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.medium)
+                            .shadow(
+                                elevation = 0.dp,
+                                shape = MaterialTheme.shapes.medium,
+                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -183,21 +195,31 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
                             Text(
                                 text = stringResource(R.string.using_mksu_manager),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
             }
+
             InfoCard()
+
             if (!isSimpleMode) {
                 ContributionCard()
                 DonateCard()
                 LearnMoreCard()
             }
-            Spacer(Modifier)
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
@@ -217,46 +239,53 @@ fun UpdateCard() {
     val newVersionUrl = newVersion.downloadUrl
     val changelog = newVersion.changelog
 
-    Log.d("UpdateCard", "Current version code: $currentVersionCode")
-    Log.d("UpdateCard", "New version code: $newVersionCode")
-
-
-
     val uriHandler = LocalUriHandler.current
     val title = stringResource(id = R.string.module_changelog)
     val updateText = stringResource(id = R.string.module_update)
 
     AnimatedVisibility(
         visible = newVersionCode > currentVersionCode,
-        enter = fadeIn() + expandVertically(),
+        enter = fadeIn() + expandVertically(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ),
         exit = shrinkVertically() + fadeOut()
     ) {
         val updateDialog = rememberConfirmDialog(onConfirm = { uriHandler.openUri(newVersionUrl) })
         WarningCard(
             message = stringResource(id = R.string.new_version_available).format(newVersionCode),
-            MaterialTheme.colorScheme.outlineVariant
-        ) {
-            if (changelog.isEmpty()) {
-                uriHandler.openUri(newVersionUrl)
-            } else {
-                updateDialog.showConfirm(
-                    title = title,
-                    content = changelog,
-                    markdown = true,
-                    confirm = updateText
-                )
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            onClick = {
+                if (changelog.isEmpty()) {
+                    uriHandler.openUri(newVersionUrl)
+                } else {
+                    updateDialog.showConfirm(
+                        title = title,
+                        content = changelog,
+                        markdown = true,
+                        confirm = updateText
+                    )
+                }
             }
-        }
+        )
     }
 }
 
 @Composable
 fun RebootDropdownItem(@StringRes id: Int, reason: String = "") {
-    DropdownMenuItem(text = {
-        Text(stringResource(id))
-    }, onClick = {
-        reboot(reason)
-    })
+    DropdownMenuItem(
+        text = { Text(stringResource(id)) },
+        onClick = { reboot(reason) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -267,35 +296,47 @@ private fun TopBar(
     onSettingsClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.secondaryContainer
+    val cardColor = MaterialTheme.colorScheme.surfaceVariant
     val cardAlpha = CardConfig.cardAlpha
 
     TopAppBar(
-        title = { Text(stringResource(R.string.app_name)) },
+        title = {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = cardColor.copy(alpha = cardAlpha),
-            scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
+            scrolledContainerColor = cardColor.copy(alpha = 1f)
         ),
         actions = {
             if (kernelVersion.isGKI()) {
                 IconButton(onClick = onInstallClick) {
-                    Icon(Icons.Filled.Archive, stringResource(R.string.install))
+                    Icon(
+                        Icons.Filled.Archive,
+                        contentDescription = stringResource(R.string.install),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
             var showDropdown by remember { mutableStateOf(false) }
             if (Natives.isKsuValid(ksuApp.packageName)) {
                 IconButton(onClick = { showDropdown = true }) {
-                    Icon(Icons.Filled.Refresh, stringResource(R.string.reboot))
+                    Icon(
+                        Icons.Filled.Refresh,
+                        contentDescription = stringResource(R.string.reboot),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
                     DropdownMenu(
                         expanded = showDropdown,
                         onDismissRequest = { showDropdown = false }
                     ) {
-
                         RebootDropdownItem(id = R.string.reboot)
 
-                        val pm =
-                            LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                        val pm = LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
                         @Suppress("DEPRECATION")
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
                             RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
@@ -307,12 +348,19 @@ private fun TopBar(
                     }
                 }
             }
+
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    Icons.Filled.Settings,
+                    contentDescription = stringResource(id = R.string.settings),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         },
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
 }
-
 
 @Composable
 private fun StatusCard(
@@ -322,17 +370,28 @@ private fun StatusCard(
     onClickInstall: () -> Unit = {}
 ) {
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
-    ) {
-        Row(modifier = Modifier
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                if (kernelVersion.isGKI()) {
-                    onClickInstall()
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = kernelVersion.isGKI()) {
+                    if (kernelVersion.isGKI()) {
+                        onClickInstall()
+                    }
                 }
-            }
-            .padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             when {
                 ksuVersion != null -> {
                     val safeMode = when {
@@ -346,8 +405,7 @@ private fun StatusCard(
                         else -> " <GKI>"
                     }
 
-                    val workingText =
-                        "${stringResource(id = R.string.home_working)}$workingMode$safeMode"
+                    val workingText = "${stringResource(id = R.string.home_working)}$workingMode$safeMode"
 
                     val isHideVersion = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
                         .getBoolean("is_hide_version", false)
@@ -358,40 +416,55 @@ private fun StatusCard(
                     val isHideSusfsStatus = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
                         .getBoolean("is_hide_susfs_status", false)
 
-                    Icon(Icons.Outlined.CheckCircle, stringResource(R.string.home_working))
+                    Icon(
+                        Icons.Outlined.CheckCircle,
+                        contentDescription = stringResource(R.string.home_working),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = workingText,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+
                         if (!isHideVersion) {
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = stringResource(R.string.home_working_version, ksuVersion),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+
                         if (!isHideOtherInfo) {
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = stringResource(
-                                    R.string.home_superuser_count, getSuperuserCount()
-                                ), style = MaterialTheme.typography.bodyMedium
+                                text = stringResource(R.string.home_superuser_count, getSuperuserCount()),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = stringResource(R.string.home_module_count, getModuleCount()),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+
                             val kpmVersion = getKpmVersion()
                             if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error")) {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(R.string.home_kpm_module, getKpmModuleCount()),
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
+
                         if (!isHideSusfsStatus) {
                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -405,7 +478,8 @@ private fun StatusCard(
 
                                 Text(
                                     text = stringResource(R.string.home_susfs, translatedStatus),
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -413,31 +487,49 @@ private fun StatusCard(
                 }
 
                 kernelVersion.isGKI() -> {
-                    Icon(Icons.Outlined.Warning, stringResource(R.string.home_not_installed))
+                    Icon(
+                        Icons.Outlined.Warning,
+                        contentDescription = stringResource(R.string.home_not_installed),
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(40.dp)
+                    )
+
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = stringResource(R.string.home_not_installed),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
                         )
+
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.home_click_to_install),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
                 else -> {
-                    Icon(Icons.Outlined.Block, stringResource(R.string.home_unsupported))
+                    Icon(
+                        Icons.Outlined.Block,
+                        contentDescription = stringResource(R.string.home_unsupported),
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(40.dp)
+                    )
+
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = stringResource(R.string.home_unsupported),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
                         )
+
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.home_unsupported_reason),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -448,31 +540,62 @@ private fun StatusCard(
 
 @Composable
 fun WarningCard(
-    message: String, color: Color = MaterialTheme.colorScheme.error, onClick: (() -> Unit)? = null
+    message: String,
+    color: Color = MaterialTheme.colorScheme.errorContainer,
+    onClick: (() -> Unit)? = null
 ) {
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+        colors = getCardColors(color),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+            )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(onClick?.let { Modifier.clickable { it() } } ?: Modifier)
-                .padding(24.dp)
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = Icons.Filled.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(28.dp)
+            )
             Text(
-                text = message, style = MaterialTheme.typography.bodyMedium
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }
 }
+
 @Composable
 fun ContributionCard() {
     val uriHandler = LocalUriHandler.current
     val links = listOf("https://github.com/zako", "https://github.com/udochina")
+
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+        colors = getCardColors(MaterialTheme.colorScheme.tertiaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f)
+            )
     ) {
         Row(
             modifier = Modifier
@@ -484,15 +607,27 @@ fun ContributionCard() {
                 .padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = Icons.Filled.Code,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(28.dp)
+            )
+
             Column {
                 Text(
                     text = stringResource(R.string.home_ContributionCard_kernelsu),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
+
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_ContributionCard_kernelsu),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
                 )
             }
         }
@@ -505,25 +640,47 @@ fun LearnMoreCard() {
     val url = stringResource(R.string.home_learn_kernelsu_url)
 
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
-    ) {
-
-        Row(modifier = Modifier
+        colors = getCardColors(MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                uriHandler.openUri(url)
-            }
-            .padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    uriHandler.openUri(url)
+                }
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.School,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(28.dp)
+            )
+
             Column {
                 Text(
                     text = stringResource(R.string.home_learn_kernelsu),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_learn_kernelsu),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
             }
         }
@@ -536,24 +693,46 @@ fun DonateCard() {
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
-    ) {
-
-        Row(modifier = Modifier
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                uriHandler.openUri("https://patreon.com/weishu")
-            }
-            .padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    uriHandler.openUri("https://patreon.com/weishu")
+                }
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(28.dp)
+            )
+
             Column {
                 Text(
                     text = stringResource(R.string.home_support_title),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
+
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_support_content),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                 )
             }
         }
@@ -568,8 +747,16 @@ private fun InfoCard() {
         .getBoolean("is_simple_mode", false)
 
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = getCardElevation())
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHighest),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .shadow(
+                elevation = 0.dp,
+                shape = MaterialTheme.shapes.large,
+                spotColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.05f)
+            )
     ) {
         Column(
             modifier = Modifier
@@ -586,57 +773,90 @@ private fun InfoCard() {
                 icon: ImageVector = Icons.Default.Info
             ) {
                 contents.appendLine(label).appendLine(content).appendLine()
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = label,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(28.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text(text = label, style = MaterialTheme.typography.bodyLarge)
-                        Text(text = content, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = content,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
 
-            InfoCardItem(stringResource(R.string.home_kernel), uname.release, icon = Icons.Default.Memory)
+            InfoCardItem(
+                stringResource(R.string.home_kernel),
+                uname.release,
+                icon = Icons.Default.Memory
+            )
 
             if (!isSimpleMode) {
-                Spacer(Modifier.height(16.dp))
                 val androidVersion = Build.VERSION.RELEASE
-                InfoCardItem(stringResource(R.string.home_android_version), androidVersion, icon = Icons.Default.Android)
+                InfoCardItem(
+                    stringResource(R.string.home_android_version),
+                    androidVersion,
+                    icon = Icons.Default.Android
+                )
             }
 
-            Spacer(Modifier.height(16.dp))
             val deviceModel = getDeviceModel(context)
-            InfoCardItem(stringResource(R.string.home_device_model), deviceModel, icon = Icons.Default.PhoneAndroid)
+            InfoCardItem(
+                stringResource(R.string.home_device_model),
+                deviceModel,
+                icon = Icons.Default.PhoneAndroid
+            )
 
-            Spacer(Modifier.height(16.dp))
             val managerVersion = getManagerVersion(context)
-            InfoCardItem(stringResource(R.string.home_manager_version), "${managerVersion.first} (${managerVersion.second})", icon = Icons.Default.Settings)
+            InfoCardItem(
+                stringResource(R.string.home_manager_version),
+                "${managerVersion.first} (${managerVersion.second})",
+                icon = Icons.Default.Settings
+            )
 
-            Spacer(Modifier.height(16.dp))
-            InfoCardItem(stringResource(R.string.home_selinux_status), getSELinuxStatus(), icon = Icons.Default.Security)
+            InfoCardItem(
+                stringResource(R.string.home_selinux_status),
+                getSELinuxStatus(),
+                icon = Icons.Default.Security
+            )
 
             if (!isSimpleMode) {
                 if (lkmMode != true) {
                     val kpmVersion = getKpmVersion()
-                    var displayVersion: String
                     val isKpmConfigured = checkKpmConfigured()
 
-                    if (kpmVersion.isEmpty() || kpmVersion.startsWith("Error")) {
+                    val displayVersion = if (kpmVersion.isEmpty() || kpmVersion.startsWith("Error")) {
                         val statusText = if (isKpmConfigured) {
                             stringResource(R.string.kernel_patched)
                         } else {
                             stringResource(R.string.kernel_not_enabled)
                         }
-                        displayVersion = "${stringResource(R.string.not_supported)} ($statusText)"
+                        "${stringResource(R.string.not_supported)} ($statusText)"
                     } else {
-                        displayVersion = "${stringResource(R.string.supported)} ($kpmVersion)"
+                        "${stringResource(R.string.supported)} ($kpmVersion)"
                     }
-                    Spacer(Modifier.height(16.dp))
-                    InfoCardItem(stringResource(R.string.home_kpm_version), displayVersion, icon = Icons.Default.Code)
+
+                    InfoCardItem(
+                        stringResource(R.string.home_kpm_version),
+                        displayVersion,
+                        icon = Icons.Default.Code
+                    )
                 }
             }
 
@@ -644,25 +864,28 @@ private fun InfoCard() {
                 .getBoolean("is_hide_susfs_status", false)
 
             if ((!isSimpleMode) && (!isHideSusfsStatus)) {
-                Spacer(modifier = Modifier.height(16.dp))
-
                 val suSFS = getSuSFS()
                 if (suSFS == "Supported") {
                     val suSFSVersion = getSuSFSVersion()
-                    if (suSFSVersion.isEmpty()) return@withContext
-                    val isSUS_SU = getSuSFSFeatures() == "CONFIG_KSU_SUSFS_SUS_SU"
-                    val infoText = buildString {
-                        append(suSFSVersion)
-                        append(if (isSUS_SU) " (${getSuSFSVariant()})" else " (${stringResource(R.string.manual_hook)})")
-                        if (isSUS_SU) {
-                            val susSUMode = try { susfsSUS_SU_Mode().toString() } catch (_: Exception) { "" }
-                            if (susSUMode.isNotEmpty()) {
-                                append(" ${stringResource(R.string.sus_su_mode)} $susSUMode")
+                    if (suSFSVersion.isNotEmpty()) {
+                        val isSUS_SU = getSuSFSFeatures() == "CONFIG_KSU_SUSFS_SUS_SU"
+                        val infoText = buildString {
+                            append(suSFSVersion)
+                            append(if (isSUS_SU) " (${getSuSFSVariant()})" else " (${stringResource(R.string.manual_hook)})")
+                            if (isSUS_SU) {
+                                val susSUMode = try { susfsSUS_SU_Mode().toString() } catch (_: Exception) { "" }
+                                if (susSUMode.isNotEmpty()) {
+                                    append(" ${stringResource(R.string.sus_su_mode)} $susSUMode")
+                                }
                             }
                         }
+
+                        InfoCardItem(
+                            stringResource(R.string.home_susfs_version),
+                            infoText,
+                            icon = Icons.Default.Storage
+                        )
                     }
-                    InfoCardItem(
-                        stringResource(R.string.home_susfs_version), infoText, icon = Icons.Default.Storage)
                 }
             }
         }
@@ -678,7 +901,7 @@ fun getManagerVersion(context: Context): Pair<String, Long> {
 @Preview
 @Composable
 private fun StatusCardPreview() {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         StatusCard(KernelVersion(5, 10, 101), 1, null)
         StatusCard(KernelVersion(5, 10, 101), 20000, true)
         StatusCard(KernelVersion(5, 10, 101), null, true)
@@ -689,11 +912,11 @@ private fun StatusCardPreview() {
 @Preview
 @Composable
 private fun WarningCardPreview() {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         WarningCard(message = "Warning message")
         WarningCard(
             message = "Warning message ",
-            MaterialTheme.colorScheme.outlineVariant,
+            MaterialTheme.colorScheme.tertiaryContainer,
             onClick = {})
     }
 }

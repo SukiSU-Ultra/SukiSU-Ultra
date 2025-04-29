@@ -1,19 +1,23 @@
 package com.sukisu.ultra.ui
 
+import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -30,23 +34,52 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.*
 import com.sukisu.ultra.ui.util.*
+
 class MainActivity : ComponentActivity() {
+    private inner class ThemeChangeContentObserver(
+        handler: Handler,
+        private val onThemeChanged: () -> Unit
+    ) : ContentObserver(handler) {
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            onThemeChanged()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        // Enable edge to edge
+        // 启用边缘到边缘显示
         enableEdgeToEdge()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
 
         super.onCreate(savedInstanceState)
 
-        // 加载保存的背景设置
+        // 加载保存的主题设置
         loadCustomBackground()
         loadThemeMode()
+        loadThemeColors()
+        loadDynamicColorState()
         CardConfig.load(applicationContext)
 
+        val contentObserver = ThemeChangeContentObserver(Handler(mainLooper)) {
+            runOnUiThread {
+                ThemeConfig.backgroundImageLoaded = false
+                loadCustomBackground()
+            }
+        }
+
+        contentResolver.registerContentObserver(
+            android.provider.Settings.System.getUriFor("ui_night_mode"),
+            false,
+            contentObserver
+        )
+
+        val destroyListeners = mutableListOf<() -> Unit>()
+        destroyListeners.add {
+            contentResolver.unregisterContentObserver(contentObserver)
+        }
 
         val isManager = Natives.becomeManager(ksuApp.packageName)
         if (isManager) {
@@ -58,28 +91,50 @@ class MainActivity : ComponentActivity() {
             KernelSUTheme {
                 val navController = rememberNavController()
                 val snackBarHostState = remember { SnackbarHostState() }
+
                 Scaffold(
                     bottomBar = { BottomBar(navController) },
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    snackbarHost = { SnackbarHost(snackBarHostState) }
                 ) { innerPadding ->
                     CompositionLocalProvider(
-                        LocalSnackbarHost provides snackBarHostState,
+                        LocalSnackbarHost provides snackBarHostState
                     ) {
                         DestinationsNavHost(
                             modifier = Modifier.padding(innerPadding),
                             navGraph = NavGraphs.root as NavHostGraphSpec,
                             navController = navController,
-                            defaultTransitions = object : NavHostAnimatedDestinationStyle() {
-                                override val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition
-                                    get() = { fadeIn(animationSpec = tween(340)) }
-                                override val exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition
-                                    get() = { fadeOut(animationSpec = tween(340)) }
+                            defaultTransitions = remember {
+                                object : NavHostAnimatedDestinationStyle() {
+                                    override val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+                                        fadeIn(animationSpec = tween(300)) +
+                                                slideIntoContainer(
+                                                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                                                    animationSpec = tween(300)
+                                                )
+                                    }
+
+                                    override val exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+                                        fadeOut(animationSpec = tween(300)) +
+                                                slideOutOfContainer(
+                                                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                                                    animationSpec = tween(300)
+                                                )
+                                    }
+                                }
                             }
                         )
                     }
                 }
             }
         }
+    }
+
+    private val destroyListeners = mutableListOf<() -> Unit>()
+
+    override fun onDestroy() {
+        destroyListeners.forEach { it() }
+        super.onDestroy()
     }
 }
 
@@ -90,78 +145,112 @@ private fun BottomBar(navController: NavHostController) {
     val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
     val kpmVersion = getKpmVersion()
 
-    // 获取卡片颜色和透明度
-    val cardColor = MaterialTheme.colorScheme.secondaryContainer
-    val cardAlpha = CardConfig.cardAlpha
-    val cardElevation = CardConfig.cardElevation
+    val containerColor = MaterialTheme.colorScheme.surfaceContainer
+    val selectedColor = MaterialTheme.colorScheme.primary
+    val unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val cornerRadius = 18.dp
 
-    NavigationBar(
-        tonalElevation = cardElevation, // 动态设置阴影
-        containerColor = cardColor.copy(alpha = cardAlpha),
-        windowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(
-            WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
-        )
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(cornerRadius)),
+        color = containerColor.copy(alpha = 0.95f),
+        tonalElevation = 0.dp
     ) {
-        BottomBarDestination.entries.forEach { destination ->
-            if (destination == BottomBarDestination.Kpm) {
-                if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error")) {
+        NavigationBar(
+            modifier = Modifier.windowInsetsPadding(
+                WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)
+            ),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp
+        ) {
+            BottomBarDestination.entries.forEach { destination ->
+                if (destination == BottomBarDestination.Kpm) {
+                    if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error")) {
+                        if (!fullFeatured && destination.rootRequired) return@forEach
+                        val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
+                        NavigationBarItem(
+                            selected = isCurrentDestOnBackStack,
+                            onClick = {
+                                if (!isCurrentDestOnBackStack) {
+                                    navigator.navigate(destination.direction) {
+                                        popUpTo(NavGraphs.root as RouteOrDirection) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isCurrentDestOnBackStack) {
+                                        destination.iconSelected
+                                    } else {
+                                        destination.iconNotSelected
+                                    },
+                                    contentDescription = stringResource(destination.label),
+                                    tint = if (isCurrentDestOnBackStack) selectedColor else unselectedColor
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = stringResource(destination.label),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = selectedColor,
+                                unselectedIconColor = unselectedColor,
+                                selectedTextColor = selectedColor,
+                                unselectedTextColor = unselectedColor,
+                                indicatorColor = MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        )
+                    }
+                } else {
                     if (!fullFeatured && destination.rootRequired) return@forEach
                     val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
                     NavigationBarItem(
                         selected = isCurrentDestOnBackStack,
                         onClick = {
-                            if (isCurrentDestOnBackStack) {
-                                navigator.popBackStack(destination.direction, false)
-                            }
-                            navigator.navigate(destination.direction) {
-                                popUpTo(NavGraphs.root as RouteOrDirection) {
-                                    saveState = true
+                            if (!isCurrentDestOnBackStack) {
+                                navigator.navigate(destination.direction) {
+                                    popUpTo(NavGraphs.root as RouteOrDirection) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         icon = {
-                            if (isCurrentDestOnBackStack) {
-                                Icon(destination.iconSelected, stringResource(destination.label))
-                            } else {
-                                Icon(destination.iconNotSelected, stringResource(destination.label))
-                            }
+                            Icon(
+                                imageVector = if (isCurrentDestOnBackStack) {
+                                    destination.iconSelected
+                                } else {
+                                    destination.iconNotSelected
+                                },
+                                contentDescription = stringResource(destination.label),
+                                tint = if (isCurrentDestOnBackStack) selectedColor else unselectedColor
+                            )
                         },
-                        label = { Text(stringResource(destination.label)) },
-                        alwaysShowLabel = false,
+                        label = {
+                            Text(
+                                text = stringResource(destination.label),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        },
                         colors = NavigationBarItemDefaults.colors(
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            selectedIconColor = selectedColor,
+                            unselectedIconColor = unselectedColor,
+                            selectedTextColor = selectedColor,
+                            unselectedTextColor = unselectedColor,
+                            indicatorColor = MaterialTheme.colorScheme.secondaryContainer
                         )
                     )
                 }
-            } else {
-                if (!fullFeatured && destination.rootRequired) return@forEach
-                val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
-                NavigationBarItem(
-                    selected = isCurrentDestOnBackStack,
-                    onClick = {
-                        if (isCurrentDestOnBackStack) {
-                            navigator.popBackStack(destination.direction, false)
-                        }
-                        navigator.navigate(destination.direction) {
-                            popUpTo(NavGraphs.root as RouteOrDirection) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    icon = {
-                        if (isCurrentDestOnBackStack) {
-                            Icon(destination.iconSelected, stringResource(destination.label))
-                        } else {
-                            Icon(destination.iconNotSelected, stringResource(destination.label))
-                        }
-                    },
-                    label = { Text(stringResource(destination.label)) },
-                    alwaysShowLabel = false,
-                )
             }
         }
     }

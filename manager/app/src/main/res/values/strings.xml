@@ -301,4 +301,25 @@
     <string name="GKI_install_methods">GKI installation</string>
     <string name="kernel_version_log">Kernel version：%1$s</string>
     <string name="tool_version_log">Using the patching tool：%1$s</string>
+    <string name="configuration">Configure</string>
+    <string name="app_settings">Application Settings</string>
+    <string name="tools">Tools</string>
+    <!--  String resources used in SuperUser -->
+    <string name="clear">Removals</string>
+    <string name="apps_with_root">Root Application of permissions</string>
+    <string name="apps_with_custom_profile">Customized Configuration Application</string>
+    <string name="other_apps">Other Applications</string>
+    <string name="no_apps_found">Application not found</string>
+    <string name="selinux_enabled_toast">SELinux Enabled</string>
+    <string name="selinux_disabled_toast">SELinux Disabled</string>
+    <string name="selinux_change_failed">SELinux Status change failed</string>
+    <string name="advanced_settings">Advanced Settings</string>
+    <string name="appearance_settings">Customize the toolbar</string>
+    <string name="back">Comeback</string>
+    <string name="expand">Be in full swing</string>
+    <string name="collapse">put away</string>
+    <string name="susfs_enabled">SuSFS enabled</string>
+    <string name="susfs_disabled">SuSFS disabled</string>
+    <string name="background_set_success">Background set successfully</string>
+    <string name="background_removed">Removed custom backgrounds</string>
 </resources>
