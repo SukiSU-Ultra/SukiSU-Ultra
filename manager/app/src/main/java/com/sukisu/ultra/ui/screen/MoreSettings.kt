@@ -508,7 +508,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             visible = ThemeConfig.customBackgroundUri != null,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically(),
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            modifier = Modifier.padding(horizontal = 32.dp)
                         ) {
                             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                                 Row(
