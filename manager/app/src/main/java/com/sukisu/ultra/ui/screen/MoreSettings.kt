@@ -203,7 +203,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
 
     // 卡片配置状态
     var cardAlpha by rememberSaveable { mutableFloatStateOf(CardConfig.cardAlpha) }
-    var showCardSettings by remember { mutableStateOf(false) }
     var isCustomBackgroundEnabled by rememberSaveable {
         mutableStateOf(ThemeConfig.customBackgroundUri != null)
     }
@@ -501,17 +500,12 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = Color.Transparent
-                            ),
-                            modifier = Modifier.clickable {
-                                if (isCustomBackgroundEnabled) {
-                                    showCardSettings = !showCardSettings
-                                }
-                            }
+                            )
                         )
 
                         // 透明度 Slider
                         AnimatedVisibility(
-                            visible = ThemeConfig.customBackgroundUri != null && showCardSettings,
+                            visible = ThemeConfig.customBackgroundUri != null,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically(),
                             modifier = Modifier.padding(horizontal = 16.dp)
