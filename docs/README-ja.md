@@ -64,9 +64,9 @@ SukiSU と susfs をベースにコンパイルされたプロジェクトです
 
 ### GKI
 
-1. Xiaomi、Redmi、Samsung などのデバイス (Meizu、OnePlus、Realme、OPPO などのカーネルを変更したメーカー以外)
-2. `その他のリンク`の項目で言及されているカーネル名が、AnyKernel3 で終わるビルド済みの GKI カーネルを TWRP などのリカバリーでフラッシュします。
-3. 一般的な .zip の接頭辞を持つパッケージは汎用的になります。ただし、デバイスに MediaTek 製の SoC が搭載されている場合は、.gz の接頭辞を持つパッケージを使用する必要があります。その他に .lz4 の接頭辞を持つパッケージは Google 製デバイス専用です。
+このガイドに従ってください。
+
+https://kernelsu.org/ja_JP/guide/installation.html
 
 ### OnePlus
 
