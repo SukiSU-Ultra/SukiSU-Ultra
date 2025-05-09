@@ -2,22 +2,19 @@
 
 **English** | [简体中文](README.md) | [日本語](README-ja.md)
 
-
 Android device root solution based on [KernelSU](https://github.com/tiann/KernelSU)
 
 **Experimental! Use at your own risk!** This solution is based on [KernelSU](https://github.com/tiann/KernelSU) and is experimental!
 
->
 > This is an unofficial fork. All rights are reserved to [@tiann](https://github.com/tiann)
-> However, we will be a separately maintained branch of KSU in the future
 >
+> However, we will be a separately maintained branch of KSU in the future
 
 - Fully adapted for non-GKI devices (susfs-dev and unsusfs-patched dev branches only)
 
 ## How to add
 
 Use the susfs-stable or susfs-dev branch (integrated susfs with support for non-GKI devices)
-
 ```
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 ```
@@ -31,20 +28,17 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setu
 
 1. Use the susfs-dev branch directly without any patching
 
-
-
 ## KPM support
 
 - We have removed duplicate KSU functions based on KernelPatch and retained KPM support.
 - We will introduce more APatch-compatible functions to ensure the integrity of KPM functionality.
 
-
 Open source address: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
-
 
 KPM template address: https://github.com/udochina/KPM-Build-Anywhere
 
 ## More links
+
 Projects compiled based on Sukisu and susfs
 - [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
@@ -57,27 +51,29 @@ Projects compiled based on Sukisu and susfs
     - For Loadable Kernel Modules (LKM)
     - Default hooking method for GKI kernels
     - Requires `CONFIG_KPROBES=y`.
+
 2. **Manual hooks:**
     - For GKI (5.10 - 6.x) kernels, add `CONFIG_KSU_MANUAL_HOOK=y` to the kernel defconfig and make sure to protect KernelSU hooks by using `#ifdef CONFIG_KSU_MANUAL_HOOK` instead of `#ifdef CONFIG_KSU`.
     - Standard KernelSU hooks: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
     - backslashxx syscall hooks: https://github.com/backslashxx/KernelSU/issues/5
     - Some non-GKI devices that manually integrate KPROBES do not require the manual VFS hook `new_hook.patch` patch
 
-
 ## Usage
+
 ### GKI
+
 1. such as Xiaomi, Redmi, Samsung, and other devices (does not include manufacturers that modified the kernel like Meizu, OnePlus, RealMe, and OPPO)
 2. Use the prebuilt GKI kernel, the ones with their name ending with AnyKernel3, mentioned in the 'More Links' section, and then flash it with recoveries like TWRP
 3. Generally, packages with a plain .zip suffix are universal. However, if your device has a MediaTek processor, you should use the ones with .gz suffix, and packages with .lz4 suffix are dedicated to Google devices.
 
 ### OnePlus
+
 1. Use the link mentioned in the 'More Links' section to create a customized build with your device information, and then flash the zip file with the AnyKernel3 suffix.
+
 > [!Note]
 > - You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
 > - Please search for the processor codename by yourself, usually it is all English without numbers.
 > - You can find the branch and configuration files from the OnePlus open-source kernel repository.
-
-
 
 ## Features
 
@@ -88,22 +84,18 @@ Projects compiled based on Sukisu and susfs
 5. More customization
 6. Support for KPM kernel modules
 
-
-
 ## License
 
 - The file in the “kernel” directory is under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
 - All other parts except the “kernel” directory are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
 ## Sponsorship list
+
 - [Ktouls](https://github.com/Ktouls) Thanks so much for bringing me support
 - [zaoqi123](https://github.com/zaoqi123) It's not a bad idea to buy me a milk tea
 - [wswzgdg](https://github.com/wswzgdg) Many thanks for supporting this project
 - [yspbwx2010](https://github.com/yspbwx2010) Many thanks
 - [DARKWWEE](https://github.com/DARKWWEE) Thanks for the 100 USDT Lao
-
-
-
 
 If the above list does not have your name, I will update it as soon as possible, and thanks again for your support!
 
