@@ -137,17 +137,45 @@ void apply_kernelsu_rules()
 #define CMD_TYPE_CHANGE 8
 #define CMD_GENFSCON 9
 
+#ifdef CONFIG_64BIT
 struct sepol_data {
 	u32 cmd;
 	u32 subcmd;
-	char __user *sepol1;
-	char __user *sepol2;
-	char __user *sepol3;
-	char __user *sepol4;
-	char __user *sepol5;
-	char __user *sepol6;
-	char __user *sepol7;
+	u64 field_sepol1;
+	u64 field_sepol2;
+	u64 field_sepol3;
+	u64 field_sepol4;
+	u64 field_sepol5;
+	u64 field_sepol6;
+	u64 field_sepol7;
 };
+#ifdef CONFIG_COMPAT
+extern bool ksu_is_compat __read_mostly;
+struct sepol_compat_data {
+	u32 cmd;
+	u32 subcmd;
+	u32 field_sepol1;
+	u32 field_sepol2;
+	u32 field_sepol3;
+	u32 field_sepol4;
+	u32 field_sepol5;
+	u32 field_sepol6;
+	u32 field_sepol7;
+};
+#endif // CONFIG_COMPAT
+#else
+struct sepol_data {
+	u32 cmd;
+	u32 subcmd;
+	u32 field_sepol1;
+	u32 field_sepol2;
+	u32 field_sepol3;
+	u32 field_sepol4;
+	u32 field_sepol5;
+	u32 field_sepol6;
+	u32 field_sepol7;
+};
+#endif // CONFIG_64BIT
 
 static int get_object(char *buf, char __user *user_object, size_t buf_sz,
 		      char **object)
@@ -191,15 +219,59 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 	if (!getenforce()) {
 		pr_info("SELinux permissive or disabled when handle policy!\n");
 	}
+	
+	u32 cmd, subcmd;
+	char __user *sepol1, *sepol2, *sepol3, *sepol4, *sepol5, *sepol6, *sepol7;
 
+#if defined(CONFIG_64BIT) && defined(CONFIG_COMPAT)
+	if (unlikely(ksu_is_compat)) {
+		struct sepol_compat_data compat_data;
+		if (copy_from_user(&compat_data, arg4, sizeof(struct sepol_compat_data))) {
+			pr_err("sepol: copy sepol_data failed.\n");
+			return -1;
+		}
+		sepol1 = compat_ptr(compat_data.field_sepol1);
+		sepol2 = compat_ptr(compat_data.field_sepol2);
+		sepol3 = compat_ptr(compat_data.field_sepol3);
+		sepol4 = compat_ptr(compat_data.field_sepol4);
+		sepol5 = compat_ptr(compat_data.field_sepol5);
+		sepol6 = compat_ptr(compat_data.field_sepol6);
+		sepol7 = compat_ptr(compat_data.field_sepol7);
+		cmd = compat_data.cmd;
+		subcmd = compat_data.subcmd;
+	} else {
+		struct sepol_data data;
+		if (copy_from_user(&data, arg4, sizeof(struct sepol_data))) {
+			pr_err("sepol: copy sepol_data failed.\n");
+			return -1;
+		}
+		sepol1 = data.field_sepol1;
+		sepol2 = data.field_sepol2;
+		sepol3 = data.field_sepol3;
+		sepol4 = data.field_sepol4;
+		sepol5 = data.field_sepol5;
+		sepol6 = data.field_sepol6;
+		sepol7 = data.field_sepol7;
+		cmd = data.cmd;
+		subcmd = data.subcmd;
+	}
+#else 
+	// basically for full native, say (64BIT=y COMPAT=n) || (64BIT=n)
 	struct sepol_data data;
 	if (copy_from_user(&data, arg4, sizeof(struct sepol_data))) {
 		pr_err("sepol: copy sepol_data failed.\n");
 		return -1;
 	}
-
-	u32 cmd = data.cmd;
-	u32 subcmd = data.subcmd;
+	sepol1 = data.field_sepol1;
+	sepol2 = data.field_sepol2;
+	sepol3 = data.field_sepol3;
+	sepol4 = data.field_sepol4;
+	sepol5 = data.field_sepol5;
+	sepol6 = data.field_sepol6;
+	sepol7 = data.field_sepol7;
+	cmd = data.cmd;
+	subcmd = data.subcmd;
+#endif
 
 	rcu_read_lock();
 
@@ -213,22 +285,22 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		char perm_buf[MAX_SEPOL_LEN];
 
 		char *s, *t, *c, *p;
-		if (get_object(src_buf, data.sepol1, sizeof(src_buf), &s) < 0) {
+		if (get_object(src_buf, sepol1, sizeof(src_buf), &s) < 0) {
 			pr_err("sepol: copy src failed.\n");
 			goto exit;
 		}
 
-		if (get_object(tgt_buf, data.sepol2, sizeof(tgt_buf), &t) < 0) {
+		if (get_object(tgt_buf, sepol2, sizeof(tgt_buf), &t) < 0) {
 			pr_err("sepol: copy tgt failed.\n");
 			goto exit;
 		}
 
-		if (get_object(cls_buf, data.sepol3, sizeof(cls_buf), &c) < 0) {
+		if (get_object(cls_buf, sepol3, sizeof(cls_buf), &c) < 0) {
 			pr_err("sepol: copy cls failed.\n");
 			goto exit;
 		}
 
-		if (get_object(perm_buf, data.sepol4, sizeof(perm_buf), &p) <
+		if (get_object(perm_buf, sepol4, sizeof(perm_buf), &p) <
 		    0) {
 			pr_err("sepol: copy perm failed.\n");
 			goto exit;
@@ -258,24 +330,24 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		char perm_set[MAX_SEPOL_LEN];
 
 		char *s, *t, *c;
-		if (get_object(src_buf, data.sepol1, sizeof(src_buf), &s) < 0) {
+		if (get_object(src_buf, sepol1, sizeof(src_buf), &s) < 0) {
 			pr_err("sepol: copy src failed.\n");
 			goto exit;
 		}
-		if (get_object(tgt_buf, data.sepol2, sizeof(tgt_buf), &t) < 0) {
+		if (get_object(tgt_buf, sepol2, sizeof(tgt_buf), &t) < 0) {
 			pr_err("sepol: copy tgt failed.\n");
 			goto exit;
 		}
-		if (get_object(cls_buf, data.sepol3, sizeof(cls_buf), &c) < 0) {
+		if (get_object(cls_buf, sepol3, sizeof(cls_buf), &c) < 0) {
 			pr_err("sepol: copy cls failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(operation, data.sepol4,
+		if (strncpy_from_user(operation, sepol4,
 				      sizeof(operation)) < 0) {
 			pr_err("sepol: copy operation failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(perm_set, data.sepol5, sizeof(perm_set)) <
+		if (strncpy_from_user(perm_set, sepol5, sizeof(perm_set)) <
 		    0) {
 			pr_err("sepol: copy perm_set failed.\n");
 			goto exit;
@@ -295,7 +367,7 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 	} else if (cmd == CMD_TYPE_STATE) {
 		char src[MAX_SEPOL_LEN];
 
-		if (strncpy_from_user(src, data.sepol1, sizeof(src)) < 0) {
+		if (strncpy_from_user(src, sepol1, sizeof(src)) < 0) {
 			pr_err("sepol: copy src failed.\n");
 			goto exit;
 		}
@@ -315,11 +387,11 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		char type[MAX_SEPOL_LEN];
 		char attr[MAX_SEPOL_LEN];
 
-		if (strncpy_from_user(type, data.sepol1, sizeof(type)) < 0) {
+		if (strncpy_from_user(type, sepol1, sizeof(type)) < 0) {
 			pr_err("sepol: copy type failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(attr, data.sepol2, sizeof(attr)) < 0) {
+		if (strncpy_from_user(attr, sepol2, sizeof(attr)) < 0) {
 			pr_err("sepol: copy attr failed.\n");
 			goto exit;
 		}
@@ -339,7 +411,7 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 	} else if (cmd == CMD_ATTR) {
 		char attr[MAX_SEPOL_LEN];
 
-		if (strncpy_from_user(attr, data.sepol1, sizeof(attr)) < 0) {
+		if (strncpy_from_user(attr, sepol1, sizeof(attr)) < 0) {
 			pr_err("sepol: copy attr failed.\n");
 			goto exit;
 		}
@@ -356,28 +428,28 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		char default_type[MAX_SEPOL_LEN];
 		char object[MAX_SEPOL_LEN];
 
-		if (strncpy_from_user(src, data.sepol1, sizeof(src)) < 0) {
+		if (strncpy_from_user(src, sepol1, sizeof(src)) < 0) {
 			pr_err("sepol: copy src failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(tgt, data.sepol2, sizeof(tgt)) < 0) {
+		if (strncpy_from_user(tgt, sepol2, sizeof(tgt)) < 0) {
 			pr_err("sepol: copy tgt failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(cls, data.sepol3, sizeof(cls)) < 0) {
+		if (strncpy_from_user(cls, sepol3, sizeof(cls)) < 0) {
 			pr_err("sepol: copy cls failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(default_type, data.sepol4,
+		if (strncpy_from_user(default_type, sepol4,
 				      sizeof(default_type)) < 0) {
 			pr_err("sepol: copy default_type failed.\n");
 			goto exit;
 		}
 		char *real_object;
-		if (data.sepol5 == NULL) {
+		if (sepol5 == NULL) {
 			real_object = NULL;
 		} else {
-			if (strncpy_from_user(object, data.sepol5,
+			if (strncpy_from_user(object, sepol5,
 					      sizeof(object)) < 0) {
 				pr_err("sepol: copy object failed.\n");
 				goto exit;
@@ -396,19 +468,19 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		char cls[MAX_SEPOL_LEN];
 		char default_type[MAX_SEPOL_LEN];
 
-		if (strncpy_from_user(src, data.sepol1, sizeof(src)) < 0) {
+		if (strncpy_from_user(src, sepol1, sizeof(src)) < 0) {
 			pr_err("sepol: copy src failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(tgt, data.sepol2, sizeof(tgt)) < 0) {
+		if (strncpy_from_user(tgt, sepol2, sizeof(tgt)) < 0) {
 			pr_err("sepol: copy tgt failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(cls, data.sepol3, sizeof(cls)) < 0) {
+		if (strncpy_from_user(cls, sepol3, sizeof(cls)) < 0) {
 			pr_err("sepol: copy cls failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(default_type, data.sepol4,
+		if (strncpy_from_user(default_type, sepol4,
 				      sizeof(default_type)) < 0) {
 			pr_err("sepol: copy default_type failed.\n");
 			goto exit;
@@ -429,15 +501,15 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		char name[MAX_SEPOL_LEN];
 		char path[MAX_SEPOL_LEN];
 		char context[MAX_SEPOL_LEN];
-		if (strncpy_from_user(name, data.sepol1, sizeof(name)) < 0) {
+		if (strncpy_from_user(name, sepol1, sizeof(name)) < 0) {
 			pr_err("sepol: copy name failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(path, data.sepol2, sizeof(path)) < 0) {
+		if (strncpy_from_user(path, sepol2, sizeof(path)) < 0) {
 			pr_err("sepol: copy path failed.\n");
 			goto exit;
 		}
-		if (strncpy_from_user(context, data.sepol3, sizeof(context)) <
+		if (strncpy_from_user(context, sepol3, sizeof(context)) <
 		    0) {
 			pr_err("sepol: copy context failed.\n");
 			goto exit;
