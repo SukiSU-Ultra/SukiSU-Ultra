@@ -116,7 +116,7 @@
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
-    <string name="select_file">パッチを適用する必要があるミラーを選択</string>
+    <string name="select_file">パッチを行うイメージを選択してください</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
     <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在非アクティブなスロットから起動します。
 \nこのオプションは、OTA が完了した後にのみ使用してください。
@@ -194,8 +194,8 @@
     <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を非表示にします</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示にする</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします</string>
-    <string name="hide_link_card">リンクカードのステータスを隠す</string>
-    <string name="hide_link_card_summary">ホームページのリンクカード情報を隠す</string>
+    <string name="hide_link_card">リンクカードのステータスを非表示</string>
+    <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします</string>
     <string name="theme_mode">テーマ</string>
     <string name="theme_follow_system">システムに従う</string>
     <string name="theme_light">ライト</string>
@@ -222,11 +222,11 @@
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <string name="failed_reboot">再起動に失敗しました</string>
-    <string name="batch_authorization">Bulk ライセンス</string>
-    <string name="batch_cancel_authorization">認証を一括でキャンセル</string>
+    <string name="batch_authorization">権限を付与</string>
+    <string name="batch_cancel_authorization">撤回する</string>
     <string name="backup">バックアップ</string>
     <string name="color_yellow">イエロー</string>
-    <string name="kpm_title">カーネルモジュール</string>
+    <string name="kpm_title">KPM</string>
     <string name="kpm_empty">カーネルモジュールは現在インストールされていません</string>
     <string name="kpm_version">バージョン</string>
     <string name="kpm_author">作者</string>
@@ -298,57 +298,57 @@
     <string name="flash_failed_message">フラッシュに失敗しました</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
-    <string name="GKI_install_methods">GKI/non-GKI のインストール</string>
+    <string name="GKI_install_methods">GKI/ 非 GKI のインストール</string>
     <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
     <string name="app_settings">アプリの設定</string>
     <string name="tools">ツール</string>
     <string name="currently_selected">現在</string>
-    <!--  SuperUser 里用到的字符串资源 -->
-    <string name="clear">クリア</string>
-    <string name="apps_with_root">ルートアクセスの許可</string>
-    <string name="apps_with_custom_profile">カスタムアプリの設定</string>
+    <!--  String resources used in SuperUser -->
+    <string name="clear">削除</string>
+    <string name="apps_with_root">root アプリの権限</string>
+    <string name="apps_with_custom_profile">カスタマイズされたアプリ構成</string>
     <string name="other_apps">その他のアプリ</string>
-    <string name="no_apps_found">アプリが見つかりません</string>
-    <string name="selinux_enabled_toast">SELinux を有効にするステータスを設定します</string>
-    <string name="selinux_disabled_toast">SELinux は Permissive に設定されています</string>
-    <string name="selinux_change_failed">SELinux 状態の変更に失敗しました</string>
-    <string name="advanced_settings">詳細設定</string>
-    <string name="appearance_settings">外観設定</string>
+    <string name="no_apps_found">アプリがありません</string>
+    <string name="selinux_enabled_toast">SELinux 有効</string>
+    <string name="selinux_disabled_toast">SELinux 無効</string>
+    <string name="selinux_change_failed">SELinux ステータスの変更に失敗しました</string>
+    <string name="advanced_settings">高度な設定</string>
+    <string name="appearance_settings">ツールバーをカスタマイズ</string>
     <string name="back">戻る</string>
-    <string name="expand">表示する</string>
-    <string name="collapse">收起</string>
+    <string name="expand">展開する</string>
+    <string name="collapse">折りたたむ</string>
     <string name="susfs_enabled">SuSFS 有効</string>
     <string name="susfs_disabled">SuSFS 無効</string>
-    <string name="background_set_success">設定は正常に更新されました</string>
-    <string name="background_removed">カスタム背景を削除しています</string>
-    <string name="root_require_for_install">Root権限が必要です</string>
-    <!-- KPM 显示设置相关 -->
-    <string name="show_kpm_info">KPMを表示</string>
-    <string name="show_kpm_info_summary">ホーム画面と底バーで KPM に関する情報を表示します(アプリを再度開く必要があります)</string>
-    <!-- Webui X 设置相关 -->
-    <string name="use_webuix">WebUI X を使用</string>
-    <string name="use_webuix_summary">WebUIではなく、より API をサポートする Web UI X</string>
-    <string name="use_webuix_eruda">Eruda に Web UI X を注入</string>
-    <string name="use_webuix_eruda_summary">WebUI Xでデバッグコンソールの注入ができます。デバッグが簡単になりやすいように、WebView のデバッグを有効にする必要があります</string>
-    <!-- DPI设置相关字符串 -->
-    <string name="dpi_settings">DPI 設定</string>
-    <string name="app_dpi_title">DPI を使用</string>
-    <string name="app_dpi_summary">画面密度を現在のアプリの画面解像度に合わせる</string>
-    <string name="dpi_size_small">小</string>
-    <string name="dpi_size_medium">中</string>
-    <string name="dpi_size_large">大きく</string>
+    <string name="background_set_success">背景の設定が成功しました</string>
+    <string name="background_removed">カスタム背景を削除しました</string>
+    <string name="root_require_for_install">root 権限が必要です</string>
+    <!-- KPM display settings -->
+    <string name="show_kpm_info">KPM 機能を表示</string>
+    <string name="show_kpm_info_summary">KPM の情報と機能をホームとボトムバーに表示します (アプリを開き直す必要があります)</string>
+    <!-- Webui X settings -->
+    <string name="use_webuix">WebUI X を使用する</string>
+    <string name="use_webuix_summary">より多くの API をサポートする WebUI の代わりに WebUI X を使用します</string>
+    <string name="use_webuix_eruda">WebUI に Eruda をインジェクトする</string>
+    <string name="use_webuix_eruda_summary">デバッグを容易にするために WebUI X にデバッグコンソールを挿入します。Web デバッグが ON になっている必要があります。</string>
+    <!-- DPI setting related strings -->
+    <string name="dpi_settings">DPI の設定</string>
+    <string name="app_dpi_title">DPI を適用しました</string>
+    <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します</string>
+    <string name="dpi_size_small">小 </string>
+    <string name="dpi_size_medium">中 </string>
+    <string name="dpi_size_large">大</string>
     <string name="dpi_size_extra_large">特大</string>
-    <string name="dpi_size_custom">カスタム</string>
-    <string name="dpi_apply_settings">DPI 設定のセットアップ</string>
-    <string name="dpi_confirm_title">画素密度を変更確認</string>
-    <string name="dpi_confirm_message">DPI を %1$d から %2$d に変更してもよろしいですか？</string>
-    <string name="dpi_confirm_summary">アプリの再起動が必要です DPIの設定はシステムステータスバーや他のアプリには影響しません</string>
-    <string name="dpi_applied_success">DPI は %1$dに設定され、アプリを再起動後に適用されます</string>
-    <!-- 语言设置相关字符串 -->
+    <string name="dpi_size_custom">カスタマイズ</string>
+    <string name="dpi_apply_settings">DPI 設定を適用中</string>
+    <string name="dpi_confirm_title">DPI の変更を確認</string>
+    <string name="dpi_confirm_message">アプリの DPI を %1$d から %2$d に変更してもよろしいですか？</string>
+    <string name="dpi_confirm_summary">変更した DPI 設定を適用するにはアプリを再起動する必要がありますが、システムステータスバーや他のアプリには影響しません</string>
+    <string name="dpi_applied_success">DPI は %1$d に変更されました。アプリの再起動後に適用されます。</string>
+    <!-- Language settings related strings -->
     <string name="language_setting">アプリの言語</string>
     <string name="language_follow_system">システムに従う</string>
-    <string name="language_changed">変更を適用するには言語の再起動が必要です</string>
-    <string name="settings_card_dim">暗さされたカード（暗い部分）</string>
+    <string name="language_changed">言語の変更を適用するために再起動しています</string>
+    <string name="settings_card_dim">カードの暗さを調整</string>
 </resources>
