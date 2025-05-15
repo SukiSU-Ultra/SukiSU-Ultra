@@ -167,7 +167,11 @@ DYNAMIC_STRUCT_BEGIN(task_struct)
     DEFINE_MEMBER(task_struct, group_leader)
     DEFINE_MEMBER(task_struct, mm)
     DEFINE_MEMBER(task_struct, active_mm)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0) 
+    DEFINE_MEMBER(task_struct, pids[PIDTYPE_PID].pid)
+#else
     DEFINE_MEMBER(task_struct, thread_pid)
+#endif
     DEFINE_MEMBER(task_struct, files)
     DEFINE_MEMBER(task_struct, seccomp)
 #ifdef CONFIG_THREAD_INFO_IN_TASK
