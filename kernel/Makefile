@@ -56,7 +56,7 @@ ifeq ($(strip $(CONFIG_KSU_MANUAL_HOOK)),y)
 $(info -- SukiSU: Manual hooking enabled!)
 else
 $(info -- SukiSU: KPROBES hooking enabled!)
-ccflags-y += -DCONFIG_KSU_HOOK_KPROBES
+ccflags-y += -DCONFIG_KSU_KPROBES_HOOK
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
