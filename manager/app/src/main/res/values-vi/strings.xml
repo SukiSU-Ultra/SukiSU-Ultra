@@ -6,8 +6,8 @@
     <string name="home_click_to_install">Bấm để cài đặt</string>
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %d</string>
-    <string name="home_superuser_count">Ứng dụng đã cấp SU: %d</string>
-    <string name="home_module_count">Modules: %d</string>
+    <string name="home_superuser_count">Ứng dụng đã cấp quyền Root: %d</string>
+    <string name="home_module_count">Module: %d</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">Không phát hiện được trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
     <string name="home_kernel">Phiên bản Kernel</string>
@@ -25,7 +25,7 @@
     <string name="module_failed_to_enable">Không thể kích hoạt module: %s</string>
     <string name="module_failed_to_disable">Không thể vô hiệu hoá module: %s</string>
     <string name="module_empty">Chưa cài module nào</string>
-    <string name="module">Modules</string>
+    <string name="module">Module</string>
     <string name="module_sort_action_first">Sắp xếp (Theo hành động)</string>
     <string name="module_sort_enabled_first">Sắp xếp (Theo trạng thái)</string>
     <string name="uninstall">Gỡ cài đặt</string>
@@ -70,7 +70,7 @@
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Bỏ gắn kết Modules</string>
+    <string name="profile_umount_modules">Bỏ gắn kết các Module</string>
     <string name="failed_to_update_app_profile">Cập nhật hồ sơ ứng dụng thất bại cho %s</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Bỏ gắn kết các Module cho toàn hệ thống</string>
@@ -115,7 +115,7 @@
     <string name="grant_root_failed">Cấp quyền root thất bại!</string>
     <string name="action">Khởi chạy</string>
     <string name="open">Mở</string>
-    <string name="enable_web_debugging">Bật gỡ lỗi WebView</string>
+    <string name="enable_web_debugging">Gỡ lỗi WebView</string>
     <string name="enable_web_debugging_summary">Có thể sử dụng để gỡ lỗi WebUI. Vui lòng chỉ bật khi cần thiết</string>
     <string name="direct_install">Cài đặt trực tiếp (Khuyến nghị)</string>
     <string name="select_file">Chọn tệp .img cần vá</string>
@@ -145,15 +145,15 @@
     <string name="module_install_confirm">Xác nhận cài đặt Module %1$s？</string>
     <string name="unknown_module">Module không xác định</string>
     <!-- Restore related -->
-    <string name="restore_confirm_title">Xác nhận khôi phục Modules</string>
+    <string name="restore_confirm_title">Xác nhận khôi phục Module</string>
     <string name="restore_confirm_message">Hành động này sẽ ghi đè lên tất cả các Module hiện có. Tiếp tục?</string>
     <string name="confirm">Xác nhận</string>
     <string name="cancel">Huỷ bỏ</string>
     <!-- Backup related -->
     <string name="backup_success">Sao lưu thành công (tar.gz)</string>
     <string name="backup_failed">Sao lưu thất bại: %1$s</string>
-    <string name="backup_modules">Sao lưu Modules</string>
-    <string name="restore_modules">Khôi phục Modules</string>
+    <string name="backup_modules">Sao lưu các Module</string>
+    <string name="restore_modules">Khôi phục các Module</string>
     <!-- Restore related messages -->
     <string name="restore_success">Các Module đã được khôi phục thành công, cần khởi động lại</string>
     <string name="restore_failed">Khôi phục thất bại: %1$s</string>
@@ -182,20 +182,20 @@
     <string name="using_mksu_manager">Bạn đang sử dụng trình quản lý SukiSU Beta</string>
     <string name="module_install_multiple_confirm">Bạn có chắc muốn cài đặt các Module %d đã chọn không?</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d sau không? \n\n%2$s</string>
-    <string name="more_settings">Nhiều thiết lập hơn</string>
+    <string name="more_settings">Nhiều cài đặt hơn</string>
     <string name="selinux">SELinux</string>
-    <string name="selinux_enabled">Đã bật</string>
-    <string name="selinux_disabled">Đã tắt</string>
+    <string name="selinux_enabled">Đang bật</string>
+    <string name="selinux_disabled">Đang tắt</string>
     <string name="simple_mode">Chế độ đơn giản</string>
-    <string name="simple_mode_summary">Ẩn các thẻ không cần thiết ở Trang chủ</string>
+    <string name="simple_mode_summary">Ẩn các thẻ không cần thiết ở trang chủ</string>
     <string name="hide_kernel_kernelsu_version">Ẩn phiên bản kernel</string>
-    <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản kernel ở Trang chủ</string>
+    <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản kernel ở trang chủ</string>
     <string name="hide_other_info">Ẩn thông tin khác</string>
-    <string name="hide_other_info_summary">Ẩn thông tin về số lượng app đã được cấp root, Modules và KPM Modules ở Trang chủ</string>
+    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các module KPM ở trang chủ</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
-    <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở Trang chủ</string>
+    <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
     <string name="hide_link_card">Ẩn trạng thái thẻ liên kết</string>
-    <string name="hide_link_card_summary">Ẩn thông tin thẻ liên kết ở Trang chủ</string>
+    <string name="hide_link_card_summary">Ẩn thông tin thẻ liên kết ở trang chủ</string>
     <string name="theme_mode">Chủ đề</string>
     <string name="theme_follow_system">Theo hệ thống</string>
     <string name="theme_light">Sáng</string>
@@ -227,7 +227,7 @@
     <string name="backup">Sao lưu</string>
     <string name="color_yellow">Vàng</string>
     <string name="kpm_title">KPM</string>
-    <string name="kpm_empty">Không có Kernel Modules nào được cài đặt tại thời điểm này</string>
+    <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
     <string name="kpm_author">Tác giả</string>
     <string name="kpm_uninstall">Gỡ cài đặt</string>
@@ -251,7 +251,7 @@
     <string name="kpm_invalid_file">Tệp KPM không hợp lệ</string>
     <string name="kernel_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
-    <string name="custom_settings">Cài đặt tùy chỉnh</string>
+    <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>
     <string name="kpm_install_mode_load">Tải</string>
     <string name="kpm_install_mode_embed">Nhúng</string>
@@ -307,15 +307,15 @@
     <string name="currently_selected">Hiện tại</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Loại bỏ</string>
-    <string name="apps_with_root">Quyền Root của ứng dụng</string>
-    <string name="apps_with_custom_profile">Cấu hình tuỳ chỉnh của ứng dụng</string>
-    <string name="other_apps">Các ứng dụng khác</string>
+    <string name="apps_with_root">Các ứng dụng đã cấp quyền Root</string>
+    <string name="apps_with_custom_profile">Các ứng dụng có cấu hình tùy chỉnh</string>
+    <string name="other_apps">Các ứng dụng mặc định</string>
     <string name="no_apps_found">Không tìm thấy ứng dụng</string>
     <string name="selinux_enabled_toast">SELinux đã bật</string>
     <string name="selinux_disabled_toast">SELinux đã tắt</string>
     <string name="selinux_change_failed">Thay đổi trạng thái SELinux thất bại</string>
     <string name="advanced_settings">Cài đặt nâng cao</string>
-    <string name="appearance_settings">Tùy chỉnh thanh công cụ</string>
+    <string name="appearance_settings">Cài đặt giao diện</string>
     <string name="back">Trở lại</string>
     <string name="expand">Be in full swing</string>
     <string name="collapse">put away</string>
@@ -360,5 +360,5 @@
     <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh của các module</string>
+    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh của các Module</string>
 </resources>
