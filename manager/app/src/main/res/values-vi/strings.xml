@@ -172,7 +172,7 @@
     <string name="restore_allowlist">Khôi phục danh sách cho phép</string>
     <string name="settings_custom_background">Tuỳ chỉnh nền ứng dụng</string>
     <string name="settings_custom_background_summary">Chọn một hình ảnh làm hình nền</string>
-    <string name="settings_card_alpha">Độ trong suốt của thanh điều hướng</string>
+    <string name="settings_card_alpha">Độ trong suốt của thanh tác vụ</string>
     <string name="settings_restore_default">Khôi phục mặc định</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
@@ -350,7 +350,7 @@
     <string name="language_setting">Ngôn ngữ ứng dụng</string>
     <string name="language_follow_system">Theo dõi hệ thống</string>
     <string name="language_changed">Ngôn ngữ đã thay đổi, khởi động lại để áp dụng thay đổi</string>
-    <string name="settings_card_dim">Điều chỉnh độ tối của thẻ</string>
+    <string name="settings_card_dim">Độ trong suốt của thẻ</string>
     <!-- Super User Related -->
     <string name="scroll_to_top">Lên trên</string>
     <string name="scroll_to_bottom">Xuống dưới</string>
