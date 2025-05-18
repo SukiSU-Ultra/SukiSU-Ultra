@@ -125,6 +125,28 @@ endif
 
 ccflags-y += -DKSU_UMOUNT
 
+ifneq ($(shell grep -Eq "^static int can_umount" $(srctree)/fs/namespace.c; echo $$?),0)
+$(info -- SukiSU compat: adding function 'static int can_umount(const struct path *path, int flags);' to $(srctree)/fs/namespace.c)
+CAN_UMOUNT = static int can_umount(const struct path *path, int flags)\n\
+{\n\t\
+        struct mount *mnt = real_mount(path->mnt);\n\t\
+        if (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))\n\t\t\
+                return -EINVAL;\n\t\
+        if (!may_mount())\n\t\t\
+                return -EPERM;\n\t\
+        if (path->dentry != path->mnt->mnt_root)\n\t\t\
+                return -EINVAL;\n\t\
+        if (!check_mnt(mnt))\n\t\t\
+                return -EINVAL;\n\t\
+        if (mnt->mnt.mnt_flags & MNT_LOCKED)\n\t\t\
+                return -EINVAL;\n\t\
+        if (flags & MNT_FORCE && !capable(CAP_SYS_ADMIN))\n\t\t\
+                return -EPERM;\n\t\
+        return 0;\n\
+}\n
+$(shell sed -i '/^static bool is_mnt_ns_file/i $(CAN_UMOUNT)' $(srctree)/fs/namespace.c;)
+endif
+
 ifneq ($(shell grep -Eq "^int path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
 $(info -- SukiSU compat: adding function 'int path_umount(struct path *path, int flags);' to $(srctree)/fs/namespace.c)
 PATH_UMOUNT = int path_umount(struct path *path, int flags)\n\
