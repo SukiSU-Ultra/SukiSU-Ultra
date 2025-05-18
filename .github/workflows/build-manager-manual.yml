@@ -78,7 +78,7 @@ jobs:
 
   build-lkm:
     needs: check-build-lkm
-    uses: ./.github/workflows/build-lkm.yml
+    uses: ./.github/workflows/gki-kernel-local.yml
     if: ${{ needs.check-build-lkm.outputs.build_lkm == 'true' }}
     with:
       upload: ${{ needs.check-build-lkm.outputs.upload_lkm == 'true' }}
