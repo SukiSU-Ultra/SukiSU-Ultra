@@ -307,9 +307,9 @@
     <string name="currently_selected">Currently</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Removals</string>
-    <string name="apps_with_root">Root Application of permissions</string>
-    <string name="apps_with_custom_profile">Customized Configuration Application</string>
-    <string name="other_apps">Other Applications</string>
+    <string name="apps_with_root">Applications with root privileges</string>
+    <string name="apps_with_custom_profile">Applications with customized configurations</string>
+    <string name="other_apps">Applications with unchanged defaults</string>
     <string name="no_apps_found">Application not found</string>
     <string name="selinux_enabled_toast">SELinux Enabled</string>
     <string name="selinux_disabled_toast">SELinux Disabled</string>

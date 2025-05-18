@@ -305,7 +305,7 @@
     <string name="clear">清除</string>
     <string name="apps_with_root">Root 权限应用</string>
     <string name="apps_with_custom_profile">自定义配置应用</string>
-    <string name="other_apps">其他应用</string>
+    <string name="other_apps">默认配置应用</string>
     <string name="no_apps_found">未找到应用</string>
     <string name="selinux_enabled_toast">SELinux 已设置为启用状态</string>
     <string name="selinux_disabled_toast">SELinux 已设置为禁用状态</string>

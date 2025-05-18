@@ -1,20 +1,6 @@
 name: Build Manager Manual
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - '.github/workflows/build-manager-manual.yml'
-      - 'manager/**'
-      - 'kernel/**'
-      - 'userspace/ksud/**'
-      - 'userspace/susfs/**'
-      - 'userspace/kpmmgr/**'
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'manager/**'
-  workflow_call:
   workflow_dispatch:
     inputs:
       build_lkm:
