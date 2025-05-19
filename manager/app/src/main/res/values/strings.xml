@@ -361,4 +361,9 @@
     <string name="selected">Selected</string>
     <string name="select">option</string>
     <string name="profile_umount_modules_disable">Disable custom uninstallation module</string>
+    <!-- Flash related -->
+    <string name="error_code">error code</string>
+    <string name="check_log">Please check the log</string>
+    <string name="installing_module">Module being installed %1$d/%2$d</string>
+    <string name="module_failed_count">%d Failed to install a new module</string>
 </resources>

@@ -357,4 +357,9 @@
     <string name="selected">已选择</string>
     <string name="select">选择</string>
     <string name="profile_umount_modules_disable">禁用自定义卸载模块</string>
+    <!-- 刷写相关 -->
+    <string name="error_code">错误代码</string>
+    <string name="check_log">请查看日志</string>
+    <string name="installing_module">正在安装模块 %1$d/%2$d</string>
+    <string name="module_failed_count">%d 个模块安装失败</string>
 </resources>

@@ -351,4 +351,9 @@
     <string name="language_follow_system">システムに従う</string>
     <string name="language_changed">言語の変更を適用するために再起動しています</string>
     <string name="settings_card_dim">カードの暗さを調整</string>
+    <!-- Flash related -->
+    <string name="error_code">エラーコード</string>
+    <string name="check_log">ログを確認してください</string>
+    <string name="installing_module">モジュール設置中 %1$d/%2$d</string>
+    <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
 </resources>

@@ -97,7 +97,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
             val clipData = data.clipData
             if (clipData != null) {
                 // 处理多选结果
-                val selectedModules = mutableSetOf<Uri>()
+                val selectedModules = mutableListOf<Uri>()
                 val selectedModuleNames = mutableMapOf<Uri, String>()
 
                 suspend fun processUri(uri: Uri) {
@@ -146,9 +146,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
 
                 if (confirmResult == ConfirmResult.Confirmed) {
                     // 批量安装模块
-                    selectedModules.forEach { uri ->
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
-                    }
+                    navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
                     viewModel.markNeedRefresh()
                 }
             } else {
