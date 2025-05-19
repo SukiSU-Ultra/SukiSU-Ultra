@@ -57,7 +57,6 @@
     <string name="home_support_title">Bizi destekleyin</string>
     <string name="home_support_content">KernelSU, her zaman olduğu gibi ücretsiz ve açık kaynaklıdır. Ancak bir bağış yaparak bizi destekleyebilirsiniz.</string>
     <string name="about_source_code"><![CDATA[Kaynak kodunu %1$s adresinde görüntüleyin<br/>%2$s kanalımıza katılın]]></string>
-    <string name="profile" translatable="false">Uygulama Profili</string>
     <string name="profile_default">Varsayılan</string>
     <string name="profile_template">Şablon</string>
     <string name="profile_custom">Özel</string>
@@ -360,4 +359,9 @@
     <string name="selected">Seçildi</string>
     <string name="select">seçenek</string>
     <string name="profile_umount_modules_disable">Özel kaldırma modülünü devre dışı bırak</string>
+    <!-- Flash related -->
+    <string name="error_code">error code</string>
+    <string name="check_log">Please check the log</string>
+    <string name="installing_module">Module being installed %1$d/%2$d</string>
+    <string name="module_failed_count">%d Failed to install a new module</string>
 </resources>

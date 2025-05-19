@@ -6,6 +6,7 @@
     <string name="home_working">工作中</string>
     <string name="home_working_version">版本：%d</string>
     <string name="home_superuser_count">超级用户数：%d</string>
+    <string name="home_module_count">模块数：%d</string>
     <string name="home_unsupported">不支持</string>
     <string name="home_unsupported_reason">内核上未检测到 KernelSU 驱动程序，内核错误？</string>
     <string name="home_kernel">内核版本</string>
@@ -50,7 +51,6 @@
     <string name="safe_mode">安全模式</string>
     <string name="reboot_to_apply">重启生效</string>
     <string name="module_magisk_conflict">因与 Magisk 有冲突，所有模块不可用！</string>
-    <string name="home_module_count">模块数：%d</string>
     <string name="home_learn_kernelsu">了解 KernelSU</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 KernelSU 以及如何开发模块</string>
@@ -74,7 +74,6 @@
     <string name="settings_umount_modules_default">默认卸载模块</string>
     <string name="settings_umount_modules_default_summary">App Profile 中“卸载模块”的全局默认值，如果启用，将会为没有设置 Profile 的应用移除所有模块针对系统的修改。</string>
     <string name="settings_susfs_toggle">禁用 kprobe 钩子</string>
-    <string name="settings_susfs_toggle_summary">禁用由 KernelSU 创建的 kprobe 钩子，并使用非 kprobe 内联钩子代替，实现方式类似于不支持 kprobe 的非 GKI 内核。</string>
     <string name="profile_umount_modules_summary">启用该选项后将允许 KernelSU 为本应用还原被模块修改过的文件。</string>
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">规则</string>
@@ -85,7 +84,7 @@
     <string name="launch_app">启动</string>
     <string name="force_stop_app" formatted="false">强制停止</string>
     <string name="restart_app">重新启动</string>
-    <string name="failed_to_update_sepolicy">为：%s 更新翻译失败</string>
+    <string name="failed_to_update_sepolicy">为：%s 更新 SELinux 规则失败</string>
     <string name="module_changelog">更新日志</string>
     <string name="settings_profile_template">App Profile 模版</string>
     <string name="settings_profile_template_summary">管理本地和在线的 App Profile 模版</string>
@@ -153,7 +152,6 @@
     <string name="backup_failed">备份失败：%1$s</string>
     <string name="backup_modules">备份模块</string>
     <string name="restore_modules">恢复模块</string>
-    <string name="backup">备份</string>
     <!-- Restore related messages -->
     <string name="restore_success">模块已成功还原，需重启生效</string>
     <string name="restore_failed">还原失败：%1$s</string>
@@ -224,6 +222,7 @@
     <string name="failed_reboot">重启失败</string>
     <string name="batch_authorization">授权</string>
     <string name="batch_cancel_authorization">撤销</string>
+    <string name="backup">备份</string>
     <string name="color_yellow">黄色</string>
     <string name="kpm_title">内核模块</string>
     <string name="kpm_empty">暂无已安装的内核模块</string>
@@ -235,25 +234,27 @@
     <string name="kpm_install">选择安装</string>
     <string name="kpm_install_success">加载 kpm 模块成功</string>
     <string name="kpm_install_failed">加载 kpm 模块失败</string>
-    <string name="home_kpm_version">KPM 版本</string>
+    <string name="kpm_args">参数</string>
     <string name="kpm_control">调参</string>
+    <string name="home_kpm_version">KPM 版本</string>
     <string name="close_notice">关闭</string>
+    <string name="kernel_module_notice">以下内核模块功能由 KernelPatch 开发，经过修改后加入 SukiSU Ultra 的内核模块功能</string>
+    <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">错误</string>
+    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未来将会成为一个相对独立的 KSU 分支，但是依然感谢官方 KernelSU 和 MKSU 等做出的贡献</string>
     <string name="not_supported">不支持</string>
     <string name="supported">支持</string>
-    <string name="home_kpm_module">KPM 模块数：%d </string>
+    <string name="home_kpm_module">"KPM 模块数：%d "</string>
     <string name="kpm_invalid_file">KPM 文件无效</string>
     <string name="kernel_patched">内核未进行补丁</string>
     <string name="kernel_not_enabled">内核未配置</string>
-    <string name="kernel_module_notice">以下内核模块功能由 KernelPatch 开发，经过修改后加入 SukiSU Ultra 的内核模块功能</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未来将会成为一个相对独立的 KSU 分支，但是依然感谢官方 KernelSU 和 MKSU 等做出的贡献</string>
     <string name="custom_settings">个性化设置</string>
     <string name="kpm_install_mode">安装</string>
     <string name="kpm_install_mode_load">加载</string>
     <string name="kpm_install_mode_embed">嵌入</string>
     <string name="kpm_install_mode_description">请选择: %1\$s 模块的安装模式 \n\n加载：临时加载模块\n嵌入：永久安装到系统</string>
+    <string name="log_failed_to_check_module_file">无法检查模块文件是否存在</string>
     <string name="snackbar_failed_to_check_module_file">无法检查模块文件是否存在</string>
     <string name="confirm_uninstall_title">确认卸载</string>
     <string name="confirm_uninstall_confirm">删除</string>
@@ -262,15 +263,16 @@
     <string name="invalid_file_type">文件类型不正确，请选择 .kpm 文件</string>
     <string name="confirm_uninstall_title_with_filename">卸载</string>
     <string name="confirm_uninstall_content">将卸载以下 kpm 模块：\n%s</string>
+    <string name="settings_susfs_toggle_summary">禁用由 KernelSU 创建的 kprobe 钩子，并使用非 kprobe 内联钩子代替，实现方式类似于不支持 kprobe 的非 GKI 内核。</string>
     <string name="image_editor_title">调整背景图片</string>
     <string name="image_editor_hint">使用双指缩放图片，单指拖动调整位置</string>
     <string name="background_image_error">无法加载图片</string>
     <string name="reprovision">重置</string>
-    <!-- Anykernel3 Kernel刷写进度相关 -->
+    <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">刷写Kernel</string>
     <string name="horizon_logs_label">日志:</string>
     <string name="horizon_flash_complete">刷写完成</string>
-    <!-- 刷写状态相关 -->
+    <!-- Flash Status Related -->
     <string name="horizon_preparing">准备中…</string>
     <string name="horizon_cleaning_files">清理文件…</string>
     <string name="horizon_copying_files">复制文件…</string>
@@ -278,7 +280,7 @@
     <string name="horizon_patching_script">修补刷写脚本…</string>
     <string name="horizon_flashing">刷写内核中…</string>
     <string name="horizon_flash_complete_status">刷写完成</string>
-    <!-- 槽位选择相关字符串 -->
+    <!-- Slot selection related strings -->
     <string name="select_slot_title">选择刷写槽位</string>
     <string name="select_slot_description">请选择要刷写boot的目标槽位</string>
     <string name="slot_a">A槽位</string>
@@ -288,7 +290,7 @@
     <string name="horizon_setting_target_slot">设置指定槽位</string>
     <string name="horizon_restoring_original_slot">恢复默认槽位</string>
     <string name="current_slot">当前槽位：%1$s </string>
-    <!-- 错误信息 -->
+    <!-- Error Messages -->
     <string name="horizon_copy_failed">复制失败</string>
     <string name="horizon_unknown_error">未知错误</string>
     <string name="flash_failed_message">刷写失败</string>
@@ -301,7 +303,7 @@
     <string name="app_settings">应用设置</string>
     <string name="tools">工具</string>
     <string name="currently_selected">当前</string>
-    <!--  SuperUser 里用到的字符串资源 -->
+    <!--  String resources used in SuperUser -->
     <string name="clear">清除</string>
     <string name="apps_with_root">Root 权限应用</string>
     <string name="apps_with_custom_profile">自定义配置应用</string>
@@ -320,15 +322,15 @@
     <string name="background_set_success">背景设置成功</string>
     <string name="background_removed">已移除自定义背景</string>
     <string name="root_require_for_install">需要 root 权限</string>
-    <!-- KPM 显示设置相关 -->
+    <!-- KPM display settings -->
     <string name="show_kpm_info">显示 KPM 功能</string>
     <string name="show_kpm_info_summary">在主页和底栏显示 KPM 相关功能和信息 (需要重新打开应用)</string>
-    <!-- Webui X 设置相关 -->
+    <!-- Webui X settings -->
     <string name="use_webuix">使用 WebUI X</string>
     <string name="use_webuix_summary">使用支持更多 API 的 WebUI X 而不是 WebUI</string>
     <string name="use_webuix_eruda">将 Eruda 注入 WebUI X</string>
     <string name="use_webuix_eruda_summary">在 WebUI X 中注入调试控制台，使调试更容易,需要启用 WebView 调试</string>
-    <!-- DPI设置相关字符串 -->
+    <!-- DPI setting related strings -->
     <string name="dpi_settings">DPI 设置</string>
     <string name="app_dpi_title">应用DPI</string>
     <string name="app_dpi_summary">仅调整当前应用的屏幕显示密度</string>
@@ -342,12 +344,12 @@
     <string name="dpi_confirm_message">你确定要将应用DPI从 %1$d 更改为 %2$d 吗？</string>
     <string name="dpi_confirm_summary">应用需要重启以应用新的DPI设置，不会影响系统状态栏或其他应用</string>
     <string name="dpi_applied_success">DPI 已设置为 %1$d，重启应用后生效</string>
-    <!-- 语言设置相关字符串 -->
+    <!-- Language settings related strings -->
     <string name="language_setting">应用语言</string>
     <string name="language_follow_system">跟随系统</string>
     <string name="language_changed">语言已更改，重启应用以应用更改</string>
     <string name="settings_card_dim">卡片暗度调节</string>
-    <!-- 超级用户相关 -->
+    <!-- Super User Related -->
     <string name="scroll_to_top">顶部</string>
     <string name="scroll_to_bottom">底部</string>
     <string name="scroll_to_top_description">滚动到顶部</string>
@@ -357,7 +359,7 @@
     <string name="selected">已选择</string>
     <string name="select">选择</string>
     <string name="profile_umount_modules_disable">禁用自定义卸载模块</string>
-    <!-- 刷写相关 -->
+    <!-- Flash related -->
     <string name="error_code">错误代码</string>
     <string name="check_log">请查看日志</string>
     <string name="installing_module">正在安装模块 %1$d/%2$d</string>
