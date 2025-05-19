@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Trang chủ</string>
     <string name="home_not_installed">Hỗ trợ nhưng chưa cài đặt</string>
     <string name="home_click_to_install">Bấm để cài đặt</string>
@@ -58,7 +57,6 @@
     <string name="home_support_title">Hỗ trợ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
     <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi]]></string>
-    <string name="profile" translatable="false">Hồ sơ ứng dụng</string>
     <string name="profile_default">Mặc định</string>
     <string name="profile_template">Bản mẫu</string>
     <string name="profile_custom">Tuỳ chỉnh</string>
@@ -247,7 +245,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
     <string name="not_supported">Không được hỗ trợ</string>
     <string name="supported">Được hỗ trợ</string>
-    <string name="home_kpm_module">Module KPM: %d</string>
+    <string name="home_kpm_module">"Module KPM: %d"</string>
     <string name="kpm_invalid_file">Tệp KPM không hợp lệ</string>
     <string name="kernel_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
@@ -361,4 +359,9 @@
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
     <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh của các Module</string>
+    <!-- Flash related -->
+    <string name="error_code">Code lỗi</string>
+    <string name="check_log">Vui lòng kiểm tra logs</string>
+    <string name="installing_module">Đang cài đặt module %1$d/%2$d</string>
+    <string name="module_failed_count">Cài đặt module %d thất bại</string>
 </resources>
