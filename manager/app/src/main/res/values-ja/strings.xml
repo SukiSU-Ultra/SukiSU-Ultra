@@ -351,6 +351,16 @@
     <string name="language_follow_system">システムに従う</string>
     <string name="language_changed">言語の変更を適用するために再起動しています</string>
     <string name="settings_card_dim">カードの暗さを調整</string>
+    <!-- Super User Related -->
+    <string name="scroll_to_top">Top</string>
+    <string name="scroll_to_bottom">Bottom</string>
+    <string name="scroll_to_top_description">Scroll to top</string>
+    <string name="scroll_to_bottom_description">Scroll to the bottom</string>
+    <string name="authorized">authorized</string>
+    <string name="unauthorized">unauthorized</string>
+    <string name="selected">Selected</string>
+    <string name="select">option</string>
+    <string name="profile_umount_modules_disable">Disable custom uninstallation module</string>
     <!-- Flash related -->
     <string name="error_code">エラーコード</string>
     <string name="check_log">ログを確認してください</string>
