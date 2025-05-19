@@ -1,0 +1,3 @@
+files:
+  - source: /manager/app/src/main/res/values/strings.xml
+    translation: /manager/app/src/main/res/values-%two_letters_code%/strings.xml

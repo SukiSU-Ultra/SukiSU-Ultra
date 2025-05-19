@@ -192,11 +192,19 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
         }
     }
 
-    BackHandler(enabled = true) {
+    val onBack: () -> Unit = {
         if (currentFlashingStatus.value != FlashingStatus.FLASHING) {
-            navigator.navigate(ModuleScreenDestination) {
+            if (flashIt is FlashIt.FlashBoot) {
+                navigator.popBackStack()
+            } else {
+                navigator.navigate(ModuleScreenDestination) {
+                }
             }
         }
+    }
+
+    BackHandler(enabled = true) {
+        onBack()
     }
 
     Scaffold(
@@ -205,12 +213,8 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 currentFlashingStatus.value,
                 currentStatus,
                 navigator = navigator,
-                onBack = {
-                    if (currentFlashingStatus.value != FlashingStatus.FLASHING) {
-                        navigator.navigate(ModuleScreenDestination) {
-                        }
-                    }
-                },
+                flashIt = flashIt,
+                onBack = onBack,
                 onSave = {
                     scope.launch {
                         val format = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault())
@@ -421,7 +425,8 @@ private fun TopBar(
     status: FlashingStatus,
     moduleStatus: ModuleInstallStatus = ModuleInstallStatus(),
     navigator: DestinationsNavigator,
-    onBack: () -> Unit = {},
+    flashIt: FlashIt,
+    onBack: () -> Unit,
     onSave: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
@@ -459,12 +464,7 @@ private fun TopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = {
-                if (status != FlashingStatus.FLASHING) {
-                    navigator.navigate(ModuleScreenDestination) {
-                    }
-                }
-            }) {
+            IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
