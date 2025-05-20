@@ -155,7 +155,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
         with:
           key: gki-kernel-aarch64-${{ inputs.version_name }}
-          max-size: 16G
+          max-size: 2G
           save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
       - name: Setup for LKM
