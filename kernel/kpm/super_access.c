@@ -188,14 +188,15 @@ DYNAMIC_STRUCT_BEGIN(task_struct)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0) 
     DEFINE_MEMBER(task_struct, thread)
 DYNAMIC_STRUCT_END(task_struct)
+#else
+DYNAMIC_STRUCT_END(task_struct)
 #endif
 
 // =====================================================================================================================
 
 #define STRUCT_INFO(name) &(name##_info)
 
-static
-struct DynamicStructInfo* dynamic_struct_infos[] = {
+static struct DynamicStructInfo* dynamic_struct_infos[] = {
     STRUCT_INFO(mount),
     STRUCT_INFO(vfsmount),
     STRUCT_INFO(mnt_namespace),
@@ -259,9 +260,8 @@ int sukisu_super_access (
 EXPORT_SYMBOL(sukisu_super_access);
 
 // 动态 container_of 宏
-#define DYNAMIC_CONTAINER_OF(offset, member_ptr) ({ \
+#define DYNAMIC_CONTAINER_OF(offset, member_ptr) \
     (offset != (size_t)-1) ? (void*)((char*)(member_ptr) - offset) : NULL; \
-})
 
 // Dynamic container_of
 // return 0 if success
