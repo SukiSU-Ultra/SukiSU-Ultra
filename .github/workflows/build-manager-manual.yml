@@ -201,6 +201,8 @@ jobs:
 
       - name: Build with Gradle
         run: |
+          export ANDROID_HOME=/root/.android/sdk
+          export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$PATH
           {
             echo 'org.gradle.parallel=true'
             echo 'org.gradle.vfs.watch=true'
