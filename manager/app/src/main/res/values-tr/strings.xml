@@ -360,9 +360,9 @@
     <string name="select">seçenek</string>
     <string name="profile_umount_modules_disable">Özel kaldırma modülünü devre dışı bırak</string>
     <!-- Flash related -->
-    <string name="error_code">error code</string>
-    <string name="check_log">Please check the log</string>
-    <string name="installing_module">Module being installed %1$d/%2$d</string>
-    <string name="module_failed_count">%d Failed to install a new module</string>
-    <string name="module_download_error">Module download failed</string>
+    <string name="error_code">hata kodu</string>
+    <string name="check_log">Lütfen günlüğü kontrol edin</string>
+    <string name="installing_module">Modül yükleniyor %1$d/%2$d</string>
+    <string name="module_failed_count">Yeni bir modül yüklenemedi: %d başarısız</string>
+    <string name="module_download_error">Modül indirilemedi</string>
 </resources>
