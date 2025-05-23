@@ -208,6 +208,7 @@
     <string name="color_orange">Turuncu</string>
     <string name="color_pink">Pembe</string>
     <string name="color_gray">Gri</string>
+    <string name="color_yellow">Sarı</string>
     <string name="flash_option">Fırça Seçenekleri</string>
     <string name="flash_option_tip">Yazılacak dosyayı seçin</string>
     <string name="horizon_kernel">Anykernel3 yükle</string>
@@ -222,7 +223,6 @@
     <string name="batch_authorization">yetkilendir</string>
     <string name="batch_cancel_authorization">geri al</string>
     <string name="backup">Yedekle</string>
-    <string name="color_yellow">Sarı</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Şu anda yüklü çekirdek modülü yok</string>
     <string name="kpm_version">Sürüm</string>
