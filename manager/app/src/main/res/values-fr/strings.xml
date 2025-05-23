@@ -210,6 +210,7 @@
     <string name="color_orange">Orange</string>
     <string name="color_pink">Rose</string>
     <string name="color_gray">Gris</string>
+    <string name="color_yellow">Jaune</string>
     <string name="flash_option">Options du flash</string>
     <string name="flash_option_tip">Sélectionnez le fichier à installer</string>
     <string name="horizon_kernel">Install Anykernel3</string>
@@ -224,7 +225,6 @@
     <string name="batch_authorization">ePouvoir</string>
     <string name="batch_cancel_authorization">retirer</string>
     <string name="backup">Sauvegarder</string>
-    <string name="color_yellow">Jaune</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Aucun module de noyau installé pour le moment</string>
     <string name="kpm_version">Version</string>
