@@ -208,6 +208,7 @@
     <string name="color_orange">Naranjo</string>
     <string name="color_pink">Rosa</string>
     <string name="color_gray">Gris</string>
+    <string name="color_yellow">Amarillo</string>
     <string name="flash_option">Opciones de flash</string>
     <string name="flash_option_tip">Seleccione el archivo a flashear</string>
     <string name="horizon_kernel">Install Anykernel3</string>
@@ -222,7 +223,6 @@
     <string name="batch_authorization">empoderar</string>
     <string name="batch_cancel_authorization">gasto</string>
     <string name="backup">Copia de seguridad</string>
-    <string name="color_yellow">Amarillo</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">No hay módulos del núcleo instalados en este momento</string>
     <string name="kpm_version">Versión</string>
