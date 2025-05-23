@@ -208,6 +208,7 @@
     <string name="color_orange">Cam</string>
     <string name="color_pink">Hồng</string>
     <string name="color_gray">Xám</string>
+    <string name="color_yellow">Vàng</string>
     <string name="flash_option">Tuỳ chọn Flash</string>
     <string name="flash_option_tip">Chọn tập tin cần Flash</string>
     <string name="horizon_kernel">Tệp Anykernel3</string>
@@ -222,7 +223,6 @@
     <string name="batch_authorization">Uỷ quyền</string>
     <string name="batch_cancel_authorization">Hủy ủy quyền hàng loạt</string>
     <string name="backup">Sao lưu</string>
-    <string name="color_yellow">Vàng</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
