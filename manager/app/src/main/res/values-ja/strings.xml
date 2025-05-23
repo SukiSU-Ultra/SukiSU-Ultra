@@ -210,6 +210,7 @@
     <string name="color_orange">オレンジ</string>
     <string name="color_pink">ピンク</string>
     <string name="color_gray">グレー</string>
+    <string name="color_yellow">イエロー</string>
     <string name="flash_option">ブラシの設定</string>
     <string name="flash_option_tip">フラッシュするファイルを選択</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
@@ -224,7 +225,6 @@
     <string name="batch_authorization">権限を付与</string>
     <string name="batch_cancel_authorization">撤回する</string>
     <string name="backup">バックアップ</string>
-    <string name="color_yellow">イエロー</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">カーネルモジュールは現在インストールされていません</string>
     <string name="kpm_version">バージョン</string>
