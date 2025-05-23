@@ -210,6 +210,7 @@
     <string name="color_orange">Orange</string>
     <string name="color_pink">Pink</string>
     <string name="color_gray">Gray</string>
+    <string name="color_yellow">Yellow</string>
     <string name="flash_option">Brush Options</string>
     <string name="flash_option_tip">Select the file to be flashed</string>
     <string name="horizon_kernel">Install Anykernel3</string>
@@ -224,7 +225,6 @@
     <string name="batch_authorization">empower</string>
     <string name="batch_cancel_authorization">withdraw</string>
     <string name="backup">Backup</string>
-    <string name="color_yellow">Yellow</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">No installed kernel modules at this time</string>
     <string name="kpm_version">Version</string>
