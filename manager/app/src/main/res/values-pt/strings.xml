@@ -208,6 +208,7 @@
     <string name="color_orange">Laranja</string>
     <string name="color_pink">Rosa</string>
     <string name="color_gray">Cinza</string>
+    <string name="color_yellow">Amarelo</string>
     <string name="flash_option">Opções do pincel</string>
     <string name="flash_option_tip">Selecione o arquivo a ser instalado</string>
     <string name="horizon_kernel">Install Anykernel3</string>
@@ -222,7 +223,6 @@
     <string name="batch_authorization">empoderar</string>
     <string name="batch_cancel_authorization">retirar</string>
     <string name="backup">Backup</string>
-    <string name="color_yellow">Amarelo</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Não há módulos do kernel instalados neste momento</string>
     <string name="kpm_version">Versão</string>
