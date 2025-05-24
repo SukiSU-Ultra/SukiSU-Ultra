@@ -29,7 +29,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 1. 直接使用 susfs-stable 或者 susfs-dev 分支，不需要再集成 susfs
 
 ```
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+curl -LSs "https://raw.githubusercontent.com/mihoy3rd/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-stable
 ```
 
 ## 钩子方法
