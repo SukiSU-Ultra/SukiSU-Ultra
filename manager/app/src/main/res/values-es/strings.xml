@@ -113,6 +113,7 @@
     <string name="grant_root_failed">¡No se ha podido conceder el acceso root!</string>
     <string name="action">Aktion</string>
     <string name="open">Abrir</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Activar la depuración de WebView</string>
     <string name="enable_web_debugging_summary">Puede ser usado para depurar WebUI, por favor habilítalo sólo cuando sea necesario.</string>
     <string name="direct_install">Instalación directa (Recomendada)</string>
