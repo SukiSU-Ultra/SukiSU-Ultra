@@ -113,6 +113,7 @@
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
