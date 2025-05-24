@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Impossibile ottenere l\'accesso root!</string>
     <string name="action">Action</string>
     <string name="open">Apri</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Abilita il debug di WebView</string>
     <string name="enable_web_debugging_summary">Può essere usato per svolgere il debug di WebUI, è consigliato attivarlo solo quando necessario.</string>
     <string name="direct_install">Installazione diretta (Raccomandata)</string>
