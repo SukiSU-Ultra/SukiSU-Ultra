@@ -184,12 +184,14 @@ DYNAMIC_STRUCT_BEGIN(task_struct)
 #ifdef CONFIG_CGROUPS
     DEFINE_MEMBER(task_struct, cgroups)
 #endif
-#if LINUX_VERSION_CODE > KERNEL_VERSION_4_10
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 10, 0)
 #ifdef CONFIG_SECURITY
     DEFINE_MEMBER(task_struct, security)
 #endif
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
     DEFINE_MEMBER(task_struct, thread)
+#endif
 DYNAMIC_STRUCT_END(task_struct)
 
 // =====================================================================================================================
