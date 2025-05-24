@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Nu s-a acordat acces root!</string>
     <string name="action">Action</string>
     <string name="open">Deschide</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Activează depanarea WebView</string>
     <string name="enable_web_debugging_summary">Poate fi folosit pentru a depana WebUI, activează numai când este necesar.</string>
     <string name="direct_install">Instalare directă (recomandat)</string>
