@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationStyle
 import com.ramcosta.composedestinations.generated.NavGraphs
+import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
@@ -39,6 +40,10 @@ import androidx.core.content.edit
 import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
 import com.sukisu.ultra.ui.webui.initPlatform
 import java.util.Locale
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 class MainActivity : ComponentActivity() {
     private inner class ThemeChangeContentObserver(
@@ -94,6 +99,7 @@ class MainActivity : ComponentActivity() {
         // 确保应用正确的语言设置
         applyLanguageSetting()
 
+        // 应用自定义 DPI
         applyCustomDpi()
 
         // Enable edge to edge
@@ -152,6 +158,12 @@ class MainActivity : ComponentActivity() {
             KernelSUTheme {
                 val navController = rememberNavController()
                 val snackBarHostState = remember { SnackbarHostState() }
+                val currentDestination = navController.currentBackStackEntryAsState().value?.destination
+
+                val showBottomBar = when (currentDestination?.route) {
+                    ExecuteModuleActionScreenDestination.route -> false // Hide for ExecuteModuleActionScreen
+                    else -> true
+                }
 
                 // pre-init platform to faster start WebUI X activities
                 LaunchedEffect(Unit) {
@@ -159,7 +171,15 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Scaffold(
-                    bottomBar = { BottomBar(navController) },
+                    bottomBar = {
+                        AnimatedVisibility(
+                            visible = showBottomBar,
+                            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                        ) {
+                            BottomBar(navController)
+                        }
+                    },
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { innerPadding ->
                     CompositionLocalProvider(

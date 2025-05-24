@@ -112,6 +112,7 @@
     <string name="install_inactive_slot">Instal ke slot nonaktif (setelah OTA)</string>
     <string name="grant_root_failed">Gagal memberikan akses root!</string>
     <string name="open">Buka</string>
+    <string name="close">Tutup</string>
     <string name="settings_check_update">Cek terbaru</string>
     <string name="settings_check_update_summary">Cek terbaru setiap membuka aplikasi</string>
     <string name="settings_uninstall_permanent_message">Hapus permanen KernelSU (root dan modul).</string>

@@ -113,6 +113,7 @@
     <string name="grant_root_failed">获取 root 失败！</string>
     <string name="action">执行</string>
     <string name="open">打开</string>
+    <string name="close">关闭</string>
     <string name="enable_web_debugging">启用 WebView 调试</string>
     <string name="enable_web_debugging_summary">可用于调试 WebUI 。请仅在需要时启用。</string>
     <string name="direct_install">直接安装（推荐）</string>
