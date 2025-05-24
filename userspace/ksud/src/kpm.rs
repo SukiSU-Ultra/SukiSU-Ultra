@@ -4,16 +4,41 @@ use std::path::Path;
 use std::fs;
 use anyhow::anyhow;
 use std::ffi::OsStr;
+use std::process::Command;
 
 pub const KPM_DIR: &str = "/data/adb/kpm";
 pub const KPMMGR_PATH: &str = "/data/adb/ksu/bin/kpmmgr";
 
-// 确保 KPM 目录存在，如果不存在则创建
+// 创建确保 KPM 目录存在
 pub fn ensure_kpm_dir() -> Result<()> {
+    if !is_kpm_enabled()? {
+        log::warn!("KPM is not enabled. Disabling all KPM-related functionality.");
+        return Ok(());
+    }
+
     if !Path::new(KPM_DIR).exists() {
         fs::create_dir_all(KPM_DIR)?;
     }
+
     Ok(())
+}
+
+// 检查 KPM 是否启用
+pub fn is_kpm_enabled() -> Result<bool> {
+    let output = Command::new(KPMMGR_PATH)
+        .args(["version"])
+        .output()?;
+
+    if output.status.success() {
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        if output_str.to_lowercase().contains("error") {
+            Ok(false)
+        } else {
+            Ok(true)
+        }
+    } else {
+        Err(anyhow!("Failed to check KPM version: {:?}", output.stderr))
+    }
 }
 
 pub fn start_kpm_watcher() -> Result<()> {
@@ -81,7 +106,7 @@ fn handle_modify_event(paths: Vec<std::path::PathBuf>) {
 // 加载 KPM 模块
 pub fn load_kpm(path: &Path) -> Result<()> {
     let path_str = path.to_str().ok_or_else(|| anyhow!("Invalid path: {}", path.display()))?;
-    let status = std::process::Command::new(KPMMGR_PATH)
+    let status = Command::new(KPMMGR_PATH)
         .args(["load", path_str, ""])
         .status()?;
 
@@ -93,7 +118,7 @@ pub fn load_kpm(path: &Path) -> Result<()> {
 
 // 卸载 KPM 模块并尝试删除对应文件
 pub fn unload_kpm(name: &str) -> Result<()> {
-    let status = std::process::Command::new(KPMMGR_PATH)
+    let status = Command::new(KPMMGR_PATH)
         .args(["unload", name])
         .status()
         .map_err(|e| anyhow!("Failed to execute kpmmgr: {}", e))?;
@@ -136,7 +161,9 @@ fn find_kpm_file(name: &str) -> Result<Option<std::path::PathBuf>> {
 
 // 安全模式下删除所有 KPM 模块
 pub fn remove_all_kpms() -> Result<()> {
-    ensure_kpm_dir()?;
+    if !Path::new(KPM_DIR).exists() {
+        return Ok(());
+    }
 
     for entry in fs::read_dir(KPM_DIR)? {
         let path = entry?.path();
