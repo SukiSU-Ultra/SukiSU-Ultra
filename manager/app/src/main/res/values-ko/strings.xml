@@ -113,6 +113,7 @@
     <string name="grant_root_failed">루트 부여 실패!</string>
     <string name="action">동작</string>
     <string name="open">열기</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">WebView 디버깅 활성화</string>
     <string name="enable_web_debugging_summary">WebUI 디버깅에 사용 가능, 필요할 때만 활성화해주세요.</string>
     <string name="direct_install">직접 설치 (권장)</string>
