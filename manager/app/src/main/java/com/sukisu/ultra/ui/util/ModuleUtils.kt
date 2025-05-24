@@ -33,7 +33,7 @@ object ModuleUtils {
                 }
             }?.removeSuffix(".zip") ?: context.getString(R.string.unknown_module)
 
-            var formattedFileName = fileName.replace(Regex("[^a-zA-Z0-9\\s\\-_.()\\u4e00-\\u9fa5]"), "").trim()
+            var formattedFileName = fileName.replace(Regex("[^a-zA-Z0-9\\s\\-_.@()\\u4e00-\\u9fa5]"), "").trim()
             var moduleName = formattedFileName
 
             try {
@@ -56,7 +56,7 @@ object ModuleUtils {
                         while (reader.readLine().also { line = it } != null) {
                             if (line?.startsWith("name=") == true) {
                                 moduleName = line.substringAfter("=")
-                                moduleName = moduleName.replace(Regex("[^a-zA-Z0-9\\s\\-_.()\\u4e00-\\u9fa5]"), "").trim()
+                                moduleName = moduleName.replace(Regex("[^a-zA-Z0-9\\s\\-_.@()\\u4e00-\\u9fa5]"), "").trim()
                                 nameFound = true
                                 break
                             }

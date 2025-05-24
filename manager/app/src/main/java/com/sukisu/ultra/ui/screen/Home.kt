@@ -240,7 +240,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                                     clickCount++
                                     prefs.edit { putInt("click_count", clickCount) }
                                 }
-                                .padding(16.dp),
+                                .padding(horizontal = 24.dp, vertical = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(

@@ -307,8 +307,7 @@ Java_com_sukisu_ultra_Natives_setSuEnabled(JNIEnv *env, jobject thiz, jboolean e
     return set_su_enabled(enabled);
 }
 
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isKPMEnabled(JNIEnv *env, jclass clazz) {
-    return (jboolean)is_KPM_enable();
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_sukisu_ultra_Natives_isKPMEnabled(JNIEnv *env, jobject) {
+    return is_KPM_enable();
 }

@@ -101,6 +101,5 @@ bool is_su_enabled() {
 
 bool is_KPM_enable() {
     bool enabled = false;
-    ksuctl(CMD_ENABLE_KPM, &enabled, nullptr);
-    return enabled;
+    return ksuctl(CMD_ENABLE_KPM, &enabled, nullptr), enabled;
 }
