@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Kan geen root verlenen!</string>
     <string name="action">Actie</string>
     <string name="open">Open</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Schakel WebView-foutopsporing</string>
     <string name="enable_web_debugging_summary">Kan worden gebruikt om WebUI te debuggen. Schakel dit alleen in als dat nodig is.</string>
     <string name="direct_install">Directe installatie (aanbevolen)</string>
