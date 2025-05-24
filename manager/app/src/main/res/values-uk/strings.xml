@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Не вдалося отримати root!</string>
     <string name="action">Action</string>
     <string name="open">Відкрити</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Увімкнути налагодження WebView</string>
     <string name="enable_web_debugging_summary">Використовується для налагодження WebUI. Будь ласка, вмикайте тільки за потреби.</string>
     <string name="direct_install">Пряме встановлення (рекомендовано)</string>
