@@ -10,7 +10,10 @@ use crate::kpm;
 pub fn on_post_data_fs() -> Result<()> {
     ksucalls::report_post_fs_data();
 
-    kpm::start_kpm_watcher()?;
+    if kpm::is_kpm_enabled()? {
+        kpm::start_kpm_watcher()?; // 如果 KPM 启用，则启动 KPM 监视器
+        kpm::load_kpm_modules()?; // 如果 KPM 启用，则加载 KPM 模块
+    }
 
     utils::umask(0);
 
@@ -100,9 +103,6 @@ pub fn on_post_data_fs() -> Result<()> {
     }
 
     run_stage("post-mount", true);
-
-    // load kpm modules
-    kpm::load_kpm_modules()?;
 
     Ok(())
 }
