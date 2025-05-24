@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Root yetkisi verilemedi!</string>
     <string name="action">Action</string>
     <string name="open">Aç</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">WebView hata ayıklama etkinleştir</string>
     <string name="enable_web_debugging_summary">WebUI\'yi hata ayıklamak için kullanılabilir. Sadece ihtiyaç duyulduğunda etkinleştirin.</string>
     <string name="direct_install">Doğrudan yükleme (Önerilen)</string>
