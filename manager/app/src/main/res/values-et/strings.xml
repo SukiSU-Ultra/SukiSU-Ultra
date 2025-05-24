@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Juurkasutaja andmine ebaõnnestus!</string>
     <string name="action">Action</string>
     <string name="open">Ava</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Luba WebView silumine</string>
     <string name="enable_web_debugging_summary">Saab kasutada WebUI silumiseks, palun luba ainult vajadusel.</string>
     <string name="direct_install">Otsene paigaldus (soovitatud)</string>
