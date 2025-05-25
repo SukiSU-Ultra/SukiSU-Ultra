@@ -113,6 +113,7 @@
     <string name="grant_root_failed">فشل في منح صلاحية الجذر!</string>
     <string name="action">إجراء</string>
     <string name="open">فتح</string>
+    <string name="close">إغلاق</string>
     <string name="enable_web_debugging">تمكين تصحيح أخطاء WebView</string>
     <string name="enable_web_debugging_summary">يمكن استخدامه لتصحيح أخطاء WebUI، يرجى تمكينه فقط عند الحاجة.</string>
     <string name="direct_install">تثبيت مباشر (موصى به)</string>
