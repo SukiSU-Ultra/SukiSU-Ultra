@@ -6,7 +6,7 @@
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %d</string>
     <string name="home_superuser_count">Ứng dụng đã cấp quyền Root: %d</string>
-    <string name="home_module_count">Module: %d</string>
+    <string name="home_module_count">Modules: %d</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">Không phát hiện được trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
     <string name="home_kernel">Phiên bản Kernel</string>
@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Cấp quyền root thất bại!</string>
     <string name="action">Khởi chạy</string>
     <string name="open">Mở</string>
+    <string name="close">Đóng</string>
     <string name="enable_web_debugging">Gỡ lỗi WebView</string>
     <string name="enable_web_debugging_summary">Có thể sử dụng để gỡ lỗi WebUI. Vui lòng chỉ bật khi cần thiết</string>
     <string name="direct_install">Cài đặt trực tiếp (Khuyến nghị)</string>
@@ -189,7 +190,7 @@
     <string name="hide_kernel_kernelsu_version">Ẩn phiên bản kernel</string>
     <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản kernel ở trang chủ</string>
     <string name="hide_other_info">Ẩn thông tin khác</string>
-    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các module KPM ở trang chủ</string>
+    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các KPModule ở trang chủ</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
     <string name="hide_link_card">Ẩn trạng thái thẻ liên kết</string>
@@ -223,8 +224,8 @@
     <string name="batch_authorization">Uỷ quyền</string>
     <string name="batch_cancel_authorization">Hủy ủy quyền hàng loạt</string>
     <string name="backup">Sao lưu</string>
-    <string name="kpm_title">KPM</string>
-    <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
+    <string name="kpm_title">KPModule</string>
+    <string name="kpm_empty">Không có KPModule nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
     <string name="kpm_author">Tác giả</string>
     <string name="kpm_uninstall">Gỡ cài đặt</string>
@@ -232,7 +233,7 @@
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
     <string name="kpm_install">Cài đặt</string>
     <string name="kpm_install_success">Tải Module KPM thành công</string>
-    <string name="kpm_install_failed">Tải Module KPM thất bại</string>
+    <string name="kpm_install_failed">Tải KPModule thất bại</string>
     <string name="kpm_args">Thông số KPM</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
@@ -244,7 +245,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
     <string name="not_supported">Không được hỗ trợ</string>
     <string name="supported">Được hỗ trợ</string>
-    <string name="home_kpm_module">"Module KPM: %d"</string>
+    <string name="home_kpm_module">"KPModules: %d"</string>
     <string name="kpm_invalid_file">Tệp KPM không hợp lệ</string>
     <string name="kernel_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
@@ -363,5 +364,5 @@
     <string name="check_log">Vui lòng kiểm tra logs</string>
     <string name="installing_module">Đang cài đặt module %1$d/%2$d</string>
     <string name="module_failed_count">Cài đặt module %d thất bại</string>
-    <string name="module_download_error">Tải xuống mô hình không thành công</string>
+    <string name="module_download_error">Tải xuống module thất bại</string>
 </resources>
