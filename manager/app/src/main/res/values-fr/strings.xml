@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Échec de l\'octroi des privilèges root !</string>
     <string name="action">Action</string>
     <string name="open">Ouvrir</string>
+    <string name="close">Fermer</string>
     <string name="enable_web_debugging">Activer le débogage WebView</string>
     <string name="enable_web_debugging_summary">Peut être utilisé pour déboguer WebUI. Activez uniquement cette option si nécessaire.</string>
     <string name="direct_install">Installation directe (recommandé)</string>
