@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Neizdevās piešķirt sakni!</string>
     <string name="action">Action</string>
     <string name="open">Atvērt</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">Iespējot WebView atkļūdošanu</string>
     <string name="enable_web_debugging_summary">Var izmantot WebUI atkļūdošanai, lūdzu, izmantot tikai tad, kad tas ir nepieciešams.</string>
     <string name="direct_install">Tiešā instalēšana (Ieteicams)</string>
