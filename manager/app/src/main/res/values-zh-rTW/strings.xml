@@ -113,6 +113,7 @@
     <string name="grant_root_failed">無法獲取 Root 權限！</string>
     <string name="action">執行</string>
     <string name="open">開啟</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">啟用 WebView 偵錯</string>
     <string name="enable_web_debugging_summary">旨在偵錯 WebUI。請依自身狀況適時啟用。</string>
     <string name="direct_install">直接安裝（推薦）</string>
