@@ -113,6 +113,7 @@
     <string name="grant_root_failed">A root jog megadása sikertelen!</string>
     <string name="action">Művelet</string>
     <string name="open">Megnyitás</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">WebView hibakeresés engedélyezése</string>
     <string name="enable_web_debugging_summary">A WebUI hibakeresésére használható, csak szükség esetén engedélyezze.</string>
     <string name="direct_install">Közvetlen telepítés (Ajánlott)</string>
