@@ -113,6 +113,7 @@
     <string name="grant_root_failed">ไม่สามารถให้สิทธิ์รูทได้!</string>
     <string name="action">คำสั่ง</string>
     <string name="open">เปิด</string>
+    <string name="close">Close</string>
     <string name="enable_web_debugging">เปิดใช้งานการแก้ไขข้อบกพร่อง WebView</string>
     <string name="enable_web_debugging_summary">ใช้เพื่อดีบัก WebUI เท่านั้น โปรดเปิดใช้งานเมื่อจำเป็น</string>
     <string name="direct_install">ติดตั้งโดยตรง (แนะนำ)</string>
@@ -185,7 +186,7 @@
     <string name="more_settings">More settings</string>
     <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Enabled</string>
-    <string name="selinux_disabled">Disabled</string>
+    <string name="selinux_disabled">ปิดการใช้งาน</string>
     <string name="simple_mode">Simplicity mode</string>
     <string name="simple_mode_summary">Hides unnecessary cards when turned on</string>
     <string name="hide_kernel_kernelsu_version">Hide kernel version</string>
