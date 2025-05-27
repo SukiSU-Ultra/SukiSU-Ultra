@@ -5,7 +5,7 @@
     <string name="home_click_to_install">Bấm để cài đặt</string>
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %d</string>
-    <string name="home_superuser_count">Ứng dụng đã cấp quyền Root: %d</string>
+    <string name="home_superuser_count">Superusers: %d</string>
     <string name="home_module_count">Modules: %d</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">Không phát hiện được trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
@@ -190,7 +190,7 @@
     <string name="hide_kernel_kernelsu_version">Ẩn phiên bản kernel</string>
     <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản kernel ở trang chủ</string>
     <string name="hide_other_info">Ẩn thông tin khác</string>
-    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các KPModule ở trang chủ</string>
+    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các kpmodule ở trang chủ</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
     <string name="hide_link_card">Ẩn trạng thái thẻ liên kết</string>
@@ -233,7 +233,7 @@
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
     <string name="kpm_install">Cài đặt</string>
     <string name="kpm_install_success">Tải Module KPM thành công</string>
-    <string name="kpm_install_failed">Tải KPModule thất bại</string>
+    <string name="kpm_install_failed">Load KPModule thất bại</string>
     <string name="kpm_args">Thông số KPM</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
@@ -346,7 +346,7 @@
     <string name="dpi_applied_success">DPI đã được đặt thành %1$d, có hiệu lực sau khi khởi động lại ứng dụng</string>
     <!-- Language settings related strings -->
     <string name="language_setting">Ngôn ngữ ứng dụng</string>
-    <string name="language_follow_system">Theo dõi hệ thống</string>
+    <string name="language_follow_system">Mặc định theo hệ thống</string>
     <string name="language_changed">Ngôn ngữ đã thay đổi, khởi động lại để áp dụng thay đổi</string>
     <string name="settings_card_dim">Độ trong suốt của thẻ</string>
     <!-- Super User Related -->
