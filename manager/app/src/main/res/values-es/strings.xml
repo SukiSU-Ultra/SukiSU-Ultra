@@ -113,7 +113,7 @@
     <string name="grant_root_failed">¡No se ha podido conceder el acceso root!</string>
     <string name="action">Aktion</string>
     <string name="open">Abrir</string>
-    <string name="close">Close</string>
+    <string name="close">Cancelar</string>
     <string name="enable_web_debugging">Activar la depuración de WebView</string>
     <string name="enable_web_debugging_summary">Puede ser usado para depurar WebUI, por favor habilítalo sólo cuando sea necesario.</string>
     <string name="direct_install">Instalación directa (Recomendada)</string>
@@ -180,7 +180,7 @@
     <string name="settings_disable_su_summary">Deshabilita temporalmente cualquier aplicación para obtener privilegios de root a través del comando de \"it\" (los procesos de root existentes no se verán afectados).</string>
     <string name="using_mksu_manager">Estás usando el administrador de la Beta de SukiSU</string>
     <string name="module_install_multiple_confirm">¿Está seguro que desea instalar los módulos %d seleccionados?</string>
-    <string name="module_install_multiple_confirm_with_names">Sure you want to install the following %1$d modules? \n\n%2$s</string>
+    <string name="module_install_multiple_confirm_with_names">¿Seguro que quieres instalar los siguientes módulos %1$d ? \n\n%2$s</string>
     <string name="more_settings">Opciones avanzadas</string>
     <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Habilitado</string>
