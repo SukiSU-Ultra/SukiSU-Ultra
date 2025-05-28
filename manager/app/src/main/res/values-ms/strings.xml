@@ -327,7 +327,7 @@
     <string name="show_kpm_info_summary">Display KPM information and Function in home and bottom bar (Need to reopen the app)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Use WebUI X</string>
-    <string name="use_webuix_summary">Use WebUI X instead of WebUI which supports more API\'s</string>
+    <string name="use_webuix_summary">Use WebUI X instead of WebUI, which supports more APIs. Be aware that developers can override this feature in their module config.</string>
     <string name="use_webuix_eruda">Inject Eruda into WebUI X</string>
     <string name="use_webuix_eruda_summary">Inject a debug console into WebUI X to make debugging easier. Requires web debugging to be on.</string>
     <!-- DPI setting related strings -->
