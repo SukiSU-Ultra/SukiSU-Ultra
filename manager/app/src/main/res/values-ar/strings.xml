@@ -329,7 +329,7 @@
     <string name="show_kpm_info_summary">عرض معلومات KPM ووظيفتها في الشريط المنزلي والأسفل (تحتاج إلى إعادة فتح التطبيق)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">استخدام WebUI X</string>
-    <string name="use_webuix_summary">استخدام WebUI X بدلاً من WebUI الذي يدعم المزيد من API</string>
+    <string name="use_webuix_summary">استخدم WebUI X بدلاً من WebUI ، الذي يدعم المزيد من API. كن على علم بأن المطورين يمكنهم تجاوز هذه الميزة في تكوين وحدتهم.</string>
     <string name="use_webuix_eruda">حقن Eruda في WebUI X</string>
     <string name="use_webuix_eruda_summary">حقن وحدة التصحيح في WebUI X لجعل تصحيح الأخطاء أسهل. يتطلب تصحيح أخطاء الويب لتكون قيد التشغيل.</string>
     <!-- DPI setting related strings -->
