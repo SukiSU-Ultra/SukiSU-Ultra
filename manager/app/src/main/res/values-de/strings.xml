@@ -329,7 +329,7 @@
     <string name="show_kpm_info_summary">KPM-Informationen und Funktion in der Home- und unteren Leiste anzeigen (muss die App erneut öffnen)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">WebUI X verwenden</string>
-    <string name="use_webuix_summary">WebUI X anstelle von WebUI verwenden, das mehr APIs unterstützt</string>
+    <string name="use_webuix_summary">Verwenden Sie WebUI X anstelle von WebUI, das mehr APIs unterstützt. Seien Sie sich bewusst, dass Entwickler diese Funktion in ihrer Modul-Konfiguration überschreiben können.</string>
     <string name="use_webuix_eruda">Eruda in WebUI X injizieren</string>
     <string name="use_webuix_eruda_summary">Fügen Sie eine Debug-Konsole in WebUI X ein, um das Debuggen zu vereinfachen. Benötigt Debugging im WebUI X.</string>
     <!-- DPI setting related strings -->
