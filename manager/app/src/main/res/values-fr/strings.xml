@@ -329,7 +329,7 @@
     <string name="show_kpm_info_summary">Afficher les informations et fonctions KPM dans la barre d\'accueil et du bas (nécessite de rouvrir l\'application)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Utiliser l\'interface Web X</string>
-    <string name="use_webuix_summary">Utiliser WebUI X au lieu de WebUI qui supporte plus d\'API</string>
+    <string name="use_webuix_summary">Utilisez WebUI X au lieu de WebUI, qui prend en charge plus d\'API. Sachez que les développeurs peuvent remplacer cette fonctionnalité dans la configuration de leur module.</string>
     <string name="use_webuix_eruda">Injecter Eruda dans WebUI X</string>
     <string name="use_webuix_eruda_summary">Injectez une console de débogage dans WebUI X pour faciliter le débogage. Nécessite que le débogage soit activé.</string>
     <!-- DPI setting related strings -->
