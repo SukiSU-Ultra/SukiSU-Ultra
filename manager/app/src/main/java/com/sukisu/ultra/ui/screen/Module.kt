@@ -391,7 +391,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                     when (config.getWebuiEngine(context)) {
                                         "wx" -> wxEngine
                                         "ksu" -> ksuEngine
-                                        else -> wxEngine
+                                        else -> ksuEngine
                                     }
                                 )
                                 return@ModuleList
