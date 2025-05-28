@@ -232,7 +232,7 @@
     <string name="kpm_uninstall_success">Gỡ cài đặt thành công</string>
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
     <string name="kpm_install">Cài đặt</string>
-    <string name="kpm_install_success">Tải Module KPM thành công</string>
+    <string name="kpm_install_success">Load KPModule thành công</string>
     <string name="kpm_install_failed">Load KPModule thất bại</string>
     <string name="kpm_args">Thông số KPM</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
@@ -327,7 +327,7 @@
     <string name="show_kpm_info_summary">Hiển thị thông tin KPM, chức năng ở trang chủ và thanh dưới cùng (Cần khởi động lại ứng dụng)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Sử dụng WebUI X</string>
-    <string name="use_webuix_summary">Sử dụng WebUI X thay cho WebUI vì hỗ trợ nhiều API hơn</string>
+    <string name="use_webuix_summary">Sử dụng WebUI X thay cho WebUI vì hỗ trợ nhiều API hơn. Lưu ý rằng các nhà phát triển có thể ghi đè tính năng này trong cấu hình module của họ</string>
     <string name="use_webuix_eruda">Tiêm Eruda vào WebUI X</string>
     <string name="use_webuix_eruda_summary">Chèn bảng điều khiển gỡ lỗi vào WebUI X để gỡ lỗi dễ dàng hơn. Yêu cầu bật gỡ lỗi web</string>
     <!-- DPI setting related strings -->
