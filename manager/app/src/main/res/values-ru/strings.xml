@@ -72,7 +72,7 @@
     <string name="failed_to_update_app_profile">Не удалось обновить App Profile для %s</string>
     <string name="require_kernel_version" formatted="false">Текущая версия KernelSU %d слишком низкая для правильной работы менеджера. Пожалуйста, обновите до версии %d или выше!</string>
     <string name="settings_umount_modules_default">Размонтировать модули по умолчанию</string>
-    <string name="settings_umount_modules_default_summary">Глобальное значение по умолчанию для \"Размонтировать модули\" в App Profile. При включении будут удалены все модификации модулей в системе для приложений, у которых не задан Profile.</string>
+    <string name="settings_umount_modules_default_summary">Глобальное значение по умолчанию для \"Размонтировать модули\" в профиле приложения. При включении будут удалены все модификации модулей в системе для приложений, у которых не задан профиль.</string>
     <string name="settings_susfs_toggle">Отключить кпробивные хуки</string>
     <string name="profile_umount_modules_summary">Включение этой опции позволит KernelSU восстанавливать любые измененные модулями файлы для данного приложения.</string>
     <string name="profile_selinux_domain">Домен</string>
@@ -183,7 +183,7 @@
     <string name="using_mksu_manager">Вы используете менеджер SukiSU бета-версии</string>
     <string name="module_install_multiple_confirm">Вы уверены, что хотите установить выбранные модули %d?</string>
     <string name="module_install_multiple_confirm_with_names">Уверены, что хотите установить следующие %1$d модули? \n\n%2$s</string>
-    <string name="more_settings">More settings</string>
+    <string name="more_settings">Доп. настройки</string>
     <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Включено</string>
     <string name="selinux_disabled">Выключен</string>
@@ -241,10 +241,10 @@
     <string name="home_kpm_version">Версия KPM</string>
     <string name="close_notice">Закрыть</string>
     <string name="kernel_module_notice">Следующие модульные функции ядра были разработаны KernelPatch и изменены для включения в него функций модуля ядра SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra взгляд вперед</string>
+    <string name="home_ContributionCard_kernelsu">Будущее SukiSU Ultra</string>
     <string name="kpm_control_success">Успешно</string>
     <string name="kpm_control_failed">Провален</string>
-    <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым филиалом KSU , но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. для их вкладов!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
     <string name="not_supported">Не поддерживается</string>
     <string name="supported">Поддерживаемые</string>
     <string name="home_kpm_module">"Количество KPM-модулей: %d "</string>
@@ -334,12 +334,12 @@
     <string name="use_webuix_eruda_summary">Вставьте консоль отладки в WebUI X для упрощения отладки. Для этого требуется включение веб-отладки.</string>
     <!-- DPI setting related strings -->
     <string name="dpi_settings">Настройка DPI</string>
-    <string name="app_dpi_title">Применяемый DPI</string>
+    <string name="app_dpi_title">Изменить DPI</string>
     <string name="app_dpi_summary">Регулировка плотности экрана только для текущего приложения</string>
     <string name="dpi_size_small">Маленький </string>
     <string name="dpi_size_medium">Средний </string>
-    <string name="dpi_size_large">Большой</string>
-    <string name="dpi_size_extra_large">огромный</string>
+    <string name="dpi_size_large">большой</string>
+    <string name="dpi_size_extra_large"> огромный</string>
     <string name="dpi_size_custom">настраиваемый</string>
     <string name="dpi_apply_settings">Применение настроек DPI</string>
     <string name="dpi_confirm_title">Подтвердите изменение DPI</string>
