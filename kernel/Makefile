@@ -34,10 +34,7 @@ endif
 
 # Do checks before compile
 ifeq ($(shell grep -q "int\s\+\path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
-$(info -- KernelSU: checks ok. Found path_umount)
-else
-$(info -- KernelSU: checks failed, abort.)
-$(error -- Backporting path_umount is mandatory !! Read: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#how-to-backport-path-umount)
+ccflags-y += -DKSU_HAS_PATH_UMOUNT
 endif
 
 # Checks hooks state

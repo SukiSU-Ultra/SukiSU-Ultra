@@ -25,6 +25,9 @@
 
 #include <linux/fs.h>
 #include <linux/namei.h>
+#ifndef KSU_HAS_PATH_UMOUNT
+#include <linux/syscalls.h> // sys_umount (<4.17) & ksys_umount (4.17+)
+#endif
 
 #ifdef MODULE
 #include <linux/list.h>
@@ -45,7 +48,6 @@
 #include "throne_tracker.h"
 #include "throne_tracker.h"
 #include "kernel_compat.h"
-
 #include "kpm/kpm.h"
 
 static bool ksu_module_mounted = false;
@@ -181,7 +183,7 @@ void escape_to_root(void)
 	       sizeof(cred->cap_bset));
 
 	setup_groups(profile, cred);
-	
+
 	rcu_read_unlock();
 
 	// Refer to kernel/seccomp.c: seccomp_set_mode_strict
@@ -232,6 +234,7 @@ int ksu_handle_rename(struct dentry *old_dentry, struct dentry *new_dentry)
 	return 0;
 }
 
+#ifdef CONFIG_EXT4_FS
 static void nuke_ext4_sysfs() {
 	struct path path;
 	int err = kern_path("/data/adb/modules", 0, &path);
@@ -251,6 +254,9 @@ static void nuke_ext4_sysfs() {
 	ext4_unregister_sysfs(sb);
 	path_put(&path);
 }
+#else
+static inline void nuke_ext4_sysfs() { }
+#endif
 
 int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		     unsigned long arg4, unsigned long arg5)
@@ -432,6 +438,12 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		return 0;
 	}
 	#endif
+	if (arg2 == CMD_ENABLE_KPM) {
+    	bool KPM_Enabled = IS_ENABLED(CONFIG_KPM);
+    	if (copy_to_user((void __user *)arg3, &KPM_Enabled, sizeof(KPM_Enabled)))
+        	pr_info("KPM: copy_to_user() failed\n");
+    	return 0;
+	}
 
 	// all other cmds are for 'root manager'
 	if (!from_manager) {
@@ -538,17 +550,28 @@ static bool should_umount(struct path *path)
 	return false;
 }
 
-static void ksu_umount_mnt(struct path *path, int flags)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) || defined(KSU_HAS_PATH_UMOUNT)
+static void ksu_path_umount(const char *mnt, struct path *path, int flags)
 {
-	int err = path_umount(path, flags);
-	if (err) {
-		pr_err("umount %s failed, err: %d\n",
-			path->dentry->d_iname, err);
-	} else {
-		pr_info("umount %s success\n",
-			path->dentry->d_iname);
-	}
+	int ret = path_umount(path, flags);
+	pr_info("%s: path: %s ret: %d\n", __func__, mnt, ret);
 }
+#else
+static void ksu_sys_umount(const char *mnt, int flags)
+{
+	char __user *usermnt = (char __user *)mnt;
+
+	mm_segment_t old_fs = get_fs();
+	set_fs(KERNEL_DS);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
+	int ret = ksys_umount(usermnt, flags);
+#else
+	long ret = sys_umount(usermnt, flags); // cuz asmlinkage long sys##name
+#endif
+	set_fs(old_fs);
+	pr_info("%s: path: %s ret: %d\n", __func__, usermnt, ret);
+}
+#endif
 
 static void try_umount(const char *mnt, bool check_mnt, int flags)
 {
@@ -568,7 +591,11 @@ static void try_umount(const char *mnt, bool check_mnt, int flags)
 		return;
 	}
 
-	ksu_umount_mnt(&path, flags);
+#ifdef KSU_HAS_PATH_UMOUNT
+	ksu_path_umount(mnt, &path, flags);
+#else
+	ksu_sys_umount(mnt, flags);
+#endif
 }
 
 int ksu_handle_setuid(struct cred *new, const struct cred *old)
@@ -644,7 +671,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) ||	\
 	defined(CONFIG_IS_HW_HISI) ||	\
 	defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
-int ksu_key_permission(key_ref_t key_ref, const struct cred *cred,
+static int ksu_key_permission(key_ref_t key_ref, const struct cred *cred,
 			      unsigned perm)
 {
 	if (init_session_keyring != NULL) {
