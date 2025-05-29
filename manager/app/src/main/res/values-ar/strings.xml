@@ -113,6 +113,7 @@
     <string name="grant_root_failed">فشل في منح صلاحية الجذر!</string>
     <string name="action">إجراء</string>
     <string name="open">فتح</string>
+    <string name="close">إغلاق</string>
     <string name="enable_web_debugging">تمكين تصحيح أخطاء WebView</string>
     <string name="enable_web_debugging_summary">يمكن استخدامه لتصحيح أخطاء WebUI، يرجى تمكينه فقط عند الحاجة.</string>
     <string name="direct_install">تثبيت مباشر (موصى به)</string>
@@ -297,7 +298,6 @@
     <string name="flash_failed_message">فشل التركيب</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">إصلاح/تثبيت LKM</string>
-    <string name="GKI_install_methods">GKI/non-GKI installation</string>
     <string name="kernel_version_log">إصدار النواة：%1$s</string>
     <string name="tool_version_log">استخدام أداة التصحيح：%1$s</string>
     <string name="configuration">تعيين</string>
@@ -328,7 +328,7 @@
     <string name="show_kpm_info_summary">عرض معلومات KPM ووظيفتها في الشريط المنزلي والأسفل (تحتاج إلى إعادة فتح التطبيق)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">استخدام WebUI X</string>
-    <string name="use_webuix_summary">استخدام WebUI X بدلاً من WebUI الذي يدعم المزيد من API</string>
+    <string name="use_webuix_summary">استخدم WebUI X بدلاً من WebUI ، الذي يدعم المزيد من API. كن على علم بأن المطورين يمكنهم تجاوز هذه الميزة في تكوين وحدتهم.</string>
     <string name="use_webuix_eruda">حقن Eruda في WebUI X</string>
     <string name="use_webuix_eruda_summary">حقن وحدة التصحيح في WebUI X لجعل تصحيح الأخطاء أسهل. يتطلب تصحيح أخطاء الويب لتكون قيد التشغيل.</string>
     <!-- DPI setting related strings -->

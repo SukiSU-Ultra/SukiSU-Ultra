@@ -51,7 +51,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -75,12 +74,10 @@ import com.maxkeppeler.sheets.list.models.ListSelection
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.KernelFlashScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.sukisu.ultra.R
-import com.sukisu.ultra.flash.HorizonKernelFlashProgress
-import com.sukisu.ultra.flash.HorizonKernelState
-import com.sukisu.ultra.flash.HorizonKernelWorker
 import com.sukisu.ultra.ui.component.DialogHandle
 import com.sukisu.ultra.ui.component.SlotSelectionDialog
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
@@ -110,16 +107,10 @@ fun InstallScreen(navigator: DestinationsNavigator) {
     var showRebootDialog by remember { mutableStateOf(false) }
     var showSlotSelectionDialog by remember { mutableStateOf(false) }
     var tempKernelUri by remember { mutableStateOf<Uri?>(null) }
-    val horizonKernelState = remember { HorizonKernelState() }
-    val flashState by horizonKernelState.state.collectAsState()
-    val summary = stringResource(R.string.horizon_kernel_summary)
     val kernelVersion = getKernelVersion()
     val isGKI = kernelVersion.isGKI()
     val isAbDevice = isAbDevice()
-
-    val onFlashComplete = {
-        showRebootDialog = true
-    }
+    val summary = stringResource(R.string.horizon_kernel_summary)
 
     if (showRebootDialog) {
         RebootDialog(
@@ -145,14 +136,12 @@ fun InstallScreen(navigator: DestinationsNavigator) {
             when (method) {
                 is InstallMethod.HorizonKernel -> {
                     method.uri?.let { uri ->
-                        val worker = HorizonKernelWorker(
-                            context = context,
-                            state = horizonKernelState,
-                            slot = method.slot
+                        navigator.navigate(
+                            KernelFlashScreenDestination(
+                                kernelUri = uri,
+                                selectedSlot = method.slot
+                            )
                         )
-                        worker.uri = uri
-                        worker.setOnFlashCompleteListener(onFlashComplete)
-                        worker.start()
                     }
                 }
                 else -> {
@@ -253,17 +242,8 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                     } else {
                         installMethod = method
                     }
-                    horizonKernelState.reset()
                 }
             )
-
-            AnimatedVisibility(
-                visible = flashState.isFlashing && installMethod is InstallMethod.HorizonKernel,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                HorizonKernelFlashProgress(flashState)
-            }
 
             Column(
                 modifier = Modifier
@@ -325,7 +305,7 @@ fun InstallScreen(navigator: DestinationsNavigator) {
 
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = installMethod != null && !flashState.isFlashing,
+                    enabled = installMethod != null,
                     onClick = onClickNext,
                     shape = MaterialTheme.shapes.medium,
                     colors = ButtonDefaults.buttonColors(
@@ -647,60 +627,60 @@ private fun SelectInstallMethod(
                         )
                     ) {
                         radioOptions.filterIsInstance<InstallMethod.HorizonKernel>().forEach { option ->
-                                val interactionSource = remember { MutableInteractionSource() }
-                                Surface(
-                                    color = if (option.javaClass == selectedOption?.javaClass)
-                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
-                                    else
-                                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = cardAlpha),
-                                    shape = MaterialTheme.shapes.medium,
+                            val interactionSource = remember { MutableInteractionSource() }
+                            Surface(
+                                color = if (option.javaClass == selectedOption?.javaClass)
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
+                                else
+                                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = cardAlpha),
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                        .clip(MaterialTheme.shapes.medium)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .toggleable(
-                                                value = option.javaClass == selectedOption?.javaClass,
-                                                onValueChange = { onClick(option) },
-                                                role = Role.RadioButton,
-                                                indication = LocalIndication.current,
-                                                interactionSource = interactionSource
-                                            )
-                                            .padding(vertical = 8.dp, horizontal = 12.dp)
-                                    ) {
-                                        RadioButton(
-                                            selected = option.javaClass == selectedOption?.javaClass,
-                                            onClick = null,
-                                            interactionSource = interactionSource,
-                                            colors = RadioButtonDefaults.colors(
-                                                selectedColor = MaterialTheme.colorScheme.primary,
-                                                unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
+                                        .toggleable(
+                                            value = option.javaClass == selectedOption?.javaClass,
+                                            onValueChange = { onClick(option) },
+                                            role = Role.RadioButton,
+                                            indication = LocalIndication.current,
+                                            interactionSource = interactionSource
                                         )
-                                        Column(
-                                            modifier = Modifier
-                                                .padding(start = 10.dp)
-                                                .weight(1f)
-                                        ) {
+                                        .padding(vertical = 8.dp, horizontal = 12.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = option.javaClass == selectedOption?.javaClass,
+                                        onClick = null,
+                                        interactionSource = interactionSource,
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = MaterialTheme.colorScheme.primary,
+                                            unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(start = 10.dp)
+                                            .weight(1f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = option.label),
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        option.summary?.let {
                                             Text(
-                                                text = stringResource(id = option.label),
-                                                style = MaterialTheme.typography.bodyLarge
+                                                text = it,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
-                                            option.summary?.let {
-                                                Text(
-                                                    text = it,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
                                         }
                                     }
                                 }
                             }
+                        }
                     }
                 }
             }
@@ -752,7 +732,7 @@ private fun TopBar(
     onLkmUpload: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.surfaceContainer
+    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
     val cardAlpha = cardAlpha
 
     TopAppBar(

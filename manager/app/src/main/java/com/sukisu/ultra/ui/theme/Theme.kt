@@ -216,7 +216,7 @@ fun KernelSUTheme(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(-2f)
-                    .background(if (darkTheme) Color.Black else Color.White)
+                    .background(if (darkTheme) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerLow)
             )
 
             // 自定义背景层

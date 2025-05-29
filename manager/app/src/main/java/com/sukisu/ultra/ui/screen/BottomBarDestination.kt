@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.screen
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
@@ -21,7 +22,7 @@ enum class BottomBarDestination(
     val rootRequired: Boolean,
 ) {
     Home(HomeScreenDestination, R.string.home, Icons.Filled.Home, Icons.Outlined.Home, false),
-    Kpm(KpmScreenDestination, R.string.kpm_title, Icons.Filled.Build, Icons.Outlined.Build, true),
+    Kpm(KpmScreenDestination, R.string.kpm_title, Icons.Filled.Archive, Icons.Outlined.Archive, true),
     SuperUser(SuperUserScreenDestination, R.string.superuser, Icons.Filled.AdminPanelSettings, Icons.Outlined.AdminPanelSettings, true),
     Module(ModuleScreenDestination, R.string.module, Icons.Filled.Extension, Icons.Outlined.Extension, true),
     Settings(SettingScreenDestination, R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings, false),

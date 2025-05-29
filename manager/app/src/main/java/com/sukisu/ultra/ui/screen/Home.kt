@@ -40,7 +40,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -63,7 +63,6 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -84,7 +83,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import androidx.core.content.pm.PackageInfoCompat
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -213,46 +211,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 UpdateCard()
             }
 
-            val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
-            var clickCount by rememberSaveable { mutableIntStateOf(prefs.getInt("click_count", 0)) }
-
-            if (!isSimpleMode && clickCount < 3) {
-                AnimatedVisibility(
-                    visible = clickCount < 3,
-                    enter = fadeIn() + expandVertically(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    ElevatedCard(
-                        colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
-                        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.medium)
-                            .shadow(
-                                elevation = cardElevation,
-                                shape = MaterialTheme.shapes.medium,
-                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    clickCount++
-                                    prefs.edit { putInt("click_count", clickCount) }
-                                }
-                                .padding(horizontal = 24.dp, vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.using_mksu_manager),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
-
             InfoCard()
 
             if (!isSimpleMode) {
@@ -350,7 +308,7 @@ private fun TopBar(
     onInstallClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.surfaceContainer
+    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
     val cardAlpha = CardConfig.cardAlpha
 
     TopAppBar(
@@ -365,15 +323,6 @@ private fun TopBar(
             scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
         ),
         actions = {
-            if (rootAvailable() || kernelVersion.isGKI()) {
-                IconButton(onClick = onInstallClick) {
-                    Icon(
-                        Icons.Filled.Archive,
-                        contentDescription = stringResource(R.string.install),
-                    )
-                }
-            }
-
             var showDropdown by remember { mutableStateOf(false) }
             KsuIsValid {
                 IconButton(onClick = {
@@ -439,10 +388,6 @@ private fun StatusCard(
         ) {
             when {
                 ksuVersion != null -> {
-                    val safeMode = when {
-                        Natives.isSafeMode -> " [${stringResource(id = R.string.safe_mode)}]"
-                        else -> ""
-                    }
 
                     val workingModeText = when {
                         lkmMode == true -> "LKM"
@@ -476,11 +421,6 @@ private fun StatusCard(
                                 shape = RoundedCornerShape(4.dp),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.secondary,
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
                             ) {
                                 Text(
                                     text = workingModeText,
@@ -492,29 +432,23 @@ private fun StatusCard(
 
                             Spacer(Modifier.width(6.dp))
 
-                            // 机器架构标签
+                            // 机器架构标签或者安全模式标签
+                            val labelText = if (Natives.isSafeMode) {
+                                stringResource(id = R.string.safe_mode)
+                            } else {
+                                Os.uname().machine
+                            }
+
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.secondary,
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
                             ) {
                                 Text(
-                                    text = Os.uname().machine,
+                                    text = labelText,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                            if (safeMode.isNotEmpty()) {
-                                Text(
-                                    text = safeMode,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -878,7 +812,7 @@ private fun InfoCard() {
             InfoCardItem(
                 stringResource(R.string.home_manager_version),
                 "${managerVersion.first} (${managerVersion.second})",
-                icon = Icons.Default.Settings,
+                icon = Icons.Default.SettingsSuggest,
             )
 
             InfoCardItem(
@@ -908,7 +842,7 @@ private fun InfoCard() {
                         InfoCardItem(
                             stringResource(R.string.home_kpm_version),
                             displayVersion,
-                            icon = Icons.Default.Settings
+                            icon = Icons.Default.Archive
                         )
                     }
                 }

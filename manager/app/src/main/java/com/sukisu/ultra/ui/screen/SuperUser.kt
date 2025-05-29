@@ -44,8 +44,11 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.component.SearchAppBar
+import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.util.ModuleModify
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
+import com.dergoogler.mmrl.ui.component.LabelItem
+import com.dergoogler.mmrl.ui.component.LabelItemDefaults
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
@@ -683,12 +686,14 @@ private fun AppItem(
     onLongClick: () -> Unit,
     viewModel: SuperUserViewModel
 ) {
+    val cardAlpha = CardConfig.cardAlpha
+
     val cardColor = if (app.allowSu)
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = cardAlpha)
     else if (app.hasCustomProfile)
-        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
     else
-        MaterialTheme.colorScheme.surfaceContainerLow
+        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = cardAlpha)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = cardColor),
@@ -763,13 +768,21 @@ private fun AppItem(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (app.allowSu) {
-                        LabelText(label = "ROOT", backgroundColor = MaterialTheme.colorScheme.primary)
+                        LabelItem(text = "ROOT",)
                     }
                     if (Natives.uidShouldUmount(app.uid)) {
-                        LabelText(label = "UMOUNT", backgroundColor = MaterialTheme.colorScheme.tertiary)
+                        LabelItem(text = "UNMOUNT", style = LabelItemDefaults.style.copy(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
                     }
                     if (app.hasCustomProfile) {
-                        LabelText(label = "CUSTOM", backgroundColor = MaterialTheme.colorScheme.secondary)
+                        LabelItem(text = "CUSTOM", style = LabelItemDefaults.style.copy(
+                            containerColor = MaterialTheme.colorScheme.onTertiary,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            )
+                        )
                     }
                 }
             }

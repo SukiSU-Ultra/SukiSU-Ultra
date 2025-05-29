@@ -122,7 +122,7 @@ fun AppProfileScreen(
         mutableStateOf(initialProfile)
     }
 
-    val cardColor = MaterialTheme.colorScheme.surfaceContainer
+    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
     val cardAlpha = CardConfig.cardAlpha
 
     Scaffold(

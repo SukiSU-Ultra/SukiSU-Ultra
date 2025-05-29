@@ -3,6 +3,8 @@ name: Crowdin Action
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'manager/app/src/main/res/**'
 
 jobs:
   synchronize-with-crowdin:

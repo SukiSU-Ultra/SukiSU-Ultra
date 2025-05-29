@@ -296,7 +296,7 @@
     <string name="flash_failed_message">刷写失败</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM修补/安装</string>
-    <string name="GKI_install_methods">GKI/non-GKI安装</string>
+    <string name="GKI_install_methods">刷写 AnyKernel3</string>
     <string name="kernel_version_log">内核版本：%1$s</string>
     <string name="tool_version_log">使用修补工具：%1$s</string>
     <string name="configuration">配置</string>
@@ -327,7 +327,7 @@
     <string name="show_kpm_info_summary">在主页和底栏显示 KPM 相关功能和信息 (需要重新打开应用)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">使用 WebUI X</string>
-    <string name="use_webuix_summary">使用支持更多 API 的 WebUI X 而不是 WebUI</string>
+    <string name="use_webuix_summary">使用 WebUI X 而不是 WebUI 支持更多API。请注意，开发者可以在其模块配置中覆盖此功能。</string>
     <string name="use_webuix_eruda">将 Eruda 注入 WebUI X</string>
     <string name="use_webuix_eruda_summary">在 WebUI X 中注入调试控制台，使调试更容易,需要启用 WebView 调试</string>
     <!-- DPI setting related strings -->
@@ -365,4 +365,5 @@
     <string name="installing_module">正在安装模块 %1$d/%2$d</string>
     <string name="module_failed_count">%d 个模块安装失败</string>
     <string name="module_download_error">模块下载失败</string>
+    <string name="kernel_flashing">内核刷写</string>
 </resources>

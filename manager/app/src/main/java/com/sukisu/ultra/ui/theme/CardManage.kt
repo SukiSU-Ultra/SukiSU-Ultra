@@ -83,7 +83,7 @@ object CardConfig {
      */
     fun setDarkModeDefaults() {
         if (!isCustomAlphaSet) {
-            cardAlpha = 0.70f
+            cardAlpha = 1f
         }
         if (!isCustomDimSet) {
             cardDim = 0.5f

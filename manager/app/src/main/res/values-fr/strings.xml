@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Échec de l\'octroi des privilèges root !</string>
     <string name="action">Action</string>
     <string name="open">Ouvrir</string>
+    <string name="close">Fermer</string>
     <string name="enable_web_debugging">Activer le débogage WebView</string>
     <string name="enable_web_debugging_summary">Peut être utilisé pour déboguer WebUI. Activez uniquement cette option si nécessaire.</string>
     <string name="direct_install">Installation directe (recommandé)</string>
@@ -297,7 +298,6 @@
     <string name="flash_failed_message">Échec du flash</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Réparation/installation LKM</string>
-    <string name="GKI_install_methods">GKI/non-GKI installation</string>
     <string name="kernel_version_log">Version du noyau：%1$s</string>
     <string name="tool_version_log">Utilisation de l\'outil de correctifs：%1$s</string>
     <string name="configuration">Configurer</string>
@@ -328,7 +328,7 @@
     <string name="show_kpm_info_summary">Afficher les informations et fonctions KPM dans la barre d\'accueil et du bas (nécessite de rouvrir l\'application)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Utiliser l\'interface Web X</string>
-    <string name="use_webuix_summary">Utiliser WebUI X au lieu de WebUI qui supporte plus d\'API</string>
+    <string name="use_webuix_summary">Utilisez WebUI X au lieu de WebUI, qui prend en charge plus d\'API. Sachez que les développeurs peuvent remplacer cette fonctionnalité dans la configuration de leur module.</string>
     <string name="use_webuix_eruda">Injecter Eruda dans WebUI X</string>
     <string name="use_webuix_eruda_summary">Injectez une console de débogage dans WebUI X pour faciliter le débogage. Nécessite que le débogage soit activé.</string>
     <!-- DPI setting related strings -->

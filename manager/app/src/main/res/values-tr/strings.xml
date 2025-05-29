@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Root yetkisi verilemedi!</string>
     <string name="action">Action</string>
     <string name="open">Aç</string>
+    <string name="close">Kapat</string>
     <string name="enable_web_debugging">WebView hata ayıklama etkinleştir</string>
     <string name="enable_web_debugging_summary">WebUI\'yi hata ayıklamak için kullanılabilir. Sadece ihtiyaç duyulduğunda etkinleştirin.</string>
     <string name="direct_install">Doğrudan yükleme (Önerilen)</string>
@@ -295,7 +296,6 @@
     <string name="flash_failed_message">Flash\'lama başarısız</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM onarımı/yükle</string>
-    <string name="GKI_install_methods">GKI/Non-GKI yükle</string>
     <string name="kernel_version_log">Çekirdek sürümü：%1$s</string>
     <string name="tool_version_log">Kullanılan yama aracı：%1$s</string>
     <string name="configuration">Yapılandır</string>
@@ -326,7 +326,7 @@
     <string name="show_kpm_info_summary">Ana sayfa ve alt çubukta KPM bilgilerini ve İşlevini görüntüle (Uygulamayı yeniden açmanız gerekir)</string>
     <!-- Webui X settings -->
     <string name="use_webuix">WebUI X kullan</string>
-    <string name="use_webuix_summary">Daha fazla API\'yi destekleyen WebUI X kullanın</string>
+    <string name="use_webuix_summary">Use WebUI X instead of WebUI, which supports more APIs. Be aware that developers can override this feature in their module config.</string>
     <string name="use_webuix_eruda">WebUI X\'e Eruda enjekte et</string>
     <string name="use_webuix_eruda_summary">WebUI X\'e bir hata ayıklama konsolu enjekte edin, böylece hata ayıklama daha kolay olur. Web hata ayıklamanın açık olması gerekir.</string>
     <!-- DPI setting related strings -->
