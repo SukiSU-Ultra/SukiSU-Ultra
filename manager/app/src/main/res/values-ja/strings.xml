@@ -298,6 +298,7 @@
     <string name="flash_failed_message">フラッシュに失敗しました</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
@@ -366,4 +367,5 @@
     <string name="installing_module">モジュール設置中 %1$d/%2$d</string>
     <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
     <string name="module_download_error">モデルのダウンロードに失敗しました</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>
