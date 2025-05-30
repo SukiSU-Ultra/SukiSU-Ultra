@@ -59,7 +59,6 @@ import com.sukisu.ultra.*
 import com.sukisu.ultra.ui.component.*
 import com.sukisu.ultra.ui.theme.*
 import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
-import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
 import com.sukisu.ultra.ui.util.getBugreportFile
 import java.time.LocalDateTime
@@ -74,6 +73,13 @@ import com.dergoogler.mmrl.platform.Platform
 fun SettingScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    var selectedEngine by rememberSaveable {
+        mutableStateOf(
+            prefs.getString("webui_engine", "default") ?: "default"
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -119,9 +125,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -192,9 +198,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -242,23 +248,64 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         )
                     }
 
-                    // Web X 开关
-                    var useWebUIX by rememberSaveable {
-                        mutableStateOf(
-                            prefs.getBoolean("use_webuix", false)
-                        )
-                    }
+                    // WebUI引擎选择
                     KsuIsValid {
-                        SwitchItem(
-                            beta = true,
-                            enabled = Platform.isAlive,
+                        val engineOptions = listOf(
+                            "default" to stringResource(id = R.string.engine_auto_select),
+                            "wx" to stringResource(id = R.string.engine_force_webuix),
+                            "ksu" to stringResource(id = R.string.engine_force_ksu)
+                        )
+
+                        var showEngineDialog by remember { mutableStateOf(false) }
+
+                        SettingItem(
                             icon = Icons.Filled.WebAsset,
                             title = stringResource(id = R.string.use_webuix),
-                            summary = stringResource(id = R.string.use_webuix_summary),
-                            checked = useWebUIX
-                        ) {
-                            prefs.edit { putBoolean("use_webuix", it) }
-                            useWebUIX = it
+                            summary = engineOptions.find { it.first == selectedEngine }?.second
+                                ?: stringResource(id = R.string.engine_auto_select),
+                            onClick = {
+                                showEngineDialog = true
+                            }
+                        )
+
+                        if (showEngineDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showEngineDialog = false },
+                                title = { Text(stringResource(id = R.string.use_webuix)) },
+                                text = {
+                                    Column {
+                                        engineOptions.forEach { (value, label) ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        selectedEngine = value
+                                                        prefs.edit {
+                                                            putString("webui_engine", value)
+                                                        }
+                                                        showEngineDialog = false
+                                                    }
+                                                    .padding(vertical = 12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                RadioButton(
+                                                    selected = selectedEngine == value,
+                                                    onClick = null
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(text = label)
+                                            }
+                                        }
+                                    }
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = { showEngineDialog = false }
+                                    ) {
+                                        Text(stringResource(id = R.string.cancel))
+                                    }
+                                }
+                            )
                         }
                     }
 
@@ -270,13 +317,13 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
                     KsuIsValid {
                         AnimatedVisibility(
-                            visible = useWebUIX && enableWebDebugging,
+                            visible = enableWebDebugging && selectedEngine == "wx",
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
                             SwitchItem(
                                 beta = true,
-                                enabled = Platform.isAlive && useWebUIX && enableWebDebugging,
+                                enabled = Platform.isAlive && enableWebDebugging,
                                 icon = Icons.Filled.FormatListNumbered,
                                 title = stringResource(id = R.string.use_webuix_eruda),
                                 summary = stringResource(id = R.string.use_webuix_eruda_summary),
@@ -306,9 +353,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -399,15 +446,15 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // 设置分组卡片 - 关于
+            // 关于
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -504,7 +551,6 @@ fun SettingItem(
                 )
             }
         }
-
         Icon(
             imageVector = Icons.Filled.ChevronRight,
             contentDescription = null,

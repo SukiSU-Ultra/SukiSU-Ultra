@@ -296,6 +296,7 @@
     <string name="flash_failed_message">Flash\'lama başarısız</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM onarımı/yükle</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Çekirdek sürümü：%1$s</string>
     <string name="tool_version_log">Kullanılan yama aracı：%1$s</string>
     <string name="configuration">Yapılandır</string>
@@ -325,8 +326,7 @@
     <string name="show_kpm_info">KPM İşlevini Görüntüle</string>
     <string name="show_kpm_info_summary">Ana sayfa ve alt çubukta KPM bilgilerini ve İşlevini görüntüle (Uygulamayı yeniden açmanız gerekir)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">WebUI X kullan</string>
-    <string name="use_webuix_summary">Use WebUI X instead of WebUI, which supports more APIs. Be aware that developers can override this feature in their module config.</string>
+    
     <string name="use_webuix_eruda">WebUI X\'e Eruda enjekte et</string>
     <string name="use_webuix_eruda_summary">WebUI X\'e bir hata ayıklama konsolu enjekte edin, böylece hata ayıklama daha kolay olur. Web hata ayıklamanın açık olması gerekir.</string>
     <!-- DPI setting related strings -->
@@ -364,4 +364,5 @@
     <string name="installing_module">Modül yükleniyor %1$d/%2$d</string>
     <string name="module_failed_count">Yeni bir modül yüklenemedi: %d başarısız</string>
     <string name="module_download_error">Modül indirilemedi</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>

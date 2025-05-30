@@ -296,6 +296,7 @@
     <string name="flash_failed_message">Flash falló</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Reparación/instalación de LKM</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Versión del kernel</string>
     <string name="tool_version_log">Usando la herramienta de parches：%1$s</string>
     <string name="configuration">Configurar</string>
@@ -325,8 +326,7 @@
     <string name="show_kpm_info">Mostrar función KPM</string>
     <string name="show_kpm_info_summary">Mostrar información y función KPM en la barra de inicio e inferior (Necesita reabrir la aplicación)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Usar WebUI X</string>
-    <string name="use_webuix_summary">Utilice WebUI X en lugar de WebUI, que soporta más API. Tenga en cuenta que los desarrolladores pueden reemplazar esta característica en su configuración de módulos.</string>
+    
     <string name="use_webuix_eruda">Inyectar Eruda en WebUI X</string>
     <string name="use_webuix_eruda_summary">Inyecta una consola de depuración en WebUI X para facilitar la depuración. Requiere que la depuración web esté encendida.</string>
     <!-- DPI setting related strings -->
@@ -364,4 +364,5 @@
     <string name="installing_module">Módulo instalado %1$d/%2$d</string>
     <string name="module_failed_count">%d falló al instalar un nuevo módulo</string>
     <string name="module_download_error">La descarga del modelo falló</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>

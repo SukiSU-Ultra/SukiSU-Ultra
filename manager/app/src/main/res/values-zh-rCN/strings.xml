@@ -326,8 +326,10 @@
     <string name="show_kpm_info">显示 KPM 功能</string>
     <string name="show_kpm_info_summary">在主页和底栏显示 KPM 相关功能和信息 (需要重新打开应用)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">使用 WebUI X</string>
-    <string name="use_webuix_summary">使用 WebUI X 而不是 WebUI 支持更多API。请注意，开发者可以在其模块配置中覆盖此功能。</string>
+    <string name="use_webuix">选择使用的 WebUI 引擎</string>
+    <string name="engine_auto_select">自动选择</string>
+    <string name="engine_force_webuix">强制使用 WebUI X</string>
+    <string name="engine_force_ksu">强制使用 KSU 的 WebUI</string>
     <string name="use_webuix_eruda">将 Eruda 注入 WebUI X</string>
     <string name="use_webuix_eruda_summary">在 WebUI X 中注入调试控制台，使调试更容易,需要启用 WebView 调试</string>
     <!-- DPI setting related strings -->

@@ -20,6 +20,7 @@ import com.dergoogler.mmrl.ui.component.Loading
 import com.dergoogler.mmrl.webui.screen.WebUIScreen
 import com.dergoogler.mmrl.webui.util.rememberWebUIOptions
 import com.sukisu.ultra.BuildConfig
+import com.sukisu.ultra.ui.theme.KernelSUTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,7 +69,7 @@ class WebUIXActivity : ComponentActivity() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
 
         setContent {
-            WebUIXTheme {
+            KernelSUTheme {
                 var isLoading by remember { mutableStateOf(true) }
 
                 LaunchedEffect(Platform.isAlive) {
@@ -81,7 +82,7 @@ class WebUIXActivity : ComponentActivity() {
 
                 if (isLoading) {
                     Loading()
-                    return@WebUIXTheme
+                    return@KernelSUTheme
                 }
 
                 val webDebugging = prefs.getBoolean("enable_web_debugging", false)

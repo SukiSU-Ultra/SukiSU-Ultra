@@ -298,6 +298,7 @@
     <string name="flash_failed_message">Schreiben fehlgeschlagen</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM Reparatur/Installation</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Kernel</string>
     <string name="tool_version_log">Benutze das Patchwerkzeug：%1$s</string>
     <string name="configuration">Konfigurieren</string>
@@ -327,8 +328,7 @@
     <string name="show_kpm_info">KPM-Funktion anzeigen</string>
     <string name="show_kpm_info_summary">KPM-Informationen und Funktion in der Home- und unteren Leiste anzeigen (muss die App erneut öffnen)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">WebUI X verwenden</string>
-    <string name="use_webuix_summary">Verwenden Sie WebUI X anstelle von WebUI, das mehr APIs unterstützt. Seien Sie sich bewusst, dass Entwickler diese Funktion in ihrer Modul-Konfiguration überschreiben können.</string>
+    
     <string name="use_webuix_eruda">Eruda in WebUI X injizieren</string>
     <string name="use_webuix_eruda_summary">Fügen Sie eine Debug-Konsole in WebUI X ein, um das Debuggen zu vereinfachen. Benötigt Debugging im WebUI X.</string>
     <!-- DPI setting related strings -->
@@ -366,4 +366,5 @@
     <string name="installing_module">Modul wird installiert %1$d/%2$d</string>
     <string name="module_failed_count">%d Fehler bei der Installation eines neuen Moduls</string>
     <string name="module_download_error">Modul-Download fehlgeschlagen</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>
