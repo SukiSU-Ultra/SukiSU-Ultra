@@ -298,6 +298,7 @@
     <string name="flash_failed_message">Schreiben fehlgeschlagen</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM Reparatur/Installation</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Kernel</string>
     <string name="tool_version_log">Benutze das Patchwerkzeug：%1$s</string>
     <string name="configuration">Konfigurieren</string>
@@ -366,4 +367,5 @@
     <string name="installing_module">Modul wird installiert %1$d/%2$d</string>
     <string name="module_failed_count">%d Fehler bei der Installation eines neuen Moduls</string>
     <string name="module_download_error">Modul-Download fehlgeschlagen</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>
