@@ -298,6 +298,7 @@
     <string name="flash_failed_message">Установка не выполнена</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Ремонт/установка LKM</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Ядро</string>
     <string name="tool_version_log">С помощью инструмента патрулирования：%1$s</string>
     <string name="configuration">Настройка</string>
@@ -366,4 +367,5 @@
     <string name="installing_module">Модуль устанавливается %1$d/%2$d</string>
     <string name="module_failed_count">%d не удалось установить новый модуль</string>
     <string name="module_download_error">Ошибка загрузки модуля</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>
