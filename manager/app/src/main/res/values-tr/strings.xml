@@ -296,6 +296,7 @@
     <string name="flash_failed_message">Flash\'lama başarısız</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM onarımı/yükle</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Çekirdek sürümü：%1$s</string>
     <string name="tool_version_log">Kullanılan yama aracı：%1$s</string>
     <string name="configuration">Yapılandır</string>
@@ -364,4 +365,5 @@
     <string name="installing_module">Modül yükleniyor %1$d/%2$d</string>
     <string name="module_failed_count">Yeni bir modül yüklenemedi: %d başarısız</string>
     <string name="module_download_error">Modül indirilemedi</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>
