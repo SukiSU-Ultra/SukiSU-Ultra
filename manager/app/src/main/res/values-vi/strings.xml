@@ -69,12 +69,12 @@
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
     <string name="profile_umount_modules">Bỏ gắn kết các Module</string>
-    <string name="failed_to_update_app_profile">Cập nhật hồ sơ ứng dụng thất bại cho %s</string>
+    <string name="failed_to_update_app_profile">Cập nhật hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Bỏ gắn kết các Module cho toàn hệ thống</string>
-    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Bỏ gắn kết các Module\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các Module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
+    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung \"Bỏ gắn kết các module\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các Module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
-    <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi tệp đã được các Module sửa đổi cho ứng dụng này</string>
+    <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
     <string name="module_update">Cập nhật</string>
@@ -213,7 +213,7 @@
     <string name="flash_option">Tuỳ chọn Flash</string>
     <string name="flash_option_tip">Chọn tập tin cần Flash</string>
     <string name="horizon_kernel">Tệp Anykernel3</string>
-    <string name="horizon_kernel_summary">Flash tệp Kernel AnyKernel3</string>
+    <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
     <string name="root_required">Yêu cầu quyền root</string>
     <string name="copy_failed">Sao chép tập tin thất bại</string>
     <string name="reboot_complete_title">Khởi động lại để hoàn tất</string>
@@ -225,20 +225,20 @@
     <string name="batch_cancel_authorization">Hủy ủy quyền hàng loạt</string>
     <string name="backup">Sao lưu</string>
     <string name="kpm_title">KPModule</string>
-    <string name="kpm_empty">Không có KPModule nào được cài đặt tại thời điểm này</string>
+    <string name="kpm_empty">Không có kernel module nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
     <string name="kpm_author">Tác giả</string>
     <string name="kpm_uninstall">Gỡ cài đặt</string>
     <string name="kpm_uninstall_success">Gỡ cài đặt thành công</string>
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
     <string name="kpm_install">Cài đặt</string>
-    <string name="kpm_install_success">Load KPModule thành công</string>
-    <string name="kpm_install_failed">Load KPModule thất bại</string>
+    <string name="kpm_install_success">Load kpmodule thành công</string>
+    <string name="kpm_install_failed">Load kpmodule thất bại</string>
     <string name="kpm_args">Thông số KPM</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
     <string name="close_notice">Đóng</string>
-    <string name="kernel_module_notice">Các chức năng Module Kernel sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng Module Kernel của SukiSU Ultra</string>
+    <string name="kernel_module_notice">Các chức năng kernel module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng kernel module của SukiSU Ultra</string>
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra mong đợi</string>
     <string name="kpm_control_success">Thành công</string>
     <string name="kpm_control_failed">Thất bại</string>
@@ -297,8 +297,8 @@
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM cài đặt</string>
     <string name="GKI_install_methods">Flashing AnyKernel3</string>
-    <string name="kernel_version_log">Phiên bản Kernel：%1$s</string>
-    <string name="tool_version_log">Sử dụng công cụ vá lỗi：%1$s</string>
+    <string name="kernel_version_log">Phiên bản Kernel: %1$s</string>
+    <string name="tool_version_log">Sử dụng công cụ vá lỗi: %1$s</string>
     <string name="configuration">Cấu hình</string>
     <string name="app_settings">Cài đặt ứng dụng</string>
     <string name="tools">Công cụ</string>
