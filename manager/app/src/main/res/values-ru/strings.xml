@@ -138,7 +138,7 @@
     <string name="selected_lkm">Выбран LKM: %s</string>
     <string name="save_log">Сохранить логи</string>
     <string name="log_saved">Логи сохранены</string>
-    <string name="status_supported">Поддерживаемые</string>
+    <string name="status_supported">Поддерживается</string>
     <string name="status_not_supported">Не поддерживается</string>
     <string name="status_unknown">Неизвестно</string>
     <string name="sus_su_mode">SuS SU режим:</string>
@@ -153,8 +153,8 @@
     <!-- Backup related -->
     <string name="backup_success">Успешная резервная копия (tar.gz)</string>
     <string name="backup_failed">Ошибка резервного копирования: %1$s</string>
-    <string name="backup_modules">модули резервного копирования</string>
-    <string name="restore_modules">восстановить модули</string>
+    <string name="backup_modules">Резервное копирование модулей</string>
+    <string name="restore_modules">Восстановить модули</string>
     <!-- Restore related messages -->
     <string name="restore_success">Модули восстановлены, требуется перезагрузка</string>
     <string name="restore_failed">Ошибка восстановления: %1$s</string>
@@ -179,7 +179,7 @@
     <string name="home_device_model">Модель устройства</string>
     <string name="su_not_allowed">Предоставление %s суперпользователю не допускается</string>
     <string name="settings_disable_su">Отключить совместимость su</string>
-    <string name="settings_disable_su_summary">Временно отключив все приложения от получения привилегий суперпользователя через команду &lt;unk&gt; su (существующие корневые процессы не будут затронуты).</string>
+    <string name="settings_disable_su_summary">Временно отключить все приложения от получения привилегий суперпользователя через su команду (запущенные процессы с рут доступом не будут затронуты).</string>
     <string name="using_mksu_manager">Вы используете менеджер SukiSU бета-версии</string>
     <string name="module_install_multiple_confirm">Вы уверены, что хотите установить выбранные модули %d?</string>
     <string name="module_install_multiple_confirm_with_names">Уверены, что хотите установить следующие %1$d модули? \n\n%2$s</string>
@@ -201,7 +201,7 @@
     <string name="theme_follow_system">Использовать системные настройки</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
-    <string name="manual_hook">Ручной хук</string>
+    <string name="manual_hook">Подключено вручную</string>
     <string name="dynamic_color_title">Динамический цвет</string>
     <string name="dynamic_color_summary">Динамические цвета с использованием системных тем</string>
     <string name="choose_theme_color">Выберите цвет темы</string>
@@ -226,7 +226,7 @@
     <string name="batch_authorization">расширить власть</string>
     <string name="batch_cancel_authorization">расход</string>
     <string name="backup">Резервное копирование</string>
-    <string name="kpm_title">КПМ</string>
+    <string name="kpm_title">KPM</string>
     <string name="kpm_empty">На данный момент нет установленных модулей ядра</string>
     <string name="kpm_version">Версия</string>
     <string name="kpm_author">Автор</string>
@@ -298,7 +298,7 @@
     <string name="flash_failed_message">Установка не выполнена</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Ремонт/установка LKM</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">Прошить AnyKernel3</string>
     <string name="kernel_version_log">Ядро</string>
     <string name="tool_version_log">С помощью инструмента патрулирования：%1$s</string>
     <string name="configuration">Настройка</string>
@@ -309,7 +309,7 @@
     <string name="clear">Удаление</string>
     <string name="apps_with_root">Приложения с привилегиями root</string>
     <string name="apps_with_custom_profile">Приложения с настроенными конфигурациями</string>
-    <string name="other_apps">Приложения с неизменными значениями по умолчанию</string>
+    <string name="other_apps">Приложения со значениями по умолчанию</string>
     <string name="no_apps_found">Приложение не найдено</string>
     <string name="selinux_enabled_toast">SELinux включен</string>
     <string name="selinux_disabled_toast">SELinux отключен</string>
@@ -336,12 +336,12 @@
     <string name="dpi_settings">Настройка DPI</string>
     <string name="app_dpi_title">Изменить DPI</string>
     <string name="app_dpi_summary">Регулировка плотности экрана только для текущего приложения</string>
-    <string name="dpi_size_small">Маленький </string>
-    <string name="dpi_size_medium">Средний </string>
+    <string name="dpi_size_small">маленький</string>
+    <string name="dpi_size_medium">средний</string>
     <string name="dpi_size_large">большой</string>
     <string name="dpi_size_extra_large"> огромный</string>
     <string name="dpi_size_custom">настраиваемый</string>
-    <string name="dpi_apply_settings">Применение настроек DPI</string>
+    <string name="dpi_apply_settings">Применить настройки DPI</string>
     <string name="dpi_confirm_title">Подтвердите изменение DPI</string>
     <string name="dpi_confirm_message">Вы уверены, что хотите изменить DPI приложения с %1$d на %2$d?</string>
     <string name="dpi_confirm_summary">Приложение должно быть перезапущено, чтобы применить новые настройки DPI, не влияет на системную строку состояния или другие приложения</string>
@@ -367,5 +367,5 @@
     <string name="installing_module">Модуль устанавливается %1$d/%2$d</string>
     <string name="module_failed_count">%d не удалось установить новый модуль</string>
     <string name="module_download_error">Ошибка загрузки модуля</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="kernel_flashing">Прошить ядро</string>
 </resources>
