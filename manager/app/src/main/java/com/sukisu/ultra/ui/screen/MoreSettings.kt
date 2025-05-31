@@ -84,6 +84,10 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.roundToInt
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 fun saveCardConfig(context: Context) {
     CardConfig.save(context)
 }

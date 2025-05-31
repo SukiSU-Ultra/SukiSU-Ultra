@@ -64,9 +64,11 @@ import com.sukisu.ultra.ui.util.getBugreportFile
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.sukisu.ultra.ui.component.KsuIsValid
-import com.dergoogler.mmrl.platform.Platform
 
-
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable

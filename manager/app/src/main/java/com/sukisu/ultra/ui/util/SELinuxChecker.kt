@@ -1,12 +1,10 @@
 package com.sukisu.ultra.ui.util
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import android.content.Context
 import com.topjohnwu.superuser.Shell
 import com.sukisu.ultra.R
 
-@Composable
-fun getSELinuxStatus(): String {
+fun getSELinuxStatus(context: Context): String {
     val shell = Shell.Builder.create().build("sh")
     val list = ArrayList<String>()
 
@@ -18,16 +16,16 @@ fun getSELinuxStatus(): String {
 
     return if (result.isSuccess) {
         when (output) {
-            "Enforcing" -> stringResource(R.string.selinux_status_enforcing)
-            "Permissive" -> stringResource(R.string.selinux_status_permissive)
-            "Disabled" -> stringResource(R.string.selinux_status_disabled)
-            else -> stringResource(R.string.selinux_status_unknown)
+            "Enforcing" -> context.getString(R.string.selinux_status_enforcing)
+            "Permissive" -> context.getString(R.string.selinux_status_permissive)
+            "Disabled" -> context.getString(R.string.selinux_status_disabled)
+            else -> context.getString(R.string.selinux_status_unknown)
         }
     } else {
         if (output.contains("Permission denied")) {
-            stringResource(R.string.selinux_status_enforcing)
+            context.getString(R.string.selinux_status_enforcing)
         } else {
-            stringResource(R.string.selinux_status_unknown)
+            context.getString(R.string.selinux_status_unknown)
         }
     }
 }

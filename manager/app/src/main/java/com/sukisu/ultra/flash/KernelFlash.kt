@@ -27,6 +27,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 data class FlashState(
     val isFlashing: Boolean = false,
     val isCompleted: Boolean = false,

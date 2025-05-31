@@ -53,6 +53,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 enum class FlashingStatus {
     FLASHING,
     SUCCESS,

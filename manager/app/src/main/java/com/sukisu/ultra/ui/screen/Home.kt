@@ -58,17 +58,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -83,16 +82,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.Natives.isKPMEnabled
 import com.sukisu.ultra.R
-import com.sukisu.ultra.getKernelVersion
-import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
 import com.sukisu.ultra.ui.theme.CardConfig
@@ -102,65 +99,43 @@ import com.sukisu.ultra.ui.util.checkNewVersion
 import com.sukisu.ultra.ui.util.getKpmModuleCount
 import com.sukisu.ultra.ui.util.getKpmVersion
 import com.sukisu.ultra.ui.util.getModuleCount
-import com.sukisu.ultra.ui.util.getSELinuxStatus
-import com.sukisu.ultra.ui.util.getSuSFS
-import com.sukisu.ultra.ui.util.getSuSFSFeatures
-import com.sukisu.ultra.ui.util.getSuSFSVariant
-import com.sukisu.ultra.ui.util.getSuSFSVersion
 import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.reboot
-import com.sukisu.ultra.ui.util.rootAvailable
-import com.sukisu.ultra.ui.util.susfsSUS_SU_Mode
+import com.sukisu.ultra.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
-@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>(start = true)
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
     val context = LocalContext.current
-    var isSimpleMode by rememberSaveable { mutableStateOf(false) }
-    var isHideVersion by rememberSaveable { mutableStateOf(false) }
-    var isHideOtherInfo by rememberSaveable { mutableStateOf(false) }
-    var isHideSusfsStatus by rememberSaveable { mutableStateOf(false) }
-    var isHideLinkCard by rememberSaveable { mutableStateOf(false) }
-    var showKpmInfo by rememberSaveable { mutableStateOf(true) }
+    val viewModel = viewModel<HomeViewModel>()
+    val coroutineScope = rememberCoroutineScope()
 
-    // 从 SharedPreferences 加载简洁模式状态
     LaunchedEffect(Unit) {
-        isSimpleMode = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .getBoolean("is_simple_mode", false)
-
-        isHideVersion = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .getBoolean("is_hide_version", false)
-
-        isHideOtherInfo = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .getBoolean("is_hide_other_info", false)
-
-        isHideSusfsStatus = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .getBoolean("is_hide_susfs_status", false)
-
-        isHideLinkCard = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .getBoolean("is_hide_link_card", false)
-
-        showKpmInfo = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-            .getBoolean("show_kpm_info", true)
+        // 初始化加载用户设置
+        viewModel.loadUserSettings(context)
+        // 初始化数据
+        viewModel.initializeData()
+        // 检查更新
+        viewModel.checkForUpdates(context)
     }
 
-    val kernelVersion = getKernelVersion()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberScrollState()
-    val debounceTime = 100L
-    var lastScrollTime by remember { mutableLongStateOf(0L) }
 
     Scaffold(
         topBar = {
             TopBar(
-                kernelVersion,
+                kernelVersion = viewModel.systemStatus.kernelVersion,
                 onInstallClick = { navigator.navigate(InstallScreenDestination) },
                 scrollBehavior = scrollBehavior
             )
@@ -169,71 +144,72 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal
         )
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .disableOverscroll()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .verticalScroll(scrollState)
-                .padding(top = 12.dp)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            val isManager = Natives.becomeManager(ksuApp.packageName)
-            val ksuVersion = if (isManager) Natives.version else null
-            val lkmMode = ksuVersion?.let {
-                if (it >= Natives.MINIMAL_SUPPORTED_KERNEL_LKM && kernelVersion.isGKI()) Natives.isLkmMode else null
-            }
-
-            StatusCard(kernelVersion, ksuVersion, lkmMode) {
-                navigator.navigate(InstallScreenDestination)
-            }
-
-            if (isManager && Natives.requireNewKernel()) {
-                WarningCard(
-                    stringResource(id = R.string.require_kernel_version).format(
-                        ksuVersion, Natives.MINIMAL_SUPPORTED_KERNEL
-                    )
-                )
-            }
-
-            if (ksuVersion != null && !rootAvailable()) {
-                WarningCard(
-                    stringResource(id = R.string.grant_root_failed)
-                )
-            }
-
-            val checkUpdate =
-                LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                    .getBoolean("check_update", true)
-            if (checkUpdate) {
-                UpdateCard()
-            }
-
-            InfoCard()
-
-            if (!isSimpleMode) {
-                if (!isHideLinkCard) {
-                    ContributionCard()
-                    DonateCard()
-                    LearnMoreCard()
+        PullToRefreshBox(
+            onRefresh = {
+                coroutineScope.launch {
+                    viewModel.refreshAllData(context)
                 }
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-    }
+            },
+            isRefreshing = viewModel.isRefreshing
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .disableOverscroll()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .verticalScroll(scrollState)
+                    .padding(top = 12.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatusCard(
+                    systemStatus = viewModel.systemStatus,
+                    onClickInstall = {
+                        navigator.navigate(InstallScreenDestination)
+                    }
+                )
 
-    LaunchedEffect(scrollState) {
-        snapshotFlow { scrollState.isScrollInProgress }
-            .debounce(debounceTime)
-            .collect { isScrolling ->
-                if (isScrolling) {
-                    val currentTime = System.currentTimeMillis()
-                    if (currentTime - lastScrollTime > debounceTime) {
-                        lastScrollTime = currentTime
+                if (viewModel.systemStatus.requireNewKernel) {
+                    WarningCard(
+                        stringResource(id = R.string.require_kernel_version).format(
+                            viewModel.systemStatus.ksuVersion,
+                            Natives.MINIMAL_SUPPORTED_KERNEL
+                        )
+                    )
+                }
+
+                if (viewModel.systemStatus.ksuVersion != null && !viewModel.systemStatus.isRootAvailable) {
+                    WarningCard(
+                        stringResource(id = R.string.grant_root_failed)
+                    )
+                }
+
+                val checkUpdate = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                    .getBoolean("check_update", true)
+                if (checkUpdate) {
+                    UpdateCard()
+                }
+
+                InfoCard(
+                    systemInfo = viewModel.systemInfo,
+                    isSimpleMode = viewModel.isSimpleMode,
+                    isHideVersion = viewModel.isHideVersion,
+                    isHideOtherInfo = viewModel.isHideOtherInfo,
+                    isHideSusfsStatus = viewModel.isHideSusfsStatus,
+                    showKpmInfo = viewModel.showKpmInfo,
+                    lkmMode = viewModel.systemStatus.lkmMode,
+                )
+
+                if (!viewModel.isSimpleMode) {
+                    if (!viewModel.isHideLinkCard) {
+                        ContributionCard()
+                        DonateCard()
+                        LearnMoreCard()
                     }
                 }
+                Spacer(Modifier.height(16.dp))
             }
+        }
     }
 }
 
@@ -357,9 +333,7 @@ private fun TopBar(
 
 @Composable
 private fun StatusCard(
-    kernelVersion: KernelVersion,
-    ksuVersion: Int?,
-    lkmMode: Boolean?,
+    systemStatus: HomeViewModel.SystemStatus,
     onClickInstall: () -> Unit = {}
 ) {
     ElevatedCard(
@@ -378,7 +352,7 @@ private fun StatusCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    if (rootAvailable() || kernelVersion.isGKI()) {
+                    if (systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
                         onClickInstall()
                     }
                 }
@@ -386,12 +360,12 @@ private fun StatusCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             when {
-                ksuVersion != null -> {
+                systemStatus.ksuVersion != null -> {
 
                     val workingModeText = when {
-                        lkmMode == true -> "LKM"
-                        lkmMode == null && kernelVersion.isGKI1() -> "GKI1.0"
-                        lkmMode == false || kernelVersion.isGKI() -> "GKI2.0"
+                        systemStatus.lkmMode == true -> "LKM"
+                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI1.0"
+                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI2.0"
                         else -> "N-GKI"
                     }
 
@@ -464,7 +438,7 @@ private fun StatusCard(
                         if (!isHideVersion) {
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = stringResource(R.string.home_working_version, ksuVersion),
+                                text = stringResource(R.string.home_working_version, systemStatus.ksuVersion),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -498,7 +472,7 @@ private fun StatusCard(
                     }
                 }
 
-                kernelVersion.isGKI() -> {
+                systemStatus.kernelVersion.isGKI() -> {
                     Icon(
                         Icons.Outlined.Warning,
                         contentDescription = stringResource(R.string.home_not_installed),
@@ -717,14 +691,15 @@ fun DonateCard() {
 }
 
 @Composable
-private fun InfoCard() {
-    val lkmMode = Natives.isLkmMode
-    val context = LocalContext.current
-    val isSimpleMode = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        .getBoolean("is_simple_mode", false)
-    val showKpmInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        .getBoolean("show_kpm_info", true)
-
+private fun InfoCard(
+    systemInfo: HomeViewModel.SystemInfo,
+    isSimpleMode: Boolean,
+    isHideVersion: Boolean,
+    isHideOtherInfo: Boolean,
+    isHideSusfsStatus: Boolean,
+    showKpmInfo: Boolean,
+    lkmMode: Boolean?
+) {
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
@@ -741,17 +716,13 @@ private fun InfoCard() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp),
-        ) withContext@{
-            val contents = StringBuilder()
-            val uname = Os.uname()
-
+        ) {
             @Composable
             fun InfoCardItem(
                 label: String,
                 content: String,
                 icon: ImageVector = Icons.Default.Info
             ) {
-                contents.appendLine(label).appendLine(content).appendLine()
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -787,55 +758,49 @@ private fun InfoCard() {
 
             InfoCardItem(
                 stringResource(R.string.home_kernel),
-                uname.release,
+                systemInfo.kernelRelease,
                 icon = Icons.Default.Memory,
             )
 
             if (!isSimpleMode) {
-                val androidVersion = Build.VERSION.RELEASE
                 InfoCardItem(
                     stringResource(R.string.home_android_version),
-                    androidVersion,
+                    systemInfo.androidVersion,
                     icon = Icons.Default.Android,
                 )
             }
 
-            val deviceModel = getDeviceModel()
             InfoCardItem(
                 stringResource(R.string.home_device_model),
-                deviceModel,
+                systemInfo.deviceModel,
                 icon = Icons.Default.PhoneAndroid,
             )
 
-            val managerVersion = getManagerVersion(context)
             InfoCardItem(
                 stringResource(R.string.home_manager_version),
-                "${managerVersion.first} (${managerVersion.second})",
+                "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second})",
                 icon = Icons.Default.SettingsSuggest,
             )
 
             InfoCardItem(
                 stringResource(R.string.home_selinux_status),
-                getSELinuxStatus(),
+                systemInfo.seLinuxStatus,
                 icon = Icons.Default.Security,
             )
 
             if (!isSimpleMode) {
                 if (lkmMode != true) {
-                    val kpmVersion = getKpmVersion()
-                    val isKpmConfigured = checkKPMEnabled()
-
                     // 根据showKpmInfo决定是否显示KPM信息
                     if (showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
-                        val displayVersion = if (kpmVersion.isEmpty() || kpmVersion.startsWith("Error")) {
-                            val statusText = if (isKpmConfigured) {
+                        val displayVersion = if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
+                            val statusText = if (Natives.isKPMEnabled()) {
                                 stringResource(R.string.kernel_patched)
                             } else {
                                 stringResource(R.string.kernel_not_enabled)
                             }
                             "${stringResource(R.string.not_supported)} ($statusText)"
                         } else {
-                            "${stringResource(R.string.supported)} ($kpmVersion)"
+                            "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
                         }
 
                         InfoCardItem(
@@ -847,22 +812,16 @@ private fun InfoCard() {
                 }
             }
 
-            val isHideSusfsStatus = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                .getBoolean("is_hide_susfs_status", false)
-
             if ((!isSimpleMode) && (!isHideSusfsStatus)) {
-                val suSFS = getSuSFS()
-                if (suSFS == "Supported") {
-                    val suSFSVersion = getSuSFSVersion()
-                    if (suSFSVersion.isNotEmpty()) {
-                        val isSUS_SU = getSuSFSFeatures() == "CONFIG_KSU_SUSFS_SUS_SU"
+                if (systemInfo.suSFSStatus == "Supported") {
+                    if (systemInfo.suSFSVersion.isNotEmpty()) {
+                        val isSUS_SU = systemInfo.suSFSFeatures == "CONFIG_KSU_SUSFS_SUS_SU"
                         val infoText = buildString {
-                            append(suSFSVersion)
-                            append(if (isSUS_SU) " (${getSuSFSVariant()})" else " (${stringResource(R.string.manual_hook)})")
+                            append(systemInfo.suSFSVersion)
+                            append(if (isSUS_SU) " (${systemInfo.suSFSVariant})" else " (${stringResource(R.string.manual_hook)})")
                             if (isSUS_SU) {
-                                val susSUMode = try { susfsSUS_SU_Mode().toString() } catch (_: Exception) { "" }
-                                if (susSUMode.isNotEmpty()) {
-                                    append(" ${stringResource(R.string.sus_su_mode)} $susSUMode")
+                                if (systemInfo.susSUMode.isNotEmpty()) {
+                                    append(" ${stringResource(R.string.sus_su_mode)} ${systemInfo.susSUMode}")
                                 }
                             }
                         }
@@ -889,10 +848,45 @@ fun getManagerVersion(context: Context): Pair<String, Long> {
 @Composable
 private fun StatusCardPreview() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        StatusCard(KernelVersion(5, 10, 101), 1, null)
-        StatusCard(KernelVersion(5, 10, 101), 20000, true)
-        StatusCard(KernelVersion(5, 10, 101), null, true)
-        StatusCard(KernelVersion(4, 10, 101), null, false)
+        StatusCard(
+            HomeViewModel.SystemStatus(
+                isManager = true,
+                ksuVersion = 1,
+                lkmMode = null,
+                kernelVersion = KernelVersion(5, 10, 101),
+                isRootAvailable = true
+            )
+        )
+
+        StatusCard(
+            HomeViewModel.SystemStatus(
+                isManager = true,
+                ksuVersion = 20000,
+                lkmMode = true,
+                kernelVersion = KernelVersion(5, 10, 101),
+                isRootAvailable = true
+            )
+        )
+
+        StatusCard(
+            HomeViewModel.SystemStatus(
+                isManager = false,
+                ksuVersion = null,
+                lkmMode = true,
+                kernelVersion = KernelVersion(5, 10, 101),
+                isRootAvailable = false
+            )
+        )
+
+        StatusCard(
+            HomeViewModel.SystemStatus(
+                isManager = false,
+                ksuVersion = null,
+                lkmMode = false,
+                kernelVersion = KernelVersion(4, 10, 101),
+                isRootAvailable = false
+            )
+        )
     }
 }
 
@@ -906,47 +900,6 @@ private fun WarningCardPreview() {
             MaterialTheme.colorScheme.outlineVariant,
             onClick = {})
     }
-}
-
-private object DeviceModelCache {
-    @Volatile
-    private var cachedModel: String? = null
-
-    fun getDeviceModel(): String {
-        return cachedModel ?: synchronized(this) {
-            cachedModel ?: try {
-                val systemProperties = Class.forName("android.os.SystemProperties")
-                val getMethod = systemProperties.getMethod("get", String::class.java, String::class.java)
-                val marketNameKeys = listOf(
-                    "ro.product.marketname",          // Xiaomi
-                    "ro.vendor.oplus.market.name",    // Oppo, OnePlus, Realme
-                    "ro.vivo.market.name",            // Vivo
-                    "ro.config.marketing_name"        // Huawei
-                )
-                var result = Build.DEVICE
-                for (key in marketNameKeys) {
-                    val marketName = getMethod.invoke(null, key, "") as String
-                    if (marketName.isNotEmpty()) {
-                        result = marketName
-                        break
-                    }
-                }
-                result
-            } catch (_: Exception) {
-                Build.DEVICE
-            }.also { cachedModel = it }
-        }
-    }
-}
-// 获取设备型号
-@SuppressLint("PrivateApi")
-private fun getDeviceModel(): String {
-    return DeviceModelCache.getDeviceModel()
-}
-
-// 检查KPM是否存在
-private fun checkKPMEnabled(): Boolean {
-    return isKPMEnabled()
 }
 
 @SuppressLint("UnnecessaryComposedModifier")

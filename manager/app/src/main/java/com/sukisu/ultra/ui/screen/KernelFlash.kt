@@ -43,6 +43,10 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import com.sukisu.ultra.ui.theme.CardConfig
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 private object KernelFlashStateHolder {
     var currentState: HorizonKernelState? = null
     var currentUri: Uri? = null

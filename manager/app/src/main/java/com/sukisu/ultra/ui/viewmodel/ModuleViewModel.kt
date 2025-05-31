@@ -21,6 +21,10 @@ import java.text.Collator
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 class ModuleViewModel : ViewModel() {
 
     companion object {

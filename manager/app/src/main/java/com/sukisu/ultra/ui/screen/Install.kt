@@ -94,8 +94,8 @@ import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.getKernelVersion
 
 /**
- * @author weishu
- * @date 2024/3/12.
+ * @author ShirkNeko
+ * @date 2025/5/31.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>

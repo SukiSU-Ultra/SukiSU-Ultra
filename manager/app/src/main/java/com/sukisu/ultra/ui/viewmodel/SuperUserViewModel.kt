@@ -25,6 +25,11 @@ import com.sukisu.ultra.ui.webui.getInstalledPackagesAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
+
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 class SuperUserViewModel : ViewModel() {
     val isPlatformAlive get() = Platform.isAlive
     companion object {

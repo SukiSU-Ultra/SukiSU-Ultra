@@ -75,7 +75,10 @@ import androidx.core.net.toUri
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
 
-
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
