@@ -326,10 +326,10 @@
     <string name="show_kpm_info">KPM İşlevini Görüntüle</string>
     <string name="show_kpm_info_summary">Ana sayfa ve alt çubukta KPM bilgilerini ve İşlevini görüntüle (Uygulamayı yeniden açmanız gerekir)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
-    <string name="engine_force_webuix">Force the use of WebUI X</string>
-    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
+    <string name="use_webuix">Kullanılacak WebUI motorunu seç</string>
+    <string name="engine_auto_select">Otomatik Seçim</string>
+    <string name="engine_force_webuix">WebUI X kullanımını zorla</string>
+    <string name="engine_force_ksu">KSU WebUI kullanımını zorunlu kıl</string>
     <string name="use_webuix_eruda">WebUI X\'e Eruda enjekte et</string>
     <string name="use_webuix_eruda_summary">WebUI X\'e bir hata ayıklama konsolu enjekte edin, böylece hata ayıklama daha kolay olur. Web hata ayıklamanın açık olması gerekir.</string>
     <!-- DPI setting related strings -->
