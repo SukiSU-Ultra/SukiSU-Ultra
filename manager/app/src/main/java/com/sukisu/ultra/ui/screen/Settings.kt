@@ -158,17 +158,16 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
 
                     KsuIsValid {
-                        SwitchSettingItem(
+                        SwitchItem(
                             icon = Icons.Filled.FolderDelete,
                             title = stringResource(id = R.string.settings_umount_modules_default),
                             summary = stringResource(id = R.string.settings_umount_modules_default_summary),
-                            checked = umountChecked,
-                            onCheckedChange = {
-                                if (Natives.setDefaultUmountModules(it)) {
-                                    umountChecked = it
-                                }
+                            checked = umountChecked
+                        ) { enabled ->
+                            if (Natives.setDefaultUmountModules(enabled)) {
+                                umountChecked = enabled
                             }
-                        )
+                        }
                     }
 
                     // SU 禁用开关（仅在兼容版本显示）
@@ -177,18 +176,17 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             var isSuDisabled by rememberSaveable {
                                 mutableStateOf(!Natives.isSuEnabled())
                             }
-                            SwitchSettingItem(
+                            SwitchItem(
                                 icon = Icons.Filled.RemoveModerator,
                                 title = stringResource(id = R.string.settings_disable_su),
                                 summary = stringResource(id = R.string.settings_disable_su_summary),
-                                checked = isSuDisabled,
-                                onCheckedChange = { checked ->
-                                    val shouldEnable = !checked
-                                    if (Natives.setSuEnabled(shouldEnable)) {
-                                        isSuDisabled = !shouldEnable
-                                    }
+                                checked = isSuDisabled
+                            ) { enabled ->
+                                val shouldEnable = !enabled
+                                if (Natives.setSuEnabled(shouldEnable)) {
+                                    isSuDisabled = enabled
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -220,16 +218,15 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             prefs.getBoolean("check_update", true)
                         )
                     }
-                    SwitchSettingItem(
+                    SwitchItem(
                         icon = Icons.Filled.Update,
                         title = stringResource(id = R.string.settings_check_update),
                         summary = stringResource(id = R.string.settings_check_update_summary),
-                        checked = checkUpdate,
-                        onCheckedChange = {
-                            prefs.edit {putBoolean("check_update", it) }
-                            checkUpdate = it
-                        }
-                    )
+                        checked = checkUpdate
+                    ) { enabled ->
+                        prefs.edit { putBoolean("check_update", enabled) }
+                        checkUpdate = enabled
+                    }
 
                     // WebUI引擎选择
                     KsuIsValid {
@@ -304,32 +301,30 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         )
                     }
                     KsuIsValid {
-                        SwitchSettingItem(
+                        SwitchItem(
                             icon = Icons.Filled.DeveloperMode,
                             title = stringResource(id = R.string.enable_web_debugging),
                             summary = stringResource(id = R.string.enable_web_debugging_summary),
-                            checked = enableWebDebugging,
-                            onCheckedChange = {
-                                prefs.edit { putBoolean("enable_web_debugging", it) }
-                                enableWebDebugging = it
-                            }
-                        )
+                            checked = enableWebDebugging
+                        ) { enabled ->
+                            prefs.edit { putBoolean("enable_web_debugging", enabled) }
+                            enableWebDebugging = enabled
+                        }
 
                         AnimatedVisibility(
                             visible = enableWebDebugging && selectedEngine == "wx",
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
-                            SwitchSettingItem(
+                            SwitchItem(
                                 icon = Icons.Filled.FormatListNumbered,
                                 title = stringResource(id = R.string.use_webuix_eruda),
                                 summary = stringResource(id = R.string.use_webuix_eruda_summary),
-                                checked = useWebUIXEruda,
-                                onCheckedChange = {
-                                    prefs.edit { putBoolean("use_webuix_eruda", it) }
-                                    useWebUIXEruda = it
-                                }
-                            )
+                                checked = useWebUIXEruda
+                            ) { enabled ->
+                                prefs.edit { putBoolean("use_webuix_eruda", enabled) }
+                                useWebUIXEruda = enabled
+                            }
                         }
                     }
 
@@ -554,60 +549,6 @@ fun SettingItem(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
-        )
-    }
-}
-
-@Composable
-fun SwitchSettingItem(
-    icon: ImageVector,
-    title: String,
-    summary: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .size(24.dp)
-        )
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            if (summary != null) {
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                checkedIconColor = MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
-            )
         )
     }
 }

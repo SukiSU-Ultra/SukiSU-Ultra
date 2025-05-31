@@ -276,7 +276,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                 text = { Text(stringResource(R.string.backup_modules)) },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Outlined.Download,
+                                        imageVector = Icons.Outlined.Save,
                                         contentDescription = stringResource(R.string.backup),
                                     )
                                 },
@@ -289,7 +289,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                 text = { Text(stringResource(R.string.restore_modules)) },
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Outlined.Refresh,
+                                        imageVector = Icons.Outlined.RestoreFromTrash,
                                         contentDescription = stringResource(R.string.restore),
                                     )
                                 },

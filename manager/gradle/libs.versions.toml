@@ -1,5 +1,6 @@
 [versions]
 agp = "8.10.1"
+gson = "2.11.0"
 kotlin = "2.1.20"
 ksp = "2.1.20-2.0.0"
 compose-bom = "2025.05.01"
@@ -62,6 +63,7 @@ com-github-topjohnwu-libsu-io = { group = "com.github.topjohnwu.libsu", name = "
 
 dev-rikka-rikkax-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version.ref = "parcelablelist" }
 
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 io-coil-kt-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-compose" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }

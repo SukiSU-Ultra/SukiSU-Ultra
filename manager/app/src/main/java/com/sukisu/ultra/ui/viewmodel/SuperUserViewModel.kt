@@ -34,7 +34,7 @@ class SuperUserViewModel : ViewModel() {
     val isPlatformAlive get() = Platform.isAlive
     companion object {
         private const val TAG = "SuperUserViewModel"
-        private var apps by mutableStateOf<List<AppInfo>>(emptyList())
+        var apps by mutableStateOf<List<AppInfo>>(emptyList())
     }
 
     @Parcelize
@@ -171,7 +171,7 @@ class SuperUserViewModel : ViewModel() {
         fetchAppList() // 刷新列表以显示最新状态
     }
 
-    // 仅更新本地应用配置，避免重新获取整个列表导致滚动位置重置
+    // 更新本地应用配置
     fun updateAppProfileLocally(packageName: String, updatedProfile: Natives.Profile) {
         apps = apps.map { app ->
             if (app.packageName == packageName) {

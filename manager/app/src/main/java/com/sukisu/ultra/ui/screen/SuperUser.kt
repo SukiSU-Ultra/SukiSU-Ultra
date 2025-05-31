@@ -72,7 +72,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     LaunchedEffect(key1 = navigator) {
         viewModel.search = ""
         if (viewModel.appList.isEmpty()) {
-            viewModel.fetchAppList()
+            // viewModel.fetchAppList()
         }
     }
 

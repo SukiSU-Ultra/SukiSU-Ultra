@@ -15,11 +15,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -31,6 +33,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Archive
@@ -42,8 +45,10 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -112,7 +117,7 @@ import kotlin.random.Random
  * @author ShirkNeko
  * @date 2025/5/31.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Destination<RootGraph>(start = true)
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
@@ -120,12 +125,15 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val viewModel = viewModel<HomeViewModel>()
     val coroutineScope = rememberCoroutineScope()
 
+    LaunchedEffect(key1 = navigator) {
+        coroutineScope.launch {
+            viewModel.refreshAllData(context)
+        }
+    }
+
     LaunchedEffect(Unit) {
-        // 初始化加载用户设置
         viewModel.loadUserSettings(context)
-        // 初始化数据
         viewModel.initializeData()
-        // 检查更新
         viewModel.checkForUpdates(context)
     }
 
@@ -144,22 +152,26 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal
         )
     ) { innerPadding ->
-        PullToRefreshBox(
+        val pullRefreshState = rememberPullRefreshState(
+            refreshing = false,
             onRefresh = {
                 coroutineScope.launch {
                     viewModel.refreshAllData(context)
                 }
-            },
-            isRefreshing = viewModel.isRefreshing
+            }
+        )
+
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .pullRefresh(pullRefreshState)
         ) {
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .disableOverscroll()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(top = 12.dp)
-                    .padding(horizontal = 16.dp),
+                    .padding(top = 12.dp, start = 16.dp, end = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatusCard(
@@ -265,16 +277,9 @@ fun UpdateCard() {
 @Composable
 fun RebootDropdownItem(@StringRes id: Int, reason: String = "") {
     DropdownMenuItem(
-        text = { Text(stringResource(id)) },
-        onClick = { reboot(reason) },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = null,
-            )
-        }
-    )
-}
+        text = {Text(stringResource(id))}, 
+        onClick = {reboot(reason)})
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -363,14 +368,19 @@ private fun StatusCard(
                 systemStatus.ksuVersion != null -> {
 
                     val workingModeText = when {
+                        Natives.isSafeMode == true -> stringResource(id = R.string.safe_mode)
+                        else -> stringResource(id = R.string.home_working)
+                    }
+
+                    val workingModeSurfaceText = when {
                         systemStatus.lkmMode == true -> "LKM"
-                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI1.0"
-                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI2.0"
+                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI-1.0"
+                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI-2.0"
                         else -> "N-GKI"
                     }
 
                     Icon(
-                        Icons.Outlined.CheckCircle,
+                        Icons.Outlined.TaskAlt,
                         contentDescription = stringResource(R.string.home_working),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
@@ -382,7 +392,7 @@ private fun StatusCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = stringResource(id = R.string.home_working),
+                                text = workingModeText,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -396,7 +406,7 @@ private fun StatusCard(
                                 modifier = Modifier
                             ) {
                                 Text(
-                                    text = workingModeText,
+                                    text = workingModeSurfaceText,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -405,20 +415,13 @@ private fun StatusCard(
 
                             Spacer(Modifier.width(6.dp))
 
-                            // 机器架构标签或者安全模式标签
-                            val labelText = if (Natives.isSafeMode) {
-                                stringResource(id = R.string.safe_mode)
-                            } else {
-                                Os.uname().machine
-                            }
-
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                             ) {
                                 Text(
-                                    text = labelText,
+                                    text = Os.uname().machine,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -778,7 +781,7 @@ private fun InfoCard(
 
             InfoCardItem(
                 stringResource(R.string.home_manager_version),
-                "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second})",
+                "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second.toInt()})",
                 icon = Icons.Default.SettingsSuggest,
             )
 

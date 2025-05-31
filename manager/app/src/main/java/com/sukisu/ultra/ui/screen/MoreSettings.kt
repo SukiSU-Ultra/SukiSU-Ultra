@@ -728,63 +728,46 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                         }
 
                         // 自定义背景开关
-                        ListItem(
-                            headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
-                            supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
-                            leadingContent = {
-                                Icon(
-                                    Icons.Filled.Wallpaper,
-                                    contentDescription = null,
-                                    tint = if (isCustomBackgroundEnabled)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            trailingContent = {
-                                Switch(
-                                    checked = isCustomBackgroundEnabled,
-                                    onCheckedChange = { isChecked ->
-                                        if (isChecked) {
-                                            pickImageLauncher.launch("image/*")
-                                        } else {
-                                            context.saveCustomBackground(null)
-                                            isCustomBackgroundEnabled = false
-                                            CardConfig.cardElevation
-                                            CardConfig.cardAlpha = 1f
-                                            CardConfig.cardDim = 0f
-                                            CardConfig.isCustomAlphaSet = false
-                                            CardConfig.isCustomDimSet = false
-                                            CardConfig.isCustomBackgroundEnabled = false
-                                            saveCardConfig(context)
-                                            cardAlpha = 1f
-                                            cardDim = 0f
+                        SwitchItem(
+                            icon = Icons.Filled.Wallpaper,
+                            title = stringResource(id = R.string.settings_custom_background),
+                            summary = stringResource(id = R.string.settings_custom_background_summary),
+                            checked = isCustomBackgroundEnabled
+                        ) { isChecked ->
+                            if (isChecked) {
+                                pickImageLauncher.launch("image/*")
+                            } else {
+                                context.saveCustomBackground(null)
+                                isCustomBackgroundEnabled = false
+                                CardConfig.cardElevation
+                                CardConfig.cardAlpha = 1f
+                                CardConfig.cardDim = 0f
+                                CardConfig.isCustomAlphaSet = false
+                                CardConfig.isCustomDimSet = false
+                                CardConfig.isCustomBackgroundEnabled = false
+                                saveCardConfig(context)
+                                cardAlpha = 1f
+                                cardDim = 0f
 
-                                            // 重置其他相关设置
-                                            ThemeConfig.needsResetOnThemeChange = true
-                                            ThemeConfig.preventBackgroundRefresh = false
+                                // 重置其他相关设置
+                                ThemeConfig.needsResetOnThemeChange = true
+                                ThemeConfig.preventBackgroundRefresh = false
 
-                                            context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
-                                                .edit {
-                                                    putBoolean(
-                                                        "prevent_background_refresh",
-                                                        false
-                                                    )
-                                                }
-
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.background_removed),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+                                    .edit {
+                                        putBoolean(
+                                            "prevent_background_refresh",
+                                            false
+                                        )
                                     }
-                                )
-                            },
-                            colors = ListItemDefaults.colors(
-                                containerColor = Color.Transparent
-                            )
-                        )
+
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.background_removed),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
 
                         // 透明度和亮度调节滑动条
                         AnimatedVisibility(

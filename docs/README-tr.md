@@ -15,11 +15,13 @@
 Çekirdek kaynak kodunun kök dizininde aşağıdaki komutları çalıştırın:
 
 Ana dalı kullanın (GKI olmayan cihazlar için desteklenmez)
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
 GKI olmayan cihazları destekleyen dalı kullanın
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
@@ -37,15 +39,16 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 - Bu bölüm [rsuntk\'nin kanca yöntemlerinden](https://github.com/rsuntk/KernelSU) alıntılanmıştır
 
 1. **KPROBES Kancası:**
-    - Yüklenebilir çekirdek modülleri (LKM) için kullanılır
-    - GKI 2.0 çekirdeğinin varsayılan kanca yöntemi
-    - `CONFIG_KPROBES=y` gerektirir
+
+   - Yüklenebilir çekirdek modülleri (LKM) için kullanılır
+   - GKI 2.0 çekirdeğinin varsayılan kanca yöntemi
+   - `CONFIG_KPROBES=y` gerektirir
 
 2. **Manuel Kanca:**
-    - Standart KernelSU kancası: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
-    - backslashxx\'nin syscall manuel kancası: https://github.com/backslashxx/KernelSU/issues/5
-    - GKI olmayan çekirdeğin varsayılan kanca yöntemi
-    - `CONFIG_KSU_MANUAL_HOOK=y` gerektirir
+   - Standart KernelSU kancası: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+   - backslashxx\'nin syscall manuel kancası: https://github.com/backslashxx/KernelSU/issues/5
+   - GKI olmayan çekirdeğin varsayılan kanca yöntemi
+   - `CONFIG_KSU_MANUAL_HOOK=y` gerektirir
 
 ## KPM Desteği
 
@@ -57,6 +60,7 @@ Kaynak kodu: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
 KPM şablonu: https://github.com/udochina/KPM-Build-Anywhere
 
 > [!Note]
+>
 > 1. `CONFIG_KPM=y` gerektirir
 > 2. GKI olmayan cihazlar ayrıca `CONFIG_KALLSYMS=y` ve `CONFIG_KALLSYMS_ALL=y` gerektirir
 > 3. Bazı çekirdek `4.19` altı kaynak kodları, `4.19`dan geri taşınan başlık dosyası `set_memory.h` gerektirir
@@ -79,6 +83,7 @@ KPM şablonu: https://github.com/udochina/KPM-Build-Anywhere
 ## Daha Fazla Bağlantı
 
 SukiSU ve susfs tabanlı derlenen projeler
+
 - [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS)
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
@@ -89,6 +94,7 @@ SukiSU ve susfs tabanlı derlenen projeler
 Lütfen **tümünü** https://kernelsu.org/zh_CN/guide/installation.html adresinden inceleyin
 
 > [!Note]
+>
 > 1. Xiaomi, Redmi, Samsung gibi GKI 2.0 cihazlar için uygundur (Meizu, OnePlus, Realme ve Oppo gibi değiştirilmiş çekirdekli üreticiler hariç)
 > 2. [Daha fazla bağlantı](#daha-fazla-bağlantı) bölümündeki GKI tabanlı projeleri bulun. Cihaz çekirdek sürümünü bulun. Ardından indirin ve TWRP veya çekirdek yazma aracı kullanarak AnyKernel3 soneki olan sıkıştırılmış paketi yazın
 > 3. Genellikle sonek olmayan .zip sıkıştırılmış paketler sıkıştırılmamıştır, gz soneki olanlar ise Dimensity modelleri için kullanılan sıkıştırma yöntemidir
@@ -98,6 +104,7 @@ Lütfen **tümünü** https://kernelsu.org/zh_CN/guide/installation.html adresin
 1. Daha fazla bağlantı bölümündeki OnePlus projesini bulun ve kendiniz doldurun, ardından bulut derleme yapın ve AnyKernel3 soneki olan sıkıştırılmış paketi yazın
 
 > [!Note]
+>
 > - Çekirdek sürümü için yalnızca ilk iki haneyi doldurmanız yeterlidir, örneğin 5.10, 5.15, 6.1, 6.6
 > - İşlemci kod adını kendiniz arayın, genellikle tamamen İngilizce ve sayı içermeden oluşur
 > - Dal ve yapılandırma dosyasını kendiniz OnePlus çekirdek kaynak kodundan doldurun
@@ -114,9 +121,11 @@ Lütfen **tümünü** https://kernelsu.org/zh_CN/guide/installation.html adresin
 ## Lisans
 
 - `kernel` dizinindeki dosyalar [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) lisansı altındadır.
-- `kernel` dizini dışındaki tüm diğer bölümler [GPL-3.0 veya daha üstü](https://www.gnu.org/licenses/gpl-3.0.html) lisansı altındadır.
+- Anime karakter ifadeleri içeren `ic_launcher*` dosyalarının görüntüleri [五十根大虾仁](https://space.bilibili.com/370927) tarafından telif hakkıyla korunmaktadır, görüntülerdeki Marka Fikri Mülkiyeti [明风 OuO](https://space.bilibili.com/274939213)'ye aittir ve vektörleştirme @MiRinChan tarafından yapılmıştır. Bu dosyaları kullanmadan önce, [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) ile uyumlu olmanın yanı sıra, bu sanatsal içerikleri kullanmak için iki yazarın yetkilendirmesine de uymanız gerekir.
+- Yukarıda belirtilen dosyalar veya dizinler hariç, diğer tüm parçalar [GPL-3.0 veya üzeri](https://www.gnu.org/licenses/gpl-3.0.html)'dir.
 
 ## Afdian Bağlantısı
+
 - https://afdian.com/a/shirkneko
 
 ## Sponsor Listesi

@@ -12,7 +12,7 @@
     <string name="home_kernel">核心</string>
     <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">SuSFS 版本</string>
-    <string name="home_susfs_sus_su">SuS SU</string>
+    <string name="home_susfs_sus_su">SuSFS: %s</string>
     <string name="home_manager_version">管理器版本</string>
     <string name="home_fingerprint">指紋</string>
     <string name="home_selinux_status">SELinux 狀態</string>
@@ -192,7 +192,7 @@
     <string name="hide_kernel_kernelsu_version">隱藏內核版本</string>
     <string name="hide_kernel_kernelsu_version_summary">隱藏內核版本</string>
     <string name="hide_other_info">隱藏其他信息</string>
-    <string name="hide_other_info_summary">Hides information about the number of super users, modules and KPM modules on the home page</string>
+    <string name="hide_other_info_summary">隱藏首頁上有關超級用戶、模組和KPM模組的數量資訊</string>
     <string name="hide_susfs_status">隱藏 SuSFS 相關</string>
     <string name="hide_susfs_status_summary">隱藏SuSFS 主頁的相關信息</string>
     <string name="hide_link_card">隱藏鏈接卡片</string>
@@ -212,12 +212,12 @@
     <string name="color_pink">粉色</string>
     <string name="color_gray">棕色</string>
     <string name="color_yellow">黃色</string>
-    <string name="flash_option">Flash Options</string>
+    <string name="flash_option">刷寫選項</string>
     <string name="flash_option_tip">選擇刷寫文件</string>
     <string name="horizon_kernel">安裝 Anykernel3</string>
     <string name="horizon_kernel_summary">刷寫 Anykernel3 內核文件</string>
     <string name="root_required">需要root權限</string>
-    <string name="copy_failed">File Copy Failure</string>
+    <string name="copy_failed">文件復制失敗</string>
     <string name="reboot_complete_title">清理完成</string>
     <string name="reboot_complete_msg">是否立即重啟？</string>
     <string name="yes">是</string>
@@ -361,7 +361,7 @@
     <string name="authorized">已授權</string>
     <string name="unauthorized">未授權</string>
     <string name="selected">已選擇</string>
-    <string name="select">option</string>
+    <string name="select">選項</string>
     <string name="profile_umount_modules_disable">禁用自定義卸載模組</string>
     <!-- Flash related -->
     <string name="error_code">代碼錯誤</string>

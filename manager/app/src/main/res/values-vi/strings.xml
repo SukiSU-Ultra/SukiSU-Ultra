@@ -69,7 +69,7 @@
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
     <string name="profile_umount_modules">Bỏ gắn kết các module</string>
-    <string name="failed_to_update_app_profile">Cập nhật hồ sơ ứng dụng cho %s thất bại</string>
+    <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Bỏ gắn kết các module cho toàn hệ thống</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Bỏ gắn kết các module\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
@@ -86,8 +86,8 @@
     <string name="restart_app">Khởi động lại</string>
     <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
     <string name="module_changelog">Changelog</string>
-    <string name="settings_profile_template">Mẫu Hồ Sơ Ứng Dụng</string>
-    <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ Sơ Ứng Dụng</string>
+    <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
+    <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng</string>
     <string name="app_profile_template_create">Tạo mẫu</string>
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
     <string name="app_profile_template_id">ID</string>
@@ -130,7 +130,7 @@
     <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời SukiSU Ultra, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo</string>
     <string name="settings_uninstall_permanent_message">Gỡ cài đặt SukiSU Ultra (Root và tất cả các module) sạch hoàn toàn, trả về trạng thái ban đầu</string>
     <string name="settings_restore_stock_image_message">Khôi phục lại boot lúc đầu (Nếu có bản sao lưu), thường được sử dụng trước OTA; nếu bạn cần gỡ hẳn SukiSU Ultra, sử dụng \"Gỡ cài đặt sạch\"</string>
-    <string name="flashing">Đang flash...</string>
+    <string name="flashing">Đang Flash...</string>
     <string name="flash_success">Flash thành công</string>
     <string name="flash_failed">Flash thất bại</string>
     <string name="selected_lkm">Đã chọn LKM: %s</string>
@@ -271,15 +271,15 @@
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">Kernel Flashing</string>
     <string name="horizon_logs_label">Logs:</string>
-    <string name="horizon_flash_complete">Flash Complete</string>
+    <string name="horizon_flash_complete">Flash hoàn tất</string>
     <!-- Flash Status Related -->
-    <string name="horizon_preparing">Preparing…</string>
-    <string name="horizon_cleaning_files">Cleaning files…</string>
-    <string name="horizon_copying_files">Copying files…</string>
-    <string name="horizon_extracting_tool">Extracting flash tool…</string>
-    <string name="horizon_patching_script">Patching flash script…</string>
-    <string name="horizon_flashing">Flashing kernel…</string>
-    <string name="horizon_flash_complete_status">Flash completed</string>
+    <string name="horizon_preparing">Chuẩn bị…</string>
+    <string name="horizon_cleaning_files">Đang dọn dẹp các file…</string>
+    <string name="horizon_copying_files">Đang sao chép các file…</string>
+    <string name="horizon_extracting_tool">Đang giải nén công cụ Flash…</string>
+    <string name="horizon_patching_script">Đang vá tập lệnh Flash…</string>
+    <string name="horizon_flashing">Flashing Kernel…</string>
+    <string name="horizon_flash_complete_status">Flash hoàn tất</string>
     <!-- Slot selection related strings -->
     <string name="select_slot_title">Chọn Slot Flash</string>
     <string name="select_slot_description">Vui lòng chọn Slot để Flash Boot</string>
@@ -360,7 +360,7 @@
     <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh của các module</string>
+    <string name="profile_umount_modules_disable">Vô hiệu hóa bỏ gắn kết các module</string>
     <!-- Flash related -->
     <string name="error_code">Code lỗi</string>
     <string name="check_log">Vui lòng kiểm tra logs</string>
