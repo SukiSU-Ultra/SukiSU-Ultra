@@ -170,12 +170,8 @@ endif
 
 # Do checks before compile
 ifeq ($(shell grep -q "int\s\+\path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
-$(info -- SukiSU: checks ok. Found path_umount)
-else
-$(info -- SukiSU: checks failed, abort.)
-$(error -- Backporting path_umount is mandatory !! Read: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#how-to-backport-path-umount)
+ccflags-y += -DKSU_HAS_PATH_UMOUNT
 endif
-
 
 ## For susfs stuff ##
 ifeq ($(shell test -e $(srctree)/fs/susfs.c; echo $$?),0)
