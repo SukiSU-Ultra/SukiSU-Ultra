@@ -212,7 +212,7 @@
     <string name="color_pink">粉色</string>
     <string name="color_gray">棕色</string>
     <string name="color_yellow">黃色</string>
-    <string name="flash_option">Brush Options</string>
+    <string name="flash_option">Flash Options</string>
     <string name="flash_option_tip">選擇刷寫文件</string>
     <string name="horizon_kernel">安裝 Anykernel3</string>
     <string name="horizon_kernel_summary">刷寫 Anykernel3 內核文件</string>
