@@ -375,6 +375,11 @@ private fun StatusCard(
                 systemStatus.ksuVersion != null -> {
 
                     val workingModeText = when {
+                        Natives.isSafeMode == true -> stringResource(id = R.string.safe_mode)
+                        else -> stringResource(id = R.string.home_working)
+                    }
+
+                    val workingModeSurfaceText = when {
                         systemStatus.lkmMode == true -> "LKM"
                         systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI-1.0"
                         systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI-2.0"
@@ -394,7 +399,7 @@ private fun StatusCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = stringResource(id = R.string.home_working),
+                                text = workingModeText,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -408,7 +413,7 @@ private fun StatusCard(
                                 modifier = Modifier
                             ) {
                                 Text(
-                                    text = workingModeText,
+                                    text = workingModeSurfaceText,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -417,20 +422,13 @@ private fun StatusCard(
 
                             Spacer(Modifier.width(6.dp))
 
-                            // 机器架构标签或者安全模式标签
-                            val labelText = if (Natives.isSafeMode) {
-                                stringResource(id = R.string.safe_mode)
-                            } else {
-                                Os.uname().machine
-                            }
-
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                             ) {
                                 Text(
-                                    text = labelText,
+                                    text = Os.uname().machine,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
