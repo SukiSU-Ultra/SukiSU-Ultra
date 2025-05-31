@@ -212,7 +212,7 @@
     <string name="color_pink">Pink</string>
     <string name="color_gray">Gray</string>
     <string name="color_yellow">Yellow</string>
-    <string name="flash_option">Brush Options</string>
+    <string name="flash_option">Flash Options</string>
     <string name="flash_option_tip">Select the file to be flashed</string>
     <string name="horizon_kernel">Install Anykernel3</string>
     <string name="horizon_kernel_summary">Flash AnyKernel3 kernel file</string>
