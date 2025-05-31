@@ -328,7 +328,10 @@
     <string name="show_kpm_info">Display KPM Function</string>
     <string name="show_kpm_info_summary">Display KPM information and Function in home and bottom bar (Need to reopen the app)</string>
     <!-- Webui X settings -->
-    
+    <string name="use_webuix">Select the WebUI engine to use</string>
+    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="engine_force_webuix">Force the use of WebUI X</string>
+    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">Inject Eruda into WebUI X</string>
     <string name="use_webuix_eruda_summary">Inject a debug console into WebUI X to make debugging easier. Requires web debugging to be on.</string>
     <!-- DPI setting related strings -->

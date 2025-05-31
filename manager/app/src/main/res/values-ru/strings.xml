@@ -328,7 +328,10 @@
     <string name="show_kpm_info">Показать функцию KPM</string>
     <string name="show_kpm_info_summary">Отображение информации и функции KPM в домашней и нижней панели (необходимо переоткрыть приложение)</string>
     <!-- Webui X settings -->
-    
+    <string name="use_webuix">Select the WebUI engine to use</string>
+    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="engine_force_webuix">Force the use of WebUI X</string>
+    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">Вставить Eruda в WebUI X</string>
     <string name="use_webuix_eruda_summary">Вставьте консоль отладки в WebUI X для упрощения отладки. Для этого требуется включение веб-отладки.</string>
     <!-- DPI setting related strings -->

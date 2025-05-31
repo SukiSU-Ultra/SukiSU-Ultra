@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Trang chủ</string>
-    <string name="home_not_installed">Hỗ trợ nhưng chưa cài đặt</string>
-    <string name="home_click_to_install">Bấm để cài đặt</string>
+    <string name="home_not_installed">Chưa cài đặt</string>
+    <string name="home_click_to_install">Nhấn để cài đặt</string>
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %d</string>
     <string name="home_superuser_count">Superusers: %d</string>
@@ -23,7 +23,7 @@
     <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">Không thể kích hoạt module: %s</string>
     <string name="module_failed_to_disable">Không thể vô hiệu hoá module: %s</string>
-    <string name="module_empty">Chưa cài module nào</string>
+    <string name="module_empty">Chưa cài đặt module nào</string>
     <string name="module">Module</string>
     <string name="module_sort_action_first">Sắp xếp (Theo hành động)</string>
     <string name="module_sort_enabled_first">Sắp xếp (Theo trạng thái)</string>
@@ -68,11 +68,11 @@
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Bỏ gắn kết các Module</string>
+    <string name="profile_umount_modules">Bỏ gắn kết các module</string>
     <string name="failed_to_update_app_profile">Cập nhật hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
-    <string name="settings_umount_modules_default">Bỏ gắn kết các Module cho toàn hệ thống</string>
-    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung \"Bỏ gắn kết các module\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các Module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
+    <string name="settings_umount_modules_default">Bỏ gắn kết các module cho toàn hệ thống</string>
+    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Bỏ gắn kết các module\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
@@ -80,18 +80,18 @@
     <string name="module_update">Cập nhật</string>
     <string name="module_downloading">Tải xuống module: %s</string>
     <string name="module_start_downloading">Đang tải xuống module: %s</string>
-    <string name="new_version_available">Phiên bản mới %s đã có sẵn, hãy nhấp để cập nhật</string>
+    <string name="new_version_available">Phiên bản mới %s đã có sẵn, nhấn để cập nhật</string>
     <string name="launch_app">Mở</string>
     <string name="force_stop_app" formatted="false">Buộc dừng</string>
     <string name="restart_app">Khởi động lại</string>
-    <string name="failed_to_update_sepolicy">Không cập nhật được quy tắc SELinux cho %s</string>
+    <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
     <string name="module_changelog">Changelog</string>
-    <string name="settings_profile_template">Mẫu hồ sơ ứng dụng</string>
-    <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng</string>
+    <string name="settings_profile_template">Mẫu Hồ Sơ Ứng Dụng</string>
+    <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ Sơ Ứng Dụng</string>
     <string name="app_profile_template_create">Tạo mẫu</string>
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
     <string name="app_profile_template_id">ID</string>
-    <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ/tồn tại</string>
+    <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ</string>
     <string name="app_profile_template_name">Tên</string>
     <string name="app_profile_template_description">Miêu tả</string>
     <string name="app_profile_template_save">Lưu</string>
@@ -102,10 +102,10 @@
     <string name="app_profile_import_export">Nhập/Xuất</string>
     <string name="app_profile_import_from_clipboard">Nhập từ bộ nhớ tạm clipboard</string>
     <string name="app_profile_export_to_clipboard">Xuất vào bộ nhớ tạm clipboard</string>
-    <string name="app_profile_template_export_empty">Không tìm thấy hồ sơ nội bộ để xuất!</string>
+    <string name="app_profile_template_export_empty">Không tìm thấy mẫu cục bộ để xuất!</string>
     <string name="app_profile_template_import_success">Nhập thành công</string>
-    <string name="app_profile_template_sync">Đồng bộ với hồ sơ ứng dụng trực tuyến</string>
-    <string name="app_profile_template_save_failed">Lưu hồ sơ ứng dụng thất bại</string>
+    <string name="app_profile_template_sync">Đồng bộ hoá các mẫu trực tuyến</string>
+    <string name="app_profile_template_save_failed">Lưu mẫu thất bại</string>
     <string name="app_profile_template_import_empty">Bộ nhớ tạm đang trống!</string>
     <string name="module_changelog_failed">Lấy changelog thất bại: %s</string>
     <string name="settings_check_update">Kiểm tra cập nhật</string>
@@ -117,7 +117,7 @@
     <string name="enable_web_debugging">Gỡ lỗi WebView</string>
     <string name="enable_web_debugging_summary">Có thể sử dụng để gỡ lỗi WebUI. Vui lòng chỉ bật khi cần thiết</string>
     <string name="direct_install">Cài đặt trực tiếp (Khuyến nghị)</string>
-    <string name="select_file">Chọn tệp .img cần vá</string>
+    <string name="select_file">Chọn file .img cần vá</string>
     <string name="install_inactive_slot">Cài đặt vào phân vùng chưa được sử dụng (Sau OTA)</string>
     <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng chưa được sử dụng!\nChỉ sử dụng tùy chọn này sau khi OTA hoàn tất.\nTiếp tục?</string>
     <string name="install_next">Kế tiếp</string>
@@ -129,11 +129,11 @@
     <string name="settings_restore_stock_image">Khôi phục phân vùng khởi động về mặc định</string>
     <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời SukiSU Ultra, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo</string>
     <string name="settings_uninstall_permanent_message">Gỡ cài đặt SukiSU Ultra (Root và tất cả các module) sạch hoàn toàn, trả về trạng thái ban đầu</string>
-    <string name="settings_restore_stock_image_message">Khôi phục lại boot lúc đầu (Nếu có bản sao lưu), thường được sử dụng trước OTA; nếu bạn cần gỡ hẳn SukiSU Ultra, sử dụng\"Gỡ cài đặt sạch\"</string>
+    <string name="settings_restore_stock_image_message">Khôi phục lại boot lúc đầu (Nếu có bản sao lưu), thường được sử dụng trước OTA; nếu bạn cần gỡ hẳn SukiSU Ultra, sử dụng \"Gỡ cài đặt sạch\"</string>
     <string name="flashing">Đang flash...</string>
     <string name="flash_success">Flash thành công</string>
     <string name="flash_failed">Flash thất bại</string>
-    <string name="selected_lkm">Chọn tệp LKM: %s</string>
+    <string name="selected_lkm">Đã chọn LKM: %s</string>
     <string name="save_log">Lưu logs</string>
     <string name="log_saved">Logs đã được lưu</string>
     <string name="status_supported">Được hỗ trợ</string>
@@ -141,20 +141,20 @@
     <string name="status_unknown">Không rõ</string>
     <string name="sus_su_mode">Chế độ SU của SuS:</string>
     <!-- Module related -->
-    <string name="module_install_confirm">Xác nhận cài đặt Module %1$s？</string>
+    <string name="module_install_confirm">Xác nhận cài đặt module %1$s？</string>
     <string name="unknown_module">Module không xác định</string>
     <!-- Restore related -->
-    <string name="restore_confirm_title">Xác nhận khôi phục Module</string>
-    <string name="restore_confirm_message">Hành động này sẽ ghi đè lên tất cả các Module hiện có. Tiếp tục?</string>
+    <string name="restore_confirm_title">Xác Nhận Khôi Phục Module</string>
+    <string name="restore_confirm_message">Hành động này sẽ ghi đè lên tất cả các module hiện có. Tiếp tục?</string>
     <string name="confirm">Xác nhận</string>
     <string name="cancel">Huỷ bỏ</string>
     <!-- Backup related -->
     <string name="backup_success">Sao lưu thành công (tar.gz)</string>
     <string name="backup_failed">Sao lưu thất bại: %1$s</string>
-    <string name="backup_modules">Sao lưu các Module</string>
-    <string name="restore_modules">Khôi phục các Module</string>
+    <string name="backup_modules">Sao lưu các module</string>
+    <string name="restore_modules">Khôi phục các module</string>
     <!-- Restore related messages -->
-    <string name="restore_success">Các Module đã được khôi phục thành công, cần khởi động lại</string>
+    <string name="restore_success">Các module đã được khôi phục thành công, cần khởi động lại</string>
     <string name="restore_failed">Khôi phục thất bại: %1$s</string>
     <string name="restart_now">Khởi động lại ngay</string>
     <string name="unknown_error">Lỗi không xác định</string>
@@ -175,11 +175,11 @@
     <string name="settings_restore_default">Khôi phục mặc định</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
-    <string name="su_not_allowed">Cấp quyền SU không được phép cho: %s</string>
+    <string name="su_not_allowed">Quyền SU cho %s chưa được cấp</string>
     <string name="settings_disable_su">Vô hiệu hoá khả năng của lệnh SU</string>
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
     <string name="using_mksu_manager">Bạn đang sử dụng trình quản lý SukiSU Beta</string>
-    <string name="module_install_multiple_confirm">Bạn có chắc muốn cài đặt các Module %d đã chọn không?</string>
+    <string name="module_install_multiple_confirm">Bạn có chắc muốn cài đặt các module %d đã chọn không?</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d sau không? \n\n%2$s</string>
     <string name="more_settings">Nhiều cài đặt hơn</string>
     <string name="selinux">SELinux</string>
@@ -201,7 +201,7 @@
     <string name="theme_dark">Tối</string>
     <string name="manual_hook">Móc thủ công</string>
     <string name="dynamic_color_title">Màu sắc động</string>
-    <string name="dynamic_color_summary">Màu sắc động sử dụng chủ đề hệ thống</string>
+    <string name="dynamic_color_summary">Sử dụng màu sắc động làm chủ đề hệ thống</string>
     <string name="choose_theme_color">Chọn màu chủ đề</string>
     <string name="color_default">Xanh dương</string>
     <string name="color_green">Xanh lá</string>
@@ -211,11 +211,11 @@
     <string name="color_gray">Xám</string>
     <string name="color_yellow">Vàng</string>
     <string name="flash_option">Tuỳ chọn Flash</string>
-    <string name="flash_option_tip">Chọn tập tin cần Flash</string>
-    <string name="horizon_kernel">Tệp Anykernel3</string>
+    <string name="flash_option_tip">Chọn file cần Flash</string>
+    <string name="horizon_kernel">Cài đặt Anykernel3</string>
     <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
     <string name="root_required">Yêu cầu quyền root</string>
-    <string name="copy_failed">Sao chép tập tin thất bại</string>
+    <string name="copy_failed">Sao chép file thất bại</string>
     <string name="reboot_complete_title">Khởi động lại để hoàn tất</string>
     <string name="reboot_complete_msg">Khởi động lại ngay lập tức?</string>
     <string name="yes">Có</string>
@@ -225,7 +225,7 @@
     <string name="batch_cancel_authorization">Hủy ủy quyền hàng loạt</string>
     <string name="backup">Sao lưu</string>
     <string name="kpm_title">KPModule</string>
-    <string name="kpm_empty">Không có kernel module nào được cài đặt tại thời điểm này</string>
+    <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
     <string name="kpm_author">Tác giả</string>
     <string name="kpm_uninstall">Gỡ cài đặt</string>
@@ -234,11 +234,11 @@
     <string name="kpm_install">Cài đặt</string>
     <string name="kpm_install_success">Load kpmodule thành công</string>
     <string name="kpm_install_failed">Load kpmodule thất bại</string>
-    <string name="kpm_args">Thông số KPM</string>
+    <string name="kpm_args">Thông số</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
     <string name="close_notice">Đóng</string>
-    <string name="kernel_module_notice">Các chức năng kernel module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng kernel module của SukiSU Ultra</string>
+    <string name="kernel_module_notice">Các chức năng Kernel Module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng Kernel Module của SukiSU Ultra</string>
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra mong đợi</string>
     <string name="kpm_control_success">Thành công</string>
     <string name="kpm_control_failed">Thất bại</string>
@@ -246,21 +246,21 @@
     <string name="not_supported">Không được hỗ trợ</string>
     <string name="supported">Được hỗ trợ</string>
     <string name="home_kpm_module">"KPModules: %d"</string>
-    <string name="kpm_invalid_file">Tệp KPM không hợp lệ</string>
+    <string name="kpm_invalid_file">File KPM không hợp lệ</string>
     <string name="kernel_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
     <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>
     <string name="kpm_install_mode_load">Tải</string>
     <string name="kpm_install_mode_embed">Nhúng</string>
-    <string name="kpm_install_mode_description">Vui lòng：%1\$s chọn chế độ cài đặt Module \n\nTải: Tải tạm thời Module \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
-    <string name="log_failed_to_check_module_file">Kiểm tra tệp Module thất bại</string>
-    <string name="snackbar_failed_to_check_module_file">Không thể kiểm tra tệp Module</string>
+    <string name="kpm_install_mode_description">Vui lòng chọn: %1\$s Chế Độ Cài Đặt Module \n\nTải: Tải tạm thời module \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
+    <string name="log_failed_to_check_module_file">Kiểm tra file module thất bại</string>
+    <string name="snackbar_failed_to_check_module_file">Không thể kiểm tra file module</string>
     <string name="confirm_uninstall_title">Xác nhận gỡ cài đặt</string>
     <string name="confirm_uninstall_confirm">Gỡ cài đặt</string>
     <string name="confirm_uninstall_dismiss">Hủy bỏ</string>
     <string name="theme_color">Màu chủ đề</string>
-    <string name="invalid_file_type">Loại tệp không đúng! Vui lòng chọn tệp .kpm</string>
+    <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
     <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
     <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
     <string name="settings_susfs_toggle_summary">Vô hiệu hóa các hook kprobe được tạo bởi SukiSU Ultra, thay vào đó sử dụng các hook nội tuyến, tương tự như phương pháp hook kernel không phải GKI</string>
@@ -285,11 +285,11 @@
     <string name="select_slot_description">Vui lòng chọn Slot để Flash Boot</string>
     <string name="slot_a">Slot A</string>
     <string name="slot_b">Slot B</string>
-    <string name="selected_slot">Chọn Slot: %1$s</string>
+    <string name="selected_slot">Đã chọn Slot: %1$s</string>
     <string name="horizon_getting_original_slot">Lấy Slot ban đầu</string>
     <string name="horizon_setting_target_slot">Cài đặt Slot được chỉ định</string>
     <string name="horizon_restoring_original_slot">Khôi phục Slot mặc định</string>
-    <string name="current_slot">Slot hiện tại：%1$s </string>
+    <string name="current_slot">Slot hiện tại: %1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Copy thất bại</string>
     <string name="horizon_unknown_error">Lỗi không xác định</string>
@@ -326,13 +326,16 @@
     <string name="show_kpm_info">Hiển thị chức năng KPM</string>
     <string name="show_kpm_info_summary">Hiển thị thông tin KPM, chức năng ở trang chủ và thanh dưới cùng (Cần khởi động lại ứng dụng)</string>
     <!-- Webui X settings -->
-    
+    <string name="use_webuix">Chọn công cụ WebUI để sử dụng</string>
+    <string name="engine_auto_select">Tự động chọn</string>
+    <string name="engine_force_webuix">Sử dụng WebUI X</string>
+    <string name="engine_force_ksu">Sử dụng KSU WebUI</string>
     <string name="use_webuix_eruda">Tiêm Eruda vào WebUI X</string>
     <string name="use_webuix_eruda_summary">Chèn bảng điều khiển gỡ lỗi vào WebUI X để gỡ lỗi dễ dàng hơn. Yêu cầu bật gỡ lỗi web</string>
     <!-- DPI setting related strings -->
     <string name="dpi_settings">Cài đặt DPI</string>
     <string name="app_dpi_title">Tuỳ chỉnh DPI</string>
-    <string name="app_dpi_summary">Điều chỉnh DPI hiển thị cho ứng dụng</string>
+    <string name="app_dpi_summary">Điều chỉnh DPI hiển thị</string>
     <string name="dpi_size_small">Nhỏ</string>
     <string name="dpi_size_medium">Vừa</string>
     <string name="dpi_size_large">Lớn</string>
@@ -357,7 +360,7 @@
     <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh của các Module</string>
+    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh của các module</string>
     <!-- Flash related -->
     <string name="error_code">Code lỗi</string>
     <string name="check_log">Vui lòng kiểm tra logs</string>

@@ -229,25 +229,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         }
                     )
 
-                    // Web调试开关
-                    var enableWebDebugging by rememberSaveable {
-                        mutableStateOf(
-                            prefs.getBoolean("enable_web_debugging", false)
-                        )
-                    }
-                    KsuIsValid {
-                        SwitchSettingItem(
-                            icon = Icons.Filled.DeveloperMode,
-                            title = stringResource(id = R.string.enable_web_debugging),
-                            summary = stringResource(id = R.string.enable_web_debugging_summary),
-                            checked = enableWebDebugging,
-                            onCheckedChange = {
-                                prefs.edit { putBoolean("enable_web_debugging", it) }
-                                enableWebDebugging = it
-                            }
-                        )
-                    }
-
                     // WebUI引擎选择
                     KsuIsValid {
                         val engineOptions = listOf(
@@ -309,29 +290,44 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         }
                     }
 
-                    // Web X Eruda 开关
+                    // Web调试和Web X Eruda 开关
+                    var enableWebDebugging by rememberSaveable {
+                        mutableStateOf(
+                            prefs.getBoolean("enable_web_debugging", false)
+                        )
+                    }
                     var useWebUIXEruda by rememberSaveable {
                         mutableStateOf(
                             prefs.getBoolean("use_webuix_eruda", false)
                         )
                     }
                     KsuIsValid {
+                        SwitchSettingItem(
+                            icon = Icons.Filled.DeveloperMode,
+                            title = stringResource(id = R.string.enable_web_debugging),
+                            summary = stringResource(id = R.string.enable_web_debugging_summary),
+                            checked = enableWebDebugging,
+                            onCheckedChange = {
+                                prefs.edit { putBoolean("enable_web_debugging", it) }
+                                enableWebDebugging = it
+                            }
+                        )
+
                         AnimatedVisibility(
                             visible = enableWebDebugging && selectedEngine == "wx",
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
-                            SwitchItem(
-                                beta = true,
-                                enabled = Platform.isAlive && enableWebDebugging,
+                            SwitchSettingItem(
                                 icon = Icons.Filled.FormatListNumbered,
                                 title = stringResource(id = R.string.use_webuix_eruda),
                                 summary = stringResource(id = R.string.use_webuix_eruda_summary),
-                                checked = useWebUIXEruda
-                            ) {
-                                prefs.edit { putBoolean("use_webuix_eruda", it) }
-                                useWebUIXEruda = it
-                            }
+                                checked = useWebUIXEruda,
+                                onCheckedChange = {
+                                    prefs.edit { putBoolean("use_webuix_eruda", it) }
+                                    useWebUIXEruda = it
+                                }
+                            )
                         }
                     }
 

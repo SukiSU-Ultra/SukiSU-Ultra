@@ -298,7 +298,7 @@
     <string name="flash_failed_message">フラッシュに失敗しました</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">AnyKernel3 をフラッシュ</string>
     <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
@@ -328,7 +328,10 @@
     <string name="show_kpm_info">KPM 機能を表示</string>
     <string name="show_kpm_info_summary">KPM の情報と機能をホームとボトムバーに表示します (アプリを開き直す必要があります)</string>
     <!-- Webui X settings -->
-    
+    <string name="use_webuix">Select the WebUI engine to use</string>
+    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="engine_force_webuix">Force the use of WebUI X</string>
+    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">WebUI に Eruda をインジェクトする</string>
     <string name="use_webuix_eruda_summary">デバッグを容易にするために WebUI X にデバッグコンソールを挿入します。Web デバッグが ON になっている必要があります。</string>
     <!-- DPI setting related strings -->
@@ -366,5 +369,5 @@
     <string name="installing_module">モジュール設置中 %1$d/%2$d</string>
     <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
     <string name="module_download_error">モデルのダウンロードに失敗しました</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="kernel_flashing">カーネルをフラッシュ中</string>
 </resources>

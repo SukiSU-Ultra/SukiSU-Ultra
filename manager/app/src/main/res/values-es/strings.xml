@@ -326,7 +326,10 @@
     <string name="show_kpm_info">Mostrar función KPM</string>
     <string name="show_kpm_info_summary">Mostrar información y función KPM en la barra de inicio e inferior (Necesita reabrir la aplicación)</string>
     <!-- Webui X settings -->
-    
+    <string name="use_webuix">Select the WebUI engine to use</string>
+    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="engine_force_webuix">Force the use of WebUI X</string>
+    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">Inyectar Eruda en WebUI X</string>
     <string name="use_webuix_eruda_summary">Inyecta una consola de depuración en WebUI X para facilitar la depuración. Requiere que la depuración web esté encendida.</string>
     <!-- DPI setting related strings -->

@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -519,12 +518,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         // 语言设置
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.language_setting)) },
@@ -552,11 +555,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             modifier = Modifier.clickable { showLanguageDialog = true }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 主题模式
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.theme_mode)) },
@@ -581,11 +579,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             modifier = Modifier.clickable { showThemeModeDialog = true }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 动态颜色开关
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             SwitchItem(
@@ -597,11 +590,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                 useDynamicColor = enabled
                                 context.saveDynamicColorState(enabled)
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
                         }
 
                         // 只在未启用动态颜色时显示主题色选择
@@ -643,11 +631,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                         containerColor = Color.Transparent
                                     ),
                                     modifier = Modifier.clickable { showThemeColorDialog = true }
-                                )
-
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant
                                 )
                             }
                         }
@@ -739,11 +722,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
 
                         // 自定义背景开关
                         ListItem(
@@ -927,12 +905,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         // 添加简洁模式开关
                         SwitchItem(
                             icon = Icons.Filled.Brush,
@@ -943,10 +925,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             onSimpleModeChange(it)
                         }
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
+                        
 
                         // 隐藏内核部分版本号
                         SwitchItem(
@@ -958,11 +937,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             onHideVersionChange(it)
                         }
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 模块数量等信息
                         SwitchItem(
                             icon = Icons.Filled.VisibilityOff,
@@ -972,12 +946,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                         ) {
                             onHideOtherInfoChange(it)
                         }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
+                        
                         // SuSFS 状态信息
                         SwitchItem(
                             icon = Icons.Filled.VisibilityOff,
@@ -989,11 +958,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                         }
 
                         if (Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
-
                             // 显示KPM开关
                             SwitchItem(
                                 icon = Icons.Filled.Visibility,
@@ -1004,11 +968,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                 onShowKpmInfoChange(it)
                             }
                         }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
 
                         // 隐藏链接信息
                         SwitchItem(
@@ -1035,12 +994,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         // SELinux 开关
                         KsuIsValid {
                             SwitchItem(
@@ -1072,11 +1035,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                     }
                                 }
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
                         }
 
                         // SuSFS 配置（仅在支持时显示）
