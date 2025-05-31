@@ -14,12 +14,14 @@
 
 在内核源码的根目录下执行以下命令：
 
-使用 main 分支 (不支持非GKI设备构建)
+使用 main 分支 (不支持非 GKI 设备构建)
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
 使用支持非 GKI 设备的分支
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
@@ -37,15 +39,16 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 - 此部分引用自 [rsuntk 的钩子方法](https://github.com/rsuntk/KernelSU)
 
 1. **KPROBES 钩子：**
-    - 用于可加载内核模块 (LKM)
-    - GKI 2.0 内核的默认钩子方法
-    - 需要 `CONFIG_KPROBES=y`
+
+   - 用于可加载内核模块 (LKM)
+   - GKI 2.0 内核的默认钩子方法
+   - 需要 `CONFIG_KPROBES=y`
 
 2. **手动钩子：**
-    - 标准的 KernelSU 钩子：https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
-    - backslashxx 的 syscall 手动钩子：https://github.com/backslashxx/KernelSU/issues/5
-    - 非 GKI 内核的默认挂钩方法
-    - 需要 `CONFIG_KSU_MANUAL_HOOK=y`
+   - 标准的 KernelSU 钩子：https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+   - backslashxx 的 syscall 手动钩子：https://github.com/backslashxx/KernelSU/issues/5
+   - 非 GKI 内核的默认挂钩方法
+   - 需要 `CONFIG_KSU_MANUAL_HOOK=y`
 
 ## KPM 支持
 
@@ -57,16 +60,18 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 
 > [!Note]
+>
 > 1. 需要 `CONFIG_KPM=y`
-> 2. 非GKI设备还需要 `CONFIG_KALLSYMS=y` 和 `CONFIG_KALLSYMS_ALL=y`
+> 2. 非 GKI 设备还需要 `CONFIG_KALLSYMS=y` 和 `CONFIG_KALLSYMS_ALL=y`
 > 3. 部分内核 `4.19` 以下源码还需要从 `4.19` 向后移植头文件 `set_memory.h`
 
+## 如何进行系统更新保留 ROOT
 
-## 如何进行系统更新保留ROOT
-- OTA后先不要重启，进入管理器刷写/修补内核界面，找到 `GKI/non_GKI安装` 选择需要刷写的Anykernel3内核压缩文件，选择与现在系统运行槽位相反的槽位进行刷写并重启即可保留GKI模式更新（暂不支持所有非GKI设备使用这种方法，请自行尝试。非GKI设备使用TWRP刷写是最稳妥的）
-- 或者使用LKM模式的安装到未使用的槽位（OTA后）
+- OTA 后先不要重启，进入管理器刷写/修补内核界面，找到 `GKI/non_GKI安装` 选择需要刷写的 Anykernel3 内核压缩文件，选择与现在系统运行槽位相反的槽位进行刷写并重启即可保留 GKI 模式更新（暂不支持所有非 GKI 设备使用这种方法，请自行尝试。非 GKI 设备使用 TWRP 刷写是最稳妥的）
+- 或者使用 LKM 模式的安装到未使用的槽位（OTA 后）
 
 ## 兼容状态
+
 - KernelSU（v1.0.0 之前版本）正式支持 Android GKI 2.0 设备（内核 5.10+）
 
 - 旧内核（4.4+）也兼容，但必须手动构建内核
@@ -80,7 +85,8 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 **如果你需要为管理器提交翻译请前往** https://crowdin.com/project/SukiSU-Ultra
 
 基于 SukiSU 和 susfs 编译的项目
-- [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
+
+- [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS)
 - [一加](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
 ## 使用方法
@@ -90,16 +96,17 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 请**全部**参考 https://kernelsu.org/zh_CN/guide/installation.html
 
 > [!Note]
+>
 > 1. 适用于如小米、红米、三星等的 GKI 2.0 的设备 (不包含魔改内核的厂商如魅族、一加、真我和 oppo)
-> 2. 找到[更多链接](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5)里的 GKI 构建的项目。找到设备内核版本。然后下载下来，用TWRP或者内核刷写工具刷入带 AnyKernel3 后缀的压缩包即可
+> 2. 找到[更多链接](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5)里的 GKI 构建的项目。找到设备内核版本。然后下载下来，用 TWRP 或者内核刷写工具刷入带 AnyKernel3 后缀的压缩包即可
 > 3. 一般不带后缀的 .zip 压缩包是未压缩的，gz 后缀的为天玑机型所使用的压缩方式
-
 
 ### 一加
 
 1.找到更多链接里的一加项目进行自行填写，然后云编译构建，最后刷入带 AnyKernel3 后缀的压缩包即可
 
 > [!Note]
+>
 > - 内核版本只需要填写前两位即可，如 5.10，5.15，6.1，6.6
 > - 处理器代号请自行搜索，一般为全英文不带数字的代号
 > - 分支和配置文件请自行到一加内核开源地址进行填写
@@ -116,9 +123,11 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 ## 许可证
 
 - `kernel` 目录下的文件是 [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)。
-- 除 `kernel` 目录外，所有其他部分均为 [GPL-3.0 或更高版本](https://www.gnu.org/licenses/gpl-3.0.html)。
+- 有动漫人物图片表情包的这些文件 `ic_launcher*` 的图像版权为[五十根大虾仁](https://space.bilibili.com/370927)所有，图像中的 Brand Intellectual Property 由[明风OuO](https://space.bilibili.com/274939213)所有，矢量化由 @MiRinChan 完成，在使用这些文件之前，除了必须遵守 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) 以外，还需要遵守向前两者索要使用这些艺术内容的授权。
+- 除了以上所述的文件或目录外，所有其他部分均为 [GPL-3.0 或更高版本](https://www.gnu.org/licenses/gpl-3.0.html)。
 
 ## 爱发电链接
+
 - https://afdian.com/a/shirkneko
 
 ## 赞助名单
@@ -135,7 +144,7 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 
 - [KernelSU](https://github.com/tiann/KernelSU)：原始项目
 - [MKSU](https://github.com/5ec1cff/KernelSU)：使用的项目
-- [RKSU](https://github.com/rsuntk/KernelsU)：使用该项目的 kernel 对非GKI设备重新进行支持
+- [RKSU](https://github.com/rsuntk/KernelsU)：使用该项目的 kernel 对非 GKI 设备重新进行支持
 - [susfs4ksu](https://gitlab.com/simonpunk/susfs4ksu)：使用的 susfs 文件系统
 - [kernel-assisted-superuser](https://git.zx2c4.com/kernel-assisted-superuser/about/)：KernelSU 的构想
 - [Magisk](https://github.com/topjohnwu/Magisk)：强大的 root 工具
