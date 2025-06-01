@@ -323,9 +323,6 @@
     <string name="susfs_disabled">SuSFS 未啟用</string>
     <string name="background_set_success">背景設置成功</string>
     <string name="background_removed">刪除背景</string>
-    <string name="icon_switch_title">備選圖示</string>
-    <string name="icon_switch_summary">將啟動器圖示變更為 KernelSU 圖示</string>
-    <string name="icon_switched">圖示已切換</string>
     <string name="root_require_for_install">需要root權限</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">顯示KPM功能</string>
