@@ -212,7 +212,7 @@
     <string name="color_pink">ピンク</string>
     <string name="color_gray">グレー</string>
     <string name="color_yellow">イエロー</string>
-    <string name="flash_option">ブラシの設定</string>
+    <string name="flash_option">フラッシュオプション</string>
     <string name="flash_option_tip">フラッシュするファイルを選択</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
     <string name="horizon_kernel_summary">AnyKernel3 カーネルファイルをフラッシュします</string>
@@ -328,10 +328,10 @@
     <string name="show_kpm_info">KPM 機能を表示</string>
     <string name="show_kpm_info_summary">KPM の情報と機能をホームとボトムバーに表示します (アプリを開き直す必要があります)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
-    <string name="engine_force_webuix">Force the use of WebUI X</string>
-    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
+    <string name="use_webuix">WebUI で使用するエンジン</string>
+    <string name="engine_auto_select">自動選択</string>
+    <string name="engine_force_webuix">WebUI X の使用を強制する</string>
+    <string name="engine_force_ksu">KSU WebUI の使用を強制する</string>
     <string name="use_webuix_eruda">WebUI に Eruda をインジェクトする</string>
     <string name="use_webuix_eruda_summary">デバッグを容易にするために WebUI X にデバッグコンソールを挿入します。Web デバッグが ON になっている必要があります。</string>
     <!-- DPI setting related strings -->
