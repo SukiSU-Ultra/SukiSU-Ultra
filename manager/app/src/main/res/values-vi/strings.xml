@@ -187,8 +187,8 @@
     <string name="selinux_disabled">Đang tắt</string>
     <string name="simple_mode">Chế độ đơn giản</string>
     <string name="simple_mode_summary">Ẩn các thẻ không cần thiết ở trang chủ</string>
-    <string name="hide_kernel_kernelsu_version">Ẩn phiên bản kernel</string>
-    <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản kernel ở trang chủ</string>
+    <string name="hide_kernel_kernelsu_version">Ẩn phiên bản Kernel</string>
+    <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản Kernel ở trang chủ</string>
     <string name="hide_other_info">Ẩn thông tin khác</string>
     <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các kpmodule ở trang chủ</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
