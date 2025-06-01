@@ -5,7 +5,7 @@
     <string name="home_click_to_install">Нажмите, чтобы установить</string>
     <string name="home_working">Работает</string>
     <string name="home_working_version">Версия: %d</string>
-    <string name="home_superuser_count">Суперпользователи: %d</string>
+    <string name="home_superuser_count">Рут-доступ: %d</string>
     <string name="home_module_count">Модули: %d</string>
     <string name="home_unsupported">Не поддерживается</string>
     <string name="home_unsupported_reason">Драйвера KernelSU не найдены в ядре, не то ядро?</string>
@@ -20,7 +20,7 @@
     <string name="selinux_status_enforcing">Принудительный</string>
     <string name="selinux_status_permissive">Разрешающий</string>
     <string name="selinux_status_unknown">Неизвестно</string>
-    <string name="superuser">Суперпользователь</string>
+    <string name="superuser">Рут-доступ</string>
     <string name="module_failed_to_enable">Не удалось включить модуль %s</string>
     <string name="module_failed_to_disable">Не удалось отключить модуль %s</string>
     <string name="module_empty">Нет установленных модулей</string>
@@ -123,7 +123,7 @@
 \n Используйте эту опцию только после завершения OTA.
 \n Продолжить?</string>
     <string name="install_next">Далее</string>
-    <string name="select_file_tip">%1$s образ раздела рекомендуется</string>
+    <string name="select_file_tip">Образ раздела %1$s рекомендуется</string>
     <string name="select_kmi">Выбрать KMI</string>
     <string name="settings_uninstall">Удалить</string>
     <string name="settings_uninstall_temporary">Удалить на время</string>
@@ -177,9 +177,9 @@
     <string name="settings_restore_default">По умолчанию</string>
     <string name="home_android_version">Версия Android</string>
     <string name="home_device_model">Модель устройства</string>
-    <string name="su_not_allowed">Предоставление %s суперпользователю не допускается</string>
+    <string name="su_not_allowed">Предоставление рут-доступа %s запрещено</string>
     <string name="settings_disable_su">Отключить совместимость su</string>
-    <string name="settings_disable_su_summary">Временно отключить все приложения от получения привилегий суперпользователя через su команду (запущенные процессы с рут доступом не будут затронуты).</string>
+    <string name="settings_disable_su_summary">Временно отключить все приложения от получения рут-доступа через su команду (запущенные процессы с рут доступом не будут затронуты).</string>
     <string name="using_mksu_manager">Вы используете менеджер SukiSU бета-версии</string>
     <string name="module_install_multiple_confirm">Вы уверены, что хотите установить выбранные модули %d?</string>
     <string name="module_install_multiple_confirm_with_names">Уверены, что хотите установить следующие %1$d модули? \n\n%2$s</string>
@@ -188,11 +188,11 @@
     <string name="selinux_enabled">Включено</string>
     <string name="selinux_disabled">Выключен</string>
     <string name="simple_mode">Режим простоты</string>
-    <string name="simple_mode_summary">Скрывает ненужные карты при включении</string>
+    <string name="simple_mode_summary">Скрывает ненужные карточки при включении</string>
     <string name="hide_kernel_kernelsu_version">Скрыть версию ядра</string>
     <string name="hide_kernel_kernelsu_version_summary">Скрыть версию ядра</string>
     <string name="hide_other_info">Скрыть другую информацию</string>
-    <string name="hide_other_info_summary">Скрывает информацию о количестве суперпользователей, модулей и KPM-модулей на домашней странице</string>
+    <string name="hide_other_info_summary">Скрывать информацию о количестве приложений с рут-доступом, модулей и KPM-модулей на домашней странице</string>
     <string name="hide_susfs_status">Скрыть статус SuSFS</string>
     <string name="hide_susfs_status_summary">Скрыть информацию о статусе SuSFS на главной странице</string>
     <string name="hide_link_card">Скрыть статус карточки ссылки</string>
@@ -202,8 +202,8 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="manual_hook">Подключено вручную</string>
-    <string name="dynamic_color_title">Динамический цвет</string>
-    <string name="dynamic_color_summary">Динамические цвета с использованием системных тем</string>
+    <string name="dynamic_color_title">Динамические цвета</string>
+    <string name="dynamic_color_summary">Использовать акцентные цвета системы</string>
     <string name="choose_theme_color">Выберите цвет темы</string>
     <string name="color_default">Синий</string>
     <string name="color_green">Зеленый</string>
@@ -214,7 +214,7 @@
     <string name="color_yellow">Желтый</string>
     <string name="flash_option">Параметры прошивки</string>
     <string name="flash_option_tip">Выберите файл для прошивки</string>
-    <string name="horizon_kernel">Install Anykernel3</string>
+    <string name="horizon_kernel">Установка AnyKernel3</string>
     <string name="horizon_kernel_summary">Файл ядра Flash AnyKernel3</string>
     <string name="root_required">Требуется root-права</string>
     <string name="copy_failed">Ошибка копирования файла</string>
@@ -234,8 +234,8 @@
     <string name="kpm_uninstall_success">Удаление завершено</string>
     <string name="kpm_uninstall_failed">Не удалось удалить</string>
     <string name="kpm_install">Установить</string>
-    <string name="kpm_install_success">Модуль kpm успешно загружен</string>
-    <string name="kpm_install_failed">Ошибка загрузки модуля kpm</string>
+    <string name="kpm_install_success">KPM модуль успешно загружен</string>
+    <string name="kpm_install_failed">Ошибка загрузки KPM модуля</string>
     <string name="kpm_args">Параметры</string>
     <string name="kpm_control">Выполнить</string>
     <string name="home_kpm_version">Версия KPM</string>
@@ -246,13 +246,13 @@
     <string name="kpm_control_failed">Провален</string>
     <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
     <string name="not_supported">Не поддерживается</string>
-    <string name="supported">Поддерживаемые</string>
-    <string name="home_kpm_module">"Количество KPM-модулей: %d "</string>
+    <string name="supported">Поддерживается</string>
+    <string name="home_kpm_module">"KPM-модули: %d "</string>
     <string name="kpm_invalid_file">Недопустимый файл KPM</string>
     <string name="kernel_patched">Ядро не изменено</string>
     <string name="kernel_not_enabled">Ядро не настроено</string>
-    <string name="custom_settings">Другие уровни доступа</string>
-    <string name="kpm_install_mode">KPM Install</string>
+    <string name="custom_settings">Настройки персонализации</string>
+    <string name="kpm_install_mode">Установка KPM</string>
     <string name="kpm_install_mode_load">Загрузить</string>
     <string name="kpm_install_mode_embed">Код для вставки</string>
     <string name="kpm_install_mode_description">Пожалуйста, выберите %1\$s режим установки модуля \n\nЗагрузить: Временно загрузить модуль \nВстроенный: Окончательно установить в систему</string>
@@ -261,7 +261,7 @@
     <string name="confirm_uninstall_title">Подтверждение удаления</string>
     <string name="confirm_uninstall_confirm">Удалить</string>
     <string name="confirm_uninstall_dismiss">Отмена</string>
-    <string name="theme_color">Цвет Темы</string>
+    <string name="theme_color">Цвет темы</string>
     <string name="invalid_file_type">Неверный тип файла! Пожалуйста, выберите .kpm файл.</string>
     <string name="confirm_uninstall_title_with_filename">Удалить</string>
     <string name="confirm_uninstall_content">Следующие KPM будут удалены: %s</string>
@@ -273,7 +273,7 @@
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">Мигание ядра</string>
     <string name="horizon_logs_label">Логи:</string>
-    <string name="horizon_flash_complete">Вспышка завершена</string>
+    <string name="horizon_flash_complete">Прошивка завершена</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Подготовка…</string>
     <string name="horizon_cleaning_files">Очистка файлов…</string>
@@ -297,7 +297,7 @@
     <string name="horizon_unknown_error">Неизвестная ошибка</string>
     <string name="flash_failed_message">Установка не выполнена</string>
     <!-- lkm/gki install -->
-    <string name="Lkm_install_methods">Ремонт/установка LKM</string>
+    <string name="Lkm_install_methods">Починить/установить LKM</string>
     <string name="GKI_install_methods">Прошить AnyKernel3</string>
     <string name="kernel_version_log">Ядро</string>
     <string name="tool_version_log">С помощью инструмента патрулирования：%1$s</string>
@@ -315,7 +315,7 @@
     <string name="selinux_disabled_toast">SELinux отключен</string>
     <string name="selinux_change_failed">Сбой изменения статуса SELinux</string>
     <string name="advanced_settings">Расширенные настройки</string>
-    <string name="appearance_settings">Настройка панели инструментов.</string>
+    <string name="appearance_settings">Настройки внешнего вида</string>
     <string name="back">Возвращение</string>
     <string name="expand">Будьте в полном шаге</string>
     <string name="collapse">Свернуть</string>
@@ -328,7 +328,7 @@
     <string name="show_kpm_info">Показать функцию KPM</string>
     <string name="show_kpm_info_summary">Отображение информации и функции KPM в домашней и нижней панели (необходимо переоткрыть приложение)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Выбрать движок WebUi</string>
+    <string name="use_webuix">Выбрать движок WebUI</string>
     <string name="engine_auto_select">Автовыбор</string>
     <string name="engine_force_webuix">WebUI X</string>
     <string name="engine_force_ksu">KSU WebUI</string>
@@ -346,13 +346,13 @@
     <string name="dpi_apply_settings">Применить настройки DPI</string>
     <string name="dpi_confirm_title">Подтвердите изменение DPI</string>
     <string name="dpi_confirm_message">Вы уверены, что хотите изменить DPI приложения с %1$d на %2$d?</string>
-    <string name="dpi_confirm_summary">Приложение должно быть перезапущено, чтобы применить новые настройки DPI, не влияет на системную строку состояния или другие приложения</string>
+    <string name="dpi_confirm_summary">Приложение нужно перезапустить, чтобы применить новые настройки DPI. Это не влияет на системную строку состояния или другие приложения</string>
     <string name="dpi_applied_success">DPI был установлен в %1$d, действующий после перезапуска приложения</string>
     <!-- Language settings related strings -->
     <string name="language_setting">Язык приложения</string>
     <string name="language_follow_system">Как в системе</string>
     <string name="language_changed">Язык изменён, перезапуск для применения изменений</string>
-    <string name="settings_card_dim">Корректировка \"Тьма Карты\"</string>
+    <string name="settings_card_dim">Настройка затемнения карточек</string>
     <!-- Super User Related -->
     <string name="scroll_to_top">Лучшие</string>
     <string name="scroll_to_bottom">Снизу</string>
