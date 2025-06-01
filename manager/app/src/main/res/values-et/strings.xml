@@ -245,7 +245,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
     <string name="not_supported">Unsupported</string>
     <string name="supported">Supported</string>
-    <string name="home_kpm_module">"Number of KPM modules: %d "</string>
+    <string name="home_kpm_module">"Number of KPMs: %d "</string>
     <string name="kpm_invalid_file">Invalid KPM file</string>
     <string name="kernel_patched">Kernel not patched</string>
     <string name="kernel_not_enabled">Kernel not configured</string>
