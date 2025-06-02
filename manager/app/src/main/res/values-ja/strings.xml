@@ -117,7 +117,7 @@
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
-    <string name="select_file">パッチを行うイメージを選択してください</string>
+    <string name="select_file">パッチを行うイメージを選択</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
     <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在非アクティブなスロットから起動します。
 \nこのオプションは、OTA が完了した後にのみ使用してください。
