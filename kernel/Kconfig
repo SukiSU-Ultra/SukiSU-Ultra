@@ -11,14 +11,14 @@ config KSU
 config KSU_DEBUG
 	bool "KernelSU debug mode"
 	depends on KSU
-	default n
+	default y
 	help
 	  Enable KernelSU debug mode.
 
 config KSU_ALLOWLIST_WORKAROUND
 	bool "KernelSU Session init keyring workaround"
 	depends on KSU
-	default n
+	default y
 	help
 	  Enable session keyring init workaround for problematic devices.
 	  Useful for situations where the SU allowlist is not kept after a reboot.
@@ -26,7 +26,7 @@ config KSU_ALLOWLIST_WORKAROUND
 config KSU_CMDLINE
 	bool "Enable KernelSU cmdline"
 	depends on KSU && KSU != m
-	default n
+	default y
 	help
 	  Enable a cmdline called kernelsu.enabled
 	  Value 1 means enabled, value 0 means disabled.
@@ -35,7 +35,7 @@ config KSU_MANUAL_HOOK
 	bool "Manual hooking GKI kernels without kprobes"
 	depends on KSU && KSU != m
 	default y if !KPROBES
-	default n
+	default y
 	help
 	  If enabled, Hook required KernelSU syscalls with manually-patched function.
 	  If disabled, Hook required KernelSU syscalls with Kernel-probe.
@@ -43,7 +43,7 @@ config KSU_MANUAL_HOOK
 config KPM
 	bool "Enable SukiSU KPM"
 	depends on KSU && 64BIT
-	default n
+	default y
 	help
 	  Enabling this option will activate the KPM feature of SukiSU.
 	  This option is suitable for scenarios where you need to force KPM to be enabled.
