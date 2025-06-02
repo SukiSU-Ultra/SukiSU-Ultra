@@ -313,12 +313,28 @@ fun MoreSettingsScreen(
     val onHideOtherInfoChange = { newValue: Boolean ->
         prefs.edit { putBoolean("is_hide_other_info", newValue) }
         isHideOtherInfo = newValue
+
+        val intent = Intent(context, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+
+        if (context is Activity) {
+            context.finish()
+        }
     }
 
     // 更新显示KPM开关状态
     val onShowKpmInfoChange = { newValue: Boolean ->
         prefs.edit { putBoolean("show_kpm_info", newValue) }
         isShowKpmInfo = newValue
+
+        val intent = Intent(context, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+
+        if (context is Activity) {
+            context.finish()
+        }
     }
 
     // 隐藏SuSFS状态开关状态
