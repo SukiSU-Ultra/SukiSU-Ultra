@@ -35,7 +35,7 @@
     <string name="settings">设置</string>
     <string name="reboot_userspace">软重启</string>
     <string name="reboot_recovery">重启到 Recovery</string>
-    <string name="reboot_bootloader">重启到 BootLoader</string>
+    <string name="reboot_bootloader">重启到 Bootloader</string>
     <string name="reboot_download">重启到 Download</string>
     <string name="reboot_edl">重启到 EDL</string>
     <string name="about">关于</string>
@@ -232,8 +232,8 @@
     <string name="kpm_uninstall_success">卸载成功</string>
     <string name="kpm_uninstall_failed">卸载失败</string>
     <string name="kpm_install">选择安装</string>
-    <string name="kpm_install_success">加载 kpm 模块成功</string>
-    <string name="kpm_install_failed">加载 kpm 模块失败</string>
+    <string name="kpm_install_success">加载 KPM 模块成功</string>
+    <string name="kpm_install_failed">加载 KPM 模块失败</string>
     <string name="kpm_args">参数</string>
     <string name="kpm_control">调参</string>
     <string name="home_kpm_version">KPM 版本</string>
@@ -245,7 +245,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未来将会成为一个相对独立的 KSU 分支，但是依然感谢官方 KernelSU 和 MKSU 等做出的贡献</string>
     <string name="not_supported">不支持</string>
     <string name="supported">支持</string>
-    <string name="home_kpm_module">"KPM 模块数：%d "</string>
+    <string name="home_kpm_module">"内核模块数：%d "</string>
     <string name="kpm_invalid_file">KPM 文件无效</string>
     <string name="kernel_patched">内核未进行补丁</string>
     <string name="kernel_not_enabled">内核未配置</string>
@@ -262,7 +262,7 @@
     <string name="theme_color">主题颜色</string>
     <string name="invalid_file_type">文件类型不正确，请选择 .kpm 文件</string>
     <string name="confirm_uninstall_title_with_filename">卸载</string>
-    <string name="confirm_uninstall_content">将卸载以下 kpm 模块：\n%s</string>
+    <string name="confirm_uninstall_content">将卸载以下 KPM 模块：\n%s</string>
     <string name="settings_susfs_toggle_summary">禁用由 KernelSU 创建的 kprobe 钩子，并使用非 kprobe 内联钩子代替，实现方式类似于不支持 kprobe 的非 GKI 内核。</string>
     <string name="image_editor_title">调整背景图片</string>
     <string name="image_editor_hint">使用双指缩放图片，单指拖动调整位置</string>
