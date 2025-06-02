@@ -69,7 +69,7 @@
     <string name="profile_capabilities">Возможности</string>
     <string name="profile_selinux_context">Контекст SELinux</string>
     <string name="profile_umount_modules">Размонтировать модули</string>
-    <string name="failed_to_update_app_profile">Не удалось обновить App Profile для %s</string>
+    <string name="failed_to_update_app_profile">Не удалось обновить профиль приложения для %s</string>
     <string name="require_kernel_version" formatted="false">Текущая версия KernelSU %d слишком низкая для правильной работы менеджера. Пожалуйста, обновите до версии %d или выше!</string>
     <string name="settings_umount_modules_default">Размонтировать модули по умолчанию</string>
     <string name="settings_umount_modules_default_summary">Глобальное значение по умолчанию для \"Размонтировать модули\" в профиле приложения. При включении будут удалены все модификации модулей в системе для приложений, у которых не задан профиль</string>
@@ -109,7 +109,7 @@
     <string name="app_profile_template_import_empty">Буфер обмена пуст!</string>
     <string name="module_changelog_failed">Не удалось получить список изменений: %s</string>
     <string name="settings_check_update">Проверка обновлений</string>
-    <string name="settings_check_update_summary">Автоматическая проверка обновлений при открытии приложения</string>
+    <string name="settings_check_update_summary">Автоматически проверять обновления при открытии приложения</string>
     <string name="grant_root_failed">Не удалось выдать root!</string>
     <string name="action">Действие</string>
     <string name="open">Открыть</string>
@@ -178,8 +178,8 @@
     <string name="home_android_version">Версия Android</string>
     <string name="home_device_model">Модель устройства</string>
     <string name="su_not_allowed">Предоставление рут-доступа %s запрещено</string>
-    <string name="settings_disable_su">Отключить совместимость su</string>
-    <string name="settings_disable_su_summary">Временно отключить все приложения от получения рут-доступа через su команду (запущенные процессы с рут доступом не будут затронуты).</string>
+    <string name="settings_disable_su">Отключить su совместимость</string>
+    <string name="settings_disable_su_summary">Временно отключить все приложения от получения рут-доступа через su команду (запущенные процессы с рут-доступом не будут затронуты).</string>
     <string name="using_mksu_manager">Вы используете менеджер SukiSU бета-версии</string>
     <string name="module_install_multiple_confirm">Вы уверены, что хотите установить выбранные модули %d?</string>
     <string name="module_install_multiple_confirm_with_names">Уверены, что хотите установить следующие %1$d модули? \n\n%2$s</string>
@@ -188,20 +188,20 @@
     <string name="selinux_enabled">Включено</string>
     <string name="selinux_disabled">Выключен</string>
     <string name="simple_mode">Режим простоты</string>
-    <string name="simple_mode_summary">Скрывает ненужные карточки при включении</string>
+    <string name="simple_mode_summary">Скрывать ненужные карточки при запуске</string>
     <string name="hide_kernel_kernelsu_version">Скрыть версию ядра</string>
-    <string name="hide_kernel_kernelsu_version_summary">Скрыть версию ядра</string>
+    <string name="hide_kernel_kernelsu_version_summary">Скрывать версию ядра на главной странице</string>
     <string name="hide_other_info">Скрыть другую информацию</string>
     <string name="hide_other_info_summary">Скрывать информацию о количестве приложений с рут-доступом, модулей и KPM-модулей на домашней странице</string>
     <string name="hide_susfs_status">Скрыть статус SuSFS</string>
     <string name="hide_susfs_status_summary">Скрыть информацию о статусе SuSFS на главной странице</string>
-    <string name="hide_link_card">Скрыть статус карточки ссылки</string>
-    <string name="hide_link_card_summary">Скрыть информацию о карте ссылки на главной странице</string>
+    <string name="hide_link_card">Скрыть карточки со ссылками</string>
+    <string name="hide_link_card_summary">Скрывать карточки со ссылками на главной странице</string>
     <string name="theme_mode">Тема</string>
-    <string name="theme_follow_system">Использовать системные настройки</string>
-    <string name="theme_light">Светлая</string>
-    <string name="theme_dark">Тёмная</string>
-    <string name="manual_hook">Подключено вручную</string>
+    <string name="theme_follow_system">как в системе</string>
+    <string name="theme_light">светлая</string>
+    <string name="theme_dark">тёмная</string>
+    <string name="manual_hook">Самопис. хуки</string>
     <string name="dynamic_color_title">Динамические цвета</string>
     <string name="dynamic_color_summary">Использовать акцентные цвета системы</string>
     <string name="choose_theme_color">Выберите цвет темы</string>
@@ -215,7 +215,7 @@
     <string name="flash_option">Параметры прошивки</string>
     <string name="flash_option_tip">Выберите файл для прошивки</string>
     <string name="horizon_kernel">Установка AnyKernel3</string>
-    <string name="horizon_kernel_summary">Файл ядра Flash AnyKernel3</string>
+    <string name="horizon_kernel_summary">Прошить файл ядра AnyKernel3</string>
     <string name="root_required">Требуется root-права</string>
     <string name="copy_failed">Ошибка копирования файла</string>
     <string name="reboot_complete_title">Скрабровка завершена</string>
@@ -314,8 +314,8 @@
     <string name="selinux_enabled_toast">SELinux включен</string>
     <string name="selinux_disabled_toast">SELinux отключен</string>
     <string name="selinux_change_failed">Сбой изменения статуса SELinux</string>
-    <string name="advanced_settings">Расширенные настройки</string>
-    <string name="appearance_settings">Настройки внешнего вида</string>
+    <string name="advanced_settings">Расширенные</string>
+    <string name="appearance_settings">Внешний вид</string>
     <string name="back">Возвращение</string>
     <string name="expand">Будьте в полном шаге</string>
     <string name="collapse">Свернуть</string>
@@ -323,15 +323,15 @@
     <string name="susfs_disabled">SuSFS выключен</string>
     <string name="background_set_success">Фон успешно установлен</string>
     <string name="background_removed">Удалить свой фон</string>
-    <string name="icon_switch_title">Alternate icon</string>
-    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
-    <string name="icon_switched">Icon switched</string>
+    <string name="icon_switch_title">Альт. иконка</string>
+    <string name="icon_switch_summary">Поменять иконку приложения на иконку KernelSU.</string>
+    <string name="icon_switched">Иконка поменяна</string>
     <string name="root_require_for_install">Требуется root-права</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Показать функцию KPM</string>
+    <string name="show_kpm_info">Показать статус KPM</string>
     <string name="show_kpm_info_summary">Отображение информации и функции KPM в домашней и нижней панели (необходимо переоткрыть приложение)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Выбрать движок WebUI</string>
+    <string name="use_webuix">Движок WebUI</string>
     <string name="engine_auto_select">Автовыбор</string>
     <string name="engine_force_webuix">WebUI X</string>
     <string name="engine_force_ksu">KSU WebUI</string>
@@ -353,7 +353,7 @@
     <string name="dpi_applied_success">DPI был установлен в %1$d, действующий после перезапуска приложения</string>
     <!-- Language settings related strings -->
     <string name="language_setting">Язык приложения</string>
-    <string name="language_follow_system">Как в системе</string>
+    <string name="language_follow_system">как в системе</string>
     <string name="language_changed">Язык изменён, перезапуск для применения изменений</string>
     <string name="settings_card_dim">Настройка затемнения карточек</string>
     <!-- Super User Related -->
