@@ -485,9 +485,12 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                     .fillMaxSize()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(
-                    top = 8.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
                     bottom = 16.dp
-                )
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 获取分组后的应用列表
                 val rootApps = viewModel.appList.filter { it.allowSu }
@@ -649,8 +652,6 @@ private fun AppItem(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
         elevation = getCardElevation(),
         modifier = Modifier
-            .padding(horizontal = 24.dp)
-            .padding(vertical = 2.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = { onLongClick() },
