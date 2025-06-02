@@ -68,11 +68,11 @@
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Bỏ gắn kết các module</string>
+    <string name="profile_umount_modules">Unmount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
-    <string name="settings_umount_modules_default">Bỏ gắn kết các module cho toàn hệ thống</string>
-    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Bỏ gắn kết các module\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
+    <string name="settings_umount_modules_default">Unmount modules theo mặc định</string>
+    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Unmount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
@@ -176,7 +176,7 @@
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
     <string name="su_not_allowed">Quyền SU cho %s chưa được cấp</string>
-    <string name="settings_disable_su">Vô hiệu hoá khả năng của lệnh SU</string>
+    <string name="settings_disable_su">Vô hiệu hoá lệnh SU</string>
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
     <string name="using_mksu_manager">Bạn đang sử dụng trình quản lý SukiSU Beta</string>
     <string name="module_install_multiple_confirm">Bạn có chắc muốn cài đặt các module %d đã chọn không?</string>
@@ -190,7 +190,7 @@
     <string name="hide_kernel_kernelsu_version">Ẩn phiên bản Kernel</string>
     <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản Kernel ở trang chủ</string>
     <string name="hide_other_info">Ẩn thông tin khác</string>
-    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ứng dụng đã được cấp quyền root, các module và các kpmodule ở trang chủ</string>
+    <string name="hide_other_info_summary">Ẩn thông tin về số lượng ở các mục Superuser, Module và KPModule trên thanh điều hướng</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
     <string name="hide_link_card">Ẩn trạng thái thẻ liên kết</string>
@@ -232,8 +232,8 @@
     <string name="kpm_uninstall_success">Gỡ cài đặt thành công</string>
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
     <string name="kpm_install">Cài đặt</string>
-    <string name="kpm_install_success">Load kpmodule thành công</string>
-    <string name="kpm_install_failed">Load kpmodule thất bại</string>
+    <string name="kpm_install_success">Load KPModule thành công</string>
+    <string name="kpm_install_failed">Load KPModule thất bại</string>
     <string name="kpm_args">Thông số</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
@@ -251,7 +251,7 @@
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
     <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>
-    <string name="kpm_install_mode_load">Tải</string>
+    <string name="kpm_install_mode_load">Load</string>
     <string name="kpm_install_mode_embed">Nhúng</string>
     <string name="kpm_install_mode_description">Vui lòng chọn: %1\$s Chế Độ Cài Đặt Module \n\nTải: Tải tạm thời module \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
     <string name="log_failed_to_check_module_file">Kiểm tra file module thất bại</string>
@@ -266,7 +266,7 @@
     <string name="settings_susfs_toggle_summary">Vô hiệu hóa các hook kprobe được tạo bởi SukiSU Ultra, thay vào đó sử dụng các hook nội tuyến, tương tự như phương pháp hook kernel không phải GKI</string>
     <string name="image_editor_title">Điều chỉnh hình nền</string>
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay để kéo nó để điều chỉnh vị trí</string>
-    <string name="background_image_error">Không thể tải hình ảnh</string>
+    <string name="background_image_error">Không thể load hình ảnh</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">Kernel Flashing</string>
@@ -321,15 +321,15 @@
     <string name="susfs_disabled">SuSFS đã tắt</string>
     <string name="background_set_success">Đã cài đặt hình nền thành công</string>
     <string name="background_removed">Đã xóa hình nền tùy chỉnh</string>
-    <string name="icon_switch_title">Alternate icon</string>
-    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
-    <string name="icon_switched">Icon switched</string>
+    <string name="icon_switch_title">Thay thế icon</string>
+    <string name="icon_switch_summary">Đổi icon SukiSU thành icon của KernelSU</string>
+    <string name="icon_switched">Đã thay đổi icon</string>
     <string name="root_require_for_install">Yêu cầu quyền root</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Hiển thị chức năng KPM</string>
-    <string name="show_kpm_info_summary">Hiển thị thông tin KPM, chức năng ở trang chủ và thanh dưới cùng (Cần khởi động lại ứng dụng)</string>
+    <string name="show_kpm_info_summary">Hiển thị các thông tin KPM ở trang chủ và thanh điều hướng (Cần khởi động lại ứng dụng)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Chọn công cụ WebUI để sử dụng</string>
+    <string name="use_webuix">Tuỳ chỉnh WebUI</string>
     <string name="engine_auto_select">Tự động chọn</string>
     <string name="engine_force_webuix">Sử dụng WebUI X</string>
     <string name="engine_force_ksu">Sử dụng KSU WebUI</string>
@@ -363,7 +363,7 @@
     <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa bỏ gắn kết các module</string>
+    <string name="profile_umount_modules_disable">Vô hiệu hóa unmount modules</string>
     <!-- Flash related -->
     <string name="error_code">Code lỗi</string>
     <string name="check_log">Vui lòng kiểm tra logs</string>
