@@ -323,6 +323,9 @@
     <string name="susfs_disabled">SuSFS désactivé</string>
     <string name="background_set_success">Fond d\'écran défini avec succès</string>
     <string name="background_removed">Fond d\'écran personnalisé supprimé</string>
+    <string name="icon_switch_title">Alternate icon</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Nécessite les privilèges root</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Afficher la fonction KPM</string>
