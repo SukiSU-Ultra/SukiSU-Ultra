@@ -323,6 +323,9 @@
     <string name="susfs_disabled">تم تعطيل SuSFS</string>
     <string name="background_set_success">تم تعيين الخلفية بنجاح</string>
     <string name="background_removed">إزالة خلفيات مخصصة</string>
+    <string name="icon_switch_title">Alternate icon</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">يتطلب امتيازات الجذر</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">عرض وظيفة KPM</string>
