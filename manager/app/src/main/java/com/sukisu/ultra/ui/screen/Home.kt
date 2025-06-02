@@ -354,7 +354,7 @@ private fun StatusCard(
                     }
                 }
                 .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             when {
                 systemStatus.ksuVersion != null -> {
@@ -366,8 +366,8 @@ private fun StatusCard(
 
                     val workingModeSurfaceText = when {
                         systemStatus.lkmMode == true -> "LKM"
-                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI-1.0"
-                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI-2.0"
+                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI 1.0"
+                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI 2.0"
                         else -> "N-GKI"
                     }
 
@@ -375,7 +375,11 @@ private fun StatusCard(
                         Icons.Outlined.TaskAlt,
                         contentDescription = stringResource(R.string.home_working),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(
+                                horizontal = 4.dp
+                            ),
                     )
 
                     Column(Modifier.padding(start = 20.dp)) {
@@ -386,6 +390,7 @@ private fun StatusCard(
                             Text(
                                 text = workingModeText,
                                 style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
                             )
 
                             Spacer(Modifier.width(8.dp))
@@ -399,7 +404,8 @@ private fun StatusCard(
                                 Text(
                                     text = workingModeSurfaceText,
                                     style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
 
@@ -418,7 +424,8 @@ private fun StatusCard(
                                         modifier = Modifier.padding(
                                             horizontal = 6.dp,
                                             vertical = 2.dp
-                                        )
+                                        ),
+                                        color = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
                             }
@@ -438,6 +445,7 @@ private fun StatusCard(
                             Text(
                                 text = stringResource(R.string.home_working_version, systemStatus.ksuVersion),
                                 style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary,
                             )
                         }
 
@@ -446,12 +454,14 @@ private fun StatusCard(
                             Text(
                                 text = stringResource(R.string.home_superuser_count, getSuperuserCount()),
                                 style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary,
                             )
 
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = stringResource(R.string.home_module_count, getModuleCount()),
                                 style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary,
                             )
 
                             val kpmVersion = getKpmVersion()
@@ -460,6 +470,7 @@ private fun StatusCard(
                                 Text(
                                     text = stringResource(R.string.home_kpm_module, getKpmModuleCount()),
                                     style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.secondary,
                                 )
                             }
                         }
@@ -471,19 +482,25 @@ private fun StatusCard(
                         Icons.Outlined.Warning,
                         contentDescription = stringResource(R.string.home_not_installed),
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(
+                                horizontal = 4.dp
+                            ),
                     )
 
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = stringResource(R.string.home_not_installed),
                             style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
                         )
 
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.home_click_to_install),
                             style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -493,19 +510,25 @@ private fun StatusCard(
                         Icons.Outlined.Block,
                         contentDescription = stringResource(R.string.home_unsupported),
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(
+                                horizontal = 4.dp
+                            ),
                     )
 
                     Column(Modifier.padding(start = 20.dp)) {
                         Text(
                             text = stringResource(R.string.home_unsupported),
                             style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
                         )
 
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.home_unsupported_reason),
                             style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -667,7 +690,7 @@ private fun InfoCard(
                 icon: ImageVector = Icons.Default.Info
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
@@ -675,7 +698,9 @@ private fun InfoCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = label,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(vertical = 4.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(modifier = Modifier.width(16.dp))

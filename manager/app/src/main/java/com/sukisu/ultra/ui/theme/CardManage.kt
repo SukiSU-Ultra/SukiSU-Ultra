@@ -18,7 +18,7 @@ object CardConfig {
     // 卡片亮度
     var cardDim by mutableFloatStateOf(0f)
     // 卡片阴影
-    var cardElevation by mutableStateOf(4.dp)
+    var cardElevation by mutableStateOf(0.dp)
     var isShadowEnabled by mutableStateOf(true)
     var isCustomAlphaSet by mutableStateOf(false)
     var isCustomDimSet by mutableStateOf(false)
@@ -65,13 +65,7 @@ object CardConfig {
      */
     fun updateShadowEnabled(enabled: Boolean) {
         isShadowEnabled = enabled
-        cardElevation = if (isCustomBackgroundEnabled) {
-            0.dp
-        } else if (enabled) {
-            4.dp
-        } else {
-            0.dp
-        }
+        cardElevation = 0.dp
     }
 
     /**
@@ -103,11 +97,11 @@ fun getCardColors(originalColor: Color) = CardDefaults.cardColors(
 @Composable
 fun getCardElevation() = CardDefaults.cardElevation(
     defaultElevation = CardConfig.cardElevation,
-    pressedElevation = if (CardConfig.isCustomBackgroundEnabled) 0.dp else 8.dp,
-    focusedElevation = if (CardConfig.isCustomBackgroundEnabled) 0.dp else 6.dp,
-    hoveredElevation = if (CardConfig.isCustomBackgroundEnabled) 0.dp else 4.dp,
-    draggedElevation = if (CardConfig.isCustomBackgroundEnabled) 0.dp else 8.dp,
-    disabledElevation = 0.dp
+    pressedElevation = CardConfig.cardElevation,
+    focusedElevation = CardConfig.cardElevation,
+    hoveredElevation = CardConfig.cardElevation,
+    draggedElevation = CardConfig.cardElevation,
+    disabledElevation = CardConfig.cardElevation
 )
 
 /**

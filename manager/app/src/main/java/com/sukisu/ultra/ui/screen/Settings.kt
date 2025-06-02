@@ -85,6 +85,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     }
 
     Scaffold(
+        // containerColor = MaterialTheme.colorScheme.surfaceBright,
         topBar = {
             TopBar(scrollBehavior = scrollBehavior)
         },
@@ -351,7 +352,7 @@ private fun SettingsGroupCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = getCardElevation()
     ) {
         Column(
@@ -360,7 +361,8 @@ private fun SettingsGroupCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM)
+                modifier = Modifier.padding(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
+                color = MaterialTheme.colorScheme.primary
             )
             content()
         }
@@ -502,7 +504,7 @@ fun SettingItem(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = SPACING_LARGE, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             imageVector = icon,
@@ -548,7 +550,7 @@ fun SwitchItem(
             .fillMaxWidth()
             .clickable { onCheckedChange(!checked) }
             .padding(horizontal = SPACING_LARGE, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             imageVector = icon,

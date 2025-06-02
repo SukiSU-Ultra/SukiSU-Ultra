@@ -294,8 +294,8 @@ private fun createDynamicDarkColorScheme(context: Context): ColorScheme {
     return scheme.copy(
         background = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.background,
         surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.surface,
-        onBackground = Color.White,
-        onSurface = Color.White
+        onBackground = scheme.onBackground,
+        onSurface = scheme.onSurface
     )
 }
 
@@ -308,7 +308,9 @@ private fun createDynamicLightColorScheme(context: Context): ColorScheme {
     val scheme = dynamicLightColorScheme(context)
     return scheme.copy(
         background = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.background,
-        surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.surface
+        surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.surface,
+        onBackground = scheme.onBackground,
+        onSurface = scheme.onSurface
     )
 }
 

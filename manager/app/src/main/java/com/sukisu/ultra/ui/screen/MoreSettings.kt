@@ -88,6 +88,7 @@ import com.sukisu.ultra.ui.theme.getCardElevation
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.unit.sp
 
 /**
  * @author ShirkNeko
@@ -1245,10 +1246,10 @@ fun SettingItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (subtitle != null) SETTINGS_ITEM_HEIGHT + 12.dp else SETTINGS_ITEM_HEIGHT)
+//            .height(if (subtitle != null) SETTINGS_ITEM_HEIGHT + 12.dp else SETTINGS_ITEM_HEIGHT)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             imageVector = icon,
@@ -1296,10 +1297,10 @@ fun SwitchSettingItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (summary != null) SETTINGS_ITEM_HEIGHT + 12.dp else SETTINGS_ITEM_HEIGHT)
+//            .height(if (summary != null) SETTINGS_ITEM_HEIGHT + 12.dp else SETTINGS_ITEM_HEIGHT)
             .clickable { onChange(!checked) }
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             imageVector = icon,
@@ -1317,8 +1318,9 @@ fun SwitchSettingItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                lineHeight = 20.sp,
+//                maxLines = 1,
+//                overflow = TextOverflow.Ellipsis
             )
             if (summary != null) {
                 Spacer(modifier = Modifier.height(2.dp))
@@ -1326,8 +1328,9 @@ fun SwitchSettingItem(
                     text = summary,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    lineHeight = 16.sp,
+//                    maxLines = 2,
+//                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
