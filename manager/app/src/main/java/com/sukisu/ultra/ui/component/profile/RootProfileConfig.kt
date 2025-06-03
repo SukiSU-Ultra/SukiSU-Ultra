@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -47,6 +48,8 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.profile.Capabilities
 import com.sukisu.ultra.profile.Groups
 import com.sukisu.ultra.ui.component.rememberCustomDialog
+import com.sukisu.ultra.ui.theme.CardConfig
+import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
 import com.sukisu.ultra.ui.util.isSepolicyValid
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -206,7 +209,7 @@ fun GroupsPanel(selected: List<Groups>, closeSelection: (selection: Set<Groups>)
         }
 
         val selection = HashSet(selected)
-        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        val backgroundColor = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh
 
         MaterialTheme(
             colorScheme = MaterialTheme.colorScheme.copy(
@@ -286,7 +289,7 @@ fun CapsPanel(
         }
 
         val selection = HashSet(selected)
-        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        val backgroundColor = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh
 
         MaterialTheme(
             colorScheme = MaterialTheme.colorScheme.copy(
@@ -441,7 +444,7 @@ private fun SELinuxPanel(
             )
         )
 
-        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        val backgroundColor = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh
 
         MaterialTheme(
             colorScheme = MaterialTheme.colorScheme.copy(

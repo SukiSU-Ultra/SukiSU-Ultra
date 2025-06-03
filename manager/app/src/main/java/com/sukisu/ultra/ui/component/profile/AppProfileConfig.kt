@@ -31,7 +31,6 @@ fun AppProfileConfig(
                 onValueChange = { onProfileChange(profile.copy(name = it)) }
             )
         }
-
         SwitchItem(
             title = stringResource(R.string.profile_umount_modules),
             summary = stringResource(R.string.profile_umount_modules_summary),

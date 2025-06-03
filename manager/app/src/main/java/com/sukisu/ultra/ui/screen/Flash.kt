@@ -201,13 +201,14 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
 
     val onBack: () -> Unit = {
         if (currentFlashingStatus.value != FlashingStatus.FLASHING) {
-            if (flashIt is FlashIt.FlashBoot) {
-                navigator.popBackStack()
+            if (flashIt is FlashIt.FlashModules) {
+                viewModel.markNeedRefresh()
+                viewModel.fetchModuleList()
+                navigator.navigate(ModuleScreenDestination)
             } else {
                 viewModel.markNeedRefresh()
                 viewModel.fetchModuleList()
-                navigator.navigate(ModuleScreenDestination) {
-                }
+                navigator.popBackStack()
             }
         }
     }
@@ -439,7 +440,12 @@ private fun TopBar(
     onSave: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val colorScheme = MaterialTheme.colorScheme
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
+        colorScheme.surfaceContainerLow
+    } else {
+        colorScheme.background
+    }
     val cardAlpha = CardConfig.cardAlpha
 
     val statusColor = when(status) {

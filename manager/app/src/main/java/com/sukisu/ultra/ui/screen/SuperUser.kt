@@ -3,7 +3,6 @@ package com.sukisu.ultra.ui.screen
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -22,14 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,11 +41,12 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.component.SearchAppBar
-import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.util.ModuleModify
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import com.dergoogler.mmrl.ui.component.LabelItem
-import com.dergoogler.mmrl.ui.component.LabelItemDefaults
+import com.sukisu.ultra.ui.theme.CardConfig
+import com.sukisu.ultra.ui.theme.getCardColors
+import com.sukisu.ultra.ui.theme.getCardElevation
 
 /**
  * @author ShirkNeko
@@ -137,7 +135,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     )
                                 },
                                 onClick = {
-                                    viewModel.showSystemApps = !viewModel.showSystemApps
+                                    viewModel.updateShowSystemApps(!viewModel.showSystemApps)
                                     showDropdown = false
                                 }
                             )
@@ -195,11 +193,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             viewModel.showBatchActions = false
                         },
                         modifier = Modifier.size(if (isCancelPressed) 56.dp else 40.dp),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         shape = CircleShape,
                         interactionSource = cancelInteractionSource,
-                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp),
+                        containerColor = Color.Gray
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -235,11 +232,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             }
                         },
                         modifier = Modifier.size(if (isUnauthorizePressed) 56.dp else 40.dp),
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
                         shape = CircleShape,
                         interactionSource = unauthorizeInteractionSource,
-                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp),
+                        containerColor = MaterialTheme.colorScheme.error
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -275,8 +271,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             }
                         },
                         modifier = Modifier.size(if (isAuthorizePressed) 56.dp else 40.dp),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         shape = CircleShape,
                         interactionSource = authorizeInteractionSource,
                         elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
@@ -325,8 +319,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                         }
                     },
                     modifier = Modifier.size(if (isUmountEnablePressed) 56.dp else 40.dp),
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     shape = CircleShape,
                     interactionSource = umountEnableInteractionSource,
                     elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
@@ -368,11 +360,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                         }
                     },
                     modifier = Modifier.size(if (isUmountDisablePressed) 56.dp else 40.dp),
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     shape = CircleShape,
                     interactionSource = umountDisableInteractionSource,
-                    elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                    elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp),
+                    containerColor = MaterialTheme.colorScheme.error
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -411,8 +402,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                         }
                     },
                     modifier = Modifier.size(if (isTopBtnPressed) 56.dp else 40.dp),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     shape = CircleShape,
                     interactionSource = topBtnInteractionSource,
                     elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
@@ -454,8 +443,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                         }
                     },
                     modifier = Modifier.size(if (isBottomBtnPressed) 56.dp else 40.dp),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     shape = CircleShape,
                     interactionSource = bottomBtnInteractionSource,
                     elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
@@ -498,9 +485,12 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                     .fillMaxSize()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(
-                    top = 8.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
                     bottom = 16.dp
-                )
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 获取分组后的应用列表
                 val rootApps = viewModel.appList.filter { it.allowSu }
@@ -509,10 +499,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
 
                 // 显示ROOT权限应用组
                 if (rootApps.isNotEmpty()) {
-                    item {
-                        GroupHeader(title = stringResource(R.string.apps_with_root))
-                    }
-
                     items(rootApps, key = { "root_" + it.packageName + it.uid }) { app ->
                         AppItem(
                             app = app,
@@ -548,10 +534,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
 
                 // 显示自定义配置应用组
                 if (customApps.isNotEmpty()) {
-                    item {
-                        GroupHeader(title = stringResource(R.string.apps_with_custom_profile))
-                    }
-
                     items(customApps, key = { "custom_" + it.packageName + it.uid }) { app ->
                         AppItem(
                             app = app,
@@ -587,10 +569,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
 
                 // 显示其他应用组
                 if (otherApps.isNotEmpty()) {
-                    item {
-                        GroupHeader(title = stringResource(R.string.other_apps))
-                    }
-
                     items(otherApps, key = { "other_" + it.packageName + it.uid }) { app ->
                         AppItem(
                             app = app,
@@ -638,7 +616,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Apps,
+                                    imageVector = Icons.Filled.Archive,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                                     modifier = Modifier
@@ -649,7 +627,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     text = stringResource(R.string.no_apps_found),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -660,26 +637,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     }
 }
 
-@Composable
-fun GroupHeader(title: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = title,
-            style = TextStyle(
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-        )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun AppItem(
     app: SuperUserViewModel.AppInfo,
@@ -690,37 +648,10 @@ private fun AppItem(
     onLongClick: () -> Unit,
     viewModel: SuperUserViewModel
 ) {
-    val cardAlpha = CardConfig.cardAlpha
-
-    val cardColor = if (app.allowSu)
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = cardAlpha)
-    else if (app.hasCustomProfile)
-        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
-    else
-        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = cardAlpha)
-
     Card(
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = getCardElevation(),
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .shadow(
-                elevation = 0.dp,
-                shape = MaterialTheme.shapes.medium,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            )
-            .then(
-                if (isSelected)
-                    Modifier.border(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = MaterialTheme.shapes.medium
-                    )
-                else
-                    Modifier
-            )
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = { onLongClick() },
@@ -754,17 +685,13 @@ private fun AppItem(
                 Text(
                     text = app.label,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
 
                 Text(
                     text = app.packageName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
 
                 FlowRow(
@@ -772,21 +699,13 @@ private fun AppItem(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (app.allowSu) {
-                        LabelItem(text = "ROOT",)
+                        LabelItem(text = "ROOT")
                     }
                     if (Natives.uidShouldUmount(app.uid)) {
-                        LabelItem(text = "UNMOUNT", style = LabelItemDefaults.style.copy(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
+                        LabelItem(text = "UNMOUNT")
                     }
                     if (app.hasCustomProfile) {
-                        LabelItem(text = "CUSTOM", style = LabelItemDefaults.style.copy(
-                            containerColor = MaterialTheme.colorScheme.onTertiary,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                            )
-                        )
+                        LabelItem(text = "CUSTOM")
                     }
                 }
             }
@@ -808,7 +727,6 @@ private fun AppItem(
                         Text(
                             text = if (app.allowSu) stringResource(R.string.authorized) else stringResource(R.string.unauthorized),
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (app.allowSu) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
@@ -817,18 +735,9 @@ private fun AppItem(
                         checked = app.allowSu,
                         onCheckedChange = onSwitchChange,
                         interactionSource = switchInteractionSource,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            checkedIconColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
                     )
                 }
             } else {
-                // 复选框交互源
                 val checkboxInteractionSource = remember { MutableInteractionSource() }
                 val isCheckboxPressed by checkboxInteractionSource.collectIsPressedAsState()
 
@@ -844,19 +753,13 @@ private fun AppItem(
                         Text(
                             text = if (isSelected) stringResource(R.string.selected) else stringResource(R.string.select),
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
-
                     Checkbox(
                         checked = isSelected,
                         onCheckedChange = { onToggleSelection() },
                         interactionSource = checkboxInteractionSource,
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.primary,
-                            uncheckedColor = MaterialTheme.colorScheme.outline
-                        )
                     )
                 }
             }
@@ -865,12 +768,12 @@ private fun AppItem(
 }
 
 @Composable
-fun LabelText(label: String, backgroundColor: Color) {
+fun LabelText(label: String) {
     Box(
         modifier = Modifier
             .padding(top = 2.dp, end = 2.dp)
             .background(
-                backgroundColor,
+                Color.Black,
                 shape = RoundedCornerShape(4.dp)
             )
             .clip(RoundedCornerShape(4.dp))
@@ -879,9 +782,8 @@ fun LabelText(label: String, backgroundColor: Color) {
             text = label,
             modifier = Modifier.padding(vertical = 2.dp, horizontal = 6.dp),
             style = TextStyle(
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = Color.White,
-                fontWeight = FontWeight.Medium
             )
         )
     }

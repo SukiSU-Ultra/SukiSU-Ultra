@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.component
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -10,12 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.theme.ThemeConfig
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.ui.draw.clip
@@ -32,13 +29,19 @@ fun SlotSelectionDialog(
     onDismiss: () -> Unit,
     onSlotSelected: (String) -> Unit
 ) {
-    val context = LocalContext.current
     var currentSlot by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var selectedSlot by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         try {
-            currentSlot = getCurrentSlot(context)
+            currentSlot = getCurrentSlot()
+            // 设置默认选择为当前槽位
+            selectedSlot = when (currentSlot) {
+                "a" -> "a"
+                "b" -> "b"
+                else -> null
+            }
             errorMessage = null
         } catch (e: Exception) {
             errorMessage = e.message
@@ -103,12 +106,12 @@ fun SlotSelectionDialog(
                         val slotOptions = listOf(
                             ListOption(
                                 titleText = stringResource(id = R.string.slot_a),
-                                subtitleText = if (currentSlot == "a" || currentSlot == "_a") stringResource(id = R.string.currently_selected) else null,
+                                subtitleText = null,
                                 icon = Icons.Filled.SdStorage
                             ),
                             ListOption(
                                 titleText = stringResource(id = R.string.slot_b),
-                                subtitleText = if (currentSlot == "b" || currentSlot == "_b") stringResource(id = R.string.currently_selected) else null,
+                                subtitleText = null,
                                 icon = Icons.Filled.SdStorage
                             )
                         )
@@ -124,19 +127,20 @@ fun SlotSelectionDialog(
                                         .fillMaxWidth()
                                         .clip(MaterialTheme.shapes.medium)
                                         .background(
-                                            color = if (option.subtitleText != null) {
+                                            color = if (selectedSlot == when(index) {
+                                                    0 -> "a"
+                                                    else -> "b"
+                                                }) {
                                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                                             } else {
                                                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                                             }
                                         )
                                         .clickable {
-                                            onSlotSelected(
-                                                when (index) {
-                                                    0 -> "a"
-                                                    else -> "b"
-                                                }
-                                            )
+                                            selectedSlot = when(index) {
+                                                0 -> "a"
+                                                else -> "b"
+                                            }
                                         }
                                         .padding(vertical = 12.dp, horizontal = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically
@@ -144,7 +148,10 @@ fun SlotSelectionDialog(
                                     Icon(
                                         imageVector = option.icon,
                                         contentDescription = null,
-                                        tint = if (option.subtitleText != null) {
+                                        tint = if (selectedSlot == when(index) {
+                                                0 -> "a"
+                                                else -> "b"
+                                            }) {
                                             MaterialTheme.colorScheme.onPrimary
                                         } else {
                                             MaterialTheme.colorScheme.primary
@@ -159,7 +166,10 @@ fun SlotSelectionDialog(
                                         Text(
                                             text = option.titleText,
                                             style = MaterialTheme.typography.titleMedium,
-                                            color = if (option.subtitleText != null) {
+                                            color = if (selectedSlot == when(index) {
+                                                    0 -> "a"
+                                                    else -> "b"
+                                                }) {
                                                 MaterialTheme.colorScheme.onPrimary
                                             } else {
                                                 MaterialTheme.colorScheme.primary
@@ -169,7 +179,10 @@ fun SlotSelectionDialog(
                                             Text(
                                                 text = it,
                                                 style = MaterialTheme.typography.bodyMedium,
-                                                color = if (true) {
+                                                color = if (selectedSlot == when(index) {
+                                                        0 -> "a"
+                                                        else -> "b"
+                                                    }) {
                                                     MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                                                 } else {
                                                     MaterialTheme.colorScheme.onSurfaceVariant
@@ -186,9 +199,10 @@ fun SlotSelectionDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        currentSlot?.let { onSlotSelected(it) }
+                        selectedSlot?.let { onSlotSelected(it) }
                         onDismiss()
-                    }
+                    },
+                    enabled = selectedSlot != null
                 ) {
                     Text(
                         text = stringResource(android.R.string.ok),
@@ -221,7 +235,7 @@ data class ListOption(
 )
 
 // Utility function to get current slot
-private fun getCurrentSlot(context: Context): String? {
+private fun getCurrentSlot(): String? {
     return runCommandGetOutput(true, "getprop ro.boot.slot_suffix")?.let {
         if (it.startsWith("_")) it.substring(1) else it
     }

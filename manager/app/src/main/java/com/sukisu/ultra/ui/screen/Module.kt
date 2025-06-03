@@ -23,9 +23,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.stringResource
@@ -74,6 +72,7 @@ import com.dergoogler.mmrl.platform.Platform
 import androidx.core.net.toUri
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
+import com.sukisu.ultra.ui.theme.getCardElevation
 
 /**
  * @author ShirkNeko
@@ -230,10 +229,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                     Checkbox(
                                         checked = viewModel.sortActionFirst,
                                         onCheckedChange = null,
-                                        colors = CheckboxDefaults.colors(
-                                            checkedColor = MaterialTheme.colorScheme.primary,
-                                            uncheckedColor = MaterialTheme.colorScheme.outline
-                                        )
                                     )
                                 },
                                 onClick = {
@@ -255,10 +250,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                     Checkbox(
                                         checked = viewModel.sortEnabledFirst,
                                         onCheckedChange = null,
-                                        colors = CheckboxDefaults.colors(
-                                            checkedColor = MaterialTheme.colorScheme.primary,
-                                            uncheckedColor = MaterialTheme.colorScheme.outline
-                                        )
                                     )
                                 },
                                 onClick = {
@@ -325,10 +316,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     text = {
                         Text(
                             text = moduleInstall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     },
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     expanded = true,
                 )
             }
@@ -353,7 +342,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         Icon(
                             imageVector = Icons.Outlined.Warning,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier
                                 .size(64.dp)
                                 .padding(bottom = 16.dp)
@@ -362,7 +350,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                             stringResource(R.string.module_magisk_conflict),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -640,7 +627,6 @@ private fun ModuleList(
                                     text = stringResource(R.string.module_empty),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -726,15 +712,7 @@ fun ModuleItem(
 ) {
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            )
+        elevation = getCardElevation(),
     ) {
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough
         val interactionSource = remember { MutableInteractionSource() }
@@ -777,7 +755,6 @@ fun ModuleItem(
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
                         textDecoration = textDecoration,
-                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
@@ -786,7 +763,6 @@ fun ModuleItem(
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                         textDecoration = textDecoration,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
@@ -795,7 +771,6 @@ fun ModuleItem(
                         lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
                         fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
                         textDecoration = textDecoration,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -810,14 +785,6 @@ fun ModuleItem(
                         checked = module.enabled,
                         onCheckedChange = onCheckChanged,
                         interactionSource = if (!module.hasWebUi) interactionSource else null,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            checkedIconColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
                     )
                 }
             }
@@ -833,7 +800,6 @@ fun ModuleItem(
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 4,
                 textDecoration = textDecoration,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -855,7 +821,6 @@ fun ModuleItem(
                             viewModel.markNeedRefresh()
                         },
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
@@ -872,7 +837,6 @@ fun ModuleItem(
                         onClick = { onClick(module) },
                         interactionSource = interactionSource,
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = ButtonDefaults.filledTonalButtonColors()
 
                     ) {
                         Icon(
@@ -892,7 +856,6 @@ fun ModuleItem(
                         onClick = { onUpdate(module) },
                         shape = ButtonDefaults.textShape,
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
@@ -906,8 +869,6 @@ fun ModuleItem(
                     modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                     onClick = { onUninstallClicked(module) },
                     contentPadding = ButtonDefaults.TextButtonContentPadding,
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = if (!module.remove) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer)
                 ) {
                     if (!module.remove) {
                         Icon(

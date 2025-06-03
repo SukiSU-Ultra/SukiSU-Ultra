@@ -28,7 +28,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 
 ## 如何集成 susfs
 
-1. 直接使用 susfs-stable 或者 susfs-dev 分支，不需要再集成 susfs
+1. 直接使用 susfs-stable 或者 susfs-dev 分支，不需要再集成 susfs (支持非 GKI 设备构建)
 
 ```
 curl -LSs "https://raw.githubusercontent.com/mihoy3rd/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-stable
@@ -120,10 +120,13 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 5. 更多自定义功能
 6. 对 KPM 内核模块的支持
 
+## 疑难解答
+1. 卸载 KernelSU 管理器设备卡死。→ 卸载包名为 com.sony.playmemories.mobile 的应用。
+
 ## 许可证
 
 - `kernel` 目录下的文件是 [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)。
-- 有动漫人物图片表情包的这些文件 `ic_launcher*` 的图像版权为[五十根大虾仁](https://space.bilibili.com/370927)所有，图像中的 Brand Intellectual Property 由[明风OuO](https://space.bilibili.com/274939213)所有，矢量化由 @MiRinChan 完成，在使用这些文件之前，除了必须遵守 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) 以外，还需要遵守向前两者索要使用这些艺术内容的授权。
+- 有动漫人物图片表情包的这些文件 `ic_launcher(?!.*alt.*).*` 的图像版权为[五十根大虾仁](https://space.bilibili.com/370927)所有，图像中的 Brand Intellectual Property 由[明风OuO](https://space.bilibili.com/274939213)所有，矢量化由 @MiRinChan 完成，在使用这些文件之前，除了必须遵守 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) 以外，还需要遵守向前两者索要使用这些艺术内容的授权。
 - 除了以上所述的文件或目录外，所有其他部分均为 [GPL-3.0 或更高版本](https://www.gnu.org/licenses/gpl-3.0.html)。
 
 ## 爱发电链接
@@ -137,8 +140,6 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 - [wswzgdg](https://github.com/wswzgdg) 非常感谢对此项目的支持
 - [yspbwx2010](https://github.com/yspbwx2010) 非常感谢
 - [DARKWWEE](https://github.com/DARKWWEE) 感谢老哥的 100 USDT
-
-如果以上名单没有你的名称，我会及时更新，再次感谢大家的支持
 
 ## 贡献
 

@@ -25,7 +25,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 
 ## 統合された susfs の使い方
 
-1. パッチを当てずに susfs-dev ブランチを直接使用してください。
+1. パッチを当てずに susfs-dev ブランチを直接使用してください (非GKIデバイスビルドをサポート)
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 ```
@@ -108,10 +108,14 @@ https://kernelsu.org/zh_CN/guide/installation.html をご参照ください。
 5. その他のカスタマイズ
 6. KPM カーネルモジュールに対応
 
+## トラブルシューティング
+
+1.KernelSU Managerのアンインストールができない。 →パッケージ名com.sony.playmemories.mobile.KernelSU Managerのアプリケーションをアンインストールする。
+
 ## ライセンス
 
 - `kernel` ディレクトリ以下のファイルは[GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)です。
-- アニメキャラクターの絵文字を含むファイル `ic_launcher*` の画像は[五十根大虾仁](https://space.bilibili.com/370927)が著作権を所有しており、画像内のブランド知的財産権は[明风OuO](https://space.bilibili.com/274939213)が所有しています。ベクトル化は @MiRinChan が行っています。これらのファイルを使用する前に、[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)に準拠することに加えて、これらの芸術コンテンツを使用するには、2人の著者の許可にも従う必要があります。
+- アニメキャラクターの絵文字を含むファイル `ic_launcher(?!.*alt.*).*` の画像は[五十根大虾仁](https://space.bilibili.com/370927)が著作権を所有しており、画像内のブランド知的財産権は[明风OuO](https://space.bilibili.com/274939213)が所有しています。ベクトル化は @MiRinChan が行っています。これらのファイルを使用する前に、[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)に準拠することに加えて、これらの芸術コンテンツを使用するには、2人の著者の許可にも従う必要があります。
 - 上記のファイルまたはディレクトリを除き、その他のすべての部分は[GPL-3.0以降](https://www.gnu.org/licenses/gpl-3.0.html)です。
 
 ## スポンサーシップの一覧
@@ -121,8 +125,6 @@ https://kernelsu.org/zh_CN/guide/installation.html をご参照ください。
 - [wswzgdg](https://github.com/wswzgdg) このプロジェクトを支援していただき、ありがとうございます。
 - [yspbwx2010](https://github.com/yspbwx2010) どうもありがとう。
 - [DARKWWEE](https://github.com/DARKWWEE) ラオウ100USDTありがとう！
-
-上記の一覧にあなたの名前がない場合は、できるだけ早急に更新しますので再度ご支援をお願いします。
 
 ## 貢献者
 

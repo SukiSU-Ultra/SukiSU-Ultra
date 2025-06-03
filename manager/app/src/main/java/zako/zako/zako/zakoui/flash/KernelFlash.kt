@@ -1,4 +1,4 @@
-package com.sukisu.ultra.flash
+package zako.zako.zako.zakoui.flash
 
 import android.app.Activity
 import android.content.Context

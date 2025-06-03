@@ -112,7 +112,6 @@ fun KpmScreen(
                 Text(
                     text = kpmInstallMode,
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
@@ -121,7 +120,6 @@ fun KpmScreen(
                         Text(
                             text = stringResource(R.string.kpm_install_mode_description, it),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -146,9 +144,6 @@ fun KpmScreen(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Download,
@@ -176,9 +171,6 @@ fun KpmScreen(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary
-                            )
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Inventory,
@@ -209,7 +201,6 @@ fun KpmScreen(
                     }
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = MaterialTheme.shapes.extraLarge
         )
     }
@@ -309,10 +300,8 @@ fun KpmScreen(
                 text = {
                     Text(
                         text = stringResource(R.string.kpm_install),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 expanded = true,
             )
         },
@@ -321,9 +310,6 @@ fun KpmScreen(
         Column(modifier = Modifier.padding(padding)) {
             if (!isNoticeClosed) {
                 Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -348,7 +334,6 @@ fun KpmScreen(
                             text = stringResource(R.string.kernel_module_notice),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
 
                         IconButton(
@@ -357,9 +342,6 @@ fun KpmScreen(
                                 sharedPreferences.edit { putBoolean("is_notice_closed", true) }
                             },
                             modifier = Modifier.size(24.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
@@ -391,7 +373,6 @@ fun KpmScreen(
                             stringResource(R.string.kpm_empty),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -585,7 +566,6 @@ private fun KpmModuleItem(
                 Text(
                     text = stringResource(R.string.kpm_control),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
@@ -595,20 +575,14 @@ private fun KpmModuleItem(
                     label = {
                         Text(
                             text = stringResource(R.string.kpm_args),
-                            color = MaterialTheme.colorScheme.primary
                         )
                     },
                     placeholder = {
                         Text(
                             text = module.args,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
                 )
             },
             confirmButton = {
@@ -627,7 +601,6 @@ private fun KpmModuleItem(
                 ) {
                     Text(
                         text = stringResource(R.string.confirm),
-                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             },
@@ -635,26 +608,16 @@ private fun KpmModuleItem(
                 TextButton(onClick = { viewModel.hideInputDialog() }) {
                     Text(
                         text = stringResource(R.string.cancel),
-                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = MaterialTheme.shapes.extraLarge
         )
     }
 
     Card(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            )
+        elevation = getCardElevation()
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -668,7 +631,6 @@ private fun KpmModuleItem(
                     Text(
                         text = module.name,
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -676,19 +638,16 @@ private fun KpmModuleItem(
                     Text(
                         text = "${stringResource(R.string.kpm_version)}: ${module.version}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = "${stringResource(R.string.kpm_author)}: ${module.author}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = "${stringResource(R.string.kpm_args)}: ${module.args}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -698,7 +657,6 @@ private fun KpmModuleItem(
             Text(
                 text = module.description,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -711,10 +669,6 @@ private fun KpmModuleItem(
                     onClick = { viewModel.showInputDialog(module.id) },
                     enabled = module.hasAction,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Settings,

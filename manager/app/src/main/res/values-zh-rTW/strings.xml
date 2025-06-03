@@ -302,7 +302,6 @@
     <string name="configuration">Configure</string>
     <string name="app_settings">Application Settings</string>
     <string name="tools">Tools</string>
-    <string name="currently_selected">Currently</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Removals</string>
     <string name="apps_with_root">Applications with root privileges</string>
@@ -321,6 +320,9 @@
     <string name="susfs_disabled">SuSFS disabled</string>
     <string name="background_set_success">Background set successfully</string>
     <string name="background_removed">Removed custom backgrounds</string>
+    <string name="icon_switch_title">備選圖示</string>
+    <string name="icon_switch_summary">將啟動器圖示變更為 KernelSU 圖示</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Requires root privileges</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Display KPM Function</string>

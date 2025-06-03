@@ -12,9 +12,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -55,7 +53,6 @@ import kotlinx.coroutines.withContext
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.*
 import com.sukisu.ultra.ui.component.*
 import com.sukisu.ultra.ui.theme.*
 import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
@@ -69,6 +66,10 @@ import com.sukisu.ultra.ui.component.KsuIsValid
  * @author ShirkNeko
  * @date 2025/5/31.
  */
+private val SPACING_SMALL = 3.dp
+private val SPACING_MEDIUM = 8.dp
+private val SPACING_LARGE = 16.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
@@ -84,10 +85,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     }
 
     Scaffold(
+        // containerColor = MaterialTheme.colorScheme.surfaceBright,
         topBar = {
-            TopBar(
-                scrollBehavior = scrollBehavior
-            )
+            TopBar(scrollBehavior = scrollBehavior)
         },
         snackbarHost = { SnackbarHost(snackBarHost) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
@@ -121,31 +121,16 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // 配置
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = stringResource(R.string.configuration),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
+            // 配置卡片
+            SettingsGroupCard(
+                title = stringResource(R.string.configuration),
+                content = {
                     // 配置文件模板入口
-                    val profileTemplate = stringResource(id = R.string.settings_profile_template)
                     KsuIsValid {
                         SettingItem(
                             icon = Icons.Filled.Fence,
-                            title = profileTemplate,
-                            summary = stringResource(id = R.string.settings_profile_template_summary),
+                            title = stringResource(R.string.settings_profile_template),
+                            summary = stringResource(R.string.settings_profile_template_summary),
                             onClick = {
                                 navigator.navigate(AppProfileTemplateScreenDestination)
                             }
@@ -160,17 +145,18 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     KsuIsValid {
                         SwitchItem(
                             icon = Icons.Filled.FolderDelete,
-                            title = stringResource(id = R.string.settings_umount_modules_default),
-                            summary = stringResource(id = R.string.settings_umount_modules_default_summary),
-                            checked = umountChecked
-                        ) { enabled ->
-                            if (Natives.setDefaultUmountModules(enabled)) {
-                                umountChecked = enabled
+                            title = stringResource(R.string.settings_umount_modules_default),
+                            summary = stringResource(R.string.settings_umount_modules_default_summary),
+                            checked = umountChecked,
+                            onCheckedChange = { enabled ->
+                                if (Natives.setDefaultUmountModules(enabled)) {
+                                    umountChecked = enabled
+                                }
                             }
-                        }
+                        )
                     }
 
-                    // SU 禁用开关（仅在兼容版本显示）
+                    // SU 禁用开关
                     KsuIsValid {
                         if (Natives.version >= Natives.MINIMAL_SUPPORTED_SU_COMPAT) {
                             var isSuDisabled by rememberSaveable {
@@ -178,138 +164,70 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             }
                             SwitchItem(
                                 icon = Icons.Filled.RemoveModerator,
-                                title = stringResource(id = R.string.settings_disable_su),
-                                summary = stringResource(id = R.string.settings_disable_su_summary),
-                                checked = isSuDisabled
-                            ) { enabled ->
-                                val shouldEnable = !enabled
-                                if (Natives.setSuEnabled(shouldEnable)) {
-                                    isSuDisabled = enabled
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 应用设置
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = stringResource(R.string.app_settings),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
-                    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-
-                    // 更新检查开关
-                    var checkUpdate by rememberSaveable {
-                        mutableStateOf(
-                            prefs.getBoolean("check_update", true)
-                        )
-                    }
-                    SwitchItem(
-                        icon = Icons.Filled.Update,
-                        title = stringResource(id = R.string.settings_check_update),
-                        summary = stringResource(id = R.string.settings_check_update_summary),
-                        checked = checkUpdate
-                    ) { enabled ->
-                        prefs.edit { putBoolean("check_update", enabled) }
-                        checkUpdate = enabled
-                    }
-
-                    // WebUI引擎选择
-                    KsuIsValid {
-                        val engineOptions = listOf(
-                            "default" to stringResource(id = R.string.engine_auto_select),
-                            "wx" to stringResource(id = R.string.engine_force_webuix),
-                            "ksu" to stringResource(id = R.string.engine_force_ksu)
-                        )
-
-                        var showEngineDialog by remember { mutableStateOf(false) }
-
-                        SettingItem(
-                            icon = Icons.Filled.WebAsset,
-                            title = stringResource(id = R.string.use_webuix),
-                            summary = engineOptions.find { it.first == selectedEngine }?.second
-                                ?: stringResource(id = R.string.engine_auto_select),
-                            onClick = {
-                                showEngineDialog = true
-                            }
-                        )
-
-                        if (showEngineDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showEngineDialog = false },
-                                title = { Text(stringResource(id = R.string.use_webuix)) },
-                                text = {
-                                    Column {
-                                        engineOptions.forEach { (value, label) ->
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        selectedEngine = value
-                                                        prefs.edit {
-                                                            putString("webui_engine", value)
-                                                        }
-                                                        showEngineDialog = false
-                                                    }
-                                                    .padding(vertical = 12.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                RadioButton(
-                                                    selected = selectedEngine == value,
-                                                    onClick = null
-                                                )
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Text(text = label)
-                                            }
-                                        }
-                                    }
-                                },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = { showEngineDialog = false }
-                                    ) {
-                                        Text(stringResource(id = R.string.cancel))
+                                title = stringResource(R.string.settings_disable_su),
+                                summary = stringResource(R.string.settings_disable_su_summary),
+                                checked = isSuDisabled,
+                                onCheckedChange = { enabled ->
+                                    val shouldEnable = !enabled
+                                    if (Natives.setSuEnabled(shouldEnable)) {
+                                        isSuDisabled = enabled
                                     }
                                 }
                             )
                         }
                     }
+                }
+            )
+
+            // 应用设置卡片
+            SettingsGroupCard(
+                title = stringResource(R.string.app_settings),
+                content = {
+                    // 更新检查开关
+                    var checkUpdate by rememberSaveable {
+                        mutableStateOf(prefs.getBoolean("check_update", true))
+                    }
+                    SwitchItem(
+                        icon = Icons.Filled.Update,
+                        title = stringResource(R.string.settings_check_update),
+                        summary = stringResource(R.string.settings_check_update_summary),
+                        checked = checkUpdate,
+                        onCheckedChange = { enabled ->
+                            prefs.edit { putBoolean("check_update", enabled) }
+                            checkUpdate = enabled
+                        }
+                    )
+
+                    // WebUI引擎选择
+                    KsuIsValid {
+                        WebUIEngineSelector(
+                            selectedEngine = selectedEngine,
+                            onEngineSelected = { engine ->
+                                selectedEngine = engine
+                                prefs.edit { putString("webui_engine", engine) }
+                            }
+                        )
+                    }
 
                     // Web调试和Web X Eruda 开关
                     var enableWebDebugging by rememberSaveable {
-                        mutableStateOf(
-                            prefs.getBoolean("enable_web_debugging", false)
-                        )
+                        mutableStateOf(prefs.getBoolean("enable_web_debugging", false))
                     }
                     var useWebUIXEruda by rememberSaveable {
-                        mutableStateOf(
-                            prefs.getBoolean("use_webuix_eruda", false)
-                        )
+                        mutableStateOf(prefs.getBoolean("use_webuix_eruda", false))
                     }
+
                     KsuIsValid {
                         SwitchItem(
                             icon = Icons.Filled.DeveloperMode,
-                            title = stringResource(id = R.string.enable_web_debugging),
-                            summary = stringResource(id = R.string.enable_web_debugging_summary),
-                            checked = enableWebDebugging
-                        ) { enabled ->
-                            prefs.edit { putBoolean("enable_web_debugging", enabled) }
-                            enableWebDebugging = enabled
-                        }
+                            title = stringResource(R.string.enable_web_debugging),
+                            summary = stringResource(R.string.enable_web_debugging_summary),
+                            checked = enableWebDebugging,
+                            onCheckedChange = { enabled ->
+                                prefs.edit { putBoolean("enable_web_debugging", enabled) }
+                                enableWebDebugging = enabled
+                            }
+                        )
 
                         AnimatedVisibility(
                             visible = enableWebDebugging && selectedEngine == "wx",
@@ -318,116 +236,83 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         ) {
                             SwitchItem(
                                 icon = Icons.Filled.FormatListNumbered,
-                                title = stringResource(id = R.string.use_webuix_eruda),
-                                summary = stringResource(id = R.string.use_webuix_eruda_summary),
-                                checked = useWebUIXEruda
-                            ) { enabled ->
-                                prefs.edit { putBoolean("use_webuix_eruda", enabled) }
-                                useWebUIXEruda = enabled
-                            }
+                                title = stringResource(R.string.use_webuix_eruda),
+                                summary = stringResource(R.string.use_webuix_eruda_summary),
+                                checked = useWebUIXEruda,
+                                onCheckedChange = { enabled ->
+                                    prefs.edit { putBoolean("use_webuix_eruda", enabled) }
+                                    useWebUIXEruda = enabled
+                                }
+                            )
                         }
                     }
 
                     // 更多设置
                     SettingItem(
                         icon = Icons.Filled.Settings,
-                        title = stringResource(id = R.string.more_settings),
-                        summary = stringResource(id = R.string.more_settings),
+                        title = stringResource(R.string.more_settings),
+                        summary = stringResource(R.string.more_settings),
                         onClick = {
                             navigator.navigate(MoreSettingsScreenDestination)
                         }
                     )
                 }
-            }
+            )
 
-            // 工具
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = stringResource(R.string.tools),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
+            // 工具卡片
+            SettingsGroupCard(
+                title = stringResource(R.string.tools),
+                content = {
                     var showBottomsheet by remember { mutableStateOf(false) }
 
                     SettingItem(
                         icon = Icons.Filled.BugReport,
-                        title = stringResource(id = R.string.send_log),
+                        title = stringResource(R.string.send_log),
                         onClick = {
                             showBottomsheet = true
                         }
                     )
 
                     if (showBottomsheet) {
-                        ModalBottomSheet(
-                            onDismissRequest = { showBottomsheet = false },
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                LogActionButton(
-                                    icon = Icons.Filled.Save,
-                                    text = stringResource(R.string.save_log),
-                                    onClick = {
-                                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
-                                        val current = LocalDateTime.now().format(formatter)
-                                        exportBugreportLauncher.launch("KernelSU_bugreport_${current}.tar.gz")
-                                        showBottomsheet = false
-                                    }
-                                )
-
-                                LogActionButton(
-                                    icon = Icons.Filled.Share,
-                                    text = stringResource(R.string.send_log),
-                                    onClick = {
-                                        scope.launch {
-                                            val bugreport = loadingDialog.withLoading {
-                                                withContext(Dispatchers.IO) {
-                                                    getBugreportFile(context)
-                                                }
-                                            }
-
-                                            val uri: Uri =
-                                                FileProvider.getUriForFile(
-                                                    context,
-                                                    "${BuildConfig.APPLICATION_ID}.fileprovider",
-                                                    bugreport
-                                                )
-
-                                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                putExtra(Intent.EXTRA_STREAM, uri)
-                                                setDataAndType(uri, "application/gzip")
-                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                            }
-
-                                            context.startActivity(
-                                                Intent.createChooser(
-                                                    shareIntent,
-                                                    context.getString(R.string.send_log)
-                                                )
-                                            )
-
-                                            showBottomsheet = false
+                        LogBottomSheet(
+                            onDismiss = { showBottomsheet = false },
+                            onSaveLog = {
+                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
+                                val current = LocalDateTime.now().format(formatter)
+                                exportBugreportLauncher.launch("KernelSU_bugreport_${current}.tar.gz")
+                                showBottomsheet = false
+                            },
+                            onShareLog = {
+                                scope.launch {
+                                    val bugreport = loadingDialog.withLoading {
+                                        withContext(Dispatchers.IO) {
+                                            getBugreportFile(context)
                                         }
                                     }
-                                )
+
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${BuildConfig.APPLICATION_ID}.fileprovider",
+                                        bugreport
+                                    )
+
+                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                        putExtra(Intent.EXTRA_STREAM, uri)
+                                        setDataAndType(uri, "application/gzip")
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+
+                                    context.startActivity(
+                                        Intent.createChooser(
+                                            shareIntent,
+                                            context.getString(R.string.send_log)
+                                        )
+                                    )
+
+                                    showBottomsheet = false
+                                }
                             }
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
+                        )
                     }
 
                     val lkmMode = Natives.version >= Natives.MINIMAL_SUPPORTED_KERNEL_LKM && Natives.isLkmMode
@@ -437,26 +322,12 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         }
                     }
                 }
-            }
+            )
 
-            // 关于
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = stringResource(R.string.about),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
+            // 关于卡片
+            SettingsGroupCard(
+                title = stringResource(R.string.about),
+                content = {
                     SettingItem(
                         icon = Icons.Filled.Info,
                         title = stringResource(R.string.about),
@@ -465,10 +336,125 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         }
                     )
                 }
-            }
+            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SPACING_LARGE))
         }
+    }
+}
+
+@Composable
+private fun SettingsGroupCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = getCardElevation()
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = SPACING_MEDIUM)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
+                color = MaterialTheme.colorScheme.primary
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun WebUIEngineSelector(
+    selectedEngine: String,
+    onEngineSelected: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val engineOptions = listOf(
+        "default" to stringResource(R.string.engine_auto_select),
+        "wx" to stringResource(R.string.engine_force_webuix),
+        "ksu" to stringResource(R.string.engine_force_ksu)
+    )
+
+    SettingItem(
+        icon = Icons.Filled.WebAsset,
+        title = stringResource(R.string.use_webuix),
+        summary = engineOptions.find { it.first == selectedEngine }?.second
+            ?: stringResource(R.string.engine_auto_select),
+        onClick = { showDialog = true }
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.use_webuix)) },
+            text = {
+                Column {
+                    engineOptions.forEach { (value, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onEngineSelected(value)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedEngine == value,
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(SPACING_MEDIUM))
+                            Text(text = label)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LogBottomSheet(
+    onDismiss: () -> Unit,
+    onSaveLog: () -> Unit,
+    onShareLog: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(SPACING_LARGE),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            LogActionButton(
+                icon = Icons.Filled.Save,
+                text = stringResource(R.string.save_log),
+                onClick = onSaveLog
+            )
+
+            LogActionButton(
+                icon = Icons.Filled.Share,
+                text = stringResource(R.string.send_log),
+                onClick = onShareLog
+            )
+        }
+        Spacer(modifier = Modifier.height(SPACING_LARGE))
     }
 }
 
@@ -482,7 +468,7 @@ fun LogActionButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clickable(onClick = onClick)
-            .padding(8.dp)
+            .padding(SPACING_MEDIUM)
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -498,11 +484,10 @@ fun LogActionButton(
                 modifier = Modifier.size(24.dp)
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SPACING_MEDIUM))
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -518,29 +503,28 @@ fun SettingItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = SPACING_LARGE, vertical = 12.dp),
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
-                .padding(end = 16.dp)
+                .padding(end = SPACING_LARGE)
                 .size(24.dp)
         )
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.titleMedium
             )
             if (summary != null) {
+                Spacer(modifier = Modifier.height(SPACING_SMALL))
                 Text(
                     text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -549,6 +533,50 @@ fun SettingItem(
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun SwitchItem(
+    icon: ImageVector,
+    title: String,
+    summary: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = SPACING_LARGE, vertical = 12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(end = SPACING_LARGE)
+                .size(24.dp)
+        )
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+            if (summary != null) {
+                Spacer(modifier = Modifier.height(SPACING_SMALL))
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
         )
     }
 }
@@ -642,7 +670,6 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                 Text(
                     text = stringResource(R.string.settings_uninstall),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
@@ -656,10 +683,6 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                             MaterialTheme.colorScheme.primaryContainer
                         else
                             Color.Transparent
-                        val borderColor = if (isSelected)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            Color.Transparent
                         val contentColor = if (isSelected)
                             MaterialTheme.colorScheme.onPrimaryContainer
                         else
@@ -670,11 +693,6 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                                 .fillMaxWidth()
                                 .clip(MaterialTheme.shapes.medium)
                                 .background(backgroundColor)
-                                .border(
-                                    width = 1.dp,
-                                    color = borderColor,
-                                    shape = MaterialTheme.shapes.medium
-                                )
                                 .clickable {
                                     selectedOption = option
                                 }
@@ -684,10 +702,7 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                             Icon(
                                 imageVector = option.icon,
                                 contentDescription = null,
-                                tint = if (isSelected)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .padding(end = 16.dp)
                                     .size(24.dp)
@@ -698,7 +713,6 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                                 Text(
                                     text = listOptions[index].titleText,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = contentColor
                                 )
                                 listOptions[index].subtitleText?.let {
                                     Text(
@@ -737,12 +751,6 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                         dismiss()
                     },
                     enabled = selectedOption != null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 ) {
                     Text(
                         text = stringResource(android.R.string.ok)
@@ -757,11 +765,9 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                 ) {
                     Text(
                         text = stringResource(android.R.string.cancel),
-                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             },
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 4.dp
         )
@@ -773,14 +779,12 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val systemIsDark = isSystemInDarkTheme()
-    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
-    val cardAlpha = if (ThemeConfig.customBackgroundUri != null) {
-        cardAlpha
+    val colorScheme = MaterialTheme.colorScheme
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
+        colorScheme.surfaceContainerLow
     } else {
-        if (systemIsDark) 0.8f else 1f
+        colorScheme.background
     }
-
     TopAppBar(
         title = {
             Text(

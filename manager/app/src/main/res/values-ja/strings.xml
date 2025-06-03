@@ -117,7 +117,7 @@
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
-    <string name="select_file">パッチを行うイメージを選択してください</string>
+    <string name="select_file">パッチを行うイメージを選択</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
     <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在非アクティブなスロットから起動します。
 \nこのオプションは、OTA が完了した後にのみ使用してください。
@@ -192,7 +192,7 @@
     <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
     <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします</string>
     <string name="hide_other_info">その他の情報を非表示</string>
-    <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を非表示にします</string>
+    <string name="hide_other_info_summary">Hides Red dot about the number of super users, modules and KPM modules on the navigation bar page</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
@@ -212,7 +212,7 @@
     <string name="color_pink">ピンク</string>
     <string name="color_gray">グレー</string>
     <string name="color_yellow">イエロー</string>
-    <string name="flash_option">ブラシの設定</string>
+    <string name="flash_option">フラッシュオプション</string>
     <string name="flash_option_tip">フラッシュするファイルを選択</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
     <string name="horizon_kernel_summary">AnyKernel3 カーネルファイルをフラッシュします</string>
@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">オリジナルのスロットを取得</string>
     <string name="horizon_setting_target_slot">指定するスロットを設定</string>
     <string name="horizon_restoring_original_slot">デフォルトのスロットに復元</string>
-    <string name="current_slot">現在のスロット: %1$s </string>
+    <string name="current_slot">Current system default slot：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">コピーに失敗しました</string>
     <string name="horizon_unknown_error">不明なエラー</string>
@@ -304,7 +304,6 @@
     <string name="configuration">設定</string>
     <string name="app_settings">アプリの設定</string>
     <string name="tools">ツール</string>
-    <string name="currently_selected">現在</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">削除</string>
     <string name="apps_with_root">root アプリの権限</string>
@@ -323,15 +322,18 @@
     <string name="susfs_disabled">SuSFS 無効</string>
     <string name="background_set_success">背景の設定が成功しました</string>
     <string name="background_removed">カスタム背景を削除しました</string>
+    <string name="icon_switch_title">代替アイコン</string>
+    <string name="icon_switch_summary">ランチャーアイコンを KernelSU のアイコンに変更します</string>
+    <string name="icon_switched">アイコンを変更しました</string>
     <string name="root_require_for_install">root 権限が必要です</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">KPM 機能を表示</string>
-    <string name="show_kpm_info_summary">KPM の情報と機能をホームとボトムバーに表示します (アプリを開き直す必要があります)</string>
+    <string name="show_kpm_info">Hides KPM Function</string>
+    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
-    <string name="engine_force_webuix">Force the use of WebUI X</string>
-    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
+    <string name="use_webuix">WebUI で使用するエンジン</string>
+    <string name="engine_auto_select">自動選択</string>
+    <string name="engine_force_webuix">WebUI X の使用を強制する</string>
+    <string name="engine_force_ksu">KSU WebUI の使用を強制する</string>
     <string name="use_webuix_eruda">WebUI に Eruda をインジェクトする</string>
     <string name="use_webuix_eruda_summary">デバッグを容易にするために WebUI X にデバッグコンソールを挿入します。Web デバッグが ON になっている必要があります。</string>
     <!-- DPI setting related strings -->

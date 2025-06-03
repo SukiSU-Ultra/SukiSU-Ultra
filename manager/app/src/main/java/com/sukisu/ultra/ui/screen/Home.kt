@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.PowerManager
@@ -29,21 +28,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.SettingsSuggest
-import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Warning
@@ -63,7 +53,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,12 +64,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -98,13 +83,11 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
 import com.sukisu.ultra.ui.theme.CardConfig
+import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
 import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
 import com.sukisu.ultra.ui.theme.getCardColors
+import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.checkNewVersion
-import com.sukisu.ultra.ui.util.getKpmModuleCount
-import com.sukisu.ultra.ui.util.getKpmVersion
-import com.sukisu.ultra.ui.util.getModuleCount
-import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.reboot
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
@@ -143,8 +126,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     Scaffold(
         topBar = {
             TopBar(
-                kernelVersion = viewModel.systemStatus.kernelVersion,
-                onInstallClick = { navigator.navigate(InstallScreenDestination) },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -205,8 +186,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 InfoCard(
                     systemInfo = viewModel.systemInfo,
                     isSimpleMode = viewModel.isSimpleMode,
-                    isHideVersion = viewModel.isHideVersion,
-                    isHideOtherInfo = viewModel.isHideOtherInfo,
                     isHideSusfsStatus = viewModel.isHideSusfsStatus,
                     showKpmInfo = viewModel.showKpmInfo,
                     lkmMode = viewModel.systemStatus.lkmMode,
@@ -257,7 +236,7 @@ fun UpdateCard() {
         val updateDialog = rememberConfirmDialog(onConfirm = { uriHandler.openUri(newVersionUrl) })
         WarningCard(
             message = stringResource(id = R.string.new_version_available).format(newVersionCode),
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = MaterialTheme.colorScheme.outlineVariant,
             onClick = {
                 if (changelog.isEmpty()) {
                     uriHandler.openUri(newVersionUrl)
@@ -284,12 +263,14 @@ fun RebootDropdownItem(@StringRes id: Int, reason: String = "") {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
-    kernelVersion: KernelVersion,
-    onInstallClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
-    val cardAlpha = CardConfig.cardAlpha
+    val colorScheme = MaterialTheme.colorScheme
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
+        colorScheme.surfaceContainerLow
+    } else {
+        colorScheme.background
+    }
 
     TopAppBar(
         title = {
@@ -309,7 +290,7 @@ private fun TopBar(
                     showDropdown = true
                 }) {
                     Icon(
-                        imageVector = Icons.Filled.Refresh,
+                        imageVector = Icons.Filled.PowerSettingsNew,
                         contentDescription = stringResource(id = R.string.reboot)
                     )
 
@@ -342,16 +323,9 @@ private fun StatusCard(
     onClickInstall: () -> Unit = {}
 ) {
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f)
-            )
+        colors = getCardColors( if (systemStatus.ksuVersion != null)MaterialTheme.colorScheme.secondaryContainer
+        else MaterialTheme.colorScheme.errorContainer),
+        elevation = getCardElevation(),
     ) {
         Row(
             modifier = Modifier
@@ -374,8 +348,8 @@ private fun StatusCard(
 
                     val workingModeSurfaceText = when {
                         systemStatus.lkmMode == true -> "LKM"
-                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI-1.0"
-                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI-2.0"
+                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI 1.0"
+                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI 2.0"
                         else -> "N-GKI"
                     }
 
@@ -383,7 +357,11 @@ private fun StatusCard(
                         Icons.Outlined.TaskAlt,
                         contentDescription = stringResource(R.string.home_working),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(
+                                horizontal = 4.dp
+                            ),
                     )
 
                     Column(Modifier.padding(start = 20.dp)) {
@@ -394,7 +372,7 @@ private fun StatusCard(
                             Text(
                                 text = workingModeText,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.primary,
                             )
 
                             Spacer(Modifier.width(8.dp))
@@ -408,69 +386,43 @@ private fun StatusCard(
                                 Text(
                                     text = workingModeSurfaceText,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
 
                             Spacer(Modifier.width(6.dp))
 
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                            ) {
-                                Text(
-                                    text = Os.uname().machine,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
+                            // 架构标签
+                            if (Os.uname().machine != "aarch64") {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                ) {
+                                    Text(
+                                        text = Os.uname().machine,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(
+                                            horizontal = 6.dp,
+                                            vertical = 2.dp
+                                        ),
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
 
                         val isHideVersion = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
                             .getBoolean("is_hide_version", false)
 
-                        val isHideOtherInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                            .getBoolean("is_hide_other_info", false)
-
-                        val showKpmInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                            .getBoolean("show_kpm_info", true)
-
                         if (!isHideVersion) {
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = stringResource(R.string.home_working_version, systemStatus.ksuVersion),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.secondary,
                             )
-                        }
-
-                        if (!isHideOtherInfo) {
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.home_superuser_count, getSuperuserCount()),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.home_module_count, getModuleCount()),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            val kpmVersion = getKpmVersion()
-                            if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.home_kpm_module, getKpmModuleCount()),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
                         }
                     }
                 }
@@ -480,7 +432,11 @@ private fun StatusCard(
                         Icons.Outlined.Warning,
                         contentDescription = stringResource(R.string.home_not_installed),
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(
+                                horizontal = 4.dp
+                            ),
                     )
 
                     Column(Modifier.padding(start = 20.dp)) {
@@ -494,7 +450,7 @@ private fun StatusCard(
                         Text(
                             text = stringResource(R.string.home_click_to_install),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -504,7 +460,11 @@ private fun StatusCard(
                         Icons.Outlined.Block,
                         contentDescription = stringResource(R.string.home_unsupported),
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(
+                                horizontal = 4.dp
+                            ),
                     )
 
                     Column(Modifier.padding(start = 20.dp)) {
@@ -518,7 +478,7 @@ private fun StatusCard(
                         Text(
                             text = stringResource(R.string.home_unsupported_reason),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -535,14 +495,7 @@ fun WarningCard(
 ) {
     ElevatedCard(
         colors = getCardColors(color),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-            )
+        elevation = getCardElevation(),
     ) {
         Row(
             modifier = Modifier
@@ -554,7 +507,6 @@ fun WarningCard(
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }
@@ -567,16 +519,7 @@ fun ContributionCard() {
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f)
-            )
+        elevation = getCardElevation(),
     ) {
         Row(
             modifier = Modifier
@@ -592,14 +535,12 @@ fun ContributionCard() {
                 Text(
                     text = stringResource(R.string.home_ContributionCard_kernelsu),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_ContributionCard_kernelsu),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }
@@ -613,15 +554,7 @@ fun LearnMoreCard() {
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            )
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
     ) {
         Row(
             modifier = Modifier
@@ -636,14 +569,12 @@ fun LearnMoreCard() {
                 Text(
                     text = stringResource(R.string.home_learn_kernelsu),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_learn_kernelsu),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }
@@ -656,15 +587,7 @@ fun DonateCard() {
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
-            )
+        elevation = getCardElevation(),
     ) {
         Row(
             modifier = Modifier
@@ -679,14 +602,12 @@ fun DonateCard() {
                 Text(
                     text = stringResource(R.string.home_support_title),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_support_content),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }
@@ -697,23 +618,13 @@ fun DonateCard() {
 private fun InfoCard(
     systemInfo: HomeViewModel.SystemInfo,
     isSimpleMode: Boolean,
-    isHideVersion: Boolean,
-    isHideOtherInfo: Boolean,
     isHideSusfsStatus: Boolean,
     showKpmInfo: Boolean,
     lkmMode: Boolean?
 ) {
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .shadow(
-                elevation = cardElevation,
-                shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.05f)
-            )
+        elevation = getCardElevation(),
     ) {
         Column(
             modifier = Modifier
@@ -724,20 +635,23 @@ private fun InfoCard(
             fun InfoCardItem(
                 label: String,
                 content: String,
-                icon: ImageVector = Icons.Default.Info
+                icon: ImageVector? = null,
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    )
+                    if (icon != null) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = label,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .padding(vertical = 4.dp),
+                        )
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(
                         modifier = Modifier
@@ -747,12 +661,10 @@ private fun InfoCard(
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = content,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
                             softWrap = true
                         )
                     }
@@ -792,26 +704,24 @@ private fun InfoCard(
             )
 
             if (!isSimpleMode) {
-                if (lkmMode != true) {
-                    // 根据showKpmInfo决定是否显示KPM信息
-                    if (showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
-                        val displayVersion = if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
-                            val statusText = if (Natives.isKPMEnabled()) {
-                                stringResource(R.string.kernel_patched)
-                            } else {
-                                stringResource(R.string.kernel_not_enabled)
-                            }
-                            "${stringResource(R.string.not_supported)} ($statusText)"
+                // 根据showKpmInfo决定是否显示KPM信息
+                if (lkmMode != true && !showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
+                    val displayVersion = if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
+                        val statusText = if (Natives.isKPMEnabled()) {
+                            stringResource(R.string.kernel_patched)
                         } else {
-                            "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
+                            stringResource(R.string.kernel_not_enabled)
                         }
-
-                        InfoCardItem(
-                            stringResource(R.string.home_kpm_version),
-                            displayVersion,
-                            icon = Icons.Default.Archive
-                        )
+                        "${stringResource(R.string.not_supported)} ($statusText)"
+                    } else {
+                        "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
                     }
+
+                    InfoCardItem(
+                        stringResource(R.string.home_kpm_version),
+                        displayVersion,
+                        icon = Icons.Default.Archive
+                    )
                 }
             }
 
@@ -902,14 +812,5 @@ private fun WarningCardPreview() {
             message = "Warning message ",
             MaterialTheme.colorScheme.outlineVariant,
             onClick = {})
-    }
-}
-
-@SuppressLint("UnnecessaryComposedModifier")
-fun Modifier.disableOverscroll(): Modifier = composed {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        this
-    } else {
-        this
     }
 }

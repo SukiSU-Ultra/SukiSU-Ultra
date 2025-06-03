@@ -245,7 +245,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
     <string name="not_supported">Unsupported</string>
     <string name="supported">Supported</string>
-    <string name="home_kpm_module">"Number of KPM modules: %d "</string>
+    <string name="home_kpm_module">"Number of KPMs: %d "</string>
     <string name="kpm_invalid_file">Invalid KPM file</string>
     <string name="kernel_patched">Kernel not patched</string>
     <string name="kernel_not_enabled">Kernel not configured</string>
@@ -302,7 +302,6 @@
     <string name="configuration">Configure</string>
     <string name="app_settings">Application Settings</string>
     <string name="tools">Tools</string>
-    <string name="currently_selected">Currently</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Removals</string>
     <string name="apps_with_root">Applications with root privileges</string>
@@ -321,6 +320,9 @@
     <string name="susfs_disabled">SuSFS disabled</string>
     <string name="background_set_success">Background set successfully</string>
     <string name="background_removed">Removed custom backgrounds</string>
+    <string name="icon_switch_title">Alternate icon</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Requires root privileges</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Display KPM Function</string>

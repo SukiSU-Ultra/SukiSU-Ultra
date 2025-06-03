@@ -47,6 +47,7 @@ import com.sukisu.ultra.ui.util.saveTransformedBackground
 import androidx.activity.SystemBarStyle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 
@@ -150,9 +151,9 @@ fun KernelSUTheme(
     // 根据暗色模式和自定义背景调整卡片配置
     val isDarkModeWithCustomBackground = darkTheme && ThemeConfig.customBackgroundUri != null
     if (darkTheme && !dynamicColor) {
-        CardConfig.setDarkModeDefaults()
+        CardConfig.setThemeDefaults(true)
     } else if (!darkTheme && !dynamicColor) {
-        CardConfig.setLightModeDefaults()
+        CardConfig.setThemeDefaults(false)
     }
     CardConfig.updateShadowEnabled(!isDarkModeWithCustomBackground)
 
@@ -216,7 +217,8 @@ fun KernelSUTheme(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(-2f)
-                    .background(if (darkTheme) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainerLow)
+                    .background(if (darkTheme) if (CardConfig.isCustomBackgroundEnabled) { colorScheme.surfaceContainerLow } else { colorScheme.background }
+                    else if (CardConfig.isCustomBackgroundEnabled) { colorScheme.surfaceContainerLow } else { colorScheme.background })
             )
 
             // 自定义背景层
@@ -287,24 +289,32 @@ fun KernelSUTheme(
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
-private fun createDynamicDarkColorScheme(context: Context) =
-    dynamicDarkColorScheme(context).copy(
-        background = Color.Transparent,
-        surface = Color.Transparent,
-        onBackground = Color.White,
-        onSurface = Color.White
+private fun createDynamicDarkColorScheme(context: Context): ColorScheme {
+    val scheme = dynamicDarkColorScheme(context)
+    return scheme.copy(
+        background = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.background,
+        surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.surface,
+        onBackground = scheme.onBackground,
+        onSurface = scheme.onSurface
     )
+}
 
 /**
  * 创建动态浅色颜色方案
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
-private fun createDynamicLightColorScheme(context: Context) =
-    dynamicLightColorScheme(context).copy(
-        background = Color.Transparent,
-        surface = Color.Transparent
+private fun createDynamicLightColorScheme(context: Context): ColorScheme {
+    val scheme = dynamicLightColorScheme(context)
+    return scheme.copy(
+        background = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.background,
+        surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else scheme.surface,
+        onBackground = scheme.onBackground,
+        onSurface = scheme.onSurface
     )
+}
+
+
 
 /**
  * 创建深色颜色方案
@@ -327,9 +337,9 @@ private fun createDarkColorScheme() = darkColorScheme(
     onError = ThemeConfig.currentTheme.onErrorDark,
     errorContainer = ThemeConfig.currentTheme.errorContainerDark,
     onErrorContainer = ThemeConfig.currentTheme.onErrorContainerDark,
-    background = Color.Transparent,
+    background = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else ThemeConfig.currentTheme.backgroundDark,
     onBackground = ThemeConfig.currentTheme.onBackgroundDark,
-    surface = Color.Transparent,
+    surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else ThemeConfig.currentTheme.surfaceDark,
     onSurface = ThemeConfig.currentTheme.onSurfaceDark,
     surfaceVariant = ThemeConfig.currentTheme.surfaceVariantDark,
     onSurfaceVariant = ThemeConfig.currentTheme.onSurfaceVariantDark,
@@ -369,9 +379,9 @@ private fun createLightColorScheme() = lightColorScheme(
     onError = ThemeConfig.currentTheme.onErrorLight,
     errorContainer = ThemeConfig.currentTheme.errorContainerLight,
     onErrorContainer = ThemeConfig.currentTheme.onErrorContainerLight,
-    background = Color.Transparent,
+    background = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else ThemeConfig.currentTheme.backgroundLight,
     onBackground = ThemeConfig.currentTheme.onBackgroundLight,
-    surface = Color.Transparent,
+    surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else ThemeConfig.currentTheme.surfaceLight,
     onSurface = ThemeConfig.currentTheme.onSurfaceLight,
     surfaceVariant = ThemeConfig.currentTheme.surfaceVariantLight,
     onSurfaceVariant = ThemeConfig.currentTheme.onSurfaceVariantLight,
@@ -389,6 +399,7 @@ private fun createLightColorScheme() = lightColorScheme(
     surfaceContainerHigh = ThemeConfig.currentTheme.surfaceContainerHighLight,
     surfaceContainerHighest = ThemeConfig.currentTheme.surfaceContainerHighestLight,
 )
+
 
 /**
  * 复制图片到应用内部存储并提升持久性

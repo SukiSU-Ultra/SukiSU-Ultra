@@ -298,13 +298,12 @@
     <string name="flash_failed_message">Échec du flash</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Réparation/installation LKM</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">Flash du noyau…</string>
     <string name="kernel_version_log">Version du noyau：%1$s</string>
     <string name="tool_version_log">Utilisation de l\'outil de correctifs：%1$s</string>
     <string name="configuration">Configurer</string>
     <string name="app_settings">Paramètres de l\'application</string>
     <string name="tools">Outils</string>
-    <string name="currently_selected">Actuellement</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Suppressions</string>
     <string name="apps_with_root">Applications avec droits root</string>
@@ -323,15 +322,18 @@
     <string name="susfs_disabled">SuSFS désactivé</string>
     <string name="background_set_success">Fond d\'écran défini avec succès</string>
     <string name="background_removed">Fond d\'écran personnalisé supprimé</string>
+    <string name="icon_switch_title">Icône alternative</string>
+    <string name="icon_switch_summary">Changer l\'icône du lanceur en icône de KernelSU.</string>
+    <string name="icon_switched">Icône changée</string>
     <string name="root_require_for_install">Nécessite les privilèges root</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Afficher la fonction KPM</string>
-    <string name="show_kpm_info_summary">Afficher les informations et fonctions KPM dans la barre d\'accueil et du bas (nécessite de rouvrir l\'application)</string>
+    <string name="show_kpm_info_summary">Masque les informations et fonctions KPM dans la barre d\'accueil et en bas</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
-    <string name="engine_force_webuix">Force the use of WebUI X</string>
-    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
+    <string name="use_webuix">Sélectionnez le moteur WebUI à utiliser</string>
+    <string name="engine_auto_select">Sélectionner automatiquement</string>
+    <string name="engine_force_webuix">Forcer l\'utilisation de WebUI X</string>
+    <string name="engine_force_ksu">Utilisation obligatoire de KSU WebUI</string>
     <string name="use_webuix_eruda">Injecter Eruda dans WebUI X</string>
     <string name="use_webuix_eruda_summary">Injectez une console de débogage dans WebUI X pour faciliter le débogage. Nécessite que le débogage soit activé.</string>
     <!-- DPI setting related strings -->
@@ -369,5 +371,5 @@
     <string name="installing_module">Module en cours d\'installation %1$d/%2$d</string>
     <string name="module_failed_count">%d a échoué à installer un nouveau module</string>
     <string name="module_download_error">Le téléchargement du modèle a échoué</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="kernel_flashing">Clignotement du noyau</string>
 </resources>

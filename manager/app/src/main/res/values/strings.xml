@@ -192,7 +192,7 @@
     <string name="hide_kernel_kernelsu_version">Hide kernel version</string>
     <string name="hide_kernel_kernelsu_version_summary">Hide kernel version</string>
     <string name="hide_other_info">Hide other info</string>
-    <string name="hide_other_info_summary">Hides information about the number of super users, modules and KPM modules on the home page</string>
+    <string name="hide_other_info_summary">Hides Red dot about the number of super users, modules and KPM modules on the navigation bar page</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
     <string name="hide_link_card">Hide Link Card Status</string>
@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">Getting the original slot</string>
     <string name="horizon_setting_target_slot">Setting the specified slot</string>
     <string name="horizon_restoring_original_slot">Restore Default Slot</string>
-    <string name="current_slot">Current Slot：%1$s </string>
+    <string name="current_slot">Current system default slot：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Copy failed</string>
     <string name="horizon_unknown_error">Unknown error</string>
@@ -304,7 +304,6 @@
     <string name="configuration">Configure</string>
     <string name="app_settings">Application Settings</string>
     <string name="tools">Tools</string>
-    <string name="currently_selected">Currently</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Removals</string>
     <string name="apps_with_root">Applications with root privileges</string>
@@ -323,10 +322,13 @@
     <string name="susfs_disabled">SuSFS disabled</string>
     <string name="background_set_success">Background set successfully</string>
     <string name="background_removed">Removed custom backgrounds</string>
+    <string name="icon_switch_title">Alternate icon</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Requires root privileges</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Display KPM Function</string>
-    <string name="show_kpm_info_summary">Display KPM information and Function in home and bottom bar (Need to reopen the app)</string>
+    <string name="show_kpm_info">Hides KPM Function</string>
+    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Select the WebUI engine to use</string>
     <string name="engine_auto_select">Automatic Selection</string>

@@ -291,20 +291,19 @@
     <string name="horizon_getting_original_slot">الحصول على الفتحة الأصلية</string>
     <string name="horizon_setting_target_slot">تعيين الفتحة المحددة</string>
     <string name="horizon_restoring_original_slot">استعادة الخانة الافتراضية</string>
-    <string name="current_slot">خانة حالية：%1$s </string>
+    <string name="current_slot">فتحة النظام الحالية الافتراضية：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">فشل النسخ</string>
     <string name="horizon_unknown_error">خطأ غير معروف</string>
     <string name="flash_failed_message">فشل التركيب</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">إصلاح/تثبيت LKM</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">نواة رمادية</string>
     <string name="kernel_version_log">إصدار النواة：%1$s</string>
     <string name="tool_version_log">استخدام أداة التصحيح：%1$s</string>
     <string name="configuration">تعيين</string>
     <string name="app_settings">إعدادات التطبيق </string>
     <string name="tools">ادوات</string>
-    <string name="currently_selected">حالياً</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">إزالة</string>
     <string name="apps_with_root">التطبيقات مع امتيازات الجذر</string>
@@ -323,13 +322,16 @@
     <string name="susfs_disabled">تم تعطيل SuSFS</string>
     <string name="background_set_success">تم تعيين الخلفية بنجاح</string>
     <string name="background_removed">إزالة خلفيات مخصصة</string>
+    <string name="icon_switch_title">Alternate icon</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">يتطلب امتيازات الجذر</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">عرض وظيفة KPM</string>
-    <string name="show_kpm_info_summary">عرض معلومات KPM ووظيفتها في الشريط المنزلي والأسفل (تحتاج إلى إعادة فتح التطبيق)</string>
+    <string name="show_kpm_info_summary">إخفاء معلومات KPM ووظيفتها في الشريط المنزلي والأسفل</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="use_webuix">حدد محرك WebUI لاستخدامه</string>
+    <string name="engine_auto_select">اختيار تلقائي</string>
     <string name="engine_force_webuix">Force the use of WebUI X</string>
     <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">حقن Eruda في WebUI X</string>
@@ -369,5 +371,5 @@
     <string name="installing_module">تم تثبيت الوحدة %1$d/%2$d</string>
     <string name="module_failed_count">أخفق %d في تثبيت وحدة جديدة</string>
     <string name="module_download_error">فشل تحميل الوحدة</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="kernel_flashing">ضرب النواة</string>
 </resources>

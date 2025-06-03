@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -138,7 +137,7 @@ fun ImageEditorDialog(
                                         0f
                                     }
                                     updateTransformation(newScale, newOffsetX, newOffsetY)
-                                } catch (e: Exception) {
+                                } catch (_: Exception) {
                                     updateTransformation(lastScale, lastOffsetX, lastOffsetY)
                                 }
                             }
@@ -186,7 +185,7 @@ fun ImageEditorDialog(
                                 val transformation = BackgroundTransformation(scale, offsetX, offsetY)
                                 val savedUri = context.saveTransformedBackground(imageUri, transformation)
                                 savedUri?.let { onConfirm(it) }
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 ""
                             }
                         }

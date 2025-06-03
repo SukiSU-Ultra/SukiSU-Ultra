@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ui.screen
+package zako.zako.zako.zakoui.screen
 
 import android.net.Uri
 import android.os.Environment
@@ -29,8 +29,8 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.R
-import com.sukisu.ultra.flash.HorizonKernelState
-import com.sukisu.ultra.flash.HorizonKernelWorker
+import zako.zako.zako.zakoui.flash.HorizonKernelState
+import zako.zako.zako.zakoui.flash.HorizonKernelWorker
 import com.sukisu.ultra.ui.component.KeyEventBlocker
 import com.sukisu.ultra.ui.util.*
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +42,8 @@ import java.util.*
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import com.sukisu.ultra.ui.theme.CardConfig
+import zako.zako.zako.zakoui.flash.FlashState
+import kotlinx.coroutines.delay
 
 /**
  * @author ShirkNeko
@@ -117,7 +119,7 @@ fun KernelFlashScreen(
                         logContent.clear()
                         logContent.append(logText)
                     }
-                    kotlinx.coroutines.delay(100)
+                    delay(100)
                 }
 
                 if (flashState.error.isNotEmpty()) {
@@ -239,7 +241,7 @@ fun KernelFlashScreen(
 }
 
 @Composable
-private fun FlashProgressIndicator(flashState: com.sukisu.ultra.flash.FlashState) {
+private fun FlashProgressIndicator(flashState: FlashState) {
     val progressColor = when {
         flashState.error.isNotEmpty() -> MaterialTheme.colorScheme.error
         flashState.isCompleted -> MaterialTheme.colorScheme.tertiary
@@ -355,7 +357,7 @@ private fun FlashProgressIndicator(flashState: com.sukisu.ultra.flash.FlashState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
-    flashState: com.sukisu.ultra.flash.FlashState,
+    flashState: FlashState,
     onBack: () -> Unit,
     onSave: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
@@ -366,7 +368,12 @@ private fun TopBar(
         else -> MaterialTheme.colorScheme.primary
     }
 
-    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val colorScheme = MaterialTheme.colorScheme
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
+        colorScheme.surfaceContainerLow
+    } else {
+        colorScheme.background
+    }
     val cardAlpha = CardConfig.cardAlpha
 
     TopAppBar(

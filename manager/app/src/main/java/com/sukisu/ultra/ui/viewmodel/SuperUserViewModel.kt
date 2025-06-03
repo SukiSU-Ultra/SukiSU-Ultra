@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.viewmodel
 
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.os.Parcelable
@@ -24,6 +25,7 @@ import com.dergoogler.mmrl.platform.TIMEOUT_MILLIS
 import com.sukisu.ultra.ui.webui.getInstalledPackagesAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
+import androidx.core.content.edit
 
 
 /**
@@ -62,9 +64,11 @@ class SuperUserViewModel : ViewModel() {
                 }
             }
     }
+    private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)!!
 
     var search by mutableStateOf("")
-    var showSystemApps by mutableStateOf(false)
+    var showSystemApps by mutableStateOf(prefs.getBoolean("show_system_apps", false))
+        private set
     var isRefreshing by mutableStateOf(false)
         private set
 
@@ -73,6 +77,11 @@ class SuperUserViewModel : ViewModel() {
         internal set
     var selectedApps by mutableStateOf<Set<String>>(emptySet())
         internal set
+
+    fun updateShowSystemApps(newValue: Boolean) {
+        showSystemApps = newValue
+        prefs.edit { putBoolean("show_system_apps", newValue) }
+    }
 
     private val sortedList by derivedStateOf {
         val comparator = compareBy<AppInfo> {
