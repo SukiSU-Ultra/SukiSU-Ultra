@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">الحصول على الفتحة الأصلية</string>
     <string name="horizon_setting_target_slot">تعيين الفتحة المحددة</string>
     <string name="horizon_restoring_original_slot">استعادة الخانة الافتراضية</string>
-    <string name="current_slot">خانة حالية：%1$s </string>
+    <string name="current_slot">Current system default slot：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">فشل النسخ</string>
     <string name="horizon_unknown_error">خطأ غير معروف</string>
@@ -304,7 +304,6 @@
     <string name="configuration">تعيين</string>
     <string name="app_settings">إعدادات التطبيق </string>
     <string name="tools">ادوات</string>
-    <string name="currently_selected">حالياً</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">إزالة</string>
     <string name="apps_with_root">التطبيقات مع امتيازات الجذر</string>
@@ -328,8 +327,8 @@
     <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">يتطلب امتيازات الجذر</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">عرض وظيفة KPM</string>
-    <string name="show_kpm_info_summary">عرض معلومات KPM ووظيفتها في الشريط المنزلي والأسفل (تحتاج إلى إعادة فتح التطبيق)</string>
+    <string name="show_kpm_info">Hides KPM Function</string>
+    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Select the WebUI engine to use</string>
     <string name="engine_auto_select">Automatic Selection</string>
