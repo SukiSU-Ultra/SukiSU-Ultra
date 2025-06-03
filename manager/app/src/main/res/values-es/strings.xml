@@ -289,7 +289,7 @@
     <string name="horizon_getting_original_slot">Obteniendo la ranura original</string>
     <string name="horizon_setting_target_slot">Establecer la ranura especificada</string>
     <string name="horizon_restoring_original_slot">Restaurar Ranura Predeterminada</string>
-    <string name="current_slot">Ranura actual：%1$s </string>
+    <string name="current_slot">Current system default slot：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Hubo un fallo al copiar</string>
     <string name="horizon_unknown_error">Error desconocido</string>
@@ -302,7 +302,6 @@
     <string name="configuration">Configurar</string>
     <string name="app_settings">Configuración de la Aplicación</string>
     <string name="tools">Herramientas</string>
-    <string name="currently_selected">Actualmente</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Eliminaciones</string>
     <string name="apps_with_root">Aplicaciones con privilegios de root</string>
@@ -326,8 +325,8 @@
     <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Requiere privilegios de root</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Mostrar función KPM</string>
-    <string name="show_kpm_info_summary">Mostrar información y función KPM en la barra de inicio e inferior (Necesita reabrir la aplicación)</string>
+    <string name="show_kpm_info">Hides KPM Function</string>
+    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Select the WebUI engine to use</string>
     <string name="engine_auto_select">Automatic Selection</string>
