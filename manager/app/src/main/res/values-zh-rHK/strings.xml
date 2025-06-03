@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">獲取原始槽位</string>
     <string name="horizon_setting_target_slot">設定指定槽位</string>
     <string name="horizon_restoring_original_slot">恢復原始槽位</string>
-    <string name="current_slot">當前槽位：%1$s </string>
+    <string name="current_slot">當前系统槽位：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">複製失敗</string>
     <string name="horizon_unknown_error">未知錯誤</string>
@@ -304,7 +304,6 @@
     <string name="configuration">配置</string>
     <string name="app_settings">應用設置</string>
     <string name="tools">工具</string>
-    <string name="currently_selected">現在</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">清除</string>
     <string name="apps_with_root">應用已擁有root權限</string>
@@ -328,8 +327,8 @@
     <string name="icon_switched">圖示已切換</string>
     <string name="root_require_for_install">需要root權限</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">顯示KPM功能</string>
-    <string name="show_kpm_info_summary">顯示KPM功能和信息在主頁和工具欄(需要重新打開應用)</string>
+    <string name="show_kpm_info">隐藏KPM功能</string>
+    <string name="show_kpm_info_summary">隐藏KPM功能和信息在主頁和工具欄</string>
     <!-- Webui X settings -->
     <string name="use_webuix">選擇使用的 WebUI 引擎</string>
     <string name="engine_auto_select">自動選擇</string>
