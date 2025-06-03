@@ -171,7 +171,7 @@
     <string name="restore_allowlist">Khôi phục danh sách cho phép</string>
     <string name="settings_custom_background">Tuỳ chỉnh nền ứng dụng</string>
     <string name="settings_custom_background_summary">Chọn một hình ảnh làm hình nền</string>
-    <string name="settings_card_alpha">Độ trong suốt của thanh tác vụ</string>
+    <string name="settings_card_alpha">Độ trong suốt của thanh điều hướng</string>
     <string name="settings_restore_default">Khôi phục mặc định</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
@@ -302,7 +302,6 @@
     <string name="configuration">Cấu hình</string>
     <string name="app_settings">Cài đặt ứng dụng</string>
     <string name="tools">Công cụ</string>
-    <string name="currently_selected">Hiện tại</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Loại bỏ</string>
     <string name="apps_with_root">Các ứng dụng đã cấp quyền Root</string>
@@ -322,12 +321,12 @@
     <string name="background_set_success">Đã cài đặt hình nền thành công</string>
     <string name="background_removed">Đã xóa hình nền tùy chỉnh</string>
     <string name="icon_switch_title">Thay thế icon</string>
-    <string name="icon_switch_summary">Đổi icon SukiSU thành icon của KernelSU</string>
+    <string name="icon_switch_summary">Thay đổi icon SukiSU thành icon của KernelSU</string>
     <string name="icon_switched">Đã thay đổi icon</string>
     <string name="root_require_for_install">Yêu cầu quyền root</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Hiển thị chức năng KPM</string>
-    <string name="show_kpm_info_summary">Hiển thị các thông tin KPM ở trang chủ và thanh điều hướng (Cần khởi động lại ứng dụng)</string>
+    <string name="show_kpm_info">Ẩn chức năng KPM</string>
+    <string name="show_kpm_info_summary">Ẩn các thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Tuỳ chỉnh WebUI</string>
     <string name="engine_auto_select">Tự động chọn</string>
