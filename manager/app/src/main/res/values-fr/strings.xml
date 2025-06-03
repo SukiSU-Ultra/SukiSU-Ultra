@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">Obtention de l\'emplacement original</string>
     <string name="horizon_setting_target_slot">Définition de l\'emplacement spécifié</string>
     <string name="horizon_restoring_original_slot">Restaurer l\'emplacement par défaut</string>
-    <string name="current_slot">Emplacement actuel</string>
+    <string name="current_slot">Current system default slot：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Copie échouée</string>
     <string name="horizon_unknown_error">Erreur inconnue</string>
@@ -304,7 +304,6 @@
     <string name="configuration">Configurer</string>
     <string name="app_settings">Paramètres de l\'application</string>
     <string name="tools">Outils</string>
-    <string name="currently_selected">Actuellement</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Suppressions</string>
     <string name="apps_with_root">Applications avec droits root</string>
@@ -328,8 +327,8 @@
     <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Nécessite les privilèges root</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Afficher la fonction KPM</string>
-    <string name="show_kpm_info_summary">Afficher les informations et fonctions KPM dans la barre d\'accueil et du bas (nécessite de rouvrir l\'application)</string>
+    <string name="show_kpm_info">Hides KPM Function</string>
+    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Select the WebUI engine to use</string>
     <string name="engine_auto_select">Automatic Selection</string>
