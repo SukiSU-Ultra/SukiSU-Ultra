@@ -302,7 +302,6 @@
     <string name="configuration">Yapılandır</string>
     <string name="app_settings">Uygulama Ayarları</string>
     <string name="tools">Araçlar</string>
-    <string name="currently_selected">Şu anda</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Kaldır</string>
     <string name="apps_with_root">Root izinlerine sahip uygulamalar</string>
@@ -370,5 +369,5 @@
     <string name="installing_module">Modül yükleniyor %1$d/%2$d</string>
     <string name="module_failed_count">Yeni bir modül yüklenemedi: %d başarısız</string>
     <string name="module_download_error">Modül indirilemedi</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="kernel_flashing">Çekirdek Flash\'lama</string>
 </resources>
