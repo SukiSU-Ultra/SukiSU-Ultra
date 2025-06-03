@@ -289,14 +289,14 @@
     <string name="horizon_getting_original_slot">Obteniendo la ranura original</string>
     <string name="horizon_setting_target_slot">Establecer la ranura especificada</string>
     <string name="horizon_restoring_original_slot">Restaurar Ranura Predeterminada</string>
-    <string name="current_slot">Current system default slot：%1$s </string>
+    <string name="current_slot">Ranura predeterminada del sistema actual：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Hubo un fallo al copiar</string>
     <string name="horizon_unknown_error">Error desconocido</string>
     <string name="flash_failed_message">Flash falló</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Reparación/instalación de LKM</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">Flashear kernel</string>
     <string name="kernel_version_log">Versión del kernel</string>
     <string name="tool_version_log">Usando la herramienta de parches：%1$s</string>
     <string name="configuration">Configurar</string>
@@ -320,18 +320,18 @@
     <string name="susfs_disabled">SuSFS desactivado</string>
     <string name="background_set_success">Fondo establecido correctamente</string>
     <string name="background_removed">Eliminar fondo personalizado</string>
-    <string name="icon_switch_title">Alternate icon</string>
-    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
-    <string name="icon_switched">Icon switched</string>
+    <string name="icon_switch_title">Icono alternativo</string>
+    <string name="icon_switch_summary">Cambiar el icono del lanzador al icono de KernelSU.</string>
+    <string name="icon_switched">Icono cambiado</string>
     <string name="root_require_for_install">Requiere privilegios de root</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Hides KPM Function</string>
-    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
+    <string name="show_kpm_info">Mostrar función KPM</string>
+    <string name="show_kpm_info_summary">Oculta la información y función del KPM en la barra de inicio e inferior</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
-    <string name="engine_force_webuix">Force the use of WebUI X</string>
-    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
+    <string name="use_webuix">Seleccione el motor WebUI a usar</string>
+    <string name="engine_auto_select">Selección automática</string>
+    <string name="engine_force_webuix">Forzar el uso de WebUI X</string>
+    <string name="engine_force_ksu">Uso obligatorio de KSU WebUI</string>
     <string name="use_webuix_eruda">Inyectar Eruda en WebUI X</string>
     <string name="use_webuix_eruda_summary">Inyecta una consola de depuración en WebUI X para facilitar la depuración. Requiere que la depuración web esté encendida.</string>
     <!-- DPI setting related strings -->
@@ -369,5 +369,5 @@
     <string name="installing_module">Módulo instalado %1$d/%2$d</string>
     <string name="module_failed_count">%d falló al instalar un nuevo módulo</string>
     <string name="module_download_error">La descarga del modelo falló</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="kernel_flashing">Parpadeo Kernel</string>
 </resources>
