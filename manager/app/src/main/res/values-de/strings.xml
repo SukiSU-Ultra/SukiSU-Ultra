@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">Den ursprünglichen Slot erhalten</string>
     <string name="horizon_setting_target_slot">Setze den angegebenen Slot</string>
     <string name="horizon_restoring_original_slot">Standard wiederherstellen</string>
-    <string name="current_slot">Aktueller Slot：%1$s </string>
+    <string name="current_slot">Current system default slot：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Kopieren fehlgeschlagen</string>
     <string name="horizon_unknown_error">Ein unbekannter Fehler ist aufgetreten</string>
@@ -304,7 +304,6 @@
     <string name="configuration">Konfigurieren</string>
     <string name="app_settings">Anwendungs-Einstellungen</string>
     <string name="tools">Tools</string>
-    <string name="currently_selected">Derzeit</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Entfernen</string>
     <string name="apps_with_root">Anwendungen mit Root-Rechten</string>
@@ -328,8 +327,8 @@
     <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Erfordert Root-Rechte</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">KPM-Funktion anzeigen</string>
-    <string name="show_kpm_info_summary">KPM-Informationen und Funktion in der Home- und unteren Leiste anzeigen (muss die App erneut öffnen)</string>
+    <string name="show_kpm_info">Hides KPM Function</string>
+    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Select the WebUI engine to use</string>
     <string name="engine_auto_select">Automatic Selection</string>
