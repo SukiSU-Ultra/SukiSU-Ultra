@@ -151,7 +151,7 @@
     <string name="confirm">Подтвердить</string>
     <string name="cancel">Отмена</string>
     <!-- Backup related -->
-    <string name="backup_success">Успешная резервная копия (tar.gz)</string>
+    <string name="backup_success">Резервная копия создана успешно</string>
     <string name="backup_failed">Ошибка резервного копирования: %1$s</string>
     <string name="backup_modules">Резервное копирование модулей</string>
     <string name="restore_modules">Восстановить модули</string>
@@ -163,7 +163,7 @@
     <!-- Command related -->
     <string name="command_execution_failed">Выполнение команды не удалось: %1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">Резервное копирование успешно завершено</string>
+    <string name="allowlist_backup_success">Резервная копия создана успешно</string>
     <string name="allowlist_backup_failed">Ошибка резервного копирования списка: %1$s</string>
     <string name="allowlist_restore_confirm_title">Подтвердите восстановление списка</string>
     <string name="allowlist_restore_confirm_message">Эта операция перезапишет текущий список разрешений. Продолжить?</string>
@@ -192,15 +192,15 @@
     <string name="hide_kernel_kernelsu_version">Скрыть версию ядра</string>
     <string name="hide_kernel_kernelsu_version_summary">Скрывать версию ядра на главной странице</string>
     <string name="hide_other_info">Скрыть другую информацию</string>
-    <string name="hide_other_info_summary">Скрывать информацию о количестве приложений с рут-доступом, модулей и KPM-модулей на домашней странице</string>
+    <string name="hide_other_info_summary">Скрывать информацию о количестве приложений с рут-доступом, модулей и KPM-модулей на главной странице</string>
     <string name="hide_susfs_status">Скрыть статус SuSFS</string>
-    <string name="hide_susfs_status_summary">Скрыть информацию о статусе SuSFS на главной странице</string>
+    <string name="hide_susfs_status_summary">Скрывать информацию о статусе SuSFS на главной странице</string>
     <string name="hide_link_card">Скрыть карточки со ссылками</string>
     <string name="hide_link_card_summary">Скрывать карточки со ссылками на главной странице</string>
     <string name="theme_mode">Тема</string>
-    <string name="theme_follow_system">как в системе</string>
-    <string name="theme_light">светлая</string>
-    <string name="theme_dark">тёмная</string>
+    <string name="theme_follow_system">Как в системе</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
     <string name="manual_hook">Самопис. хуки</string>
     <string name="dynamic_color_title">Динамические цвета</string>
     <string name="dynamic_color_summary">Использовать акцентные цвета системы</string>
@@ -251,7 +251,7 @@
     <string name="kpm_invalid_file">Недопустимый файл KPM</string>
     <string name="kernel_patched">Ядро не изменено</string>
     <string name="kernel_not_enabled">Ядро не настроено</string>
-    <string name="custom_settings">Настройки персонализации</string>
+    <string name="custom_settings">Персонализация</string>
     <string name="kpm_install_mode">Установка KPM</string>
     <string name="kpm_install_mode_load">Загрузить</string>
     <string name="kpm_install_mode_embed">Код для вставки</string>
@@ -291,7 +291,7 @@
     <string name="horizon_getting_original_slot">Получение оригинальной ячейки</string>
     <string name="horizon_setting_target_slot">Установка указанного слота</string>
     <string name="horizon_restoring_original_slot">Восстановить</string>
-    <string name="current_slot">Текущий слот：%1$s </string>
+    <string name="current_slot">Текущий слот по умолчанию：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Копирование не удалось</string>
     <string name="horizon_unknown_error">Неизвестная ошибка</string>
@@ -304,7 +304,6 @@
     <string name="configuration">Настройка</string>
     <string name="app_settings">Настройки приложения</string>
     <string name="tools">Инструменты</string>
-    <string name="currently_selected">В данный момент</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Удаление</string>
     <string name="apps_with_root">Приложения с привилегиями root</string>
@@ -322,14 +321,14 @@
     <string name="susfs_enabled">SuSFS включен</string>
     <string name="susfs_disabled">SuSFS выключен</string>
     <string name="background_set_success">Фон успешно установлен</string>
-    <string name="background_removed">Удалить свой фон</string>
+    <string name="background_removed">Пользовательский фон удалён</string>
     <string name="icon_switch_title">Альт. иконка</string>
-    <string name="icon_switch_summary">Поменять иконку приложения на иконку KernelSU.</string>
+    <string name="icon_switch_summary">Поменять иконку приложения на иконку KernelSU</string>
     <string name="icon_switched">Иконка поменяна</string>
     <string name="root_require_for_install">Требуется root-права</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Показать статус KPM</string>
-    <string name="show_kpm_info_summary">Отображение информации и функции KPM в домашней и нижней панели (необходимо переоткрыть приложение)</string>
+    <string name="show_kpm_info">Скрыть статус KPM</string>
+    <string name="show_kpm_info_summary">Скрывать информацию и функции KPM на домашней странице и панели навигации</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Движок WebUI</string>
     <string name="engine_auto_select">Автовыбор</string>
@@ -353,9 +352,9 @@
     <string name="dpi_applied_success">DPI был установлен в %1$d, действующий после перезапуска приложения</string>
     <!-- Language settings related strings -->
     <string name="language_setting">Язык приложения</string>
-    <string name="language_follow_system">как в системе</string>
+    <string name="language_follow_system">Как в системе</string>
     <string name="language_changed">Язык изменён, перезапуск для применения изменений</string>
-    <string name="settings_card_dim">Настройка затемнения карточек</string>
+    <string name="settings_card_dim">Затемнение карточек</string>
     <!-- Super User Related -->
     <string name="scroll_to_top">Лучшие</string>
     <string name="scroll_to_bottom">Снизу</string>
