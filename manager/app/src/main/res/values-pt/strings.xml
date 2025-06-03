@@ -289,20 +289,19 @@
     <string name="horizon_getting_original_slot">Obtendo o espaço original</string>
     <string name="horizon_setting_target_slot">Configurando o slot especificado</string>
     <string name="horizon_restoring_original_slot">Restaurar Slot Padrão</string>
-    <string name="current_slot">Slot Atual：%1$s </string>
+    <string name="current_slot">Slot padrão do sistema atual：%1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Falha ao copiar</string>
     <string name="horizon_unknown_error">Você parece estar convertendo de um formato com degradação para&#10;&#10;um sem perdas. Esteja ciente que a perda de qualidade não pode ser desfeita,&#10;&#10;então este processo não melhorará a qualidade do áudio e provavelmente&#10;&#10;aumentará o tamanho do arquivo. Continuar assim mesmo?</string>
     <string name="flash_failed_message">Flash falhou</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM reparo/instalação</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">Flasheando kernel</string>
     <string name="kernel_version_log">Kernel</string>
     <string name="tool_version_log">Usando a ferramenta de correção：%1$s</string>
     <string name="configuration">Configurar</string>
     <string name="app_settings">Configurações Do Aplicativo</string>
     <string name="tools">Ferramentas</string>
-    <string name="currently_selected">Atual</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Remoções</string>
     <string name="apps_with_root">Aplicativos com privilégios de superusuário</string>
@@ -321,18 +320,18 @@
     <string name="susfs_disabled">SuSFS desativado</string>
     <string name="background_set_success">Fundo definido com sucesso</string>
     <string name="background_removed">Remover</string>
-    <string name="icon_switch_title">Alternate icon</string>
-    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
-    <string name="icon_switched">Icon switched</string>
+    <string name="icon_switch_title">Ícone alternativo</string>
+    <string name="icon_switch_summary">Alterar o ícone do launcher para o ícone do KernelSU.</string>
+    <string name="icon_switched">Ícone alterado</string>
     <string name="root_require_for_install">Requer privilégios de superusuário</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Exibir função KPM</string>
-    <string name="show_kpm_info_summary">Exibir informações e funções do KPM na barra inicial e inferior (Precisa reabrir o aplicativo)</string>
+    <string name="show_kpm_info_summary">Oculta as informações e funções do KPM na barra inicial e inferior</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Select the WebUI engine to use</string>
-    <string name="engine_auto_select">Automatic Selection</string>
-    <string name="engine_force_webuix">Force the use of WebUI X</string>
-    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
+    <string name="use_webuix">Selecione o mecanismo de WebUI para usar</string>
+    <string name="engine_auto_select">Seleção automática</string>
+    <string name="engine_force_webuix">Forçar o uso de WebUI X</string>
+    <string name="engine_force_ksu">Uso obrigatório do KSU WebUI</string>
     <string name="use_webuix_eruda">Injetar Eruda na WebUI X</string>
     <string name="use_webuix_eruda_summary">Injetar um console de depuração na WebUI X para facilitar a depuração. Requer depuração da web para estar ligada.</string>
     <!-- DPI setting related strings -->
