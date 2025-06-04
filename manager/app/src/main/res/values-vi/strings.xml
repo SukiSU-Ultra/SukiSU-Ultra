@@ -71,7 +71,7 @@
     <string name="profile_umount_modules">Unmount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
-    <string name="settings_umount_modules_default">Unmount modules theo mặc định</string>
+    <string name="settings_umount_modules_default">Unmount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Unmount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
