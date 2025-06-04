@@ -11,7 +11,7 @@
     <string name="home_unsupported_reason">Драйвера KernelSU не найдены в ядре, не то ядро?</string>
     <string name="home_kernel">Ядро</string>
     <string name="home_susfs">SuSFS: %s</string>
-    <string name="home_susfs_version">Версия SuSFS</string>
+    <string name="home_susfs_version">Статус SuSFS</string>
     <string name="home_susfs_sus_su">SuS SU</string>
     <string name="home_manager_version">Версия менеджера</string>
     <string name="home_fingerprint">Подпись</string>
@@ -238,7 +238,7 @@
     <string name="kpm_install_failed">Ошибка загрузки KPM модуля</string>
     <string name="kpm_args">Параметры</string>
     <string name="kpm_control">Выполнить</string>
-    <string name="home_kpm_version">Версия KPM</string>
+    <string name="home_kpm_version">Статус KPM</string>
     <string name="close_notice">Закрыть</string>
     <string name="kernel_module_notice">Следующие модульные функции ядра были разработаны KernelPatch и изменены для включения в него функций модуля ядра SukiSU Ultra</string>
     <string name="home_ContributionCard_kernelsu">Будущее SukiSU Ultra</string>
