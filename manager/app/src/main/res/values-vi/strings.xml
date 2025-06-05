@@ -326,7 +326,7 @@
     <string name="root_require_for_install">Yêu cầu quyền root</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Ẩn chức năng KPM</string>
-    <string name="show_kpm_info_summary">Ẩn các thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
+    <string name="show_kpm_info_summary">Ẩn thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Tuỳ chỉnh WebUI</string>
     <string name="engine_auto_select">Tự động chọn</string>
