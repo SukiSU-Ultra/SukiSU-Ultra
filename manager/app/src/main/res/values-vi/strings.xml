@@ -189,7 +189,7 @@
     <string name="simple_mode_summary">Ẩn các thẻ không cần thiết ở trang chủ</string>
     <string name="hide_kernel_kernelsu_version">Ẩn phiên bản Kernel</string>
     <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản Kernel ở trang chủ</string>
-    <string name="hide_other_info">Ẩn thông tin khác</string>
+    <string name="hide_other_info">Ẩn thông tin số lượng</string>
     <string name="hide_other_info_summary">Ẩn thông tin về số lượng ở các mục Superuser, Module và KPModule trên thanh điều hướng</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
@@ -212,7 +212,7 @@
     <string name="color_yellow">Vàng</string>
     <string name="flash_option">Tuỳ chọn Flash</string>
     <string name="flash_option_tip">Chọn file cần Flash</string>
-    <string name="horizon_kernel">Cài đặt Anykernel3</string>
+    <string name="horizon_kernel">Cài đặt AnyKernel3</string>
     <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
     <string name="root_required">Yêu cầu quyền root</string>
     <string name="copy_failed">Sao chép file thất bại</string>
