@@ -245,7 +245,7 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未來將成為一個相對獨立的 KSU 分支，但仍感謝官方 KernelSU 及 MKSU 等做出的貢獻</string>
     <string name="not_supported">不支援</string>
     <string name="supported">支援</string>
-    <string name="home_kpm_module">KPM 模組數量：%d</string>
+    <string name="home_kpm_module">"KPM 模組數量：%d"</string>
     <string name="kpm_invalid_file">KPM 檔案無效</string>
     <string name="kernel_patched">内核未進行修補</string>
     <string name="kernel_not_enabled">内核未配置</string>
@@ -302,8 +302,7 @@
     <string name="configuration">配置</string>
     <string name="app_settings">應用程式設定</string>
     <string name="tools">工具</string>
-    <string name="currently_selected">目前選擇</string>
-    <!-- String resources used in SuperUser -->
+    <!--  String resources used in SuperUser -->
     <string name="clear">清除</string>
     <string name="apps_with_root">擁有 Root 權限的應用程式</string>
     <string name="apps_with_custom_profile">自訂設定檔的應用程式</string>
