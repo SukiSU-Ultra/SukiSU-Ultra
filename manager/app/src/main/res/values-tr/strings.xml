@@ -190,7 +190,7 @@
     <string name="hide_kernel_kernelsu_version">Çekirdek sürümünü gizle</string>
     <string name="hide_kernel_kernelsu_version_summary">Çekirdek sürümünü gizle</string>
     <string name="hide_other_info">Diğer bilgileri gizle</string>
-    <string name="hide_other_info_summary">Ana sayfadaki süper kullanıcı sayısı, modüller ve KPM modülleri hakkındaki bilgileri gizler</string>
+    <string name="hide_other_info_summary">Gezinme çubuğu sayfasında süper kullanıcı, modül ve KPM modülü sayısı hakkında bilgi veren kırmızı noktayı gizler</string>
     <string name="hide_susfs_status">SuSFS durumunu gizle</string>
     <string name="hide_susfs_status_summary">Ana sayfadaki SuSFS durum bilgilerini gizle</string>
     <string name="hide_link_card">Bağlantı Kartı Durumunu Gizle</string>
@@ -289,7 +289,7 @@
     <string name="horizon_getting_original_slot">Orijinal yuva alınıyor</string>
     <string name="horizon_setting_target_slot">Belirtilen yuva ayarlanıyor</string>
     <string name="horizon_restoring_original_slot">Varsayılan Yuvayı Geri Yükle</string>
-    <string name="current_slot">Mevcut Yuva：%1$s </string>
+    <string name="current_slot">Geçerli varsayılan sistem yuvası: %1$s </string>
     <!-- Error Messages -->
     <string name="horizon_copy_failed">Kopyalama başarısız</string>
     <string name="horizon_unknown_error">Bilinmeyen hata</string>
@@ -320,13 +320,16 @@
     <string name="susfs_disabled">SuSFS devre dışı</string>
     <string name="background_set_success">Arka plan başarıyla ayarlandı</string>
     <string name="background_removed">Özel arka planlar kaldırıldı</string>
+    <string name="icon_switch_title">Alternatif simge</string>
+    <string name="icon_switch_summary">Başlatıcı simgesini KernelSU simgesiyle değiştir.</string>
+    <string name="icon_switched">Simge değiştirildi</string>
     <string name="icon_switch_title">Alternate icon</string>
     <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
     <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Root ayrıcalıkları gerektirir</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">KPM İşlevini Görüntüle</string>
-    <string name="show_kpm_info_summary">Ana sayfa ve alt çubukta KPM bilgilerini ve İşlevini görüntüle (Uygulamayı yeniden açmanız gerekir)</string>
+    <string name="show_kpm_info">KPM İşlevini Gizle</string>
+    <string name="show_kpm_info_summary">Ana sayfa ve alt çubuktaki KPM bilgilerini ve işlevini gizler</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Kullanılacak WebUI motorunu seç</string>
     <string name="engine_auto_select">Otomatik Seçim</string>
