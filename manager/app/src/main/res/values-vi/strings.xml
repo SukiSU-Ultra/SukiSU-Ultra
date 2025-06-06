@@ -71,7 +71,7 @@
     <string name="profile_umount_modules">Unmount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
-    <string name="settings_umount_modules_default">Unmount modules theo mặc định</string>
+    <string name="settings_umount_modules_default">Unmount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Unmount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
@@ -189,7 +189,7 @@
     <string name="simple_mode_summary">Ẩn các thẻ không cần thiết ở trang chủ</string>
     <string name="hide_kernel_kernelsu_version">Ẩn phiên bản Kernel</string>
     <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản Kernel ở trang chủ</string>
-    <string name="hide_other_info">Ẩn thông tin khác</string>
+    <string name="hide_other_info">Ẩn thông tin số lượng</string>
     <string name="hide_other_info_summary">Ẩn thông tin về số lượng ở các mục Superuser, Module và KPModule trên thanh điều hướng</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
@@ -212,7 +212,7 @@
     <string name="color_yellow">Vàng</string>
     <string name="flash_option">Tuỳ chọn Flash</string>
     <string name="flash_option_tip">Chọn file cần Flash</string>
-    <string name="horizon_kernel">Cài đặt Anykernel3</string>
+    <string name="horizon_kernel">Cài đặt AnyKernel3</string>
     <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
     <string name="root_required">Yêu cầu quyền root</string>
     <string name="copy_failed">Sao chép file thất bại</string>
@@ -326,7 +326,7 @@
     <string name="root_require_for_install">Yêu cầu quyền root</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Ẩn chức năng KPM</string>
-    <string name="show_kpm_info_summary">Ẩn các thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
+    <string name="show_kpm_info_summary">Ẩn thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Tuỳ chỉnh WebUI</string>
     <string name="engine_auto_select">Tự động chọn</string>
