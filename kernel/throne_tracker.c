@@ -5,6 +5,7 @@
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/version.h>
+#include <linux/namei.h>
 
 #include "allowlist.h"
 #include "klog.h" // IWYU pragma: keep
@@ -62,14 +63,8 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-static void crown_manager(const char *apk, struct list_head *uid_data)
+static void crown_manager(const char *apk, char *pkg, struct list_head *uid_data)
 {
-	char pkg[KSU_MAX_PACKAGE_NAME];
-	if (get_pkg_from_apk_path(pkg, apk) < 0) {
-		pr_err("Failed to get package name from apk path: %s\n", apk);
-		return;
-	}
-
 	pr_info("manager pkg: %s\n", pkg);
 
 #ifdef KSU_MANAGER_PACKAGE
@@ -115,6 +110,7 @@ struct my_dir_context {
 	void *private_data;
 	int depth;
 	int *stop;
+	struct super_block* root_sb;
 };
 // https://docs.kernel.org/filesystems/porting.html
 // filldir_t (readdir callbacks) calling conventions have changed. Instead of returning 0 or -E... it returns bool now. false means "no more" (as -E... used to) and true - "keep going" (as 0 in old calling conventions). Rationale: callers never looked at specific -E... values anyway. -> iterate_shared() instances require no changes at all, all filldir_t ones in the tree converted.
@@ -135,6 +131,8 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 	struct my_dir_context *my_ctx =
 		container_of(ctx, struct my_dir_context, ctx);
 	char dirpath[DATA_PATH_LEN];
+	int err;
+	struct path path;
 
 	if (!my_ctx) {
 		pr_err("Invalid context\n");
@@ -161,6 +159,18 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 		return FILLDIR_ACTOR_CONTINUE;
 	}
 
+	err = kern_path(dirpath, 0, &path);
+
+	if (err) {
+		pr_err("get dirpath %s err: %d\n", dirpath, err);
+		return FILLDIR_ACTOR_CONTINUE;
+	}
+
+	if (my_ctx->root_sb != path.dentry->d_inode->i_sb) {
+		pr_info("skip cross fs: %s", dirpath);
+		return FILLDIR_ACTOR_CONTINUE;
+	}
+
 	if (d_type == DT_DIR && my_ctx->depth > 0 &&
 	    (my_ctx->stop && !*my_ctx->stop)) {
 		struct data_path *data = kmalloc(sizeof(struct data_path), GFP_ATOMIC);
@@ -176,6 +186,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 	} else {
 		if ((namelen == 8) && (strncmp(name, "base.apk", namelen) == 0)) {
 			struct apk_path_hash *pos;
+			char pkg[KSU_MAX_PACKAGE_NAME];
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
 			unsigned int hash = full_name_hash(dirpath, strlen(dirpath));
 #else
@@ -188,11 +199,16 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			}
 
-			bool is_manager = is_manager_apk(dirpath);
+			if (get_pkg_from_apk_path(pkg, dirpath) < 0) {
+				pr_err("Failed to get package name from apk path: %s\n", dirpath);
+				return FILLDIR_ACTOR_CONTINUE;
+			}
+
+			bool is_manager = is_manager_apk(dirpath, pkg);
 			pr_info("Found new base.apk at path: %s, is_manager: %d\n",
 				dirpath, is_manager);
 			if (is_manager) {
-				crown_manager(dirpath, my_ctx->private_data);
+				crown_manager(dirpath, pkg, my_ctx->private_data);
 				*my_ctx->stop = 1;
 			}
 		}
@@ -203,10 +219,19 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 
 void search_manager(const char *path, int depth, struct list_head *uid_data)
 {
-	int i, stop = 0;
+	int i, stop = 0, err;
 	struct list_head data_path_list;
+	struct path kpath;
+	struct super_block* root_sb;
 	INIT_LIST_HEAD(&data_path_list);
 	INIT_LIST_HEAD(&apk_path_hash_list);
+
+	err = kern_path(path, 0, &kpath);
+
+	if (err) {
+		pr_err("get search root %s err: %d\n", path, err);
+		return;
+	}
 
 	// Initialize APK cache list
 	struct apk_path_hash *pos, *n;
@@ -220,6 +245,8 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 	data.depth = depth;
 	list_add_tail(&data.list, &data_path_list);
 
+	root_sb = kpath.dentry->d_inode->i_sb;
+
 	for (i = depth; i >= 0; i--) {
 		struct data_path *pos, *n;
 
@@ -229,7 +256,8 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 						      .parent_dir = pos->dirpath,
 						      .private_data = uid_data,
 						      .depth = pos->depth,
-						      .stop = &stop };
+						      .stop = &stop,
+							  .root_sb = root_sb };
 			struct file *file;
 
 			if (!stop) {

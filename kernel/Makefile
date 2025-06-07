@@ -32,11 +32,6 @@ $(warning "KSU_GIT_VERSION not defined! It is better to make SukiSU a git submod
 ccflags-y += -DKSU_VERSION=12800
 endif
 
-# Do checks before compile
-ifeq ($(shell grep -q "int\s\+\path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
-ccflags-y += -DKSU_HAS_PATH_UMOUNT
-endif
-
 # Checks hooks state
 ifeq ($(strip $(CONFIG_KSU_MANUAL_HOOK)),y)
 $(info -- KernelSU: Manually-patched hook.)
@@ -57,10 +52,10 @@ endif
 ifeq ($(shell grep -q "get_cred_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_GET_CRED_RCU
 else
-ifeq ($(shell grep -q "atomic_long_t\s\+\usage" $(srctree)/include/linux/cred.h; echo $$?),0)
+ifeq ($(shell grep -q "atomic_long_t\s\+usage" $(srctree)/include/linux/cred.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_ATOMIC_LONG
 endif
-ifeq ($(shell grep -q "int\s\+\non_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
+ifeq ($(shell grep -q "int\s\+non_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_NONCONST_CRED
 endif
 endif
@@ -74,6 +69,9 @@ ccflags-y += -DKSU_OPTIONAL_KERNEL_READ
 endif
 ifeq ($(shell grep "ssize_t kernel_write" $(srctree)/fs/read_write.c | grep -q "const void" ; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_KERNEL_WRITE
+endif
+ifeq ($(shell grep -q "int\s\+path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
+ccflags-y += -DKSU_HAS_PATH_UMOUNT
 endif
 
 # Checks Samsung UH drivers
