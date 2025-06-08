@@ -586,6 +586,7 @@ private fun CategoryItem(
     category: AppCategory,
     isSelected: Boolean,
     appCount: Int,
+    onClick: () -> Unit
 ) {
     // 添加交互状态
     val animatedScale by animateFloatAsState(
@@ -757,7 +758,7 @@ private fun AppItem(
                 }
             }
 
-            
+
             if (viewModel.showBatchActions) {
                 val checkboxInteractionSource = remember { MutableInteractionSource() }
                 val isCheckboxPressed by checkboxInteractionSource.collectIsPressedAsState()
