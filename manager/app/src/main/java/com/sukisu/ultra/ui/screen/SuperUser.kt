@@ -586,18 +586,10 @@ private fun CategoryItem(
     category: AppCategory,
     isSelected: Boolean,
     appCount: Int,
-    onClick: () -> Unit
 ) {
     // 添加交互状态
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
     val animatedScale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.96f
-            isSelected -> 1.02f
-            else -> 1.0f
-        },
+        targetValue = 1.0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessHigh
@@ -608,21 +600,15 @@ private fun CategoryItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .scale(animatedScale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { onClick() },
+            .scale(animatedScale),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
+                MaterialTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surfaceBright
             }
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 6.dp else 2.dp
-        )
+        elevation = getCardElevation()
     ) {
         Column(
             modifier = Modifier
@@ -639,9 +625,9 @@ private fun CategoryItem(
             }
 
             val iconColor = if (isSelected) {
-                MaterialTheme.colorScheme.onPrimaryContainer
+                MaterialTheme.colorScheme.onPrimary
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                MaterialTheme.colorScheme.onSurface
             }
 
             Icon(
@@ -659,9 +645,9 @@ private fun CategoryItem(
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 color = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
+                    MaterialTheme.colorScheme.onPrimary
                 } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    MaterialTheme.colorScheme.onSurface
                 },
                 textAlign = TextAlign.Center,
                 maxLines = 2,
@@ -673,9 +659,9 @@ private fun CategoryItem(
                 text = appCount.toString(),
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 },
                 modifier = Modifier.padding(top = 1.dp),
                 fontSize = 9.sp
