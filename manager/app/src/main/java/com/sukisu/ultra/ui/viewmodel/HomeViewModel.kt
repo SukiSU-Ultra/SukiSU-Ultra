@@ -239,7 +239,7 @@ class HomeViewModel : ViewModel() {
     private fun getDeviceInfo(): String {
         var manufacturer =
             Build.MANUFACTURER[0].uppercaseChar().toString() + Build.MANUFACTURER.substring(1)
-        if (Build.BRAND != Build.MANUFACTURER) {
+        if (!Build.BRAND.equals(Build.MANUFACTURER, ignoreCase = true)) {
             manufacturer += " " + Build.BRAND[0].uppercaseChar() + Build.BRAND.substring(1)
         }
         manufacturer += " " + Build.MODEL + " "
