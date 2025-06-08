@@ -257,7 +257,7 @@ class HomeViewModel : ViewModel() {
                 "ro.vivo.market.name",            // Vivo
                 "ro.config.marketing_name"        // Huawei
             )
-            var result = Build.DEVICE
+            var result = getDeviceInfo()
             for (key in marketNameKeys) {
                 val marketName = getMethod.invoke(null, key, "") as String
                 if (marketName.isNotEmpty()) {
@@ -268,7 +268,7 @@ class HomeViewModel : ViewModel() {
             result
         } catch (e: Exception) {
             Log.e(TAG, "Error getting device model", e)
-            Build.DEVICE
+            getDeviceInfo()
         }
     }
 
