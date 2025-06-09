@@ -395,5 +395,5 @@
     <!-- BottomSheet相关 -->
     <string name="menu_options">Tuỳ chọn Menu</string>
     <string name="sort_options">Sắp xếp theo</string>
-    <string name="app_categories">Application Type Selection</string>
+    <string name="app_categories">Lựa chọn loại ứng dụng</string>
 </resources>
