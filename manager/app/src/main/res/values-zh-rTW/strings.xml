@@ -56,7 +56,7 @@
     <string name="home_click_to_learn_kernelsu">了解如何安裝 KernelSU 以及如何開發模組</string>
     <string name="home_support_title">支持開發</string>
     <string name="home_support_content">KernelSU 將保持免費開源，向開發者捐款以表支持。</string>
-    <string name="about_source_code"><![CDATA[在 %1$s 查看原始碼<br/>加入我們的 %2$s 頻道<br/>加入我們的 <b><a href="https://qm.qq.com/q/WbrOMxgLG8">QQ 群聊</a></b>]]></string>
+    <string name="about_source_code"><![CDATA[在 %1$s 查看原始碼<br/>加入我們的 %2$s 頻道]]></string>
     <string name="profile_default">預設</string>
     <string name="profile_template">模板</string>
     <string name="profile_custom">自訂</string>
