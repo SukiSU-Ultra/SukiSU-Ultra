@@ -397,5 +397,5 @@
     <!-- BottomSheet相关 -->
     <string name="menu_options">Настройки списка</string>
     <string name="sort_options">Сортировка</string>
-    <string name="app_categories">Application Type Selection</string>
+    <string name="app_categories">Выбор типа приложения</string>
 </resources>
