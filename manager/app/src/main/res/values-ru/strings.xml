@@ -283,8 +283,8 @@
     <string name="horizon_flashing">Прошивка ядра…</string>
     <string name="horizon_flash_complete_status">Прошивка завершена</string>
     <!-- Slot selection related strings -->
-    <string name="select_slot_title">Выбрать слот Flash</string>
-    <string name="select_slot_description">Пожалуйста, выберите целевой слот для прошивки загрузки</string>
+    <string name="select_slot_title">Выберите слот для прошивки</string>
+    <string name="select_slot_description">Пожалуйста, выберите целевой слот для прошивки бут образа</string>
     <string name="slot_a">Слот A</string>
     <string name="slot_b">Слот B</string>
     <string name="selected_slot">Выбран LKM: %1$s</string>
