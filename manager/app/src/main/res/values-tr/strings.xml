@@ -352,11 +352,11 @@
     <string name="settings_card_dim">Kart Karanlığını Ayarlama</string>
     <!-- Flash related -->
     <string name="error_code">hata kodu</string>
-    <string name="check_log">Lütfen günlük kaydını kontrol edin</string>
+    <string name="check_log">Lütfen günlüğü kontrol edin</string>
     <string name="installing_module">Modül yükleniyor %1$d/%2$d</string>
-    <string name="module_failed_count">%d yeni modül yüklenemedi</string>
-    <string name="module_download_error">Modül indirme başarısız</string>
-    <string name="kernel_flashing">Çekirdek Yükleniyor</string>
+    <string name="module_failed_count">Yeni bir modül yüklenemedi: %d başarısız</string>
+    <string name="module_download_error">Modül indirilemedi</string>
+    <string name="kernel_flashing">Çekirdek Flash\'lama</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Tümü</string>
     <string name="category_root_apps">Root</string>
