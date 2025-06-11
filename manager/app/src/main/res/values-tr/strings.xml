@@ -352,37 +352,37 @@
     <string name="settings_card_dim">Kart Karanlığını Ayarlama</string>
     <!-- Flash related -->
     <string name="error_code">hata kodu</string>
-    <string name="check_log">Lütfen günlüğü kontrol edin</string>
+    <string name="check_log">Lütfen günlük kaydını kontrol edin</string>
     <string name="installing_module">Modül yükleniyor %1$d/%2$d</string>
-    <string name="module_failed_count">Yeni bir modül yüklenemedi: %d başarısız</string>
-    <string name="module_download_error">Modül indirilemedi</string>
-    <string name="kernel_flashing">Çekirdek Flash\'lama</string>
+    <string name="module_failed_count">%d yeni modül yüklenemedi</string>
+    <string name="module_download_error">Modül indirme başarısız</string>
+    <string name="kernel_flashing">Çekirdek Yükleniyor</string>
     <!-- 分类相关 -->
-    <string name="category_all_apps">All</string>
+    <string name="category_all_apps">Tümü</string>
     <string name="category_root_apps">Root</string>
-    <string name="category_custom_apps">Custom</string>
-    <string name="category_default_apps">Default</string>
+    <string name="category_custom_apps">Özel</string>
+    <string name="category_default_apps">Varsayılan</string>
     <!-- 排序相关 -->
-    <string name="sort_name_asc">Ascending order of name</string>
-    <string name="sort_name_desc">Name descending</string>
-    <string name="sort_install_time_new">Installation time (new)</string>
-    <string name="sort_install_time_old">Installation time (old)</string>
-    <string name="sort_size_desc">descending order of size</string>
-    <string name="sort_size_asc">ascending order of size</string>
-    <string name="sort_usage_freq">frequency of use</string>
+    <string name="sort_name_asc">İsme göre artan sırada</string>
+    <string name="sort_name_desc">İsme göre azalan sırada</string>
+    <string name="sort_install_time_new">Kurulum zamanı (yeni)</string>
+    <string name="sort_install_time_old">Kurulum zamanı (eski)</string>
+    <string name="sort_size_desc">Boyuta göre azalan sırada</string>
+    <string name="sort_size_asc">Boyuta göre artan sırada</string>
+    <string name="sort_usage_freq">Kullanım sıklığına göre</string>
     <!-- 状态相关 -->
-    <string name="no_apps_in_category">No application in this category</string>
+    <string name="no_apps_in_category">Bu kategoride uygulama yok</string>
     <!-- 标签相关 -->
     <string name="label_root">Root</string>
-    <string name="label_unmount">Unmount</string>
-    <string name="label_custom">Custom</string>
+    <string name="label_unmount">Çıkart</string>
+    <string name="label_custom">Özel</string>
     <!-- FAB菜单相关 -->
-    <string name="deny_authorization">Delegation of authority</string>
-    <string name="grant_authorization">Authorizations</string>
-    <string name="unmount_modules">Unmounting Module Mounts</string>
-    <string name="disable_unmount">Disable uninstall module mounting</string>
-    <string name="expand_menu">Expand menu</string>
-    <string name="collapse_menu">Put away the menu</string>
+    <string name="deny_authorization">Yetkilendirme reddedildi</string>
+    <string name="grant_authorization">Yetki verildi</string>
+    <string name="unmount_modules">Modül Bağlantıları Kaldırılıyor</string>
+    <string name="disable_unmount">Modül kaldırma montajını devre dışı bırak</string>
+    <string name="expand_menu">Menüyü genişlet</string>
+    <string name="collapse_menu">Menüyü gizle</string>
     <string name="scroll_to_top">Üst</string>
     <string name="scroll_to_bottom">Alt</string>
     <string name="scroll_to_top_description">En üste kaydır</string>
@@ -393,7 +393,7 @@
     <string name="select">seçenek</string>
     <string name="profile_umount_modules_disable">Özel kaldırma modülünü devre dışı bırak</string>
     <!-- BottomSheet相关 -->
-    <string name="menu_options">Menu Options</string>
-    <string name="sort_options">Sort by</string>
-    <string name="app_categories">Application Type Selection</string>
+    <string name="menu_options">Menü Seçenekleri</string>
+    <string name="sort_options">Sıralama Seçenekleri</string>
+    <string name="app_categories">Uygulama Türü Seçimi</string>
 </resources>
