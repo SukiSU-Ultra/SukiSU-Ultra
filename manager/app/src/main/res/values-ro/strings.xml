@@ -398,4 +398,35 @@
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
     <string name="app_categories">Application Type Selection</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">SuSFS Configuration</string>
+    <string name="susfs_config_description">Configuration Description</string>
+    <string name="susfs_config_description_text">This feature allows you to customize the SuSFS uname value. Enter the value you want to set and click Apply to take effect.</string>
+    <string name="susfs_uname_label">Uname Value</string>
+    <string name="susfs_uname_placeholder">Please enter custom uname value</string>
+    <string name="susfs_current_value">Current value: %s</string>
+    <string name="susfs_reset_to_default">Reset to Default</string>
+    <string name="susfs_apply">Apply</string>
+    <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">Confirm Reset</string>
+    <string name="susfs_reset_confirm_message">Are you sure you want to reset SuSFS uname to default value? This action cannot be undone.</string>
+    <string name="susfs_reset_confirm">Confirm Reset</string>
+    <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">Cannot find ksu_susfs file</string>
+    <string name="susfs_command_failed">SuSFS command execution failed</string>
+    <string name="susfs_command_error">Error executing SuSFS command: %s</string>
+    <string name="susfs_uname_set_success">SuSFS uname set successfully: %s</string>
+    <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">SuSFS Configuration</string>
+    <string name="susfs_config_setting_summary">Configure SuSFS uname value (Current: %s)</string>
+    <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">boot-up</string>
+    <string name="susfs_autostart_description">Automatic application of uname configuration at system startup</string>
+    <string name="susfs_autostart_enabled">Boot Self-Start is enabled</string>
+    <string name="susfs_autostart_disabled">Boot Self-Start is disabled</string>
+    <string name="susfs_autostart_enable_failed">Failed to enable boot self-start</string>
+    <string name="susfs_autostart_disable_failed">Failure to disable boot-up</string>
+    <string name="susfs_autostart_error">Boot-up misconfiguration: %s</string>
+    <string name="susfs_no_config_to_autostart">There is no available configuration for boot self-start</string>
+    <string name="susfs_autostart_tis">Need to enter a non-default value to enable bootstrapping</string>
 </resources>
