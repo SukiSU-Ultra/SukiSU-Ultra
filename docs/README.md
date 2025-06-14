@@ -28,7 +28,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 
 ## 如何集成 susfs
 
-1. 直接使用 susfs-main 或者其他susfs-* 分支，不需要再集成 susfs (支持非 GKI 设备构建)
+1. 直接使用 susfs-main 或者其他 susfs-\* 分支，不需要再集成 susfs (支持非 GKI 设备构建)
 
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
@@ -86,7 +86,8 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 
 基于 SukiSU 和 susfs 编译的项目
 
-- [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS)
+- [增强 GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS)（包括 ZRAM 算法等补丁、KPM、susfs 等）
+- [GKI](https://github.com/MiRinFork/GKI_SukiSU_SUSFS/releases)（若增强 GKI boot 失败再尝试这份，这份没有 KPM 等修改，只有 susfs）
 - [一加](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
 ## 使用方法
@@ -98,7 +99,7 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 > [!Note]
 >
 > 1. 适用于如小米、红米、三星等的 GKI 2.0 的设备 (不包含魔改内核的厂商如魅族、一加、真我和 oppo)
-> 2. 找到[更多链接](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5)里的 GKI 构建的项目。找到设备内核版本。然后下载下来，用 TWRP 或者内核刷写工具刷入带 AnyKernel3 后缀的压缩包即可
+> 2. 找到[更多链接](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5)里的 GKI 构建的项目。找到设备内核版本。然后下载下来，用 TWRP 或者内核刷写工具刷入带 AnyKernel3 后缀的压缩包即可。Pixel 请使用不是增强的 GKI。
 > 3. 一般不带后缀的 .zip 压缩包是未压缩的，gz 后缀的为天玑机型所使用的压缩方式
 
 ### 一加
@@ -121,12 +122,13 @@ KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 6. 对 KPM 内核模块的支持
 
 ## 疑难解答
+
 1. 卸载 KernelSU 管理器设备卡死。→ 卸载包名为 com.sony.playmemories.mobile 的应用。
 
 ## 许可证
 
 - `kernel` 目录下的文件是 [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)。
-- 有动漫人物图片表情包的这些文件 `ic_launcher(?!.*alt.*).*` 的图像版权为[五十根大虾仁](https://space.bilibili.com/370927)所有，图像中的 Brand Intellectual Property 由[明风OuO](https://space.bilibili.com/274939213)所有，矢量化由 @MiRinChan 完成，在使用这些文件之前，除了必须遵守 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) 以外，还需要遵守向前两者索要使用这些艺术内容的授权。
+- 有动漫人物图片表情包的这些文件 `ic_launcher(?!.*alt.*).*` 的图像版权为[五十根大虾仁](https://space.bilibili.com/370927)所有，图像中的 Brand Intellectual Property 由[明风 OuO](https://space.bilibili.com/274939213)所有，矢量化由 @MiRinChan 完成，在使用这些文件之前，除了必须遵守 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) 以外，还需要遵守向前两者索要使用这些艺术内容的授权。
 - 除了以上所述的文件或目录外，所有其他部分均为 [GPL-3.0 或更高版本](https://www.gnu.org/licenses/gpl-3.0.html)。
 
 ## 爱发电链接
