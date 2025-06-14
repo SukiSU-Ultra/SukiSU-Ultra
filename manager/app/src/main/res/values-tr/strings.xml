@@ -396,4 +396,117 @@
     <string name="menu_options">Menü Seçenekleri</string>
     <string name="sort_options">Sıralama Seçenekleri</string>
     <string name="app_categories">Uygulama Türü Seçimi</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">SuSFS Configuration</string>
+    <string name="susfs_config_description">Configuration Description</string>
+    <string name="susfs_config_description_text">This feature allows you to customize the SuSFS uname value and build time spoofing. Enter the values you want to set and click Apply to take effect.</string>
+    <string name="susfs_uname_label">Uname Value</string>
+    <string name="susfs_uname_placeholder">Please enter custom uname value</string>
+    <string name="susfs_build_time_label">Build Time Spoofing</string>
+    <string name="susfs_build_time_placeholder">Please enter build time spoofing value</string>
+    <string name="susfs_current_value">Current value: %s</string>
+    <string name="susfs_current_build_time">Current build time: %s</string>
+    <string name="susfs_reset_to_default">Reset to Default</string>
+    <string name="susfs_apply">Apply</string>
+    <string name="susfs_done">Done</string>
+    <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">Confirm Reset</string>
+    <string name="susfs_reset_confirm">Confirm Reset</string>
+    <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">Cannot find ksu_susfs file</string>
+    <string name="susfs_command_failed">SuSFS command execution failed</string>
+    <string name="susfs_command_error">Error executing SuSFS command: %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS uname and build time set successfully: %s, %s</string>
+    <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">SuSFS Configuration</string>
+    <string name="susfs_config_setting_summary">Configure SuSFS uname value and build time spoofing (Current: %s)</string>
+    <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">Auto Start</string>
+    <string name="susfs_autostart_description">Automatically apply uname configuration at system startup</string>
+    <string name="susfs_autostart_requirement">Need to configure uname or add paths to enable</string>
+    <string name="susfs_autostart_enabled">Auto Start enabled</string>
+    <string name="susfs_autostart_disabled">Auto Start disabled</string>
+    <string name="susfs_autostart_enable_failed">Failed to enable auto start</string>
+    <string name="susfs_autostart_disable_failed">Failed to disable auto start</string>
+    <string name="susfs_autostart_error">Auto start configuration error: %s</string>
+    <string name="susfs_no_config_to_autostart">No available configuration for auto start</string>
+    <string name="susfs_autostart_tis">Need to enter a non-default value to enable auto start</string>
+    <!-- SuSFS Tab Titles -->
+    <string name="susfs_tab_basic_settings">Basic Settings</string>
+    <string name="susfs_tab_sus_paths">SUS Paths</string>
+    <string name="susfs_tab_sus_mounts">SUS Mounts</string>
+    <string name="susfs_tab_try_umount">Try Umount</string>
+    <string name="susfs_tab_path_settings">Path Settings</string>
+    <string name="susfs_tab_enabled_features">Enabled Features Status</string>
+    <!-- SuSFS Dialog Actions -->
+    <string name="susfs_add">Add</string>
+    <string name="susfs_delete">Delete</string>
+    <string name="susfs_reset">Reset</string>
+    <string name="susfs_run">Run</string>
+    <string name="susfs_refresh">Refresh</string>
+    <!-- SuSFS Path Management -->
+    <string name="susfs_add_sus_path">Add SUS Path</string>
+    <string name="susfs_add_sus_mount">Add SUS Mount</string>
+    <string name="susfs_add_try_umount">Add Try Umount</string>
+    <string name="susfs_path_label">Path</string>
+    <string name="susfs_mount_path_label">Mount Path</string>
+    <string name="susfs_path_placeholder">e.g.: /system/addon.d</string>
+    <string name="susfs_sus_paths_management">SUS Paths Management</string>
+    <string name="susfs_sus_mounts_management">SUS Mounts Management</string>
+    <string name="susfs_try_umount_management">Try Umount Management</string>
+    <string name="susfs_no_paths_configured">No SUS paths configured</string>
+    <string name="susfs_no_mounts_configured">No SUS mounts configured</string>
+    <string name="susfs_no_umounts_configured">No try umount configured</string>
+    <!-- SuSFS Umount Mode -->
+    <string name="susfs_umount_mode_label">Umount Mode</string>
+    <string name="susfs_umount_mode_normal">Normal Umount (0)</string>
+    <string name="susfs_umount_mode_detach">Detach Umount (1)</string>
+    <string name="susfs_umount_mode_normal_short">Normal</string>
+    <string name="susfs_umount_mode_detach_short">Detach</string>
+    <string name="susfs_umount_mode_display">Mode: %1$s (%2$s)</string>
+    <!-- SuSFS Run Umount -->
+    <string name="susfs_run_umount_confirm_title">Confirm Run Try Umount</string>
+    <string name="susfs_run_umount_confirm_message">This will immediately execute all configured try umount operations. Are you sure you want to continue?</string>
+    <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_title">Reset SUS Paths</string>
+    <string name="susfs_reset_paths_message">This will clear all SUS path configurations. Are you sure you want to continue?</string>
+    <string name="susfs_reset_mounts_title">Reset SUS Mounts</string>
+    <string name="susfs_reset_mounts_message">This will clear all SUS mount configurations. Are you sure you want to continue?</string>
+    <string name="susfs_reset_umounts_title">Reset Try Umount</string>
+    <string name="susfs_reset_umounts_message">This will clear all try umount configurations. Are you sure you want to continue?</string>
+    <!-- SuSFS Path Settings -->
+    <string name="susfs_path_settings">Path Settings</string>
+    <string name="susfs_android_data_path_label">Android Data Path</string>
+    <string name="susfs_sdcard_path_label">SD Card Path</string>
+    <string name="susfs_set_android_data_path">Set Android Data Path</string>
+    <string name="susfs_set_sdcard_path">Set SD Card Path</string>
+    <!-- SuSFS Enabled Features -->
+    <string name="susfs_enabled_features_title">Enabled Features Status</string>
+    <string name="susfs_enabled_features_description">Display current SuSFS enabled features status</string>
+    <string name="susfs_no_features_found">No feature status information found</string>
+    <string name="susfs_feature_enabled">Enabled</string>
+    <string name="susfs_feature_disabled">Disabled</string>
+    <!-- Feature Labels -->
+    <string name="sus_path_feature_label">SUS Path Support</string>
+    <string name="sus_mount_feature_label">SUS Mount Support</string>
+    <string name="try_umount_feature_label">Try Umount Support</string>
+    <string name="spoof_uname_feature_label">Spoof uname Support</string>
+    <string name="spoof_cmdline_feature_label">Spoof Cmdline/Bootconfig</string>
+    <string name="open_redirect_feature_label">Open Redirect Support</string>
+    <string name="enable_log_feature_label">Logging Support</string>
+    <string name="auto_default_mount_feature_label">Auto Default Mount</string>
+    <string name="auto_bind_mount_feature_label">Auto Bind Mount</string>
+    <string name="auto_try_umount_bind_feature_label">Auto Try Umount Bind Mount</string>
+    <string name="hide_symbols_feature_label">Hide KSU SUSFS Symbols</string>
+    <string name="magic_mount_feature_label">Magic Mount Support</string>
+    <string name="overlayfs_auto_kstat_feature_label">OverlayFS Auto Kernel Stat Support</string>
+    <string name="sus_kstat_feature_label">SUS Kstat Support</string>
+    <!-- 可切换状态 -->
+    <string name="susfs_configure">SuSFS Configuration</string>
+    <string name="susfs_feature_configurable">Configurable SuSFS Features</string>
+    <string name="susfs_enable_log_label">SuSFS Enable Log</string>
+    <string name="susfs_log_config_description">Enable or disable logging for SuSFS</string>
+    <string name="susfs_log_config_title">SuSFS Logging Configuration</string>
+    <string name="susfs_log_enabled">Enabling SuSFS Logging</string>
+    <string name="susfs_log_disabled">Turn off SuSFS logging</string>
 </resources>
