@@ -464,6 +464,8 @@
     <string name="susfs_umount_mode_normal_short">一般</string>
     <string name="susfs_umount_mode_detach_short">分離</string>
     <string name="susfs_umount_mode_display">模式：%1$s (%2$s)</string>
+    <string name="susfs_try_umount_added_success">嘗試 umount 路徑新增成功： %s</string>
+    <string name="susfs_try_umount_added_saved">嘗試 umount 路徑儲存成功： %s</string>
     <!-- SuSFS 執行卸載 -->
     <string name="susfs_run_umount_confirm_title">確認執行嘗試卸載</string>
     <string name="susfs_run_umount_confirm_message">這將立即執行所有已設定的嘗試卸載操作，確定要繼續嗎？</string>
