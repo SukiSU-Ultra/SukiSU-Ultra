@@ -396,4 +396,20 @@
     <string name="menu_options">Menü Seçenekleri</string>
     <string name="sort_options">Sıralama Seçenekleri</string>
     <string name="app_categories">Uygulama Türü Seçimi</string>
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- SuSFS Settings Item -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Dialog Actions -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Umount Mode -->
+    <!-- SuSFS Run Umount -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- Settings related strings -->
 </resources>
