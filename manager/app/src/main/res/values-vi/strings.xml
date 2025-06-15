@@ -12,7 +12,7 @@
     <string name="home_kernel">Phiên bản Kernel</string>
     <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">Phiên bản SuSFS</string>
-    <string name="home_susfs_sus_su">SuS SU</string>
+    <string name="home_susfs_sus_su">SuSFS SU</string>
     <string name="home_manager_version">Phiên bản trình quản lý</string>
     <string name="home_fingerprint">Dấu vân tay</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
@@ -68,11 +68,11 @@
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Unmount modules</string>
+    <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
-    <string name="settings_umount_modules_default">Unmount modules</string>
-    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Unmount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
+    <string name="settings_umount_modules_default">Umount modules</string>
+    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
@@ -139,7 +139,7 @@
     <string name="status_supported">Được hỗ trợ</string>
     <string name="status_not_supported">Không được hỗ trợ</string>
     <string name="status_unknown">Không rõ</string>
-    <string name="sus_su_mode">Chế độ SU của SuS:</string>
+    <string name="sus_su_mode">Chế độ SU của SuSFS:</string>
     <!-- Module related -->
     <string name="module_install_confirm">Xác nhận cài đặt module %1$s？</string>
     <string name="unknown_module">Module không xác định</string>
@@ -195,6 +195,8 @@
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
     <string name="hide_link_card">Ẩn trạng thái thẻ liên kết</string>
     <string name="hide_link_card_summary">Ẩn thông tin thẻ liên kết ở trang chủ</string>
+    <string name="hide_tag_card">Ẩn các nhãn module</string>
+    <string name="hide_tag_card_summary">Ẩn nhãn tên folder và kích thước trong thẻ module</string>
     <string name="theme_mode">Chủ đề</string>
     <string name="theme_follow_system">Theo hệ thống</string>
     <string name="theme_light">Sáng</string>
@@ -374,13 +376,13 @@
     <string name="no_apps_in_category">Không có ứng dụng nào trong danh mục này</string>
     <!-- 标签相关 -->
     <string name="label_root">Root</string>
-    <string name="label_unmount">Unmount</string>
+    <string name="label_unmount">Umount</string>
     <string name="label_custom">Tuỳ chỉnh</string>
     <!-- FAB菜单相关 -->
     <string name="deny_authorization">Huỷ bỏ uỷ quyền</string>
     <string name="grant_authorization">Uỷ quyền</string>
-    <string name="unmount_modules">Unmount modules</string>
-    <string name="disable_unmount">Vô hiệu hoá unmount modules</string>
+    <string name="unmount_modules">Umount modules</string>
+    <string name="disable_unmount">Vô hiệu hoá umount modules</string>
     <string name="expand_menu">Mở rộng Menu</string>
     <string name="collapse_menu">Thu gọn Menu</string>
     <string name="scroll_to_top">Lên trên</string>
@@ -391,9 +393,125 @@
     <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa unmount modules</string>
+    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh umount modules</string>
     <!-- BottomSheet相关 -->
     <string name="menu_options">Tuỳ chọn Menu</string>
     <string name="sort_options">Sắp xếp theo</string>
     <string name="app_categories">Lựa chọn loại ứng dụng</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">Cấu hình SuSFS</string>
+    <string name="susfs_config_description">Mô tả cấu hình</string>
+    <string name="susfs_config_description_text">Tính năng này cho phép bạn tùy chỉnh giá trị SuSFS Uname và Giả mạo thời gian xây dựng. Nhập các giá trị bạn muốn đặt và nhấp vào \"Áp dụng\" để có hiệu lực</string>
+    <string name="susfs_uname_label">Giá trị Uname</string>
+    <string name="susfs_uname_placeholder">Vui lòng nhập giá trị Uname tùy chỉnh</string>
+    <string name="susfs_build_time_label">Xây dựng thời gian giả mạo</string>
+    <string name="susfs_build_time_placeholder">Vui lòng nhập giá trị giả mạo thời gian xây dựng</string>
+    <string name="susfs_current_value">Giá trị hiện tại: %s</string>
+    <string name="susfs_current_build_time">Thời gian xây dựng hiện tại: %s</string>
+    <string name="susfs_reset_to_default">Khôi phục về mặc định</string>
+    <string name="susfs_apply">Áp dụng</string>
+    <string name="susfs_done">Hoàn thành</string>
+    <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">Xác nhận khôi phục</string>
+    <string name="susfs_reset_confirm">Xác nhận khôi phục</string>
+    <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">Không tìm thấy file ksu_susfs</string>
+    <string name="susfs_command_failed">Thực hiện lệnh SuSFS thất bại</string>
+    <string name="susfs_command_error">Lỗi khi thực hiện lệnh SuSFS: %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS Uname và Thời gian xây dựng được thiết lập thành công: %s, %s</string>
+    <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">Cấu hình SuSFS</string>
+    <string name="susfs_config_setting_summary">Cấu hình SuSFS để giả mạo tên Kernel và thời gian xây dựng, cùng nhiều tính năng khác (Hiện tại: %s)</string>
+    <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">Tự động khởi động</string>
+    <string name="susfs_autostart_description">Tự động áp dụng tất cả các cấu hình không phải mặc định khi khởi động lại</string>
+    <string name="susfs_autostart_requirement">Cấu hình cần được thêm vào để kích hoạt</string>
+    <string name="susfs_autostart_enabled">Tự động khởi động được kích hoạt</string>
+    <string name="susfs_autostart_disabled">Tự động khởi động bị vô hiệu hóa</string>
+    <string name="susfs_autostart_enable_failed">Kích hoạt tính năng tự động khởi động thất bại!</string>
+    <string name="susfs_autostart_disable_failed">Vô hiệu hoá tính năng tự động khởi động thất bại!</string>
+    <string name="susfs_autostart_error">Lỗi cấu hình tự động khởi động: %s</string>
+    <string name="susfs_no_config_to_autostart">Không có cấu hình nào có sẵn để tự động khởi động</string>
+    <string name="susfs_autostart_tis">Cần nhập giá trị không phải mặc định để kích hoạt tính năng tự động khởi động</string>
+    <!-- SuSFS Tab Titles -->
+    <string name="susfs_tab_basic_settings">Cài đặt cơ bản</string>
+    <string name="susfs_tab_sus_paths">Đường dẫn SuSFS</string>
+    <string name="susfs_tab_sus_mounts">SuSFS Mounts</string>
+    <string name="susfs_tab_try_umount">SuSFS Umount</string>
+    <string name="susfs_tab_path_settings">Cài đặt Đường dẫn</string>
+    <string name="susfs_tab_enabled_features">Đã kích hoạt trạng thái tính năng</string>
+    <!-- SuSFS Dialog Actions -->
+    <string name="susfs_add">Thêm vào</string>
+    <string name="susfs_delete">Xoá</string>
+    <string name="susfs_reset">Khôi phục</string>
+    <string name="susfs_run">Chạy</string>
+    <string name="susfs_refresh">Làm mới</string>
+    <!-- SuSFS Path Management -->
+    <string name="susfs_add_sus_path">Thêm Đường dẫn SuSFS</string>
+    <string name="susfs_add_sus_mount">Thêm SuSFS Mount</string>
+    <string name="susfs_add_try_umount">Thêm SuSFS Umount</string>
+    <string name="susfs_path_label">Đường dẫn</string>
+    <string name="susfs_mount_path_label">Đường dẫn Mount</string>
+    <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
+    <string name="susfs_sus_paths_management">Quản lý Đường dẫn SuSFS</string>
+    <string name="susfs_sus_mounts_management">Quản lý SuSFS Mounts</string>
+    <string name="susfs_try_umount_management">Quản lý SuSFS Umount</string>
+    <string name="susfs_no_paths_configured">Không có Đường dẫn SuSFS nào được cấu hình</string>
+    <string name="susfs_no_mounts_configured">Không có SuSFS Mounts nào được cấu hình</string>
+    <string name="susfs_no_umounts_configured">Không có SuSFS Umount nào được cấu hình</string>
+    <!-- SuSFS Umount Mode -->
+    <string name="susfs_umount_mode_label">Chế độ Umount</string>
+    <string name="susfs_umount_mode_normal">Normal Umount (0)</string>
+    <string name="susfs_umount_mode_detach">Detach Umount (1)</string>
+    <string name="susfs_umount_mode_normal_short">Normal</string>
+    <string name="susfs_umount_mode_detach_short">Detach</string>
+    <string name="susfs_umount_mode_display">Chế độ: %1$s (%2$s)</string>
+    <string name="susfs_try_umount_added_success">Đường dẫn SuSFS Umount đã thêm thành công: %s</string>
+    <string name="susfs_try_umount_added_saved">Đường dẫn SuSFS Umount đã lưu thành công: %s</string>
+    <!-- SuSFS Run Umount -->
+    <string name="susfs_run_umount_confirm_title">Xác nhận chạy SuSFS Umount</string>
+    <string name="susfs_run_umount_confirm_message">Thao tác này sẽ áp dụng ngay lập tức tất cả các thiết lập SuSFS Umount đã cấu hình. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_title">Khôi phục Đường dẫn SuSFS</string>
+    <string name="susfs_reset_paths_message">Thao tác này sẽ xóa tất cả các cấu hình Đường dẫn SuSFS. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_reset_mounts_title">Khôi phục SuSFS Mounts</string>
+    <string name="susfs_reset_mounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuSFS Mount. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_reset_umounts_title">Khôi phục SuSFS Umount</string>
+    <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuSFS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <!-- SuSFS Path Settings -->
+    <string name="susfs_path_settings">Cài đặt Đường dẫn</string>
+    <string name="susfs_android_data_path_label">Đường dẫn Dữ liệu Android</string>
+    <string name="susfs_sdcard_path_label">Đường dẫn Thẻ SD</string>
+    <string name="susfs_set_android_data_path">Đặt Đường dẫn Dữ liệu Android</string>
+    <string name="susfs_set_sdcard_path">Đặt Đường dẫn Thẻ SD</string>
+    <!-- SuSFS Enabled Features -->
+    <string name="susfs_enabled_features_title">Đã kích hoạt trạng thái tính năng</string>
+    <string name="susfs_enabled_features_description">Hiển thị trạng thái tính năng đã kích hoạt hiện tại của SuSFS</string>
+    <string name="susfs_no_features_found">Không tìm thấy thông tin trạng thái tính năng</string>
+    <string name="susfs_feature_enabled">Đã bật</string>
+    <string name="susfs_feature_disabled">Đã tắt</string>
+    <!-- Feature Labels -->
+    <string name="sus_path_feature_label">Hỗ trợ Đường dẫn SuSFS</string>
+    <string name="sus_mount_feature_label">Hỗ trợ SuSFS Mount</string>
+    <string name="try_umount_feature_label">Hỗ trợ SuSFS Umount</string>
+    <string name="spoof_uname_feature_label">Hỗ trợ giả mạo Uname</string>
+    <string name="spoof_cmdline_feature_label">Giả mạo Cmdline/Bootconfig</string>
+    <string name="open_redirect_feature_label">Mở hỗ trợ chuyển hướng</string>
+    <string name="enable_log_feature_label">Hỗ trợ ghi nhật ký</string>
+    <string name="auto_default_mount_feature_label">Tự động Mount mặc định</string>
+    <string name="auto_bind_mount_feature_label">Tự động Bind Mount</string>
+    <string name="auto_try_umount_bind_feature_label">Tự động Umount Bind Mount</string>
+    <string name="hide_symbols_feature_label">Ẩn biểu tượng KSU SuSFS</string>
+    <string name="magic_mount_feature_label">Hỗ trợ Magic Mount</string>
+    <string name="overlayfs_auto_kstat_feature_label">OverlayFS hỗ trợ thống kê Kernel tự động</string>
+    <string name="sus_kstat_feature_label">Hỗ trợ SuSFS Kstat</string>
+    <!-- 可切换状态 -->
+    <string name="susfs_configure">Cấu hình SuSFS</string>
+    <string name="susfs_feature_configurable">Các tính năng SuSFS có thể cấu hình</string>
+    <string name="susfs_enable_log_label">Kích hoạt nhật ký SuSFS</string>
+    <string name="susfs_log_config_description">Bật hoặc tắt ghi nhật ký cho SuSFS</string>
+    <string name="susfs_log_config_title">Cấu hình ghi nhật ký SuSFS</string>
+    <string name="susfs_log_enabled">Bật ghi nhật ký SuSFS</string>
+    <string name="susfs_log_disabled">Tắt ghi nhật ký SuSFS</string>
+    <!-- Settings related strings -->
 </resources>
