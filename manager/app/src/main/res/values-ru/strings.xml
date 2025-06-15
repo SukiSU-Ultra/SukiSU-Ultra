@@ -398,4 +398,36 @@
     <string name="menu_options">Настройки списка</string>
     <string name="sort_options">Сортировка</string>
     <string name="app_categories">Выбор типа приложения</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">Конфигурация SuSFS</string>
+    <string name="susfs_config_description">Описание конфигурации</string>
+    <string name="susfs_config_description_text">Эта функция позволяет вам настраивать переменную uname для SuSFS. Впишите значение и нажмите \"Применить\" для изменения.</string>
+    <string name="susfs_uname_label">Значение uname</string>
+    <string name="susfs_uname_placeholder">Пожалуйста, введите пользовательское значение uname</string>
+    <string name="susfs_current_value">Текущее значение: %s</string>
+    <string name="susfs_reset_to_default">Значение по умолчанию</string>
+    <string name="susfs_apply">Применить</string>
+    <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">Подтвердить сброс</string>
+    <string name="susfs_reset_confirm">Подтвердить сброс</string>
+    <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">Не удалось найти файл ksu_susfs</string>
+    <string name="susfs_command_failed">Выполнение команды SuSFS не удалось</string>
+    <string name="susfs_command_error">Ошибка выполнения команды SuSFS: %s</string>
+    <string name="susfs_uname_set_success" formatted="false">Значение uname для SuSFS установлено успешно: %s</string>
+    <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">Конфигурация SuSFS</string>
+    <string name="susfs_config_setting_summary">Настроить значение uname для SuSFS (Текущее: %s)</string>
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Dialog Actions -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Umount Mode -->
+    <!-- SuSFS Run Umount -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- Settings related strings -->
 </resources>
