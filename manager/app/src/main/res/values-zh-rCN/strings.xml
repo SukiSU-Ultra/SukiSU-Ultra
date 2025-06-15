@@ -72,7 +72,7 @@
     <string name="failed_to_update_app_profile">为 %s 更新 App Profile 失败</string>
     <string name="require_kernel_version" formatted="false">当前 KernelSU 版本 %d 过低，管理器无法正常工作，请将内核 KernelSU 版本升级至 %d 或以上！</string>
     <string name="settings_umount_modules_default">默认卸载模块</string>
-    <string name="settings_umount_modules_default_summary">App Profile 中"卸载模块"的全局默认值，如果启用，将会为没有设置 Profile 的应用移除所有模块针对系统的修改。</string>
+    <string name="settings_umount_modules_default_summary">App Profile 中“卸载模块”的全局默认值，如果启用，将会为没有设置 Profile 的应用移除所有模块针对系统的修改。</string>
     <string name="settings_susfs_toggle">禁用 kprobe 钩子</string>
     <string name="profile_umount_modules_summary">启用该选项后将允许 KernelSU 为本应用还原被模块修改过的文件。</string>
     <string name="profile_selinux_domain">域</string>
@@ -129,7 +129,7 @@
     <string name="settings_restore_stock_image">恢复原厂镜像</string>
     <string name="settings_uninstall_temporary_message">临时卸载 KernelSU，下次重启后恢复至原始状态。</string>
     <string name="settings_uninstall_permanent_message">完全并永久卸载 KernelSU（Root 权限和所有模块）。</string>
-    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 KernelSU，请使用"永久卸载"。</string>
+    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 KernelSU，请使用“永久卸载”。</string>
     <string name="flashing">刷写中</string>
     <string name="flash_success">刷写完成</string>
     <string name="flash_failed">刷写失败</string>
@@ -271,7 +271,7 @@
     <string name="background_image_error">无法加载图片</string>
     <string name="reprovision">重置</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">刷写Kernel</string>
+    <string name="horizon_flash_title">刷写 Kernel</string>
     <string name="horizon_logs_label">日志:</string>
     <string name="horizon_flash_complete">刷写完成</string>
     <!-- Flash Status Related -->
@@ -284,9 +284,9 @@
     <string name="horizon_flash_complete_status">刷写完成</string>
     <!-- Slot selection related strings -->
     <string name="select_slot_title">选择刷写槽位</string>
-    <string name="select_slot_description">请选择要刷写boot的目标槽位</string>
-    <string name="slot_a">A槽位</string>
-    <string name="slot_b">B槽位</string>
+    <string name="select_slot_description">请选择要刷写 boot 的目标槽位</string>
+    <string name="slot_a">槽位 A</string>
+    <string name="slot_b">槽位 B</string>
     <string name="selected_slot">已选择槽位: %1$s</string>
     <string name="horizon_getting_original_slot">获取原有槽位</string>
     <string name="horizon_setting_target_slot">设置指定槽位</string>
@@ -297,7 +297,7 @@
     <string name="horizon_unknown_error">未知错误</string>
     <string name="flash_failed_message">刷写失败</string>
     <!-- lkm/gki install -->
-    <string name="Lkm_install_methods">LKM修补/安装</string>
+    <string name="Lkm_install_methods">LKM 修补/安装</string>
     <string name="GKI_install_methods">刷写 AnyKernel3</string>
     <string name="kernel_version_log">内核版本：%1$s</string>
     <string name="tool_version_log">使用修补工具：%1$s</string>
@@ -335,15 +335,15 @@
     <string name="use_webuix_eruda_summary">在 WebUI X 中注入调试控制台，使调试更容易,需要启用 WebView 调试</string>
     <!-- DPI setting related strings -->
     <string name="dpi_settings">DPI 设置</string>
-    <string name="app_dpi_title">应用DPI</string>
+    <string name="app_dpi_title">应用 DPI</string>
     <string name="app_dpi_summary">仅调整当前应用的屏幕显示密度</string>
     <string name="dpi_size_small">小</string>
     <string name="dpi_size_medium">中</string>
     <string name="dpi_size_large">大</string>
     <string name="dpi_size_extra_large">超大</string>
     <string name="dpi_size_custom">自定义</string>
-    <string name="dpi_apply_settings">应用DPI设置</string>
-    <string name="dpi_confirm_title">确认更改DPI</string>
+    <string name="dpi_apply_settings">应用 DPI 设置</string>
+    <string name="dpi_confirm_title">确认更改 DPI</string>
     <string name="dpi_confirm_message">你确定要将应用DPI从 %1$d 更改为 %2$d 吗？</string>
     <string name="dpi_confirm_summary">应用需要重启以应用新的DPI设置，不会影响系统状态栏或其他应用</string>
     <string name="dpi_applied_success">DPI 已设置为 %1$d，重启应用后生效</string>
@@ -365,10 +365,10 @@
     <string name="category_custom_apps">自定义</string>
     <string name="category_default_apps">默认</string>
     <!-- 排序相关 -->
-    <string name="sort_name_asc">名称升序</string>
-    <string name="sort_name_desc">名称降序</string>
-    <string name="sort_install_time_new">安装时间(新)</string>
-    <string name="sort_install_time_old">安装时间(旧)</string>
+    <string name="sort_name_asc">按名称升序</string>
+    <string name="sort_name_desc">按名称降序</string>
+    <string name="sort_install_time_new">按安装时间 (新)</string>
+    <string name="sort_install_time_old">按安装时间 (旧)</string>
     <string name="sort_size_desc">大小降序</string>
     <string name="sort_size_asc">大小升序</string>
     <string name="sort_usage_freq">使用频率</string>
@@ -401,7 +401,7 @@
     <!-- SuSFS Configuration -->
     <string name="susfs_config_title">SuSFS 配置</string>
     <string name="susfs_config_description">配置说明</string>
-    <string name="susfs_config_description_text">此功能允许您自定义 SuSFS 的 uname 值和构建时间伪装。输入您想要设置的值，点击应用即可生效</string>
+    <string name="susfs_config_description_text">此功能允许您自定义 SuSFS 的 uname 值。输入您想要设置的值，点击应用即可生效</string>
     <string name="susfs_uname_label">Uname 值</string>
     <string name="susfs_uname_placeholder">请输入自定义 uname 值</string>
     <string name="susfs_build_time_label">构建时间伪装</string>
@@ -418,7 +418,7 @@
     <string name="susfs_binary_not_found">无法找到 ksu_susfs 文件</string>
     <string name="susfs_command_failed">SuSFS 命令执行失败</string>
     <string name="susfs_command_error">执行 SuSFS 命令时出错: %s</string>
-    <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS uname 设置成功: %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <string name="susfs_config_setting_summary">配置 SuSFS 的内核名称和构建时间伪装以及更多功能 (当前: %s)</string>
@@ -435,8 +435,8 @@
     <string name="susfs_autostart_tis">需要输入非默认值才能启用开机自启动</string>
     <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">基本设置</string>
-    <string name="susfs_tab_sus_paths">SUS路径</string>
-    <string name="susfs_tab_sus_mounts">SUS挂载</string>
+    <string name="susfs_tab_sus_paths">SUS 路径</string>
+    <string name="susfs_tab_sus_mounts">SUS 挂载</string>
     <string name="susfs_tab_try_umount">尝试卸载</string>
     <string name="susfs_tab_path_settings">路径设置</string>
     <string name="susfs_tab_enabled_features">启用功能状态</string>
@@ -447,8 +447,8 @@
     <string name="susfs_run">运行</string>
     <string name="susfs_refresh">刷新</string>
     <!-- SuSFS Path Management -->
-    <string name="susfs_add_sus_path">添加SUS路径</string>
-    <string name="susfs_add_sus_mount">添加SUS挂载</string>
+    <string name="susfs_add_sus_path">添加 SUS 路径</string>
+    <string name="susfs_add_sus_mount">添加 SUS 挂载</string>
     <string name="susfs_add_try_umount">添加尝试卸载</string>
     <string name="susfs_path_label">路径</string>
     <string name="susfs_mount_path_label">挂载路径</string>
@@ -517,7 +517,7 @@
     <string name="module_update_json">更新配置</string>
     <string name="module_update_json_copied">更新配置地址已复制到剪贴板</string>
     <string name="module_update_json_not_available">更新配置不可用</string>
-    <!-- 设置相关字符串 -->
+    <!-- Settings related strings -->
     <string name="show_module_update_json">显示模块更新配置</string>
     <string name="show_module_update_json_summary">在模块详情中显示更新配置URL</string>
     <string name="show_more_module_info">显示更多模块信息</string>
