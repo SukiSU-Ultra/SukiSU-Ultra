@@ -511,7 +511,7 @@
     <string name="susfs_configure">SuSFS 配置</string>
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
-    <string name="susfs_log_config_description">啟用或者關閉SuSFS的日誌</string>
+    <string name="susfs_log_config_description">啟用或者關閉 SuSFS 的日誌</string>
     <string name="susfs_log_config_title">SuSFS 日誌配置</string>
     <string name="susfs_log_enabled">啟用 SuSFS 日誌</string>
     <string name="susfs_log_disabled">關閉 SuSFS 日誌</string>
