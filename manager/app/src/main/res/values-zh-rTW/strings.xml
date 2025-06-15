@@ -416,7 +416,7 @@
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 檔案</string>
     <string name="susfs_command_failed">SuSFS 指令執行失敗</string>
     <string name="susfs_command_error">執行 SuSFS 指令時出錯: %s</string>
-    <string name="susfs_uname_set_success">SuSFS uname 和構建時間設定成功: %s, %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
     <!-- SuSFS 偽裝配置 -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <string name="susfs_config_setting_summary">配置 SuSFS 的 uname 值和構建時間偽裝 (目前: %s)</string>
@@ -507,4 +507,12 @@
     <string name="susfs_delete_button_description">删除項目</string>
     <string name="susfs_reset_section_description">重設此區段</string>
     <string name="susfs_refresh_button_description">重新整理功能狀態</string>
+    <!-- 可切換狀態 -->
+    <string name="susfs_configure">SuSFS 配置</string>
+    <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
+    <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
+    <string name="susfs_log_config_description">啟用或者關閉SuSFS的日誌</string>
+    <string name="susfs_log_config_title">SuSFS 日誌配置</string>
+    <string name="susfs_log_enabled">啟用 SuSFS 日誌</string>
+    <string name="susfs_log_disabled">關閉 SuSFS 日誌</string>
 </resources>
