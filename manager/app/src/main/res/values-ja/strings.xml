@@ -72,7 +72,7 @@
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
     <string name="require_kernel_version" formatted="false">現在の KernelSU のバージョン %d は低すぎるため、マネージャーは正常に動作しません。バージョン %d 以上に更新してください！</string>
     <string name="settings_umount_modules_default">デフォルトでモジュールのマウントを解除する</string>
-    <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通となるデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
+    <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通となるデフォルト値です。有効化するとプロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="settings_susfs_toggle">kprobe フックを無効化</string>
     <string name="profile_umount_modules_summary">このオプションを有効にすると、KernelSU はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
     <string name="profile_selinux_domain">ドメイン</string>
@@ -87,7 +87,7 @@
     <string name="failed_to_update_sepolicy">SELinux ルールの更新に失敗しました %s</string>
     <string name="module_changelog">変更履歴</string>
     <string name="settings_profile_template">アプリプロファイルのテンプレート</string>
-    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します</string>
+    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します。</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
     <string name="app_profile_template_id">ID</string>
@@ -109,13 +109,13 @@
     <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="module_changelog_failed">変更ログの取得に失敗しました: %s</string>
     <string name="settings_check_update">更新を確認する</string>
-    <string name="settings_check_update_summary">アプリの起動時に更新を自動で確認します</string>
+    <string name="settings_check_update_summary">アプリの起動時に更新を自動で確認します。</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
     <string name="close">閉じる</string>
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
-    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
+    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください。</string>
     <string name="direct_install">直接インストール (推奨)</string>
     <string name="select_file">パッチを行うイメージを選択</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
@@ -172,7 +172,7 @@
     <string name="backup_allowlist">許可リストをバックアップ</string>
     <string name="restore_allowlist">許可リストを復元</string>
     <string name="settings_custom_background">アプリの背景を変更</string>
-    <string name="settings_custom_background_summary">背景にする画像を選択してください</string>
+    <string name="settings_custom_background_summary">背景にする画像を選択してください。</string>
     <string name="settings_card_alpha">ナビゲーションバーの透過</string>
     <string name="settings_restore_default">デフォルトに復元</string>
     <string name="home_android_version">Android のバージョン</string>
@@ -188,22 +188,22 @@
     <string name="selinux_enabled">有効</string>
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
-    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします</string>
+    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします。</string>
     <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
-    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします</string>
+    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
     <string name="hide_other_info">その他の情報を非表示</string>
-    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします</string>
+    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
-    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします</string>
+    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
-    <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします</string>
+    <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="theme_mode">テーマ</string>
     <string name="theme_follow_system">システムに従う</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
     <string name="manual_hook">手動でフック</string>
     <string name="dynamic_color_title">ダイナミックカラー</string>
-    <string name="dynamic_color_summary">システムテーマのダイナミックカラーを使用します</string>
+    <string name="dynamic_color_summary">システムテーマのダイナミックカラーを使用します。</string>
     <string name="choose_theme_color">テーマカラーを選択</string>
     <string name="color_default">ブルー</string>
     <string name="color_green">グリーン</string>
@@ -267,7 +267,7 @@
     <string name="confirm_uninstall_content">次の KPM がアンインストールされます: %s</string>
     <string name="settings_susfs_toggle_summary">KernelSU によって作成された kprobe フックを無効化して、代替となるインラインフックを使用します。これは、非 GKI カーネルのフック方式に似た物になります。</string>
     <string name="image_editor_title">背景画像を調整</string>
-    <string name="image_editor_hint">2 本の指で画像を拡大、1 本の指でドラッグで位置を調整します</string>
+    <string name="image_editor_hint">2 本の指で画像を拡大、1 本の指でドラッグで位置を調整します。</string>
     <string name="background_image_error">イメージを読み込めません</string>
     <string name="reprovision">再プロビジョニング</string>
     <!-- Kernel Flash Progress Related -->
@@ -320,12 +320,12 @@
     <string name="background_set_success">背景の設定が成功しました</string>
     <string name="background_removed">カスタム背景を削除しました</string>
     <string name="icon_switch_title">代替アイコン</string>
-    <string name="icon_switch_summary">ランチャーアイコンを KernelSU のアイコンに変更します</string>
+    <string name="icon_switch_summary">ランチャーアイコンを KernelSU のアイコンに変更します。</string>
     <string name="icon_switched">アイコンを変更しました</string>
     <string name="root_require_for_install">root 権限が必要です</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">KPM 機能を非表示</string>
-    <string name="show_kpm_info_summary">ホームとボトムバーから KPM の情報と機能を非表示にします</string>
+    <string name="show_kpm_info_summary">ホームとボトムバーから KPM の情報と機能を非表示にします。</string>
     <!-- Webui X settings -->
     <string name="use_webuix">WebUI で使用するエンジン</string>
     <string name="engine_auto_select">自動選択</string>
@@ -336,7 +336,7 @@
     <!-- DPI setting related strings -->
     <string name="dpi_settings">DPI の設定</string>
     <string name="app_dpi_title">DPI の変更を適用</string>
-    <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します</string>
+    <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します。</string>
     <string name="dpi_size_small">小 </string>
     <string name="dpi_size_medium">中 </string>
     <string name="dpi_size_large">大</string>
@@ -398,4 +398,120 @@
     <string name="menu_options">メニューのオプション</string>
     <string name="sort_options">並べ替え</string>
     <string name="app_categories">アプリタイプを選択</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">SuSFS の構成</string>
+    <string name="susfs_config_description">構成の説明</string>
+    <string name="susfs_config_description_text">この機能を使用すると SuSFS の uname の値とビルド日時の偽装をカスタマイズできます。設定する値を入力後に「適用」をタップで有効になります。</string>
+    <string name="susfs_uname_label">uname の値</string>
+    <string name="susfs_uname_placeholder">カスタム uname の値を入力してください</string>
+    <string name="susfs_build_time_label">ビルド日時を偽装</string>
+    <string name="susfs_build_time_placeholder">偽装するビルド日時を入力してください</string>
+    <string name="susfs_current_value">現在の値: %s</string>
+    <string name="susfs_current_build_time">現在のビルド日時: %s</string>
+    <string name="susfs_reset_to_default">デフォルトにリセット</string>
+    <string name="susfs_apply">適用</string>
+    <string name="susfs_done">完了</string>
+    <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">リセットを確認</string>
+    <string name="susfs_reset_confirm">リセットを確認</string>
+    <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">ksu_susfs ファイルが見つかりません</string>
+    <string name="susfs_command_failed">SuSFS コマンドの実行に失敗しました</string>
+    <string name="susfs_command_error">SuSFS コマンドの実行エラー: %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS uname とビルド日時が正常に設定されました: %s - %s</string>
+    <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">SuSFS の構成</string>
+    <string name="susfs_config_setting_summary">SuSFS uname の値とビルド日時の偽装を構成します (現在: %s)</string>
+    <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">自動起動</string>
+    <string name="susfs_autostart_description">システムの起動時に自動で uname の構成を適用する</string>
+    <string name="susfs_autostart_requirement">有効化するには uname を構成するかパスを追加する必要があります</string>
+    <string name="susfs_autostart_enabled">自動起動が有効</string>
+    <string name="susfs_autostart_disabled">自動起動が無効</string>
+    <string name="susfs_autostart_enable_failed">自動起動の有効化に失敗しました</string>
+    <string name="susfs_autostart_disable_failed">自動起動の無効化に失敗しました</string>
+    <string name="susfs_autostart_error">自動起動の構成エラー: %s</string>
+    <string name="susfs_no_config_to_autostart">自動起動に利用可能な構成がありません</string>
+    <string name="susfs_autostart_tis">自動起動を有効化するには非デフォルトの値を入力してください</string>
+    <!-- SuSFS Tab Titles -->
+    <string name="susfs_tab_basic_settings">基本設定</string>
+    <string name="susfs_tab_sus_paths">SUS のパス</string>
+    <string name="susfs_tab_sus_mounts">SUS マウント</string>
+    <string name="susfs_tab_try_umount">アンマウントを試す</string>
+    <string name="susfs_tab_path_settings">パスの設定</string>
+    <string name="susfs_tab_enabled_features">有効な機能のステータス</string>
+    <!-- SuSFS Dialog Actions -->
+    <string name="susfs_add">追加</string>
+    <string name="susfs_delete">削除</string>
+    <string name="susfs_reset">リセット</string>
+    <string name="susfs_run">実行</string>
+    <string name="susfs_refresh">更新</string>
+    <!-- SuSFS Path Management -->
+    <string name="susfs_add_sus_path">SUS パスを追加</string>
+    <string name="susfs_add_sus_mount">SUS マウントを追加</string>
+    <string name="susfs_add_try_umount">アンマウントを試すを追加</string>
+    <string name="susfs_path_label">パス</string>
+    <string name="susfs_mount_path_label">マウントのパス</string>
+    <string name="susfs_path_placeholder">例 : /system/addon.d</string>
+    <string name="susfs_sus_paths_management">SUS パスの管理</string>
+    <string name="susfs_sus_mounts_management">SUS マウントの管理</string>
+    <string name="susfs_try_umount_management">アンマウントの管理を試す</string>
+    <string name="susfs_no_paths_configured">SUS パスが未構成です</string>
+    <string name="susfs_no_mounts_configured">SUS マウントが未構成です</string>
+    <string name="susfs_no_umounts_configured">アンマウントを試すが未構成です</string>
+    <!-- SuSFS Umount Mode -->
+    <string name="susfs_umount_mode_label">アンマウントモード</string>
+    <string name="susfs_umount_mode_normal">通常のアンマウント (0)</string>
+    <string name="susfs_umount_mode_detach">アンマウントを分離 (1)</string>
+    <string name="susfs_umount_mode_normal_short">通常</string>
+    <string name="susfs_umount_mode_detach_short">分離</string>
+    <string name="susfs_umount_mode_display">モード: %1$s (%2$s)</string>
+    <string name="susfs_try_umount_added_success">追加されたパスのアンマウントに成功しました: %s</string>
+    <string name="susfs_try_umount_added_saved">アンマウントのパスの保存に成功しました: %s</string>
+    <!-- SuSFS Run Umount -->
+    <string name="susfs_run_umount_confirm_title">実行を確認してアンマウントを試す</string>
+    <string name="susfs_run_umount_confirm_message">設定されたすべてのアンマウントの試行操作が直ちに実行されます。続行してもよろしいですか？</string>
+    <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_title">SUS パスをリセット</string>
+    <string name="susfs_reset_paths_message">すべての SUS パスの構成が消去されます。続行してもよろしいですか？</string>
+    <string name="susfs_reset_mounts_title">SUS マウントをリセット</string>
+    <string name="susfs_reset_mounts_message">すべての SUS マウントの構成が消去されます。続行してもよろしいですか？</string>
+    <string name="susfs_reset_umounts_title">リセットしてアンマウントを試す</string>
+    <string name="susfs_reset_umounts_message">すべてのアンマウント構成がリセットされます。続行してもよろしいですか？</string>
+    <!-- SuSFS Path Settings -->
+    <string name="susfs_path_settings">パスの設定</string>
+    <string name="susfs_android_data_path_label">Android データパス</string>
+    <string name="susfs_sdcard_path_label">SD カードのパス</string>
+    <string name="susfs_set_android_data_path">Android データパスを設定</string>
+    <string name="susfs_set_sdcard_path">SD カードのパスを設定</string>
+    <!-- SuSFS Enabled Features -->
+    <string name="susfs_enabled_features_title">有効な機能のステータス</string>
+    <string name="susfs_enabled_features_description">SuSFS で現在有効な機能のステータスを表示します</string>
+    <string name="susfs_no_features_found">機能のステータス情報が見つかりません</string>
+    <string name="susfs_feature_enabled">有効</string>
+    <string name="susfs_feature_disabled">無効</string>
+    <!-- Feature Labels -->
+    <string name="sus_path_feature_label">SUS パスの対応</string>
+    <string name="sus_mount_feature_label">SUS マウントの対応</string>
+    <string name="try_umount_feature_label">アンマウントを試すの対応</string>
+    <string name="spoof_uname_feature_label">uname 偽装の対応</string>
+    <string name="spoof_cmdline_feature_label">Cmdline/Bootconfig を偽装</string>
+    <string name="open_redirect_feature_label">オープンリダイレクトの対応</string>
+    <string name="enable_log_feature_label">ログの対応</string>
+    <string name="auto_default_mount_feature_label">自動でデフォルトのマウント</string>
+    <string name="auto_bind_mount_feature_label">自動でバインドマウント</string>
+    <string name="auto_try_umount_bind_feature_label">自動でバインドマウントのアンマウントを試す</string>
+    <string name="hide_symbols_feature_label">KSU SUSFS シンボルを非表示</string>
+    <string name="magic_mount_feature_label">Magic Mount の対応</string>
+    <string name="overlayfs_auto_kstat_feature_label">OverlayFS 自動カーネル状態の対応</string>
+    <string name="sus_kstat_feature_label">SUS Kstat の対応</string>
+    <!-- 可切换状态 -->
+    <string name="susfs_configure">SuSFS の構成</string>
+    <string name="susfs_feature_configurable">構成可能な SuSFS の機能</string>
+    <string name="susfs_enable_log_label">SuSFS のログ取得を有効化</string>
+    <string name="susfs_log_config_description">SuSFS のログ取得を有効化または無効化します。</string>
+    <string name="susfs_log_config_title">SuSFS ログ取得の構成</string>
+    <string name="susfs_log_enabled">SuSFS のログ取得を有効化中</string>
+    <string name="susfs_log_disabled">SuSFS のログ取得を無効化</string>
+    <!-- Settings related strings -->
 </resources>
