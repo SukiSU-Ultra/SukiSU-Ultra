@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">首頁</string>
-    <string name="home_not_installed">未安裝</string>
+    <string name="home_not_installed">尚未安裝</string>
     <string name="home_click_to_install">點擊開始安裝</string>
     <string name="home_working">運作中</string>
     <string name="home_working_version">版本：%d</string>
     <string name="home_superuser_count">超級使用者數量：%d</string>
     <string name="home_module_count">模組數量：%d</string>
     <string name="home_unsupported">不支援</string>
-    <string name="home_unsupported_reason">未在內核上偵測到 KernelSU 驅動程式，內核錯誤？</string>
-    <string name="home_kernel">內核版本</string>
+    <string name="home_unsupported_reason">未在内核上偵測到 KernelSU 驅動程式，内核錯誤？</string>
+    <string name="home_kernel">内核版本</string>
     <string name="home_susfs">SuSFS：%s</string>
     <string name="home_susfs_version">SuSFS 版本</string>
     <string name="home_susfs_sus_su">SuS SU</string>
@@ -17,7 +17,7 @@
     <string name="home_fingerprint">系統指紋</string>
     <string name="home_selinux_status">SELinux 狀態</string>
     <string name="selinux_status_disabled">已禁用</string>
-    <string name="selinux_status_enforcing">嚴格模式</string>
+    <string name="selinux_status_enforcing">強制執行</string>
     <string name="selinux_status_permissive">寬鬆模式</string>
     <string name="selinux_status_unknown">未知</string>
     <string name="superuser">超級使用者</string>
@@ -70,7 +70,7 @@
     <string name="profile_selinux_context">SELinux 上下文</string>
     <string name="profile_umount_modules">卸載模組</string>
     <string name="failed_to_update_app_profile">為 %s 更新應用程式設定檔失敗</string>
-    <string name="require_kernel_version" formatted="false">目前 KernelSU 版本 %d 過低，管理器無法正常運作，請將內核 KernelSU 版本升級至 %d 或以上！</string>
+    <string name="require_kernel_version" formatted="false">目前 KernelSU 版本 %d 過低，管理器無法正常運作，請將内核 KernelSU 版本升級至 %d 或以上！</string>
     <string name="settings_umount_modules_default">預設卸載模組</string>
     <string name="settings_umount_modules_default_summary">應用程式設定檔中「卸載模組」的全域預設值，若啟用，將為未設定設定檔的應用程式移除所有模組對系統的修改。</string>
     <string name="settings_susfs_toggle">禁用 kprobe 切換</string>
@@ -187,8 +187,8 @@
     <string name="selinux_disabled">寬鬆模式</string>
     <string name="simple_mode">簡潔模式</string>
     <string name="simple_mode_summary">啟用後將隱藏不必要的卡片</string>
-    <string name="hide_kernel_kernelsu_version">隱藏內核版本號</string>
-    <string name="hide_kernel_kernelsu_version_summary">隱藏內核部分的 KernelSU 版本號</string>
+    <string name="hide_kernel_kernelsu_version">隱藏内核版本號</string>
+    <string name="hide_kernel_kernelsu_version_summary">隱藏内核部分的 KernelSU 版本號</string>
     <string name="hide_other_info">強迫症開關</string>
     <string name="hide_other_info_summary">隱藏首頁上的超級使用者數量、模組數量及 KPM 模組數量資訊</string>
     <string name="hide_susfs_status">隱藏 SuSFS 狀態資訊</string>
@@ -199,7 +199,7 @@
     <string name="theme_follow_system">跟隨系統</string>
     <string name="theme_light">淺色</string>
     <string name="theme_dark">深色</string>
-    <string name="manual_hook">手動掛載</string>
+    <string name="manual_hook">手動鉤子</string>
     <string name="dynamic_color_title">動態顏色</string>
     <string name="dynamic_color_summary">使用系統主題的動態顏色</string>
     <string name="choose_theme_color">選擇主題顏色</string>
@@ -213,7 +213,7 @@
     <string name="flash_option">刷寫選項</string>
     <string name="flash_option_tip">選擇要刷寫的檔案</string>
     <string name="horizon_kernel">刷寫 AnyKernel3 壓縮包</string>
-    <string name="horizon_kernel_summary">刷寫 AnyKernel3 內核</string>
+    <string name="horizon_kernel_summary">刷寫 AnyKernel3 内核</string>
     <string name="root_required">需要 Root 權限</string>
     <string name="copy_failed">檔案複製失敗</string>
     <string name="reboot_complete_title">刷寫完成</string>
@@ -224,8 +224,8 @@
     <string name="batch_authorization">批次授權</string>
     <string name="batch_cancel_authorization">批次取消授權</string>
     <string name="backup">備份</string>
-    <string name="kpm_title">內核模組</string>
-    <string name="kpm_empty">暫無已安裝的內核模組</string>
+    <string name="kpm_title">内核模組</string>
+    <string name="kpm_empty">暫無已安裝的内核模組</string>
     <string name="kpm_version">版本</string>
     <string name="kpm_author">作者</string>
     <string name="kpm_uninstall">解除安裝</string>
@@ -238,7 +238,7 @@
     <string name="kpm_control">調參</string>
     <string name="home_kpm_version">KPM 版本</string>
     <string name="close_notice">關閉</string>
-    <string name="kernel_module_notice">以下內核模組功能由 KernelPatch 開發，經修改後加入 SukiSU Ultra 的內核模組功能</string>
+    <string name="kernel_module_notice">以下内核模組功能由 KernelPatch 開發，經修改後加入 SukiSU Ultra 的内核模組功能</string>
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">錯誤</string>
@@ -247,8 +247,8 @@
     <string name="supported">支援</string>
     <string name="home_kpm_module">"KPM 模組數量：%d"</string>
     <string name="kpm_invalid_file">KPM 檔案無效</string>
-    <string name="kernel_patched">內核未進行修補</string>
-    <string name="kernel_not_enabled">內核未配置</string>
+    <string name="kernel_patched">内核未進行修補</string>
+    <string name="kernel_not_enabled">内核未配置</string>
     <string name="custom_settings">個人化設定</string>
     <string name="kpm_install_mode">安裝模式</string>
     <string name="kpm_install_mode_load">載入</string>
@@ -263,13 +263,13 @@
     <string name="invalid_file_type">檔案類型不正確，請選擇 .kpm 檔案</string>
     <string name="confirm_uninstall_title_with_filename">解除安裝</string>
     <string name="confirm_uninstall_content">將解除安裝以下 KPM 模組：\n%s</string>
-    <string name="settings_susfs_toggle_summary">禁用由 KernelSU 建立的 kprobe 掛鉤，並使用非 kprobe 內聯掛鉤代替，實現方式類似於不支援 kprobe 的非 GKI 內核。</string>
+    <string name="settings_susfs_toggle_summary">禁用由 KernelSU 建立的 kprobe 鉤子，並使用非 kprobe 內聯鉤子代替，實現方式類似於不支援 kprobe 的非 GKI 内核。</string>
     <string name="image_editor_title">調整背景圖片</string>
     <string name="image_editor_hint">使用雙指縮放圖片，單指拖曳調整位置</string>
     <string name="background_image_error">無法載入圖片</string>
     <string name="reprovision">重置</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">刷寫內核</string>
+    <string name="horizon_flash_title">刷寫内核</string>
     <string name="horizon_logs_label">日誌：</string>
     <string name="horizon_flash_complete">刷寫完成</string>
     <!-- Flash Status Related -->
@@ -278,7 +278,7 @@
     <string name="horizon_copying_files">複製檔案…</string>
     <string name="horizon_extracting_tool">提取刷寫工具…</string>
     <string name="horizon_patching_script">修補刷寫腳本…</string>
-    <string name="horizon_flashing">正在刷寫內核…</string>
+    <string name="horizon_flashing">正在刷寫内核…</string>
     <string name="horizon_flash_complete_status">刷寫完成</string>
     <!-- Slot selection related strings -->
     <string name="select_slot_title">選擇刷寫槽位</string>
@@ -297,7 +297,7 @@
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM 修補/安裝</string>
     <string name="GKI_install_methods">刷寫 AnyKernel3</string>
-    <string name="kernel_version_log">內核版本：%1$s</string>
+    <string name="kernel_version_log">内核版本：%1$s</string>
     <string name="tool_version_log">使用修補工具：%1$s</string>
     <string name="configuration">配置</string>
     <string name="app_settings">應用程式設定</string>
@@ -356,48 +356,48 @@
     <string name="installing_module">正在安裝模組 %1$d/%2$d</string>
     <string name="module_failed_count">%d 個模組安裝失敗</string>
     <string name="module_download_error">模組下載失敗</string>
-    <string name="kernel_flashing">內核刷寫</string>
-    <!-- 分類相關 -->
-    <string name="category_all_apps">全部</string>
+    <string name="kernel_flashing">内核刷寫</string>
+    <!-- 分类相关 -->
+    <string name="category_all_apps">All</string>
     <string name="category_root_apps">Root</string>
-    <string name="category_custom_apps">自訂</string>
-    <string name="category_default_apps">預設</string>
-    <!-- 排序相關 -->
-    <string name="sort_name_asc">名稱升序</string>
-    <string name="sort_name_desc">名稱降序</string>
-    <string name="sort_install_time_new">安裝時間（新）</string>
-    <string name="sort_install_time_old">安裝時間（舊）</string>
-    <string name="sort_size_desc">大小降序</string>
-    <string name="sort_size_asc">大小升序</string>
-    <string name="sort_usage_freq">使用頻率</string>
-    <!-- 狀態相關 -->
-    <string name="no_apps_in_category">此分類中無應用</string>
-    <!-- 標籤相關 -->
+    <string name="category_custom_apps">Custom</string>
+    <string name="category_default_apps">Default</string>
+    <!-- 排序相关 -->
+    <string name="sort_name_asc">Ascending order of name</string>
+    <string name="sort_name_desc">Name descending</string>
+    <string name="sort_install_time_new">Installation time (new)</string>
+    <string name="sort_install_time_old">Installation time (old)</string>
+    <string name="sort_size_desc">descending order of size</string>
+    <string name="sort_size_asc">ascending order of size</string>
+    <string name="sort_usage_freq">frequency of use</string>
+    <!-- 状态相关 -->
+    <string name="no_apps_in_category">No application in this category</string>
+    <!-- 标签相关 -->
     <string name="label_root">Root</string>
-    <string name="label_unmount">卸載</string>
-    <string name="label_custom">自訂</string>
-    <!-- FAB 選單相關 -->
-    <string name="deny_authorization">取消授權</string>
-    <string name="grant_authorization">授權</string>
-    <string name="unmount_modules">卸載模組掛載</string>
-    <string name="disable_unmount">停用卸載模組掛載</string>
-    <string name="expand_menu">展開選單</string>
-    <string name="collapse_menu">收合選單</string>
+    <string name="label_unmount">Unmount</string>
+    <string name="label_custom">Custom</string>
+    <!-- FAB菜单相关 -->
+    <string name="deny_authorization">Delegation of authority</string>
+    <string name="grant_authorization">Authorizations</string>
+    <string name="unmount_modules">Unmounting Module Mounts</string>
+    <string name="disable_unmount">Disable uninstall module mounting</string>
+    <string name="expand_menu">Expand menu</string>
+    <string name="collapse_menu">Put away the menu</string>
     <string name="scroll_to_top">頂部</string>
     <string name="scroll_to_bottom">底部</string>
     <string name="scroll_to_top_description">捲動至頂部</string>
     <string name="scroll_to_bottom_description">捲動至底部</string>
     <string name="authorized">已授權</string>
     <string name="unauthorized">未授權</string>
-    <string name="selected">已選取</string>
-    <string name="select">選取</string>
-    <string name="profile_umount_modules_disable">停用自訂卸載模組</string>
-    <!-- BottomSheet 相關 -->
-    <string name="menu_options">選單選項</string>
-    <string name="sort_options">排序方式</string>
-    <string name="app_categories">應用程式類型選擇</string>
-    <!-- SuSFS 設定 -->
-<string name="susfs_config_title">SuSFS 配置</string>
+    <string name="selected">已選擇</string>
+    <string name="select">選擇</string>
+    <string name="profile_umount_modules_disable">禁用自訂卸載模組</string>
+    <!-- BottomSheet相关 -->
+    <string name="menu_options">Menu Options</string>
+    <string name="sort_options">Sort by</string>
+    <string name="app_categories">Application Type Selection</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">SuSFS 配置</string>
     <string name="susfs_config_description">配置說明</string>
     <string name="susfs_config_description_text">此功能允許您自訂 SuSFS 的 uname 值和構建時間偽裝。輸入您想要設定的值，點選應用即可生效</string>
     <string name="susfs_uname_label">Uname 值</string>
@@ -409,18 +409,18 @@
     <string name="susfs_reset_to_default">重設為預設值</string>
     <string name="susfs_apply">應用</string>
     <string name="susfs_done">完成</string>
-    <!-- SuSFS 重置設定 -->
+    <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">確認重設</string>
     <string name="susfs_reset_confirm">確認重設</string>
-    <!-- SuSFS 吐司文字 -->
+    <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 檔案</string>
     <string name="susfs_command_failed">SuSFS 指令執行失敗</string>
     <string name="susfs_command_error">執行 SuSFS 指令時出錯: %s</string>
     <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
-    <!-- SuSFS 偽裝配置 -->
+    <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <string name="susfs_config_setting_summary">配置 SuSFS 的 uname 值和構建時間偽裝 (目前: %s)</string>
-    <!-- 開機自動啟動相關 -->
+    <!-- 开机自启动相关 -->
     <string name="susfs_autostart_title">開機自動啟動</string>
     <string name="susfs_autostart_description">系統啟動時自動套用 uname 設定</string>
     <string name="susfs_autostart_requirement">需設定 uname 或新增路徑後才能啟用</string>
@@ -431,20 +431,20 @@
     <string name="susfs_autostart_error">開機自動啟動設定錯誤：%s</string>
     <string name="susfs_no_config_to_autostart">無可用設定進行開機自動啟動</string>
     <string name="susfs_autostart_tis">需輸入非預設值才能啟用開機自動啟動</string>
-    <!-- SuSFS 標籤標題 -->
+    <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">基本設定</string>
     <string name="susfs_tab_sus_paths">SUS 路徑</string>
     <string name="susfs_tab_sus_mounts">SUS 掛載</string>
     <string name="susfs_tab_try_umount">嘗試卸載</string>
     <string name="susfs_tab_path_settings">路徑設定</string>
     <string name="susfs_tab_enabled_features">啟用功能狀態</string>
-    <!-- SuSFS 對話框動作 -->
+    <!-- SuSFS Dialog Actions -->
     <string name="susfs_add">新增</string>
     <string name="susfs_delete">刪除</string>
     <string name="susfs_reset">重設</string>
     <string name="susfs_run">執行</string>
     <string name="susfs_refresh">重新整理</string>
-    <!-- SuSFS 路徑管理 -->
+    <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">新增 SUS 路徑</string>
     <string name="susfs_add_sus_mount">新增 SUS 掛載</string>
     <string name="susfs_add_try_umount">新增嘗試卸載</string>
@@ -457,7 +457,7 @@
     <string name="susfs_no_paths_configured">暫無 SUS 路徑設定</string>
     <string name="susfs_no_mounts_configured">暫無 SUS 掛載設定</string>
     <string name="susfs_no_umounts_configured">暫無嘗試卸載設定</string>
-    <!-- SuSFS 卸載模式 -->
+    <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">卸載模式</string>
     <string name="susfs_umount_mode_normal">一般卸載 (0)</string>
     <string name="susfs_umount_mode_detach">分離卸載 (1)</string>
@@ -466,29 +466,29 @@
     <string name="susfs_umount_mode_display">模式：%1$s (%2$s)</string>
     <string name="susfs_try_umount_added_success">嘗試 umount 路徑新增成功： %s</string>
     <string name="susfs_try_umount_added_saved">嘗試 umount 路徑儲存成功： %s</string>
-    <!-- SuSFS 執行卸載 -->
+    <!-- SuSFS Run Umount -->
     <string name="susfs_run_umount_confirm_title">確認執行嘗試卸載</string>
     <string name="susfs_run_umount_confirm_message">這將立即執行所有已設定的嘗試卸載操作，確定要繼續嗎？</string>
-    <!-- SuSFS 重設分類 -->
+    <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">重設 SUS 路徑</string>
     <string name="susfs_reset_paths_message">這將清除所有 SUS 路徑設定，確定要繼續嗎？</string>
     <string name="susfs_reset_mounts_title">重設 SUS 掛載</string>
     <string name="susfs_reset_mounts_message">這將清除所有 SUS 掛載設定，確定要繼續嗎？</string>
     <string name="susfs_reset_umounts_title">重設嘗試卸載</string>
     <string name="susfs_reset_umounts_message">這將清除所有嘗試卸載設定，確定要繼續嗎？</string>
-    <!-- SuSFS 路徑設定 -->
+    <!-- SuSFS Path Settings -->
     <string name="susfs_path_settings">路徑設定</string>
     <string name="susfs_android_data_path_label">Android Data 路徑</string>
     <string name="susfs_sdcard_path_label">SD 卡路徑</string>
     <string name="susfs_set_android_data_path">設定 Android Data 路徑</string>
     <string name="susfs_set_sdcard_path">設定 SD 卡路徑</string>
-    <!-- SuSFS 啟用功能 -->
+    <!-- SuSFS Enabled Features -->
     <string name="susfs_enabled_features_title">啟用功能狀態</string>
     <string name="susfs_enabled_features_description">顯示目前 SuSFS 啟用的功能狀態</string>
     <string name="susfs_no_features_found">未找到功能狀態資訊</string>
     <string name="susfs_feature_enabled">已啟用</string>
     <string name="susfs_feature_disabled">已停用</string>
-    <!-- 功能標籤 -->
+    <!-- Feature Labels -->
     <string name="sus_path_feature_label">SUS 路徑支援</string>
     <string name="sus_mount_feature_label">SUS 掛載支援</string>
     <string name="try_umount_feature_label">嘗試卸載支援</string>
@@ -503,7 +503,7 @@
     <string name="magic_mount_feature_label">魔法掛載支援</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS 自動核心統計支援</string>
     <string name="sus_kstat_feature_label">SUS 核心統計支援</string>
-    <!-- 可切換狀態 -->
+    <!-- 可切换状态 -->
     <string name="susfs_configure">SuSFS 配置</string>
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
@@ -511,4 +511,5 @@
     <string name="susfs_log_config_title">SuSFS 日誌配置</string>
     <string name="susfs_log_enabled">啟用 SuSFS 日誌</string>
     <string name="susfs_log_disabled">關閉 SuSFS 日誌</string>
+    <!-- Settings related strings -->
 </resources>
