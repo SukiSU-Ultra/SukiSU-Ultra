@@ -13,18 +13,20 @@ Android device root solution based on [KernelSU](https://github.com/tiann/Kernel
 ## How to add
 
 Using main branching (non-GKI device builds are not supported) (requires manual integration of susfs)
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
 Using branches that support non-GKI devices (requires manual integration of susfs)
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
 
 ## How to use integrated susfs
 
-1. Use susfs-main or other susfs-* branches directly, no need to integrate susfs again (supports non-GKI device builds)
+1. Use susfs-main or other susfs-\* branches directly, no need to integrate susfs again (supports non-GKI device builds)
 
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
@@ -40,15 +42,18 @@ We will introduce more APatch-compatible functions to ensure the completeness of
 KPM templates: https://github.com/udochina/KPM-Build-Anywhere
 
 > [!Note]
+>
 > 1. `CONFIG_KPM=y` needs to be added.
 > 2. Non-GKI devices need to add `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y` as well.
 > 3. Some kernel source code below `4.19` also needs to be backport from `4.19` to the header file `set_memory.h`.
 
 ## How to do a system update to retain ROOT
+
 - After OTA, don't reboot first, go to the manager flashing/patching kernel interface, find `GKI/non_GKI install` and select the Anykernel3 kernel zip file that needs to be flashed, select the slot that is opposite to the current running slot of the system for flashing, and then reboot to retain the GKI mode update （This method is not supported for all non-GKI devices, so please try it yourself. It is the safest way to use TWRP for non-GKI devices.）
 - Or use LKM mode to install to the unused slot (after OTA).
 
 ## Compatibility Status
+
 - KernelSU (versions prior to v1.0.0) officially supports Android GKI 2.0 devices (kernel 5.10+)
 
 - Older kernels (4.4+) are also compatible, but the kernel must be built manually
@@ -57,28 +62,31 @@ KPM templates: https://github.com/udochina/KPM-Build-Anywhere
 
 - Currently supports `arm64-v8a`, `armeabi-v7a (bare)` and some `X86_64`
 
-
 ## More links
 
 **If you need to submit a translation for the manager go to** https://crowdin.com/project/SukiSU-Ultra
 
 Projects compiled based on Sukisu and susfs
-- [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
+
+- [More patched GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) including ZRAM patches, KPM, susfs...
+- [Less patched GKI](https://github.com/MiRinFork/GKI_SukiSU_SUSFS/releases) only susfs
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
 ## Hook method
+
 - This method references the hook method from (https://github.com/rsuntk/KernelSU)
 
 1. **KPROBES hook:**
-    - Also used for Loadable Kernel Module (LKM)
-    - Default hook method on GKI kernels.
-    - Need `CONFIG_KPROBES=y`
+
+   - Also used for Loadable Kernel Module (LKM)
+   - Default hook method on GKI kernels.
+   - Need `CONFIG_KPROBES=y`
 
 2. **Manual hook:**
-    - Standard KernelSU hook: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
-    - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5
-    - Default hook method on Non-GKI kernels.
-    - Need `CONFIG_KSU_MANUAL_HOOK=y`
+   - Standard KernelSU hook: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+   - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5
+   - Default hook method on Non-GKI kernels.
+   - Need `CONFIG_KSU_MANUAL_HOOK=y`
 
 ## Usage
 
@@ -87,16 +95,17 @@ Projects compiled based on Sukisu and susfs
 Please **all** refer to https://kernelsu.org/zh_CN/guide/installation.html
 
 > [!Note]
+>
 > 1. for devices with GKI 2.0 such as Xiaomi, Redmi, Samsung, etc. (excludes kernel-modified manufacturers such as Meizu, OnePlus, Zenith, and oppo)
-> 2. Find the GKI build in [more links](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5). Find the device kernel version. Then download it and use TWRP or kernel flashing tool to flash the zip file with AnyKernel3 suffix.
+> 2. Find the GKI build in [more links](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5). Find the device kernel version. Then download it and use TWRP or kernel flashing tool to flash the zip file with AnyKernel3 suffix. Pixel user need use _Less patched GKI_.
 > 3. The .zip archive without suffix is uncompressed, the gz suffix is the compression used by Tenguet models.
-
 
 ### OnePlus
 
 1. Use the link mentioned in the 'More Links' section to create a customized build with your device information, and then flash the zip file with the AnyKernel3 suffix.
 
 > [!Note]
+>
 > - You only need to fill in the first two parts of kernel versions, such as 5.10, 5.15, 6.1, or 6.6.
 > - Please search for the processor codename by yourself, usually it is all English without numbers.
 > - You can find the branch and configuration files from the OnePlus open-source kernel repository.
@@ -105,7 +114,7 @@ Please **all** refer to https://kernelsu.org/zh_CN/guide/installation.html
 
 1. Kernel-based `su` and root access management.
 2. Not based on [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) module system, but based on [Magic Mount](https://github.com/5ec1cff/KernelSU) from 5ec1cff
-3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock root privileges in a cage. 
+3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock root privileges in a cage.
 4. Bringing back non-GKI/GKI 1.0 support
 5. More customization
 6. Support for KPM kernel modules
@@ -118,7 +127,7 @@ Please **all** refer to https://kernelsu.org/zh_CN/guide/installation.html
 
 - The file in the “kernel” directory is under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
 
-- The images of the files `ic_launcher(?!.*alt.*).*` with anime character emoticons are copyrighted by [五十根大虾仁](https://space.bilibili.com/370927), the Brand Intellectual Property in the images is owned by [明风OuO](https://space.bilibili.com/274939213), and the vectorization is done by @MiRinChan. Before using these files, in addition to complying with [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt), you also need to comply with the authorization of the two authors to use these artistic contents.
+- The images of the files `ic_launcher(?!.*alt.*).*` with anime character emoticons are copyrighted by [五十根大虾仁](https://space.bilibili.com/370927), the Brand Intellectual Property in the images is owned by [明风 OuO](https://space.bilibili.com/274939213), and the vectorization is done by @MiRinChan. Before using these files, in addition to complying with [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt), you also need to comply with the authorization of the two authors to use these artistic contents.
 
 - Except for the files or directories mentioned above, all other parts are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
 

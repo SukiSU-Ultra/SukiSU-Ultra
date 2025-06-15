@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.widget.Toast
+import com.dergoogler.mmrl.platform.Platform.Companion.context
 import com.sukisu.ultra.R
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.IOException
@@ -29,6 +31,7 @@ object SuSFSManager {
     private const val KEY_TRY_UMOUNTS = "try_umounts"
     private const val KEY_ANDROID_DATA_PATH = "android_data_path"
     private const val KEY_SDCARD_PATH = "sdcard_path"
+    private const val KEY_ENABLE_LOG = "enable_log"
     private const val SUSFS_BINARY_BASE_NAME = "ksu_susfs"
     private const val DEFAULT_UNAME = "default"
     private const val DEFAULT_BUILD_TIME = "default"
@@ -59,7 +62,9 @@ object SuSFSManager {
      */
     data class EnabledFeature(
         val name: String,
-        val isEnabled: Boolean
+        val isEnabled: Boolean,
+        val statusText: String = if (isEnabled) context.getString(R.string.susfs_feature_enabled) else context.getString(R.string.susfs_feature_disabled),
+        val canConfigure: Boolean = false // 是否可配置（通过弹窗）
     )
 
     /**
@@ -188,6 +193,23 @@ object SuSFSManager {
      */
     fun isAutoStartEnabled(context: Context): Boolean {
         return getPrefs(context).getBoolean(KEY_AUTO_START_ENABLED, false)
+    }
+
+    /**
+     * 保存日志启用状态
+     */
+    fun saveEnableLogState(context: Context, enabled: Boolean) {
+        getPrefs(context).edit().apply {
+            putBoolean(KEY_ENABLE_LOG, enabled)
+            apply()
+        }
+    }
+
+    /**
+     * 获取日志启用状态
+     */
+    fun getEnableLogState(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_ENABLE_LOG, false)
     }
 
     /**
@@ -339,6 +361,7 @@ object SuSFSManager {
             val tryUmounts = getTryUmounts(context)
             val androidDataPath = getAndroidDataPath(context)
             val sdcardPath = getSdcardPath(context)
+            val enableLog = getEnableLogState(context)
             val targetPath = getSuSFSTargetPath()
 
             val scriptContent = buildString {
@@ -354,6 +377,12 @@ object SuSFSManager {
                 appendLine("    # 创建日志目录")
                 appendLine("    mkdir -p /data/adb/ksu/log")
                 appendLine()
+
+                // 设置日志启用状态
+                appendLine("    # 设置日志启用状态")
+                val logValue = if (enableLog) 1 else 0
+                appendLine("    $targetPath enable_log $logValue")
+                appendLine("    echo \"\\$(date): 日志功能设置为: ${if (enableLog) "启用" else "禁用"}\" >> /data/adb/ksu/log/susfs_startup.log")
 
                 // 设置Android Data路径
                 if (androidDataPath != "/sdcard/Android/data") {
@@ -492,6 +521,31 @@ object SuSFSManager {
     }
 
     /**
+     * 启用或禁用日志功能
+     */
+    suspend fun setEnableLog(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = executeSusfsCommand(context, "enable_log $value")
+        if (success) {
+            saveEnableLogState(context, enabled)
+
+            // 如果开启了开机自启动，更新启动脚本
+            if (isAutoStartEnabled(context)) {
+                createStartupScript(context)
+            }
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    if (enabled) context.getString(R.string.susfs_log_enabled) else context.getString(R.string.susfs_log_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+
+    /**
      * 获取功能配置映射表
      */
     private fun getFeatureMappings(): List<FeatureMapping> {
@@ -587,7 +641,10 @@ object SuSFSManager {
         featureMappings.forEach { mapping ->
             val displayName = featureNameMap[mapping.id] ?: mapping.id
             val isEnabled = outputLines.contains(mapping.config)
-            features.add(EnabledFeature(displayName, isEnabled))
+            val statusText = if (isEnabled) context.getString(R.string.susfs_feature_enabled) else context.getString(R.string.susfs_feature_disabled)
+            // 只有 enable_log 功能可以配置
+            val canConfigure = mapping.id == "status_enable_log"
+            features.add(EnabledFeature(displayName, isEnabled, statusText, canConfigure))
         }
 
         return features.sortedBy { it.name }
@@ -815,17 +872,34 @@ object SuSFSManager {
     }
 
     /**
+     * 检查是否有任何配置可以启用开机自启动
+     */
+    fun hasConfigurationForAutoStart(context: Context): Boolean {
+        val unameValue = getUnameValue(context)
+        val buildTimeValue = getBuildTimeValue(context)
+        val susPaths = getSusPaths(context)
+        val susMounts = getSusMounts(context)
+        val tryUmounts = getTryUmounts(context)
+        val enabledFeatures = runBlocking {
+            getEnabledFeatures(context)
+        }
+
+        return (unameValue != DEFAULT_UNAME) ||
+                (buildTimeValue != DEFAULT_BUILD_TIME) ||
+                susPaths.isNotEmpty() ||
+                susMounts.isNotEmpty() ||
+                tryUmounts.isNotEmpty() ||
+                enabledFeatures.any { it.isEnabled }
+    }
+
+    /**
      * 配置开机自启动
      */
     suspend fun configureAutoStart(context: Context, enabled: Boolean): Boolean = withContext(Dispatchers.IO) {
         try {
             if (enabled) {
                 // 启用开机自启动
-                val lastValue = getLastAppliedValue(context)
-                val lastBuildTime = getLastAppliedBuildTime(context)
-                if (lastValue == DEFAULT_UNAME && lastBuildTime == DEFAULT_BUILD_TIME &&
-                    getSusPaths(context).isEmpty() && getSusMounts(context).isEmpty() &&
-                    getTryUmounts(context).isEmpty()) {
+                if (!hasConfigurationForAutoStart(context)) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             context,

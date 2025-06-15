@@ -416,7 +416,7 @@
     <string name="susfs_binary_not_found">无法找到 ksu_susfs 文件</string>
     <string name="susfs_command_failed">SuSFS 命令执行失败</string>
     <string name="susfs_command_error">执行 SuSFS 命令时出错: %s</string>
-    <string name="susfs_uname_set_success">SuSFS uname 和构建时间设置成功: %s, %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <string name="susfs_config_setting_summary">配置 SuSFS 的 uname 值和构建时间伪装 (当前: %s)</string>
@@ -500,11 +500,13 @@
     <string name="hide_symbols_feature_label">隐藏 KSU SUSFS 符号</string>
     <string name="magic_mount_feature_label">魔法坐骑支持</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS 自动内核统计支持</string>
-    <string name="sus_kstat_feature_label">SUS Kstat Support</string>
-    <!-- Content Descriptions for Accessibility -->
-    <string name="susfs_add_button_description">添加新项目</string>
-    <string name="susfs_run_button_description">运行卸载操作</string>
-    <string name="susfs_delete_button_description">删除项目</string>
-    <string name="susfs_reset_section_description">重置此部分</string>
-    <string name="susfs_refresh_button_description">刷新功能状态</string>
+    <string name="sus_kstat_feature_label">SUS Kstat 支持</string>
+    <!-- 可切换状态 -->
+    <string name="susfs_configure">SuSFS 配置</string>
+    <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
+    <string name="susfs_enable_log_label">SuSFS 启用日志</string>
+    <string name="susfs_log_config_description">启用或者关闭SuSFS的日志</string>
+    <string name="susfs_log_config_title">SuSFS 日志配置</string>
+    <string name="susfs_log_enabled">启用 SuSFS 日志</string>
+    <string name="susfs_log_disabled">关闭 SuSFS 日志</string>
 </resources>

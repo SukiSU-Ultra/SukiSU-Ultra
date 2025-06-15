@@ -418,7 +418,7 @@
     <string name="susfs_binary_not_found">Cannot find ksu_susfs file</string>
     <string name="susfs_command_failed">SuSFS command execution failed</string>
     <string name="susfs_command_error">Error executing SuSFS command: %s</string>
-    <string name="susfs_uname_set_success">SuSFS uname and build time set successfully: %s, %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS uname and build time set successfully: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS Configuration</string>
     <string name="susfs_config_setting_summary">Configure SuSFS uname value and build time spoofing (Current: %s)</string>
@@ -503,10 +503,12 @@
     <string name="magic_mount_feature_label">Magic Mount Support</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS Auto Kernel Stat Support</string>
     <string name="sus_kstat_feature_label">SUS Kstat Support</string>
-    <!-- Content Descriptions for Accessibility -->
-    <string name="susfs_add_button_description">Add new item</string>
-    <string name="susfs_run_button_description">Run umount operations</string>
-    <string name="susfs_delete_button_description">Delete item</string>
-    <string name="susfs_reset_section_description">Reset this section</string>
-    <string name="susfs_refresh_button_description">Refresh feature status</string>
+    <!-- 可切换状态 -->
+    <string name="susfs_configure">SuSFS Configuration</string>
+    <string name="susfs_feature_configurable">Configurable SuSFS Features</string>
+    <string name="susfs_enable_log_label">SuSFS Enable Log</string>
+    <string name="susfs_log_config_description">Enable or disable logging for SuSFS</string>
+    <string name="susfs_log_config_title">SuSFS Logging Configuration</string>
+    <string name="susfs_log_enabled">Enabling SuSFS Logging</string>
+    <string name="susfs_log_disabled">Turn off SuSFS logging</string>
 </resources>

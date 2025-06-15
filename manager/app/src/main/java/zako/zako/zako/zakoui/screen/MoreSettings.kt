@@ -1,7 +1,6 @@
 package zako.zako.zako.zakoui.screen
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -63,7 +62,6 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ImageEditorDialog
 import com.sukisu.ultra.ui.component.KsuIsValid
-import com.sukisu.ultra.ui.component.SuSFSConfigDialog
 import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
 import com.sukisu.ultra.ui.theme.*
 import com.sukisu.ultra.ui.util.*
@@ -91,6 +89,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.unit.sp
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.ksuApp
+import com.ramcosta.composedestinations.generated.destinations.SuSFSConfigScreenDestination
 
 /**
  * @author ShirkNeko
@@ -146,7 +145,6 @@ fun MoreSettingsScreen(
     var showThemeColorDialog by remember { mutableStateOf(false) }
     var showDpiConfirmDialog by remember { mutableStateOf(false) }
     var showImageEditor by remember { mutableStateOf(false) }
-    var showSuSFSConfigDialog by remember { mutableStateOf(false) }
 
     // 主题模式选项
     val themeOptions = listOf(
@@ -474,13 +472,6 @@ fun MoreSettingsScreen(
                     Toast.LENGTH_SHORT
                 ).show()
             }
-        )
-    }
-
-    // SuSFS配置对话框
-    if (showSuSFSConfigDialog) {
-        SuSFSConfigDialog(
-            onDismiss = { showSuSFSConfigDialog = false }
         )
     }
 
@@ -1096,38 +1087,38 @@ fun MoreSettingsScreen(
                     title = stringResource(R.string.advanced_settings)
                 ) {
                     // SELinux 开关
-                        SwitchSettingItem(
-                            icon = Icons.Filled.Security,
-                            title = stringResource(R.string.selinux),
-                            summary = if (selinuxEnabled)
-                                stringResource(R.string.selinux_enabled) else
-                                stringResource(R.string.selinux_disabled),
-                            checked = selinuxEnabled,
-                            onChange = { enabled ->
-                                val command = if (enabled) "setenforce 1" else "setenforce 0"
-                                Shell.getShell().newJob().add(command).exec().let { result ->
-                                    if (result.isSuccess) {
-                                        selinuxEnabled = enabled
-                                        // 显示成功提示
-                                        val message = if (enabled)
-                                            context.getString(R.string.selinux_enabled_toast)
-                                        else
-                                            context.getString(R.string.selinux_disabled_toast)
+                    SwitchSettingItem(
+                        icon = Icons.Filled.Security,
+                        title = stringResource(R.string.selinux),
+                        summary = if (selinuxEnabled)
+                            stringResource(R.string.selinux_enabled) else
+                            stringResource(R.string.selinux_disabled),
+                        checked = selinuxEnabled,
+                        onChange = { enabled ->
+                            val command = if (enabled) "setenforce 1" else "setenforce 0"
+                            Shell.getShell().newJob().add(command).exec().let { result ->
+                                if (result.isSuccess) {
+                                    selinuxEnabled = enabled
+                                    // 显示成功提示
+                                    val message = if (enabled)
+                                        context.getString(R.string.selinux_enabled_toast)
+                                    else
+                                        context.getString(R.string.selinux_disabled_toast)
 
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        // 显示失败提示
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(R.string.selinux_change_failed),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    // 显示失败提示
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.selinux_change_failed),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
-                        )
+                        }
+                    )
 
-                    // SuSFS 配置（仅在支持时显示存）
+                    // SuSFS 配置（仅在支持时显示）
                     if (getSuSFS() == "Supported" && SuSFSManager.isBinaryAvailable(context)) {
                         SettingItem(
                             icon = Icons.Default.Settings,
@@ -1136,7 +1127,9 @@ fun MoreSettingsScreen(
                                 R.string.susfs_config_setting_summary,
                                 SuSFSManager.getUnameValue(context)
                             ),
-                            onClick = { showSuSFSConfigDialog = true }
+                            onClick = {
+                                navigator.navigate(SuSFSConfigScreenDestination)
+                            }
                         )
                     }
 
