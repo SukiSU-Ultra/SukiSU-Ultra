@@ -26,6 +26,25 @@ bool is_lkm_mode();
 #define KSU_MAX_GROUPS 32
 #define KSU_SELINUX_DOMAIN 64
 
+// SUSFS Functional State Structures
+struct susfs_feature_status {
+    bool status_sus_path;
+    bool status_sus_mount;
+    bool status_auto_default_mount;
+    bool status_auto_bind_mount;
+    bool status_sus_kstat;
+    bool status_try_umount;
+    bool status_auto_try_umount_bind;
+    bool status_spoof_uname;
+    bool status_enable_log;
+    bool status_hide_symbols;
+    bool status_spoof_cmdline;
+    bool status_open_redirect;
+    bool status_magic_mount;
+    bool status_overlayfs_auto_kstat;
+    bool status_sus_su;
+};
+
 struct root_profile {
     int32_t uid;
     int32_t gid;
@@ -85,5 +104,7 @@ bool is_su_enabled();
 bool is_KPM_enable();
 
 bool get_hook_type(char* hook_type, size_t size);
+
+bool get_susfs_feature_status(struct susfs_feature_status* status);
 
 #endif //KERNELSU_KSU_H

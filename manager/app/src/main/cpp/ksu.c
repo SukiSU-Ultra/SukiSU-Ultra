@@ -32,6 +32,7 @@
 #define CMD_ENABLE_SU 15
 #define CMD_ENABLE_KPM 100
 #define CMD_HOOK_TYPE 101
+#define CMD_GET_SUSFS_FEATURE_STATUS 102
 
 static bool ksuctl(int cmd, void* arg1, void* arg2) {
     int32_t result = 0;
@@ -123,4 +124,12 @@ bool get_hook_type(char* hook_type, size_t size) {
     strncpy(hook_type, cached_hook_type, size);
     hook_type[size - 1] = '\0';
     return true;
+}
+
+bool get_susfs_feature_status(struct susfs_feature_status* status) {
+    if (status == NULL) {
+        return false;
+    }
+
+    return ksuctl(CMD_GET_SUSFS_FEATURE_STATUS, status, NULL);
 }

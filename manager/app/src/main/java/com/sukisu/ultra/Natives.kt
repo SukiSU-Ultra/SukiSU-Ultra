@@ -71,6 +71,12 @@ object Natives {
     external fun isKPMEnabled(): Boolean
     external fun getHookType(): String
 
+    /**
+     * Get SUSFS feature status from kernel
+     * @return SusfsFeatureStatus object containing all feature states, or null if failed
+     */
+    external fun getSusfsFeatureStatus(): SusfsFeatureStatus?
+
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999
 
@@ -94,6 +100,48 @@ object Natives {
     fun requireNewKernel(): Boolean {
         return version < MINIMAL_SUPPORTED_KERNEL
     }
+
+    @Immutable
+    @Parcelize
+    @Keep
+    data class SusfsFeatureStatus(
+        val statusSusPath: Boolean = false,
+        val statusSusMount: Boolean = false,
+        val statusAutoDefaultMount: Boolean = false,
+        val statusAutoBindMount: Boolean = false,
+        val statusSusKstat: Boolean = false,
+        val statusTryUmount: Boolean = false,
+        val statusAutoTryUmountBind: Boolean = false,
+        val statusSpoofUname: Boolean = false,
+        val statusEnableLog: Boolean = false,
+        val statusHideSymbols: Boolean = false,
+        val statusSpoofCmdline: Boolean = false,
+        val statusOpenRedirect: Boolean = false,
+        val statusMagicMount: Boolean = false,
+        val statusOverlayfsAutoKstat: Boolean = false,
+        val statusSusSu: Boolean = false
+    ) : Parcelable {
+        fun toMap(): Map<String, Boolean> {
+            return mapOf(
+                "CONFIG_KSU_SUSFS_SUS_PATH" to statusSusPath,
+                "CONFIG_KSU_SUSFS_SUS_MOUNT" to statusSusMount,
+                "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT" to statusAutoDefaultMount,
+                "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT" to statusAutoBindMount,
+                "CONFIG_KSU_SUSFS_SUS_KSTAT" to statusSusKstat,
+                "CONFIG_KSU_SUSFS_TRY_UMOUNT" to statusTryUmount,
+                "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT" to statusAutoTryUmountBind,
+                "CONFIG_KSU_SUSFS_SPOOF_UNAME" to statusSpoofUname,
+                "CONFIG_KSU_SUSFS_ENABLE_LOG" to statusEnableLog,
+                "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS" to statusHideSymbols,
+                "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG" to statusSpoofCmdline,
+                "CONFIG_KSU_SUSFS_OPEN_REDIRECT" to statusOpenRedirect,
+                "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT" to statusMagicMount,
+                "CONFIG_KSU_SUSFS_SUS_OVERLAYFS" to statusOverlayfsAutoKstat,
+                "CONFIG_KSU_SUSFS_SUS_SU" to statusSusSu
+            )
+        }
+    }
+
 
     @Immutable
     @Parcelize

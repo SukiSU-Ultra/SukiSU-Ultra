@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.widget.Toast
 import com.dergoogler.mmrl.platform.Platform.Companion.context
+import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +14,6 @@ import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.File
-import java.util.zip.GZIPInputStream
 
 /**
  * SuSFS 配置管理器
@@ -83,25 +83,6 @@ object SuSFSManager {
         val statusText: String = if (isEnabled) context.getString(R.string.susfs_feature_enabled) else context.getString(R.string.susfs_feature_disabled),
         val canConfigure: Boolean = false // 是否可配置（通过弹窗）
     )
-
-    /**
-     * 功能配置映射数据类
-     */
-    private data class FeatureMapping(
-        val id: String,
-        val config: String
-    )
-
-    /**
-     * 执行Shell命令并返回输出
-     */
-    private fun runCmd(shell: Shell, cmd: String): String {
-        return shell.newJob()
-            .add(cmd)
-            .to(mutableListOf<String>(), null)
-            .exec().out
-            .joinToString("\n")
-    }
 
     /**
      * 获取Root Shell实例
@@ -314,56 +295,6 @@ object SuSFSManager {
     @SuppressLint("SdCardPath")
     fun getSdcardPath(context: Context): String {
         return getPrefs(context).getString(KEY_SDCARD_PATH, "/sdcard") ?: "/sdcard"
-    }
-
-    /**
-     * 读取并解析/proc/config.gz文件
-     */
-    private suspend fun readProcConfig(): Map<String, String> = withContext(Dispatchers.IO) {
-        val configMap = mutableMapOf<String, String>()
-        try {
-            val shell = getRootShell()
-
-            // 首先检查/proc/config.gz是否存在
-            val checkResult = shell.newJob().add("test -f /proc/config.gz").exec()
-            if (!checkResult.isSuccess) {
-                return@withContext configMap
-            }
-
-            // 读取并解压/proc/config.gz
-            val result = shell.newJob().add("zcat /proc/config.gz").exec()
-            if (result.isSuccess) {
-                result.out.forEach { line ->
-                    val trimmedLine = line.trim()
-                    when {
-                        // 处理启用的配置项 CONFIG_XXX=y
-                        trimmedLine.contains("=y") -> {
-                            val configName = trimmedLine.substringBefore("=y")
-                            if (configName.startsWith("CONFIG_")) {
-                                configMap[configName] = "y"
-                            }
-                        }
-                        // 处理未启用的配置项 # CONFIG_XXX is not set
-                        trimmedLine.startsWith("# ") && trimmedLine.endsWith(" is not set") -> {
-                            val configName = trimmedLine.removePrefix("# ").removeSuffix(" is not set")
-                            if (configName.startsWith("CONFIG_")) {
-                                configMap[configName] = "not_set"
-                            }
-                        }
-                        // 处理其他类型的配置项 CONFIG_XXX=value
-                        trimmedLine.contains("=") && trimmedLine.startsWith("CONFIG_") -> {
-                            val parts = trimmedLine.split("=", limit = 2)
-                            if (parts.size == 2) {
-                                configMap[parts[0]] = parts[1]
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        configMap
     }
 
     /**
@@ -1434,63 +1365,14 @@ object SuSFSManager {
     }
 
     /**
-     * 获取功能配置映射表
-     */
-    private fun getFeatureMappings(): List<FeatureMapping> {
-        return listOf(
-            FeatureMapping("status_sus_path", "CONFIG_KSU_SUSFS_SUS_PATH"),
-            FeatureMapping("status_sus_mount", "CONFIG_KSU_SUSFS_SUS_MOUNT"),
-            FeatureMapping("status_auto_default_mount", "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT"),
-            FeatureMapping("status_auto_bind_mount", "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT"),
-            FeatureMapping("status_sus_kstat", "CONFIG_KSU_SUSFS_SUS_KSTAT"),
-            FeatureMapping("status_try_umount", "CONFIG_KSU_SUSFS_TRY_UMOUNT"),
-            FeatureMapping("status_auto_try_umount_bind", "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT"),
-            FeatureMapping("status_spoof_uname", "CONFIG_KSU_SUSFS_SPOOF_UNAME"),
-            FeatureMapping("status_enable_log", "CONFIG_KSU_SUSFS_ENABLE_LOG"),
-            FeatureMapping("status_hide_symbols", "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS"),
-            FeatureMapping("status_spoof_cmdline", "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG"),
-            FeatureMapping("status_open_redirect", "CONFIG_KSU_SUSFS_OPEN_REDIRECT"),
-            FeatureMapping("status_magic_mount", "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT"),
-            FeatureMapping("status_overlayfs_auto_kstat", "CONFIG_KSU_SUSFS_SUS_OVERLAYFS"),
-            FeatureMapping("status_sus_su", "CONFIG_KSU_SUSFS_SUS_SU")
-        )
-    }
-
-    /**
-     * 获取启用功能状态
+     * 获取SuSFS启用功能状态
      */
     suspend fun getEnabledFeatures(context: Context): List<EnabledFeature> = withContext(Dispatchers.IO) {
         try {
-            // 每次都重新执行命令获取最新状态
-            val shell = getRootShell()
-            val targetPath = getSuSFSTargetPath()
-
-            // 首先检查二进制文件是否存在于目标位置
-            val checkResult = shell.newJob().add("test -f '$targetPath'").exec()
-
-            val binaryPath = if (checkResult.isSuccess) {
-                // 如果目标位置存在，直接使用
-                targetPath
+            val susfsStatus = Natives.getSusfsFeatureStatus()
+            if (susfsStatus != null) {
+                parseEnabledFeaturesFromStatus(context, susfsStatus)
             } else {
-                // 如果不存在，尝试从assets复制
-                copyBinaryFromAssets(context)
-            }
-
-            if (binaryPath == null) {
-                return@withContext emptyList()
-            }
-
-            // 使用runCmd执行show enabled_features命令获取实时状态
-            val command = "$binaryPath show enabled_features"
-            val output = runCmd(shell, command)
-
-            // 读取/proc/config.gz进行二次检查
-            val procConfig = readProcConfig()
-
-            if (output.isNotEmpty()) {
-                parseEnabledFeatures(context, output, procConfig)
-            } else {
-                // 如果命令输出为空，返回空列表
                 emptyList()
             }
         } catch (e: Exception) {
@@ -1500,65 +1382,35 @@ object SuSFSManager {
     }
 
     /**
-     * 解析启用功能状态输出
+     * 解析SuSFS启用功能状态
      */
-    private fun parseEnabledFeatures(context: Context, output: String, procConfig: Map<String, String>): List<EnabledFeature> {
+    private fun parseEnabledFeaturesFromStatus(context: Context, status: Natives.SusfsFeatureStatus): List<EnabledFeature> {
         val features = mutableListOf<EnabledFeature>()
 
-        // 将输出按行分割并保存到集合中进行快速查找
-        val outputLines = output.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-
-        // 获取功能配置映射表
-        val featureMappings = getFeatureMappings()
-
-        // 定义功能名称映射（id到显示名称）
-        val featureNameMap = mapOf(
-            "status_sus_path" to context.getString(R.string.sus_path_feature_label),
-            "status_sus_mount" to context.getString(R.string.sus_mount_feature_label),
-            "status_try_umount" to context.getString(R.string.try_umount_feature_label),
-            "status_spoof_uname" to context.getString(R.string.spoof_uname_feature_label),
-            "status_spoof_cmdline" to context.getString(R.string.spoof_cmdline_feature_label),
-            "status_open_redirect" to context.getString(R.string.open_redirect_feature_label),
-            "status_enable_log" to context.getString(R.string.enable_log_feature_label),
-            "status_auto_default_mount" to context.getString(R.string.auto_default_mount_feature_label),
-            "status_auto_bind_mount" to context.getString(R.string.auto_bind_mount_feature_label),
-            "status_auto_try_umount_bind" to context.getString(R.string.auto_try_umount_bind_feature_label),
-            "status_hide_symbols" to context.getString(R.string.hide_symbols_feature_label),
-            "status_sus_kstat" to context.getString(R.string.sus_kstat_feature_label),
-            "status_magic_mount" to context.getString(R.string.magic_mount_feature_label),
-            "status_overlayfs_auto_kstat" to context.getString(R.string.overlayfs_auto_kstat_feature_label),
-            "status_sus_su" to context.getString(R.string.sus_su_feature_label)
+        // 定义功能名称和状态的映射
+        val featureList = listOf(
+            Triple("status_sus_path", context.getString(R.string.sus_path_feature_label), status.statusSusPath),
+            Triple("status_sus_mount", context.getString(R.string.sus_mount_feature_label), status.statusSusMount),
+            Triple("status_try_umount", context.getString(R.string.try_umount_feature_label), status.statusTryUmount),
+            Triple("status_spoof_uname", context.getString(R.string.spoof_uname_feature_label), status.statusSpoofUname),
+            Triple("status_spoof_cmdline", context.getString(R.string.spoof_cmdline_feature_label), status.statusSpoofCmdline),
+            Triple("status_open_redirect", context.getString(R.string.open_redirect_feature_label), status.statusOpenRedirect),
+            Triple("status_enable_log", context.getString(R.string.enable_log_feature_label), status.statusEnableLog),
+            Triple("status_auto_default_mount", context.getString(R.string.auto_default_mount_feature_label), status.statusAutoDefaultMount),
+            Triple("status_auto_bind_mount", context.getString(R.string.auto_bind_mount_feature_label), status.statusAutoBindMount),
+            Triple("status_auto_try_umount_bind", context.getString(R.string.auto_try_umount_bind_feature_label), status.statusAutoTryUmountBind),
+            Triple("status_hide_symbols", context.getString(R.string.hide_symbols_feature_label), status.statusHideSymbols),
+            Triple("status_sus_kstat", context.getString(R.string.sus_kstat_feature_label), status.statusSusKstat),
+            Triple("status_magic_mount", context.getString(R.string.magic_mount_feature_label), status.statusMagicMount),
+            Triple("status_overlayfs_auto_kstat", context.getString(R.string.overlayfs_auto_kstat_feature_label), status.statusOverlayfsAutoKstat),
+            Triple("status_sus_su", context.getString(R.string.sus_su_feature_label), status.statusSusSu)
         )
 
-        // 根据映射表检查每个功能的启用状态
-        featureMappings.forEach { mapping ->
-            val displayName = featureNameMap[mapping.id] ?: mapping.id
-
-            // 检查show enabled_features命令输出中是否存在该配置
-            val existsInOutput = outputLines.contains(mapping.config)
-
-            // 检查/proc/config.gz中的配置状态
-            val procConfigValue = procConfig[mapping.config]
-
-            val isEnabled = when {
-                // 如果show enabled_features命令中存在该CONFIG，则认为启用
-                existsInOutput -> true
-
-                // 如果show enabled_features命令中不存在该CONFIG，则检查/proc/config.gz中是否存在y
-                !existsInOutput && procConfigValue == "y" -> true
-
-                // 如果/proc/config.gz中对应的为is not set，则为未启用
-                procConfigValue == "not_set" -> false
-
-                // 如果/proc/config.gz中没有对应的CONFIG，则按照show enabled_features命令为主
-                procConfigValue == null -> false
-
-                else -> false
-            }
-
+        // 根据功能列表创建EnabledFeature对象
+        featureList.forEach { (id, displayName, isEnabled) ->
             val statusText = if (isEnabled) context.getString(R.string.susfs_feature_enabled) else context.getString(R.string.susfs_feature_disabled)
-            // 只有 enable_log 功能可以配置
-            val canConfigure = mapping.id == "status_enable_log"
+            // 只有对应功能可以配置
+            val canConfigure = id == "status_enable_log"
             features.add(EnabledFeature(displayName, isEnabled, statusText, canConfigure))
         }
 

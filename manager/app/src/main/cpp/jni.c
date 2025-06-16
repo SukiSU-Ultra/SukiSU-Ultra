@@ -300,3 +300,51 @@ NativeBridgeNP(getHookType, jstring) {
     get_hook_type(hook_type, sizeof(hook_type));
     return GetEnvironment()->NewStringUTF(env, hook_type);
 }
+
+NativeBridgeNP(getSusfsFeatureStatus, jobject) {
+    struct susfs_feature_status status;
+    bool result = get_susfs_feature_status(&status);
+
+    if (!result) {
+        return NULL;
+    }
+
+    jclass cls = GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$SusfsFeatureStatus");
+    jmethodID constructor = GetEnvironment()->GetMethodID(env, cls, "<init>", "()V");
+    jobject obj = GetEnvironment()->NewObject(env, cls, constructor);
+
+    // 设置各个字段
+    jfieldID statusSusPathField = GetEnvironment()->GetFieldID(env, cls, "statusSusPath", "Z");
+    jfieldID statusSusMountField = GetEnvironment()->GetFieldID(env, cls, "statusSusMount", "Z");
+    jfieldID statusAutoDefaultMountField = GetEnvironment()->GetFieldID(env, cls, "statusAutoDefaultMount", "Z");
+    jfieldID statusAutoBindMountField = GetEnvironment()->GetFieldID(env, cls, "statusAutoBindMount", "Z");
+    jfieldID statusSusKstatField = GetEnvironment()->GetFieldID(env, cls, "statusSusKstat", "Z");
+    jfieldID statusTryUmountField = GetEnvironment()->GetFieldID(env, cls, "statusTryUmount", "Z");
+    jfieldID statusAutoTryUmountBindField = GetEnvironment()->GetFieldID(env, cls, "statusAutoTryUmountBind", "Z");
+    jfieldID statusSpoofUnameField = GetEnvironment()->GetFieldID(env, cls, "statusSpoofUname", "Z");
+    jfieldID statusEnableLogField = GetEnvironment()->GetFieldID(env, cls, "statusEnableLog", "Z");
+    jfieldID statusHideSymbolsField = GetEnvironment()->GetFieldID(env, cls, "statusHideSymbols", "Z");
+    jfieldID statusSpoofCmdlineField = GetEnvironment()->GetFieldID(env, cls, "statusSpoofCmdline", "Z");
+    jfieldID statusOpenRedirectField = GetEnvironment()->GetFieldID(env, cls, "statusOpenRedirect", "Z");
+    jfieldID statusMagicMountField = GetEnvironment()->GetFieldID(env, cls, "statusMagicMount", "Z");
+    jfieldID statusOverlayfsAutoKstatField = GetEnvironment()->GetFieldID(env, cls, "statusOverlayfsAutoKstat", "Z");
+    jfieldID statusSusSuField = GetEnvironment()->GetFieldID(env, cls, "statusSusSu", "Z");
+
+    GetEnvironment()->SetBooleanField(env, obj, statusSusPathField, status.status_sus_path);
+    GetEnvironment()->SetBooleanField(env, obj, statusSusMountField, status.status_sus_mount);
+    GetEnvironment()->SetBooleanField(env, obj, statusAutoDefaultMountField, status.status_auto_default_mount);
+    GetEnvironment()->SetBooleanField(env, obj, statusAutoBindMountField, status.status_auto_bind_mount);
+    GetEnvironment()->SetBooleanField(env, obj, statusSusKstatField, status.status_sus_kstat);
+    GetEnvironment()->SetBooleanField(env, obj, statusTryUmountField, status.status_try_umount);
+    GetEnvironment()->SetBooleanField(env, obj, statusAutoTryUmountBindField, status.status_auto_try_umount_bind);
+    GetEnvironment()->SetBooleanField(env, obj, statusSpoofUnameField, status.status_spoof_uname);
+    GetEnvironment()->SetBooleanField(env, obj, statusEnableLogField, status.status_enable_log);
+    GetEnvironment()->SetBooleanField(env, obj, statusHideSymbolsField, status.status_hide_symbols);
+    GetEnvironment()->SetBooleanField(env, obj, statusSpoofCmdlineField, status.status_spoof_cmdline);
+    GetEnvironment()->SetBooleanField(env, obj, statusOpenRedirectField, status.status_open_redirect);
+    GetEnvironment()->SetBooleanField(env, obj, statusMagicMountField, status.status_magic_mount);
+    GetEnvironment()->SetBooleanField(env, obj, statusOverlayfsAutoKstatField, status.status_overlayfs_auto_kstat);
+    GetEnvironment()->SetBooleanField(env, obj, statusSusSuField, status.status_sus_su);
+
+    return obj;
+}
