@@ -614,6 +614,5 @@
     <string name="susfs_force_hide_lsposed_disabled">LSPosed强制隐藏功能已禁用</string>
     
     <!-- 通用字符串 -->
-    <string name="refresh">刷新</string>
     <string name="suki_disabled">已禁用</string>
 </resources>
