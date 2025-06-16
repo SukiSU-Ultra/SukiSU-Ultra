@@ -529,4 +529,5 @@
     <string name="enabled_modules">已启用模块</string>
     <string name="disabled_modules">已禁用模块</string>
     <string name="storage_usage">占用空间</string>
+    <string name="check_updates">检查更新</string>
 </resources>

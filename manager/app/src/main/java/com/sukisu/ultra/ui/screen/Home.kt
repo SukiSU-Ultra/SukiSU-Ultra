@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
@@ -197,7 +198,8 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
                 // 添加模块统计卡片，显示在InfoCard后面
                 ModuleStatsCard(
-                    systemInfo = viewModel.systemInfo
+                    systemInfo = viewModel.systemInfo,
+                    viewModel = viewModel
                 )
 
                 if (!viewModel.isSimpleMode) {
@@ -843,10 +845,9 @@ private fun WarningCardPreview() {
  */
 @Composable
 private fun ModuleStatsCard(
-    systemInfo: HomeViewModel.SystemInfo
+    systemInfo: HomeViewModel.SystemInfo,
+    viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    val viewModel = viewModel<HomeViewModel>()
-    
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
         elevation = getCardElevation(),
@@ -857,27 +858,31 @@ private fun ModuleStatsCard(
                 .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp),
         ) {
             Text(
-                text = stringResource(R.string.modules_statistics),
+                text = stringResource(id = R.string.modules_statistics),
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 已安装模块数量
                 StatItem(
                     value = systemInfo.moduleCount.toString(),
-                    label = stringResource(R.string.installed_modules),
-                    icon = Icons.Default.Archive
+                    title = stringResource(id = R.string.installed_modules),
+                    icon = Icons.Default.Archive,
+                    modifier = Modifier.weight(1f)
                 )
                 
-                // 待更新模块数量
+                // 添加点击事件到待更新模块卡片
                 StatItem(
                     value = systemInfo.moduleUpdatableCount.toString(),
-                    label = stringResource(R.string.update_modules),
-                    icon = Icons.Default.Refresh
+                    title = stringResource(id = R.string.update_modules),
+                    icon = Icons.Default.Refresh,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { viewModel.checkAllModulesUpdates() }
                 )
             }
             
@@ -890,14 +895,14 @@ private fun ModuleStatsCard(
                 // 已启用模块数量
                 StatItem(
                     value = systemInfo.moduleEnabledCount.toString(),
-                    label = stringResource(R.string.enabled_modules),
+                    title = stringResource(R.string.enabled_modules),
                     icon = Icons.Default.CheckCircle
                 )
                 
                 // 已禁用模块数量
                 StatItem(
                     value = systemInfo.moduleDisabledCount.toString(),
-                    label = stringResource(R.string.disabled_modules),
+                    title = stringResource(R.string.disabled_modules),
                     icon = Icons.Default.Block
                 )
             }
@@ -959,15 +964,17 @@ private fun ModuleStatsCard(
 @Composable
 private fun StatItem(
     value: String,
-    label: String,
-    icon: ImageVector
+    title: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = label,
+            contentDescription = title,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
@@ -976,7 +983,7 @@ private fun StatItem(
             modifier = Modifier.padding(bottom = 4.dp)
         )
         Text(
-            text = label,
+            text = title,
             style = MaterialTheme.typography.bodySmall
         )
     }

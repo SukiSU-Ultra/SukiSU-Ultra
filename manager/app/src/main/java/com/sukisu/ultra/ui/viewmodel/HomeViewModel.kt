@@ -17,8 +17,9 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.util.*
-import com.sukisu.ultra.ui.util.module.LatestVersionInfo
+import com.sukisu.ultra.ui.util.module.UpdateJson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.content.edit
@@ -37,8 +38,10 @@ class HomeViewModel : ViewModel() {
         private const val PREFS_NAME = "home_cache"
         private const val KEY_SYSTEM_STATUS = "system_status"
         private const val KEY_SYSTEM_INFO = "system_info"
-        private const val KEY_VERSION_INFO = "version_info"
         private const val KEY_LAST_UPDATE = "last_update_time"
+        
+        // 更新检查缓存，避免频繁网络请求
+        private val updateCheckCache = mutableMapOf<String, UpdateJson?>()
     }
 
     // 系统状态
@@ -83,9 +86,6 @@ class HomeViewModel : ViewModel() {
     var systemInfo by mutableStateOf(SystemInfo())
         private set
 
-    var latestVersionInfo by mutableStateOf(LatestVersionInfo())
-        private set
-
     var isSimpleMode by mutableStateOf(false)
         private set
     var isHideVersion by mutableStateOf(false)
@@ -98,6 +98,17 @@ class HomeViewModel : ViewModel() {
         private set
     var showKpmInfo by mutableStateOf(false)
         private set
+
+    init {
+        viewModelScope.launch {
+            fetchSystemStatus()
+            fetchSystemInfo()
+            
+            // 默认进行一次模块更新检查
+            delay(1000) // 延迟1秒，确保系统信息已加载完成
+            checkAllModulesUpdates()
+        }
+    }
 
     fun loadUserSettings(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -124,9 +135,6 @@ class HomeViewModel : ViewModel() {
         prefs.getString(KEY_SYSTEM_INFO, null)?.let {
             systemInfo = gson.fromJson(it, SystemInfo::class.java)
         }
-        prefs.getString(KEY_VERSION_INFO, null)?.let {
-            latestVersionInfo = gson.fromJson(it, LatestVersionInfo::class.java)
-        }
     }
 
     private suspend fun fetchAndSaveData() {
@@ -136,7 +144,6 @@ class HomeViewModel : ViewModel() {
             prefs.edit {
                 putString(KEY_SYSTEM_STATUS, gson.toJson(systemStatus))
                 putString(KEY_SYSTEM_INFO, gson.toJson(systemInfo))
-                putString(KEY_VERSION_INFO, gson.toJson(latestVersionInfo))
                 putLong(KEY_LAST_UPDATE, System.currentTimeMillis())
             }
         }
@@ -149,12 +156,7 @@ class HomeViewModel : ViewModel() {
                     .getBoolean("check_update", true)
 
                 if (checkUpdate) {
-                    val newVersionInfo = checkNewVersion()
-                    latestVersionInfo = newVersionInfo
-                    prefs.edit {
-                        putString(KEY_VERSION_INFO, gson.toJson(newVersionInfo))
-                        putLong(KEY_LAST_UPDATE, System.currentTimeMillis())
-                    }
+                    // 删除版本检查逻辑，保留空方法
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error checking for updates", e)
@@ -266,11 +268,11 @@ class HomeViewModel : ViewModel() {
     }
 
     /**
-     * 格式化存储空间占用比例为百分比字符串
+     * 格式化存储空间占比为百分比字符串
      */
     fun formatStorageRatio(context: Context): String {
-        val ratio = getStorageUsageRatio(context)
-        return String.format("%.2f%%", ratio * 100)
+        val ratio = getStorageUsageRatio(context) * 100
+        return String.format("%.2f%%", ratio)
     }
 
     /**
@@ -371,17 +373,58 @@ class HomeViewModel : ViewModel() {
      */
     private fun hasModuleUpdate(module: JSONObject): Boolean {
         try {
-            // 检查模块是否有更新JSON URL
             val updateJson = module.optString("updateJson", "")
-            if (updateJson.isNotBlank()) {
-                // TODO: 实现实际的更新检查逻辑
-                // 此处只是简单示例，真实实现应该获取远程JSON并比较版本
+            if (updateJson.isBlank()) return false
+            
+            val id = module.optString("id", "")
+            val versionCode = module.optInt("versionCode", 0)
+            
+            // 首先查看缓存
+            if (updateCheckCache.containsKey(id)) {
+                val cachedUpdateJson = updateCheckCache[id]
+                if (cachedUpdateJson != null) {
+                    return cachedUpdateJson.isNewerThan(versionCode)
+                }
                 return false
             }
+            
+            // 启动协程异步获取更新信息，不阻塞主流程
+            viewModelScope.launch {
+                try {
+                    val update = UpdateJson.loadFromUrl(updateJson)
+                    updateCheckCache[id] = update
+                    
+                    // 如果有更新，刷新模块信息
+                    if (update != null && update.isNewerThan(versionCode)) {
+                        fetchSystemInfo()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error checking update for module $id: ${e.message}")
+                    updateCheckCache[id] = null
+                }
+            }
+            
             return false
         } catch (e: Exception) {
             Log.e(TAG, "Error checking module update", e)
             return false
+        }
+    }
+
+    /**
+     * 清除更新检查缓存
+     */
+    fun clearUpdateCheckCache() {
+        updateCheckCache.clear()
+    }
+
+    /**
+     * 强制检查所有模块更新
+     */
+    fun checkAllModulesUpdates() {
+        viewModelScope.launch {
+            updateCheckCache.clear()
+            fetchSystemInfo()
         }
     }
 

@@ -627,4 +627,5 @@
     <string name="enabled_modules">Enabled Modules</string>
     <string name="disabled_modules">Disabled Modules</string>
     <string name="storage_usage">Storage Usage</string>
+    <string name="check_updates">Check for Updates</string>
 </resources>
