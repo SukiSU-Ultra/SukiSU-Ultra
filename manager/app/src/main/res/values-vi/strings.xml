@@ -68,11 +68,11 @@
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Unmount modules</string>
+    <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
-    <string name="settings_umount_modules_default">Unmount modules</string>
-    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Unmount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
+    <string name="settings_umount_modules_default">Umount modules</string>
+    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Ẩn hooks kprobe</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
@@ -139,7 +139,7 @@
     <string name="status_supported">Được hỗ trợ</string>
     <string name="status_not_supported">Không được hỗ trợ</string>
     <string name="status_unknown">Không rõ</string>
-    <string name="sus_su_mode">Chế độ SU của SuS:</string>
+    <string name="sus_su_mode">Chế độ SuS SU:</string>
     <!-- Module related -->
     <string name="module_install_confirm">Xác nhận cài đặt module %1$s？</string>
     <string name="unknown_module">Module không xác định</string>
@@ -353,7 +353,7 @@
     <string name="language_changed">Ngôn ngữ đã thay đổi, khởi động lại để áp dụng thay đổi</string>
     <string name="settings_card_dim">Độ trong suốt của thẻ</string>
     <!-- Flash related -->
-    <string name="error_code">Code lỗi</string>
+    <string name="error_code">Error code</string>
     <string name="check_log">Vui lòng kiểm tra logs</string>
     <string name="installing_module">Đang cài đặt module %1$d/%2$d</string>
     <string name="module_failed_count">Cài đặt module %d thất bại</string>
@@ -376,13 +376,13 @@
     <string name="no_apps_in_category">Không có ứng dụng nào trong danh mục này</string>
     <!-- 标签相关 -->
     <string name="label_root">Root</string>
-    <string name="label_unmount">Unmount</string>
+    <string name="label_unmount">Umount</string>
     <string name="label_custom">Tuỳ chỉnh</string>
     <!-- FAB菜单相关 -->
     <string name="deny_authorization">Huỷ bỏ uỷ quyền</string>
     <string name="grant_authorization">Uỷ quyền</string>
-    <string name="unmount_modules">Unmount modules</string>
-    <string name="disable_unmount">Vô hiệu hoá unmount modules</string>
+    <string name="unmount_modules">Umount modules</string>
+    <string name="disable_unmount">Vô hiệu hoá umount modules</string>
     <string name="expand_menu">Mở rộng Menu</string>
     <string name="collapse_menu">Thu gọn Menu</string>
     <string name="scroll_to_top">Lên trên</string>
@@ -393,7 +393,7 @@
     <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa unmount modules</string>
+    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh umount modules</string>
     <!-- BottomSheet相关 -->
     <string name="menu_options">Tuỳ chọn Menu</string>
     <string name="sort_options">Sắp xếp theo</string>
@@ -520,6 +520,6 @@
     <!-- Settings related strings -->
     <string name="show_module_update_json">Hiển thị JSON cập nhật của module</string>
     <string name="show_module_update_json_summary">Hiển thị JSON URL cập nhật trong chi tiết module</string>
-    <string name="show_more_module_info">Hiển thị thông tin module khác</string>
+    <string name="show_more_module_info">Hiển thị \"JSON URLs\"</string>
     <string name="show_more_module_info_summary">Hiển thị thông tin đường dẫn cập nhật \"JSON URLs\" của module</string>
 </resources>
