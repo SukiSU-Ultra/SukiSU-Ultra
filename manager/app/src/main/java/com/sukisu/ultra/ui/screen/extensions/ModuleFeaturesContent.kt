@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.ExperimentalMaterial3Api
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 /**
  * 模块功能内容组件
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModuleFeaturesContent(
     susSuMode: Int,
