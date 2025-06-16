@@ -504,13 +504,13 @@
     <string name="hide_symbols_feature_label">隱藏 KSU SUSFS 符號</string>
     <string name="magic_mount_feature_label">魔法掛載支援</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS 自動核心統計支援</string>
-    <string name="sus_kstat_feature_label">SUS 核心統計支援</string>
-    <string name="sus_su_feature_label">SUS SU 模式切換功能</string>
+    <string name="sus_kstat_feature_label">SuS 核心統計支援</string>
+    <string name="sus_su_feature_label">SuS SU 模式切換功能</string>
     <!-- 可切換狀態 -->
     <string name="susfs_configure">SuSFS 配置</string>
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
-    <string name="susfs_log_config_description">啟用或者關閉SuSFS的日誌</string>
+    <string name="susfs_log_config_description">啟用或者關閉 SuSFS 的日誌</string>
     <string name="susfs_log_config_title">SuSFS 日誌配置</string>
     <string name="susfs_log_enabled">啟用 SuSFS 日誌</string>
     <string name="susfs_log_disabled">關閉 SuSFS 日誌</string>
@@ -519,7 +519,7 @@
     <string name="module_update_json_not_available">更新配置不可用</string>
     <!-- Settings related strings -->
     <string name="show_module_update_json">顯示模組更新配置</string>
-    <string name="show_module_update_json_summary">在模組詳情中顯示更新配置URL</string>
+    <string name="show_module_update_json_summary">在模組詳情中顯示更新配置 URL</string>
     <string name="show_more_module_info">顯示更多模組資訊</string>
-    <string name="show_more_module_info_summary">顯示額外的模組資訊，如更新配置URL等</string>
+    <string name="show_more_module_info_summary">顯示額外的模組資訊，如更新配置 URL 等</string>
 </resources>
