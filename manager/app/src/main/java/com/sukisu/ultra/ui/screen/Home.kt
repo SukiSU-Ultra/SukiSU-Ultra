@@ -96,6 +96,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
+import androidx.compose.material.icons.filled.ManageAccounts
+import androidx.compose.material.icons.filled.MobileScreenShare
 
 /**
  * @author ShirkNeko
@@ -190,6 +192,11 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     isHideSusfsStatus = viewModel.isHideSusfsStatus,
                     showKpmInfo = viewModel.showKpmInfo,
                     lkmMode = viewModel.systemStatus.lkmMode,
+                )
+
+                // 添加模块统计卡片，显示在InfoCard后面
+                ModuleStatsCard(
+                    systemInfo = viewModel.systemInfo
                 )
 
                 if (!viewModel.isSimpleMode) {
@@ -827,5 +834,127 @@ private fun WarningCardPreview() {
             message = "Warning message ",
             MaterialTheme.colorScheme.outlineVariant,
             onClick = {})
+    }
+}
+
+/**
+ * 模块统计卡片组件，展示模块数量、超级用户数量等统计信息
+ */
+@Composable
+private fun ModuleStatsCard(
+    systemInfo: HomeViewModel.SystemInfo
+) {
+    ElevatedCard(
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
+        elevation = getCardElevation(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.modules_statistics),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // 已安装模块数量
+                StatItem(
+                    value = systemInfo.moduleCount.toString(),
+                    label = stringResource(R.string.installed_modules),
+                    icon = Icons.Default.Archive
+                )
+                
+                // 待更新模块数量
+                StatItem(
+                    value = "0",
+                    label = stringResource(R.string.update_modules),
+                    icon = Icons.Default.Refresh
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // 已启用模块数量
+                StatItem(
+                    value = systemInfo.moduleCount.toString(),
+                    label = stringResource(R.string.enabled_modules),
+                    icon = Icons.Default.CheckCircle
+                )
+                
+                // 已禁用模块数量 (总和减去已启用的)
+                StatItem(
+                    value = "0",
+                    label = stringResource(R.string.disabled_modules),
+                    icon = Icons.Default.Block
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 占用空间行
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Storage,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .padding(end = 8.dp),
+                )
+                
+                Text(
+                    text = stringResource(R.string.storage_usage),
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                
+                Spacer(modifier = Modifier.width(4.dp))
+                
+                Text(
+                    text = "85.76 MB", // 这里使用固定值，后续可以根据实际情况获取
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 统计项目组件，用于显示单个统计数据
+ */
+@Composable
+private fun StatItem(
+    value: String,
+    label: String,
+    icon: ImageVector
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
