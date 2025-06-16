@@ -53,6 +53,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -65,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,6 +86,8 @@ import com.sukisu.ultra.ui.screen.extensions.TryUmountContent
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 /**
  * 标签页枚举类
@@ -223,6 +227,58 @@ fun SuSFSConfigScreen(
     LaunchedEffect(selectedTab) {
         if (selectedTab == SuSFSTab.ENABLED_FEATURES) {
             loadEnabledFeatures()
+        }
+    }
+
+    // 监听生命周期事件，当页面恢复到前台时刷新数据
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 页面恢复时，如果当前标签是MODULE_FEATURES，则刷新数据
+                if (selectedTab == SuSFSTab.MODULE_FEATURES) {
+                    refreshModuleFeatures()
+                }
+                
+                // 如果当前标签是ENABLED_FEATURES，也刷新
+                if (selectedTab == SuSFSTab.ENABLED_FEATURES) {
+                    loadEnabledFeatures()
+                }
+            }
+        }
+        
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // 添加一个刷新模块功能状态的函数
+    fun refreshModuleFeatures() {
+        coroutineScope.launch {
+            isLoading = true
+            // 重新加载所有模块功能状态
+            susSuMode = SuSFSManager.getSusSuMode(context)
+            hideLoops = SuSFSManager.getHideLoops(context)
+            hideVendorSepolicy = SuSFSManager.getHideVendorSepolicy(context)
+            hideCompatMatrix = SuSFSManager.getHideCompatMatrix(context)
+            fakeServiceList = SuSFSManager.getFakeServiceList(context)
+            hideCusRom = SuSFSManager.getHideCusRom(context)
+            hideGapps = SuSFSManager.getHideGapps(context)
+            hideRevanced = SuSFSManager.getHideRevanced(context)
+            forceHideLsposed = SuSFSManager.getForceHideLsposed(context)
+            spoofUname = SuSFSManager.getSpoofUname(context)
+            spoofCmdline = SuSFSManager.getSpoofCmdline(context)
+            kernelVersion = SuSFSManager.getKernelVersion(context)
+            kernelBuild = SuSFSManager.getKernelBuild(context)
+            isLoading = false
+        }
+    }
+    
+    // 当前选中的标签为MODULE_FEATURES时，每次重新加载数据
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == SuSFSTab.MODULE_FEATURES) {
+            refreshModuleFeatures()
         }
     }
 
@@ -1045,25 +1101,52 @@ fun SuSFSConfigScreen(
                         }
 
                         SuSFSTab.MODULE_FEATURES -> {
-                            // 重置按钮
-                            OutlinedButton(
-                                onClick = { showResetModuleFeaturesDialog = true },
-                                enabled = !isLoading,
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(40.dp)
+                            // 两个按钮：重置和刷新
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.RestoreFromTrash,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    stringResource(R.string.susfs_reset_module_features),
-                                    fontWeight = FontWeight.Medium
-                                )
+                                // 重置按钮
+                                OutlinedButton(
+                                    onClick = { showResetModuleFeaturesDialog = true },
+                                    enabled = !isLoading,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.RestoreFromTrash,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        stringResource(R.string.susfs_reset_module_features),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                
+                                // 刷新按钮
+                                Button(
+                                    onClick = { refreshModuleFeatures() },
+                                    enabled = !isLoading,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Refresh,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        stringResource(R.string.refresh),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                     }

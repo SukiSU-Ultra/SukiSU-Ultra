@@ -507,7 +507,7 @@
     <string name="magic_mount_feature_label">Magic Mount Support</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS Auto Kernel Stat Support</string>
     <string name="sus_kstat_feature_label">SUS Kstat Support</string>
-    <string name="sus_su_feature_label">SUS SU mode switching function</string>
+    <string name="sus_su_feature_label">SUS_SU Mode Switching</string>
     <!-- 可切换状态 -->
     <string name="susfs_configure">SuSFS Configuration</string>
     <string name="susfs_feature_configurable">Configurable SuSFS Features</string>
@@ -533,12 +533,12 @@
     <string name="susfs_app_hiding_features_title">应用隐藏设置</string>
     
     <!-- sus_su模式 -->
-    <string name="susfs_sussu_mode_title">sus_su模式</string>
+    <string name="susfs_sussu_mode_title">SUS_SU模式</string>
     <string name="susfs_sussu_mode_desc">设置SuSFS的su命令处理模式</string>
-    <string name="susfs_sussu_mode_0">模式0</string>
-    <string name="susfs_sussu_mode_1">模式1</string>
-    <string name="susfs_sussu_mode_2">模式2</string>
-    <string name="susfs_sussu_mode_set_success">sus_su模式已设置为 %d</string>
+    <string name="susfs_sussu_mode_0">模式0 (标准)</string>
+    <string name="susfs_sussu_mode_1">模式1 (已弃用)</string>
+    <string name="susfs_sussu_mode_2">模式2 (推荐)</string>
+    <string name="susfs_sussu_mode_set_success">SUS_SU模式已设置为 %d</string>
     
     <!-- hide_loops配置 -->
     <string name="susfs_hide_loops_title">隐藏Loop设备</string>
@@ -548,27 +548,28 @@
     
     <!-- hide_vendor_sepolicy配置 -->
     <string name="susfs_hide_vendor_sepolicy_title">隐藏Vendor SEPolicy</string>
-    <string name="susfs_hide_vendor_sepolicy_desc">隐藏vendor_sepolicy.cil中的自定义ROM信息</string>
+    <string name="susfs_hide_vendor_sepolicy_desc">隐藏vendor_sepolicy.cil中的lineage和Lineage字符串</string>
     <string name="susfs_hide_vendor_sepolicy_enabled">Vendor SEPolicy隐藏功能已启用</string>
     <string name="susfs_hide_vendor_sepolicy_disabled">Vendor SEPolicy隐藏功能已禁用</string>
     
     <!-- hide_compat_matrix配置 -->
-    <string name="susfs_hide_compat_matrix_title">隐藏兼容性矩阵</string>
-    <string name="susfs_hide_compat_matrix_desc">隐藏compatibility_matrix.device.xml中的自定义ROM信息</string>
-    <string name="susfs_hide_compat_matrix_enabled">兼容性矩阵隐藏功能已启用</string>
-    <string name="susfs_hide_compat_matrix_disabled">兼容性矩阵隐藏功能已禁用</string>
+    <string name="susfs_hide_compat_matrix_title">隐藏Compat Matrix</string>
+    <string name="susfs_hide_compat_matrix_desc">隐藏compatibility_matrix.device.xml中的lineage字符串</string>
+    <string name="susfs_hide_compat_matrix_enabled">Compat Matrix隐藏功能已启用</string>
+    <string name="susfs_hide_compat_matrix_disabled">Compat Matrix隐藏功能已禁用</string>
     
     <!-- fake_service_list配置 -->
-    <string name="susfs_fake_service_list_title">伪造服务列表</string>
-    <string name="susfs_fake_service_list_desc">提供净化后的系统服务列表，移除可识别信息</string>
-    <string name="susfs_fake_service_list_enabled">伪造服务列表功能已启用</string>
-    <string name="susfs_fake_service_list_disabled">伪造服务列表功能已禁用</string>
+    <string name="susfs_fake_service_list_title">伪装Service List</string>
+    <string name="susfs_fake_service_list_desc">移除service list中的lineage和Lineage字符串</string>
+    <string name="susfs_fake_service_list_enabled">Service List伪装功能已启用</string>
+    <string name="susfs_fake_service_list_disabled">Service List伪装功能已禁用</string>
     
     <!-- spoof_uname配置 -->
     <string name="susfs_spoof_uname_title">伪装内核信息</string>
     <string name="susfs_spoof_uname_desc">伪装uname返回的内核版本信息</string>
-    <string name="susfs_spoof_uname_mode_1">开机时</string>
-    <string name="susfs_spoof_uname_mode_2">服务启动</string>
+    <string name="susfs_spoof_uname_mode_0">禁用</string>
+    <string name="susfs_spoof_uname_mode_1">开机阶段执行</string>
+    <string name="susfs_spoof_uname_mode_2">服务启动阶段执行</string>
     <string name="susfs_spoof_uname_set_success">内核信息伪装模式已设置为 %d</string>
     
     <!-- kernel_version和kernel_build配置 -->
@@ -584,34 +585,34 @@
     <string name="susfs_kernel_version_build_success">内核版本和构建信息已成功设置</string>
     
     <!-- spoof_cmdline配置 -->
-    <string name="susfs_spoof_cmdline_title">伪装命令行</string>
-    <string name="susfs_spoof_cmdline_desc">伪装内核命令行信息，移除可识别特征</string>
-    <string name="susfs_spoof_cmdline_enabled">命令行伪装功能已启用</string>
-    <string name="susfs_spoof_cmdline_disabled">命令行伪装功能已禁用</string>
+    <string name="susfs_spoof_cmdline_title">伪装Cmdline/Bootconfig</string>
+    <string name="susfs_spoof_cmdline_desc">伪装/proc/cmdline或/proc/bootconfig信息</string>
+    <string name="susfs_spoof_cmdline_enabled">Cmdline/Bootconfig伪装功能已启用</string>
+    <string name="susfs_spoof_cmdline_disabled">Cmdline/Bootconfig伪装功能已禁用</string>
     
     <!-- hide_cusrom配置 -->
-    <string name="susfs_hide_cusrom_title">隐藏自定义ROM信息</string>
-    <string name="susfs_hide_cusrom_desc">隐藏各处暴露的自定义ROM识别信息</string>
-    <string name="susfs_hide_cusrom_enabled">自定义ROM隐藏功能已启用</string>
-    <string name="susfs_hide_cusrom_disabled">自定义ROM隐藏功能已禁用</string>
+    <string name="susfs_hide_cusrom_title">隐藏自定义ROM路径</string>
+    <string name="susfs_hide_cusrom_desc">隐藏自定义ROM特有路径，提高安全性</string>
+    <string name="susfs_hide_cusrom_enabled">自定义ROM路径隐藏功能已启用</string>
+    <string name="susfs_hide_cusrom_disabled">自定义ROM路径隐藏功能已禁用</string>
     
     <!-- hide_gapps配置 -->
-    <string name="susfs_hide_gapps_title">隐藏GApps</string>
-    <string name="susfs_hide_gapps_desc">隐藏Google应用相关特征</string>
-    <string name="susfs_hide_gapps_enabled">GApps隐藏功能已启用</string>
-    <string name="susfs_hide_gapps_disabled">GApps隐藏功能已禁用</string>
+    <string name="susfs_hide_gapps_title">隐藏GApps路径</string>
+    <string name="susfs_hide_gapps_desc">隐藏Google应用相关特征和路径</string>
+    <string name="susfs_hide_gapps_enabled">GApps路径隐藏功能已启用</string>
+    <string name="susfs_hide_gapps_disabled">GApps路径隐藏功能已禁用</string>
     
     <!-- hide_revanced配置 -->
-    <string name="susfs_hide_revanced_title">隐藏ReVanced</string>
-    <string name="susfs_hide_revanced_desc">隐藏与ReVanced相关的特征</string>
-    <string name="susfs_hide_revanced_enabled">ReVanced隐藏功能已启用</string>
-    <string name="susfs_hide_revanced_disabled">ReVanced隐藏功能已禁用</string>
+    <string name="susfs_hide_revanced_title">隐藏ReVanced路径</string>
+    <string name="susfs_hide_revanced_desc">隐藏与ReVanced相关的特征和路径</string>
+    <string name="susfs_hide_revanced_enabled">ReVanced路径隐藏功能已启用</string>
+    <string name="susfs_hide_revanced_disabled">ReVanced路径隐藏功能已禁用</string>
     
     <!-- force_hide_lsposed配置 -->
-    <string name="susfs_force_hide_lsposed_title">强制隐藏LSPosed</string>
+    <string name="susfs_force_hide_lsposed_title">强制隐藏Dex2oat挂载</string>
     <string name="susfs_force_hide_lsposed_desc">添加特定挂载点以隐藏LSPosed框架</string>
-    <string name="susfs_force_hide_lsposed_enabled">LSPosed强制隐藏功能已启用</string>
-    <string name="susfs_force_hide_lsposed_disabled">LSPosed强制隐藏功能已禁用</string>
+    <string name="susfs_force_hide_lsposed_enabled">Dex2oat挂载隐藏功能已启用</string>
+    <string name="susfs_force_hide_lsposed_disabled">Dex2oat挂载隐藏功能已禁用</string>
     
     <!-- 模块功能重置 -->
     <string name="susfs_reset_module_features">重置模块功能</string>
