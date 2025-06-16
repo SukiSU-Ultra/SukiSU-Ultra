@@ -612,4 +612,10 @@
     <string name="susfs_force_hide_lsposed_desc">添加特定挂载点以隐藏LSPosed框架</string>
     <string name="susfs_force_hide_lsposed_enabled">LSPosed强制隐藏功能已启用</string>
     <string name="susfs_force_hide_lsposed_disabled">LSPosed强制隐藏功能已禁用</string>
+    
+    <!-- 通用字符串 -->
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
+    <string name="refresh">刷新</string>
+    <string name="suki_disabled">已禁用</string>
 </resources>
