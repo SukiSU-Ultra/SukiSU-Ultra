@@ -88,6 +88,10 @@ import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import android.content.Context
+import android.widget.Toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 标签页枚举类
@@ -189,6 +193,22 @@ fun SuSFSConfigScreen(
     fun refreshModuleFeatures() {
         coroutineScope.launch {
             isLoading = true
+            // 清除SharedPreferences中的缓存
+            val prefs = context.getSharedPreferences(SuSFSManager.PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().apply {
+                remove(SuSFSManager.KEY_SUS_SU_MODE)
+                remove(SuSFSManager.KEY_HIDE_LOOPS)
+                remove(SuSFSManager.KEY_HIDE_VENDOR_SEPOLICY)
+                remove(SuSFSManager.KEY_HIDE_COMPAT_MATRIX)
+                remove(SuSFSManager.KEY_FAKE_SERVICE_LIST)
+                remove(SuSFSManager.KEY_HIDE_CUSROM)
+                remove(SuSFSManager.KEY_HIDE_GAPPS)
+                remove(SuSFSManager.KEY_HIDE_REVANCED)
+                remove(SuSFSManager.KEY_FORCE_HIDE_LSPOSED)
+                remove(SuSFSManager.KEY_SPOOF_UNAME)
+                remove(SuSFSManager.KEY_SPOOF_CMDLINE)
+            }.apply()
+            
             // 重新加载所有模块功能状态
             susSuMode = SuSFSManager.getSusSuMode(context)
             hideLoops = SuSFSManager.getHideLoops(context)
@@ -203,6 +223,11 @@ fun SuSFSConfigScreen(
             spoofCmdline = SuSFSManager.getSpoofCmdline(context)
             kernelVersion = SuSFSManager.getKernelVersion(context)
             kernelBuild = SuSFSManager.getKernelBuild(context)
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, context.getString(R.string.susfs_module_features_refreshed), Toast.LENGTH_SHORT).show()
+            }
+            
             isLoading = false
         }
     }

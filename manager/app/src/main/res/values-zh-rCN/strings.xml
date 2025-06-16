@@ -530,4 +530,5 @@
     <string name="disabled_modules">已禁用模块</string>
     <string name="storage_usage">占用空间</string>
     <string name="check_updates">检查更新</string>
+    <string name="susfs_module_features_refreshed">模块功能已刷新</string>
 </resources>

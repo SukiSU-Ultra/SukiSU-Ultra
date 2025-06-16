@@ -20,30 +20,30 @@ import java.io.File
  * 用于管理SuSFS相关的配置和命令执行
  */
 object SuSFSManager {
-    private const val PREFS_NAME = "susfs_config"
-    private const val KEY_UNAME_VALUE = "uname_value"
-    private const val KEY_BUILD_TIME_VALUE = "build_time_value"
-    private const val KEY_IS_ENABLED = "is_enabled"
-    private const val KEY_AUTO_START_ENABLED = "auto_start_enabled"
-    private const val KEY_LAST_APPLIED_VALUE = "last_applied_value"
-    private const val KEY_LAST_APPLIED_BUILD_TIME = "last_applied_build_time"
-    private const val KEY_SUS_PATHS = "sus_paths"
-    private const val KEY_SUS_MOUNTS = "sus_mounts"
-    private const val KEY_TRY_UMOUNTS = "try_umounts"
-    private const val KEY_ANDROID_DATA_PATH = "android_data_path"
-    private const val KEY_SDCARD_PATH = "sdcard_path"
-    private const val KEY_ENABLE_LOG = "enable_log"
-    private const val KEY_SUS_SU_MODE = "sus_su_mode"
-    private const val KEY_HIDE_LOOPS = "hide_loops"
-    private const val KEY_HIDE_VENDOR_SEPOLICY = "hide_vendor_sepolicy"
-    private const val KEY_HIDE_COMPAT_MATRIX = "hide_compat_matrix"
-    private const val KEY_FAKE_SERVICE_LIST = "fake_service_list"
-    private const val KEY_SPOOF_UNAME = "spoof_uname"
-    private const val KEY_SPOOF_CMDLINE = "spoof_cmdline"
-    private const val KEY_HIDE_CUSROM = "hide_cusrom"
-    private const val KEY_HIDE_GAPPS = "hide_gapps"
-    private const val KEY_HIDE_REVANCED = "hide_revanced"
-    private const val KEY_FORCE_HIDE_LSPOSED = "force_hide_lsposed"
+    const val PREFS_NAME = "susfs_config"
+    const val KEY_UNAME_VALUE = "uname_value"
+    const val KEY_BUILD_TIME_VALUE = "build_time_value"
+    const val KEY_IS_ENABLED = "is_enabled"
+    const val KEY_AUTO_START_ENABLED = "auto_start_enabled"
+    const val KEY_LAST_APPLIED_VALUE = "last_applied_value"
+    const val KEY_LAST_APPLIED_BUILD_TIME = "last_applied_build_time"
+    const val KEY_SUS_PATHS = "sus_paths"
+    const val KEY_SUS_MOUNTS = "sus_mounts"
+    const val KEY_TRY_UMOUNTS = "try_umounts"
+    const val KEY_ANDROID_DATA_PATH = "android_data_path"
+    const val KEY_SDCARD_PATH = "sdcard_path"
+    const val KEY_ENABLE_LOG = "enable_log"
+    const val KEY_SUS_SU_MODE = "sus_su_mode"
+    const val KEY_HIDE_LOOPS = "hide_loops"
+    const val KEY_HIDE_VENDOR_SEPOLICY = "hide_vendor_sepolicy"
+    const val KEY_HIDE_COMPAT_MATRIX = "hide_compat_matrix"
+    const val KEY_FAKE_SERVICE_LIST = "fake_service_list"
+    const val KEY_SPOOF_UNAME = "spoof_uname"
+    const val KEY_SPOOF_CMDLINE = "spoof_cmdline"
+    const val KEY_HIDE_CUSROM = "hide_cusrom"
+    const val KEY_HIDE_GAPPS = "hide_gapps"
+    const val KEY_HIDE_REVANCED = "hide_revanced"
+    const val KEY_FORCE_HIDE_LSPOSED = "force_hide_lsposed"
     private const val SUSFS_BINARY_BASE_NAME = "ksu_susfs"
     private const val DEFAULT_UNAME = "default"
     private const val DEFAULT_BUILD_TIME = "default"
@@ -357,7 +357,18 @@ object SuSFSManager {
             // 检查配置文件是否存在
             val checkResult = shell.newJob().add("test -f $SUSFS4KSU_CONFIG_PATH").exec()
             if (!checkResult.isSuccess) {
-                return@withContext configMap
+                // 检查模块是否存在
+                val moduleExists = shell.newJob().add("test -d $MODULE_SUSFS4KSU_PATH").exec().isSuccess
+                if (!moduleExists) {
+                    // 如果模块不存在，直接返回空映射
+                    return@withContext configMap
+                }
+                
+                // 如果配置文件不存在但模块存在，尝试创建配置文件
+                shell.newJob()
+                    .add("mkdir -p /data/adb/susfs4ksu")
+                    .add("touch $SUSFS4KSU_CONFIG_PATH")
+                    .exec()
             }
 
             // 读取配置文件
@@ -371,6 +382,45 @@ object SuSFSManager {
                             val key = parts[0]
                             val value = parts[1]
                             configMap[key] = value
+                        }
+                    }
+                }
+            }
+            
+            // 检查service.sh文件中的配置（如果配置文件中没有对应的值）
+            if (configMap.isEmpty()) {
+                val serviceShPath = "$MODULE_SUSFS4KSU_PATH/service.sh"
+                val serviceShExists = shell.newJob().add("test -f $serviceShPath").exec().isSuccess
+                
+                if (serviceShExists) {
+                    // 从service.sh中提取配置
+                    val grepCommands = listOf(
+                        "grep -q 'sus_su=' $serviceShPath && grep 'sus_su=' $serviceShPath",
+                        "grep -q 'hide_loops=' $serviceShPath && grep 'hide_loops=' $serviceShPath",
+                        "grep -q 'hide_vendor_sepolicy=' $serviceShPath && grep 'hide_vendor_sepolicy=' $serviceShPath",
+                        "grep -q 'hide_compat_matrix=' $serviceShPath && grep 'hide_compat_matrix=' $serviceShPath",
+                        "grep -q 'fake_service_list=' $serviceShPath && grep 'fake_service_list=' $serviceShPath",
+                        "grep -q 'hide_cusrom=' $serviceShPath && grep 'hide_cusrom=' $serviceShPath",
+                        "grep -q 'hide_gapps=' $serviceShPath && grep 'hide_gapps=' $serviceShPath",
+                        "grep -q 'hide_revanced=' $serviceShPath && grep 'hide_revanced=' $serviceShPath",
+                        "grep -q 'force_hide_lsposed=' $serviceShPath && grep 'force_hide_lsposed=' $serviceShPath",
+                        "grep -q 'spoof_uname=' $serviceShPath && grep 'spoof_uname=' $serviceShPath",
+                        "grep -q 'spoof_cmdline=' $serviceShPath && grep 'spoof_cmdline=' $serviceShPath"
+                    )
+                    
+                    for (command in grepCommands) {
+                        val cmdResult = shell.newJob().add(command).exec()
+                        if (cmdResult.isSuccess && cmdResult.out.isNotEmpty()) {
+                            for (line in cmdResult.out) {
+                                if (line.contains("=")) {
+                                    val parts = line.trim().split("=", limit = 2)
+                                    if (parts.size == 2) {
+                                        val key = parts[0].trim()
+                                        val value = parts[1].trim().replace("\"", "")
+                                        configMap[key] = value
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -409,6 +459,33 @@ object SuSFSManager {
             }
             
             val result = shell.newJob().add(command).exec()
+            
+            // 如果模块存在，尝试立即应用配置
+            val moduleExists = shell.newJob().add("test -d $MODULE_SUSFS4KSU_PATH").exec().isSuccess
+            if (moduleExists && result.isSuccess) {
+                // 检查模块的service.sh文件是否存在
+                val serviceShPath = "$MODULE_SUSFS4KSU_PATH/service.sh"
+                val serviceShExists = shell.newJob().add("test -f $serviceShPath").exec().isSuccess
+                
+                if (serviceShExists) {
+                    // 根据不同的配置项，执行相应的命令使其立即生效
+                    when (key) {
+                        "sus_su" -> {
+                            // 获取SuSFS二进制文件路径
+                            val susfsPath = getSuSFSTargetPath()
+                            shell.newJob().add("$susfsPath sus_su $value").exec()
+                        }
+                        "hide_loops", "hide_vendor_sepolicy", "hide_compat_matrix", 
+                        "fake_service_list", "hide_cusrom", "hide_gapps", 
+                        "hide_revanced", "force_hide_lsposed", "spoof_cmdline" -> {
+                            // 这些配置项需要重启才能完全生效，但我们可以更新服务脚本
+                            val updateCommand = "sed -i \"s/^# $key=.*$/# $key=$value (启用)/\" $serviceShPath"
+                            shell.newJob().add(updateCommand).exec()
+                        }
+                    }
+                }
+            }
+            
             result.isSuccess
         } catch (e: Exception) {
             e.printStackTrace()
