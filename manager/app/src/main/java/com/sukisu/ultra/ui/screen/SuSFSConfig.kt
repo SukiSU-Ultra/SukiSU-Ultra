@@ -185,6 +185,28 @@ fun SuSFSConfigScreen(
         }
     }
 
+    // 添加一个刷新模块功能状态的函数
+    fun refreshModuleFeatures() {
+        coroutineScope.launch {
+            isLoading = true
+            // 重新加载所有模块功能状态
+            susSuMode = SuSFSManager.getSusSuMode(context)
+            hideLoops = SuSFSManager.getHideLoops(context)
+            hideVendorSepolicy = SuSFSManager.getHideVendorSepolicy(context)
+            hideCompatMatrix = SuSFSManager.getHideCompatMatrix(context)
+            fakeServiceList = SuSFSManager.getFakeServiceList(context)
+            hideCusRom = SuSFSManager.getHideCusRom(context)
+            hideGapps = SuSFSManager.getHideGapps(context)
+            hideRevanced = SuSFSManager.getHideRevanced(context)
+            forceHideLsposed = SuSFSManager.getForceHideLsposed(context)
+            spoofUname = SuSFSManager.getSpoofUname(context)
+            spoofCmdline = SuSFSManager.getSpoofCmdline(context)
+            kernelVersion = SuSFSManager.getKernelVersion(context)
+            kernelBuild = SuSFSManager.getKernelBuild(context)
+            isLoading = false
+        }
+    }
+
     // 加载启用功能状态
     fun loadEnabledFeatures() {
         coroutineScope.launch {
@@ -228,6 +250,10 @@ fun SuSFSConfigScreen(
         if (selectedTab == SuSFSTab.ENABLED_FEATURES) {
             loadEnabledFeatures()
         }
+        // 当前选中的标签为MODULE_FEATURES时，每次重新加载数据
+        if (selectedTab == SuSFSTab.MODULE_FEATURES) {
+            refreshModuleFeatures()
+        }
     }
 
     // 监听生命周期事件，当页面恢复到前台时刷新数据
@@ -252,36 +278,7 @@ fun SuSFSConfigScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
-    // 添加一个刷新模块功能状态的函数
-    fun refreshModuleFeatures() {
-        coroutineScope.launch {
-            isLoading = true
-            // 重新加载所有模块功能状态
-            susSuMode = SuSFSManager.getSusSuMode(context)
-            hideLoops = SuSFSManager.getHideLoops(context)
-            hideVendorSepolicy = SuSFSManager.getHideVendorSepolicy(context)
-            hideCompatMatrix = SuSFSManager.getHideCompatMatrix(context)
-            fakeServiceList = SuSFSManager.getFakeServiceList(context)
-            hideCusRom = SuSFSManager.getHideCusRom(context)
-            hideGapps = SuSFSManager.getHideGapps(context)
-            hideRevanced = SuSFSManager.getHideRevanced(context)
-            forceHideLsposed = SuSFSManager.getForceHideLsposed(context)
-            spoofUname = SuSFSManager.getSpoofUname(context)
-            spoofCmdline = SuSFSManager.getSpoofCmdline(context)
-            kernelVersion = SuSFSManager.getKernelVersion(context)
-            kernelBuild = SuSFSManager.getKernelBuild(context)
-            isLoading = false
-        }
-    }
     
-    // 当前选中的标签为MODULE_FEATURES时，每次重新加载数据
-    LaunchedEffect(selectedTab) {
-        if (selectedTab == SuSFSTab.MODULE_FEATURES) {
-            refreshModuleFeatures()
-        }
-    }
-
     // 当配置变化时，自动调整开机自启动状态
     LaunchedEffect(canEnableAutoStart) {
         if (!canEnableAutoStart && autoStartEnabled) {
