@@ -357,12 +357,12 @@
     <string name="module_failed_count">%d 個模組安裝失敗</string>
     <string name="module_download_error">模組下載失敗</string>
     <string name="kernel_flashing">內核刷寫</string>
-    <!-- 分類相關 -->
+    <!-- 分类相关 -->
     <string name="category_all_apps">全部</string>
     <string name="category_root_apps">Root</string>
     <string name="category_custom_apps">自訂</string>
     <string name="category_default_apps">預設</string>
-    <!-- 排序相關 -->
+    <!-- 排序相关 -->
     <string name="sort_name_asc">名稱升序</string>
     <string name="sort_name_desc">名稱降序</string>
     <string name="sort_install_time_new">安裝時間（新）</string>
@@ -370,13 +370,13 @@
     <string name="sort_size_desc">大小降序</string>
     <string name="sort_size_asc">大小升序</string>
     <string name="sort_usage_freq">使用頻率</string>
-    <!-- 狀態相關 -->
+    <!-- 状态相关 -->
     <string name="no_apps_in_category">此分類中無應用</string>
-    <!-- 標籤相關 -->
+    <!-- 标签相关 -->
     <string name="label_root">Root</string>
     <string name="label_unmount">卸載</string>
     <string name="label_custom">自訂</string>
-    <!-- FAB 選單相關 -->
+    <!-- FAB菜单相关 -->
     <string name="deny_authorization">取消授權</string>
     <string name="grant_authorization">授權</string>
     <string name="unmount_modules">卸載模組掛載</string>
@@ -392,12 +392,12 @@
     <string name="selected">已選取</string>
     <string name="select">選取</string>
     <string name="profile_umount_modules_disable">停用自訂卸載模組</string>
-    <!-- BottomSheet 相關 -->
+    <!-- BottomSheet相关 -->
     <string name="menu_options">選單選項</string>
     <string name="sort_options">排序方式</string>
     <string name="app_categories">應用程式類型選擇</string>
-    <!-- SuSFS 設定 -->
-<string name="susfs_config_title">SuSFS 配置</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">SuSFS 配置</string>
     <string name="susfs_config_description">配置說明</string>
     <string name="susfs_config_description_text">此功能允許您自訂 SuSFS 的 uname 值和構建時間偽裝。輸入您想要設定的值，點選應用即可生效</string>
     <string name="susfs_uname_label">Uname 值</string>
@@ -409,18 +409,18 @@
     <string name="susfs_reset_to_default">重設為預設值</string>
     <string name="susfs_apply">應用</string>
     <string name="susfs_done">完成</string>
-    <!-- SuSFS 重置設定 -->
+    <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">確認重設</string>
     <string name="susfs_reset_confirm">確認重設</string>
-    <!-- SuSFS 吐司文字 -->
+    <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 檔案</string>
     <string name="susfs_command_failed">SuSFS 指令執行失敗</string>
     <string name="susfs_command_error">執行 SuSFS 指令時出錯: %s</string>
     <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
-    <!-- SuSFS 偽裝配置 -->
+    <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <string name="susfs_config_setting_summary">配置 SuSFS 的 uname 值和構建時間偽裝 (目前: %s)</string>
-    <!-- 開機自動啟動相關 -->
+    <!-- 开机自启动相关 -->
     <string name="susfs_autostart_title">開機自動啟動</string>
     <string name="susfs_autostart_description">系統啟動時自動套用 uname 設定</string>
     <string name="susfs_autostart_requirement">需設定 uname 或新增路徑後才能啟用</string>
@@ -431,20 +431,20 @@
     <string name="susfs_autostart_error">開機自動啟動設定錯誤：%s</string>
     <string name="susfs_no_config_to_autostart">無可用設定進行開機自動啟動</string>
     <string name="susfs_autostart_tis">需輸入非預設值才能啟用開機自動啟動</string>
-    <!-- SuSFS 標籤標題 -->
+    <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">基本設定</string>
     <string name="susfs_tab_sus_paths">SUS 路徑</string>
     <string name="susfs_tab_sus_mounts">SUS 掛載</string>
     <string name="susfs_tab_try_umount">嘗試卸載</string>
     <string name="susfs_tab_path_settings">路徑設定</string>
     <string name="susfs_tab_enabled_features">啟用功能狀態</string>
-    <!-- SuSFS 對話框動作 -->
+    <!-- SuSFS Dialog Actions -->
     <string name="susfs_add">新增</string>
     <string name="susfs_delete">刪除</string>
     <string name="susfs_reset">重設</string>
     <string name="susfs_run">執行</string>
     <string name="susfs_refresh">重新整理</string>
-    <!-- SuSFS 路徑管理 -->
+    <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">新增 SUS 路徑</string>
     <string name="susfs_add_sus_mount">新增 SUS 掛載</string>
     <string name="susfs_add_try_umount">新增嘗試卸載</string>
@@ -457,7 +457,7 @@
     <string name="susfs_no_paths_configured">暫無 SUS 路徑設定</string>
     <string name="susfs_no_mounts_configured">暫無 SUS 掛載設定</string>
     <string name="susfs_no_umounts_configured">暫無嘗試卸載設定</string>
-    <!-- SuSFS 卸載模式 -->
+    <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">卸載模式</string>
     <string name="susfs_umount_mode_normal">一般卸載 (0)</string>
     <string name="susfs_umount_mode_detach">分離卸載 (1)</string>
@@ -466,29 +466,29 @@
     <string name="susfs_umount_mode_display">模式：%1$s (%2$s)</string>
     <string name="susfs_try_umount_added_success">嘗試 umount 路徑新增成功： %s</string>
     <string name="susfs_try_umount_added_saved">嘗試 umount 路徑儲存成功： %s</string>
-    <!-- SuSFS 執行卸載 -->
+    <!-- SuSFS Run Umount -->
     <string name="susfs_run_umount_confirm_title">確認執行嘗試卸載</string>
     <string name="susfs_run_umount_confirm_message">這將立即執行所有已設定的嘗試卸載操作，確定要繼續嗎？</string>
-    <!-- SuSFS 重設分類 -->
+    <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">重設 SUS 路徑</string>
     <string name="susfs_reset_paths_message">這將清除所有 SUS 路徑設定，確定要繼續嗎？</string>
     <string name="susfs_reset_mounts_title">重設 SUS 掛載</string>
     <string name="susfs_reset_mounts_message">這將清除所有 SUS 掛載設定，確定要繼續嗎？</string>
     <string name="susfs_reset_umounts_title">重設嘗試卸載</string>
     <string name="susfs_reset_umounts_message">這將清除所有嘗試卸載設定，確定要繼續嗎？</string>
-    <!-- SuSFS 路徑設定 -->
+    <!-- SuSFS Path Settings -->
     <string name="susfs_path_settings">路徑設定</string>
     <string name="susfs_android_data_path_label">Android Data 路徑</string>
     <string name="susfs_sdcard_path_label">SD 卡路徑</string>
     <string name="susfs_set_android_data_path">設定 Android Data 路徑</string>
     <string name="susfs_set_sdcard_path">設定 SD 卡路徑</string>
-    <!-- SuSFS 啟用功能 -->
+    <!-- SuSFS Enabled Features -->
     <string name="susfs_enabled_features_title">啟用功能狀態</string>
     <string name="susfs_enabled_features_description">顯示目前 SuSFS 啟用的功能狀態</string>
     <string name="susfs_no_features_found">未找到功能狀態資訊</string>
     <string name="susfs_feature_enabled">已啟用</string>
     <string name="susfs_feature_disabled">已停用</string>
-    <!-- 功能標籤 -->
+    <!-- Feature Labels -->
     <string name="sus_path_feature_label">SUS 路徑支援</string>
     <string name="sus_mount_feature_label">SUS 掛載支援</string>
     <string name="try_umount_feature_label">嘗試卸載支援</string>
@@ -503,7 +503,7 @@
     <string name="magic_mount_feature_label">魔法掛載支援</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS 自動核心統計支援</string>
     <string name="sus_kstat_feature_label">SUS 核心統計支援</string>
-    <!-- 可切換狀態 -->
+    <!-- 可切换状态 -->
     <string name="susfs_configure">SuSFS 配置</string>
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
@@ -511,4 +511,5 @@
     <string name="susfs_log_config_title">SuSFS 日誌配置</string>
     <string name="susfs_log_enabled">啟用 SuSFS 日誌</string>
     <string name="susfs_log_disabled">關閉 SuSFS 日誌</string>
+    <!-- Settings related strings -->
 </resources>
