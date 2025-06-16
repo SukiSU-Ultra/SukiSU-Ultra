@@ -922,38 +922,47 @@ private fun ModuleStatsCard(
                         .padding(end = 8.dp),
                 )
                 
-                Text(
-                    text = stringResource(R.string.storage_usage),
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                
-                Spacer(modifier = Modifier.width(4.dp))
-                
-                // 使用格式化的存储空间大小
-                Text(
-                    text = viewModel.formatStorageSize(systemInfo.moduleStorageBytes),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                
-                Spacer(modifier = Modifier.width(4.dp))
-                
-                // 显示占用比例
-                val context = LocalContext.current
-                Text(
-                    text = "(${viewModel.formatStorageRatio(context)})",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    // 标题和值在一行
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.storage_usage),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        // 使用格式化的存储空间大小
+                        Text(
+                            text = viewModel.formatStorageSize(systemInfo.moduleStorageBytes),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Spacer(modifier = Modifier.width(4.dp))
+                        
+                        // 显示占用比例
+                        val context = LocalContext.current
+                        Text(
+                            text = "(${viewModel.formatStorageRatio(context)})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    // 进度条
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LinearProgressIndicator(
+                        progress = viewModel.getStorageUsageRatio(LocalContext.current),
+                        modifier = Modifier.fillMaxWidth(),
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
-            
-            // 增加存储空间进度条
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = viewModel.getStorageUsageRatio(LocalContext.current),
-                modifier = Modifier.fillMaxWidth(),
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }

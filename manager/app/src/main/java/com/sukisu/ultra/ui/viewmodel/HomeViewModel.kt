@@ -31,6 +31,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.lang.reflect.Method
+import android.app.usage.StorageStatsManager
 
 class HomeViewModel : ViewModel() {
     companion object {
@@ -432,39 +433,19 @@ class HomeViewModel : ViewModel() {
      * 获取设备总存储空间
      */
     private fun getTotalDeviceStorage(context: Context): Long {
+        val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as? StorageManager ?: return getStorageSize(context)
+        
         try {
-            val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
-            
-            // 使用兼容性方法获取总存储空间
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // Android 8.0+，使用StorageStatsManager
-                val uuid = try {
-                    // 使用反射获取UUID方法，避免直接导入StorageStatsManager
-                    val uuidMethod = StorageManager::class.java.getMethod("getUuidForPath", File::class.java)
-                    uuidMethod.invoke(storageManager, Environment.getDataDirectory()) as? java.util.UUID
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error getting UUID", e)
-                    null
-                }
-
-                if (uuid != null) {
-                    try {
-                        // 通过反射获取StorageStatsManager并调用getTotalBytes
-                        val statsManager = context.getSystemService("storagestats") ?: return getStorageSize(context)
-                        val statsClass = Class.forName("android.os.storage.StorageStatsManager")
-                        val getTotalBytesMethod = statsClass.getMethod("getTotalBytes", java.util.UUID::class.java)
-                        val result = getTotalBytesMethod.invoke(statsManager, uuid)
-                        if (result is Long) {
-                            return result
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error getting storage stats", e)
-                    }
-                }
-                getStorageSize(context)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // 按照MMRL方法实现：使用StorageStatsManager
+                val uuid = storageManager.getUuidForPath(Environment.getDataDirectory())
+                val storageStatsManager = context.getSystemService(Context.STORAGE_STATS_SERVICE) as? android.app.usage.StorageStatsManager
+                    ?: return getStorageSize(context)
+                
+                return storageStatsManager.getTotalBytes(uuid)
             } else {
                 // Android 8.0以下，使用StatFs
-                getStorageSize(context)
+                return getStorageSize(context)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error getting total device storage", e)
