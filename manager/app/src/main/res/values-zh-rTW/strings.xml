@@ -67,12 +67,12 @@
     <string name="profile_namespace_individual">私有</string>
     <string name="profile_groups">群組</string>
     <string name="profile_capabilities">權限</string>
-    <string name="profile_selinux_context">SELinux</string>
+    <string name="profile_selinux_context">SELinux 上下文</string>
     <string name="profile_umount_modules">卸載模組</string>
     <string name="failed_to_update_app_profile">為 %s 更新應用程式設定檔失敗</string>
     <string name="require_kernel_version" formatted="false">目前 KernelSU 版本 %d 過低，管理器無法正常運作，請將內核 KernelSU 版本升級至 %d 或以上！</string>
     <string name="settings_umount_modules_default">預設卸載模組</string>
-    <string name="settings_umount_modules_default_summary">應用程式設定檔中\"卸載模組"\的全域預設值，若啟用，將為未設定設定檔的應用程式移除所有模組對系統的修改。</string>
+    <string name="settings_umount_modules_default_summary">應用程式設定檔中「卸載模組」的全域預設值，若啟用，將為未設定設定檔的應用程式移除所有模組對系統的修改。</string>
     <string name="settings_susfs_toggle">禁用 kprobe 切換</string>
     <string name="profile_umount_modules_summary">啟用此選項後，將允許 KernelSU 為此應用程式還原被模組修改的檔案。</string>
     <string name="profile_selinux_domain">域</string>
@@ -129,7 +129,7 @@
     <string name="settings_restore_stock_image">還原原廠映像檔</string>
     <string name="settings_uninstall_temporary_message">臨時解除安裝 KernelSU，下次重新啟動後恢復至原始狀態。</string>
     <string name="settings_uninstall_permanent_message">完全且永久解除安裝 KernelSU（包括 Root 權限和所有模組）。</string>
-    <string name="settings_restore_stock_image_message">還原原廠映像檔（若存在備份），通常在 OTA 前使用；若需解除安裝 KernelSU，請使用\"永久解除安裝\"。</string>
+    <string name="settings_restore_stock_image_message">還原原廠映像檔（若存在備份），通常在 OTA 前使用；若需解除安裝 KernelSU，請使用「永久解除安裝」。</string>
     <string name="flashing">正在刷寫</string>
     <string name="flash_success">刷寫完成</string>
     <string name="flash_failed">刷寫失敗</string>
@@ -183,7 +183,7 @@
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多設定</string>
     <string name="selinux">SELinux</string>
-    <string name="selinux_enabled">嚴格模式</string>
+    <string name="selinux_enabled">強制執行</string>
     <string name="selinux_disabled">寬鬆模式</string>
     <string name="simple_mode">簡潔模式</string>
     <string name="simple_mode_summary">啟用後將隱藏不必要的卡片</string>
@@ -421,15 +421,15 @@
     <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
-    <string name="susfs_config_setting_summary">配置 SuSFS 的內核名稱和構建時間偽裝 (目前: %s)</string>
-    <!-- 開機自啟動相關 -->
-    <string name="susfs_autostart_title">開機自啟動</string>
-    <string name="susfs_autostart_description">系統啟動時自動應用所有非預設配置</string>
-    <string name="susfs_autostart_requirement">需要添加配置後才能啟用</string>
-    <string name="susfs_autostart_enabled">開機自動啟動已開啟</string>
-    <string name="susfs_autostart_disabled">開機自動啟動已禁用</string>
-    <string name="susfs_autostart_enable_failed">開啟開機自動啟動失敗</string>
-    <string name="susfs_autostart_disable_failed">禁用開機自動啟動失敗</string>
+    <string name="susfs_config_setting_summary">配置 SuSFS 的 uname 值和構建時間偽裝 (目前: %s)</string>
+    <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">開機自動啟動</string>
+    <string name="susfs_autostart_description">系統啟動時自動套用 uname 設定</string>
+    <string name="susfs_autostart_requirement">需設定 uname 或新增路徑後才能啟用</string>
+    <string name="susfs_autostart_enabled">開機自動啟動已啟用</string>
+    <string name="susfs_autostart_disabled">開機自動啟動已停用</string>
+    <string name="susfs_autostart_enable_failed">啟用開機自動啟動失敗</string>
+    <string name="susfs_autostart_disable_failed">停用開機自動啟動失敗</string>
     <string name="susfs_autostart_error">開機自動啟動設定錯誤：%s</string>
     <string name="susfs_no_config_to_autostart">無可用設定進行開機自動啟動</string>
     <string name="susfs_autostart_tis">需輸入非預設值才能啟用開機自動啟動</string>
@@ -504,9 +504,9 @@
     <string name="hide_symbols_feature_label">隱藏 KSU SUSFS 符號</string>
     <string name="magic_mount_feature_label">魔法掛載支援</string>
     <string name="overlayfs_auto_kstat_feature_label">OverlayFS 自動核心統計支援</string>
-    <string name="sus_kstat_feature_label">SuS 核心統計支援</string>
+    <string name="sus_kstat_feature_label">SUS 核心統計支援</string>
     <string name="sus_su_feature_label">SuS SU 模式切換功能</string>
-    <!-- 可切換狀態 -->
+    <!-- 可切换状态 -->
     <string name="susfs_configure">SuSFS 配置</string>
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
