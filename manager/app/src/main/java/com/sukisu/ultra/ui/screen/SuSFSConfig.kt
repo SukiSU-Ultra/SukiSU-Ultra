@@ -82,6 +82,8 @@ import com.sukisu.ultra.ui.screen.extensions.SusPathsContent
 import com.sukisu.ultra.ui.screen.extensions.SusMountsContent
 import com.sukisu.ultra.ui.screen.extensions.TryUmountContent
 import kotlinx.coroutines.launch
+import com.sukisu.ultra.ui.theme.getCardColors
+import com.sukisu.ultra.ui.theme.getCardElevation
 
 /**
  * 标签页枚举类
@@ -976,12 +978,8 @@ fun SuSFSConfigScreen(
                             ) {
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = CardConfig.shape,
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = CardConfig.containerColor(true),
-                                        contentColor = CardConfig.contentColor()
-                                    ),
-                                    border = CardConfig.border()
+                                    colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                    elevation = getCardElevation()
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp),
@@ -1024,7 +1022,7 @@ fun SuSFSConfigScreen(
                                                             .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                                                         readOnly = true,
                                                         value = when (susSuMode) {
-                                                            -1 -> stringResource(R.string.disabled)
+                                                            -1 -> stringResource(R.string.suki_disabled)
                                                             0 -> stringResource(R.string.susfs_sussu_mode_0)
                                                             1 -> stringResource(R.string.susfs_sussu_mode_1)
                                                             2 -> stringResource(R.string.susfs_sussu_mode_2)
@@ -1217,12 +1215,8 @@ fun SuSFSConfigScreen(
                                 // 伪装和防检测功能卡片
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = CardConfig.shape,
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = CardConfig.containerColor(true),
-                                        contentColor = CardConfig.contentColor()
-                                    ),
-                                    border = CardConfig.border()
+                                    colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                    elevation = getCardElevation()
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp),
@@ -1265,7 +1259,7 @@ fun SuSFSConfigScreen(
                                                             .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                                                         readOnly = true,
                                                         value = when (spoofUname) {
-                                                            0 -> stringResource(R.string.disabled)
+                                                            0 -> stringResource(R.string.suki_disabled)
                                                             1 -> stringResource(R.string.susfs_spoof_uname_mode_1)
                                                             2 -> stringResource(R.string.susfs_spoof_uname_mode_2)
                                                             else -> spoofUname.toString()
@@ -1280,7 +1274,7 @@ fun SuSFSConfigScreen(
                                                         onDismissRequest = { spoofUnameExpanded = false }
                                                     ) {
                                                         DropdownMenuItem(
-                                                            text = { Text(stringResource(R.string.disabled)) },
+                                                            text = { Text(stringResource(R.string.suki_disabled)) },
                                                             onClick = {
                                                                 coroutineScope.launch {
                                                                     SuSFSManager.setSpoofUname(context, 0)
@@ -1418,12 +1412,8 @@ fun SuSFSConfigScreen(
                                 // 应用隐藏卡片
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = CardConfig.shape,
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = CardConfig.containerColor(true),
-                                        contentColor = CardConfig.contentColor()
-                                    ),
-                                    border = CardConfig.border()
+                                    colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                    elevation = getCardElevation()
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp),
@@ -1698,12 +1688,8 @@ fun SuSFSConfigScreen(
                         ) {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = CardConfig.shape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = CardConfig.containerColor(true),
-                                    contentColor = CardConfig.contentColor()
-                                ),
-                                border = CardConfig.border()
+                                colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                elevation = getCardElevation()
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
@@ -1746,7 +1732,7 @@ fun SuSFSConfigScreen(
                                                         .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                                                     readOnly = true,
                                                     value = when (susSuMode) {
-                                                        -1 -> stringResource(R.string.disabled)
+                                                        -1 -> stringResource(R.string.suki_disabled)
                                                         0 -> stringResource(R.string.susfs_sussu_mode_0)
                                                         1 -> stringResource(R.string.susfs_sussu_mode_1)
                                                         2 -> stringResource(R.string.susfs_sussu_mode_2)
@@ -1939,12 +1925,8 @@ fun SuSFSConfigScreen(
                             // 伪装和防检测功能卡片
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = CardConfig.shape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = CardConfig.containerColor(true),
-                                    contentColor = CardConfig.contentColor()
-                                ),
-                                border = CardConfig.border()
+                                colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                elevation = getCardElevation()
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
@@ -1987,7 +1969,7 @@ fun SuSFSConfigScreen(
                                                         .menuAnchor(MenuAnchorType.PrimaryEditable, true),
                                                     readOnly = true,
                                                     value = when (spoofUname) {
-                                                        0 -> stringResource(R.string.disabled)
+                                                        0 -> stringResource(R.string.suki_disabled)
                                                         1 -> stringResource(R.string.susfs_spoof_uname_mode_1)
                                                         2 -> stringResource(R.string.susfs_spoof_uname_mode_2)
                                                         else -> spoofUname.toString()
@@ -2002,7 +1984,7 @@ fun SuSFSConfigScreen(
                                                     onDismissRequest = { spoofUnameExpanded = false }
                                                 ) {
                                                     DropdownMenuItem(
-                                                        text = { Text(stringResource(R.string.disabled)) },
+                                                        text = { Text(stringResource(R.string.suki_disabled)) },
                                                         onClick = {
                                                             coroutineScope.launch {
                                                                 SuSFSManager.setSpoofUname(context, 0)
@@ -2140,12 +2122,8 @@ fun SuSFSConfigScreen(
                             // 应用隐藏卡片
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = CardConfig.shape,
-                                colors = CardDefaults.cardColors(
-                                    containerColor = CardConfig.containerColor(true),
-                                    contentColor = CardConfig.contentColor()
-                                ),
-                                border = CardConfig.border()
+                                colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                elevation = getCardElevation()
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
