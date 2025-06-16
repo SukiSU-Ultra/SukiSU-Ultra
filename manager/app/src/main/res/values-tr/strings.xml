@@ -195,6 +195,8 @@
     <string name="hide_susfs_status_summary">Ana sayfadaki SuSFS durum bilgilerini gizle</string>
     <string name="hide_link_card">Bağlantı Kartı Durumunu Gizle</string>
     <string name="hide_link_card_summary">Ana sayfadaki bağlantı kartı bilgilerini gizle</string>
+    <string name="hide_tag_card">Modül etiket satırlarını gizle</string>
+    <string name="hide_tag_card_summary">Modül kartlarında klasör adı ve boyut etiketlerini gizle</string>
     <string name="theme_mode">Tema</string>
     <string name="theme_follow_system">Sistemi takip et</string>
     <string name="theme_light">Açık</string>
@@ -397,19 +399,127 @@
     <string name="sort_options">Sıralama Seçenekleri</string>
     <string name="app_categories">Uygulama Türü Seçimi</string>
     <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">SuSFS Yapılandırması</string>
+    <string name="susfs_config_description">Yapılandırma Açıklaması</string>
+    <string name="susfs_config_description_text">Bu özellik, SuSFS uname değerini ve build time spoofing\'i özelleştirmenize olanak tanır. Ayarlamak istediğiniz değerleri girin ve uygulayın.</string>
+    <string name="susfs_uname_label">Uname Değeri</string>
+    <string name="susfs_uname_placeholder">Lütfen özel uname değeri girin</string>
+    <string name="susfs_build_time_label">Build Time Spoofing</string>
+    <string name="susfs_build_time_placeholder">Lütfen build time spoofing değeri girin</string>
+    <string name="susfs_current_value">Mevcut değer: %s</string>
+    <string name="susfs_current_build_time">Mevcut build time: %s</string>
+    <string name="susfs_reset_to_default">Varsayılana Sıfırla</string>
+    <string name="susfs_apply">Uygula</string>
+    <string name="susfs_done">Tamam</string>
     <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">Sıfırlamayı Onayla</string>
+    <string name="susfs_reset_confirm">Sıfırlamayı Onayla</string>
     <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">ksu_susfs dosyası bulunamadı</string>
+    <string name="susfs_command_failed">SuSFS komut çalıştırma başarısız</string>
+    <string name="susfs_command_error">SuSFS komut çalıştırma hatası: %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS uname ve build time başarıyla ayarlandı: %s, %s</string>
     <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">SuSFS Yapılandırması</string>
+    <string name="susfs_config_setting_summary">SuSFS için Uname ve Build Time Artifact\'larını ve daha fazlasını yapılandırma (Mevcut: %s)</string>
     <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">Otomatik Başlat</string>
+    <string name="susfs_autostart_description">Yeniden başlatma sırasında tüm varsayılan olmayan yapılandırmaları otomatik olarak uygula</string>
+    <string name="susfs_autostart_requirement">Etkinleştirmek için yapılandırma eklenmesi gerekiyor</string>
+    <string name="susfs_autostart_enabled">Otomatik Başlat etkin</string>
+    <string name="susfs_autostart_disabled">Otomatik Başlat devre dışı</string>
+    <string name="susfs_autostart_enable_failed">Otomatik başlatma etkinleştirilemedi</string>
+    <string name="susfs_autostart_disable_failed">Otomatik başlatma devre dışı bırakılamadı</string>
+    <string name="susfs_autostart_error">Otomatik başlatma yapılandırma hatası: %s</string>
+    <string name="susfs_no_config_to_autostart">Otomatik başlatma için kullanılabilir yapılandırma yok</string>
+    <string name="susfs_autostart_tis">Otomatik başlatmayı etkinleştirmek için varsayılan olmayan bir değer girmeniz gerekiyor</string>
     <!-- SuSFS Tab Titles -->
+    <string name="susfs_tab_basic_settings">Temel Ayarlar</string>
+    <string name="susfs_tab_sus_paths">SUS Yolları</string>
+    <string name="susfs_tab_sus_mounts">SUS Bağlama Noktaları</string>
+    <string name="susfs_tab_try_umount">Bağlamayı Kaldırmayı Dene</string>
+    <string name="susfs_tab_path_settings">Yol Ayarları</string>
+    <string name="susfs_tab_enabled_features">Etkinleştirilen Özellikler Durumu</string>
     <!-- SuSFS Dialog Actions -->
+    <string name="susfs_add">Ekle</string>
+    <string name="susfs_delete">Sil</string>
+    <string name="susfs_reset">Sıfırla</string>
+    <string name="susfs_run">Çalıştır</string>
+    <string name="susfs_refresh">Yenile</string>
     <!-- SuSFS Path Management -->
+    <string name="susfs_add_sus_path">SUS Yolu Ekle</string>
+    <string name="susfs_add_sus_mount">SUS Bağlama Noktası Ekle</string>
+    <string name="susfs_add_try_umount">Bağlamayı Kaldırmayı Dene Ekle</string>
+    <string name="susfs_path_label">Yol</string>
+    <string name="susfs_mount_path_label">Bağlama Yolu</string>
+    <string name="susfs_path_placeholder">örn.: /system/addon.d</string>
+    <string name="susfs_sus_paths_management">SUS Yolları Yönetimi</string>
+    <string name="susfs_sus_mounts_management">SUS Bağlama Noktaları Yönetimi</string>
+    <string name="susfs_try_umount_management">Bağlamayı Kaldırmayı Dene Yönetimi</string>
+    <string name="susfs_no_paths_configured">Yapılandırılmış SUS yolu yok</string>
+    <string name="susfs_no_mounts_configured">Yapılandırılmış SUS bağlama noktası yok</string>
+    <string name="susfs_no_umounts_configured">Yapılandırılmış bağlamayı kaldırmayı dene yok</string>
     <!-- SuSFS Umount Mode -->
+    <string name="susfs_umount_mode_label">Bağlamayı Kaldır Modu</string>
+    <string name="susfs_umount_mode_normal">Normal Bağlamayı Kaldır (0)</string>
+    <string name="susfs_umount_mode_detach">Ayrı Bağlamayı Kaldır (1)</string>
+    <string name="susfs_umount_mode_normal_short">Normal</string>
+    <string name="susfs_umount_mode_detach_short">Ayrı</string>
+    <string name="susfs_umount_mode_display">Mod: %1$s (%2$s)</string>
+    <string name="susfs_try_umount_added_success">Bağlamayı kaldırmayı dene yolu başarıyla eklendi: %s</string>
+    <string name="susfs_try_umount_added_saved">Bağlamayı kaldırmayı dene yolu kaydetme başarılı: %s</string>
     <!-- SuSFS Run Umount -->
+    <string name="susfs_run_umount_confirm_title">Bağlamayı Kaldırmayı Dene Çalıştırmayı Onayla</string>
+    <string name="susfs_run_umount_confirm_message">Bu, yapılandırılmış tüm bağlamayı kaldırmayı dene işlemlerini hemen çalıştıracaktır. Devam etmek istiyor musunuz?</string>
     <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_title">SUS Yollarını Sıfırla</string>
+    <string name="susfs_reset_paths_message">Bu, tüm SUS yol yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
+    <string name="susfs_reset_mounts_title">SUS Bağlama Noktalarını Sıfırla</string>
+    <string name="susfs_reset_mounts_message">Bu, tüm SUS bağlama noktası yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
+    <string name="susfs_reset_umounts_title">Bağlamayı Kaldırmayı Dene Sıfırla</string>
+    <string name="susfs_reset_umounts_message">Bu, tüm bağlamayı kaldırmayı dene yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
     <!-- SuSFS Path Settings -->
+    <string name="susfs_path_settings">Yol Ayarları</string>
+    <string name="susfs_android_data_path_label">Android Veri Yolu</string>
+    <string name="susfs_sdcard_path_label">SD Kart Yolu</string>
+    <string name="susfs_set_android_data_path">Android Veri Yolunu Ayarlayın</string>
+    <string name="susfs_set_sdcard_path">SD Kart Yolunu Ayarlayın</string>
     <!-- SuSFS Enabled Features -->
+    <string name="susfs_enabled_features_title">Etkinleştirilen Özellikler Durumu</string>
+    <string name="susfs_enabled_features_description">Mevcut SuSFS etkinleştirilen özellikler durumunu göster</string>
+    <string name="susfs_no_features_found">Özellik durumu bilgisi bulunamadı</string>
+    <string name="susfs_feature_enabled">Etkinleştirildi</string>
+    <string name="susfs_feature_disabled">Devre Dışı Bırakıldı</string>
     <!-- Feature Labels -->
+    <string name="sus_path_feature_label">SUS Yol Desteği</string>
+    <string name="sus_mount_feature_label">SUS Bağlama Noktası Desteği</string>
+    <string name="try_umount_feature_label">Bağlamayı Kaldırmayı Dene Desteği</string>
+    <string name="spoof_uname_feature_label">Uname Taklit Desteği</string>
+    <string name="spoof_cmdline_feature_label">Cmdline/Bootconfig Taklit</string>
+    <string name="open_redirect_feature_label">Açık Yönlendirme Desteği</string>
+    <string name="enable_log_feature_label">Günlük Kaydı Desteği</string>
+    <string name="auto_default_mount_feature_label">Otomatik Varsayılan Bağlama</string>
+    <string name="auto_bind_mount_feature_label">Otomatik Bağlama Noktası Bağlama</string>
+    <string name="auto_try_umount_bind_feature_label">Otomatik Bağlamayı Kaldırmayı Dene Bağlama</string>
+    <string name="hide_symbols_feature_label">KSU SUSFS Sembollerini Gizle</string>
+    <string name="magic_mount_feature_label">Magic Mount Desteği</string>
+    <string name="overlayfs_auto_kstat_feature_label">OverlayFS Otomatik Kernel İstatistik Desteği</string>
+    <string name="sus_kstat_feature_label">SUS Kstat Desteği</string>
+    <string name="sus_su_feature_label">SUS SU mod değiştirme işlevi</string>
     <!-- 可切换状态 -->
+    <string name="susfs_configure">SuSFS Yapılandırması</string>
+    <string name="susfs_feature_configurable">Yapılandırılabilir SuSFS Özellikleri</string>
+    <string name="susfs_enable_log_label">SuSFS Günlük Kaydını Etkinleştir</string>
+    <string name="susfs_log_config_description">SuSFS için günlük kaydını etkinleştir veya devre dışı bırak</string>
+    <string name="susfs_log_config_title">SuSFS Günlük Kaydı Yapılandırması</string>
+    <string name="susfs_log_enabled">SuSFS Günlük Kaydı Etkinleştiriliyor</string>
+    <string name="susfs_log_disabled">SuSFS günlük kaydını kapat</string>
+    <string name="module_update_json">Güncelleme JSON</string>
+    <string name="module_update_json_copied">Güncelleme JSON URL\'si panoya kopyalandı</string>
+    <string name="module_update_json_not_available">Güncelleme JSON mevcut değil</string>
     <!-- Settings related strings -->
+    <string name="show_module_update_json">Modül Güncelleme JSON\'ını Göster</string>
+    <string name="show_module_update_json_summary">Modül ayrıntılarında güncelleme JSON URL\'sini göster</string>
+    <string name="show_more_module_info">Daha Fazla Modül Bilgisi Göster</string>
+    <string name="show_more_module_info_summary">Güncelleme JSON URL\'leri gibi ek modül bilgilerini göster</string>
 </resources>
