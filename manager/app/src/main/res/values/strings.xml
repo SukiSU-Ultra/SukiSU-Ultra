@@ -613,6 +613,10 @@
     <string name="susfs_force_hide_lsposed_enabled">LSPosed强制隐藏功能已启用</string>
     <string name="susfs_force_hide_lsposed_disabled">LSPosed强制隐藏功能已禁用</string>
     
+    <!-- 模块功能重置 -->
+    <string name="susfs_reset_module_features">重置模块功能</string>
+    <string name="susfs_reset_module_features_message">这将重置所有模块功能设置为默认值。是否确定要继续？</string>
+    
     <!-- 通用字符串 -->
     <string name="suki_disabled">已禁用</string>
 </resources>
