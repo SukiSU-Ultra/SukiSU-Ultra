@@ -47,6 +47,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -844,6 +845,8 @@ private fun WarningCardPreview() {
 private fun ModuleStatsCard(
     systemInfo: HomeViewModel.SystemInfo
 ) {
+    val viewModel = viewModel<HomeViewModel>()
+    
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
         elevation = getCardElevation(),
@@ -872,7 +875,7 @@ private fun ModuleStatsCard(
                 
                 // 待更新模块数量
                 StatItem(
-                    value = "0",
+                    value = systemInfo.moduleUpdatableCount.toString(),
                     label = stringResource(R.string.update_modules),
                     icon = Icons.Default.Refresh
                 )
@@ -886,14 +889,14 @@ private fun ModuleStatsCard(
             ) {
                 // 已启用模块数量
                 StatItem(
-                    value = systemInfo.moduleCount.toString(),
+                    value = systemInfo.moduleEnabledCount.toString(),
                     label = stringResource(R.string.enabled_modules),
                     icon = Icons.Default.CheckCircle
                 )
                 
-                // 已禁用模块数量 (总和减去已启用的)
+                // 已禁用模块数量
                 StatItem(
-                    value = "0",
+                    value = systemInfo.moduleDisabledCount.toString(),
                     label = stringResource(R.string.disabled_modules),
                     icon = Icons.Default.Block
                 )
@@ -921,11 +924,31 @@ private fun ModuleStatsCard(
                 
                 Spacer(modifier = Modifier.width(4.dp))
                 
+                // 使用格式化的存储空间大小
                 Text(
-                    text = "85.76 MB", // 这里使用固定值，后续可以根据实际情况获取
+                    text = viewModel.formatStorageSize(systemInfo.moduleStorageBytes),
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                
+                Spacer(modifier = Modifier.width(4.dp))
+                
+                // 显示占用比例
+                val context = LocalContext.current
+                Text(
+                    text = "(${viewModel.formatStorageRatio(context)})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+            
+            // 增加存储空间进度条
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = viewModel.getStorageUsageRatio(LocalContext.current),
+                modifier = Modifier.fillMaxWidth(),
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

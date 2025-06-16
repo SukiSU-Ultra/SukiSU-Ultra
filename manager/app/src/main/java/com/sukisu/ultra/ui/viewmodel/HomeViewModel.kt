@@ -22,6 +22,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.content.edit
+import kotlin.random.Random
+import android.os.storage.StorageManager
+import android.os.Environment
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+import java.io.IOException
+import java.lang.reflect.Method
 
 class HomeViewModel : ViewModel() {
     companion object {
@@ -59,7 +67,11 @@ class HomeViewModel : ViewModel() {
         val susSUMode: String = "",
         val superuserCount: Int = 0,
         val moduleCount: Int = 0,
-        val kpmModuleCount: Int = 0
+        val moduleEnabledCount: Int = 0,
+        val moduleDisabledCount: Int = 0,
+        val moduleUpdatableCount: Int = 0,
+        val kpmModuleCount: Int = 0,
+        val moduleStorageBytes: Long = 0
     )
 
     private val gson = Gson()
@@ -214,6 +226,9 @@ class HomeViewModel : ViewModel() {
                     }
                 }
 
+                // 获取模块统计信息
+                val moduleInfo = getDetailedModuleInfo()
+
                 systemInfo = SystemInfo(
                     kernelRelease = uname.release,
                     androidVersion = Build.VERSION.RELEASE,
@@ -227,13 +242,218 @@ class HomeViewModel : ViewModel() {
                     suSFSFeatures = suSFSFeatures,
                     susSUMode = susSUMode,
                     superuserCount = getSuperuserCount(),
-                    moduleCount = getModuleCount(),
-                    kpmModuleCount = getKpmModuleCount()
+                    moduleCount = moduleInfo.totalCount,
+                    moduleEnabledCount = moduleInfo.enabledCount,
+                    moduleDisabledCount = moduleInfo.disabledCount,
+                    moduleUpdatableCount = moduleInfo.updatableCount,
+                    kpmModuleCount = getKpmModuleCount(),
+                    moduleStorageBytes = moduleInfo.storageBytes
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching system info", e)
             }
         }
+    }
+
+    /**
+     * 获取模块存储空间占设备总存储空间的比例
+     */
+    fun getStorageUsageRatio(context: Context): Float {
+        val totalDeviceStorage = getTotalDeviceStorage(context)
+        if (totalDeviceStorage <= 0) return 0f
+        
+        return (systemInfo.moduleStorageBytes.toFloat() / totalDeviceStorage.toFloat()).coerceIn(0f, 1f)
+    }
+
+    /**
+     * 格式化存储空间占用比例为百分比字符串
+     */
+    fun formatStorageRatio(context: Context): String {
+        val ratio = getStorageUsageRatio(context)
+        return String.format("%.2f%%", ratio * 100)
+    }
+
+    /**
+     * 模块详细信息数据类
+     */
+    private data class ModuleInfo(
+        val totalCount: Int = 0,
+        val enabledCount: Int = 0,
+        val disabledCount: Int = 0,
+        val updatableCount: Int = 0,
+        val storageBytes: Long = 0
+    )
+
+    /**
+     * 获取详细的模块信息，包括启用/禁用数量、存储空间大小和可更新数量
+     */
+    private fun getDetailedModuleInfo(): ModuleInfo {
+        try {
+            // 获取模块列表
+            val modulesJson = listModules()
+            if (modulesJson.isBlank() || modulesJson == "[]") {
+                return ModuleInfo()
+            }
+
+            val jsonArray = JSONArray(modulesJson)
+            val totalCount = jsonArray.length()
+            var enabledCount = 0
+            var disabledCount = 0
+            var updatableCount = 0
+            var totalStorageBytes = 0L
+
+            // 遍历模块列表，统计数据
+            for (i in 0 until jsonArray.length()) {
+                val module = jsonArray.getJSONObject(i)
+                val enabled = module.optBoolean("enabled", false)
+                val id = module.optString("id", "")
+                
+                // 统计启用/禁用模块
+                if (enabled) {
+                    enabledCount++
+                } else {
+                    disabledCount++
+                }
+                
+                // 计算模块存储空间
+                val modulePath = "/data/adb/modules/$id"
+                totalStorageBytes += calculateDirectorySize(modulePath)
+                
+                // 检测模块是否有更新
+                if (hasModuleUpdate(module)) {
+                    updatableCount++
+                }
+            }
+
+            return ModuleInfo(
+                totalCount = totalCount,
+                enabledCount = enabledCount,
+                disabledCount = disabledCount,
+                updatableCount = updatableCount,
+                storageBytes = totalStorageBytes
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting detailed module info", e)
+            return ModuleInfo()
+        }
+    }
+
+    /**
+     * 计算目录大小
+     */
+    private fun calculateDirectorySize(path: String): Long {
+        try {
+            val file = File(path)
+            if (!file.exists() || !file.isDirectory) {
+                return 0
+            }
+
+            var size = 0L
+            val files = file.listFiles() ?: return 0
+            
+            for (f in files) {
+                size += if (f.isDirectory) {
+                    calculateDirectorySize(f.absolutePath)
+                } else {
+                    f.length()
+                }
+            }
+            
+            return size
+        } catch (e: Exception) {
+            Log.e(TAG, "Error calculating directory size: $path", e)
+            return 0
+        }
+    }
+
+    /**
+     * 检查模块是否有更新
+     */
+    private fun hasModuleUpdate(module: JSONObject): Boolean {
+        try {
+            // 检查模块是否有更新JSON URL
+            val updateJson = module.optString("updateJson", "")
+            if (updateJson.isNotBlank()) {
+                // TODO: 实现实际的更新检查逻辑
+                // 此处只是简单示例，真实实现应该获取远程JSON并比较版本
+                return false
+            }
+            return false
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking module update", e)
+            return false
+        }
+    }
+
+    /**
+     * 获取设备总存储空间
+     */
+    private fun getTotalDeviceStorage(context: Context): Long {
+        try {
+            val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+            
+            // 使用兼容性方法获取总存储空间
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Android 8.0+，使用StorageStatsManager
+                val uuid = try {
+                    // 使用反射获取UUID方法，避免直接导入StorageStatsManager
+                    val uuidMethod = StorageManager::class.java.getMethod("getUuidForPath", File::class.java)
+                    uuidMethod.invoke(storageManager, Environment.getDataDirectory()) as? java.util.UUID
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error getting UUID", e)
+                    null
+                }
+
+                if (uuid != null) {
+                    try {
+                        // 通过反射获取StorageStatsManager并调用getTotalBytes
+                        val statsManager = context.getSystemService("storagestats") ?: return getStorageSize(context)
+                        val statsClass = Class.forName("android.os.storage.StorageStatsManager")
+                        val getTotalBytesMethod = statsClass.getMethod("getTotalBytes", java.util.UUID::class.java)
+                        val result = getTotalBytesMethod.invoke(statsManager, uuid)
+                        if (result is Long) {
+                            return result
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error getting storage stats", e)
+                    }
+                }
+                getStorageSize(context)
+            } else {
+                // Android 8.0以下，使用StatFs
+                getStorageSize(context)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting total device storage", e)
+            return getStorageSize(context)
+        }
+    }
+    
+    /**
+     * 使用StatFs获取存储空间大小（适用于所有Android版本）
+     */
+    private fun getStorageSize(context: Context): Long {
+        try {
+            val statFs = android.os.StatFs(Environment.getDataDirectory().path)
+            return statFs.blockCountLong * statFs.blockSizeLong
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting storage size with StatFs", e)
+            return 1024L * 1024L * 1024L * 16L // 默认返回16GB
+        }
+    }
+
+    /**
+     * 格式化存储空间大小为人类可读格式
+     */
+    fun formatStorageSize(bytes: Long): String {
+        if (bytes <= 0) return "0 B"
+        
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        val digitGroups = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt()
+        
+        return String.format("%.2f %s", 
+            bytes / Math.pow(1024.0, digitGroups.toDouble()), 
+            units[digitGroups])
     }
 
     private fun getDeviceInfo(): String {
