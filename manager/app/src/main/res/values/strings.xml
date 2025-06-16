@@ -74,7 +74,7 @@
     <string name="failed_to_update_app_profile">Failed to update App Profile for %s</string>
     <string name="require_kernel_version" formatted="false">The current KernelSU version %d is too low for the manager to work properly. Please upgrade to version %d or higher!</string>
     <string name="settings_umount_modules_default">Umount modules by default</string>
-    <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set.</string>
+    <string name="settings_umount_modules_default_summary">The global default value for "Umount modules" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set.</string>
     <string name="settings_susfs_toggle">Disable kprobe hooks</string>
     <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app.</string>
     <string name="profile_selinux_domain">Domain</string>
@@ -131,7 +131,7 @@
     <string name="settings_restore_stock_image">Restore stock image</string>
     <string name="settings_uninstall_temporary_message">Temporarily uninstall KernelSU, restore to original state after next reboot.</string>
     <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (Root and all modules) completely and permanently.</string>
-    <string name="settings_restore_stock_image_message">Restore the stock factory image (If a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\".</string>
+    <string name="settings_restore_stock_image_message">Restore the stock factory image (If a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use "Uninstall permanently".</string>
     <string name="flashing">Flashing</string>
     <string name="flash_success">Flash success</string>
     <string name="flash_failed">Flash failed</string>
@@ -524,4 +524,92 @@
     <string name="show_module_update_json_summary">Display update JSON URL in module details</string>
     <string name="show_more_module_info">Show More Module Info</string>
     <string name="show_more_module_info_summary">Display additional module information like update JSON URLs</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_tab_module_features">模块功能</string>
+    
+    <!-- SuSFS基本设置 -->
+    <string name="susfs_module_features_title">核心功能设置</string>
+    <string name="susfs_anti_detect_features_title">防检测设置</string>
+    <string name="susfs_app_hiding_features_title">应用隐藏设置</string>
+    
+    <!-- sus_su模式 -->
+    <string name="susfs_sussu_mode_title">sus_su模式</string>
+    <string name="susfs_sussu_mode_desc">设置SuSFS的su命令处理模式</string>
+    <string name="susfs_sussu_mode_0">模式0</string>
+    <string name="susfs_sussu_mode_1">模式1</string>
+    <string name="susfs_sussu_mode_2">模式2</string>
+    <string name="susfs_sussu_mode_set_success">sus_su模式已设置为 %d</string>
+    
+    <!-- hide_loops配置 -->
+    <string name="susfs_hide_loops_title">隐藏Loop设备</string>
+    <string name="susfs_hide_loops_desc">隐藏可能被用于检测Magisk/KSU的loop设备</string>
+    <string name="susfs_hide_loops_enabled">Loop设备隐藏功能已启用</string>
+    <string name="susfs_hide_loops_disabled">Loop设备隐藏功能已禁用</string>
+    
+    <!-- hide_vendor_sepolicy配置 -->
+    <string name="susfs_hide_vendor_sepolicy_title">隐藏Vendor SEPolicy</string>
+    <string name="susfs_hide_vendor_sepolicy_desc">隐藏vendor_sepolicy.cil中的自定义ROM信息</string>
+    <string name="susfs_hide_vendor_sepolicy_enabled">Vendor SEPolicy隐藏功能已启用</string>
+    <string name="susfs_hide_vendor_sepolicy_disabled">Vendor SEPolicy隐藏功能已禁用</string>
+    
+    <!-- hide_compat_matrix配置 -->
+    <string name="susfs_hide_compat_matrix_title">隐藏兼容性矩阵</string>
+    <string name="susfs_hide_compat_matrix_desc">隐藏compatibility_matrix.device.xml中的自定义ROM信息</string>
+    <string name="susfs_hide_compat_matrix_enabled">兼容性矩阵隐藏功能已启用</string>
+    <string name="susfs_hide_compat_matrix_disabled">兼容性矩阵隐藏功能已禁用</string>
+    
+    <!-- fake_service_list配置 -->
+    <string name="susfs_fake_service_list_title">伪造服务列表</string>
+    <string name="susfs_fake_service_list_desc">提供净化后的系统服务列表，移除可识别信息</string>
+    <string name="susfs_fake_service_list_enabled">伪造服务列表功能已启用</string>
+    <string name="susfs_fake_service_list_disabled">伪造服务列表功能已禁用</string>
+    
+    <!-- spoof_uname配置 -->
+    <string name="susfs_spoof_uname_title">伪装内核信息</string>
+    <string name="susfs_spoof_uname_desc">伪装uname返回的内核版本信息</string>
+    <string name="susfs_spoof_uname_mode_1">开机时</string>
+    <string name="susfs_spoof_uname_mode_2">服务启动</string>
+    <string name="susfs_spoof_uname_set_success">内核信息伪装模式已设置为 %d</string>
+    
+    <!-- kernel_version和kernel_build配置 -->
+    <string name="susfs_set_kernel_version_title">设置内核信息</string>
+    <string name="susfs_kernel_version_label">内核版本</string>
+    <string name="susfs_kernel_version_placeholder">例如: 5.10.157-android14-7-g7b4ab862c</string>
+    <string name="susfs_kernel_build_label">内核构建信息</string>
+    <string name="susfs_kernel_build_placeholder">例如: #1 SMP PREEMPT Mon Apr 29 13:45:00 UTC 2024</string>
+    <string name="susfs_current_kernel_info">当前内核信息</string>
+    <string name="susfs_kernel_version">内核版本: %s</string>
+    <string name="susfs_kernel_build">构建信息: %s</string>
+    <string name="susfs_set_kernel_info">设置内核信息</string>
+    <string name="susfs_kernel_version_build_success">内核版本和构建信息已成功设置</string>
+    
+    <!-- spoof_cmdline配置 -->
+    <string name="susfs_spoof_cmdline_title">伪装命令行</string>
+    <string name="susfs_spoof_cmdline_desc">伪装内核命令行信息，移除可识别特征</string>
+    <string name="susfs_spoof_cmdline_enabled">命令行伪装功能已启用</string>
+    <string name="susfs_spoof_cmdline_disabled">命令行伪装功能已禁用</string>
+    
+    <!-- hide_cusrom配置 -->
+    <string name="susfs_hide_cusrom_title">隐藏自定义ROM信息</string>
+    <string name="susfs_hide_cusrom_desc">隐藏各处暴露的自定义ROM识别信息</string>
+    <string name="susfs_hide_cusrom_enabled">自定义ROM隐藏功能已启用</string>
+    <string name="susfs_hide_cusrom_disabled">自定义ROM隐藏功能已禁用</string>
+    
+    <!-- hide_gapps配置 -->
+    <string name="susfs_hide_gapps_title">隐藏GApps</string>
+    <string name="susfs_hide_gapps_desc">隐藏Google应用相关特征</string>
+    <string name="susfs_hide_gapps_enabled">GApps隐藏功能已启用</string>
+    <string name="susfs_hide_gapps_disabled">GApps隐藏功能已禁用</string>
+    
+    <!-- hide_revanced配置 -->
+    <string name="susfs_hide_revanced_title">隐藏ReVanced</string>
+    <string name="susfs_hide_revanced_desc">隐藏与ReVanced相关的特征</string>
+    <string name="susfs_hide_revanced_enabled">ReVanced隐藏功能已启用</string>
+    <string name="susfs_hide_revanced_disabled">ReVanced隐藏功能已禁用</string>
+    
+    <!-- force_hide_lsposed配置 -->
+    <string name="susfs_force_hide_lsposed_title">强制隐藏LSPosed</string>
+    <string name="susfs_force_hide_lsposed_desc">添加特定挂载点以隐藏LSPosed框架</string>
+    <string name="susfs_force_hide_lsposed_enabled">LSPosed强制隐藏功能已启用</string>
+    <string name="susfs_force_hide_lsposed_disabled">LSPosed强制隐藏功能已禁用</string>
 </resources>

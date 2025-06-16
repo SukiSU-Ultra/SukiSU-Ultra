@@ -92,7 +92,8 @@ enum class SuSFSTab(val displayNameRes: Int) {
     SUS_MOUNTS(R.string.susfs_tab_sus_mounts),
     TRY_UMOUNT(R.string.susfs_tab_try_umount),
     PATH_SETTINGS(R.string.susfs_tab_path_settings),
-    ENABLED_FEATURES(R.string.susfs_tab_enabled_features);
+    ENABLED_FEATURES(R.string.susfs_tab_enabled_features),
+    MODULE_FEATURES(R.string.susfs_tab_module_features);
 
     companion object {
         fun getAllTabs(): List<SuSFSTab> = entries
@@ -147,6 +148,24 @@ fun SuSFSConfigScreen(
     var showResetPathsDialog by remember { mutableStateOf(false) }
     var showResetMountsDialog by remember { mutableStateOf(false) }
     var showResetUmountsDialog by remember { mutableStateOf(false) }
+    
+    // 模块功能相关状态
+    var susSuMode by remember { mutableStateOf(2) }
+    var susSuModeExpanded by remember { mutableStateOf(false) }
+    var hideLoops by remember { mutableStateOf(false) }
+    var hideVendorSepolicy by remember { mutableStateOf(false) }
+    var hideCompatMatrix by remember { mutableStateOf(false) }
+    var fakeServiceList by remember { mutableStateOf(false) }
+    var hideCusRom by remember { mutableStateOf(false) }
+    var hideGapps by remember { mutableStateOf(false) }
+    var hideRevanced by remember { mutableStateOf(false) }
+    var forceHideLsposed by remember { mutableStateOf(false) }
+    var spoofUname by remember { mutableStateOf(0) }
+    var spoofUnameExpanded by remember { mutableStateOf(false) }
+    var spoofCmdline by remember { mutableStateOf(false) }
+    var kernelVersion by remember { mutableStateOf("") }
+    var kernelBuild by remember { mutableStateOf("") }
+    var showSetKernelVersionDialog by remember { mutableStateOf(false) }
 
     val allTabs = SuSFSTab.getAllTabs()
 
@@ -178,6 +197,21 @@ fun SuSFSConfigScreen(
         tryUmounts = SuSFSManager.getTryUmounts(context)
         androidDataPath = SuSFSManager.getAndroidDataPath(context)
         sdcardPath = SuSFSManager.getSdcardPath(context)
+        
+        // 加载模块功能状态
+        susSuMode = SuSFSManager.getSusSuMode(context)
+        hideLoops = SuSFSManager.getHideLoops(context)
+        hideVendorSepolicy = SuSFSManager.getHideVendorSepolicy(context)
+        hideCompatMatrix = SuSFSManager.getHideCompatMatrix(context)
+        fakeServiceList = SuSFSManager.getFakeServiceList(context)
+        hideCusRom = SuSFSManager.getHideCusRom(context)
+        hideGapps = SuSFSManager.getHideGapps(context)
+        hideRevanced = SuSFSManager.getHideRevanced(context)
+        forceHideLsposed = SuSFSManager.getForceHideLsposed(context)
+        spoofUname = SuSFSManager.getSpoofUname(context)
+        spoofCmdline = SuSFSManager.getSpoofCmdline(context)
+        kernelVersion = SuSFSManager.getKernelVersion(context)
+        kernelBuild = SuSFSManager.getKernelBuild(context)
     }
 
     // 当切换到启用功能状态标签页时加载数据
@@ -640,6 +674,68 @@ fun SuSFSConfigScreen(
         )
     }
 
+    // 设置内核版本和构建时间对话框
+    if (showSetKernelVersionDialog) {
+        AlertDialog(
+            onDismissRequest = { showSetKernelVersionDialog = false },
+            title = {
+                Text(
+                    stringResource(R.string.susfs_set_kernel_version_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = kernelVersion,
+                        onValueChange = { kernelVersion = it },
+                        label = { Text(stringResource(R.string.susfs_kernel_version_label)) },
+                        placeholder = { Text(stringResource(R.string.susfs_kernel_version_placeholder)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    
+                    OutlinedTextField(
+                        value = kernelBuild,
+                        onValueChange = { kernelBuild = it },
+                        label = { Text(stringResource(R.string.susfs_kernel_build_label)) },
+                        placeholder = { Text(stringResource(R.string.susfs_kernel_build_placeholder)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            isLoading = true
+                            SuSFSManager.setKernelVersionAndBuild(context, kernelVersion, kernelBuild)
+                            isLoading = false
+                            showSetKernelVersionDialog = false
+                        }
+                    },
+                    enabled = !isLoading,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showSetKernelVersionDialog = false },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+
     // 主界面布局
     Scaffold(
         topBar = {
@@ -868,6 +964,582 @@ fun SuSFSConfigScreen(
                                 )
                             }
                         }
+
+                        SuSFSTab.MODULE_FEATURES -> {
+                            // 模块功能配置界面
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = CardConfig.shape,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = CardConfig.containerColor(true),
+                                        contentColor = CardConfig.contentColor()
+                                    ),
+                                    border = CardConfig.border()
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.susfs_module_features_title),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        
+                                        // sus_su模式
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_sussu_mode_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_sussu_mode_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Box {
+                                                ExposedDropdownMenuBox(
+                                                    expanded = susSuModeExpanded,
+                                                    onExpandedChange = { susSuModeExpanded = !susSuModeExpanded }
+                                                ) {
+                                                    OutlinedTextField(
+                                                        modifier = Modifier
+                                                            .width(120.dp)
+                                                            .menuAnchor(MenuAnchorType.PrimaryEditable, true),
+                                                        readOnly = true,
+                                                        value = when (susSuMode) {
+                                                            -1 -> stringResource(R.string.disabled)
+                                                            0 -> stringResource(R.string.susfs_sussu_mode_0)
+                                                            1 -> stringResource(R.string.susfs_sussu_mode_1)
+                                                            2 -> stringResource(R.string.susfs_sussu_mode_2)
+                                                            else -> susSuMode.toString()
+                                                        },
+                                                        onValueChange = { },
+                                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = susSuModeExpanded) },
+                                                        shape = RoundedCornerShape(8.dp)
+                                                    )
+                                                    
+                                                    ExposedDropdownMenu(
+                                                        expanded = susSuModeExpanded,
+                                                        onDismissRequest = { susSuModeExpanded = false }
+                                                    ) {
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.susfs_sussu_mode_0)) },
+                                                            onClick = {
+                                                                coroutineScope.launch {
+                                                                    SuSFSManager.setSusSuMode(context, 0)
+                                                                    susSuMode = 0
+                                                                }
+                                                                susSuModeExpanded = false
+                                                            }
+                                                        )
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.susfs_sussu_mode_1)) },
+                                                            onClick = {
+                                                                coroutineScope.launch {
+                                                                    SuSFSManager.setSusSuMode(context, 1)
+                                                                    susSuMode = 1
+                                                                }
+                                                                susSuModeExpanded = false
+                                                            }
+                                                        )
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.susfs_sussu_mode_2)) },
+                                                            onClick = {
+                                                                coroutineScope.launch {
+                                                                    SuSFSManager.setSusSuMode(context, 2)
+                                                                    susSuMode = 2
+                                                                }
+                                                                susSuModeExpanded = false
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        
+                                        // 隐藏Loop设备
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_loops_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_loops_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = hideLoops,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        hideLoops = it
+                                                        SuSFSManager.setHideLoops(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                        
+                                        // 隐藏Vendor SEPolicy
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_vendor_sepolicy_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_vendor_sepolicy_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = hideVendorSepolicy,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        hideVendorSepolicy = it
+                                                        SuSFSManager.setHideVendorSepolicy(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                        
+                                        // 隐藏兼容性矩阵
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_compat_matrix_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_compat_matrix_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = hideCompatMatrix,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        hideCompatMatrix = it
+                                                        SuSFSManager.setHideCompatMatrix(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                        
+                                        // 伪造服务列表
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_fake_service_list_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_fake_service_list_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = fakeServiceList,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        fakeServiceList = it
+                                                        SuSFSManager.setFakeServiceList(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                    }
+                                }
+                                
+                                // 伪装和防检测功能卡片
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = CardConfig.shape,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = CardConfig.containerColor(true),
+                                        contentColor = CardConfig.contentColor()
+                                    ),
+                                    border = CardConfig.border()
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.susfs_anti_detect_features_title),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        
+                                        // 伪装Uname
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_spoof_uname_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_spoof_uname_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Box {
+                                                ExposedDropdownMenuBox(
+                                                    expanded = spoofUnameExpanded,
+                                                    onExpandedChange = { spoofUnameExpanded = !spoofUnameExpanded }
+                                                ) {
+                                                    OutlinedTextField(
+                                                        modifier = Modifier
+                                                            .width(120.dp)
+                                                            .menuAnchor(MenuAnchorType.PrimaryEditable, true),
+                                                        readOnly = true,
+                                                        value = when (spoofUname) {
+                                                            0 -> stringResource(R.string.disabled)
+                                                            1 -> stringResource(R.string.susfs_spoof_uname_mode_1)
+                                                            2 -> stringResource(R.string.susfs_spoof_uname_mode_2)
+                                                            else -> spoofUname.toString()
+                                                        },
+                                                        onValueChange = { },
+                                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = spoofUnameExpanded) },
+                                                        shape = RoundedCornerShape(8.dp)
+                                                    )
+                                                    
+                                                    ExposedDropdownMenu(
+                                                        expanded = spoofUnameExpanded,
+                                                        onDismissRequest = { spoofUnameExpanded = false }
+                                                    ) {
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.disabled)) },
+                                                            onClick = {
+                                                                coroutineScope.launch {
+                                                                    SuSFSManager.setSpoofUname(context, 0)
+                                                                    spoofUname = 0
+                                                                }
+                                                                spoofUnameExpanded = false
+                                                            }
+                                                        )
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.susfs_spoof_uname_mode_1)) },
+                                                            onClick = {
+                                                                coroutineScope.launch {
+                                                                    SuSFSManager.setSpoofUname(context, 1)
+                                                                    spoofUname = 1
+                                                                }
+                                                                spoofUnameExpanded = false
+                                                            }
+                                                        )
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.susfs_spoof_uname_mode_2)) },
+                                                            onClick = {
+                                                                coroutineScope.launch {
+                                                                    SuSFSManager.setSpoofUname(context, 2)
+                                                                    spoofUname = 2
+                                                                }
+                                                                spoofUnameExpanded = false
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        // 显示当前内核信息并允许设置
+                                        if (spoofUname > 0) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(start = 16.dp, end = 16.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_current_kernel_info),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_kernel_version, kernelVersion),
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_kernel_build, kernelBuild),
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Button(
+                                                    onClick = { showSetKernelVersionDialog = true },
+                                                    modifier = Modifier.align(Alignment.End),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                ) {
+                                                    Text(stringResource(R.string.susfs_set_kernel_info))
+                                                }
+                                            }
+                                        }
+                                        
+                                        // 伪装命令行
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_spoof_cmdline_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_spoof_cmdline_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = spoofCmdline,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        spoofCmdline = it
+                                                        SuSFSManager.setSpoofCmdline(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                        
+                                        // 隐藏自定义ROM信息
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_cusrom_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_cusrom_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = hideCusRom,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        hideCusRom = it
+                                                        SuSFSManager.setHideCusRom(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                    }
+                                }
+                                
+                                // 应用隐藏卡片
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = CardConfig.shape,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = CardConfig.containerColor(true),
+                                        contentColor = CardConfig.contentColor()
+                                    ),
+                                    border = CardConfig.border()
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.susfs_app_hiding_features_title),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        
+                                        // 隐藏GApps情况
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_gapps_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_gapps_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = hideGapps,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        hideGapps = it
+                                                        SuSFSManager.setHideGapps(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                        
+                                        // 隐藏ReVanced情况
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_revanced_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_hide_revanced_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = hideRevanced,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        hideRevanced = it
+                                                        SuSFSManager.setHideRevanced(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                        
+                                        // 强制隐藏LSPosed
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.susfs_force_hide_lsposed_title),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.susfs_force_hide_lsposed_desc),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            
+                                            Switch(
+                                                checked = forceHideLsposed,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        forceHideLsposed = it
+                                                        SuSFSManager.setForceHideLsposed(context, it)
+                                                        isLoading = false
+                                                    }
+                                                },
+                                                enabled = !isLoading
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1014,6 +1686,581 @@ fun SuSFSConfigScreen(
                             enabledFeatures = enabledFeatures,
                             onRefresh = { loadEnabledFeatures() }
                         )
+                    }
+                    SuSFSTab.MODULE_FEATURES -> {
+                        // 模块功能配置界面
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = CardConfig.shape,
+                                colors = CardDefaults.cardColors(
+                                    containerColor = CardConfig.containerColor(true),
+                                    contentColor = CardConfig.contentColor()
+                                ),
+                                border = CardConfig.border()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.susfs_module_features_title),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    
+                                    // sus_su模式
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_sussu_mode_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_sussu_mode_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Box {
+                                            ExposedDropdownMenuBox(
+                                                expanded = susSuModeExpanded,
+                                                onExpandedChange = { susSuModeExpanded = !susSuModeExpanded }
+                                            ) {
+                                                OutlinedTextField(
+                                                    modifier = Modifier
+                                                        .width(120.dp)
+                                                        .menuAnchor(MenuAnchorType.PrimaryEditable, true),
+                                                    readOnly = true,
+                                                    value = when (susSuMode) {
+                                                        -1 -> stringResource(R.string.disabled)
+                                                        0 -> stringResource(R.string.susfs_sussu_mode_0)
+                                                        1 -> stringResource(R.string.susfs_sussu_mode_1)
+                                                        2 -> stringResource(R.string.susfs_sussu_mode_2)
+                                                        else -> susSuMode.toString()
+                                                    },
+                                                    onValueChange = { },
+                                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = susSuModeExpanded) },
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                
+                                                ExposedDropdownMenu(
+                                                    expanded = susSuModeExpanded,
+                                                    onDismissRequest = { susSuModeExpanded = false }
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.susfs_sussu_mode_0)) },
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                SuSFSManager.setSusSuMode(context, 0)
+                                                                susSuMode = 0
+                                                            }
+                                                            susSuModeExpanded = false
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.susfs_sussu_mode_1)) },
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                SuSFSManager.setSusSuMode(context, 1)
+                                                                susSuMode = 1
+                                                            }
+                                                            susSuModeExpanded = false
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.susfs_sussu_mode_2)) },
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                SuSFSManager.setSusSuMode(context, 2)
+                                                                susSuMode = 2
+                                                            }
+                                                            susSuModeExpanded = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    
+                                    // 隐藏Loop设备
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_loops_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_loops_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = hideLoops,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    hideLoops = it
+                                                    SuSFSManager.setHideLoops(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                    
+                                    // 隐藏Vendor SEPolicy
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_vendor_sepolicy_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_vendor_sepolicy_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = hideVendorSepolicy,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    hideVendorSepolicy = it
+                                                    SuSFSManager.setHideVendorSepolicy(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                    
+                                    // 隐藏兼容性矩阵
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_compat_matrix_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_compat_matrix_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = hideCompatMatrix,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    hideCompatMatrix = it
+                                                    SuSFSManager.setHideCompatMatrix(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                    
+                                    // 伪造服务列表
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_fake_service_list_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_fake_service_list_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = fakeServiceList,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    fakeServiceList = it
+                                                    SuSFSManager.setFakeServiceList(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            // 伪装和防检测功能卡片
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = CardConfig.shape,
+                                colors = CardDefaults.cardColors(
+                                    containerColor = CardConfig.containerColor(true),
+                                    contentColor = CardConfig.contentColor()
+                                ),
+                                border = CardConfig.border()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.susfs_anti_detect_features_title),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    
+                                    // 伪装Uname
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_spoof_uname_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_spoof_uname_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Box {
+                                            ExposedDropdownMenuBox(
+                                                expanded = spoofUnameExpanded,
+                                                onExpandedChange = { spoofUnameExpanded = !spoofUnameExpanded }
+                                            ) {
+                                                OutlinedTextField(
+                                                    modifier = Modifier
+                                                        .width(120.dp)
+                                                        .menuAnchor(MenuAnchorType.PrimaryEditable, true),
+                                                    readOnly = true,
+                                                    value = when (spoofUname) {
+                                                        0 -> stringResource(R.string.disabled)
+                                                        1 -> stringResource(R.string.susfs_spoof_uname_mode_1)
+                                                        2 -> stringResource(R.string.susfs_spoof_uname_mode_2)
+                                                        else -> spoofUname.toString()
+                                                    },
+                                                    onValueChange = { },
+                                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = spoofUnameExpanded) },
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                
+                                                ExposedDropdownMenu(
+                                                    expanded = spoofUnameExpanded,
+                                                    onDismissRequest = { spoofUnameExpanded = false }
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.disabled)) },
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                SuSFSManager.setSpoofUname(context, 0)
+                                                                spoofUname = 0
+                                                            }
+                                                            spoofUnameExpanded = false
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.susfs_spoof_uname_mode_1)) },
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                SuSFSManager.setSpoofUname(context, 1)
+                                                                spoofUname = 1
+                                                            }
+                                                            spoofUnameExpanded = false
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.susfs_spoof_uname_mode_2)) },
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                SuSFSManager.setSpoofUname(context, 2)
+                                                                spoofUname = 2
+                                                            }
+                                                            spoofUnameExpanded = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // 显示当前内核信息并允许设置
+                                    if (spoofUname > 0) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 16.dp, end = 16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_current_kernel_info),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_kernel_version, kernelVersion),
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_kernel_build, kernelBuild),
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Button(
+                                                onClick = { showSetKernelVersionDialog = true },
+                                                modifier = Modifier.align(Alignment.End),
+                                                shape = RoundedCornerShape(8.dp)
+                                            ) {
+                                                Text(stringResource(R.string.susfs_set_kernel_info))
+                                            }
+                                        }
+                                    }
+                                    
+                                    // 伪装命令行
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_spoof_cmdline_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_spoof_cmdline_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = spoofCmdline,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    spoofCmdline = it
+                                                    SuSFSManager.setSpoofCmdline(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                    
+                                    // 隐藏自定义ROM信息
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_cusrom_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_cusrom_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = hideCusRom,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    hideCusRom = it
+                                                    SuSFSManager.setHideCusRom(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            // 应用隐藏卡片
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = CardConfig.shape,
+                                colors = CardDefaults.cardColors(
+                                    containerColor = CardConfig.containerColor(true),
+                                    contentColor = CardConfig.contentColor()
+                                ),
+                                border = CardConfig.border()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.susfs_app_hiding_features_title),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    
+                                    // 隐藏GApps情况
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_gapps_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_gapps_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = hideGapps,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    hideGapps = it
+                                                    SuSFSManager.setHideGapps(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                    
+                                    // 隐藏ReVanced情况
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_revanced_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_hide_revanced_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = hideRevanced,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    hideRevanced = it
+                                                    SuSFSManager.setHideRevanced(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                    
+                                    // 强制隐藏LSPosed
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.susfs_force_hide_lsposed_title),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.susfs_force_hide_lsposed_desc),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        
+                                        Switch(
+                                            checked = forceHideLsposed,
+                                            onCheckedChange = {
+                                                coroutineScope.launch {
+                                                    isLoading = true
+                                                    forceHideLsposed = it
+                                                    SuSFSManager.setForceHideLsposed(context, it)
+                                                    isLoading = false
+                                                }
+                                            },
+                                            enabled = !isLoading
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

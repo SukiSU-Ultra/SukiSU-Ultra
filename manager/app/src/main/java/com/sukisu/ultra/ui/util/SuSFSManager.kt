@@ -33,6 +33,17 @@ object SuSFSManager {
     private const val KEY_ANDROID_DATA_PATH = "android_data_path"
     private const val KEY_SDCARD_PATH = "sdcard_path"
     private const val KEY_ENABLE_LOG = "enable_log"
+    private const val KEY_SUS_SU_MODE = "sus_su_mode"
+    private const val KEY_HIDE_LOOPS = "hide_loops"
+    private const val KEY_HIDE_VENDOR_SEPOLICY = "hide_vendor_sepolicy"
+    private const val KEY_HIDE_COMPAT_MATRIX = "hide_compat_matrix"
+    private const val KEY_FAKE_SERVICE_LIST = "fake_service_list"
+    private const val KEY_SPOOF_UNAME = "spoof_uname"
+    private const val KEY_SPOOF_CMDLINE = "spoof_cmdline"
+    private const val KEY_HIDE_CUSROM = "hide_cusrom"
+    private const val KEY_HIDE_GAPPS = "hide_gapps"
+    private const val KEY_HIDE_REVANCED = "hide_revanced"
+    private const val KEY_FORCE_HIDE_LSPOSED = "force_hide_lsposed"
     private const val SUSFS_BINARY_BASE_NAME = "ksu_susfs"
     private const val DEFAULT_UNAME = "default"
     private const val DEFAULT_BUILD_TIME = "default"
@@ -40,6 +51,8 @@ object SuSFSManager {
     // KSU模块路径
     private const val MODULE_ID = "susfs_manager"
     private const val MODULE_PATH = "/data/adb/modules/$MODULE_ID"
+    private const val MODULE_SUSFS4KSU_PATH = "/data/adb/modules/susfs4ksu"
+    private const val SUSFS4KSU_CONFIG_PATH = "/data/adb/susfs4ksu/config.sh"
 
     private fun getSuSFS(): String {
         return try {
@@ -403,6 +416,535 @@ object SuSFSManager {
     }
 
     /**
+     * 获取SuSFS模块中的配置值
+     * 从SUSFS4KSU_CONFIG_PATH中读取配置
+     */
+    private suspend fun readSusfsModuleConfig(): Map<String, String> = withContext(Dispatchers.IO) {
+        val configMap = mutableMapOf<String, String>()
+        try {
+            val shell = getRootShell()
+            // 检查配置文件是否存在
+            val checkResult = shell.newJob().add("test -f $SUSFS4KSU_CONFIG_PATH").exec()
+            if (!checkResult.isSuccess) {
+                return@withContext configMap
+            }
+
+            // 读取配置文件
+            val result = shell.newJob().add("cat $SUSFS4KSU_CONFIG_PATH").exec()
+            if (result.isSuccess) {
+                result.out.forEach { line ->
+                    val trimmedLine = line.trim()
+                    if (trimmedLine.contains("=")) {
+                        val parts = trimmedLine.split("=", limit = 2)
+                        if (parts.size == 2) {
+                            val key = parts[0]
+                            val value = parts[1]
+                            configMap[key] = value
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        configMap
+    }
+
+    /**
+     * 保存配置到SUSFS4KSU模块
+     */
+    private suspend fun saveSusfsModuleConfig(key: String, value: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val shell = getRootShell()
+            
+            // 检查配置文件是否存在
+            val checkResult = shell.newJob().add("test -f $SUSFS4KSU_CONFIG_PATH").exec()
+            if (!checkResult.isSuccess) {
+                // 如果配置文件不存在，创建目录和文件
+                shell.newJob()
+                    .add("mkdir -p /data/adb/susfs4ksu")
+                    .add("touch $SUSFS4KSU_CONFIG_PATH")
+                    .exec()
+            }
+            
+            // 检查键是否已经存在
+            val grepResult = shell.newJob().add("grep -q \"^$key=\" $SUSFS4KSU_CONFIG_PATH").exec()
+            val command = if (grepResult.isSuccess) {
+                // 如果键存在，替换该行
+                "sed -i \"s/^$key=.*/$key=$value/\" $SUSFS4KSU_CONFIG_PATH"
+            } else {
+                // 如果键不存在，添加到文件末尾
+                "echo \"$key=$value\" >> $SUSFS4KSU_CONFIG_PATH"
+            }
+            
+            val result = shell.newJob().add(command).exec()
+            result.isSuccess
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    /**
+     * 获取sus_su模式
+     */
+    suspend fun getSusSuMode(context: Context): Int = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val susSuMode = configMap["sus_su"]?.toIntOrNull() ?: 2
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putInt(KEY_SUS_SU_MODE, susSuMode).apply()
+        
+        susSuMode
+    }
+
+    /**
+     * 设置sus_su模式
+     */
+    suspend fun setSusSuMode(context: Context, mode: Int): Boolean {
+        val success = executeSusfsCommand(context, "sus_su $mode")
+        if (success) {
+            getPrefs(context).edit().putInt(KEY_SUS_SU_MODE, mode).apply()
+            saveSusfsModuleConfig("sus_su", mode.toString())
+            saveSusfsModuleConfig("sus_su_active", mode.toString())
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.susfs_sussu_mode_set_success, mode),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取hide_loops配置
+     */
+    suspend fun getHideLoops(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val hideLoops = configMap["hide_loops"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_HIDE_LOOPS, hideLoops).apply()
+        
+        hideLoops
+    }
+    
+    /**
+     * 设置hide_loops配置
+     */
+    suspend fun setHideLoops(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("hide_loops", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_HIDE_LOOPS, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_hide_loops_enabled else R.string.susfs_hide_loops_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取hide_vendor_sepolicy配置
+     */
+    suspend fun getHideVendorSepolicy(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val hideVendorSepolicy = configMap["hide_vendor_sepolicy"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_HIDE_VENDOR_SEPOLICY, hideVendorSepolicy).apply()
+        
+        hideVendorSepolicy
+    }
+    
+    /**
+     * 设置hide_vendor_sepolicy配置
+     */
+    suspend fun setHideVendorSepolicy(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("hide_vendor_sepolicy", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_HIDE_VENDOR_SEPOLICY, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_hide_vendor_sepolicy_enabled else R.string.susfs_hide_vendor_sepolicy_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取hide_compat_matrix配置
+     */
+    suspend fun getHideCompatMatrix(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val hideCompatMatrix = configMap["hide_compat_matrix"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_HIDE_COMPAT_MATRIX, hideCompatMatrix).apply()
+        
+        hideCompatMatrix
+    }
+    
+    /**
+     * 设置hide_compat_matrix配置
+     */
+    suspend fun setHideCompatMatrix(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("hide_compat_matrix", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_HIDE_COMPAT_MATRIX, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_hide_compat_matrix_enabled else R.string.susfs_hide_compat_matrix_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取fake_service_list配置
+     */
+    suspend fun getFakeServiceList(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val fakeServiceList = configMap["fake_service_list"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_FAKE_SERVICE_LIST, fakeServiceList).apply()
+        
+        fakeServiceList
+    }
+    
+    /**
+     * 设置fake_service_list配置
+     */
+    suspend fun setFakeServiceList(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("fake_service_list", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_FAKE_SERVICE_LIST, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_fake_service_list_enabled else R.string.susfs_fake_service_list_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+
+    /**
+     * 获取spoof_uname配置
+     */
+    suspend fun getSpoofUname(context: Context): Int = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val spoofUname = configMap["spoof_uname"]?.toIntOrNull() ?: 0
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putInt(KEY_SPOOF_UNAME, spoofUname).apply()
+        
+        spoofUname
+    }
+    
+    /**
+     * 设置spoof_uname配置
+     */
+    suspend fun setSpoofUname(context: Context, mode: Int): Boolean {
+        val success = saveSusfsModuleConfig("spoof_uname", mode.toString())
+        if (success) {
+            getPrefs(context).edit().putInt(KEY_SPOOF_UNAME, mode).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.susfs_spoof_uname_set_success, mode),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取kernel_version配置
+     */
+    suspend fun getKernelVersion(context: Context): String = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        configMap["kernel_version"] ?: "default"
+    }
+    
+    /**
+     * 获取kernel_build配置
+     */
+    suspend fun getKernelBuild(context: Context): String = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        configMap["kernel_build"] ?: "default"
+    }
+    
+    /**
+     * 设置kernel_version和kernel_build配置
+     */
+    suspend fun setKernelVersionAndBuild(context: Context, version: String, build: String): Boolean {
+        val success1 = saveSusfsModuleConfig("kernel_version", version)
+        val success2 = saveSusfsModuleConfig("kernel_build", build)
+        
+        if (success1 && success2) {
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.susfs_kernel_version_build_success),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        
+        return success1 && success2
+    }
+    
+    /**
+     * 获取hide_cusrom配置
+     */
+    suspend fun getHideCusRom(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val hideCusRom = configMap["hide_cusrom"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_HIDE_CUSROM, hideCusRom).apply()
+        
+        hideCusRom
+    }
+    
+    /**
+     * 设置hide_cusrom配置
+     */
+    suspend fun setHideCusRom(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("hide_cusrom", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_HIDE_CUSROM, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_hide_cusrom_enabled else R.string.susfs_hide_cusrom_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取hide_gapps配置
+     */
+    suspend fun getHideGapps(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val hideGapps = configMap["hide_gapps"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_HIDE_GAPPS, hideGapps).apply()
+        
+        hideGapps
+    }
+    
+    /**
+     * 设置hide_gapps配置
+     */
+    suspend fun setHideGapps(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("hide_gapps", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_HIDE_GAPPS, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_hide_gapps_enabled else R.string.susfs_hide_gapps_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取hide_revanced配置
+     */
+    suspend fun getHideRevanced(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val hideRevanced = configMap["hide_revanced"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_HIDE_REVANCED, hideRevanced).apply()
+        
+        hideRevanced
+    }
+    
+    /**
+     * 设置hide_revanced配置
+     */
+    suspend fun setHideRevanced(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("hide_revanced", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_HIDE_REVANCED, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_hide_revanced_enabled else R.string.susfs_hide_revanced_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取force_hide_lsposed配置
+     */
+    suspend fun getForceHideLsposed(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val forceHideLsposed = configMap["force_hide_lsposed"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_FORCE_HIDE_LSPOSED, forceHideLsposed).apply()
+        
+        forceHideLsposed
+    }
+    
+    /**
+     * 设置force_hide_lsposed配置
+     */
+    suspend fun setForceHideLsposed(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("force_hide_lsposed", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_FORCE_HIDE_LSPOSED, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_force_hide_lsposed_enabled else R.string.susfs_force_hide_lsposed_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+    
+    /**
+     * 获取spoof_cmdline配置
+     */
+    suspend fun getSpoofCmdline(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val configMap = readSusfsModuleConfig()
+        val spoofCmdline = configMap["spoof_cmdline"]?.toIntOrNull() == 1
+        
+        // 同时更新本地存储的值
+        getPrefs(context).edit().putBoolean(KEY_SPOOF_CMDLINE, spoofCmdline).apply()
+        
+        spoofCmdline
+    }
+    
+    /**
+     * 设置spoof_cmdline配置
+     */
+    suspend fun setSpoofCmdline(context: Context, enabled: Boolean): Boolean {
+        val value = if (enabled) 1 else 0
+        val success = saveSusfsModuleConfig("spoof_cmdline", value.toString())
+        if (success) {
+            getPrefs(context).edit().putBoolean(KEY_SPOOF_CMDLINE, enabled).apply()
+            
+            // 如果开启了开机自启动，更新模块
+            if (isAutoStartEnabled(context)) {
+                createMagiskModule(context)
+            }
+            
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(if (enabled) R.string.susfs_spoof_cmdline_enabled else R.string.susfs_spoof_cmdline_disabled),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return success
+    }
+
+    /**
      * 创建模块结构
      */
     @SuppressLint("SdCardPath")
@@ -509,6 +1051,113 @@ object SuSFSManager {
                     appendLine()
                 }
 
+                // 添加sus_su配置
+                val susSuMode = getPrefs(context).getInt(KEY_SUS_SU_MODE, 2)
+                if (susSuMode != 0) {
+                    appendLine("# 设置sus_su模式")
+                    appendLine("\"\$SUSFS_BIN\" sus_su $susSuMode")
+                    appendLine("echo \"\\$(date): sus_su模式设置为: $susSuMode\" >> \"\$LOG_FILE\"")
+                    appendLine()
+                }
+                
+                // 添加hide_loops配置
+                val hideLoops = getPrefs(context).getBoolean(KEY_HIDE_LOOPS, false)
+                if (hideLoops) {
+                    appendLine("# 设置hide_loops")
+                    appendLine("echo \"susfs4ksu/service: [hide_loops]\" >> \"\$LOG_FILE\"")
+                    appendLine("for device in $(ls -Ld /proc/fs/jbd2/loop*8 | sed 's|/proc/fs/jbd2/||; s|-8||'); do")
+                    appendLine("    \"\$SUSFS_BIN\" add_sus_path /proc/fs/jbd2/\${device}-8 && echo \"[sus_path]: susfs4ksu/service /proc/fs/jbd2/\${device}-8\" >> \"\$LOG_FILE\"")
+                    appendLine("    \"\$SUSFS_BIN\" add_sus_path /proc/fs/ext4/\${device} && echo \"[sus_path]: susfs4ksu/service /proc/fs/ext4/\${device}\" >> \"\$LOG_FILE\"")
+                    appendLine("done")
+                    appendLine()
+                }
+                
+                // 添加hide_vendor_sepolicy配置
+                val hideVendorSepolicy = getPrefs(context).getBoolean(KEY_HIDE_VENDOR_SEPOLICY, false)
+                if (hideVendorSepolicy) {
+                    appendLine("# 设置hide_vendor_sepolicy")
+                    appendLine("echo \"susfs4ksu/service: [hide_vendor_sepolicy]\" >> \"\$LOG_FILE\"")
+                    appendLine("sepolicy_cil=/vendor/etc/selinux/vendor_sepolicy.cil")
+                    appendLine("[ -w /mnt ] && mntfolder=/mnt/susfs4ksu")
+                    appendLine("[ -w /mnt/vendor ] && mntfolder=/mnt/vendor/susfs4ksu")
+                    appendLine("mkdir -p \$mntfolder")
+                    appendLine("grep -q lineage \$sepolicy_cil && {")
+                    appendLine("    grep -v \"lineage\" \$sepolicy_cil > \$mntfolder/vendor_sepolicy.cil")
+                    appendLine("    \"\$SUSFS_BIN\" add_sus_kstat \$sepolicy_cil && echo \"[update_sus_kstat]: susfs4ksu/service \$sepolicy_cil\" >> \"\$LOG_FILE\"")
+                    appendLine("    chmod --reference=\$sepolicy_cil \$mntfolder/vendor_sepolicy.cil")
+                    appendLine("    chown --reference=\$sepolicy_cil \$mntfolder/vendor_sepolicy.cil")
+                    appendLine("    mount --bind \$mntfolder/vendor_sepolicy.cil \$sepolicy_cil")
+                    appendLine("    \"\$SUSFS_BIN\" update_sus_kstat \$sepolicy_cil && echo \"[update_sus_kstat]: susfs4ksu/service \$sepolicy_cil\" >> \"\$LOG_FILE\"")
+                    appendLine("    \"\$SUSFS_BIN\" add_sus_mount \$sepolicy_cil && echo \"[sus_mount]: susfs4ksu/service \$sepolicy_cil\" >> \"\$LOG_FILE\"")
+                    appendLine("}")
+                    appendLine()
+                }
+                
+                // 添加hide_compat_matrix配置
+                val hideCompatMatrix = getPrefs(context).getBoolean(KEY_HIDE_COMPAT_MATRIX, false)
+                if (hideCompatMatrix) {
+                    appendLine("# 设置hide_compat_matrix")
+                    appendLine("echo \"susfs4ksu/service: [hide_compat_matrix] - compatibility_matrix.device.xml\" >> \"\$LOG_FILE\"")
+                    appendLine("[ -w /mnt ] && mntfolder=/mnt/susfs4ksu")
+                    appendLine("[ -w /mnt/vendor ] && mntfolder=/mnt/vendor/susfs4ksu")
+                    appendLine("mkdir -p \$mntfolder")
+                    appendLine("compatibility_matrix=/system/etc/vintf/compatibility_matrix.device.xml")
+                    appendLine("grep -q lineage \$compatibility_matrix && {")
+                    appendLine("    grep -v \"lineage\" \$compatibility_matrix > \$mntfolder/compatibility_matrix.device.xml")
+                    appendLine("    \"\$SUSFS_BIN\" add_sus_kstat \$compatibility_matrix && echo \"[update_sus_kstat]: susfs4ksu/service \$compatibility_matrix\" >> \"\$LOG_FILE\"")
+                    appendLine("    chmod --reference=\$compatibility_matrix \$mntfolder/compatibility_matrix.device.xml")
+                    appendLine("    chown --reference=\$compatibility_matrix \$mntfolder/compatibility_matrix.device.xml")
+                    appendLine("    mount --bind \$mntfolder/compatibility_matrix.device.xml \$compatibility_matrix")
+                    appendLine("    \"\$SUSFS_BIN\" update_sus_kstat \$compatibility_matrix && echo \"[update_sus_kstat]: susfs4ksu/service \$compatibility_matrix\" >> \"\$LOG_FILE\"")
+                    appendLine("    \"\$SUSFS_BIN\" add_sus_mount \$compatibility_matrix && echo \"[sus_mount]: susfs4ksu/service \$compatibility_matrix\" >> \"\$LOG_FILE\"")
+                    appendLine("}")
+                    appendLine()
+                }
+                
+                // 添加fake_service_list配置
+                val fakeServiceList = getPrefs(context).getBoolean(KEY_FAKE_SERVICE_LIST, false)
+                if (fakeServiceList) {
+                    appendLine("# 设置fake_service_list")
+                    appendLine("[ -w /mnt ] && mntfolder=/mnt/susfs4ksu")
+                    appendLine("[ -w /mnt/vendor ] && mntfolder=/mnt/vendor/susfs4ksu")
+                    appendLine("mkdir -p \"\$mntfolder/system_bin\"")
+                    appendLine("echo \"#!/bin/sh\" > \"\$mntfolder/system_bin/service\"")
+                    appendLine("echo \"FAKELIST=\\\"$(/system/bin/service list | sed 's/lineage//g; s/Lineage//g' | base64 -w 0)\\\"\" >> \"\$mntfolder/system_bin/service\"")
+                    appendLine("echo \"echo \\$FAKELIST | base64 -d\" >> \"\$mntfolder/system_bin/service\"")
+                    appendLine("chmod --reference=/system/bin/service \"\$mntfolder/system_bin/service\"")
+                    appendLine("chown --reference=/system/bin/service \"\$mntfolder/system_bin/service\"")
+                    appendLine("\"\$SUSFS_BIN\" add_sus_kstat /system/bin/service")
+                    appendLine("mount --bind \"\$mntfolder/system_bin/service\" /system/bin/service")
+                    appendLine("\"\$SUSFS_BIN\" update_sus_kstat /system/bin/service")
+                    appendLine("\"\$SUSFS_BIN\" add_sus_mount /system/bin/service")
+                    appendLine()
+                }
+                
+                // 添加spoof_uname配置
+                val spoofUname = getPrefs(context).getInt(KEY_SPOOF_UNAME, 0)
+                if (spoofUname == 2) {
+                    appendLine("# 设置spoof_uname")
+                    appendLine("kernel_version=\"$(cat /data/adb/susfs4ksu/kernelversion.txt || echo 'default')\"")
+                    appendLine("kernel_build=\"$(cat /data/adb/susfs4ksu/kernelbuild.txt || echo 'default')\"")
+                    appendLine("\"\$SUSFS_BIN\" set_uname \"\$kernel_version\" \"\$kernel_build\"")
+                    appendLine("echo \"\\$(date): 设置kernel_version为: \$kernel_version, kernel_build为: \$kernel_build\" >> \"\$LOG_FILE\"")
+                    appendLine()
+                }
+                
+                appendLine("# 其他定制设置")
+                val hideCusrom = getPrefs(context).getBoolean(KEY_HIDE_CUSROM, false)
+                val hideGapps = getPrefs(context).getBoolean(KEY_HIDE_GAPPS, false)
+                val hideRevanced = getPrefs(context).getBoolean(KEY_HIDE_REVANCED, false)
+                if (hideCusrom) {
+                    appendLine("# hide_cusrom=1 (启用)")
+                }
+                if (hideGapps) {
+                    appendLine("# hide_gapps=1 (启用)")
+                }
+                if (hideRevanced) {
+                    appendLine("# hide_revanced=1 (启用)")
+                }
+                
                 appendLine("# 隐弱BL 来自 Shamiko 脚本")
                 appendLine("check_reset_prop() {")
                 appendLine("local NAME=$1")
@@ -1300,4 +1949,5 @@ object SuSFSManager {
             false
         }
     }
+}
 }
