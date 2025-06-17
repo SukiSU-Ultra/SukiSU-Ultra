@@ -408,7 +408,7 @@
     <string name="susfs_build_time_placeholder">Vui lòng nhập giá trị giả mạo thời gian xây dựng</string>
     <string name="susfs_current_value">Giá trị hiện tại: %s</string>
     <string name="susfs_current_build_time">Thời gian xây dựng hiện tại: %s</string>
-    <string name="susfs_reset_to_default">Khôi phục về mặc định</string>
+    <string name="susfs_reset_to_default">Reset về Default</string>
     <string name="susfs_apply">Áp dụng</string>
     <string name="susfs_done">Hoàn thành</string>
     <!-- SuSFS Reset Confirmation -->
@@ -439,7 +439,7 @@
     <string name="susfs_tab_sus_mounts">SuS Mounts</string>
     <string name="susfs_tab_try_umount">SuS Umount</string>
     <string name="susfs_tab_path_settings">Cài đặt Đường dẫn</string>
-    <string name="susfs_tab_enabled_features">Đã kích hoạt trạng thái tính năng</string>
+    <string name="susfs_tab_enabled_features">Trạng thái tính năng</string>
     <!-- SuSFS Dialog Actions -->
     <string name="susfs_add">Thêm vào</string>
     <string name="susfs_delete">Xoá</string>
@@ -479,14 +479,13 @@
     <string name="susfs_reset_umounts_title">Khôi phục SuS Umount</string>
     <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <!-- SuSFS Path Settings -->
-    <string name="susfs_path_settings">Cài đặt Đường dẫn</string>
     <string name="susfs_android_data_path_label">Đường dẫn Dữ liệu Android</string>
     <string name="susfs_sdcard_path_label">Đường dẫn Thẻ SD</string>
     <string name="susfs_set_android_data_path">Đặt Đường dẫn Dữ liệu Android</string>
     <string name="susfs_set_sdcard_path">Đặt Đường dẫn Thẻ SD</string>
     <!-- SuSFS Enabled Features -->
-    <string name="susfs_enabled_features_title">Đã kích hoạt trạng thái tính năng</string>
-    <string name="susfs_enabled_features_description">Hiển thị trạng thái tính năng đã kích hoạt hiện tại của SuSFS</string>
+    <string name="susfs_enabled_features_title">Trạng thái tính năng</string>
+    <string name="susfs_enabled_features_description">Hiển thị trạng thái tính năng hiện tại của SuSFS</string>
     <string name="susfs_no_features_found">Không tìm thấy thông tin trạng thái tính năng</string>
     <string name="susfs_feature_enabled">Đã bật</string>
     <string name="susfs_feature_disabled">Đã tắt</string>
