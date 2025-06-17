@@ -479,7 +479,6 @@
     <string name="susfs_reset_umounts_title">Bağlamayı Kaldırmayı Dene Sıfırla</string>
     <string name="susfs_reset_umounts_message">Bu, tüm bağlamayı kaldırmayı dene yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
     <!-- SuSFS Path Settings -->
-    <string name="susfs_path_settings">Yol Ayarları</string>
     <string name="susfs_android_data_path_label">Android Veri Yolu</string>
     <string name="susfs_sdcard_path_label">SD Kart Yolu</string>
     <string name="susfs_set_android_data_path">Android Veri Yolunu Ayarlayın</string>
