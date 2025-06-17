@@ -172,7 +172,7 @@
     <string name="backup_allowlist">許可リストをバックアップ</string>
     <string name="restore_allowlist">許可リストを復元</string>
     <string name="settings_custom_background">アプリの背景を変更</string>
-    <string name="settings_custom_background_summary">背景にする画像を選択してください</string>
+    <string name="settings_custom_background_summary">背景にする画像を選択してください。</string>
     <string name="settings_card_alpha">ナビゲーションバーの透過</string>
     <string name="settings_restore_default">デフォルトに復元</string>
     <string name="home_android_version">Android のバージョン</string>
@@ -192,7 +192,7 @@
     <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
     <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
     <string name="hide_other_info">その他の情報を非表示</string>
-    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
+    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関連するドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
@@ -217,7 +217,7 @@
     <string name="flash_option">フラッシュオプション</string>
     <string name="flash_option_tip">フラッシュするファイルを選択</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
-    <string name="horizon_kernel_summary">AnyKernel3 カーネルファイルをフラッシュします</string>
+    <string name="horizon_kernel_summary">AnyKernel3 カーネルファイルをフラッシュします。</string>
     <string name="root_required">root 権限が必要です</string>
     <string name="copy_failed">ファイルのコピーに失敗しました</string>
     <string name="reboot_complete_title">スクラブが完了しました</string>
@@ -481,7 +481,6 @@
     <string name="susfs_reset_umounts_title">リセットしてアンマウントを試す</string>
     <string name="susfs_reset_umounts_message">すべてのアンマウント構成がリセットされます。続行してもよろしいですか？</string>
     <!-- SuSFS Path Settings -->
-    <string name="susfs_path_settings">パスの設定</string>
     <string name="susfs_android_data_path_label">Android データパス</string>
     <string name="susfs_sdcard_path_label">SD カードのパス</string>
     <string name="susfs_set_android_data_path">Android データパスを設定</string>
