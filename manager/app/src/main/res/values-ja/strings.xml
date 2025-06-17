@@ -66,7 +66,7 @@
     <string name="profile_namespace_global">共通</string>
     <string name="profile_namespace_individual">分離</string>
     <string name="profile_groups">グループ</string>
-    <string name="profile_capabilities">ケーパビリティ</string>
+    <string name="profile_capabilities">ケイパビリティ</string>
     <string name="profile_selinux_context">SELinux コンテキスト</string>
     <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
@@ -87,7 +87,7 @@
     <string name="failed_to_update_sepolicy">SELinux ルールの更新に失敗しました %s</string>
     <string name="module_changelog">変更履歴</string>
     <string name="settings_profile_template">アプリプロファイルのテンプレート</string>
-    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します</string>
+    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します。</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
     <string name="app_profile_template_id">ID</string>
@@ -109,21 +109,21 @@
     <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="module_changelog_failed">変更ログの取得に失敗しました: %s</string>
     <string name="settings_check_update">更新を確認する</string>
-    <string name="settings_check_update_summary">アプリの起動時に更新を自動で確認します</string>
+    <string name="settings_check_update_summary">アプリの起動時に更新を自動で確認します。</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
     <string name="close">閉じる</string>
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
-    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
+    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください。</string>
     <string name="direct_install">直接インストール (推奨)</string>
     <string name="select_file">パッチを行うイメージを選択</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
-    <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在非アクティブなスロットから起動します。
+    <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在の非アクティブスロットから起動します。
 \nこのオプションは、OTA が完了した後にのみ使用してください。
 \n続行しますか？</string>
     <string name="install_next">次へ</string>
-    <string name="select_file_tip">%1$s のパーティションイメージを推奨します</string>
+    <string name="select_file_tip">%1$s のパーティションイメージを推奨します。</string>
     <string name="select_kmi">KMI を選択してください</string>
     <string name="settings_uninstall">アンインストール</string>
     <string name="settings_uninstall_temporary">一時的にアンインストールする</string>
@@ -188,15 +188,15 @@
     <string name="selinux_enabled">有効</string>
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
-    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします</string>
+    <string name="simple_mode_summary">ON にすると不要なカードを非表示にします。</string>
     <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
-    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします</string>
+    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
     <string name="hide_other_info">その他の情報を非表示</string>
-    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします</string>
+    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
-    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします</string>
+    <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
-    <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします</string>
+    <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="hide_tag_card">モジュールラベルの行を非表示</string>
     <string name="hide_tag_card_summary">モジュールカード内のフォルダ名とサイズのラベルを非表示にします。</string>
     <string name="theme_mode">テーマ</string>
@@ -205,7 +205,7 @@
     <string name="theme_dark">ダーク</string>
     <string name="manual_hook">手動でフック</string>
     <string name="dynamic_color_title">ダイナミックカラー</string>
-    <string name="dynamic_color_summary">システムテーマのダイナミックカラーを使用します</string>
+    <string name="dynamic_color_summary">システムテーマのダイナミックカラーを使用します。</string>
     <string name="choose_theme_color">テーマカラーを選択</string>
     <string name="color_default">ブルー</string>
     <string name="color_green">グリーン</string>
@@ -269,7 +269,7 @@
     <string name="confirm_uninstall_content">次の KPM がアンインストールされます: %s</string>
     <string name="settings_susfs_toggle_summary">KernelSU によって作成された kprobe フックを無効化して、代替となるインラインフックを使用します。これは、非 GKI カーネルのフック方式に似た物になります。</string>
     <string name="image_editor_title">背景画像を調整</string>
-    <string name="image_editor_hint">2 本の指で画像を拡大、1 本の指でドラッグで位置を調整します</string>
+    <string name="image_editor_hint">2 本の指で画像を拡大、1 本の指でドラッグで位置を調整します。</string>
     <string name="background_image_error">イメージを読み込めません</string>
     <string name="reprovision">再プロビジョニング</string>
     <!-- Kernel Flash Progress Related -->
@@ -322,12 +322,12 @@
     <string name="background_set_success">背景の設定が成功しました</string>
     <string name="background_removed">カスタム背景を削除しました</string>
     <string name="icon_switch_title">代替アイコン</string>
-    <string name="icon_switch_summary">ランチャーアイコンを KernelSU のアイコンに変更します</string>
+    <string name="icon_switch_summary">ランチャーアイコンを KernelSU のアイコンに変更します。</string>
     <string name="icon_switched">アイコンを変更しました</string>
     <string name="root_require_for_install">root 権限が必要です</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">KPM 機能を非表示</string>
-    <string name="show_kpm_info_summary">ホームとボトムバーから KPM の情報と機能を非表示にします</string>
+    <string name="show_kpm_info_summary">ホームとボトムバーから KPM の情報と機能を非表示にします。</string>
     <!-- Webui X settings -->
     <string name="use_webuix">WebUI で使用するエンジン</string>
     <string name="engine_auto_select">自動選択</string>
@@ -338,7 +338,7 @@
     <!-- DPI setting related strings -->
     <string name="dpi_settings">DPI の設定</string>
     <string name="app_dpi_title">DPI の変更を適用</string>
-    <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します</string>
+    <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します。</string>
     <string name="dpi_size_small">小 </string>
     <string name="dpi_size_medium">中 </string>
     <string name="dpi_size_large">大</string>
@@ -384,13 +384,13 @@
     <string name="deny_authorization">権限の認証</string>
     <string name="grant_authorization">認証</string>
     <string name="unmount_modules">モジュールのマウントを解除</string>
-    <string name="disable_unmount">アンインストールするモジュールのマウントを無効化します</string>
+    <string name="disable_unmount">アンインストールするモジュールのマウントを無効化します。</string>
     <string name="expand_menu">メニューを展開</string>
     <string name="collapse_menu">メニューを収納</string>
     <string name="scroll_to_top">上詰め</string>
     <string name="scroll_to_bottom">画面下</string>
-    <string name="scroll_to_top_description">一番上までスクロール</string>
-    <string name="scroll_to_bottom_description">下までスクロールします</string>
+    <string name="scroll_to_top_description">一番上までスクロールします</string>
+    <string name="scroll_to_bottom_description">一番下までスクロールします</string>
     <string name="authorized">承認済み</string>
     <string name="unauthorized">未認証</string>
     <string name="selected">選択中</string>
@@ -423,7 +423,7 @@
     <string name="susfs_uname_set_success" formatted="false">SuSFS uname とビルド日時が正常に設定されました: %s - %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS の構成</string>
-    <string name="susfs_config_setting_summary">SuSFS uname の値とビルド日時の偽装を構成します (現在: %s)</string>
+    <string name="susfs_config_setting_summary">SuSFS uname の値とビルド日時の偽装を構成します。 (現在: %s)</string>
     <!-- 开机自启动相关 -->
     <string name="susfs_autostart_title">自動起動</string>
     <string name="susfs_autostart_description">システムの起動時に自動で uname の構成を適用する</string>
@@ -488,7 +488,7 @@
     <string name="susfs_set_sdcard_path">SD カードのパスを設定</string>
     <!-- SuSFS Enabled Features -->
     <string name="susfs_enabled_features_title">有効な機能のステータス</string>
-    <string name="susfs_enabled_features_description">SuSFS で現在有効な機能のステータスを表示します</string>
+    <string name="susfs_enabled_features_description">SuSFS で有効な機能のステータスを表示します。</string>
     <string name="susfs_no_features_found">機能のステータス情報が見つかりません</string>
     <string name="susfs_feature_enabled">有効</string>
     <string name="susfs_feature_disabled">無効</string>
@@ -521,7 +521,7 @@
     <string name="module_update_json_not_available">更新の JSON は利用できません</string>
     <!-- Settings related strings -->
     <string name="show_module_update_json">モジュール更新の JSON を表示</string>
-    <string name="show_module_update_json_summary">モジュールの詳細に更新用 JSON の URL を表示します</string>
+    <string name="show_module_update_json_summary">モジュールの詳細に更新用 JSON の URL を表示します。</string>
     <string name="show_more_module_info">モジュール情報の詳細を表示</string>
     <string name="show_more_module_info_summary">更新用 JSON の URL など追加の情報を表示します。</string>
 </resources>
