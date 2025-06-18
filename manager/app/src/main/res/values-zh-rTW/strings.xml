@@ -478,7 +478,9 @@
     <string name="susfs_reset_mounts_message">這將清除所有 SUS 掛載設定，確定要繼續嗎？</string>
     <string name="susfs_reset_umounts_title">重設嘗試卸載</string>
     <string name="susfs_reset_umounts_message">這將清除所有嘗試卸載設定，確定要繼續嗎？</string>
+    <string name="susfs_reset_path_title">重置路徑設置</string>
     <!-- SuSFS Path Settings -->
+    <string name="susfs_path_settings">路徑設置</string>
     <string name="susfs_android_data_path_label">Android Data 路徑</string>
     <string name="susfs_sdcard_path_label">SD 卡路徑</string>
     <string name="susfs_set_android_data_path">設定 Android Data 路徑</string>
@@ -521,4 +523,24 @@
     <string name="show_module_update_json_summary">在模組詳情中顯示更新配置 URL</string>
     <string name="show_more_module_info">顯示更多模組資訊</string>
     <string name="show_more_module_info_summary">顯示額外的模組資訊，如更新配置 URL 等</string>
+    <string name="susfs_execution_location_label">執行位置</string>
+    <string name="susfs_current_execution_location">當前執行位置：%s</string>
+    <string name="susfs_execution_location_service">活動</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">在繫統服務啟動後執行</string>
+    <string name="susfs_execution_location_post_fs_data_description">在文件繫統啟動後但繫統未完全啟動時執行,可能會導致循環重啟</string>
+    <string name="susfs_slot_info_title">槽位信息</string>
+    <string name="susfs_slot_info_description">查看當前啟動槽位數據並復制信息</string>
+    <string name="susfs_current_active_slot">當前活動槽位：%s</string>
+    <string name="susfs_slot_name">槽位：%s</string>
+    <string name="susfs_slot_uname">Uname：%s</string>
+    <string name="susfs_slot_build_time">構建時間：%s</string>
+    <string name="susfs_slot_current_badge">當前</string>
+    <string name="susfs_slot_use_uname">使用 Uname</string>
+    <string name="susfs_slot_use_build_time">使用構建時間</string>
+    <string name="susfs_slot_info_unavailable">無法獲取槽位信息</string>
+    <string name="susfs_slot_info_loading">正在加槽位信息…</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">SuSFS自啟動模組已啟用，模組路徑：%s</string>
+    <string name="susfs_autostart_disabled_success">SuSFS自啟動模組已禁用</string>
 </resources>
