@@ -527,4 +527,18 @@
     <string name="susfs_current_execution_location">当前执行位置：%s</string>
     <string name="susfs_execution_location_service_description">在系统服务启动后执行</string>
     <string name="susfs_execution_location_post_fs_data_description">在文件系统挂载后但系统完全启动前执行,可能会导致循环重启</string>
+    <string name="susfs_slot_info_title">槽位信息</string>
+    <string name="susfs_slot_info_description">查看当前启动槽位信息并复制数值</string>
+    <string name="susfs_current_active_slot">当前活动槽位：%s</string>
+    <string name="susfs_slot_name">槽位：%s</string>
+    <string name="susfs_slot_uname">Uname：%s</string>
+    <string name="susfs_slot_build_time">构建时间：%s</string>
+    <string name="susfs_slot_current_badge">当前</string>
+    <string name="susfs_slot_use_uname">使用Uname</string>
+    <string name="susfs_slot_use_build_time">使用构建时间</string>
+    <string name="susfs_slot_info_unavailable">无法获取槽位信息</string>
+    <string name="susfs_slot_info_loading">正在加载槽位信息…</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">SuSFS自启动模块已启用，模块路径：%s</string>
+    <string name="susfs_autostart_disabled_success">SuSFS自启动模块已禁用</string>
 </resources>
