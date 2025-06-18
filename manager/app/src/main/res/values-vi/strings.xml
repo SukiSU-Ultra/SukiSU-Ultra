@@ -478,7 +478,9 @@
     <string name="susfs_reset_mounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Mount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_umounts_title">Khôi phục SuS Umount</string>
     <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_reset_path_title">Reset Cài đặt Đường dẫn</string>
     <!-- SuSFS Path Settings -->
+    <string name="susfs_path_settings">Cài đặt Đường dẫn</string>
     <string name="susfs_android_data_path_label">Đường dẫn Dữ liệu Android</string>
     <string name="susfs_sdcard_path_label">Đường dẫn Thẻ SD</string>
     <string name="susfs_set_android_data_path">Đặt Đường dẫn Dữ liệu Android</string>
@@ -521,4 +523,24 @@
     <string name="show_module_update_json_summary">Hiển thị JSON URL cập nhật trong chi tiết module</string>
     <string name="show_more_module_info">Hiển thị \"JSON URLs\"</string>
     <string name="show_more_module_info_summary">Hiển thị thông tin đường dẫn cập nhật \"JSON URLs\" của module</string>
+    <string name="susfs_execution_location_label">Địa điểm thực hiện</string>
+    <string name="susfs_current_execution_location">Vị trí thực hiện hiện tại: %s</string>
+    <string name="susfs_execution_location_service">Service</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">Thực hiện sau khi dịch vụ hệ thống bắt đầu</string>
+    <string name="susfs_execution_location_post_fs_data_description">Thực hiện sau khi file hệ thống được mount nhưng trước khi hệ thống khởi động hoàn toàn, có thể gây ra boot loop</string>
+    <string name="susfs_slot_info_title">Thông tin Slot</string>
+    <string name="susfs_slot_info_description">Xem thông tin Slot khởi động hiện tại và sao chép giá trị</string>
+    <string name="susfs_current_active_slot">Slot hiện tại: %s</string>
+    <string name="susfs_slot_name">Slot: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">Thời gian xây dựng: %s</string>
+    <string name="susfs_slot_current_badge">Hiện tại</string>
+    <string name="susfs_slot_use_uname">Sử dụng Uname</string>
+    <string name="susfs_slot_use_build_time">Sử dụng Thời gian xây dựng</string>
+    <string name="susfs_slot_info_unavailable">Không thể lấy thông tin Slot</string>
+    <string name="susfs_slot_info_loading">Đang tải thông tin Slot…</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">Module tự động khởi động SuSFS đã bật, đường dẫn module: %s</string>
+    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hóa</string>
 </resources>
