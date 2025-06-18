@@ -521,4 +521,5 @@
     <string name="show_module_update_json_summary">Modül ayrıntılarında güncelleme JSON URL\'sini göster</string>
     <string name="show_more_module_info">Daha Fazla Modül Bilgisi Göster</string>
     <string name="show_more_module_info_summary">Güncelleme JSON URL\'leri gibi ek modül bilgilerini göster</string>
+    <!-- SuSFS 自启动相关字符串 -->
 </resources>
