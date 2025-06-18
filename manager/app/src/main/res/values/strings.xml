@@ -531,4 +531,18 @@
     <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
     <string name="susfs_execution_location_service_description">Execute after system services start</string>
     <string name="susfs_execution_location_post_fs_data_description">Execute after file system is mounted but before system is fully booted，May cause a boot loop</string>
+    <string name="susfs_slot_info_title">Slot Information</string>
+    <string name="susfs_slot_info_description">View current boot slot information and copy values</string>
+    <string name="susfs_current_active_slot">Current Active Slot: %s</string>
+    <string name="susfs_slot_name">Slot: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">Build Time: %s</string>
+    <string name="susfs_slot_current_badge">Current</string>
+    <string name="susfs_slot_use_uname">Use Uname</string>
+    <string name="susfs_slot_use_build_time">Use Build Time</string>
+    <string name="susfs_slot_info_unavailable">Unable to retrieve slot information</string>
+    <string name="susfs_slot_info_loading">Loading slot information…</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">SuSFS auto-start module enabled, module path: %s</string>
+    <string name="susfs_autostart_disabled_success">SuSFS auto-start module disabled</string>
 </resources>
