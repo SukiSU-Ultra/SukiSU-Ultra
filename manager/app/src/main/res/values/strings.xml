@@ -452,6 +452,9 @@
     <string name="susfs_add_sus_path">Add SUS Path</string>
     <string name="susfs_add_sus_mount">Add SUS Mount</string>
     <string name="susfs_add_try_umount">Add Try Umount</string>
+    <string name="susfs_sus_path_added_success">SUS path added successfully</string>
+    <string name="susfs_path_not_found_error">Path not found error</string>
+    <string name="susfs_unknown_error">Unknown error</string>
     <string name="susfs_path_label">Path</string>
     <string name="susfs_mount_path_label">Mount Path</string>
     <string name="susfs_path_placeholder">e.g.: /system/addon.d</string>
