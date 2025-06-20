@@ -404,7 +404,7 @@
     <string name="susfs_config_description_text">Tính năng này cho phép bạn tùy chỉnh giá trị SuSFS Uname và Giả mạo thời gian xây dựng. Nhập các giá trị bạn muốn đặt và nhấp vào \"Áp dụng\" để có hiệu lực</string>
     <string name="susfs_uname_label">Giá trị Uname</string>
     <string name="susfs_uname_placeholder">Vui lòng nhập giá trị Uname tùy chỉnh</string>
-    <string name="susfs_build_time_label">Xây dựng thời gian giả mạo</string>
+    <string name="susfs_build_time_label">Giả mạo thời gian xây dựng</string>
     <string name="susfs_build_time_placeholder">Vui lòng nhập giá trị giả mạo thời gian xây dựng</string>
     <string name="susfs_current_value">Giá trị hiện tại: %s</string>
     <string name="susfs_current_build_time">Thời gian xây dựng hiện tại: %s</string>
