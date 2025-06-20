@@ -32,12 +32,28 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
 ```
 
+## Hook method
+
+- This method references the hook [method by rsuntk](https://github.com/rsuntk/KernelSU)
+
+1. **KPROBES hook:**
+
+   - Also used for Loadable Kernel Module (LKM)
+   - Default hook method on GKI kernels.
+   - Need `CONFIG_KPROBES=y`
+
+2. **Manual hook:**
+   - Standard KernelSU hook: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+   - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5
+   - Default hook method on Non-GKI kernels.
+   - Need `CONFIG_KSU_MANUAL_HOOK=y`
+  
 ## KPM Support
 
 - Based on KernelPatch, we have removed duplicates of KSU and kept only KPM support.
 - We will introduce more APatch-compatible functions to ensure the integrity of KPM functionality.
 
-We will introduce more APatch-compatible functions to ensure the completeness of KPM functionality.
+Repository address: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
 
 KPM templates: https://github.com/udochina/KPM-Build-Anywhere
 
@@ -71,22 +87,6 @@ Projects compiled based on Sukisu and susfs
 - [More patched GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) including ZRAM patches, KPM, susfs...
 - [Less patched GKI](https://github.com/MiRinFork/GKI_SukiSU_SUSFS/releases) only susfs
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
-
-## Hook method
-
-- This method references the hook method from (https://github.com/rsuntk/KernelSU)
-
-1. **KPROBES hook:**
-
-   - Also used for Loadable Kernel Module (LKM)
-   - Default hook method on GKI kernels.
-   - Need `CONFIG_KPROBES=y`
-
-2. **Manual hook:**
-   - Standard KernelSU hook: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
-   - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5
-   - Default hook method on Non-GKI kernels.
-   - Need `CONFIG_KSU_MANUAL_HOOK=y`
 
 ## Usage
 
@@ -130,6 +130,9 @@ Please **all** refer to https://kernelsu.org/zh_CN/guide/installation.html
 - The images of the files `ic_launcher(?!.*alt.*).*` with anime character emoticons are copyrighted by [五十根大虾仁](https://space.bilibili.com/370927), the Brand Intellectual Property in the images is owned by [明风 OuO](https://space.bilibili.com/274939213), and the vectorization is done by @MiRinChan. Before using these files, in addition to complying with [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt), you also need to comply with the authorization of the two authors to use these artistic contents.
 
 - Except for the files or directories mentioned above, all other parts are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
+
+## Afdian link
+- https://afdian.com/a/shirkneko
 
 ## Sponsorship list
 
