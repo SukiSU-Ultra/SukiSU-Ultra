@@ -452,6 +452,9 @@
     <string name="susfs_add_sus_path">SUS パスを追加</string>
     <string name="susfs_add_sus_mount">SUS マウントを追加</string>
     <string name="susfs_add_try_umount">アンマウントを試すを追加</string>
+    <string name="susfs_sus_path_added_success">SUS パスが正常に追加されました</string>
+    <string name="susfs_path_not_found_error">パスが見つかりません</string>
+    <string name="susfs_unknown_error">不明なエラー</string>
     <string name="susfs_path_label">パス</string>
     <string name="susfs_mount_path_label">マウントのパス</string>
     <string name="susfs_path_placeholder">例 : /system/addon.d</string>
@@ -545,5 +548,34 @@
     <!-- SuSFS 自启动相关字符串 -->
     <string name="susfs_autostart_enabled_success">SuSFS 自動起動モジュールが有効、モジュールのパス: %s</string>
     <string name="susfs_autostart_disabled_success">SuSFS 自動起動モジュールが無効</string>
+    <string name="susfs_execute_location_updated_post_fs_data">実行先が post-fs-data に更新されました</string>
+    <string name="susfs_execute_location_updated_service">実行先がサービスに更新されました</string>
+    <string name="susfs_execute_location_update_failed">実行先の更新に失敗しました</string>
+    <string name="susfs_execute_location_update_error">実行先の更新中にエラーが発生しました: %s</string>
     <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Kstat の構成</string>
+    <string name="kstat_static_config_added">Kstat の静的構成を追加しました: %1$s</string>
+    <string name="kstat_config_removed">Kstat の構成を削除しました: %1$s</string>
+    <string name="kstat_path_added">Kstat パスを追加しました: %1$s</string>
+    <string name="kstat_path_removed">Kstat パスを削除しました: %1$s</string>
+    <string name="kstat_updated">Kstat が更新されました: %1$s</string>
+    <string name="kstat_full_clone_updated">Kstat のフルクローンが更新されました: %1$s</string>
+    <string name="add_kstat_statically_title">Kstat 静的構成を追加</string>
+    <string name="file_or_directory_path_label">ファイルまたはディレクトリのパス</string>
+    <string name="hint_use_default_value">ヒント: オリジナルの値を使用するには「default」を使用します</string>
+    <string name="add_kstat_path_title">Kstat のパスを追加</string>
+    <string name="kstat_command_description">このコマンドはパスがバインドマウントまたは、オーバーレイを開始する前に追加し、元の状態情報をカーネルメモリに保存するために使用されます。</string>
+    <string name="add">追加</string>
+    <string name="reset_kstat_config_title">Kstat の構成をリセット</string>
+    <string name="reset_kstat_config_message">すべての Kstat の構成を消去しますか？この操作は元に戻せません。</string>
+    <string name="confirm_reset">リセットを確認</string>
+    <string name="kstat_config_management">Kstat の構成の管理</string>
+    <string name="kstat_config_description_title">Kstat の構成の説明</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: ファイル、ディレクトリの静的な状態情報</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: バインドマウント前にパスを追加して元の状態情報を保存します</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: ターゲットとなる ino を更新、サイズとブロックは変更しません</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: ino のみ更新、他の値はそのままにします</string>
+    <string name="static_kstat_config">Kstat の静的構成</string>
+    <string name="kstat_path_management">Kstat パスの管理</string>
+    <string name="no_kstat_config_message">Kstat の構成が未設定です。上のボタンをタップで追加します。</string>
 </resources>
