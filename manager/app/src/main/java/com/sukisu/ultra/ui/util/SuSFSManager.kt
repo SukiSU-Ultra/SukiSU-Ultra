@@ -176,7 +176,7 @@ object SuSFSManager {
 
             listOf("boot_a", "boot_b").forEach { slot ->
                 val unameCmd =
-                    "strings -n 20 /dev/block/by-name/$slot | awk '/Linux version/ && ++c==2 {print $3; exit}'"
+                    "strings -n 20 /dev/block/by-name/$slot | grep 'Linux version' | head -n 1 | cut -d ' ' -f3"
                 val buildTimeCmd = "strings -n 20 /dev/block/by-name/$slot | sed -n '/Linux version.*#/{s/.*#/#/p;q}'"
 
                 val uname = runCmd(shell, unameCmd).trim()
