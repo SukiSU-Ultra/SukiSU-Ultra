@@ -154,7 +154,7 @@
     <string name="use_webuix">Pilih jenis webUI untuk digunakan</string>
     <string name="engine_auto_select">Otomatis memilih</string>
     <string name="engine_force_webuix">Paksa menggunakan WebUI X</string>
-    <string name="engine_force_ksu">Penggunaan wajib ksu WebUi</string>
+    <string name="engine_force_ksu">Penggunaan wajib KSU WebUI</string>
     <string name="more_settings">Setelan lainnya</string>
     <string name="language_setting">Bahasa Aplikasi</string>
     <string name="language_follow_system">Mengikuti sistem</string>
