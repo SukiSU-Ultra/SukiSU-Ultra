@@ -5,30 +5,20 @@
     <string name="home_click_to_install">Nhấn để cài đặt</string>
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %d</string>
-    <string name="home_superuser_count">Superusers: %d</string>
-    <string name="home_module_count">Modules: %d</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">Không phát hiện được trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
     <string name="home_kernel">Phiên bản Kernel</string>
-    <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">Phiên bản SuSFS</string>
-    <string name="home_susfs_sus_su">SuS SU</string>
     <string name="home_manager_version">Phiên bản trình quản lý</string>
-    <string name="home_fingerprint">Dấu vân tay</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
     <string name="selinux_status_disabled">Vô hiệu hoá</string>
-    <string name="selinux_status_enforcing">Enforcing</string>
-    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
-    <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">Không thể kích hoạt module: %s</string>
     <string name="module_failed_to_disable">Không thể vô hiệu hoá module: %s</string>
     <string name="module_empty">Chưa cài đặt module nào</string>
-    <string name="module">Module</string>
     <string name="module_sort_action_first">Sắp xếp (Theo hành động)</string>
     <string name="module_sort_enabled_first">Sắp xếp (Theo trạng thái)</string>
     <string name="uninstall">Gỡ cài đặt</string>
-    <string name="restore">Khôi phục</string>
     <string name="module_install">Cài đặt</string>
     <string name="install">Cài đặt</string>
     <string name="reboot">Khởi động lại</string>
@@ -52,7 +42,6 @@
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="module_magisk_conflict">Các module không khả dụng do xung đột với Magisk!</string>
     <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các Module!</string>
     <string name="home_support_title">Hỗ trợ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
@@ -61,14 +50,9 @@
     <string name="profile_template">Bản mẫu</string>
     <string name="profile_custom">Tuỳ chỉnh</string>
     <string name="profile_name">Tên hồ sơ</string>
-    <string name="profile_namespace">Tên không gian gắn kết</string>
-    <string name="profile_namespace_inherited">Thừa hưởng</string>
-    <string name="profile_namespace_global">Chung</string>
-    <string name="profile_namespace_individual">Riêng biệt</string>
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
@@ -85,12 +69,10 @@
     <string name="force_stop_app" formatted="false">Buộc dừng</string>
     <string name="restart_app">Khởi động lại</string>
     <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
-    <string name="module_changelog">Changelog</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
     <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng</string>
     <string name="app_profile_template_create">Tạo mẫu</string>
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
-    <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ</string>
     <string name="app_profile_template_name">Tên</string>
     <string name="app_profile_template_description">Miêu tả</string>
@@ -112,7 +94,6 @@
     <string name="settings_check_update_summary">Tự động kiểm tra cập nhật khi mở ứng dụng</string>
     <string name="grant_root_failed">Cấp quyền root thất bại!</string>
     <string name="action">Khởi chạy</string>
-    <string name="open">Mở</string>
     <string name="close">Đóng</string>
     <string name="enable_web_debugging">Gỡ lỗi WebView</string>
     <string name="enable_web_debugging_summary">Có thể sử dụng để gỡ lỗi WebUI. Vui lòng chỉ bật khi cần thiết</string>
@@ -136,9 +117,6 @@
     <string name="selected_lkm">Đã chọn LKM: %s</string>
     <string name="save_log">Lưu logs</string>
     <string name="log_saved">Logs đã được lưu</string>
-    <string name="status_supported">Được hỗ trợ</string>
-    <string name="status_not_supported">Không được hỗ trợ</string>
-    <string name="status_unknown">Không rõ</string>
     <string name="sus_su_mode">Chế độ SuS SU:</string>
     <!-- Module related -->
     <string name="module_install_confirm">Xác nhận cài đặt module %1$s？</string>
@@ -172,17 +150,13 @@
     <string name="settings_custom_background">Tuỳ chỉnh nền ứng dụng</string>
     <string name="settings_custom_background_summary">Chọn một hình ảnh làm hình nền</string>
     <string name="settings_card_alpha">Độ trong suốt của thanh điều hướng</string>
-    <string name="settings_restore_default">Khôi phục mặc định</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
     <string name="su_not_allowed">Quyền SU cho %s chưa được cấp</string>
     <string name="settings_disable_su">Vô hiệu hoá lệnh SU</string>
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
-    <string name="using_mksu_manager">Bạn đang sử dụng trình quản lý SukiSU Beta</string>
-    <string name="module_install_multiple_confirm">Bạn có chắc muốn cài đặt các module %d đã chọn không?</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d sau không? \n\n%2$s</string>
     <string name="more_settings">Nhiều cài đặt hơn</string>
-    <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Đang bật</string>
     <string name="selinux_disabled">Đang tắt</string>
     <string name="simple_mode">Chế độ đơn giản</string>
@@ -212,20 +186,14 @@
     <string name="color_pink">Hồng</string>
     <string name="color_gray">Xám</string>
     <string name="color_yellow">Vàng</string>
-    <string name="flash_option">Tuỳ chọn Flash</string>
-    <string name="flash_option_tip">Chọn file cần Flash</string>
     <string name="horizon_kernel">Cài đặt AnyKernel3</string>
     <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
     <string name="root_required">Yêu cầu quyền root</string>
-    <string name="copy_failed">Sao chép file thất bại</string>
     <string name="reboot_complete_title">Khởi động lại để hoàn tất</string>
     <string name="reboot_complete_msg">Khởi động lại ngay lập tức?</string>
     <string name="yes">Có</string>
     <string name="no">Không</string>
     <string name="failed_reboot">Khởi động lại thất bại</string>
-    <string name="batch_authorization">Uỷ quyền</string>
-    <string name="batch_cancel_authorization">Hủy ủy quyền hàng loạt</string>
-    <string name="backup">Sao lưu</string>
     <string name="kpm_title">KPModule</string>
     <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
@@ -233,7 +201,6 @@
     <string name="kpm_uninstall">Gỡ cài đặt</string>
     <string name="kpm_uninstall_success">Gỡ cài đặt thành công</string>
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
-    <string name="kpm_install">Cài đặt</string>
     <string name="kpm_install_success">Load KPModule thành công</string>
     <string name="kpm_install_failed">Load KPModule thất bại</string>
     <string name="kpm_args">Thông số</string>
@@ -247,32 +214,21 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
     <string name="not_supported">Không được hỗ trợ</string>
     <string name="supported">Được hỗ trợ</string>
-    <string name="home_kpm_module">"KPModules: %d"</string>
-    <string name="kpm_invalid_file">File KPM không hợp lệ</string>
     <string name="kernel_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
     <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>
-    <string name="kpm_install_mode_load">Load</string>
     <string name="kpm_install_mode_embed">Nhúng</string>
     <string name="kpm_install_mode_description">Vui lòng chọn: %1\$s Chế Độ Cài Đặt Module \n\nTải: Tải tạm thời module \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
-    <string name="log_failed_to_check_module_file">Kiểm tra file module thất bại</string>
     <string name="snackbar_failed_to_check_module_file">Không thể kiểm tra file module</string>
-    <string name="confirm_uninstall_title">Xác nhận gỡ cài đặt</string>
-    <string name="confirm_uninstall_confirm">Gỡ cài đặt</string>
-    <string name="confirm_uninstall_dismiss">Hủy bỏ</string>
     <string name="theme_color">Màu chủ đề</string>
     <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
     <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
     <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
     <string name="settings_susfs_toggle_summary">Vô hiệu hóa các hook kprobe được tạo bởi SukiSU Ultra, thay vào đó sử dụng các hook nội tuyến, tương tự như phương pháp hook kernel không phải GKI</string>
-    <string name="image_editor_title">Điều chỉnh hình nền</string>
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay để kéo nó để điều chỉnh vị trí</string>
-    <string name="background_image_error">Không thể load hình ảnh</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">Kernel Flashing</string>
-    <string name="horizon_logs_label">Logs:</string>
     <string name="horizon_flash_complete">Flash hoàn tất</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Chuẩn bị…</string>
@@ -285,8 +241,6 @@
     <!-- Slot selection related strings -->
     <string name="select_slot_title">Chọn Slot Flash</string>
     <string name="select_slot_description">Vui lòng chọn Slot để Flash Boot</string>
-    <string name="slot_a">Slot A</string>
-    <string name="slot_b">Slot B</string>
     <string name="selected_slot">Đã chọn Slot: %1$s</string>
     <string name="horizon_getting_original_slot">Lấy Slot ban đầu</string>
     <string name="horizon_setting_target_slot">Cài đặt Slot được chỉ định</string>
@@ -298,14 +252,12 @@
     <string name="flash_failed_message">Flash thất bại</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM cài đặt</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Phiên bản Kernel: %1$s</string>
     <string name="tool_version_log">Sử dụng công cụ vá lỗi: %1$s</string>
     <string name="configuration">Cấu hình</string>
     <string name="app_settings">Cài đặt ứng dụng</string>
     <string name="tools">Công cụ</string>
     <!--  String resources used in SuperUser -->
-    <string name="clear">Loại bỏ</string>
     <string name="no_apps_found">Không tìm thấy ứng dụng</string>
     <string name="selinux_enabled_toast">SELinux đã bật</string>
     <string name="selinux_disabled_toast">SELinux đã tắt</string>
@@ -313,8 +265,6 @@
     <string name="advanced_settings">Cài đặt nâng cao</string>
     <string name="appearance_settings">Cài đặt giao diện</string>
     <string name="back">Trở lại</string>
-    <string name="expand">Mở rộng</string>
-    <string name="collapse">Thu gọn</string>
     <string name="susfs_enabled">SuSFS đã bật</string>
     <string name="susfs_disabled">SuSFS đã tắt</string>
     <string name="background_set_success">Đã cài đặt hình nền thành công</string>
@@ -322,7 +272,6 @@
     <string name="icon_switch_title">Thay thế icon</string>
     <string name="icon_switch_summary">Thay đổi icon SukiSU thành icon của KernelSU</string>
     <string name="icon_switched">Đã thay đổi icon</string>
-    <string name="root_require_for_install">Yêu cầu quyền root</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Ẩn chức năng KPM</string>
     <string name="show_kpm_info_summary">Ẩn thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
@@ -334,7 +283,6 @@
     <string name="use_webuix_eruda">Tiêm Eruda vào WebUI X</string>
     <string name="use_webuix_eruda_summary">Chèn bảng điều khiển gỡ lỗi vào WebUI X để gỡ lỗi dễ dàng hơn. Yêu cầu bật gỡ lỗi web</string>
     <!-- DPI setting related strings -->
-    <string name="dpi_settings">Cài đặt DPI</string>
     <string name="app_dpi_title">Tuỳ chỉnh DPI</string>
     <string name="app_dpi_summary">Điều chỉnh DPI hiển thị</string>
     <string name="dpi_size_small">Nhỏ</string>
@@ -358,10 +306,8 @@
     <string name="installing_module">Đang cài đặt module %1$d/%2$d</string>
     <string name="module_failed_count">Cài đặt module %d thất bại</string>
     <string name="module_download_error">Tải xuống module thất bại</string>
-    <string name="kernel_flashing">Kernel Flashing</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Tất cả</string>
-    <string name="category_root_apps">Root</string>
     <string name="category_custom_apps">Tuỳ chỉnh</string>
     <string name="category_default_apps">Mặc định</string>
     <!-- 排序相关 -->
@@ -375,10 +321,6 @@
     <!-- 状态相关 -->
     <string name="no_apps_in_category">Không có ứng dụng nào trong danh mục này</string>
     <!-- 标签相关 -->
-    <string name="label_root">Root</string>
-    <string name="label_unmount">Umount</string>
-    <string name="label_custom">Tuỳ chỉnh</string>
-    <!-- FAB菜单相关 -->
     <string name="deny_authorization">Huỷ bỏ uỷ quyền</string>
     <string name="grant_authorization">Uỷ quyền</string>
     <string name="unmount_modules">Umount modules</string>
@@ -387,13 +329,8 @@
     <string name="collapse_menu">Thu gọn Menu</string>
     <string name="scroll_to_top">Lên trên</string>
     <string name="scroll_to_bottom">Xuống dưới</string>
-    <string name="scroll_to_top_description">Cuộn lên trên</string>
-    <string name="scroll_to_bottom_description">Cuộn xuống dưới</string>
-    <string name="authorized">Uỷ quyền</string>
-    <string name="unauthorized">Huỷ uỷ quyền</string>
     <string name="selected">Đã chọn</string>
     <string name="select">Chọn</string>
-    <string name="profile_umount_modules_disable">Vô hiệu hóa tuỳ chỉnh umount modules</string>
     <!-- BottomSheet相关 -->
     <string name="menu_options">Tuỳ chọn Menu</string>
     <string name="sort_options">Sắp xếp theo</string>
@@ -410,7 +347,6 @@
     <string name="susfs_current_build_time">Thời gian xây dựng hiện tại: %s</string>
     <string name="susfs_reset_to_default">Khôi phục về mặc định</string>
     <string name="susfs_apply">Áp dụng</string>
-    <string name="susfs_done">Hoàn thành</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Xác nhận khôi phục</string>
     <string name="susfs_reset_confirm">Xác nhận khôi phục</string>
@@ -421,18 +357,14 @@
     <string name="susfs_uname_set_success" formatted="false">SuSFS Uname và Thời gian xây dựng được thiết lập thành công: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">Cấu hình SuSFS</string>
-    <string name="susfs_config_setting_summary">Cấu hình SuSFS để giả mạo tên Kernel và thời gian xây dựng, cùng nhiều tính năng khác (Hiện tại: %s)</string>
     <!-- 开机自启动相关 -->
     <string name="susfs_autostart_title">Tự động khởi động</string>
     <string name="susfs_autostart_description">Tự động áp dụng tất cả các cấu hình không phải mặc định khi khởi động lại</string>
     <string name="susfs_autostart_requirement">Cấu hình cần được thêm vào để kích hoạt</string>
-    <string name="susfs_autostart_enabled">Tự động khởi động được kích hoạt</string>
-    <string name="susfs_autostart_disabled">Tự động khởi động bị vô hiệu hóa</string>
     <string name="susfs_autostart_enable_failed">Kích hoạt tính năng tự động khởi động thất bại!</string>
     <string name="susfs_autostart_disable_failed">Vô hiệu hoá tính năng tự động khởi động thất bại!</string>
     <string name="susfs_autostart_error">Lỗi cấu hình tự động khởi động: %s</string>
     <string name="susfs_no_config_to_autostart">Không có cấu hình nào có sẵn để tự động khởi động</string>
-    <string name="susfs_autostart_tis">Cần nhập giá trị không phải mặc định để kích hoạt tính năng tự động khởi động</string>
     <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">Cài đặt cơ bản</string>
     <string name="susfs_tab_sus_paths">Đường dẫn SuS</string>
@@ -442,10 +374,6 @@
     <string name="susfs_tab_enabled_features">Đã kích hoạt trạng thái tính năng</string>
     <!-- SuSFS Dialog Actions -->
     <string name="susfs_add">Thêm vào</string>
-    <string name="susfs_delete">Xoá</string>
-    <string name="susfs_reset">Khôi phục</string>
-    <string name="susfs_run">Chạy</string>
-    <string name="susfs_refresh">Làm mới</string>
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">Thêm Đường dẫn SuS</string>
     <string name="susfs_add_sus_mount">Thêm SuS Mount</string>
@@ -461,10 +389,6 @@
     <string name="susfs_no_umounts_configured">Không có SuS Umount nào được cấu hình</string>
     <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">Chế độ Umount</string>
-    <string name="susfs_umount_mode_normal">Normal Umount (0)</string>
-    <string name="susfs_umount_mode_detach">Detach Umount (1)</string>
-    <string name="susfs_umount_mode_normal_short">Normal</string>
-    <string name="susfs_umount_mode_detach_short">Detach</string>
     <string name="susfs_umount_mode_display">Chế độ: %1$s (%2$s)</string>
     <string name="susfs_try_umount_added_success">Đường dẫn SuS Umount đã thêm thành công: %s</string>
     <string name="susfs_try_umount_added_saved">Đường dẫn SuS Umount đã lưu thành công: %s</string>
@@ -507,7 +431,6 @@
     <string name="sus_kstat_feature_label">Hỗ trợ SuS Kstat</string>
     <string name="sus_su_feature_label">Chức năng chuyển đổi chế độ SuS SU</string>
     <!-- 可切换状态 -->
-    <string name="susfs_configure">Cấu hình SuSFS</string>
     <string name="susfs_feature_configurable">Các tính năng SuSFS có thể cấu hình</string>
     <string name="susfs_enable_log_label">Kích hoạt nhật ký SuSFS</string>
     <string name="susfs_log_config_description">Bật hoặc tắt ghi nhật ký cho SuSFS</string>
@@ -516,10 +439,9 @@
     <string name="susfs_log_disabled">Tắt ghi nhật ký SuSFS</string>
     <string name="module_update_json">JSON cập nhật</string>
     <string name="module_update_json_copied">JSON URL cập nhật đã được sao chép vào clipboard</string>
-    <string name="module_update_json_not_available">JSON cập nhật không khả dụng</string>
     <!-- Settings related strings -->
-    <string name="show_module_update_json">Hiển thị JSON cập nhật của module</string>
-    <string name="show_module_update_json_summary">Hiển thị JSON URL cập nhật trong chi tiết module</string>
     <string name="show_more_module_info">Hiển thị \"JSON URLs\"</string>
     <string name="show_more_module_info_summary">Hiển thị thông tin đường dẫn cập nhật \"JSON URLs\" của module</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <!-- SuSFS Kstat相关字符串 -->
 </resources>
