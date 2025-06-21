@@ -207,5 +207,5 @@
     <string name="hide_tag_card">Sembunyikan baris label modul</string>
     <string name="hide_tag_card_summary">Sembunyikan label nama folder dan ukuran di kartu modul</string>
     <string name="show_kpm_info">Tampilkan fungsi KPM</string>
-    <string name="show_kpm_info_summary">Sembunyikan fungsi informasi KPM dan menu KPM di navigasi bar</string>
+    <string name="show_kpm_info_summary">Tampilkan fungsi informasi KPM dan menu KPM di bilah navigasi</string>
 </resources>
