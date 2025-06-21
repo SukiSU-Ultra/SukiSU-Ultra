@@ -190,7 +190,7 @@
     <string name="settings_card_alpha">NavBar transparant</string>
     <string name="appearance_settings">Kustomisasi toolbar</string>
     <string name="icon_switch_title">Ubah ikon</string>
-    <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU\'s</string>
+    <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU</string>
     <string name="icon_switched">Ikon dirubah</string>
     <string name="show_more_module_info">Tampilkan info modul lainnya</string>
     <string name="show_more_module_info_summary">Pajang aditional module info seperti update JSON url</string>
