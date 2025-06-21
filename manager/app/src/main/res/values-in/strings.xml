@@ -136,7 +136,7 @@
     <string name="home_susfs_version">Versi SuSFS</string>
     <string name="home_device_model">Model Perangkat</string>
     <string name="home_ContributionCard_kernelsu">Antusias Untuk SukiSU Ultra</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya. atas kontribusi mereka!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Tidak ada modul kernel yang terpasang saat ini</string>
     <string name="kpm_version">Versi</string>
