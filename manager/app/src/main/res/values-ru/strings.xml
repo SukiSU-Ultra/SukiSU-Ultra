@@ -385,4 +385,5 @@
     <!-- Settings related strings -->
     <!-- SuSFS 自启动相关字符串 -->
     <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
 </resources>
