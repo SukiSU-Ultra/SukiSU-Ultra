@@ -12,10 +12,14 @@
     <string name="home_manager_version">Phiên bản trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
     <string name="selinux_status_disabled">Vô hiệu hoá</string>
+    <string name="selinux_status_enforcing">Enforcing</string>
+    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
+    <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">Không thể kích hoạt module: %s</string>
     <string name="module_failed_to_disable">Không thể vô hiệu hoá module: %s</string>
     <string name="module_empty">Chưa cài đặt module nào</string>
+    <string name="module">Module</string>
     <string name="module_sort_action_first">Sắp xếp (Theo hành động)</string>
     <string name="module_sort_enabled_first">Sắp xếp (Theo trạng thái)</string>
     <string name="uninstall">Gỡ cài đặt</string>
@@ -42,6 +46,7 @@
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="module_magisk_conflict">Các module không khả dụng do xung đột với Magisk!</string>
     <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
+    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các Module!</string>
     <string name="home_support_title">Hỗ trợ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
@@ -53,6 +58,7 @@
     <string name="profile_groups">Nhóm</string>
     <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
+    <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %d quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %d hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
@@ -69,10 +75,12 @@
     <string name="force_stop_app" formatted="false">Buộc dừng</string>
     <string name="restart_app">Khởi động lại</string>
     <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
+    <string name="module_changelog">Changelog</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
     <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng</string>
     <string name="app_profile_template_create">Tạo mẫu</string>
     <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
+    <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ</string>
     <string name="app_profile_template_name">Tên</string>
     <string name="app_profile_template_description">Miêu tả</string>
@@ -157,6 +165,7 @@
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d sau không? \n\n%2$s</string>
     <string name="more_settings">Nhiều cài đặt hơn</string>
+    <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Đang bật</string>
     <string name="selinux_disabled">Đang tắt</string>
     <string name="simple_mode">Chế độ đơn giản</string>
@@ -218,6 +227,7 @@
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
     <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>
+    <string name="kpm_install_mode_load">Load</string>
     <string name="kpm_install_mode_embed">Nhúng</string>
     <string name="kpm_install_mode_description">Vui lòng chọn: %1\$s Chế Độ Cài Đặt Module \n\nTải: Tải tạm thời module \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
     <string name="snackbar_failed_to_check_module_file">Không thể kiểm tra file module</string>
@@ -229,6 +239,8 @@
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay để kéo nó để điều chỉnh vị trí</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
+    <string name="horizon_flash_title">Kernel Flashing</string>
+    <string name="horizon_logs_label">Logs:</string>
     <string name="horizon_flash_complete">Flash hoàn tất</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Chuẩn bị…</string>
@@ -241,6 +253,8 @@
     <!-- Slot selection related strings -->
     <string name="select_slot_title">Chọn Slot Flash</string>
     <string name="select_slot_description">Vui lòng chọn Slot để Flash Boot</string>
+    <string name="slot_a">Slot A</string>
+    <string name="slot_b">Slot B</string>
     <string name="selected_slot">Đã chọn Slot: %1$s</string>
     <string name="horizon_getting_original_slot">Lấy Slot ban đầu</string>
     <string name="horizon_setting_target_slot">Cài đặt Slot được chỉ định</string>
@@ -252,6 +266,7 @@
     <string name="flash_failed_message">Flash thất bại</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM cài đặt</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Phiên bản Kernel: %1$s</string>
     <string name="tool_version_log">Sử dụng công cụ vá lỗi: %1$s</string>
     <string name="configuration">Cấu hình</string>
@@ -306,8 +321,10 @@
     <string name="installing_module">Đang cài đặt module %1$d/%2$d</string>
     <string name="module_failed_count">Cài đặt module %d thất bại</string>
     <string name="module_download_error">Tải xuống module thất bại</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Tất cả</string>
+    <string name="category_root_apps">Root</string>
     <string name="category_custom_apps">Tuỳ chỉnh</string>
     <string name="category_default_apps">Mặc định</string>
     <!-- 排序相关 -->
@@ -378,6 +395,8 @@
     <string name="susfs_add_sus_path">Thêm Đường dẫn SuS</string>
     <string name="susfs_add_sus_mount">Thêm SuS Mount</string>
     <string name="susfs_add_try_umount">Thêm SuS Umount</string>
+    <string name="susfs_sus_path_added_success">Đường dẫn SuS đã được thêm thành công</string>
+    <string name="susfs_path_not_found_error">Lỗi không tìm thấy đường dẫn</string>
     <string name="susfs_path_label">Đường dẫn</string>
     <string name="susfs_mount_path_label">Đường dẫn Mount</string>
     <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
@@ -389,6 +408,10 @@
     <string name="susfs_no_umounts_configured">Không có SuS Umount nào được cấu hình</string>
     <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">Chế độ Umount</string>
+    <string name="susfs_umount_mode_normal">Normal Umount (0)</string>
+    <string name="susfs_umount_mode_detach">Detach Umount (1)</string>
+    <string name="susfs_umount_mode_normal_short">Normal</string>
+    <string name="susfs_umount_mode_detach_short">Detach</string>
     <string name="susfs_umount_mode_display">Chế độ: %1$s (%2$s)</string>
     <string name="susfs_try_umount_added_success">Đường dẫn SuS Umount đã thêm thành công: %s</string>
     <string name="susfs_try_umount_added_saved">Đường dẫn SuS Umount đã lưu thành công: %s</string>
@@ -402,6 +425,7 @@
     <string name="susfs_reset_mounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Mount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_umounts_title">Khôi phục SuS Umount</string>
     <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_reset_path_title">Reset Cài đặt Đường dẫn</string>
     <!-- SuSFS Path Settings -->
     <string name="susfs_path_settings">Cài đặt Đường dẫn</string>
     <string name="susfs_android_data_path_label">Đường dẫn Dữ liệu Android</string>
@@ -442,6 +466,48 @@
     <!-- Settings related strings -->
     <string name="show_more_module_info">Hiển thị \"JSON URLs\"</string>
     <string name="show_more_module_info_summary">Hiển thị thông tin đường dẫn cập nhật \"JSON URLs\" của module</string>
+    <string name="susfs_execution_location_label">Địa điểm thực hiện</string>
+    <string name="susfs_current_execution_location">Vị trí thực thi hiện tại: %s</string>
+    <string name="susfs_execution_location_service">Service</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">Thực hiện sau khi dịch vụ hệ thống bắt đầu</string>
+    <string name="susfs_execution_location_post_fs_data_description">Thực hiện sau khi file hệ thống được mount nhưng trước khi hệ thống khởi động hoàn toàn, có thể gây ra boot loop</string>
+    <string name="susfs_slot_info_title">Thông tin Slot</string>
+    <string name="susfs_slot_info_description">Xem thông tin Slot khởi động hiện tại và sao chép giá trị</string>
+    <string name="susfs_current_active_slot">Slot hiện tại: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">Thời gian xây dựng: %s</string>
+    <string name="susfs_slot_current_badge">Hiện tại</string>
+    <string name="susfs_slot_use_uname">Sử dụng Uname</string>
+    <string name="susfs_slot_use_build_time">Sử dụng Thời gian xây dựng</string>
+    <string name="susfs_slot_info_unavailable">Không thể lấy thông tin Slot</string>
     <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">Module tự động khởi động SuSFS đã bật, đường dẫn module: %s</string>
+    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hóa</string>
     <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Cấu hình Kstat</string>
+    <string name="kstat_static_config_added">Đã thêm cấu hình tĩnh Kstat: %1$s</string>
+    <string name="kstat_config_removed">Đã xoá cấu hình Kstat: %1$s</string>
+    <string name="kstat_path_added">Đã thêm đường dẫn Kstat: %1$s</string>
+    <string name="kstat_path_removed">Đã xoá đường dẫn Kstat: %1$s</string>
+    <string name="kstat_updated">Đã cập nhật Kstat: %1$s</string>
+    <string name="kstat_full_clone_updated">Bản sao Kstat đầy đủ đã cập nhật: %1$s</string>
+    <string name="add_kstat_statically_title">Thêm cấu hình tĩnh Kstat</string>
+    <string name="file_or_directory_path_label">Đường dẫn File/Folder</string>
+    <string name="hint_use_default_value">Gợi ý: Bạn có thể sử dụng \"default\" để thiết lập giá trị ban đầu</string>
+    <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
+    <string name="kstat_command_description">Lệnh này được sử dụng để thêm trước khi đường dẫn được mount hoặc ghi đè nhằm lưu trữ thông tin trạng thái ban đầu trong bộ nhớ hạt nhân</string>
+    <string name="add">Thêm</string>
+    <string name="reset_kstat_config_title">Khôi phục Cấu hình Kstat</string>
+    <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này</string>
+    <string name="confirm_reset">Xác nhận khôi phục</string>
+    <string name="kstat_config_management">Quản lý cấu hình Kstat</string>
+    <string name="kstat_config_description_title">Mô tả cấu hình Kstat</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Thông tin thống kê cấu hình tĩnh của các File/Folder</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: Thêm đường dẫn trước khi mount để lưu trữ thông tin trạng thái ban đầu</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: Cập nhật ino mục tiêu, giữ nguyên kích thước và khối</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: ​​Chỉ cập nhật ino, giữ nguyên các giá trị gốc khác</string>
+    <string name="static_kstat_config">Cấu hình Kstat tĩnh</string>
+    <string name="kstat_path_management">Quản lý Đường dẫn Kstat</string>
+    <string name="no_kstat_config_message">Chưa có cấu hình Kstat, hãy nhấp vào nút bên trên để thêm</string>
 </resources>
