@@ -50,6 +50,8 @@ object Natives {
     val isLkmMode: Boolean
         external get
 
+    external fun getFullVersion(): String
+
     external fun uidShouldUmount(uid: Int): Boolean
 
     /**

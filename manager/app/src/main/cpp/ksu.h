@@ -12,6 +12,8 @@ bool become_manager(const char *);
 
 int get_version();
 
+void get_full_version(char* buff);
+
 bool get_allow_list(int *uids, int *size);
 
 bool uid_should_umount(int uid);
