@@ -19,6 +19,12 @@ NativeBridgeNP(getVersion, jint) {
     return get_version();
 }
 
+NativeBridgeNP(getFullVersion, jstring) {
+    char buff[255] = { 0 };
+    get_full_version(&buff);
+    return GetEnvironment()->NewStringUTF(env, buff);
+}
+
 NativeBridgeNP(getAllowList, jintArray) {
     int uids[1024];
     int size = 0;

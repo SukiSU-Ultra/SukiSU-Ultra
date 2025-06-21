@@ -439,7 +439,7 @@ private fun StatusCard(
                         if (!isHideVersion) {
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = stringResource(R.string.home_working_version, systemStatus.ksuVersion),
+                                text = stringResource(R.string.home_working_version, Natives.getFullVersion()),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.secondary,
                             )
@@ -725,7 +725,7 @@ private fun InfoCard(
 
             if (!isSimpleMode) {
                 // 根据showKpmInfo决定是否显示KPM信息
-                if (lkmMode != true && !showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
+                if (lkmMode != true && !showKpmInfo) {
                     val displayVersion = if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
                         val statusText = if (Natives.isKPMEnabled()) {
                             stringResource(R.string.kernel_patched)

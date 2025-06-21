@@ -23,28 +23,20 @@ REPO_OWNER := SukiSU-Ultra
 REPO_NAME := SukiSU-Ultra
 REPO_BRANCH := main
 
+KSU_RELEASE_ID := zako
+KSU_API_VERSION := 1
+
 GIT_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git
 CURL_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin curl
 
-KSU_GITHUB_VERSION := $(shell $(CURL_BIN) -sI "https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/commits?sha=$(REPO_BRANCH)&per_page=1" | grep -i "link:" | sed -n 's/.*page=\([0-9]*\)>; rel="last".*/\1/p')
+KSU_BRANCH_NAME := $(shell $(GIT_BIN) rev-parse --abbrev-ref HEAD)
+KSU_COMMIT_HASH := $(shell $(GIT_BIN) rev-parse --short=8 HEAD)
 
-ifeq ($(KSU_GITHUB_VERSION),)
-  ifeq ($(shell test -e $(srctree)/$(src)/../.git; echo $$?),0)
-    $(shell cd $(srctree)/$(src); [ -f ../.git/shallow ] && $(GIT_BIN) fetch --unshallow)
-    KSU_LOCAL_VERSION := $(shell cd $(srctree)/$(src); $(GIT_BIN) rev-list --count HEAD)
-    $(eval KSU_VERSION := $(shell expr 10000 + $(KSU_LOCAL_VERSION) + 700))
-    $(info -- SukiSU-Ultra version (local .git): $(KSU_VERSION))
-  else
-    $(eval KSU_VERSION := 13000)
-    $(warning -- Could not fetch version online or via local .git! Using fallback version: $(KSU_VERSION))
-  endif
-else
-  $(eval KSU_VERSION := $(shell expr 10000 + $(KSU_GITHUB_VERSION) + 700))
-  $(info -- SukiSU-Ultra version (GitHub): $(KSU_VERSION))
-endif
+KSU_VERSION := "v$(KSU_API_VERSION)-$(KSU_RELEASE_ID)-$(KSU_COMMIT_HASH)$(KSU_BRANCH_NAME)"
 
 $(info -- SukiSU-Ultra version: $(KSU_VERSION))
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
+ccflags-y += -DKSU_API_VERSION=$(KSU_API_VERSION)
 
 ifndef KSU_EXPECTED_SIZE
 KSU_EXPECTED_SIZE := 0x35c

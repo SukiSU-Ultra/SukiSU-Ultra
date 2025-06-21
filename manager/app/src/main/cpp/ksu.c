@@ -30,6 +30,8 @@
 #define CMD_IS_UID_SHOULD_UMOUNT 13
 #define CMD_IS_SU_ENABLED 14
 #define CMD_ENABLE_SU 15
+#define CMD_GET_VERSION_FULL 16
+
 #define CMD_ENABLE_KPM 100
 #define CMD_HOOK_TYPE 101
 #define CMD_GET_SUSFS_FEATURE_STATUS 102
@@ -60,10 +62,14 @@ int get_version() {
     int32_t version = -1;
     int32_t lkm = 0;
     ksuctl(CMD_GET_VERSION, &version, &lkm);
-    if (!is_lkm && lkm != 0) {
+    if (!is_lkm && lkm == 1) {
         is_lkm = true;
     }
     return version;
+}
+
+void get_full_version(char* buff) {
+    ksuctl(CMD_GET_VERSION_FULL, buff, NULL);
 }
 
 bool get_allow_list(int *uids, int *size) {
