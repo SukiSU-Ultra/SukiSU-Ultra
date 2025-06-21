@@ -158,7 +158,7 @@
     <string name="more_settings">Setelan lainnya</string>
     <string name="language_setting">Bahasa Aplikasi</string>
     <string name="language_follow_system">Mengikuti sistem</string>
-    <string name="language_changed">Bahasa dirubah, restar app untuk menerapkan</string>
+    <string name="language_changed">Bahasa dirubah, mulai ulang aplikasi untuk menerapkan</string>
     <string name="theme_mode">Tema</string>
     <string name="theme_follow_system">Mengikuti sistem</string>
     <string name="theme_light">Terang</string>
