@@ -193,7 +193,7 @@
     <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU</string>
     <string name="icon_switched">Ikon dirubah</string>
     <string name="show_more_module_info">Tampilkan info modul lainnya</string>
-    <string name="show_more_module_info_summary">Pajang aditional module info seperti update JSON url</string>
+    <string name="show_more_module_info_summary">Pajang info modul tambahan seperti URL pembaruan JSON</string>
     <string name="simple_mode">Mode simple</string>
     <string name="simple_mode_summary">Sembunyikan papan kartu di beranda</string>
     <string name="hide_kernel_kernelsu_version">Sembunyikan versi kernel</string>
