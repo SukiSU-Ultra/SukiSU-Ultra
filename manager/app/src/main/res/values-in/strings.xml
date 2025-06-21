@@ -206,6 +206,6 @@
     <string name="hide_link_card_summary">Sembunyikan papan kartu URL di halaman awal beranda</string>
     <string name="hide_tag_card">Sembunyikan baris label modul</string>
     <string name="hide_tag_card_summary">Sembunyikan label nama folder dan ukuran di kartu modul</string>
-    <string name="show_kpm_info">Sembunyikan fungsi KPM</string>
+    <string name="show_kpm_info">Tampilkan fungsi KPM</string>
     <string name="show_kpm_info_summary">Sembunyikan fungsi informasi KPM dan menu KPM di navigasi bar</string>
 </resources>
