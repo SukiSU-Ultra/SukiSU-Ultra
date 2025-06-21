@@ -83,6 +83,7 @@ import com.sukisu.ultra.ui.screen.extensions.SusPathsContent
 import com.sukisu.ultra.ui.screen.extensions.SusMountsContent
 import com.sukisu.ultra.ui.screen.extensions.TryUmountContent
 import com.sukisu.ultra.ui.screen.extensions.KstatConfigContent
+import com.sukisu.ultra.ui.util.SuSFSManager.isSusVersion_1_5_8
 import kotlinx.coroutines.launch
 
 /**
@@ -98,7 +99,13 @@ enum class SuSFSTab(val displayNameRes: Int) {
     ENABLED_FEATURES(R.string.susfs_tab_enabled_features);
 
     companion object {
-        fun getAllTabs(): List<SuSFSTab> = entries
+        fun getAllTabs(isSusVersion_1_5_8: Boolean): List<SuSFSTab> {
+            return if (isSusVersion_1_5_8) {
+                entries.toList()
+            } else {
+                entries.filter { it != PATH_SETTINGS }
+            }
+        }
     }
 }
 
@@ -183,7 +190,8 @@ fun SuSFSConfigScreen(
     var showResetUmountsDialog by remember { mutableStateOf(false) }
     var showResetKstatDialog by remember { mutableStateOf(false) }
 
-    val allTabs = SuSFSTab.getAllTabs()
+    val allTabs = SuSFSTab.getAllTabs(isSusVersion_1_5_8())
+
 
     // 实时判断是否可以启用开机自启动
     val canEnableAutoStart by remember {
@@ -1538,12 +1546,12 @@ fun SuSFSConfigScreen(
                     }
                     SuSFSTab.SUS_MOUNTS -> {
                         // 检查版本支持
-                        val isSusMountHidingSupported = remember { SuSFSManager.isSusMountHidingSupported() }
+                        val isSusVersion_1_5_8 = remember { SuSFSManager.isSusVersion_1_5_8() }
 
                         SusMountsContent(
                             susMounts = susMounts,
                             hideSusMountsForAllProcs = hideSusMountsForAllProcs,
-                            isSusMountHidingSupported = isSusMountHidingSupported,
+                            isSusVersion_1_5_8 = isSusVersion_1_5_8,
                             isLoading = isLoading,
                             onAddMount = { showAddMountDialog = true },
                             onRemoveMount = { mount ->

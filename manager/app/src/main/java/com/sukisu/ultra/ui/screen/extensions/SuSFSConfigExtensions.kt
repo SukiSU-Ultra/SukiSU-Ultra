@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -505,7 +507,9 @@ fun SusPathsContent(
     onRemovePath: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         UnifiedButtonRow(
@@ -677,14 +681,16 @@ fun SusMountHidingControlCard(
 fun SusMountsContent(
     susMounts: Set<String>,
     hideSusMountsForAllProcs: Boolean,
-    isSusMountHidingSupported: Boolean,
+    isSusVersion_1_5_8: Boolean,
     isLoading: Boolean,
     onAddMount: () -> Unit,
     onRemoveMount: (String) -> Unit,
     onToggleHideSusMountsForAllProcs: (Boolean) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         UnifiedButtonRow(
@@ -711,8 +717,8 @@ fun SusMountsContent(
             }
         )
 
-        // SUS挂载隐藏控制卡片 - 仅在支持的版本显示
-        if (isSusMountHidingSupported) {
+        // SUS挂载隐藏控制卡片
+        if (isSusVersion_1_5_8) {
             SusMountHidingControlCard(
                 hideSusMountsForAllProcs = hideSusMountsForAllProcs,
                 isLoading = isLoading,
@@ -754,7 +760,9 @@ fun TryUmountContent(
     onRemoveUmount: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         UnifiedButtonRow(
@@ -847,7 +855,9 @@ fun KstatConfigContent(
     onUpdateKstatFullClone: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 标题和添加按钮

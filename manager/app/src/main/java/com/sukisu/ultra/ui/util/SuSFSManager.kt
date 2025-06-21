@@ -98,7 +98,7 @@ object SuSFSManager {
     }
 
     // 检查当前SuSFS版本是否支持SUS挂载隐藏控制功能
-    fun isSusMountHidingSupported(): Boolean {
+    fun isSusVersion_1_5_8(): Boolean {
         return try {
             val currentVersion = getSuSFSVersion()
             compareVersions(currentVersion, "1.5.8") >= 0
@@ -437,7 +437,7 @@ object SuSFSManager {
 
     // SUS挂载隐藏控制
     suspend fun setHideSusMountsForAllProcs(context: Context, hideForAll: Boolean): Boolean {
-        if (!isSusMountHidingSupported()) {
+        if (!isSusVersion_1_5_8()) {
             return false
         }
 
