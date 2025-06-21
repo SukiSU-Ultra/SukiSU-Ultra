@@ -6,16 +6,11 @@
     <string name="home_click_to_install">Click to install</string>
     <string name="home_working">Working</string>
     <string name="home_working_version">Version: %d</string>
-    <string name="home_superuser_count">Superusers: %d</string>
-    <string name="home_module_count">Modules: %d</string>
     <string name="home_unsupported">Unsupported</string>
     <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?.</string>
     <string name="home_kernel">Kernel version</string>
-    <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">SuSFS Version</string>
-    <string name="home_susfs_sus_su">SuS SU</string>
     <string name="home_manager_version">Manager version</string>
-    <string name="home_fingerprint">Fingerprint</string>
     <string name="home_selinux_status">SELinux status</string>
     <string name="selinux_status_disabled">Disabled</string>
     <string name="selinux_status_enforcing">Enforcing</string>
@@ -29,7 +24,6 @@
     <string name="module_sort_action_first">Sort (Action first)</string>
     <string name="module_sort_enabled_first">Sort (Enabled first)</string>
     <string name="uninstall">Uninstall</string>
-    <string name="restore">Restore</string>
     <string name="module_install">Install</string>
     <string name="install">Install</string>
     <string name="reboot">Reboot</string>
@@ -63,10 +57,6 @@
     <string name="profile_template">Template</string>
     <string name="profile_custom">Custom</string>
     <string name="profile_name">Profile name</string>
-    <string name="profile_namespace">Mount namespace</string>
-    <string name="profile_namespace_inherited">Inherited</string>
-    <string name="profile_namespace_global">Global</string>
-    <string name="profile_namespace_individual">Individual</string>
     <string name="profile_groups">Groups</string>
     <string name="profile_capabilities">Capabilities</string>
     <string name="profile_selinux_context">SELinux context</string>
@@ -114,7 +104,6 @@
     <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
     <string name="grant_root_failed">Failed to grant root!</string>
     <string name="action">Action</string>
-    <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="enable_web_debugging">Enable WebView debugging</string>
     <string name="enable_web_debugging_summary">Can be used to debug WebUI. Please enable only when needed.</string>
@@ -138,9 +127,6 @@
     <string name="selected_lkm">Selected LKM: %s</string>
     <string name="save_log">Save logs</string>
     <string name="log_saved">Logs saved</string>
-    <string name="status_supported">Supported</string>
-    <string name="status_not_supported">Not Supported</string>
-    <string name="status_unknown">Unknown</string>
     <string name="sus_su_mode">SuS SU mode:</string>
     <!-- Module related -->
     <string name="module_install_confirm">confirm install module %1$s？</string>
@@ -174,14 +160,11 @@
     <string name="settings_custom_background">Custom App Background</string>
     <string name="settings_custom_background_summary">Select an image as background</string>
     <string name="settings_card_alpha">Navigation bar transparency</string>
-    <string name="settings_restore_default">Restore default</string>
     <string name="home_android_version">Android version</string>
     <string name="home_device_model">Device model</string>
     <string name="su_not_allowed">Granting superuser to %s is not allowed</string>
     <string name="settings_disable_su">Disable su compatibility</string>
     <string name="settings_disable_su_summary">Temporarily disable any applications from obtaining root privileges via the ⁠su command (existing root processes will not be affected).</string>
-    <string name="using_mksu_manager">You are using the SukiSU Beta manager</string>
-    <string name="module_install_multiple_confirm">Are you sure you want to install the selected %d modules?</string>
     <string name="module_install_multiple_confirm_with_names">Sure you want to install the following %1$d modules? \n\n%2$s</string>
     <string name="more_settings">More settings</string>
     <string name="selinux">SELinux</string>
@@ -214,20 +197,14 @@
     <string name="color_pink">Pink</string>
     <string name="color_gray">Gray</string>
     <string name="color_yellow">Yellow</string>
-    <string name="flash_option">Flash Options</string>
-    <string name="flash_option_tip">Select the file to be flashed</string>
     <string name="horizon_kernel">Install Anykernel3</string>
     <string name="horizon_kernel_summary">Flash AnyKernel3 kernel file</string>
     <string name="root_required">Requires root privileges</string>
-    <string name="copy_failed">File Copy Failure</string>
     <string name="reboot_complete_title">Scrubbing complete</string>
     <string name="reboot_complete_msg">Whether to reboot immediately？</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="failed_reboot">Reboot Failed</string>
-    <string name="batch_authorization">empower</string>
-    <string name="batch_cancel_authorization">withdraw</string>
-    <string name="backup">Backup</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">No installed kernel modules at this time</string>
     <string name="kpm_version">Version</string>
@@ -235,7 +212,6 @@
     <string name="kpm_uninstall">Uninstall</string>
     <string name="kpm_uninstall_success">Uninstalled successfully</string>
     <string name="kpm_uninstall_failed">Failed to uninstall</string>
-    <string name="kpm_install">Install</string>
     <string name="kpm_install_success">Load of kpm module successful</string>
     <string name="kpm_install_failed">Load of kpm module failed</string>
     <string name="kpm_args">Parameters</string>
@@ -249,8 +225,6 @@
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
     <string name="not_supported">Unsupported</string>
     <string name="supported">Supported</string>
-    <string name="home_kpm_module">"Number of KPMs: %d "</string>
-    <string name="kpm_invalid_file">Invalid KPM file</string>
     <string name="kernel_patched">Kernel not patched</string>
     <string name="kernel_not_enabled">Kernel not configured</string>
     <string name="custom_settings">Custom settings</string>
@@ -258,19 +232,13 @@
     <string name="kpm_install_mode_load">Load</string>
     <string name="kpm_install_mode_embed">Embed</string>
     <string name="kpm_install_mode_description">Please select: %1\$s Module Installation Mode \n\nLoad: Temporarily load the module \nEmbedded: Permanently install into the system</string>
-    <string name="log_failed_to_check_module_file">Failed to check module file existence</string>
     <string name="snackbar_failed_to_check_module_file">Unable to check if module file exists</string>
-    <string name="confirm_uninstall_title">Confirm uninstallation</string>
-    <string name="confirm_uninstall_confirm">Uninstall</string>
-    <string name="confirm_uninstall_dismiss">Cancel</string>
     <string name="theme_color">Theme Color</string>
     <string name="invalid_file_type">Incorrect file type! Please select .kpm file.</string>
     <string name="confirm_uninstall_title_with_filename">Uninstall</string>
     <string name="confirm_uninstall_content">The following KPM will be uninstalled: %s</string>
     <string name="settings_susfs_toggle_summary">Disable kprobe hooks created by KernelSU, using inline hooks instead, which is similar to non-GKI kernel hooking method.</string>
-    <string name="image_editor_title">Adjust background image</string>
     <string name="image_editor_hint">Use two fingers to zoom the image, and one finger to drag it to adjust the position</string>
-    <string name="background_image_error">Could not load image</string>
     <string name="reprovision">Reprovision</string>
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">Kernel Flashing</string>
@@ -307,7 +275,6 @@
     <string name="app_settings">Application Settings</string>
     <string name="tools">Tools</string>
     <!--  String resources used in SuperUser -->
-    <string name="clear">Removals</string>
     <string name="no_apps_found">Application not found</string>
     <string name="selinux_enabled_toast">SELinux Enabled</string>
     <string name="selinux_disabled_toast">SELinux Disabled</string>
@@ -315,8 +282,6 @@
     <string name="advanced_settings">Advanced Settings</string>
     <string name="appearance_settings">Customize the toolbar</string>
     <string name="back">Comeback</string>
-    <string name="expand">Be in full swing</string>
-    <string name="collapse">put away</string>
     <string name="susfs_enabled">SuSFS enabled</string>
     <string name="susfs_disabled">SuSFS disabled</string>
     <string name="background_set_success">Background set successfully</string>
@@ -324,7 +289,6 @@
     <string name="icon_switch_title">Alternate icon</string>
     <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
     <string name="icon_switched">Icon switched</string>
-    <string name="root_require_for_install">Requires root privileges</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Hides KPM Function</string>
     <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
@@ -336,7 +300,6 @@
     <string name="use_webuix_eruda">Inject Eruda into WebUI X</string>
     <string name="use_webuix_eruda_summary">Inject a debug console into WebUI X to make debugging easier. Requires web debugging to be on.</string>
     <!-- DPI setting related strings -->
-    <string name="dpi_settings">DPI setting</string>
     <string name="app_dpi_title">Applied DPI</string>
     <string name="app_dpi_summary">Adjust the screen display density for the current application only</string>
     <string name="dpi_size_small">Small </string>
@@ -377,10 +340,6 @@
     <!-- 状态相关 -->
     <string name="no_apps_in_category">No application in this category</string>
     <!-- 标签相关 -->
-    <string name="label_root">Root</string>
-    <string name="label_unmount">Unmount</string>
-    <string name="label_custom">Custom</string>
-    <!-- FAB菜单相关 -->
     <string name="deny_authorization">Delegation of authority</string>
     <string name="grant_authorization">Authorizations</string>
     <string name="unmount_modules">Unmounting Module Mounts</string>
@@ -389,13 +348,8 @@
     <string name="collapse_menu">Put away the menu</string>
     <string name="scroll_to_top">Top</string>
     <string name="scroll_to_bottom">Bottom</string>
-    <string name="scroll_to_top_description">Scroll to top</string>
-    <string name="scroll_to_bottom_description">Scroll to the bottom</string>
-    <string name="authorized">authorized</string>
-    <string name="unauthorized">unauthorized</string>
     <string name="selected">Selected</string>
     <string name="select">option</string>
-    <string name="profile_umount_modules_disable">Disable custom uninstallation module</string>
     <!-- BottomSheet相关 -->
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
@@ -412,7 +366,6 @@
     <string name="susfs_current_build_time">Current build time: %s</string>
     <string name="susfs_reset_to_default">Reset to Default</string>
     <string name="susfs_apply">Apply</string>
-    <string name="susfs_done">Done</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Confirm Reset</string>
     <string name="susfs_reset_confirm">Confirm Reset</string>
@@ -423,18 +376,14 @@
     <string name="susfs_uname_set_success" formatted="false">SuSFS uname and build time set successfully: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS Configuration</string>
-    <string name="susfs_config_setting_summary">Configuring Uname and Build Time Artifacts and More for SuSFS (Current: %s)</string>
     <!-- 开机自启动相关 -->
     <string name="susfs_autostart_title">Auto Start</string>
     <string name="susfs_autostart_description">Automatically apply all non-default configurations on reboot</string>
     <string name="susfs_autostart_requirement">Configuration needs to be added to enable</string>
-    <string name="susfs_autostart_enabled">Auto Start enabled</string>
-    <string name="susfs_autostart_disabled">Auto Start disabled</string>
     <string name="susfs_autostart_enable_failed">Failed to enable auto start</string>
     <string name="susfs_autostart_disable_failed">Failed to disable auto start</string>
     <string name="susfs_autostart_error">Auto start configuration error: %s</string>
     <string name="susfs_no_config_to_autostart">No available configuration for auto start</string>
-    <string name="susfs_autostart_tis">Need to enter a non-default value to enable auto start</string>
     <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">Basic Settings</string>
     <string name="susfs_tab_sus_paths">SUS Paths</string>
@@ -444,17 +393,12 @@
     <string name="susfs_tab_enabled_features">Enabled Features Status</string>
     <!-- SuSFS Dialog Actions -->
     <string name="susfs_add">Add</string>
-    <string name="susfs_delete">Delete</string>
-    <string name="susfs_reset">Reset</string>
-    <string name="susfs_run">Run</string>
-    <string name="susfs_refresh">Refresh</string>
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">Add SUS Path</string>
     <string name="susfs_add_sus_mount">Add SUS Mount</string>
     <string name="susfs_add_try_umount">Add Try Umount</string>
     <string name="susfs_sus_path_added_success">SUS path added successfully</string>
     <string name="susfs_path_not_found_error">Path not found error</string>
-    <string name="susfs_unknown_error">Unknown error</string>
     <string name="susfs_path_label">Path</string>
     <string name="susfs_mount_path_label">Mount Path</string>
     <string name="susfs_path_placeholder">e.g.: /system/addon.d</string>
@@ -513,7 +457,6 @@
     <string name="sus_kstat_feature_label">SUS Kstat Support</string>
     <string name="sus_su_feature_label">SUS SU mode switching function</string>
     <!-- 可切换状态 -->
-    <string name="susfs_configure">SuSFS Configuration</string>
     <string name="susfs_feature_configurable">Configurable SuSFS Features</string>
     <string name="susfs_enable_log_label">SuSFS Enable Log</string>
     <string name="susfs_log_config_description">Enable or disable logging for SuSFS</string>
@@ -522,10 +465,7 @@
     <string name="susfs_log_disabled">Turn off SuSFS logging</string>
     <string name="module_update_json">Update JSON</string>
     <string name="module_update_json_copied">Update JSON URL copied to clipboard</string>
-    <string name="module_update_json_not_available">Update JSON not available</string>
     <!-- Settings related strings -->
-    <string name="show_module_update_json">Show Module Update JSON</string>
-    <string name="show_module_update_json_summary">Display update JSON URL in module details</string>
     <string name="show_more_module_info">Show More Module Info</string>
     <string name="show_more_module_info_summary">Display additional module information like update JSON URLs</string>
     <string name="susfs_execution_location_label">Execution Location</string>
@@ -537,21 +477,15 @@
     <string name="susfs_slot_info_title">Slot Information</string>
     <string name="susfs_slot_info_description">View current boot slot information and copy values</string>
     <string name="susfs_current_active_slot">Current Active Slot: %s</string>
-    <string name="susfs_slot_name">Slot: %s</string>
     <string name="susfs_slot_uname">Uname: %s</string>
     <string name="susfs_slot_build_time">Build Time: %s</string>
     <string name="susfs_slot_current_badge">Current</string>
     <string name="susfs_slot_use_uname">Use Uname</string>
     <string name="susfs_slot_use_build_time">Use Build Time</string>
     <string name="susfs_slot_info_unavailable">Unable to retrieve slot information</string>
-    <string name="susfs_slot_info_loading">Loading slot information…</string>
     <!-- SuSFS 自启动相关字符串 -->
     <string name="susfs_autostart_enabled_success">SuSFS auto-start module enabled, module path: %s</string>
     <string name="susfs_autostart_disabled_success">SuSFS auto-start module disabled</string>
-    <string name="susfs_execute_location_updated_post_fs_data">Execution location updated to post-fs-data</string>
-    <string name="susfs_execute_location_updated_service">Execution location updated to service</string>
-    <string name="susfs_execute_location_update_failed">Failed to update execution location</string>
-    <string name="susfs_execute_location_update_error">Error updating execution location: %s</string>
     <!-- SuSFS Kstat相关字符串 -->
     <string name="susfs_tab_kstat_config">Kstat Configuration</string>
     <string name="kstat_static_config_added">Kstat static configuration added: %1$s</string>
