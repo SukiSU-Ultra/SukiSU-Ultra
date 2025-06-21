@@ -5,16 +5,11 @@
     <string name="home_click_to_install">Нажмите, чтобы установить</string>
     <string name="home_working">Работает</string>
     <string name="home_working_version">Версия: %d</string>
-    <string name="home_superuser_count">Рут-доступ: %d</string>
-    <string name="home_module_count">Модули: %d</string>
     <string name="home_unsupported">Не поддерживается</string>
     <string name="home_unsupported_reason">Драйвера KernelSU не найдены в ядре, не то ядро?</string>
     <string name="home_kernel">Ядро</string>
-    <string name="home_susfs">SuSFS: %s</string>
     <string name="home_susfs_version">Статус SuSFS</string>
-    <string name="home_susfs_sus_su">SuS SU</string>
     <string name="home_manager_version">Версия менеджера</string>
-    <string name="home_fingerprint">Подпись</string>
     <string name="home_selinux_status">Состояние SELinux</string>
     <string name="selinux_status_disabled">Выключен</string>
     <string name="selinux_status_enforcing">Принудительный</string>
@@ -28,7 +23,6 @@
     <string name="module_sort_action_first">Сортировать (Сначала с действием)</string>
     <string name="module_sort_enabled_first">Сортировать (Сначала включённые)</string>
     <string name="uninstall">Удалить</string>
-    <string name="restore">Восстановить</string>
     <string name="module_install">Установить</string>
     <string name="install">Установка</string>
     <string name="reboot">Перезагрузить</string>
@@ -61,10 +55,6 @@
     <string name="profile_template">Шаблон</string>
     <string name="profile_custom">Пользовательский</string>
     <string name="profile_name">Название профиля</string>
-    <string name="profile_namespace">Монтировать пространство имен</string>
-    <string name="profile_namespace_inherited">Унаследованный</string>
-    <string name="profile_namespace_global">Глобальный</string>
-    <string name="profile_namespace_individual">Индивидуальный</string>
     <string name="profile_groups">Группы</string>
     <string name="profile_capabilities">Возможности</string>
     <string name="profile_selinux_context">Контекст SELinux</string>
@@ -112,7 +102,6 @@
     <string name="settings_check_update_summary">Автоматически проверять обновления при открытии приложения</string>
     <string name="grant_root_failed">Не удалось выдать root!</string>
     <string name="action">Действие</string>
-    <string name="open">Открыть</string>
     <string name="close">Закрыть</string>
     <string name="enable_web_debugging">Включить отладку WebView</string>
     <string name="enable_web_debugging_summary">Используется для отладки WebUI. Пожалуйста, включайте только при необходимости.</string>
@@ -138,9 +127,6 @@
     <string name="selected_lkm">Выбран LKM: %s</string>
     <string name="save_log">Сохранить логи</string>
     <string name="log_saved">Логи сохранены</string>
-    <string name="status_supported">Поддерживается</string>
-    <string name="status_not_supported">Не поддерживается</string>
-    <string name="status_unknown">Неизвестно</string>
     <string name="sus_su_mode">SuS SU режим:</string>
     <!-- Module related -->
     <string name="module_install_confirm">подтвердите установку модуля %1$s?</string>
@@ -174,17 +160,13 @@
     <string name="settings_custom_background">Пользовательский фон приложения</string>
     <string name="settings_custom_background_summary">Выберите изображение в качестве фона</string>
     <string name="settings_card_alpha">Прозрачность панели навигации</string>
-    <string name="settings_restore_default">По умолчанию</string>
     <string name="home_android_version">Версия Android</string>
     <string name="home_device_model">Модель устройства</string>
     <string name="su_not_allowed">Предоставление рут-доступа %s запрещено</string>
     <string name="settings_disable_su">Отключить su совместимость</string>
     <string name="settings_disable_su_summary">Временно отключить все приложения от получения рут-доступа через su команду (запущенные процессы с рут-доступом не будут затронуты).</string>
-    <string name="using_mksu_manager">Вы используете менеджер SukiSU бета-версии</string>
-    <string name="module_install_multiple_confirm">Вы уверены, что хотите установить выбранные модули %d?</string>
     <string name="module_install_multiple_confirm_with_names">Уверены, что хотите установить следующие %1$d модули? \n\n%2$s</string>
     <string name="more_settings">Доп. настройки</string>
-    <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Включено</string>
     <string name="selinux_disabled">Выключен</string>
     <string name="simple_mode">Режим простоты</string>
@@ -212,28 +194,20 @@
     <string name="color_pink">Розовый</string>
     <string name="color_gray">Серый</string>
     <string name="color_yellow">Желтый</string>
-    <string name="flash_option">Параметры прошивки</string>
-    <string name="flash_option_tip">Выберите файл для прошивки</string>
     <string name="horizon_kernel">Установка AnyKernel3</string>
     <string name="horizon_kernel_summary">Прошить файл ядра AnyKernel3</string>
     <string name="root_required">Требуется root-права</string>
-    <string name="copy_failed">Ошибка копирования файла</string>
     <string name="reboot_complete_title">Скрабровка завершена</string>
     <string name="reboot_complete_msg">Будет ли перезагрузка немедленно?</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="failed_reboot">Не удалось перезагрузиться</string>
-    <string name="batch_authorization">расширить власть</string>
-    <string name="batch_cancel_authorization">расход</string>
-    <string name="backup">Резервное копирование</string>
-    <string name="kpm_title">KPM</string>
     <string name="kpm_empty">На данный момент нет установленных модулей ядра</string>
     <string name="kpm_version">Версия</string>
     <string name="kpm_author">Автор</string>
     <string name="kpm_uninstall">Удалить</string>
     <string name="kpm_uninstall_success">Удаление завершено</string>
     <string name="kpm_uninstall_failed">Не удалось удалить</string>
-    <string name="kpm_install">Установить</string>
     <string name="kpm_install_success">KPM модуль успешно загружен</string>
     <string name="kpm_install_failed">Ошибка загрузки KPM модуля</string>
     <string name="kpm_args">Параметры</string>
@@ -247,8 +221,6 @@
     <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
     <string name="not_supported">Не поддерживается</string>
     <string name="supported">Поддерживается</string>
-    <string name="home_kpm_module">"KPM-модули: %d "</string>
-    <string name="kpm_invalid_file">Недопустимый файл KPM</string>
     <string name="kernel_patched">Ядро не изменено</string>
     <string name="kernel_not_enabled">Ядро не настроено</string>
     <string name="custom_settings">Персонализация</string>
@@ -256,19 +228,13 @@
     <string name="kpm_install_mode_load">Загрузить</string>
     <string name="kpm_install_mode_embed">Код для вставки</string>
     <string name="kpm_install_mode_description">Пожалуйста, выберите %1\$s режим установки модуля \n\nЗагрузить: Временно загрузить модуль \nВстроенный: Окончательно установить в систему</string>
-    <string name="log_failed_to_check_module_file">Не удалось проверить наличие файла модуля</string>
     <string name="snackbar_failed_to_check_module_file">Не удалось проверить наличие файла модуля</string>
-    <string name="confirm_uninstall_title">Подтверждение удаления</string>
-    <string name="confirm_uninstall_confirm">Удалить</string>
-    <string name="confirm_uninstall_dismiss">Отмена</string>
     <string name="theme_color">Цвет темы</string>
     <string name="invalid_file_type">Неверный тип файла! Пожалуйста, выберите .kpm файл.</string>
     <string name="confirm_uninstall_title_with_filename">Удалить</string>
     <string name="confirm_uninstall_content">Следующие KPM будут удалены: %s</string>
     <string name="settings_susfs_toggle_summary">Отключите хуки kprobe, созданные KernelSU, используя встроенные хуки, которые похожи на метод расширения ядра вне GKI.</string>
-    <string name="image_editor_title">Настроить фоновое изображение</string>
     <string name="image_editor_hint">Используйте два пальца для увеличения изображения, и один палец для изменения положения</string>
-    <string name="background_image_error">Не удалось загрузить изображение</string>
     <string name="reprovision">Реализация</string>
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">Мигание ядра</string>
@@ -305,7 +271,6 @@
     <string name="app_settings">Настройки приложения</string>
     <string name="tools">Инструменты</string>
     <!--  String resources used in SuperUser -->
-    <string name="clear">Удаление</string>
     <string name="no_apps_found">Приложение не найдено</string>
     <string name="selinux_enabled_toast">SELinux включен</string>
     <string name="selinux_disabled_toast">SELinux отключен</string>
@@ -313,8 +278,6 @@
     <string name="advanced_settings">Расширенные</string>
     <string name="appearance_settings">Внешний вид</string>
     <string name="back">Возвращение</string>
-    <string name="expand">Будьте в полном шаге</string>
-    <string name="collapse">Свернуть</string>
     <string name="susfs_enabled">SuSFS включен</string>
     <string name="susfs_disabled">SuSFS выключен</string>
     <string name="background_set_success">Фон успешно установлен</string>
@@ -322,7 +285,6 @@
     <string name="icon_switch_title">Альт. иконка</string>
     <string name="icon_switch_summary">Поменять иконку приложения на иконку KernelSU</string>
     <string name="icon_switched">Иконка поменяна</string>
-    <string name="root_require_for_install">Требуется root-права</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Скрыть статус KPM</string>
     <string name="show_kpm_info_summary">Скрывать информацию и функции KPM на домашней странице и панели навигации</string>
@@ -334,7 +296,6 @@
     <string name="use_webuix_eruda">Вставить Eruda в WebUI X</string>
     <string name="use_webuix_eruda_summary">Вставьте консоль отладки в WebUI X для упрощения отладки. Для этого требуется включение веб-отладки.</string>
     <!-- DPI setting related strings -->
-    <string name="dpi_settings">Настройка DPI</string>
     <string name="app_dpi_title">Изменить DPI</string>
     <string name="app_dpi_summary">Регулировка плотности экрана только для текущего приложения</string>
     <string name="dpi_size_small">маленький</string>
@@ -375,10 +336,6 @@
     <!-- 状态相关 -->
     <string name="no_apps_in_category">В этой категории нет приложений</string>
     <!-- 标签相关 -->
-    <string name="label_root">Рут-доступ</string>
-    <string name="label_unmount">Размонтированные</string>
-    <string name="label_custom">Пользовательские</string>
-    <!-- FAB菜单相关 -->
     <string name="deny_authorization">Доступ отклонён</string>
     <string name="grant_authorization">Доступ выдан</string>
     <string name="unmount_modules">Размонтирование модулей</string>
@@ -387,13 +344,8 @@
     <string name="collapse_menu">Свернуть</string>
     <string name="scroll_to_top">Наверх</string>
     <string name="scroll_to_bottom">Вниз</string>
-    <string name="scroll_to_top_description">Прокрутить к началу</string>
-    <string name="scroll_to_bottom_description">Прокрутить в конец страницы</string>
-    <string name="authorized">авторизован</string>
-    <string name="unauthorized">неавторизован</string>
     <string name="selected">Выбранные</string>
     <string name="select">опция</string>
-    <string name="profile_umount_modules_disable">Отключить пользовательский модуль удаления</string>
     <!-- BottomSheet相关 -->
     <string name="menu_options">Настройки списка</string>
     <string name="sort_options">Сортировка</string>
@@ -417,7 +369,6 @@
     <string name="susfs_uname_set_success" formatted="false">Значение uname для SuSFS установлено успешно: %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">Конфигурация SuSFS</string>
-    <string name="susfs_config_setting_summary">Настроить значение uname для SuSFS (Текущее: %s)</string>
     <!-- 开机自启动相关 -->
     <!-- SuSFS Tab Titles -->
     <!-- SuSFS Dialog Actions -->
@@ -430,4 +381,6 @@
     <!-- Feature Labels -->
     <!-- 可切换状态 -->
     <!-- Settings related strings -->
+    <!-- SuSFS 自启动相关字符串 -->
+    <!-- SuSFS Kstat相关字符串 -->
 </resources>
