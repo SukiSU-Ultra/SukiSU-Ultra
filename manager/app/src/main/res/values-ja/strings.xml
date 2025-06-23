@@ -12,6 +12,8 @@
     <string name="home_manager_version">マネージャーのバージョン</string>
     <string name="home_selinux_status">SELinux のステータス</string>
     <string name="selinux_status_disabled">無効</string>
+    <string name="selinux_status_enforcing">Enforcing</string>
+    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">不明</string>
     <string name="superuser">スーパーユーザー</string>
     <string name="module_failed_to_enable">%s モジュールを ON にできませんでした</string>
@@ -78,6 +80,7 @@
     <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理します。</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
+    <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">無効なテンプレート ID</string>
     <string name="app_profile_template_name">名前</string>
     <string name="app_profile_template_description">説明</string>
@@ -164,6 +167,7 @@
     <string name="settings_disable_su_summary">su コマンドを使用してアプリが root 権限を取得する動作を一時的に無効化します (既存の root プロセスは影響を受けません)。</string>
     <string name="module_install_multiple_confirm_with_names">%1$d 個のモジュールをインストールしてもよろしいですか？\n\n%2$s</string>
     <string name="more_settings">その他の設定</string>
+    <string name="selinux">SELinux</string>
     <string name="selinux_enabled">有効</string>
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
@@ -201,6 +205,7 @@
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <string name="failed_reboot">再起動に失敗しました</string>
+    <string name="kpm_title">KPM</string>
     <string name="kpm_empty">カーネルモジュールは現在インストールされていません</string>
     <string name="kpm_version">バージョン</string>
     <string name="kpm_author">作者</string>
@@ -321,6 +326,7 @@
     <string name="kernel_flashing">カーネルをフラッシュ中</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">すべて</string>
+    <string name="category_root_apps">Root</string>
     <string name="category_custom_apps">カスタム</string>
     <string name="category_default_apps">デフォルト</string>
     <!-- 排序相关 -->
@@ -391,6 +397,8 @@
     <string name="susfs_add_sus_path">SUS パスを追加</string>
     <string name="susfs_add_sus_mount">SUS マウントを追加</string>
     <string name="susfs_add_try_umount">アンマウントを試すを追加</string>
+    <string name="susfs_sus_path_added_success">SUS パスが正常に追加されました</string>
+    <string name="susfs_path_not_found_error">パスが見つかりません</string>
     <string name="susfs_path_label">パス</string>
     <string name="susfs_mount_path_label">マウントのパス</string>
     <string name="susfs_path_placeholder">例 : /system/addon.d</string>
@@ -416,6 +424,7 @@
     <string name="susfs_reset_mounts_message">すべての SUS マウントの構成が消去されます。続行してもよろしいですか？</string>
     <string name="susfs_reset_umounts_title">リセットしてアンマウントを試す</string>
     <string name="susfs_reset_umounts_message">すべてのアンマウント構成がリセットされます。続行してもよろしいですか？</string>
+    <string name="susfs_reset_path_title">パスの設定をリセット</string>
     <!-- SuSFS Path Settings -->
     <string name="susfs_android_data_path_label">Android データパス</string>
     <string name="susfs_sdcard_path_label">SD カードのパス</string>
@@ -453,6 +462,60 @@
     <!-- Settings related strings -->
     <string name="show_more_module_info">モジュール情報の詳細を表示</string>
     <string name="show_more_module_info_summary">更新用 JSON の URL など追加の情報を表示します。</string>
+    <string name="susfs_execution_location_label">実行先</string>
+    <string name="susfs_current_execution_location">現在の実行先: %s</string>
+    <string name="susfs_execution_location_service">サービス</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">システムサービスの開始後に実行</string>
+    <string name="susfs_execution_location_post_fs_data_description">ファイルシステムのマウント後にシステムが完全に起動する前に実行をすることで、ブートループが発生する可能性があります。</string>
+    <string name="susfs_slot_info_title">スロット情報</string>
+    <string name="susfs_slot_info_description">現在のブートスロット情報の表示と値のコピーをします。</string>
+    <string name="susfs_current_active_slot">現在のアクティブスロット: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">ビルド日時: %s</string>
+    <string name="susfs_slot_current_badge">現在</string>
+    <string name="susfs_slot_use_uname">Uname を使用する</string>
+    <string name="susfs_slot_use_build_time">ビルド日時を使用する</string>
+    <string name="susfs_slot_info_unavailable">スロット情報を取得できません</string>
     <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">SuSFS 自動起動モジュールが有効、モジュールのパス: %s</string>
+    <string name="susfs_autostart_disabled_success">SuSFS 自動起動モジュールが無効</string>
     <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Kstat の構成</string>
+    <string name="kstat_static_config_added">Kstat の静的構成を追加しました: %1$s</string>
+    <string name="kstat_config_removed">Kstat の構成を削除しました: %1$s</string>
+    <string name="kstat_path_added">Kstat パスを追加しました: %1$s</string>
+    <string name="kstat_path_removed">Kstat パスを削除しました: %1$s</string>
+    <string name="kstat_updated">Kstat が更新されました: %1$s</string>
+    <string name="kstat_full_clone_updated">Kstat のフルクローンが更新されました: %1$s</string>
+    <string name="add_kstat_statically_title">Kstat 静的構成を追加</string>
+    <string name="file_or_directory_path_label">ファイルまたはディレクトリのパス</string>
+    <string name="hint_use_default_value">ヒント: オリジナルの値を使用するには「default」を使用します</string>
+    <string name="add_kstat_path_title">Kstat のパスを追加</string>
+    <string name="kstat_command_description">このコマンドはパスがバインドマウントまたは、オーバーレイを開始する前に追加し、元の状態情報をカーネルメモリに保存するために使用されます。</string>
+    <string name="add">追加</string>
+    <string name="reset_kstat_config_title">Kstat の構成をリセット</string>
+    <string name="reset_kstat_config_message">すべての Kstat の構成を消去しますか？この操作は元に戻せません。</string>
+    <string name="confirm_reset">リセットを確認</string>
+    <string name="kstat_config_description_title">Kstat の構成の説明</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: ファイル、ディレクトリの静的な状態情報</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: バインドマウント前にパスを追加して元の状態情報を保存します</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: ターゲットとなる ino を更新、サイズとブロックは変更しません</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: ino のみ更新、他の値はそのままにします</string>
+    <string name="static_kstat_config">Kstat の静的構成</string>
+    <string name="kstat_path_management">Kstat パスの管理</string>
+    <string name="no_kstat_config_message">Kstat の構成が未設定です。上のボタンをタップで追加します。</string>
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_control_title">SUS マウントの非表示制御</string>
+    <string name="susfs_hide_mounts_control_description">プロセスの SUS マウントを非表示する動作を制御します。</string>
+    <string name="susfs_hide_mounts_for_all_procs_label">すべてのプロセスで SUS マウントを非表示</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">有効化すると SUS マウントは KSU プロセスを含むすべてのプロセスから非表示になります。</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">無効化すると SUS マウントは非 KSU プロセスからのみ非表示になり、KSU プロセスはマウントを見ることができます。</string>
+    <string name="susfs_hide_mounts_all_enabled">すべてのプロセスで SUS マウントの非表示を有効化しました</string>
+    <string name="susfs_hide_mounts_all_disabled">すべてのプロセスで SUS マウントの非表示を無効化しました</string>
+    <string name="susfs_hide_mounts_recommendation">画面のロック解除後または service.sh または boot-completed.sh の段階で無効に設定することを推奨します。これにより、KSU プロセスによってマウントされたマウントに依存する一部の root 化されたアプリの問題が解決されるはずです。</string>
+    <string name="susfs_hide_mounts_current_setting">現在の設定: %s</string>
+    <string name="susfs_hide_mounts_setting_all">すべてのプロセスを非表示</string>
+    <string name="susfs_hide_mounts_setting_non_ksu">非 KSU プロセスのみ非表示</string>
+    <string name="susfs_run">実行</string>
 </resources>
