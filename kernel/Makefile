@@ -31,7 +31,7 @@ KSU_GITHUB_VERSION := $(shell $(CURL_BIN) -sI "https://api.github.com/repos/$(RE
 ifeq ($(KSU_GITHUB_VERSION),)
   ifeq ($(shell test -e $(srctree)/$(src)/../.git; echo $$?),0)
     $(shell cd $(srctree)/$(src); [ -f ../.git/shallow ] && $(GIT_BIN) fetch --unshallow)
-    KSU_LOCAL_VERSION := $(shell cd $(srctree)/$(src); $(GIT_BIN) rev-list --count HEAD)
+    KSU_LOCAL_VERSION := $(shell cd $(srctree)/$(src); $(GIT_BIN) rev-list --count $(REPO_BRANCH))
     $(eval KSU_VERSION := $(shell expr 10000 + $(KSU_LOCAL_VERSION) + 700))
     $(info -- SukiSU-Ultra version (local .git): $(KSU_VERSION))
   else
