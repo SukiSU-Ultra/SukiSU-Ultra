@@ -167,6 +167,21 @@ fn do_cpio_cmd(magiskboot: &Path, workdir: &Path, cmd: &str) -> Result<()> {
     Ok(())
 }
 
+fn do_vendor_cpio_cmd(magiskboot: &Path, workdir: &Path, cmd: &str) -> Result<()> {
+    let vendor_ramdisk_cpio = workdir.join("vendor_ramdisk").join("init_boot.cpio");
+    let status = Command::new(magiskboot)
+        .current_dir(workdir)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .arg("cpio")
+        .arg(vendor_ramdisk_cpio)
+        .arg(cmd)
+        .status()?;
+
+    ensure!(status.success(), "magiskboot cpio {} failed", cmd);
+    Ok(())
+}
+
 fn is_magisk_patched(magiskboot: &Path, workdir: &Path) -> Result<bool> {
     let status = Command::new(magiskboot)
         .current_dir(workdir)
@@ -206,6 +221,18 @@ fn dd<P: AsRef<Path>, Q: AsRef<Path>>(ifile: P, ofile: Q) -> Result<()> {
     Ok(())
 }
 
+fn get_partition_name(device_path: &str) -> String {
+    if device_path.contains("init_boot") {
+        "init_boot".to_string()
+    } else if device_path.contains("vendor_boot") {
+        "vendor_boot".to_string()
+    } else if device_path.contains("boot") {
+        "boot".to_string()
+    } else {
+        "unknown".to_string()
+    }
+}
+
 pub fn restore(
     image: Option<PathBuf>,
     magiskboot_path: Option<PathBuf>,
@@ -222,7 +249,7 @@ pub fn restore(
 
     let skip_init = kmi.starts_with("android12-");
 
-    let (bootimage, bootdevice) = find_boot_image(&image, skip_init, false, false, workdir)?;
+    let (bootimage, bootdevice, partition_name) = find_boot_image(&image, skip_init, false, false, workdir)?;
 
     println!("- Unpacking boot image");
     let status = Command::new(&magiskboot)
@@ -298,7 +325,8 @@ pub fn restore(
         let output_dir = std::env::current_dir()?;
         let now = chrono::Utc::now();
         let output_image = output_dir.join(format!(
-            "kernelsu_restore_{}.img",
+            "SukiSU_SukiSU-Ultra_restore_{}_{}.img",
+            partition_name,
             now.format("%Y%m%d_%H%M%S")
         ));
 
@@ -406,7 +434,7 @@ fn do_patch(
 
     let skip_init = kmi.starts_with("android12-");
 
-    let (bootimage, bootdevice) =
+    let (bootimage, bootdevice, partition_name) =
         find_boot_image(&image, skip_init, ota, is_replace_kernel, workdir)?;
 
     let bootimage = bootimage.display().to_string();
@@ -461,25 +489,36 @@ fn do_patch(
     );
 
     println!("- Adding KernelSU LKM");
-    let is_kernelsu_patched = is_kernelsu_patched(&magiskboot, workdir)?;
+    // Check to see if it has been patched by KernelSU.
+    let _is_kernelsu_patched = is_kernelsu_patched(&magiskboot, workdir)?;
 
     let mut need_backup = false;
-    if !is_kernelsu_patched {
+    if no_ramdisk {
+        // vendor ramdisk patching
+        let status = do_vendor_cpio_cmd(&magiskboot, workdir, "exists init");
+        if status.is_ok() {
+            do_vendor_cpio_cmd(&magiskboot, workdir, "mv init init.real")?;
+        }
+    } else {
         // kernelsu.ko is not exist, backup init if necessary
         let status = do_cpio_cmd(&magiskboot, workdir, "exists init");
         if status.is_ok() {
             do_cpio_cmd(&magiskboot, workdir, "mv init init.real")?;
         }
-
         need_backup = flash;
     }
 
-    do_cpio_cmd(&magiskboot, workdir, "add 0755 init init")?;
-    do_cpio_cmd(&magiskboot, workdir, "add 0755 kernelsu.ko kernelsu.ko")?;
+    if no_ramdisk {
+        do_vendor_cpio_cmd(&magiskboot, workdir, "add 0755 init init")?;
+        do_vendor_cpio_cmd(&magiskboot, workdir, "add 0755 kernelsu.ko kernelsu.ko")?;
+    } else {
+        do_cpio_cmd(&magiskboot, workdir, "add 0755 init init")?;
+        do_cpio_cmd(&magiskboot, workdir, "add 0755 kernelsu.ko kernelsu.ko")?;
+    }
 
     #[cfg(target_os = "android")]
     if need_backup {
-        if let Err(e) = do_backup(&magiskboot, workdir, &bootimage) {
+        if let Err(e) = do_backup(&magiskboot, workdir, &bootimage, &partition_name) {
             println!("- Backup stock image failed: {e}");
         }
     }
@@ -501,7 +540,8 @@ fn do_patch(
         let output_dir = out.unwrap_or(std::env::current_dir()?);
         let now = chrono::Utc::now();
         let output_image = output_dir.join(format!(
-            "kernelsu_patched_{}.img",
+            "kernelsu_patched_{}_{}.img",
+            partition_name,
             now.format("%Y%m%d_%H%M%S")
         ));
 
@@ -546,11 +586,11 @@ fn calculate_sha1(file_path: impl AsRef<Path>) -> Result<String> {
 }
 
 #[cfg(target_os = "android")]
-fn do_backup(magiskboot: &Path, workdir: &Path, image: &str) -> Result<()> {
+fn do_backup(magiskboot: &Path, workdir: &Path, image: &str, partition_name: &str) -> Result<()> {
     let sha1 = calculate_sha1(image)?;
-    let filename = format!("{KSU_BACKUP_FILE_PREFIX}{sha1}");
+    let filename = format!("{KSU_BACKUP_FILE_PREFIX}{partition_name}_{sha1}");
 
-    println!("- Backup stock boot image");
+    println!("- Backup stock {} image", partition_name);
     // magiskboot cpio ramdisk.cpio 'add 0755 $BACKUP_FILENAME'
     let target = format!("{KSU_BACKUP_DIR}{filename}");
     std::fs::copy(image, &target).with_context(|| format!("backup to {target}"))?;
@@ -560,7 +600,7 @@ fn do_backup(magiskboot: &Path, workdir: &Path, image: &str) -> Result<()> {
         workdir,
         &format!("add 0755 {0} {0}", BACKUP_FILENAME),
     )?;
-    println!("- Stock image has been backup to");
+    println!("- Stock {} image has been backup to", partition_name);
     println!("- {target}");
     Ok(())
 }
@@ -568,7 +608,6 @@ fn do_backup(magiskboot: &Path, workdir: &Path, image: &str) -> Result<()> {
 #[cfg(target_os = "android")]
 fn clean_backup(sha1: &str) -> Result<()> {
     println!("- Clean up backup");
-    let backup_name = format!("{}{}", KSU_BACKUP_FILE_PREFIX, sha1);
     let dir = std::fs::read_dir(defs::KSU_BACKUP_DIR)?;
     for entry in dir.flatten() {
         let path = entry.path();
@@ -577,8 +616,8 @@ fn clean_backup(sha1: &str) -> Result<()> {
         }
         if let Some(name) = path.file_name() {
             let name = name.to_string_lossy().to_string();
-            if name != backup_name
-                && name.starts_with(KSU_BACKUP_FILE_PREFIX)
+            if name.starts_with(KSU_BACKUP_FILE_PREFIX) 
+                && name.contains(sha1)
                 && std::fs::remove_file(path).is_ok()
             {
                 println!("- removed {name}");
@@ -631,12 +670,27 @@ fn find_boot_image(
     ota: bool,
     is_replace_kernel: bool,
     workdir: &Path,
-) -> Result<(PathBuf, Option<String>)> {
+) -> Result<(PathBuf, Option<String>, String)> {
     let bootimage;
     let mut bootdevice = None;
+    let partition_name;
+    
     if let Some(ref image) = *image {
         ensure!(image.exists(), "boot image not found");
         bootimage = std::fs::canonicalize(image)?;
+        // Infer partition type from file name
+        let filename = image.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown");
+        partition_name = if filename.contains("init_boot") {
+            "init_boot".to_string()
+        } else if filename.contains("vendor_boot") {
+            "vendor_boot".to_string()
+        } else if filename.contains("boot") {
+            "boot".to_string()
+        } else {
+            "unknown".to_string()
+        };
     } else {
         if cfg!(not(target_os = "android")) {
             println!("- Current OS is not android, refusing auto bootimage/bootdevice detection");
@@ -655,13 +709,25 @@ fn find_boot_image(
 
         let init_boot_exist =
             Path::new(&format!("/dev/block/by-name/init_boot{slot_suffix}")).exists();
+        let vendor_boot_exist =
+            Path::new(&format!("/dev/block/by-name/vendor_boot{slot_suffix}")).exists();
+            
         let boot_partition = if !is_replace_kernel && init_boot_exist && !skip_init {
+            partition_name = "init_boot".to_string();
             format!("/dev/block/by-name/init_boot{slot_suffix}")
+        } else if !is_replace_kernel && vendor_boot_exist && !skip_init {
+            partition_name = "vendor_boot".to_string();
+            format!("/dev/block/by-name/vendor_boot{slot_suffix}")
         } else {
+            partition_name = "boot".to_string();
             format!("/dev/block/by-name/boot{slot_suffix}")
         };
 
         println!("- Bootdevice: {boot_partition}");
+        // Get partition name (for validation)
+        let detected_partition = get_partition_name(&boot_partition);
+        assert_eq!(partition_name, detected_partition, "Inconsistent partition name detection");
+        
         let tmp_boot_path = workdir.join("boot.img");
 
         dd(&boot_partition, &tmp_boot_path)?;
@@ -671,7 +737,7 @@ fn find_boot_image(
         bootimage = tmp_boot_path;
         bootdevice = Some(boot_partition);
     };
-    Ok((bootimage, bootdevice))
+    Ok((bootimage, bootdevice, partition_name))
 }
 
 fn post_ota() -> Result<()> {
