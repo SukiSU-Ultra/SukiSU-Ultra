@@ -57,8 +57,8 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 > [!Note]
 > 1. `CONFIG_KPM=y` が必要です。
-> 2.非 GKI デバイスには `CONFIG_KALLSYMS=y` と `CONFIG_KALLSYMS_ALL=y` も必要です。
-> 3.いくつかのカーネル `4.19` およびそれ以降のソースコードでは、 `4.19` からバックポートされた `set_memory.h` ヘッダーファイルも必要です。
+> 2. 非 GKI デバイスには `CONFIG_KALLSYMS=y` と `CONFIG_KALLSYMS_ALL=y` も必要です。
+> 3. いくつかのカーネル `4.19` およびそれ以降のソースコードでは、 `4.19` からバックポートされた `set_memory.h` ヘッダーファイルも必要です。
 
 
 ## ROOT を保持した状態でのシステムアップデートの方法
@@ -68,14 +68,13 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 ## 互換性の状態
 
-- KernelSU (v1.0.0 より前) は Android GKI 2.0 のデバイス (カーネル 5.10 以降) を公式にサポートしています。
+- KernelSU (v1.0.0 より前) は Android GKI 2.0 のデバイス (カーネル 5.10 以降) を公式に対応しています。
 
-- 古いカーネル (4.4 以降) も互換性がありますが、カーネルを手動で再ビルドする必要があります
+- 古いカーネル (4.4 以降) も互換性がありますが、カーネルを手動で再ビルドする必要があります。
 
+- KernelSU は追加のリバースポートを通じて 3.x カーネル (3.4-3.18) で対応可能です。
 
-- KernelSU は追加のリバースポートを通じて 3.x カーネル (3.4-3.18) をサポート可能です。
-
-- 現在 `arm64-v8a`, `armeabi-v7a (bare)` および一部の `X86_64` をサポートしています。
+- 現在 `arm64-v8a`, `armeabi-v7a (bare)` および一部の `X86_64` に対応しています。
 
 ## その他のリンク
 
@@ -89,12 +88,12 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 ### Universal GKI
 
-**すべて** 参照してください https://kernelsu.org/zh_CN/guide/installation.html
+**すべて**参照してください https://kernelsu.org/ja_JP/guide/installation.html
 
 > [!Note]
 >
 > 1. Xiaomi、Redmi、Samsung などの GKI 2.0 を搭載したデバイス向け (Meizu、OnePlus、Zenith、Oppo などカーネルが変更されているメーカーを除く)
-> 2. GKI のビルドは[その他のリンク](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5)から入手できます。デバイスのカーネルバージョンを確認してください。ダウンロード後に TWRP またはカーネルフラッシュツールを使用して AnyKernel3 の接頭辞を持つ zip ファイルをフラッシュしてください。Pixel のユーザーは、パッチの少ない GKI を死闘する必要があります。
+> 2. GKI のビルドは[その他のリンク](#その他のリンク)から入手できます。デバイスのカーネルバージョンを確認してください。ダウンロード後に TWRP またはカーネルフラッシュツールを使用して AnyKernel3 の接頭辞を持つ zip ファイルをフラッシュしてください。Pixel のユーザーは、パッチの少ない GKI を使用する必要があります。
 > 3. 接頭辞のない .zip アーカイブは圧縮されていません。.gz の接頭辞は Tenguet モデルで使用される圧縮になります。
 
 ### OnePlus
@@ -140,7 +139,7 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 - [KernelSU](https://github.com/tiann/KernelSU): オリジナルのプロジェクト
 - [MKSU](https://github.com/5ec1cff/KernelSU): 使用しているプロジェクト
 - [RKSU](https://github.com/rsuntk/KernelsU): このプロジェクトのカーネルを使用した非 GKI デバイスのサポートの再導入
-- [susfs](https://gitlab.com/simonpunk/susfs4ksu)：susfs ファイルシステムの使用
+- [susfs](https://gitlab.com/simonpunk/susfs4ksu): susfs ファイルシステムの使用
 - [KernelSU](https://git.zx2c4.com/kernel-assisted-superuser/about/): KernelSU の概念化
 - [Magisk](https://github.com/topjohnwu/Magisk): パワフルな root ユーティリティ
 - [genuine](https://github.com/brevent/genuine/): APK v2 署名認証
