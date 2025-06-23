@@ -503,4 +503,5 @@
     <string name="static_kstat_config">靜態 Kstat 配置</string>
     <string name="kstat_path_management">Kstat 路徑管理</string>
     <string name="no_kstat_config_message">暫冇 Kstat 配置，點擊上方按鈕添加配置</string>
+    <!-- SuSFS Mount Hiding Control Related Strings -->
 </resources>
