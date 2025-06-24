@@ -27,7 +27,7 @@
     <string name="install">Cài đặt</string>
     <string name="reboot">Khởi động lại</string>
     <string name="settings">Cài đặt</string>
-    <string name="reboot_userspace">Khởi động lại không gian người dùng</string>
+    <string name="reboot_userspace">Khởi động lại mềm</string>
     <string name="reboot_recovery">Khởi động lại vào Recovery</string>
     <string name="reboot_bootloader">Khởi động lại vào Bootloader</string>
     <string name="reboot_download">Khởi động lại vào Download Mode</string>
@@ -63,7 +63,7 @@
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %s quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
-    <string name="settings_susfs_toggle">Vô hiệu hóa các hook kprobe</string>
+    <string name="settings_susfs_toggle">Vô hiệu hóa kprobes hook</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
@@ -111,6 +111,7 @@
     <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng chưa được sử dụng!\nChỉ sử dụng tùy chọn này sau khi OTA hoàn tất.\nTiếp tục?</string>
     <string name="install_next">Kế tiếp</string>
     <string name="select_file_tip">Phân vùng %1$s được khuyến nghị</string>
+    <string name="select_file_tip_vendor">(Thử nghiệm)</string>
     <string name="select_kmi">Chọn KMI</string>
     <string name="settings_uninstall">Gỡ cài đặt</string>
     <string name="settings_uninstall_temporary">Gỡ cài đặt tạm thời</string>
@@ -235,7 +236,7 @@
     <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
     <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
     <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
-    <string name="settings_susfs_toggle_summary">Vô hiệu hóa các hook kprobe được tạo bởi SukiSU Ultra, thay vào đó sử dụng các hook nội tuyến, tương tự như phương pháp hook kernel không phải GKI</string>
+    <string name="settings_susfs_toggle_summary">Vô hiệu hóa kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng non-kprobes hook được nhúng, tương tự như phương pháp hook của Kernel non-GKI</string>
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay kéo nó để điều chỉnh vị trí</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
@@ -385,7 +386,7 @@
     <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">Cài đặt cơ bản</string>
     <string name="susfs_tab_sus_paths">Đường dẫn SuS</string>
-    <string name="susfs_tab_sus_mounts">SuS Mounts</string>
+    <string name="susfs_tab_sus_mounts">SuS Mount</string>
     <string name="susfs_tab_try_umount">SuS Umount</string>
     <string name="susfs_tab_path_settings">Cài đặt Đường dẫn</string>
     <string name="susfs_tab_enabled_features">Trạng thái tính năng</string>
@@ -401,7 +402,7 @@
     <string name="susfs_mount_path_label">Đường dẫn Mount</string>
     <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
     <string name="susfs_no_paths_configured">Không có Đường dẫn SuS nào được cấu hình</string>
-    <string name="susfs_no_mounts_configured">Không có SuS Mounts nào được cấu hình</string>
+    <string name="susfs_no_mounts_configured">Không có SuS Mount nào được cấu hình</string>
     <string name="susfs_no_umounts_configured">Không có SuS Umount nào được cấu hình</string>
     <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">Chế độ Umount</string>
@@ -418,7 +419,7 @@
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">Khôi phục Đường dẫn SuS</string>
     <string name="susfs_reset_paths_message">Thao tác này sẽ xóa tất cả các cấu hình Đường dẫn SuS. Bạn có chắc chắn muốn tiếp tục không?</string>
-    <string name="susfs_reset_mounts_title">Khôi phục SuS Mounts</string>
+    <string name="susfs_reset_mounts_title">Khôi phục SuS Mount</string>
     <string name="susfs_reset_mounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Mount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_umounts_title">Khôi phục SuS Umount</string>
     <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
@@ -449,7 +450,7 @@
     <string name="sus_kstat_feature_label">Hỗ trợ SuS Kstat</string>
     <string name="sus_su_feature_label">Chức năng chuyển đổi chế độ SuS SU</string>
     <!-- 可切换状态 -->
-    <string name="susfs_feature_configurable">Các tính năng SuSFS có thể cấu hình</string>
+    <string name="susfs_feature_configurable">Nhấn để bật/tắt ghi logs</string>
     <string name="susfs_enable_log_label">Kích hoạt logs SuSFS</string>
     <string name="susfs_log_config_description">Bật hoặc tắt ghi logs cho SuSFS</string>
     <string name="susfs_log_config_title">Cấu hình ghi logs SuSFS</string>
@@ -503,4 +504,19 @@
     <string name="static_kstat_config">Cấu hình Kstat tĩnh</string>
     <string name="kstat_path_management">Quản lý Đường dẫn Kstat</string>
     <string name="no_kstat_config_message">Chưa có cấu hình Kstat, hãy nhấp vào nút bên trên để thêm</string>
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_control_title">Điều khiển ẩn SuS Mount</string>
+    <string name="susfs_hide_mounts_control_description">Kiểm soát hành vi ẩn của SuS Mount với các tiến trình</string>
+    <string name="susfs_hide_mounts_for_all_procs_label">Ẩn SuS Mount khỏi tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">Khi kích hoạt, SuS Mount sẽ bị ẩn khỏi tất cả các tiến trình, bao gồm cả các tiến trình KSU</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hóa, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
+    <string name="susfs_hide_mounts_all_enabled">Đã kích hoạt ẩn SuS Mount khỏi tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_all_disabled">Đã vô hiệu hóa việc ẩn SuS Mount cho tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_recommendation">Nên vô hiệu hóa sau khi màn hình được mở khóa hoặc trong giai đoạn service.sh hoặc boot-completed.sh, vì điều này sẽ khắc phục sự cố trên một số ứng dụng đã root dựa vào mount bởi tiến trình KSU</string>
+    <string name="susfs_hide_mounts_current_setting">Cài đặt hiện tại: %s</string>
+    <string name="susfs_hide_mounts_setting_all">Ẩn khỏi tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_setting_non_ksu">Chỉ ẩn đối với các tiến trình không phải KSU</string>
+    <string name="susfs_run">Chạy</string>
+    <string name="kernel_simple_kernel">Hiển thị tóm tắt \"Phiên bản Kernel\"</string>
+    <string name="kernel_simple_kernel_summary">Tóm tắt hiển thị phiên bản Kernel cho ngắn gọn</string>
 </resources>
