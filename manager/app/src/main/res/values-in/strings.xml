@@ -8,6 +8,7 @@
     <string name="home_unsupported">Tidak didukung</string>
     <string name="home_unsupported_reason">KernelSU saat ini hanya mendukung kernel GKI</string>
     <string name="home_kernel">Kernel</string>
+    <string name="home_susfs_version">Versi SuSFS</string>
     <string name="home_manager_version">Versi manager</string>
     <string name="home_selinux_status">Status SELinux</string>
     <string name="selinux_status_disabled">Nonaktif</string>
@@ -19,6 +20,8 @@
     <string name="module_failed_to_disable">Gagal menonaktifkan modul: %s</string>
     <string name="module_empty">Tidak ada modul yang terpasang</string>
     <string name="module">Modul</string>
+    <string name="module_sort_action_first">Urut (Tindakan pertama)</string>
+    <string name="module_sort_enabled_first">Urut (Diaktifkan terlebih dahulu)</string>
     <string name="uninstall">Hapus</string>
     <string name="module_install">Instal</string>
     <string name="install">Instal</string>
@@ -47,6 +50,7 @@
     <string name="home_click_to_learn_kernelsu">Pelajari cara instal KernelSU dan menggunakan modul</string>
     <string name="home_support_title">Dukung Kami</string>
     <string name="home_support_content">KernelSU akan selalu menjadi aplikasi gratis dan terbuka. Anda dapat memberikan donasi sebagai bentuk dukungan.</string>
+    <string name="about_source_code"><![CDATA[Lihat kode sumber di %1$s<br/>Gabung dengan kami di saluran %2$s]]></string>
     <string name="profile_default">Bawaan</string>
     <string name="profile_template">Templat</string>
     <string name="profile_custom">Khusus</string>
@@ -58,6 +62,7 @@
     <string name="failed_to_update_app_profile">Gagal membarui Profil pada %s</string>
     <string name="settings_umount_modules_default">Melepas Modul secara bawaan</string>
     <string name="settings_umount_modules_default_summary">Menggunakan \"Umount Modul\" secara universal pada Profil Aplikasi. Jika diaktifkan, akan menghapus semua modifikasi sistem untuk aplikasi yang tidak memiliki set profil.</string>
+    <string name="settings_susfs_toggle">Nonaktifkan kprobe hooks</string>
     <string name="profile_umount_modules_summary">Aktifkan opsi ini agar KernelSU dapat memulihkan kembali berkas termodifikasi oleh modul pada aplikasi ini.</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Aturan</string>
@@ -70,122 +75,84 @@
     <string name="restart_app">Mulai ulang</string>
     <string name="failed_to_update_sepolicy">Gagal membarui aturan SELinux pada: %s</string>
     <string name="module_changelog">Catatan Perubahan</string>
-    <string name="app_profile_template_import_success">Berhasil diimpor</string>
-    <string name="app_profile_export_to_clipboard">Ekspor ke papan klip</string>
-    <string name="app_profile_template_export_empty">Tidak ditemukan templat lokal untuk diekspor!</string>
-    <string name="app_profile_template_id_exist">ID templat sudah ada!</string>
-    <string name="app_profile_import_from_clipboard">Impor dari papan klip</string>
-    <string name="module_changelog_failed">Gagal mengambil Changelog: %s</string>
-    <string name="app_profile_template_name">Nama</string>
-    <string name="app_profile_template_id_invalid">ID template tidak valid</string>
-    <string name="app_profile_template_sync">Sinkronkan templat daring</string>
+    <string name="settings_profile_template">Templat Profil Aplikasi</string>
+    <string name="settings_profile_template_summary">Atur templat Profil yang lokal dan daring</string>
     <string name="app_profile_template_create">Buat templat</string>
-    <string name="app_profile_import_export">Impor/Ekspor</string>
-    <string name="app_profile_template_save_failed">Gagal menyimpan templat</string>
     <string name="app_profile_template_edit">Edit templat</string>
     <string name="app_profile_template_id">ID</string>
-    <string name="settings_profile_template">Templat Profil Aplikasi</string>
+    <string name="app_profile_template_id_invalid">ID template tidak valid</string>
+    <string name="app_profile_template_name">Nama</string>
     <string name="app_profile_template_description">Deskripsi</string>
     <string name="app_profile_template_save">Simpan</string>
-    <string name="settings_profile_template_summary">Atur templat Profil yang lokal dan daring</string>
     <string name="app_profile_template_delete">Hapus</string>
-    <string name="app_profile_template_import_empty">Papan klip kosong!</string>
     <string name="app_profile_template_view">Lihat templat</string>
     <string name="app_profile_template_readonly">readonly</string>
+    <string name="app_profile_template_id_exist">ID templat sudah ada!</string>
+    <string name="app_profile_import_export">Impor/Ekspor</string>
+    <string name="app_profile_import_from_clipboard">Impor dari papan klip</string>
+    <string name="app_profile_export_to_clipboard">Ekspor ke papan klip</string>
+    <string name="app_profile_template_export_empty">Tidak ditemukan templat lokal untuk diekspor!</string>
+    <string name="app_profile_template_import_success">Berhasil diimpor</string>
+    <string name="app_profile_template_sync">Sinkronkan templat daring</string>
+    <string name="app_profile_template_save_failed">Gagal menyimpan templat</string>
+    <string name="app_profile_template_import_empty">Papan klip kosong!</string>
+    <string name="module_changelog_failed">Gagal mengambil Changelog: %s</string>
+    <string name="settings_check_update">Cek terbaru</string>
+    <string name="settings_check_update_summary">Cek terbaru setiap membuka aplikasi</string>
+    <string name="grant_root_failed">Gagal memberikan akses root!</string>
+    <string name="action">Tindakan</string>
+    <string name="close">Tutup</string>
     <string name="enable_web_debugging">Pengawakutuan WebView</string>
     <string name="enable_web_debugging_summary">Dapat digunakan untuk men-debug WebUI. Harap aktifkan hanya bila diperlukan.</string>
-    <string name="select_file_tip">%1$s image partisi terekomendasi</string>
-    <string name="select_kmi">Pilih KMI</string>
-    <string name="install_next">Selanjutnya</string>
-    <string name="install_inactive_slot_warning">Gawai akan **DIPAKSA** untuk but ke slot nonaktif!
-\nHANYA gunakan setelah proses OTA selesai.
-\nLanjutkan?</string>
     <string name="direct_install">Instal langsung (rekomendasi)</string>
     <string name="select_file">Pilih berkas</string>
     <string name="install_inactive_slot">Instal ke slot nonaktif (setelah OTA)</string>
-    <string name="grant_root_failed">Gagal memberikan akses root!</string>
-    <string name="close">Tutup</string>
-    <string name="settings_check_update">Cek terbaru</string>
-    <string name="settings_check_update_summary">Cek terbaru setiap membuka aplikasi</string>
-    <string name="settings_uninstall_permanent_message">Hapus permanen KernelSU (root dan modul).</string>
-    <string name="settings_uninstall_temporary">Hapus sementara</string>
-    <string name="settings_restore_stock_image">Pulihkan image bawaan</string>
+    <string name="install_inactive_slot_warning">Gawai akan **DIPAKSA** untuk but ke slot nonaktif!
+\nHANYA gunakan setelah proses OTA selesai.
+\nLanjutkan?</string>
+    <string name="install_next">Selanjutnya</string>
+    <string name="select_file_tip">%1$s image partisi terekomendasi</string>
+    <string name="select_kmi">Pilih KMI</string>
     <string name="settings_uninstall">Hapus</string>
-    <string name="settings_uninstall_temporary_message">Sementara menghapus KernelSU, memulihkan ke kondisi asal setelah reboot berikutnya.</string>
+    <string name="settings_uninstall_temporary">Hapus sementara</string>
     <string name="settings_uninstall_permanent">Hapus permanen</string>
+    <string name="settings_restore_stock_image">Pulihkan image bawaan</string>
+    <string name="settings_uninstall_temporary_message">Sementara menghapus KernelSU, memulihkan ke kondisi asal setelah reboot berikutnya.</string>
+    <string name="settings_uninstall_permanent_message">Hapus permanen KernelSU (root dan modul).</string>
     <string name="settings_restore_stock_image_message">Pulihkan image bawaan ROM (jika cadangan tersedia), umumnya dilakukan sebelum OTA; jika ingin menghapus KernelSU, gunakan fungsi \"Hapus permanen\".</string>
-    <string name="flash_success">Pemasangan Berhasil</string>
-    <string name="selected_lkm">LKM dipilih: %s</string>
     <string name="flashing">Pasang</string>
+    <string name="flash_success">Pemasangan Berhasil</string>
     <string name="flash_failed">Pemasangan Gagal</string>
+    <string name="selected_lkm">LKM dipilih: %s</string>
     <string name="save_log">Simpan Log</string>
-    <string name="action">Action</string>
     <string name="log_saved">Log disimpan</string>
-    <string name="module_sort_enabled_first">Urut (Diaktifkan terlebih dahulu)</string>
-    <string name="module_sort_action_first">Urut (Tindakan pertama)</string>
-    <string name="home_android_version">Versi Android</string>
-    <string name="home_kpm_version">Versi KPM</string>
-    <string name="home_susfs_version">Versi SuSFS</string>
-    <string name="home_device_model">Model Perangkat</string>
-    <string name="home_ContributionCard_kernelsu">Antusias Untuk SukiSU Ultra</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
-    <string name="kpm_title">KPM</string>
-    <string name="kpm_empty">Tidak ada modul kernel yang terpasang saat ini</string>
-    <string name="kpm_version">Versi</string>
-    <string name="kpm_author">Pembuat</string>
-    <string name="kpm_uninstall">Uninstal</string>
-    <string name="kpm_uninstall_success">Berhasil di Uninstal</string>
-    <string name="kpm_uninstall_failed">Gagal Uninstal</string>
-    <string name="kpm_install_success">Memuat module KPM berhasil</string>
-    <string name="kpm_install_failed">Memuat module KPM gagal!</string>
-    <string name="kpm_args">Parameter</string>
-    <string name="kpm_control">Eksekusi</string>
-    <string name="kernel_module_notice">Fungsi-fungsi modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fungsi modul kernel dari SukiSU Ultra</string>
-    <string name="settings_disable_su">Nonaktifkan kompatibilitas SU</string>
-    <string name="settings_disable_su_summary">Nonaktifkan sementara kemampuan aplikasi untuk mendapatkan hak akses root melalui perintah ⁠su (proses root yang sedang berjalan tidak akan terpengaruh)</string>
-    <string name="use_webuix">Pilih jenis webUI untuk digunakan</string>
-    <string name="engine_auto_select">Otomatis memilih</string>
-    <string name="engine_force_webuix">Paksa menggunakan WebUI X</string>
-    <string name="engine_force_ksu">Penggunaan wajib KSU WebUI</string>
-    <string name="more_settings">Setelan lainnya</string>
-    <string name="language_setting">Bahasa Aplikasi</string>
-    <string name="language_follow_system">Mengikuti sistem</string>
-    <string name="language_changed">Bahasa dirubah, mulai ulang aplikasi untuk menerapkan</string>
-    <string name="theme_mode">Tema</string>
-    <string name="theme_follow_system">Mengikuti sistem</string>
-    <string name="theme_light">Terang</string>
-    <string name="theme_dark">Hitam</string>
-    <string name="dynamic_color_title">Warna dinamik</string>
-    <string name="dynamic_color_summary">Warna dinamik, menggunakan sistem tema</string>
-    <string name="choose_theme_color">Pilih warna tema</string>
-    <string name="color_default">Biru</string>
-    <string name="color_green">Hijau</string>
-    <string name="color_purple">Ungu</string>
-    <string name="color_orange">Oren</string>
-    <string name="color_pink">Pink</string>
-    <string name="color_gray">Abu</string>
-    <string name="color_yellow">Kuning</string>
-    <string name="app_dpi_title">Ubah DPI</string>
-    <string name="app_dpi_summary">Pengaturan DPI hanya untuk aplikasi ini saja</string>
-    <string name="dpi_size_small">Kecil</string>
-    <string name="dpi_size_medium">Sedang</string>
-    <string name="dpi_size_large">Besar</string>
-    <string name="dpi_size_extra_large">Jumbo</string>
-    <string name="dpi_size_custom">Kustomisasi</string>
-    <string name="dpi_apply_settings">Terapkan setelan DPI</string>
-    <string name="dpi_confirm_title">Konfirmasi perubahan DPI</string>
-    <string name="dpi_confirm_message">Apa kamu yakin ingin merubah DPI aplikasi dari %1$d ke %2$d?</string>
-    <string name="dpi_confirm_summary">Aplikasi membutuhkan restar untuk menerapkan opsi DPI ini, perubahan ini tidak mengganggu DPI sistem</string>
-    <string name="dpi_applied_success">DPI telah di rubah ke %1$d, efektif setelah aplikasi di restar</string>
+    <string name="sus_su_mode">Mode SuS SU:</string>
+    <!-- Module related -->
+    <string name="module_install_confirm">konfirmasi pemasangan modul %1$s?</string>
+    <!-- Restore related -->
+    <string name="restore_confirm_message">Operasi ini akan menimpa semua modul yang ada. Lanjutkan?</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="cancel">Batal</string>
+    <!-- Backup related -->
+    <string name="backup_success">Pencadangan berhasil (tar.gz)</string>
+    <string name="backup_failed">Pencadangan gagal: %1$s</string>
+    <string name="backup_modules">cadangkan modul</string>
+    <string name="restore_modules">pulihkan modul</string>
+    <!-- Restore related messages -->
+    <string name="restore_success">Modul berhasil dipulihkan, restart diperlukan</string>
+    <string name="restore_failed">Pemulihan gagal: %1$s</string>
+    <string name="restart_now">Mulai Ulang Sekarang</string>
+    <string name="unknown_error">Kesalahan tidak diketahui</string>
+    <!-- Command related -->
+    <!-- Allowlist related -->
     <string name="settings_custom_background">Latar belakang kustom</string>
     <string name="settings_custom_background_summary">Pilih gambar untuk latar belakang</string>
     <string name="settings_card_alpha">NavBar transparant</string>
-    <string name="appearance_settings">Kustomisasi toolbar</string>
-    <string name="icon_switch_title">Ubah ikon</string>
-    <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU</string>
-    <string name="icon_switched">Ikon dirubah</string>
-    <string name="show_more_module_info">Tampilkan info modul lainnya</string>
-    <string name="show_more_module_info_summary">Pajang info modul tambahan seperti URL pembaruan JSON</string>
+    <string name="home_android_version">Versi Android</string>
+    <string name="home_device_model">Model Perangkat</string>
+    <string name="settings_disable_su">Nonaktifkan kompatibilitas SU</string>
+    <string name="settings_disable_su_summary">Nonaktifkan sementara kemampuan aplikasi untuk mendapatkan hak akses root melalui perintah ⁠su (proses root yang sedang berjalan tidak akan terpengaruh)</string>
+    <string name="more_settings">Setelan lainnya</string>
     <string name="simple_mode">Mode simple</string>
     <string name="simple_mode_summary">Sembunyikan papan kartu di beranda</string>
     <string name="hide_kernel_kernelsu_version">Sembunyikan versi kernel</string>
@@ -198,6 +165,93 @@
     <string name="hide_link_card_summary">Sembunyikan papan kartu URL di halaman awal beranda</string>
     <string name="hide_tag_card">Sembunyikan baris label modul</string>
     <string name="hide_tag_card_summary">Sembunyikan label nama folder dan ukuran di kartu modul</string>
+    <string name="theme_mode">Tema</string>
+    <string name="theme_follow_system">Mengikuti sistem</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Hitam</string>
+    <string name="dynamic_color_title">Warna dinamik</string>
+    <string name="dynamic_color_summary">Warna dinamik, menggunakan sistem tema</string>
+    <string name="choose_theme_color">Pilih warna tema</string>
+    <string name="color_default">Biru</string>
+    <string name="color_green">Hijau</string>
+    <string name="color_purple">Ungu</string>
+    <string name="color_orange">Oren</string>
+    <string name="color_gray">Abu</string>
+    <string name="color_yellow">Kuning</string>
+    <string name="kpm_empty">Tidak ada modul kernel yang terpasang saat ini</string>
+    <string name="kpm_version">Versi</string>
+    <string name="kpm_author">Pembuat</string>
+    <string name="kpm_uninstall">Uninstal</string>
+    <string name="kpm_uninstall_success">Berhasil di Uninstal</string>
+    <string name="kpm_uninstall_failed">Gagal Uninstal</string>
+    <string name="kpm_install_success">Memuat module KPM berhasil</string>
+    <string name="kpm_install_failed">Memuat module KPM gagal!</string>
+    <string name="kpm_args">Parameter</string>
+    <string name="kpm_control">Eksekusi</string>
+    <string name="home_kpm_version">Versi KPM</string>
+    <string name="kernel_module_notice">Fungsi-fungsi modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fungsi modul kernel dari SukiSU Ultra</string>
+    <string name="home_ContributionCard_kernelsu">Antusias Untuk SukiSU Ultra</string>
+    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
+    <!-- Kernel Flash Progress Related -->
+    <!-- Flash Status Related -->
+    <!-- Slot selection related strings -->
+    <!-- Error Messages -->
+    <!-- lkm/gki install -->
+    <!--  String resources used in SuperUser -->
+    <string name="appearance_settings">Kustomisasi toolbar</string>
+    <string name="icon_switch_title">Ubah ikon</string>
+    <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU</string>
+    <string name="icon_switched">Ikon dirubah</string>
+    <!-- KPM display settings -->
     <string name="show_kpm_info">Tampilkan fungsi KPM</string>
     <string name="show_kpm_info_summary">Tampilkan fungsi informasi KPM dan menu KPM di bilah navigasi</string>
+    <!-- Webui X settings -->
+    <string name="use_webuix">Pilih jenis webUI untuk digunakan</string>
+    <string name="engine_auto_select">Otomatis memilih</string>
+    <string name="engine_force_webuix">Paksa menggunakan WebUI X</string>
+    <string name="engine_force_ksu">Penggunaan wajib KSU WebUI</string>
+    <!-- DPI setting related strings -->
+    <string name="app_dpi_title">Ubah DPI</string>
+    <string name="app_dpi_summary">Pengaturan DPI hanya untuk aplikasi ini saja</string>
+    <string name="dpi_size_small">Kecil</string>
+    <string name="dpi_size_medium">Sedang</string>
+    <string name="dpi_size_large">Besar</string>
+    <string name="dpi_size_extra_large">Jumbo</string>
+    <string name="dpi_size_custom">Kustomisasi</string>
+    <string name="dpi_apply_settings">Terapkan setelan DPI</string>
+    <string name="dpi_confirm_title">Konfirmasi perubahan DPI</string>
+    <string name="dpi_confirm_message">Apa kamu yakin ingin merubah DPI aplikasi dari %1$d ke %2$d?</string>
+    <string name="dpi_confirm_summary">Aplikasi membutuhkan restar untuk menerapkan opsi DPI ini, perubahan ini tidak mengganggu DPI sistem</string>
+    <string name="dpi_applied_success">DPI telah di rubah ke %1$d, efektif setelah aplikasi di restar</string>
+    <!-- Language settings related strings -->
+    <string name="language_setting">Bahasa Aplikasi</string>
+    <string name="language_follow_system">Mengikuti sistem</string>
+    <string name="language_changed">Bahasa dirubah, mulai ulang aplikasi untuk menerapkan</string>
+    <!-- Flash related -->
+    <!-- 分类相关 -->
+    <!-- 排序相关 -->
+    <!-- 状态相关 -->
+    <!-- 标签相关 -->
+    <!-- BottomSheet相关 -->
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- SuSFS Settings Item -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Dialog Actions -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Umount Mode -->
+    <!-- SuSFS Run Umount -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- Settings related strings -->
+    <string name="show_more_module_info">Tampilkan info modul lainnya</string>
+    <string name="show_more_module_info_summary">Pajang info modul tambahan seperti URL pembaruan JSON</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
 </resources>
