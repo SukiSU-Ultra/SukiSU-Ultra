@@ -374,7 +374,7 @@ private fun SelectInstallMethod(
     val selectFileTip = stringResource(
         id = R.string.select_file_tip,
         if (isInitBoot()) {
-    "init_boot / vendor_boot${stringResource(R.string.select_vendor)}"
+    "init_boot / vendor_boot${stringResource(R.string.select_file_tip_vendor)}"
 } else {
     "boot"
         }
