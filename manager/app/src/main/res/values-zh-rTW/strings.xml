@@ -111,6 +111,7 @@
     <string name="install_inactive_slot_warning">將在重新啟動後強制切換至另一槽位！\n注意：僅能在 OTA 更新完成後重新啟動前使用。\n確定繼續？</string>
     <string name="install_next">下一步</string>
     <string name="select_file_tip">建議選擇 %1$s 分區映像檔</string>
+    <string name="select_file_tip_vendor">實驗性的</string>
     <string name="select_kmi">選擇 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
     <string name="settings_uninstall_temporary">臨時解除安裝</string>
