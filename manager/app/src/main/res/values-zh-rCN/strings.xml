@@ -504,7 +504,7 @@
     <string name="static_kstat_config">静态 Kstat 配置</string>
     <string name="kstat_path_management">Kstat 路径管理</string>
     <string name="no_kstat_config_message">暂无 Kstat 配置，点击下方按钮添加配置</string>
-    <!-- SuSFS 挂载隐藏控制相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
     <string name="susfs_hide_mounts_control_title">SUS挂载隐藏控制</string>
     <string name="susfs_hide_mounts_control_description">控制SUS挂载对进程的隐藏行为</string>
     <string name="susfs_hide_mounts_for_all_procs_label">对所有进程隐藏SUS挂载</string>
