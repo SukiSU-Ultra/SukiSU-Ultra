@@ -113,6 +113,7 @@
 \n Продолжить?</string>
     <string name="install_next">Далее</string>
     <string name="select_file_tip">Образ раздела %1$s рекомендуется</string>
+    <string name="select_file_tip_vendor">(нестабильный)</string>
     <string name="select_kmi">Выбрать KMI</string>
     <string name="settings_uninstall">Удалить</string>
     <string name="settings_uninstall_temporary">Удалить на время</string>
@@ -180,6 +181,8 @@
     <string name="hide_susfs_status_summary">Скрывать информацию о статусе SuSFS на главной странице</string>
     <string name="hide_link_card">Скрыть карточки со ссылками</string>
     <string name="hide_link_card_summary">Скрывать карточки со ссылками на главной странице</string>
+    <string name="hide_tag_card">Скрыть строки модуля</string>
+    <string name="hide_tag_card_summary">Скрывать имя пакета и размер в карточке модуля</string>
     <string name="theme_mode">Тема</string>
     <string name="theme_follow_system">Как в системе</string>
     <string name="theme_light">Светлая</string>
@@ -358,7 +361,10 @@
     <string name="susfs_config_description_text">Эта функция позволяет вам настраивать переменную uname для SuSFS. Впишите значение и нажмите \"Применить\" для изменения.</string>
     <string name="susfs_uname_label">Значение uname</string>
     <string name="susfs_uname_placeholder">Пожалуйста, введите пользовательское значение uname</string>
+    <string name="susfs_build_time_label">Подмена времени сборки</string>
+    <string name="susfs_build_time_placeholder">Пожалуйста, введите значение для подмены времени сборки</string>
     <string name="susfs_current_value">Текущее значение: %s</string>
+    <string name="susfs_current_build_time">Текущее время сборки: %s</string>
     <string name="susfs_reset_to_default">Значение по умолчанию</string>
     <string name="susfs_apply">Применить</string>
     <!-- SuSFS Reset Confirmation -->
@@ -372,17 +378,124 @@
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">Конфигурация SuSFS</string>
     <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">Автозапуск</string>
+    <string name="susfs_autostart_description">Автоматически применять все конфигурации не по умолчанию при перезагрузке</string>
+    <string name="susfs_autostart_requirement">Для включения необходимо добавить конфигурацию</string>
+    <string name="susfs_autostart_enable_failed">Не удалось включить автозапуск</string>
+    <string name="susfs_autostart_disable_failed">Не удалось отключить автозапуск</string>
+    <string name="susfs_autostart_error">Ошибка автозапуска конфигурации: %s</string>
+    <string name="susfs_no_config_to_autostart">Нет доступных конфигураций для автозапуска</string>
     <!-- SuSFS Tab Titles -->
+    <string name="susfs_tab_basic_settings">Базовые настройки</string>
+    <string name="susfs_tab_sus_paths">SUS пути</string>
+    <string name="susfs_tab_sus_mounts">SUS монтирование</string>
+    <string name="susfs_tab_try_umount">Попробовать размонтировать</string>
+    <string name="susfs_tab_path_settings">Настройки пути</string>
+    <string name="susfs_tab_enabled_features">Статус включённых функций</string>
     <!-- SuSFS Dialog Actions -->
+    <string name="susfs_add">Добавить</string>
     <!-- SuSFS Path Management -->
+    <string name="susfs_add_sus_path">Добавить SUS путь</string>
+    <string name="susfs_add_sus_mount">Добавить SUS монтирование</string>
+    <string name="susfs_add_try_umount">Добавить попробовать размонтировать</string>
+    <string name="susfs_sus_path_added_success">Путь SUS успешно добавлен</string>
+    <string name="susfs_path_not_found_error">Ошибка пути</string>
+    <string name="susfs_path_label">Путь</string>
+    <string name="susfs_mount_path_label">Путь монтирования</string>
+    <string name="susfs_path_placeholder">например: /system/addon.d</string>
+    <string name="susfs_no_paths_configured">SUS пути не настроены</string>
+    <string name="susfs_no_mounts_configured">SUS монтирование не настроено</string>
+    <string name="susfs_no_umounts_configured">Попытка размонтировать не настроена</string>
     <!-- SuSFS Umount Mode -->
+    <string name="susfs_umount_mode_label">Режим размонтирования</string>
+    <string name="susfs_umount_mode_normal">Обычное размонтирование (0)</string>
+    <string name="susfs_umount_mode_detach">Размонтирование отсоединением (1)</string>
+    <string name="susfs_umount_mode_normal_short">Нормальный</string>
+    <string name="susfs_umount_mode_detach_short">Отсоединить</string>
+    <string name="susfs_umount_mode_display">Режим: %1$s (%2$s)</string>
+    <string name="susfs_try_umount_added_success">Попытка размонтировать путь успешно добавлена： %s</string>
+    <string name="susfs_try_umount_added_saved">Попытка размонтировать путь успешно сохранена： %s</string>
     <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_message">Это очистит все конфигурации пути SUS. Вы уверены, что хотите продолжить?</string>
+    <string name="susfs_reset_umounts_title">Сбросить Umount</string>
+    <string name="susfs_reset_path_title">Сбросить настройки пути</string>
     <!-- SuSFS Path Settings -->
+    <string name="susfs_android_data_path_label">Путь к данным Android</string>
+    <string name="susfs_sdcard_path_label">Путь к SD-карте</string>
+    <string name="susfs_set_sdcard_path">Задать путь к SD-карте</string>
     <!-- SuSFS Enabled Features -->
+    <string name="susfs_enabled_features_description">Показывать текущее состояние функций SuSFS</string>
+    <string name="susfs_feature_enabled">Включено</string>
+    <string name="susfs_feature_disabled">Выключено</string>
     <!-- Feature Labels -->
+    <string name="sus_path_feature_label">Поддержка SUS пути</string>
+    <string name="sus_mount_feature_label">Поддержка SUS монтирования</string>
+    <string name="spoof_uname_feature_label">Поддержка подмены uname</string>
+    <string name="spoof_cmdline_feature_label">Подмена Cmdline/Bootconfig</string>
+    <string name="open_redirect_feature_label">Поддержка Open Redirect</string>
+    <string name="enable_log_feature_label">Поддержка логов</string>
+    <string name="magic_mount_feature_label">Поддержка Magic Mount</string>
+    <string name="sus_kstat_feature_label">Поддержка SUS Kstat</string>
+    <string name="sus_su_feature_label">Функция переключения режима SUS SU</string>
     <!-- 可切换状态 -->
+    <string name="susfs_feature_configurable">Настраиваемые функции SuSFS</string>
+    <string name="susfs_enable_log_label">SuSFS включить лог</string>
+    <string name="susfs_log_config_description">Включить или отключить логирование для SuSFS</string>
+    <string name="susfs_log_config_title">SuSFS настройка логирования</string>
+    <string name="susfs_log_enabled">Включить логирование SuSFS</string>
+    <string name="susfs_log_disabled">Выключить логирование SuSFS</string>
+    <string name="module_update_json">JSON обновления</string>
+    <string name="module_update_json_copied">JSON ссылка обновления скопирована в буфер обмена</string>
     <!-- Settings related strings -->
+    <string name="show_more_module_info">Показать больше информации о модуле</string>
+    <string name="show_more_module_info_summary">Показывать доп. информацию о модулях, такую как JSON ссылку для обновления</string>
+    <string name="susfs_execution_location_label">Место выполнения</string>
+    <string name="susfs_current_execution_location">Текущее место выполнения: %s</string>
+    <string name="susfs_execution_location_service">Сервис</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">Выполнить после запуска системных сервисов</string>
+    <string name="susfs_execution_location_post_fs_data_description">Выполнить после монтирования файловой системы, но перед полной загрузкой. Может вызвать бутлуп</string>
+    <string name="susfs_slot_info_title">Информация о слоте</string>
+    <string name="susfs_slot_info_description">Просмотреть информацию о текущем слоте загрузки и скопировать значения</string>
+    <string name="susfs_current_active_slot">Текущий слот: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">Время сборки: %s</string>
+    <string name="susfs_slot_current_badge">Текущее</string>
+    <string name="susfs_slot_use_uname">Использовать Uname</string>
+    <string name="susfs_slot_use_build_time">Использовать время сборки</string>
+    <string name="susfs_slot_info_unavailable">Не удается получить информацию о слоте</string>
     <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">SuSFS автозапуск модуля включен, путь к модулям: %s</string>
+    <string name="susfs_autostart_disabled_success">SuSFS модуль автозапуска отключен</string>
     <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Конфигурация Kstat</string>
+    <string name="kstat_static_config_added">Добавлена статическая конфигурация Kstat: %1$s</string>
+    <string name="kstat_config_removed">Конфигурация Kstat удалена: %1$s</string>
+    <string name="kstat_path_added">Путь к Kstat добавлен: %1$s</string>
+    <string name="kstat_path_removed">Путь к Kstat удалён: %1$s</string>
+    <string name="kstat_updated">Kstat обновлен: %1$s</string>
+    <string name="file_or_directory_path_label">Путь к файлу/папке</string>
+    <string name="hint_use_default_value">Подсказка: Вы можете использовать «по умолчанию» для использования оригинального значения</string>
+    <string name="add_kstat_path_title">Добавить путь Kstat</string>
+    <string name="kstat_command_description">Эта команда используется для добавления перед тем как путь монтируется в bind-mounted или overlaid, сохраняя исходную информацию о состоянии в памяти ядра.</string>
+    <string name="add">Добавить</string>
+    <string name="reset_kstat_config_title">Сбросить конфигурацию Kstat</string>
+    <string name="reset_kstat_config_message">Вы уверены, что хотите очистить все конфигурации Kstat? Это действие нельзя отменить.</string>
+    <string name="confirm_reset">Подтвердить сброс</string>
+    <string name="kstat_config_description_title">Описание конфигурации Kstat</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_staticall: Статическая статистика информации о файлах/директориях</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: Добавить путь перед привязкой, сохраняя исходную статистику</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: Обновление цели, сохранение размера и блоков без изменений</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: Обновление только новых, сохранить другие исходные значения</string>
+    <string name="static_kstat_config">Статическая конфигурация Kstat</string>
+    <string name="kstat_path_management">Управление путями Kstat</string>
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Если отключено, монтирования SUS будут скрываться только из процессов, не связанных с KSU, процессы KSU могут видеть монтирования</string>
+    <string name="susfs_hide_mounts_all_enabled">Включено скрытие монтирования SUS для всех процессов</string>
+    <string name="susfs_hide_mounts_all_disabled">Отключено скрытие монтирования SUS для всех процессов</string>
+    <string name="susfs_hide_mounts_recommendation">Рекомендуется отключить после разблокировки экрана или во время service.sh или boot-completed.sh, так как это должно исправить проблему на некоторых root-приложениях, которые опираются на монтирование, смонтированное процессом KSU</string>
+    <string name="susfs_hide_mounts_current_setting">Текущие настройки: %s</string>
+    <string name="susfs_hide_mounts_setting_all">Скрыть для всех процессов</string>
+    <string name="susfs_hide_mounts_setting_non_ksu">Скрыть только для процессов, не связанных с KSU</string>
 </resources>
