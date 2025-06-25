@@ -6,7 +6,7 @@
 
 **实验性! 使用风险自负!**
 
-> 这是非官方分支，保留所有权利 [@tiann](https://github.com/tiann)
+> 这是非官方分支，[@tiann](https://github.com/tiann) 有权保留所有权利
 >
 > 但是，我们将会在未来成为一个单独维护的 KSU 分支
 
