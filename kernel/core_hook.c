@@ -397,7 +397,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		if (copy_to_user(arg3, &version, sizeof(version))) {
 			pr_err("prctl reply error, cmd: %lu\n", arg2);
 		}
-		u32 version_flags = 2;
+		u32 version_flags = 0;
 #ifdef MODULE
 		version_flags |= 0x1;
 #endif
