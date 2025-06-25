@@ -111,14 +111,14 @@
     <string name="install_inactive_slot_warning">將在重新啟動後強制切換至另一槽位！\n注意：僅能在 OTA 更新完成後重新啟動前使用。\n確定繼續？</string>
     <string name="install_next">下一步</string>
     <string name="select_file_tip">建議選擇 %1$s 分區映像檔</string>
-    <string name="select_file_tip_vendor">實驗性的</string>
+    <string name="select_file_tip_vendor">(實驗性的)</string>
     <string name="select_kmi">選擇 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
     <string name="settings_uninstall_temporary">臨時解除安裝</string>
     <string name="settings_uninstall_permanent">永久解除安裝</string>
     <string name="settings_restore_stock_image">還原原廠映像檔</string>
     <string name="settings_uninstall_temporary_message">臨時解除安裝 KernelSU，下次重新啟動後恢復至原始狀態。</string>
-    <string name="settings_uninstall_permanent_message">完全且永久解除安裝 KernelSU（包括 Root 權限和所有模組）。</string>
+    <string name="settings_uninstall_permanent_message">完全且永久解除安裝 KernelSU（含 Root 權限和所有模組）。</string>
     <string name="settings_restore_stock_image_message">還原原廠映像檔（若存在備份），通常在 OTA 前使用；若需解除安裝 KernelSU，請使用\"永久解除安裝\"。</string>
     <string name="flashing">正在刷寫</string>
     <string name="flash_success">刷寫完成</string>
@@ -128,7 +128,7 @@
     <string name="log_saved">日誌已儲存</string>
     <string name="sus_su_mode">SuS SU 模式：</string>
     <!-- Module related -->
-    <string name="module_install_confirm">確定要安裝模組 %1$s 嗎？</string>
+    <string name="module_install_confirm">確定安裝模組 %1$s？</string>
     <string name="unknown_module">未知模組</string>
     <!-- Restore related -->
     <string name="restore_confirm_title">確定還原模組</string>
@@ -504,4 +504,19 @@
     <string name="static_kstat_config">靜態 Kstat 設定</string>
     <string name="kstat_path_management">Kstat 路徑管理</string>
     <string name="no_kstat_config_message">暫無 Kstat 設定，請點擊上方按鈕新增設定</string>
+    <!-- SuSFS 掛載隱藏控制相關字串 -->
+    <string name="susfs_hide_mounts_control_title">SUS掛載隱藏控制</string>
+    <string name="susfs_hide_mounts_control_description">控制SUS掛載對程序的隱藏行為</string>
+    <string name="susfs_hide_mounts_for_all_procs_label">對所有程序隱藏SUS掛載</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">啟用後，SUS掛載將對所有程序隱藏，包括KSU程序</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">禁用後，SUS掛載僅對非KSU程序隱藏，KSU程序可以看到掛載</string>
+    <string name="susfs_hide_mounts_all_enabled">已啟用對所有程序隱藏SUS掛載</string>
+    <string name="susfs_hide_mounts_all_disabled">已禁用對所有程序隱藏SUS掛載</string>
+    <string name="susfs_hide_mounts_recommendation">建議在螢幕解鎖後或在service.sh或boot-completed.sh階段設定為禁用，這可以修復一些依賴KSU程序掛載的root應用的問題</string>
+    <string name="susfs_hide_mounts_current_setting">當前設定: %s</string>
+    <string name="susfs_hide_mounts_setting_all">對所有程序隱藏</string>
+    <string name="susfs_hide_mounts_setting_non_ksu">僅對非KSU程序隱藏</string>
+    <string name="susfs_run">執行</string>
+    <string name="kernel_simple_kernel">核心版本簡潔模式</string>
+    <string name="kernel_simple_kernel_summary">啟用或禁用SukiSU核心版本顯示的簡潔模式</string>
 </resources>
