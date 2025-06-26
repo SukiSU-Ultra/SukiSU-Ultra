@@ -390,7 +390,6 @@
     <string name="susfs_tab_try_umount">尝试卸载</string>
     <string name="susfs_tab_path_settings">路径设置</string>
     <string name="susfs_tab_enabled_features">启用功能状态</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">添加SUS路径</string>
     <string name="susfs_add_sus_mount">添加SUS挂载</string>
