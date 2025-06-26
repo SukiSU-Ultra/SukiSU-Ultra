@@ -392,7 +392,6 @@
     <string name="susfs_tab_try_umount">Попробовать размонтировать</string>
     <string name="susfs_tab_path_settings">Настройки пути</string>
     <string name="susfs_tab_enabled_features">Статус включённых функций</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">Добавить SUS путь</string>
     <string name="susfs_add_sus_mount">Добавить SUS монтирование</string>
