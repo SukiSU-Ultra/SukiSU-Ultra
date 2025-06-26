@@ -168,7 +168,7 @@ fn do_cpio_cmd(magiskboot: &Path, workdir: &Path, cmd: &str) -> Result<()> {
 }
 
 fn do_vendor_init_boot_cpio_cmd(magiskboot: &Path, workdir: &Path, cmd: &str) -> Result<()> {
-    let vendor_init_boot_cpio  = workdir.join("vendor_ramdisk").join("init_boot.cpio");
+    let vendor_init_boot_cpio = workdir.join("vendor_ramdisk").join("init_boot.cpio");
     let status = Command::new(magiskboot)
         .current_dir(workdir)
         .stdout(Stdio::null())
@@ -215,11 +215,7 @@ fn is_magisk_patched_vendor_init_boot(magiskboot: &Path, workdir: &Path) -> Resu
         .current_dir(workdir)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
-        .args([
-            "cpio",
-            vendor_init_boot_cpio.to_str().unwrap(),
-            "test",
-        ])
+        .args(["cpio", vendor_init_boot_cpio.to_str().unwrap(), "test"])
         .status()?;
 
     // 0: stock, 1: magisk
@@ -331,15 +327,17 @@ pub fn restore(
         .join("vendor_ramdisk")
         .join("init_boot.cpio")
         .exists();
-    let no_vendor_ramdisk = !workdir
-        .join("vendor_ramdisk")
-        .join("ramdisk.cpio")
-        .exists();
+    let no_vendor_ramdisk = !workdir.join("vendor_ramdisk").join("ramdisk.cpio").exists();
     let is_kernelsu_patched = is_kernelsu_patched(&magiskboot, workdir)?;
-    let is_kernelsu_patched_vendor_init_boot = is_kernelsu_patched_vendor_init_boot(&magiskboot, workdir)?;
-    let is_kernelsu_patched_vendor_ramdisk = is_kernelsu_patched_vendor_ramdisk(&magiskboot, workdir)?;
+    let is_kernelsu_patched_vendor_init_boot =
+        is_kernelsu_patched_vendor_init_boot(&magiskboot, workdir)?;
+    let is_kernelsu_patched_vendor_ramdisk =
+        is_kernelsu_patched_vendor_ramdisk(&magiskboot, workdir)?;
     ensure!(
-        is_kernelsu_patched || is_kernelsu_patched_vendor_init_boot || is_kernelsu_patched_vendor_ramdisk, "boot image is not patched by KernelSU"
+        is_kernelsu_patched
+            || is_kernelsu_patched_vendor_init_boot
+            || is_kernelsu_patched_vendor_ramdisk,
+        "boot image is not patched by KernelSU"
     );
 
     let mut new_boot = None;
@@ -591,28 +589,32 @@ fn do_patch(
         .join("vendor_ramdisk")
         .join("init_boot.cpio")
         .exists();
-    let no_vendor_ramdisk = !workdir
-        .join("vendor_ramdisk")
-        .join("ramdisk.cpio")
-        .exists();
+    let no_vendor_ramdisk = !workdir.join("vendor_ramdisk").join("ramdisk.cpio").exists();
     if no_ramdisk && no_vendor_init_boot && no_vendor_ramdisk {
         bail!("No compatible ramdisk found.");
     }
     let is_magisk_patched = is_magisk_patched(&magiskboot, workdir)?;
-    let is_magisk_patched_vendor_init_boot = is_magisk_patched_vendor_init_boot(&magiskboot, workdir)?;
+    let is_magisk_patched_vendor_init_boot =
+        is_magisk_patched_vendor_init_boot(&magiskboot, workdir)?;
     let is_magisk_patched_vendor_ramdisk = is_magisk_patched_vendor_ramdisk(&magiskboot, workdir)?;
     ensure!(
-        !is_magisk_patched || !is_magisk_patched_vendor_init_boot || !is_magisk_patched_vendor_ramdisk,
+        !is_magisk_patched
+            || !is_magisk_patched_vendor_init_boot
+            || !is_magisk_patched_vendor_ramdisk,
         "Cannot work with Magisk patched image"
     );
 
     println!("- Adding KernelSU LKM");
     let is_kernelsu_patched = is_kernelsu_patched(&magiskboot, workdir)?;
-    let is_kernelsu_patched_vendor_init_boot = is_kernelsu_patched_vendor_init_boot(&magiskboot, workdir)?;
-    let is_kernelsu_patched_vendor_ramdisk = is_kernelsu_patched_vendor_ramdisk(&magiskboot, workdir)?;
+    let is_kernelsu_patched_vendor_init_boot =
+        is_kernelsu_patched_vendor_init_boot(&magiskboot, workdir)?;
+    let is_kernelsu_patched_vendor_ramdisk =
+        is_kernelsu_patched_vendor_ramdisk(&magiskboot, workdir)?;
 
     let mut need_backup = false;
-    if !is_kernelsu_patched || (no_ramdisk && !is_kernelsu_patched_vendor_init_boot) || (no_ramdisk && no_vendor_init_boot && !is_kernelsu_patched_vendor_ramdisk)
+    if !is_kernelsu_patched
+        || (no_ramdisk && !is_kernelsu_patched_vendor_init_boot)
+        || (no_ramdisk && no_vendor_init_boot && !is_kernelsu_patched_vendor_ramdisk)
     {
         if no_ramdisk {
             if !no_vendor_init_boot {
@@ -831,7 +833,6 @@ fn find_boot_image(
             Path::new(&format!("/dev/block/by-name/init_boot{slot_suffix}")).exists();
         let vendor_boot_exist =
             Path::new(&format!("/dev/block/by-name/vendor_boot{slot_suffix}")).exists();
-            
         let boot_partition = if !is_replace_kernel && init_boot_exist && !skip_init {
             format!("/dev/block/by-name/init_boot{slot_suffix}")
         } else if !is_replace_kernel && vendor_boot_exist && !skip_init {

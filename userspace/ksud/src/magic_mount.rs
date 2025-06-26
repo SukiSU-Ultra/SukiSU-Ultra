@@ -1,6 +1,4 @@
-use crate::defs::{
-    DISABLE_FILE_NAME, KSU_MOUNT_SOURCE, MODULE_DIR, SKIP_MOUNT_FILE_NAME,
-};
+use crate::defs::{DISABLE_FILE_NAME, KSU_MOUNT_SOURCE, MODULE_DIR, SKIP_MOUNT_FILE_NAME};
 use crate::magic_mount::NodeFileType::{Directory, RegularFile, Symlink, Whiteout};
 use crate::restorecon::{lgetfilecon, lsetfilecon};
 use crate::utils::{ensure_dir_exists, get_work_dir};

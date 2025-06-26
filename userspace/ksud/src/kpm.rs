@@ -1,10 +1,9 @@
 use anyhow::Result;
-use notify::{Watcher, RecursiveMode};
-use std::path::Path;
-use std::fs;
 use anyhow::anyhow;
+use notify::{RecursiveMode, Watcher};
 use std::ffi::OsStr;
-
+use std::fs;
+use std::path::Path;
 pub const KPM_DIR: &str = "/data/adb/kpm";
 pub const KPMMGR_PATH: &str = "/data/adb/ksu/bin/kpmmgr";
 
@@ -28,11 +27,9 @@ pub fn start_kpm_watcher() -> Result<()> {
         return Ok(());
     }
 
-    let mut watcher = notify::recommended_watcher(|res| {
-        match res {
-            Ok(event) => handle_kpm_event(event),
-            Err(e) => log::error!("monitoring error: {:?}", e),
-        }
+    let mut watcher = notify::recommended_watcher(|res| match res {
+        Ok(event) => handle_kpm_event(event),
+        Err(e) => log::error!("monitoring error: {:?}", e),
     })?;
 
     watcher.watch(Path::new(KPM_DIR), RecursiveMode::NonRecursive)?;
@@ -80,7 +77,9 @@ fn handle_modify_event(paths: Vec<std::path::PathBuf>) {
 
 // 加载 KPM 模块
 pub fn load_kpm(path: &Path) -> Result<()> {
-    let path_str = path.to_str().ok_or_else(|| anyhow!("Invalid path: {}", path.display()))?;
+    let path_str = path
+        .to_str()
+        .ok_or_else(|| anyhow!("Invalid path: {}", path.display()))?;
     let status = std::process::Command::new(KPMMGR_PATH)
         .args(["load", path_str, ""])
         .status()?;
@@ -168,7 +167,6 @@ pub fn load_kpm_modules() -> Result<()> {
                 }
             }
         }
-    
         if path.extension().is_some_and(|ext| ext == "kpm") {
             match load_kpm(&path) {
                 Ok(()) => log::info!("Successfully loaded KPM module: {}", path.display()),

@@ -187,13 +187,7 @@ fn is_ok_empty(dir: &str) -> bool {
 }
 
 pub fn get_tmp_path() -> String {
-    let dirs = [
-        "/debug_ramdisk",
-        "/patch_hw",
-        "/oem",
-        "/root",
-        "/sbin",
-    ];
+    let dirs = ["/debug_ramdisk", "/patch_hw", "/oem", "/root", "/sbin"];
 
     // find empty directory
     for dir in dirs {
@@ -205,8 +199,8 @@ pub fn get_tmp_path() -> String {
 }
 
 pub fn get_work_dir() -> String {
-     let tmp_path = get_tmp_path();
-     format!("{}/workdir/", tmp_path)
+    let tmp_path = get_tmp_path();
+    format!("{}/workdir/", tmp_path)
 }
 
 #[cfg(target_os = "android")]
