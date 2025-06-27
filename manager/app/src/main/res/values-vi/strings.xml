@@ -390,7 +390,6 @@
     <string name="susfs_tab_try_umount">SuS Umount</string>
     <string name="susfs_tab_path_settings">Cài đặt Đường dẫn</string>
     <string name="susfs_tab_enabled_features">Trạng thái tính năng</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">Thêm Đường dẫn SuS</string>
     <string name="susfs_add_sus_mount">Thêm SuS Mount</string>
@@ -518,4 +517,7 @@
     <string name="susfs_run">Chạy</string>
     <string name="kernel_simple_kernel">Hiển thị tóm tắt \"Phiên bản Kernel\"</string>
     <string name="kernel_simple_kernel_summary">Tóm tắt hiển thị phiên bản Kernel cho ngắn gọn</string>
+    <string name="susfs_android_data_path_set">Đường dẫn Android Data đã được đặt thành: %s</string>
+    <string name="susfs_sdcard_path_set">Đường dẫn SD Card đã được đặt thành: %s</string>
+    <string name="susfs_path_setup_warning">Thiết lập đường dẫn có thể không thành công hoàn toàn, nhưng đường dẫn SuS sẽ tiếp tục được thêm vào</string>
 </resources>
