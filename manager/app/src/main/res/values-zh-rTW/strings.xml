@@ -390,7 +390,6 @@
     <string name="susfs_tab_try_umount">嘗試卸載</string>
     <string name="susfs_tab_path_settings">路徑設定</string>
     <string name="susfs_tab_enabled_features">啟用功能狀態</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">新增 SUS 路徑</string>
     <string name="susfs_add_sus_mount">新增 SUS 掛載</string>
@@ -503,7 +502,7 @@
     <string name="static_kstat_config">靜態 Kstat 設定</string>
     <string name="kstat_path_management">Kstat 路徑管理</string>
     <string name="no_kstat_config_message">暫無 Kstat 設定，請點擊上方按鈕新增設定</string>
-    <!-- SuSFS 掛載隱藏控制相關字串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
     <string name="susfs_hide_mounts_control_title">SUS掛載隱藏控制</string>
     <string name="susfs_hide_mounts_control_description">控制SUS掛載對程序的隱藏行為</string>
     <string name="susfs_hide_mounts_for_all_procs_label">對所有程序隱藏SUS掛載</string>
