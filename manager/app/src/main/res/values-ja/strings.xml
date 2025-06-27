@@ -391,7 +391,6 @@
     <string name="susfs_tab_try_umount">アンマウントを試す</string>
     <string name="susfs_tab_path_settings">パスの設定</string>
     <string name="susfs_tab_enabled_features">有効な機能のステータス</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">SUS パスを追加</string>
     <string name="susfs_add_sus_mount">SUS マウントを追加</string>
