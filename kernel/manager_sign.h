@@ -26,7 +26,7 @@
 #define EXPECTED_HASH_ZAKO   "a96ec51db032011dffb1184fa6513e421bd9073b3f392b04ecd2e7fdd4798065"
 
 //Elysia
-#define EXPECTED_SIZE_Elysia   0x378
-#define EXPECTED_HASH_Elysia   "bf4375841838b6755dce62088fc0ef2310c91d0289ace0cca28b1c788e85fcd2"
+#define EXPECTED_SIZE_Elysia   0x375
+#define EXPECTED_HASH_Elysia   "f3850041c24d05f8ff4663df00cfc0ae3f572bf91c7888e9f1c442954cf0d5f0"
 
 #endif /* MANAGER_SIGN_H */
