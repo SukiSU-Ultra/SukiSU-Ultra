@@ -181,9 +181,17 @@ DYNAMIC_STRUCT_BEGIN(task_struct)
     DEFINE_MEMBER(task_struct, cgroups)
 #endif
 #ifdef CONFIG_SECURITY
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
     DEFINE_MEMBER(task_struct, security)
+#else    
+    DEFINE_MEMBER(task_struct, cred)
+#endif    
 #endif
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
     DEFINE_MEMBER(task_struct, thread)
+#else    
+    DEFINE_MEMBER(task_struct, thread_info)
+#endif
 DYNAMIC_STRUCT_END(task_struct)
 
 // =====================================================================================================================
