@@ -81,6 +81,7 @@ import com.sukisu.ultra.ui.component.TryUmountContent
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.util.SuSFSManager
 import com.sukisu.ultra.ui.util.SuSFSManager.isSusVersion_1_5_8
+import com.sukisu.ultra.ui.util.isAbDevice
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -1185,6 +1186,7 @@ private fun BasicSettingsContent(
     onShowRestoreDialog: () -> Unit
 ) {
     var scriptLocationExpanded by remember { mutableStateOf(false) }
+    val isAbDevice = isAbDevice()
 
     Column(
         modifier = Modifier
@@ -1393,57 +1395,59 @@ private fun BasicSettingsContent(
         }
 
         // 槽位信息按钮
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        if (isAbDevice) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.susfs_slot_info_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     Text(
-                        text = stringResource(R.string.susfs_slot_info_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = stringResource(R.string.susfs_slot_info_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 14.sp
                     )
-                }
-                Text(
-                    text = stringResource(R.string.susfs_slot_info_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 14.sp
-                )
 
-                OutlinedButton(
-                    onClick = onShowSlotInfo,
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Storage,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        stringResource(R.string.susfs_slot_info_title),
-                        fontWeight = FontWeight.Medium
-                    )
+                    OutlinedButton(
+                        onClick = onShowSlotInfo,
+                        enabled = !isLoading,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Storage,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            stringResource(R.string.susfs_slot_info_title),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
         }
@@ -1509,7 +1513,9 @@ private fun SlotInfoDialog(
     onUseUname: (String) -> Unit,
     onUseBuildTime: (String) -> Unit
 ) {
-    if (showDialog) {
+    val isAbDevice = isAbDevice()
+
+    if (showDialog && isAbDevice) {
         AlertDialog(
             onDismissRequest = onDismiss,
             title = {
