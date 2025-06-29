@@ -367,7 +367,6 @@
     <string name="susfs_apply">应用</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">确认重置</string>
-    <string name="susfs_reset_confirm">确认重置</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">无法找到 ksu_susfs 文件</string>
     <string name="susfs_command_failed">SuSFS 命令执行失败</string>
@@ -489,11 +488,9 @@
     <string name="file_or_directory_path_label">文件/目录路径</string>
     <string name="hint_use_default_value">提示：可以使用 “default” 来使用原始值</string>
     <string name="add_kstat_path_title">添加 Kstat 路径</string>
-    <string name="kstat_command_description">此命令用于在路径被绑定挂载或覆盖之前添加，用于在内核内存中存储原始 stat 信息</string>
     <string name="add">添加</string>
     <string name="reset_kstat_config_title">重置 Kstat 配置</string>
     <string name="reset_kstat_config_message">确定要清除所有 Kstat 配置吗？此操作不可撤销</string>
-    <string name="confirm_reset">确认重置</string>
     <string name="kstat_config_description_title">Kstat 配置说明</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: 静态配置文件/目录的 stat 信息</string>
     <string name="kstat_config_description_add">• add_sus_kstat: 在绑定挂载前添加路径，存储原始 stat 信息</string>
@@ -520,4 +517,28 @@
     <string name="susfs_android_data_path_set">Android Data路径已设置为: %s</string>
     <string name="susfs_sdcard_path_set">SD卡路径已设置为: %s</string>
     <string name="susfs_path_setup_warning">路径设置可能未完全成功，但将继续添加SUS路径</string>
+    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">备份</string>
+    <string name="susfs_backup_description">创建所有SuSFS配置的备份。备份文件将包含所有设置、路径和配置信息。</string>
+    <string name="susfs_backup_create">创建备份</string>
+    <string name="susfs_backup_success">备份创建成功：%s</string>
+    <string name="susfs_backup_failed">备份创建失败：%s</string>
+    <string name="susfs_backup_file_not_found">备份文件未找到</string>
+    <string name="susfs_backup_invalid_format">无效的备份文件格式</string>
+    <string name="susfs_backup_version_mismatch">备份版本不匹配，但将尝试还原</string>
+    <string name="susfs_restore_title">还原</string>
+    <string name="susfs_restore_description">从备份文件还原SuSFS配置。这将覆盖所有当前设置。</string>
+    <string name="susfs_restore_select_file">选择备份文件</string>
+    <string name="susfs_restore_success" formatted="false">配置还原成功，备份创建于 %s，来自设备：%s</string>
+    <string name="susfs_restore_failed">还原失败：%s</string>
+    <string name="susfs_restore_confirm_title">确认还原</string>
+    <string name="susfs_restore_confirm_description">这将覆盖所有当前的SuSFS配置。您确定要继续吗？</string>
+    <string name="susfs_restore_confirm">还原</string>
+    <string name="susfs_backup_info_date">备份日期：%s</string>
+    <string name="susfs_backup_info_device">设备：%s</string>
+    <string name="susfs_backup_info_version">版本：%s</string>
+    <string name="hide_bl_script">隐藏BL脚本</string>
+    <string name="hide_bl_script_description">启用隐藏Bootloader解锁状态脚本</string>
+    <string name="cleanup_residue">清理工具残留</string>
+    <string name="cleanup_residue_description">清理各种模块以及工具的残留文件和目录(可能会误删导致丢失以及无法启动，谨慎使用)</string>
 </resources>
