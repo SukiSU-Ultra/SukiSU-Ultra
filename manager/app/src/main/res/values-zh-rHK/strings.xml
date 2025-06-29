@@ -366,7 +366,6 @@
     <string name="susfs_apply">應用</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">確認重置</string>
-    <string name="susfs_reset_confirm">確認重置</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 文件</string>
     <string name="susfs_command_failed">SuSFS 命令執行失敗</string>
@@ -488,11 +487,9 @@
     <string name="file_or_directory_path_label">文件/目錄路徑</string>
     <string name="hint_use_default_value">提示：可以使用 “default” 來使用原始值</string>
     <string name="add_kstat_path_title">添加 Kstat 路徑</string>
-    <string name="kstat_command_description">此命令用於在路徑被綁定掛載或覆蓋之前添加，用於在核心內存中存儲原始 stat 信息</string>
     <string name="add">添加</string>
     <string name="reset_kstat_config_title">重置 Kstat 配置</string>
     <string name="reset_kstat_config_message">確定要清除所有 Kstat 配置嗎？此操作不可撤銷</string>
-    <string name="confirm_reset">確認重置</string>
     <string name="kstat_config_description_title">Kstat 配置說明</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: 靜態配置文件/目錄嘅 stat 信息</string>
     <string name="kstat_config_description_add">• add_sus_kstat: 在綁定掛載前添加路徑，存儲原始 stat 信息</string>
@@ -502,4 +499,5 @@
     <string name="kstat_path_management">Kstat 路徑管理</string>
     <string name="no_kstat_config_message">暫冇 Kstat 配置，點擊上方按鈕添加配置</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
 </resources>
