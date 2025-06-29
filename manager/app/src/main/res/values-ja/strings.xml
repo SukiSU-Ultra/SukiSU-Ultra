@@ -369,7 +369,6 @@
     <string name="susfs_apply">適用</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">リセットを確認</string>
-    <string name="susfs_reset_confirm">リセットを確認</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">ksu_susfs ファイルが見つかりません</string>
     <string name="susfs_command_failed">SuSFS コマンドの実行に失敗しました</string>
@@ -491,11 +490,9 @@
     <string name="file_or_directory_path_label">ファイルまたはディレクトリのパス</string>
     <string name="hint_use_default_value">ヒント: オリジナルの値を使用するには「default」を使用します</string>
     <string name="add_kstat_path_title">Kstat のパスを追加</string>
-    <string name="kstat_command_description">このコマンドはパスがバインドマウントまたは、オーバーレイを開始する前に追加し、元の状態情報をカーネルメモリに保存するために使用されます。</string>
     <string name="add">追加</string>
     <string name="reset_kstat_config_title">Kstat の構成をリセット</string>
     <string name="reset_kstat_config_message">すべての Kstat の構成を消去しますか？この操作は元に戻せません。</string>
-    <string name="confirm_reset">リセットを確認</string>
     <string name="kstat_config_description_title">Kstat の構成の説明</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: ファイル、ディレクトリの静的な状態情報</string>
     <string name="kstat_config_description_add">• add_sus_kstat: バインドマウント前にパスを追加して元の状態情報を保存します</string>
@@ -522,4 +519,5 @@
     <string name="susfs_android_data_path_set">Android のデータパスが設定されました: %s</string>
     <string name="susfs_sdcard_path_set">SD カードのパスは次のように設定済みです: %s</string>
     <string name="susfs_path_setup_warning">パスの設定は完全に成功しない可能性がありますが、SUS パスは引き続き追加されます。</string>
+    <!-- 备份和还原相关字符串 -->
 </resources>
