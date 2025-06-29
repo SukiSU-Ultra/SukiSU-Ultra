@@ -369,7 +369,6 @@
     <string name="susfs_apply">Применить</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Подтвердить сброс</string>
-    <string name="susfs_reset_confirm">Подтвердить сброс</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">Не удалось найти файл ksu_susfs</string>
     <string name="susfs_command_failed">Выполнение команды SuSFS не удалось</string>
@@ -491,11 +490,9 @@
     <string name="file_or_directory_path_label">Путь к файлу/папке</string>
     <string name="hint_use_default_value">Подсказка: Вы можете использовать «по умолчанию» для использования оригинального значения</string>
     <string name="add_kstat_path_title">Добавить путь Kstat</string>
-    <string name="kstat_command_description">Эта команда используется для добавления перед тем как путь монтируется в bind-mounted или overlaid, сохраняя исходную информацию о состоянии в памяти ядра.</string>
     <string name="add">Добавить</string>
     <string name="reset_kstat_config_title">Сбросить конфигурацию Kstat</string>
     <string name="reset_kstat_config_message">Вы уверены, что хотите очистить все конфигурации Kstat? Это действие нельзя отменить.</string>
-    <string name="confirm_reset">Подтвердить сброс</string>
     <string name="kstat_config_description_title">Описание конфигурации Kstat</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_staticall: Статическая статистика информации о файлах/директориях</string>
     <string name="kstat_config_description_add">• add_sus_kstat: Добавить путь перед привязкой, сохраняя исходную статистику</string>
@@ -522,4 +519,24 @@
     <string name="susfs_android_data_path_set">Путь к данным Android был установлен на: %s</string>
     <string name="susfs_sdcard_path_set">Путь к SD-карте был установлен на: %s</string>
     <string name="susfs_path_setup_warning">Установка пути может быть не вполне успешной, но SUS пути будут добавлены</string>
+    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">Резервное копирование</string>
+    <string name="susfs_backup_description">Создайте резервную копию всех конфигураций SuSFS. Файл резервной копии будет содержать все настройки, пути и конфигурации.</string>
+    <string name="susfs_backup_create">Создать резервную копию</string>
+    <string name="susfs_backup_success">Резервная копия успешно создана: %s</string>
+    <string name="susfs_backup_failed">Не удалось создать резервную копию: %s</string>
+    <string name="susfs_backup_file_not_found">Файл резервной копии не найден</string>
+    <string name="susfs_backup_invalid_format">Неверный формат файла резервной копии</string>
+    <string name="susfs_restore_title">Восстановить</string>
+    <string name="susfs_restore_description">Восстановить настройки SuSFS из файла резервной копии. Это перезапишет все текущие настройки.</string>
+    <string name="susfs_restore_select_file">Выберите файл резервной копии</string>
+    <string name="susfs_restore_failed">Ошибка восстановления: %s</string>
+    <string name="susfs_restore_confirm_title">Подтвердить восстановление</string>
+    <string name="susfs_restore_confirm_description">Это очистит все конфигурации размонтирования. Вы уверены, что хотите продолжить?</string>
+    <string name="susfs_restore_confirm">Восстановление</string>
+    <string name="susfs_backup_info_date">Дата резервного копирования: %s</string>
+    <string name="susfs_backup_info_device">Устройство: %s</string>
+    <string name="susfs_backup_info_version">Версия: %s</string>
+    <string name="cleanup_residue">Очистка</string>
+    <string name="cleanup_residue_description">Очистка остаточных файлов и каталогов различных модулей и инструментов (может быть удален по ошибке, в результате потери и неспособности начаться, используйте с осторожностью)</string>
 </resources>
