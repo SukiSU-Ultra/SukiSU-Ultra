@@ -161,7 +161,7 @@
     <string name="settings_card_alpha">Độ trong suốt của thanh điều hướng</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
-    <string name="su_not_allowed">Quyền SU cho %s chưa được cấp</string>
+    <string name="su_not_allowed">Không được phép cấp quyền SU cho %s</string>
     <string name="settings_disable_su">Vô hiệu hoá lệnh SU</string>
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d không? \n\n%2$s</string>
@@ -367,7 +367,6 @@
     <string name="susfs_apply">Áp dụng</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Xác nhận khôi phục</string>
-    <string name="susfs_reset_confirm">Xác nhận khôi phục</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">Không tìm thấy file ksu_susfs</string>
     <string name="susfs_command_failed">Thực hiện lệnh SuSFS thất bại</string>
@@ -489,11 +488,9 @@
     <string name="file_or_directory_path_label">Đường dẫn File/Folder</string>
     <string name="hint_use_default_value">Gợi ý: Bạn có thể sử dụng \"default\" để thiết lập giá trị ban đầu</string>
     <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
-    <string name="kstat_command_description">Lệnh này được sử dụng để thêm trước khi đường dẫn được mount hoặc ghi đè nhằm lưu trữ thông tin trạng thái ban đầu trong bộ nhớ hạt nhân</string>
     <string name="add">Thêm</string>
     <string name="reset_kstat_config_title">Khôi phục Cấu hình Kstat</string>
     <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này</string>
-    <string name="confirm_reset">Xác nhận khôi phục</string>
     <string name="kstat_config_description_title">Mô tả cấu hình Kstat</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Thông tin thống kê cấu hình tĩnh của các File/Folder</string>
     <string name="kstat_config_description_add">• add_sus_kstat: Thêm đường dẫn trước khi mount để lưu trữ thông tin trạng thái ban đầu</string>
@@ -520,4 +517,24 @@
     <string name="susfs_android_data_path_set">Đường dẫn Android Data đã được đặt thành: %s</string>
     <string name="susfs_sdcard_path_set">Đường dẫn SD Card đã được đặt thành: %s</string>
     <string name="susfs_path_setup_warning">Thiết lập đường dẫn có thể không thành công hoàn toàn, nhưng đường dẫn SuS sẽ tiếp tục được thêm vào</string>
+    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">Sao lưu</string>
+    <string name="susfs_backup_description">Tạo bản sao lưu cho tất cả các cấu hình SuSFS. File sao lưu sẽ bao gồm tất cả các thiết lập, đường dẫn và thông tin cấu hình</string>
+    <string name="susfs_backup_create">Tạo bản sao lưu</string>
+    <string name="susfs_backup_success">Đã tạo bản sao lưu thành công: %s</string>
+    <string name="susfs_backup_failed">Tạo bản sao lưu thất bại: %s</string>
+    <string name="susfs_backup_file_not_found">Không tìm thấy file sao lưu</string>
+    <string name="susfs_backup_invalid_format">Định dạng file sao lưu không hợp lệ</string>
+    <string name="susfs_backup_version_mismatch">Phiên bản sao lưu không khớp, nhưng sẽ cố gắng khôi phục</string>
+    <string name="susfs_restore_title">Khôi phục</string>
+    <string name="susfs_restore_description">Khôi phục cấu hình SuSFS từ file sao lưu. Thao tác này sẽ ghi đè lên tất cả các cài đặt hiện tại</string>
+    <string name="susfs_restore_select_file">Chọn file sao lưu</string>
+    <string name="susfs_restore_success" formatted="false">Cấu hình đã được khôi phục thành công từ bản sao lưu được tạo trên %s, từ thiết bị: %s</string>
+    <string name="susfs_restore_failed">Khôi phục thất bại: %s</string>
+    <string name="susfs_restore_confirm_title">Xác nhận khôi phục</string>
+    <string name="susfs_restore_confirm_description">Thao tác này sẽ ghi đè lên tất cả các cấu hình SuSFS hiện tại. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_restore_confirm">Khôi phục</string>
+    <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
+    <string name="susfs_backup_info_device">Thiết bị: %s</string>
+    <string name="susfs_backup_info_version">Phiên bản: %s</string>
 </resources>
