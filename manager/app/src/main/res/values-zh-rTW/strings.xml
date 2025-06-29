@@ -367,7 +367,6 @@
     <string name="susfs_apply">應用</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">確認重設</string>
-    <string name="susfs_reset_confirm">確認重設</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 檔案</string>
     <string name="susfs_command_failed">SuSFS 指令執行失敗</string>
@@ -489,11 +488,9 @@
     <string name="file_or_directory_path_label">檔案/目錄路徑</string>
     <string name="hint_use_default_value">提示：可使用「default」來使用原始值</string>
     <string name="add_kstat_path_title">新增 Kstat 路徑</string>
-    <string name="kstat_command_description">此命令用於在路徑被綁定掛載或覆蓋之前新增，用於在核心記憶體中儲存原始 stat 資訊</string>
     <string name="add">新增</string>
     <string name="reset_kstat_config_title">重置 Kstat 設定</string>
     <string name="reset_kstat_config_message">確定要清除所有 Kstat 設定嗎？此操作不可撤銷</string>
-    <string name="confirm_reset">確認重置</string>
     <string name="kstat_config_description_title">Kstat 設定說明</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically：靜態設定檔案/目錄的 stat 資訊</string>
     <string name="kstat_config_description_add">• add_sus_kstat：在綁定掛載前新增路徑，儲存原始 stat 資訊</string>
@@ -517,4 +514,5 @@
     <string name="susfs_run">執行</string>
     <string name="kernel_simple_kernel">核心版本簡潔模式</string>
     <string name="kernel_simple_kernel_summary">啟用或禁用SukiSU核心版本顯示的簡潔模式</string>
+    <!-- 备份和还原相关字符串 -->
 </resources>
