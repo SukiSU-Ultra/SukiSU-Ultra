@@ -394,7 +394,7 @@
     <string name="susfs_add_sus_mount">Thêm SuS Mount</string>
     <string name="susfs_add_try_umount">Thêm SuS Umount</string>
     <string name="susfs_sus_path_added_success">Đường dẫn SuS đã được thêm thành công</string>
-    <string name="susfs_path_not_found_error">Lỗi không tìm thấy Đường dẫn</string>
+    <string name="susfs_path_not_found_error">Lỗi không tìm thấy đường dẫn</string>
     <string name="susfs_path_label">Đường dẫn</string>
     <string name="susfs_mount_path_label">Đường dẫn Mount</string>
     <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
