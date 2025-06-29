@@ -394,7 +394,7 @@
     <string name="susfs_add_sus_mount">Thêm SuS Mount</string>
     <string name="susfs_add_try_umount">Thêm SuS Umount</string>
     <string name="susfs_sus_path_added_success">Đường dẫn SuS đã được thêm thành công</string>
-    <string name="susfs_path_not_found_error">Lỗi không tìm thấy đường dẫn</string>
+    <string name="susfs_path_not_found_error">Lỗi không tìm thấy Đường dẫn</string>
     <string name="susfs_path_label">Đường dẫn</string>
     <string name="susfs_mount_path_label">Đường dẫn Mount</string>
     <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
@@ -422,9 +422,9 @@
     <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_path_title">Reset Cài đặt Đường dẫn</string>
     <!-- SuSFS Path Settings -->
-    <string name="susfs_android_data_path_label">Đường dẫn Dữ liệu Android</string>
+    <string name="susfs_android_data_path_label">Đường dẫn Android Data</string>
     <string name="susfs_sdcard_path_label">Đường dẫn SD Card</string>
-    <string name="susfs_set_android_data_path">Đặt Đường dẫn Dữ liệu Android</string>
+    <string name="susfs_set_android_data_path">Đặt Đường dẫn Android Data</string>
     <string name="susfs_set_sdcard_path">Đặt Đường dẫn SD Card</string>
     <!-- SuSFS Enabled Features -->
     <string name="susfs_enabled_features_description">Hiển thị trạng thái tính năng hiện tại của SuSFS</string>
@@ -478,13 +478,13 @@
     <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hóa</string>
     <!-- SuSFS Kstat相关字符串 -->
     <string name="susfs_tab_kstat_config">Cấu hình Kstat</string>
-    <string name="kstat_static_config_added">Đã thêm cấu hình tĩnh Kstat: %1$s</string>
+    <string name="kstat_static_config_added">Đã thêm cấu hình Kstat tĩnh: %1$s</string>
     <string name="kstat_config_removed">Đã xoá cấu hình Kstat: %1$s</string>
-    <string name="kstat_path_added">Đã thêm đường dẫn Kstat: %1$s</string>
-    <string name="kstat_path_removed">Đã xoá đường dẫn Kstat: %1$s</string>
+    <string name="kstat_path_added">Đã thêm Đường dẫn Kstat: %1$s</string>
+    <string name="kstat_path_removed">Đã xoá Đường dẫn Kstat: %1$s</string>
     <string name="kstat_updated">Đã cập nhật Kstat: %1$s</string>
     <string name="kstat_full_clone_updated">Bản sao Kstat đầy đủ đã cập nhật: %1$s</string>
-    <string name="add_kstat_statically_title">Thêm cấu hình tĩnh Kstat</string>
+    <string name="add_kstat_statically_title">Thêm cấu hình Kstat tĩnh</string>
     <string name="file_or_directory_path_label">Đường dẫn File/Folder</string>
     <string name="hint_use_default_value">Gợi ý: Bạn có thể sử dụng \"default\" để thiết lập giá trị ban đầu</string>
     <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
@@ -541,4 +541,16 @@
     <string name="hide_bl_script_description">Ẩn scripts trạng thái Unlock Bootloader</string>
     <string name="cleanup_residue">Dọn rác</string>
     <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (Có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
+    <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>
+    <string name="susfs_edit_sus_mount">Chỉnh sửa SuS Mount</string>
+    <string name="susfs_edit_try_umount">Chỉnh sửa SuS Umount</string>
+    <string name="edit_kstat_statically_title">Chỉnh sửa cấu hình Kstat tĩnh</string>
+    <string name="edit_kstat_path_title">Chỉnh sửa Đường dẫn Kstat</string>
+    <string name="susfs_save">Lưu</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="delete">Xoá</string>
+    <string name="update">Cập nhật</string>
+    <string name="kstat_config_updated">Cập nhật cấu hình Kstat</string>
+    <string name="kstat_path_updated">Cập nhật Đường dẫn Kstat</string>
+    <string name="susfs_update_full_clone">Cập nhật bản sao SuSFS đầy đủ</string>
 </resources>
