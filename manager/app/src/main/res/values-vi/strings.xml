@@ -529,7 +529,7 @@
     <string name="susfs_restore_title">Khôi phục</string>
     <string name="susfs_restore_description">Khôi phục cấu hình SuSFS từ file sao lưu. Thao tác này sẽ ghi đè lên tất cả các cài đặt hiện tại</string>
     <string name="susfs_restore_select_file">Chọn file sao lưu</string>
-    <string name="susfs_restore_success">Cấu hình đã được khôi phục thành công từ bản sao lưu được tạo trên %s, từ thiết bị: %s</string>
+    <string name="susfs_restore_success" formatted="false">Cấu hình đã được khôi phục thành công từ bản sao lưu được tạo trên %s, từ thiết bị: %s</string>
     <string name="susfs_restore_failed">Khôi phục thất bại: %s</string>
     <string name="susfs_restore_confirm_title">Xác nhận khôi phục</string>
     <string name="susfs_restore_confirm_description">Thao tác này sẽ ghi đè lên tất cả các cấu hình SuSFS hiện tại. Bạn có chắc chắn muốn tiếp tục không?</string>
@@ -537,4 +537,8 @@
     <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
     <string name="susfs_backup_info_device">Thiết bị: %s</string>
     <string name="susfs_backup_info_version">Phiên bản: %s</string>
+    <string name="hide_bl_script">Ẩn Script BL</string>
+    <string name="hide_bl_script_description">Ẩn scripts trạng thái Unlock Bootloader</string>
+    <string name="cleanup_residue">Dọn rác</string>
+    <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (Có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
 </resources>
