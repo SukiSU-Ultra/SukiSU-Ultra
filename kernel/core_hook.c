@@ -75,6 +75,7 @@ extern void susfs_run_try_umount_for_current_mnt_ns(void);
 #endif // #ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 static bool susfs_is_umount_for_zygote_system_process_enabled = false;
+static bool susfs_is_umount_for_zygote_iso_service_enabled = false;
 extern bool susfs_hide_sus_mnts_for_all_procs;
 #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 #ifdef CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT
@@ -101,6 +102,11 @@ static inline void susfs_on_post_fs_data(void) {
 		path_put(&path);
 	}
 	pr_info("susfs_is_umount_for_zygote_system_process_enabled: %d\n", susfs_is_umount_for_zygote_system_process_enabled);
+	if (!kern_path(DATA_ADB_UMOUNT_FOR_ZYGOTE_ISO_SERVICE, 0, &path)) {
+		susfs_is_umount_for_zygote_iso_service_enabled = true;
+		path_put(&path);
+	}
+	pr_info("susfs_is_umount_for_zygote_iso_service_enabled: %d\n", susfs_is_umount_for_zygote_iso_service_enabled);
 #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 #ifdef CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT
 	if (!kern_path(DATA_ADB_NO_AUTO_ADD_SUS_BIND_MOUNT, 0, &path)) {
@@ -675,6 +681,18 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 				pr_info("susfs: copy_to_user() failed\n");
 			return 0;
 		}
+		if (arg2 == CMD_SUSFS_UMOUNT_FOR_ZYGOTE_ISO_SERVICE) {
+			int error = 0;
+			if (arg3 != 0 && arg3 != 1) {
+				pr_err("susfs: CMD_SUSFS_UMOUNT_FOR_ZYGOTE_ISO_SERVICE -> arg3 can only be 0 or 1\n");
+				return 0;
+			}
+			susfs_is_umount_for_zygote_iso_service_enabled = arg3;
+			pr_info("susfs: CMD_SUSFS_UMOUNT_FOR_ZYGOTE_ISO_SERVICE -> susfs_is_umount_for_zygote_iso_service_enabled: %lu\n", arg3);
+			if (copy_to_user((void __user*)arg5, &error, sizeof(error)))
+				pr_info("susfs: copy_to_user() failed\n");
+			return 0;
+		}
 #endif //#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
 		if (arg2 == CMD_SUSFS_ADD_SUS_KSTAT) {
@@ -1206,17 +1224,19 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 				goto out_ksu_try_umount;
 			}
 		}
-	}
-	// - here we check if uid is a isolated service spawned by zygote directly
-	// - Apps that do not use "useAppZyogte" to start a isolated service will be directly
-	//   spawned by zygote which KSU will ignore it by default, the only fix for now is to
-	//   force a umount for those uid
-	// - Therefore make sure your root app doesn't use isolated service for root access
-	if (new_uid.val >= 90000 && new_uid.val < 1000000) {
-		task_lock(current);
-		current->susfs_task_state |= TASK_STRUCT_NON_ROOT_USER_APP_PROC;
-		task_unlock(current);
-		goto out_susfs_try_umount_all;
+		// - here we check if uid is a isolated service spawned by zygote directly
+		// - Apps that do not use "useAppZyogte" to start a isolated service will be directly
+		//   spawned by zygote which KSU will ignore it by default, the only fix for now is to
+		//   force a umount for those uid
+		// - Therefore make sure your root app doesn't use isolated service for root access
+		// - Kudos to ThePedroo, the author and maintainer of Rezygisk for finding and reporting
+		//   the detection, really big helps here!
+		else if (new_uid.val >= 90000 && new_uid.val < 1000000 && susfs_is_umount_for_zygote_iso_service_enabled) {
+			task_lock(current);
+			current->susfs_task_state |= TASK_STRUCT_NON_ROOT_USER_APP_PROC;
+			task_unlock(current);
+			goto out_susfs_try_umount_all;
+		}
 	}
 #endif
 
