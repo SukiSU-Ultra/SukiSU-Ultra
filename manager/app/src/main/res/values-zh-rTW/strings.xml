@@ -514,4 +514,5 @@
     <string name="susfs_run">執行</string>
     <string name="kernel_simple_kernel">核心版本簡潔模式</string>
     <string name="kernel_simple_kernel_summary">啟用或禁用SukiSU核心版本顯示的簡潔模式</string>
+    <!-- 备份和还原相关字符串 -->
 </resources>

@@ -499,4 +499,5 @@
     <string name="kstat_path_management">Kstat 路徑管理</string>
     <string name="no_kstat_config_message">暫冇 Kstat 配置，點擊上方按鈕添加配置</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
 </resources>

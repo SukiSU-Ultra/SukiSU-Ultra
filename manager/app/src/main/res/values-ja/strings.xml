@@ -113,6 +113,7 @@
 \n続行しますか？</string>
     <string name="install_next">次へ</string>
     <string name="select_file_tip">%1$s のパーティションイメージを推奨します。</string>
+    <string name="select_file_tip_vendor">(不安定)</string>
     <string name="select_kmi">KMI を選択してください</string>
     <string name="settings_uninstall">アンインストール</string>
     <string name="settings_uninstall_temporary">一時的にアンインストールする</string>
@@ -513,4 +514,10 @@
     <string name="susfs_hide_mounts_setting_all">すべてのプロセスを非表示</string>
     <string name="susfs_hide_mounts_setting_non_ksu">非 KSU プロセスのみ非表示</string>
     <string name="susfs_run">実行</string>
+    <string name="kernel_simple_kernel">簡潔モードなカーネル バージョン</string>
+    <string name="kernel_simple_kernel_summary">SukiSU のカーネル バージョンによって表示されるクリーンモードを有効または無効します。</string>
+    <string name="susfs_android_data_path_set">Android のデータパスが設定されました: %s</string>
+    <string name="susfs_sdcard_path_set">SD カードのパスは次のように設定済みです: %s</string>
+    <string name="susfs_path_setup_warning">パスの設定は完全に成功しない可能性がありますが、SUS パスは引き続き追加されます。</string>
+    <!-- 备份和还原相关字符串 -->
 </resources>

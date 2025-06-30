@@ -36,8 +36,6 @@
     <string name="module_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz?</string>
     <string name="module_uninstall_success">%s kaldırıldı</string>
     <string name="module_uninstall_failed">Kaldırılamadı: %s</string>
-    <string name="module_version">Version</string>
-    <string name="module_author">Author</string>
     <string name="refresh">Yenile</string>
     <string name="show_system_apps">Sistem uygulamalarını göster</string>
     <string name="hide_system_apps">Sistem uygulamalarını gizle</string>
@@ -46,7 +44,6 @@
     <string name="reboot_to_apply">Etkili olması için yeniden başlatın</string>
     <string name="module_magisk_conflict">Magisk ile çakışma nedeniyle modüller kullanılamıyor!</string>
     <string name="home_learn_kernelsu">KernelSU\'yu öğrenin</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">KernelSU\'yu nasıl yükleyeceğinizi ve modülleri nasıl kullanacağınızı öğrenin</string>
     <string name="home_support_title">Bizi destekleyin</string>
     <string name="home_support_content">KernelSU, her zaman olduğu gibi ücretsiz ve açık kaynaklıdır. Ancak bir bağış yaparak bizi destekleyebilirsiniz.</string>
@@ -101,7 +98,6 @@
     <string name="settings_check_update">Güncelleme kontrolü</string>
     <string name="settings_check_update_summary">Uygulama açıldığında otomatik olarak güncellemeleri kontrol et</string>
     <string name="grant_root_failed">Root yetkisi verilemedi!</string>
-    <string name="action">Action</string>
     <string name="close">Kapat</string>
     <string name="enable_web_debugging">WebView hata ayıklama etkinleştir</string>
     <string name="enable_web_debugging_summary">WebUI\'yi hata ayıklamak için kullanılabilir. Sadece ihtiyaç duyulduğunda etkinleştirin.</string>
@@ -165,7 +161,6 @@
     <string name="settings_disable_su_summary">Geçici olarak herhangi bir uygulamanın su komutu aracılığıyla root ayrıcalıkları elde etmesini devre dışı bırakır (mevcut root işlemleri etkilenmez).</string>
     <string name="module_install_multiple_confirm_with_names">Aşağıdaki %1$d modülü yüklemek istediğinizden emin misiniz? \n\n%2$s</string>
     <string name="more_settings">Daha fazla ayar</string>
-    <string name="selinux">SELinux</string>
     <string name="selinux_enabled">Etkin</string>
     <string name="selinux_disabled">Devre dışı</string>
     <string name="simple_mode">Basit mod</string>
@@ -203,10 +198,8 @@
     <string name="yes">Evet</string>
     <string name="no">Hayır</string>
     <string name="failed_reboot">Yeniden başlatma başarısız</string>
-    <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Şu anda yüklü çekirdek modülü yok</string>
     <string name="kpm_version">Sürüm</string>
-    <string name="kpm_author">Author</string>
     <string name="kpm_uninstall">Kaldır</string>
     <string name="kpm_uninstall_success">Başarıyla kaldırıldı</string>
     <string name="kpm_uninstall_failed">Kaldırılamadı</string>
@@ -266,7 +259,6 @@
     <string name="flash_failed_message">Flash\'lama başarısız</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM onarımı/yükle</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Çekirdek sürümü：%1$s</string>
     <string name="tool_version_log">Kullanılan yama aracı：%1$s</string>
     <string name="configuration">Yapılandır</string>
@@ -324,7 +316,6 @@
     <string name="kernel_flashing">Çekirdek Yükleniyor</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Tümü</string>
-    <string name="category_root_apps">Root</string>
     <string name="category_custom_apps">Özel</string>
     <string name="category_default_apps">Varsayılan</string>
     <!-- 排序相关 -->
@@ -338,7 +329,6 @@
     <!-- 状态相关 -->
     <string name="no_apps_in_category">Bu kategoride uygulama yok</string>
     <!-- 标签相关 -->
-    <!-- FAB菜单相关 -->
     <string name="deny_authorization">Yetkilendirme reddedildi</string>
     <string name="grant_authorization">Yetki verildi</string>
     <string name="unmount_modules">Modül Bağlantıları Kaldırılıyor</string>
@@ -359,7 +349,6 @@
     <string name="susfs_config_description_text">Bu özellik, SuSFS uname değerini ve build time spoofing\'i özelleştirmenize olanak tanır. Ayarlamak istediğiniz değerleri girin ve uygulayın.</string>
     <string name="susfs_uname_label">Uname Değeri</string>
     <string name="susfs_uname_placeholder">Lütfen özel uname değeri girin</string>
-    <string name="susfs_build_time_label">Build Time Spoofing</string>
     <string name="susfs_build_time_placeholder">Lütfen build time spoofing değeri girin</string>
     <string name="susfs_current_value">Mevcut değer: %s</string>
     <string name="susfs_current_build_time">Mevcut build time: %s</string>
@@ -389,7 +378,6 @@
     <string name="susfs_tab_try_umount">Bağlamayı Kaldırmayı Dene</string>
     <string name="susfs_tab_path_settings">Yol Ayarları</string>
     <string name="susfs_tab_enabled_features">Etkinleştirilen Özellikler Durumu</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">SUS Yolu Ekle</string>
     <string name="susfs_add_sus_mount">SUS Bağlama Noktası Ekle</string>
@@ -404,7 +392,6 @@
     <string name="susfs_umount_mode_label">Bağlamayı Kaldır Modu</string>
     <string name="susfs_umount_mode_normal">Normal Bağlamayı Kaldır (0)</string>
     <string name="susfs_umount_mode_detach">Ayrı Bağlamayı Kaldır (1)</string>
-    <string name="susfs_umount_mode_normal_short">Normal</string>
     <string name="susfs_umount_mode_detach_short">Ayrı</string>
     <string name="susfs_umount_mode_display">Mod: %1$s (%2$s)</string>
     <string name="susfs_try_umount_added_success">Bağlamayı kaldırmayı dene yolu başarıyla eklendi: %s</string>
@@ -456,4 +443,8 @@
     <!-- Settings related strings -->
     <string name="show_more_module_info">Daha Fazla Modül Bilgisi Göster</string>
     <string name="show_more_module_info_summary">Güncelleme JSON URL\'leri gibi ek modül bilgilerini göster</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
 </resources>

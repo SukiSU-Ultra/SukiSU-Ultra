@@ -413,25 +413,38 @@
     <string name="susfs_try_umount_added_success">Попытка размонтировать путь успешно добавлена： %s</string>
     <string name="susfs_try_umount_added_saved">Попытка размонтировать путь успешно сохранена： %s</string>
     <!-- SuSFS Run Umount -->
+    <string name="susfs_run_umount_confirm_title">Подтверждение запуска попробовать размонтировать</string>
+    <string name="susfs_run_umount_confirm_message">Это немедленно выполнит все настроенные операции размонтирования. Вы уверены, что хотите продолжить?</string>
     <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_title">Сбросить SUS пути</string>
     <string name="susfs_reset_paths_message">Это очистит все конфигурации пути SUS. Вы уверены, что хотите продолжить?</string>
+    <string name="susfs_reset_mounts_title">Сброс SUS монтирования</string>
+    <string name="susfs_reset_mounts_message">Это очистит все конфигурации SUS монтирования. Вы уверены, что хотите продолжить?</string>
     <string name="susfs_reset_umounts_title">Сбросить Umount</string>
+    <string name="susfs_reset_umounts_message">Это очистит все конфигурации размонтирования. Вы уверены, что хотите продолжить?</string>
     <string name="susfs_reset_path_title">Сбросить настройки пути</string>
     <!-- SuSFS Path Settings -->
     <string name="susfs_android_data_path_label">Путь к данным Android</string>
     <string name="susfs_sdcard_path_label">Путь к SD-карте</string>
+    <string name="susfs_set_android_data_path">Задать путь к данным Android</string>
     <string name="susfs_set_sdcard_path">Задать путь к SD-карте</string>
     <!-- SuSFS Enabled Features -->
     <string name="susfs_enabled_features_description">Показывать текущее состояние функций SuSFS</string>
+    <string name="susfs_no_features_found">Информация о состоянии объектов не найдена</string>
     <string name="susfs_feature_enabled">Включено</string>
     <string name="susfs_feature_disabled">Выключено</string>
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">Поддержка SUS пути</string>
     <string name="sus_mount_feature_label">Поддержка SUS монтирования</string>
+    <string name="try_umount_feature_label">Поддержка размонтирования</string>
     <string name="spoof_uname_feature_label">Поддержка подмены uname</string>
     <string name="spoof_cmdline_feature_label">Подмена Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">Поддержка Open Redirect</string>
     <string name="enable_log_feature_label">Поддержка логов</string>
+    <string name="auto_default_mount_feature_label">Автомонтирование по умолчанию</string>
+    <string name="auto_bind_mount_feature_label">Автоматическое бинд монтирование</string>
+    <string name="auto_try_umount_bind_feature_label">Автоматически попробовать размонтировать привязать монтировать</string>
+    <string name="hide_symbols_feature_label">Скрытие KSU SUSFS Symbols</string>
     <string name="magic_mount_feature_label">Поддержка Magic Mount</string>
     <string name="sus_kstat_feature_label">Поддержка SUS Kstat</string>
     <string name="sus_su_feature_label">Функция переключения режима SUS SU</string>
@@ -472,6 +485,8 @@
     <string name="kstat_path_added">Путь к Kstat добавлен: %1$s</string>
     <string name="kstat_path_removed">Путь к Kstat удалён: %1$s</string>
     <string name="kstat_updated">Kstat обновлен: %1$s</string>
+    <string name="kstat_full_clone_updated">Полный клон Kstat обновлён: %1$s</string>
+    <string name="add_kstat_statically_title">Добавить статическую конфигурацию Kstat</string>
     <string name="file_or_directory_path_label">Путь к файлу/папке</string>
     <string name="hint_use_default_value">Подсказка: Вы можете использовать «по умолчанию» для использования оригинального значения</string>
     <string name="add_kstat_path_title">Добавить путь Kstat</string>
@@ -485,7 +500,12 @@
     <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: Обновление только новых, сохранить другие исходные значения</string>
     <string name="static_kstat_config">Статическая конфигурация Kstat</string>
     <string name="kstat_path_management">Управление путями Kstat</string>
+    <string name="no_kstat_config_message">Пока нет конфигурации Kstat, нажмите кнопку выше, чтобы добавить</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_control_title">Контроль скрытия SUS монтирования</string>
+    <string name="susfs_hide_mounts_control_description">Управление режимом скрытия SUS монтирования для процессов</string>
+    <string name="susfs_hide_mounts_for_all_procs_label">Скрыть монтирования SUS для всех процессов</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">Когда включено, монтирования SUS будут скрыты от всех процессов, включая процессы KSU</string>
     <string name="susfs_hide_mounts_for_all_procs_disabled_description">Если отключено, монтирования SUS будут скрываться только из процессов, не связанных с KSU, процессы KSU могут видеть монтирования</string>
     <string name="susfs_hide_mounts_all_enabled">Включено скрытие монтирования SUS для всех процессов</string>
     <string name="susfs_hide_mounts_all_disabled">Отключено скрытие монтирования SUS для всех процессов</string>
@@ -493,4 +513,34 @@
     <string name="susfs_hide_mounts_current_setting">Текущие настройки: %s</string>
     <string name="susfs_hide_mounts_setting_all">Скрыть для всех процессов</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Скрыть только для процессов, не связанных с KSU</string>
+    <string name="susfs_run">Запустить</string>
+    <string name="kernel_simple_kernel">Скрыть доп. информацию о ядре</string>
+    <string name="kernel_simple_kernel_summary">Включить или отключить чистый режим, отображаемой версии ядра SukiSU</string>
+    <string name="susfs_android_data_path_set">Путь к данным Android был установлен на: %s</string>
+    <string name="susfs_sdcard_path_set">Путь к SD-карте был установлен на: %s</string>
+    <string name="susfs_path_setup_warning">Установка пути может быть не вполне успешной, но SUS пути будут добавлены</string>
+    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">Резервное копирование</string>
+    <string name="susfs_backup_description">Создайте резервную копию всех конфигураций SuSFS. Файл резервной копии будет содержать все настройки, пути и конфигурации.</string>
+    <string name="susfs_backup_create">Создать резервную копию</string>
+    <string name="susfs_backup_success">Резервная копия успешно создана: %s</string>
+    <string name="susfs_backup_failed">Не удалось создать резервную копию: %s</string>
+    <string name="susfs_backup_file_not_found">Файл резервной копии не найден</string>
+    <string name="susfs_backup_invalid_format">Неверный формат файла резервной копии</string>
+    <string name="susfs_backup_version_mismatch">Несоответствие версии резервного копирования</string>
+    <string name="susfs_restore_title">Восстановить</string>
+    <string name="susfs_restore_description">Восстановить настройки SuSFS из файла резервной копии. Это перезапишет все текущие настройки.</string>
+    <string name="susfs_restore_select_file">Выберите файл резервной копии</string>
+    <string name="susfs_restore_success" formatted="false">Конфигурация успешно восстановлена из резервной копии, созданной на %s с устройства: %s</string>
+    <string name="susfs_restore_failed">Ошибка восстановления: %s</string>
+    <string name="susfs_restore_confirm_title">Подтвердить восстановление</string>
+    <string name="susfs_restore_confirm_description">Это очистит все конфигурации размонтирования. Вы уверены, что хотите продолжить?</string>
+    <string name="susfs_restore_confirm">Восстановление</string>
+    <string name="susfs_backup_info_date">Дата резервного копирования: %s</string>
+    <string name="susfs_backup_info_device">Устройство: %s</string>
+    <string name="susfs_backup_info_version">Версия: %s</string>
+    <string name="hide_bl_script">Скрыть BL скрипт</string>
+    <string name="hide_bl_script_description">Включить скрипт Hide Bootloader Unlock Status</string>
+    <string name="cleanup_residue">Очистка</string>
+    <string name="cleanup_residue_description">Очистка остаточных файлов и каталогов различных модулей и инструментов (может быть удален по ошибке, в результате потери и неспособности начаться, используйте с осторожностью)</string>
 </resources>
