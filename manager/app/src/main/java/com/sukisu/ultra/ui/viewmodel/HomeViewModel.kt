@@ -105,7 +105,11 @@ class HomeViewModel : ViewModel() {
 
     fun initializeData() {
         viewModelScope.launch {
-            loadCachedData()
+            try {
+                loadCachedData()
+            } catch(e: Exception) {
+                Log.e(TAG, "Error when reading cached data", e)
+            }
         }
     }
 
