@@ -11,7 +11,7 @@
     <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_manager_version">Phiên bản trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
-    <string name="selinux_status_disabled">Vô hiệu hoá</string>
+    <string name="selinux_status_disabled">Disabled</string>
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
@@ -553,4 +553,17 @@
     <string name="kstat_config_updated">Cập nhật cấu hình Kstat</string>
     <string name="kstat_path_updated">Cập nhật Đường dẫn Kstat</string>
     <string name="susfs_update_full_clone">Cập nhật bản sao SuSFS đầy đủ</string>
+    <string name="umount_zygote_iso_service">Umount dịch vụ cô lập Zygote</string>
+    <string name="umount_zygote_iso_service_description">Umount các điểm dịch vụ cô lập Zygote khi khởi động hệ thống</string>
+    <string name="umount_zygote_iso_service_enabled">Umount dịch vụ cô lập Zygote đã bật</string>
+    <string name="umount_zygote_iso_service_disabled">Umount dịch vụ cô lập Zygote đã tắt</string>
+    <string name="app_paths_section">Đường dẫn ứng dụng</string>
+    <string name="other_paths_section">Đường dẫn khác</string>
+    <string name="add_custom_path">Khác</string>
+    <string name="add_app_path">Ứng dụng</string>
+    <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
+    <string name="search_apps">Tìm kiếm ứng dụng</string>
+    <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
+    <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
+    <string name="all_apps_already_added">Tất cả các ứng dụng đã được thêm vào</string>
 </resources>
