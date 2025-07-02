@@ -557,4 +557,13 @@
     <string name="umount_zygote_iso_service_description">启用此选项将在系统启动时卸载Zygote隔离服务挂载点</string>
     <string name="umount_zygote_iso_service_enabled">Zygote隔离服务卸载已启用</string>
     <string name="umount_zygote_iso_service_disabled">Zygote隔离服务卸载已禁用</string>
+    <string name="app_paths_section">应用路径</string>
+    <string name="other_paths_section">其他路径</string>
+    <string name="add_custom_path">其他</string>
+    <string name="add_app_path">应用</string>
+    <string name="susfs_add_app_path">添加应用路径</string>
+    <string name="search_apps">搜索应用</string>
+    <string name="selected_apps_count">%1$d 个已选应用</string>
+    <string name="already_added_apps_count">%1$d 个已添加应用</string>
+    <string name="all_apps_already_added">所有应用均已添加</string>
 </resources>
