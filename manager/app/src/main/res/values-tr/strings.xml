@@ -557,4 +557,13 @@
     <string name="umount_zygote_iso_service_description">Sistem başlangıcında Zygote izolasyon servisi bağlama noktalarının bağlantısını kesmek için bu seçeneği etkinleştirin</string>
     <string name="umount_zygote_iso_service_enabled">Zygote izolasyon servisi bağlantı kesme etkinleştirildi</string>
     <string name="umount_zygote_iso_service_disabled">Zygote izolasyon servisi bağlantı kesme devre dışı bırakıldı</string>
+    <string name="app_paths_section">Uygulama Yolu</string>
+    <string name="other_paths_section">Diğer yollar</string>
+    <string name="add_custom_path">Diğer</string>
+    <string name="add_app_path">Uygulama</string>
+    <string name="susfs_add_app_path">Uygulama Yolu Ekle</string>
+    <string name="search_apps">Uygulama Ara</string>
+    <string name="selected_apps_count">%1$d uygulama seçildi</string>
+    <string name="already_added_apps_count">%1$d uygulama zaten eklendi</string>
+    <string name="all_apps_already_added">Tüm uygulamalar eklendi</string>
 </resources>
