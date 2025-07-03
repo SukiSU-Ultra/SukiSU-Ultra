@@ -161,7 +161,7 @@
     <string name="settings_card_alpha">Độ trong suốt của thanh điều hướng</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Model thiết bị</string>
-    <string name="su_not_allowed">Không được phép cấp quyền SU cho %s</string>
+    <string name="su_not_allowed">Không thể cấp quyền Superuser cho %s</string>
     <string name="settings_disable_su">Vô hiệu hoá lệnh SU</string>
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d không? \n\n%2$s</string>
@@ -553,4 +553,17 @@
     <string name="kstat_config_updated">Cập nhật cấu hình Kstat</string>
     <string name="kstat_path_updated">Cập nhật Đường dẫn Kstat</string>
     <string name="susfs_update_full_clone">Cập nhật bản sao SuSFS đầy đủ</string>
+    <string name="umount_zygote_iso_service">Umount dịch vụ cô lập Zygote</string>
+    <string name="umount_zygote_iso_service_description">Umount các điểm dịch vụ cô lập Zygote khi khởi động hệ thống</string>
+    <string name="umount_zygote_iso_service_enabled">Umount dịch vụ cô lập Zygote đã bật</string>
+    <string name="umount_zygote_iso_service_disabled">Umount dịch vụ cô lập Zygote đã tắt</string>
+    <string name="app_paths_section">Đường dẫn ứng dụng</string>
+    <string name="other_paths_section">Đường dẫn khác</string>
+    <string name="add_custom_path">Khác</string>
+    <string name="add_app_path">Ứng dụng</string>
+    <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
+    <string name="search_apps">Tìm kiếm ứng dụng</string>
+    <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
+    <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
+    <string name="all_apps_already_added">Tất cả các ứng dụng đã được thêm vào</string>
 </resources>
