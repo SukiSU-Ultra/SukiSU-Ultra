@@ -48,6 +48,8 @@ config KPM
 	  Enabling this option will activate the KPM feature of SukiSU.
 	  This option is suitable for scenarios where you need to force KPM to be enabled.
 	  but it may affect system stability.
+	select KALLSYMS
+	select KALLSYMS_ALL
 
 config KSU_LSM_SECURITY_HOOKS
 	bool "use lsm security hooks"
