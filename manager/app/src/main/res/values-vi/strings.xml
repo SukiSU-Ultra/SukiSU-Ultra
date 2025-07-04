@@ -11,7 +11,7 @@
     <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_manager_version">Phiên bản trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
-    <string name="selinux_status_disabled">Disabled</string>
+    <string name="selinux_status_disabled">Vô hiệu hoá</string>
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
@@ -48,7 +48,7 @@
     <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các Module!</string>
-    <string name="home_support_title">Hỗ trợ chúng tôi</string>
+    <string name="home_support_title">Ủng hộ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
     <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi]]></string>
     <string name="profile_default">Mặc định</string>
@@ -146,7 +146,7 @@
     <string name="restart_now">Khởi động lại ngay</string>
     <string name="unknown_error">Lỗi không xác định</string>
     <!-- Command related -->
-    <string name="command_execution_failed">Thực hiện lệnh thất bại: %1$s</string>
+    <string name="command_execution_failed">Thực thi lệnh thất bại: %1$s</string>
     <!-- Allowlist related -->
     <string name="allowlist_backup_success">Sao lưu danh sách cho phép thành công</string>
     <string name="allowlist_backup_failed">Sao lưu danh sách cho phép thất bại: %1$s</string>
@@ -218,7 +218,7 @@
     <string name="home_kpm_version">Phiên bản KPM</string>
     <string name="close_notice">Đóng</string>
     <string name="kernel_module_notice">Các chức năng Kernel Module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng Kernel Module của SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra mong đợi</string>
+    <string name="home_ContributionCard_kernelsu">Tương lai của SukiSU Ultra</string>
     <string name="kpm_control_success">Thành công</string>
     <string name="kpm_control_failed">Thất bại</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
@@ -236,8 +236,8 @@
     <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
     <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
     <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
-    <string name="settings_susfs_toggle_summary">Vô hiệu hóa kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng non-kprobes hook được nhúng, tương tự như phương pháp hook của Kernel non-GKI</string>
-    <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay kéo nó để điều chỉnh vị trí</string>
+    <string name="settings_susfs_toggle_summary">Vô hiệu hóa kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng inlines hook, tương tự như phương pháp hook của Kernel non-GKI</string>
+    <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay kéo thả để điều chỉnh vị trí</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_title">Kernel Flashing</string>
@@ -262,7 +262,7 @@
     <string name="horizon_restoring_original_slot">Khôi phục Slot mặc định</string>
     <string name="current_slot">Slot hiện tại: %1$s </string>
     <!-- Error Messages -->
-    <string name="horizon_copy_failed">Copy thất bại</string>
+    <string name="horizon_copy_failed">Sao chép thất bại</string>
     <string name="horizon_unknown_error">Lỗi không xác định</string>
     <string name="flash_failed_message">Flash thất bại</string>
     <!-- lkm/gki install -->
@@ -369,7 +369,7 @@
     <string name="susfs_reset_confirm_title">Xác nhận khôi phục</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">Không tìm thấy file ksu_susfs</string>
-    <string name="susfs_command_failed">Thực hiện lệnh SuSFS thất bại</string>
+    <string name="susfs_command_failed">Thực thi lệnh SuSFS thất bại</string>
     <string name="susfs_command_error">Lỗi khi thực hiện lệnh SuSFS: %s</string>
     <string name="susfs_uname_set_success" formatted="false">SuSFS Uname và Thời gian xây dựng được thiết lập thành công: %s, %s</string>
     <!-- SuSFS Settings Item -->
@@ -458,12 +458,12 @@
     <!-- Settings related strings -->
     <string name="show_more_module_info">Hiển thị \"JSON URLs\"</string>
     <string name="show_more_module_info_summary">Hiển thị thông tin đường dẫn cập nhật \"JSON URLs\" của module</string>
-    <string name="susfs_execution_location_label">Địa điểm thực thi</string>
+    <string name="susfs_execution_location_label">Vị trí thực thi</string>
     <string name="susfs_current_execution_location">Vị trí thực thi hiện tại: %s</string>
     <string name="susfs_execution_location_service">Service</string>
     <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
-    <string name="susfs_execution_location_service_description">Thực hiện sau khi dịch vụ hệ thống bắt đầu</string>
-    <string name="susfs_execution_location_post_fs_data_description">Thực hiện sau khi file hệ thống được mount nhưng trước khi hệ thống khởi động hoàn toàn, có thể gây ra boot loop</string>
+    <string name="susfs_execution_location_service_description">Thực thi sau khi dịch vụ hệ thống khởi động</string>
+    <string name="susfs_execution_location_post_fs_data_description">Thực thi sau khi file hệ thống được mount nhưng trước khi hệ thống khởi động hoàn toàn, có thể gây ra boot loop</string>
     <string name="susfs_slot_info_title">Thông tin Slot</string>
     <string name="susfs_slot_info_description">Xem thông tin Slot khởi động hiện tại và sao chép giá trị</string>
     <string name="susfs_current_active_slot">Slot hiện tại: %s</string>
