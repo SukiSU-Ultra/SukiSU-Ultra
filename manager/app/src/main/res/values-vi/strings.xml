@@ -11,7 +11,7 @@
     <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_manager_version">Phiên bản trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
-    <string name="selinux_status_disabled">Vô hiệu hoá</string>
+    <string name="selinux_status_disabled">Disabled</string>
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
