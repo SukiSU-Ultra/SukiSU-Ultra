@@ -71,7 +71,7 @@ void ksu_apply_kernelsu_rules()
 		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "file", ALL);
 	}
 
-	// we need to save allowlist in /data/adb/ksu
+	// we need to save allowlist and dynamic sign config in /data/adb/ksu
 	ksu_allow(db, "kernel", "adb_data_file", "dir", ALL);
 	ksu_allow(db, "kernel", "adb_data_file", "file", ALL);
 	// we need to search /data/app

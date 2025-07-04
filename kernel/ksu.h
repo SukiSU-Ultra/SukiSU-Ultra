@@ -29,6 +29,9 @@
 #define CMD_ENABLE_KPM 100
 #define CMD_HOOK_TYPE 101
 #define CMD_GET_SUSFS_FEATURE_STATUS 102
+#define CMD_SET_DYNAMIC_SIGN 103
+#define CMD_GET_DYNAMIC_SIGN 104
+#define CMD_CLEAR_DYNAMIC_SIGN 105
 
 #define EVENT_POST_FS_DATA 1
 #define EVENT_BOOT_COMPLETED 2
@@ -45,6 +48,11 @@
 #define KSU_VERSION_FULL "v3.x-00000000@unknown"
 #endif
 #define KSU_FULL_VERSION_STRING 255
+
+struct dynamic_sign_user_config {
+    unsigned int size;
+    char hash[65];
+};
 
 // SUSFS Functional State Structures
 struct susfs_feature_status {

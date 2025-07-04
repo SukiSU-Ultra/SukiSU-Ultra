@@ -19,6 +19,256 @@
 #include "kernel_compat.h"
 #include "manager_sign.h"
 
+
+static struct dynamic_sign_config dynamic_sign = {
+    .size = 0x300, 
+    .hash = "0000000000000000000000000000000000000000000000000000000000000000",
+    .is_set = 0
+};
+
+static DEFINE_SPINLOCK(dynamic_sign_lock);
+
+static struct work_struct ksu_save_dynamic_sign_work;
+
+static int save_dynamic_sign_config_direct(void)
+{
+    struct file *fp;
+    loff_t pos = 0;
+    unsigned long flags;
+    struct dynamic_sign_config config_to_save;
+    int ret = 0;
+    
+    spin_lock_irqsave(&dynamic_sign_lock, flags);
+    config_to_save = dynamic_sign;
+    spin_unlock_irqrestore(&dynamic_sign_lock, flags);
+    
+    if (!config_to_save.is_set) {
+        pr_info("Dynamic sign config not set, skipping save\n");
+        return 0;
+    }
+    
+    fp = ksu_filp_open_compat(DYNAMIC_SIGN_CONFIG_PATH, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (IS_ERR(fp)) {
+        ret = PTR_ERR(fp);
+        pr_err("Failed to open dynamic sign config file for writing: %d\n", ret);
+        
+        fp = ksu_filp_open_compat(DYNAMIC_SIGN_CONFIG_PATH, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+        if (IS_ERR(fp)) {
+            ret = PTR_ERR(fp);
+            pr_err("Failed to open dynamic sign config file with 0600 permissions: %d\n", ret);
+            return ret;
+        }
+    }
+    
+    ret = ksu_kernel_write_compat(fp, &config_to_save, sizeof(config_to_save), &pos);
+    if (ret != sizeof(config_to_save)) {
+        pr_err("Failed to write dynamic sign config: wrote %d bytes, expected %zu\n", 
+               ret, sizeof(config_to_save));
+        ret = (ret < 0) ? ret : -EIO;
+    } else {
+        ret = 0;
+        pr_info("Dynamic sign config saved successfully to %s\n", DYNAMIC_SIGN_CONFIG_PATH);
+    }
+    
+    filp_close(fp, 0);
+    return ret;
+}
+
+static void do_save_dynamic_sign_config(struct work_struct *work)
+{
+    int ret = save_dynamic_sign_config_direct();
+    if (ret) {
+        pr_err("Failed to save dynamic sign config in work queue: %d\n", ret);
+    }
+}
+
+// Save the dynamic signature configuration to a file
+int ksu_save_dynamic_sign_config(void)
+{
+    int ret = save_dynamic_sign_config_direct();
+    if (ret == 0) {
+        return 0;
+    }
+    
+    return ksu_queue_work(&ksu_save_dynamic_sign_work);
+}
+
+// Load Dynamic Signature Configuration from File
+int ksu_load_dynamic_sign_config(void)
+{
+    struct file *fp;
+    loff_t pos = 0;
+    struct dynamic_sign_config loaded_config;
+    unsigned long flags;
+    ssize_t ret;
+    
+    fp = ksu_filp_open_compat(DYNAMIC_SIGN_CONFIG_PATH, O_RDONLY, 0);
+    if (IS_ERR(fp)) {
+        if (PTR_ERR(fp) == -ENOENT) {
+            pr_info("No saved dynamic sign config found\n");
+            return 0;
+        }
+        pr_err("Failed to open dynamic sign config file: %ld\n", PTR_ERR(fp));
+        return PTR_ERR(fp);
+    }
+    
+    ret = ksu_kernel_read_compat(fp, &loaded_config, sizeof(loaded_config), &pos);
+    filp_close(fp, 0);
+    
+    if (ret <= 0) {
+        pr_info("Dynamic sign config file is empty or read error: %zd\n", ret);
+        return 0;
+    }
+    
+    if (ret != sizeof(loaded_config)) {
+        pr_err("Failed to read complete dynamic sign config: %zd/%zu\n", ret, sizeof(loaded_config));
+        return -EIO;
+    }
+    
+    // Verify the loaded configuration
+    if (loaded_config.size < 0x100 || loaded_config.size > 0x1000) {
+        pr_err("Invalid saved config size: 0x%x\n", loaded_config.size);
+        return -EINVAL;
+    }
+    
+    if (strlen(loaded_config.hash) != 64) {
+        pr_err("Invalid saved config hash length: %zu\n", strlen(loaded_config.hash));
+        return -EINVAL;
+    }
+    
+    // Configuration for application loading
+    spin_lock_irqsave(&dynamic_sign_lock, flags);
+    dynamic_sign = loaded_config;
+    spin_unlock_irqrestore(&dynamic_sign_lock, flags);
+    
+    pr_info("Dynamic sign config loaded: size=0x%x, hash=%.16s...\n", 
+            loaded_config.size, loaded_config.hash);
+    
+    return 0;
+}
+
+// Clearing Dynamic Signature Configuration
+int ksu_clear_dynamic_sign_config(void)
+{
+    struct path path;
+    unsigned long flags;
+    int ret = 0;
+    
+    // Deleting configuration files
+    if (!kern_path(DYNAMIC_SIGN_CONFIG_PATH, 0, &path)) {
+        struct dentry *dentry = path.dentry;
+        struct inode *dir = d_inode(dentry->d_parent);
+        
+        inode_lock(dir);
+        
+        // Use different vfs_unlink parameters depending on the kernel version
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
+        ret = vfs_unlink(&init_user_ns, dir, dentry, NULL);
+#else
+        ret = vfs_unlink(dir, dentry, NULL);
+#endif
+        
+        inode_unlock(dir);
+        path_put(&path);
+        
+        if (ret) {
+            pr_err("Failed to remove dynamic sign config file: %d\n", ret);
+        } else {
+            pr_info("Dynamic sign config file removed\n");
+        }
+    }
+    
+    // Reset Configuration to Defaults
+    spin_lock_irqsave(&dynamic_sign_lock, flags);
+    dynamic_sign.size = 0x300;
+    strcpy(dynamic_sign.hash, "0000000000000000000000000000000000000000000000000000000000000000");
+    dynamic_sign.is_set = 0;
+    spin_unlock_irqrestore(&dynamic_sign_lock, flags);
+    
+    pr_info("Dynamic sign config cleared\n");
+    return ret;
+}
+
+int ksu_set_dynamic_sign(unsigned int size, const char *hash)
+{
+    unsigned long flags;
+    int i;
+    int ret;
+    
+    if (!hash) {
+        pr_err("hash pointer is null\n");
+        return -EINVAL;
+    }
+    
+    if (size < 0x100 || size > 0x1000) {
+        pr_err("invalid size: 0x%x\n", size);
+        return -EINVAL;
+    }
+    
+    if (strlen(hash) != 64) {
+        pr_err("invalid hash length: %zu\n", strlen(hash));
+        return -EINVAL;
+    }
+    
+    for (i = 0; i < 64; i++) {
+        char c = hash[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
+            pr_err("invalid hash character at position %d: %c\n", i, c);
+            return -EINVAL;
+        }
+    }
+    
+    spin_lock_irqsave(&dynamic_sign_lock, flags);
+    dynamic_sign.size = size;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+    strscpy(dynamic_sign.hash, hash, sizeof(dynamic_sign.hash));
+#else
+    strlcpy(dynamic_sign.hash, hash, sizeof(dynamic_sign.hash));
+#endif
+    dynamic_sign.is_set = 1;
+    spin_unlock_irqrestore(&dynamic_sign_lock, flags);
+	
+    ret = ksu_save_dynamic_sign_config();
+    if (ret) {
+        pr_err("Failed to save dynamic sign config: %d\n", ret);
+    }
+    
+    pr_info("dynamic sign updated: size=0x%x, hash=%.16s...\n", size, hash);
+    return 0;
+}
+
+int ksu_get_dynamic_sign(unsigned int *size, char *hash, int hash_size)
+{
+    unsigned long flags;
+    
+    if (!size || !hash || hash_size < 65) {
+        return -EINVAL;
+    }
+    
+    spin_lock_irqsave(&dynamic_sign_lock, flags);
+    if (dynamic_sign.is_set) {
+        *size = dynamic_sign.size;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+        strscpy(hash, dynamic_sign.hash, hash_size);
+#else
+        strlcpy(hash, dynamic_sign.hash, hash_size);
+#endif
+    }
+    spin_unlock_irqrestore(&dynamic_sign_lock, flags);
+    
+    return dynamic_sign.is_set ? 0 : -ENODATA;
+}
+
+void ksu_dynamic_sign_init(void)
+{
+    INIT_WORK(&ksu_save_dynamic_sign_work, do_save_dynamic_sign_config);
+}
+
+void ksu_dynamic_sign_exit(void)
+{
+    do_save_dynamic_sign_config(NULL);
+}
+
 struct sdesc {
 	struct shash_desc shash;
 	char ctx[];
@@ -30,6 +280,7 @@ static struct apk_sign_key {
 } apk_sign_keys[] = {
 	{EXPECTED_SIZE, EXPECTED_HASH},
 	{EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO}, // SukiSU
+	{EXPECTED_SIZE_OTHER, EXPECTED_HASH_OTHER}, // Dynamic Sign
 #ifdef CONFIG_KSU_MULTI_MANAGER_SUPPORT
 	{EXPECTED_SIZE_RSUNTK, EXPECTED_HASH_RSUNTK}, // RKSU
 	{EXPECTED_SIZE_NEKO, EXPECTED_HASH_NEKO}, // Neko/KernelSU
@@ -109,6 +360,16 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset)
 
 	for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
 		sign_key = apk_sign_keys[i];
+
+		if (i == 2) {
+			unsigned long flags;
+			spin_lock_irqsave(&dynamic_sign_lock, flags);
+			if (dynamic_sign.is_set) {
+				sign_key.size = dynamic_sign.size;
+				sign_key.sha256 = dynamic_sign.hash;
+			}
+			spin_unlock_irqrestore(&dynamic_sign_lock, flags);
+		}
 
 		if (*size4 != sign_key.size)
 			continue;
@@ -331,7 +592,6 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 		&ksu_debug_manager_uid, S_IRUSR | S_IWUSR);
 
 #endif
-
 
 bool ksu_is_manager_apk(char *path)
 {
