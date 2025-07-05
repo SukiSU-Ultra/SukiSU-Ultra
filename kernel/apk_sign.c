@@ -163,7 +163,7 @@ int ksu_clear_dynamic_sign_config(void)
         
         // Use different vfs_unlink parameters depending on the kernel version
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
-        ret = vfs_unlink(&init_user_ns, dir, dentry, NULL);
+        ret = vfs_unlink(path.mnt->mnt_idmap, dir, dentry, NULL);
 #else
         ret = vfs_unlink(dir, dentry, NULL);
 #endif
