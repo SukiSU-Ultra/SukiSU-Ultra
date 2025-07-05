@@ -578,4 +578,10 @@
     <string name="invalid_sign_config">Cấu hình chữ ký không hợp lệ</string>
     <string name="dynamic_sign_disabled_success">Chữ ký động đã bị vô hiệu hóa</string>
     <string name="dynamic_sign_clear_failed">Xoá chữ ký động thất bại</string>
+    <string name="dynamic_signature">Chữ ký động</string>
+    <string name="signature_index">Chữ ký %1$d</string>
+    <string name="unknown_signature">Không xác định</string>
+    <string name="multi_manager_list">Trình quản lý đang hoạt động</string>
+    <string name="no_active_manager">Trình quản lý đang không hoạt động</string>
+    <string name="default_signature">SukiSU</string>
 </resources>
