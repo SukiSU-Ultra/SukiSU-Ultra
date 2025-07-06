@@ -11,7 +11,7 @@
     <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_manager_version">Phiên bản trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
-    <string name="selinux_status_disabled">Disabled</string>
+    <string name="selinux_status_disabled">Vô hiệu hoá</string>
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
@@ -256,7 +256,7 @@
     <string name="select_slot_description">Vui lòng chọn Slot để Flash Boot</string>
     <string name="slot_a">Slot A</string>
     <string name="slot_b">Slot B</string>
-    <string name="selected_slot">Slot đã chọn: %1$s</string>
+    <string name="selected_slot">Đã chọn Slot: %1$s</string>
     <string name="horizon_getting_original_slot">Lấy Slot ban đầu</string>
     <string name="horizon_setting_target_slot">Cài đặt Slot được chỉ định</string>
     <string name="horizon_restoring_original_slot">Khôi phục Slot mặc định</string>
