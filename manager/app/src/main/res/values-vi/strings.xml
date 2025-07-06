@@ -63,7 +63,7 @@
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %s quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
-    <string name="settings_susfs_toggle">Vô hiệu hóa kprobes hook</string>
+    <string name="settings_susfs_toggle">Vô hiệu hoá kprobes hook</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
@@ -236,7 +236,7 @@
     <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
     <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
     <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
-    <string name="settings_susfs_toggle_summary">Vô hiệu hóa kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng inlines hook, tương tự như phương pháp hook của Kernel non-GKI</string>
+    <string name="settings_susfs_toggle_summary">Vô hiệu hoá kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng inlines hook, tương tự như phương pháp hook của Kernel non-GKI</string>
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay kéo thả để điều chỉnh vị trí</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
@@ -475,7 +475,7 @@
     <string name="susfs_slot_info_unavailable">Không thể lấy thông tin Slot</string>
     <!-- SuSFS 自启动相关字符串 -->
     <string name="susfs_autostart_enabled_success">Module tự động khởi động SuSFS đã bật, đường dẫn module: %s</string>
-    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hóa</string>
+    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hoá</string>
     <!-- SuSFS Kstat相关字符串 -->
     <string name="susfs_tab_kstat_config">Cấu hình Kstat</string>
     <string name="kstat_static_config_added">Đã thêm cấu hình Kstat tĩnh: %1$s</string>
@@ -504,10 +504,10 @@
     <string name="susfs_hide_mounts_control_description">Kiểm soát hành vi ẩn của SuS Mount với các tiến trình</string>
     <string name="susfs_hide_mounts_for_all_procs_label">Ẩn SuS Mount khỏi tất cả các tiến trình</string>
     <string name="susfs_hide_mounts_for_all_procs_enabled_description">Khi kích hoạt, SuS Mount sẽ bị ẩn khỏi tất cả các tiến trình, bao gồm cả các tiến trình KSU</string>
-    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hóa, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hoá, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
     <string name="susfs_hide_mounts_all_enabled">Đã kích hoạt ẩn SuS Mount khỏi tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_all_disabled">Đã vô hiệu hóa việc ẩn SuS Mount cho tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_recommendation">Nên vô hiệu hóa sau khi màn hình được mở khóa hoặc trong giai đoạn service.sh hoặc boot-completed.sh, vì điều này sẽ khắc phục sự cố trên một số ứng dụng đã root dựa vào mount bởi tiến trình KSU</string>
+    <string name="susfs_hide_mounts_all_disabled">Đã vô hiệu hoá việc ẩn SuS Mount cho tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_recommendation">Nên vô hiệu hoá sau khi màn hình được mở khoá hoặc trong giai đoạn service.sh hoặc boot-completed.sh, vì điều này sẽ khắc phục sự cố trên một số ứng dụng đã root dựa vào mount bởi tiến trình KSU</string>
     <string name="susfs_hide_mounts_current_setting">Cài đặt hiện tại: %s</string>
     <string name="susfs_hide_mounts_setting_all">Ẩn khỏi tất cả các tiến trình</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Chỉ ẩn đối với các tiến trình không phải KSU</string>
@@ -576,7 +576,7 @@
     <string name="dynamic_sign_set_success">Cấu hình chữ ký động đã được thiết lập thành công</string>
     <string name="dynamic_sign_set_failed">Thiết lập cấu hình chữ ký động thất bại</string>
     <string name="invalid_sign_config">Cấu hình chữ ký không hợp lệ</string>
-    <string name="dynamic_sign_disabled_success">Chữ ký động đã bị vô hiệu hóa</string>
+    <string name="dynamic_sign_disabled_success">Chữ ký động đã bị vô hiệu hoá</string>
     <string name="dynamic_sign_clear_failed">Xoá chữ ký động thất bại</string>
     <string name="dynamic_signature">Chữ ký động</string>
     <string name="signature_index">Chữ ký %1$d</string>
