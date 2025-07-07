@@ -566,4 +566,22 @@
     <string name="selected_apps_count">%1$d uygulama seçildi</string>
     <string name="already_added_apps_count">%1$d uygulama zaten eklendi</string>
     <string name="all_apps_already_added">Tüm uygulamalar eklendi</string>
+    <string name="dynamic_sign_title">Dinamik İmza Yapılandırması</string>
+    <string name="dynamic_sign_enabled_summary">Etkin (Boyut: %s)</string>
+    <string name="dynamic_sign_disabled">Devre Dışı</string>
+    <string name="enable_dynamic_sign">Dinamik İmzayı Etkinleştir</string>
+    <string name="signature_size">İmza Boyutu</string>
+    <string name="signature_hash">İmza Hash</string>
+    <string name="hash_must_be_64_chars">Hash, 64 adet onaltılık karakterden oluşmalıdır</string>
+    <string name="dynamic_sign_set_success">Dinamik imza yapılandırması başarıyla ayarlandı</string>
+    <string name="dynamic_sign_set_failed">Dinamik imza yapılandırması ayarlanamadı</string>
+    <string name="invalid_sign_config">Geçersiz imza yapılandırması</string>
+    <string name="dynamic_sign_disabled_success">Dinamik imza devre dışı bırakıldı</string>
+    <string name="dynamic_sign_clear_failed">Dinamik imza temizlenemedi</string>
+    <string name="dynamic_signature">Dinamik</string>
+    <string name="signature_index">İmza %1$d</string>
+    <string name="unknown_signature">Bilinmiyor</string>
+    <string name="multi_manager_list">Aktif Yönetici</string>
+    <string name="no_active_manager">Aktif yönetici yok</string>
+    <string name="default_signature">SukiSU</string>
 </resources>
