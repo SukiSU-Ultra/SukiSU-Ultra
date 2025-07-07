@@ -223,7 +223,11 @@ fun restoreBoot(
     onFinish: (Boolean, Int) -> Unit, onStdout: (String) -> Unit, onStderr: (String) -> Unit
 ): Boolean {
     val magiskboot = File(ksuApp.applicationInfo.nativeLibraryDir, "libzakoboot.so")
-    val result = flashWithIO("${getKsuDaemonPath()} boot-restore -f --magiskboot $magiskboot", onStdout, onStderr)
+    val result = flashWithIO(
+        "${getKsuDaemonPath()} boot-restore -f --magiskboot $magiskboot",
+        onStdout,
+        onStderr
+    )
     onFinish(result.isSuccess, result.code)
     return result.isSuccess
 }
@@ -232,7 +236,8 @@ fun uninstallPermanently(
     onFinish: (Boolean, Int) -> Unit, onStdout: (String) -> Unit, onStderr: (String) -> Unit
 ): Boolean {
     val magiskboot = File(ksuApp.applicationInfo.nativeLibraryDir, "libzakoboot.so")
-    val result = flashWithIO("${getKsuDaemonPath()} uninstall --magiskboot $magiskboot", onStdout, onStderr)
+    val result =
+        flashWithIO("${getKsuDaemonPath()} uninstall --magiskboot $magiskboot", onStdout, onStderr)
     onFinish(result.isSuccess, result.code)
     return result.isSuccess
 }
@@ -457,6 +462,7 @@ fun getSuSFSVariant(): String {
     val result = ShellUtils.fastCmd(shell, "${getSuSFSDaemonPath()} variant")
     return result
 }
+
 fun getSuSFSFeatures(): String {
     val shell = getRootShell()
     val result = ShellUtils.fastCmd(shell, "${getSuSFSDaemonPath()} features")
@@ -505,7 +511,7 @@ fun getKpmModuleCount(): Int {
     return result.trim().toIntOrNull() ?: 0
 }
 
-fun runCmd(shell : Shell, cmd : String) : String {
+fun runCmd(shell: Shell, cmd: String): String {
     return shell.newJob()
         .add(cmd)
         .to(mutableListOf<String>(), null)
@@ -547,4 +553,26 @@ fun getKpmVersion(): String {
     val cmd = "${getKpmmgrPath()} version"
     val result = ShellUtils.fastCmd(shell, cmd)
     return result.trim()
+}
+
+fun getZygiskImplement(): String {
+    val shell = getRootShell()
+    var result: String
+    if (ShellUtils.fastCmdResult(
+            shell,
+            "/data/adb/modules/zygisksu/bin/zygiskd | grep \"Zygisk Next\""
+        )
+    ) {
+        result = "Zygisk Next"
+    } else if (ShellUtils.fastCmdResult(
+            shell,
+            "/data/adb/modules/zygisksu/bin/zygiskd | grep \"ReZygisk\""
+        )
+    ) {
+        result = "ReZygisk"
+    } else {
+        result = "None"
+    }
+    Log.i(TAG, "Zygisk implement: $result")
+    return result
 }

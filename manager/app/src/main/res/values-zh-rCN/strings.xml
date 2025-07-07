@@ -583,4 +583,5 @@
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活跃管理器</string>
     <string name="no_active_manager">无活跃管理器</string>
+    <string name="home_zygisk_implement">Zygisk 实现</string>
 </resources>

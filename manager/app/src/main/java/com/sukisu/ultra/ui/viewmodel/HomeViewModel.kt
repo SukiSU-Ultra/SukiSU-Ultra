@@ -62,7 +62,8 @@ class HomeViewModel : ViewModel() {
         val moduleCount: Int = 0,
         val kpmModuleCount: Int = 0,
         val managersList: Natives.ManagersList? = null,
-        val isDynamicSignEnabled: Boolean = false
+        val isDynamicSignEnabled: Boolean = false,
+        val zygiskImplement: String = ""
     )
 
     private val gson = Gson()
@@ -280,7 +281,8 @@ class HomeViewModel : ViewModel() {
                     moduleCount = getModuleCount(),
                     kpmModuleCount = getKpmModuleCount(),
                     managersList = managersList,
-                    isDynamicSignEnabled = isDynamicSignEnabled
+                    isDynamicSignEnabled = isDynamicSignEnabled,
+                    zygiskImplement = getZygiskImplement()
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching system info", e)

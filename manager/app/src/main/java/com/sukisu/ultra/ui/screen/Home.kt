@@ -261,8 +261,8 @@ fun UpdateCard() {
 @Composable
 fun RebootDropdownItem(@StringRes id: Int, reason: String = "") {
     DropdownMenuItem(
-        text = {Text(stringResource(id))},
-        onClick = {reboot(reason)})
+        text = { Text(stringResource(id)) },
+        onClick = { reboot(reason) })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -319,7 +319,8 @@ private fun TopBar(
                     }) {
                         RebootDropdownItem(id = R.string.reboot)
 
-                        val pm = LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                        val pm =
+                            LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
                         @Suppress("DEPRECATION")
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
                             RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
@@ -343,8 +344,10 @@ private fun StatusCard(
     onClickInstall: () -> Unit = {}
 ) {
     ElevatedCard(
-        colors = getCardColors( if (systemStatus.ksuVersion != null)MaterialTheme.colorScheme.secondaryContainer
-        else MaterialTheme.colorScheme.errorContainer),
+        colors = getCardColors(
+            if (systemStatus.ksuVersion != null) MaterialTheme.colorScheme.secondaryContainer
+            else MaterialTheme.colorScheme.errorContainer
+        ),
         elevation = getCardElevation(),
     ) {
         Row(
@@ -433,7 +436,10 @@ private fun StatusCard(
                             }
                         }
 
-                        val isHideVersion = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                        val isHideVersion = LocalContext.current.getSharedPreferences(
+                            "settings",
+                            Context.MODE_PRIVATE
+                        )
                             .getBoolean("is_hide_version", false)
 
                         if (!isHideVersion) {
@@ -679,7 +685,7 @@ private fun InfoCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                    ){
+                    ) {
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelLarge,
@@ -731,7 +737,12 @@ private fun InfoCard(
                             when (signatureIndex) {
                                 1 -> "(${stringResource(R.string.default_signature)})"
                                 2 -> "(${stringResource(R.string.dynamic_signature)})"
-                                else -> if (signatureIndex >= 0) "(${stringResource(R.string.signature_index, signatureIndex)})" else "(${stringResource(R.string.unknown_signature)})"
+                                else -> if (signatureIndex >= 0) "(${
+                                    stringResource(
+                                        R.string.signature_index,
+                                        signatureIndex
+                                    )
+                                })" else "(${stringResource(R.string.unknown_signature)})"
                             }
                         )
                         append(" | ")
@@ -751,19 +762,28 @@ private fun InfoCard(
                 icon = Icons.Default.Security,
             )
 
+            if (!isSimpleMode && systemInfo.zygiskImplement != "None") {
+                InfoCardItem(
+                    stringResource(R.string.home_zygisk_implement),
+                    systemInfo.zygiskImplement,
+                    icon = Icons.Default.Adb,
+                )
+            }
+
             if (!isSimpleMode) {
                 // 根据showKpmInfo决定是否显示KPM信息
                 if (lkmMode != true && !showKpmInfo) {
-                    val displayVersion = if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
-                        val statusText = if (Natives.isKPMEnabled()) {
-                            stringResource(R.string.kernel_patched)
+                    val displayVersion =
+                        if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
+                            val statusText = if (Natives.isKPMEnabled()) {
+                                stringResource(R.string.kernel_patched)
+                            } else {
+                                stringResource(R.string.kernel_not_enabled)
+                            }
+                            "${stringResource(R.string.not_supported)} ($statusText)"
                         } else {
-                            stringResource(R.string.kernel_not_enabled)
+                            "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
                         }
-                        "${stringResource(R.string.not_supported)} ($statusText)"
-                    } else {
-                        "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
-                    }
 
                     InfoCardItem(
                         stringResource(R.string.home_kpm_version),
@@ -775,7 +795,8 @@ private fun InfoCard(
 
             if (!isSimpleMode && !isHideSusfsStatus &&
                 systemInfo.suSFSStatus == "Supported" &&
-                systemInfo.suSFSVersion.isNotEmpty()) {
+                systemInfo.suSFSVersion.isNotEmpty()
+            ) {
 
                 val infoText = SuSFSInfoText(systemInfo)
 
@@ -804,9 +825,11 @@ private fun SuSFSInfoText(systemInfo: HomeViewModel.SystemInfo): String = buildS
                 append(" ${stringResource(R.string.sus_su_mode)} ${systemInfo.susSUMode}")
             }
         }
+
         Natives.getHookType() == "Manual" -> {
             append(" (${stringResource(R.string.manual_hook)})")
         }
+
         else -> {
             append(" (${Natives.getHookType()})")
         }
