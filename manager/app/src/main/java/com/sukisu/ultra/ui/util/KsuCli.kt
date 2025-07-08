@@ -557,22 +557,10 @@ fun getKpmVersion(): String {
 
 fun getZygiskImplement(): String {
     val shell = getRootShell()
-    var result: String
-    if (ShellUtils.fastCmdResult(
-            shell,
-            "/data/adb/modules/zygisksu/bin/zygiskd | grep \"Zygisk Next\""
-        )
-    ) {
-        result = "Zygisk Next"
-    } else if (ShellUtils.fastCmdResult(
-            shell,
-            "/data/adb/modules/zygisksu/bin/zygiskd | grep \"ReZygisk\""
-        )
-    ) {
-        result = "ReZygisk"
-    } else {
-        result = "None"
-    }
+    val zygiskPath = "/data/adb/modules/zygisksu"
+    val result = if (ShellUtils.fastCmdResult(shell, "test -f $zygiskPath/module.prop")) {
+        ShellUtils.fastCmd(shell, "grep '^name=' $zygiskPath/module.prop | cut -d'=' -f2")
+    } else "None"
     Log.i(TAG, "Zygisk implement: $result")
     return result
 }
