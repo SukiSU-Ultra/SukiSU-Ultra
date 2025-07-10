@@ -731,7 +731,7 @@ private fun InfoCard(
 
                 val managersText = buildString {
                     signatureMap.toSortedMap().forEach { (signatureIndex, managers) ->
-                        append(managers.joinToString(", ") { "UID:${it.uid}" })
+                        append(managers.joinToString(", ") { "UID: ${it.uid}" })
                         append(" ")
                         append(
                             when (signatureIndex) {
