@@ -121,7 +121,7 @@ Lütfen **tümünü** https://kernelsu.org/zh_CN/guide/installation.html adresin
 ## Lisans
 
 - `kernel` dizinindeki dosyalar [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) lisansı altındadır.
-- Anime karakter ifadeleri içeren `ic_launcher(?!.*alt.*).*` dosyalarının görüntüleri [五十根大虾仁](https://space.bilibili.com/370927) tarafından telif hakkıyla korunmaktadır, görüntülerdeki Marka Fikri Mülkiyeti [明风 OuO](https://space.bilibili.com/274939213)'ye aittir ve vektörleştirme @MiRinChan tarafından yapılmıştır. Bu dosyaları kullanmadan önce, [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) ile uyumlu olmanın yanı sıra, bu sanatsal içerikleri kullanmak için iki yazarın yetkilendirmesine de uymanız gerekir.
+- Anime karakter ifadeleri içeren `ic_launcher(?!.*alt.*).*` dosyalarının görüntüleri [怡子曰曰](https://space.bilibili.com/10545509) tarafından telif hakkıyla korunmaktadır, görüntülerdeki Marka Fikri Mülkiyeti [明风 OuO](https://space.bilibili.com/274939213)'ye aittir ve vektörleştirme @MiRinChan tarafından yapılmıştır. Bu dosyaları kullanmadan önce, [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt) ile uyumlu olmanın yanı sıra, bu sanatsal içerikleri kullanmak için iki yazarın yetkilendirmesine de uymanız gerekir.
 - Yukarıda belirtilen dosyalar veya dizinler hariç, diğer tüm parçalar [GPL-3.0 veya üzeri](https://www.gnu.org/licenses/gpl-3.0.html)'dir.
 
 ## Afdian Bağlantısı

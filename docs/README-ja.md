@@ -122,7 +122,7 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 - 「kernel」のディレクトリ内のファイルは [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) のライセンスに基づいています。
 
-- アニメキャラクターの絵文字を含む `ic_launcher(?!.*alt.*).*` の画像は、[五十根大虾仁](https://space.bilibili.com/370927)が著作権を所有しています。画像に含まれるブランドの知的財産権は[明风 OuO](https://space.bilibili.com/274939213)が所有しています。ベクトル化は @MiRinChan が行っています。これらのファイルを使用する前に[クリエイティブコモンズ 表示 - 非営利 - 継承 4.0 国際](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)に準拠することに加え、これらの芸術的コンテンツを使用するためには 2 名の著者の許可に従う必要があります。
+- アニメキャラクターの絵文字を含む `ic_launcher(?!.*alt.*).*` の画像は、[怡子曰曰](https://space.bilibili.com/10545509)が著作権を所有しています。画像に含まれるブランドの知的財産権は[明风 OuO](https://space.bilibili.com/274939213)が所有しています。ベクトル化は @MiRinChan が行っています。これらのファイルを使用する前に[クリエイティブコモンズ 表示 - 非営利 - 継承 4.0 国際](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)に準拠することに加え、これらの芸術的コンテンツを使用するためには 2 名の著者の許可に従う必要があります。
 
 ## スポンサーシップの一覧
 
