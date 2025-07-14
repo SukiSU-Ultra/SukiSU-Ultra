@@ -157,7 +157,7 @@ GKI 的安装方法有如下几种，各自适用于不同的场景，请按需�
 
 ## 使用 KernelSU 提供的 boot.img 安装 {#install-by-kernelsu-boot-image}
 
-如果你设备的 `boot.img` 采用常用的压缩格式，那么可以采用 KernelSU 提供的的通用内核镜像直接刷入，它不需要 TWRP 或者自行修补镜像。
+如果你设备的 `boot.img` 采用常用的压缩格式，那么可以采用 KernelSU 提供的通用内核镜像直接刷入，它不需要 TWRP 或者自行修补镜像。
 
 ### 找到合适的 boot.img {#found-propery-image}
 
