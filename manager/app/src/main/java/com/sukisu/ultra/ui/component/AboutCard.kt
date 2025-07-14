@@ -102,7 +102,7 @@ private fun AboutCardContent() {
                         "<b><a href=\"https://t.me/SukiKSU\">Telegram</a></b>",
                         "<b>怡子曰曰</b>",
                         "<b>明风 OuO</b>",
-                        "<b><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt\">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International</a></b>"
+                        "<b><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt\">CC BY-NC-SA 4.0</a></b>"
                     ),
                     linkStyles = TextLinkStyles(
                         style = SpanStyle(
