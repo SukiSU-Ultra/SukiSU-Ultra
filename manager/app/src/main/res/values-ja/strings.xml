@@ -50,7 +50,7 @@
     <string name="home_click_to_learn_kernelsu">KernelSU のインストール方法やモジュールの使い方を学習できます。</string>
     <string name="home_support_title">支援する</string>
     <string name="home_support_content">KernelSU は今後も無料でオープンソースです。ですが、寄付をして頂けると開発者への貢献になります。</string>
-    <string name="about_source_code"><![CDATA[ソースコードは %1$s で確認できます。<br/>%2$s チャンネルにご参加ください。]]></string>
+    <string name="about_source_code"><![CDATA[ソースコードは %1$s で確認できます<br/>%2$s チャンネルにご参加ください<br/><br/>アニメキャラのスタンプ付き画像の著作権は%3$sにあり、画像の Brand Intellectual Property は%4$sによって所有され。これらのファイルを使用する前に、%5$sを遵守することに加えて、アートコンテンツを使用するために前の 2 人の作者から許可を得る必要があります。]]></string>
     <string name="profile_default">デフォルト</string>
     <string name="profile_template">テンプレート</string>
     <string name="profile_custom">カスタム</string>
@@ -568,4 +568,23 @@
     <string name="selected_apps_count">%1$d 個のアプリを選択済み</string>
     <string name="already_added_apps_count">%1$d 個のアプリを追加済み</string>
     <string name="all_apps_already_added">すべてのアプリが追加されました</string>
+    <string name="dynamic_sign_title">動的な署名の構成</string>
+    <string name="dynamic_sign_enabled_summary">有効 (サイズ: %s)</string>
+    <string name="dynamic_sign_disabled">無効</string>
+    <string name="enable_dynamic_sign">動的な署名を有効化</string>
+    <string name="signature_size">署名のサイズ</string>
+    <string name="signature_hash">署名のハッシュ</string>
+    <string name="hash_must_be_64_chars">ハッシュは 64 桁の 16 進数の文字列でなければなりません。</string>
+    <string name="dynamic_sign_set_success">動的な署名の構成が正常に設定されました</string>
+    <string name="dynamic_sign_set_failed">動的な署名の構成の設定に失敗しました</string>
+    <string name="invalid_sign_config">無効な署名の構成</string>
+    <string name="dynamic_sign_disabled_success">動的な署名が無効です</string>
+    <string name="dynamic_sign_clear_failed">動的な署名の消去に失敗しました</string>
+    <string name="dynamic_signature">動的</string>
+    <string name="signature_index">署名 %1$d</string>
+    <string name="unknown_signature">不明</string>
+    <string name="multi_manager_list">有効なマネージャー</string>
+    <string name="no_active_manager">有効なマネージャーがありません</string>
+    <string name="default_signature">SukiSU</string>
+    <string name="home_zygisk_implement">Zygisk を実装</string>
 </resources>
