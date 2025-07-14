@@ -106,6 +106,10 @@ android {
     }
 }
 
+ksp {
+    arg("compose-destinations.defaultTransitions", "none")
+}
+
 dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.activity.compose)
