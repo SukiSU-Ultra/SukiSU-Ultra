@@ -584,4 +584,5 @@
     <string name="multi_manager_list">Aktif Yönetici</string>
     <string name="no_active_manager">Aktif yönetici yok</string>
     <string name="default_signature">SukiSU</string>
+    <string name="home_zygisk_implement">Zygisk uygulaması</string>
 </resources>
