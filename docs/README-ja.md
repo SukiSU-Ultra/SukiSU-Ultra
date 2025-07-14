@@ -125,9 +125,7 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 ## ライセンス
 
 - 「kernel」のディレクトリ内のファイルは [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) のライセンスに基づいています。
-
 - アニメキャラクター画像とスタンプを含むこれらのファイルの `ic_launcher(?!.*alt.*).*` は[怡子曰曰](https://space.bilibili.com/10545509)によって著作権保護されており、画像の Brand Intellectual Property は[明风 OuO](https://space.bilibili.com/274939213)によって所有され、ベクター化は @MiRinChan によって行われています。 これらのファイルを使用する前に、[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)を遵守することに加えて、アートコンテンツを使用するために前の 2 人の作者から許可を得る必要があります。
-
 - 上記のファイルまたはディレクトリを除き、その他のすべての部分は[GPL-3.0 以降](https://www.gnu.org/licenses/gpl-3.0.html)です。
 
 ## スポンサーシップの一覧
