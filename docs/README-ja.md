@@ -14,11 +14,13 @@
 ## 追加する方法
 
 メインブランチを使用 (非 GKI のデバイスのビルドは非対応) (susfs を手動で統合が必要)
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
 非 GKI のデバイスに対応するブランチを使用 (susfs を手動で統合が必要)
+
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
@@ -36,16 +38,17 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 - この方式は (https://github.com/rsuntk/KernelSU) のフック方式を参照してください。
 
 1. **KPROBES でフック:**
-    - 読み込み可能なカーネルモジュールの場合 (LKM)
-    - GKI カーネルのデフォルトとなるフック方式
-    - `CONFIG_KPROBES=y` が必要です
+
+   - 読み込み可能なカーネルモジュールの場合 (LKM)
+   - GKI カーネルのデフォルトとなるフック方式
+   - `CONFIG_KPROBES=y` が必要です
 
 2. **手動でフック:**
-    - 標準の KernelSU フック: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
-    - backslashxx syscall フック: https://github.com/backslashxx/KernelSU/issues/5
-    - 非 GKI カーネル用のデフォルトフック方式
-    - `CONFIG_KSU_MANUAL_HOOK=y` が必要です
-  
+   - 標準の KernelSU フック: https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
+   - backslashxx syscall フック: https://github.com/backslashxx/KernelSU/issues/5
+   - 非 GKI カーネル用のデフォルトフック方式
+   - `CONFIG_KSU_MANUAL_HOOK=y` が必要です
+
 ## KPM に対応
 
 - KernelPatch に基づいて重複した KSU の機能を削除、KPM の対応を維持させています。
@@ -56,15 +59,15 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Anywhere
 
 > [!Note]
+>
 > 1. `CONFIG_KPM=y` が必要です。
 > 2. 非 GKI デバイスには `CONFIG_KALLSYMS=y` と `CONFIG_KALLSYMS_ALL=y` も必要です。
 > 3. いくつかのカーネル `4.19` およびそれ以降のソースコードでは、 `4.19` からバックポートされた `set_memory.h` ヘッダーファイルも必要です。
 
-
 ## ROOT を保持した状態でのシステムアップデートの方法
 
 - 始めに OTA 後すぐに再起動せずにマネージャーのカーネルのフラッシュ、パッチのインターフェースを開いて`GKI/非 GKI のインストール`を見つけます。フラッシュする AnyKernel3 の zip ファイルを選択し、フラッシュする実行中のスロットと逆のスロットを選択後に再起動をして GKI モードの更新が保持できます (この方法はすべての非 GKI のデバイスが対応している訳ではないので、自分でお試しください。これは非 GKI のデバイスで TWRP を使用する最も安全な方法です)。
-- または LKM モードを使用して未使用のスロットにインストールします (OTA後)。
+- または LKM モードを使用して未使用のスロットにインストールします (OTA 後)。
 
 ## 互換性の状態
 
@@ -101,6 +104,7 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 1. `その他のリンク`の項目に記載されているリンクを開き、デバイス情報を使用してカスタマイズされたカーネルをビルドし、AnyKernel3 の接頭辞を持つ .zip ファイルをフラッシュします。
 
 > [!Note]
+>
 > - 5.10、5.15、6.1、6.6 などのカーネルバージョンの最初の 2 文字のみを入力する必要があります。
 > - SoC のコードネームは自分で検索してください。通常は、数字がなく英語表記のみです。
 > - ブランチと構成ファイルは、OnePlus オープンソースカーネルリポジトリから見つけることができます。
@@ -109,7 +113,7 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 1. カーネルベースな `su` および root アクセスの管理。
 2. [OverlayFS](https://en.wikipedia.org/wiki/OverlayFS) モジュールシステムではなく、 5ec1cff 氏の [Magic Mount](https://github.com/5ec1cff/KernelSU) に基づいています。
-3. [アプリプロファイル](https://kernelsu.org/guide/app-profile.html): root 権限をケージ内にロックします。 
+3. [アプリプロファイル](https://kernelsu.org/guide/app-profile.html): root 権限をケージ内にロックします。
 4. 非 GKI / GKI 1.0 の対応を復活
 5. その他のカスタマイズ
 6. KPM カーネルモジュールに対応
@@ -122,7 +126,9 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 - 「kernel」のディレクトリ内のファイルは [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) のライセンスに基づいています。
 
-- アニメキャラクターの絵文字を含む `ic_launcher(?!.*alt.*).*` の画像は、[怡子曰曰](https://space.bilibili.com/10545509)が著作権を所有しています。画像に含まれるブランドの知的財産権は[明风 OuO](https://space.bilibili.com/274939213)が所有しています。ベクトル化は @MiRinChan が行っています。これらのファイルを使用する前に[クリエイティブコモンズ 表示 - 非営利 - 継承 4.0 国際](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)に準拠することに加え、これらの芸術的コンテンツを使用するためには 2 名の著者の許可に従う必要があります。
+- アニメキャラクター画像とスタンプを含むこれらのファイルの `ic_launcher(?!.*alt.*).*` は[怡子曰曰](https://space.bilibili.com/10545509)によって著作権保護されており、画像の Brand Intellectual Property は[明风 OuO](https://space.bilibili.com/274939213)によって所有され、ベクター化は @MiRinChan によって行われています。 これらのファイルを使用する前に、[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)を遵守することに加えて、アートコンテンツを使用するために前の 2 人の作者から許可を得る必要があります。
+
+- 上記のファイルまたはディレクトリを除き、その他のすべての部分は[GPL-3.0 以降](https://www.gnu.org/licenses/gpl-3.0.html)です。
 
 ## スポンサーシップの一覧
 

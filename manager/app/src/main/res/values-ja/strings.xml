@@ -50,7 +50,7 @@
     <string name="home_click_to_learn_kernelsu">KernelSU のインストール方法やモジュールの使い方を学習できます。</string>
     <string name="home_support_title">支援する</string>
     <string name="home_support_content">KernelSU は今後も無料でオープンソースです。ですが、寄付をして頂けると開発者への貢献になります。</string>
-    <string name="about_source_code"><![CDATA[ソースコードは %1$s で確認できます。<br/>%2$s チャンネルにご参加ください。]]></string>
+    <string name="about_source_code"><![CDATA[ソースコードは %1$s で確認できます。<br/>%2$s チャンネルにご参加ください。<br/>アニメキャラのスタンプ付き画像の著作権は%3$sにあり、画像の Brand Intellectual Property は%4$sによって所有され、ベクター化は @MiRinChan によって行われています。 これらのファイルを使用する前に、%5$sを遵守することに加えて、アートコンテンツを使用するために前の 2 人の作者から許可を得る必要があります。]]></string>
     <string name="profile_default">デフォルト</string>
     <string name="profile_template">テンプレート</string>
     <string name="profile_custom">カスタム</string>
