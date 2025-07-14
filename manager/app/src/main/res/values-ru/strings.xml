@@ -586,4 +586,5 @@
     <string name="multi_manager_list">Активный менеджер</string>
     <string name="no_active_manager">Нет активного менеджера</string>
     <string name="default_signature">SukiSU</string>
+    <string name="home_zygisk_implement">Реализация Zygisk</string>
 </resources>
