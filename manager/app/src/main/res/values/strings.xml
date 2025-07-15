@@ -179,6 +179,8 @@
     <string name="hide_other_info_summary">Hides Red dot about the number of super users, modules and KPM modules on the navigation bar page</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
+    <string name="hide_zygisk_implement">Hied Zygisk status</string>
+    <string name="hide_zygisk_implement_summary">Hied zygisk Implement information on the home page</string>
     <string name="hide_link_card">Hide Link Card Status</string>
     <string name="hide_link_card_summary">Hide link card information on the home page</string>
     <string name="hide_tag_card">Hide module label rows</string>

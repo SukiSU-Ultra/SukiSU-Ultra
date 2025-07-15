@@ -177,6 +177,8 @@
     <string name="hide_other_info_summary">隐藏导航栏上的超级用户数、模块数和 KPM 模块数红点</string>
     <string name="hide_susfs_status">隐藏 SuSFS 状态信息</string>
     <string name="hide_susfs_status_summary">隐藏主页上的 SuSFS 状态信息</string>
+    <string name="hide_zygisk_implement">隐藏 Zygisk 状态信息</string>
+    <string name="hide_zygisk_implement_summary">隐藏主页上的 Zygisk 实现状态信息</string>
     <string name="hide_link_card">隐藏链接卡片</string>
     <string name="hide_link_card_summary">隐藏主页上的链接卡片信息</string>
     <string name="hide_tag_card">隐藏模块标签行</string>
