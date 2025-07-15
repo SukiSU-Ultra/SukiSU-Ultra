@@ -559,9 +559,9 @@ fun getZygiskImplement(): String {
     val shell = getRootShell()
     val zygiskPath = "/data/adb/modules/zygisksu"
     val rezygiskPath = "/data/adb/modules/rezygisk"
-    val result = if (ShellUtils.fastCmdResult(shell, "test -f $zygiskPath/module.prop")) {
+    val result = if (ShellUtils.fastCmdResult(shell, "test -f $zygiskPath/module.prop && test ! -f $zygiskPath/disable")) {
         ShellUtils.fastCmd(shell, "grep '^name=' $zygiskPath/module.prop | cut -d'=' -f2")
-    } else if (ShellUtils.fastCmdResult(shell, "test -f $rezygiskPath/module.prop")) {
+    } else if (ShellUtils.fastCmdResult(shell, "test -f $rezygiskPath/module.prop && test ! -f $rezygiskPath/disable")) {
         ShellUtils.fastCmd(shell, "grep '^name=' $rezygiskPath/module.prop | cut -d'=' -f2")
     } else {
         "None"
