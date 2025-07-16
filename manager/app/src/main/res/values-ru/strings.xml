@@ -179,6 +179,8 @@
     <string name="hide_other_info_summary">Скрывать информацию о количестве приложений с рут-доступом, модулей и KPM-модулей на главной странице</string>
     <string name="hide_susfs_status">Скрыть статус SuSFS</string>
     <string name="hide_susfs_status_summary">Скрывать информацию о статусе SuSFS на главной странице</string>
+    <string name="hide_zygisk_implement">Скрыть статус Zygisk</string>
+    <string name="hide_zygisk_implement_summary">Скрывать информацию об имплементации Zygisk на главной странице</string>
     <string name="hide_link_card">Скрыть карточки со ссылками</string>
     <string name="hide_link_card_summary">Скрывать карточки со ссылками на главной странице</string>
     <string name="hide_tag_card">Скрыть строки модуля</string>
@@ -254,7 +256,7 @@
     <string name="horizon_flashing">Прошивка ядра…</string>
     <string name="horizon_flash_complete_status">Прошивка завершена</string>
     <!-- Slot selection related strings -->
-    <string name="select_slot_title">Выбрать слот Flash</string>
+    <string name="select_slot_title">Выберите слот для прошивки</string>
     <string name="select_slot_description">Пожалуйста, выберите целевой слот для прошивки загрузки</string>
     <string name="slot_a">Слот A</string>
     <string name="slot_b">Слот B</string>
@@ -586,4 +588,5 @@
     <string name="multi_manager_list">Активный менеджер</string>
     <string name="no_active_manager">Нет активного менеджера</string>
     <string name="default_signature">SukiSU</string>
+    <string name="home_zygisk_implement">Реализация Zygisk</string>
 </resources>
