@@ -232,6 +232,11 @@ fun MoreSettingsScreen(
         mutableStateOf(prefs.getBoolean("show_kpm_info", false))
     }
 
+    // 隐藏 Zygisk 状态开关状态
+    var isHideZygiskImplement by remember {
+        mutableStateOf(prefs.getBoolean("is_hide_zygisk_Implement", false))
+    }
+
     // 隐藏SuSFS状态开关状态
     var isHideSusfsStatus by remember {
         mutableStateOf(prefs.getBoolean("is_hide_susfs_status", false))
@@ -337,6 +342,12 @@ fun MoreSettingsScreen(
     val onHideSusfsStatusChange = { newValue: Boolean ->
         prefs.edit { putBoolean("is_hide_susfs_status", newValue) }
         isHideSusfsStatus = newValue
+    }
+
+    val onHideZygiskImplement = { newValue: Boolean ->
+        prefs.edit { putBoolean("is_hide_zygisk_Implement", newValue) }
+        isHideZygiskImplement = newValue
+
     }
 
     // 隐藏链接状态开关状态
@@ -1279,6 +1290,15 @@ fun MoreSettingsScreen(
                     summary = stringResource(R.string.hide_susfs_status_summary),
                     checked = isHideSusfsStatus,
                     onChange = onHideSusfsStatusChange
+                )
+
+                // Zygsik 实现状态信息
+                SwitchSettingItem(
+                    icon = Icons.Filled.VisibilityOff,
+                    title = stringResource(R.string.hide_zygisk_implement),
+                    summary = stringResource(R.string.hide_zygisk_implement_summary),
+                    checked = isHideZygiskImplement,
+                    onChange = onHideZygiskImplement
                 )
 
                 if (Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {

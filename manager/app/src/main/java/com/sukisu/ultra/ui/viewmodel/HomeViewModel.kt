@@ -91,6 +91,8 @@ class HomeViewModel : ViewModel() {
         private set
     var isHideSusfsStatus by mutableStateOf(false)
         private set
+    var isHideZygiskImplement by mutableStateOf(false)
+        private set
     var isHideLinkCard by mutableStateOf(false)
         private set
     var showKpmInfo by mutableStateOf(false)
@@ -114,6 +116,7 @@ class HomeViewModel : ViewModel() {
         isHideVersion = false
         isHideOtherInfo = false
         isHideSusfsStatus = false
+        isHideZygiskImplement = false
         isHideLinkCard = false
         showKpmInfo = false
     }
@@ -153,6 +156,7 @@ class HomeViewModel : ViewModel() {
                 isHideOtherInfo = settingsPrefs.getBoolean("is_hide_other_info", false)
                 isHideSusfsStatus = settingsPrefs.getBoolean("is_hide_susfs_status", false)
                 isHideLinkCard = settingsPrefs.getBoolean("is_hide_link_card", false)
+                isHideZygiskImplement = settingsPrefs.getBoolean("is_hide_zygisk_Implement", false)
                 showKpmInfo = settingsPrefs.getBoolean("show_kpm_info", false)
             } catch (e: Exception) {
                 handleError(e, "loadUserSettings")

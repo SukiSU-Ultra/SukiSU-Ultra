@@ -192,6 +192,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     systemInfo = viewModel.systemInfo,
                     isSimpleMode = viewModel.isSimpleMode,
                     isHideSusfsStatus = viewModel.isHideSusfsStatus,
+                    isHideZygiskImplement = viewModel.isHideZygiskImplement,
                     showKpmInfo = viewModel.showKpmInfo,
                     lkmMode = viewModel.systemStatus.lkmMode,
                 )
@@ -647,6 +648,7 @@ private fun InfoCard(
     systemInfo: HomeViewModel.SystemInfo,
     isSimpleMode: Boolean,
     isHideSusfsStatus: Boolean,
+    isHideZygiskImplement: Boolean,
     showKpmInfo: Boolean,
     lkmMode: Boolean?
 ) {
@@ -761,8 +763,8 @@ private fun InfoCard(
                 systemInfo.seLinuxStatus,
                 icon = Icons.Default.Security,
             )
-
-            if (!isSimpleMode && systemInfo.zygiskImplement != "None") {
+            
+            if (!isHideZygiskImplement && !isSimpleMode && systemInfo.zygiskImplement != "None") {
                 InfoCardItem(
                     stringResource(R.string.home_zygisk_implement),
                     systemInfo.zygiskImplement,
