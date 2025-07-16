@@ -1,6 +1,6 @@
 # SukiSU Ultra
 
-**Türkçe** | [简体中文](README.md) | [English](README-en.md) | [日本語](README-ja.md)
+[English](../README.md) | [简体中文](../zh/README.md) | [日本語](../ja/README.md) | **Türkçe**
 
 [KernelSU](https://github.com/tiann/KernelSU) tabanlı Android cihaz root çözümü
 
@@ -28,7 +28,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 
 ## susfs Nasıl Entegre Edilir
 
-1. Doğrudan susfs-main veya susfs-* dalını kullanın, susfs entegrasyonuna gerek yok
+1. Doğrudan susfs-main veya susfs-\* dalını kullanın, susfs entegrasyonuna gerek yok
 
 ```
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
