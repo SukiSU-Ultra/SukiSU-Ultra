@@ -257,7 +257,7 @@
     <string name="horizon_flash_complete_status">Прошивка завершена</string>
     <!-- Slot selection related strings -->
     <string name="select_slot_title">Выберите слот для прошивки</string>
-    <string name="select_slot_description">Пожалуйста, выберите целевой слот для прошивки загрузки</string>
+    <string name="select_slot_description">Пожалуйста, выберите целевой слот для прошивки ядра</string>
     <string name="slot_a">Слот A</string>
     <string name="slot_b">Слот B</string>
     <string name="selected_slot">Выбран LKM: %1$s</string>
@@ -541,10 +541,10 @@
     <string name="susfs_backup_info_date">Дата резервного копирования: %s</string>
     <string name="susfs_backup_info_device">Устройство: %s</string>
     <string name="susfs_backup_info_version">Версия: %s</string>
-    <string name="hide_bl_script">Скрыть BL скрипт</string>
-    <string name="hide_bl_script_description">Включить скрипт Hide Bootloader Unlock Status</string>
+    <string name="hide_bl_script">Скрипт скрытия статуса загрузчика</string>
+    <string name="hide_bl_script_description">Включить скрипт скрытия статуса разблокировки загрузчика</string>
     <string name="cleanup_residue">Очистка</string>
-    <string name="cleanup_residue_description">Очистка остаточных файлов и каталогов различных модулей и инструментов (может быть удален по ошибке, в результате потери и неспособности начаться, используйте с осторожностью)</string>
+    <string name="cleanup_residue_description">Очистка остаточных файлов и каталогов различных модулей и инструментов (может по ошибке их удалить, в результате чего может быть бутлуп, используйте с осторожностью)</string>
     <string name="susfs_edit_sus_path">Редактировать путь SUS</string>
     <string name="susfs_edit_sus_mount">Редактировать точку монтирования SUS</string>
     <string name="susfs_edit_try_umount">Изменить попробовать размонтировать</string>
