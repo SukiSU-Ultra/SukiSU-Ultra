@@ -275,6 +275,52 @@
     <string name="configuration">配置</string>
     <string name="app_settings">应用设置</string>
     <string name="tools">工具</string>
+    <string name="more_info">更多信息</string>
+    <string name="terminology">术语介绍</string>
+    <string name="disclaimer">申明</string>
+    <string name="join_our_group">如有问题，请加入我们的群组</string>
+    
+    <!-- Terminology Dialog Content -->
+    <string name="terminology_title">术语介绍</string>
+    <string name="terminology_content">
+        <![CDATA[
+        <b>KernelSU：</b>一种基于内核的Android设备Root解决方案。与传统的修改系统分区的Root方法不同，KernelSU在内核层面工作，提供更安全、更稳定的Root访问。支持Android 5.0+，特别为Android 12+的GKI（通用内核镜像）内核设计。<br/><br/>
+        
+        <b>KPM（内核补丁模块）：</b>在不修改内核源代码的情况下扩展内核功能的内核级模块。KPM模块可以动态加载或永久嵌入内核中。它们在内核空间中运行，具有完整的系统权限，可以钩取系统调用、修改内核行为，并实现文件系统隐藏等高级功能。<br/><br/>
+        
+        <b>SuSFS：</b>一种高级文件系统隐藏机制，使Root修改对检测系统不可见。SuSFS可以隐藏文件、目录、挂载点，甚至内核模块，使其不被用户空间应用程序发现。它通过在内核级别拦截文件系统操作，选择性地隐藏或重定向对敏感文件的访问来工作。<br/><br/>
+        
+        <b>SELinux（安全增强Linux）：</b>Linux系统的强制访问控制(MAC)安全架构。在Android中，SELinux执行严格的安全策略，控制进程如何访问系统资源。它有两种主要模式：强制模式（阻止未授权访问）和宽容模式（记录违规但允许访问）。Root解决方案必须谨慎管理SELinux策略，在提供提升权限的同时维护系统安全。<br/><br/>
+        
+        <b>Zygisk：</b>一种允许模块在Zygote进程中运行代码注入的功能，Zygote是所有Android应用程序的父进程。Zygisk模块可以在应用进程完全初始化之前钩入其中，实现强大的修改功能，如API钩取、行为修改和Root隐藏。这使得在不触及系统文件的情况下修改应用行为成为可能。<br/><br/>
+        
+        <b>GKI（通用内核镜像）：</b>Google在Android 12中引入的标准化内核架构。GKI将内核分为通用核心（由Google维护）和供应商特定模块。这种标准化使得开发通用Root解决方案变得更容易，并确保在不同设备间更好的兼容性，同时维护安全性和更新机制。<br/><br/>
+        
+        <b>LKM（可加载内核模块）：</b>可以在运行时动态加载和卸载而无需重启系统的内核模块。LKM扩展内核功能，可以实现设备驱动程序、文件系统或安全机制。在Root解决方案的上下文中，LKM用于实现内核级钩子和修改，同时保持在需要时干净地移除它们的能力。
+        ]]>
+    </string>
+    
+    <!-- Disclaimer Dialog Content -->
+    <string name="disclaimer_title">申明</string>
+    <string name="disclaimer_content">
+        <![CDATA[
+        <b>重要声明：</b><br/><br/>
+        
+        • SukiSU Ultra 按"原样"提供，不提供任何保证。<br/><br/>
+        
+        • Root 您的设备可能会使保修失效，并可能导致设备变砖。<br/><br/>
+        
+        • 开发者不对使用此软件造成的任何损害负责。<br/><br/>
+        
+        • 使用风险自负，请确保您了解其影响。<br/><br/>
+        
+        • 在进行任何修改之前，请务必备份您的设备。<br/><br/>
+
+        
+        • 使用此软件即表示您承认理解这些风险并承担所有后果的全部责任。
+        ]]>
+    </string>
+    
     <!--  String resources used in SuperUser -->
     <string name="no_apps_found">未找到应用</string>
     <string name="selinux_enabled_toast">SELinux 已设置为启用状态</string>

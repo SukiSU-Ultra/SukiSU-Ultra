@@ -36,9 +36,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.core.content.FileProvider
 import androidx.core.content.edit
+import androidx.core.text.HtmlCompat
 import com.maxkeppeker.sheets.core.models.base.IconSource
 import com.maxkeppeler.sheets.list.models.ListOption
 import com.ramcosta.composedestinations.annotation.Destination
@@ -317,6 +320,40 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             loadingDialog.withLoading(it)
                         }
                     }
+                }
+            )
+
+            // 更多信息卡片
+            val terminologyDialog = rememberInfoDialog(
+                title = stringResource(R.string.terminology_title),
+                content = stringResource(R.string.terminology_content),
+                icon = Icons.Filled.MenuBook
+            )
+            
+            val disclaimerDialog = rememberInfoDialog(
+                title = stringResource(R.string.disclaimer_title),
+                content = stringResource(R.string.disclaimer_content),
+                icon = Icons.Filled.Warning
+            )
+
+            SettingsGroupCard(
+                title = stringResource(R.string.more_info),
+                content = {
+                    SettingItem(
+                        icon = Icons.Filled.MenuBook,
+                        title = stringResource(R.string.terminology),
+                        onClick = {
+                            terminologyDialog.show()
+                        }
+                    )
+                    
+                    SettingItem(
+                        icon = Icons.Filled.Warning,
+                        title = stringResource(R.string.disclaimer),
+                        onClick = {
+                            disclaimerDialog.show()
+                        }
+                    )
                 }
             )
 
@@ -618,6 +655,75 @@ fun UninstallItem(
             uninstallDialog.show()
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun rememberInfoDialog(
+    title: String,
+    content: String,
+    icon: ImageVector
+): DialogHandle {
+    return rememberCustomDialog { dismiss ->
+        AlertDialog(
+            onDismissRequest = dismiss,
+            icon = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Column {
+                    // 群组提示
+                    Text(
+                        text = stringResource(R.string.join_our_group),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = SPACING_LARGE)
+                    )
+                    
+                    // 可滚动的内容区域
+                    SelectionContainer {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            // 解析HTML内容并显示
+                            val htmlContent = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                            Text(
+                                text = htmlContent.toString(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(vertical = SPACING_SMALL)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = dismiss) {
+                    Text(stringResource(R.string.close))
+                }
+            },
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    }
 }
 
 enum class UninstallType(val title: Int, val message: Int, val icon: ImageVector) {

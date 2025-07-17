@@ -277,6 +277,52 @@
     <string name="configuration">Configure</string>
     <string name="app_settings">Application Settings</string>
     <string name="tools">Tools</string>
+    <string name="more_info">More Information</string>
+    <string name="terminology">Terminology</string>
+    <string name="disclaimer">Disclaimer</string>
+    <string name="join_our_group">If you have any questions, please join our group</string>
+    
+    <!-- Terminology Dialog Content -->
+    <string name="terminology_title">Terminology Introduction</string>
+    <string name="terminology_content">
+        <![CDATA[
+        <b>KernelSU:</b> A kernel-based root solution for Android devices. Unlike traditional root methods that modify system partitions, KernelSU works at the kernel level, providing more secure and stable root access. It supports Android 5.0+ and is particularly designed for GKI (Generic Kernel Image) kernels on Android 12+.<br/><br/>
+        
+        <b>KPM (Kernel Patch Module):</b> Kernel-level modules that extend kernel functionality without modifying the kernel source code. KPM modules can be dynamically loaded or permanently embedded into the kernel. They operate in kernel space with full system privileges and can hook system calls, modify kernel behavior, and implement advanced features like file system hiding.<br/><br/>
+        
+        <b>SuSFS:</b> An advanced file system hiding mechanism that makes root modifications invisible to detection systems. SuSFS can hide files, directories, mount points, and even kernel modules from userspace applications. It works by intercepting file system operations at the kernel level and selectively hiding or redirecting access to sensitive files.<br/><br/>
+        
+        <b>SELinux (Security-Enhanced Linux):</b> A mandatory access control (MAC) security architecture for Linux systems. In Android, SELinux enforces strict security policies that control how processes can access system resources. It operates in two main modes: Enforcing (blocks unauthorized access) and Permissive (logs violations but allows access). Root solutions must carefully manage SELinux policies to maintain system security while providing elevated privileges.<br/><br/>
+        
+        <b>Zygisk:</b> A feature that allows modules to run code injection in the Zygote process, which is the parent process of all Android applications. Zygisk modules can hook into app processes before they fully initialize, enabling powerful modifications like API hooking, behavior modification, and root hiding. This makes it possible to modify app behavior without touching system files.<br/><br/>
+        
+        <b>GKI (Generic Kernel Image):</b> Google\'s standardized kernel architecture introduced in Android 12. GKI separates the kernel into a generic core (maintained by Google) and vendor-specific modules. This standardization makes it easier to develop universal root solutions and ensures better compatibility across different devices while maintaining security and update mechanisms.<br/><br/>
+        
+        <b>LKM (Loadable Kernel Module):</b> Kernel modules that can be dynamically loaded and unloaded at runtime without rebooting the system. LKMs extend kernel functionality and can implement device drivers, file systems, or security mechanisms. In the context of root solutions, LKMs are used to implement kernel-level hooks and modifications while maintaining the ability to cleanly remove them when needed.
+        ]]>
+    </string>
+    
+    <!-- Disclaimer Dialog Content -->
+    <string name="disclaimer_title">Disclaimer</string>
+    <string name="disclaimer_content">
+        <![CDATA[
+        <b>Important Notice:</b><br/><br/>
+        
+        • SukiSU Ultra is provided "as is" without any warranties.<br/><br/>
+        
+        • Rooting your device may void your warranty and could potentially brick your device.<br/><br/>
+        
+        • The developers are not responsible for any damage caused by the use of this software.<br/><br/>
+        
+        • Use at your own risk and ensure you understand the implications.<br/><br/>
+        
+        • Always backup your device before making any modifications.<br/><br/>
+
+        
+        • By using this software, you acknowledge that you understand these risks and accept full responsibility for any consequences.
+        ]]>
+    </string>
+    
     <!--  String resources used in SuperUser -->
     <string name="no_apps_found">Application not found</string>
     <string name="selinux_enabled_toast">SELinux Enabled</string>
