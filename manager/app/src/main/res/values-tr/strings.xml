@@ -177,6 +177,8 @@
     <string name="hide_other_info_summary">Gezinme çubuğu sayfasında süper kullanıcı, modül ve KPM modülü sayısı hakkında bilgi veren kırmızı noktayı gizler</string>
     <string name="hide_susfs_status">SuSFS durumunu gizle</string>
     <string name="hide_susfs_status_summary">Ana sayfadaki SuSFS durum bilgilerini gizle</string>
+    <string name="hide_zygisk_implement">Zygisk durumunu gizle</string>
+    <string name="hide_zygisk_implement_summary">Ana sayfada Zygisk uygulama bilgisini gizle</string>
     <string name="hide_link_card">Bağlantı Kartı Durumunu Gizle</string>
     <string name="hide_link_card_summary">Ana sayfadaki bağlantı kartı bilgilerini gizle</string>
     <string name="hide_tag_card">Modül etiket satırlarını gizle</string>
