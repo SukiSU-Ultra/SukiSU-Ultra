@@ -4,7 +4,7 @@ SukiSU can be integrated into both _GKI_ and _non-GKI_ kernels and has been back
 
 <!-- It should be 3.4, but backslashxx's syscall manual hook cannot use in SukiSU-->
 
-This customization could result in as much as 50% of kernel code being out-of-tree code and not from upstream Linux kernels or ACKs. Due to this, the custom nature of _non-GKI_ kernels resulted in significant kernel fragmentation, and we lacked a universal method for building them. Therefore, we cannot provide boot images of _non-GKI_ kernels.
+Some OEMs' customization could result in as much as 50% of kernel code being out-of-tree code and not from upstream Linux kernels or ACKs. Due to this, the custom nature of _non-GKI_ kernels resulted in significant kernel fragmentation, and we lacked a universal method for building them. Therefore, we cannot provide boot images of _non-GKI_ kernels.
 
 Prerequisites: open source bootable kernel.
 
