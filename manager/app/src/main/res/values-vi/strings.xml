@@ -42,7 +42,7 @@
     <string name="show_system_apps">Hiển thị ứng dụng hệ thống</string>
     <string name="hide_system_apps">Ẩn ứng dụng hệ thống</string>
     <string name="send_log">Gửi logs</string>
-    <string name="safe_mode">CHẾ ĐỘ AN TOÀN</string>
+    <string name="safe_mode">Chế độ an toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="module_magisk_conflict">Các module không khả dụng do xung đột với Magisk!</string>
     <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
@@ -50,7 +50,7 @@
     <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các Module!</string>
     <string name="home_support_title">Ủng hộ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
-    <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi]]></string>
+    <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi<br/><br/>Hình ảnh của các tệp có nhãn dán nhân vật anime thuộc bản quyền của %3$s, Quyền sở hữu trí tuệ thương hiệu trong hình ảnh thuộc về %4$s. Trước khi sử dụng các tệp này, ngoài việc tuân thủ %5$s, bạn cũng cần tuân thủ sự cho phép của hai tác giả để sử dụng các nội dung nghệ thuật này]]></string>
     <string name="profile_default">Mặc định</string>
     <string name="profile_template">Bản mẫu</string>
     <string name="profile_custom">Tuỳ chỉnh</string>
@@ -63,7 +63,7 @@
     <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %s quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
-    <string name="settings_susfs_toggle">Vô hiệu hóa kprobes hook</string>
+    <string name="settings_susfs_toggle">Vô hiệu hoá kprobes hook</string>
     <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
@@ -83,7 +83,7 @@
     <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ</string>
     <string name="app_profile_template_name">Tên</string>
-    <string name="app_profile_template_description">Miêu tả</string>
+    <string name="app_profile_template_description">Mô tả</string>
     <string name="app_profile_template_save">Lưu</string>
     <string name="app_profile_template_delete">Xoá</string>
     <string name="app_profile_template_view">Xem mẫu</string>
@@ -131,7 +131,7 @@
     <string name="module_install_confirm">Xác nhận cài đặt module %1$s？</string>
     <string name="unknown_module">Module không xác định</string>
     <!-- Restore related -->
-    <string name="restore_confirm_title">Xác Nhận Khôi Phục Module</string>
+    <string name="restore_confirm_title">Xác nhận khôi phục module</string>
     <string name="restore_confirm_message">Hành động này sẽ ghi đè lên tất cả các module hiện có. Tiếp tục?</string>
     <string name="confirm">Xác nhận</string>
     <string name="cancel">Thoát</string>
@@ -177,6 +177,8 @@
     <string name="hide_other_info_summary">Ẩn thông tin về số lượng ở các mục Superuser, Module và KPModule trên thanh điều hướng</string>
     <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
     <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
+    <string name="hide_zygisk_implement">Ẩn trạng thái Zygisk</string>
+    <string name="hide_zygisk_implement_summary">Ẩn thông tin triển khai Zygisk trên trang chủ</string>
     <string name="hide_link_card">Ẩn trạng thái thẻ liên kết</string>
     <string name="hide_link_card_summary">Ẩn thông tin thẻ liên kết ở trang chủ</string>
     <string name="hide_tag_card">Ẩn các nhãn module</string>
@@ -185,7 +187,7 @@
     <string name="theme_follow_system">Theo hệ thống</string>
     <string name="theme_light">Sáng</string>
     <string name="theme_dark">Tối</string>
-    <string name="manual_hook">Móc thủ công</string>
+    <string name="manual_hook">Hook thủ công</string>
     <string name="dynamic_color_title">Màu sắc động</string>
     <string name="dynamic_color_summary">Sử dụng màu sắc động làm chủ đề hệ thống</string>
     <string name="choose_theme_color">Chọn màu chủ đề</string>
@@ -236,7 +238,7 @@
     <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
     <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
     <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
-    <string name="settings_susfs_toggle_summary">Vô hiệu hóa kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng inlines hook, tương tự như phương pháp hook của Kernel non-GKI</string>
+    <string name="settings_susfs_toggle_summary">Vô hiệu hoá kprobes hook được tạo bởi SukiSU Ultra, thay vào đó sử dụng inlines hook, tương tự như phương pháp hook của Kernel non-GKI</string>
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay kéo thả để điều chỉnh vị trí</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
@@ -386,13 +388,13 @@
     <string name="susfs_tab_basic_settings">Cài đặt cơ bản</string>
     <string name="susfs_tab_sus_paths">Đường dẫn SuS</string>
     <string name="susfs_tab_sus_mounts">SuS Mount</string>
-    <string name="susfs_tab_try_umount">SuS Umount</string>
+    <string name="susfs_tab_try_umount">Try Umount</string>
     <string name="susfs_tab_path_settings">Cài đặt Đường dẫn</string>
     <string name="susfs_tab_enabled_features">Trạng thái tính năng</string>
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">Thêm Đường dẫn SuS</string>
     <string name="susfs_add_sus_mount">Thêm SuS Mount</string>
-    <string name="susfs_add_try_umount">Thêm SuS Umount</string>
+    <string name="susfs_add_try_umount">Thêm Try Umount</string>
     <string name="susfs_sus_path_added_success">Đường dẫn SuS đã được thêm thành công</string>
     <string name="susfs_path_not_found_error">Lỗi không tìm thấy đường dẫn</string>
     <string name="susfs_path_label">Đường dẫn</string>
@@ -400,7 +402,7 @@
     <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
     <string name="susfs_no_paths_configured">Không có Đường dẫn SuS nào được cấu hình</string>
     <string name="susfs_no_mounts_configured">Không có SuS Mount nào được cấu hình</string>
-    <string name="susfs_no_umounts_configured">Không có SuS Umount nào được cấu hình</string>
+    <string name="susfs_no_umounts_configured">Không có Try Umount nào được cấu hình</string>
     <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">Chế độ Umount</string>
     <string name="susfs_umount_mode_normal">Normal Umount (0)</string>
@@ -408,18 +410,18 @@
     <string name="susfs_umount_mode_normal_short">Normal</string>
     <string name="susfs_umount_mode_detach_short">Detach</string>
     <string name="susfs_umount_mode_display">Chế độ: %1$s (%2$s)</string>
-    <string name="susfs_try_umount_added_success">Đường dẫn SuS Umount đã thêm thành công: %s</string>
-    <string name="susfs_try_umount_added_saved">Đường dẫn SuS Umount đã lưu thành công: %s</string>
+    <string name="susfs_try_umount_added_success">Đường dẫn Try Umount đã thêm thành công: %s</string>
+    <string name="susfs_try_umount_added_saved">Đường dẫn Try Umount đã lưu thành công: %s</string>
     <!-- SuSFS Run Umount -->
-    <string name="susfs_run_umount_confirm_title">Xác nhận chạy SuS Umount</string>
-    <string name="susfs_run_umount_confirm_message">Thao tác này sẽ áp dụng ngay lập tức tất cả các thiết lập SuS Umount đã cấu hình. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_run_umount_confirm_title">Xác nhận chạy Try Umount</string>
+    <string name="susfs_run_umount_confirm_message">Thao tác này sẽ áp dụng ngay lập tức tất cả các thiết lập Try Umount đã cấu hình. Bạn có chắc chắn muốn tiếp tục không?</string>
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">Khôi phục Đường dẫn SuS</string>
     <string name="susfs_reset_paths_message">Thao tác này sẽ xóa tất cả các cấu hình Đường dẫn SuS. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_mounts_title">Khôi phục SuS Mount</string>
     <string name="susfs_reset_mounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Mount. Bạn có chắc chắn muốn tiếp tục không?</string>
-    <string name="susfs_reset_umounts_title">Khôi phục SuS Umount</string>
-    <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_reset_umounts_title">Khôi phục Try Umount</string>
+    <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình Try Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_path_title">Reset Cài đặt Đường dẫn</string>
     <!-- SuSFS Path Settings -->
     <string name="susfs_android_data_path_label">Đường dẫn Android Data</string>
@@ -434,14 +436,14 @@
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">Hỗ trợ Đường dẫn SuS</string>
     <string name="sus_mount_feature_label">Hỗ trợ SuS Mount</string>
-    <string name="try_umount_feature_label">Hỗ trợ SuS Umount</string>
+    <string name="try_umount_feature_label">Hỗ trợ Try Umount</string>
     <string name="spoof_uname_feature_label">Hỗ trợ giả mạo Uname</string>
     <string name="spoof_cmdline_feature_label">Giả mạo Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">Mở hỗ trợ chuyển hướng</string>
     <string name="enable_log_feature_label">Hỗ trợ ghi logs</string>
     <string name="auto_default_mount_feature_label">Tự động Mount mặc định</string>
     <string name="auto_bind_mount_feature_label">Tự động Bind Mount</string>
-    <string name="auto_try_umount_bind_feature_label">Tự động Umount Bind Mount</string>
+    <string name="auto_try_umount_bind_feature_label">Tự động Try Umount Bind Mount</string>
     <string name="hide_symbols_feature_label">Ẩn biểu tượng KSU SuSFS</string>
     <string name="magic_mount_feature_label">Hỗ trợ Magic Mount</string>
     <string name="sus_kstat_feature_label">Hỗ trợ SuS Kstat</string>
@@ -475,7 +477,7 @@
     <string name="susfs_slot_info_unavailable">Không thể lấy thông tin Slot</string>
     <!-- SuSFS 自启动相关字符串 -->
     <string name="susfs_autostart_enabled_success">Module tự động khởi động SuSFS đã bật, đường dẫn module: %s</string>
-    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hóa</string>
+    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hoá</string>
     <!-- SuSFS Kstat相关字符串 -->
     <string name="susfs_tab_kstat_config">Cấu hình Kstat</string>
     <string name="kstat_static_config_added">Đã thêm cấu hình Kstat tĩnh: %1$s</string>
@@ -504,10 +506,10 @@
     <string name="susfs_hide_mounts_control_description">Kiểm soát hành vi ẩn của SuS Mount với các tiến trình</string>
     <string name="susfs_hide_mounts_for_all_procs_label">Ẩn SuS Mount khỏi tất cả các tiến trình</string>
     <string name="susfs_hide_mounts_for_all_procs_enabled_description">Khi kích hoạt, SuS Mount sẽ bị ẩn khỏi tất cả các tiến trình, bao gồm cả các tiến trình KSU</string>
-    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hóa, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hoá, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
     <string name="susfs_hide_mounts_all_enabled">Đã kích hoạt ẩn SuS Mount khỏi tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_all_disabled">Đã vô hiệu hóa việc ẩn SuS Mount cho tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_recommendation">Nên vô hiệu hóa sau khi màn hình được mở khóa hoặc trong giai đoạn service.sh hoặc boot-completed.sh, vì điều này sẽ khắc phục sự cố trên một số ứng dụng đã root dựa vào mount bởi tiến trình KSU</string>
+    <string name="susfs_hide_mounts_all_disabled">Đã vô hiệu hoá việc ẩn SuS Mount cho tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_recommendation">Nên vô hiệu hoá sau khi màn hình được mở khoá hoặc trong giai đoạn service.sh hoặc boot-completed.sh, vì điều này sẽ khắc phục sự cố trên một số ứng dụng đã root dựa vào mount bởi tiến trình KSU</string>
     <string name="susfs_hide_mounts_current_setting">Cài đặt hiện tại: %s</string>
     <string name="susfs_hide_mounts_setting_all">Ẩn khỏi tất cả các tiến trình</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Chỉ ẩn đối với các tiến trình không phải KSU</string>
@@ -543,7 +545,7 @@
     <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (Có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
     <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>
     <string name="susfs_edit_sus_mount">Chỉnh sửa SuS Mount</string>
-    <string name="susfs_edit_try_umount">Chỉnh sửa SuS Umount</string>
+    <string name="susfs_edit_try_umount">Chỉnh sửa Try Umount</string>
     <string name="edit_kstat_statically_title">Chỉnh sửa cấu hình Kstat tĩnh</string>
     <string name="edit_kstat_path_title">Chỉnh sửa Đường dẫn Kstat</string>
     <string name="susfs_save">Lưu</string>
