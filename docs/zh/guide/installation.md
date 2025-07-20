@@ -1,4 +1,4 @@
-# Installation
+# 安装指导
 
 您可以前往 [KernelSU 文档 - 安装](https://kernelsu.org/guide/installation.html) 获取有关如何安装的参考，这里只是额外的说明。
 
