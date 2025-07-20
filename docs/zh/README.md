@@ -26,7 +26,7 @@
 
 - 旧内核也是兼容的（最低 4.14+），不过需要自己编译内核。
 
-- With more backports, KernelSU can supports 3.x kernel (3.4-3.18).
+- 通过更多的反向移植，KernelSU 可以支持 3.x 内核（3.4-3.18）。
 
 - 目前支持架构 : `arm64-v8a`、`armeabi-v7a (bare)`、`X86_64`。
 
@@ -57,7 +57,7 @@
 > 2. Non-GKI 设备需要 `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`
 > 3. 对于低于 `4.19` 的内核，需要从 `4.19` 的 `set_memory.h` 进行反向移植。
 
-## Troubleshooting
+## 故障排除
 
 1. 卸载管理器后系统卡住？
    卸载 _com.sony.playmemories.mobile_
