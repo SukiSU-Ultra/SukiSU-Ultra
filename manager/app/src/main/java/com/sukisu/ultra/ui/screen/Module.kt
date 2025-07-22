@@ -843,10 +843,8 @@ private fun ModuleList(
                             },
                             onCheckChanged = {
                                 scope.launch {
-                                    val success = loadingDialog.withLoading {
-                                        withContext(Dispatchers.IO) {
-                                            toggleModule(module.dirId, !module.enabled)
-                                        }
+                                    val success = withContext(Dispatchers.IO) {
+                                        toggleModule(module.dirId, !module.enabled)
                                     }
                                     if (success) {
                                         viewModel.fetchModuleList()
