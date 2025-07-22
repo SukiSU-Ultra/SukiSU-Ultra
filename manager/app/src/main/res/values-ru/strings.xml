@@ -589,4 +589,6 @@
     <string name="no_active_manager">Нет активного менеджера</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Реализация Zygisk</string>
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
 </resources>

@@ -179,6 +179,8 @@
     <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
+    <string name="hide_zygisk_implement">Zygisk のステータスを非表示</string>
+    <string name="hide_zygisk_implement_summary">ホームページ上の Zygisk 実装情報を非表示にします。</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
     <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="hide_tag_card">モジュールラベルの行を非表示</string>
@@ -587,4 +589,6 @@
     <string name="no_active_manager">有効なマネージャーがありません</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk を実装</string>
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
 </resources>
