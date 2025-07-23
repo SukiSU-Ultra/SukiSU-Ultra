@@ -353,14 +353,32 @@ static inline void nuke_ext4_sysfs(void)
 }
 #endif
 
-static bool is_system_bin_su()
+static bool is_system_bin_su(void)
 {
-	// YES in_execve becomes 0 when it succeeds.
-	if (!current->mm || current->in_execve) 
-		return false;
+    static const char *su_paths[] = {
+        "/system/bin/su",
+        "/vendor/bin/su",
+        "/product/bin/su",
+        "/system_ext/bin/su",
+		"/odm/bin/su",
+		"/system/xbin/su",
+		"/system_ext/xbin/su"
+    };
+    char path_buf[256];
+    char *pathname;
+    int i;
 
-	// quick af check
-	return (current->mm->exe_file && !strcmp(current->mm->exe_file->f_path.dentry->d_name.name, "su"));
+    struct mm_struct *mm = current->mm;
+    if (mm && mm->exe_file) {
+        pathname = d_path(&mm->exe_file->f_path, path_buf, sizeof(path_buf));
+        if (!IS_ERR(pathname)) {
+            for (i = 0; i < ARRAY_SIZE(su_paths); i++) {
+                if (strcmp(pathname, su_paths[i]) == 0)
+                    return true;
+            }
+        }
+    }
+    return false;
 }
 
 static void init_uid_scanner(void)
