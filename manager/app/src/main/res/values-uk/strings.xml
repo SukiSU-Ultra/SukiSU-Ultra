@@ -539,8 +539,8 @@
     <string name="susfs_backup_info_date">Дата резервної копії: %s</string>
     <string name="susfs_backup_info_device">Пристрій: %s</string>
     <string name="susfs_backup_info_version">Версія: %s</string>
-    <string name="hide_bl_script">Приховати скрипт BL</string>
-    <string name="hide_bl_script_description">Увімкнути скрипти для приховування статусу розблокування завантажувача</string>
+    <string name="hide_bl_script">Заблокированное состояние</string>
+    <string name="hide_bl_script_description">Переопределить свойство состояния блокировки загрузчика в режиме службы late_start</string>
     <string name="cleanup_residue">Очистити залишки</string>
     <string name="cleanup_residue_description">Очищення залишкових файлів та каталогів різних модулів та інструментів (може призвести до випадкового видалення, втрати даних та неможливості завантаження, використовуйте з обережністю)</string>
 </resources>

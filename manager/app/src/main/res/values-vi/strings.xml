@@ -539,8 +539,8 @@
     <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
     <string name="susfs_backup_info_device">Thiết bị: %s</string>
     <string name="susfs_backup_info_version">Phiên bản: %s</string>
-    <string name="hide_bl_script">Ẩn Script BL</string>
-    <string name="hide_bl_script_description">Ẩn scripts trạng thái Unlock Bootloader</string>
+    <string name="hide_bl_script">Trạng thái khóa</string>
+    <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái khóa khởi động ở chế độ dịch vụ late_start</string>
     <string name="cleanup_residue">Dọn rác</string>
     <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (Có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
     <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>

@@ -541,8 +541,8 @@
     <string name="susfs_backup_info_date">Дата резервного копирования: %s</string>
     <string name="susfs_backup_info_device">Устройство: %s</string>
     <string name="susfs_backup_info_version">Версия: %s</string>
-    <string name="hide_bl_script">Скрыть BL скрипт</string>
-    <string name="hide_bl_script_description">Включить скрипт Hide Bootloader Unlock Status</string>
+    <string name="hide_bl_script">Заблокированное состояние</string>
+    <string name="hide_bl_script_description">Переопределить свойство состояния блокировки загрузчика в режиме службы late_start</string>
     <string name="cleanup_residue">Очистка</string>
     <string name="cleanup_residue_description">Очистка остаточных файлов и каталогов различных модулей и инструментов (может быть удален по ошибке, в результате потери и неспособности начаться, используйте с осторожностью)</string>
     <string name="susfs_edit_sus_path">Редактировать путь SUS</string>

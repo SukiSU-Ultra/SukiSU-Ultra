@@ -537,8 +537,8 @@
     <string name="susfs_backup_info_date">Yedekleme Tarihi: %s</string>
     <string name="susfs_backup_info_device">Cihaz: %s</string>
     <string name="susfs_backup_info_version">Sürüm: %s</string>
-    <string name="hide_bl_script">BL Betiğini Gizle</string>
-    <string name="hide_bl_script_description">Önyükleyici Kilidi Açık Durumunu Gizleme Betiklerini Etkinleştir</string>
+    <string name="hide_bl_script">Kilitli durum</string>
+    <string name="hide_bl_script_description">late_start hizmet modunda önyükleme kilidi durumu özniteliğini geçersiz kıl</string>
     <string name="cleanup_residue">Kalıntıları Temizle</string>
     <string name="cleanup_residue_description">Çeşitli modüllerin ve araçların kalıntı dosyalarını ve dizinlerini temizleyin (yanlışlıkla silinerek kayba ve başlatılamamaya neden olabilir, dikkatli kullanın)</string>
     <string name="susfs_edit_sus_path">SUS Yolunu Düzenle</string>

@@ -537,8 +537,8 @@
     <string name="susfs_backup_info_date">備份日期：%s</string>
     <string name="susfs_backup_info_device">裝置：%s</string>
     <string name="susfs_backup_info_version">版本：%s</string>
-    <string name="hide_bl_script">隱藏 BL 腳本</string>
-    <string name="hide_bl_script_description">啟用此選項可隱藏 Bootloader 解鎖狀態的腳本</string>
+    <string name="hide_bl_script">上鎖狀態</string>
+    <string name="hide_bl_script_description">覆蓋引導鎖定狀態屬性於 late_start 服務模式</string>
     <string name="cleanup_residue">清除工具殘留</string>
     <string name="cleanup_residue_description">清除各種模組與工具殘留的檔案與資料夾（可能會誤刪導致資料遺失或無法開機，請小心使用）</string>
     <string name="susfs_edit_sus_path">編輯 SUS 路徑</string>

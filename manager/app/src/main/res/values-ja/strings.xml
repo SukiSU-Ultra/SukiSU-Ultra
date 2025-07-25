@@ -539,8 +539,8 @@
     <string name="susfs_backup_info_date">バックアップ日時: %s</string>
     <string name="susfs_backup_info_device">デバイス: %s</string>
     <string name="susfs_backup_info_version">バージョン: %s</string>
-    <string name="hide_bl_script">BL スクリプトを非表示</string>
-    <string name="hide_bl_script_description">ブートローダーのロック解除ステータスを非表示にするスクリプトを有効化します。</string>
+    <string name="hide_bl_script">ロック状態</string>
+    <string name="hide_bl_script_description">late_start サービスモードでブートローダーのロック状態属性を上書きする</string>
     <string name="cleanup_residue">残骸をクリーンアップ</string>
     <string name="cleanup_residue_description">様々なモジュールや残骸となったツールのファイルとディレクトリをクリーンアップします (誤って削除すると損失や起動の失敗に繋がる可能性があるため、注意して使用してください)</string>
     <string name="susfs_edit_sus_path">SUS のパスを編集</string>

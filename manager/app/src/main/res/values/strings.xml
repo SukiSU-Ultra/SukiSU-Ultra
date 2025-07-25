@@ -541,8 +541,8 @@
     <string name="susfs_backup_info_date">Backup Date: %s</string>
     <string name="susfs_backup_info_device">Device: %s</string>
     <string name="susfs_backup_info_version">Version: %s</string>
-    <string name="hide_bl_script">Hide BL Script</string>
-    <string name="hide_bl_script_description">Enable Hide Bootloader Unlock Status Scripts</string>
+    <string name="hide_bl_script">Lock state</string>
+    <string name="hide_bl_script_description">Overwrite bootloader locking status attribute in late_start service mode</string>
     <string name="cleanup_residue">Cleanup Residue</string>
     <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (may be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
     <string name="susfs_edit_sus_path">Edit SUS Path</string>
