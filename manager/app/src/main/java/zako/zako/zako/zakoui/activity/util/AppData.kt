@@ -88,7 +88,7 @@ object AppData {
             val version = getKpmVersion()
             if (version.isEmpty()) "" else version
         } catch (e: Exception) {
-            ""
+            "Error: ${e.message}"
         }
     }
 
