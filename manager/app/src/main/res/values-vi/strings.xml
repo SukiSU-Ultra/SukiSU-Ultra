@@ -606,5 +606,5 @@
     <!-- 循环路径功能描述 -->
     <string name="sus_loop_path_feature_label">Đường dẫn Vòng lặp SuS</string>
     <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
-    <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đánh dấu lại thành SUS_PATH khi khởi động mỗi ứng dụng người dùng không phải root hoặc dịch vụ bị cô lập. Điều này giúp giải quyết các sự cố trong đó trạng thái inode của các đường dẫn được thêm vào có thể bị đặt lại hoặc inode được tạo lại trong Kernel</string>
+    <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
 </resources>
