@@ -55,6 +55,9 @@ static struct completion load_completion;
 static atomic_t save_retry_count = ATOMIC_INIT(0);
 static atomic_t load_retry_count = ATOMIC_INIT(0);
 
+// Exit flag to prevent new operations
+static atomic_t dynamic_sign_exiting = ATOMIC_INIT(0);
+
 bool ksu_is_dynamic_sign_enabled(void)
 {
     unsigned long flags;
@@ -250,7 +253,7 @@ static void ksu_rescan_manager_work_handler(struct work_struct *work)
 
 bool ksu_trigger_manager_rescan(void)
 {
-    if (!ksu_dynamic_wq) {
+    if (!ksu_dynamic_wq || atomic_read(&dynamic_sign_exiting)) {
         pr_err("Dynamic sign workqueue not initialized\n");
         return false;
     }
@@ -548,7 +551,7 @@ complete:
 
 static bool persistent_dynamic_sign(void)
 {
-    if (!ksu_dynamic_wq) {
+    if (!ksu_dynamic_wq || atomic_read(&dynamic_sign_exiting)) {
         pr_err("Dynamic sign workqueue not initialized\n");
         return false;
     }
@@ -585,7 +588,7 @@ static void do_clear_dynamic_sign_file(struct work_struct *work)
 
 static bool clear_dynamic_sign_file(void)
 {
-    if (!ksu_dynamic_wq) {
+    if (!ksu_dynamic_wq || atomic_read(&dynamic_sign_exiting)) {
         pr_err("Dynamic sign workqueue not initialized\n");
         return false;
     }
@@ -690,7 +693,7 @@ int ksu_handle_dynamic_sign(struct dynamic_sign_user_config *config)
 
 bool ksu_load_dynamic_sign(void)
 {
-    if (!ksu_dynamic_wq) {
+    if (!ksu_dynamic_wq || atomic_read(&dynamic_sign_exiting)) {
         pr_err("Dynamic sign workqueue not initialized\n");
         return false;
     }
@@ -741,17 +744,17 @@ void ksu_dynamic_sign_init(void)
 
 void ksu_dynamic_sign_exit(void)
 {
+    // Set exit flag to prevent new operations
+    atomic_set(&dynamic_sign_exiting, 1);
+    
     // Clear only dynamic managers on exit, preserve default manager
     clear_dynamic_managers_only();
     
     // Wait for any pending operations to complete
     if (ksu_dynamic_wq) {
-        flush_workqueue(ksu_dynamic_wq);
-        destroy_workqueue(ksu_dynamic_wq);
         ksu_dynamic_wq = NULL;
     }
-    
-    pr_info("Dynamic sign exited, cleared dynamic managers, preserved default manager\n");
+    pr_info("Dynamic sign exit flag set, cleared dynamic managers, preserved default manager\n");
 }
 
 // Get dynamic sign configuration for signature verification
