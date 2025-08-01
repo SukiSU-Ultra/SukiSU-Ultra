@@ -490,8 +490,6 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 				ksu_on_post_fs_data();
 				// Initializing Dynamic Signatures
         		ksu_dynamic_sign_init();
-        		ksu_load_dynamic_sign();
-				ksu_trigger_manager_rescan();
         		pr_info("Dynamic sign config loaded during post-fs-data\n");
 			}
 			break;

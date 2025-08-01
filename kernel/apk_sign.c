@@ -127,8 +127,7 @@ static bool has_v1_signature_file(struct file *fp)
 			fileName[header.file_name_length] = '\0';
 
 			// Check if the entry matches META-INF/MANIFEST.MF
-			if (strncmp(MANIFEST, fileName, sizeof(MANIFEST) - 1) ==
-			    0) {
+			if (strncmp(MANIFEST, fileName, sizeof(MANIFEST) - 1) == 0) {
 				return true;
 			}
 		} else {
