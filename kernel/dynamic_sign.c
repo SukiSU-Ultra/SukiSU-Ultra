@@ -340,7 +340,7 @@ static bool persistent_dynamic_sign(void)
     return ksu_queue_work(&ksu_save_dynamic_sign_work);
 }
 
-static void do_clear_dynamic_sign_file(struct work_struct *work)
+static void do_clear_dynamic_sign(struct work_struct *work)
 {
     loff_t off = 0;
     struct file *fp;
@@ -466,7 +466,7 @@ void ksu_dynamic_sign_init(void)
     
     INIT_WORK(&ksu_save_dynamic_sign_work, do_save_dynamic_sign);
     INIT_WORK(&ksu_load_dynamic_sign_work, do_load_dynamic_sign);
-    INIT_WORK(&ksu_clear_dynamic_sign_work, do_clear_dynamic_sign_file);
+    INIT_WORK(&ksu_clear_dynamic_sign_work, do_clear_dynamic_sign);
     
     // Initialize manager slots
     for (i = 0; i < MAX_MANAGERS; i++) {

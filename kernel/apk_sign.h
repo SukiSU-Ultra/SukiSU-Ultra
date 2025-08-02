@@ -6,7 +6,4 @@
 
 bool is_manager_apk(char *path);
 
-// Get dynamic sign configuration for signature verification
-bool ksu_get_dynamic_sign_config(unsigned int *size, const char **hash);
-
 #endif
