@@ -590,6 +590,8 @@
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Реализация Zygisk</string>
     <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">Пути цикла SUS</string>
+    <string name="susfs_add_sus_loop_path">Добавить путь SUS </string>
     <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <!-- 循环路径功能描述 -->
 </resources>
