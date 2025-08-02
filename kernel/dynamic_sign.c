@@ -19,7 +19,6 @@
 #include "klog.h" // IWYU pragma: keep
 #include "kernel_compat.h"
 #include "manager.h"
-#include "throne_tracker.h"
 
 #define MAX_MANAGERS 2
 
@@ -35,11 +34,10 @@ static struct manager_info active_managers[MAX_MANAGERS];
 static DEFINE_SPINLOCK(managers_lock);
 static DEFINE_SPINLOCK(dynamic_sign_lock);
 
-// Work queues for persistent storage and manager rescanning
+// Work queues for persistent storage
 static struct work_struct ksu_save_dynamic_sign_work;
 static struct work_struct ksu_load_dynamic_sign_work;
 static struct work_struct ksu_clear_dynamic_sign_work;
-static struct work_struct ksu_rescan_manager_work;
 
 bool ksu_is_dynamic_sign_enabled(void)
 {
@@ -164,25 +162,7 @@ int ksu_get_manager_signature_index(uid_t uid)
     return signature_index;
 }
 
-static void clear_all_managers(void)
-{
-    unsigned long flags;
-    int i;
-    
-    spin_lock_irqsave(&managers_lock, flags);
-    
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (active_managers[i].is_active) {
-            pr_info("Clearing dynamic manager uid=%d (signature_index=%d)\n", 
-                    active_managers[i].uid, active_managers[i].signature_index);
-            active_managers[i].is_active = false;
-        }
-    }
-    
-    spin_unlock_irqrestore(&managers_lock, flags);
-}
-
-static void clear_dynamic_managers_only(void)
+static void clear_dynamic_manager(void)
 {
     unsigned long flags;
     int i;
@@ -192,7 +172,7 @@ static void clear_dynamic_managers_only(void)
     for (i = 0; i < MAX_MANAGERS; i++) {
         if (active_managers[i].is_active) {
             pr_info("Clearing dynamic manager uid=%d (signature_index=%d) for rescan\n", 
-                    active_managers[i].uid);
+                    active_managers[i].uid, active_managers[i].signature_index);
             active_managers[i].is_active = false;
         }
     }
@@ -233,28 +213,6 @@ int ksu_get_active_managers(struct manager_list_info *info)
     
     info->count = count;
     return 0;
-}
-
-// Manager rescanning work handler
-void ksu_rescan_manager_work_handler(struct work_struct *work)
-{
-    pr_info("Starting manager rescan for dynamic sign changes\n");
-    
-    // Clear only dynamic managers, preserve default manager
-    clear_dynamic_managers_only();
-    
-    // Note: We preserve the traditional manager (index 0) and only rescan for dynamic managers
-    pr_info("Preserved traditional manager, rescanning for dynamic managers\n");
-    
-    // Trigger manager scanning
-    ksu_track_throne();
-    
-    pr_info("Manager rescan completed\n");
-}
-
-bool ksu_trigger_manager_rescan(void)
-{
-    return ksu_queue_work(&ksu_rescan_manager_work);
 }
 
 static void do_save_dynamic_sign(struct work_struct *work)
@@ -455,10 +413,6 @@ int ksu_handle_dynamic_sign(struct dynamic_sign_user_config *config)
         persistent_dynamic_sign();
         pr_info("dynamic sign updated: size=0x%x, hash=%.16s... (multi-manager enabled)\n", 
                 config->size, config->hash);
-        
-        // Always trigger manager rescan when dynamic sign is set
-        pr_info("Dynamic sign set, triggering manager rescan\n");
-        ksu_trigger_manager_rescan();
         break;
         
     case DYNAMIC_SIGN_OP_GET:
@@ -485,16 +439,12 @@ int ksu_handle_dynamic_sign(struct dynamic_sign_user_config *config)
         spin_unlock_irqrestore(&dynamic_sign_lock, flags);
         
         // Clear only dynamic managers, preserve default manager
-        clear_dynamic_managers_only();
+        clear_dynamic_manager();
         
         // Clear file using the same method as save
         clear_dynamic_sign_file();
         
         pr_info("Dynamic sign config cleared (multi-manager disabled)\n");
-        
-        // Always trigger manager rescan when dynamic sign is cleared
-        pr_info("Dynamic sign cleared, triggering manager rescan\n");
-        ksu_trigger_manager_rescan();
         break;
         
     default:
@@ -517,24 +467,24 @@ void ksu_dynamic_sign_init(void)
     INIT_WORK(&ksu_save_dynamic_sign_work, do_save_dynamic_sign);
     INIT_WORK(&ksu_load_dynamic_sign_work, do_load_dynamic_sign);
     INIT_WORK(&ksu_clear_dynamic_sign_work, do_clear_dynamic_sign_file);
-    INIT_WORK(&ksu_rescan_manager_work, ksu_rescan_manager_work_handler);
     
     // Initialize manager slots
     for (i = 0; i < MAX_MANAGERS; i++) {
         active_managers[i].is_active = false;
     }
+
+    ksu_load_dynamic_sign();
     
-    pr_info("Dynamic sign initialized with conditional multi-manager support and rescan capability\n");
+    pr_info("Dynamic sign initialized with conditional multi-manager support\n");
 }
 
 void ksu_dynamic_sign_exit(void)
 {
-    // Clear only dynamic managers on exit, preserve default manager
-    clear_dynamic_managers_only();
+    clear_dynamic_manager();
     
     // Save current config before exit
     do_save_dynamic_sign(NULL);
-    pr_info("Dynamic sign exited, cleared dynamic managers, preserved default manager\n");
+    pr_info("Dynamic sign exited with persistent storage\n");
 }
 
 // Get dynamic sign configuration for signature verification
