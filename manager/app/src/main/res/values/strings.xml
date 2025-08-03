@@ -609,9 +609,9 @@
     <string name="sus_loop_path_feature_label">SUS Loop Path</string>
     <string name="sus_loop_paths_description_title">Loop Path Configuration</string>
     <string name="sus_loop_paths_description_text">Loop paths are re-flagged as SUS_PATH on each non-root user app or isolated service startup. This helps address issues where added paths may have their inode status reset or inode re-created in the kernel.</string>
-    <string name="module_signature_verification">Module signature verification</string>
-    <string name="module_signature_verification_summary">Force signature verification for module installation</string>
-    <string name="module_signature_invalid">Module signature verification failed</string>
-    <string name="module_signature_invalid_message">Installation will be blocked due to security settings</string>
-    <string name="module_signature_verification_failed">Installation will continue, please note the presence of unknown encryption scripts in the module</string>
+    <string name="module_signature_verification">Signature Verification</string>
+    <string name="module_signature_verification_summary">Force signature verification when installing modules. (Only available for arm64-v8a)</string>
+    <string name="module_signature_invalid">Unknown publisher</string>
+    <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked.</string>
+    <string name="module_signature_verification_failed">Unsigned modules may be incomplete. Do you want to allow the following module from an unknown publisher to install in this device?</string>
 </resources>
