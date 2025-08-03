@@ -607,4 +607,9 @@
     <string name="sus_loop_path_feature_label">Đường dẫn Vòng lặp SuS</string>
     <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
     <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
+    <string name="module_signature_verification">Xác minh chữ ký module</string>
+    <string name="module_signature_verification_summary">Buộc xác minh chữ ký khi cài đặt module</string>
+    <string name="module_signature_invalid">Xác minh chữ ký module thất bại</string>
+    <string name="module_signature_invalid_message">Cài đặt sẽ bị chặn do cài đặt bảo mật</string>
+    <string name="module_signature_verification_failed">Quá trình cài đặt sẽ tiếp tục, vui lòng chú ý xem có tập lệnh mã hóa không xác định nào trong module hay không</string>
 </resources>
