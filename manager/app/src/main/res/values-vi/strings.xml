@@ -539,8 +539,8 @@
     <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
     <string name="susfs_backup_info_device">Thiết bị: %s</string>
     <string name="susfs_backup_info_version">Phiên bản: %s</string>
-    <string name="hide_bl_script">Trạng thái khóa</string>
-    <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái khóa khởi động ở chế độ dịch vụ late_start</string>
+    <string name="hide_bl_script">Trạng thái Lock BL</string>
+    <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái lock bootloader ở chế độ dịch vụ late_start</string>
     <string name="cleanup_residue">Dọn rác</string>
     <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (Có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
     <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>
@@ -607,9 +607,9 @@
     <string name="sus_loop_path_feature_label">Đường dẫn Vòng lặp SuS</string>
     <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
     <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
-    <string name="module_signature_verification">Xác minh chữ ký module</string>
-    <string name="module_signature_verification_summary">Buộc xác minh chữ ký khi cài đặt module</string>
-    <string name="module_signature_invalid">Xác minh chữ ký module thất bại</string>
-    <string name="module_signature_invalid_message">Cài đặt sẽ bị chặn do cài đặt bảo mật</string>
-    <string name="module_signature_verification_failed">Quá trình cài đặt sẽ tiếp tục, vui lòng chú ý xem có tập lệnh mã hóa không xác định nào trong module hay không</string>
+    <string name="module_signature_verification">Xác minh chữ ký</string>
+    <string name="module_signature_verification_summary">Buộc xác minh chữ ký khi cài đặt module (Chỉ khả dụng cho arm64-v8a)</string>
+    <string name="module_signature_invalid">Tác giả không xác định</string>
+    <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt</string>
+    <string name="module_signature_verification_failed">Các module chưa được ký có thể chưa hoàn chỉnh. Bạn có muốn cài đặt module từ một tác giả chưa xác định không?</string>
 </resources>
