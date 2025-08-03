@@ -587,4 +587,24 @@
     <string name="no_active_manager">Trình quản lý đang không hoạt động</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Triển khai Zygisk</string>
+    <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_add_sus_loop_path">Thêm Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_edit_sus_loop_path">Chỉnh sửa Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_loop_path_added_success">Đường dẫn Vòng lặp SuS đã thêm thành công: %1$s</string>
+    <string name="susfs_loop_path_removed">Đã xoá Đường dẫn Vòng lặp SuS: %1$s</string>
+    <string name="susfs_loop_path_updated">Đã cập nhật Đường dẫn Vòng lặp SuS: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">Không có Đường dẫn Vòng lặp SuS nào được cấu hình</string>
+    <string name="susfs_reset_loop_paths_title">Khôi phục Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_reset_loop_paths_message">Bạn có chắc chắn muốn xóa tất cả các Đường dẫn Vòng lặp SuS không? Thao tác này không thể hoàn tác</string>
+    <string name="susfs_loop_path_label">Đường dẫn Vòng lặp</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">Lưu ý: Chỉ những đường dẫn KHÔNG nằm trong /storage/ và /sdcard/ mới có thể được thêm vào thông qua Đường dẫn Vòng lặp</string>
+    <string name="susfs_loop_path_invalid_location">Lỗi: Đường dẫn Vòng lặp không thể nằm trong thư mục /storage/ hoặc /sdcard/</string>
+    <string name="loop_paths_section">Đường dẫn Vòng lặp</string>
+    <string name="add_loop_path">Thêm Đường dẫn Vòng lặp</string>
+    <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">Đường dẫn Vòng lặp SuS</string>
+    <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
+    <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
 </resources>

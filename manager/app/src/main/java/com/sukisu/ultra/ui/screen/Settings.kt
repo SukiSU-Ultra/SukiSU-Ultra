@@ -171,6 +171,20 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                 }
                             )
                         }
+                        // 强制签名验证开关
+                        var forceSignatureVerification by rememberSaveable {
+                            mutableStateOf(prefs.getBoolean("force_signature_verification", false))
+                        }
+                        SwitchItem(
+                            icon = Icons.Filled.Security,
+                            title = stringResource(R.string.module_signature_verification),
+                            summary = stringResource(R.string.module_signature_verification_summary),
+                            checked = forceSignatureVerification,
+                            onCheckedChange = { enabled ->
+                                prefs.edit { putBoolean("force_signature_verification", enabled) }
+                                forceSignatureVerification = enabled
+                            }
+                        )
                     }
                 )
             }

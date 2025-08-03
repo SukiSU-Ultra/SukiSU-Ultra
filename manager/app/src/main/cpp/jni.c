@@ -413,3 +413,22 @@ NativeBridgeNP(getManagersList, jobject) {
     LogDebug("getManagersList: count=%d", managerListInfo.count);
     return obj;
 }
+
+NativeBridge(verifyModuleSignature, jboolean, jstring modulePath) {
+#if defined(__aarch64__) || defined(_M_ARM64)
+    if (!modulePath) {
+        LogDebug("verifyModuleSignature: modulePath is null");
+        return false;
+    }
+
+    const char* cModulePath = GetEnvironment()->GetStringUTFChars(env, modulePath, nullptr);
+    bool result = verify_module_signature(cModulePath);
+    GetEnvironment()->ReleaseStringUTFChars(env, modulePath, cModulePath);
+
+    LogDebug("verifyModuleSignature: path=%s, result=%d", cModulePath, result);
+    return result;
+#else
+    LogDebug("verifyModuleSignature: not supported on non-arm64 architecture");
+    return false;
+#endif
+}

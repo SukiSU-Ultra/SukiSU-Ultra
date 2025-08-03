@@ -52,6 +52,7 @@ object Natives {
     }
 
     init {
+        System.loadLibrary("zakosign")
         System.loadLibrary("zako")
     }
 
@@ -123,6 +124,9 @@ object Natives {
      * @return ManagersList object containing active managers, or null if failed or not enabled
      */
     external fun getManagersList(): ManagersList?
+
+    // 模块签名验证
+    external fun verifyModuleSignature(modulePath: String): Boolean
 
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999

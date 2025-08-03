@@ -9,6 +9,9 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.ZipInputStream
 import com.sukisu.ultra.R
 import android.util.Log
+import com.sukisu.ultra.Natives
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 object ModuleUtils {
@@ -102,4 +105,41 @@ object ModuleUtils {
             Log.e(TAG, "Unable to get persistent permissions on URIs: $uri, Error: ${e.message}")
         }
     }
+}
+
+// 模块签名验证工具类
+object ModuleSignatureUtils {
+    private const val TAG = "ModuleSignatureUtils"
+
+    fun verifyModuleSignature(context: Context, moduleUri: Uri): Boolean {
+        return try {
+            // 创建临时文件
+            val tempFile = File(context.cacheDir, "temp_module_${System.currentTimeMillis()}.zip")
+
+            // 复制URI内容到临时文件
+            context.contentResolver.openInputStream(moduleUri)?.use { inputStream ->
+                FileOutputStream(tempFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+
+            // 调用native方法验证签名
+            val isVerified = Natives.verifyModuleSignature(tempFile.absolutePath)
+
+            // 清理临时文件
+            tempFile.delete()
+
+            Log.d(TAG, "Module signature verification result: $isVerified")
+            isVerified
+        } catch (e: Exception) {
+            Log.e(TAG, "Error verifying module signature", e)
+            false
+        }
+    }
+
+}
+
+// 验证模块签名
+fun verifyModuleSignature(context: Context, moduleUri: Uri): Boolean {
+    return ModuleSignatureUtils.verifyModuleSignature(context, moduleUri)
 }

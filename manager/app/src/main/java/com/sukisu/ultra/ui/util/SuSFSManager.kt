@@ -945,15 +945,33 @@ object SuSFSManager {
 
     // 编辑SUS路径
     suspend fun editSusPath(context: Context, oldPath: String, newPath: String): Boolean {
-        val currentPaths = getSusPaths(context).toMutableSet()
-        if (currentPaths.remove(oldPath)) {
-            currentPaths.add(newPath)
+        return try {
+            val currentPaths = getSusPaths(context).toMutableSet()
+            if (!currentPaths.remove(oldPath)) {
+                showToast(context, "Original path not found: $oldPath")
+                return false
+            }
+
             saveSusPaths(context, currentPaths)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, "SUS path updated: $oldPath -> $newPath")
-            return true
+
+            val success = addSusPath(context, newPath)
+
+            if (success) {
+                showToast(context, "SUS path updated: $oldPath -> $newPath")
+                return true
+            } else {
+                // 如果添加新路径失败，恢复旧路径
+                currentPaths.add(oldPath)
+                saveSusPaths(context, currentPaths)
+                if (isAutoStartEnabled(context)) updateMagiskModule(context)
+                showToast(context, "Failed to update path, reverted to original")
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast(context, "Error updating SUS path: ${e.message}")
+            false
         }
-        return false
     }
 
     // 循环路径相关方法
@@ -996,6 +1014,7 @@ object SuSFSManager {
         return true
     }
 
+    // 编辑循环路径
     suspend fun editSusLoopPath(context: Context, oldPath: String, newPath: String): Boolean {
         // 检查新路径是否有效
         if (!isValidLoopPath(newPath)) {
@@ -1003,15 +1022,33 @@ object SuSFSManager {
             return false
         }
 
-        val currentPaths = getSusLoopPaths(context).toMutableSet()
-        if (currentPaths.remove(oldPath)) {
-            currentPaths.add(newPath)
+        return try {
+            val currentPaths = getSusLoopPaths(context).toMutableSet()
+            if (!currentPaths.remove(oldPath)) {
+                showToast(context, "Original loop path not found: $oldPath")
+                return false
+            }
+
             saveSusLoopPaths(context, currentPaths)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, context.getString(R.string.susfs_loop_path_updated, oldPath, newPath))
-            return true
+
+            val success = addSusLoopPath(context, newPath)
+
+            if (success) {
+                showToast(context, context.getString(R.string.susfs_loop_path_updated, oldPath, newPath))
+                return true
+            } else {
+                // 如果添加新路径失败，恢复旧路径
+                currentPaths.add(oldPath)
+                saveSusLoopPaths(context, currentPaths)
+                if (isAutoStartEnabled(context)) updateMagiskModule(context)
+                showToast(context, "Failed to update loop path, reverted to original")
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast(context, "Error updating SUS loop path: ${e.message}")
+            false
         }
-        return false
     }
 
     // 添加SUS挂载
@@ -1033,15 +1070,33 @@ object SuSFSManager {
 
     // 编辑SUS挂载
     suspend fun editSusMount(context: Context, oldMount: String, newMount: String): Boolean {
-        val currentMounts = getSusMounts(context).toMutableSet()
-        if (currentMounts.remove(oldMount)) {
-            currentMounts.add(newMount)
+        return try {
+            val currentMounts = getSusMounts(context).toMutableSet()
+            if (!currentMounts.remove(oldMount)) {
+                showToast(context, "Original mount not found: $oldMount")
+                return false
+            }
+
             saveSusMounts(context, currentMounts)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, "SUS mount updated: $oldMount -> $newMount")
-            return true
+
+            val success = addSusMount(context, newMount)
+
+            if (success) {
+                showToast(context, "SUS mount updated: $oldMount -> $newMount")
+                return true
+            } else {
+                // 如果添加新挂载点失败，恢复旧挂载点
+                currentMounts.add(oldMount)
+                saveSusMounts(context, currentMounts)
+                if (isAutoStartEnabled(context)) updateMagiskModule(context)
+                showToast(context, "Failed to update mount, reverted to original")
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast(context, "Error updating SUS mount: ${e.message}")
+            false
         }
-        return false
     }
 
     // 添加尝试卸载
@@ -1068,15 +1123,33 @@ object SuSFSManager {
 
     // 编辑尝试卸载
     suspend fun editTryUmount(context: Context, oldEntry: String, newPath: String, newMode: Int): Boolean {
-        val currentUmounts = getTryUmounts(context).toMutableSet()
-        if (currentUmounts.remove(oldEntry)) {
-            currentUmounts.add("$newPath|$newMode")
+        return try {
+            val currentUmounts = getTryUmounts(context).toMutableSet()
+            if (!currentUmounts.remove(oldEntry)) {
+                showToast(context, "Original umount entry not found: $oldEntry")
+                return false
+            }
+
             saveTryUmounts(context, currentUmounts)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, "Try umount updated: $oldEntry -> $newPath|$newMode")
-            return true
+
+            val success = addTryUmount(context, newPath, newMode)
+
+            if (success) {
+                showToast(context, "Try umount updated: $oldEntry -> $newPath|$newMode")
+                return true
+            } else {
+                // 如果添加新条目失败，恢复旧条目
+                currentUmounts.add(oldEntry)
+                saveTryUmounts(context, currentUmounts)
+                if (isAutoStartEnabled(context)) updateMagiskModule(context)
+                showToast(context, "Failed to update umount entry, reverted to original")
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast(context, "Error updating try umount: ${e.message}")
+            false
         }
-        return false
     }
 
     suspend fun runTryUmount(context: Context): Boolean = executeSusfsCommand(context, "run_try_umount")
@@ -1132,16 +1205,34 @@ object SuSFSManager {
     suspend fun editKstatConfig(context: Context, oldConfig: String, path: String, ino: String, dev: String, nlink: String,
                                 size: String, atime: String, atimeNsec: String, mtime: String, mtimeNsec: String,
                                 ctime: String, ctimeNsec: String, blocks: String, blksize: String): Boolean {
-        val currentConfigs = getKstatConfigs(context).toMutableSet()
-        if (currentConfigs.remove(oldConfig)) {
-            val newConfigEntry = "$path|$ino|$dev|$nlink|$size|$atime|$atimeNsec|$mtime|$mtimeNsec|$ctime|$ctimeNsec|$blocks|$blksize"
-            currentConfigs.add(newConfigEntry)
+        return try {
+            val currentConfigs = getKstatConfigs(context).toMutableSet()
+            if (!currentConfigs.remove(oldConfig)) {
+                showToast(context, "Original kstat config not found")
+                return false
+            }
+
             saveKstatConfigs(context, currentConfigs)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, context.getString(R.string.kstat_config_updated, path))
-            return true
+
+            val success = addKstatStatically(context, path, ino, dev, nlink, size, atime, atimeNsec,
+                mtime, mtimeNsec, ctime, ctimeNsec, blocks, blksize)
+
+            if (success) {
+                showToast(context, context.getString(R.string.kstat_config_updated, path))
+                return true
+            } else {
+                // 如果添加新配置失败，恢复旧配置
+                currentConfigs.add(oldConfig)
+                saveKstatConfigs(context, currentConfigs)
+                if (isAutoStartEnabled(context)) updateMagiskModule(context)
+                showToast(context, "Failed to update kstat config, reverted to original")
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast(context, "Error updating kstat config: ${e.message}")
+            false
         }
-        return false
     }
 
     // 添加kstat路径
@@ -1165,15 +1256,33 @@ object SuSFSManager {
     // 编辑kstat路径
     @SuppressLint("StringFormatInvalid")
     suspend fun editAddKstat(context: Context, oldPath: String, newPath: String): Boolean {
-        val currentPaths = getAddKstatPaths(context).toMutableSet()
-        if (currentPaths.remove(oldPath)) {
-            currentPaths.add(newPath)
+        return try {
+            val currentPaths = getAddKstatPaths(context).toMutableSet()
+            if (!currentPaths.remove(oldPath)) {
+                showToast(context, "Original kstat path not found: $oldPath")
+                return false
+            }
+
             saveAddKstatPaths(context, currentPaths)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, context.getString(R.string.kstat_path_updated, oldPath, newPath))
-            return true
+
+            val success = addKstat(context, newPath)
+
+            if (success) {
+                showToast(context, context.getString(R.string.kstat_path_updated, oldPath, newPath))
+                return true
+            } else {
+                // 如果添加新路径失败，恢复旧路径
+                currentPaths.add(oldPath)
+                saveAddKstatPaths(context, currentPaths)
+                if (isAutoStartEnabled(context)) updateMagiskModule(context)
+                showToast(context, "Failed to update kstat path, reverted to original")
+                return false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast(context, "Error updating kstat path: ${e.message}")
+            false
         }
-        return false
     }
 
     // 更新kstat

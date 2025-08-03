@@ -136,4 +136,6 @@ bool clear_dynamic_sign();
 
 bool get_managers_list(struct manager_list_info* info);
 
+bool verify_module_signature(const char* input);
+
 #endif //KERNELSU_KSU_H

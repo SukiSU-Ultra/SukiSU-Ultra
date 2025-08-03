@@ -606,4 +606,9 @@
     <string name="sus_loop_path_feature_label">SUS循环路径</string>
     <string name="sus_loop_paths_description_title">循环路径配置</string>
     <string name="sus_loop_paths_description_text">循环路径会在每次非root用户应用或隔离服务启动时重新标记为SUS_PATH。这有助于解决添加的路径可能因inode状态重置或内核中inode重新创建而失效的问题</string>
+    <string name="module_signature_verification">模块签名验证</string>
+    <string name="module_signature_verification_summary">强制验证模块安装时的签名</string>
+    <string name="module_signature_invalid">模块签名验证未通过</string>
+    <string name="module_signature_invalid_message">由于安全设置，安装将被阻止</string>
+    <string name="module_signature_verification_failed">安装将继续，请注意模块是否存在未知加密脚本</string>
 </resources>

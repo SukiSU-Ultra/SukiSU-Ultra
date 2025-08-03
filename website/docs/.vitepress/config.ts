@@ -4,6 +4,7 @@ import { readdir, writeFile } from 'fs/promises'
 import { resolve } from 'path'
 
 export default defineConfig( {
+    base: '/SukiSU-Ultra/',
     title: 'KernelSU',
     locales: locales.locales,
     head: [

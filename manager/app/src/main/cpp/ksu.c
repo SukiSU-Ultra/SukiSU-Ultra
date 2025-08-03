@@ -11,6 +11,16 @@
 #include "prelude.h"
 #include "ksu.h"
 
+#if defined(__aarch64__) || defined(_M_ARM64)
+
+// Zako extern declarations
+#define ZAKO_ESV_IMPORTANT_ERROR 1 << 31
+extern int zako_file_open_rw(const char* path);
+extern uint32_t zako_file_verify_esig(int fd, uint32_t flags);
+extern const char* zako_esign_verrcidx2str(uint8_t index);
+
+#endif // __aarch64__ || _M_ARM64
+
 #define KERNEL_SU_OPTION 0xDEADBEEF
 
 #define CMD_GRANT_ROOT 0
@@ -182,4 +192,41 @@ bool get_managers_list(struct manager_list_info* info) {
     }
 
     return ksuctl(CMD_GET_MANAGERS, info, NULL);
+}
+
+bool verify_module_signature(const char* input) {
+#if defined(__aarch64__) || defined(_M_ARM64)
+    if (input == NULL) {
+        return false;
+    }
+
+    int fd = zako_file_open_rw(input);
+    uint32_t results = zako_file_verify_esig(fd, 0);
+
+    if (results != 0) {
+        if ((results & ZAKO_ESV_IMPORTANT_ERROR) != 0) {
+        } else {
+        }
+    } else {
+        goto exit;
+    }
+
+    /* Go through all bit fields */
+    for (uint8_t i = 0; i < sizeof(uint32_t) * 8; i++) {
+        if ((results & (1 << i)) == 0) {
+            continue;
+        }
+
+        /* Convert error bit field index into human readable string */
+        const char* message = zako_esign_verrcidx2str(i);
+        // Error message: message
+    }
+
+    exit:
+    close(fd);
+    return results == 0;
+#else
+    // 非arm64-v8a架构不支持模块签名验证
+    return false;
+#endif
 }

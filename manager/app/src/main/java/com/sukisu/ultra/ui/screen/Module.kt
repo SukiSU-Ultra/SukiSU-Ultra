@@ -110,10 +110,17 @@ data class ModuleBottomSheetMenuItem(
 fun ModuleScreen(navigator: DestinationsNavigator) {
     val viewModel = viewModel<ModuleViewModel>()
     val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings",MODE_PRIVATE)
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
     val confirmDialog = rememberConfirmDialog()
     var lastClickTime by remember { mutableStateOf(0L) }
+
+    // 签名验证弹窗状态
+    var showSignatureDialog by remember { mutableStateOf(false) }
+    var signatureDialogMessage by remember { mutableStateOf("") }
+    var isForceVerificationFailed by remember { mutableStateOf(false) }
+    var pendingInstallAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     // 初始化缓存系统
     LaunchedEffect(Unit) {
@@ -175,13 +182,51 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 )
 
                 if (confirmResult == ConfirmResult.Confirmed) {
-                    try {
-                        // 批量安装模块
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
-                        viewModel.markNeedRefresh()
-                    } catch (e: Exception) {
-                        Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
-                        snackBarHost.showSnackbar("Error while installing module: ${e.message}")
+                    // 验证模块签名
+                    val forceVerification = prefs.getBoolean("force_signature_verification", false)
+                    val verificationResults = mutableMapOf<Uri, Boolean>()
+
+                    for (uri in selectedModules) {
+                        val isVerified = verifyModuleSignature(context, uri)
+                        verificationResults[uri] = isVerified
+
+                        if (forceVerification && !isVerified) {
+                            withContext(Dispatchers.Main) {
+                                signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
+                                isForceVerificationFailed = true
+                                showSignatureDialog = true
+                            }
+                            return@launch
+                        } else if (!isVerified) {
+                            withContext(Dispatchers.Main) {
+                                signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
+                                isForceVerificationFailed = false
+                                pendingInstallAction = {
+                                    try {
+                                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
+                                        viewModel.markNeedRefresh()
+                                    } catch (e: Exception) {
+                                        Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
+                                        scope.launch {
+                                            snackBarHost.showSnackbar("Error while installing module: ${e.message}")
+                                        }
+                                    }
+                                }
+                                showSignatureDialog = true
+                            }
+                            return@launch
+                        }
+                    }
+
+                    // 所有模块签名验证通过，直接安装
+                    if (verificationResults.all { it.value }) {
+                        try {
+                            navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
+                            viewModel.markNeedRefresh()
+                        } catch (e: Exception) {
+                            Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
+                            snackBarHost.showSnackbar("Error while installing module: ${e.message}")
+                        }
                     }
                 }
             } else {
@@ -205,6 +250,26 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     )
 
                     if (confirmResult == ConfirmResult.Confirmed) {
+                        // 验证模块签名
+                        val forceVerification = prefs.getBoolean("force_signature_verification", false)
+                        val isVerified = verifyModuleSignature(context, uri)
+
+                        if (forceVerification && !isVerified) {
+                            signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
+                            isForceVerificationFailed = true
+                            showSignatureDialog = true
+                            return@launch
+                        } else if (!isVerified) {
+                            signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
+                            isForceVerificationFailed = false
+                            pendingInstallAction = {
+                                navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
+                                viewModel.markNeedRefresh()
+                            }
+                            showSignatureDialog = true
+                            return@launch
+                        }
+
                         navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
                         viewModel.markNeedRefresh()
                     }
@@ -219,7 +284,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val backupLauncher = ModuleModify.rememberModuleBackupLauncher(context, snackBarHost)
     val restoreLauncher = ModuleModify.rememberModuleRestoreLauncher(context, snackBarHost)
 
-    val prefs = context.getSharedPreferences("settings", MODE_PRIVATE)
 
     LaunchedEffect(Unit) {
         if (viewModel.moduleList.isEmpty() || viewModel.isNeedRefresh) {
@@ -449,6 +513,64 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     onDismiss = { showBottomSheet = false }
                 )
             }
+        }
+
+        // 签名验证弹窗
+        if (showSignatureDialog) {
+            AlertDialog(
+                onDismissRequest = { showSignatureDialog = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.module_signature_invalid),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                },
+                text = {
+                    Text(text = signatureDialogMessage)
+                },
+                confirmButton = {
+                    if (isForceVerificationFailed) {
+                        // 强制验证失败，只显示确定按钮
+                        TextButton(
+                            onClick = { showSignatureDialog = false }
+                        ) {
+                            Text(stringResource(R.string.confirm))
+                        }
+                    } else {
+                        // 非强制验证失败，显示继续安装按钮
+                        TextButton(
+                            onClick = {
+                                showSignatureDialog = false
+                                pendingInstallAction?.invoke()
+                                pendingInstallAction = null
+                            }
+                        ) {
+                            Text(stringResource(R.string.install))
+                        }
+                    }
+                },
+                dismissButton = if (!isForceVerificationFailed) {
+                    {
+                        TextButton(
+                            onClick = {
+                                showSignatureDialog = false
+                                pendingInstallAction = null
+                            }
+                        ) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                    }
+                } else {
+                    null
+                }
+            )
         }
     }
 }

@@ -12,6 +12,7 @@
 #include "manager.h"
 #include "throne_tracker.h"
 #include "kernel_compat.h"
+#include "dynamic_sign.h"
 
 uid_t ksu_manager_uid = KSU_INVALID_UID;
 
@@ -385,7 +386,7 @@ void track_throne()
 	struct uid_data *np;
 	struct uid_data *n;
 
-	// first, check if manager_uid exist!
+	// Check if any manager exists (traditional or dynamic)
 	bool manager_exist = false;
 	list_for_each_entry (np, &uid_list, list) {
 		// if manager is installed in work profile, the uid in packages.list is still equals main profile
@@ -395,9 +396,15 @@ void track_throne()
 			manager_exist = true;
 			break;
 		}
-		
-		if (ksu_is_any_manager(np->uid)) {
-			manager_exist = true;
+	}
+	
+	// Check for dynamic managers
+	if (!manager_exist && ksu_is_dynamic_sign_enabled()) {
+		list_for_each_entry (np, &uid_list, list) {
+			if (ksu_is_any_manager(np->uid)) {
+				manager_exist = true;
+				break;
+			}
 		}
 	}
 
@@ -410,6 +417,11 @@ void track_throne()
 		pr_info("Searching manager...\n");
 		search_manager("/data/app", 2, &uid_list);
 		pr_info("Search manager finished\n");
+	} else {
+		// Always perform search when called from dynamic sign rescan
+		pr_info("Performing manager search (may be from dynamic sign rescan)\n");
+		search_manager("/data/app", 2, &uid_list);
+		pr_info("Manager search completed\n");
 	}
 
 prune:
