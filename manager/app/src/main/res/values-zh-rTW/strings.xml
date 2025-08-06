@@ -289,8 +289,8 @@
     <string name="icon_switch_summary">更換為 KernelSU 圖示</string>
     <string name="icon_switched">已切換圖示</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">顯示 KPM 功能</string>
-    <string name="show_kpm_info_summary">在首頁和底欄顯示 KPM 相關功能與資訊（需重新開啟應用程式）</string>
+    <string name="show_kpm_info">隱藏 KPM 功能</string>
+    <string name="show_kpm_info_summary">在首頁和底欄隱藏 KPM 相關功能與資訊</string>
     <!-- Webui X settings -->
     <string name="use_webuix">選擇使用的 WebUI 引擎</string>
     <string name="engine_auto_select">自動選擇</string>
@@ -514,47 +514,47 @@
     <string name="susfs_run">執行</string>
     <string name="kernel_simple_kernel">核心版本簡潔模式</string>
     <string name="kernel_simple_kernel_summary">啟用或禁用SukiSU核心版本顯示的簡潔模式</string>
-    <string name="susfs_android_data_path_set">Android Data 路徑已設定為：%s</string>
-    <string name="susfs_sdcard_path_set">SD 卡路徑已設定為：%s</string>
-    <string name="susfs_path_setup_warning">路徑設定可能沒有完全成功，但仍會繼續新增 SUS 路徑</string>
-    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_android_data_path_set">Android Data路徑已設定為: %s</string>
+    <string name="susfs_sdcard_path_set">SD卡路徑已設定為: %s</string>
+    <string name="susfs_path_setup_warning">路徑設定可能未完全成功，但將繼續新增SUS路徑</string>
+    <!-- 備份和還原相關字串 -->
     <string name="susfs_backup_title">備份</string>
-    <string name="susfs_backup_description">建立所有 SuSFS 設定的備份。備份檔案會包含所有設定、路徑與配置信息</string>
+    <string name="susfs_backup_description">建立所有SuSFS配置的備份。備份檔案將包含所有設定、路徑和配置資訊。</string>
     <string name="susfs_backup_create">建立備份</string>
-    <string name="susfs_backup_success">備份成功建立：%s</string>
+    <string name="susfs_backup_success">備份建立成功：%s</string>
     <string name="susfs_backup_failed">備份建立失敗：%s</string>
-    <string name="susfs_backup_file_not_found">找不到備份檔案</string>
-    <string name="susfs_backup_invalid_format">備份檔案格式無效</string>
-    <string name="susfs_backup_version_mismatch">備份版本不相容，將嘗試進行還原</string>
+    <string name="susfs_backup_file_not_found">備份檔案未找到</string>
+    <string name="susfs_backup_invalid_format">無效的備份檔案格式</string>
+    <string name="susfs_backup_version_mismatch">備份版本不匹配，但將嘗試還原</string>
     <string name="susfs_restore_title">還原</string>
-    <string name="susfs_restore_description">從備份檔案還原 SuSFS 設定，這會覆蓋目前所有設定</string>
-    <string name="susfs_restore_select_file">選取備份檔案</string>
-    <string name="susfs_restore_success" formatted="false">設定還原成功，備份建立於 %s，來源裝置：%s</string>
+    <string name="susfs_restore_description">從備份檔案還原SuSFS配置。這將覆蓋所有當前設定。</string>
+    <string name="susfs_restore_select_file">選擇備份檔案</string>
+    <string name="susfs_restore_success" formatted="false">配置還原成功，備份創建於 %s，來自裝置：%s</string>
     <string name="susfs_restore_failed">還原失敗：%s</string>
     <string name="susfs_restore_confirm_title">確認還原</string>
-    <string name="susfs_restore_confirm_description">這將會覆蓋目前所有的 SuSFS 設定，確定要繼續嗎？</string>
+    <string name="susfs_restore_confirm_description">這將覆蓋所有當前的SuSFS配置。您確定要繼續嗎？</string>
     <string name="susfs_restore_confirm">還原</string>
     <string name="susfs_backup_info_date">備份日期：%s</string>
     <string name="susfs_backup_info_device">裝置：%s</string>
     <string name="susfs_backup_info_version">版本：%s</string>
-    <string name="hide_bl_script">上鎖狀態</string>
-    <string name="hide_bl_script_description">覆蓋引導鎖定狀態屬性於 late_start 服務模式</string>
-    <string name="cleanup_residue">清除工具殘留</string>
-    <string name="cleanup_residue_description">清除各種模組與工具殘留的檔案與資料夾（可能會誤刪導致資料遺失或無法開機，請小心使用）</string>
+    <string name="hide_bl_script">隱藏BL指令碼</string>
+    <string name="hide_bl_script_description">啟用隱藏Bootloader解鎖狀態指令碼</string>
+    <string name="cleanup_residue">清理工具殘留</string>
+    <string name="cleanup_residue_description">清理各種模組以及工具的殘留檔案和目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SUS 路徑</string>
     <string name="susfs_edit_sus_mount">編輯 SUS 掛載</string>
-    <string name="susfs_edit_try_umount">編輯嘗試卸載</string>
-    <string name="edit_kstat_statically_title">編輯 Kstat 靜態設定</string>
+    <string name="susfs_edit_try_umount">編輯嘗試解除安裝</string>
+    <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
     <string name="susfs_save">儲存</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
     <string name="update">更新</string>
-    <string name="kstat_config_updated">Kstat 設定已更新</string>
-    <string name="kstat_path_updated">Kstat 路徑已更新</string>
-    <string name="susfs_update_full_clone">SusFS 完整複製更新</string>
-    <string name="umount_zygote_iso_service">卸載 Zygote 隔離服務</string>
-    <string name="umount_zygote_iso_service_description">啟用此選項後，系統開機時會自動卸載 Zygote 隔離服務的掛載點</string>
-    <string name="umount_zygote_iso_service_enabled">已啟用卸載 Zygote 隔離服務</string>
-    <string name="umount_zygote_iso_service_disabled">已停用卸載 Zygote 隔離服務</string>
+    <string name="kstat_config_updated">Kstat 配置更新</string>
+    <string name="kstat_path_updated">Kstat 路徑更新</string>
+    <string name="susfs_update_full_clone">Susfs 完整克隆更新</string>
+    <string name="umount_zygote_iso_service">解除安裝Zygote隔離服務</string>
+    <string name="umount_zygote_iso_service_description">啟用此選項將在系統啟動時解除安裝Zygote隔離服務掛載點</string>
+    <string name="umount_zygote_iso_service_enabled">Zygote隔離服務解除安裝已啟用</string>
+    <string name="umount_zygote_iso_service_disabled">Zygote隔離服務解除安裝已禁用</string>
 </resources>
