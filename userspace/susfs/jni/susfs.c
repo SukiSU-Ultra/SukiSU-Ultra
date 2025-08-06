@@ -20,30 +20,12 @@
 #define SUS_SU_DISABLED 0
 #define SUS_SU_WITH_HOOKS 2
 
-// Feature flags
-#define FEATURE_SUS_PATH (1 << 0)
-#define FEATURE_SUS_MOUNT (1 << 1)
-#define FEATURE_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT (1 << 2)
-#define FEATURE_AUTO_ADD_SUS_BIND_MOUNT (1 << 3)
-#define FEATURE_SUS_KSTAT (1 << 4)
-#define FEATURE_TRY_UMOUNT (1 << 5)
-#define FEATURE_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT (1 << 6)
-#define FEATURE_SPOOF_UNAME (1 << 7)
-#define FEATURE_ENABLE_LOG (1 << 8)
-#define FEATURE_HIDE_KSU_SUSFS_SYMBOLS (1 << 9)
-#define FEATURE_SPOOF_BOOTCONFIG (1 << 10)
-#define FEATURE_OPEN_REDIRECT (1 << 11)
-#define FEATURE_SUSFS_HAS_MAGIC_MOUNT (1 << 12)
-#define FEATURE_SUS_SU (1 << 13)
-
 struct st_sus_su {
     int mode;
 };
 
 // Function prototypes
 int enable_sus_su(int last_working_mode, int target_working_mode);
-void print_features(unsigned long enabled_features);
-bool is_feature_enabled(unsigned long enabled_features, int feature);
 int get_sus_su_working_mode(int* mode);
 
 int main(int argc, char* argv[]) {
@@ -63,17 +45,31 @@ int main(int argc, char* argv[]) {
         prctl(KERNEL_SU_OPTION, CMD_SUSFS_SHOW_VARIANT, variant, NULL, &error);
         printf("%s\n", error ? "Invalid" : variant);
     } else if (strcmp(argv[1], "features") == 0) {
-        unsigned long enabled_features;
-        prctl(KERNEL_SU_OPTION, CMD_SUSFS_SHOW_ENABLED_FEATURES, &enabled_features, NULL, &error);
+        char *enabled_features;
+        size_t bufsize = getpagesize() * 2;
+        enabled_features = (char *)malloc(bufsize);
+        if (!enabled_features) {
+            perror("malloc");
+            return -ENOMEM;
+        }
+        prctl(KERNEL_SU_OPTION, CMD_SUSFS_SHOW_ENABLED_FEATURES, enabled_features, bufsize, &error);
         if (!error) {
-            print_features(enabled_features);
+            printf("%s", enabled_features);
         } else {
             printf("Invalid\n");
         }
+        free(enabled_features);
     } else if (strcmp(argv[1], "support") == 0) {
-        unsigned long enabled_features;
-        prctl(KERNEL_SU_OPTION, CMD_SUSFS_SHOW_ENABLED_FEATURES, &enabled_features, NULL, &error);
-        printf("%s\n", error || !enabled_features ? "Unsupported" : "Supported");
+        char *enabled_features;
+        size_t bufsize = getpagesize() * 2;
+        enabled_features = (char *)malloc(bufsize);
+        if (!enabled_features) {
+            perror("malloc");
+            return -ENOMEM;
+        }
+        prctl(KERNEL_SU_OPTION, CMD_SUSFS_SHOW_ENABLED_FEATURES, enabled_features, bufsize, &error);
+        printf("%s\n", error || !strlen(enabled_features) ? "Unsupported" : "Supported");
+        free(enabled_features);
     } else if (argc == 3 && strcmp(argv[1], "sus_su") == 0) {
         int last_working_mode, target_working_mode;
         char* endptr;
@@ -132,55 +128,6 @@ int enable_sus_su(int last_working_mode, int target_working_mode) {
         printf("[+] sus_su mode %d is enabled\n", target_working_mode);
     }
     return error;
-}
-
-void print_features(unsigned long enabled_features) {
-    if (is_feature_enabled(enabled_features, FEATURE_SUS_PATH)) {
-        printf("CONFIG_KSU_SUSFS_SUS_PATH\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_SUS_MOUNT)) {
-        printf("CONFIG_KSU_SUSFS_SUS_MOUNT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT)) {
-        printf("CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_AUTO_ADD_SUS_BIND_MOUNT)) {
-        printf("CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_SUS_KSTAT)) {
-        printf("CONFIG_KSU_SUSFS_SUS_KSTAT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_TRY_UMOUNT)) {
-        printf("CONFIG_KSU_SUSFS_TRY_UMOUNT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT)) {
-        printf("CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_SPOOF_UNAME)) {
-        printf("CONFIG_KSU_SUSFS_SPOOF_UNAME\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_ENABLE_LOG)) {
-        printf("CONFIG_KSU_SUSFS_ENABLE_LOG\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_HIDE_KSU_SUSFS_SYMBOLS)) {
-        printf("CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_SPOOF_BOOTCONFIG)) {
-        printf("CONFIG_KSU_SUSFS_SPOOF_BOOTCONFIG\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_OPEN_REDIRECT)) {
-        printf("CONFIG_KSU_SUSFS_OPEN_REDIRECT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_SUSFS_HAS_MAGIC_MOUNT)) {
-        printf("CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT\n");
-    }
-    if (is_feature_enabled(enabled_features, FEATURE_SUS_SU)) {
-        printf("CONFIG_KSU_SUSFS_SUS_SU\n");
-    }
-}
-
-bool is_feature_enabled(unsigned long enabled_features, int feature) {
-    return (enabled_features & feature) != 0;
 }
 
 int get_sus_su_working_mode(int* mode) {

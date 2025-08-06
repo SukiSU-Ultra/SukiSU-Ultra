@@ -63,7 +63,7 @@ void sukisu_kpm_load_module_path(const char* path, const char* args, void* ptr, 
     int res = -1;
     printk("KPM: Stub function called (sukisu_kpm_load_module_path). path=%s args=%s ptr=%p\n", path, args, ptr);
     __asm__ volatile("nop");  // 精确控制循环不被优化
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 noinline
@@ -73,7 +73,7 @@ void sukisu_kpm_unload_module(const char* name, void* ptr, void __user* result) 
     int res = -1;
     printk("KPM: Stub function called (sukisu_kpm_unload_module). name=%s ptr=%p\n", name, ptr);
     __asm__ volatile("nop");  // 精确控制循环不被优化
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 noinline
@@ -83,7 +83,7 @@ void sukisu_kpm_num(void __user* result) {
     int res = 0;
     printk("KPM: Stub function called (sukisu_kpm_num).\n");
     __asm__ volatile("nop");  // 精确控制循环不被优化
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 noinline
@@ -93,7 +93,7 @@ void sukisu_kpm_info(const char* name, void __user* out, void __user* result) {
     int res = -1;
     printk("KPM: Stub function called (sukisu_kpm_info). name=%s buffer=%p\n", name, out);
     __asm__ volatile("nop");  // 精确控制循环不被优化
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 noinline
@@ -102,7 +102,7 @@ void sukisu_kpm_list(void __user* out, unsigned int bufferSize, void __user* res
     // This is a KPM module stub.
     int res = -1;
     printk("KPM: Stub function called (sukisu_kpm_list). buffer=%p size=%d\n", out, bufferSize);
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 noinline
@@ -112,7 +112,7 @@ void sukisu_kpm_control(void __user* name, void __user* args, void __user* resul
     int res = -1;
     printk("KPM: Stub function called (sukisu_kpm_control). name=%p args=%p\n", name, args);
     __asm__ volatile("nop");  // 精确控制循环不被优化
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 noinline
@@ -120,7 +120,7 @@ NO_OPTIMIZE
 void sukisu_kpm_version(void __user* out, unsigned int bufferSize, void __user* result) {
     int res = -1;
     printk("KPM: Stub function called (sukisu_kpm_version). buffer=%p size=%d\n", out, bufferSize);
-    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user faild.");
+    if(copy_to_user(result, &res, sizeof(res)) < 1) printk("KPM: Copy to user failed.");
 }
 
 EXPORT_SYMBOL(sukisu_kpm_load_module_path);

@@ -36,8 +36,8 @@
     <string name="module_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz?</string>
     <string name="module_uninstall_success">%s kaldırıldı</string>
     <string name="module_uninstall_failed">Kaldırılamadı: %s</string>
-    <string name="module_version">Version</string>
-    <string name="module_author">Author</string>
+    <string name="module_version">Sürüm</string>
+    <string name="module_author">Geliştirici</string>
     <string name="refresh">Yenile</string>
     <string name="show_system_apps">Sistem uygulamalarını göster</string>
     <string name="hide_system_apps">Sistem uygulamalarını gizle</string>
@@ -101,7 +101,7 @@
     <string name="settings_check_update">Güncelleme kontrolü</string>
     <string name="settings_check_update_summary">Uygulama açıldığında otomatik olarak güncellemeleri kontrol et</string>
     <string name="grant_root_failed">Root yetkisi verilemedi!</string>
-    <string name="action">Action</string>
+    <string name="action">Eylem</string>
     <string name="close">Kapat</string>
     <string name="enable_web_debugging">WebView hata ayıklama etkinleştir</string>
     <string name="enable_web_debugging_summary">WebUI\'yi hata ayıklamak için kullanılabilir. Sadece ihtiyaç duyulduğunda etkinleştirin.</string>
@@ -111,6 +111,7 @@
     <string name="install_inactive_slot_warning">Cihazınız, yeniden başlatma sonrasında **ZORUNLU** olarak mevcut etkin olmayan yuvaya önyükleme yapacaktır!\nSadece OTA tamamlandıktan sonra bu seçeneği kullanın.\nDevam etmek istiyor musunuz?</string>
     <string name="install_next">İleri</string>
     <string name="select_file_tip">%1$s bölüm görüntüsü önerilir</string>
+    <string name="select_file_tip_vendor">(kararsız)</string>
     <string name="select_kmi">KMI seçin</string>
     <string name="settings_uninstall">Kaldır</string>
     <string name="settings_uninstall_temporary">Geçici olarak kaldır</string>
@@ -206,7 +207,7 @@
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Şu anda yüklü çekirdek modülü yok</string>
     <string name="kpm_version">Sürüm</string>
-    <string name="kpm_author">Author</string>
+    <string name="kpm_author">Geliştirici</string>
     <string name="kpm_uninstall">Kaldır</string>
     <string name="kpm_uninstall_success">Başarıyla kaldırıldı</string>
     <string name="kpm_uninstall_failed">Kaldırılamadı</string>
@@ -266,7 +267,7 @@
     <string name="flash_failed_message">Flash\'lama başarısız</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM onarımı/yükle</string>
-    <string name="GKI_install_methods">Flashing AnyKernel3</string>
+    <string name="GKI_install_methods">AnyKernel3 Flaşlama</string>
     <string name="kernel_version_log">Çekirdek sürümü：%1$s</string>
     <string name="tool_version_log">Kullanılan yama aracı：%1$s</string>
     <string name="configuration">Yapılandır</string>
@@ -338,7 +339,6 @@
     <!-- 状态相关 -->
     <string name="no_apps_in_category">Bu kategoride uygulama yok</string>
     <!-- 标签相关 -->
-    <!-- FAB菜单相关 -->
     <string name="deny_authorization">Yetkilendirme reddedildi</string>
     <string name="grant_authorization">Yetki verildi</string>
     <string name="unmount_modules">Modül Bağlantıları Kaldırılıyor</string>
@@ -359,7 +359,7 @@
     <string name="susfs_config_description_text">Bu özellik, SuSFS uname değerini ve build time spoofing\'i özelleştirmenize olanak tanır. Ayarlamak istediğiniz değerleri girin ve uygulayın.</string>
     <string name="susfs_uname_label">Uname Değeri</string>
     <string name="susfs_uname_placeholder">Lütfen özel uname değeri girin</string>
-    <string name="susfs_build_time_label">Build Time Spoofing</string>
+    <string name="susfs_build_time_label">Derleme Zamanı Sahteciliği</string>
     <string name="susfs_build_time_placeholder">Lütfen build time spoofing değeri girin</string>
     <string name="susfs_current_value">Mevcut değer: %s</string>
     <string name="susfs_current_build_time">Mevcut build time: %s</string>
@@ -389,11 +389,12 @@
     <string name="susfs_tab_try_umount">Bağlamayı Kaldırmayı Dene</string>
     <string name="susfs_tab_path_settings">Yol Ayarları</string>
     <string name="susfs_tab_enabled_features">Etkinleştirilen Özellikler Durumu</string>
-    <!-- SuSFS Dialog Actions -->
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">SUS Yolu Ekle</string>
     <string name="susfs_add_sus_mount">SUS Bağlama Noktası Ekle</string>
     <string name="susfs_add_try_umount">Bağlamayı Kaldırmayı Dene Ekle</string>
+    <string name="susfs_sus_path_added_success">SUS yolu başarıyla eklendi</string>
+    <string name="susfs_path_not_found_error">Yol bulunamadı hatası</string>
     <string name="susfs_path_label">Yol</string>
     <string name="susfs_mount_path_label">Bağlama Yolu</string>
     <string name="susfs_path_placeholder">örn.: /system/addon.d</string>
@@ -419,6 +420,7 @@
     <string name="susfs_reset_mounts_message">Bu, tüm SUS bağlama noktası yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
     <string name="susfs_reset_umounts_title">Bağlamayı Kaldırmayı Dene Sıfırla</string>
     <string name="susfs_reset_umounts_message">Bu, tüm bağlamayı kaldırmayı dene yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
+    <string name="susfs_reset_path_title">Yol Ayarlarını Sıfırla</string>
     <!-- SuSFS Path Settings -->
     <string name="susfs_android_data_path_label">Android Veri Yolu</string>
     <string name="susfs_sdcard_path_label">SD Kart Yolu</string>
@@ -456,4 +458,131 @@
     <!-- Settings related strings -->
     <string name="show_more_module_info">Daha Fazla Modül Bilgisi Göster</string>
     <string name="show_more_module_info_summary">Güncelleme JSON URL\'leri gibi ek modül bilgilerini göster</string>
+    <string name="susfs_execution_location_label">Çalıştırma Konumu</string>
+    <string name="susfs_current_execution_location">Mevcut çalıştırma konumu: %s</string>
+    <string name="susfs_execution_location_service">Servis</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">Sistem servisleri başladıktan sonra çalıştır</string>
+    <string name="susfs_execution_location_post_fs_data_description">Dosya sistemi bağlandıktan sonra ancak sistem tam olarak önyüklenmeden önce çalıştır, önyükleme döngüsüne neden olabilir</string>
+    <string name="susfs_slot_info_title">Bölüm Bilgisi</string>
+    <string name="susfs_slot_info_description">Mevcut önyükleme bölümü bilgisini görüntüleyin ve değerleri kopyalayın</string>
+    <string name="susfs_current_active_slot">Mevcut Aktif Bölüm: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">Derleme Zamanı: %s</string>
+    <string name="susfs_slot_current_badge">Mevcut</string>
+    <string name="susfs_slot_use_uname">Uname Kullan</string>
+    <string name="susfs_slot_use_build_time">Derleme Zamanı Kullan</string>
+    <string name="susfs_slot_info_unavailable">Bölüm bilgisi alınamıyor</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">SuSFS otomatik başlatma modülü etkinleştirildi, modül yolu: %s</string>
+    <string name="susfs_autostart_disabled_success">SuSFS otomatik başlatma modülü devre dışı bırakıldı</string>
+    <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Kstat Yapılandırması</string>
+    <string name="kstat_static_config_added">Kstat statik yapılandırması eklendi: %1$s</string>
+    <string name="kstat_config_removed">Kstat yapılandırması kaldırıldı: %1$s</string>
+    <string name="kstat_path_added">Kstat yolu eklendi: %1$s</string>
+    <string name="kstat_path_removed">Kstat yolu kaldırıldı: %1$s</string>
+    <string name="kstat_updated">Kstat güncellendi: %1$s</string>
+    <string name="kstat_full_clone_updated">Kstat tam klonu güncellendi: %1$s</string>
+    <string name="add_kstat_statically_title">Kstat Statik Yapılandırması Ekle</string>
+    <string name="file_or_directory_path_label">Dosya/Dizin Yolu</string>
+    <string name="hint_use_default_value">İpucu: Orijinal değeri kullanmak için ”default“ kullanabilirsiniz</string>
+    <string name="add_kstat_path_title">Kstat Yolu Ekle</string>
+    <string name="add">Ekle</string>
+    <string name="reset_kstat_config_title">Kstat Yapılandırmasını Sıfırla</string>
+    <string name="reset_kstat_config_message">Tüm Kstat yapılandırmalarını temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
+    <string name="kstat_config_description_title">Kstat Yapılandırma Açıklaması</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Dosyaların/dizinlerin statik stat bilgisi</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: Bind bağlamadan önce yol ekle, orijinal stat bilgisini sakla</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: Hedef ino\'yu güncelle, boyut ve blokları değiştirmeden bırak</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: Sadece ino\'yu güncelle, diğer orijinal değerleri koru</string>
+    <string name="static_kstat_config">Statik Kstat Yapılandırması</string>
+    <string name="kstat_path_management">Kstat Yol Yönetimi</string>
+    <string name="no_kstat_config_message">Henüz Kstat yapılandırması yok, eklemek için yukarıdaki düğmeye tıklayın</string>
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_control_title">SUS Bağlama Noktası Gizleme Kontrolü</string>
+    <string name="susfs_hide_mounts_control_description">İşlemler için SUS bağlama noktalarının gizleme davranışını kontrol et</string>
+    <string name="susfs_hide_mounts_for_all_procs_label">Tüm işlemler için SUS bağlama noktalarını gizle</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">Etkinleştirildiğinde, SUS bağlama noktaları KSU işlemleri dahil tüm işlemlerden gizlenir</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Devre dışı bırakıldığında, SUS bağlama noktaları sadece KSU dışı işlemlerden gizlenir, KSU işlemleri bağlama noktalarını görebilir</string>
+    <string name="susfs_hide_mounts_all_enabled">Tüm işlemler için SUS bağlama noktalarını gizleme etkinleştirildi</string>
+    <string name="susfs_hide_mounts_all_disabled">Tüm işlemler için SUS bağlama noktalarını gizleme devre dışı bırakıldı</string>
+    <string name="susfs_hide_mounts_recommendation">Ekran kilidi açıldıktan sonra veya service.sh ya da boot-completed.sh aşamasında devre dışı bırakılması önerilir, çünkü bu, KSU işlemi tarafından bağlanan bağlama noktalarına dayanan bazı rootlu uygulamalardaki sorunu çözmelidir</string>
+    <string name="susfs_hide_mounts_current_setting">Mevcut ayar: %s</string>
+    <string name="susfs_hide_mounts_setting_all">Tüm işlemler için gizle</string>
+    <string name="susfs_hide_mounts_setting_non_ksu">Sadece KSU dışı işlemler için gizle</string>
+    <string name="susfs_run">Çalıştır</string>
+    <string name="kernel_simple_kernel">Çekirdek Sürümü Özet Modu</string>
+    <string name="kernel_simple_kernel_summary">SukiSU çekirdek sürümünün gösterdiği sade modu etkinleştirin veya devre dışı bırakın</string>
+    <string name="susfs_android_data_path_set">Android Veri yolu şuna ayarlandı: %s</string>
+    <string name="susfs_sdcard_path_set">SD kart yolu şuna ayarlandı: %s</string>
+    <string name="susfs_path_setup_warning">Yol kurulumu tam olarak başarılı olmayabilir, ancak SUS yolları eklenmeye devam edecektir</string>
+    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">Yedekleme</string>
+    <string name="susfs_backup_description">Tüm SuSFS yapılandırmalarının bir yedeğini oluşturun. Yedekleme dosyası tüm ayarları, yolları ve yapılandırmaları içerecektir.</string>
+    <string name="susfs_backup_create">Yedek Oluştur</string>
+    <string name="susfs_backup_success">Yedek başarıyla oluşturuldu: %s</string>
+    <string name="susfs_backup_failed">Yedek oluşturma başarısız: %s</string>
+    <string name="susfs_backup_file_not_found">Yedekleme dosyası bulunamadı</string>
+    <string name="susfs_backup_invalid_format">Geçersiz yedekleme dosyası formatı</string>
+    <string name="susfs_backup_version_mismatch">Yedekleme sürümü uyuşmuyor, ancak geri yüklemeye çalışılacak</string>
+    <string name="susfs_restore_title">Geri Yükle</string>
+    <string name="susfs_restore_description">SuSFS yapılandırmalarını bir yedekleme dosyasından geri yükleyin. Bu, tüm mevcut ayarların üzerine yazacaktır.</string>
+    <string name="susfs_restore_select_file">Yedekleme Dosyası Seç</string>
+    <string name="susfs_restore_success" formatted="false">%s tarihinde %s cihazından oluşturulan yedekten yapılandırma başarıyla geri yüklendi</string>
+    <string name="susfs_restore_failed">Geri yükleme başarısız: %s</string>
+    <string name="susfs_restore_confirm_title">Geri Yüklemeyi Onayla</string>
+    <string name="susfs_restore_confirm_description">Bu, tüm mevcut SuSFS yapılandırmalarının üzerine yazacaktır. Devam etmek istediğinizden emin misiniz?</string>
+    <string name="susfs_restore_confirm">Geri Yükle</string>
+    <string name="susfs_backup_info_date">Yedekleme Tarihi: %s</string>
+    <string name="susfs_backup_info_device">Cihaz: %s</string>
+    <string name="susfs_backup_info_version">Sürüm: %s</string>
+    <string name="hide_bl_script">Kilitli durum</string>
+    <string name="hide_bl_script_description">late_start hizmet modunda önyükleme kilidi durumu özniteliğini geçersiz kıl</string>
+    <string name="cleanup_residue">Kalıntıları Temizle</string>
+    <string name="cleanup_residue_description">Çeşitli modüllerin ve araçların kalıntı dosyalarını ve dizinlerini temizleyin (yanlışlıkla silinerek kayba ve başlatılamamaya neden olabilir, dikkatli kullanın)</string>
+    <string name="susfs_edit_sus_path">SUS Yolunu Düzenle</string>
+    <string name="susfs_edit_sus_mount">SUS Bağlama Noktasını Düzenle</string>
+    <string name="susfs_edit_try_umount">Ayırmayı Deneme Yolunu Düzenle</string>
+    <string name="edit_kstat_statically_title">Kstat Statik Yapılandırmasını Düzenle</string>
+    <string name="edit_kstat_path_title">Kstat Yolunu Düzenle</string>
+    <string name="susfs_save">Kaydet</string>
+    <string name="edit">Düzenle</string>
+    <string name="delete">Sil</string>
+    <string name="update">Güncelle</string>
+    <string name="kstat_config_updated">Kstat yapılandırması güncellendi</string>
+    <string name="kstat_path_updated">Kstat yolu güncellendi</string>
+    <string name="susfs_update_full_clone">Susfs tam klon güncellemesi</string>
+    <string name="umount_zygote_iso_service">Zygote İzolasyon Servisi Bağlantısını Kes</string>
+    <string name="umount_zygote_iso_service_description">Sistem başlangıcında Zygote izolasyon servisi bağlama noktalarının bağlantısını kesmek için bu seçeneği etkinleştirin</string>
+    <string name="umount_zygote_iso_service_enabled">Zygote izolasyon servisi bağlantı kesme etkinleştirildi</string>
+    <string name="umount_zygote_iso_service_disabled">Zygote izolasyon servisi bağlantı kesme devre dışı bırakıldı</string>
+    <string name="app_paths_section">Uygulama Yolu</string>
+    <string name="other_paths_section">Diğer yollar</string>
+    <string name="add_custom_path">Diğer</string>
+    <string name="add_app_path">Uygulama</string>
+    <string name="susfs_add_app_path">Uygulama Yolu Ekle</string>
+    <string name="search_apps">Uygulama Ara</string>
+    <string name="selected_apps_count">%1$d uygulama seçildi</string>
+    <string name="already_added_apps_count">%1$d uygulama zaten eklendi</string>
+    <string name="all_apps_already_added">Tüm uygulamalar eklendi</string>
+    <string name="dynamic_sign_title">Dinamik İmza Yapılandırması</string>
+    <string name="dynamic_sign_enabled_summary">Etkin (Boyut: %s)</string>
+    <string name="dynamic_sign_disabled">Devre Dışı</string>
+    <string name="enable_dynamic_sign">Dinamik İmzayı Etkinleştir</string>
+    <string name="signature_size">İmza Boyutu</string>
+    <string name="signature_hash">İmza Hash</string>
+    <string name="hash_must_be_64_chars">Hash, 64 adet onaltılık karakterden oluşmalıdır</string>
+    <string name="dynamic_sign_set_success">Dinamik imza yapılandırması başarıyla ayarlandı</string>
+    <string name="dynamic_sign_set_failed">Dinamik imza yapılandırması ayarlanamadı</string>
+    <string name="invalid_sign_config">Geçersiz imza yapılandırması</string>
+    <string name="dynamic_sign_disabled_success">Dinamik imza devre dışı bırakıldı</string>
+    <string name="dynamic_sign_clear_failed">Dinamik imza temizlenemedi</string>
+    <string name="dynamic_signature">Dinamik</string>
+    <string name="signature_index">İmza %1$d</string>
+    <string name="unknown_signature">Bilinmiyor</string>
+    <string name="multi_manager_list">Aktif Yönetici</string>
+    <string name="no_active_manager">Aktif yönetici yok</string>
+    <string name="default_signature">SukiSU</string>
+    <string name="home_zygisk_implement">Zygisk uygulaması</string>
 </resources>

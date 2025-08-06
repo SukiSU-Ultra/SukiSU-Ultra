@@ -12,6 +12,7 @@
 #include "manager.h"
 #include "throne_tracker.h"
 #include "kernel_compat.h"
+#include "dynamic_sign.h"
 
 uid_t ksu_manager_uid = KSU_INVALID_UID;
 
@@ -62,7 +63,7 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-static void crown_manager(const char *apk, struct list_head *uid_data)
+static void crown_manager(const char *apk, struct list_head *uid_data, int signature_index)
 {
 	char pkg[KSU_MAX_PACKAGE_NAME];
 	if (get_pkg_from_apk_path(pkg, apk) < 0) {
@@ -70,7 +71,7 @@ static void crown_manager(const char *apk, struct list_head *uid_data)
 		return;
 	}
 
-	pr_info("manager pkg: %s\n", pkg);
+	pr_info("manager pkg: %s, signature_index: %d\n", pkg, signature_index);
 
 #ifdef KSU_MANAGER_PACKAGE
 	// pkg is `/<real package>`
@@ -85,8 +86,17 @@ static void crown_manager(const char *apk, struct list_head *uid_data)
 
 	list_for_each_entry (np, list, list) {
 		if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
-			pr_info("Crowning manager: %s(uid=%d)\n", pkg, np->uid);
-			ksu_set_manager_uid(np->uid);
+			pr_info("Crowning manager: %s(uid=%d, signature_index=%d)\n", pkg, np->uid, signature_index);
+			
+			if (signature_index == 1 || signature_index == 2) {
+				ksu_add_manager(np->uid, signature_index);
+				
+				if (!ksu_is_manager_uid_valid()) {
+					ksu_set_manager_uid(np->uid);
+				}
+			} else {
+				ksu_set_manager_uid(np->uid);
+			}
 			break;
 		}
 	}
@@ -185,11 +195,24 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			}
 
-			bool is_manager = is_manager_apk(dirpath);
-			pr_info("Found new base.apk at path: %s, is_manager: %d\n",
-				dirpath, is_manager);
-			if (is_manager) {
-				crown_manager(dirpath, my_ctx->private_data);
+			int signature_index = -1;
+			bool is_multi_manager = ksu_is_multi_manager_apk(dirpath, &signature_index);
+
+			pr_info("Found new base.apk at path: %s, is_multi_manager: %d, signature_index: %d\n",
+				dirpath, is_multi_manager, signature_index);
+				
+			if (is_multi_manager && (signature_index == 1 || signature_index == 2)) {
+				crown_manager(dirpath, my_ctx->private_data, signature_index);
+				
+				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
+				if (apk_data) {
+					apk_data->hash = hash;
+					apk_data->exists = true;
+					list_add_tail(&apk_data->list, &apk_path_hash_list);
+				}
+
+			} else if (is_manager_apk(dirpath)) {
+				crown_manager(dirpath, my_ctx->private_data, 0);
 				*my_ctx->stop = 1;
 
 				// Manager found, clear APK cache list
@@ -199,9 +222,11 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			} else {
 				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
-				apk_data->hash = hash;
-				apk_data->exists = true;
-				list_add_tail(&apk_data->list, &apk_path_hash_list);
+				if (apk_data) {
+					apk_data->hash = hash;
+					apk_data->exists = true;
+					list_add_tail(&apk_data->list, &apk_path_hash_list);
+				}
 			}
 		}
 	}
@@ -361,7 +386,7 @@ void track_throne()
 	struct uid_data *np;
 	struct uid_data *n;
 
-	// first, check if manager_uid exist!
+	// Check if any manager exists (traditional or dynamic)
 	bool manager_exist = false;
 	list_for_each_entry (np, &uid_list, list) {
 		// if manager is installed in work profile, the uid in packages.list is still equals main profile
@@ -370,6 +395,16 @@ void track_throne()
 		if (np->uid == manager_uid) {
 			manager_exist = true;
 			break;
+		}
+	}
+	
+	// Check for dynamic managers
+	if (!manager_exist && ksu_is_dynamic_sign_enabled()) {
+		list_for_each_entry (np, &uid_list, list) {
+			if (ksu_is_any_manager(np->uid)) {
+				manager_exist = true;
+				break;
+			}
 		}
 	}
 
@@ -382,6 +417,11 @@ void track_throne()
 		pr_info("Searching manager...\n");
 		search_manager("/data/app", 2, &uid_list);
 		pr_info("Search manager finished\n");
+	} else {
+		// Always perform search when called from dynamic sign rescan
+		pr_info("Performing manager search (may be from dynamic sign rescan)\n");
+		search_manager("/data/app", 2, &uid_list);
+		pr_info("Manager search completed\n");
 	}
 
 prune:

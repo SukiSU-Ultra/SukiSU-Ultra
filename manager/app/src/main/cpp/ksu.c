@@ -11,6 +11,16 @@
 #include "prelude.h"
 #include "ksu.h"
 
+#if defined(__aarch64__) || defined(_M_ARM64)
+
+// Zako extern declarations
+#define ZAKO_ESV_IMPORTANT_ERROR 1 << 31
+extern int zako_file_open_rw(const char* path);
+extern uint32_t zako_file_verify_esig(int fd, uint32_t flags);
+extern const char* zako_esign_verrcidx2str(uint8_t index);
+
+#endif // __aarch64__ || _M_ARM64
+
 #define KERNEL_SU_OPTION 0xDEADBEEF
 
 #define CMD_GRANT_ROOT 0
@@ -31,11 +41,17 @@
 #define CMD_IS_SU_ENABLED 14
 #define CMD_ENABLE_SU 15
 
-#define CMD_GET_VERSION_FULL 30
+#define CMD_GET_VERSION_FULL 0xC0FFEE1A
 
 #define CMD_ENABLE_KPM 100
 #define CMD_HOOK_TYPE 101
 #define CMD_GET_SUSFS_FEATURE_STATUS 102
+#define CMD_DYNAMIC_SIGN 103
+#define CMD_GET_MANAGERS 104
+
+#define DYNAMIC_SIGN_OP_SET 0
+#define DYNAMIC_SIGN_OP_GET 1
+#define DYNAMIC_SIGN_OP_CLEAR 2
 
 static bool ksuctl(int cmd, void* arg1, void* arg2) {
     int32_t result = 0;
@@ -139,4 +155,98 @@ bool get_susfs_feature_status(struct susfs_feature_status* status) {
     }
 
     return ksuctl(CMD_GET_SUSFS_FEATURE_STATUS, status, NULL);
+}
+
+bool set_dynamic_sign(unsigned int size, const char* hash) {
+    if (hash == NULL) {
+        return false;
+    }
+
+    struct dynamic_sign_user_config config;
+    config.operation = DYNAMIC_SIGN_OP_SET;
+    config.size = size;
+    strncpy(config.hash, hash, sizeof(config.hash) - 1);
+    config.hash[sizeof(config.hash) - 1] = '\0';
+
+    return ksuctl(CMD_DYNAMIC_SIGN, &config, NULL);
+}
+
+bool get_dynamic_sign(struct dynamic_sign_user_config* config) {
+    if (config == NULL) {
+        return false;
+    }
+
+    config->operation = DYNAMIC_SIGN_OP_GET;
+    return ksuctl(CMD_DYNAMIC_SIGN, config, NULL);
+}
+
+bool clear_dynamic_sign() {
+    struct dynamic_sign_user_config config;
+    config.operation = DYNAMIC_SIGN_OP_CLEAR;
+    return ksuctl(CMD_DYNAMIC_SIGN, &config, NULL);
+}
+
+bool get_managers_list(struct manager_list_info* info) {
+    if (info == NULL) {
+        return false;
+    }
+
+    return ksuctl(CMD_GET_MANAGERS, info, NULL);
+}
+
+bool verify_module_signature(const char* input) {
+#if defined(__aarch64__) || defined(_M_ARM64)
+    if (input == NULL) {
+        LogDebug("verify_module_signature: input path is null");
+        return false;
+    }
+
+    int fd = zako_file_open_rw(input);
+    if (fd < 0) {
+        LogDebug("verify_module_signature: failed to open file: %s", input);
+        return false;
+    }
+
+    uint32_t results = zako_file_verify_esig(fd, 0);
+
+    if (results != 0) {
+        /* If important error occured, verification process should
+           be considered as failed due to unexpected modification
+           potentially happened. */
+        if ((results & ZAKO_ESV_IMPORTANT_ERROR) != 0) {
+            LogDebug("verify_module_signature: Verification failed! (important error)");
+        } else {
+            /* This is for manager that doesn't want to do certificate checks */
+            LogDebug("verify_module_signature: Verification partially passed");
+        }
+    } else {
+        LogDebug("verify_module_signature: Verification passed!");
+        goto exit;
+    }
+
+    /* Go through all bit fields */
+    for (size_t i = 0; i < sizeof(uint32_t) * 8; i++) {
+        if ((results & (1 << i)) == 0) {
+            continue;
+        }
+
+        /* Convert error bit field index into human readable string */
+        const char* message = zako_esign_verrcidx2str((uint8_t)i);
+        // Error message: message
+        if (message != NULL) {
+            LogDebug("verify_module_signature: Error bit %zu: %s", i, message);
+        } else {
+            LogDebug("verify_module_signature: Error bit %zu: Unknown error", i);
+        }
+    }
+
+    exit:
+    close(fd);
+    LogDebug("verify_module_signature: path=%s, results=0x%x, success=%s",
+             input, results, (results == 0) ? "true" : "false");
+    return results == 0;
+#else
+    LogDebug("verify_module_signature: not supported on non-arm64 architecture, path=%s", input ? input : "null");
+    return false;
+#endif
 }

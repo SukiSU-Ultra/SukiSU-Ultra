@@ -33,7 +33,7 @@ object ModuleUtils {
                 }
             }?.removeSuffix(".zip") ?: context.getString(R.string.unknown_module)
 
-            var formattedFileName = fileName.replace(Regex("[^a-zA-Z0-9\\s\\-_.@()\\u4e00-\\u9fa5]"), "").trim()
+            val formattedFileName = fileName.replace(Regex("[^a-zA-Z0-9\\s\\-_.@()\\u4e00-\\u9fa5]"), "").trim()
             var moduleName = formattedFileName
 
             try {
@@ -52,12 +52,10 @@ object ModuleUtils {
                     if (entry.name == "module.prop") {
                         val reader = BufferedReader(InputStreamReader(zipInputStream, StandardCharsets.UTF_8))
                         var line: String?
-                        var nameFound = false
                         while (reader.readLine().also { line = it } != null) {
                             if (line?.startsWith("name=") == true) {
                                 moduleName = line.substringAfter("=")
                                 moduleName = moduleName.replace(Regex("[^a-zA-Z0-9\\s\\-_.@()\\u4e00-\\u9fa5]"), "").trim()
-                                nameFound = true
                                 break
                             }
                         }
@@ -100,6 +98,45 @@ object ModuleUtils {
             Log.d(TAG, "Persistent permissions for URIs have been obtained: $uri")
         } catch (e: Exception) {
             Log.e(TAG, "Unable to get persistent permissions on URIs: $uri, Error: ${e.message}")
+        }
+    }
+
+    fun extractModuleId(context: Context, uri: Uri): String? {
+        if (uri == Uri.EMPTY) {
+            return null
+        }
+
+        return try {
+
+            val inputStream = context.contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                return null
+            }
+
+            val zipInputStream = ZipInputStream(inputStream)
+            var entry = zipInputStream.nextEntry
+            var moduleId: String? = null
+
+            // 遍历ZIP文件中的条目，查找module.prop文件
+            while (entry != null) {
+                if (entry.name == "module.prop") {
+                    val reader = BufferedReader(InputStreamReader(zipInputStream, StandardCharsets.UTF_8))
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        if (line?.startsWith("id=") == true) {
+                            moduleId = line.substringAfter("=").trim()
+                            break
+                        }
+                    }
+                    break
+                }
+                entry = zipInputStream.nextEntry
+            }
+            zipInputStream.close()
+            moduleId
+        } catch (e: Exception) {
+            Log.e(TAG, "提取模块ID时发生异常: ${e.message}", e)
+            null
         }
     }
 }

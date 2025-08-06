@@ -5,11 +5,8 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -19,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -27,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.ui.component.*
@@ -37,13 +32,10 @@ import com.sukisu.ultra.ui.util.*
 import java.io.File
 import androidx.core.content.edit
 import com.sukisu.ultra.R
-import java.io.BufferedReader
 import java.io.FileInputStream
-import java.io.InputStreamReader
 import java.net.*
 import android.app.Activity
 import androidx.compose.ui.res.painterResource
-import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
 
 /**
  * KPM 管理界面
@@ -54,7 +46,6 @@ import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
 @Destination<RootGraph>
 @Composable
 fun KpmScreen(
-    navigator: DestinationsNavigator,
     viewModel: KpmViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -92,18 +83,17 @@ fun KpmScreen(
         LaunchedEffect(tempFileForInstall) {
             tempFileForInstall?.let { tempFile ->
                 try {
-                    val command = arrayOf("su", "-c", "strings ${tempFile.absolutePath} | grep 'name='")
-                    val process = Runtime.getRuntime().exec(command)
-                    val inputStream = process.inputStream
-                    val reader = BufferedReader(InputStreamReader(inputStream))
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
-                        if (line!!.startsWith("name=")) {
-                            moduleName = line.substringAfter("name=").trim()
-                            break
+                    val shell = getRootShell()
+                    val command = "strings ${tempFile.absolutePath} | grep 'name='"
+                    val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+                    if (result.isSuccess) {
+                        for (line in result.out) {
+                            if (line.startsWith("name=")) {
+                                moduleName = line.substringAfter("name=").trim()
+                                break
+                            }
                         }
                     }
-                    process.waitFor()
                 } catch (e: Exception) {
                     Log.e("KsuCli", "Failed to get module name: ${e.message}", e)
                 }
@@ -434,18 +424,17 @@ private suspend fun handleModuleInstall(
 ) {
     var moduleId: String? = null
     try {
-        val command = arrayOf("su", "-c", "strings ${tempFile.absolutePath} | grep 'name='")
-        val process = Runtime.getRuntime().exec(command)
-        val inputStream = process.inputStream
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            if (line!!.startsWith("name=")) {
-                moduleId = line.substringAfter("name=").trim()
-                break
+        val shell = getRootShell()
+        val command = "strings ${tempFile.absolutePath} | grep 'name='"
+        val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+        if (result.isSuccess) {
+            for (line in result.out) {
+                if (line.startsWith("name=")) {
+                    moduleId = line.substringAfter("name=").trim()
+                    break
+                }
             }
         }
-        process.waitFor()
     } catch (e: Exception) {
         Log.e("KsuCli", "Failed to get module ID from strings command: ${e.message}", e)
     }
@@ -464,8 +453,9 @@ private suspend fun handleModuleInstall(
 
     try {
         if (isEmbed) {
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "mkdir -p /data/adb/kpm")).waitFor()
-            Runtime.getRuntime().exec(arrayOf("su", "-c", "cp ${tempFile.absolutePath} $targetPath")).waitFor()
+            val shell = getRootShell()
+            shell.newJob().add("mkdir -p /data/adb/kpm").exec()
+            shell.newJob().add("cp ${tempFile.absolutePath} $targetPath").exec()
         }
 
         val loadResult = loadKpmModule(tempFile.absolutePath)
@@ -509,8 +499,9 @@ private suspend fun handleModuleUninstall(
     val moduleFilePath = "/data/adb/kpm/$moduleFileName"
 
     val fileExists = try {
-        val result = Runtime.getRuntime().exec(arrayOf("su", "-c", "ls /data/adb/kpm/$moduleFileName")).waitFor() == 0
-        result
+        val shell = getRootShell()
+        val result = shell.newJob().add("ls /data/adb/kpm/$moduleFileName").exec()
+        result.isSuccess
     } catch (e: Exception) {
         Log.e("KsuCli", "Failed to check module file existence: ${e.message}", e)
         snackBarHost.showSnackbar(
@@ -519,6 +510,7 @@ private suspend fun handleModuleUninstall(
         )
         false
     }
+    
     val confirmResult = confirmDialog.awaitConfirm(
         title = confirmTitle,
         content = confirmContent,
@@ -539,7 +531,8 @@ private suspend fun handleModuleUninstall(
             }
 
             if (fileExists) {
-                Runtime.getRuntime().exec(arrayOf("su", "-c", "rm $moduleFilePath")).waitFor()
+                val shell = getRootShell()
+                shell.newJob().add("rm $moduleFilePath").exec()
             }
 
             viewModel.fetchModuleList()
@@ -710,29 +703,31 @@ private fun KpmModuleItem(
 }
 
 private fun checkStringsCommand(tempFile: File): Int {
-    val command = arrayOf("su", "-c", "strings ${tempFile.absolutePath} | grep -E 'name=|version=|license=|author='")
-    val process = Runtime.getRuntime().exec(command)
-    val inputStream = process.inputStream
-    val reader = BufferedReader(InputStreamReader(inputStream))
-    var line: String?
+    val shell = getRootShell()
+    val command = "strings ${tempFile.absolutePath} | grep -E 'name=|version=|license=|author='"
+    val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+    
+    if (!result.isSuccess) {
+        return 0
+    }
+    
     var matchCount = 0
     val keywords = listOf("name=", "version=", "license=", "author=")
     var nameExists = false
-
-    while (reader.readLine().also { line = it } != null) {
-        if (!nameExists && line!!.startsWith("name=")) {
+    
+    for (line in result.out) {
+        if (!nameExists && line.startsWith("name=")) {
             nameExists = true
             matchCount++
         } else if (nameExists) {
             for (keyword in keywords) {
-                if (line!!.startsWith(keyword)) {
+                if (line.startsWith(keyword)) {
                     matchCount++
                     break
                 }
             }
         }
     }
-    process.waitFor()
 
     return if (nameExists) matchCount else 0
 }

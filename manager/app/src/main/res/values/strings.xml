@@ -51,7 +51,7 @@
     <string name="home_click_to_learn_kernelsu">Learn how to install KernelSU and use modules</string>
     <string name="home_support_title">Support Us</string>
     <string name="home_support_content">KernelSU is, and always will be, free, and open source. You can however show us that you care by making a donation.</string>
-    <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel]]></string>
+    <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel<br/><br/>The images of the files with anime character sticker are copyrighted by %3$s, the Brand Intellectual Property in the images is owned by %4$s. Before using these files, in addition to complying with %5$s, you also need to comply with the authorization of the two authors to use these artistic contents.]]></string>
     <string name="profile" translatable="false">App Profile</string>
     <string name="profile_default">Default</string>
     <string name="profile_template">Template</string>
@@ -179,6 +179,8 @@
     <string name="hide_other_info_summary">Hides Red dot about the number of super users, modules and KPM modules on the navigation bar page</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
+    <string name="hide_zygisk_implement">Hide Zygisk status</string>
+    <string name="hide_zygisk_implement_summary">Hide Zygisk implementation information on the home page</string>
     <string name="hide_link_card">Hide Link Card Status</string>
     <string name="hide_link_card_summary">Hide link card information on the home page</string>
     <string name="hide_tag_card">Hide module label rows</string>
@@ -539,8 +541,8 @@
     <string name="susfs_backup_info_date">Backup Date: %s</string>
     <string name="susfs_backup_info_device">Device: %s</string>
     <string name="susfs_backup_info_version">Version: %s</string>
-    <string name="hide_bl_script">Hide BL Script</string>
-    <string name="hide_bl_script_description">Enable Hide Bootloader Unlock Status Scripts</string>
+    <string name="hide_bl_script">Lock state</string>
+    <string name="hide_bl_script_description">Overwrite bootloader locking status attribute in late_start service mode</string>
     <string name="cleanup_residue">Cleanup Residue</string>
     <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (may be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
     <string name="susfs_edit_sus_path">Edit SUS Path</string>
@@ -559,4 +561,60 @@
     <string name="umount_zygote_iso_service_description">Enable this option to unmount Zygote isolation service mount points at system startup</string>
     <string name="umount_zygote_iso_service_enabled">Zygote isolation service unmount enabled</string>
     <string name="umount_zygote_iso_service_disabled">Zygote isolation service unmount disabled</string>
+    <string name="app_paths_section">Application Path</string>
+    <string name="other_paths_section">Other paths</string>
+    <string name="add_custom_path">Other</string>
+    <string name="add_app_path">App</string>
+    <string name="susfs_add_app_path">Add App Path</string>
+    <string name="search_apps">Search Apps</string>
+    <string name="selected_apps_count">%1$d apps selected</string>
+    <string name="already_added_apps_count">%1$d apps already added</string>
+    <string name="all_apps_already_added">All apps have been added</string>
+    <string name="dynamic_sign_title">Dynamic Signature Configuration</string>
+    <string name="dynamic_sign_enabled_summary">Enabled (Size: %s)</string>
+    <string name="dynamic_sign_disabled">Disabled</string>
+    <string name="enable_dynamic_sign">Enable Dynamic Signature</string>
+    <string name="signature_size">Signature Size</string>
+    <string name="signature_hash">Signature Hash</string>
+    <string name="hash_must_be_64_chars">Hash must be 64 hexadecimal characters</string>
+    <string name="dynamic_sign_set_success">Dynamic signature configuration set successfully</string>
+    <string name="dynamic_sign_set_failed">Failed to set dynamic signature configuration</string>
+    <string name="invalid_sign_config">Invalid signature configuration</string>
+    <string name="dynamic_sign_disabled_success">Dynamic signature disabled</string>
+    <string name="dynamic_sign_clear_failed">Failed to clear dynamic signature</string>
+    <string name="dynamic_signature">Dynamic</string>
+    <string name="signature_index">Signature %1$d</string>
+    <string name="unknown_signature">Unknown</string>
+    <string name="multi_manager_list">Active Manager</string>
+    <string name="no_active_manager">No active manager</string>
+    <string name="default_signature">SukiSU</string>
+    <string name="home_zygisk_implement">Zygisk implement</string>
+    <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">SUS Loop Paths</string>
+    <string name="susfs_add_sus_loop_path">Add SUS Loop Path</string>
+    <string name="susfs_edit_sus_loop_path">Edit SUS Loop Path</string>
+    <string name="susfs_loop_path_added_success">SUS loop path added successfully: %1$s</string>
+    <string name="susfs_loop_path_removed">SUS loop path removed: %1$s</string>
+    <string name="susfs_loop_path_updated">SUS loop path updated: %1$s -> %2$s</string>
+    <string name="susfs_no_loop_paths_configured">No SUS loop paths configured</string>
+    <string name="susfs_reset_loop_paths_title">Reset Loop Paths</string>
+    <string name="susfs_reset_loop_paths_message">Are you sure you want to clear all SUS loop paths? This action cannot be undone.</string>
+    <string name="susfs_loop_path_label">Loop Path</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">Note: Only paths NOT inside /storage/ and /sdcard/ can be added via loop paths.</string>
+    <string name="susfs_loop_path_invalid_location">Error: Loop paths cannot be inside /storage/ or /sdcard/ directories</string>
+    <string name="loop_paths_section">Loop Paths</string>
+    <string name="add_loop_path">Add Loop Path</string>
+    <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">SUS Loop Path</string>
+    <string name="sus_loop_paths_description_title">Loop Path Configuration</string>
+    <string name="sus_loop_paths_description_text">Loop paths are re-flagged as SUS_PATH on each non-root user app or isolated service startup. This helps address issues where added paths may have their inode status reset or inode re-created in the kernel.</string>
+    <!-- 模块签名功能描述 -->
+    <string name="module_verified">Validated</string>
+    <string name="module_signature_verified">Module signature verified</string>
+    <string name="module_signature_verification">Signature Verification</string>
+    <string name="module_signature_verification_summary">Force signature verification when installing modules. (Only available for arm64-v8a)</string>
+    <string name="module_signature_invalid">Unknown publisher</string>
+    <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked.</string>
+    <string name="module_signature_verification_failed">Unsigned modules may be incomplete. Do you want to allow the following module from an unknown publisher to install in this device?</string>
 </resources>

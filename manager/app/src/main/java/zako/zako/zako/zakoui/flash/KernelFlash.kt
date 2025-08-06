@@ -287,16 +287,10 @@ class HorizonKernelWorker(
     }
 
     private fun runCommand(su: Boolean, cmd: String): Int {
-        val process = ProcessBuilder(if (su) "su" else "sh")
-            .redirectErrorStream(true)
-            .start()
+        val shell = if (su) "su" else "sh"
+        val process = Runtime.getRuntime().exec(arrayOf(shell, "-c", cmd))
 
         return try {
-            process.outputStream.bufferedWriter().use { writer ->
-                writer.write("$cmd\n")
-                writer.write("exit\n")
-                writer.flush()
-            }
             process.waitFor()
         } finally {
             process.destroy()
@@ -304,16 +298,10 @@ class HorizonKernelWorker(
     }
 
     private fun runCommandGetOutput(su: Boolean, cmd: String): String? {
-        val process = ProcessBuilder(if (su) "su" else "sh")
-            .redirectErrorStream(true)
-            .start()
+        val shell = if (su) "su" else "sh"
+        val process = Runtime.getRuntime().exec(arrayOf(shell, "-c", cmd))
 
         return try {
-            process.outputStream.bufferedWriter().use { writer ->
-                writer.write("$cmd\n")
-                writer.write("exit\n")
-                writer.flush()
-            }
             process.inputStream.bufferedReader().use { reader ->
                 reader.readText().trim()
             }
@@ -326,7 +314,7 @@ class HorizonKernelWorker(
 
     private fun rootAvailable(): Boolean {
         return try {
-            val process = Runtime.getRuntime().exec("su -c id")
+            val process = Runtime.getRuntime().exec("su -c true")
             val exitValue = process.waitFor()
             exitValue == 0
         } catch (_: Exception) {

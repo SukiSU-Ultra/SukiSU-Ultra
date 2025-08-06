@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -26,7 +27,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -462,13 +462,14 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             contentAlignment = Alignment.Center
                         ) {
                             // 根据加载状态显示不同内容
-                            if (viewModel.isRefreshing || viewModel.appList.isEmpty()) {
+                            if ((viewModel.isRefreshing || viewModel.appList.isEmpty()) && viewModel.search.isEmpty()) {
                                 LoadingAnimation(
                                     isLoading = true
                                 )
                             } else {
                                 EmptyState(
-                                    selectedCategory = selectedCategory
+                                    selectedCategory = selectedCategory,
+                                    isSearchEmpty = viewModel.search.isNotEmpty()
                                 )
                             }
                         }
@@ -900,17 +901,6 @@ private fun LoadingAnimation(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "loading")
 
-    // 旋转动画
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
-
     // 透明度动画
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
@@ -932,18 +922,6 @@ private fun LoadingAnimation(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 主加载图标
-            Icon(
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = alpha),
-                modifier = Modifier
-                    .size(64.dp)
-                    .rotate(rotation)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // 进度指示器
             LinearProgressIndicator(
                 modifier = Modifier
@@ -960,9 +938,11 @@ private fun LoadingAnimation(
  * 空状态组件
  */
 @Composable
+@SuppressLint("ModifierParameter")
 private fun EmptyState(
     selectedCategory: AppCategory,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSearchEmpty: Boolean = false
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -970,7 +950,7 @@ private fun EmptyState(
         modifier = modifier
     ) {
         Icon(
-            imageVector = Icons.Filled.Archive,
+            imageVector = if (isSearchEmpty) Icons.Filled.SearchOff else Icons.Filled.Archive,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
             modifier = Modifier
@@ -978,7 +958,7 @@ private fun EmptyState(
                 .padding(bottom = 16.dp)
         )
         Text(
-            text = if (selectedCategory == AppCategory.ALL) {
+            text = if (isSearchEmpty || selectedCategory == AppCategory.ALL) {
                 stringResource(R.string.no_apps_found)
             } else {
                 stringResource(R.string.no_apps_in_category)

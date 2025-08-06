@@ -70,10 +70,14 @@ data class ModuleInstallStatus(
     val totalModules: Int = 0,
     val currentModule: Int = 0,
     val currentModuleName: String = "",
-    val failedModules: MutableList<String> = mutableListOf()
+    val failedModules: MutableList<String> = mutableListOf(),
+    val verifiedModules: MutableList<String> = mutableListOf() // 添加已验证模块列表
 )
 
 private var moduleInstallStatus = mutableStateOf(ModuleInstallStatus())
+
+// 存储模块URI和验证状态的映射
+private var moduleVerificationMap = mutableMapOf<Uri, Boolean>()
 
 fun setFlashingStatus(status: FlashingStatus) {
     currentFlashingStatus.value = status
@@ -83,7 +87,8 @@ fun updateModuleInstallStatus(
     totalModules: Int? = null,
     currentModule: Int? = null,
     currentModuleName: String? = null,
-    failedModule: String? = null
+    failedModule: String? = null,
+    verifiedModule: String? = null
 ) {
     val current = moduleInstallStatus.value
     moduleInstallStatus.value = current.copy(
@@ -99,6 +104,18 @@ fun updateModuleInstallStatus(
             failedModules = updatedFailedModules
         )
     }
+
+    if (verifiedModule != null) {
+        val updatedVerifiedModules = current.verifiedModules.toMutableList()
+        updatedVerifiedModules.add(verifiedModule)
+        moduleInstallStatus.value = moduleInstallStatus.value.copy(
+            verifiedModules = updatedVerifiedModules
+        )
+    }
+}
+
+fun setModuleVerificationStatus(uri: Uri, isVerified: Boolean) {
+    moduleVerificationMap[uri] = isVerified
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,6 +129,10 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
     var showFloatAction by rememberSaveable { mutableStateOf(false) }
     // 添加状态跟踪是否已经完成刷写
     var hasFlashCompleted by rememberSaveable { mutableStateOf(false) }
+    var hasExecuted by rememberSaveable { mutableStateOf(false) }
+    // 更新模块状态管理
+    var hasUpdateExecuted by rememberSaveable { mutableStateOf(false) }
+    var hasUpdateCompleted by rememberSaveable { mutableStateOf(false) }
 
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
@@ -129,23 +150,87 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
 
     // 重置状态
     LaunchedEffect(flashIt) {
-        if (flashIt is FlashIt.FlashModules && flashIt.currentIndex == 0) {
-            moduleInstallStatus.value = ModuleInstallStatus(
-                totalModules = flashIt.uris.size,
-                currentModule = 1
-            )
-            hasFlashCompleted = false
-        } else if (flashIt !is FlashIt.FlashModules) {
-            hasFlashCompleted = false
+        when (flashIt) {
+            is FlashIt.FlashModules -> {
+                if (flashIt.currentIndex == 0) {
+                    moduleInstallStatus.value = ModuleInstallStatus(
+                        totalModules = flashIt.uris.size,
+                        currentModule = 1
+                    )
+                    hasFlashCompleted = false
+                    hasExecuted = false
+                    moduleVerificationMap.clear()
+                }
+            }
+            is FlashIt.FlashModuleUpdate -> {
+                hasUpdateCompleted = false
+                hasUpdateExecuted = false
+            }
+            else -> {
+                hasFlashCompleted = false
+                hasExecuted = false
+            }
         }
     }
 
-    // 只有在未完成刷写时才执行刷写操作
-    LaunchedEffect(flashIt, hasFlashCompleted) {
-        // 如果已经完成刷写或者已有文本内容，则不再执行
-        if (hasFlashCompleted || text.isNotEmpty()) {
+    // 处理更新模块安装
+    LaunchedEffect(flashIt) {
+        if (flashIt !is FlashIt.FlashModuleUpdate) return@LaunchedEffect
+        if (hasUpdateExecuted || hasUpdateCompleted || text.isNotEmpty()) {
             return@LaunchedEffect
         }
+
+        hasUpdateExecuted = true
+
+        withContext(Dispatchers.IO) {
+            setFlashingStatus(FlashingStatus.FLASHING)
+
+            try {
+                logContent.append(text).append("\n")
+            } catch (_: Exception) {
+                logContent.append(text).append("\n")
+            }
+
+            flashModuleUpdate(flashIt.uri, onFinish = { showReboot, code ->
+                if (code != 0) {
+                    text += "$errorCodeString $code.\n$checkLogString\n"
+                    setFlashingStatus(FlashingStatus.FAILED)
+                } else {
+                    setFlashingStatus(FlashingStatus.SUCCESS)
+
+                    // 处理模块更新成功后的验证标志
+                    val isVerified = moduleVerificationMap[flashIt.uri] ?: false
+                    ModuleOperationUtils.handleModuleUpdate(context, flashIt.uri, isVerified)
+
+                    viewModel.markNeedRefresh()
+                }
+                if (showReboot) {
+                    text += "\n\n\n"
+                    showFloatAction = true
+                }
+                hasUpdateCompleted = true
+            }, onStdout = {
+                tempText = "$it\n"
+                if (tempText.startsWith("[H[J")) { // clear command
+                    text = tempText.substring(6)
+                } else {
+                    text += tempText
+                }
+                logContent.append(it).append("\n")
+            }, onStderr = {
+                logContent.append(it).append("\n")
+            })
+        }
+    }
+
+    // 安装但排除更新模块
+    LaunchedEffect(flashIt) {
+        if (flashIt is FlashIt.FlashModuleUpdate) return@LaunchedEffect
+        if (hasExecuted || hasFlashCompleted || text.isNotEmpty()) {
+            return@LaunchedEffect
+        }
+
+        hasExecuted = true
 
         withContext(Dispatchers.IO) {
             setFlashingStatus(FlashingStatus.FLASHING)
@@ -177,6 +262,28 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                     }
                 } else {
                     setFlashingStatus(FlashingStatus.SUCCESS)
+
+                    // 处理模块安装成功后的验证标志
+                    when (flashIt) {
+                        is FlashIt.FlashModule -> {
+                            val isVerified = moduleVerificationMap[flashIt.uri] ?: false
+                            ModuleOperationUtils.handleModuleInstallSuccess(context, flashIt.uri, isVerified)
+                            if (isVerified) {
+                                updateModuleInstallStatus(verifiedModule = moduleInstallStatus.value.currentModuleName)
+                            }
+                        }
+                        is FlashIt.FlashModules -> {
+                            val currentUri = flashIt.uris[flashIt.currentIndex]
+                            val isVerified = moduleVerificationMap[currentUri] ?: false
+                            ModuleOperationUtils.handleModuleInstallSuccess(context, currentUri, isVerified)
+                            if (isVerified) {
+                                updateModuleInstallStatus(verifiedModule = moduleInstallStatus.value.currentModuleName)
+                            }
+                        }
+
+                        else -> {}
+                    }
+
                     viewModel.markNeedRefresh()
                 }
                 if (showReboot) {
@@ -210,8 +317,13 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
     }
 
     val onBack: () -> Unit = {
-        if (currentFlashingStatus.value != FlashingStatus.FLASHING) {
-            if (flashIt is FlashIt.FlashModules) {
+        val canGoBack = when (flashIt) {
+            is FlashIt.FlashModuleUpdate -> currentFlashingStatus.value != FlashingStatus.FLASHING
+            else -> currentFlashingStatus.value != FlashingStatus.FLASHING
+        }
+
+        if (canGoBack) {
+            if (flashIt is FlashIt.FlashModules || flashIt is FlashIt.FlashModuleUpdate) {
                 viewModel.markNeedRefresh()
                 viewModel.fetchModuleList()
                 navigator.navigate(ModuleScreenDestination)
@@ -360,7 +472,7 @@ fun ModuleInstallProgressBar(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (currentModuleName.isNotEmpty()) currentModuleName else stringResource(R.string.module),
+                    text = currentModuleName.ifEmpty { stringResource(R.string.module) },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -532,8 +644,19 @@ sealed class FlashIt : Parcelable {
     data class FlashBoot(val boot: Uri? = null, val lkm: LkmSelection, val ota: Boolean) : FlashIt()
     data class FlashModule(val uri: Uri) : FlashIt()
     data class FlashModules(val uris: List<Uri>, val currentIndex: Int = 0) : FlashIt()
+    data class FlashModuleUpdate(val uri: Uri) : FlashIt() // 模块更新
     data object FlashRestore : FlashIt()
     data object FlashUninstall : FlashIt()
+}
+
+// 模块更新刷写
+fun flashModuleUpdate(
+    uri: Uri,
+    onFinish: (Boolean, Int) -> Unit,
+    onStdout: (String) -> Unit,
+    onStderr: (String) -> Unit
+) {
+    flashModule(uri, onFinish, onStdout, onStderr)
 }
 
 fun flashIt(
@@ -562,6 +685,9 @@ fun flashIt(
             onStdout("\n")
 
             flashModule(currentUri, onFinish, onStdout, onStderr)
+        }
+        is FlashIt.FlashModuleUpdate -> {
+            onFinish(false, 0)
         }
         FlashIt.FlashRestore -> restoreBoot(onFinish, onStdout, onStderr)
         FlashIt.FlashUninstall -> uninstallPermanently(onFinish, onStdout, onStderr)

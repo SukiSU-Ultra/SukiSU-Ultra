@@ -1,9 +1,13 @@
 package com.sukisu.ultra.ui.viewmodel
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
+import android.os.IBinder
 import android.os.Parcelable
 import android.os.SystemClock
 import android.util.Log
@@ -29,13 +33,13 @@ import java.util.*
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.LinkedBlockingQueue
-import com.dergoogler.mmrl.platform.Platform
-import com.dergoogler.mmrl.platform.TIMEOUT_MILLIS
-import com.sukisu.ultra.ui.webui.getInstalledPackagesAll
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
 import androidx.core.content.edit
+import com.sukisu.ultra.ui.KsuService
+import com.sukisu.ultra.ui.util.KsuCli
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 // 应用分类
 enum class AppCategory(val displayNameRes: Int, val persistKey: String) {
@@ -73,8 +77,6 @@ enum class SortType(val displayNameRes: Int, val persistKey: String) {
  * @date 2025/5/31.
  */
 class SuperUserViewModel : ViewModel() {
-    val isPlatformAlive get() = Platform.isAlive
-
     companion object {
         private const val TAG = "SuperUserViewModel"
         var apps by mutableStateOf<List<AppInfo>>(emptyList())
@@ -82,8 +84,8 @@ class SuperUserViewModel : ViewModel() {
         private const val KEY_SHOW_SYSTEM_APPS = "show_system_apps"
         private const val KEY_SELECTED_CATEGORY = "selected_category"
         private const val KEY_CURRENT_SORT_TYPE = "current_sort_type"
-        private const val CORE_POOL_SIZE = 4
-        private const val MAX_POOL_SIZE = 8
+        private const val CORE_POOL_SIZE = 8
+        private const val MAX_POOL_SIZE = 16
         private const val KEEP_ALIVE_TIME = 60L
         private const val BATCH_SIZE = 20
     }
@@ -392,83 +394,99 @@ class SuperUserViewModel : ViewModel() {
         }
     }
 
+    private var serviceConnection: ServiceConnection? = null
+
+    private suspend fun connectKsuService(
+        onDisconnect: () -> Unit = {}
+    ): IBinder? = suspendCoroutine { continuation ->
+        val connection = object : ServiceConnection {
+            override fun onServiceDisconnected(name: ComponentName?) {
+                onDisconnect()
+                serviceConnection = null
+            }
+
+            override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+                continuation.resume(binder)
+            }
+        }
+
+        serviceConnection = connection
+        val intent = Intent(ksuApp, KsuService::class.java)
+
+        try {
+            val task = com.topjohnwu.superuser.ipc.RootService.bindOrTask(
+                intent,
+                Shell.EXECUTOR,
+                connection
+            )
+            val shell = KsuCli.SHELL
+            task?.let { shell.execTask(it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to bind KsuService", e)
+            continuation.resume(null)
+        }
+    }
+
+    private fun stopKsuService() {
+        serviceConnection?.let { connection ->
+            try {
+                val intent = Intent(ksuApp, KsuService::class.java)
+                com.topjohnwu.superuser.ipc.RootService.stop(intent)
+                serviceConnection = null
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to stop KsuService", e)
+            }
+        }
+    }
+
     suspend fun fetchAppList() {
         isRefreshing = true
         loadingProgress = 0f
 
+        val result = connectKsuService {
+            Log.w(TAG, "KsuService disconnected")
+        }
+
+        if (result == null) {
+            Log.e(TAG, "Failed to connect to KsuService")
+            isRefreshing = false
+            return
+        }
+
         withContext(Dispatchers.IO) {
-            withTimeoutOrNull(TIMEOUT_MILLIS) {
-                while (!isPlatformAlive) {
-                    delay(500)
-                }
-            } ?: return@withContext // Exit early if timeout
             val pm = ksuApp.packageManager
             val start = SystemClock.elapsedRealtime()
 
             try {
-                val packages = Platform.getInstalledPackagesAll {
-                    Log.e(TAG, "getInstalledPackagesAll:", it)
-                }
+                val service = KsuService.Stub.asInterface(result)
+                val allPackages = service?.getPackages(0)
 
+                withContext(Dispatchers.Main) {
+                    stopKsuService()
+                }
                 loadingProgress = 0.3f
 
-                val filteredPackages = packages.filter { it.packageName != ksuApp.packageName }
+                val packages = allPackages?.list ?: emptyList()
 
-                withContext(appProcessingThreadPool) {
-                    supervisorScope {
-                        val batches = filteredPackages.chunked(BATCH_SIZE)
+                apps = packages.map { packageInfo ->
+                    val appInfo = packageInfo.applicationInfo!!
+                    val uid = appInfo.uid
+                    val profile = Natives.getAppProfile(packageInfo.packageName, uid)
+                    AppInfo(
+                        label = appInfo.loadLabel(pm).toString(),
+                        packageInfo = packageInfo,
+                        profile = profile,
+                    )
+                }.filter { it.packageName != ksuApp.packageName }
 
-                        val processedApps = batches.mapIndexed { batchIndex, batch ->
-                            async {
-                                val batchResult = batch.mapNotNull { packageInfo ->
-                                    try {
-                                        val appInfo = packageInfo.applicationInfo!!
-                                        val uid = appInfo.uid
+                loadingProgress = 1f
 
-                                        val labelDeferred = async {
-                                            appInfo.loadLabel(pm).toString()
-                                        }
-                                        val profileDeferred = async {
-                                            Natives.getAppProfile(packageInfo.packageName, uid)
-                                        }
-
-                                        val label = labelDeferred.await()
-                                        val profile = profileDeferred.await()
-
-                                        AppInfo(
-                                            label = label,
-                                            packageInfo = packageInfo,
-                                            profile = profile,
-                                        )
-                                    } catch (e: Exception) {
-                                        Log.e(
-                                            TAG,
-                                            "Error processing app ${packageInfo.packageName}",
-                                            e
-                                        )
-                                        null
-                                    }
-                                }
-
-                                val progress = 0.3f + (batchIndex + 1).toFloat() / batches.size * 0.6f
-                                loadingProgress = progress
-
-                                batchResult
-                            }
-                        }.awaitAll().flatten()
-
-                        appListMutex.withLock {
-                            apps = processedApps
-                        }
-
-                        loadingProgress = 1f
-
-                        val elapsed = SystemClock.elapsedRealtime() - start
-                        Log.i(TAG, "Loaded ${processedApps.size} apps in ${elapsed}ms using concurrent processing")
-                    }
-                }
+                Log.i(TAG, "load cost: ${SystemClock.elapsedRealtime() - start}")
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching app list", e)
+                withContext(Dispatchers.Main) {
+                    stopKsuService()
+                }
             } finally {
                 isRefreshing = false
                 loadingProgress = 0f
@@ -482,6 +500,7 @@ class SuperUserViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         try {
+            stopKsuService()
             appProcessingThreadPool.close()
             configChangeListeners.clear()
         } catch (e: Exception) {

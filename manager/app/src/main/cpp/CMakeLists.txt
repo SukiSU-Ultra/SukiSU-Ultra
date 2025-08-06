@@ -14,4 +14,12 @@ add_library(zako
 
 find_library(log-lib log)
 
-target_link_libraries(zako ${log-lib})
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    set(zakosign-lib ${CMAKE_SOURCE_DIR}/libs/arm64-v8a/libzakosign.so)
+endif()
+
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    target_link_libraries(zako ${log-lib} ${zakosign-lib})
+else ()
+    target_link_libraries(zako ${log-lib})
+endif ()

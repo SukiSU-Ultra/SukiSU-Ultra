@@ -19,6 +19,13 @@ NativeBridgeNP(getVersion, jint) {
     return get_version();
 }
 
+// get VERSION FULL
+NativeBridgeNP(getFullVersion, jstring) {
+    char buff[255] = { 0 };
+    get_full_version((char *) &buff);
+    return GetEnvironment()->NewStringUTF(env, buff);
+}
+
 NativeBridgeNP(getAllowList, jintArray) {
     int uids[1024];
     int size = 0;
@@ -291,16 +298,19 @@ NativeBridge(setSuEnabled, jboolean, jboolean enabled) {
     return set_su_enabled(enabled);
 }
 
+// Check if KPM is enabled
 NativeBridgeNP(isKPMEnabled, jboolean) {
     return is_KPM_enable();
 }
 
+// Get HOOK type
 NativeBridgeNP(getHookType, jstring) {
     char hook_type[16];
     get_hook_type(hook_type, sizeof(hook_type));
     return GetEnvironment()->NewStringUTF(env, hook_type);
 }
 
+// SuSFS Related Function Status
 NativeBridgeNP(getSusfsFeatureStatus, jobject) {
     struct susfs_feature_status status;
     bool result = get_susfs_feature_status(&status);
@@ -313,42 +323,112 @@ NativeBridgeNP(getSusfsFeatureStatus, jobject) {
     jmethodID constructor = GetEnvironment()->GetMethodID(env, cls, "<init>", "()V");
     jobject obj = GetEnvironment()->NewObject(env, cls, constructor);
 
-    // 设置各个字段
-    jfieldID statusSusPathField = GetEnvironment()->GetFieldID(env, cls, "statusSusPath", "Z");
-    jfieldID statusSusMountField = GetEnvironment()->GetFieldID(env, cls, "statusSusMount", "Z");
-    jfieldID statusAutoDefaultMountField = GetEnvironment()->GetFieldID(env, cls, "statusAutoDefaultMount", "Z");
-    jfieldID statusAutoBindMountField = GetEnvironment()->GetFieldID(env, cls, "statusAutoBindMount", "Z");
-    jfieldID statusSusKstatField = GetEnvironment()->GetFieldID(env, cls, "statusSusKstat", "Z");
-    jfieldID statusTryUmountField = GetEnvironment()->GetFieldID(env, cls, "statusTryUmount", "Z");
-    jfieldID statusAutoTryUmountBindField = GetEnvironment()->GetFieldID(env, cls, "statusAutoTryUmountBind", "Z");
-    jfieldID statusSpoofUnameField = GetEnvironment()->GetFieldID(env, cls, "statusSpoofUname", "Z");
-    jfieldID statusEnableLogField = GetEnvironment()->GetFieldID(env, cls, "statusEnableLog", "Z");
-    jfieldID statusHideSymbolsField = GetEnvironment()->GetFieldID(env, cls, "statusHideSymbols", "Z");
-    jfieldID statusSpoofCmdlineField = GetEnvironment()->GetFieldID(env, cls, "statusSpoofCmdline", "Z");
-    jfieldID statusOpenRedirectField = GetEnvironment()->GetFieldID(env, cls, "statusOpenRedirect", "Z");
-    jfieldID statusMagicMountField = GetEnvironment()->GetFieldID(env, cls, "statusMagicMount", "Z");
-    jfieldID statusSusSuField = GetEnvironment()->GetFieldID(env, cls, "statusSusSu", "Z");
-
-    GetEnvironment()->SetBooleanField(env, obj, statusSusPathField, status.status_sus_path);
-    GetEnvironment()->SetBooleanField(env, obj, statusSusMountField, status.status_sus_mount);
-    GetEnvironment()->SetBooleanField(env, obj, statusAutoDefaultMountField, status.status_auto_default_mount);
-    GetEnvironment()->SetBooleanField(env, obj, statusAutoBindMountField, status.status_auto_bind_mount);
-    GetEnvironment()->SetBooleanField(env, obj, statusSusKstatField, status.status_sus_kstat);
-    GetEnvironment()->SetBooleanField(env, obj, statusTryUmountField, status.status_try_umount);
-    GetEnvironment()->SetBooleanField(env, obj, statusAutoTryUmountBindField, status.status_auto_try_umount_bind);
-    GetEnvironment()->SetBooleanField(env, obj, statusSpoofUnameField, status.status_spoof_uname);
-    GetEnvironment()->SetBooleanField(env, obj, statusEnableLogField, status.status_enable_log);
-    GetEnvironment()->SetBooleanField(env, obj, statusHideSymbolsField, status.status_hide_symbols);
-    GetEnvironment()->SetBooleanField(env, obj, statusSpoofCmdlineField, status.status_spoof_cmdline);
-    GetEnvironment()->SetBooleanField(env, obj, statusOpenRedirectField, status.status_open_redirect);
-    GetEnvironment()->SetBooleanField(env, obj, statusMagicMountField, status.status_magic_mount);
-    GetEnvironment()->SetBooleanField(env, obj, statusSusSuField, status.status_sus_su);
+    SET_BOOLEAN_FIELD(obj, cls, statusSusPath, status.status_sus_path);
+    SET_BOOLEAN_FIELD(obj, cls, statusSusMount, status.status_sus_mount);
+    SET_BOOLEAN_FIELD(obj, cls, statusAutoDefaultMount, status.status_auto_default_mount);
+    SET_BOOLEAN_FIELD(obj, cls, statusAutoBindMount, status.status_auto_bind_mount);
+    SET_BOOLEAN_FIELD(obj, cls, statusSusKstat, status.status_sus_kstat);
+    SET_BOOLEAN_FIELD(obj, cls, statusTryUmount, status.status_try_umount);
+    SET_BOOLEAN_FIELD(obj, cls, statusAutoTryUmountBind, status.status_auto_try_umount_bind);
+    SET_BOOLEAN_FIELD(obj, cls, statusSpoofUname, status.status_spoof_uname);
+    SET_BOOLEAN_FIELD(obj, cls, statusEnableLog, status.status_enable_log);
+    SET_BOOLEAN_FIELD(obj, cls, statusHideSymbols, status.status_hide_symbols);
+    SET_BOOLEAN_FIELD(obj, cls, statusSpoofCmdline, status.status_spoof_cmdline);
+    SET_BOOLEAN_FIELD(obj, cls, statusOpenRedirect, status.status_open_redirect);
+    SET_BOOLEAN_FIELD(obj, cls, statusMagicMount, status.status_magic_mount);
+    SET_BOOLEAN_FIELD(obj, cls, statusSusSu, status.status_sus_su);
 
     return obj;
 }
 
-NativeBridgeNP(getFullVersion, jstring) {
-    char buff[255] = { 0 };
-    get_full_version((char *) &buff);
-    return GetEnvironment()->NewStringUTF(env, buff);
+// dynamic sign
+NativeBridge(setDynamicSign, jboolean, jint size, jstring hash) {
+    if (!hash) {
+        LogDebug("setDynamicSign: hash is null");
+        return false;
+    }
+
+    const char* chash = GetEnvironment()->GetStringUTFChars(env, hash, nullptr);
+    bool result = set_dynamic_sign((unsigned int)size, chash);
+    GetEnvironment()->ReleaseStringUTFChars(env, hash, chash);
+
+    LogDebug("setDynamicSign: size=0x%x, result=%d", size, result);
+    return result;
+}
+
+NativeBridgeNP(getDynamicSign, jobject) {
+    struct dynamic_sign_user_config config;
+    bool result = get_dynamic_sign(&config);
+
+    if (!result) {
+        LogDebug("getDynamicSign: failed to get dynamic sign config");
+        return NULL;
+    }
+
+    jobject obj = CREATE_JAVA_OBJECT("com/sukisu/ultra/Natives$DynamicSignConfig");
+    jclass cls = GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$DynamicSignConfig");
+
+    SET_INT_FIELD(obj, cls, size, (jint)config.size);
+    SET_STRING_FIELD(obj, cls, hash, config.hash);
+
+    LogDebug("getDynamicSign: size=0x%x, hash=%.16s...", config.size, config.hash);
+    return obj;
+}
+
+NativeBridgeNP(clearDynamicSign, jboolean) {
+    bool result = clear_dynamic_sign();
+    LogDebug("clearDynamicSign: result=%d", result);
+    return result;
+}
+
+// Get a list of active managers
+NativeBridgeNP(getManagersList, jobject) {
+    struct manager_list_info managerListInfo;
+    bool result = get_managers_list(&managerListInfo);
+
+    if (!result) {
+        LogDebug("getManagersList: failed to get active managers list");
+        return NULL;
+    }
+
+    jobject obj = CREATE_JAVA_OBJECT("com/sukisu/ultra/Natives$ManagersList");
+    jclass managerListCls = GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$ManagersList");
+
+    SET_INT_FIELD(obj, managerListCls, count, (jint)managerListInfo.count);
+
+    jobject managersList = CREATE_ARRAYLIST();
+
+    for (int i = 0; i < managerListInfo.count; i++) {
+        jobject managerInfo = CREATE_JAVA_OBJECT_WITH_PARAMS(
+                "com/sukisu/ultra/Natives$ManagerInfo",
+                "(II)V",
+                (jint)managerListInfo.managers[i].uid,
+                (jint)managerListInfo.managers[i].signature_index
+        );
+        ADD_TO_LIST(managersList, managerInfo);
+    }
+
+    SET_OBJECT_FIELD(obj, managerListCls, managers, managersList);
+
+    LogDebug("getManagersList: count=%d", managerListInfo.count);
+    return obj;
+}
+
+NativeBridge(verifyModuleSignature, jboolean, jstring modulePath) {
+#if defined(__aarch64__) || defined(_M_ARM64)
+    if (!modulePath) {
+        LogDebug("verifyModuleSignature: modulePath is null");
+        return false;
+    }
+
+    const char* cModulePath = GetEnvironment()->GetStringUTFChars(env, modulePath, nullptr);
+    bool result = verify_module_signature(cModulePath);
+    GetEnvironment()->ReleaseStringUTFChars(env, modulePath, cModulePath);
+
+    LogDebug("verifyModuleSignature: path=%s, result=%d", cModulePath, result);
+    return result;
+#else
+    LogDebug("verifyModuleSignature: not supported on non-arm64 architecture");
+    return false;
+#endif
 }

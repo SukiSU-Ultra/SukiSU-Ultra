@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.android.build.api.dsl.ApkSigningConfig
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 
@@ -107,6 +106,10 @@ android {
     }
 }
 
+ksp {
+    arg("compose-destinations.defaultTransitions", "none")
+}
+
 dependencies {
     implementation(libs.gson)
     implementation(libs.androidx.activity.compose)
@@ -158,5 +161,7 @@ dependencies {
     compileOnly(libs.mmrl.hidden.api)
     implementation(libs.mmrl.webui)
     implementation(libs.mmrl.ui)
+
+    implementation(libs.accompanist.drawablepainter)
 
 }

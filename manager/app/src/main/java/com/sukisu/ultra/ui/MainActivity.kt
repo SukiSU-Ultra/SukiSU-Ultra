@@ -7,20 +7,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationStyle
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import io.sukisu.ultra.UltraToolInstall
 import com.sukisu.ultra.ksuApp
 import zako.zako.zako.zakoui.activity.util.AppData
+import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.*
 import zako.zako.zako.zakoui.activity.util.*
 import zako.zako.zako.zakoui.activity.component.BottomBar
@@ -82,6 +94,10 @@ class MainActivity : ComponentActivity() {
                     val snackBarHostState = remember { SnackbarHostState() }
                     val currentDestination = navController.currentBackStackEntryAsState().value?.destination
 
+                    val bottomBarRoutes = remember {
+                        BottomBarDestination.entries.map { it.direction.route }.toSet()
+                    }
+
                     val showBottomBar = when (currentDestination?.route) {
                         ExecuteModuleActionScreenDestination.route -> false
                         else -> true
@@ -107,7 +123,47 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.padding(innerPadding),
                                 navGraph = NavGraphs.root as NavHostGraphSpec,
                                 navController = navController,
-                                defaultTransitions = NavigationUtils.defaultTransitions()
+                                defaultTransitions = object : NavHostAnimatedDestinationStyle() {
+                                    override val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+                                        // If the target is a detail page (not a bottom navigation page), slide in from the right
+                                        if (targetState.destination.route !in bottomBarRoutes) {
+                                            slideInHorizontally(initialOffsetX = { it })
+                                        } else {
+                                            // Otherwise (switching between bottom navigation pages), use fade in
+                                            fadeIn(animationSpec = tween(340))
+                                        }
+                                    }
+
+                                    override val exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+                                        // If navigating from the home page (bottom navigation page) to a detail page, slide out to the left
+                                        if (initialState.destination.route in bottomBarRoutes && targetState.destination.route !in bottomBarRoutes) {
+                                            slideOutHorizontally(targetOffsetX = { -it / 4 }) + fadeOut()
+                                        } else {
+                                            // Otherwise (switching between bottom navigation pages), use fade out
+                                            fadeOut(animationSpec = tween(340))
+                                        }
+                                    }
+
+                                    override val popEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+                                        // If returning to the home page (bottom navigation page), slide in from the left
+                                        if (targetState.destination.route in bottomBarRoutes) {
+                                            slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn()
+                                        } else {
+                                            // Otherwise (e.g., returning between multiple detail pages), use default fade in
+                                            fadeIn(animationSpec = tween(340))
+                                        }
+                                    }
+
+                                    override val popExitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+                                        // If returning from a detail page (not a bottom navigation page), scale down and fade out
+                                        if (initialState.destination.route !in bottomBarRoutes) {
+                                            scaleOut(targetScale = 0.9f) + fadeOut()
+                                        } else {
+                                            // Otherwise, use default fade out
+                                            fadeOut(animationSpec = tween(340))
+                                        }
+                                    }
+                                }
                             )
                         }
                     }

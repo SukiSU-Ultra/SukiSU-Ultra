@@ -19,10 +19,12 @@ public class UltraShellHelper {
     }
 
     public static boolean isPathExists(String path) {
-        return runCmd("file " + path).contains("No such file or directory");
+        String result = runCmd("test -f '" + path + "' && echo 'exists'");
+        return result.contains("exists");
     }
 
-    public static void CopyFileTo(String path, String target) {
-        runCmd("cp -f " + path + " " + target);
+    public static boolean CopyFileTo(String path, String target) {
+        String result = runCmd("cp -f '" + path + "' '" + target + "' 2>&1");
+        return !result.contains("cp: ");
     }
 }

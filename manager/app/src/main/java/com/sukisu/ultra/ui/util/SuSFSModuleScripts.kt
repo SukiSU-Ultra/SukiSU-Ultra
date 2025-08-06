@@ -103,6 +103,7 @@ object ScriptGenerator {
      */
     private fun shouldConfigureInService(config: SuSFSManager.ModuleConfig): Boolean {
         return config.susPaths.isNotEmpty() ||
+                config.susLoopPaths.isNotEmpty() ||
                 config.kstatConfigs.isNotEmpty() ||
                 config.addKstatPaths.isNotEmpty() ||
                 (!config.executeInPostFsData && (config.unameValue != DEFAULT_UNAME || config.buildTimeValue != DEFAULT_BUILD_TIME))
@@ -122,6 +123,17 @@ object ScriptGenerator {
             susPaths.forEach { path ->
                 appendLine("\"${'$'}SUSFS_BIN\" add_sus_path '$path'")
                 appendLine("echo \"$(get_current_time): 添加SUS路径: $path\" >> \"${'$'}LOG_FILE\"")
+            }
+            appendLine()
+        }
+    }
+
+    private fun StringBuilder.generateSusLoopPathsSection(susLoopPaths: Set<String>) {
+        if (susLoopPaths.isNotEmpty()) {
+            appendLine("# 添加SUS循环路径")
+            susLoopPaths.forEach { path ->
+                appendLine("\"${'$'}SUSFS_BIN\" add_sus_path_loop '$path'")
+                appendLine("echo \"$(get_current_time): 添加SUS循环路径: $path\" >> \"${'$'}LOG_FILE\"")
             }
             appendLine()
         }
@@ -461,13 +473,19 @@ object ScriptGenerator {
                 appendLine()
 
                 // 路径设置和SUS路径设置
-                if (config.susPaths.isNotEmpty()) {
+                if (config.susPaths.isNotEmpty() || config.susLoopPaths.isNotEmpty()) {
                     generatePathSettingSection(config.androidDataPath, config.sdcardPath)
                     appendLine()
-                    appendLine("until [ -d \"/sdcard/Android\" ]; do sleep 1; done")
-                    appendLine("sleep 45")
-                    appendLine()
-                    generateSusPathsSection(config.susPaths)
+
+                    // 添加普通SUS路径
+                    if (config.susPaths.isNotEmpty()) {
+                        generateSusPathsSection(config.susPaths)
+                    }
+
+                    // 添加循环SUS路径
+                    if (config.susLoopPaths.isNotEmpty()) {
+                        generateSusLoopPathsSection(config.susLoopPaths)
+                    }
                 }
             }
 
@@ -480,6 +498,8 @@ object ScriptGenerator {
         appendLine("# 路径配置")
         appendLine("# 设置Android Data路径")
         appendLine("until [ -d \"/sdcard/Android\" ]; do sleep 1; done")
+        appendLine("sleep 60")
+        appendLine()
         appendLine("\"${'$'}SUSFS_BIN\" set_android_data_root_path '$androidDataPath'")
         appendLine("echo \"$(get_current_time): Android Data路径设置为: $androidDataPath\" >> \"${'$'}LOG_FILE\"")
         appendLine()

@@ -42,7 +42,7 @@ class WebUIXActivity : ComponentActivity() {
             val osVersion = Build.VERSION.RELEASE
             val deviceModel = Build.MODEL
 
-            return "SukiSU /$ksuVersion (Linux; Android $osVersion; $deviceModel; $platform/$platformVersion)"
+            return "SukiSU-Ultra /$ksuVersion (Linux; Android $osVersion; $deviceModel; $platform/$platformVersion)"
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,10 +59,10 @@ class WebUIXActivity : ComponentActivity() {
         val name = intent.getStringExtra("name")!!
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             @Suppress("DEPRECATION")
-            setTaskDescription(ActivityManager.TaskDescription("KernelSU - $name"))
+            setTaskDescription(ActivityManager.TaskDescription("SukiSU-Ultra - $name"))
         } else {
             val taskDescription =
-                ActivityManager.TaskDescription.Builder().setLabel("KernelSU - $name").build()
+                ActivityManager.TaskDescription.Builder().setLabel("SukiSU-Ultra - $name").build()
             setTaskDescription(taskDescription)
         }
 
