@@ -539,8 +539,8 @@
     <string name="susfs_backup_info_date">Yedekleme Tarihi: %s</string>
     <string name="susfs_backup_info_device">Cihaz: %s</string>
     <string name="susfs_backup_info_version">Sürüm: %s</string>
-    <string name="hide_bl_script">Kilitli durum</string>
-    <string name="hide_bl_script_description">late_start hizmet modunda önyükleme kilidi durumu özniteliğini geçersiz kıl</string>
+    <string name="hide_bl_script">Kilit durumu</string>
+    <string name="hide_bl_script_description">Late_start servis modunda bootloader kilit durumu özniteliğinin üzerine yaz</string>
     <string name="cleanup_residue">Kalıntıları Temizle</string>
     <string name="cleanup_residue_description">Çeşitli modüllerin ve araçların kalıntı dosyalarını ve dizinlerini temizleyin (yanlışlıkla silinerek kayba ve başlatılamamaya neden olabilir, dikkatli kullanın)</string>
     <string name="susfs_edit_sus_path">SUS Yolunu Düzenle</string>
@@ -588,6 +588,31 @@
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk uygulaması</string>
     <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">SUS Döngü Yolları</string>
+    <string name="susfs_add_sus_loop_path">SUS Döngü Yolu Ekle</string>
+    <string name="susfs_edit_sus_loop_path">SUS Döngü Yolunu Düzenle</string>
+    <string name="susfs_loop_path_added_success">SUS döngü yolu başarıyla eklendi: %1$s</string>
+    <string name="susfs_loop_path_removed">SUS döngü yolu kaldırıldı: %1$s</string>
+    <string name="susfs_loop_path_updated">SUS döngü yolu güncellendi: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">Yapılandırılmış SUS döngü yolu yok</string>
+    <string name="susfs_reset_loop_paths_title">Döngü Yollarını Sıfırla</string>
+    <string name="susfs_reset_loop_paths_message">Tüm SUS döngü yollarını temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
+    <string name="susfs_loop_path_label">Döngü Yolu</string>
+    <string name="susfs_loop_path_placeholder">/data/ornek/yol</string>
+    <string name="susfs_loop_path_restriction_warning">Not: Döngü yolları aracılığıyla yalnızca /storage/ ve /sdcard/ içinde OLMAYAN yollar eklenebilir.</string>
+    <string name="susfs_loop_path_invalid_location">Hata: Döngü yolları /storage/ veya /sdcard/ dizinleri içinde olamaz</string>
+    <string name="loop_paths_section">Döngü Yolları</string>
+    <string name="add_loop_path">Döngü Yolu Ekle</string>
     <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">SUS Döngü Yolu</string>
+    <string name="sus_loop_paths_description_title">Döngü Yolu Yapılandırması</string>
+    <string name="sus_loop_paths_description_text">Döngü yolları, her kök olmayan (non-root) kullanıcı uygulaması veya yalıtılmış hizmet başlangıcında SUS_PATH olarak yeniden işaretlenir. Bu, eklenen yolların inode durumunun sıfırlanması veya çekirdekte yeniden oluşturulması gibi sorunları gidermeye yardımcı olur.</string>
     <!-- 模块签名功能描述 -->
+    <string name="module_verified">Doğrulandı</string>
+    <string name="module_signature_verified">Modül imzası doğrulandı</string>
+    <string name="module_signature_verification">İmza Doğrulaması</string>
+    <string name="module_signature_verification_summary">Modülleri kurarken imza doğrulamasını zorunlu kıl. (Yalnızca arm64-v8a için geçerlidir)</string>
+    <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
+    <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
+    <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
 </resources>
