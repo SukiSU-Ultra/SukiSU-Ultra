@@ -179,6 +179,8 @@
     <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
+    <string name="hide_zygisk_implement">Zygisk のステータスを非表示</string>
+    <string name="hide_zygisk_implement_summary">ホームページ上の Zygisk 実装情報を非表示にします。</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
     <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="hide_tag_card">モジュールラベルの行を非表示</string>
@@ -587,4 +589,25 @@
     <string name="no_active_manager">有効なマネージャーがありません</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk を実装</string>
+    <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">SUS ループパス</string>
+    <string name="susfs_add_sus_loop_path">SUS ループパスを追加</string>
+    <string name="susfs_edit_sus_loop_path">SUS ループパスを編集</string>
+    <string name="susfs_loop_path_added_success">SUS ループパスが正常に追加されました: %1$s</string>
+    <string name="susfs_loop_path_removed">SUS ループパスが削除されました: %1$s</string>
+    <string name="susfs_loop_path_updated">SUS ループパスが更新されました: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">SUS ループパスが構成されていません</string>
+    <string name="susfs_reset_loop_paths_title">ループパスをリセット</string>
+    <string name="susfs_reset_loop_paths_message">すべての SUS ループパスを消去してもよろしいですか？この操作は元に戻せません。</string>
+    <string name="susfs_loop_path_label">ループパス</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">注意: ループパス経由で追加できるのは /storage/ と /sdcard/ 内にないパスのみです。</string>
+    <string name="susfs_loop_path_invalid_location">エラー: ループパスは  /storage/ または /sdcard/ のディレクトリ内に配置できません。</string>
+    <string name="loop_paths_section">ループパス</string>
+    <string name="add_loop_path">ループパスを追加</string>
+    <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">SUS ループパス</string>
+    <string name="sus_loop_paths_description_title">ループパスの構成</string>
+    <string name="sus_loop_paths_description_text">ループパスは、非 root ユーザーアプリまたは独立したサービスの起動ごとに SUS_PATH として再設定されます。これにより、追加されたパスの inode ステータスがリセットされたり、カーネル内で inode が再生成される問題に対処できます。</string>
+    <!-- 模块签名功能描述 -->
 </resources>

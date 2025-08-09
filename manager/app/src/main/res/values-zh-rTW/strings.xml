@@ -557,4 +557,7 @@
     <string name="umount_zygote_iso_service_description">啟用此選項後，系統開機時會自動卸載 Zygote 隔離服務的掛載點</string>
     <string name="umount_zygote_iso_service_enabled">已啟用卸載 Zygote 隔離服務</string>
     <string name="umount_zygote_iso_service_disabled">已停用卸載 Zygote 隔離服務</string>
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- 模块签名功能描述 -->
 </resources>

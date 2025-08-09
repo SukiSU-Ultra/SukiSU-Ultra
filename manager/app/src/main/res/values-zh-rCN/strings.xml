@@ -592,12 +592,11 @@
     <string name="susfs_edit_sus_loop_path">编辑SUS循环路径</string>
     <string name="susfs_loop_path_added_success">SUS循环路径添加成功: %1$s</string>
     <string name="susfs_loop_path_removed">SUS循环路径已移除: %1$s</string>
-    <string name="susfs_loop_path_updated">SUS循环路径已更新: %1$s -> %2$s</string>
+    <string name="susfs_loop_path_updated">SUS循环路径已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_loop_paths_configured">未配置SUS循环路径</string>
     <string name="susfs_reset_loop_paths_title">重置循环路径</string>
     <string name="susfs_reset_loop_paths_message">确定要清空所有SUS循环路径吗？此操作无法撤销。</string>
     <string name="susfs_loop_path_label">循环路径</string>
-    <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在/storage/和/sdcard/内的路径才能通过循环路径添加。</string>
     <string name="susfs_loop_path_invalid_location">错误：循环路径不能位于/storage/或/sdcard/目录内</string>
     <string name="loop_paths_section">循环路径</string>
