@@ -500,4 +500,7 @@
     <string name="no_kstat_config_message">暫冇 Kstat 配置，點擊上方按鈕添加配置</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
     <!-- 备份和还原相关字符串 -->
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- 模块签名功能描述 -->
 </resources>
