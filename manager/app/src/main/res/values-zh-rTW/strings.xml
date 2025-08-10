@@ -517,7 +517,7 @@
     <string name="susfs_android_data_path_set">Android Data路徑已設定為: %s</string>
     <string name="susfs_sdcard_path_set">SD卡路徑已設定為: %s</string>
     <string name="susfs_path_setup_warning">路徑設定可能未完全成功，但將繼續新增SUS路徑</string>
-    <!-- 備份和還原相關字串 -->
+    <!-- 备份和还原相关字符串 -->
     <string name="susfs_backup_title">備份</string>
     <string name="susfs_backup_description">建立所有SuSFS配置的備份。備份檔案將包含所有設定、路徑和配置資訊。</string>
     <string name="susfs_backup_create">建立備份</string>
@@ -557,4 +557,7 @@
     <string name="umount_zygote_iso_service_description">啟用此選項將在系統啟動時解除安裝Zygote隔離服務掛載點</string>
     <string name="umount_zygote_iso_service_enabled">Zygote隔離服務解除安裝已啟用</string>
     <string name="umount_zygote_iso_service_disabled">Zygote隔離服務解除安裝已禁用</string>
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- 模块签名功能描述 -->
 </resources>
