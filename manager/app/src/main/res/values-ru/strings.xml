@@ -609,6 +609,10 @@
     <string name="sus_loop_path_feature_label">Циклический путь SUS</string>
     <string name="sus_loop_paths_description_title">Конфигурация пути цикла</string>
     <string name="sus_loop_paths_description_text">Пути цикла повторно отмечены как SUS_PATH в каждом пользовательском приложении, не являющемся root, или изолированном запуске службы. Это помогает решить проблемы, в которых добавленные пути могут иметь сброс статуса inode или повторно созданные inode в ядре.</string>
+    <string name="avc_log_spoofing">Спуф AVC лога</string>
+    <string name="avc_log_spoofing_enabled">Спуф AVC лога включен</string>
+    <string name="avc_log_spoofing_disabled">Спуф AVC лога отключен</string>
+    <string name="avc_log_spoofing_description">отключен: Отключить спуффинг sus tcontext от \'su\' показывать в Avc логе в ядре.\n включен: Включить спуффинг sus tcontext от \'su\' с \'ядром\' показывать в Avc логе в ядре</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Проверенные</string>
     <string name="module_signature_verified">Подпись модуля подтверждена</string>
