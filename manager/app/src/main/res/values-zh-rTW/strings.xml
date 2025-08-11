@@ -177,6 +177,8 @@
     <string name="hide_other_info_summary">隱藏首頁上的超級使用者數量、模組數量及 KPM 模組數量資訊</string>
     <string name="hide_susfs_status">隱藏 SuSFS 狀態資訊</string>
     <string name="hide_susfs_status_summary">隱藏首頁上的 SuSFS 狀態資訊</string>
+    <string name="hide_zygisk_implement">隱藏 Zygisk 狀態資訊</string>
+    <string name="hide_zygisk_implement_summary">隱藏主頁上的 Zygisk 實現狀態資訊</string>
     <string name="hide_link_card">隱藏連結卡片</string>
     <string name="hide_link_card_summary">隱藏首頁上的連結卡片資訊</string>
     <string name="hide_tag_card">隱藏模組標籤行</string>
@@ -557,4 +559,70 @@
     <string name="umount_zygote_iso_service_description">啟用此選項將在系統啟動時解除安裝Zygote隔離服務掛載點</string>
     <string name="umount_zygote_iso_service_enabled">Zygote隔離服務解除安裝已啟用</string>
     <string name="umount_zygote_iso_service_disabled">Zygote隔離服務解除安裝已禁用</string>
+    <string name="app_paths_section">應用路徑</string>
+    <string name="other_paths_section">其他路徑</string>
+    <string name="add_custom_path">其他</string>
+    <string name="add_app_path">應用</string>
+    <string name="susfs_add_app_path">添加應用程式路徑</string>
+    <string name="search_apps">搜尋應用程式</string>
+    <string name="selected_apps_count">%1$d 個已選應用程式</string>
+    <string name="already_added_apps_count">%1$d 個已添加應用程式</string>
+    <string name="all_apps_already_added">所有应用均已添加</string>
+    <string name="dynamic_sign_title">动态签名配置</string>
+    <string name="dynamic_sign_enabled_summary">已启用（大小: %s）</string>
+    <string name="dynamic_sign_disabled">未启用</string>
+    <string name="enable_dynamic_sign">啟用動態簽名</string>
+    <string name="signature_size">簽名大小</string>
+    <string name="signature_hash">簽名哈希值</string>
+    <string name="hash_must_be_64_chars">哈希值必須是 64 位十六進制字符</string>
+    <string name="dynamic_sign_set_success">動態簽名配置設定成功</string>
+    <string name="dynamic_sign_set_failed">動態簽名配置設定失敗</string>
+    <string name="invalid_sign_config">無效的簽名配置</string>
+    <string name="dynamic_sign_disabled_success">動態簽名已禁用</string>
+    <string name="dynamic_sign_clear_failed">清除動態簽名錯誤</string>
+    <string name="dynamic_signature">動態</string>
+    <string name="signature_index">簽名 %1$d</string>
+    <string name="unknown_signature">未知</string>
+    <string name="multi_manager_list">活躍管理器</string>
+    <string name="no_active_manager">無活躍管理器</string>
+    <string name="home_zygisk_implement">Zygisk 實現</string>
+    <!-- 遍歷路徑相關 -->
+    <string name="susfs_tab_sus_loop_paths">SUS 迴圈路徑</string>
+    <string name="susfs_add_sus_loop_path">添加 SUS 迴圈路徑</string>
+    <string name="susfs_edit_sus_loop_path">編輯 SUS 迴圈路徑</string>
+    <string name="susfs_loop_path_added_success">SUS 迴圈路徑添加成功: %1$s</string>
+    <string name="susfs_loop_path_removed">SUS 迴圈路徑已移除: %1$s</string>
+    <string name="susfs_loop_path_updated">SUS 迴圈路徑已更新: %1$s -> %2$s</string>
+    <string name="susfs_no_loop_paths_configured">未配置 SUS 迴圈路徑</string>
+    <string name="susfs_reset_loop_paths_title">重置迴圈路徑</string>
+    <string name="susfs_reset_loop_paths_message">確定要清空所有 SUS 循環路徑嗎？此操作無法撤銷。</string>
+    <string name="susfs_loop_path_label">循環路徑</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">注意：只有不在/storage/和/sdcard/內的路徑才能通過循環路徑添加。</string>
+    <string name="susfs_loop_path_invalid_location">錯誤：循環路徑不能位於/storage/或/sdcard/目錄內</string>
+    <string name="loop_paths_section">循環路徑</string>
+    <string name="add_loop_path">添加循環路徑</string>
+    <!-- 循環路徑功能描述 -->
+    <string name="sus_loop_path_feature_label">SUS 迴圈路徑</string>
+    <string name="sus_loop_paths_description_title">迴圈路徑配置</string>
+    <string name="sus_loop_paths_description_text">迴圈路徑會在每次非 root 使用者應用程式或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決添加的路徑可能因 inode 狀態重置或內核中 inode 重新建立而失效的問題</string>
+    <string name="avc_log_spoofing">AVC 日志欺騙</string>
+    <string name="avc_log_spoofing_enabled">AVC 日志欺騙已啟用</string>
+    <string name="avc_log_spoofing_disabled">AVC 日志欺騙已禁用</string>
+     <string name="avc_log_spoofing_description">
+禁用: 禁用在核心 AVC 日誌中欺騙 \'su\' 的 sus tcontext。\n
+啟用: 啟用在核心 AVC 日誌中將 \'su\' 的 sus tcontext 欺騙為 \'kernel\'</string>
+    <string name="avc_log_spoofing_warning">
+重要提示：\n
+- 核心中預設設定為 \'0\'\n
+- 啟用此功能有時會使開發人員在除錯許可權或 SELinux 問題時難以識別原因，因此建議使用者在除錯時禁用此功能。
+</string>
+    <!-- 模块簽名功能描述 -->
+    <string name="module_verified">已驗證</string>
+    <string name="module_signature_verified">模組簽名已驗證</string>
+    <string name="module_signature_verification">驗證簽名</string>
+    <string name="module_signature_verification_summary">模組安裝時，強制驗證簽名。（僅 arm64-v8a 可用）</string>
+    <string name="module_signature_invalid">未知發布者</string>
+    <string name="module_signature_invalid_message">未經簽名的模組可能不完整。為了對設備進行保護，已阻止安裝此模組。</string>
+    <string name="module_signature_verification_failed">未經簽名的模組可能不完整。你想安裝來自未知發布者的模組嗎？</string>
 </resources>
