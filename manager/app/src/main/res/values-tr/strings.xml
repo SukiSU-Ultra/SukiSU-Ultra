@@ -607,6 +607,14 @@
     <string name="sus_loop_path_feature_label">SUS Döngü Yolu</string>
     <string name="sus_loop_paths_description_title">Döngü Yolu Yapılandırması</string>
     <string name="sus_loop_paths_description_text">Döngü yolları, her kök olmayan (non-root) kullanıcı uygulaması veya yalıtılmış hizmet başlangıcında SUS_PATH olarak yeniden işaretlenir. Bu, eklenen yolların inode durumunun sıfırlanması veya çekirdekte yeniden oluşturulması gibi sorunları gidermeye yardımcı olur.</string>
+    <string name="avc_log_spoofing">AVC Günlük Kaydı Taklidi</string>
+    <string name="avc_log_spoofing_enabled">AVC günlük kaydı taklidi etkinleştirildi</string>
+    <string name="avc_log_spoofing_disabled">AVC günlük kaydı taklidi devre dışı bırakıldı</string>
+    <string name="avc_log_spoofing_description">devre dışı: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'in taklit edilmesini devre dışı bırakır.\n
+etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'kernel\' olarak taklit etmeyi etkinleştirir.</string>
+    <string name="avc_log_spoofing_warning">Önemli Not:\n
+- Çekirdekte varsayılan olarak \'0\' değerine ayarlıdır.\n
+- Bu özelliği etkinleştirmek, geliştiricilerin bir izin veya SELinux sorunu için hata ayıklaması yaparken sorunun kaynağını bulmalarını zorlaştırabilir. Bu nedenle, bu tür işlemler sırasında özelliğin devre dışı bırakılması tavsiye edilir.</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Doğrulandı</string>
     <string name="module_signature_verified">Modül imzası doğrulandı</string>
