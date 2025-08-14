@@ -592,12 +592,11 @@
     <string name="susfs_edit_sus_loop_path">编辑 SuS 循环路径</string>
     <string name="susfs_loop_path_added_success">SuS 循环路径添加成功: %1$s</string>
     <string name="susfs_loop_path_removed">SuS 循环路径已移除: %1$s</string>
-    <string name="susfs_loop_path_updated">SuS 循环路径已更新: %1$s -> %2$s</string>
+    <string name="susfs_loop_path_updated">SuS 循环路径已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_loop_paths_configured">未配置 SuS 循环路径</string>
     <string name="susfs_reset_loop_paths_title">重置循环路径</string>
     <string name="susfs_reset_loop_paths_message">确定要清空所有 SuS 循环路径吗？此操作无法撤销。</string>
     <string name="susfs_loop_path_label">循环路径</string>
-    <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 内的路径才能通过循环路径添加。</string>
     <string name="susfs_loop_path_invalid_location">错误：循环路径不能位于 /storage/ 或 /sdcard/ 目录内</string>
     <string name="loop_paths_section">循环路径</string>
@@ -609,15 +608,11 @@
     <string name="avc_log_spoofing">AVC 日志欺骗</string>
     <string name="avc_log_spoofing_enabled">AVC 日志欺骗已启用</string>
     <string name="avc_log_spoofing_disabled">AVC 日志欺骗已禁用</string>
-    <string name="avc_log_spoofing_description">
-禁用: 禁用在内核 AVC 日志中欺骗 \'su\' 的 sus tcontext。\n
-启用: 启用在内核 AVC 日志中将 \'su\' 的 sus tcontext 欺骗为 \'kernel\'
-</string>
-    <string name="avc_log_spoofing_warning">
-重要提示：\n
+    <string name="avc_log_spoofing_description">禁用: 禁用在内核 AVC 日志中欺骗 \'su\' 的 sus tcontext。\n
+启用: 启用在内核 AVC 日志中将 \'su\' 的 sus tcontext 欺骗为 \'kernel\'</string>
+    <string name="avc_log_spoofing_warning">重要提示：\n
 - 内核中默认设置为 \'0\'\n
-- 启用此功能有时会使开发人员在调试权限或 SELinux 问题时难以识别原因，因此建议用户在调试时禁用此功能。
-</string>
+- 启用此功能有时会使开发人员在调试权限或 SELinux 问题时难以识别原因，因此建议用户在调试时禁用此功能。</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">已验证</string>
     <string name="module_signature_verified">模块签名已验证</string>
