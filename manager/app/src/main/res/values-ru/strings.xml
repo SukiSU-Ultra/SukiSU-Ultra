@@ -590,6 +590,35 @@
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Реализация Zygisk</string>
     <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">Пути цикла SUS</string>
+    <string name="susfs_add_sus_loop_path">Добавить путь SUS </string>
+    <string name="susfs_edit_sus_loop_path">Редактировать путь SUS</string>
+    <string name="susfs_loop_path_added_success">Путь SUS успешно добавлен: %1$s</string>
+    <string name="susfs_loop_path_removed">Удален путь цикла SUS: %1$s</string>
+    <string name="susfs_loop_path_updated">Обновлен путь цикла SUS: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">SUS пути не настроены</string>
+    <string name="susfs_reset_loop_paths_title">Сбросить SUS пути</string>
+    <string name="susfs_reset_loop_paths_message">Вы уверены, что хотите очистить все пути цикла SUS? Это действие нельзя отменить.</string>
+    <string name="susfs_loop_path_label">Циклический путь</string>
     <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">Примечание: Только пути НЕ внутри /storage/ и /sdcard/ могут быть добавлены по цикловым путям.</string>
+    <string name="susfs_loop_path_invalid_location">Ошибка: пути не могут быть внутри /storage/ или /sdcard/ каталогов</string>
+    <string name="loop_paths_section">Циклические пути</string>
+    <string name="add_loop_path">Добавить циклический путь</string>
     <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">Циклический путь SUS</string>
+    <string name="sus_loop_paths_description_title">Конфигурация пути цикла</string>
+    <string name="sus_loop_paths_description_text">Пути цикла повторно отмечены как SUS_PATH в каждом пользовательском приложении, не являющемся root, или изолированном запуске службы. Это помогает решить проблемы, в которых добавленные пути могут иметь сброс статуса inode или повторно созданные inode в ядре.</string>
+    <string name="avc_log_spoofing">Спуф AVC лога</string>
+    <string name="avc_log_spoofing_enabled">Спуф AVC лога включен</string>
+    <string name="avc_log_spoofing_disabled">Спуф AVC лога отключен</string>
+    <string name="avc_log_spoofing_description">отключен: Отключить спуффинг sus tcontext от \'su\' показывать в Avc логе в ядре.\n включен: Включить спуффинг sus tcontext от \'su\' с \'ядром\' показывать в Avc логе в ядре</string>
+    <!-- 模块签名功能描述 -->
+    <string name="module_verified">Проверенные</string>
+    <string name="module_signature_verified">Подпись модуля подтверждена</string>
+    <string name="module_signature_verification">Подтверждение подписи</string>
+    <string name="module_signature_verification_summary">Принудительная проверка подписи при установке модулей. (доступно только для arm64-v8a)</string>
+    <string name="module_signature_invalid">Неизвестный издатель</string>
+    <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
+    <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>
 </resources>
