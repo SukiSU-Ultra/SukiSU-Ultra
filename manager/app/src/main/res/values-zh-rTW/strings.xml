@@ -519,7 +519,7 @@
     <string name="susfs_android_data_path_set">Android Data 路徑已設定為: %s</string>
     <string name="susfs_sdcard_path_set">SD 卡路徑已設定為: %s</string>
     <string name="susfs_path_setup_warning">路徑設定可能未完全成功，但將繼續新增 SuS 路徑</string>
-    <!-- 備份和還原相關字串 -->
+    <!-- 备份和还原相关字符串 -->
     <string name="susfs_backup_title">備份</string>
     <string name="susfs_backup_description">建立所有 SuSFS 配置的備份。備份檔案將包含所有設定、路徑和配置資訊。</string>
     <string name="susfs_backup_create">建立備份</string>
@@ -586,38 +586,34 @@
     <string name="multi_manager_list">活躍管理器</string>
     <string name="no_active_manager">無活躍管理器</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
-    <!-- 遍歷路徑相關 -->
+    <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 迴圈路徑</string>
     <string name="susfs_add_sus_loop_path">添加 SuS 迴圈路徑</string>
     <string name="susfs_edit_sus_loop_path">編輯 SuS 迴圈路徑</string>
     <string name="susfs_loop_path_added_success">SuS 迴圈路徑添加成功: %1$s</string>
     <string name="susfs_loop_path_removed">SuS 迴圈路徑已移除: %1$s</string>
-    <string name="susfs_loop_path_updated">SuS 迴圈路徑已更新: %1$s -> %2$s</string>
+    <string name="susfs_loop_path_updated">SuS 迴圈路徑已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_loop_paths_configured">未配置 SuS 迴圈路徑</string>
     <string name="susfs_reset_loop_paths_title">重置迴圈路徑</string>
     <string name="susfs_reset_loop_paths_message">確定要清空所有 SuS 循環路徑嗎？此操作無法撤銷。</string>
     <string name="susfs_loop_path_label">循環路徑</string>
-    <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 內的路徑才能通過循環路徑添加。</string>
     <string name="susfs_loop_path_invalid_location">錯誤：循環路徑不能位於 /storage/ 或 /sdcard/ 目錄內</string>
     <string name="loop_paths_section">循環路徑</string>
     <string name="add_loop_path">添加循環路徑</string>
-    <!-- 循環路徑功能描述 -->
+    <!-- 循环路径功能描述 -->
     <string name="sus_loop_path_feature_label">SuS 迴圈路徑</string>
     <string name="sus_loop_paths_description_title">迴圈路徑配置</string>
     <string name="sus_loop_paths_description_text">迴圈路徑會在每次非 root 使用者應用程式或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決添加的路徑可能因 inode 狀態重置或內核中 inode 重新建立而失效的問題</string>
     <string name="avc_log_spoofing">AVC 日志欺騙</string>
     <string name="avc_log_spoofing_enabled">AVC 日志欺騙已啟用</string>
     <string name="avc_log_spoofing_disabled">AVC 日志欺騙已禁用</string>
-     <string name="avc_log_spoofing_description">
-禁用: 禁用在核心 AVC 日誌中欺騙 \'su\' 的 sus tcontext。\n
+    <string name="avc_log_spoofing_description">禁用: 禁用在核心 AVC 日誌中欺騙 \'su\' 的 sus tcontext。\n
 啟用: 啟用在核心 AVC 日誌中將 \'su\' 的 sus tcontext 欺騙為 \'kernel\'</string>
-    <string name="avc_log_spoofing_warning">
-重要提示：\n
+    <string name="avc_log_spoofing_warning">重要提示：\n
 - 核心中預設設定為 \'0\'\n
-- 啟用此功能有時會使開發人員在除錯許可權或 SELinux 問題時難以識別原因，因此建議使用者在除錯時禁用此功能。
-</string>
-    <!-- 模块簽名功能描述 -->
+- 啟用此功能有時會使開發人員在除錯許可權或 SELinux 問題時難以識別原因，因此建議使用者在除錯時禁用此功能。</string>
+    <!-- 模块签名功能描述 -->
     <string name="module_verified">已驗證</string>
     <string name="module_signature_verified">模組簽名已驗證</string>
     <string name="module_signature_verification">驗證簽名</string>
