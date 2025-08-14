@@ -607,6 +607,17 @@
     <string name="sus_loop_path_feature_label">Đường dẫn Vòng lặp SuS</string>
     <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
     <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
+    <string name="avc_log_spoofing">Giả mạo nhật ký AVC</string>
+    <string name="avc_log_spoofing_enabled">Giả mạo nhật ký AVC đã kích hoạt</string>
+    <string name="avc_log_spoofing_disabled">Giả mạo nhật ký AVC đã bị vô hiệu hoá</string>
+    <string name="avc_log_spoofing_description">Tắt: Vô hiệu hoá tính năng giả mạo sus tcontext của \'su\' trong nhật ký AVC của kernel\n
+Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'kernel\' trong nhật ký AVC của kernel</string>
+    <string name="avc_log_spoofing_warning">Lưu ý quan trọng:\n
+- Giá trị này được đặt thành \'0\' theo mặc định trong kernel\n
+- Việc bật tính năng này đôi khi có thể khiến các nhà phát triển khó xác định nguyên nhân của các vấn đề về quyền hoặc SELinux khi gỡ lỗi, vì vậy người dùng nên tắt tính năng này khi gỡ lỗi</string>
+    <!-- 模块签名功能描述 -->
+    <string name="module_verified">Đã xác minh</string>
+    <string name="module_signature_verified">Chữ ký module đã được xác minh</string>
     <string name="module_signature_verification">Xác minh chữ ký</string>
     <string name="module_signature_verification_summary">Buộc xác minh chữ ký khi cài đặt module (Chỉ khả dụng cho arm64-v8a)</string>
     <string name="module_signature_invalid">Tác giả không xác định</string>
