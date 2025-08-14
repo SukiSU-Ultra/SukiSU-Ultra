@@ -177,6 +177,8 @@
     <string name="hide_other_info_summary">Gezinme çubuğu sayfasında süper kullanıcı, modül ve KPM modülü sayısı hakkında bilgi veren kırmızı noktayı gizler</string>
     <string name="hide_susfs_status">SuSFS durumunu gizle</string>
     <string name="hide_susfs_status_summary">Ana sayfadaki SuSFS durum bilgilerini gizle</string>
+    <string name="hide_zygisk_implement">Zygisk durumunu gizle</string>
+    <string name="hide_zygisk_implement_summary">Ana sayfada Zygisk uygulama bilgisini gizle</string>
     <string name="hide_link_card">Bağlantı Kartı Durumunu Gizle</string>
     <string name="hide_link_card_summary">Ana sayfadaki bağlantı kartı bilgilerini gizle</string>
     <string name="hide_tag_card">Modül etiket satırlarını gizle</string>
@@ -585,4 +587,40 @@
     <string name="no_active_manager">Aktif yönetici yok</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk uygulaması</string>
+    <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">SUS Döngü Yolları</string>
+    <string name="susfs_add_sus_loop_path">SUS Döngü Yolu Ekle</string>
+    <string name="susfs_edit_sus_loop_path">SUS Döngü Yolunu Düzenle</string>
+    <string name="susfs_loop_path_added_success">SUS döngü yolu başarıyla eklendi: %1$s</string>
+    <string name="susfs_loop_path_removed">SUS döngü yolu kaldırıldı: %1$s</string>
+    <string name="susfs_loop_path_updated">SUS döngü yolu güncellendi: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">Yapılandırılmış SUS döngü yolu yok</string>
+    <string name="susfs_reset_loop_paths_title">Döngü Yollarını Sıfırla</string>
+    <string name="susfs_reset_loop_paths_message">Tüm SUS döngü yollarını temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
+    <string name="susfs_loop_path_label">Döngü Yolu</string>
+    <string name="susfs_loop_path_placeholder">/data/ornek/yol</string>
+    <string name="susfs_loop_path_restriction_warning">Not: Döngü yolları aracılığıyla yalnızca /storage/ ve /sdcard/ içinde OLMAYAN yollar eklenebilir.</string>
+    <string name="susfs_loop_path_invalid_location">Hata: Döngü yolları /storage/ veya /sdcard/ dizinleri içinde olamaz</string>
+    <string name="loop_paths_section">Döngü Yolları</string>
+    <string name="add_loop_path">Döngü Yolu Ekle</string>
+    <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">SUS Döngü Yolu</string>
+    <string name="sus_loop_paths_description_title">Döngü Yolu Yapılandırması</string>
+    <string name="sus_loop_paths_description_text">Döngü yolları, her kök olmayan (non-root) kullanıcı uygulaması veya yalıtılmış hizmet başlangıcında SUS_PATH olarak yeniden işaretlenir. Bu, eklenen yolların inode durumunun sıfırlanması veya çekirdekte yeniden oluşturulması gibi sorunları gidermeye yardımcı olur.</string>
+    <string name="avc_log_spoofing">AVC Günlük Kaydı Taklidi</string>
+    <string name="avc_log_spoofing_enabled">AVC günlük kaydı taklidi etkinleştirildi</string>
+    <string name="avc_log_spoofing_disabled">AVC günlük kaydı taklidi devre dışı bırakıldı</string>
+    <string name="avc_log_spoofing_description">devre dışı: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'in taklit edilmesini devre dışı bırakır.\n
+etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'kernel\' olarak taklit etmeyi etkinleştirir.</string>
+    <string name="avc_log_spoofing_warning">Önemli Not:\n
+- Çekirdekte varsayılan olarak \'0\' değerine ayarlıdır.\n
+- Bu özelliği etkinleştirmek, geliştiricilerin bir izin veya SELinux sorunu için hata ayıklaması yaparken sorunun kaynağını bulmalarını zorlaştırabilir. Bu nedenle, bu tür işlemler sırasında özelliğin devre dışı bırakılması tavsiye edilir.</string>
+    <!-- 模块签名功能描述 -->
+    <string name="module_verified">Doğrulandı</string>
+    <string name="module_signature_verified">Modül imzası doğrulandı</string>
+    <string name="module_signature_verification">İmza Doğrulaması</string>
+    <string name="module_signature_verification_summary">Modülleri kurarken imza doğrulamasını zorunlu kıl. (Yalnızca arm64-v8a için geçerlidir)</string>
+    <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
+    <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
+    <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
 </resources>
