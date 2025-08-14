@@ -179,6 +179,8 @@
     <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
+    <string name="hide_zygisk_implement">Zygisk のステータスを非表示</string>
+    <string name="hide_zygisk_implement_summary">ホームページ上の Zygisk 実装情報を非表示にします。</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
     <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="hide_tag_card">モジュールラベルの行を非表示</string>
@@ -587,4 +589,40 @@
     <string name="no_active_manager">有効なマネージャーがありません</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk を実装</string>
+    <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">SUS ループパス</string>
+    <string name="susfs_add_sus_loop_path">SUS ループパスを追加</string>
+    <string name="susfs_edit_sus_loop_path">SUS ループパスを編集</string>
+    <string name="susfs_loop_path_added_success">SUS ループパスが正常に追加されました: %1$s</string>
+    <string name="susfs_loop_path_removed">SUS ループパスが削除されました: %1$s</string>
+    <string name="susfs_loop_path_updated">SUS ループパスが更新されました: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">SUS ループパスが構成されていません</string>
+    <string name="susfs_reset_loop_paths_title">ループパスをリセット</string>
+    <string name="susfs_reset_loop_paths_message">すべての SUS ループパスを消去してもよろしいですか？この操作は元に戻せません。</string>
+    <string name="susfs_loop_path_label">ループパス</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">注意: ループパス経由で追加できるのは /storage/ と /sdcard/ 内にないパスのみです。</string>
+    <string name="susfs_loop_path_invalid_location">エラー: ループパスは  /storage/ または /sdcard/ のディレクトリ内に配置できません。</string>
+    <string name="loop_paths_section">ループパス</string>
+    <string name="add_loop_path">ループパスを追加</string>
+    <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">SUS ループパス</string>
+    <string name="sus_loop_paths_description_title">ループパスの構成</string>
+    <string name="sus_loop_paths_description_text">ループパスは、非 root ユーザーアプリまたは独立したサービスの起動ごとに SUS_PATH として再設定されます。これにより、追加されたパスの inode ステータスがリセットされたり、カーネル内で inode が再生成される問題に対処できます。</string>
+    <string name="avc_log_spoofing">AVC ログの偽装</string>
+    <string name="avc_log_spoofing_enabled">AVC ログの偽装が有効化されました</string>
+    <string name="avc_log_spoofing_disabled">AVC ログの偽装が無効化されました</string>
+    <string name="avc_log_spoofing_description">無効: カーネルの AVC ログに表示される「su」の SUS T コンテキストの偽装を無効化します。\n
+有効: カーネルの AVC ログに表示される「kernel」を使用して「su」の SUS T コンテキストを偽装する機能を有効化します。</string>
+    <string name="avc_log_spoofing_warning">重要な注意事項:\n
+- カーネルはデフォルトで「0」に設定されています。\n
+- これを有効化すると、開発者が何らかの権限や SELinux の問題をデバッグするときに原因を特定するのが難しくなる場合があるため、デバッグ時はこれを無効化することをお勧めします。</string>
+    <!-- 模块签名功能描述 -->
+    <string name="module_verified">検証済み</string>
+    <string name="module_signature_verified">モジュールの署名が検証されました</string>
+    <string name="module_signature_verification">署名の検証</string>
+    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。(arm64-v8a 環境のみ)</string>
+    <string name="module_signature_invalid">不明な発行元</string>
+    <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
+    <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
 </resources>
