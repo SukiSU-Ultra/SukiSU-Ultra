@@ -585,6 +585,23 @@
     <string name="home_zygisk_implement">Zygisk 實現</string>
     <!-- 循环路径相关 -->
     <!-- 循环路径功能描述 -->
+    <string name="sus_loop_path_feature_label">SuS 循環路徑</string>
+    <string name="sus_loop_paths_description_title">循環路徑配置</string>
+    <string name="sus_loop_paths_description_text">循環路徑會喺每次非 root 用戶應用程式或者隔離服務啟動時，重新標記做 SUS_PATH。咁樣可以解決因為 inode 狀態重設或者核心重新建立 inode 而令到添加嘅路徑失效嘅問題。</string>
+    <string name="avc_log_spoofing">AVC 日誌欺騙</string>
+    <string name="avc_log_spoofing_enabled">AVC 日誌欺騙已經啟用</string>
+    <string name="avc_log_spoofing_disabled">AVC 日誌欺騙已經禁用</string>
+    <string name="avc_log_spoofing_description">禁用：喺核心 AVC 日誌入面禁用對 \'su\' 嘅 sus tcontext 進行欺騙。\n
+啟用：喺核心 AVC 日誌入面將 \'su\' 嘅 sus tcontext 欺騙成 \'kernel\'。</string>
+    <string name="avc_log_spoofing_warning">重要提示：\n
+- 核心入面嘅預設設定係 \'0\'。\n
+- 啟用呢個功能有時會令到開發人員喺除錯權限或者 SELinux 問題嗰陣難以搵出原因，所以建議用戶喺除錯時禁用呢個功能。</string>
     <!-- 模块签名功能描述 -->
+    <string name="module_verified">已驗證</string>
+    <string name="module_signature_verified">模組簽名已驗證</string>
+    <string name="module_signature_verification">驗證簽名</string>
     <string name="module_signature_verification_summary">模組安裝嗰陣，會強制驗證個簽名。（淨係 ARM架構 用得）</string>
+    <string name="module_signature_invalid">未知發布者</string>
+    <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護設備，已經阻止安裝呢個模組。</string>
+    <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
 </resources>
