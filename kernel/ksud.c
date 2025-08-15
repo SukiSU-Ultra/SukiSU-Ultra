@@ -27,6 +27,10 @@
 #include "kernel_compat.h"
 #include "selinux/selinux.h"
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+#include "objsec.h" // task_security_struct
+#endif
+
 bool ksu_is_compat __read_mostly = false; // let it here
 
 static const char KERNEL_SU_RC[] =
@@ -616,6 +620,28 @@ int __maybe_unused ksu_handle_compat_execve_ksud(const char __user *filename_use
 }
 #endif /* COMPAT & 64BIT */
 
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+bool is_ksu_transition(const struct task_security_struct *old_tsec,
+					   const struct task_security_struct *new_tsec)
+{
+	static u32 ksu_sid;
+	char *secdata;
+	u32 seclen;
+	bool allowed = false;
+
+	if (!ksu_sid)
+		security_secctx_to_secid("u:r:su:s0", strlen("u:r:su:s0"), &ksu_sid);
+
+	if (security_secid_to_secctx(old_tsec->sid, &secdata, &seclen))
+		return false;
+
+	allowed = (!strcmp("u:r:init:s0", secdata) && new_tsec->sid == ksu_sid);
+	security_release_secctx(secdata, seclen);
+
+	return allowed;
+}
 #endif
 
 static void stop_vfs_read_hook()
