@@ -619,7 +619,7 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="module_verified">Doğrulandı</string>
     <string name="module_signature_verified">Modül imzası doğrulandı</string>
     <string name="module_signature_verification">İmza Doğrulaması</string>
-    <string name="module_signature_verification_summary">Modülleri kurarken imza doğrulamasını zorunlu kıl. (Yalnızca arm64-v8a için geçerlidir)</string>
+    <string name="module_signature_verification_summary">Modüller yüklendiğinde imza doğrulamasını zorunlu kıl. (Sadece ARM mimarisi için geçerlidir)</string>
     <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
     <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
     <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>

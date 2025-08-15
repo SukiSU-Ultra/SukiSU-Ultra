@@ -621,7 +621,7 @@
     <string name="module_verified">検証済み</string>
     <string name="module_signature_verified">モジュールの署名が検証されました</string>
     <string name="module_signature_verification">署名の検証</string>
-    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。(arm64-v8a 環境のみ)</string>
+    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。（ARMアーキテクチャのみ）</string>
     <string name="module_signature_invalid">不明な発行元</string>
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>

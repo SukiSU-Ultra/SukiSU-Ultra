@@ -617,7 +617,7 @@
     <string name="module_verified">已验证</string>
     <string name="module_signature_verified">模块签名已验证</string>
     <string name="module_signature_verification">验证签名</string>
-    <string name="module_signature_verification_summary">模块安装时，强制验证签名。（仅 arm64-v8a 可用）</string>
+    <string name="module_signature_verification_summary">模块安装时，强制验证签名。（仅 ARM架构 可用）</string>
     <string name="module_signature_invalid">未知发布者</string>
     <string name="module_signature_invalid_message">未经签名的模块可能不完整。为了对设备进行保护，已阻止安装此模块。</string>
     <string name="module_signature_verification_failed">未经签名的模块可能不完整。你想安装来自未知发布者的模块吗？</string>

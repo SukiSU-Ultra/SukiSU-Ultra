@@ -625,7 +625,7 @@ Important Note:\n
     <string name="module_verified">Validated</string>
     <string name="module_signature_verified">Module signature verified</string>
     <string name="module_signature_verification">Signature Verification</string>
-    <string name="module_signature_verification_summary">Force signature verification when installing modules. (Only available for arm64-v8a)</string>
+    <string name="module_signature_verification_summary">Force signature verification when installing modules. (Only available for ARM architecture</string>
     <string name="module_signature_invalid">Unknown publisher</string>
     <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked.</string>
     <string name="module_signature_verification_failed">Unsigned modules may be incomplete. Do you want to allow the following module from an unknown publisher to install in this device?</string>

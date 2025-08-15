@@ -617,7 +617,7 @@
     <string name="module_verified">Проверенные</string>
     <string name="module_signature_verified">Подпись модуля подтверждена</string>
     <string name="module_signature_verification">Подтверждение подписи</string>
-    <string name="module_signature_verification_summary">Принудительная проверка подписи при установке модулей. (доступно только для arm64-v8a)</string>
+    <string name="module_signature_verification_summary">При установке модуля принудительно проверять подпись. (Только для архитектуры ARM)</string>
     <string name="module_signature_invalid">Неизвестный издатель</string>
     <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
     <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>

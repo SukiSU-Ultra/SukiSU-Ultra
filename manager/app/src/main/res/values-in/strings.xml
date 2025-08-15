@@ -613,7 +613,7 @@
     <string name="module_verified">Tervalidasi</string>
     <string name="module_signature_verified">Tanda tangan modul tervalidasi</string>
     <string name="module_signature_verification">Verifikasi Tanda Tangan</string>
-    <string name="module_signature_verification_summary">Paksa verifikasi tanda tangan saat memasang modul. (Hanya tersedia untuk arm64-v8a)</string>
+    <string name="module_signature_verification_summary">Verifikasi tanda tangan secara paksa saat modul dipasang. (Hanya tersedia untuk arsitektur ARM)</string>
     <string name="module_signature_invalid">Penerbit tidak dikenal</string>
     <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
     <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>

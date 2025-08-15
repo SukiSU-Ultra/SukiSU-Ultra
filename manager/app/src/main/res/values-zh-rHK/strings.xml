@@ -586,4 +586,5 @@
     <!-- 循环路径相关 -->
     <!-- 循环路径功能描述 -->
     <!-- 模块签名功能描述 -->
+    <string name="module_signature_verification_summary">模組安裝嗰陣，會強制驗證個簽名。（淨係 ARM架構 用得）</string>
 </resources>
