@@ -623,4 +623,5 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
     <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
     <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
+    <string name="home_hook_type">Hook tipi</string>
 </resources>
