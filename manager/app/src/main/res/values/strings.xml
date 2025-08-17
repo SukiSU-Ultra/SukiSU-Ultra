@@ -7,7 +7,7 @@
     <string name="home_working">Working</string>
     <string name="home_working_version">Version: %s</string>
     <string name="home_unsupported">Unsupported</string>
-    <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?.</string>
+    <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?</string>
     <string name="home_kernel">Kernel version</string>
     <string name="home_susfs_version">SuSFS Version</string>
     <string name="home_manager_version">Manager version</string>
@@ -50,8 +50,8 @@
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">Learn how to install KernelSU and use modules</string>
     <string name="home_support_title">Support Us</string>
-    <string name="home_support_content">KernelSU is, and always will be, free, and open source. You can however show us that you care by making a donation.</string>
-    <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel<br/><br/>The images of the files with anime character sticker are copyrighted by %3$s, the Brand Intellectual Property in the images is owned by %4$s. Before using these files, in addition to complying with %5$s, you also need to comply with the authorization of the two authors to use these artistic contents.]]></string>
+    <string name="home_support_content">KernelSU is, and always will be, free, and open source. You can however show us that you care by making a donation</string>
+    <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel<br/><br/>The images of the files with anime character sticker are copyrighted by %3$s, the Brand Intellectual Property in the images is owned by %4$s. Before using these files, in addition to complying with %5$s, you also need to comply with the authorization of the two authors to use these artistic contents]]></string>
     <string name="profile" translatable="false">App Profile</string>
     <string name="profile_default">Default</string>
     <string name="profile_template">Template</string>
@@ -64,15 +64,15 @@
     <string name="failed_to_update_app_profile">Failed to update App Profile for %s</string>
     <string name="require_kernel_version" formatted="false">The current KernelSU version %s is too low for the manager to work properly. Please upgrade to version %s or higher!</string>
     <string name="settings_umount_modules_default">Umount modules by default</string>
-    <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set.</string>
-    <string name="settings_susfs_toggle">Disable kprobe hooks</string>
-    <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app.</string>
+    <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set</string>
+    <string name="settings_susfs_toggle">Disable kprobes hook</string>
+    <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Rules</string>
     <string name="module_update">Update</string>
     <string name="module_downloading">Downloading module: %s</string>
     <string name="module_start_downloading">Start downloading: %s</string>
-    <string name="new_version_available">New version %s is available, click to upgrade.</string>
+    <string name="new_version_available">New version %s is available, click to upgrade</string>
     <string name="launch_app">Launch</string>
     <string name="force_stop_app" formatted="false">Force stop</string>
     <string name="restart_app">Restart</string>
@@ -100,28 +100,28 @@
     <string name="app_profile_template_save_failed">Failed to save template</string>
     <string name="app_profile_template_import_empty">Clipboard is empty!</string>
     <string name="module_changelog_failed">Fetch changelog failed: %s</string>
-    <string name="settings_check_update">Check update</string>
+    <string name="settings_check_update">Check for updates</string>
     <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
     <string name="grant_root_failed">Failed to grant root!</string>
     <string name="action">Action</string>
     <string name="close">Close</string>
     <string name="enable_web_debugging">Enable WebView debugging</string>
-    <string name="enable_web_debugging_summary">Can be used to debug WebUI. Please enable only when needed.</string>
+    <string name="enable_web_debugging_summary">Can be used to debug WebUI. Please enable only when needed</string>
     <string name="direct_install">Direct install (Recommended)</string>
     <string name="select_file">Select a image that needs to be patched</string>
     <string name="install_inactive_slot">Install to inactive slot (After OTA)</string>
     <string name="install_inactive_slot_warning">Your device will be **FORCED** to boot to the current inactive slot after a reboot!\nOnly use this option after OTA is done.\nContinue?</string>
     <string name="install_next">Next</string>
     <string name="select_file_tip">%1$s partition image is recommended</string>
-    <string name="select_file_tip_vendor">(unstable)</string>
+    <string name="select_file_tip_vendor">(Unstable)</string>
     <string name="select_kmi">Select KMI</string>
     <string name="settings_uninstall">Uninstall</string>
     <string name="settings_uninstall_temporary">Uninstall temporarily</string>
     <string name="settings_uninstall_permanent">Uninstall permanently</string>
     <string name="settings_restore_stock_image">Restore stock image</string>
-    <string name="settings_uninstall_temporary_message">Temporarily uninstall KernelSU, restore to original state after next reboot.</string>
-    <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (Root and all modules) completely and permanently.</string>
-    <string name="settings_restore_stock_image_message">Restore the stock factory image (If a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\".</string>
+    <string name="settings_uninstall_temporary_message">Temporarily uninstall KernelSU, restore to original state after next reboot</string>
+    <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (Root and all modules) completely and permanently</string>
+    <string name="settings_restore_stock_image_message">Restore the stock factory image (If a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\"</string>
     <string name="flashing">Flashing</string>
     <string name="flash_success">Flash success</string>
     <string name="flash_failed">Flash failed</string>
@@ -130,8 +130,8 @@
     <string name="log_saved">Logs saved</string>
     <string name="sus_su_mode">SuS SU mode:</string>
     <!-- Module related -->
-    <string name="module_install_confirm">confirm install module %1$s？</string>
-    <string name="unknown_module">unknown module</string>
+    <string name="module_install_confirm">Confirm install module %1$s？</string>
+    <string name="unknown_module">Unknown module</string>
     <!-- Restore related -->
     <string name="restore_confirm_title">Confirm Module Restoration</string>
     <string name="restore_confirm_message">This operation will overwrite all existing modules. Continue?</string>
@@ -140,8 +140,8 @@
     <!-- Backup related -->
     <string name="backup_success">Backup successful (tar.gz)</string>
     <string name="backup_failed">Backup failed: %1$s</string>
-    <string name="backup_modules">backup modules</string>
-    <string name="restore_modules">restore modules</string>
+    <string name="backup_modules">Backup modules</string>
+    <string name="restore_modules">Restore modules</string>
     <!-- Restore related messages -->
     <string name="restore_success">Modules restored successfully, restart required</string>
     <string name="restore_failed">Restore failed: %1$s</string>
@@ -165,7 +165,7 @@
     <string name="home_device_model">Device model</string>
     <string name="su_not_allowed">Granting superuser to %s is not allowed</string>
     <string name="settings_disable_su">Disable su compatibility</string>
-    <string name="settings_disable_su_summary">Temporarily disable any applications from obtaining root privileges via the ⁠su command (existing root processes will not be affected).</string>
+    <string name="settings_disable_su_summary">Temporarily disable any applications from obtaining root privileges via the ⁠su command (Existing root processes will not be affected)</string>
     <string name="module_install_multiple_confirm_with_names">Sure you want to install the following %1$d modules? \n\n%2$s</string>
     <string name="more_settings">More settings</string>
     <string name="selinux">SELinux</string>
@@ -237,10 +237,10 @@
     <string name="kpm_install_mode_description">Please select: %1\$s Module Installation Mode \n\nLoad: Temporarily load the module \nEmbedded: Permanently install into the system</string>
     <string name="snackbar_failed_to_check_module_file">Unable to check if module file exists</string>
     <string name="theme_color">Theme Color</string>
-    <string name="invalid_file_type">Incorrect file type! Please select .kpm file.</string>
+    <string name="invalid_file_type">Incorrect file type! Please select .kpm file</string>
     <string name="confirm_uninstall_title_with_filename">Uninstall</string>
     <string name="confirm_uninstall_content">The following KPM will be uninstalled: %s</string>
-    <string name="settings_susfs_toggle_summary">Disable kprobe hooks created by KernelSU, using inline hooks instead, which is similar to non-GKI kernel hooking method.</string>
+    <string name="settings_susfs_toggle_summary">Disable kprobes hook created by KernelSU, using inline hooks instead, which is similar to non-GKI kernel hooking method</string>
     <string name="image_editor_hint">Use two fingers to zoom the image, and one finger to drag it to adjust the position</string>
     <string name="reprovision">Reprovision</string>
     <!-- Kernel Flash Progress Related -->
@@ -290,7 +290,7 @@
     <string name="background_set_success">Background set successfully</string>
     <string name="background_removed">Removed custom backgrounds</string>
     <string name="icon_switch_title">Alternate icon</string>
-    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon</string>
     <string name="icon_switched">Icon switched</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Hides KPM Function</string>
@@ -301,15 +301,15 @@
     <string name="engine_force_webuix">Force the use of WebUI X</string>
     <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">Inject Eruda into WebUI X</string>
-    <string name="use_webuix_eruda_summary">Inject a debug console into WebUI X to make debugging easier. Requires web debugging to be on.</string>
+    <string name="use_webuix_eruda_summary">Inject a debug console into WebUI X to make debugging easier. Requires web debugging to be on</string>
     <!-- DPI setting related strings -->
     <string name="app_dpi_title">Applied DPI</string>
     <string name="app_dpi_summary">Adjust the screen display density for the current application only</string>
     <string name="dpi_size_small">Small </string>
     <string name="dpi_size_medium">Medium </string>
     <string name="dpi_size_large">Big</string>
-    <string name="dpi_size_extra_large">oversize</string>
-    <string name="dpi_size_custom">customizable</string>
+    <string name="dpi_size_extra_large">Oversize</string>
+    <string name="dpi_size_custom">Customizable</string>
     <string name="dpi_apply_settings">Applying DPI settings</string>
     <string name="dpi_confirm_title">Confirm DPI change</string>
     <string name="dpi_confirm_message">Are you sure you want to change the application DPI from %1$d to %2$d?</string>
@@ -335,11 +335,11 @@
     <!-- 排序相关 -->
     <string name="sort_name_asc">Ascending order of name</string>
     <string name="sort_name_desc">Name descending</string>
-    <string name="sort_install_time_new">Installation time (new)</string>
-    <string name="sort_install_time_old">Installation time (old)</string>
-    <string name="sort_size_desc">descending order of size</string>
-    <string name="sort_size_asc">ascending order of size</string>
-    <string name="sort_usage_freq">frequency of use</string>
+    <string name="sort_install_time_new">Installation time (New)</string>
+    <string name="sort_install_time_old">Installation time (Old)</string>
+    <string name="sort_size_desc">Descending order of size</string>
+    <string name="sort_size_asc">Ascending order of size</string>
+    <string name="sort_usage_freq">Frequency of use</string>
     <!-- 状态相关 -->
     <string name="no_apps_in_category">No application in this category</string>
     <!-- 标签相关 -->
@@ -352,7 +352,7 @@
     <string name="scroll_to_top">Top</string>
     <string name="scroll_to_bottom">Bottom</string>
     <string name="selected">Selected</string>
-    <string name="select">option</string>
+    <string name="select">Select</string>
     <!-- BottomSheet相关 -->
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
@@ -360,7 +360,7 @@
     <!-- SuSFS Configuration -->
     <string name="susfs_config_title">SuSFS Configuration</string>
     <string name="susfs_config_description">Configuration Description</string>
-    <string name="susfs_config_description_text">This feature allows you to customize the SuSFS uname value and build time spoofing. Enter the values you want to set and click Apply to take effect.</string>
+    <string name="susfs_config_description_text">This feature allows you to customize the SuSFS uname value and build time spoofing. Enter the values you want to set and click Apply to take effect</string>
     <string name="susfs_uname_label">Uname Value</string>
     <string name="susfs_uname_placeholder">Please enter custom uname value</string>
     <string name="susfs_build_time_label">Build Time Spoofing</string>
@@ -494,7 +494,7 @@
     <string name="add_kstat_path_title">Add Kstat Path</string>
     <string name="add">Add</string>
     <string name="reset_kstat_config_title">Reset Kstat Configuration</string>
-    <string name="reset_kstat_config_message">Are you sure you want to clear all Kstat configurations? This action cannot be undone.</string>
+    <string name="reset_kstat_config_message">Are you sure you want to clear all Kstat configurations? This action cannot be undone</string>
     <string name="kstat_config_description_title">Kstat Configuration Description</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Static stat info of files/directories</string>
     <string name="kstat_config_description_add">• add_sus_kstat: Add path before bind mount, storing original stat info</string>
@@ -502,7 +502,7 @@
     <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: Update ino only, keep other original values</string>
     <string name="static_kstat_config">Static Kstat Configuration</string>
     <string name="kstat_path_management">Kstat Path Management</string>
-    <string name="no_kstat_config_message">No Kstat configuration yet, click the button above to add</string>
+    <string name="no_kstat_config_message">No Kstat configuration yet, click the button below to add</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
     <string name="susfs_hide_mounts_control_title">SUS Mount Hiding Control</string>
     <string name="susfs_hide_mounts_control_description">Control the hiding behavior of SUS mounts for processes</string>
@@ -523,7 +523,7 @@
     <string name="susfs_path_setup_warning">Path setup may not be fully successful, but SUS paths will continue to be added</string>
     <!-- 备份和还原相关字符串 -->
     <string name="susfs_backup_title">Backup</string>
-    <string name="susfs_backup_description">Create a backup of all SuSFS configurations. The backup file will include all settings, paths, and configurations.</string>
+    <string name="susfs_backup_description">Create a backup of all SuSFS configurations. The backup file will include all settings, paths, and configurations</string>
     <string name="susfs_backup_create">Create Backup</string>
     <string name="susfs_backup_success">Backup created successfully: %s</string>
     <string name="susfs_backup_failed">Backup creation failed: %s</string>
@@ -531,7 +531,7 @@
     <string name="susfs_backup_invalid_format">Invalid backup file format</string>
     <string name="susfs_backup_version_mismatch">Backup version mismatch, but will attempt to restore</string>
     <string name="susfs_restore_title">Restore</string>
-    <string name="susfs_restore_description">Restore SuSFS configurations from a backup file. This will overwrite all current settings.</string>
+    <string name="susfs_restore_description">Restore SuSFS configurations from a backup file. This will overwrite all current settings</string>
     <string name="susfs_restore_select_file">Select Backup File</string>
     <string name="susfs_restore_success" formatted="false">Configuration restored successfully from backup created on %s from device: %s</string>
     <string name="susfs_restore_failed">Restore failed: %s</string>
@@ -544,7 +544,7 @@
     <string name="hide_bl_script">Lock state</string>
     <string name="hide_bl_script_description">Overwrite bootloader locking status attribute in late_start service mode</string>
     <string name="cleanup_residue">Cleanup Residue</string>
-    <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (may be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
+    <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (May be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
     <string name="susfs_edit_sus_path">Edit SUS Path</string>
     <string name="susfs_edit_sus_mount">Edit SUS Mount</string>
     <string name="susfs_edit_try_umount">Edit Try Umount</string>
@@ -598,36 +598,36 @@
     <string name="susfs_loop_path_updated">SUS loop path updated: %1$s -> %2$s</string>
     <string name="susfs_no_loop_paths_configured">No SUS loop paths configured</string>
     <string name="susfs_reset_loop_paths_title">Reset Loop Paths</string>
-    <string name="susfs_reset_loop_paths_message">Are you sure you want to clear all SUS loop paths? This action cannot be undone.</string>
+    <string name="susfs_reset_loop_paths_message">Are you sure you want to clear all SUS loop paths? This action cannot be undone</string>
     <string name="susfs_loop_path_label">Loop Path</string>
     <string name="susfs_loop_path_placeholder">/data/example/path</string>
-    <string name="susfs_loop_path_restriction_warning">Note: Only paths NOT inside /storage/ and /sdcard/ can be added via loop paths.</string>
+    <string name="susfs_loop_path_restriction_warning">Note: Only paths NOT inside /storage/ and /sdcard/ can be added via loop paths</string>
     <string name="susfs_loop_path_invalid_location">Error: Loop paths cannot be inside /storage/ or /sdcard/ directories</string>
     <string name="loop_paths_section">Loop Paths</string>
     <string name="add_loop_path">Add Loop Path</string>
     <!-- 循环路径功能描述 -->
     <string name="sus_loop_path_feature_label">SUS Loop Path</string>
     <string name="sus_loop_paths_description_title">Loop Path Configuration</string>
-    <string name="sus_loop_paths_description_text">Loop paths are re-flagged as SUS_PATH on each non-root user app or isolated service startup. This helps address issues where added paths may have their inode status reset or inode re-created in the kernel.</string>
+    <string name="sus_loop_paths_description_text">Loop paths are re-flagged as SUS_PATH on each non-root user app or isolated service startup. This helps address issues where added paths may have their inode status reset or inode re-created in the kernel</string>
     <string name="avc_log_spoofing">AVC Log Spoofing</string>
     <string name="avc_log_spoofing_enabled">AVC log spoofing has been enabled</string>
     <string name="avc_log_spoofing_disabled">AVC log spoofing has been disabled</string>
     <string name="avc_log_spoofing_description">
-disabled : Disable spoofing the sus tcontext of \'su\' shown in avc log in kernel.\n
-enabled : Enable spoofing the sus tcontext of \'su\' with \'kernel\' shown in avc log in kernel
+Disabled: Disable spoofing the sus tcontext of \'su\' shown in avc log in kernel\n
+Enabled: Enable spoofing the sus tcontext of \'su\' with \'kernel\' shown in avc log in kernel
 </string>
     <string name="avc_log_spoofing_warning">
 Important Note:\n
 - It is set to \'0\' by default in kernel\n
-- Enabling this will sometimes make developers hard to identify the cause when they are debugging with some permission or SELinux issue, so users are advised to disable this when doing so.
+- Enabling this will sometimes make developers hard to identify the cause when they are debugging with some permission or SELinux issue, so users are advised to disable this when doing
 </string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Validated</string>
     <string name="module_signature_verified">Module signature verified</string>
     <string name="module_signature_verification">Signature Verification</string>
-    <string name="module_signature_verification_summary">Force signature verification when installing modules. (Only available for ARM architecture</string>
+    <string name="module_signature_verification_summary">Force signature verification when installing modules (Only available for ARM architecture)</string>
     <string name="module_signature_invalid">Unknown publisher</string>
-    <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked.</string>
+    <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked</string>
     <string name="module_signature_verification_failed">Unsigned modules may be incomplete. Do you want to allow the following module from an unknown publisher to install in this device?</string>
     <string name="home_hook_type">Hook type</string>
 </resources>
