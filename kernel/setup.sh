@@ -30,7 +30,7 @@ perform_cleanup() {
     echo "[+] Cleaning up..."
     [ -L "$DRIVER_DIR/kernelsu" ] && rm "$DRIVER_DIR/kernelsu" && echo "[-] Symlink removed."
     grep -q "kernelsu" "$DRIVER_MAKEFILE" && sed -i '/kernelsu/d' "$DRIVER_MAKEFILE" && echo "[-] Makefile reverted."
-    grep -q "kernelsu" "$DRIVER_KCONFIG" && sed -i '/kernelsu/d' "$DRIVER_KCONFIG" && echo "[-] Kconfig reverted."
+    grep -q "drivers/kernelsu/Kconfig" "$DRIVER_KCONFIG" && sed -i '/drivers\/kernelsu\/Kconfig/d' "$DRIVER_KCONFIG" && echo "[-] Kconfig reverted."
     if [ -d "$KERNEL_ROOT/KernelSU" ]; then
         rm -rf "$KERNEL_ROOT/KernelSU" && echo "[-] KernelSU directory deleted."
     fi
@@ -56,11 +56,20 @@ setup_kernelsu() {
         git checkout "$1" && echo "[-] Checked out $1." || echo "[-] Checkout default branch"
     fi
     cd "$DRIVER_DIR"
-    ln -sf "$(realpath --relative-to="$DRIVER_DIR" "$KERNEL_ROOT/KernelSU/kernel")" "kernelsu" && echo "[+] Symlink created."
+    [ -L "kernelsu" ] || ln -sf "$(realpath --relative-to="$DRIVER_DIR" "$KERNEL_ROOT/KernelSU/kernel")" "kernelsu" && echo "[+] Symlink created."
 
     # Add entries in Makefile and Kconfig if not already existing
-    grep -q "kernelsu" "$DRIVER_MAKEFILE" || echo 'obj-$(CONFIG_KSU) += kernelsu/' >> "$DRIVER_MAKEFILE" && echo "[+] Modified Makefile."
-    grep -q 'source "drivers/kernelsu/Kconfig"' "$DRIVER_KCONFIG" || sed -i '/endmenu/i\source "drivers/kernelsu/Kconfig"' "$DRIVER_KCONFIG" && echo "[+] Modified Kconfig."
+    if grep -q "kernelsu" "$DRIVER_MAKEFILE" 2>/dev/null; then
+        echo "[=] Makefile already configured."
+    else
+        echo 'obj-$(CONFIG_KSU) += kernelsu/' >> "$DRIVER_MAKEFILE" && echo "[+] Modified Makefile."
+    fi
+
+    if grep -q 'source "drivers/kernelsu/Kconfig"' "$DRIVER_KCONFIG" 2>/dev/null; then
+        echo "[=] Kconfig already configured."
+    else
+        sed -i '/endmenu/i\source "drivers/kernelsu/Kconfig"' "$DRIVER_KCONFIG" && echo "[+] Modified Kconfig."
+    fi
     echo '[+] Done.'
 }
 
