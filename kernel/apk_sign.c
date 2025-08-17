@@ -4,7 +4,6 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/version.h>
-#include <linux/workqueue.h>
 #ifdef CONFIG_KSU_DEBUG
 #include <linux/moduleparam.h>
 #endif
@@ -83,6 +82,72 @@ static int ksu_sha256(const unsigned char *data, unsigned int datalen,
 	crypto_free_shash(alg);
 	return ret;
 }
+static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, int *matched_index)
+{
+	int i;
+	struct apk_sign_key sign_key;
+	bool signature_valid = false;
+
+	ksu_kernel_read_compat(fp, size4, 0x4, pos); // signer-sequence length
+	ksu_kernel_read_compat(fp, size4, 0x4, pos); // signer length
+	ksu_kernel_read_compat(fp, size4, 0x4, pos); // signed data length
+
+	*offset += 0x4 * 3;
+
+	ksu_kernel_read_compat(fp, size4, 0x4, pos); // digests-sequence length
+
+	*pos += *size4;
+	*offset += 0x4 + *size4;
+
+	ksu_kernel_read_compat(fp, size4, 0x4, pos); // certificates length
+	ksu_kernel_read_compat(fp, size4, 0x4, pos); // certificate length
+	*offset += 0x4 * 2;
+
+	for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
+		sign_key = apk_sign_keys[i];
+
+		if (i == 1) { // Dynamic Sign indexing
+			unsigned int size;
+			const char *hash;
+			if (ksu_get_dynamic_sign_config(&size, &hash)) {
+				sign_key.size = size;
+				sign_key.sha256 = hash;
+			}
+		}
+
+		if (*size4 != sign_key.size)
+			continue;
+		*offset += *size4;
+
+#define CERT_MAX_LENGTH 1024
+		char cert[CERT_MAX_LENGTH];
+		if (*size4 > CERT_MAX_LENGTH) {
+			pr_info("cert length overlimit\n");
+			return false;
+		}
+		ksu_kernel_read_compat(fp, cert, *size4, pos);
+		unsigned char digest[SHA256_DIGEST_SIZE];
+		if (IS_ERR(ksu_sha256(cert, *size4, digest))) {
+			pr_info("sha256 error\n");
+			return false;
+		}
+
+		char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
+		hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
+
+		bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
+		pr_info("sha256: %s, expected: %s, index: %d\n", hash_str, sign_key.sha256, i);
+		
+		if (strcmp(sign_key.sha256, hash_str) == 0) {
+			signature_valid = true;
+			if (matched_index) {
+				*matched_index = i;
+			}
+			break;
+		}
+	}
+	return signature_valid;
+}
 
 struct zip_entry_header {
 	uint32_t signature;
@@ -136,86 +201,14 @@ static bool has_v1_signature_file(struct file *fp)
 	return false;
 }
 
-// Generic Signature Block Verification
-static int verify_signature_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, int *matched_index)
-{
-	int i;
-	struct apk_sign_key sign_key;
-	bool signature_valid = false;
-
-	ksu_kernel_read_compat(fp, size4, 0x4, pos); // signer-sequence length
-	ksu_kernel_read_compat(fp, size4, 0x4, pos); // signer length
-	ksu_kernel_read_compat(fp, size4, 0x4, pos); // signed data length
-
-	*offset += 0x4 * 3;
-
-	ksu_kernel_read_compat(fp, size4, 0x4, pos); // digests-sequence length
-
-	*pos += *size4;
-	*offset += 0x4 + *size4;
-
-	ksu_kernel_read_compat(fp, size4, 0x4, pos); // certificates length
-	ksu_kernel_read_compat(fp, size4, 0x4, pos); // certificate length
-	*offset += 0x4 * 2;
-
-	for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
-		sign_key = apk_sign_keys[i];
-
-		if (i == 1) { // Dynamic Sign indexing
-			unsigned int size;
-			const char *hash;
-			if (ksu_get_dynamic_sign_config(&size, &hash)) {
-				sign_key.size = size;
-				sign_key.sha256 = hash;
-			}
-		}
-
-		if (*size4 != sign_key.size)
-			continue;
-
-#define CERT_MAX_LENGTH 1024
-		char cert[CERT_MAX_LENGTH];
-		if (*size4 > CERT_MAX_LENGTH) {
-			pr_info("cert length overlimit\n");
-			continue;
-		}
-		
-		loff_t cert_pos = *pos;
-		ksu_kernel_read_compat(fp, cert, *size4, &cert_pos);
-		unsigned char digest[SHA256_DIGEST_SIZE];
-		if (IS_ERR(ksu_sha256(cert, *size4, digest))) {
-			pr_info("sha256 error\n");
-			continue;
-		}
-
-		char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
-		hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
-
-		bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
-		pr_info("sha256: %s, expected: %s, index: %d\n", hash_str, sign_key.sha256, i);
-		
-		if (strcmp(sign_key.sha256, hash_str) == 0) {
-			signature_valid = true;
-			if (matched_index) {
-				*matched_index = i;
-			}
-			break;
-		}
-	}
-	
-	*offset += *size4;
-	*pos += *size4;
-	
-	return signature_valid ? 1 : 0;
-}
-
-// Generic APK signature parsing
-static int parse_apk_signature(char *path, bool check_multi_manager, int *signature_index)
+static bool parse_apk_signature(char *path, bool check_multi_manager, int *signature_index)
 {
 	unsigned char buffer[0x11] = { 0 };
 	u32 size4;
 	u64 size8, size_of_block;
+
 	loff_t pos;
+
 	bool v2_signing_valid = false;
 	int v2_signing_blocks = 0;
 	bool v3_signing_exist = false;
@@ -225,7 +218,7 @@ static int parse_apk_signature(char *path, bool check_multi_manager, int *signat
 	struct file *fp = ksu_filp_open_compat(path, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
 		pr_err("open %s error.\n", path);
-		return -1;
+		return false;
 	}
 
 	// If you want to check for multi-manager APK signing, but dynamic signing is not enabled, skip
@@ -272,12 +265,12 @@ static int parse_apk_signature(char *path, bool check_multi_manager, int *signat
 		goto clean;
 	}
 
-	// Parsing the signature block
 	int loop_count = 0;
 	while (loop_count++ < 10) {
 		uint32_t id;
 		uint32_t offset;
-		ksu_kernel_read_compat(fp, &size8, 0x8, &pos); // sequence length
+		ksu_kernel_read_compat(fp, &size8, 0x8,
+				       &pos); // sequence length
 		if (size8 == size_of_block) {
 			break;
 		}
@@ -285,8 +278,8 @@ static int parse_apk_signature(char *path, bool check_multi_manager, int *signat
 		offset = 4;
 		if (id == 0x7109871au) {
 			v2_signing_blocks++;
-			int result = verify_signature_block(fp, &size4, &pos, &offset, &matched_index);
-			if (result == 1) {
+			bool result = check_block(fp, &size4, &pos, &offset, &matched_index);
+			if (result) {
 				v2_signing_valid = true;
 			}
 		} else if (id == 0xf05368c0u) {
@@ -305,21 +298,20 @@ static int parse_apk_signature(char *path, bool check_multi_manager, int *signat
 
 	if (v2_signing_blocks != 1) {
 #ifdef CONFIG_KSU_DEBUG
-		pr_err("Unexpected v2 signature count: %d\n", v2_signing_blocks);
+		pr_err("Unexpected v2 signature count: %d\n",
+		       v2_signing_blocks);
 #endif
 		v2_signing_valid = false;
 	}
 
-	// Check v1 signatures
 	if (v2_signing_valid) {
-		bool has_v1_signing = has_v1_signature_file(fp);
+		int has_v1_signing = has_v1_signature_file(fp);
 		if (has_v1_signing) {
 			pr_err("Unexpected v1 signature scheme found!\n");
 			filp_close(fp, 0);
-			return -1;
+			return false;
 		}
 	}
-
 clean:
 	filp_close(fp, 0);
 
@@ -327,7 +319,7 @@ clean:
 #ifdef CONFIG_KSU_DEBUG
 		pr_err("Unexpected v3 signature scheme found!\n");
 #endif
-		return -1;
+		return false;
 	}
 
 	if (v2_signing_valid) {
@@ -339,16 +331,16 @@ clean:
 			// 0: ShirkNeko/SukiSU, 1: Dynamic Sign
 			if (matched_index == 0 || matched_index == 1) {
 				pr_info("Multi-manager APK detected (dynamic_sign enabled): signature_index=%d\n", matched_index);
-				return 1;
+				return true;
 			}
-			return 0;
+			return false;
 		} else {
 			// Common manager check: any valid signature will do
-			return 1;
+			return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 bool ksu_is_multi_manager_apk(char *path, int *signature_index)
