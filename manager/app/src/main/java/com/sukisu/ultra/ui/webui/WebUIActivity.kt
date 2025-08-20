@@ -1,10 +1,10 @@
 package com.sukisu.ultra.ui.webui
 
-import android.annotation.SuppressLint
-import android.app.ActivityManager
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.view.ViewGroup.MarginLayoutParams
+import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -14,21 +14,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewAssetLoader
-import com.dergoogler.mmrl.platform.model.ModId
+import com.dergoogler.mmrl.platform.model.ModId.Companion.getModId
+import com.dergoogler.mmrl.platform.model.ModId.Companion.webrootDir
+import com.dergoogler.mmrl.ui.component.dialog.ConfirmData
+import com.dergoogler.mmrl.ui.component.dialog.confirm
+import com.dergoogler.mmrl.webui.activity.WXActivity.Companion.createLoadingRenderer
 import com.topjohnwu.superuser.Shell
 import com.sukisu.ultra.ui.util.createRootShell
-import java.io.File
-import com.dergoogler.mmrl.webui.interfaces.WXOptions
+import com.dergoogler.mmrl.webui.util.WebUIOptions
+import com.dergoogler.mmrl.webui.view.WebUIView
+import com.sukisu.ultra.ui.theme.ThemeConfig
+import com.sukisu.ultra.ui.theme._isSystemInDarkTheme
+import com.sukisu.ultra.ui.theme.createColorScheme
+import kotlinx.coroutines.launch
 
-@SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
-    private lateinit var webviewInterface: WebViewInterface
+    val modId get() = intent.getModId() ?: throw IllegalArgumentException("Invalid Module ID")
+    val prefs: SharedPreferences get() = getSharedPreferences("settings", MODE_PRIVATE)
+    val context: Context get() = this
 
     private var rootShell: Shell? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         // Enable edge to edge
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -37,44 +46,76 @@ class WebUIActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val moduleId = intent.getStringExtra("id")!!
-        val name = intent.getStringExtra("name")!!
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            @Suppress("DEPRECATION")
-            setTaskDescription(ActivityManager.TaskDescription("SukiSU-Ultra - $name"))
-        } else {
-            val taskDescription =
-                ActivityManager.TaskDescription.Builder().setLabel("SukiSU-Ultra - $name").build()
-            setTaskDescription(taskDescription)
+        val darkTheme = when (ThemeConfig.forceDarkMode) {
+            true -> true
+            false -> false
+            null -> _isSystemInDarkTheme(context)
         }
 
-        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        WebView.setWebContentsDebuggingEnabled(prefs.getBoolean("enable_web_debugging", false))
+        val colorScheme = createColorScheme(
+            context = context,
+            darkTheme = darkTheme
+        )
 
-        val moduleDir = "/data/adb/modules/${moduleId}"
-        val webRoot = File("${moduleDir}/webroot")
+        val loading = createLoadingRenderer(colorScheme)
+        setContentView(loading)
+
+        lifecycleScope.launch {
+            val ready = initPlatform(context)
+
+            if (ready.await()) {
+                init()
+                return@launch
+            }
+
+            confirm(
+                ConfirmData(
+                    title = "Failed!",
+                    description = "Failed to initialize platform. Please try again.",
+                    confirmText = "Close",
+                    onConfirm = {
+                        finish()
+                    },
+                ),
+                colorScheme = colorScheme
+            )
+        }
+
+    }
+
+    private fun init() {
+        val webDebugging = prefs.getBoolean("enable_web_debugging", false)
+
+        val options = WebUIOptions(
+            modId = modId,
+            debug = webDebugging,
+            // keep plugins disabled for security reasons
+            pluginsEnabled = false,
+            context = context,
+        )
+
         val rootShell = createRootShell(true).also { this.rootShell = it }
         val webViewAssetLoader = WebViewAssetLoader.Builder()
             .setDomain("mui.kernelsu.org")
             .addPathHandler(
                 "/",
-                SuFilePathHandler(this, webRoot, rootShell)
+                SuFilePathHandler(this, modId.webrootDir, rootShell)
             )
             .build()
 
         val webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
                 view: WebView,
-                request: WebResourceRequest
+                request: WebResourceRequest,
             ): WebResourceResponse? {
                 return webViewAssetLoader.shouldInterceptRequest(request.url)
             }
         }
 
-        val webView = WebView(this).apply {
+        val webView = WebUIView(options).apply {
             ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val inset = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.updateLayoutParams<MarginLayoutParams> {
+                view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     leftMargin = inset.left
                     rightMargin = inset.right
                     topMargin = inset.top
@@ -82,20 +123,17 @@ class WebUIActivity : ComponentActivity() {
                 }
                 return@setOnApplyWindowInsetsListener insets
             }
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.allowFileAccess = false
-            webviewInterface = WebViewInterface(WXOptions(this@WebUIActivity, this, ModId(moduleId)))
-            addJavascriptInterface(webviewInterface, "ksu")
+
+            addJavascriptInterface<WebViewInterface>()
             setWebViewClient(webViewClient)
-            loadUrl("https://mui.kernelsu.org/index.html")
+            loadDomain()
         }
 
         setContentView(webView)
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         runCatching { rootShell?.close() }
+        super.onDestroy()
     }
 }

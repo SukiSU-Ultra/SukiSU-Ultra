@@ -7,7 +7,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.util.Log
 import android.widget.Toast
-import com.dergoogler.mmrl.platform.Platform.Companion.context
+import com.dergoogler.mmrl.platform.PlatformManager.context
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.topjohnwu.superuser.Shell

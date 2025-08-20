@@ -28,12 +28,12 @@ apksign {
 android {
 
     /**signingConfigs {
-        create("Debug") {
-            storeFile = file("D:\\other\\AndroidTool\\android_key\\keystore\\release-key.keystore")
-            storePassword = ""
-            keyAlias = ""
-            keyPassword = ""
-        }
+    create("Debug") {
+    storeFile = file("D:\\other\\AndroidTool\\android_key\\keystore\\release-key.keystore")
+    storePassword = ""
+    keyAlias = ""
+    keyPassword = ""
+    }
     }**/
     namespace = "com.sukisu.ultra"
 
@@ -41,10 +41,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
         /**debug {
-            signingConfig = signingConfigs.named("Debug").get() as ApkSigningConfig
+        signingConfig = signingConfigs.named("Debug").get() as ApkSigningConfig
         }**/
     }
 
@@ -131,6 +134,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
+    implementation(libs.androidx.swiperefreshlayout)
+
     implementation(libs.compose.destinations.core)
     ksp(libs.compose.destinations.ksp)
 
@@ -159,7 +164,13 @@ dependencies {
 
     implementation(libs.mmrl.platform)
     compileOnly(libs.mmrl.hidden.api)
-    implementation(libs.mmrl.webui)
+    implementation(libs.mmrl.webui.portable) {
+        // exclude `Java-Native-Access` since plugins are disabled in both WebUI X and KSU WebUI
+        exclude(
+            group = "com.github.MMRLApp",
+            module = "jna"
+        )
+    }
     implementation(libs.mmrl.ui)
 
     implementation(libs.accompanist.drawablepainter)

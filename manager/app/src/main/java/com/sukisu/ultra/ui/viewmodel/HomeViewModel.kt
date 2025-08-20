@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dergoogler.mmrl.platform.Platform.Companion.context
+import com.dergoogler.mmrl.platform.PlatformManager.context
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sukisu.ultra.KernelVersion

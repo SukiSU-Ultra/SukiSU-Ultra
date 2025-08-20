@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.theme
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -48,8 +49,10 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.ColorScheme
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 
 /**
  * 主题配置对象，管理应用的主题相关状态
@@ -84,13 +87,13 @@ object ThemeConfig {
  */
 @Composable
 fun KernelSUTheme(
-    darkTheme: Boolean = when(ThemeConfig.forceDarkMode) {
+    darkTheme: Boolean = when (ThemeConfig.forceDarkMode) {
         true -> true
         false -> false
         null -> isSystemInDarkTheme()
     },
     dynamicColor: Boolean = ThemeConfig.useDynamicColor,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     val systemIsDark = isSystemInDarkTheme()
@@ -135,18 +138,17 @@ fun KernelSUTheme(
             ThemeConfig.backgroundImageLoaded = false
         }
 
-        ThemeConfig.preventBackgroundRefresh = context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
-            .getBoolean("prevent_background_refresh", true)
+        ThemeConfig.preventBackgroundRefresh =
+            context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+                .getBoolean("prevent_background_refresh", true)
     }
 
     // 创建颜色方案
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            if (darkTheme) createDynamicDarkColorScheme(context) else createDynamicLightColorScheme(context)
-        }
-        darkTheme -> createDarkColorScheme()
-        else -> createLightColorScheme()
-    }
+    val colorScheme = createColorScheme(
+        context = context,
+        darkTheme = darkTheme,
+        dynamicColor = dynamicColor
+    )
 
     // 根据暗色模式和自定义背景调整卡片配置
     val isDarkModeWithCustomBackground = darkTheme && ThemeConfig.customBackgroundUri != null
@@ -217,8 +219,18 @@ fun KernelSUTheme(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(-2f)
-                    .background(if (darkTheme) if (CardConfig.isCustomBackgroundEnabled) { colorScheme.surfaceContainerLow } else { colorScheme.background }
-                    else if (CardConfig.isCustomBackgroundEnabled) { colorScheme.surfaceContainerLow } else { colorScheme.background })
+                    .background(
+                        if (darkTheme) if (CardConfig.isCustomBackgroundEnabled) {
+                            colorScheme.surfaceContainerLow
+                        } else {
+                            colorScheme.background
+                        }
+                        else if (CardConfig.isCustomBackgroundEnabled) {
+                            colorScheme.surfaceContainerLow
+                        } else {
+                            colorScheme.background
+                        }
+                    )
             )
 
             // 自定义背景层
@@ -239,7 +251,9 @@ fun KernelSUTheme(
                                     contentScale = ContentScale.Crop
                                 )
                                 .graphicsLayer {
-                                    alpha = (painter.state as? AsyncImagePainter.State.Success)?.let { 1f } ?: 0f
+                                    alpha =
+                                        (painter.state as? AsyncImagePainter.State.Success)?.let { 1f }
+                                            ?: 0f
                                 }
                         )
                     }
@@ -288,7 +302,6 @@ fun KernelSUTheme(
  * 创建动态深色颜色方案
  */
 @RequiresApi(Build.VERSION_CODES.S)
-@Composable
 private fun createDynamicDarkColorScheme(context: Context): ColorScheme {
     val scheme = dynamicDarkColorScheme(context)
     return scheme.copy(
@@ -303,7 +316,6 @@ private fun createDynamicDarkColorScheme(context: Context): ColorScheme {
  * 创建动态浅色颜色方案
  */
 @RequiresApi(Build.VERSION_CODES.S)
-@Composable
 private fun createDynamicLightColorScheme(context: Context): ColorScheme {
     val scheme = dynamicLightColorScheme(context)
     return scheme.copy(
@@ -314,12 +326,35 @@ private fun createDynamicLightColorScheme(context: Context): ColorScheme {
     )
 }
 
+internal fun createColorScheme(
+    context: Context,
+    darkTheme: Boolean = when (ThemeConfig.forceDarkMode) {
+        true -> true
+        false -> false
+        null -> _isSystemInDarkTheme(context)
+    },
+    dynamicColor: Boolean = ThemeConfig.useDynamicColor,
+) = when {
+    dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        if (darkTheme) createDynamicDarkColorScheme(context) else createDynamicLightColorScheme(
+            context
+        )
+    }
 
+    darkTheme -> createDarkColorScheme()
+    else -> createLightColorScheme()
+}
+
+@Suppress("FunctionName")
+internal fun _isSystemInDarkTheme(context: Context): Boolean {
+    val configuration = context.resources.configuration
+    val uiMode = configuration.uiMode
+    return (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+}
 
 /**
  * 创建深色颜色方案
  */
-@Composable
 private fun createDarkColorScheme() = darkColorScheme(
     primary = ThemeConfig.currentTheme.primaryDark,
     onPrimary = ThemeConfig.currentTheme.onPrimaryDark,
@@ -361,7 +396,6 @@ private fun createDarkColorScheme() = darkColorScheme(
 /**
  * 创建浅色颜色方案
  */
-@Composable
 private fun createLightColorScheme() = lightColorScheme(
     primary = ThemeConfig.currentTheme.primaryLight,
     onPrimary = ThemeConfig.currentTheme.onPrimaryLight,
@@ -440,7 +474,10 @@ private fun Context.copyImageToInternalStorage(uri: Uri): Uri? {
 /**
  * 保存并应用自定义背景
  */
-fun Context.saveAndApplyCustomBackground(uri: Uri, transformation: BackgroundTransformation? = null) {
+fun Context.saveAndApplyCustomBackground(
+    uri: Uri,
+    transformation: BackgroundTransformation? = null,
+) {
     val finalUri = if (transformation != null) {
         saveTransformedBackground(uri, transformation)
     } else {
@@ -536,7 +573,7 @@ fun Context.loadThemeMode() {
     val mode = getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
         .getString("theme_mode", "system")
 
-    ThemeConfig.forceDarkMode = when(mode) {
+    ThemeConfig.forceDarkMode = when (mode) {
         "dark" -> true
         "light" -> false
         else -> null

@@ -1,17 +1,23 @@
 package com.sukisu.ultra.ui.webui
 
 import android.app.Activity
+import android.content.Context
+import android.webkit.WebView
+import com.dergoogler.mmrl.platform.model.ModId
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
+import android.util.Log
 import android.view.Window
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.dergoogler.mmrl.platform.file.ExtFile
+import com.dergoogler.mmrl.platform.model.ModId.Companion.moduleDir
 import com.dergoogler.mmrl.webui.interfaces.WXInterface
 import com.dergoogler.mmrl.webui.interfaces.WXOptions
-import com.dergoogler.mmrl.webui.model.JavaScriptInterface
+import com.dergoogler.mmrl.webui.util.WebUIOptions
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
@@ -21,19 +27,12 @@ import com.sukisu.ultra.ui.util.withNewRootShell
 import org.json.JSONArray
 import org.json.JSONObject
 import com.sukisu.ultra.ui.util.*
-import java.io.File
 import java.util.concurrent.CompletableFuture
+import kotlin.collections.iterator
 
-class WebViewInterface(
-    wxOptions: WXOptions,
-) : WXInterface(wxOptions) {
-    override var name: String = "ksu"
-
-    companion object {
-        fun factory() = JavaScriptInterface(WebViewInterface::class.java)
-    }
-
-    private val modDir get() = "/data/adb/modules/${modId.id}"
+internal class WebViewInterface(wxOptions: WXOptions) : WXInterface(wxOptions) {
+    // `ExtFile` to make sure that the platform won't get called when it is used within KSU WebUI
+    private val modDir: ExtFile get() = modId.moduleDir.toExtFile()
 
     @JavascriptInterface
     fun exec(cmd: String): String {
@@ -66,7 +65,7 @@ class WebViewInterface(
     fun exec(
         cmd: String,
         options: String?,
-        callbackFunc: String
+        callbackFunc: String,
     ) {
         val finalCommand = StringBuilder()
         processOptions(finalCommand, options)
@@ -172,14 +171,18 @@ class WebViewInterface(
 
     @JavascriptInterface
     fun fullScreen(enable: Boolean) {
-        if (context is Activity) {
+        if (activity == null) return
+
+        try {
             Handler(Looper.getMainLooper()).post {
                 if (enable) {
-                    hideSystemUI(activity.window)
+                    hideSystemUI(activity!!.window)
                 } else {
-                    showSystemUI(activity.window)
+                    showSystemUI(activity!!.window)
                 }
             }
+        } catch (e: Exception) {
+            Log.e("WebViewInterface", "fullScreen", e)
         }
     }
 
@@ -187,8 +190,8 @@ class WebViewInterface(
     fun moduleInfo(): String {
         val moduleInfos = JSONArray(listModules())
         val currentModuleInfo = JSONObject()
-        currentModuleInfo.put("moduleDir", modDir)
-        val moduleId = File(modDir).getName()
+        currentModuleInfo.put("moduleDir", modDir.path)
+        val moduleId = modDir.getName()
         for (i in 0 until moduleInfos.length()) {
             val currentInfo = moduleInfos.getJSONObject(i)
 
@@ -208,21 +211,25 @@ class WebViewInterface(
     // =================== KPM支持 =============================
 
     @JavascriptInterface
-    fun listAllKpm() : String {
+    fun listAllKpm(): String {
         return listKpmModules()
     }
 
     @JavascriptInterface
-    fun controlKpm(name: String, args: String) : Int {
+    fun controlKpm(name: String, args: String): Int {
         return controlKpmModule(name, args)
     }
 }
 
-fun hideSystemUI(window: Window) =
+private fun hideSystemUI(window: Window) =
     WindowInsetsControllerCompat(window, window.decorView).let { controller ->
         controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
-fun showSystemUI(window: Window) =
-    WindowInsetsControllerCompat(window, window.decorView).show(WindowInsetsCompat.Type.systemBars())
+private fun showSystemUI(window: Window) =
+    WindowInsetsControllerCompat(
+        window,
+        window.decorView
+    ).show(WindowInsetsCompat.Type.systemBars())

@@ -84,8 +84,8 @@ import java.util.concurrent.TimeUnit
 import androidx.core.content.edit
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.webui.WebUIXActivity
-import com.dergoogler.mmrl.platform.Platform
 import androidx.core.net.toUri
+import com.dergoogler.mmrl.platform.PlatformManager
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
 import com.sukisu.ultra.ui.component.AnimatedFab
@@ -460,7 +460,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                             "wx" -> wxEngine
                                             "ksu" -> ksuEngine
                                             else -> {
-                                                if (Platform.isAlive) {
+                                                if (PlatformManager.isAlive) {
                                                     wxEngine
                                                 } else {
                                                     ksuEngine

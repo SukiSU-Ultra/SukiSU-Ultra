@@ -11,7 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import coil.Coil
 import coil.ImageLoader
-import com.dergoogler.mmrl.platform.Platform
+import com.dergoogler.mmrl.platform.PlatformManager
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import java.io.File
@@ -90,7 +90,7 @@ class KernelSUApplication : Application() {
         // 注册Activity生命周期回调
         registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
-        Platform.setHiddenApiExemptions()
+        PlatformManager.setHiddenApiExemptions()
 
         val context = this
         val iconSize = resources.getDimensionPixelSize(android.R.dimen.app_icon_size)

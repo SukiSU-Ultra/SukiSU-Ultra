@@ -1,60 +1,57 @@
 package com.sukisu.ultra.ui.webui
 
+import android.content.Context
 import android.content.ServiceConnection
 import android.util.Log
 import android.content.pm.PackageInfo
 import com.dergoogler.mmrl.platform.Platform
+import com.dergoogler.mmrl.platform.Platform.Companion.createPlatformIntent
+import com.dergoogler.mmrl.platform.PlatformManager
+import com.dergoogler.mmrl.platform.PlatformManager.packageManager
+import com.dergoogler.mmrl.platform.PlatformManager.userManager
 import com.dergoogler.mmrl.platform.model.IProvider
-import com.dergoogler.mmrl.platform.model.PlatformIntent
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.Natives
 import com.topjohnwu.superuser.ipc.RootService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 
-class KsuLibSuProvider : IProvider {
-    override val name = "KsuLibSu"
+class KsuLibSuProvider(
+    private val context: Context,
+) : IProvider {
+    override val name = "SukiLibSu"
 
     override fun isAvailable() = true
 
-    override suspend fun isAuthorized() = Natives.becomeManager(ksuApp.packageName)
+    override suspend fun isAuthorized() = Natives.becomeManager(context.packageName)
 
-    private val serviceIntent
-        get() = PlatformIntent(
-            ksuApp,
-            Platform.KsuNext,
-            SuService::class.java
-        )
+    private val intent by lazy {
+        context.createPlatformIntent<SuService>(Platform.SukiSU)
+    }
 
     override fun bind(connection: ServiceConnection) {
-        RootService.bind(serviceIntent.intent, connection)
+        RootService.bind(intent, connection)
     }
 
     override fun unbind(connection: ServiceConnection) {
-        RootService.stop(serviceIntent.intent)
+        RootService.stop(intent)
     }
 }
 
 // webui x
-suspend fun initPlatform() = withContext(Dispatchers.IO) {
+suspend fun CoroutineScope.initPlatform(context: Context = ksuApp): Deferred<Boolean> =
     try {
-        val active = Platform.init {
-            this.context = ksuApp
-            this.platform = Platform.KsuNext
-            this.provider = from(KsuLibSuProvider())
+        val active = PlatformManager.init(this) {
+            from(KsuLibSuProvider(context))
         }
 
-        while (!active) {
-            delay(1000)
-        }
-
-        return@withContext active
+        active
     } catch (e: Exception) {
         Log.e("KsuLibSu", "Failed to initialize platform", e)
-        return@withContext false
+        CompletableDeferred(false)
     }
-}
+
 
 fun Platform.Companion.getInstalledPackagesAll(catch: (Exception) -> Unit = {}): List<PackageInfo> =
     try {
