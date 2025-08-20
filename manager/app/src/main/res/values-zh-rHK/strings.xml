@@ -25,13 +25,13 @@
     <string name="uninstall">卸載</string>
     <string name="module_install">安裝</string>
     <string name="install">安裝</string>
-    <string name="reboot">重啟</string>
+    <string name="reboot">重新啟動</string>
     <string name="settings">配置</string>
     <string name="reboot_userspace">軟重啟</string>
-    <string name="reboot_recovery">重啟到 Recovery</string>
-    <string name="reboot_bootloader">重啟到 Bootloader</string>
-    <string name="reboot_download">重啟到 Download</string>
-    <string name="reboot_edl">重啟到 EDL</string>
+    <string name="reboot_recovery">重新啟動到 Recovery</string>
+    <string name="reboot_bootloader">重新啟動到 Bootloader</string>
+    <string name="reboot_download">重新啟動到 Download</string>
+    <string name="reboot_edl">重新啟動到 EDL</string>
     <string name="about">關於</string>
     <string name="module_uninstall_confirm">確定要卸載模組 %s 嗎？</string>
     <string name="module_uninstall_success">%s 已卸載</string>
@@ -43,26 +43,26 @@
     <string name="hide_system_apps">隱藏系統應用</string>
     <string name="send_log">發送日誌</string>
     <string name="safe_mode">安全模式</string>
-    <string name="reboot_to_apply">重啟生效</string>
-    <string name="module_magisk_conflict">因同 Magisk 有衝突，所有模組不可用！</string>
+    <string name="reboot_to_apply">重新啟動後生效</string>
+    <string name="module_magisk_conflict">因同 Magisk 有衝突，所有模組唔可用！</string>
     <string name="home_learn_kernelsu">了解 KernelSU</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安裝 KernelSU 以及如何開發模組</string>
-    <string name="home_support_title">支持開發</string>
-    <string name="home_support_content">KernelSU 將保持免費開源，向開發者捐贈以表示支持。</string>
-    <string name="about_source_code"><![CDATA[在 %1$s 查看源碼<br/>加入我哋嘅 %2$s 頻道]]<br/><br/>有動漫人物圖片表情包的圖像版權為%3$s所有，圖像中的知識產權由%4$s 所有。在使用這些文件之前，除了必須遵守 %5$s 以外，還需要遵守向前兩者索要使用這些藝術內容的授權。]]></string>
+    <string name="home_support_title">支援開發</string>
+    <string name="home_support_content">KernelSU 將保持免費開源，向開發者捐贈以表示支援。</string>
+    <string name="about_source_code"><![CDATA[喺 %1$s 查看源碼<br/>加入我哋嘅 %2$s 頻道]]<br/><br/>有動漫人物圖片表情包嘅圖像版權為%3$s所有，圖像中嘅知識產權由%4$s 所有。喺使用這些文件之前，除了必須遵守 %5$s 以外，還需要遵守向前兩者索要使用這些藝術內容嘅授權。]]></string>
     <string name="profile_default">默認</string>
     <string name="profile_template">模版</string>
     <string name="profile_custom">自定義</string>
     <string name="profile_name">名稱</string>
     <string name="profile_groups">組</string>
-    <string name="profile_capabilities">權能</string>
+    <string name="profile_capabilities">權限</string>
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸載模組</string>
     <string name="failed_to_update_app_profile">為 %s 更新 App Profile 失敗</string>
     <string name="require_kernel_version" formatted="false">當前 KernelSU 版本 %s 過低，管理器無法正常工作，請將核心 KernelSU 版本升級至 %s 或以上！</string>
     <string name="settings_umount_modules_default">默認卸載模組</string>
-    <string name="settings_umount_modules_default_summary">App Profile 中\"卸載模組\"嘅全局默認值，如果啟用，將會為冇設置 Profile 嘅應用移除所有模組針對系統嘅修改。</string>
+    <string name="settings_umount_modules_default_summary">App Profile 中\"卸載模組\"嘅全局默認值，如果啟用，將會為冇設定 Profile 嘅應用移除所有模組針對系統嘅修改。</string>
     <string name="settings_susfs_toggle">禁用 Kprobe Hook</string>
     <string name="profile_umount_modules_summary">啟用該選項後將允許 KernelSU 為本應用還原被模組修改過嘅文件。</string>
     <string name="profile_selinux_domain">域</string>
@@ -81,10 +81,10 @@
     <string name="app_profile_template_create">創建模版</string>
     <string name="app_profile_template_edit">編輯模版</string>
     <string name="app_profile_template_id">模版 ID</string>
-    <string name="app_profile_template_id_invalid">模版 ID 不合法</string>
+    <string name="app_profile_template_id_invalid">模版 ID 唔合法</string>
     <string name="app_profile_template_name">名字</string>
     <string name="app_profile_template_description">描述</string>
-    <string name="app_profile_template_save">保存</string>
+    <string name="app_profile_template_save">存儲</string>
     <string name="app_profile_template_delete">刪除</string>
     <string name="app_profile_template_view">查看模版</string>
     <string name="app_profile_template_readonly">只讀</string>
@@ -95,20 +95,20 @@
     <string name="app_profile_template_export_empty">冇可以導出嘅本地模板！</string>
     <string name="app_profile_template_import_success">導入成功</string>
     <string name="app_profile_template_sync">同步在線規則</string>
-    <string name="app_profile_template_save_failed">模版保存失敗</string>
+    <string name="app_profile_template_save_failed">模版存儲失敗</string>
     <string name="app_profile_template_import_empty">剪貼板為空！</string>
     <string name="module_changelog_failed">獲取更新日誌失敗：%s</string>
     <string name="settings_check_update">檢查更新</string>
-    <string name="settings_check_update_summary">在應用啟動後自動檢查是否有最新版</string>
+    <string name="settings_check_update_summary">喺應用啟動後自動檢查是否有最新版</string>
     <string name="grant_root_failed">獲取 root 失敗！</string>
     <string name="action">執行</string>
     <string name="close">關閉</string>
     <string name="enable_web_debugging">啟用 WebView 調試</string>
-    <string name="enable_web_debugging_summary">可用於調試 WebUI 。請僅在需要時啟用。</string>
+    <string name="enable_web_debugging_summary">可用於調試 WebUI 。請僅喺需要時啟用。</string>
     <string name="direct_install">直接安裝（推薦）</string>
     <string name="select_file">選擇一個需要修補嘅鏡像</string>
     <string name="install_inactive_slot">安裝到未使用嘅槽位（OTA 後）</string>
-    <string name="install_inactive_slot_warning">將在重啟後強制切換到另一個槽位！\n注意只能在 OTA 更新完成後嘅重啟之前使用。\n確認？</string>
+    <string name="install_inactive_slot_warning">將喺重新啟動後強制切換到另一個槽位！\n注意只能喺 OTA 更新完成後嘅重新啟動之前使用。\n確認？</string>
     <string name="install_next">下一步</string>
     <string name="select_file_tip">建議選擇 %1$s 分區鏡像</string>
     <string name="select_kmi">選擇 KMI</string>
@@ -116,15 +116,15 @@
     <string name="settings_uninstall_temporary">臨時卸載</string>
     <string name="settings_uninstall_permanent">永久卸載</string>
     <string name="settings_restore_stock_image">恢復原廠鏡像</string>
-    <string name="settings_uninstall_temporary_message">臨時卸載 KernelSU，下次重啟後恢復至原始狀態。</string>
+    <string name="settings_uninstall_temporary_message">臨時卸載 KernelSU，下次重新啟動後恢復至原始狀態。</string>
     <string name="settings_uninstall_permanent_message">完全並永久卸載 KernelSU（Root 權限同所有模組）。</string>
-    <string name="settings_restore_stock_image_message">恢復原廠鏡像（若存在備份），一般在 OTA 前使用；如果您需要卸載 KernelSU，請使用\"永久卸載\"。</string>
+    <string name="settings_restore_stock_image_message">恢復原廠鏡像（若存在備份），一般喺 OTA 前使用；如果您需要卸載 KernelSU，請使用\"永久卸載\"。</string>
     <string name="flashing">刷寫中</string>
     <string name="flash_success">刷寫完成</string>
     <string name="flash_failed">刷寫失敗</string>
     <string name="selected_lkm">選擇嘅 LKM：%s</string>
-    <string name="save_log">保存日誌</string>
-    <string name="log_saved">日誌已保存</string>
+    <string name="save_log">存儲日誌</string>
+    <string name="log_saved">日誌已存儲</string>
     <string name="sus_su_mode">SuS SU 模式：</string>
     <!-- Module related -->
     <string name="module_install_confirm">確認安裝模組 %1$s？</string>
@@ -140,9 +140,9 @@
     <string name="backup_modules">備份模組</string>
     <string name="restore_modules">恢復模組</string>
     <!-- Restore related messages -->
-    <string name="restore_success">模組已成功還原，需重啟生效</string>
+    <string name="restore_success">模組已成功還原，需重新啟動生效</string>
     <string name="restore_failed">還原失敗：%1$s</string>
-    <string name="restart_now">立即重啟</string>
+    <string name="restart_now">立即重新啟動</string>
     <string name="unknown_error">未知錯誤</string>
     <!-- Command related -->
     <string name="command_execution_failed">命令執行失敗：%1$s</string>
@@ -157,19 +157,19 @@
     <string name="restore_allowlist">還原應用列表</string>
     <string name="settings_custom_background">自定義背景</string>
     <string name="settings_custom_background_summary">選擇一張圖片作為應用背景</string>
-    <string name="settings_card_alpha">卡片不透明度</string>
+    <string name="settings_card_alpha">卡片唔透明度</string>
     <string name="home_android_version">Android 版本</string>
-    <string name="home_device_model">設備</string>
+    <string name="home_device_model">裝置</string>
     <string name="su_not_allowed">唔允許授予 %s 超級用戶權限</string>
     <string name="settings_disable_su">禁用 su 兼容性</string>
-    <string name="settings_disable_su_summary">臨時禁止任何應用程式通過 su 命令獲取 Root 權限（現有嘅 Root 進程不受影響）</string>
+    <string name="settings_disable_su_summary">臨時禁止任何應用程式通過 su 命令獲取 Root 權限（現有嘅 Root 進程唔受影響）</string>
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多配置</string>
     <string name="selinux">SELinux</string>
     <string name="selinux_enabled">強制執行</string>
     <string name="selinux_disabled">寬容模式</string>
     <string name="simple_mode">簡潔模式</string>
-    <string name="simple_mode_summary">開啟後將隱藏不必要嘅卡片</string>
+    <string name="simple_mode_summary">開啟後將隱藏冇必要嘅卡片</string>
     <string name="hide_kernel_kernelsu_version">隱藏核心版本號</string>
     <string name="hide_kernel_kernelsu_version_summary">隱藏核心部分嘅 KernelSU 版本號</string>
     <string name="hide_other_info">強迫症開關</string>
@@ -199,10 +199,10 @@
     <string name="horizon_kernel_summary">刷入 Anykernel3 核心</string>
     <string name="root_required">需要 root 權限</string>
     <string name="reboot_complete_title">刷寫完成</string>
-    <string name="reboot_complete_msg">是否立即重啟？</string>
-    <string name="yes">系</string>
+    <string name="reboot_complete_msg">是否立即重新啟動？</string>
+    <string name="yes">係</string>
     <string name="no">否</string>
-    <string name="failed_reboot">重啟失敗</string>
+    <string name="failed_reboot">重新啟動失敗</string>
     <string name="kpm_title">核心模組</string>
     <string name="kpm_empty">暫冇已安裝嘅核心模組</string>
     <string name="kpm_version">版本</string>
@@ -220,9 +220,9 @@
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">錯誤</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未來將會成為一個相對獨立嘅 KSU 分支，但仲系會感謝官方 KernelSU 同 MKSU 等做出嘅貢獻</string>
+    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未來將會成為一個相對獨立嘅 KSU 分支，但仲係會感謝官方 KernelSU 同 MKSU 等做出嘅貢獻</string>
     <string name="not_supported">唔支援</string>
-    <string name="supported">支持</string>
+    <string name="supported">支援</string>
     <string name="kernel_patched">核心未進行補丁</string>
     <string name="kernel_not_enabled">核心未配置</string>
     <string name="custom_settings">個性化配置</string>
@@ -232,10 +232,10 @@
     <string name="kpm_install_mode_description">請選擇: %1\$s 模組嘅安裝模式 \n\n加載：臨時加載模組\n嵌入：永久安裝到系統</string>
     <string name="snackbar_failed_to_check_module_file">無法檢查模組文件是否存在</string>
     <string name="theme_color">主題顏色</string>
-    <string name="invalid_file_type">文件類型不正確，請選擇 .kpm 文件</string>
+    <string name="invalid_file_type">文件類型唔正確，請選擇 .kpm 文件</string>
     <string name="confirm_uninstall_title_with_filename">卸載</string>
     <string name="confirm_uninstall_content">將卸載以下 KPM 模組：\n%s</string>
-    <string name="settings_susfs_toggle_summary">禁用由 KernelSU 創建嘅 Kprobe Hook，並使用非 Kprobe 內嘅聯鈎子代替，實現方式類似於不支持 Kprobe 嘅非 GKI 核心。</string>
+    <string name="settings_susfs_toggle_summary">禁用由 KernelSU 創建嘅 Kprobe Hook，並使用非 Kprobe 內嘅聯鈎子代替，實現方式類似於唔支援 Kprobe 嘅非 GKI 核心。</string>
     <string name="image_editor_hint">使用雙指縮放圖片，單指拖動調整位置</string>
     <string name="reprovision">重置</string>
     <!-- Kernel Flash Progress Related -->
@@ -257,7 +257,7 @@
     <string name="slot_b">B 槽位</string>
     <string name="selected_slot">已選擇槽位: %1$s</string>
     <string name="horizon_getting_original_slot">獲取原有槽位</string>
-    <string name="horizon_setting_target_slot">設置指定槽位</string>
+    <string name="horizon_setting_target_slot">設定指定槽位</string>
     <string name="horizon_restoring_original_slot">恢復默認槽位</string>
     <string name="current_slot">當前系統默認槽位：%1$s </string>
     <!-- Error Messages -->
@@ -274,29 +274,29 @@
     <string name="tools">工具</string>
     <!--  String resources used in SuperUser -->
     <string name="no_apps_found">未找到應用</string>
-    <string name="selinux_enabled_toast">SELinux 已設置為啟用狀態</string>
-    <string name="selinux_disabled_toast">SELinux 已設置為禁用狀態</string>
+    <string name="selinux_enabled_toast">SELinux 已設定為啟用狀態</string>
+    <string name="selinux_disabled_toast">SELinux 已設定為禁用狀態</string>
     <string name="selinux_change_failed">SELinux 狀態更改失敗</string>
     <string name="advanced_settings">高級配置</string>
     <string name="appearance_settings">外觀配置</string>
     <string name="back">返回</string>
     <string name="susfs_enabled">SuSFS 已啟用</string>
     <string name="susfs_disabled">SuSFS 已禁用</string>
-    <string name="background_set_success">背景設置成功</string>
+    <string name="background_set_success">背景設定成功</string>
     <string name="background_removed">已移除自定義背景</string>
     <string name="icon_switch_title">備選圖標</string>
     <string name="icon_switch_summary">更換為 KernelSU 圖標</string>
     <string name="icon_switched">已切換圖標</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">隱藏 KPM 功能</string>
-    <string name="show_kpm_info_summary">在主頁同底欄隱藏 KPM 相關功能同信息</string>
+    <string name="show_kpm_info_summary">喺主頁同底欄隱藏 KPM 相關功能同信息</string>
     <!-- Webui X settings -->
     <string name="use_webuix">選擇使用嘅 WebUI 引擎</string>
     <string name="engine_auto_select">自動選擇</string>
     <string name="engine_force_webuix">強制使用 WebUI X</string>
     <string name="engine_force_ksu">強制使用 KSU 嘅 WebUI</string>
     <string name="use_webuix_eruda">將 Eruda 注入 WebUI X</string>
-    <string name="use_webuix_eruda_summary">在 WebUI X 中注入調試控制台，使調試更容易,需要啟用 WebView 調試</string>
+    <string name="use_webuix_eruda_summary">喺 WebUI X 中注入調試控制台，使調試更容易,需要啟用 WebView 調試</string>
     <!-- DPI setting related strings -->
     <string name="app_dpi_title">應用 DPI</string>
     <string name="app_dpi_summary">僅調整當前應用嘅屏幕顯示密度</string>
@@ -308,12 +308,12 @@
     <string name="dpi_apply_settings">應用 DPI 配置</string>
     <string name="dpi_confirm_title">確認更改 DPI</string>
     <string name="dpi_confirm_message">您確定要將應用 DPI 從 %1$d 更改為 %2$d 嗎？</string>
-    <string name="dpi_confirm_summary">應用需要重啟以應用新嘅 DPI 配置，不會影響系統狀態欄或其他應用</string>
-    <string name="dpi_applied_success">DPI 已設置為 %1$d，重啟應用後生效</string>
+    <string name="dpi_confirm_summary">應用需要重新啟動以應用新嘅 DPI 配置，唔會影響系統狀態欄或其他應用</string>
+    <string name="dpi_applied_success">DPI 已設定為 %1$d，重新啟動應用後生效</string>
     <!-- Language settings related strings -->
     <string name="language_setting">應用語言</string>
     <string name="language_follow_system">跟隨系統</string>
-    <string name="language_changed">語言已更改，重啟應用以應用更改</string>
+    <string name="language_changed">語言已更改，重新啟動應用以應用更改</string>
     <string name="settings_card_dim">卡片暗度調節</string>
     <!-- Flash related -->
     <string name="error_code">錯誤代碼</string>
@@ -355,7 +355,7 @@
     <!-- SuSFS Configuration -->
     <string name="susfs_config_title">SuSFS 配置</string>
     <string name="susfs_config_description">配置說明</string>
-    <string name="susfs_config_description_text">此功能允許您自定義 SuSFS 嘅 uname 值同構建時間偽裝。輸入您想要設置嘅值，點擊應用即可生效</string>
+    <string name="susfs_config_description_text">此功能允許您自定義 SuSFS 嘅 uname 值同構建時間偽裝。輸入您想要設定嘅值，點擊應用即可生效</string>
     <string name="susfs_uname_label">Uname 值</string>
     <string name="susfs_uname_placeholder">請輸入自定義 uname 值</string>
     <string name="susfs_build_time_label">構建時間偽裝</string>
@@ -370,12 +370,12 @@
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 文件</string>
     <string name="susfs_command_failed">SuSFS 命令執行失敗</string>
     <string name="susfs_command_error">執行 SuSFS 命令時出錯: %s</string>
-    <string name="susfs_uname_set_success" formatted="false">SuSFS 核心名稱同構建時間設置成功: %s, %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS 核心名稱同構建時間設定成功: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <!-- 开机自启动相关 -->
     <string name="susfs_autostart_title">開機自啟動</string>
-    <string name="susfs_autostart_description">重啟時自動應用所有非默認配置</string>
+    <string name="susfs_autostart_description">重新啟動時自動應用所有非默認配置</string>
     <string name="susfs_autostart_requirement">需要添加配置後才能啟用</string>
     <string name="susfs_autostart_enable_failed">啟用開機自啟動失敗</string>
     <string name="susfs_autostart_disable_failed">禁用開機自啟動失敗</string>
@@ -393,7 +393,7 @@
     <string name="susfs_add_sus_mount">添加 SuS 掛載</string>
     <string name="susfs_add_try_umount">嘗試添加卸載</string>
     <string name="susfs_sus_path_added_success">SuS 路徑添加成功</string>
-    <string name="susfs_path_not_found_error">錯誤沒有此找到路徑</string>
+    <string name="susfs_path_not_found_error">錯誤冇此找到路徑</string>
     <string name="susfs_path_label">路徑</string>
     <string name="susfs_mount_path_label">掛載路徑</string>
     <string name="susfs_path_placeholder">例如: /system/addon.d</string>
@@ -408,7 +408,7 @@
     <string name="susfs_umount_mode_detach_short">分離</string>
     <string name="susfs_umount_mode_display">模式: %1$s (%2$s)</string>
     <string name="susfs_try_umount_added_success">嘗試 umount 路徑添加成功： %s</string>
-    <string name="susfs_try_umount_added_saved">嘗試 umount 路徑保存成功： %s</string>
+    <string name="susfs_try_umount_added_saved">嘗試 umount 路徑存儲成功： %s</string>
     <!-- SuSFS Run Umount -->
     <string name="susfs_run_umount_confirm_title">確認運行嘗試卸載</string>
     <string name="susfs_run_umount_confirm_message">這將立即執行所有已配置嘅嘗試卸載操作，確定要繼續嗎？</string>
@@ -423,27 +423,27 @@
     <!-- SuSFS Path Settings -->
     <string name="susfs_android_data_path_label">Android Data 路徑</string>
     <string name="susfs_sdcard_path_label">SD 卡路徑</string>
-    <string name="susfs_set_android_data_path">設置 Android Data 路徑</string>
-    <string name="susfs_set_sdcard_path">設置 SD 卡路徑</string>
+    <string name="susfs_set_android_data_path">設定 Android Data 路徑</string>
+    <string name="susfs_set_sdcard_path">設定 SD 卡路徑</string>
     <!-- SuSFS Enabled Features -->
     <string name="susfs_enabled_features_description">顯示當前 SuSFS 啟用嘅功能狀態</string>
     <string name="susfs_no_features_found">未找到功能狀態信息</string>
     <string name="susfs_feature_enabled">已啟用</string>
     <string name="susfs_feature_disabled">已禁用</string>
     <!-- Feature Labels -->
-    <string name="sus_path_feature_label">SuS 路徑支持</string>
-    <string name="sus_mount_feature_label">SuS 掛載支持</string>
-    <string name="try_umount_feature_label">嘗試卸載支持</string>
-    <string name="spoof_uname_feature_label">欺騙 uname 支持</string>
+    <string name="sus_path_feature_label">SuS 路徑支援</string>
+    <string name="sus_mount_feature_label">SuS 掛載支援</string>
+    <string name="try_umount_feature_label">嘗試卸載支援</string>
+    <string name="spoof_uname_feature_label">欺騙 uname 支援</string>
     <string name="spoof_cmdline_feature_label">欺騙 Cmdline/Bootconfig</string>
-    <string name="open_redirect_feature_label">開放重定向支持</string>
-    <string name="enable_log_feature_label">日誌記錄支持</string>
+    <string name="open_redirect_feature_label">開放重定向支援</string>
+    <string name="enable_log_feature_label">日誌記錄支援</string>
     <string name="auto_default_mount_feature_label">自動默認掛載</string>
     <string name="auto_bind_mount_feature_label">自動綁定掛載</string>
     <string name="auto_try_umount_bind_feature_label">自動嘗試卸載綁定掛載</string>
     <string name="hide_symbols_feature_label">隱藏 KSU SuSFS 符號</string>
-    <string name="magic_mount_feature_label">魔法坐騎支持</string>
-    <string name="sus_kstat_feature_label">SuS Kstat 支持</string>
+    <string name="magic_mount_feature_label">魔法坐騎支援</string>
+    <string name="sus_kstat_feature_label">SuS Kstat 支援</string>
     <string name="sus_su_feature_label">SuS SU 模式切換功能</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">可配置嘅 SuSFS 功能</string>
@@ -461,8 +461,8 @@
     <string name="susfs_current_execution_location">當前執行位置：%s</string>
     <string name="susfs_execution_location_service">Service</string>
     <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
-    <string name="susfs_execution_location_service_description">在系統服務啟動後執行</string>
-    <string name="susfs_execution_location_post_fs_data_description">在文件系統掛載後但系統完全啟動前執行,可能會導致循環重啟</string>
+    <string name="susfs_execution_location_service_description">喺系統服務啟動後執行</string>
+    <string name="susfs_execution_location_post_fs_data_description">喺文件系統掛載後但系統完全啟動前執行,可能會導致循環重新啟動</string>
     <string name="susfs_slot_info_title">槽位信息</string>
     <string name="susfs_slot_info_description">查看當前啟動槽位信息並複製數值</string>
     <string name="susfs_current_active_slot">當前活動槽位：%s</string>
@@ -539,7 +539,7 @@
     <string name="hide_bl_script">隱藏 BL 指令碼</string>
     <string name="hide_bl_script_description">啟用隱藏 Bootloader 解鎖狀態指令碼</string>
     <string name="cleanup_residue">清理工具殘留</string>
-    <string name="cleanup_residue_description">清理各種模組以及工具的殘留檔案和目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
+    <string name="cleanup_residue_description">清理各種模組以及工具嘅殘留檔案同目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
     <string name="susfs_edit_sus_mount">編輯 SuS 掛載</string>
     <string name="susfs_edit_try_umount">編輯嘗試解除安裝</string>
@@ -553,7 +553,7 @@
     <string name="kstat_path_updated">Kstat 路徑更新</string>
     <string name="susfs_update_full_clone">Susfs 完整克隆更新</string>
     <string name="umount_zygote_iso_service">解除安裝 Zygote 隔離服務</string>
-    <string name="umount_zygote_iso_service_description">啟用此選項將在系統啟動時解除安裝 Zygote 隔離服務掛載點</string>
+    <string name="umount_zygote_iso_service_description">啟用此選項將喺系統啟動時解除安裝 Zygote 隔離服務掛載點</string>
     <string name="umount_zygote_iso_service_enabled">Zygote 隔離服務解除安裝已啟用</string>
     <string name="umount_zygote_iso_service_disabled">Zygote 隔離服務解除安裝已禁用</string>
     <string name="app_paths_section">應用路徑</string>
@@ -566,22 +566,22 @@
     <string name="already_added_apps_count">%1$d 個已添加應用程式</string>
     <string name="all_apps_already_added">所有应用均已添加</string>
     <string name="dynamic_sign_title">動態簽名配置</string>
-    <string name="dynamic_sign_enabled_summary">已启用（大小: %s）</string>
-    <string name="dynamic_sign_disabled">未启用</string>
+    <string name="dynamic_sign_enabled_summary">已啟用（大小: %s）</string>
+    <string name="dynamic_sign_disabled">未啟用</string>
     <string name="enable_dynamic_sign">啟用動態簽名</string>
     <string name="signature_size">簽名大小</string>
     <string name="signature_hash">簽名哈希值</string>
     <string name="hash_must_be_64_chars">哈希值必須是 64 位十六進制字符</string>
     <string name="dynamic_sign_set_success">動態簽名配置設定成功</string>
     <string name="dynamic_sign_set_failed">動態簽名配置設定失敗</string>
-    <string name="invalid_sign_config">無效的簽名配置</string>
+    <string name="invalid_sign_config">無效嘅簽名配置</string>
     <string name="dynamic_sign_disabled_success">動態簽名已禁用</string>
     <string name="dynamic_sign_clear_failed">清除動態簽名錯誤</string>
     <string name="dynamic_signature">動態</string>
     <string name="signature_index">簽名 %1$d</string>
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活躍管理器</string>
-    <string name="no_active_manager">無活躍管理器</string>
+    <string name="no_active_manager">唔活躍管理器</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
     <!-- 循环路径相关 -->
     <!-- 循环路径功能描述 -->
@@ -602,6 +602,6 @@
     <string name="module_signature_verification">驗證簽名</string>
     <string name="module_signature_verification_summary">模組安裝嗰陣，會強制驗證個簽名。（淨係 ARM架構 用得）</string>
     <string name="module_signature_invalid">未知發布者</string>
-    <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護設備，已經阻止安裝呢個模組。</string>
+    <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護裝置，已經阻止安裝呢個模組。</string>
     <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
 </resources>
