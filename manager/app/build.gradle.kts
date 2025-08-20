@@ -164,13 +164,16 @@ dependencies {
 
     implementation(libs.mmrl.platform)
     compileOnly(libs.mmrl.hidden.api)
-    implementation(libs.mmrl.webui.portable) {
-        // exclude `Java-Native-Access` since plugins are disabled in both WebUI X and KSU WebUI
-        exclude(
-            group = "com.github.MMRLApp",
-            module = "jna"
-        )
-    }
+    /**
+     * Compile only `Java-Native-Access` since plugins are disabled in both WebUI X and KSU WebUI
+     * Avoid using:
+     * - fun WXInterface.registerLibrary(clazz: Class<*>, name: String): Unit
+     * - fun WXInterface.unregisterLibrary(clazz: Class<*>): Unit
+     * - fun WXInterface.isLibraryRegistered(libName: String): Boolean
+     */
+    compileOnly(libs.mmrl.webui.jna)
+
+    implementation(libs.mmrl.webui.portable)
     implementation(libs.mmrl.ui)
 
     implementation(libs.accompanist.drawablepainter)

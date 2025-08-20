@@ -24,7 +24,7 @@ compose-material3 = "1.3.2"
 compose-ui = "1.8.3"
 documentfile = "1.1.0"
 mmrl = "v33953"
-webui-x-portable = "5bce0ba798"
+webui-x-portable = "953fad192a"
 swiperefreshlayout = "1.1.0"
 
 [plugins]
@@ -89,6 +89,7 @@ lsposed-cxx = { module = "org.lsposed.libcxx:libcxx", version = "29.0.13599879-b
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 mmrl-webui-portable = { group = "com.github.MMRLApp.WebUI-X-Portable", name = "webui", version.ref = "webui-x-portable" }
+mmrl-webui-jna = { group = "com.github.MMRLApp.WebUI-X-Portable", name = "jna", version.ref = "webui-x-portable" }
 mmrl-platform = { group = "com.github.MMRLApp.MMRL", name = "platform", version.ref = "mmrl" }
 mmrl-ui = { group = "com.github.MMRLApp.MMRL", name = "ui", version.ref = "mmrl" }
 mmrl-hidden-api = { group = "com.github.MMRLApp.MMRL", name = "hidden-api", version.ref = "mmrl" }
