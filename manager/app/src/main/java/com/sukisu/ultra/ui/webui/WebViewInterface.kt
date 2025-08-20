@@ -34,6 +34,8 @@ internal class WebViewInterface(wxOptions: WXOptions) : WXInterface(wxOptions) {
     // `ExtFile` to make sure that the platform won't get called when it is used within KSU WebUI
     private val modDir: ExtFile get() = modId.moduleDir.toExtFile()
 
+    override var name = "ksu"
+
     @JavascriptInterface
     fun exec(cmd: String): String {
         return withNewRootShell(true) { ShellUtils.fastCmd(this, cmd) }
