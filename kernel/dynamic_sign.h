@@ -9,15 +9,15 @@
 #define KERNEL_SU_DYNAMIC_SIGN "/data/adb/ksu/.dynamic_sign"
 
 struct dynamic_sign_config {
-    unsigned int size;
-    char hash[65];
-    int is_set;
+	unsigned int size;
+	char hash[65];
+	int is_set;
 };
 
 struct manager_info {
-    uid_t uid;
-    int signature_index;
-    bool is_active;
+	uid_t uid;
+	int signature_index;
+	bool is_active;
 };
 
 // Dynamic sign operations

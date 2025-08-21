@@ -36,8 +36,9 @@ static int transive_to_domain(const char *domain)
 }
 
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 0)
-bool __maybe_unused is_ksu_transition(const struct task_security_struct *old_tsec,
-			const struct task_security_struct *new_tsec)
+bool __maybe_unused
+is_ksu_transition(const struct task_security_struct *old_tsec,
+		  const struct task_security_struct *new_tsec)
 {
 	static u32 ksu_sid;
 	char *secdata;
@@ -45,7 +46,8 @@ bool __maybe_unused is_ksu_transition(const struct task_security_struct *old_tse
 	bool allowed = false;
 
 	if (!ksu_sid)
-		security_secctx_to_secid(KERNEL_SU_DOMAIN, strlen(KERNEL_SU_DOMAIN), &ksu_sid);
+		security_secctx_to_secid(KERNEL_SU_DOMAIN,
+					 strlen(KERNEL_SU_DOMAIN), &ksu_sid);
 
 	if (security_secid_to_secctx(old_tsec->sid, &secdata, &seclen))
 		return false;
@@ -74,11 +76,11 @@ bool getenforce(void)
 	if (is_selinux_disabled()) {
 		return false;
 	}
-	
+
 	return __is_selinux_enforcing();
 }
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)) &&                         \
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)) && \
 	!defined(KSU_COMPAT_HAS_CURRENT_SID)
 /*
  * get the subjective security ID of the current task

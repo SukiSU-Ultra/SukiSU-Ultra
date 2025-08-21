@@ -42,7 +42,7 @@
 #define KSU_SELINUX_DOMAIN 64
 
 // SukiSU Ultra kernel su version full strings
-#ifndef KSU_VERSION_FULL 
+#ifndef KSU_VERSION_FULL
 #define KSU_VERSION_FULL "v3.x-00000000@unknown"
 #endif
 #define KSU_FULL_VERSION_STRING 255
@@ -52,17 +52,17 @@
 #define DYNAMIC_SIGN_OP_CLEAR 2
 
 struct dynamic_sign_user_config {
-    unsigned int operation;
-    unsigned int size;
-    char hash[65];
+	unsigned int operation;
+	unsigned int size;
+	char hash[65];
 };
 
 struct manager_list_info {
-    int count;
-    struct {
-        uid_t uid;
-        int signature_index;
-    } managers[2];
+	int count;
+	struct {
+		uid_t uid;
+		int signature_index;
+	} managers[2];
 };
 
 struct root_profile {

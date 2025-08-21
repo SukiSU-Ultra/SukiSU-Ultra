@@ -63,7 +63,8 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-static void crown_manager(const char *apk, struct list_head *uid_data, int signature_index)
+static void crown_manager(const char *apk, struct list_head *uid_data,
+			  int signature_index)
 {
 	char pkg[KSU_MAX_PACKAGE_NAME];
 	if (get_pkg_from_apk_path(pkg, apk) < 0) {
@@ -84,13 +85,14 @@ static void crown_manager(const char *apk, struct list_head *uid_data, int signa
 	struct list_head *list = (struct list_head *)uid_data;
 	struct uid_data *np;
 
-	list_for_each_entry (np, list, list) {
+	list_for_each_entry(np, list, list) {
 		if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
-			pr_info("Crowning manager: %s(uid=%d, signature_index=%d)\n", pkg, np->uid, signature_index);
-			
+			pr_info("Crowning manager: %s(uid=%d, signature_index=%d)\n",
+				pkg, np->uid, signature_index);
+
 			if (signature_index == 1 || signature_index == 2) {
 				ksu_add_manager(np->uid, signature_index);
-				
+
 				if (!ksu_is_manager_uid_valid()) {
 					ksu_set_manager_uid(np->uid);
 				}
@@ -173,7 +175,8 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 
 	if (d_type == DT_DIR && my_ctx->depth > 0 &&
 	    (my_ctx->stop && !*my_ctx->stop)) {
-		struct data_path *data = kmalloc(sizeof(struct data_path), GFP_ATOMIC);
+		struct data_path *data =
+			kmalloc(sizeof(struct data_path), GFP_ATOMIC);
 
 		if (!data) {
 			pr_err("Failed to allocate memory for %s\n", dirpath);
@@ -184,12 +187,15 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 		data->depth = my_ctx->depth - 1;
 		list_add_tail(&data->list, my_ctx->data_path_list);
 	} else {
-		if ((namelen == 8) && (strncmp(name, "base.apk", namelen) == 0)) {
+		if ((namelen == 8) &&
+		    (strncmp(name, "base.apk", namelen) == 0)) {
 			struct apk_path_hash *pos, *n;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-			unsigned int hash = full_name_hash(dirpath, strlen(dirpath));
+			unsigned int hash =
+				full_name_hash(dirpath, strlen(dirpath));
 #else
-			unsigned int hash = full_name_hash(NULL, dirpath, strlen(dirpath));
+			unsigned int hash =
+				full_name_hash(NULL, dirpath, strlen(dirpath));
 #endif
 			list_for_each_entry(pos, &apk_path_hash_list, list) {
 				if (hash == pos->hash) {
@@ -199,19 +205,25 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 			}
 
 			int signature_index = -1;
-			bool is_multi_manager = ksu_is_multi_manager_apk(dirpath, &signature_index);
+			bool is_multi_manager = ksu_is_multi_manager_apk(
+				dirpath, &signature_index);
 
 			pr_info("Found new base.apk at path: %s, is_multi_manager: %d, signature_index: %d\n",
 				dirpath, is_multi_manager, signature_index);
-				
-			if (is_multi_manager && (signature_index == 1 || signature_index == 2)) {
-				crown_manager(dirpath, my_ctx->private_data, signature_index);
-				
-				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
+
+			if (is_multi_manager &&
+			    (signature_index == 1 || signature_index == 2)) {
+				crown_manager(dirpath, my_ctx->private_data,
+					      signature_index);
+
+				struct apk_path_hash *apk_data =
+					kmalloc(sizeof(struct apk_path_hash),
+						GFP_ATOMIC);
 				if (apk_data) {
 					apk_data->hash = hash;
 					apk_data->exists = true;
-					list_add_tail(&apk_data->list, &apk_path_hash_list);
+					list_add_tail(&apk_data->list,
+						      &apk_path_hash_list);
 				}
 
 			} else if (is_manager_apk(dirpath)) {
@@ -219,16 +231,20 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				*my_ctx->stop = 1;
 
 				// Manager found, clear APK cache list
-				list_for_each_entry_safe(pos, n, &apk_path_hash_list, list) {
+				list_for_each_entry_safe(
+					pos, n, &apk_path_hash_list, list) {
 					list_del(&pos->list);
 					kfree(pos);
 				}
 			} else {
-				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
+				struct apk_path_hash *apk_data =
+					kmalloc(sizeof(struct apk_path_hash),
+						GFP_ATOMIC);
 				if (apk_data) {
 					apk_data->hash = hash;
 					apk_data->exists = true;
-					list_add_tail(&apk_data->list, &apk_path_hash_list);
+					list_add_tail(&apk_data->list,
+						      &apk_path_hash_list);
 				}
 			}
 		}
@@ -261,35 +277,46 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 		struct data_path *pos, *n;
 
 		list_for_each_entry_safe(pos, n, &data_path_list, list) {
-			struct my_dir_context ctx = { .ctx.actor = my_actor,
-						      .data_path_list = &data_path_list,
-						      .parent_dir = pos->dirpath,
-						      .private_data = uid_data,
-						      .depth = pos->depth,
-						      .stop = &stop };
+			struct my_dir_context ctx = {
+				.ctx.actor = my_actor,
+				.data_path_list = &data_path_list,
+				.parent_dir = pos->dirpath,
+				.private_data = uid_data,
+				.depth = pos->depth,
+				.stop = &stop
+			};
 			struct file *file;
 
 			if (!stop) {
-				file = ksu_filp_open_compat(pos->dirpath, O_RDONLY | O_NOFOLLOW, 0);
+				file = ksu_filp_open_compat(
+					pos->dirpath, O_RDONLY | O_NOFOLLOW, 0);
 				if (IS_ERR(file)) {
-					pr_err("Failed to open directory: %s, err: %ld\n", pos->dirpath, PTR_ERR(file));
+					pr_err("Failed to open directory: %s, err: %ld\n",
+					       pos->dirpath, PTR_ERR(file));
 					goto skip_iterate;
 				}
-				
+
 				// grab magic on first folder, which is /data/app
 				if (!data_app_magic) {
 					if (file->f_inode->i_sb->s_magic) {
-						data_app_magic = file->f_inode->i_sb->s_magic;
-						pr_info("%s: dir: %s got magic! 0x%lx\n", __func__, pos->dirpath, data_app_magic);
+						data_app_magic =
+							file->f_inode->i_sb
+								->s_magic;
+						pr_info("%s: dir: %s got magic! 0x%lx\n",
+							__func__, pos->dirpath,
+							data_app_magic);
 					} else {
 						filp_close(file, NULL);
 						goto skip_iterate;
 					}
 				}
-				
-				if (file->f_inode->i_sb->s_magic != data_app_magic) {
-					pr_info("%s: skip: %s magic: 0x%lx expected: 0x%lx\n", __func__, pos->dirpath, 
-						file->f_inode->i_sb->s_magic, data_app_magic);
+
+				if (file->f_inode->i_sb->s_magic !=
+				    data_app_magic) {
+					pr_info("%s: skip: %s magic: 0x%lx expected: 0x%lx\n",
+						__func__, pos->dirpath,
+						file->f_inode->i_sb->s_magic,
+						data_app_magic);
 					filp_close(file, NULL);
 					goto skip_iterate;
 				}
@@ -318,7 +345,7 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
 	struct uid_data *np;
 
 	bool exist = false;
-	list_for_each_entry (np, list, list) {
+	list_for_each_entry(np, list, list) {
 		if (np->uid == uid % 100000 &&
 		    strncmp(np->package, package, KSU_MAX_PACKAGE_NAME) == 0) {
 			exist = true;
@@ -392,8 +419,8 @@ void track_throne()
 	// first, check if manager_uid exist!
 	bool manager_exist = false;
 	bool dynamic_manager_exist = false;
-	
-	list_for_each_entry (np, &uid_list, list) {
+
+	list_for_each_entry(np, &uid_list, list) {
 		// if manager is installed in work profile, the uid in packages.list is still equals main profile
 		// don't delete it in this case!
 		int manager_uid = ksu_get_manager_uid() % 100000;
@@ -402,10 +429,10 @@ void track_throne()
 			break;
 		}
 	}
-	
+
 	// Check for dynamic managers
 	if (!dynamic_manager_exist && ksu_is_dynamic_sign_enabled()) {
-		list_for_each_entry (np, &uid_list, list) {
+		list_for_each_entry(np, &uid_list, list) {
 			if (ksu_is_any_manager(np->uid)) {
 				dynamic_manager_exist = true;
 				break;
@@ -434,7 +461,7 @@ prune:
 	ksu_prune_allowlist(is_uid_exist, &uid_list);
 out:
 	// free uid_list
-	list_for_each_entry_safe (np, n, &uid_list, list) {
+	list_for_each_entry_safe(np, n, &uid_list, list) {
 		list_del(&np->list);
 		kfree(np);
 	}

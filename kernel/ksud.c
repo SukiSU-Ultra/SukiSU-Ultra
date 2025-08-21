@@ -88,7 +88,7 @@ void on_post_fs_data(void)
 	pr_info("devpts sid: %d\n", ksu_devpts_sid);
 
 	// End of boot state
-    is_boot_phase = false;
+	is_boot_phase = false;
 }
 
 #define MAX_ARG_STRINGS 0x7FFFFFFF
@@ -200,8 +200,8 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			const char __user *p = get_user_arg_ptr(*argv, 1);
 			if (p && !IS_ERR(p)) {
 				char first_arg[16];
-				ksu_strncpy_from_user_retry(
-					first_arg, p, sizeof(first_arg));
+				ksu_strncpy_from_user_retry(first_arg, p,
+							    sizeof(first_arg));
 				pr_info("/system/bin/init first arg: %s\n",
 					first_arg);
 				if (!strcmp(first_arg, "second_stage")) {
@@ -225,8 +225,8 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			const char __user *p = get_user_arg_ptr(*argv, 1);
 			if (p && !IS_ERR(p)) {
 				char first_arg[16];
-				ksu_strncpy_from_user_retry(
-					first_arg, p, sizeof(first_arg));
+				ksu_strncpy_from_user_retry(first_arg, p,
+							    sizeof(first_arg));
 				pr_info("/init first arg: %s\n", first_arg);
 				if (!strcmp(first_arg, "--second-stage")) {
 					pr_info("/init second_stage executed\n");
@@ -573,12 +573,12 @@ static void do_stop_input_hook(struct work_struct *work)
 }
 #else
 static int ksu_execve_ksud_common(const char __user *filename_user,
-			struct user_arg_ptr *argv)
+				  struct user_arg_ptr *argv)
 {
 	struct filename filename_in, *filename_p;
 	char path[32];
 	long len;
-	
+
 	// return early if disabled.
 	if (!ksu_execveat_hook) {
 		return 0;
@@ -597,19 +597,21 @@ static int ksu_execve_ksud_common(const char __user *filename_user,
 	filename_in.name = path;
 	filename_p = &filename_in;
 
-	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, argv, NULL, NULL);
+	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, argv, NULL,
+					NULL);
 }
 
-int __maybe_unused ksu_handle_execve_ksud(const char __user *filename_user,
-			const char __user *const __user *__argv)
+int __maybe_unused
+ksu_handle_execve_ksud(const char __user *filename_user,
+		       const char __user *const __user *__argv)
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	return ksu_execve_ksud_common(filename_user, &argv);
 }
 
 #if defined(CONFIG_COMPAT) && defined(CONFIG_64BIT)
-int __maybe_unused ksu_handle_compat_execve_ksud(const char __user *filename_user,
-			const compat_uptr_t __user *__argv)
+int __maybe_unused ksu_handle_compat_execve_ksud(
+	const char __user *filename_user, const compat_uptr_t __user *__argv)
 {
 	struct user_arg_ptr argv = { .ptr.compat = __argv };
 	return ksu_execve_ksud_common(filename_user, &argv);
@@ -651,7 +653,9 @@ static void stop_input_hook()
 	bool ret = schedule_work(&stop_input_hook_work);
 	pr_info("unregister input kprobe: %d!\n", ret);
 #else
-	if (!ksu_input_hook) { return; }
+	if (!ksu_input_hook) {
+		return;
+	}
 	ksu_input_hook = false;
 	pr_info("stop input_hook\n");
 #endif

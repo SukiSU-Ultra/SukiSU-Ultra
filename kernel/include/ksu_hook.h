@@ -22,7 +22,7 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 			void *envp, int *flags);
 
 // For volume button
-int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, 
+int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 				  int *value);
 
 #endif

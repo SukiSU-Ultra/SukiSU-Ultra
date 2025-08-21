@@ -1,7 +1,8 @@
 #ifndef ___SUKISU_KPM_H
 #define ___SUKISU_KPM_H
 
-int sukisu_handle_kpm(unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);
+int sukisu_handle_kpm(unsigned long arg2, unsigned long arg3,
+		      unsigned long arg4, unsigned long arg5);
 int sukisu_is_kpm_control_code(unsigned long arg2);
 
 // KPM控制代码

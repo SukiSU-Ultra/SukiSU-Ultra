@@ -62,18 +62,18 @@ static bool add_typeattribute(struct policydb *db, const char *type,
 // rules
 #define strip_av(effect, invert) ((effect == AVTAB_AUDITDENY) == !invert)
 
-#define ksu_hash_for_each(node_ptr, n_slot, cur)                               \
-	int i;                                                                 \
-	for (i = 0; i < n_slot; ++i)                                           \
+#define ksu_hash_for_each(node_ptr, n_slot, cur) \
+	int i;                                   \
+	for (i = 0; i < n_slot; ++i)             \
 		for (cur = node_ptr[i]; cur; cur = cur->next)
 
 // htable is a struct instead of pointer above 5.8.0:
 // https://elixir.bootlin.com/linux/v5.8-rc1/source/security/selinux/ss/symtab.h
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
-#define ksu_hashtab_for_each(htab, cur)                                        \
+#define ksu_hashtab_for_each(htab, cur) \
 	ksu_hash_for_each(htab.htable, htab.size, cur)
 #else
-#define ksu_hashtab_for_each(htab, cur)                                        \
+#define ksu_hashtab_for_each(htab, cur) \
 	ksu_hash_for_each(htab->htable, htab->size, cur)
 #endif
 
@@ -84,7 +84,7 @@ static bool add_typeattribute(struct policydb *db, const char *type,
 #define symtab_insert(s, name, datum) hashtab_insert((s)->table, name, datum)
 #endif
 
-#define avtab_for_each(avtab, cur)                                             \
+#define avtab_for_each(avtab, cur) \
 	ksu_hash_for_each(avtab.htable, avtab.nslot, cur);
 
 static struct avtab_node *get_avtab_node(struct policydb *db,
@@ -657,30 +657,27 @@ static bool add_type(struct policydb *db, const char *type_name, bool attr)
 	}
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0)
-	struct ebitmap *new_type_attr_map_array =
-		ksu_realloc(db->type_attr_map_array,
-			    value * sizeof(struct ebitmap),
-			    (value - 1) * sizeof(struct ebitmap));
+	struct ebitmap *new_type_attr_map_array = ksu_realloc(
+		db->type_attr_map_array, value * sizeof(struct ebitmap),
+		(value - 1) * sizeof(struct ebitmap));
 
 	if (!new_type_attr_map_array) {
 		pr_err("add_type: alloc type_attr_map_array failed\n");
 		return false;
 	}
 
-	struct type_datum **new_type_val_to_struct =
-		ksu_realloc(db->type_val_to_struct,
-			    sizeof(*db->type_val_to_struct) * value,
-			    sizeof(*db->type_val_to_struct) * (value - 1));
+	struct type_datum **new_type_val_to_struct = ksu_realloc(
+		db->type_val_to_struct, sizeof(*db->type_val_to_struct) * value,
+		sizeof(*db->type_val_to_struct) * (value - 1));
 
 	if (!new_type_val_to_struct) {
 		pr_err("add_type: alloc type_val_to_struct failed\n");
 		return false;
 	}
 
-	char **new_val_to_name_types =
-		ksu_realloc(db->sym_val_to_name[SYM_TYPES],
-			    sizeof(char *) * value,
-			    sizeof(char *) * (value - 1));
+	char **new_val_to_name_types = ksu_realloc(
+		db->sym_val_to_name[SYM_TYPES], sizeof(char *) * value,
+		sizeof(char *) * (value - 1));
 	if (!new_val_to_name_types) {
 		pr_err("add_type: alloc val_to_name failed\n");
 		return false;
@@ -727,10 +724,9 @@ static bool add_type(struct policydb *db, const char *type_name, bool attr)
 		return false;
 	}
 
-	char **new_val_to_name_types =
-		krealloc(db->sym_val_to_name[SYM_TYPES],
-			 sizeof(char *) * db->symtab[SYM_TYPES].nprim,
-			 GFP_KERNEL);
+	char **new_val_to_name_types = krealloc(
+		db->sym_val_to_name[SYM_TYPES],
+		sizeof(char *) * db->symtab[SYM_TYPES].nprim, GFP_KERNEL);
 	if (!new_val_to_name_types) {
 		pr_err("add_type: alloc val_to_name failed\n");
 		return false;

@@ -24,9 +24,15 @@ static int __init read_kernelsu_state(char *s)
 }
 __setup("kernelsu.enabled=", read_kernelsu_state);
 
-bool get_ksu_state(void) { return enable_kernelsu >= 1; }
+bool get_ksu_state(void)
+{
+	return enable_kernelsu >= 1;
+}
 #else
-bool get_ksu_state(void) { return true; }
+bool get_ksu_state(void)
+{
+	return true;
+}
 #endif /* CONFIG_KSU_CMDLINE */
 
 static struct workqueue_struct *ksu_workqueue;
@@ -61,8 +67,7 @@ extern void ksu_trace_unregister();
 
 int __init kernelsu_init(void)
 {
-	pr_info("kernelsu.enabled=%d\n",
-		(int)get_ksu_state());
+	pr_info("kernelsu.enabled=%d\n", (int)get_ksu_state());
 
 #ifdef CONFIG_KSU_CMDLINE
 	if (!get_ksu_state()) {
@@ -72,13 +77,20 @@ int __init kernelsu_init(void)
 #endif
 
 #ifdef CONFIG_KSU_DEBUG
-	pr_alert("*************************************************************");
-	pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
-	pr_alert("**                                                         **");
-	pr_alert("**         You are running KernelSU in DEBUG mode          **");
-	pr_alert("**                                                         **");
-	pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
-	pr_alert("*************************************************************");
+	pr_alert(
+		"*************************************************************");
+	pr_alert(
+		"**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
+	pr_alert(
+		"**                                                         **");
+	pr_alert(
+		"**         You are running KernelSU in DEBUG mode          **");
+	pr_alert(
+		"**                                                         **");
+	pr_alert(
+		"**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
+	pr_alert(
+		"*************************************************************");
 #endif
 
 	ksu_core_init();
@@ -98,7 +110,7 @@ int __init kernelsu_init(void)
 #endif
 
 #ifdef CONFIG_KSU_TRACEPOINT_HOOK
-    ksu_trace_register();
+	ksu_trace_register();
 #endif
 
 #ifdef MODULE
@@ -127,7 +139,7 @@ void kernelsu_exit(void)
 #endif
 
 #ifdef CONFIG_KSU_TRACEPOINT_HOOK
-    ksu_trace_unregister();
+	ksu_trace_unregister();
 #endif
 
 	ksu_sucompat_exit();

@@ -12,24 +12,24 @@
 
 #ifdef CONFIG_SECURITY_SELINUX_DISABLE
 #ifdef KSU_COMPAT_USE_SELINUX_STATE
-#define is_selinux_disabled()	(selinux_state.disabled)
+#define is_selinux_disabled() (selinux_state.disabled)
 #else
-#define is_selinux_disabled()	(selinux_disabled)
+#define is_selinux_disabled() (selinux_disabled)
 #endif
 #else
-#define is_selinux_disabled()	(0)
+#define is_selinux_disabled() (0)
 #endif
 
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
 #ifdef KSU_COMPAT_USE_SELINUX_STATE
-#define __is_selinux_enforcing()	(selinux_state.enforcing)
-#define __setenforce(val)		selinux_state.enforcing = val
+#define __is_selinux_enforcing() (selinux_state.enforcing)
+#define __setenforce(val) selinux_state.enforcing = val
 #elif defined(SAMSUNG_SELINUX_PORTING) || !defined(KSU_COMPAT_USE_SELINUX_STATE)
-#define __is_selinux_enforcing()	(selinux_enforcing)
-#define __setenforce(val)		selinux_enforcing = val
+#define __is_selinux_enforcing() (selinux_enforcing)
+#define __setenforce(val) selinux_enforcing = val
 #endif
 #else
-#define __is_selinux_enforcing()	(1)
+#define __is_selinux_enforcing() (1)
 #define __setenforce(val)
 #endif
 
