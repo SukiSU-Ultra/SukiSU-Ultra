@@ -9,7 +9,7 @@ kernelsu-objs += ksud.o
 kernelsu-objs += embed_ksud.o
 kernelsu-objs += kernel_compat.o
 
-ifeq ($(strip $(CONFIG_KSU_TRACEPOINT_HOOK)),y)
+ifeq ($(CONFIG_KSU_TRACEPOINT_HOOK), y)
 kernelsu-objs += ksu_trace.o
 endif
 
