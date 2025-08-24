@@ -621,5 +621,5 @@
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名的模組可能不完整。為了對設備進行保護，已阻止安裝此模組。</string>
     <string name="module_signature_verification_failed">未經簽名的模組可能不完整。你想安裝來自未知發布者的模組嗎？</string>
-     <string name="home_hook_type">鉤子類型</string>
+    <string name="home_hook_type">鉤子類型</string>
 </resources>
