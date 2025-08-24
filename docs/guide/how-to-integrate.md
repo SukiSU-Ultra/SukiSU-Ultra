@@ -24,6 +24,12 @@ Prerequisites: open source bootable kernel.
    - Requires [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
    - Requires [https://github.com/~](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source)
 
+3. **Tracepoint Hook:**
+
+   - Hook method introduced since SukiSU commit [49b01aad](https://github.com/SukiSU-Ultra/SukiSU-Ultra/commit/49b01aad74bcca6dba5a8a2e053bb54b648eb124)
+   - Requires `CONFIG_KSU_TRACEPOINT_HOOK=y`
+   - Requires [`guide/tracepoint-hook.md`](tracepoint-hook.md)
+
 <!-- This part refer to [rsuntk/KernelSU](https://github.com/rsuntk/KernelSU). -->
 
 If you're able to build a bootable kernel, there are two ways to integrate KernelSU into the kernel source code:
