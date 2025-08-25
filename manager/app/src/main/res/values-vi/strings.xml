@@ -242,8 +242,6 @@
     <string name="image_editor_hint">Sử dụng hai ngón tay để phóng to hình ảnh và một ngón tay kéo thả để điều chỉnh vị trí</string>
     <string name="reprovision">Chọn lại</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">Kernel Flashing</string>
-    <string name="horizon_logs_label">Logs:</string>
     <string name="horizon_flash_complete">Flash hoàn tất</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Chuẩn bị…</string>
