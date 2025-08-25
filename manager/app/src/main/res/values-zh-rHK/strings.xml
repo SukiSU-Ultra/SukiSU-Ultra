@@ -239,8 +239,6 @@
     <string name="image_editor_hint">使用雙指縮放圖片，單指拖動調整位置</string>
     <string name="reprovision">重置</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">刷寫 Kernel</string>
-    <string name="horizon_logs_label">日誌:</string>
     <string name="horizon_flash_complete">刷寫完成</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">準備中…</string>
