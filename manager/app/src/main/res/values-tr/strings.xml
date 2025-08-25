@@ -242,8 +242,6 @@
     <string name="image_editor_hint">Görüntüyü yaklaştırmak için iki parmağınızı kullanın ve bir parmağınızla sürükleyerek konumu ayarlayın</string>
     <string name="reprovision">Yeniden sağla</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">Çekirdek Flash\'lama</string>
-    <string name="horizon_logs_label">Günlükler:</string>
     <string name="horizon_flash_complete">Flash\'lama Tamamlandı</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Hazırlanıyor…</string>
