@@ -242,8 +242,6 @@
     <string name="image_editor_hint">使用双指缩放图片，单指拖动调整位置</string>
     <string name="reprovision">重置</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">刷写 Kernel</string>
-    <string name="horizon_logs_label">日志:</string>
     <string name="horizon_flash_complete">刷写完成</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">准备中…</string>
@@ -585,6 +583,7 @@
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活跃管理器</string>
     <string name="no_active_manager">无活跃管理器</string>
+    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk 实现</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 循环路径</string>
@@ -597,6 +596,7 @@
     <string name="susfs_reset_loop_paths_title">重置循环路径</string>
     <string name="susfs_reset_loop_paths_message">确定要清空所有 SuS 循环路径吗？此操作无法撤销。</string>
     <string name="susfs_loop_path_label">循环路径</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 内的路径才能通过循环路径添加。</string>
     <string name="susfs_loop_path_invalid_location">错误：循环路径不能位于 /storage/ 或 /sdcard/ 目录内</string>
     <string name="loop_paths_section">循环路径</string>
