@@ -244,8 +244,6 @@
     <string name="image_editor_hint">2 本の指で画像を拡大、1 本の指でドラッグで位置を調整します。</string>
     <string name="reprovision">再プロビジョニング</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">カーネルをフラッシュ</string>
-    <string name="horizon_logs_label">ログ:</string>
     <string name="horizon_flash_complete">フラッシュが完了しました</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">準備中…</string>
