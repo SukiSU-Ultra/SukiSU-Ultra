@@ -244,8 +244,6 @@
     <string name="image_editor_hint">Gunakan dua jari untuk memperbesar gambar, dan satu jari untuk menggeser mengatur posisi</string>
     <string name="reprovision">Reprovisi</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">Memasang Kernel</string>
-    <string name="horizon_logs_label">Log:</string>
     <string name="horizon_flash_complete">Flash Selesai</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Mempersiapkan…</string>
