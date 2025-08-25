@@ -244,8 +244,6 @@
     <string name="image_editor_hint">Используйте два пальца для увеличения изображения, и один палец для изменения положения</string>
     <string name="reprovision">Реализация</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_title">Мигание ядра</string>
-    <string name="horizon_logs_label">Логи:</string>
     <string name="horizon_flash_complete">Прошивка завершена</string>
     <!-- Flash Status Related -->
     <string name="horizon_preparing">Подготовка…</string>
