@@ -1076,4 +1076,7 @@ void __init ksu_core_init(void)
 {
 	pr_info("ksu_core_init: LSM hooks not in use.\n");
 }
+void ksu_core_exit(void)
+{
+}
 #endif //CONFIG_KSU_LSM_SECURITY_HOOKS
