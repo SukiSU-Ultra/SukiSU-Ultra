@@ -94,11 +94,11 @@ endif
 
 $(info -- Supported Unofficial Manager: 5ec1cff (GKI) ShirkNeko udochina (GKI and KPM))
 
-ifeq ($(strip $(CONFIG_KSU_KPROBES_HOOK)),y)
+ifeq ($(CONFIG_KSU_KPROBES_HOOK), y)
 $(info -- SukiSU: CONFIG_KSU_KPROBES_HOOK)
-else ifeq ($(strip $(CONFIG_KSU_TRACEPOINT_HOOK)),y)
+else ifeq ($(CONFIG_KSU_TRACEPOINT_HOOK), y)
 $(info -- SukiSU: CONFIG_KSU_TRACEPOINT_HOOK)
-else ifeq ($(strip $(CONFIG_KSU_MANUAL_HOOK)),y)
+else ifeq ($(CONFIG_KSU_MANUAL_HOOK),y)
 $(info -- SukiSU: CONFIG_KSU_MANUAL_HOOK)
 endif
 
@@ -117,7 +117,7 @@ $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
-ifeq ($(CONFIG_KPM),y)
+ifeq ($(CONFIG_KPM), y)
 $(info -- KPM is enabled)
 else
 $(info -- KPM is disabled)
