@@ -30,7 +30,7 @@ import java.io.File
 private const val TAG = "KsuCli"
 
 private fun getKsuDaemonPath(): String {
-    return ksuApp.applicationInfo.nativeLibraryDir + File.separator + "libzakozako.so"
+    return "${ksuApp.applicationInfo.nativeLibraryDir}${File.separator}libzakozako.so"
 }
 
 object KsuCli {

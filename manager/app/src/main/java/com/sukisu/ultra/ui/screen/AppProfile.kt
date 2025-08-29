@@ -386,7 +386,7 @@ private fun AppProfileInner(
     }
 }
 
-private enum class Mode(@StringRes private val res: Int) {
+private enum class Mode(@param:StringRes private val res: Int) {
     Default(R.string.profile_default), Template(R.string.profile_template), Custom(R.string.profile_custom);
 
     val text: String

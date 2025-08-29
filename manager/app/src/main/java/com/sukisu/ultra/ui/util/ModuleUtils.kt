@@ -108,10 +108,7 @@ object ModuleUtils {
 
         return try {
 
-            val inputStream = context.contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                return null
-            }
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
 
             val zipInputStream = ZipInputStream(inputStream)
             var entry = zipInputStream.nextEntry

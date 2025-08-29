@@ -166,8 +166,8 @@ fun KernelSUTheme(
     val bgImagePainter = backgroundUri.value?.let {
         rememberAsyncImagePainter(
             model = it,
-            onError = {
-                Log.e("ThemeSystem", "背景图加载失败: ${it.result.throwable.message}")
+            onError = { err ->
+                Log.e("ThemeSystem", "背景图加载失败: ${err.result.throwable.message}")
                 ThemeConfig.customBackgroundUri = null
                 context.saveCustomBackground(null)
             },
@@ -222,7 +222,7 @@ fun KernelSUTheme(
             )
 
             // 自定义背景层
-            backgroundUri.value?.let { uri ->
+            backgroundUri.value?.let {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

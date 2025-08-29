@@ -366,7 +366,7 @@ private fun StatusCard(
                 systemStatus.ksuVersion != null -> {
 
                     val workingModeText = when {
-                        Natives.isSafeMode == true -> stringResource(id = R.string.safe_mode)
+                        Natives.isSafeMode -> stringResource(id = R.string.safe_mode)
                         else -> stringResource(id = R.string.home_working)
                     }
 

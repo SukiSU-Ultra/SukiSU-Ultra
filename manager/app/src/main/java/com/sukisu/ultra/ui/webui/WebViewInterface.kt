@@ -24,6 +24,7 @@ import com.sukisu.ultra.ui.util.*
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
+@Suppress("unused")
 class WebViewInterface(
     wxOptions: WXOptions,
 ) : WXInterface(wxOptions) {

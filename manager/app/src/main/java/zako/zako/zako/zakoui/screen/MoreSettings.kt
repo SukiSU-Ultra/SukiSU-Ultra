@@ -110,7 +110,7 @@ fun saveCardConfig(context: Context) {
 /**
  * 更多设置屏幕
  */
-@SuppressLint("LocalContextConfigurationRead", "ObsoleteSdkInt")
+@SuppressLint("LocalContextConfigurationRead", "LocalContextResourcesRead", "ObsoleteSdkInt")
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable

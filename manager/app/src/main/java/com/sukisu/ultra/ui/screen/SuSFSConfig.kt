@@ -1171,7 +1171,7 @@ fun SuSFSConfigScreen(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface
             ) {
-                allTabs.forEachIndexed { index, tab ->
+                allTabs.forEach { tab ->
                     Tab(
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },

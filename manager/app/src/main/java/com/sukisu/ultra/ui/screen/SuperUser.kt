@@ -58,7 +58,6 @@ import com.sukisu.ultra.ui.viewmodel.AppCategory
 import com.sukisu.ultra.ui.viewmodel.SortType
 import com.dergoogler.mmrl.ui.component.LabelItem
 import com.dergoogler.mmrl.ui.component.LabelItemDefaults
-import kotlin.math.*
 import java.io.File
 
 // 应用优先级枚举
