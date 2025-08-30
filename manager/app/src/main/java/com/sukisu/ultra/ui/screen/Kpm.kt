@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -17,25 +18,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.*
+import com.sukisu.ultra.ui.theme.getCardColors
+import com.sukisu.ultra.ui.theme.getCardElevation
+import com.sukisu.ultra.ui.util.loadKpmModule
+import com.sukisu.ultra.ui.util.unloadKpmModule
+import com.sukisu.ultra.ui.viewmodel.KpmViewModel
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.ui.component.*
-import com.sukisu.ultra.ui.theme.*
-import com.sukisu.ultra.ui.viewmodel.KpmViewModel
-import com.sukisu.ultra.ui.util.*
 import java.io.File
-import androidx.core.content.edit
-import com.sukisu.ultra.R
 import java.io.FileInputStream
-import java.net.*
-import android.app.Activity
-import androidx.compose.ui.res.painterResource
+import java.net.URLEncoder
 
 /**
  * KPM 管理界面
@@ -83,9 +86,8 @@ fun KpmScreen(
         LaunchedEffect(tempFileForInstall) {
             tempFileForInstall?.let { tempFile ->
                 try {
-                    val shell = getRootShell()
                     val command = "strings ${tempFile.absolutePath} | grep 'name='"
-                    val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+                    val result = Shell.cmd(command).to(ArrayList(), null).exec()
                     if (result.isSuccess) {
                         for (line in result.out) {
                             if (line.startsWith("name=")) {
@@ -424,9 +426,8 @@ private suspend fun handleModuleInstall(
 ) {
     var moduleId: String? = null
     try {
-        val shell = getRootShell()
         val command = "strings ${tempFile.absolutePath} | grep 'name='"
-        val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+        val result = Shell.cmd(command).to(ArrayList(), null).exec()
         if (result.isSuccess) {
             for (line in result.out) {
                 if (line.startsWith("name=")) {
@@ -453,9 +454,8 @@ private suspend fun handleModuleInstall(
 
     try {
         if (isEmbed) {
-            val shell = getRootShell()
-            shell.newJob().add("mkdir -p /data/adb/kpm").exec()
-            shell.newJob().add("cp ${tempFile.absolutePath} $targetPath").exec()
+            Shell.cmd("mkdir -p /data/adb/kpm").exec()
+            Shell.cmd("cp ${tempFile.absolutePath} $targetPath").exec()
         }
 
         val loadResult = loadKpmModule(tempFile.absolutePath)
@@ -499,8 +499,7 @@ private suspend fun handleModuleUninstall(
     val moduleFilePath = "/data/adb/kpm/$moduleFileName"
 
     val fileExists = try {
-        val shell = getRootShell()
-        val result = shell.newJob().add("ls /data/adb/kpm/$moduleFileName").exec()
+        val result = Shell.cmd("ls /data/adb/kpm/$moduleFileName").exec()
         result.isSuccess
     } catch (e: Exception) {
         Log.e("KsuCli", "Failed to check module file existence: ${e.message}", e)
@@ -531,8 +530,7 @@ private suspend fun handleModuleUninstall(
             }
 
             if (fileExists) {
-                val shell = getRootShell()
-                shell.newJob().add("rm $moduleFilePath").exec()
+                Shell.cmd("rm $moduleFilePath").exec()
             }
 
             viewModel.fetchModuleList()
@@ -703,9 +701,8 @@ private fun KpmModuleItem(
 }
 
 private fun checkStringsCommand(tempFile: File): Int {
-    val shell = getRootShell()
     val command = "strings ${tempFile.absolutePath} | grep -E 'name=|version=|license=|author='"
-    val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+    val result = Shell.cmd(command).to(ArrayList(), null).exec()
     
     if (!result.isSuccess) {
         return 0

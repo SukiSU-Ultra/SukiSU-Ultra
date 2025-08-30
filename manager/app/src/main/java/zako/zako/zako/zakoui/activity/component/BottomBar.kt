@@ -1,30 +1,28 @@
 package zako.zako.zako.zakoui.activity.component
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
+import com.ramcosta.composedestinations.generated.NavGraphs
+import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
-import com.ramcosta.composedestinations.spec.RouteOrDirection
-import com.ramcosta.composedestinations.generated.NavGraphs
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.MainActivity
-import zako.zako.zako.zakoui.activity.util.AppData
-import zako.zako.zako.zakoui.activity.util.AppData.getKpmVersionUse
 import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
 import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.navigationBars
+import zako.zako.zako.zakoui.activity.util.AppData
 import zako.zako.zako.zakoui.activity.util.AppData.DataRefreshManager
+import zako.zako.zako.zakoui.activity.util.AppData.getKpmVersionUse
 
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class)

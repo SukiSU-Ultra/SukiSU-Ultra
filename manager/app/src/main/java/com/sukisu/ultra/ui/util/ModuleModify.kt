@@ -9,17 +9,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import com.sukisu.ultra.R
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.sukisu.ultra.R
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 object ModuleModify {
     @Composable
@@ -441,9 +440,5 @@ object ModuleModify {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/octet-stream"
         }
-    }
-
-    private fun reboot() {
-        Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
     }
 }

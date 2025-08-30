@@ -3,11 +3,9 @@ package com.sukisu.ultra.ui.webui;
 import android.content.Context;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.webkit.WebViewAssetLoader;
-
 import com.topjohnwu.superuser.Shell;
 import com.topjohnwu.superuser.io.SuFile;
 import com.topjohnwu.superuser.io.SuFileInputStream;

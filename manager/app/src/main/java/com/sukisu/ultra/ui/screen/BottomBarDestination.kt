@@ -3,20 +3,15 @@ package com.sukisu.ultra.ui.screen
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.ModuleScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.SuperUserScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.SettingScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.KpmScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.*
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import com.sukisu.ultra.R
 
 enum class BottomBarDestination(
     val direction: DirectionDestinationSpec,
-    @StringRes val label: Int,
+    @param:StringRes val label: Int,
     val iconSelected: ImageVector,
     val iconNotSelected: ImageVector,
     val rootRequired: Boolean,

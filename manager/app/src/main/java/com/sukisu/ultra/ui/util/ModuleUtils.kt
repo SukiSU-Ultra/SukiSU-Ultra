@@ -3,13 +3,13 @@ package com.sukisu.ultra.ui.util
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
+import com.sukisu.ultra.R
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.util.zip.ZipInputStream
-import com.sukisu.ultra.R
-import android.util.Log
-import java.io.IOException
 
 object ModuleUtils {
     private const val TAG = "ModuleUtils"
@@ -108,10 +108,7 @@ object ModuleUtils {
 
         return try {
 
-            val inputStream = context.contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                return null
-            }
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
 
             val zipInputStream = ZipInputStream(inputStream)
             var entry = zipInputStream.nextEntry

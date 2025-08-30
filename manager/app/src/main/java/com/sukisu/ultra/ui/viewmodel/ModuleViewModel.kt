@@ -7,26 +7,26 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
+import com.sukisu.ultra.ui.util.HanziToPinyin
+import com.sukisu.ultra.ui.util.ModuleVerificationManager
+import com.sukisu.ultra.ui.util.listModules
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.ui.util.HanziToPinyin
-import com.sukisu.ultra.ui.util.listModules
-import com.sukisu.ultra.ui.util.getRootShell
-import com.sukisu.ultra.ui.util.ModuleVerificationManager
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
 import java.text.DecimalFormat
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.log10
 import kotlin.math.pow
-import androidx.core.content.edit
 
 /**
  * @author ShirkNeko
@@ -452,9 +452,8 @@ class ModuleSizeCache(context: Context) {
      */
     private fun calculateModuleFolderSize(dirId: String): Long {
         return try {
-            val shell = getRootShell()
             val command = "du -sb /data/adb/modules/$dirId"
-            val result = shell.newJob().add(command).to(ArrayList(), null).exec()
+            val result = Shell.cmd(command).to(ArrayList(), null).exec()
 
             if (result.isSuccess && result.out.isNotEmpty()) {
                 val sizeStr = result.out.firstOrNull()?.split("\t")?.firstOrNull()

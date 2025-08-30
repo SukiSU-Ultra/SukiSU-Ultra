@@ -3,12 +3,12 @@ package zako.zako.zako.zakoui.activity.util
 import android.content.Context
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sukisu.ultra.ui.MainActivity
-import zako.zako.zako.zakoui.activity.util.AppData.DataRefreshManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import zako.zako.zako.zakoui.activity.util.AppData.DataRefreshManager
 
 object DataRefreshUtils {
 

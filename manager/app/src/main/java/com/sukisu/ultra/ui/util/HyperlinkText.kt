@@ -76,6 +76,7 @@ private data class LinkInfo(
     val end: Int
 )
 
+@Suppress("HttpUrlsUsage")
 private fun extractUrls(text: String): List<LinkInfo> = buildList {
     val matcher = urlPattern.matcher(text)
     while (matcher.find()) {

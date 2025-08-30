@@ -19,6 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -29,21 +31,20 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.R
-import zako.zako.zako.zakoui.flash.HorizonKernelState
-import zako.zako.zako.zakoui.flash.HorizonKernelWorker
 import com.sukisu.ultra.ui.component.KeyEventBlocker
-import com.sukisu.ultra.ui.util.*
+import com.sukisu.ultra.ui.theme.CardConfig
+import com.sukisu.ultra.ui.util.LocalSnackbarHost
+import com.sukisu.ultra.ui.util.reboot
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import zako.zako.zako.zakoui.flash.FlashState
+import zako.zako.zako.zakoui.flash.HorizonKernelState
+import zako.zako.zako.zakoui.flash.HorizonKernelWorker
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import com.sukisu.ultra.ui.theme.CardConfig
-import zako.zako.zako.zakoui.flash.FlashState
-import kotlinx.coroutines.delay
 
 /**
  * @author ShirkNeko

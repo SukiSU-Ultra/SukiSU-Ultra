@@ -5,51 +5,40 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
-import androidx.compose.foundation.background
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
+import com.sukisu.ultra.ui.util.BackgroundTransformation
+import com.sukisu.ultra.ui.util.saveTransformedBackground
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import androidx.core.content.edit
-import androidx.core.net.toUri
-import com.sukisu.ultra.ui.util.BackgroundTransformation
-import com.sukisu.ultra.ui.util.saveTransformedBackground
-import androidx.activity.SystemBarStyle
-import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.ColorScheme
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
 
 /**
  * 主题配置对象，管理应用的主题相关状态
@@ -166,8 +155,8 @@ fun KernelSUTheme(
     val bgImagePainter = backgroundUri.value?.let {
         rememberAsyncImagePainter(
             model = it,
-            onError = {
-                Log.e("ThemeSystem", "背景图加载失败: ${it.result.throwable.message}")
+            onError = { err ->
+                Log.e("ThemeSystem", "背景图加载失败: ${err.result.throwable.message}")
                 ThemeConfig.customBackgroundUri = null
                 context.saveCustomBackground(null)
             },
@@ -222,7 +211,7 @@ fun KernelSUTheme(
             )
 
             // 自定义背景层
-            backgroundUri.value?.let { uri ->
+            backgroundUri.value?.let {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

@@ -7,18 +7,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavBackStackEntry
@@ -29,20 +26,19 @@ import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationSty
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
-import io.sukisu.ultra.UltraToolInstall
-import com.sukisu.ultra.ksuApp
-import zako.zako.zako.zakoui.activity.util.AppData
+import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.screen.BottomBarDestination
-import com.sukisu.ultra.ui.theme.*
-import zako.zako.zako.zakoui.activity.util.*
-import zako.zako.zako.zakoui.activity.component.BottomBar
+import com.sukisu.ultra.ui.theme.KernelSUTheme
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
 import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import com.sukisu.ultra.ui.webui.initPlatform
+import io.sukisu.ultra.UltraToolInstall
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import zako.zako.zako.zakoui.activity.component.BottomBar
+import zako.zako.zako.zakoui.activity.util.*
 
 class MainActivity : ComponentActivity() {
     private lateinit var superUserViewModel: SuperUserViewModel
@@ -206,7 +202,7 @@ class MainActivity : ComponentActivity() {
         // 初始化主题相关设置
         ThemeUtils.initializeThemeSettings(this, settingsStateFlow)
 
-        val isManager = AppData.isManager(ksuApp.packageName)
+        val isManager = Natives.becomeManager(packageName)
         if (isManager) {
             install()
             UltraToolInstall.tryToInstall()

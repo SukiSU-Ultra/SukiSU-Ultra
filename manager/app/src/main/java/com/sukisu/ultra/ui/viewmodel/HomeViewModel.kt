@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dergoogler.mmrl.platform.Platform.Companion.context
@@ -22,7 +23,6 @@ import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.core.content.edit
 
 class HomeViewModel : ViewModel() {
     companion object {

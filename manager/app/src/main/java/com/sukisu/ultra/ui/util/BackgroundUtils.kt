@@ -8,10 +8,10 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.net.Uri
 import android.util.Log
+import androidx.core.graphics.createBitmap
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import androidx.core.graphics.createBitmap
 
 data class BackgroundTransformation(
     val scale: Float = 1f,

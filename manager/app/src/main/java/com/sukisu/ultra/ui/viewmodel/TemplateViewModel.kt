@@ -7,21 +7,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.parcelize.Parcelize
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.profile.Capabilities
 import com.sukisu.ultra.profile.Groups
 import com.sukisu.ultra.ui.util.getAppProfileTemplate
 import com.sukisu.ultra.ui.util.listAppProfileTemplates
 import com.sukisu.ultra.ui.util.setAppProfileTemplate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 

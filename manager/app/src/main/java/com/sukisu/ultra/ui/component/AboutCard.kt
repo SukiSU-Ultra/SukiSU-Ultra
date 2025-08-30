@@ -1,14 +1,7 @@
 package com.sukisu.ultra.ui.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
@@ -21,11 +14,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -95,7 +84,7 @@ private fun AboutCardContent() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val annotatedString = AnnotatedString.Companion.fromHtml(
+                val annotatedString = AnnotatedString.fromHtml(
                     htmlString = stringResource(
                         id = R.string.about_source_code,
                         "<b><a href=\"https://github.com/ShirkNeko/SukiSU-Ultra\">GitHub</a></b>",
