@@ -80,13 +80,13 @@ class WebViewInterface(
         val stderr = result.err.joinToString(separator = "\n")
 
         val jsCode =
-            "javascript: (function() { try { ${callbackFunc}(${result.code}, ${
+            "(function() { try { ${callbackFunc}(${result.code}, ${
                 JSONObject.quote(
                     stdout
                 )
             }, ${JSONObject.quote(stderr)}); } catch(e) { console.error(e); } })();"
         webView.post {
-            webView.loadUrl(jsCode)
+            webView.evaluateJavascript(jsCode, null)
         }
     }
 
@@ -112,13 +112,13 @@ class WebViewInterface(
 
         val emitData = fun(name: String, data: String) {
             val jsCode =
-                "javascript: (function() { try { ${callbackFunc}.${name}.emit('data', ${
+                "(function() { try { ${callbackFunc}.${name}.emit('data', ${
                     JSONObject.quote(
                         data
                     )
                 }); } catch(e) { console.error('emitData', e); } })();"
             webView.post {
-                webView.loadUrl(jsCode)
+                webView.evaluateJavascript(jsCode, null)
             }
         }
 
@@ -141,14 +141,14 @@ class WebViewInterface(
 
         completableFuture.thenAccept { result ->
             val emitExitCode =
-                "javascript: (function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
+                "(function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
             webView.post {
-                webView.loadUrl(emitExitCode)
+                webView.evaluateJavascript(emitExitCode, null)
             }
 
             if (result.code != 0) {
                 val emitErrCode =
-                    "javascript: (function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
+                    "(function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
                         JSONObject.quote(
                             result.err.joinToString(
                                 "\n"
@@ -156,7 +156,7 @@ class WebViewInterface(
                         )
                     };${callbackFunc}.emit('error', err); } catch(e) { console.error('emitErr', e); } })();"
                 webView.post {
-                    webView.loadUrl(emitErrCode)
+                    webView.evaluateJavascript(emitErrCode, null)
                 }
             }
         }.whenComplete { _, _ ->
@@ -209,12 +209,12 @@ class WebViewInterface(
     // =================== KPM支持 =============================
 
     @JavascriptInterface
-    fun listAllKpm() : String {
+    fun listAllKpm(): String {
         return listKpmModules()
     }
 
     @JavascriptInterface
-    fun controlKpm(name: String, args: String) : Int {
+    fun controlKpm(name: String, args: String): Int {
         return controlKpmModule(name, args)
     }
 }
