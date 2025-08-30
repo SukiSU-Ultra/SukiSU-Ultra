@@ -16,16 +16,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.webkit.WebViewAssetLoader
 import com.dergoogler.mmrl.platform.model.ModId
-import com.topjohnwu.superuser.Shell
 import com.sukisu.ultra.ui.util.createRootShell
 import java.io.File
 import com.dergoogler.mmrl.webui.interfaces.WXOptions
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
-    private lateinit var webviewInterface: WebViewInterface
-
-    private var rootShell: Shell? = null
+    private val rootShell by lazy { createRootShell(true) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -53,7 +50,6 @@ class WebUIActivity : ComponentActivity() {
 
         val moduleDir = "/data/adb/modules/${moduleId}"
         val webRoot = File("${moduleDir}/webroot")
-        val rootShell = createRootShell(true).also { this.rootShell = it }
         val webViewAssetLoader = WebViewAssetLoader.Builder()
             .setDomain("mui.kernelsu.org")
             .addPathHandler(
@@ -85,8 +81,7 @@ class WebUIActivity : ComponentActivity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
-            webviewInterface = WebViewInterface(WXOptions(this@WebUIActivity, this, ModId(moduleId)))
-            addJavascriptInterface(webviewInterface, "ksu")
+            addJavascriptInterface(WebViewInterface(WXOptions(this@WebUIActivity, this, ModId(moduleId))), "ksu")
             setWebViewClient(webViewClient)
             loadUrl("https://mui.kernelsu.org/index.html")
         }
@@ -96,6 +91,6 @@ class WebUIActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        runCatching { rootShell?.close() }
+        rootShell.runCatching { close() }
     }
 }
