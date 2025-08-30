@@ -15,8 +15,8 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.core.content.ContextCompat
-import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import androidx.core.net.toUri
+import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import java.io.File
 import java.util.concurrent.TimeUnit
 

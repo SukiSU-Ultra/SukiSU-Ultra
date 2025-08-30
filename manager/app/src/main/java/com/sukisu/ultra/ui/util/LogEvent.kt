@@ -3,10 +3,10 @@ package com.sukisu.ultra.ui.util
 import android.content.Context
 import android.os.Build
 import android.system.Os
-import com.topjohnwu.superuser.ShellUtils
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.screen.getManagerVersion
 import com.topjohnwu.superuser.Shell
+import com.topjohnwu.superuser.ShellUtils
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter

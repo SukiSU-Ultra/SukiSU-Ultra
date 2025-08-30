@@ -16,9 +16,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.webkit.WebViewAssetLoader
 import com.dergoogler.mmrl.platform.model.ModId
+import com.dergoogler.mmrl.webui.interfaces.WXOptions
 import com.sukisu.ultra.ui.util.createRootShell
 import java.io.File
-import com.dergoogler.mmrl.webui.interfaces.WXOptions
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {

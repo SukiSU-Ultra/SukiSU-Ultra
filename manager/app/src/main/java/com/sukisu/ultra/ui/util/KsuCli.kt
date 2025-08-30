@@ -10,15 +10,15 @@ import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.system.Os
 import android.util.Log
+import com.sukisu.ultra.Natives
+import com.sukisu.ultra.ksuApp
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ShellUtils
+import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
-import com.sukisu.ultra.Natives
-import com.sukisu.ultra.ksuApp
-import com.topjohnwu.superuser.io.SuFile
 import org.json.JSONArray
 import java.io.File
 

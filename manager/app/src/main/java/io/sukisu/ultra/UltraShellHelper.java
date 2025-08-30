@@ -1,8 +1,8 @@
 package io.sukisu.ultra;
 
-import java.util.ArrayList;
-
 import com.topjohnwu.superuser.Shell;
+
+import java.util.ArrayList;
 
 public class UltraShellHelper {
     public static String runCmd(String cmds) {

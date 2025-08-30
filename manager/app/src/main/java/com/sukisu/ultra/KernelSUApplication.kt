@@ -17,7 +17,7 @@ import com.topjohnwu.superuser.Shell
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import java.io.File
-import java.util.Locale
+import java.util.*
 
 @SuppressLint("StaticFieldLeak")
 lateinit var ksuApp: KernelSUApplication

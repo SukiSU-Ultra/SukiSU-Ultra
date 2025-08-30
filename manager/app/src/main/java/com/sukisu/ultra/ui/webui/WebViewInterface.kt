@@ -12,15 +12,12 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.dergoogler.mmrl.webui.interfaces.WXInterface
 import com.dergoogler.mmrl.webui.interfaces.WXOptions
 import com.dergoogler.mmrl.webui.model.JavaScriptInterface
+import com.sukisu.ultra.ui.util.*
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
-import com.sukisu.ultra.ui.util.createRootShell
-import com.sukisu.ultra.ui.util.listModules
-import com.sukisu.ultra.ui.util.withNewRootShell
 import org.json.JSONArray
 import org.json.JSONObject
-import com.sukisu.ultra.ui.util.*
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
