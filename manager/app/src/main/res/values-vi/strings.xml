@@ -47,7 +47,7 @@
     <string name="module_magisk_conflict">Các module không khả dụng do xung đột với Magisk!</string>
     <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các Module!</string>
+    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các module!</string>
     <string name="home_support_title">Ủng hộ chúng tôi</string>
     <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
     <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi<br/><br/>Hình ảnh của các tệp có nhãn dán nhân vật anime thuộc bản quyền của %3$s, Quyền sở hữu trí tuệ thương hiệu trong hình ảnh thuộc về %4$s. Trước khi sử dụng các tệp này, ngoài việc tuân thủ %5$s, bạn cũng cần tuân thủ sự cho phép của hai tác giả để sử dụng các nội dung nghệ thuật này]]></string>
@@ -93,7 +93,7 @@
     <string name="app_profile_import_from_clipboard">Nhập từ bộ nhớ tạm clipboard</string>
     <string name="app_profile_export_to_clipboard">Xuất vào bộ nhớ tạm clipboard</string>
     <string name="app_profile_template_export_empty">Không tìm thấy mẫu cục bộ để xuất!</string>
-    <string name="app_profile_template_import_success">Nhập thành công</string>
+    <string name="app_profile_template_import_success">Đã nhập thành công</string>
     <string name="app_profile_template_sync">Đồng bộ hoá các mẫu trực tuyến</string>
     <string name="app_profile_template_save_failed">Lưu mẫu thất bại</string>
     <string name="app_profile_template_import_empty">Bộ nhớ tạm đang trống!</string>
@@ -108,7 +108,7 @@
     <string name="direct_install">Cài đặt trực tiếp (Khuyến nghị)</string>
     <string name="select_file">Chọn file .img cần vá</string>
     <string name="install_inactive_slot">Cài đặt vào phân vùng chưa được sử dụng (Sau OTA)</string>
-    <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng chưa được sử dụng!\nChỉ sử dụng tùy chọn này sau khi OTA hoàn tất.\nTiếp tục?</string>
+    <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng chưa được sử dụng!\nChỉ sử dụng tùy chọn này sau khi cập nhật OTA hoàn tất.\nTiếp tục?</string>
     <string name="install_next">Kế tiếp</string>
     <string name="select_file_tip">Phân vùng %1$s được khuyến nghị</string>
     <string name="select_file_tip_vendor">(Thử nghiệm)</string>
@@ -566,19 +566,19 @@
     <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
     <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
     <string name="all_apps_already_added">Tất cả các ứng dụng đã được thêm vào</string>
-    <string name="dynamic_manager_title">Cấu hình chữ ký động</string>
+    <string name="dynamic_manager_title">Cấu hình Trình quản lý động</string>
     <string name="dynamic_manager_enabled_summary">Đã kích hoạt (Size: %s)</string>
     <string name="dynamic_manager_disabled">Đã vô hiệu hoá</string>
-    <string name="enable_dynamic_manager">Kích hoạt chữ ký động</string>
-    <string name="signature_size">Size chữ ký</string>
-    <string name="signature_hash">Hash chữ ký</string>
+    <string name="enable_dynamic_manager">Kích hoạt Trình quản lý động</string>
+    <string name="signature_size">Size chữ ký của Trình quản lý động</string>
+    <string name="signature_hash">Hash chữ ký của Trình quản lý động</string>
     <string name="hash_must_be_64_chars">Hash phải dài 64 ký tự thập lục phân</string>
-    <string name="dynamic_manager_set_success">Cấu hình chữ ký động đã được thiết lập thành công</string>
-    <string name="dynamic_manager_set_failed">Thiết lập cấu hình chữ ký động thất bại</string>
-    <string name="invalid_sign_config">Cấu hình chữ ký không hợp lệ</string>
-    <string name="dynamic_manager_disabled_success">Chữ ký động đã bị vô hiệu hoá</string>
-    <string name="dynamic_manager_clear_failed">Xoá chữ ký động thất bại</string>
-    <string name="dynamic_managerature">Chữ ký động</string>
+    <string name="dynamic_manager_set_success">Cấu hình Trình quản lý động đã được thiết lập thành công</string>
+    <string name="dynamic_manager_set_failed">Thiết lập cấu hình Trình quản lý động thất bại</string>
+    <string name="invalid_sign_config">Cấu hình Trình quản lý không hợp lệ</string>
+    <string name="dynamic_manager_disabled_success">Trình quản lý động đã bị vô hiệu hoá</string>
+    <string name="dynamic_manager_clear_failed">Xoá Trình quản lý động thất bại</string>
+    <string name="dynamic_managerature">Trình quản lý động</string>
     <string name="signature_index">Chữ ký %1$d</string>
     <string name="unknown_signature">Không xác định</string>
     <string name="multi_manager_list">Trình quản lý đang hoạt động</string>
@@ -621,4 +621,5 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="module_signature_invalid">Tác giả không xác định</string>
     <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt</string>
     <string name="module_signature_verification_failed">Các module chưa được ký có thể chưa hoàn chỉnh. Bạn có muốn cài đặt module này từ một tác giả chưa xác định không?</string>
+    <string name="home_hook_type">Chế độ Hook</string>
 </resources>
