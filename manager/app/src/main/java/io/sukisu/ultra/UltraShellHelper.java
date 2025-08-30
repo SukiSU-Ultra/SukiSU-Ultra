@@ -2,14 +2,12 @@ package io.sukisu.ultra;
 
 import java.util.ArrayList;
 
-import com.sukisu.ultra.ui.util.KsuCli;
+import com.topjohnwu.superuser.Shell;
 
 public class UltraShellHelper {
     public static String runCmd(String cmds) {
         StringBuilder sb = new StringBuilder();
-        for(String str : KsuCli.INSTANCE.getGLOBAL_MNT_SHELL()
-                .newJob()
-                .add(cmds)
+        for(String str : Shell.cmd(cmds)
                 .to(new ArrayList<>(), null)
                 .exec()
                 .getOut()) {

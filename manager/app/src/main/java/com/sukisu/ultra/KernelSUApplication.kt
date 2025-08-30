@@ -12,6 +12,8 @@ import android.os.Bundle
 import coil.Coil
 import coil.ImageLoader
 import com.dergoogler.mmrl.platform.Platform
+import com.sukisu.ultra.ui.util.createRootShellBuilder
+import com.topjohnwu.superuser.Shell
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import java.io.File
@@ -86,6 +88,8 @@ class KernelSUApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ksuApp = this
+        Shell.setDefaultBuilder(createRootShellBuilder(true))
+        Shell.enableVerboseLogging = BuildConfig.DEBUG
 
         // 注册Activity生命周期回调
         registerActivityLifecycleCallbacks(activityLifecycleCallbacks)

@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.LinkedBlockingQueue
 import androidx.core.content.edit
 import com.sukisu.ultra.ui.KsuService
-import com.sukisu.ultra.ui.util.KsuCli
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlin.coroutines.resume
@@ -428,8 +427,7 @@ class SuperUserViewModel : ViewModel() {
                 Shell.EXECUTOR,
                 connection
             )
-            val shell = KsuCli.SHELL
-            task?.let { shell.execTask(it) }
+            task?.let { Shell.getShell().execTask(it) }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to bind KsuService", e)
             continuation.resume(null)

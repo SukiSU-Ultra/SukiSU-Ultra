@@ -430,12 +430,10 @@ object SuSFSManager {
                 async(Dispatchers.IO) {
                     val dataPath = "$MEDIA_DATA_PATH/${appInfo.packageName}"
                     val exists = try {
-                        val shell = getRootShell()
                         val outputList = mutableListOf<String>()
                         val errorList = mutableListOf<String>()
 
-                        val result = shell.newJob()
-                            .add("[ -d \"$dataPath\" ] && echo 'exists' || echo 'not_exists'")
+                        val result = Shell.cmd("[ -d \"$dataPath\" ] && echo 'exists' || echo 'not_exists'")
                             .to(outputList, errorList)
                             .exec()
 
