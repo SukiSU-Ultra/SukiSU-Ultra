@@ -23,6 +23,7 @@ import java.io.File
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
     private val rootShell by lazy { createRootShell(true) }
+    private var webView = null as WebView?
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -34,8 +35,8 @@ class WebUIActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val moduleId = intent.getStringExtra("id")!!
-        val name = intent.getStringExtra("name")!!
+        val moduleId = intent.getStringExtra("id") ?: run { finishAndRemoveTask(); return }
+        val name = intent.getStringExtra("name") ?: run { finishAndRemoveTask(); return }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             @Suppress("DEPRECATION")
             setTaskDescription(ActivityManager.TaskDescription("SukiSU-Ultra - $name"))
@@ -68,6 +69,8 @@ class WebUIActivity : ComponentActivity() {
         }
 
         val webView = WebView(this).apply {
+            webView = this
+
             ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val inset = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 view.updateLayoutParams<MarginLayoutParams> {
@@ -90,7 +93,12 @@ class WebUIActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         rootShell.runCatching { close() }
+        webView = webView?.apply {
+            stopLoading()
+            removeAllViews()
+            destroy()
+        }
+        super.onDestroy()
     }
 }
