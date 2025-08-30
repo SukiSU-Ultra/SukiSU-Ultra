@@ -480,8 +480,7 @@ fun controlKpmModule(name: String, args: String? = null): Int {
 }
 
 fun getKpmVersion(): String {
-    val result = ShellUtils.fastCmd("$kpmmgrPath version")
-    return result.trim()
+    return ShellUtils.fastCmd("$kpmmgrPath version").trim()
 }
 
 fun getZygiskImplement(): String {

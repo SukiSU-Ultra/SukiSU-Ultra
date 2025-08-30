@@ -56,7 +56,7 @@ class KsuService : RootService() {
                     val result = getPackages(flagsArg)
                     reply?.writeNoException()
                     reply?.writeInt(1)
-                    result.writeToParcel(reply!!, android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE)
+                    result.writeToParcel(reply!!, Parcelable.PARCELABLE_WRITE_RETURN_VALUE)
                     return true
                 }
             }

@@ -441,8 +441,4 @@ object ModuleModify {
             type = "application/octet-stream"
         }
     }
-
-    private fun reboot() {
-        Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
-    }
 }

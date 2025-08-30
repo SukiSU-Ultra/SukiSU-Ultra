@@ -16,11 +16,6 @@ public class UltraShellHelper {
         return sb.toString();
     }
 
-    public static boolean isPathExists(String path) {
-        String result = runCmd("test -f '" + path + "' && echo 'exists'");
-        return result.contains("exists");
-    }
-
     public static void CopyFileTo(String path, String target) {
         runCmd("cp -f '" + path + "' '" + target + "' 2>&1");
     }

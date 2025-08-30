@@ -81,13 +81,6 @@ object AppData {
     }
 
     /**
-     * 检查是否具有管理员权限
-     */
-    fun isManager(packageName: String): Boolean {
-        return Natives.becomeManager(packageName)
-    }
-
-    /**
      * 检查是否是完整功能模式
      */
     fun isFullFeatured(packageName: String): Boolean {

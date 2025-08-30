@@ -6,7 +6,9 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.utils.AssetsUtil
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -131,7 +133,7 @@ class HorizonKernelWorker(
             if (isAbDevice && slot != null) {
                 state.updateStep(context.getString(R.string.horizon_getting_original_slot))
                 state.updateProgress(0.72f)
-                originalSlot = runCommandGetOutput(true, "getprop ro.boot.slot_suffix")
+                originalSlot = runCommandGetOutput("getprop ro.boot.slot_suffix")
 
                 state.updateStep(context.getString(R.string.horizon_setting_target_slot))
                 state.updateProgress(0.74f)
@@ -165,13 +167,11 @@ class HorizonKernelWorker(
 
     // 检查设备是否为AB分区设备
     private fun isAbDevice(): Boolean {
-        val abUpdate = runCommandGetOutput(true, "getprop ro.build.ab_update")?.trim() ?: ""
-        if (abUpdate.equals("false", ignoreCase = true) || abUpdate.isEmpty()) {
-            return false
-        }
+        val abUpdate = runCommandGetOutput("getprop ro.build.ab_update")
+        if (!abUpdate.toBoolean()) return false
 
-        val slotSuffix = runCommandGetOutput(true, "getprop ro.boot.slot_suffix")
-        return !slotSuffix.isNullOrEmpty()
+        val slotSuffix = runCommandGetOutput("getprop ro.boot.slot_suffix")
+        return slotSuffix.isNotEmpty()
     }
 
     private fun cleanup() {
@@ -195,11 +195,10 @@ class HorizonKernelWorker(
         }
     }
 
-    @SuppressLint("StringFormatInvalid")
     private fun patch() {
-        val kernelVersion = runCommandGetOutput(true, "cat /proc/version")
+        val kernelVersion = runCommandGetOutput("cat /proc/version")
         val versionRegex = """\d+\.\d+\.\d+""".toRegex()
-        val version = kernelVersion?.let { versionRegex.find(it) }?.value ?: ""
+        val version = kernelVersion.let { versionRegex.find(it) }?.value ?: ""
         val toolName = if (version.isNotEmpty()) {
             val parts = version.split('.')
             if (parts.size >= 2) {
@@ -286,28 +285,7 @@ class HorizonKernelWorker(
         }
     }
 
-    private fun runCommandGetOutput(su: Boolean, cmd: String): String? {
-        val shell = if (su) "su" else "sh"
-        val process = Runtime.getRuntime().exec(arrayOf(shell, "-c", cmd))
-
-        return try {
-            process.inputStream.bufferedReader().use { reader ->
-                reader.readText().trim()
-            }
-        } catch (_: Exception) {
-            ""
-        } finally {
-            process.destroy()
-        }
-    }
-
-    private fun rootAvailable(): Boolean {
-        return try {
-            val process = Runtime.getRuntime().exec("su -c true")
-            val exitValue = process.waitFor()
-            exitValue == 0
-        } catch (_: Exception) {
-            false
-        }
+    private fun runCommandGetOutput(cmd: String): String {
+        return Shell.cmd(cmd).exec().out.joinToString("\n").trim()
     }
 }

@@ -26,7 +26,7 @@ import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationSty
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
-import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.KernelSUTheme
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
@@ -202,7 +202,7 @@ class MainActivity : ComponentActivity() {
         // 初始化主题相关设置
         ThemeUtils.initializeThemeSettings(this, settingsStateFlow)
 
-        val isManager = AppData.isManager(ksuApp.packageName)
+        val isManager = Natives.becomeManager(packageName)
         if (isManager) {
             install()
             UltraToolInstall.tryToInstall()
