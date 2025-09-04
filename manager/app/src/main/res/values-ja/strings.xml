@@ -7,9 +7,9 @@
     <string name="home_working_version">バージョン: %s</string>
     <string name="home_unsupported">非対応</string>
     <string name="home_unsupported_reason">カーネルの KernelSU ドライバが未検出です。カーネルが間違ってませんか？</string>
-    <string name="home_kernel">カーネルのバージョン</string>
-    <string name="home_susfs_version">SuSFS のバージョン</string>
-    <string name="home_manager_version">マネージャーのバージョン</string>
+    <string name="home_kernel">カーネル バージョン</string>
+    <string name="home_susfs_version">SuSFS バージョン</string>
+    <string name="home_manager_version">マネージャー バージョン</string>
     <string name="home_selinux_status">SELinux のステータス</string>
     <string name="selinux_status_disabled">無効</string>
     <string name="selinux_status_enforcing">Enforcing</string>
@@ -60,7 +60,7 @@
     <string name="profile_selinux_context">SELinux コンテキスト</string>
     <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
-    <string name="require_kernel_version" formatted="false">現在の KernelSU のバージョン %s は低すぎるため、マネージャーは正常に動作しません。バージョン %s 以上に更新してください！</string>
+    <string name="require_kernel_version" formatted="false">現在の KernelSU バージョン「%s」は低すぎるため、マネージャーは正常に動作しません。バージョンを「%s」以上に更新してください！</string>
     <string name="settings_umount_modules_default">デフォルトでモジュールのマウントを解除する</string>
     <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通となるデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="settings_susfs_toggle">kprobe フックを無効化</string>
@@ -70,7 +70,7 @@
     <string name="module_update">更新</string>
     <string name="module_downloading">モジュールをダウンロード中: %s</string>
     <string name="module_start_downloading">ダウンロードを開始: %s</string>
-    <string name="new_version_available">新しいバージョン %s が利用可能です。タップしてダウンロード。</string>
+    <string name="new_version_available">新しいバージョン「%s」が利用可能です。タップしてダウンロードします。</string>
     <string name="launch_app">起動</string>
     <string name="force_stop_app" formatted="false">強制停止</string>
     <string name="restart_app">再起動</string>
@@ -161,7 +161,7 @@
     <string name="settings_custom_background">アプリの背景を変更</string>
     <string name="settings_custom_background_summary">背景にする画像を選択してください</string>
     <string name="settings_card_alpha">ナビゲーションバーの透過</string>
-    <string name="home_android_version">Android のバージョン</string>
+    <string name="home_android_version">Android バージョン</string>
     <string name="home_device_model">デバイスモデル</string>
     <string name="su_not_allowed">%s にスーパーユーザー権限を付与することはできません</string>
     <string name="settings_disable_su">su の互換性を無効化する</string>
@@ -173,8 +173,8 @@
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
     <string name="simple_mode_summary">ON にすると不要なカードを非表示にします。</string>
-    <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
-    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
+    <string name="hide_kernel_kernelsu_version">カーネル バージョンを非表示</string>
+    <string name="hide_kernel_kernelsu_version_summary">カーネル バージョンを非表示にします。</string>
     <string name="hide_other_info">その他の情報を非表示</string>
     <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
@@ -219,7 +219,7 @@
     <string name="kpm_install_failed">KPM モジュールの読み込みに失敗しました</string>
     <string name="kpm_args">パラメータ</string>
     <string name="kpm_control">実行</string>
-    <string name="home_kpm_version">KPM のバージョン</string>
+    <string name="home_kpm_version">KPM バージョン</string>
     <string name="close_notice">閉じる</string>
     <string name="kernel_module_notice">以下のカーネルモジュール関数は KernelPatch によって開発され、SukiSU Ultra のカーネルモジュール関数を含むように変更されました</string>
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra の今後にご期待ください</string>
@@ -270,7 +270,7 @@
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
     <string name="GKI_install_methods">AnyKernel3 をフラッシュ</string>
-    <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
+    <string name="kernel_version_log">カーネル バージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
     <string name="app_settings">アプリの設定</string>
@@ -514,7 +514,7 @@
     <string name="susfs_hide_mounts_setting_all">すべてのプロセスを非表示</string>
     <string name="susfs_hide_mounts_setting_non_ksu">非 KSU プロセスのみ非表示</string>
     <string name="susfs_run">実行</string>
-    <string name="kernel_simple_kernel">簡潔モードなカーネル バージョン</string>
+    <string name="kernel_simple_kernel">カーネル バージョン (簡潔モード)</string>
     <string name="kernel_simple_kernel_summary">SukiSU のカーネル バージョンによって表示されるクリーンモードを有効または無効します。</string>
     <string name="susfs_android_data_path_set">Android のデータパスが設定されました: %s</string>
     <string name="susfs_sdcard_path_set">SD カードのパスは次のように設定済みです: %s</string>
@@ -527,7 +527,7 @@
     <string name="susfs_backup_failed">バックアップの作成に失敗しました: %s</string>
     <string name="susfs_backup_file_not_found">バックアップファイルが見つかりません</string>
     <string name="susfs_backup_invalid_format">無効なバックアップファイル形式</string>
-    <string name="susfs_backup_version_mismatch">バックアップバージョンが一致しませんが、復元を試みます。</string>
+    <string name="susfs_backup_version_mismatch">バックアップ バージョンが一致しませんが、復元を試みます。</string>
     <string name="susfs_restore_title">復元</string>
     <string name="susfs_restore_description">SuSFS の構成をバックアップファイルから復元します。これにより、現在の設定がすべて上書きされます。</string>
     <string name="susfs_restore_select_file">バックアップファイルを選択</string>
@@ -623,4 +623,5 @@
     <string name="module_signature_invalid">不明な発行元</string>
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
+    <string name="home_hook_type">フックタイプ</string>
 </resources>
