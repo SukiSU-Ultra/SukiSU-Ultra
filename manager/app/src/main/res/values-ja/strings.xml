@@ -6,10 +6,10 @@
     <string name="home_working">動作中</string>
     <string name="home_working_version">バージョン: %s</string>
     <string name="home_unsupported">非対応</string>
-    <string name="home_unsupported_reason">カーネルの KernelSU ドライバが未検出です。カーネルが間違ってませんか？</string>
-    <string name="home_kernel">カーネルのバージョン</string>
-    <string name="home_susfs_version">SuSFS のバージョン</string>
-    <string name="home_manager_version">マネージャーのバージョン</string>
+    <string name="home_unsupported_reason">カーネルの KernelSU ドライバが未検出です。カーネルが間違っていませんか？</string>
+    <string name="home_kernel">カーネル バージョン</string>
+    <string name="home_susfs_version">SuSFS バージョン</string>
+    <string name="home_manager_version">マネージャー バージョン</string>
     <string name="home_selinux_status">SELinux のステータス</string>
     <string name="selinux_status_disabled">無効</string>
     <string name="selinux_status_enforcing">Enforcing</string>
@@ -20,7 +20,7 @@
     <string name="module_failed_to_disable">%s モジュールを OFF にできませんでした</string>
     <string name="module_empty">モジュールがインストールされていません</string>
     <string name="module">モジュール</string>
-    <string name="module_sort_action_first">並べ替え (アクション優先)</string>
+    <string name="module_sort_action_first">並べ替え (アクションを優先)</string>
     <string name="module_sort_enabled_first">並べ替え (最初に有効)</string>
     <string name="uninstall">アンインストール</string>
     <string name="module_install">インストール</string>
@@ -33,8 +33,8 @@
     <string name="reboot_download">ダウンロードモードで再起動</string>
     <string name="reboot_edl">EDL で再起動</string>
     <string name="about">アプリについて</string>
-    <string name="module_uninstall_confirm">モジュール %s をアンインストールしますか？</string>
-    <string name="module_uninstall_success">%s はアンインストールされました</string>
+    <string name="module_uninstall_confirm">%s モジュールをアンインストールしますか？</string>
+    <string name="module_uninstall_success">%s をアンインストールしました</string>
     <string name="module_uninstall_failed">%s をアンインストールできませんでした</string>
     <string name="module_version">バージョン</string>
     <string name="module_author">作者</string>
@@ -60,7 +60,7 @@
     <string name="profile_selinux_context">SELinux コンテキスト</string>
     <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
-    <string name="require_kernel_version" formatted="false">現在の KernelSU のバージョン %s は低すぎるため、マネージャーは正常に動作しません。バージョン %s 以上に更新してください！</string>
+    <string name="require_kernel_version" formatted="false">現在の KernelSU のバージョン「%s」は低すぎるため、マネージャーは正常に動作しません。バージョン「%s」以上に更新してください！</string>
     <string name="settings_umount_modules_default">デフォルトでモジュールのマウントを解除する</string>
     <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通となるデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="settings_susfs_toggle">kprobe フックを無効化</string>
@@ -70,7 +70,7 @@
     <string name="module_update">更新</string>
     <string name="module_downloading">モジュールをダウンロード中: %s</string>
     <string name="module_start_downloading">ダウンロードを開始: %s</string>
-    <string name="new_version_available">新しいバージョン %s が利用可能です。タップしてダウンロード。</string>
+    <string name="new_version_available">最新のバージョン「%s」が利用可能です。タップしてダウンロード。</string>
     <string name="launch_app">起動</string>
     <string name="force_stop_app" formatted="false">強制停止</string>
     <string name="restart_app">再起動</string>
@@ -130,7 +130,7 @@
     <string name="log_saved">保存されたログ</string>
     <string name="sus_su_mode">SuS SU モード:</string>
     <!-- Module related -->
-    <string name="module_install_confirm">%1$s のモジュールをインストールしますか？</string>
+    <string name="module_install_confirm">%1$s モジュールをインストールしますか？</string>
     <string name="unknown_module">不明なモジュール</string>
     <!-- Restore related -->
     <string name="restore_confirm_title">モジュールの復元を確認</string>
@@ -161,9 +161,9 @@
     <string name="settings_custom_background">アプリの背景を変更</string>
     <string name="settings_custom_background_summary">背景にする画像を選択してください</string>
     <string name="settings_card_alpha">ナビゲーションバーの透過</string>
-    <string name="home_android_version">Android のバージョン</string>
+    <string name="home_android_version">Android バージョン</string>
     <string name="home_device_model">デバイスモデル</string>
-    <string name="su_not_allowed">%s にスーパーユーザー権限を付与することはできません</string>
+    <string name="su_not_allowed">「%s」にスーパーユーザー権限を付与することはできません</string>
     <string name="settings_disable_su">su の互換性を無効化する</string>
     <string name="settings_disable_su_summary">su コマンドを使用してアプリが root 権限を取得する動作を一時的に無効化します (既存の root プロセスは影響を受けません)。</string>
     <string name="module_install_multiple_confirm_with_names">%1$d 個のモジュールをインストールしてもよろしいですか？\n\n%2$s</string>
@@ -173,10 +173,10 @@
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
     <string name="simple_mode_summary">ON にすると不要なカードを非表示にします。</string>
-    <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
-    <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします。</string>
+    <string name="hide_kernel_kernelsu_version">カーネル バージョンを非表示</string>
+    <string name="hide_kernel_kernelsu_version_summary">カーネル バージョンを非表示にします。</string>
     <string name="hide_other_info">その他の情報を非表示</string>
-    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数に関する赤いドットを非表示にします。</string>
+    <string name="hide_other_info_summary">ナビゲーションバーページでスーパーユーザー、モジュール、KPM モジュールの数のドットを非表示にします。</string>
     <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
     <string name="hide_zygisk_implement">Zygisk のステータスを非表示</string>
@@ -219,7 +219,7 @@
     <string name="kpm_install_failed">KPM モジュールの読み込みに失敗しました</string>
     <string name="kpm_args">パラメータ</string>
     <string name="kpm_control">実行</string>
-    <string name="home_kpm_version">KPM のバージョン</string>
+    <string name="home_kpm_version">KPM バージョン</string>
     <string name="close_notice">閉じる</string>
     <string name="kernel_module_notice">以下のカーネルモジュール関数は KernelPatch によって開発され、SukiSU Ultra のカーネルモジュール関数を含むように変更されました</string>
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra の今後にご期待ください</string>
@@ -270,7 +270,7 @@
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
     <string name="GKI_install_methods">AnyKernel3 をフラッシュ</string>
-    <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
+    <string name="kernel_version_log">カーネル バージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
     <string name="app_settings">アプリの設定</string>
@@ -303,8 +303,8 @@
     <!-- DPI setting related strings -->
     <string name="app_dpi_title">DPI の変更を適用</string>
     <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します。</string>
-    <string name="dpi_size_small">小 </string>
-    <string name="dpi_size_medium">中 </string>
+    <string name="dpi_size_small">小</string>
+    <string name="dpi_size_medium">中</string>
     <string name="dpi_size_large">大</string>
     <string name="dpi_size_extra_large">特大</string>
     <string name="dpi_size_custom">カスタマイズ</string>
@@ -321,7 +321,7 @@
     <!-- Flash related -->
     <string name="error_code">エラーコード</string>
     <string name="check_log">ログを確認してください</string>
-    <string name="installing_module">モジュール設置中 %1$d/%2$d</string>
+    <string name="installing_module">モジュールをインストール中: %1$d/%2$d</string>
     <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
     <string name="module_download_error">モデルのダウンロードに失敗しました</string>
     <string name="kernel_flashing">カーネルをフラッシュ中</string>
@@ -399,7 +399,7 @@
     <string name="susfs_path_not_found_error">パスが見つかりません</string>
     <string name="susfs_path_label">パス</string>
     <string name="susfs_mount_path_label">マウントのパス</string>
-    <string name="susfs_path_placeholder">例 : /system/addon.d</string>
+    <string name="susfs_path_placeholder">例: /system/addon.d</string>
     <string name="susfs_no_paths_configured">SUS パスが未構成です</string>
     <string name="susfs_no_mounts_configured">SUS マウントが未構成です</string>
     <string name="susfs_no_umounts_configured">アンマウントを試すが未構成です</string>
@@ -516,7 +516,7 @@
     <string name="susfs_run">実行</string>
     <string name="kernel_simple_kernel">簡潔モードなカーネル バージョン</string>
     <string name="kernel_simple_kernel_summary">SukiSU のカーネル バージョンによって表示されるクリーンモードを有効または無効します。</string>
-    <string name="susfs_android_data_path_set">Android のデータパスが設定されました: %s</string>
+    <string name="susfs_android_data_path_set">Android データパスが設定されました: %s</string>
     <string name="susfs_sdcard_path_set">SD カードのパスは次のように設定済みです: %s</string>
     <string name="susfs_path_setup_warning">パスの設定は完全に成功しない可能性がありますが、SUS パスは引き続き追加されます。</string>
     <!-- 备份和还原相关字符串 -->
@@ -527,7 +527,7 @@
     <string name="susfs_backup_failed">バックアップの作成に失敗しました: %s</string>
     <string name="susfs_backup_file_not_found">バックアップファイルが見つかりません</string>
     <string name="susfs_backup_invalid_format">無効なバックアップファイル形式</string>
-    <string name="susfs_backup_version_mismatch">バックアップバージョンが一致しませんが、復元を試みます。</string>
+    <string name="susfs_backup_version_mismatch">バックアップのバージョンが一致しませんが、復元を試みます。</string>
     <string name="susfs_restore_title">復元</string>
     <string name="susfs_restore_description">SuSFS の構成をバックアップファイルから復元します。これにより、現在の設定がすべて上書きされます。</string>
     <string name="susfs_restore_select_file">バックアップファイルを選択</string>
@@ -599,8 +599,8 @@
     <string name="susfs_reset_loop_paths_message">すべての SUS ループパスを消去してもよろしいですか？この操作は元に戻せません。</string>
     <string name="susfs_loop_path_label">ループパス</string>
     <string name="susfs_loop_path_placeholder">/data/example/path</string>
-    <string name="susfs_loop_path_restriction_warning">注意: ループパス経由で追加できるのは /storage/ と /sdcard/ 内にないパスのみです。</string>
-    <string name="susfs_loop_path_invalid_location">エラー: ループパスは  /storage/ または /sdcard/ のディレクトリ内に配置できません。</string>
+    <string name="susfs_loop_path_restriction_warning">注意: ループパス経由で追加できるのは「/storage/」と「/sdcard/」内にないパスのみです。</string>
+    <string name="susfs_loop_path_invalid_location">エラー: ループパスは「/storage/」または「/sdcard/」のディレクトリ内に配置できません。</string>
     <string name="loop_paths_section">ループパス</string>
     <string name="add_loop_path">ループパスを追加</string>
     <!-- 循环路径功能描述 -->
@@ -619,7 +619,7 @@
     <string name="module_verified">検証済み</string>
     <string name="module_signature_verified">モジュールの署名が検証されました</string>
     <string name="module_signature_verification">署名の検証</string>
-    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。（ARMアーキテクチャのみ）</string>
+    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。（ARM アーキテクチャのみ）</string>
     <string name="module_signature_invalid">不明な発行元</string>
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
