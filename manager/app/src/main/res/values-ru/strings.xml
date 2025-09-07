@@ -611,6 +611,9 @@
     <string name="avc_log_spoofing_enabled">Спуф AVC лога включен</string>
     <string name="avc_log_spoofing_disabled">Спуф AVC лога отключен</string>
     <string name="avc_log_spoofing_description">отключен: Отключить спуффинг sus tcontext от \'su\' показывать в Avc логе в ядре.\n включен: Включить спуффинг sus tcontext от \'su\' с \'ядром\' показывать в Avc логе в ядре</string>
+    <string name="avc_log_spoofing_warning">Важное замечание:\n
+- Значение по умолчанию в ядре установлено как \'0\'\n
+- Включение этой опции иногда затрудняет разработчикам определение причины при отладке проблем, связанных с разрешениями или SELinux, поэтому пользователям рекомендуется отключать её во время отладки</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Проверенные</string>
     <string name="module_signature_verified">Подпись модуля подтверждена</string>
@@ -619,4 +622,5 @@
     <string name="module_signature_invalid">Неизвестный издатель</string>
     <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
     <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>
+    <string name="home_hook_type">Типы хуков</string>
 </resources>
