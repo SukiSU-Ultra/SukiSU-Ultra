@@ -1,4 +1,6 @@
 # SukiSU Ultra
+<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+
 
 [English](../README.md) | [简体中文](../zh/README.md) | **日本語** | [Türkçe](../tr/README.md)
 

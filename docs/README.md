@@ -1,6 +1,6 @@
-<img align='right' src='zakomonochrome-128.svg' width='100px' alt="logo">
-
 # SukiSU Ultra
+<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+
 
 **English** | [简体中文](./zh/README.md) | [日本語](./ja/README.md) | [Türkçe](./tr/README.md)
 
