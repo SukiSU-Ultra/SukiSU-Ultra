@@ -583,6 +583,7 @@
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活跃管理器</string>
     <string name="no_active_manager">无活跃管理器</string>
+    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk 实现</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 循环路径</string>
@@ -595,6 +596,7 @@
     <string name="susfs_reset_loop_paths_title">重置循环路径</string>
     <string name="susfs_reset_loop_paths_message">确定要清空所有 SuS 循环路径吗？此操作无法撤销。</string>
     <string name="susfs_loop_path_label">循环路径</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 内的路径才能通过循环路径添加。</string>
     <string name="susfs_loop_path_invalid_location">错误：循环路径不能位于 /storage/ 或 /sdcard/ 目录内</string>
     <string name="loop_paths_section">循环路径</string>
@@ -620,4 +622,34 @@
     <string name="module_signature_invalid_message">未经签名的模块可能不完整。为了对设备进行保护，已阻止安装此模块。</string>
     <string name="module_signature_verification_failed">未经签名的模块可能不完整。你想安装来自未知发布者的模块吗？</string>
     <string name="home_hook_type">钩子类型</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM修补</string>
+    <string name="kpm_patch_description">用于添加附加的KPM功能</string>
+    <string name="enable_kpm_patch">KPM修补</string>
+    <string name="kpm_patch_switch_description">在刷写前对内核镜像进行KPM修补</string>
+    <string name="enable_kpm_undo_patch">KPM撤销修补</string>
+    <string name="kpm_undo_patch_switch_description">撤销之前应用的KPM修补</string>
+    <string name="kpm_patch_enabled">KPM修补已启用</string>
+    <string name="kpm_undo_patch_enabled">KPM撤销修补已启用</string>
+    <string name="kpm_patch_mode">KPM修补模式</string>
+    <string name="kpm_undo_patch_mode">KPM撤销修补模式</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">准备KPM修补工具</string>
+    <string name="kpm_applying_patch">正在应用KPM修补</string>
+    <string name="kpm_undoing_patch">正在撤销KPM修补</string>
+    <string name="kpm_tools_prepared">KPM工具准备完成</string>
+    <string name="kpm_found_image_file">找到Image文件: %s</string>
+    <string name="kpm_patch_success">KPM修补成功</string>
+    <string name="kpm_undo_patch_success">KPM撤销修补成功</string>
+    <string name="kpm_file_repacked">文件重新打包完成</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_kptools_failed">提取kptools工具失败</string>
+    <string name="kpm_extract_kpimg_failed">提取kpimg文件失败</string>
+    <string name="kpm_prepare_tools_failed">准备KPM工具失败: %s</string>
+    <string name="kpm_extract_zip_failed">解压压缩包失败</string>
+    <string name="kpm_image_file_not_found">未找到Image文件</string>
+    <string name="kpm_patch_failed">KPM修补失败</string>
+    <string name="kpm_undo_patch_failed">KPM撤销修补失败</string>
+    <string name="kpm_repack_zip_failed">重新打包压缩文件失败</string>
+    <string name="kpm_patch_operation_failed">KPM修补操作失败: %s</string>
 </resources>
