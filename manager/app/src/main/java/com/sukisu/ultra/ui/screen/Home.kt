@@ -333,9 +333,7 @@ private fun StatusCard(
 
                     val workingModeSurfaceText = when {
                         systemStatus.lkmMode == true -> "LKM"
-                        systemStatus.lkmMode == null && systemStatus.kernelVersion.isGKI1() -> "GKI 1.0"
-                        systemStatus.lkmMode == false || systemStatus.kernelVersion.isGKI() -> "GKI 2.0"
-                        else -> "N-GKI"
+                        else -> "Built-in"
                     }
 
                     Icon(

@@ -14,7 +14,6 @@ data class KernelVersion(val major: Int, val patchLevel: Int, val subLevel: Int)
         major == 5 && patchLevel >= 10 -> true
         else -> false
     }
-    fun isGKI1(): Boolean = (major == 4 && patchLevel >= 19) || (major == 5 && patchLevel < 10)
 }
 
 fun parseKernelVersion(version: String): KernelVersion {
