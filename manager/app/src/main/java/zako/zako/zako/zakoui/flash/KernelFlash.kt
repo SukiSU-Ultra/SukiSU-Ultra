@@ -301,7 +301,7 @@ class HorizonKernelWorker(
             }
 
             // 查找Image文件
-            val findImageResult = runCommandGetOutput("find $extractDir -name 'Image' -type f")
+            val findImageResult = runCommandGetOutput("find $extractDir -name '*Image*' -type f")
             if (findImageResult.isBlank()) {
                 throw IOException(context.getString(R.string.kpm_image_file_not_found))
             }
