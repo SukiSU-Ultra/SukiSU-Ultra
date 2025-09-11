@@ -584,6 +584,7 @@
     <string name="multi_manager_list">活躍管理器</string>
     <string name="no_active_manager">無活躍管理器</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
+    <string name="default_signature">SukiSU</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 循環路徑</string>
     <string name="susfs_add_sus_loop_path">新增 SuS 循環路徑</string>
