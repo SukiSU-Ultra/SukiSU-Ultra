@@ -371,7 +371,7 @@
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 檔案</string>
     <string name="susfs_command_failed">SuSFS 指令執行失敗</string>
     <string name="susfs_command_error">執行 SuSFS 指令時出錯: %s</string>
-    <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
+    <string name="susfs_uname_set_success" formatted="false">SuSFS 內核名称和构建时间设置成功: %s, %s</string>
     <!-- SuSFS Settings Item -->
     <string name="susfs_config_setting_title">SuSFS 配置</string>
     <!-- 开机自启动相关 -->
@@ -444,7 +444,7 @@
     <string name="auto_try_umount_bind_feature_label">自動嘗試卸載綁定掛載</string>
     <string name="hide_symbols_feature_label">隱藏 KSU SuSFS 符號</string>
     <string name="magic_mount_feature_label">魔法掛載支援</string>
-    <string name="sus_kstat_feature_label">SuS 核心統計支援</string>
+    <string name="sus_kstat_feature_label">SuS 內核統計支援</string>
     <string name="sus_su_feature_label">SuS SU 模式切換功能</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">可設定的 SuSFS 功能</string>
@@ -498,22 +498,22 @@
     <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone：僅更新 ino，其他保持原始值</string>
     <string name="static_kstat_config">靜態 Kstat 設定</string>
     <string name="kstat_path_management">Kstat 路徑管理</string>
-    <string name="no_kstat_config_message">暫無 Kstat 設定，請點擊上方按鈕新增設定</string>
+    <string name="no_kstat_config_message">暫無 Kstat 設定，點擊下方按鈕新增設定</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
     <string name="susfs_hide_mounts_control_title">SuS 掛載隱藏控制</string>
     <string name="susfs_hide_mounts_control_description">控制 SuS 掛載對程序的隱藏行為</string>
     <string name="susfs_hide_mounts_for_all_procs_label">對所有程序隱藏 SuS 掛載</string>
-    <string name="susfs_hide_mounts_for_all_procs_enabled_description">啟用後，SuS 掛載將對所有程序隱藏，包括 KSU 程序</string>
-    <string name="susfs_hide_mounts_for_all_procs_disabled_description">禁用後，SuS 掛載僅對非 KSU 程序隱藏，KSU 程序可以看到掛載</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">啟用後，SuS 掛載將對所有程序隱藏，包含 KSU 程序</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">停用後，SuS 掛載僅對非 KSU 程序隱藏，KSU 程序可以看到掛載</string>
     <string name="susfs_hide_mounts_all_enabled">已啟用對所有程序隱藏 SuS 掛載</string>
-    <string name="susfs_hide_mounts_all_disabled">已禁用對所有程序隱藏 SuS 掛載</string>
-    <string name="susfs_hide_mounts_recommendation">建議在螢幕解鎖後或在 service.sh 或 boot-completed.sh 階段設定為禁用，這可以修復一些依賴 KSU 程序掛載的 root 應用的問題</string>
-    <string name="susfs_hide_mounts_current_setting">當前設定: %s</string>
+    <string name="susfs_hide_mounts_all_disabled">已停用對所有程序隱藏 SuS 掛載</string>
+    <string name="susfs_hide_mounts_recommendation">建議在螢幕解鎖後或在 service.sh 或 boot-completed.sh 階段設定為停用，這可以修復一些依賴 KSU 程序掛載的 root 應用程式問題</string>
+    <string name="susfs_hide_mounts_current_setting">目前設定: %s</string>
     <string name="susfs_hide_mounts_setting_all">對所有程序隱藏</string>
     <string name="susfs_hide_mounts_setting_non_ksu">僅對非 KSU 程序隱藏</string>
     <string name="susfs_run">執行</string>
-    <string name="kernel_simple_kernel">核心版本簡潔模式</string>
-    <string name="kernel_simple_kernel_summary">啟用或禁用 SukiSU 核心版本顯示的簡潔模式</string>
+    <string name="kernel_simple_kernel">內核版本簡潔模式</string>
+    <string name="kernel_simple_kernel_summary">啟用或停用 SukiSU 內核版本顯示的簡潔模式</string>
     <string name="susfs_android_data_path_set">Android Data 路徑已設定為: %s</string>
     <string name="susfs_sdcard_path_set">SD 卡路徑已設定為: %s</string>
     <string name="susfs_path_setup_warning">路徑設定可能未完全成功，但將繼續新增 SuS 路徑</string>
@@ -525,7 +525,7 @@
     <string name="susfs_backup_failed">備份建立失敗：%s</string>
     <string name="susfs_backup_file_not_found">備份檔案未找到</string>
     <string name="susfs_backup_invalid_format">無效的備份檔案格式</string>
-    <string name="susfs_backup_version_mismatch">備份版本不匹配，但將嘗試還原</string>
+    <string name="susfs_backup_version_mismatch">備份版本不符，但將嘗試還原</string>
     <string name="susfs_restore_title">還原</string>
     <string name="susfs_restore_description">從備份檔案還原 SuSFS 配置。這將覆蓋所有當前設定。</string>
     <string name="susfs_restore_select_file">選擇備份檔案</string>
@@ -537,8 +537,8 @@
     <string name="susfs_backup_info_date">備份日期：%s</string>
     <string name="susfs_backup_info_device">裝置：%s</string>
     <string name="susfs_backup_info_version">版本：%s</string>
-    <string name="hide_bl_script">隱藏 BL 指令碼</string>
-    <string name="hide_bl_script_description">啟用隱藏 Bootloader 解鎖狀態指令碼</string>
+    <string name="hide_bl_script">上鎖狀態</string>
+    <string name="hide_bl_script_description">覆蓋引導鎖狀態屬性於 late_start 服務模式</string>
     <string name="cleanup_residue">清理工具殘留</string>
     <string name="cleanup_residue_description">清理各種模組以及工具的殘留檔案和目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
@@ -550,34 +550,34 @@
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
     <string name="update">更新</string>
-    <string name="kstat_config_updated">Kstat 配置更新</string>
-    <string name="kstat_path_updated">Kstat 路徑更新</string>
-    <string name="susfs_update_full_clone">Susfs 完整克隆更新</string>
-    <string name="umount_zygote_iso_service">解除安裝 Zygote 隔離服務</string>
-    <string name="umount_zygote_iso_service_description">啟用此選項將在系統啟動時解除安裝 Zygote 隔離服務掛載點</string>
-    <string name="umount_zygote_iso_service_enabled">Zygote 隔離服務解除安裝已啟用</string>
-    <string name="umount_zygote_iso_service_disabled">Zygote 隔離服務解除安裝已禁用</string>
+    <string name="kstat_config_updated">Kstat 配置已更新</string>
+    <string name="kstat_path_updated">Kstat 路徑已更新</string>
+    <string name="susfs_update_full_clone">Susfs 完整複製更新</string>
+    <string name="umount_zygote_iso_service">卸載 Zygote 隔離服務</string>
+    <string name="umount_zygote_iso_service_description">啟用此選項將在系統啟動時卸載 Zygote 隔離服務掛載點</string>
+    <string name="umount_zygote_iso_service_enabled">Zygote 隔離服務卸載已啟用</string>
+    <string name="umount_zygote_iso_service_disabled">Zygote 隔離服務卸載已停用</string>
     <string name="app_paths_section">應用路徑</string>
     <string name="other_paths_section">其他路徑</string>
     <string name="add_custom_path">其他</string>
-    <string name="add_app_path">應用</string>
-    <string name="susfs_add_app_path">添加應用程式路徑</string>
+    <string name="add_app_path">應用程式</string>
+    <string name="susfs_add_app_path">新增應用路徑</string>
     <string name="search_apps">搜尋應用程式</string>
-    <string name="selected_apps_count">%1$d 個已選應用程式</string>
-    <string name="already_added_apps_count">%1$d 個已添加應用程式</string>
-    <string name="all_apps_already_added">所有应用均已添加</string>
-    <string name="dynamic_manager_title">动态签名配置</string>
-    <string name="dynamic_manager_enabled_summary">已启用（大小: %s）</string>
-    <string name="dynamic_manager_disabled">未启用</string>
-    <string name="enable_dynamic_manager">啟用動態簽名</string>
-    <string name="signature_size">簽名大小</string>
-    <string name="signature_hash">簽名哈希值</string>
-    <string name="hash_must_be_64_chars">哈希值必須是 64 位十六進制字符</string>
-    <string name="dynamic_manager_set_success">動態簽名配置設定成功</string>
-    <string name="dynamic_manager_set_failed">動態簽名配置設定失敗</string>
-    <string name="invalid_sign_config">無效的簽名配置</string>
-    <string name="dynamic_manager_disabled_success">動態簽名已禁用</string>
-    <string name="dynamic_manager_clear_failed">清除動態簽名錯誤</string>
+    <string name="selected_apps_count">%1$d 個已選應用</string>
+    <string name="already_added_apps_count">%1$d 個已新增應用</string>
+    <string name="all_apps_already_added">所有應用均已新增</string>
+    <string name="dynamic_manager_title">動態管理器設定</string>
+    <string name="dynamic_manager_enabled_summary">已啟用（大小: %s）</string>
+    <string name="dynamic_manager_disabled">未啟用</string>
+    <string name="enable_dynamic_manager">啟用動態管理器</string>
+    <string name="signature_size">動態管理器簽名大小</string>
+    <string name="signature_hash">動態管理器簽名哈希值</string>
+    <string name="hash_must_be_64_chars">哈希值必須是 64 位十六進位字元</string>
+    <string name="dynamic_manager_set_success">動態管理器設定成功</string>
+    <string name="dynamic_manager_set_failed">動態管理器設定失敗</string>
+    <string name="invalid_sign_config">無效的簽名設定</string>
+    <string name="dynamic_manager_disabled_success">動態管理器已停用</string>
+    <string name="dynamic_manager_clear_failed">清除動態管理器錯誤</string>
     <string name="dynamic_managerature">動態</string>
     <string name="signature_index">簽名 %1$d</string>
     <string name="unknown_signature">未知</string>
@@ -585,39 +585,72 @@
     <string name="no_active_manager">無活躍管理器</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
     <!-- 循环路径相关 -->
-    <string name="susfs_tab_sus_loop_paths">SuS 迴圈路徑</string>
-    <string name="susfs_add_sus_loop_path">添加 SuS 迴圈路徑</string>
-    <string name="susfs_edit_sus_loop_path">編輯 SuS 迴圈路徑</string>
-    <string name="susfs_loop_path_added_success">SuS 迴圈路徑添加成功: %1$s</string>
-    <string name="susfs_loop_path_removed">SuS 迴圈路徑已移除: %1$s</string>
-    <string name="susfs_loop_path_updated">SuS 迴圈路徑已更新: %1$s -&gt; %2$s</string>
-    <string name="susfs_no_loop_paths_configured">未配置 SuS 迴圈路徑</string>
-    <string name="susfs_reset_loop_paths_title">重置迴圈路徑</string>
+    <string name="susfs_tab_sus_loop_paths">SuS 循環路徑</string>
+    <string name="susfs_add_sus_loop_path">新增 SuS 循環路徑</string>
+    <string name="susfs_edit_sus_loop_path">編輯 SuS 循環路徑</string>
+    <string name="susfs_loop_path_added_success">SuS 循環路徑新增成功: %1$s</string>
+    <string name="susfs_loop_path_removed">SuS 循環路徑已移除: %1$s</string>
+    <string name="susfs_loop_path_updated">SuS 循環路徑已更新: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">未設定 SuS 循環路徑</string>
+    <string name="susfs_reset_loop_paths_title">重設循環路徑</string>
     <string name="susfs_reset_loop_paths_message">確定要清空所有 SuS 循環路徑嗎？此操作無法撤銷。</string>
     <string name="susfs_loop_path_label">循環路徑</string>
-    <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 內的路徑才能通過循環路徑添加。</string>
+    <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 內的路徑才能透過循環路徑新增。</string>
     <string name="susfs_loop_path_invalid_location">錯誤：循環路徑不能位於 /storage/ 或 /sdcard/ 目錄內</string>
-    <string name="loop_paths_section">循環路徑</string>
-    <string name="add_loop_path">添加循環路徑</string>
     <!-- 循环路径功能描述 -->
-    <string name="sus_loop_path_feature_label">SuS 迴圈路徑</string>
-    <string name="sus_loop_paths_description_title">迴圈路徑配置</string>
-    <string name="sus_loop_paths_description_text">迴圈路徑會在每次非 root 使用者應用程式或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決添加的路徑可能因 inode 狀態重置或內核中 inode 重新建立而失效的問題</string>
-    <string name="avc_log_spoofing">AVC 日志欺騙</string>
-    <string name="avc_log_spoofing_enabled">AVC 日志欺騙已啟用</string>
-    <string name="avc_log_spoofing_disabled">AVC 日志欺騙已禁用</string>
-    <string name="avc_log_spoofing_description">禁用: 禁用在核心 AVC 日誌中欺騙 \'su\' 的 sus tcontext。\n
-啟用: 啟用在核心 AVC 日誌中將 \'su\' 的 sus tcontext 欺騙為 \'kernel\'</string>
+    <string name="loop_paths_section">循環路徑</string>
+    <string name="add_loop_path">新增循環路徑</string>
+    <string name="sus_loop_path_feature_label">SuS 循環路徑</string>
+    <string name="sus_loop_paths_description_title">循環路徑設定</string>
+    <string name="sus_loop_paths_description_text">循環路徑會在每次非 root 使用者應用程式或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決新增的路徑可能因 inode 狀態重設或內核中 inode 重新建立而失效的問題</string>
+    <string name="avc_log_spoofing">AVC 日誌偽裝</string>
+    <string name="avc_log_spoofing_enabled">AVC 日誌偽裝已啟用</string>
+    <string name="avc_log_spoofing_disabled">AVC 日誌偽裝已停用</string>
+    <string name="avc_log_spoofing_description">停用: 停用在內核 AVC 日誌中偽裝 \'su\' 的 sus tcontext。\n
+    啟用: 啟用在內核 AVC 日誌中將 \'su\' 的 sus tcontext 偽裝為 \'kernel\'</string>
     <string name="avc_log_spoofing_warning">重要提示：\n
-- 核心中預設設定為 \'0\'\n
+- 內核中預設設定為 \'0\'\n
 - 啟用此功能有時會使開發人員在除錯許可權或 SELinux 問題時難以識別原因，因此建議使用者在除錯時禁用此功能。</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">已驗證</string>
     <string name="module_signature_verified">模組簽名已驗證</string>
     <string name="module_signature_verification">驗證簽名</string>
-    <string name="module_signature_verification_summary">模組安裝時，強制驗證簽名。（僅 ARM架構 可用）</string>
+    <string name="module_signature_verification_summary">模組安裝時，強制驗證簽名。 (僅 ARM 架構可用)</string>
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名的模組可能不完整。為了對設備進行保護，已阻止安裝此模組。</string>
     <string name="module_signature_verification_failed">未經簽名的模組可能不完整。你想安裝來自未知發布者的模組嗎？</string>
-     <string name="home_hook_type">鉤子類型</string>
+    <string name="home_hook_type">鉤子類型</string>
+    <!-- KPM修补相关字符串 -->
+    <string name="kpm_patch_options">KPM 修補</string>
+    <string name="kpm_patch_description">用於新增附加的 KPM 功能</string>
+    <string name="enable_kpm_patch">KPM 修補</string>
+    <string name="kpm_patch_switch_description">在刷機前對內核映象進行 KPM 修補</string>
+    <string name="enable_kpm_undo_patch">KPM 撤銷修補</string>
+    <string name="kpm_undo_patch_switch_description">撤銷之前套用的 KPM 修補</string>
+    <string name="kpm_patch_enabled">KPM 修補已啟用</string>
+    <string name="kpm_undo_patch_enabled">KPM 撤銷修補已啟用</string>
+    <string name="kpm_patch_mode">KPM 修補模式</string>
+    <string name="kpm_undo_patch_mode">KPM 撤銷修補模式</string>
+    <!-- KPM工作流程相关 -->
+    <string name="kpm_preparing_tools">準備 KPM 修補工具</string>
+    <string name="kpm_applying_patch">正在套用 KPM 修補</string>
+    <string name="kpm_undoing_patch">正在撤銷 KPM 修補</string>
+    <string name="kpm_tools_prepared">KPM 工具準備完成</string>
+    <string name="kpm_found_image_file">找到 Image 檔案: %s</string>
+    <string name="kpm_patch_success">KPM 修補成功</string>
+    <string name="kpm_undo_patch_success">KPM 撤銷修補成功</string>
+    <string name="kpm_file_repacked">檔案重新打包完成</string>
+    <string name="kpm_extract_kptools_failed">提取 kptools 工具失敗</string>
+    <!-- KPM错误信息 -->
+    <string name="kpm_extract_kpimg_failed">提取 kpimg 檔案失敗</string>
+    <string name="kpm_prepare_tools_failed">準備 KPM 工具失敗: %s</string>
+    <string name="kpm_extract_zip_failed">解壓縮檔失敗</string>
+    <string name="kpm_image_file_not_found">未找到 Image 檔案</string>
+    <string name="kpm_patch_failed">KPM 修補失敗</string>
+    <string name="kpm_undo_patch_failed">KPM 撤銷修補失敗</string>
+    <string name="kpm_repack_zip_failed">重新打包壓縮檔失敗</string>
+    <string name="kpm_patch_operation_failed">KPM 修補操作失敗: %s</string>
+    <!-- KPM选项单选按钮组字符串 -->
+    <string name="kpm_follow_kernel_file">跟隨內核</string>
+    <string name="kpm_follow_kernel_description">原樣使用內核，不進行任何 KPM 修改</string>
 </resources>
