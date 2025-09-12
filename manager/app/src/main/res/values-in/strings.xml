@@ -615,4 +615,18 @@
     <string name="module_signature_invalid">Penerbit tidak dikenal</string>
     <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
     <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>
+    <string name="home_hook_type">Tipe Hook</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Opsi KPM</string>
+    <string name="enable_kpm_patch">Patch KPM</string>
+    <string name="kpm_patch_enabled">Patch KPM Akti</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Sedang menyiapkan Alat KPM</string>
+    <string name="kpm_applying_patch">Menerapkan path KPM</string>
+    <string name="kpm_undoing_patch">Membatalkan KPM patch</string>
+    <string name="kpm_tools_prepared">Alat KPM telah Siap</string>
+    <string name="kpm_found_image_file">Menemukanberkas Image: %s</string>
+    <string name="kpm_patch_success">KPM berhasi diterapkan</string>
+    <!-- KPM error messages -->
+    <!-- KPM option radio group strings -->
 </resources>
