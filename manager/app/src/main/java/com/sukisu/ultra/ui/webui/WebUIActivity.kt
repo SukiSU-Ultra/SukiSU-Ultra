@@ -16,14 +16,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.webkit.WebViewAssetLoader
 import com.dergoogler.mmrl.platform.model.ModId
-import com.dergoogler.mmrl.webui.interfaces.WXOptions
+import com.topjohnwu.superuser.Shell
 import com.sukisu.ultra.ui.util.createRootShell
 import java.io.File
+import com.dergoogler.mmrl.webui.interfaces.WXOptions
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
-    private val rootShell by lazy { createRootShell(true) }
-    private var webView = null as WebView?
+    private lateinit var webviewInterface: WebViewInterface
+
+    private var rootShell: Shell? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -35,8 +37,8 @@ class WebUIActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val moduleId = intent.getStringExtra("id") ?: finishAndRemoveTask().let { return }
-        val name = intent.getStringExtra("name") ?: finishAndRemoveTask().let { return }
+        val moduleId = intent.getStringExtra("id")!!
+        val name = intent.getStringExtra("name")!!
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             @Suppress("DEPRECATION")
             setTaskDescription(ActivityManager.TaskDescription("SukiSU-Ultra - $name"))
@@ -51,6 +53,7 @@ class WebUIActivity : ComponentActivity() {
 
         val moduleDir = "/data/adb/modules/${moduleId}"
         val webRoot = File("${moduleDir}/webroot")
+        val rootShell = createRootShell(true).also { this.rootShell = it }
         val webViewAssetLoader = WebViewAssetLoader.Builder()
             .setDomain("mui.kernelsu.org")
             .addPathHandler(
@@ -69,8 +72,6 @@ class WebUIActivity : ComponentActivity() {
         }
 
         val webView = WebView(this).apply {
-            webView = this
-
             ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
                 val inset = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 view.updateLayoutParams<MarginLayoutParams> {
@@ -84,7 +85,8 @@ class WebUIActivity : ComponentActivity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
-            addJavascriptInterface(WebViewInterface(WXOptions(this@WebUIActivity, this, ModId(moduleId))), "ksu")
+            webviewInterface = WebViewInterface(WXOptions(this@WebUIActivity, this, ModId(moduleId)))
+            addJavascriptInterface(webviewInterface, "ksu")
             setWebViewClient(webViewClient)
             loadUrl("https://mui.kernelsu.org/index.html")
         }
@@ -93,13 +95,7 @@ class WebUIActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        rootShell.runCatching { close() }
-        webView?.apply {
-            stopLoading()
-            removeAllViews()
-            destroy()
-            webView = null
-        }
         super.onDestroy()
+        runCatching { rootShell?.close() }
     }
 }

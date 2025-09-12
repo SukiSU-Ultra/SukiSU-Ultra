@@ -1,29 +1,43 @@
 package com.sukisu.ultra.ui.viewmodel
 
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.os.IBinder
 import android.os.Parcelable
 import android.os.SystemClock
 import android.util.Log
-import androidx.compose.runtime.*
-import androidx.core.content.edit
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.sukisu.ultra.Natives
-import com.sukisu.ultra.ksuApp
-import com.sukisu.ultra.ui.KsuService
-import com.sukisu.ultra.ui.util.HanziToPinyin
-import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.parcelize.Parcelize
+import com.sukisu.ultra.Natives
+import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.ui.util.HanziToPinyin
 import java.text.Collator
 import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.LinkedBlockingQueue
+import androidx.core.content.edit
+import com.sukisu.ultra.ui.KsuService
+import com.sukisu.ultra.ui.util.KsuCli
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -414,7 +428,8 @@ class SuperUserViewModel : ViewModel() {
                 Shell.EXECUTOR,
                 connection
             )
-            task?.let { Shell.getShell().execTask(it) }
+            val shell = KsuCli.SHELL
+            task?.let { shell.execTask(it) }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to bind KsuService", e)
             continuation.resume(null)

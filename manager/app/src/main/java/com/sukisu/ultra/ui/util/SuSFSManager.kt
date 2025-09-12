@@ -7,17 +7,22 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.edit
 import com.dergoogler.mmrl.platform.Platform.Companion.context
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.*
-import org.json.JSONObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import androidx.core.content.edit
+import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -425,10 +430,12 @@ object SuSFSManager {
                 async(Dispatchers.IO) {
                     val dataPath = "$MEDIA_DATA_PATH/${appInfo.packageName}"
                     val exists = try {
+                        val shell = getRootShell()
                         val outputList = mutableListOf<String>()
                         val errorList = mutableListOf<String>()
 
-                        val result = Shell.cmd("[ -d \"$dataPath\" ] && echo 'exists' || echo 'not_exists'")
+                        val result = shell.newJob()
+                            .add("[ -d \"$dataPath\" ] && echo 'exists' || echo 'not_exists'")
                             .to(outputList, errorList)
                             .exec()
 

@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.sukisu.ultra.Natives
-import com.topjohnwu.superuser.Shell
 import java.io.File
 import java.io.FileOutputStream
 
@@ -125,17 +124,18 @@ object ModuleVerificationManager {
     // 为指定模块创建验证标志文件
     fun createVerificationFlag(moduleId: String): Boolean {
         return try {
+            val shell = getRootShell()
             val flagFilePath = "$VERIFICATION_FLAGS_DIR/$moduleId"
 
             // 确保目录存在
             val createDirCommand = "mkdir -p '$VERIFICATION_FLAGS_DIR'"
-            Shell.cmd(createDirCommand).exec()
+            shell.newJob().add(createDirCommand).exec()
 
             // 创建验证标志文件，写入验证时间戳
             val timestamp = System.currentTimeMillis()
             val command = "echo '$timestamp' > '$flagFilePath'"
 
-            val result = Shell.cmd(command).exec()
+            val result = shell.newJob().add(command).exec()
 
             if (result.isSuccess) {
                 Log.d(TAG, "验证标志文件创建成功: $flagFilePath")
@@ -152,10 +152,11 @@ object ModuleVerificationManager {
 
     fun removeVerificationFlag(moduleId: String): Boolean {
         return try {
+            val shell = getRootShell()
             val flagFilePath = "$VERIFICATION_FLAGS_DIR/$moduleId"
 
             val command = "rm -f '$flagFilePath'"
-            val result = Shell.cmd(command).exec()
+            val result = shell.newJob().add(command).exec()
 
             if (result.isSuccess) {
                 Log.d(TAG, "验证标志文件移除成功: $flagFilePath")
@@ -172,10 +173,11 @@ object ModuleVerificationManager {
 
     fun getVerificationTimestamp(moduleId: String): Long {
         return try {
+            val shell = getRootShell()
             val flagFilePath = "$VERIFICATION_FLAGS_DIR/$moduleId"
 
             val command = "cat '$flagFilePath' 2>/dev/null || echo '0'"
-            val result = Shell.cmd(command).to(ArrayList(), null).exec()
+            val result = shell.newJob().add(command).to(ArrayList(), null).exec()
 
             if (result.isSuccess && result.out.isNotEmpty()) {
                 val timestampStr = result.out.firstOrNull()?.trim() ?: "0"
@@ -193,11 +195,12 @@ object ModuleVerificationManager {
         if (moduleIds.isEmpty()) return emptyMap()
 
         return try {
+            val shell = getRootShell()
             val result = mutableMapOf<String, Boolean>()
 
             // 确保目录存在
             val createDirCommand = "mkdir -p '$VERIFICATION_FLAGS_DIR'"
-            Shell.cmd(createDirCommand).exec()
+            shell.newJob().add(createDirCommand).exec()
 
             // 批量检查所有模块的验证标志文件
             val commands = moduleIds.map { moduleId ->
@@ -205,7 +208,7 @@ object ModuleVerificationManager {
             }
 
             val command = commands.joinToString(" && ")
-            val shellResult = Shell.cmd(command).to(ArrayList(), null).exec()
+            val shellResult = shell.newJob().add(command).to(ArrayList(), null).exec()
 
             if (shellResult.isSuccess) {
                 shellResult.out.forEach { line ->

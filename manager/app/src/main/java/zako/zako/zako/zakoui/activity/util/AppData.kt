@@ -1,7 +1,11 @@
 package zako.zako.zako.zakoui.activity.util
 
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.ui.util.*
+import com.sukisu.ultra.ui.util.getKpmModuleCount
+import com.sukisu.ultra.ui.util.getKpmVersion
+import com.sukisu.ultra.ui.util.getModuleCount
+import com.sukisu.ultra.ui.util.getSuperuserCount
+import com.sukisu.ultra.ui.util.rootAvailable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,6 +82,13 @@ object AppData {
         } catch (e: Exception) {
             "Error: ${e.message}"
         }
+    }
+
+    /**
+     * 检查是否具有管理员权限
+     */
+    fun isManager(packageName: String): Boolean {
+        return Natives.becomeManager(packageName)
     }
 
     /**

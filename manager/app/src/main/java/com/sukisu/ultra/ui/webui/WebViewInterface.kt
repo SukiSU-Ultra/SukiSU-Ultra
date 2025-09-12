@@ -12,16 +12,18 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.dergoogler.mmrl.webui.interfaces.WXInterface
 import com.dergoogler.mmrl.webui.interfaces.WXOptions
 import com.dergoogler.mmrl.webui.model.JavaScriptInterface
-import com.sukisu.ultra.ui.util.*
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
+import com.sukisu.ultra.ui.util.createRootShell
+import com.sukisu.ultra.ui.util.listModules
+import com.sukisu.ultra.ui.util.withNewRootShell
 import org.json.JSONArray
 import org.json.JSONObject
+import com.sukisu.ultra.ui.util.*
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
-@Suppress("unused")
 class WebViewInterface(
     wxOptions: WXOptions,
 ) : WXInterface(wxOptions) {
@@ -66,56 +68,56 @@ class WebViewInterface(
         options: String?,
         callbackFunc: String
     ) {
-        val finalCommand = buildString {
-            processOptions(this, options)
-            append(cmd)
-        }
+        val finalCommand = StringBuilder()
+        processOptions(finalCommand, options)
+        finalCommand.append(cmd)
 
         val result = withNewRootShell(true) {
-            newJob().add(finalCommand).to(ArrayList(), ArrayList()).exec()
+            newJob().add(finalCommand.toString()).to(ArrayList(), ArrayList()).exec()
         }
         val stdout = result.out.joinToString(separator = "\n")
         val stderr = result.err.joinToString(separator = "\n")
 
         val jsCode =
-            "(function() { try { ${callbackFunc}(${result.code}, ${
+            "javascript: (function() { try { ${callbackFunc}(${result.code}, ${
                 JSONObject.quote(
                     stdout
                 )
             }, ${JSONObject.quote(stderr)}); } catch(e) { console.error(e); } })();"
         webView.post {
-            webView.evaluateJavascript(jsCode, null)
+            webView.loadUrl(jsCode)
         }
     }
 
     @JavascriptInterface
     fun spawn(command: String, args: String, options: String?, callbackFunc: String) {
-        val finalCommand = buildString {
-            processOptions(this, options)
+        val finalCommand = StringBuilder()
 
-            if (!TextUtils.isEmpty(args)) {
-                append(command).append(" ")
-                JSONArray(args).let { argsArray ->
-                    for (i in 0 until argsArray.length()) {
-                        append("${argsArray.getString(i)} ")
-                    }
+        processOptions(finalCommand, options)
+
+        if (!TextUtils.isEmpty(args)) {
+            finalCommand.append(command).append(" ")
+            JSONArray(args).let { argsArray ->
+                for (i in 0 until argsArray.length()) {
+                    finalCommand.append(argsArray.getString(i))
+                    finalCommand.append(" ")
                 }
-            } else {
-                append(command)
             }
+        } else {
+            finalCommand.append(command)
         }
 
         val shell = createRootShell(true)
 
         val emitData = fun(name: String, data: String) {
             val jsCode =
-                "(function() { try { ${callbackFunc}.${name}.emit('data', ${
+                "javascript: (function() { try { ${callbackFunc}.${name}.emit('data', ${
                     JSONObject.quote(
                         data
                     )
                 }); } catch(e) { console.error('emitData', e); } })();"
             webView.post {
-                webView.evaluateJavascript(jsCode, null)
+                webView.loadUrl(jsCode)
             }
         }
 
@@ -131,21 +133,21 @@ class WebViewInterface(
             }
         }
 
-        val future = shell.newJob().add(finalCommand).to(stdout, stderr).enqueue()
+        val future = shell.newJob().add(finalCommand.toString()).to(stdout, stderr).enqueue()
         val completableFuture = CompletableFuture.supplyAsync {
             future.get()
         }
 
         completableFuture.thenAccept { result ->
             val emitExitCode =
-                "(function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
+                "javascript: (function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
             webView.post {
-                webView.evaluateJavascript(emitExitCode, null)
+                webView.loadUrl(emitExitCode)
             }
 
             if (result.code != 0) {
                 val emitErrCode =
-                    "(function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
+                    "javascript: (function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
                         JSONObject.quote(
                             result.err.joinToString(
                                 "\n"
@@ -153,7 +155,7 @@ class WebViewInterface(
                         )
                     };${callbackFunc}.emit('error', err); } catch(e) { console.error('emitErr', e); } })();"
                 webView.post {
-                    webView.evaluateJavascript(emitErrCode, null)
+                    webView.loadUrl(emitErrCode)
                 }
             }
         }.whenComplete { _, _ ->
@@ -206,12 +208,12 @@ class WebViewInterface(
     // =================== KPM支持 =============================
 
     @JavascriptInterface
-    fun listAllKpm(): String {
+    fun listAllKpm() : String {
         return listKpmModules()
     }
 
     @JavascriptInterface
-    fun controlKpm(name: String, args: String): Int {
+    fun controlKpm(name: String, args: String) : Int {
         return controlKpmModule(name, args)
     }
 }

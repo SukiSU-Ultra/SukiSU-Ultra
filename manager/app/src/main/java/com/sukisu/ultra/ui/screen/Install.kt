@@ -422,9 +422,9 @@ private fun SelectInstallMethod(
 
                     else -> null
                 }
-                option?.let { opt ->
-                    selectedOption = opt
-                    onSelected(opt)
+                option?.let { it ->
+                    selectedOption = it
+                    onSelected(it)
                 }
             }
         }
