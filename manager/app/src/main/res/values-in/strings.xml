@@ -568,24 +568,6 @@
     <string name="selected_apps_count">%1$d aplikasi dipilih</string>
     <string name="already_added_apps_count">%1$d aplikasi sudah ditambahkan</string>
     <string name="all_apps_already_added">Semua aplikasi telah ditambahkan</string>
-    <string name="dynamic_manager_title">Konfigurasi Tanda Tangan Dinamis</string>
-    <string name="dynamic_manager_enabled_summary">Diaktifkan (Ukuran: %s)</string>
-    <string name="dynamic_manager_disabled">Dinonaktifkan</string>
-    <string name="enable_dynamic_manager">Aktifkan Tanda Tangan Dinamis</string>
-    <string name="signature_size">Ukuran Tanda Tangan</string>
-    <string name="signature_hash">Hash Tanda Tangan</string>
-    <string name="hash_must_be_64_chars">Hash harus 64 karakter heksadesimal</string>
-    <string name="dynamic_manager_set_success">Konfigurasi tanda tangan dinamis berhasil diatur</string>
-    <string name="dynamic_manager_set_failed">Gagal mengatur konfigurasi tanda tangan dinamis</string>
-    <string name="invalid_sign_config">Konfigurasi tanda tangan tidak valid</string>
-    <string name="dynamic_manager_disabled_success">Tanda tangan dinamis dinonaktifkan</string>
-    <string name="dynamic_manager_clear_failed">Gagal membersihkan tanda tangan dinamis</string>
-    <string name="dynamic_managerature">Dinamis</string>
-    <string name="signature_index">Tanda Tangan %1$d</string>
-    <string name="unknown_signature">Tidak diketahui</string>
-    <string name="multi_manager_list">Manajer Aktif</string>
-    <string name="no_active_manager">Tidak ada manajer aktif</string>
-    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Implementasi Zygisk</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">Jalur Loop SUS</string>
@@ -615,4 +597,16 @@
     <string name="module_signature_invalid">Penerbit tidak dikenal</string>
     <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
     <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>
+    <string name="home_hook_type">Tipe Hook</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Opsi KPM</string>
+    <string name="enable_kpm_patch">Patch KPM</string>
+    <string name="kpm_patch_enabled">Patch KPM Akti</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Sedang menyiapkan Alat KPM</string>
+    <string name="kpm_applying_patch">Menerapkan path KPM</string>
+    <string name="kpm_undoing_patch">Membatalkan KPM patch</string>
+    <string name="kpm_found_image_file">Menemukanberkas Image: %s</string>
+    <string name="kpm_patch_success">KPM berhasi diterapkan</string>
+    <!-- KPM option radio group strings -->
 </resources>
