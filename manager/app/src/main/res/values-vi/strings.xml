@@ -566,24 +566,6 @@
     <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
     <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
     <string name="all_apps_already_added">Tất cả các ứng dụng đã được thêm vào</string>
-    <string name="dynamic_manager_title">Cấu hình Trình quản lý động</string>
-    <string name="dynamic_manager_enabled_summary">Đã kích hoạt (Size: %s)</string>
-    <string name="dynamic_manager_disabled">Đã vô hiệu hoá</string>
-    <string name="enable_dynamic_manager">Kích hoạt Trình quản lý động</string>
-    <string name="signature_size">Size chữ ký của Trình quản lý động</string>
-    <string name="signature_hash">Hash chữ ký của Trình quản lý động</string>
-    <string name="hash_must_be_64_chars">Hash phải dài 64 ký tự thập lục phân</string>
-    <string name="dynamic_manager_set_success">Cấu hình Trình quản lý động đã được thiết lập thành công</string>
-    <string name="dynamic_manager_set_failed">Thiết lập cấu hình Trình quản lý động thất bại</string>
-    <string name="invalid_sign_config">Cấu hình Trình quản lý không hợp lệ</string>
-    <string name="dynamic_manager_disabled_success">Trình quản lý động đã bị vô hiệu hoá</string>
-    <string name="dynamic_manager_clear_failed">Xoá Trình quản lý động thất bại</string>
-    <string name="dynamic_managerature">Trình quản lý động</string>
-    <string name="signature_index">Chữ ký %1$d</string>
-    <string name="unknown_signature">Không xác định</string>
-    <string name="multi_manager_list">Trình quản lý đang hoạt động</string>
-    <string name="no_active_manager">Trình quản lý đang không hoạt động</string>
-    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Triển khai Zygisk</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">Đường dẫn Vòng lặp SuS</string>
@@ -622,4 +604,30 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt</string>
     <string name="module_signature_verification_failed">Các module chưa được ký có thể chưa hoàn chỉnh. Bạn có muốn cài đặt module này từ một tác giả chưa xác định không?</string>
     <string name="home_hook_type">Chế độ Hook</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Vá KPM</string>
+    <string name="kpm_patch_description">Thêm tính năng KPM</string>
+    <string name="enable_kpm_patch">Vá KPM</string>
+    <string name="kpm_patch_switch_description">Thực hiện Vá KPM vào kernel trước khi flash</string>
+    <string name="enable_kpm_undo_patch">Hoàn tác Vá KPM</string>
+    <string name="kpm_undo_patch_switch_description">Hoàn tác Vá KPM đã áp dụng trước đó</string>
+    <string name="kpm_patch_enabled">Vá KPM đã bật</string>
+    <string name="kpm_undo_patch_enabled">Hoàn tác Vá KPM đã bật</string>
+    <string name="kpm_patch_mode">Chế độ Vá KPM</string>
+    <string name="kpm_undo_patch_mode">Chế độ hoàn tác Vá KPM</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Chuẩn bị công cụ Vá KPM</string>
+    <string name="kpm_applying_patch">Áp dụng Vá KPM</string>
+    <string name="kpm_undoing_patch">Hoàn tác Vá KPM</string>
+    <string name="kpm_found_image_file">Đã tìm thấy file image: %s</string>
+    <string name="kpm_patch_success">Đã vá KPM thành công</string>
+    <string name="kpm_undo_patch_success">Hoàn tác vá KPM thành công</string>
+    <string name="kpm_file_repacked">Nén lại file thành công</string>
+    <string name="kpm_extract_zip_failed">Giải nén file thất bại</string>
+    <string name="kpm_image_file_not_found">Không tìm thấy file image</string>
+    <string name="kpm_patch_failed">Vá KPM thất bại</string>
+    <string name="kpm_undo_patch_failed">Hoàn tác Vá KPM thất bại</string>
+    <string name="kpm_patch_operation_failed">Quá trình Vá KPM thất bại: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_description">Sử dụng file kernel mặc định mà không có bất kỳ sửa đổi nào về KPM</string>
 </resources>
