@@ -566,24 +566,6 @@
     <string name="selected_apps_count">%1$d uygulama seçildi</string>
     <string name="already_added_apps_count">%1$d uygulama zaten eklendi</string>
     <string name="all_apps_already_added">Tüm uygulamalar eklendi</string>
-    <string name="dynamic_manager_title">Dinamik İmza Yapılandırması</string>
-    <string name="dynamic_manager_enabled_summary">Etkin (Boyut: %s)</string>
-    <string name="dynamic_manager_disabled">Devre Dışı</string>
-    <string name="enable_dynamic_manager">Dinamik İmzayı Etkinleştir</string>
-    <string name="signature_size">İmza Boyutu</string>
-    <string name="signature_hash">İmza Hash</string>
-    <string name="hash_must_be_64_chars">Hash, 64 adet onaltılık karakterden oluşmalıdır</string>
-    <string name="dynamic_manager_set_success">Dinamik imza yapılandırması başarıyla ayarlandı</string>
-    <string name="dynamic_manager_set_failed">Dinamik imza yapılandırması ayarlanamadı</string>
-    <string name="invalid_sign_config">Geçersiz imza yapılandırması</string>
-    <string name="dynamic_manager_disabled_success">Dinamik imza devre dışı bırakıldı</string>
-    <string name="dynamic_manager_clear_failed">Dinamik imza temizlenemedi</string>
-    <string name="dynamic_managerature">Dinamik</string>
-    <string name="signature_index">İmza %1$d</string>
-    <string name="unknown_signature">Bilinmiyor</string>
-    <string name="multi_manager_list">Aktif Yönetici</string>
-    <string name="no_active_manager">Aktif yönetici yok</string>
-    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk uygulaması</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SUS Döngü Yolları</string>
@@ -621,4 +603,32 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
     <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
     <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
+    <string name="home_hook_type">Hook tipi</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM Yaması</string>
+    <string name="kpm_patch_description">Ek KPM özellikleri eklemek için</string>
+    <string name="enable_kpm_patch">KPM Yaması</string>
+    <string name="kpm_patch_switch_description">Yüklemeden önce çekirdek imajına KPM yamasını uygula</string>
+    <string name="enable_kpm_undo_patch">KPM Yamasını Geri Al</string>
+    <string name="kpm_undo_patch_switch_description">Daha önce uygulanan KPM yamasını geri al</string>
+    <string name="kpm_patch_enabled">KPM yaması etkinleştirildi</string>
+    <string name="kpm_undo_patch_enabled">KPM yaması geri alma etkinleştirildi</string>
+    <string name="kpm_patch_mode">KPM Yama Modu</string>
+    <string name="kpm_undo_patch_mode">KPM Yamasını Geri Alma Modu</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">KPM araçları hazırlanıyor</string>
+    <string name="kpm_applying_patch">KPM yaması uygulanıyor</string>
+    <string name="kpm_undoing_patch">KPM yaması geri alınıyor</string>
+    <string name="kpm_found_image_file">İmaj dosyası bulundu: %s</string>
+    <string name="kpm_patch_success">KPM yaması başarıyla uygulandı</string>
+    <string name="kpm_undo_patch_success">KPM yaması başarıyla geri alındı</string>
+    <string name="kpm_file_repacked">Dosya başarıyla yeniden paketlendi</string>
+    <string name="kpm_extract_zip_failed">Zip dosyası çıkarılamadı</string>
+    <string name="kpm_image_file_not_found">İmaj dosyası bulunamadı</string>
+    <string name="kpm_patch_failed">KPM yaması başarısız oldu</string>
+    <string name="kpm_undo_patch_failed">KPM yamasını geri alma başarısız oldu</string>
+    <string name="kpm_patch_operation_failed">KPM yama işlemi başarısız oldu: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Çekirdeği Takip Et</string>
+    <string name="kpm_follow_kernel_description">Çekirdeği herhangi bir KPM değişikliği olmadan olduğu gibi kullan</string>
 </resources>
