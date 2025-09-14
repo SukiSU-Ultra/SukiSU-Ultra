@@ -9,14 +9,16 @@
 #define KERNEL_SU_DYNAMIC_MANAGER "/data/adb/ksu/.dynamic_manager"
 #define DYNAMIC_SIGN_INDEX 100
 
+#define DM_LOG_PREFIX "[Dynamic Manager] "
+
 struct dynamic_sign_key {
     unsigned int size;
     const char *hash;
 };
 
 #define DYNAMIC_SIGN_DEFAULT_CONFIG { \
-    .size = 0x300, \
-    .hash = "0000000000000000000000000000000000000000000000000000000000000000" \
+    .size = 0, \
+    .hash = "" \
 }
 
 struct dynamic_manager_config {
@@ -31,21 +33,17 @@ struct manager_info {
     bool is_active;
 };
 
-// Dynamic sign operations
-void ksu_dynamic_manager_init(void);
-void ksu_dynamic_manager_exit(void);
-int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config);
-bool ksu_load_dynamic_manager(void);
 bool ksu_is_dynamic_manager_enabled(void);
-
-// Multi-manager operations
 void ksu_add_manager(uid_t uid, int signature_index);
 void ksu_remove_manager(uid_t uid);
 bool ksu_is_any_manager(uid_t uid);
 int ksu_get_manager_signature_index(uid_t uid);
-int ksu_get_active_managers(struct manager_list_info *info);
-
-// Configuration access for signature verification
+int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config);
+bool ksu_load_dynamic_manager(void);
+void ksu_dynamic_manager_init(void);
+void ksu_dynamic_manager_exit(void);
 bool ksu_get_dynamic_manager_config(unsigned int *size, const char **hash);
+int ksu_get_active_managers(struct manager_list_info *info);
+bool ksu_has_dynamic_managers(void);
 
 #endif

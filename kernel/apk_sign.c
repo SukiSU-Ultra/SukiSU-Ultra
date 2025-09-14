@@ -15,10 +15,10 @@
 #endif
 
 #include "apk_sign.h"
-#include "dynamic_manager.h"
 #include "klog.h" // IWYU pragma: keep
 #include "kernel_compat.h"
 #include "manager_sign.h"
+#include "dynamic_manager.h"
 
 struct sdesc {
 	struct shash_desc shash;
@@ -82,19 +82,16 @@ static int ksu_sha256(const unsigned char *data, unsigned int datalen,
 	return ret;
 }
 
-
-static struct dynamic_sign_key dynamic_sign = DYNAMIC_SIGN_DEFAULT_CONFIG;
-
 static bool check_dynamic_sign(struct file *fp, u32 size4, loff_t *pos, int *matched_index)
 {
-	struct dynamic_sign_key current_dynamic_key = dynamic_sign;
+	unsigned int dynamic_size = 0;
+	const char *dynamic_hash = NULL;
 	
-	if (ksu_get_dynamic_manager_config(&current_dynamic_key.size, &current_dynamic_key.hash)) {
-		pr_debug("Using dynamic manager config: size=0x%x, hash=%.16s...\n", 
-		         current_dynamic_key.size, current_dynamic_key.hash);
+	if (!ksu_get_dynamic_manager_config(&dynamic_size, &dynamic_hash)) {
+		return false;
 	}
 	
-	if (size4 != current_dynamic_key.size) {
+	if (size4 != dynamic_size) {
 		return false;
 	}
 
@@ -116,10 +113,10 @@ static bool check_dynamic_sign(struct file *fp, u32 size4, loff_t *pos, int *mat
 	char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
 	hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
 	bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
+
+	pr_info(DM_LOG_PREFIX "dynamic sign verified sha256: %s, expected: %s, (index: %d)\n", hash_str, dynamic_hash, DYNAMIC_SIGN_INDEX);
 	
-	pr_info("sha256: %s, expected: %s, index: dynamic\n", hash_str, current_dynamic_key.hash);
-	
-	if (strcmp(current_dynamic_key.hash, hash_str) == 0) {
+	if (strcmp(dynamic_hash, hash_str) == 0) {
 		if (matched_index) {
 			*matched_index = DYNAMIC_SIGN_INDEX;
 		}
@@ -375,7 +372,7 @@ clean:
 		if (check_multi_manager) {
 			// 0: ShirkNeko/SukiSU, DYNAMIC_SIGN_INDEX : Dynamic Sign
 			if (matched_index == 0 || matched_index == DYNAMIC_SIGN_INDEX) {
-				pr_info("Multi-manager APK detected (dynamic_manager enabled): signature_index=%d\n", matched_index);
+				pr_info("[ApkSign] multi-manager APK detected (signature_index=%d)\n", matched_index);
 				return true;
 			}
 			return false;
