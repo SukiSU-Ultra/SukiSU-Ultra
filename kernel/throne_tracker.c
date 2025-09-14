@@ -121,7 +121,8 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-static void crown_manager(const char *apk, struct list_head *uid_data, int signature_index)
+static void crown_manager(const char *apk, struct list_head *uid_data,
+			  int signature_index)
 {
 	char pkg[KSU_MAX_PACKAGE_NAME];
 	if (get_pkg_from_apk_path(pkg, apk) < 0) {
@@ -150,7 +151,7 @@ static void crown_manager(const char *apk, struct list_head *uid_data, int signa
 			// Dynamic Sign index (100) or multi-manager signatures (>= 2)
 			if (signature_index == DYNAMIC_SIGN_INDEX || signature_index >= 2) {
 				ksu_add_manager(np->uid, signature_index);
-				
+
 				if (!ksu_is_manager_uid_valid()) {
 					ksu_set_manager_uid(np->uid);
 				}
@@ -171,7 +172,7 @@ FILLDIR_RETURN_TYPE collect_user_ids(struct dir_context *ctx, const char *name,
 	if (d_type != DT_DIR || namelen <= 0)
 		return FILLDIR_ACTOR_CONTINUE;
 	if (name[0] == '.' && (namelen == 1 || (namelen == 2 && name[1] == '.')))
-		return FILLDIR_ACTOR_CONTINUE;;
+		return FILLDIR_ACTOR_CONTINUE;
 
 	// Parse numeric user ID
 	uid_t uid = 0;
@@ -294,7 +295,7 @@ FILLDIR_RETURN_TYPE scan_user_packages(struct dir_context *ctx, const char *name
 	list_add_tail(&uid_entry->list, scan_ctx->uid_list);
 	scan_ctx->pkg_count++;
 
-	pr_info("Package: %s, UID: %u (user %u)\n", uid_entry->package, uid, scan_ctx->user_id);
+	pr_info("User Package: %s, UID: %u (user %u)\n", uid_entry->package, uid, scan_ctx->user_id);
 	return FILLDIR_ACTOR_CONTINUE;
 }
 
@@ -399,10 +400,10 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 		return FILLDIR_ACTOR_CONTINUE; // Skip "." and ".."
 
 	if (d_type == DT_DIR && namelen >= 8 && !strncmp(name, "vmdl", 4) &&
- 	    !strncmp(name + namelen - 4, ".tmp", 4)) {
- 		pr_info("Skipping directory: %.*s\n", namelen, name);
- 		return FILLDIR_ACTOR_CONTINUE; // Skip staging package
- 	}
+	    !strncmp(name + namelen - 4, ".tmp", 4)) {
+		pr_info("Skipping directory: %.*s\n", namelen, name);
+		return FILLDIR_ACTOR_CONTINUE; // Skip staging package
+	}
  
 
 	if (snprintf(dirpath, DATA_PATH_LEN, "%s/%.*s", my_ctx->parent_dir,
@@ -446,7 +447,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 			if (is_multi_manager && (signature_index == DYNAMIC_SIGN_INDEX || signature_index >= 2)) {
 				my_ctx->found_dynamic_manager = true;
 				crown_manager(dirpath, my_ctx->private_data, signature_index);
-				
+
 				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
 				if (apk_data) {
 					apk_data->hash = hash;
@@ -487,8 +488,8 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 	int i, stop = 0;
 	struct list_head data_path_list;
 	INIT_LIST_HEAD(&data_path_list);
+	INIT_LIST_HEAD(&apk_path_hash_list);
 	unsigned long data_app_magic = 0;
-
 	bool found_dynamic_manager = false;
 	// Initialize APK cache list
 	struct apk_path_hash *pos, *n;
@@ -521,7 +522,7 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 					pr_err("Failed to open directory: %s, err: %ld\n", pos->dirpath, PTR_ERR(file));
 					goto skip_iterate;
 				}
-				
+
 				// grab magic on first folder, which is /data/app
 				if (!data_app_magic) {
 					if (file->f_inode->i_sb->s_magic) {
@@ -532,7 +533,7 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 						goto skip_iterate;
 					}
 				}
-				
+
 				if (file->f_inode->i_sb->s_magic != data_app_magic) {
 					pr_info("%s: skip: %s magic: 0x%lx expected: 0x%lx\n", __func__, pos->dirpath, 
 						file->f_inode->i_sb->s_magic, data_app_magic);
@@ -556,10 +557,8 @@ skip_iterate:
 
 	// Remove stale cached APK entries
 	list_for_each_entry_safe(pos, n, &apk_path_hash_list, list) {
-		if (!pos->exists) {
-			list_del(&pos->list);
-			kfree(pos);
-		}
+		list_del(&pos->list);
+		kfree(pos);
 	}
 }
 
@@ -598,7 +597,7 @@ void track_throne()
 	// first, check if manager_uid exist!
 	bool manager_exist = false;
 	bool dynamic_manager_exist = false;
-	
+
 	list_for_each_entry (np, &uid_list, list) {
 		// if manager is installed in work profile, the uid in packages.list is still equals main profile
 		// don't delete it in this case!
@@ -608,7 +607,7 @@ void track_throne()
 			break;
 		}
 	}
-	
+
 	// Check for dynamic managers
 	if (ksu_is_dynamic_manager_enabled()) {
 		dynamic_manager_exist = ksu_has_dynamic_managers();
@@ -628,24 +627,16 @@ void track_throne()
 		if (ksu_is_manager_uid_valid()) {
 			pr_info("manager is uninstalled, invalidate it!\n");
 			ksu_invalidate_manager_uid();
+			goto prune;
 		}
 		pr_info("Searching manager...\n");
 		search_manager("/data/app", 2, &uid_list);
 		pr_info("Search manager finished\n");
-		goto prune;
-	}
-
-	// Always perform search when called from dynamic manager rescan
-	if (ksu_is_dynamic_manager_enabled() && !dynamic_manager_exist) {
+		// Always perform search when called from dynamic manager rescan
+	} else if (!dynamic_manager_exist && ksu_is_dynamic_manager_enabled()) {
 		pr_info("Dynamic sign enabled, Searching manager...\n");
 		search_manager("/data/app", 2, &uid_list);
 		pr_info("Search Dynamic sign manager finished\n");
-	}
-	// If traditional manager exists but no dynamic manager instances found, do a full search
-	if (manager_exist && ksu_is_dynamic_manager_enabled() && !dynamic_manager_exist) {
-		pr_info("Searching manager...\n");
-		search_manager("/data/app", 2, &uid_list);
-		pr_info("Search manager finished\n");
 	}
 
 prune:
