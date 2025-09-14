@@ -563,23 +563,6 @@
     <string name="selected_apps_count">%1$d 個已選應用程式</string>
     <string name="already_added_apps_count">%1$d 個已添加應用程式</string>
     <string name="all_apps_already_added">所有应用均已添加</string>
-    <string name="dynamic_manager_title">動態簽名配置</string>
-    <string name="dynamic_manager_enabled_summary">已啟用（大小: %s）</string>
-    <string name="dynamic_manager_disabled">未啟用</string>
-    <string name="enable_dynamic_manager">啟用動態簽名</string>
-    <string name="signature_size">簽名大小</string>
-    <string name="signature_hash">簽名哈希值</string>
-    <string name="hash_must_be_64_chars">哈希值必須是 64 位十六進制字符</string>
-    <string name="dynamic_manager_set_success">動態簽名配置設定成功</string>
-    <string name="dynamic_manager_set_failed">動態簽名配置設定失敗</string>
-    <string name="invalid_sign_config">無效嘅簽名配置</string>
-    <string name="dynamic_manager_disabled_success">動態簽名已禁用</string>
-    <string name="dynamic_manager_clear_failed">清除動態簽名錯誤</string>
-    <string name="dynamic_managerature">動態</string>
-    <string name="signature_index">簽名 %1$d</string>
-    <string name="unknown_signature">未知</string>
-    <string name="multi_manager_list">活躍管理器</string>
-    <string name="no_active_manager">唔活躍管理器</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
     <!-- 循环路径相关 -->
     <!-- 循环路径功能描述 -->
@@ -602,4 +585,7 @@
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護裝置，已經阻止安裝呢個模組。</string>
     <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
+    <!-- KPM patching related strings -->
+    <!-- KPM workflow related -->
+    <!-- KPM option radio group strings -->
 </resources>
