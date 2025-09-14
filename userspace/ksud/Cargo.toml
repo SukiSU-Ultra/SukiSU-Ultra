@@ -55,7 +55,8 @@ procfs = "0.17"
 android_logger = { version = "0.14", default-features = false }
 
 [profile.release]
-strip = true
-opt-level = "z"
-lto = true
+overflow-checks = false
 codegen-units = 1
+lto = "fat"
+opt-level = 3
+strip = true
