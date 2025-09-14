@@ -60,8 +60,8 @@ noinline NO_OPTIMIZE void sukisu_kpm_load_module_path(const char *path,
 {
     int res = -1;
 
-    printk("KPM: Stub function called (sukisu_kpm_load_module_path).
-                    path=%s args=%s ptr=%p\n", path, args, ptr);
+    printk("KPM: Stub function called (sukisu_kpm_load_module_path). "
+                    "path=%s args=%s ptr=%p\n", path, args, ptr);
 
     __asm__ volatile("nop");
 
@@ -75,8 +75,8 @@ noinline NO_OPTIMIZE void sukisu_kpm_unload_module(const char *name,
 {>
     int res = -1;
 
-    printk("KPM: Stub function called (sukisu_kpm_unload_module).
-                    name=%s ptr=%p\n", name, ptr);
+    printk("KPM: Stub function called (sukisu_kpm_unload_module). "
+                    "name=%s ptr=%p\n", name, ptr);
 
     __asm__ volatile("nop");
 
@@ -103,8 +103,8 @@ noinline NO_OPTIMIZE void sukisu_kpm_info(const char *name, void __user *out,
 {
     int res = -1;
 
-    printk("KPM: Stub function called (sukisu_kpm_info).
-                    name=%s buffer=%p\n", name, out);
+    printk("KPM: Stub function called (sukisu_kpm_info). "
+                    "name=%s buffer=%p\n", name, out);
 
     __asm__ volatile("nop");
 
@@ -118,8 +118,8 @@ noinline NO_OPTIMIZE void sukisu_kpm_list(void __user *out, unsigned int bufferS
 {
     int res = -1;
     
-    printk("KPM: Stub function called (sukisu_kpm_list).
-                    buffer=%p size=%d\n", out, bufferSize);
+    printk("KPM: Stub function called (sukisu_kpm_list). "
+                    "buffer=%p size=%d\n", out, bufferSize);
                     
     if (copy_to_user(result, &res, sizeof(res)) < 1)
         printk("KPM: Copy to user failed.");
@@ -131,8 +131,8 @@ noinline NO_OPTIMIZE void sukisu_kpm_control(void __user *name, void __user *arg
 {
     int res = -1;
 
-    printk("KPM: Stub function called (sukisu_kpm_control).
-                    name=%p args=%p\n", name, args);
+    printk("KPM: Stub function called (sukisu_kpm_control). "
+                    "name=%p args=%p\n", name, args);
 
     __asm__ volatile("nop");
     
@@ -146,8 +146,8 @@ noinline NO_OPTIMIZE void sukisu_kpm_version(void __user *out, unsigned int buff
 {
     int res = -1;
     
-    printk("KPM: Stub function called (sukisu_kpm_version).
-                    buffer=%p size=%d\n", out, bufferSize);
+    printk("KPM: Stub function called (sukisu_kpm_version). "
+                    "buffer=%p size=%d\n", out, bufferSize);
     
     if (copy_to_user(result, &res, sizeof(res)) < 1)
         printk("KPM: Copy to user failed.");
