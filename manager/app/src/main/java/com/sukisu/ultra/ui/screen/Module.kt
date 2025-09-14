@@ -176,6 +176,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 if (confirmResult == ConfirmResult.Confirmed) {
                     // 验证模块签名
                     val forceVerification = prefs.getBoolean("force_signature_verification", false)
+                    val disableVerification = prefs.getBoolean("dont_signature_verification", false)
                     val verificationResults = mutableMapOf<Uri, Boolean>()
 
                     for (uri in selectedModules) {
@@ -184,7 +185,17 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         // 存储验证状态
                         setModuleVerificationStatus(uri, isVerified)
 
-                        if (forceVerification && !isVerified) {
+                        if (disableVerification) {
+                            try {
+                                navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
+                                viewModel.markNeedRefresh()
+                            } catch (e: Exception) {
+                                Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
+                                scope.launch {
+                                    snackBarHost.showSnackbar("Error while installing module: ${e.message}")
+                                }
+                            }
+                        } else if (forceVerification && !isVerified) {
                             withContext(Dispatchers.Main) {
                                 signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
                                 isForceVerificationFailed = true

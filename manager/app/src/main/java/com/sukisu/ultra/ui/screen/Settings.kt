@@ -173,8 +173,30 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             summary = stringResource(R.string.module_signature_verification_summary),
                             checked = forceSignatureVerification,
                             onCheckedChange = { enabled ->
-                                prefs.edit { putBoolean("force_signature_verification", enabled) }
                                 forceSignatureVerification = enabled
+                                prefs.edit { putBoolean("force_signature_verification", enabled) }
+                                // 如果开启强制验证，则关闭不验证选项
+                                if (enabled) {
+                                    prefs.edit { putBoolean("dont_signature_verification", false) }
+                                }
+                            }
+                        )
+                        // 不验证签名开关
+                        var dontSignatureVerification by rememberSaveable {
+                            mutableStateOf(prefs.getBoolean("dont_signature_verification", false))
+                        }
+                        SwitchItem(
+                            icon = Icons.Filled.RemoveModerator,
+                            title = stringResource(R.string.module_signature_not_verification),
+                            summary = stringResource(R.string.module_signature_not_verification_summary),
+                            checked = dontSignatureVerification,
+                            onCheckedChange = { enabled ->
+                                dontSignatureVerification = enabled
+                                prefs.edit { putBoolean("dont_signature_verification", enabled) }
+                                // 如果开启不验证，则关闭强制验证选项
+                                if (enabled) {
+                                    prefs.edit { putBoolean("force_signature_verification", false) }
+                                }
                             }
                         )
                     }
