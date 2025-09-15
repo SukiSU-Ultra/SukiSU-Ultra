@@ -31,6 +31,8 @@ object Natives {
 
     const val MINIMAL_SUPPORTED_DYNAMIC_MANAGER = 13215
 
+    const val MINIMAL_SUPPORTED_Scan_All_Users = 13354
+
     const val ROOT_UID = 0
     const val ROOT_GID = 0
 

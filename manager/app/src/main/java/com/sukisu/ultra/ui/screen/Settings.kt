@@ -164,21 +164,23 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             )
                         }
 
-                        // scan_all_users 开关
-                        var scanAllUsersEnabled by rememberSaveable {
-                            mutableStateOf(Natives.isScanAllUsersEnabled())
-                        }
-                        SwitchItem(
-                            icon = Icons.Filled.PersonSearch,
-                            title = stringResource(R.string.settings_scan_all_users),
-                            summary = stringResource(R.string.settings_scan_all_users_summary),
-                            checked = scanAllUsersEnabled,
-                            onCheckedChange = { enabled ->
-                                if (Natives.setScanAllUsersEnabled(enabled)) {
-                                    scanAllUsersEnabled = enabled
-                                }
+                        if (Natives.version >= Natives.MINIMAL_SUPPORTED_Scan_All_Users) {
+                            // 扫描所有用户开关
+                            var scanAllUsersEnabled by rememberSaveable {
+                                mutableStateOf(Natives.isScanAllUsersEnabled())
                             }
-                        )
+                            SwitchItem(
+                                icon = Icons.Filled.PersonSearch,
+                                title = stringResource(R.string.settings_scan_all_users),
+                                summary = stringResource(R.string.settings_scan_all_users_summary),
+                                checked = scanAllUsersEnabled,
+                                onCheckedChange = { enabled ->
+                                    if (Natives.setScanAllUsersEnabled(enabled)) {
+                                        scanAllUsersEnabled = enabled
+                                    }
+                                }
+                            )
+                        }
 
                         // 强制签名验证开关
                         var forceSignatureVerification by rememberSaveable {
