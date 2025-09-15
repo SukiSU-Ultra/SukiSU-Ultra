@@ -136,6 +136,19 @@ object Natives {
     // 模块签名验证
     external fun verifyModuleSignature(modulePath: String): Boolean
 
+    /**
+     * Check whether the “Scan All Users” feature is enabled.
+     * @return true if scan_all_users is enabled, false otherwise
+     */
+    external fun isScanAllUsersEnabled(): Boolean
+
+    /**
+     * Configure whether to scan all users
+     * @param enabled true to enable scan_all_users, false to disable
+     * @return true if successful, false otherwise
+     */
+    external fun setScanAllUsersEnabled(enabled: Boolean): Boolean
+
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999
 

@@ -653,4 +653,6 @@
     <!-- KPM选项单选按钮组字符串 -->
     <string name="kpm_follow_kernel_file">跟随内核</string>
     <string name="kpm_follow_kernel_description">原样使用内核，不进行任何 KPM 修改</string>
+    <string name="settings_scan_all_users">扫描所有用户应用</string>
+    <string name="settings_scan_all_users_summary">启用后将扫描所有用户应用空间的进程，可能会影响性能（仅在需要时开启）</string>
 </resources>

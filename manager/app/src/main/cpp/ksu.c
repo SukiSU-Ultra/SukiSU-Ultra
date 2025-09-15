@@ -40,6 +40,7 @@ extern const char* zako_file_verrcidx2str(uint8_t index);
 #define CMD_IS_UID_SHOULD_UMOUNT 13
 #define CMD_IS_SU_ENABLED 14
 #define CMD_ENABLE_SU 15
+#define CMD_SCAN_ALL_USERS 17
 
 #define CMD_GET_VERSION_FULL 0xC0FFEE1A
 
@@ -124,6 +125,17 @@ bool is_su_enabled() {
     // if ksuctl failed, we assume su is enabled, and it cannot be disabled.
     ksuctl(CMD_IS_SU_ENABLED, &enabled, NULL);
     return enabled;
+}
+
+bool get_scan_all_users() {
+    bool current_state = false;
+    ksuctl(CMD_SCAN_ALL_USERS, (void*)0, &current_state);
+    return current_state;
+}
+
+bool set_scan_all_users(bool enabled) {
+    int operation = enabled ? 1 : 2;
+    return ksuctl(CMD_SCAN_ALL_USERS, (void*)(intptr_t)operation, NULL);
 }
 
 bool is_KPM_enable() {

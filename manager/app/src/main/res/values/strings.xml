@@ -661,4 +661,6 @@ Important Note:\n
     <!-- KPM option radio group strings -->
     <string name="kpm_follow_kernel_file">Follow Kernel</string>
     <string name="kpm_follow_kernel_description">Use kernel as-is without any KPM modifications</string>
+    <string name="settings_scan_all_users">Scan all users</string>
+    <string name="settings_scan_all_users_summary">When enabled, processes in all user spaces will be scanned, which may affect performance (only enable when needed)</string>
 </resources>

@@ -414,6 +414,18 @@ NativeBridgeNP(getManagersList, jobject) {
     return obj;
 }
 
+NativeBridgeNP(isScanAllUsersEnabled, jboolean) {
+    bool result = get_scan_all_users();
+    LogDebug("isScanAllUsersEnabled: result=%d", result);
+    return result;
+}
+
+NativeBridge(setScanAllUsersEnabled, jboolean, jboolean enabled) {
+    bool result = set_scan_all_users(enabled);
+    LogDebug("setScanAllUsersEnabled: enabled=%d, result=%d", enabled, result);
+    return result;
+}
+
 NativeBridge(verifyModuleSignature, jboolean, jstring modulePath) {
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__) || defined(_M_ARM)
     if (!modulePath) {
