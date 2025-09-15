@@ -22,6 +22,21 @@ uid_t ksu_manager_uid = KSU_INVALID_UID;
 #define PRIMARY_USER_PATH "/data/user_de/0"
 #define MAX_SUPPORTED_USERS 32 // Supports up to 32 users
 #define DATA_PATH_LEN 384 // 384 is enough for /data/app/<package>/base.apk and /data/user_de/{userid}/<package>
+#define SMALL_BUFFER_SIZE 64
+
+// Global work buffer to avoid stack allocation
+struct work_buffers {
+	char path_buffer[DATA_PATH_LEN];
+	char package_buffer[KSU_MAX_PACKAGE_NAME];
+	char small_buffer[SMALL_BUFFER_SIZE];
+	uid_t user_ids_buffer[MAX_SUPPORTED_USERS];
+};
+
+static struct work_buffers *get_work_buffer(void)
+{
+	static struct work_buffers global_buffer;
+	return &global_buffer;
+}
 
 struct uid_data {
 	struct list_head list;
@@ -35,6 +50,7 @@ struct user_scan_ctx {
 	uid_t user_id;
 	size_t pkg_count;
 	size_t error_count;
+	struct work_buffers *work_buf; // Passing the work buffer
 };
 
 struct user_dir_ctx {
@@ -71,8 +87,8 @@ struct my_dir_context {
 	int depth;
 	int *stop;
 	bool found_dynamic_manager;
+	struct work_buffers *work_buf; // Passing the work buffer
 };
-
 // https://docs.kernel.org/filesystems/porting.html
 // filldir_t (readdir callbacks) calling conventions have changed. Instead of returning 0 or -E... it returns bool now. false means "no more" (as -E... used to) and true - "keep going" (as 0 in old calling conventions). Rationale: callers never looked at specific -E... values anyway. -> iterate_shared() instances require no changes at all, all filldir_t ones in the tree converted.
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
@@ -128,31 +144,30 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 }
 
 static void crown_manager(const char *apk, struct list_head *uid_data,
-			  int signature_index)
+			  int signature_index, struct work_buffers *work_buf)
 {
-	char pkg[KSU_MAX_PACKAGE_NAME];
-	if (get_pkg_from_apk_path(pkg, apk) < 0) {
+	if (get_pkg_from_apk_path(work_buf->package_buffer, apk) < 0) {
 		pr_err("Failed to get package name from apk path: %s\n", apk);
 		return;
 	}
 
-	pr_info("manager pkg: %s, signature_index: %d\n", pkg, signature_index);
+	pr_info("manager pkg: %s, signature_index: %d\n", work_buf->package_buffer, signature_index);
 
 #ifdef KSU_MANAGER_PACKAGE
 	// pkg is `/<real package>`
-	if (strncmp(pkg, KSU_MANAGER_PACKAGE, sizeof(KSU_MANAGER_PACKAGE))) {
+	if (strncmp(work_buf->package_buffer, KSU_MANAGER_PACKAGE, sizeof(KSU_MANAGER_PACKAGE))) {
 		pr_info("manager package is inconsistent with kernel build: %s\n",
 			KSU_MANAGER_PACKAGE);
 		return;
 	}
 #endif
-	struct list_head *list = (struct list_head *)uid_data;
+
 	struct uid_data *np;
 
-	list_for_each_entry (np, list, list) {
-		if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
+	list_for_each_entry(np, uid_data, list) {
+		if (strncmp(np->package, work_buf->package_buffer, KSU_MAX_PACKAGE_NAME) == 0) {
 			pr_info("Crowning manager: %s(uid=%d, signature_index=%d, user=%u)\n",
-				pkg, np->uid, signature_index, np->user_id);
+				work_buf->package_buffer, np->uid, signature_index, np->user_id);
 
 			// Dynamic Sign index (100) or multi-manager signatures (>= 2)
 			if (signature_index == DYNAMIC_SIGN_INDEX || signature_index >= 2) {
@@ -168,7 +183,9 @@ static void crown_manager(const char *apk, struct list_head *uid_data,
 	}
 }
 // Scan the primary user
-static int scan_primary_user_apps(struct list_head *uid_list, size_t *pkg_count, size_t *error_count)
+static int scan_primary_user_apps(struct list_head *uid_list, 
+					   size_t *pkg_count, size_t *error_count,
+					   struct work_buffers *work_buf)
 {
 	struct file *dir_file;
 	int ret;
@@ -187,7 +204,8 @@ static int scan_primary_user_apps(struct list_head *uid_list, size_t *pkg_count,
 		.uid_list = uid_list,
 		.user_id = 0,
 		.pkg_count = 0,
-		.error_count = 0
+		.error_count = 0,
+		.work_buf = work_buf
 	};
 
 	struct user_dir_ctx uctx = {
@@ -232,7 +250,7 @@ FILLDIR_RETURN_TYPE collect_user_ids(struct dir_context *ctx, const char *name,
 }
 
 // Retrieve all active users (optional)
-static int get_all_active_users(uid_t *user_ids, size_t max_users, size_t *found_count)
+static int get_all_active_users(struct work_buffers *work_buf, size_t *found_count)
 {
 	struct file *dir_file;
 	int ret;
@@ -247,9 +265,9 @@ static int get_all_active_users(uid_t *user_ids, size_t max_users, size_t *found
 
 	struct user_id_ctx uctx = {
 		.ctx.actor = collect_user_ids,
-		.user_ids = user_ids,
+		.user_ids = work_buf->user_ids_buffer,
 		.count = 0,
-		.max_count = max_users
+		.max_count = MAX_SUPPORTED_USERS
 	};
 
 	ret = iterate_dir(dir_file, &uctx.ctx);
@@ -259,7 +277,7 @@ static int get_all_active_users(uid_t *user_ids, size_t max_users, size_t *found
 	if (uctx.count > 0) {
 		pr_info("Found %zu active users: ", uctx.count);
 		for (size_t i = 0; i < uctx.count; i++) {
-			pr_cont("%u ", user_ids[i]);
+			pr_cont("%u ", work_buf->user_ids_buffer[i]);
 		}
 		pr_cont("\n");
 	}
@@ -272,6 +290,7 @@ FILLDIR_RETURN_TYPE scan_user_packages(struct dir_context *ctx, const char *name
 {
 	struct user_dir_ctx *uctx = container_of(ctx, struct user_dir_ctx, ctx);
 	struct user_scan_ctx *scan_ctx = uctx->scan_ctx;
+	struct work_buffers *work_buf = scan_ctx->work_buf;
 
 	if (!scan_ctx || !scan_ctx->uid_list)
 		return FILLDIR_ACTOR_STOP;
@@ -286,19 +305,19 @@ FILLDIR_RETURN_TYPE scan_user_packages(struct dir_context *ctx, const char *name
 		return FILLDIR_ACTOR_CONTINUE;
 	}
 
-	char pkg_path[DATA_PATH_LEN];
-	int path_len = snprintf(pkg_path, sizeof(pkg_path), "%s/%u/%.*s",
-				USER_DATA_BASE_PATH, scan_ctx->user_id, namelen, name);
-	if (path_len >= sizeof(pkg_path)) {
+	// Use a working buffer instead of stack variables
+	int path_len = snprintf(work_buf->path_buffer, sizeof(work_buf->path_buffer), 
+				"%s/%u/%.*s", USER_DATA_BASE_PATH, scan_ctx->user_id, namelen, name);
+	if (path_len >= sizeof(work_buf->path_buffer)) {
 		pr_err("Path too long for: %.*s (user %u)\n", namelen, name, scan_ctx->user_id);
 		scan_ctx->error_count++;
 		return FILLDIR_ACTOR_CONTINUE;
 	}
 
 	struct path path;
-	int err = kern_path(pkg_path, LOOKUP_FOLLOW, &path);
+	int err = kern_path(work_buf->path_buffer, LOOKUP_FOLLOW, &path);
 	if (err) {
-		pr_debug("Path lookup failed: %s (%d)\n", pkg_path, err);
+		pr_debug("Path lookup failed: %s (%d)\n", work_buf->path_buffer, err);
 		scan_ctx->error_count++;
 		return FILLDIR_ACTOR_CONTINUE;
 	}
@@ -308,7 +327,7 @@ FILLDIR_RETURN_TYPE scan_user_packages(struct dir_context *ctx, const char *name
 	path_put(&path);
 
 	if (err) {
-		pr_debug("Failed to get attributes: %s (%d)\n", pkg_path, err);
+		pr_debug("Failed to get attributes: %s (%d)\n", work_buf->path_buffer, err);
 		scan_ctx->error_count++;
 		return FILLDIR_ACTOR_CONTINUE;
 	}
@@ -342,7 +361,7 @@ FILLDIR_RETURN_TYPE scan_user_packages(struct dir_context *ctx, const char *name
 
 // Scan other users' applications (optional)
 static int scan_secondary_users_apps(struct list_head *uid_list, 
-				     const uid_t *user_ids, size_t user_count,
+				     struct work_buffers *work_buf, size_t user_count,
 				     size_t *total_pkg_count, size_t *total_error_count)
 {
 	int ret = 0;
@@ -350,26 +369,26 @@ static int scan_secondary_users_apps(struct list_head *uid_list,
 
 	for (size_t i = 0; i < user_count; i++) {
 		// Skip the main user since it was already scanned in the first step.
-		if (user_ids[i] == 0)
+		if (work_buf->user_ids_buffer[i] == 0)
 			continue;
 
-		char user_path[DATA_PATH_LEN];
 		struct file *dir_file;
+		snprintf(work_buf->path_buffer, sizeof(work_buf->path_buffer), 
+			"%s/%u", USER_DATA_BASE_PATH, work_buf->user_ids_buffer[i]);
 
-		snprintf(user_path, sizeof(user_path), "%s/%u", USER_DATA_BASE_PATH, user_ids[i]);
-
-		dir_file = ksu_filp_open_compat(user_path, O_RDONLY, 0);
+		dir_file = ksu_filp_open_compat(work_buf->path_buffer, O_RDONLY, 0);
 		if (IS_ERR(dir_file)) {
-			pr_debug("Cannot open user path: %s (%ld)\n", user_path, PTR_ERR(dir_file));
+			pr_debug("Cannot open user path: %s (%ld)\n", work_buf->path_buffer, PTR_ERR(dir_file));
 			(*total_error_count)++;
 			continue;
 		}
 
 		struct user_scan_ctx scan_ctx = {
 			.uid_list = uid_list,
-			.user_id = user_ids[i],
+			.user_id = work_buf->user_ids_buffer[i],
 			.pkg_count = 0,
-			.error_count = 0
+			.error_count = 0,
+			.work_buf = work_buf
 		};
 
 		struct user_dir_ctx uctx = {
@@ -385,7 +404,7 @@ static int scan_secondary_users_apps(struct list_head *uid_list,
 
 		if (scan_ctx.pkg_count > 0 || scan_ctx.error_count > 0)
 			pr_info("User %u: %zu packages, %zu errors\n",
-				user_ids[i], scan_ctx.pkg_count, scan_ctx.error_count);
+				work_buf->user_ids_buffer[i], scan_ctx.pkg_count, scan_ctx.error_count);
 			}
 
 	return ret;
@@ -396,9 +415,14 @@ int scan_user_data_for_uids(struct list_head *uid_list, bool scan_all_users)
 	if (!uid_list)
 		return -EINVAL;
 
+	struct work_buffers *work_buf = get_work_buffer();
+	if (!work_buf) {
+		pr_err("Failed to get work buffer\n");
+		return -ENOMEM;
+	}
 	//  Scan the primary user (User 0)
 	size_t primary_pkg_count, primary_error_count;
-	int ret = scan_primary_user_apps(uid_list, &primary_pkg_count, &primary_error_count);
+	int ret = scan_primary_user_apps(uid_list, &primary_pkg_count, &primary_error_count, work_buf);
 	if (ret < 0 && primary_pkg_count == 0) {
 		pr_err("Primary user scan failed completely: %d\n", ret);
 		return ret;
@@ -412,9 +436,8 @@ int scan_user_data_for_uids(struct list_head *uid_list, bool scan_all_users)
 	}
 
 	// Retrieve all active users
-	uid_t user_ids[MAX_SUPPORTED_USERS];
 	size_t active_users;
-	ret = get_all_active_users(user_ids, ARRAY_SIZE(user_ids), &active_users);
+	ret = get_all_active_users(work_buf, &active_users);
 	if (ret < 0 || active_users == 0) {
 		pr_warn("Failed to get active users, using primary user only: %d\n", ret);
 		return primary_pkg_count > 0 ? 0 : -ENOENT;
@@ -422,7 +445,7 @@ int scan_user_data_for_uids(struct list_head *uid_list, bool scan_all_users)
 
 	// Scan other users' applications
 	size_t secondary_pkg_count, secondary_error_count;
-	ret = scan_secondary_users_apps(uid_list, user_ids, active_users,
+	ret = scan_secondary_users_apps(uid_list, work_buf, active_users,
 					&secondary_pkg_count, &secondary_error_count);
 
 	size_t total_packages = primary_pkg_count + secondary_pkg_count;
@@ -443,7 +466,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 {
 	struct my_dir_context *my_ctx =
 		container_of(ctx, struct my_dir_context, ctx);
-	char dirpath[DATA_PATH_LEN];
+	struct work_buffers *work_buf = my_ctx->work_buf;
 
 	if (!my_ctx) {
 		pr_err("Invalid context\n");
@@ -464,7 +487,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 	}
  
 
-	if (snprintf(dirpath, DATA_PATH_LEN, "%s/%.*s", my_ctx->parent_dir,
+	if (snprintf(work_buf->path_buffer, DATA_PATH_LEN, "%s/%.*s", my_ctx->parent_dir, 
 		     namelen, name) >= DATA_PATH_LEN) {
 		pr_err("Path too long: %s/%.*s\n", my_ctx->parent_dir, namelen,
 		       name);
@@ -476,17 +499,17 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 		struct data_path *data = kmalloc(sizeof(struct data_path), GFP_ATOMIC);
 
 		if (!data) {
-			pr_err("Failed to allocate memory for %s\n", dirpath);
+			pr_err("Failed to allocate memory for %s\n", work_buf->path_buffer);
 			return FILLDIR_ACTOR_CONTINUE;
 		}
 
-		strscpy(data->dirpath, dirpath, DATA_PATH_LEN);
+		strscpy(data->dirpath, work_buf->path_buffer, DATA_PATH_LEN);
 		data->depth = my_ctx->depth - 1;
 		list_add_tail(&data->list, my_ctx->data_path_list);
 	} else {
 		if ((namelen == 8) && (strncmp(name, "base.apk", namelen) == 0)) {
 			struct apk_path_hash *pos, *n;
-			unsigned int hash = full_name_hash(NULL, dirpath, strlen(dirpath));
+			unsigned int hash = full_name_hash(NULL, work_buf->path_buffer, strlen(work_buf->path_buffer));
 			list_for_each_entry(pos, &apk_path_hash_list, list) {
 				if (hash == pos->hash) {
 					pos->exists = true;
@@ -496,15 +519,16 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 
 			int signature_index = -1;
 			bool is_multi_manager = is_dynamic_manager_apk(
-				dirpath, &signature_index);
+				work_buf->path_buffer, &signature_index);
 
 			pr_info("Found new base.apk at path: %s, is_multi_manager: %d, signature_index: %d\n",
-				dirpath, is_multi_manager, signature_index);
+				work_buf->path_buffer, is_multi_manager, signature_index);
 				
 			// Check for dynamic sign or multi-manager signatures
 			if (is_multi_manager && (signature_index == DYNAMIC_SIGN_INDEX || signature_index >= 2)) {
 				my_ctx->found_dynamic_manager = true;
-				crown_manager(dirpath, my_ctx->private_data, signature_index);
+				crown_manager(work_buf->path_buffer, my_ctx->private_data, 
+								signature_index, work_buf);
 
 				struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
 				if (apk_data) {
@@ -513,8 +537,9 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 					list_add_tail(&apk_data->list, &apk_path_hash_list);
 				}
 
-			} else if (is_manager_apk(dirpath)) {
-				crown_manager(dirpath, my_ctx->private_data, 0);
+			} else if (is_manager_apk(work_buf->path_buffer)) {
+				crown_manager(work_buf->path_buffer,
+						my_ctx->private_data, 0, work_buf);
 				
 				if (!my_ctx->found_dynamic_manager && !ksu_is_dynamic_manager_enabled()) {
 					*my_ctx->stop = 1;
@@ -545,6 +570,13 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 {
 	int i, stop = 0;
 	struct list_head data_path_list;
+	struct work_buffers *work_buf = get_work_buffer();
+	
+	if (!work_buf) {
+		pr_err("Failed to get work buffer for search_manager\n");
+		return;
+	}
+	
 	INIT_LIST_HEAD(&data_path_list);
 	INIT_LIST_HEAD(&apk_path_hash_list);
 	unsigned long data_app_magic = 0;
@@ -571,7 +603,8 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 				.private_data = uid_data,
 				.depth = pos->depth,
 				.stop = &stop,
-				.found_dynamic_manager = false };
+				.found_dynamic_manager = false,
+				.work_buf = work_buf };
 			struct file *file;
 
 			if (!stop) {
@@ -626,9 +659,9 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
 	struct uid_data *np;
 
 	bool exist = false;
-	list_for_each_entry (np, list, list) {
+	list_for_each_entry(np, list, list) {
 		if (np->uid == uid % 100000 &&
-		    strncmp(np->package, package, KSU_MAX_PACKAGE_NAME) == 0) {
+			strncmp(np->package, package, KSU_MAX_PACKAGE_NAME) == 0) {
 			exist = true;
 			break;
 		}
@@ -656,7 +689,7 @@ void track_throne()
 	bool manager_exist = false;
 	bool dynamic_manager_exist = false;
 
-	list_for_each_entry (np, &uid_list, list) {
+	list_for_each_entry(np, &uid_list, list) {
 		// if manager is installed in work profile, the uid in packages.list is still equals main profile
 		// don't delete it in this case!
 		int manager_uid = ksu_get_manager_uid() % 100000;
@@ -671,7 +704,7 @@ void track_throne()
 		dynamic_manager_exist = ksu_has_dynamic_managers();
 		
 		if (!dynamic_manager_exist) {
-			list_for_each_entry (np, &uid_list, list) {
+			list_for_each_entry(np, &uid_list, list) {
 			// Check if this uid is a dynamic manager (not the traditional manager)
 				if (ksu_is_any_manager(np->uid) && np->uid != ksu_get_manager_uid()) {
 					dynamic_manager_exist = true;
