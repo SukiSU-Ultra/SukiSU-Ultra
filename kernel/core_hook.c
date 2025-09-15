@@ -522,7 +522,35 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		return 0;
 	}
 
-	#ifdef CONFIG_KPM
+	if (arg2 == CMD_SCAN_ALL_USERS) {
+		if (!from_root && !from_manager) {
+			return 0;
+		}
+		// Get or Set scan_all_users
+		if (arg3 == 0) {
+			bool current_state = ksu_get_scan_all_users();
+			if (copy_to_user((void __user *)arg4, &current_state, sizeof(current_state))) {
+				pr_err("scan_all_users: copy current state failed\n");
+				return 0;
+			}
+		} else {
+			// Set new state (arg3 = 1: Enable, arg3 = 2: Disable)
+			bool new_state = (arg3 == 1);
+			if (ksu_set_scan_all_users(new_state)) {
+				pr_info("scan_all_users set to: %d\n", new_state);
+			} else {
+				pr_err("Failed to set scan_all_users to: %d\n", new_state);
+				return 0;
+			}
+		}
+		
+		if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+			pr_err("scan_all_users: prctl reply error\n");
+		}
+		return 0;
+	}
+
+#ifdef CONFIG_KPM
 	// ADD: 添加KPM模块控制
 	if(sukisu_is_kpm_control_code(arg2)) {
 		int res;

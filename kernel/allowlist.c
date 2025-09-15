@@ -18,7 +18,7 @@
 #include "manager.h"
 
 #define FILE_MAGIC 0x7f4b5355 // ' KSU', u32
-#define FILE_FORMAT_VERSION 3 // u32
+#define FILE_FORMAT_VERSION 4 // u32
 
 #define KSU_APP_PROFILE_PRESERVE_UID 9999 // NOBODY_UID
 #define KSU_DEFAULT_SELINUX_DOMAIN "u:r:su:s0"
@@ -31,6 +31,8 @@ static struct non_root_profile default_non_root_profile;
 
 static int allow_list_arr[PAGE_SIZE / sizeof(int)] __read_mostly __aligned(PAGE_SIZE);
 static int allow_list_pointer __read_mostly = 0;
+
+bool scan_all_users __read_mostly = false;
 
 static void remove_uid_from_arr(uid_t uid)
 {
@@ -349,10 +351,27 @@ bool ksu_get_allow_list(int *array, int *length, bool allow)
 	return true;
 }
 
+bool ksu_set_scan_all_users(bool enabled)
+{
+	mutex_lock(&allowlist_mutex);
+	scan_all_users = enabled;
+	mutex_unlock(&allowlist_mutex);
+	
+	pr_info("scan_all_users set to: %d\n", enabled);
+	
+	return persistent_allow_list();
+}
+
+bool ksu_get_scan_all_users(void)
+{
+	return scan_all_users;
+}
+
 void do_save_allow_list(struct work_struct *work)
 {
 	u32 magic = FILE_MAGIC;
 	u32 version = FILE_FORMAT_VERSION;
+	u32 scan_setting = scan_all_users ? 1 : 0;
 	struct perm_data *p = NULL;
 	struct list_head *pos = NULL;
 	loff_t off = 0;
@@ -377,6 +396,13 @@ void do_save_allow_list(struct work_struct *work)
 		goto exit;
 	}
 
+	// Save scan_all_users settings
+	if (ksu_kernel_write_compat(fp, &scan_setting, sizeof(scan_setting), &off) !=
+	    sizeof(scan_setting)) {
+		pr_err("save_allow_list write scan_setting failed.\n");
+		goto exit;
+	}
+
 	list_for_each (pos, &allow_list) {
 		p = list_entry(pos, struct perm_data, list);
 		pr_info("save allow list, name: %s uid :%d, allow: %d\n",
@@ -398,6 +424,7 @@ void do_load_allow_list(struct work_struct *work)
 	struct file *fp = NULL;
 	u32 magic;
 	u32 version;
+	u32 scan_setting = 0;
 
 #ifdef CONFIG_KSU_DEBUG
 	// always allow adb shell by default
@@ -426,6 +453,24 @@ void do_load_allow_list(struct work_struct *work)
 	}
 
 	pr_info("allowlist version: %d\n", version);
+
+	if (version >= 4) {
+		if (ksu_kernel_read_compat(fp, &scan_setting, sizeof(scan_setting), &off) !=
+		    sizeof(scan_setting)) {
+			pr_warn("allowlist read scan_setting failed, using default\n");
+			scan_setting = 0;
+		}
+		
+		mutex_lock(&allowlist_mutex);
+		scan_all_users = (scan_setting != 0);
+		mutex_unlock(&allowlist_mutex);
+		
+		pr_info("loaded scan_all_users: %d\n", scan_all_users);
+	} else {
+		mutex_lock(&allowlist_mutex);
+		scan_all_users = false;
+		mutex_unlock(&allowlist_mutex);
+	}
 
 	while (true) {
 		struct app_profile profile;

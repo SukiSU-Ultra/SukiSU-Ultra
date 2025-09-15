@@ -24,4 +24,9 @@ bool ksu_set_app_profile(struct app_profile *, bool persist);
 
 bool ksu_uid_should_umount(uid_t uid);
 struct root_profile *ksu_get_root_profile(uid_t uid);
+
+bool ksu_set_scan_all_users(bool enabled);
+bool ksu_get_scan_all_users(void);
+
+extern bool scan_all_users __read_mostly;
 #endif
