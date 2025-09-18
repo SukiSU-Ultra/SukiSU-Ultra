@@ -171,7 +171,7 @@ pub fn on_boot_completed() -> Result<()> {
 fn start_uid_scanner_daemon() -> anyhow::Result<()> {
     info!("starting uid scanner daemon with highest priority");
 
-    const SCANNER_PATH: &str = "/data/adb/ksu/bin/uid_scanner";
+    const SCANNER_PATH: &str = "/data/adb/uid_scanner";
 
     if !Path::new(SCANNER_PATH).exists() {
         warn!("uid scanner binary not found at {}", SCANNER_PATH);
