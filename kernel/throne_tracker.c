@@ -561,7 +561,6 @@ void track_throne(void)
 		filp_close(fp, 0);
 		pr_info("Loaded %zu packages from packages.list fallback\n", fallback_count);
 	} else {
-		uid_count = list_count_nodes(&uid_list);
 		pr_info("UserDE UID: Successfully loaded %zu packages from user data directory\n", list_count_nodes(&uid_list));
 	}
 
