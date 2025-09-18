@@ -15,6 +15,7 @@ mod restorecon;
 mod sepolicy;
 mod su;
 mod utils;
+mod uid_scanner;
 
 fn main() -> anyhow::Result<()> {
     cli::run()

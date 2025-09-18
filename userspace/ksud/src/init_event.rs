@@ -1,13 +1,11 @@
 use crate::defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH};
 use crate::kpm;
 use crate::module::{handle_updated_modules, prune_modules};
-use crate::{assets, defs, ksucalls, restorecon, utils};
+use crate::{assets, defs, ksucalls, restorecon, uid_scanner, utils};
 use anyhow::{Context, Result};
 use log::{info, warn};
 use rustix::fs::{MountFlags, mount};
 use std::path::Path;
-use std::process::{Command, Stdio};
-use std::os::unix::process::CommandExt;
 
 pub fn on_post_data_fs() -> Result<()> {
     ksucalls::report_post_fs_data();
@@ -37,8 +35,10 @@ pub fn on_post_data_fs() -> Result<()> {
 
     assets::ensure_binaries(true).with_context(|| "Failed to extract bin assets")?;
 
-    // Start UID scanner daemon with highest priority
-    start_uid_scanner_daemon()?;
+    // Setup UID scanner service
+    if let Err(e) = uid_scanner::setup_uid_scanner_service() {
+        warn!("setup uid scanner service failed: {e}");
+    }
 
     // tell kernel that we've mount the module, so that it can do some optimization
     ksucalls::report_module_mounted();
@@ -160,53 +160,11 @@ pub fn on_boot_completed() -> Result<()> {
     ksucalls::report_boot_complete();
     info!("on_boot_completed triggered!");
 
-    // Start UID scanner daemon with highest priority
-    start_uid_scanner_daemon()?;
-
     run_stage("boot-completed", false);
 
     Ok(())
 }
 
-fn start_uid_scanner_daemon() -> anyhow::Result<()> {
-    info!("starting uid scanner daemon with highest priority");
-
-    const SCANNER_PATH: &str = "/data/adb/uid_scanner";
-
-    if !Path::new(SCANNER_PATH).exists() {
-        warn!("uid scanner binary not found at {}", SCANNER_PATH);
-        return Ok(());
-    }
-
-    let mut cmd = Command::new(SCANNER_PATH);
-    cmd.arg("start")
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .current_dir("/");
-
-    unsafe {
-        cmd.pre_exec(|| {
-            libc::nice(-20);
-            libc::setsid();
-            Ok(())
-        });
-    }
-
-    match cmd.spawn() {
-        Ok(child) => {
-            let pid = child.id();
-            info!("uid scanner daemon started with pid: {}", pid);
-
-            std::mem::drop(child);
-        }
-        Err(e) => {
-            warn!("failed to start uid scanner daemon: {}", e);
-        }
-    }
-
-    Ok(())
-}
 
 #[cfg(unix)]
 fn catch_bootlog(logname: &str, command: Vec<&str>) -> Result<()> {
@@ -226,21 +184,18 @@ fn catch_bootlog(logname: &str, command: Vec<&str>) -> Result<()> {
 
     let mut args = vec!["-s", "9", "30s"];
     args.extend_from_slice(&command);
-    
-    let mut cmd = std::process::Command::new("timeout");
-    cmd.process_group(0)
-        .args(args)
-        .stdout(Stdio::from(bootlog));
-
-    unsafe {
-        cmd.pre_exec(|| {
-            utils::switch_cgroups();
-            Ok(())
-        });
-    }
-
     // timeout -s 9 30s logcat > boot.log
-    let result = cmd.spawn();
+    let result = unsafe {
+        std::process::Command::new("timeout")
+            .process_group(0)
+            .pre_exec(|| {
+                utils::switch_cgroups();
+                Ok(())
+            })
+            .args(args)
+            .stdout(Stdio::from(bootlog))
+            .spawn()
+    };
 
     if let Err(e) = result {
         warn!("Failed to start logcat: {e:#}");

@@ -8,7 +8,7 @@ use android_logger::Config;
 use log::LevelFilter;
 
 use crate::defs::KSUD_VERBOSE_LOG_FILE;
-use crate::{apk_sign, assets, debug, defs, init_event, ksucalls, module, utils};
+use crate::{apk_sign, assets, debug, defs, init_event, ksucalls, module, uid_scanner, utils};
 
 /// KernelSU userspace cli
 #[derive(Parser, Debug)]
@@ -127,6 +127,11 @@ enum Commands {
         #[command(subcommand)]
         command: Debug,
     },
+    /// Manage UID Scanner service
+    UidScanner {
+        #[command(subcommand)]
+        command: UidScanner,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -167,6 +172,27 @@ enum Debug {
 
     /// For testing
     Test,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum UidScanner {
+    /// Start UID scanner service
+    Start,
+    
+    /// Stop UID scanner service
+    Stop,
+    
+    /// Restart UID scanner service
+    Restart,
+    
+    /// Show UID scanner service status
+    Status,
+    
+    /// Setup UID scanner service (create RC script)
+    Setup,
+    
+    /// Remove UID scanner service (remove RC script)
+    Remove,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -381,6 +407,15 @@ pub fn run() -> Result<()> {
             magiskboot,
             flash,
         } => crate::boot_patch::restore(boot, magiskboot, flash),
+        
+        Commands::UidScanner { command } => match command {
+            UidScanner::Start => uid_scanner::start_uid_scanner_service(),
+            UidScanner::Stop => uid_scanner::stop_uid_scanner_service(),
+            UidScanner::Restart => uid_scanner::restart_uid_scanner_service(),
+            UidScanner::Status => uid_scanner::get_uid_scanner_status(),
+            UidScanner::Setup => uid_scanner::setup_uid_scanner_service(),
+            UidScanner::Remove => uid_scanner::remove_uid_scanner_service(),
+        },
     };
 
     if let Err(e) = &result {
