@@ -16,8 +16,8 @@ object Natives {
     // 10946: add capabilities
     // 10977: change groups_count and groups to avoid overflow write
     // 11071: Fix the issue of failing to set a custom SELinux type.
-    const val MINIMAL_SUPPORTED_KERNEL = 11071
-    const val MINIMAL_SUPPORTED_KERNEL_FULL = "v3.1.5"
+    const val MINIMAL_SUPPORTED_KERNEL = 13250
+    const val MINIMAL_SUPPORTED_KERNEL_FULL = "v3.1.8"
 
     // 11640: Support query working mode, LKM or GKI
     // when MINIMAL_SUPPORTED_KERNEL > 11640, we can remove this constant.
