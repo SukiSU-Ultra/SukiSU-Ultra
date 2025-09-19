@@ -585,7 +585,6 @@
     <string name="unknown_signature">不明</string>
     <string name="multi_manager_list">有効なマネージャー</string>
     <string name="no_active_manager">有効なマネージャーがありません</string>
-    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk を実装</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SUS ループパス</string>
@@ -624,4 +623,9 @@
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
     <string name="home_hook_type">フックタイプ</string>
+    <!-- KPM patching related strings -->
+    <!-- KPM workflow related -->
+    <!-- KPM error messages -->
+    <!-- KPM option radio group strings -->
+    <!-- UID Scanner Settings -->
 </resources>
