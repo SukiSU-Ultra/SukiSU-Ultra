@@ -78,7 +78,7 @@ static ssize_t uid_scanner_write(struct file *file, const char __user *buffer,
 	return count;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+#ifdef KSU_COMPAT_HAS_PROC_OPS
 static const struct proc_ops uid_scanner_proc_ops = {
 	.proc_open = uid_scanner_open,
 	.proc_read = seq_read,
