@@ -63,10 +63,6 @@ u32 ksu_devpts_sid;
 // Detect whether it is on or not
 static bool is_boot_phase = true;
 
-#ifdef CONFIG_COMPAT
-bool ksu_is_compat __read_mostly = false;
-#endif
-
 void on_post_fs_data(void)
 {
 	static bool done = false;
