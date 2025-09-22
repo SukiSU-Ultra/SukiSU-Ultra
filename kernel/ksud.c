@@ -80,7 +80,7 @@ void on_post_fs_data(void)
 	pr_info("devpts sid: %d\n", ksu_devpts_sid);
 
 	// End of boot state
-    is_boot_phase = false;
+	is_boot_phase = false;
 }
 
 struct user_arg_ptr {
@@ -286,9 +286,9 @@ int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
 			size_t *count_ptr, loff_t **pos)
 {
 #ifndef CONFIG_KSU_KPROBES_HOOK
- 	if (!ksu_vfs_read_hook) {
- 		return 0;
- 	}
+	if (!ksu_vfs_read_hook) {
+		return 0;
+	}
 #endif
 	struct file *file;
 	char __user *buf;
@@ -399,9 +399,9 @@ int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 				  int *value)
 {
 #ifndef CONFIG_KSU_KPROBES_HOOK
- 	if (!ksu_input_hook) {
- 		return 0;
- 	}
+	if (!ksu_input_hook) {
+		return 0;
+	}
 #endif
 	if (*type == EV_KEY && *code == KEY_VOLUMEDOWN) {
 		int val = *value;
@@ -450,6 +450,16 @@ static int bprm_check_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	return ksu_bprm_check(bprm_local);
 };
 
+static struct kprobe bprm_check_kp = {
+	.symbol_name = "security_bprm_check",
+	.pre_handler = bprm_check_handler_pre,
+};
+
+static void do_stop_bprm_check_hook(struct work_struct *work)
+{
+	unregister_kprobe(&bprm_check_kp);
+}
+
 static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
@@ -469,11 +479,6 @@ static int input_handle_event_handler_pre(struct kprobe *p,
 	return ksu_handle_input_handle_event(type, code, value);
 }
 
-static struct kprobe bprm_check_kp = {
-	.symbol_name = "security_bprm_check",
-	.pre_handler = bprm_check_handler_pre,
-};
-
 static struct kprobe vfs_read_kp = {
 	.symbol_name = SYS_READ_SYMBOL,
 	.pre_handler = sys_read_handler_pre,
@@ -489,11 +494,6 @@ static void do_stop_vfs_read_hook(struct work_struct *work)
 	unregister_kprobe(&vfs_read_kp);
 }
 
-static void do_stop_bprm_check_hook(struct work_struct *work)
-{
-	unregister_kprobe(&bprm_check_kp);
-}
-
 static void do_stop_input_hook(struct work_struct *work)
 {
 	unregister_kprobe(&input_event_kp);
@@ -506,8 +506,8 @@ static void stop_vfs_read_hook()
 	bool ret = schedule_work(&stop_vfs_read_work);
 	pr_info("unregister vfs_read kprobe: %d!\n", ret);
 #else
- 	ksu_vfs_read_hook = false;
- 	pr_info("stop vfs_read_hook\n");
+	ksu_vfs_read_hook = false;
+	pr_info("stop vfs_read_hook\n");
 #endif
 }
 
@@ -515,9 +515,9 @@ static void stop_execve_hook()
 {
 #ifdef CONFIG_KSU_KPROBES_HOOK
 	bool ret = schedule_work(&stop_bprm_check_work);
-	pr_info("unregister execve kprobe: %d!\n", ret);
+	pr_info("unregister execve kprobe: %d!\n", ret);	
 #else
- 	pr_info("stop execve_hook\n");
+	pr_info("stop execve_hook\n");
 #endif
 	ksu_execveat_hook = false;
 }
@@ -533,8 +533,8 @@ static void stop_input_hook()
 	bool ret = schedule_work(&stop_input_hook_work);
 	pr_info("unregister input kprobe: %d!\n", ret);
 #else
- 	ksu_input_hook = false;
- 	pr_info("stop input_hook\n");
+	ksu_input_hook = false;
+	pr_info("stop input_hook\n");
 #endif
 }
 
