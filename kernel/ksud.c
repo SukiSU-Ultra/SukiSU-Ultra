@@ -50,7 +50,7 @@ static void stop_input_hook();
 
 #ifdef CONFIG_KSU_KPROBES_HOOK
 static struct work_struct stop_vfs_read_work;
-static struct work_struct stop_bprm_check_work;
+static struct work_struct stop_execve_hook_work;
 static struct work_struct stop_input_hook_work;
 #else
 bool ksu_vfs_read_hook __read_mostly = true;
@@ -441,23 +441,35 @@ bool ksu_is_safe_mode()
 }
 
 #ifdef CONFIG_KSU_KPROBES_HOOK
-extern int ksu_bprm_check(struct linux_binprm *bprm);
-
-static int bprm_check_handler_pre(struct kprobe *p, struct pt_regs *regs)
+static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
-	struct linux_binprm *bprm_local = (struct linux_binprm *)PT_REGS_PARM1(regs);
+	struct pt_regs *real_regs = PT_REAL_REGS(regs);
+	const char __user **filename_user =
+		(const char **)&PT_REGS_PARM1(real_regs);
 
-	return ksu_bprm_check(bprm_local);
+	char path[32];
+
+	if (!filename_user)
+		return 0;
+
+	// remember up ahead is ** so deref it with *
+	long len = ksu_strncpy_from_user_nofault(path, *filename_user, 32);
+	if (len <= 0)
+		return 0;
+
+	path[sizeof(path) - 1] = '\0';
+
+	return ksu_handle_pre_ksud(path);
+}
+
+static struct kprobe execve_kp = {
+	.symbol_name = SYS_EXECVE_SYMBOL,
+	.pre_handler = sys_execve_handler_pre,
 };
 
-static struct kprobe bprm_check_kp = {
-	.symbol_name = "security_bprm_check",
-	.pre_handler = bprm_check_handler_pre,
-};
-
-static void do_stop_bprm_check_hook(struct work_struct *work)
+static void do_stop_execve_hook(struct work_struct *work)
 {
-	unregister_kprobe(&bprm_check_kp);
+	unregister_kprobe(&execve_kp);
 }
 
 static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
@@ -514,7 +526,7 @@ static void stop_vfs_read_hook()
 static void stop_execve_hook()
 {
 #ifdef CONFIG_KSU_KPROBES_HOOK
-	bool ret = schedule_work(&stop_bprm_check_work);
+	bool ret = schedule_work(&stop_execve_hook_work);
 	pr_info("unregister execve kprobe: %d!\n", ret);	
 #else
 	pr_info("stop execve_hook\n");
@@ -544,8 +556,8 @@ void ksu_ksud_init()
 #ifdef CONFIG_KSU_KPROBES_HOOK
 	int ret;
 
-	ret = register_kprobe(&bprm_check_kp);
-	pr_info("ksud: bprm_check_kp: %d\n", ret);
+	ret = register_kprobe(&execve_kp);
+	pr_info("ksud: execve_kp: %d\n", ret);
 
 	ret = register_kprobe(&vfs_read_kp);
 	pr_info("ksud: vfs_read_kp: %d\n", ret);
@@ -554,7 +566,7 @@ void ksu_ksud_init()
 	pr_info("ksud: input_event_kp: %d\n", ret);
 
 	INIT_WORK(&stop_vfs_read_work, do_stop_vfs_read_hook);
-	INIT_WORK(&stop_bprm_check_work, do_stop_bprm_check_hook);
+	INIT_WORK(&stop_execve_hook_work, do_stop_execve_hook);
 	INIT_WORK(&stop_input_hook_work, do_stop_input_hook);
 #endif
 }
@@ -562,7 +574,7 @@ void ksu_ksud_init()
 void ksu_ksud_exit()
 {
 #ifdef CONFIG_KSU_KPROBES_HOOK
-	unregister_kprobe(&bprm_check_kp);
+	unregister_kprobe(&execve_kp);
 	// this should be done before unregister vfs_read_kp
 	// unregister_kprobe(&vfs_read_kp);
 	unregister_kprobe(&input_event_kp);
