@@ -72,7 +72,7 @@ EXPORT_SYMBOL(sukisu_kpm_load_module_path);
 
 noinline NO_OPTIMIZE void sukisu_kpm_unload_module(const char *name,
                 void *ptr, void __user *result)
-{>
+{
     int res = -1;
 
     printk("KPM: Stub function called (sukisu_kpm_unload_module). "
