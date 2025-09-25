@@ -616,4 +616,44 @@
     <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
     <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>
     <string name="home_hook_type">Типы хуков</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Патч KPM</string>
+    <string name="kpm_patch_description">Добавление дополнительных функций KPM</string>
+    <string name="enable_kpm_patch">Патч KPM</string>
+    <string name="kpm_patch_switch_description">Применить патч KPM к образу ядра перед прошивкой</string>
+    <string name="enable_kpm_undo_patch">Патч для отмены KPM</string>
+    <string name="kpm_undo_patch_switch_description">Отменить ранее применённый патч KPM</string>
+    <string name="kpm_patch_enabled">Патч KPM включен</string>
+    <string name="kpm_undo_patch_enabled">Патч для отмены KPM включен</string>
+    <string name="kpm_patch_mode">Режим патча KPM</string>
+    <string name="kpm_undo_patch_mode">Режим отмены патча KPM</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Подготовка инструментов KPM</string>
+    <string name="kpm_applying_patch">Применение патча KPM</string>
+    <string name="kpm_undoing_patch">Отмена патча KPM</string>
+    <string name="kpm_found_image_file">Найден файл образа: %s</string>
+    <string name="kpm_patch_success">Патч KPM успешно применен</string>
+    <string name="kpm_undo_patch_success">Патч KPM успешно отменён</string>
+    <string name="kpm_file_repacked">Файл успешно переупакован</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Не удалось извлечь zip-файл</string>
+    <string name="kpm_image_file_not_found">Файл образа не найден</string>
+    <string name="kpm_patch_failed">Ошибка патча KPM</string>
+    <string name="kpm_undo_patch_failed">Ошибка патча отмены KPM</string>
+    <string name="kpm_patch_operation_failed">Ошибка патча KPM: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Следовать за ядром</string>
+    <string name="kpm_follow_kernel_description">Использовать ядро без каких-либо изменений KPM</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Пользовательский режим сканирования списка приложений</string>
+    <string name="uid_auto_scan_summary">Включение этой опции позволит использовать сканирование пользовательского режима для списка приложений, улучшая стабильность. (Если вы столкнетесь с такими проблемами, как замораживание во время сканирования ядра списка приложений, вы можете включить эту опцию.)</string>
+    <string name="uid_multi_user_scan_title">Поиск многопользовательских приложений</string>
+    <string name="uid_multi_user_scan_summary">Когда включено, сканирует приложения для всех пользователей, включая рабочие профили</string>
+    <string name="uid_scanner_setting_failed">Не удалось установить, проверьте права доступа</string>
+    <string name="uid_scanner_setting_error">Не удалось установить: %s</string>
+    <string name="clean_runtime_environment">Очистить среду Runtime</string>
+    <string name="clean_runtime_environment_summary">Очистить среду Runtime и остановить службу сканирования</string>
+    <string name="clean_runtime_environment_confirm">Вы уверены, что хотите очистить среду Runtime? Это остановит службу сканирования и удалит связанные с ней файлы.</string>
+    <string name="clean_runtime_environment_success">Runtime окружение успешно очищено</string>
+    <string name="clean_runtime_environment_failed">Не удалось очистить среду runtime</string>
 </resources>
