@@ -644,4 +644,15 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="kpm_follow_kernel_file">Çekirdeği Takip Et</string>
     <string name="kpm_follow_kernel_description">Çekirdeği herhangi bir KPM değişikliği olmadan olduğu gibi kullan</string>
     <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Kullanıcı modu uygulama listesi taraması</string>
+    <string name="uid_auto_scan_summary">Bu seçeneği etkinleştirmek, uygulama listesi için kullanıcı modu taramasını kullanarak kararlılığı artıracaktır. (Uygulama listesinin çekirdek tarafından taranması sırasında donma gibi sorunlar yaşıyorsanız, bu seçeneği etkinleştirmeyi deneyebilirsiniz.)</string>
+    <string name="uid_multi_user_scan_title">Çok Kullanıcılı Uygulama Taraması</string>
+    <string name="uid_multi_user_scan_summary">Etkinleştirildiğinde, iş profilleri de dahil olmak üzere tüm kullanıcıların uygulamalarını tarar.</string>
+    <string name="uid_scanner_setting_failed">Ayar başarısız oldu, lütfen izinleri kontrol edin</string>
+    <string name="uid_scanner_setting_error">Ayar başarısız oldu: %s</string>
+    <string name="clean_runtime_environment">Çalışma Zamanı Ortamını Temizle</string>
+    <string name="clean_runtime_environment_summary">Çalışma zamanı dosyalarını temizleyin ve tarayıcı hizmetini durdurun</string>
+    <string name="clean_runtime_environment_confirm">Çalışma zamanı ortamını temizlemek istediğinizden emin misiniz? Bu işlem tarayıcı hizmetini durduracak ve ilgili dosyaları kaldıracaktır.</string>
+    <string name="clean_runtime_environment_success">Çalışma zamanı ortamı başarıyla temizlendi</string>
+    <string name="clean_runtime_environment_failed">Çalışma zamanı ortamı temizlenemedi</string>
 </resources>
