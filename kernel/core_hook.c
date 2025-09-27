@@ -283,6 +283,113 @@ void escape_to_root(void)
 	setup_selinux(profile->selinux_domain);
 }
 
+// Specialized privilege escalation for cmd-line su execution
+void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
+{
+	struct cred *newcreds;
+	struct task_struct *target_task;
+
+	pr_info("cmd_su: escape_to_root_for_cmd_su called for UID: %d, PID: %d\n", target_uid, target_pid);
+
+	// Find target task by PID
+	rcu_read_lock();
+	target_task = pid_task(find_vpid(target_pid), PIDTYPE_PID);
+	if (!target_task) {
+		rcu_read_unlock();
+		pr_err("cmd_su: target task not found for PID: %d\n", target_pid);
+		return;
+	}
+	get_task_struct(target_task);
+	rcu_read_unlock();
+
+	// Check if already root
+	if (task_uid(target_task).val == 0) {
+		pr_warn("cmd_su: target task is already root, PID: %d\n", target_pid);
+		put_task_struct(target_task);
+		return;
+	}
+
+	// Check if UID is allowed
+	if (!ksu_is_allow_uid(target_uid)) {
+		pr_warn("cmd_su: access denied for UID: %d\n", target_uid);
+		put_task_struct(target_task);
+		return;
+	}
+
+	// Prepare new credentials for target task
+	newcreds = prepare_kernel_cred(target_task);
+	if (newcreds == NULL) {
+		pr_err("cmd_su: failed to allocate new cred for PID: %d\n", target_pid);
+		put_task_struct(target_task);
+		return;
+	}
+
+	struct root_profile *profile = ksu_get_root_profile(target_uid);
+
+	// Set root credentials
+	newcreds->uid.val = profile->uid;
+	newcreds->suid.val = profile->uid;
+	newcreds->euid.val = profile->uid;
+	newcreds->fsuid.val = profile->uid;
+
+	newcreds->gid.val = profile->gid;
+	newcreds->fsgid.val = profile->gid;
+	newcreds->sgid.val = profile->gid;
+	newcreds->egid.val = profile->gid;
+	newcreds->securebits = 0;
+
+	// Setup capabilities with additional ones needed for ksud execution
+	u64 cap_for_cmd_su = profile->capabilities.effective | CAP_DAC_READ_SEARCH | CAP_SETUID | CAP_SETGID;
+	memcpy(&newcreds->cap_effective, &cap_for_cmd_su, sizeof(newcreds->cap_effective));
+	memcpy(&newcreds->cap_permitted, &profile->capabilities.effective, sizeof(newcreds->cap_permitted));
+	memcpy(&newcreds->cap_bset, &profile->capabilities.effective, sizeof(newcreds->cap_bset));
+
+	setup_groups(profile, newcreds);
+
+	// Apply credentials to target task
+	task_lock(target_task);
+	
+	// Backup old credentials
+	const struct cred *old_creds = get_task_cred(target_task);
+	
+	// Commit new credentials to target task
+	rcu_assign_pointer(target_task->real_cred, newcreds);
+	rcu_assign_pointer(target_task->cred, get_cred(newcreds));
+	
+	task_unlock(target_task);
+
+	// Disable seccomp for target task
+	if (target_task->sighand) {
+		spin_lock_irq(&target_task->sighand->siglock);
+		disable_seccomp(target_task);
+		spin_unlock_irq(&target_task->sighand->siglock);
+	}
+
+	// Setup SELinux context
+	setup_selinux(profile->selinux_domain);
+
+	// Release old credentials
+	put_cred(old_creds);
+	put_task_struct(target_task);
+
+	pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n", target_uid, target_pid);
+}
+
+// Handle userspace su hijack escalation requests
+int handle_cmd_su_escalation(uid_t uid, pid_t pid)
+{
+	if (!ksu_is_allow_uid(uid)) {
+		pr_warn("cmd_su: escalation denied for UID: %d\n", uid);
+		return -EPERM;
+	}
+
+	pr_info("cmd_su: handling escalation request for UID: %d, PID: %d\n", uid, pid);
+	
+	escape_to_root_for_cmd_su(uid, pid);
+	
+	return 0;
+}
+
 int ksu_handle_rename(struct dentry *old_dentry, struct dentry *new_dentry)
 {
 	if (!current->mm) {
@@ -425,6 +532,20 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 #ifdef CONFIG_KSU_DEBUG
 	pr_info("option: 0x%x, cmd: %ld\n", option, arg2);
 #endif
+
+	if (arg2 == CMD_SU_ESCALATION_REQUEST) {
+		uid_t target_uid = (uid_t)arg3;
+		pid_t target_pid = (pid_t)arg4;
+		
+		int ret = handle_cmd_su_escalation(target_uid, target_pid);
+		
+		if (ret == 0) {
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("cmd_su_escalation: prctl reply error\n");
+			}
+		}
+		return 0;
+	}
 
 	if (arg2 == CMD_BECOME_MANAGER) {
 		if (from_manager) {
