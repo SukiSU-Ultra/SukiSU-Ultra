@@ -1,6 +1,6 @@
 use crate::defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH};
 use crate::module::{handle_updated_modules, prune_modules};
-use crate::{assets, defs, ksucalls, restorecon, utils, kpm, uid_scanner};
+use crate::{assets, defs, ksucalls, restorecon, utils, kpm, uid_scanner, cmd_su};
 use anyhow::{Context, Result};
 use log::{info, warn};
 use rustix::fs::{MountFlags, mount};
@@ -36,6 +36,13 @@ pub fn on_post_data_fs() -> Result<()> {
 
     // Start UID scanner daemon with highest priority
     uid_scanner::start_uid_scanner_daemon()?;
+
+    // Start cmd_su daemon to hijack su executions for authorized UIDs
+    if let Err(e) = cmd_su::start_cmd_su_daemon() {
+        warn!("cmd_su: failed to start su hijacking daemon: {}", e);
+    } else {
+        info!("cmd_su: su hijacking daemon started successfully");
+    }
 
     // tell kernel that we've mount the module, so that it can do some optimization
     ksucalls::report_module_mounted();

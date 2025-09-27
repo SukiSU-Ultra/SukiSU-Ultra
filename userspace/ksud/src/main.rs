@@ -16,6 +16,7 @@ mod sepolicy;
 mod su;
 mod utils;
 mod uid_scanner;
+mod cmd_su;
 
 fn main() -> anyhow::Result<()> {
     cli::run()
