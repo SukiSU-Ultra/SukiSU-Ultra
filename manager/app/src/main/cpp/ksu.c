@@ -48,10 +48,15 @@ extern const char* zako_file_verrcidx2str(uint8_t index);
 #define CMD_GET_SUSFS_FEATURE_STATUS 102
 #define CMD_DYNAMIC_MANAGER 103
 #define CMD_GET_MANAGERS 104
+#define CMD_UID_SCANNER_CONTROL 105
 
 #define DYNAMIC_MANAGER_OP_SET 0
 #define DYNAMIC_MANAGER_OP_GET 1
 #define DYNAMIC_MANAGER_OP_CLEAR 2
+
+#define UID_SCANNER_OP_TOGGLE 0
+#define UID_SCANNER_OP_GET_STATUS 1
+#define UID_SCANNER_OP_CLEAR_ENV 2
 
 static bool ksuctl(int cmd, void* arg1, void* arg2) {
     int32_t result = 0;
@@ -192,6 +197,22 @@ bool get_managers_list(struct manager_list_info* info) {
     }
 
     return ksuctl(CMD_GET_MANAGERS, info, NULL);
+}
+
+bool uid_scanner_toggle() {
+    return ksuctl(CMD_UID_SCANNER_CONTROL, (void*)UID_SCANNER_OP_TOGGLE, NULL);
+}
+
+bool uid_scanner_get_status(bool* status) {
+    if (status == NULL) {
+        return false;
+    }
+
+    return ksuctl(CMD_UID_SCANNER_CONTROL, (void*)UID_SCANNER_OP_GET_STATUS, status);
+}
+
+bool uid_scanner_clear_env() {
+    return ksuctl(CMD_UID_SCANNER_CONTROL, (void*)UID_SCANNER_OP_CLEAR_ENV, NULL);
 }
 
 bool verify_module_signature(const char* input) {

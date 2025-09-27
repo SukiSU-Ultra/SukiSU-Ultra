@@ -609,7 +609,10 @@ fun setUidAutoScan(enabled: Boolean): Boolean {
     val enableValue = if (enabled) 1 else 0
     val cmd = "$targetPath --auto-scan $enableValue && $targetPath reload"
     val result = ShellUtils.fastCmdResult(shell, cmd)
-    return result
+
+    val throneResult = Natives.uidScannerToggle()
+
+    return result && throneResult
 }
 
 fun setUidMultiUserScan(enabled: Boolean): Boolean {
@@ -622,4 +625,17 @@ fun setUidMultiUserScan(enabled: Boolean): Boolean {
     val cmd = "$targetPath --multi-user $enableValue && $targetPath reload"
     val result = ShellUtils.fastCmdResult(shell, cmd)
     return result
+}
+
+fun getUidMultiUserScan(): Boolean {
+    val shell = getRootShell()
+
+    val cmd = "grep 'multi_user_scan=' /data/misc/user_uid/uid_scanner.conf | cut -d'=' -f2"
+    val result = ShellUtils.fastCmd(shell, cmd).trim()
+
+    return try {
+        result.toInt() == 1
+    } catch (_: NumberFormatException) {
+        false
+    }
 }

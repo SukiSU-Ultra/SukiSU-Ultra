@@ -138,6 +138,12 @@ object Natives {
     // 模块签名验证
     external fun verifyModuleSignature(modulePath: String): Boolean
 
+    external fun uidScannerToggle(): Boolean
+
+    external fun uidScannerGetStatus(): Boolean
+
+    external fun uidScannerClearEnv(): Boolean
+
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999
 

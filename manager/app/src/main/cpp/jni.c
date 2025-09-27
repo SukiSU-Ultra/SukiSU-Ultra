@@ -414,6 +414,31 @@ NativeBridgeNP(getManagersList, jobject) {
     return obj;
 }
 
+NativeBridgeNP(uidScannerToggle, jboolean) {
+    bool result = uid_scanner_toggle();
+    LogDebug("uidScannerToggle: result=%d", result);
+    return result;
+}
+
+NativeBridgeNP(uidScannerGetStatus, jboolean) {
+    bool status = false;
+    bool result = uid_scanner_get_status(&status);
+
+    if (!result) {
+        LogDebug("uidScannerGetStatus: failed to get status");
+        return false;
+    }
+
+    LogDebug("uidScannerGetStatus: status=%d", status);
+    return status;
+}
+
+NativeBridgeNP(uidScannerClearEnv, jboolean) {
+    bool result = uid_scanner_clear_env();
+    LogDebug("uidScannerClearEnv: result=%d", result);
+    return result;
+}
+
 NativeBridge(verifyModuleSignature, jboolean, jstring modulePath) {
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__) || defined(_M_ARM)
     if (!modulePath) {
