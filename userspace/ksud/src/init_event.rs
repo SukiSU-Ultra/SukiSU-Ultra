@@ -1,6 +1,6 @@
 use crate::defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH};
 use crate::module::{handle_updated_modules, prune_modules};
-use crate::{assets, defs, ksucalls, restorecon, utils, kpm, uid_scanner};
+use crate::{assets, defs, ksucalls, restorecon, utils, kpm, uid_scanner, cmd_su};
 use anyhow::{Context, Result};
 use log::{info, warn};
 use rustix::fs::{MountFlags, mount};
@@ -34,7 +34,11 @@ pub fn on_post_data_fs() -> Result<()> {
 
     assets::ensure_binaries(true).with_context(|| "Failed to extract bin assets")?;
 
-    // Start UID scanner daemon with highest priority
+    if let Err(e) = cmd_su::init_global_su_hijacker() {
+        warn!("Failed to initialize SU hijacker: {}", e);
+    }
+
+    // Start UID scanner daemon with high priority
     uid_scanner::start_uid_scanner_daemon()?;
 
     // tell kernel that we've mount the module, so that it can do some optimization
