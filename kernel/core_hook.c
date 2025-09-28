@@ -22,6 +22,7 @@
 #include <linux/version.h>
 #include <linux/mount.h>
 #include <linux/binfmts.h>
+#include <linux/tty.h>
 
 #include <linux/fs.h>
 #include <linux/namei.h>
@@ -46,6 +47,7 @@
 #include "throne_comm.h"
 #include "kernel_compat.h"
 #include "dynamic_manager.h"
+#include "manual_su.h"
 
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
@@ -193,6 +195,86 @@ void escape_to_root(void)
 	setup_selinux(profile->selinux_domain);
 }
 
+void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
+{
+	struct cred *newcreds;
+	struct task_struct *target_task;
+
+	pr_info("cmd_su: escape_to_root_for_cmd_su called for UID: %d, PID: %d\n", target_uid, target_pid);
+
+	// Find target task by PID
+	rcu_read_lock();
+	target_task = pid_task(find_vpid(target_pid), PIDTYPE_PID);
+	if (!target_task) {
+		rcu_read_unlock(); 
+		pr_err("cmd_su: target task not found for PID: %d\n", target_pid);
+		return;
+	}
+	get_task_struct(target_task);
+	rcu_read_unlock();
+
+	if (task_uid(target_task).val == 0) {
+		pr_warn("cmd_su: target task is already root, PID: %d\n", target_pid);
+		put_task_struct(target_task);
+		return;
+	}
+
+	newcreds = prepare_kernel_cred(target_task);
+	if (newcreds == NULL) {
+		pr_err("cmd_su: failed to allocate new cred for PID: %d\n", target_pid);
+		put_task_struct(target_task);
+		return;
+	}
+
+	struct root_profile *profile = ksu_get_root_profile(target_uid);
+
+	newcreds->uid.val = profile->uid;
+	newcreds->suid.val = profile->uid;
+	newcreds->euid.val = profile->uid;
+	newcreds->fsuid.val = profile->uid;
+
+	newcreds->gid.val = profile->gid;
+	newcreds->fsgid.val = profile->gid;
+	newcreds->sgid.val = profile->gid;
+	newcreds->egid.val = profile->gid;
+	newcreds->securebits = 0;
+
+	u64 cap_for_cmd_su = profile->capabilities.effective | CAP_DAC_READ_SEARCH | CAP_SETUID | CAP_SETGID;
+	memcpy(&newcreds->cap_effective, &cap_for_cmd_su, sizeof(newcreds->cap_effective));
+	memcpy(&newcreds->cap_permitted, &profile->capabilities.effective, sizeof(newcreds->cap_permitted));
+	memcpy(&newcreds->cap_bset, &profile->capabilities.effective, sizeof(newcreds->cap_bset));
+
+	setup_groups(profile, newcreds);
+	task_lock(target_task);
+
+	const struct cred *old_creds = get_task_cred(target_task);
+
+	rcu_assign_pointer(target_task->real_cred, newcreds);
+	rcu_assign_pointer(target_task->cred, get_cred(newcreds));
+	task_unlock(target_task);
+
+	if (target_task->sighand) {
+		spin_lock_irq(&target_task->sighand->siglock);
+		disable_seccomp(target_task);
+		spin_unlock_irq(&target_task->sighand->siglock);
+	}
+
+	setup_selinux(profile->selinux_domain);
+	put_cred(old_creds);
+	wake_up_process(target_task);
+
+	if (target_task->signal->tty) {
+		struct inode *inode = target_task->signal->tty->driver_data;
+		if (inode && inode->i_sb->s_magic == DEVPTS_SUPER_MAGIC) {
+			__ksu_handle_devpts(inode);
+		}
+	}
+
+	put_task_struct(target_task);
+
+	pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n", target_uid, target_pid);
+}
+
 int ksu_handle_rename(struct dentry *old_dentry, struct dentry *new_dentry)
 {
 	if (!current->mm) {
@@ -269,6 +351,11 @@ static bool is_system_bin_su()
 	return (current->mm->exe_file && !strcmp(current->mm->exe_file->f_path.dentry->d_name.name, "su"));
 }
 
+int handle_cmd_su_escalation(uid_t uid, pid_t pid, const char __user *pwd)
+{
+	return ksu_manual_su_escalate(uid, pid, pwd);
+}
+
 static void init_uid_scanner(void)
 {
 	ksu_uid_init();
@@ -304,6 +391,21 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 
 	bool from_root = 0 == current_uid().val;
 	bool from_manager = is_manager();
+
+	if (arg2 == CMD_SU_ESCALATION_REQUEST) {
+		uid_t target_uid = (uid_t)arg3;
+		pid_t target_pid = (pid_t)arg4;
+		const char __user *user_password = (const char __user *)arg5;
+
+		int ret = handle_cmd_su_escalation(target_uid, target_pid, user_password);
+
+		if (ret == 0) {
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("cmd_su_escalation: prctl reply error\n");
+			}
+		}
+		return 0;
+	}
 
 	if (!from_root && !from_manager 
 		&& !(is_allow_su() && is_system_bin_su())) {
