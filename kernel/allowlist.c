@@ -524,3 +524,79 @@ void ksu_allowlist_exit(void)
 	}
 	mutex_unlock(&allowlist_mutex);
 }
+
+bool ksu_temp_grant_root_once(uid_t uid)
+{
+    struct app_profile profile = {
+        .version = KSU_APP_PROFILE_VER,
+        .allow_su = true,
+        .current_uid = uid,
+    };
+
+    const char *default_key = "com.temp.once";
+
+    struct perm_data *p = NULL;
+    struct list_head *pos = NULL;
+    bool found = false;
+
+    list_for_each (pos, &allow_list) {
+        p = list_entry(pos, struct perm_data, list);
+        if (p->profile.current_uid == uid) {
+            strcpy(profile.key, p->profile.key);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        strcpy(profile.key, default_key);
+    }
+
+	profile.rp_config.profile.uid = default_root_profile.uid;
+    profile.rp_config.profile.gid = default_root_profile.gid;
+    profile.rp_config.profile.groups_count = default_root_profile.groups_count;
+    memcpy(profile.rp_config.profile.groups, default_root_profile.groups, sizeof(default_root_profile.groups));
+    memcpy(&profile.rp_config.profile.capabilities, &default_root_profile.capabilities, sizeof(default_root_profile.capabilities));
+    profile.rp_config.profile.namespaces = default_root_profile.namespaces;
+    strcpy(profile.rp_config.profile.selinux_domain, default_root_profile.selinux_domain);
+
+    bool ok = ksu_set_app_profile(&profile, false);
+    if (ok)
+        pr_info("pending_root: UID=%d granted and persisted\n", uid);
+    return ok;
+}
+
+void ksu_temp_revoke_root_once(uid_t uid)
+{
+    struct app_profile profile = {
+        .version = KSU_APP_PROFILE_VER,
+        .allow_su = false,
+        .current_uid = uid,
+    };
+
+    const char *default_key = "com.temp.once";
+
+    struct perm_data *p = NULL;
+    struct list_head *pos = NULL;
+    bool found = false;
+
+    list_for_each (pos, &allow_list) {
+        p = list_entry(pos, struct perm_data, list);
+        if (p->profile.current_uid == uid) {
+            strcpy(profile.key, p->profile.key);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        strcpy(profile.key, default_key);
+    }
+
+    profile.nrp_config.profile.umount_modules = default_non_root_profile.umount_modules;
+    strcpy(profile.rp_config.profile.selinux_domain, KSU_DEFAULT_SELINUX_DOMAIN);
+
+    ksu_set_app_profile(&profile, false);
+    persistent_allow_list();
+    pr_info("pending_root: UID=%d removed and persist updated\n", uid);
+}
