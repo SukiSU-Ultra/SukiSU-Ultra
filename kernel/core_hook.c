@@ -47,7 +47,10 @@
 #include "throne_comm.h"
 #include "kernel_compat.h"
 #include "dynamic_manager.h"
+
+#ifdef CONFIG_KSU_MANUAL_SU
 #include "manual_su.h"
+#endif
 
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
@@ -195,6 +198,7 @@ void escape_to_root(void)
 	setup_selinux(profile->selinux_domain);
 }
 
+#ifdef CONFIG_KSU_MANUAL_SU
 void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 {
 	struct cred *newcreds;
@@ -274,6 +278,7 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 
 	pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n", target_uid, target_pid);
 }
+#endif
 
 int ksu_handle_rename(struct dentry *old_dentry, struct dentry *new_dentry)
 {
@@ -386,7 +391,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	if (!current->mm || current->in_execve) {
 		return 0;
 	}
-	
+#ifdef CONFIG_KSU_MANUAL_SU
 	if (arg2 == CMD_SU_ESCALATION_REQUEST) {
 		uid_t target_uid = (uid_t)arg3;
 		struct su_request_arg __user *user_req = (struct su_request_arg __user *)arg4;
@@ -425,7 +430,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 			pr_err("prctl: CMD_ADD_PENDING_ROOT reply error\n");
 		return 0;
 	}
-
+#endif
 	if (!from_root && !from_manager 
 		&& !(is_allow_su() && is_system_bin_su())) {
 		// only root or manager can access this interface
@@ -1024,6 +1029,7 @@ int ksu_inode_permission(struct inode *inode, int mask)
 	return 0;
 }
 
+#ifdef CONFIG_KSU_MANUAL_SU
 static void ksu_try_escalate_for_uid(uid_t uid)
 {
 	if (!is_pending_root(uid))
@@ -1032,6 +1038,7 @@ static void ksu_try_escalate_for_uid(uid_t uid)
 	pr_info("pending_root: UID=%d temporarily allowed\n", uid);
 	remove_pending_root(uid);
 }
+#endif
 
 #ifdef CONFIG_COMPAT
 bool ksu_is_compat __read_mostly = false;
@@ -1058,7 +1065,9 @@ int ksu_bprm_check(struct linux_binprm *bprm)
 
 	ksu_handle_pre_ksud(filename);
 
+#ifdef CONFIG_KSU_MANUAL_SU
 	ksu_try_escalate_for_uid(current_uid().val);
+#endif
 
 	return 0;
 
@@ -1071,12 +1080,14 @@ static int ksu_task_prctl(int option, unsigned long arg2, unsigned long arg3,
 	return -ENOSYS;
 }
 
+#ifdef CONFIG_KSU_MANUAL_SU
 static int ksu_task_alloc(struct task_struct *task,
                           unsigned long clone_flags)
 {
 	ksu_try_escalate_for_uid(task_uid(task).val);
 	return 0;
 }
+#endif
 
 static int ksu_inode_rename(struct inode *old_inode, struct dentry *old_dentry,
 			    struct inode *new_inode, struct dentry *new_dentry)
@@ -1096,7 +1107,9 @@ static struct security_hook_list ksu_hooks[] = {
 	LSM_HOOK_INIT(inode_rename, ksu_inode_rename),
 	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid),
 	LSM_HOOK_INIT(inode_permission, ksu_inode_permission),
+#ifdef CONFIG_KSU_MANUAL_SU
 	LSM_HOOK_INIT(task_alloc, ksu_task_alloc),
+#endif
 #ifndef CONFIG_KSU_KPROBES_HOOK
 	LSM_HOOK_INIT(bprm_check_security, ksu_bprm_check),
 #endif

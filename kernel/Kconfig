@@ -27,6 +27,13 @@ config KPM
 	select KALLSYMS
 	select KALLSYMS_ALL
 
+config KSU_MANUAL_SU
+	bool "Use manual su"
+	depends on KSU
+	default y
+	help
+	  Use manual su and authorize the corresponding command line and application via prctl
+
 choice
     prompt "KernelSU hook type"
     depends on KSU

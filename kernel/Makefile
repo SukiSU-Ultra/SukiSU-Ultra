@@ -9,7 +9,9 @@ kernelsu-objs += ksud.o
 kernelsu-objs += embed_ksud.o
 kernelsu-objs += kernel_compat.o
 kernelsu-objs += throne_comm.o
+ifeq ($(CONFIG_KSU_MANUAL_SU), y)
 kernelsu-objs += manual_su.o
+endif
 
 ifeq ($(CONFIG_KSU_TRACEPOINT_HOOK), y)
 kernelsu-objs += ksu_trace.o
@@ -123,6 +125,21 @@ ifeq ($(CONFIG_KPM), y)
 $(info -- KPM is enabled)
 else
 $(info -- KPM is disabled)
+endif
+
+ifeq ($(CONFIG_KSU_MANUAL_SU), y)
+KSU_PW_POOL := abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+KSU_PW_LEN  := $(shell awk 'BEGIN{srand(); print int(rand()*9)+8}')
+
+ifeq ($(CONFIG_KSU), m)
+KSU_SU_PASSWORD := CalloZakoZako114514
+else
+KSU_SU_PASSWORD := $(shell \
+    tr -dc '$(KSU_PW_POOL)' </dev/urandom | head -c $(KSU_PW_LEN))
+endif
+
+ccflags-y += -DKSU_SU_PASSWORD=\"$(KSU_SU_PASSWORD)\"
+$(info -- KSU manual-su password : $(KSU_SU_PASSWORD))
 endif
 
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat

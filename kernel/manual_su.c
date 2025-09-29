@@ -12,7 +12,7 @@
 #include "manager.h"
 #include "allowlist.h"
 
-static const char *ksu_su_password = "zakozako";
+static const char *ksu_su_password = KSU_SU_PASSWORD;
 extern void escape_to_root_for_cmd_su(uid_t, pid_t);
 #define MAX_PENDING 16
 #define REMOVE_DELAY_CALLS 150
@@ -42,12 +42,16 @@ int ksu_manual_su_escalate(uid_t target_uid, pid_t target_pid,
         return -EACCES;
     }
     char buf[64];
-    if (strncpy_from_user(buf, user_password, sizeof(buf) - 1) < 0)
+    long copied;
+
+    copied = ksu_strncpy_from_user_retry(buf, user_password, sizeof(buf) - 1);
+    if (copied < 0)
         return -EFAULT;
-    buf[sizeof(buf) - 1] = '\0';
+
+    buf[copied] = '\0';
 
     if (strcmp(buf, ksu_su_password) != 0) {
-        pr_warn("manual_su: wrong password\n");
+        pr_warn("manual_su: wrong password (input=%s, expect=%s)\n", buf, ksu_su_password);
         return -EACCES;
     }
 

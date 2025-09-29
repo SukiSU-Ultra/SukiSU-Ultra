@@ -525,6 +525,7 @@ void ksu_allowlist_exit(void)
 	mutex_unlock(&allowlist_mutex);
 }
 
+#ifdef CONFIG_KSU_MANUAL_SU
 bool ksu_temp_grant_root_once(uid_t uid)
 {
     struct app_profile profile = {
@@ -600,3 +601,4 @@ void ksu_temp_revoke_root_once(uid_t uid)
     persistent_allow_list();
     pr_info("pending_root: UID=%d removed and persist updated\n", uid);
 }
+#endif
