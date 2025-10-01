@@ -700,7 +700,7 @@ static bool add_type(struct policydb *db, const char *type_name, bool attr)
 	}
 
 	return true;
-#elif defined(CONFIG_IS_HW_HISI)
+#elif defined(CONFIG_IS_HW_HISI) && defined(CONFIG_HISI_PMALLOC)
 	/*
    * Huawei use type_attr_map and type_val_to_struct.
    * And use ebitmap not flex_array.
@@ -832,8 +832,11 @@ static bool add_type(struct policydb *db, const char *type_name, bool attr)
 	if (old_fa) {
 		flex_array_free(old_fa);
 	}
-
+        #if defined(CONFIG_IS_HW_HISI)
+	ebitmap_init(flex_array_get(db->type_attr_map_array, value - 1), HISI_SELINUX_EBITMAP_RO);
+	#else
 	ebitmap_init(flex_array_get(db->type_attr_map_array, value - 1));
+	#endif
 	ebitmap_set_bit(flex_array_get(db->type_attr_map_array, value - 1),
 			value - 1, 1);
 
@@ -900,15 +903,21 @@ static void add_typeattribute_raw(struct policydb *db, struct type_datum *type,
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0)
 	struct ebitmap *sattr = &db->type_attr_map_array[type->value - 1];
-#elif defined(CONFIG_IS_HW_HISI)
+#elif defined(CONFIG_IS_HW_HISI) && defined(CONFIG_HISI_PMALLOC)
 	/*
    *   HISI_SELINUX_EBITMAP_RO is Huawei's unique features.
    */
 	struct ebitmap *sattr = &db->type_attr_map[type->value - 1],
 		       HISI_SELINUX_EBITMAP_RO;
 #else
-	struct ebitmap *sattr =
-		flex_array_get(db->type_attr_map_array, type->value - 1);
+        #if defined(CONFIG_IS_HW_HISI)
+        struct ebitmap *sattr =
+                flex_array_get(db->type_attr_map_array, type->value - 1),
+                HISI_SELINUX_EBITMAP_RO;
+        #else
+        struct ebitmap *sattr =
+                flex_array_get(db->type_attr_map_array, type->value - 1);
+        #endif
 #endif
 	ebitmap_set_bit(sattr, attr->value - 1, 1);
 
