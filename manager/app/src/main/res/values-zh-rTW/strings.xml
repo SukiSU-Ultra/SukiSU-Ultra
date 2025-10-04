@@ -6,7 +6,7 @@
     <string name="home_working">運作中</string>
     <string name="home_working_version">版本：%s</string>
     <string name="home_unsupported">不支援</string>
-    <string name="home_unsupported_reason">未在內核上偵測到 KernelSU 驅動程式，內核錯誤？</string>
+    <string name="home_unsupported_reason">內核上未偵測到 KernelSU 驅動程式，內核錯誤？</string>
     <string name="home_kernel">內核版本</string>
     <string name="home_susfs_version">SuSFS 版本</string>
     <string name="home_manager_version">管理器版本</string>
@@ -630,14 +630,14 @@
     <string name="kpm_undo_patch_mode">KPM 撤銷修補模式</string>
     <!-- KPM workflow related -->
     <string name="kpm_preparing_tools">準備 KPM 修補工具</string>
-    <string name="kpm_applying_patch">正在套用 KPM 修補</string>
+    <string name="kpm_applying_patch">正在應用 KPM 修補</string>
     <string name="kpm_undoing_patch">正在撤銷 KPM 修補</string>
     <string name="kpm_found_image_file">找到 Image 檔案: %s</string>
     <string name="kpm_patch_success">KPM 修補成功</string>
     <string name="kpm_undo_patch_success">KPM 撤銷修補成功</string>
     <string name="kpm_file_repacked">檔案重新打包完成</string>
     <!-- KPM error messages -->
-    <string name="kpm_extract_zip_failed">解壓縮檔失敗</string>
+    <string name="kpm_extract_zip_failed">解壓壓縮檔失敗</string>
     <string name="kpm_image_file_not_found">未找到 Image 檔案</string>
     <string name="kpm_patch_failed">KPM 修補失敗</string>
     <string name="kpm_undo_patch_failed">KPM 撤銷修補失敗</string>
@@ -646,4 +646,15 @@
     <string name="kpm_follow_kernel_file">跟隨內核</string>
     <string name="kpm_follow_kernel_description">原樣使用內核，不進行任何 KPM 修改</string>
     <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">使用者態掃描應用列表</string>
+    <string name="uid_auto_scan_summary">開啟後將使用使用者態掃描應用列表，提高穩定性 (因內核掃描應用列表出現卡死等問題可以嘗試開啟此選項) </string>
+    <string name="uid_multi_user_scan_title">多使用者應用掃描</string>
+    <string name="uid_multi_user_scan_summary">開啟後將掃描所有使用者的應用，包括工作資料等</string>
+    <string name="uid_scanner_setting_failed">設定失敗，請檢查許可權</string>
+    <string name="uid_scanner_setting_error">設定失敗: %s</string>
+    <string name="clean_runtime_environment">清理執行環境</string>
+    <string name="clean_runtime_environment_summary">清理執行時檔案並停止掃描服務</string>
+    <string name="clean_runtime_environment_confirm">您確定要清理執行環境嗎？這將停止掃描服務並刪除相關檔案</string>
+    <string name="clean_runtime_environment_success">執行環境清理成功</string>
+    <string name="clean_runtime_environment_failed">執行環境清理失敗</string>
 </resources>
