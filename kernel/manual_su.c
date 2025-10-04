@@ -10,7 +10,6 @@
 #include "ksu.h"
 #include "allowlist.h"
 #include "manager.h"
-#include "allowlist.h"
 
 static const char *ksu_su_password = KSU_SU_PASSWORD;
 extern void escape_to_root_for_cmd_su(uid_t, pid_t);
@@ -44,7 +43,7 @@ int ksu_manual_su_escalate(uid_t target_uid, pid_t target_pid,
     char buf[64];
     long copied;
 
-    copied = ksu_strncpy_from_user_retry(buf, user_password, sizeof(buf) - 1);
+    copied = ksu_copy_from_user_retry(buf, user_password, sizeof(buf) - 1);
     if (copied < 0)
         return -EFAULT;
 
