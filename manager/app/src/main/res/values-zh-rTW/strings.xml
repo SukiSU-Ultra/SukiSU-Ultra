@@ -634,7 +634,7 @@
     <string name="kpm_undo_patch_success">KPM 撤銷修補成功</string>
     <string name="kpm_file_repacked">檔案重新打包完成</string>
     <!-- KPM錯誤資訊 -->
-    <string name="kpm_extract_zip_failed">解壓壓縮包失敗</string>
+    <string name="kpm_extract_zip_failed">解壓壓縮檔失敗</string>
     <string name="kpm_image_file_not_found">未找到 Image 檔案</string>
     <string name="kpm_patch_failed">KPM 修補失敗</string>
     <string name="kpm_undo_patch_failed">KPM 撤銷修補失敗</string>
