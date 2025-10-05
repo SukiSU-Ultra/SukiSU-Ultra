@@ -619,4 +619,44 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt</string>
     <string name="module_signature_verification_failed">Các module chưa được ký có thể chưa hoàn chỉnh. Bạn có muốn cài đặt module này từ một tác giả chưa xác định không?</string>
     <string name="home_hook_type">Chế độ Hook</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Vá KPM</string>
+    <string name="kpm_patch_description">Thêm tính năng KPM</string>
+    <string name="enable_kpm_patch">Vá KPM</string>
+    <string name="kpm_patch_switch_description">Thực hiện Vá KPM vào kernel trước khi flash</string>
+    <string name="enable_kpm_undo_patch">Hoàn tác Vá KPM</string>
+    <string name="kpm_undo_patch_switch_description">Hoàn tác Vá KPM đã áp dụng trước đó</string>
+    <string name="kpm_patch_enabled">Vá KPM đã bật</string>
+    <string name="kpm_undo_patch_enabled">Hoàn tác Vá KPM đã bật</string>
+    <string name="kpm_patch_mode">Chế độ Vá KPM</string>
+    <string name="kpm_undo_patch_mode">Chế độ hoàn tác Vá KPM</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Chuẩn bị công cụ Vá KPM</string>
+    <string name="kpm_applying_patch">Áp dụng Vá KPM</string>
+    <string name="kpm_undoing_patch">Hoàn tác Vá KPM</string>
+    <string name="kpm_found_image_file">Đã tìm thấy file image: %s</string>
+    <string name="kpm_patch_success">Đã vá KPM thành công</string>
+    <string name="kpm_undo_patch_success">Hoàn tác vá KPM thành công</string>
+    <string name="kpm_file_repacked">Nén lại file thành công</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Giải nén file thất bại</string>
+    <string name="kpm_image_file_not_found">Không tìm thấy file image</string>
+    <string name="kpm_patch_failed">Vá KPM thất bại</string>
+    <string name="kpm_undo_patch_failed">Hoàn tác Vá KPM thất bại</string>
+    <string name="kpm_patch_operation_failed">Quá trình Vá KPM thất bại: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Mặc định theo file Kernel</string>
+    <string name="kpm_follow_kernel_description">Sử dụng file kernel mặc định mà không có bất kỳ sửa đổi nào về KPM</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Chế độ quét danh sách ứng dụng người dùng</string>
+    <string name="uid_auto_scan_summary">Bật tuỳ chọn này thì chế độ người dùng sẽ được sử dụng để quét danh sách ứng dụng nhằm cải thiện tính ổn định (Nếu danh sách ứng dụng quét kernel bị kẹt và xảy ra các sự cố khác, bạn có thể thử bật tùy chọn này)</string>
+    <string name="uid_multi_user_scan_title">Quét ứng dụng nhiều người dùng</string>
+    <string name="uid_multi_user_scan_summary">Khi được bật, tất cả ứng dụng của người dùng sẽ được quét, bao gồm cả dữ liệu công việc, v.v</string>
+    <string name="uid_scanner_setting_failed">Thiết lập thất bại, vui lòng kiểm tra quyền</string>
+    <string name="uid_scanner_setting_error">Thiết lập thất bại: %s</string>
+    <string name="clean_runtime_environment">Dọn dẹp môi trường hoạt động</string>
+    <string name="clean_runtime_environment_summary">Dọn dẹp các file hoạt động và dừng quét các dịch vụ</string>
+    <string name="clean_runtime_environment_confirm">Bạn có chắc chắn muốn dọn dẹp môi trường hoạt động không? Thao tác này sẽ dừng dịch vụ quét và xóa các file liên quan</string>
+    <string name="clean_runtime_environment_success">Dọn dẹp môi trường hoạt động thành công</string>
+    <string name="clean_runtime_environment_failed">Dọn dẹp môi trường hoạt động thất bại</string>
 </resources>
