@@ -9,6 +9,13 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +29,7 @@ import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -198,6 +206,13 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
                 Spacer(Modifier.height(16.dp))
             }
+            
+            // Enhanced Pull Refresh Indicator with animations
+            AnimatedPullRefreshIndicator(
+                refreshing = viewModel.isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 }
@@ -889,6 +904,92 @@ private fun StatusCardPreview() {
             )
         )
     }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun AnimatedPullRefreshIndicator(
+    refreshing: Boolean,
+    state: androidx.compose.material.pullrefresh.PullRefreshState,
+    modifier: Modifier = Modifier
+) {
+    // Animation for rotation during refresh
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (refreshing) 360f else 0f,
+        animationSpec = if (refreshing) {
+            tween(durationMillis = 1000, easing = LinearEasing)
+        } else {
+            tween(durationMillis = 300)
+        },
+        label = "rotation"
+    )
+    
+    // Continuous rotation effect during refresh
+    var continuousRotation by remember { mutableStateOf(0f) }
+    LaunchedEffect(refreshing) {
+        if (refreshing) {
+            while (refreshing) {
+                continuousRotation += 360f
+                kotlinx.coroutines.delay(1000)
+            }
+        } else {
+            continuousRotation = 0f
+        }
+    }
+    
+    // Animation for scaling during pull
+    val scale by animateFloatAsState(
+        targetValue = if (state.progress > 0f) {
+            1f + (state.progress * 0.2f).coerceAtMost(0.3f)
+        } else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+    
+    // Animation for alpha/visibility
+    val alpha by animateFloatAsState(
+        targetValue = if (state.progress > 0f || refreshing) 1f else 0f,
+        animationSpec = tween(durationMillis = 200),
+        label = "alpha"
+    )
+    
+    // Bounce animation when refresh starts
+    val bounceScale by animateFloatAsState(
+        targetValue = if (refreshing) 1.1f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "bounce"
+    )
+    
+    // Color animation for the indicator
+    val indicatorColor by animateColorAsState(
+        targetValue = if (refreshing) {
+            MaterialTheme.colorScheme.primary
+        } else if (state.progress > 0.8f) {
+            MaterialTheme.colorScheme.secondary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = tween(durationMillis = 300),
+        label = "color"
+    )
+    
+    // Enhanced PullRefreshIndicator with animations
+    PullRefreshIndicator(
+        refreshing = refreshing,
+        state = state,
+        modifier = modifier
+            .scale(scale * bounceScale)
+            .rotate(if (refreshing) continuousRotation else rotationAngle)
+            .graphicsLayer { this.alpha = alpha },
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        contentColor = indicatorColor
+    )
 }
 
 @Preview
