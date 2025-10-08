@@ -44,7 +44,7 @@
  		.ptr.compat = __envp,
  	};
 +#if defined(CONFIG_KSU) && defined(CONFIG_KSU_TRACEPOINT_HOOK)
-+    trace_ksu_trace_execveat_sucompat_hook((int *)AT_FDCWD, &filename, NULL, NULL, NULL); /* 32-bit su */
++    trace_ksu_trace_execveat_hook((int *)AT_FDCWD, &filename, &argv, &envp, 0)); // 32-bit su and 32-on-64 support
 +#endif
  	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
  }
@@ -236,35 +236,4 @@
  	if (is_event_supported(type, dev->evbit, EV_MAX)) {
  
  		spin_lock_irqsave(&dev->event_lock, flags);
-```
-
-### devpts 钩子 (`pty.c`)
-
-需要修改 `drivers/tty/pty.c` 的 `pts_unix98_lookup` 方法
-
-```patch
---- a/drivers/tty/pty.c
-+++ b/drivers/tty/pty.c
-@@ -31,6 +31,10 @@
- #include <linux/compat.h>
- #include "tty.h"
- 
-+#if defined(CONFIG_KSU) && defined(CONFIG_KSU_TRACEPOINT_HOOK)
-+#include <../../drivers/kernelsu/ksu_trace.h>
-+#endif
-+
- #undef TTY_DEBUG_HANGUP
- #ifdef TTY_DEBUG_HANGUP
- # define tty_debug_hangup(tty, f, args...)	tty_debug(tty, f, ##args)
-@@ -707,6 +711,10 @@ static struct tty_struct *pts_unix98_lookup(struct tty_driver *driver,
- {
- 	struct tty_struct *tty;
- 
-+#if defined(CONFIG_KSU) && defined(CONFIG_KSU_TRACEPOINT_HOOK)
-+		trace_ksu_trace_devpts_hook((struct inode *)file->f_path.dentry->d_inode);
-+#endif
-+
- 	mutex_lock(&devpts_mutex);
- 	tty = devpts_get_priv(file->f_path.dentry);
- 	mutex_unlock(&devpts_mutex);
 ```
