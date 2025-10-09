@@ -17,7 +17,7 @@
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Unknown</string>
     <string name="home_lsm_status">LSM modules</string>
-    <string name="home_baseband_guard_version">Baseband-guard</string>
+    <string name="home_baseband_guard_version">Baseband-Guard Status</string>
     <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">Failed to enable module: %s</string>
     <string name="module_failed_to_disable">Failed to disable module: %s</string>
@@ -667,4 +667,5 @@ Important Note:\n
     <string name="clean_runtime_environment_confirm">Are you sure you want to clean the runtime environment? This will stop the scanner service and remove related files.</string>
     <string name="clean_runtime_environment_success">Runtime environment cleaned successfully</string>
     <string name="clean_runtime_environment_failed">Failed to clean runtime environment</string>
+
 </resources>
