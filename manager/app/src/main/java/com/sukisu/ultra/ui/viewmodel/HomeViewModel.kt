@@ -44,6 +44,8 @@ class HomeViewModel : ViewModel() {
         val deviceModel: String = "",
         val managerVersion: Pair<String, Long> = Pair("", 0L),
         val seLinuxStatus: String = "",
+        val lsmStatus: String = "",
+        val basebandGuardVersion: String = "",
         val kpmVersion: String = "",
         val suSFSStatus: String = "",
         val suSFSVersion: String = "",
@@ -222,7 +224,9 @@ class HomeViewModel : ViewModel() {
                     androidVersion = basicInfo.second,
                     deviceModel = basicInfo.third,
                     managerVersion = basicInfo.fourth,
-                    seLinuxStatus = basicInfo.fifth
+                    seLinuxStatus = basicInfo.fifth,
+                    lsmStatus = basicInfo.sixth,
+                    basebandGuardVersion = basicInfo.seventh
                 )
 
                 delay(100)
@@ -376,7 +380,7 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private suspend fun loadBasicSystemInfo(context: Context): Tuple5<String, String, String, Pair<String, Long>, String> {
+    private suspend fun loadBasicSystemInfo(context: Context): Tuple7<String, String, String, Pair<String, Long>, String, String, String> {
         return withContext(Dispatchers.IO) {
             val uname = try {
                 Os.uname()
@@ -402,12 +406,26 @@ class HomeViewModel : ViewModel() {
                 "Unknown"
             }
 
-            Tuple5(
+            val lsmStatus = try {
+                getLSMStatus()
+            } catch (_: Exception) {
+                "Unknown"
+            }
+
+            val basebandGuardVersion = try {
+                getBasebandGuardVersion()
+            } catch (_: Exception) {
+                "Not installed"
+            }
+
+            Tuple7(
                 uname?.release ?: "Unknown",
                 Build.VERSION.RELEASE ?: "Unknown",
                 deviceModel,
                 managerVersion,
-                seLinuxStatus
+                seLinuxStatus,
+                lsmStatus,
+                basebandGuardVersion
             )
         }
     }
@@ -593,6 +611,251 @@ class HomeViewModel : ViewModel() {
         val fourth: T4,
         val fifth: T5
     )
+
+    data class Tuple7<T1, T2, T3, T4, T5, T6, T7>(
+        val first: T1,
+        val second: T2,
+        val third: T3,
+        val fourth: T4,
+        val fifth: T5,
+        val sixth: T6,
+        val seventh: T7
+    )
+
+    private fun getLSMStatus(): String {
+        return try {
+            val lsmFile = java.io.File("/sys/kernel/security/lsm")
+            android.util.Log.d("LSM_DEBUG", "LSM file exists: ${lsmFile.exists()}, canRead: ${lsmFile.canRead()}")
+            if (lsmFile.exists() && lsmFile.canRead()) {
+                val content = lsmFile.readText().trim()
+                android.util.Log.d("LSM_DEBUG", "LSM content: '$content'")
+                content
+            } else {
+                android.util.Log.d("LSM_DEBUG", "LSM file not accessible, returning Unknown")
+                "Unknown"
+            }
+        } catch (e: Exception) {
+            android.util.Log.d("LSM_DEBUG", "Exception reading LSM: ${e.message}")
+            "Unknown"
+        }
+    }
+
+    private fun getBasebandGuardVersion(): String {
+        return try {
+            // Check if Baseband-guard is in the LSM list
+            val lsmStatus = getLSMStatus()
+            android.util.Log.d("BBG_DEBUG", "LSM Status: $lsmStatus")
+            
+            // Check for various BBG naming patterns in LSM
+            val bbgPatterns = listOf("baseband_guard", "baseband-guard", "bbguard", "bb_guard")
+            val hasBBG = bbgPatterns.any { pattern -> lsmStatus.lowercase().contains(pattern.lowercase()) }
+            
+            if (hasBBG) {
+                android.util.Log.d("BBG_DEBUG", "BBG found in LSM list")
+                
+                // Try to read version from various possible locations
+                val versionSources = listOf(
+                    "/sys/kernel/security/baseband_guard/version",
+                    "/sys/kernel/security/baseband-guard/version",
+                    "/proc/sys/kernel/baseband_guard_version",
+                    "/proc/sys/kernel/baseband-guard-version",
+                    "/sys/module/baseband_guard/version",
+                    "/sys/module/baseband-guard/version",
+                    "/proc/version_signature"
+                )
+                
+                for (versionPath in versionSources) {
+                    try {
+                        val versionFile = java.io.File(versionPath)
+                        android.util.Log.d("BBG_DEBUG", "Checking path: $versionPath, exists: ${versionFile.exists()}, canRead: ${versionFile.canRead()}")
+                        if (versionFile.exists() && versionFile.canRead()) {
+                            val version = versionFile.readText().trim()
+                            android.util.Log.d("BBG_DEBUG", "Version content: '$version'")
+                            if (version.isNotEmpty() && !version.equals("unknown", ignoreCase = true)) {
+                                // For /proc/version_signature, extract BBG info if present
+                                if (versionPath.contains("version_signature") && version.contains("bbg", ignoreCase = true)) {
+                                    val bbgMatch = Regex("bbg[_-]?v?([0-9.]+)", RegexOption.IGNORE_CASE).find(version)
+                                    if (bbgMatch != null) {
+                                        return "v${bbgMatch.groupValues[1]}"
+                                    }
+                                }
+                                return version
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.d("BBG_DEBUG", "Error reading $versionPath: ${e.message}")
+                        continue
+                    }
+                }
+                
+                // Try to check pstore console logs for baseband_guard version information
+                try {
+                    android.util.Log.d("BBG_DEBUG", "Checking pstore console logs for baseband_guard version")
+                    val pstoreFile = "/sys/fs/pstore/console-ramoops-0"
+                    
+                    try {
+                        // Use head command to read from the beginning of pstore file (most reliable method)
+                        android.util.Log.d("BBG_DEBUG", "Reading pstore from beginning with head command")
+                        val headProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "head -n 1000 $pstoreFile"))
+                        val headReader = java.io.BufferedReader(java.io.InputStreamReader(headProcess.inputStream))
+                        val content = headReader.readText().trim()
+                        headReader.close()
+                        headProcess.waitFor()
+                        
+                        android.util.Log.d("BBG_DEBUG", "Pstore content length: ${content.length}")
+                        android.util.Log.d("BBG_DEBUG", "Pstore content preview: ${content.take(200)}...")
+                        
+                        if (content.isNotEmpty()) {
+                            // Look for baseband_guard version pattern like: baseband_guard version: a5083366
+                            val versionPattern = Regex("baseband_guard\\s+version:\\s*([a-fA-F0-9]+)", RegexOption.IGNORE_CASE)
+                            val match = versionPattern.find(content)
+                            if (match != null) {
+                                val version = match.groupValues[1]
+                                android.util.Log.d("BBG_DEBUG", "Found BBG version in pstore: $version")
+                                return version
+                            }
+                            
+                            // Also check for general baseband_guard presence
+                            if (content.contains("baseband_guard", ignoreCase = true)) {
+                                android.util.Log.d("BBG_DEBUG", "Found baseband_guard in pstore but no version")
+                                return "Installed"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.d("BBG_DEBUG", "Error reading pstore file $pstoreFile: ${e.message}")
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.d("BBG_DEBUG", "Error checking pstore: ${e.message}")
+                }
+                
+                // Try to check dmesg for baseband_guard version information
+                try {
+                    android.util.Log.d("BBG_DEBUG", "Checking dmesg for baseband_guard version")
+                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "dmesg | grep -i baseband_guard"))
+                    val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+                    val dmesgOutput = reader.readText().trim()
+                    reader.close()
+                    process.waitFor()
+                    
+                    android.util.Log.d("BBG_DEBUG", "dmesg output: '$dmesgOutput'")
+                    
+                    if (dmesgOutput.isNotEmpty()) {
+                        // Look for version patterns in dmesg output
+                        val versionPatterns = listOf(
+                            Regex("baseband_guard\\s+version:\\s*([a-fA-F0-9]+)", RegexOption.IGNORE_CASE),
+                            Regex("baseband_guard.*?v?([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE),
+                            Regex("baseband_guard.*?version.*?([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE),
+                            Regex("BBG.*?v?([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
+                        )
+                        
+                        for (pattern in versionPatterns) {
+                            val match = pattern.find(dmesgOutput)
+                            if (match != null) {
+                                val version = match.groupValues[1]
+                                android.util.Log.d("BBG_DEBUG", "Found version in dmesg: $version")
+                                return version
+                            }
+                        }
+                        
+                        // If we found baseband_guard in dmesg but no version, return "Installed"
+                        android.util.Log.d("BBG_DEBUG", "Found baseband_guard in dmesg but no version, returning Installed")
+                        return "Installed"
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.d("BBG_DEBUG", "Error checking dmesg: ${e.message}")
+                }
+                
+                // If version file not found but LSM is present, return "Installed"
+                android.util.Log.d("BBG_DEBUG", "BBG in LSM but no version file found, returning Installed")
+                return "Installed"
+            } else {
+                // Even if not in LSM, try checking pstore and dmesg as fallback
+                
+                // Check pstore first as fallback
+                try {
+                    android.util.Log.d("BBG_DEBUG", "BBG not in LSM, checking pstore as fallback")
+                    val pstoreFile = "/sys/fs/pstore/console-ramoops-0"
+                    
+                    try {
+                        // Use head command to read from the beginning of pstore file (most reliable method)
+                        android.util.Log.d("BBG_DEBUG", "Reading fallback pstore from beginning with head command")
+                        val headProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "head -n 1000 $pstoreFile"))
+                        val headReader = java.io.BufferedReader(java.io.InputStreamReader(headProcess.inputStream))
+                        val content = headReader.readText().trim()
+                        headReader.close()
+                        headProcess.waitFor()
+                        
+                        android.util.Log.d("BBG_DEBUG", "Fallback pstore content length: ${content.length}")
+                        android.util.Log.d("BBG_DEBUG", "Fallback pstore content preview: ${content.take(200)}...")
+                        
+                        if (content.isNotEmpty()) {
+                            // Look for baseband_guard version pattern like: baseband_guard version: a5083366
+                            val versionPattern = Regex("baseband_guard\\s+version:\\s*([a-fA-F0-9]+)", RegexOption.IGNORE_CASE)
+                            val match = versionPattern.find(content)
+                            if (match != null) {
+                                val version = match.groupValues[1]
+                                android.util.Log.d("BBG_DEBUG", "Found BBG version in pstore fallback: $version")
+                                return version
+                            }
+                            
+                            // Also check for general baseband_guard presence
+                            if (content.contains("baseband_guard", ignoreCase = true)) {
+                                android.util.Log.d("BBG_DEBUG", "Found baseband_guard in pstore fallback but no version")
+                                return "Installed"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.d("BBG_DEBUG", "Error reading pstore file $pstoreFile as fallback: ${e.message}")
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.d("BBG_DEBUG", "Error checking pstore fallback: ${e.message}")
+                }
+                
+                // Then check dmesg as fallback
+                try {
+                    android.util.Log.d("BBG_DEBUG", "Checking dmesg as fallback")
+                    val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "dmesg | grep -i baseband_guard"))
+                    val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+                    val dmesgOutput = reader.readText().trim()
+                    reader.close()
+                    process.waitFor()
+                    
+                    android.util.Log.d("BBG_DEBUG", "dmesg fallback output: '$dmesgOutput'")
+                    
+                    if (dmesgOutput.isNotEmpty()) {
+                        // Look for version patterns in dmesg output
+                        val versionPatterns = listOf(
+                            Regex("baseband_guard\\s+version:\\s*([a-fA-F0-9]+)", RegexOption.IGNORE_CASE),
+                            Regex("baseband_guard.*?v?([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE),
+                            Regex("baseband_guard.*?version.*?([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE),
+                            Regex("BBG.*?v?([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)", RegexOption.IGNORE_CASE)
+                        )
+                        
+                        for (pattern in versionPatterns) {
+                            val match = pattern.find(dmesgOutput)
+                            if (match != null) {
+                                val version = match.groupValues[1]
+                                android.util.Log.d("BBG_DEBUG", "Found version in dmesg fallback: $version")
+                                return version
+                            }
+                        }
+                        
+                        // If we found baseband_guard in dmesg but no version, return "Installed"
+                        android.util.Log.d("BBG_DEBUG", "Found baseband_guard in dmesg fallback but no version, returning Installed")
+                        return "Installed"
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.d("BBG_DEBUG", "Error checking dmesg fallback: ${e.message}")
+                }
+                
+                android.util.Log.d("BBG_DEBUG", "BBG not found in LSM list, pstore, or dmesg, returning Not installed")
+                return "Not installed"
+            }
+        } catch (e: Exception) {
+            android.util.Log.d("BBG_DEBUG", "Exception in getBasebandGuardVersion: ${e.message}")
+            "Unknown"
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()

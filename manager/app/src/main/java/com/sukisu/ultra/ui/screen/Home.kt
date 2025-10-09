@@ -16,6 +16,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -211,7 +212,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             AnimatedPullRefreshIndicator(
                 refreshing = viewModel.isRefreshing,
                 state = pullRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .zIndex(1f)
             )
         }
     }
@@ -780,6 +783,24 @@ private fun InfoCard(
                 systemInfo.seLinuxStatus,
                 icon = Icons.Default.Security,
             )
+
+            // LSM Status
+            if (!isSimpleMode && systemInfo.lsmStatus != "Unknown" && systemInfo.lsmStatus.isNotEmpty()) {
+                InfoCardItem(
+                    stringResource(R.string.home_lsm_status),
+                    systemInfo.lsmStatus,
+                    icon = Icons.Default.Shield,
+                )
+            }
+
+            // Baseband-guard Version
+            if (!isSimpleMode && systemInfo.basebandGuardVersion.isNotEmpty()) {
+                InfoCardItem(
+                    stringResource(R.string.home_baseband_guard_version),
+                    systemInfo.basebandGuardVersion,
+                    icon = Icons.Default.Lock,
+                )
+            }
 
             if (!isHideZygiskImplement && !isSimpleMode && systemInfo.zygiskImplement != "None") {
                 InfoCardItem(
