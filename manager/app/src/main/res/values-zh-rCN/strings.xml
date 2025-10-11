@@ -659,4 +659,17 @@
     <string name="clean_runtime_environment_confirm">您确定要清理运行环境吗？这将停止扫描服务并删除相关文件</string>
     <string name="clean_runtime_environment_success">运行环境清理成功</string>
     <string name="clean_runtime_environment_failed">运行环境清理失败</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">确认安装</string>
+    <string name="confirm_multiple_installation">确认安装（%d 个文件）</string>
+    <string name="install_confirm">确认安装</string>
+    <string name="module_package">模块</string>
+    <string name="kernel_package">内核</string>
+    <string name="unknown_package">未知类型</string>
+    <string name="unknown_kernel">未知内核</string>
+    <string name="unknown_file">未知文件</string>
+    <string name="version">版本</string>
+    <string name="author">作者</string>
+    <string name="description">描述</string>
+    <string name="supported_devices">支持设备</string>
 </resources>
