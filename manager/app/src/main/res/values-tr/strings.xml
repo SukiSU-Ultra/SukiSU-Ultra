@@ -659,4 +659,5 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="clean_runtime_environment_confirm">Çalışma zamanı ortamını temizlemek istediğinizden emin misiniz? Bu işlem tarayıcı hizmetini durduracak ve ilgili dosyaları kaldıracaktır.</string>
     <string name="clean_runtime_environment_success">Çalışma zamanı ortamı başarıyla temizlendi</string>
     <string name="clean_runtime_environment_failed">Çalışma zamanı ortamı temizlenemedi</string>
+    <!-- 确认安装相关字符串 -->
 </resources>
