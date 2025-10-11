@@ -6,10 +6,10 @@
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %s</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
-    <string name="home_unsupported_reason">Không phát hiện được trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
+    <string name="home_unsupported_reason">Không phát hiện được Trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
     <string name="home_kernel">Phiên bản Kernel</string>
     <string name="home_susfs_version">Phiên bản SuSFS</string>
-    <string name="home_manager_version">Phiên bản trình quản lý</string>
+    <string name="home_manager_version">Phiên bản Trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
     <string name="selinux_status_disabled">Vô hiệu hoá</string>
     <string name="selinux_status_enforcing">Enforcing</string>
@@ -60,7 +60,7 @@
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
     <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
-    <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %s quá thấp để trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
+    <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %s quá thấp để Trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
     <string name="settings_susfs_toggle">Vô hiệu hoá kprobes hook</string>
@@ -659,4 +659,17 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="clean_runtime_environment_confirm">Bạn có chắc chắn muốn dọn dẹp môi trường hoạt động không? Thao tác này sẽ dừng dịch vụ quét và xóa các file liên quan</string>
     <string name="clean_runtime_environment_success">Dọn dẹp môi trường hoạt động thành công</string>
     <string name="clean_runtime_environment_failed">Dọn dẹp môi trường hoạt động thất bại</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">Xác nhận cài đặt</string>
+    <string name="confirm_multiple_installation">Xác nhận cài đặt (%d files)</string>
+    <string name="install_confirm">Cài đặt</string>
+    <string name="module_package">Module</string>
+    <string name="kernel_package">Kernel</string>
+    <string name="unknown_package">Không xác định</string>
+    <string name="unknown_kernel">Kernel không xác định</string>
+    <string name="unknown_file">Tệp không xác định</string>
+    <string name="version">Phiên bản</string>
+    <string name="author">Tác giả</string>
+    <string name="description">Mô tả</string>
+    <string name="supported_devices">Thiết bị được hỗ trợ</string>
 </resources>
