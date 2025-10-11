@@ -661,4 +661,5 @@
     <string name="clean_runtime_environment_confirm">ランタイム環境を消去してもよろしいですか？これにより、スキャナーサービスの停止と関連ファイルが削除されます。</string>
     <string name="clean_runtime_environment_success">ランタイム環境の消去に成功しました</string>
     <string name="clean_runtime_environment_failed">ランタイム環境の消去に失敗しました</string>
+    <!-- 确认安装相关字符串 -->
 </resources>
