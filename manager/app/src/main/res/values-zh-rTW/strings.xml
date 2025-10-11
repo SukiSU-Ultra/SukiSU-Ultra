@@ -657,4 +657,5 @@
     <string name="clean_runtime_environment_confirm">您確定要清理執行環境嗎？這將停止掃描服務並刪除相關檔案</string>
     <string name="clean_runtime_environment_success">執行環境清理成功</string>
     <string name="clean_runtime_environment_failed">執行環境清理失敗</string>
+    <!-- 确认安装相关字符串 -->
 </resources>
