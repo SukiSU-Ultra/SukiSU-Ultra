@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">SukiSU Ultra</string>
+    <string name="home">Beranda</string>
+    <string name="home_not_installed">Tidak Terpasang</string>
+    <string name="home_click_to_install">Klik untuk Memasang</string>
+    <string name="home_working">Berfungsi</string>
+    <string name="home_working_version">Versi: %s</string>
+    <string name="home_unsupported">Tidak Didukung</string>
+    <string name="home_unsupported_reason">Driver KernelSU tidak terdeteksi di kernel Anda. Mungkin Anda menggunakan kernel yang salah.</string>
+    <string name="home_kernel">Versi Kernel</string>
+    <string name="home_susfs_version">Versi SuSFS</string>
+    <string name="home_manager_version">Versi Manajer</string>
+    <string name="home_selinux_status">Status SELinux</string>
+    <string name="selinux_status_disabled">Dinonaktifkan</string>
+    <string name="selinux_status_enforcing">Ditegakkan</string>
+    <string name="selinux_status_permissive">Permisi</string>
+    <string name="selinux_status_unknown">Tidak Diketahui</string>
+    <string name="superuser">Superuser</string>
+    <string name="module_failed_to_enable">Gagal mengaktifkan modul: %s</string>
+    <string name="module_failed_to_disable">Gagal menonaktifkan modul: %s</string>
+    <string name="module_empty">Tidak ada modul terpasang</string>
+    <string name="module">Modul</string>
+    <string name="module_sort_action_first">Urutkan (Aksi Terlebih Dahulu)</string>
+    <string name="module_sort_enabled_first">Urutkan (Aktif Terlebih Dahulu)</string>
+    <string name="uninstall">Copot Pemasangan</string>
+    <string name="module_install">Pasang</string>
+    <string name="install">Pasang</string>
+    <string name="reboot">Muat Ulang</string>
+    <string name="settings">Pengaturan</string>
+    <string name="reboot_userspace">Muat Ulang Lunak</string>
+    <string name="reboot_recovery">Muat Ulang ke Recovery</string>
+    <string name="reboot_bootloader">Muat Ulang ke Bootloader</string>
+    <string name="reboot_download">Muat Ulang ke Mode Download</string>
+    <string name="reboot_edl">Muat Ulang ke Mode EDL</string>
+    <string name="about">Tentang</string>
+    <string name="module_uninstall_confirm">Apakah Anda yakin ingin mencopot pemasangan modul %s?</string>
+    <string name="module_uninstall_success">%s telah dicopot</string>
+    <string name="module_uninstall_failed">Gagal mencopot pemasangan: %s</string>
+    <string name="module_version">Versi</string>
+    <string name="module_author">Penulis</string>
+    <string name="refresh">Segarkan</string>
+    <string name="show_system_apps">Tampilkan Aplikasi Sistem</string>
+    <string name="hide_system_apps">Sembunyikan Aplikasi Sistem</string>
+    <string name="send_log">Kirim Log</string>
+    <string name="safe_mode">Mode Aman</string>
+    <string name="reboot_to_apply">Muat ulang untuk menerapkan</string>
+    <string name="module_magisk_conflict">Modul tidak tersedia karena konflik dengan Magisk!</string>
+    <string name="home_learn_kernelsu">Pelajari tentang KernelSU</string>
+    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_click_to_learn_kernelsu">Pelajari cara memasang KernelSU dan menggunakan modul</string>
+    <string name="home_support_title">Dukung Kami</string>
+    <string name="home_support_content">KernelSU bersifat gratis dan open source, sekarang dan selamanya. Namun, Anda dapat menunjukkan dukungan Anda dengan melakukan donasi.</string>
+    <string name="about_source_code"><![CDATA[Lihat kode sumber di %1$s<br/>Gabung ke saluran %2$s kami]]></string>
+    <string name="profile" translatable="false">Profil Aplikasi</string>
+    <string name="profile_default">Bawaan</string>
+    <string name="profile_template">Templat</string>
+    <string name="profile_custom">Khusus</string>
+    <string name="profile_name">Nama Profil</string>
+    <string name="profile_groups">Grup</string>
+    <string name="profile_capabilities">Kemampuan</string>
+    <string name="profile_selinux_context">Konteks SELinux</string>
+    <string name="profile_umount_modules">Lepas Kait Modul</string>
+    <string name="failed_to_update_app_profile">Gagal memperbarui profil aplikasi untuk %s</string>
+    <string name="require_kernel_version" formatted="false">Versi KernelSU saat ini %s terlalu rendah untuk menjalankan manajer dengan benar. Harap perbarui ke versi %s atau yang lebih tinggi!</string>
+    <string name="settings_umount_modules_default">Lepas kait modul secara bawaan</string>
+    <string name="settings_umount_modules_default_summary">Nilai bawaan global untuk \"Lepas Kait Modul\" dalam profil aplikasi. Jika diaktifkan, ini akan menghapus semua perubahan sistem yang dibuat oleh modul untuk aplikasi tanpa profil yang ditetapkan.</string>
+    <string name="settings_susfs_toggle">Nonaktifkan hook kprobe</string>
+    <string name="profile_umount_modules_summary">Mengaktifkan opsi ini akan memungkinkan KernelSU untuk memulihkan file yang diubah oleh modul untuk aplikasi ini.</string>
+    <string name="profile_selinux_domain">Domain</string>
+    <string name="profile_selinux_rules">Aturan</string>
+    <string name="module_update">Perbarui</string>
+    <string name="module_downloading">Mengunduh modul: %s</string>
+    <string name="module_start_downloading">Memulai pengunduhan: %s</string>
+    <string name="new_version_available">Versi baru %s tersedia, klik untuk memperbarui.</string>
+    <string name="launch_app">Jalankan</string>
+    <string name="force_stop_app" formatted="false">Paksa Hentikan</string>
+    <string name="restart_app">Jalankan Ulang</string>
+    <string name="failed_to_update_sepolicy">Gagal memperbarui aturan SELinux untuk %s</string>
+    <string name="module_changelog">Catatan Perubahan</string>
+    <string name="settings_profile_template">Templat Profil Aplikasi</string>
+    <string name="settings_profile_template_summary">Kelola templat profil aplikasi lokal dan daring</string>
+    <string name="app_profile_template_create">Buat Templat</string>
+    <string name="app_profile_template_edit">Edit Templat</string>
+    <string name="app_profile_template_id">ID</string>
+    <string name="app_profile_template_id_invalid">ID Templat Tidak Valid</string>
+    <string name="app_profile_template_name">Nama</string>
+    <string name="app_profile_template_description">Deskripsi</string>
+    <string name="app_profile_template_save">Simpan</string>
+    <string name="app_profile_template_delete">Hapus</string>
+    <string name="app_profile_template_view">Lihat Templat</string>
+    <string name="app_profile_template_readonly">Hanya Baca</string>
+    <string name="app_profile_template_id_exist">ID Templat sudah ada!</string>
+    <string name="app_profile_import_export">Impor/Ekspor</string>
+    <string name="app_profile_import_from_clipboard">Impor dari Papan Klip</string>
+    <string name="app_profile_export_to_clipboard">Ekspor ke Papan Klip</string>
+    <string name="app_profile_template_export_empty">Tidak ditemukan templat lokal untuk diekspor!</string>
+    <string name="app_profile_template_import_success">Berhasil diimpor</string>
+    <string name="app_profile_template_sync">Sinkronkan Templat Daring</string>
+    <string name="app_profile_template_save_failed">Gagal menyimpan templat</string>
+    <string name="app_profile_template_import_empty">Papan klip kosong!</string>
+    <string name="module_changelog_failed">Gagal memuat catatan perubahan: %s</string>
+    <string name="settings_check_update">Periksa Pembaruan</string>
+    <string name="settings_check_update_summary">Secara otomatis memeriksa pembaruan saat membuka aplikasi</string>
+    <string name="grant_root_failed">Gagal memberikan hak akses root!</string>
+    <string name="action">Aksi</string>
+    <string name="close">Tutup</string>
+    <string name="enable_web_debugging">Aktifkan Debug WebView</string>
+    <string name="enable_web_debugging_summary">Dapat digunakan untuk mendebug WebUI. Harap aktifkan hanya jika diperlukan.</string>
+    <string name="direct_install">Pemasangan Langsung (Disarankan)</string>
+    <string name="select_file">Pilih Gambar untuk Dipatch</string>
+    <string name="install_inactive_slot">Pasang ke Slot Tidak Aktif (Setelah OTA)</string>
+    <string name="install_inactive_slot_warning">Perangkat Anda akan **DIPAKSA** untuk boot ke slot tidak aktif saat ini setelah reboot!
+Gunakan opsi ini hanya setelah OTA selesai.
+Lanjutkan?</string>
+    <string name="install_next">Lanjut</string>
+    <string name="select_file_tip">Disarankan gambar partisi %1$s</string>
+    <string name="select_file_tip_vendor">(tidak stabil)</string>
+    <string name="select_kmi">Pilih KMI</string>
+    <string name="settings_uninstall">Copot Pemasangan</string>
+    <string name="settings_uninstall_temporary">Copot Pemasangan Sementara</string>
+    <string name="settings_uninstall_permanent">Copot Pemasangan Permanen</string>
+    <string name="settings_restore_stock_image">Pulihkan Gambar Bawaan</string>
+    <string name="settings_uninstall_temporary_message">Copot pemasangan KernelSU secara sementara, kembalikan ke keadaan awal setelah reboot berikutnya.</string>
+    <string name="settings_uninstall_permanent_message">Copot pemasangan KernelSU secara lengkap dan permanen (Root dan semua modul).</string>
+    <string name="settings_restore_stock_image_message">Pulihkan gambar bawaan pabrik (jika cadangan tersedia), biasanya digunakan sebelum OTA; jika ingin mencopot KernelSU, gunakan \"Copot Pemasangan Permanen\".</string>
+    <string name="flashing">Mem-flash</string>
+    <string name="flash_success">Flash Berhasil</string>
+    <string name="flash_failed">Flash Gagal</string>
+    <string name="selected_lkm">LKM Terpilih: %s</string>
+    <string name="save_log">Simpan Log</string>
+    <string name="log_saved">Log Disimpan</string>
+    <string name="sus_su_mode">Mode SuS SU:</string>
+    <!-- Module related -->
+    <string name="module_install_confirm">Konfirmasi pemasangan modul %1$s?</string>
+    <string name="unknown_module">modul tidak dikenal</string>
+    <!-- Restore related -->
+    <string name="restore_confirm_title">Konfirmasi Pemulihan Modul</string>
+    <string name="restore_confirm_message">Operasi ini akan menimpa semua modul yang ada. Lanjutkan?</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="cancel">Batal</string>
+    <!-- Backup related -->
+    <string name="backup_success">Pencadangan Berhasil (tar.gz)</string>
+    <string name="backup_failed">Gagal membuat cadangan: %1$s</string>
+    <string name="backup_modules">cadangan modul</string>
+    <string name="restore_modules">pulihkan modul</string>
+    <!-- Restore related messages -->
+    <string name="restore_success">Modul berhasil dipulihkan, perlu reboot</string>
+    <string name="restore_failed">Gagal memulihkan: %1$s</string>
+    <string name="restart_now">Muat Ulang Sekarang</string>
+    <string name="unknown_error">Kesalahan Tidak Diketahui</string>
+    <!-- Command related -->
+    <string name="command_execution_failed">Gagal mengeksekusi perintah: %1$s</string>
+    <!-- Allowlist related -->
+    <string name="allowlist_backup_success">Pencadangan daftar izin berhasil</string>
+    <string name="allowlist_backup_failed">Gagal membuat cadangan daftar izin: %1$s</string>
+    <string name="allowlist_restore_confirm_title">Konfirmasi Pemulihan Daftar Izin</string>
+    <string name="allowlist_restore_confirm_message">Operasi ini akan menimpa daftar izin saat ini. Lanjutkan?</string>
+    <string name="allowlist_restore_success">Daftar izin berhasil dipulihkan</string>
+    <string name="allowlist_restore_failed">Gagal memulihkan daftar izin: %1$s</string>
+    <string name="backup_allowlist">Cadangkan Daftar Izin</string>
+    <string name="restore_allowlist">Pulihkan Daftar Izin</string>
+    <string name="settings_custom_background">Latar Belakang Aplikasi Khusus</string>
+    <string name="settings_custom_background_summary">Pilih gambar sebagai latar belakang</string>
+    <string name="settings_card_alpha">Transparansi Panel Navigasi</string>
+    <string name="home_android_version">Versi Android</string>
+    <string name="home_device_model">Model Perangkat</string>
+    <string name="su_not_allowed">Pemberian hak superuser untuk %s tidak diizinkan</string>
+    <string name="settings_disable_su">Nonaktifkan Kompatibilitas su</string>
+    <string name="settings_disable_su_summary">Sementara mencegah aplikasi mana pun mendapatkan hak root melalui perintah su (proses root yang ada tidak akan terpengaruh).</string>
+    <string name="module_install_multiple_confirm_with_names">Apakah Anda yakin ingin memasang %1$d modul berikut?
+%2$s</string>
+    <string name="more_settings">Pengaturan Lainnya</string>
+    <string name="selinux">SELinux</string>
+    <string name="selinux_enabled">Diaktifkan</string>
+    <string name="selinux_disabled">Dinonaktifkan</string>
+    <string name="simple_mode">Mode Sederhana</string>
+    <string name="simple_mode_summary">Menyembunyikan kartu yang tidak perlu saat diaktifkan</string>
+    <string name="hide_kernel_kernelsu_version">Sembunyikan Versi Kernel</string>
+    <string name="hide_kernel_kernelsu_version_summary">Menyembunyikan versi kernel</string>
+    <string name="hide_other_info">Sembunyikan Informasi Lainnya</string>
+    <string name="hide_other_info_summary">Menyembunyikan titik merah yang menunjukkan jumlah superuser, modul, dan modul KPM di halaman navigasi bawah</string>
+    <string name="hide_susfs_status">Sembunyikan Status SuSFS</string>
+    <string name="hide_susfs_status_summary">Menyembunyikan informasi status SuSFS di halaman beranda</string>
+    <string name="hide_link_card">Sembunyikan Kartu Tautan</string>
+    <string name="hide_link_card_summary">Menyembunyikan informasi di kartu tautan di halaman beranda</string>
+    <string name="hide_tag_card">Sembunyikan Baris Tag Modul</string>
+    <string name="hide_tag_card_summary">Menyembunyikan label nama folder dan ukuran di kartu modul</string>
+    <string name="theme_mode">Tema</string>
+    <string name="theme_follow_system">Ikuti Sistem</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
+    <string name="manual_hook">Hook Manual</string>
+    <string name="dynamic_color_title">Warna Dinamis</string>
+    <string name="dynamic_color_summary">Warna dinamis menggunakan tema sistem</string>
+    <string name="choose_theme_color">Pilih Warna Tema</string>
+    <string name="color_default">Biru</string>
+    <string name="color_green">Hijau</string>
+    <string name="color_purple">Ungu</string>
+    <string name="color_orange">Oranye</string>
+    <string name="color_pink">Merah Muda</string>
+    <string name="color_gray">Abu-abu</string>
+    <string name="color_yellow">Kuning</string>
+    <string name="horizon_kernel">Pasang Anykernel3</string>
+    <string name="horizon_kernel_summary">Flash file kernel AnyKernel3</string>
+    <string name="root_required">Diperlukan hak akses root</string>
+    <string name="reboot_complete_title">Pembersihan Selesai</string>
+    <string name="reboot_complete_msg">Muat ulang sekarang?</string>
+    <string name="yes">Ya</string>
+    <string name="no">Tidak</string>
+    <string name="failed_reboot">Gagal memuat ulang</string>
+    <string name="kpm_title">KPM</string>
+    <string name="kpm_empty">Saat ini tidak ada modul kernel yang terpasang</string>
+    <string name="kpm_version">Versi</string>
+    <string name="kpm_author">Penulis</string>
+    <string name="kpm_uninstall">Copot Pemasangan</string>
+    <string name="kpm_uninstall_success">Berhasil dicopot</string>
+    <string name="kpm_uninstall_failed">Gagal mencopot</string>
+    <string name="kpm_install_success">Berhasil memuat modul kpm</string>
+    <string name="kpm_install_failed">Gagal memuat modul kpm</string>
+    <string name="kpm_args">Parameter</string>
+    <string name="kpm_control">Jalankan</string>
+    <string name="home_kpm_version">Versi KPM</string>
+    <string name="close_notice">Tutup</string>
+    <string name="kernel_module_notice">Fitur modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fitur modul kernel SukiSU Ultra</string>
+    <string name="home_ContributionCard_kernelsu">SukiSU Ultra menantikan</string>
+    <string name="kpm_control_success">Berhasil</string>
+    <string name="kpm_control_failed">Gagal</string>
+    <string name="home_click_to_ContributionCard_kernelsu">Ke depannya, SukiSU Ultra akan menjadi cabang KSU yang relatif independen, tetapi kami tetap berterima kasih kepada KernelSU resmi, MKSU, dan lainnya atas kontribusi mereka!</string>
+    <string name="not_supported">Tidak Didukung</string>
+    <string name="supported">Didukung</string>
+    <string name="kernel_patched">Kernel Belum Di-patch</string>
+    <string name="kernel_not_enabled">Kernel Belum Diaktifkan</string>
+    <string name="custom_settings">Pengaturan Khusus</string>
+    <string name="kpm_install_mode">Pemasangan KPM</string>
+    <string name="kpm_install_mode_load">Muat</string>
+    <string name="kpm_install_mode_embed">Tanamkan</string>
+    <string name="kpm_install_mode_description">Silakan pilih: %1$s mode pemasangan modul
+Muat: Secara sementara memuat modul
+Tanamkan: Secara permanen memasang ke sistem</string>
+    <string name="snackbar_failed_to_check_module_file">Gagal memeriksa keberadaan file modul</string>
+    <string name="theme_color">Warna Tema</string>
+    <string name="invalid_file_type">Jenis file tidak valid! Harap pilih file .kpm.</string>
+    <string name="confirm_uninstall_title_with_filename">Copot Pemasangan</string>
+    <string name="confirm_uninstall_content">Akan mencopot KPM berikut: %s</string>
+    <string name="settings_susfs_toggle_summary">Nonaktifkan hook kprobe yang dibuat oleh KernelSU, menggunakan inline hook sebagai gantinya, mirip dengan metode hook untuk kernel tanpa GKI.</string>
+    <string name="image_editor_hint">Gunakan dua jari untuk memperbesar gambar dan satu jari untuk menyeret, untuk menyesuaikan posisi</string>
+    <string name="reprovision">Provisi Ulang</string>
+    <!-- Kernel Flash Progress Related -->
+    <string name="horizon_flash_complete">Flash Selesai</string>
+    <!-- Flash Status Related -->
+    <string name="horizon_preparing">Menyiapkan…</string>
+    <string name="horizon_cleaning_files">Membersihkan file…</string>
+    <string name="horizon_copying_files">Menyalin file…</string>
+    <string name="horizon_extracting_tool">Mengekstrak alat flash…</string>
+    <string name="horizon_patching_script">Menambal skrip flash…</string>
+    <string name="horizon_flashing">Mem-flash kernel…</string>
+    <string name="horizon_flash_complete_status">Flash Selesai</string>
+    <!-- Slot selection related strings -->
+    <string name="select_slot_title">Pilih Slot untuk Flash</string>
+    <string name="select_slot_description">Silakan pilih slot target untuk flashing boot</string>
+    <string name="slot_a">Slot A</string>
+    <string name="slot_b">Slot B</string>
+    <string name="selected_slot">Slot Terpilih: %1$s</string>
+    <string name="horizon_getting_original_slot">Mendapatkan slot asli</string>
+    <string name="horizon_setting_target_slot">Mengatur slot target</string>
+    <string name="horizon_restoring_original_slot">Mengembalikan slot bawaan</string>
+    <string name="current_slot">Slot sistem bawaan saat ini: %1$s</string>
+    <!-- Error Messages -->
+    <string name="horizon_copy_failed">Gagal menyalin</string>
+    <string name="horizon_unknown_error">Kesalahan Tidak Diketahui</string>
+    <string name="flash_failed_message">Flash Gagal</string>
+    <!-- lkm/gki install -->
+    <string name="Lkm_install_methods">Pemulihan/Pemasangan LKM</string>
+    <string name="GKI_install_methods">Flash AnyKernel3</string>
+    <string name="kernel_version_log">Versi Kernel: %1$s</string>
+    <string name="tool_version_log">Alat patch yang digunakan: %1$s</string>
+    <string name="configuration">Konfigurasi</string>
+    <string name="app_settings">Pengaturan Aplikasi</string>
+    <string name="tools">Alat</string>
+    <!--  String resources used in SuperUser -->
+    <string name="no_apps_found">Aplikasi tidak ditemukan</string>
+    <string name="selinux_enabled_toast">SELinux diaktifkan</string>
+    <string name="selinux_disabled_toast">SELinux dinonaktifkan</string>
+    <string name="selinux_change_failed">Gagal mengubah status SELinux</string>
+    <string name="advanced_settings">Pengaturan Lanjutan</string>
+    <string name="appearance_settings">Sesuaikan Bilah Alat</string>
+    <string name="back">Kembali</string>
+    <string name="susfs_enabled">SuSFS diaktifkan</string>
+    <string name="susfs_disabled">SuSFS dinonaktifkan</string>
+    <string name="background_set_success">Latar belakang berhasil diatur</string>
+    <string name="background_removed">Latar belakang khusus dihapus</string>
+    <string name="icon_switch_title">Ikon Alternatif</string>
+    <string name="icon_switch_summary">Ubah ikon peluncur menjadi ikon KernelSU.</string>
+    <string name="icon_switched">Ikon diubah</string>
+    <!-- KPM display settings -->
+    <string name="show_kpm_info">Sembunyikan Fungsi KPM</string>
+    <string name="show_kpm_info_summary">Menyembunyikan informasi dan fungsi KPM di layar utama dan panel bawah</string>
+    <!-- Webui X settings -->
+    <string name="use_webuix">Pilih Mesin WebUI untuk Digunakan</string>
+    <string name="engine_auto_select">Pilih Otomatis</string>
+    <string name="engine_force_webuix">Paksa Gunakan WebUI X</string>
+    <string name="engine_force_ksu">Paksa Gunakan KSU WebUI</string>
+    <string name="use_webuix_eruda">Sisipkan Eruda ke WebUI X</string>
+    <string name="use_webuix_eruda_summary">Sisipkan konsol debug ke WebUI X untuk memudahkan debugging. Memerlukan debugging web diaktifkan.</string>
+    <!-- DPI setting related strings -->
+    <string name="app_dpi_title">DPI yang Diterapkan</string>
+    <string name="app_dpi_summary">Sesuaikan kepadatan layar hanya untuk aplikasi saat ini</string>
+    <string name="dpi_size_small">Kecil</string>
+    <string name="dpi_size_medium">Sedang</string>
+    <string name="dpi_size_large">Besar</string>
+    <string name="dpi_size_extra_large">Sangat Besar</string>
+    <string name="dpi_size_custom">Khusus</string>
+    <string name="dpi_apply_settings">Menerapkan Pengaturan DPI</string>
+    <string name="dpi_confirm_title">Konfirmasi Perubahan DPI</string>
+    <string name="dpi_confirm_message">Apakah Anda yakin ingin mengubah DPI aplikasi dari %1$d menjadi %2$d?</string>
+    <string name="dpi_confirm_summary">Aplikasi perlu dijalankan ulang agar pengaturan DPI baru diterapkan; ini tidak akan mempengaruhi bilah status sistem atau aplikasi lainnya</string>
+    <string name="dpi_applied_success">DPI diatur ke %1$d, akan diterapkan setelah aplikasi dijalankan ulang</string>
+    <!-- Language settings related strings -->
+    <string name="language_setting">Bahasa Aplikasi</string>
+    <string name="language_follow_system">Ikuti Sistem</string>
+    <string name="language_changed">Bahasa diubah, mulai ulang untuk menerapkan perubahan</string>
+    <string name="settings_card_dim">Pengaturan Pencahayaan Kartu</string>
+    <!-- Flash related -->
+    <string name="error_code">kode kesalahan</string>
+    <string name="check_log">Silakan periksa log</string>
+    <string name="installing_module">Memasang modul %1$d/%2$d</string>
+    <string name="module_failed_count">Gagal memasang %d modul baru</string>
+    <string name="module_download_error">Gagal mengunduh modul</string>
+    <string name="kernel_flashing">Mem-flash Kernel</string>
+    <!-- 分类相关 -->
+    <string name="category_all_apps">Semua</string>
+    <string name="category_root_apps">Root</string>
+    <string name="category_custom_apps">Khusus</string>
+    <string name="category_default_apps">Bawaan</string>
+    <!-- 排序相关 -->
+    <string name="sort_name_asc">Nama Naik</string>
+    <string name="sort_name_desc">Nama Turun</string>
+    <string name="sort_install_time_new">Waktu Pemasangan (Baru)</string>
+    <string name="sort_install_time_old">Waktu Pemasangan (Lama)</string>
+    <string name="sort_size_desc">Ukuran Turun</string>
+    <string name="sort_size_asc">Ukuran Naik</string>
+    <string name="sort_usage_freq">Frekuensi Penggunaan</string>
+    <!-- 状态相关 -->
+    <string name="no_apps_in_category">Tidak ada aplikasi dalam kategori ini</string>
+    <!-- 标签相关 -->
+    <string name="deny_authorization">Tolak Hak Akses</string>
+    <string name="grant_authorization">Berikan Hak Akses</string>
+    <string name="unmount_modules">Lepas Kaitan Modul</string>
+    <string name="disable_unmount">Nonaktifkan Lepas Kaitan Modul</string>
+    <string name="expand_menu">Perluas Menu</string>
+    <string name="collapse_menu">Ciutkan Menu</string>
+    <string name="scroll_to_top">Ke Atas</string>
+    <string name="scroll_to_bottom">Ke Bawah</string>
+    <string name="selected">Terpilih</string>
+    <string name="select">Pilih</string>
+    <!-- BottomSheet相关 -->
+    <string name="menu_options">Opsi Menu</string>
+    <string name="sort_options">Urutkan Berdasarkan</string>
+    <string name="app_categories">Pilih Jenis Aplikasi</string>
+    <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">Konfigurasi SuSFS</string>
+    <string name="susfs_config_description">Deskripsi Konfigurasi</string>
+    <string name="susfs_config_description_text">Fitur ini memungkinkan Anda untuk mengonfigurasi spoofing nilai uname dan waktu build SuSFS. Masukkan nilai yang diinginkan dan klik \"Terapkan\" agar berlaku.</string>
+    <string name="susfs_uname_label">Nilai Uname</string>
+    <string name="susfs_uname_placeholder">Silakan masukkan nilai uname khusus</string>
+    <string name="susfs_build_time_label">Spoof Waktu Build</string>
+    <string name="susfs_build_time_placeholder">Silakan masukkan nilai spoof waktu build</string>
+    <string name="susfs_current_value">Nilai Saat Ini: %s</string>
+    <string name="susfs_current_build_time">Waktu Build Saat Ini: %s</string>
+    <string name="susfs_reset_to_default">Atur Ulang ke Bawaan</string>
+    <string name="susfs_apply">Terapkan</string>
+    <!-- SuSFS Reset Confirmation -->
+    <string name="susfs_reset_confirm_title">Konfirmasi Atur Ulang</string>
+    <!-- SuSFS Toast Messages -->
+    <string name="susfs_binary_not_found">Gagal menemukan file ksu_susfs</string>
+    <string name="susfs_command_failed">Gagal mengeksekusi perintah SuSFS</string>
+    <string name="susfs_command_error">Kesalahan eksekusi perintah SuSFS: %s</string>
+    <string name="susfs_uname_set_success" formatted="false">Nilai uname dan waktu build SuSFS berhasil diatur: %s, %s</string>
+    <!-- SuSFS Settings Item -->
+    <string name="susfs_config_setting_title">Konfigurasi SuSFS</string>
+    <!-- 开机自启动相关 -->
+    <string name="susfs_autostart_title">Mulai Otomatis</string>
+    <string name="susfs_autostart_description">Secara otomatis menerapkan semua konfigurasi non-bawaan saat reboot</string>
+    <string name="susfs_autostart_requirement">Perlu menambahkan konfigurasi untuk mengaktifkan</string>
+    <string name="susfs_autostart_enable_failed">Gagal mengaktifkan mulai otomatis</string>
+    <string name="susfs_autostart_disable_failed">Gagal menonaktifkan mulai otomatis</string>
+    <string name="susfs_autostart_error">Kesalahan konfigurasi mulai otomatis: %s</string>
+    <string name="susfs_no_config_to_autostart">Tidak ada konfigurasi yang tersedia untuk mulai otomatis</string>
+    <!-- SuSFS Tab Titles -->
+    <string name="susfs_tab_basic_settings">Pengaturan Dasar</string>
+    <string name="susfs_tab_sus_paths">Jalur SUS</string>
+    <string name="susfs_tab_sus_mounts">Kaitan SUS</string>
+    <string name="susfs_tab_try_umount">Coba Lepas Kait</string>
+    <string name="susfs_tab_path_settings">Pengaturan Jalur</string>
+    <string name="susfs_tab_enabled_features">Status Fitur Diaktifkan</string>
+    <!-- SuSFS Path Management -->
+    <string name="susfs_add_sus_path">Tambah Jalur SUS</string>
+    <string name="susfs_add_sus_mount">Tambah Kaitan SUS</string>
+    <string name="susfs_add_try_umount">Tambah Coba Lepas Kait</string>
+    <string name="susfs_sus_path_added_success">Jalur SUS berhasil ditambahkan</string>
+    <string name="susfs_path_not_found_error">Kesalahan: Jalur tidak ditemukan</string>
+    <string name="susfs_path_label">Jalur</string>
+    <string name="susfs_mount_path_label">Jalur Kaitan</string>
+    <string name="susfs_path_placeholder">misalnya: /system/addon.d</string>
+    <string name="susfs_no_paths_configured">Tidak ada jalur SUS yang dikonfigurasi</string>
+    <string name="susfs_no_mounts_configured">Tidak ada kaitan SUS yang dikonfigurasi</string>
+    <string name="susfs_no_umounts_configured">Tidak ada coba lepas kait yang dikonfigurasi</string>
+    <!-- SuSFS Umount Mode -->
+    <string name="susfs_umount_mode_label">Mode Lepas Kait</string>
+    <string name="susfs_umount_mode_normal">Lepas Kait Normal (0)</string>
+    <string name="susfs_umount_mode_detach">Lepas Kait Terpisah (1)</string>
+    <string name="susfs_umount_mode_normal_short">Normal</string>
+    <string name="susfs_umount_mode_detach_short">Terpisah</string>
+    <string name="susfs_umount_mode_display">Mode: %1$s (%2$s)</string>
+    <string name="susfs_try_umount_added_success">Jalur coba lepas kait berhasil ditambahkan: %s</string>
+    <string name="susfs_try_umount_added_saved">Berhasil menyimpan jalur coba lepas kait: %s</string>
+    <!-- SuSFS Run Umount -->
+    <!-- SuSFS Reset Categories -->
+    <string name="susfs_reset_paths_title">Atur Ulang Jalur SUS</string>
+    <string name="susfs_reset_paths_message">Ini akan menghapus semua konfigurasi jalur SUS. Apakah Anda yakin ingin melanjutkan?</string>
+    <string name="susfs_reset_mounts_title">Atur Ulang Kaitan SUS</string>
+    <string name="susfs_reset_mounts_message">Ini akan menghapus semua konfigurasi kaitan SUS. Apakah Anda yakin ingin melanjutkan?</string>
+    <string name="susfs_reset_umounts_title">Atur Ulang Coba Lepas Kait</string>
+    <string name="susfs_reset_umounts_message">Ini akan menghapus semua konfigurasi coba lepas kait. Apakah Anda yakin ingin melanjutkan?</string>
+    <string name="susfs_reset_path_title">Atur Ulang Pengaturan Jalur</string>
+    <!-- SuSFS Path Settings -->
+    <string name="susfs_android_data_path_label">Jalur Data Android</string>
+    <string name="susfs_sdcard_path_label">Jalur Kartu SD</string>
+    <string name="susfs_set_android_data_path">Atur Jalur Data Android</string>
+    <string name="susfs_set_sdcard_path">Atur Jalur Kartu SD</string>
+    <!-- SuSFS Enabled Features -->
+    <string name="susfs_enabled_features_description">Menampilkan status saat ini dari fitur SuSFS yang diaktifkan</string>
+    <string name="susfs_no_features_found">Informasi status fitur tidak ditemukan</string>
+    <string name="susfs_feature_enabled">Diaktifkan</string>
+    <string name="susfs_feature_disabled">Dinonaktifkan</string>
+    <!-- Feature Labels -->
+    <string name="sus_path_feature_label">Dukungan Jalur SUS</string>
+    <string name="sus_mount_feature_label">Dukungan Kaitan SUS</string>
+    <string name="try_umount_feature_label">Dukungan Coba Lepas Kait</string>
+    <string name="spoof_uname_feature_label">Dukungan Spoof Uname</string>
+    <string name="spoof_cmdline_feature_label">Spoof Cmdline/Bootconfig</string>
+    <string name="open_redirect_feature_label">Dukungan Open Redirect</string>
+    <string name="enable_log_feature_label">Dukungan Logging</string>
+    <string name="auto_default_mount_feature_label">Kaitan Bawaan Otomatis</string>
+    <string name="auto_bind_mount_feature_label">Kaitan Bind Otomatis</string>
+    <string name="auto_try_umount_bind_feature_label">Coba Lepas Kaitan Bind Otomatis</string>
+    <string name="hide_symbols_feature_label">Sembunyikan Simbol KSU SUSFS</string>
+    <string name="magic_mount_feature_label">Dukungan Magic Mount</string>
+    <string name="sus_kstat_feature_label">Dukungan SUS Kstat</string>
+    <string name="sus_su_feature_label">Fitur Toggle Mode SUS SU</string>
+    <!-- 可切换状态 -->
+    <string name="susfs_feature_configurable">Fitur SuSFS yang Dapat Dikonfigurasi</string>
+    <string name="susfs_enable_log_label">Aktifkan Log SuSFS</string>
+    <string name="susfs_log_config_description">Aktifkan atau nonaktifkan logging untuk SuSFS</string>
+    <string name="susfs_log_config_title">Pengaturan Logging SuSFS</string>
+    <string name="susfs_log_enabled">Mengaktifkan Logging SuSFS</string>
+    <string name="susfs_log_disabled">Menonaktifkan Logging SuSFS</string>
+    <string name="module_update_json">Perbarui JSON</string>
+    <string name="module_update_json_copied">URL Perbarui JSON disalin ke papan klip</string>
+    <!-- Settings related strings -->
+    <string name="show_more_module_info">Tampilkan Informasi Modul Lebih Banyak</string>
+    <string name="show_more_module_info_summary">Tampilkan informasi modul tambahan seperti URL perbarui JSON</string>
+    <string name="susfs_execution_location_label">Lokasi Eksekusi</string>
+    <string name="susfs_current_execution_location">Lokasi Eksekusi Saat Ini: %s</string>
+    <string name="susfs_execution_location_service">Layanan</string>
+    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
+    <string name="susfs_execution_location_service_description">Jalankan setelah layanan sistem dimulai</string>
+    <string name="susfs_execution_location_post_fs_data_description">Jalankan setelah sistem file dikaitkan tetapi sebelum sistem sepenuhnya dinyalakan. Dapat menyebabkan bootloop</string>
+    <string name="susfs_slot_info_title">Informasi Slot</string>
+    <string name="susfs_slot_info_description">Lihat informasi slot boot saat ini dan salin nilainya</string>
+    <string name="susfs_current_active_slot">Slot Aktif Saat Ini: %s</string>
+    <string name="susfs_slot_uname">Uname: %s</string>
+    <string name="susfs_slot_build_time">Waktu Build: %s</string>
+    <string name="susfs_slot_current_badge">Saat Ini</string>
+    <string name="susfs_slot_use_uname">Gunakan Uname</string>
+    <string name="susfs_slot_use_build_time">Gunakan Waktu Build</string>
+    <string name="susfs_slot_info_unavailable">Gagal mendapatkan informasi slot</string>
+    <!-- SuSFS 自启动相关字符串 -->
+    <string name="susfs_autostart_enabled_success">Modul mulai otomatis SuSFS diaktifkan, jalur modul: %s</string>
+    <string name="susfs_autostart_disabled_success">Modul mulai otomatis SuSFS dinonaktifkan</string>
+    <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Konfigurasi Kstat</string>
+    <string name="kstat_static_config_added">Konfigurasi Kstat statis ditambahkan: %1$s</string>
+    <string name="kstat_config_removed">Konfigurasi Kstat dihapus: %1$s</string>
+    <string name="kstat_path_added">Jalur Kstat ditambahkan: %1$s</string>
+    <string name="kstat_path_removed">Jalur Kstat dihapus: %1$s</string>
+    <string name="kstat_updated">Kstat diperbarui: %1$s</string>
+    <string name="kstat_full_clone_updated">Klon Lengkap Kstat diperbarui: %1$s</string>
+    <string name="add_kstat_statically_title">Tambahkan Konfigurasi Kstat Statis</string>
+    <string name="file_or_directory_path_label">Jalur File/Direktori</string>
+    <string name="hint_use_default_value">Petunjuk: Anda dapat menggunakan \"default\" untuk menggunakan nilai asli</string>
+    <string name="add_kstat_path_title">Tambah Jalur Kstat</string>
+    <string name="add">Tambah</string>
+    <string name="reset_kstat_config_title">Atur Ulang Konfigurasi Kstat</string>
+    <string name="reset_kstat_config_message">Apakah Anda yakin ingin membersihkan semua konfigurasi Kstat? Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="kstat_config_description_title">Deskripsi Konfigurasi Kstat</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Informasi file/direktori statis</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: Tambahkan jalur sebelum bind mount, menjaga informasi asli</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: Perbarui ino target, membiarkan ukuran dan blok tidak berubah</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: Perbarui hanya ino, membiarkan nilai asli lainnya</string>
+    <string name="static_kstat_config">Konfigurasi Kstat Statis</string>
+    <string name="kstat_path_management">Manajemen Jalur Kstat</string>
+    <string name="no_kstat_config_message">Belum ada konfigurasi Kstat, klik tombol di atas untuk menambahkan</string>
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_control_title">Kontrol Penyembunyian Kaitan SUS</string>
+    <string name="susfs_hide_mounts_control_description">Kontrol perilaku penyembunyian kaitan SUS untuk proses</string>
+    <string name="susfs_hide_mounts_for_all_procs_label">Sembunyikan Kaitan SUS untuk Semua Proses</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">Jika diaktifkan, kaitan SUS akan disembunyikan dari semua proses, termasuk proses KSU</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Jika dinonaktifkan, kaitan SUS akan disembunyikan hanya dari proses non-KSU; proses KSU akan dapat melihat kaitan</string>
+    <string name="susfs_hide_mounts_all_enabled">Mengaktifkan penyembunyian kaitan SUS untuk semua proses</string>
+    <string name="susfs_hide_mounts_all_disabled">Menonaktifkan penyembunyian kaitan SUS untuk semua proses</string>
+    <string name="susfs_hide_mounts_recommendation">Disarankan untuk mengatur ke nonaktif setelah layar terbuka atau pada tahap service.sh atau boot-completed.sh, karena ini seharusnya memperbaiki masalah dengan beberapa aplikasi root yang bergantung pada kaitan yang dibuat oleh proses KSU</string>
+    <string name="susfs_hide_mounts_current_setting">Pengaturan Saat Ini: %s</string>
+    <string name="susfs_hide_mounts_setting_all">Sembunyikan untuk Semua Proses</string>
+    <string name="susfs_hide_mounts_setting_non_ksu">Sembunyikan Hanya untuk Proses Non-KSU</string>
+    <string name="kernel_simple_kernel">Mode Versi Kernel Sederhana</string>
+    <string name="kernel_simple_kernel_summary">Aktifkan atau nonaktifkan tampilan versi kernel SukiSU sederhana</string>
+    <string name="susfs_android_data_path_set">Jalur Data Android diatur ke: %s</string>
+    <string name="susfs_sdcard_path_set">Jalur Kartu SD diatur ke: %s</string>
+    <string name="susfs_path_setup_warning">Pengaturan jalur mungkin tidak sepenuhnya berhasil, tetapi jalur SUS akan tetap ditambahkan</string>
+    <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">Cadangan</string>
+    <string name="susfs_backup_description">Buat cadangan semua konfigurasi SuSFS. File cadangan akan menyertakan semua pengaturan, jalur, dan konfigurasi.</string>
+    <string name="susfs_backup_create">Buat Cadangan</string>
+    <string name="susfs_backup_success">Berhasil membuat cadangan: %s</string>
+    <string name="susfs_backup_failed">Gagal membuat cadangan: %s</string>
+    <string name="susfs_backup_file_not_found">File cadangan tidak ditemukan</string>
+    <string name="susfs_backup_invalid_format">Format file cadangan tidak valid</string>
+    <string name="susfs_backup_version_mismatch">Versi cadangan tidak cocok, tetapi akan dicoba untuk dipulihkan</string>
+    <string name="susfs_restore_title">Pulihkan</string>
+    <string name="susfs_restore_description">Pulihkan konfigurasi SuSFS dari file cadangan. Ini akan menimpa semua pengaturan saat ini.</string>
+    <string name="susfs_restore_select_file">Pilih File Cadangan</string>
+    <string name="susfs_restore_success" formatted="false">Konfigurasi berhasil dipulihkan dari cadangan yang dibuat %s pada perangkat: %s</string>
+    <string name="susfs_restore_failed">Gagal memulihkan: %s</string>
+    <string name="susfs_restore_confirm_title">Konfirmasi Pemulihan</string>
+    <string name="susfs_restore_confirm_description">Ini akan menimpa semua konfigurasi SuSFS saat ini. Apakah Anda yakin ingin melanjutkan?</string>
+    <string name="susfs_restore_confirm">Pulihkan</string>
+    <string name="susfs_backup_info_date">Tanggal Cadangan: %s</string>
+    <string name="susfs_backup_info_device">Perangkat: %s</string>
+    <string name="susfs_backup_info_version">Versi: %s</string>
+    <string name="hide_bl_script">Status Terkunci</string>
+    <string name="hide_bl_script_description">Timpa properti status bootloader dalam layanan late_start</string>
+    <string name="cleanup_residue">Bersihkan Sisa-sisa</string>
+    <string name="cleanup_residue_description">Bersihkan file dan direktori sisa dari berbagai modul dan alat (dapat menyebabkan penghapusan yang tidak disengaja, kehilangan data, dan gagal boot, gunakan dengan hati-hati)</string>
+</resources>
