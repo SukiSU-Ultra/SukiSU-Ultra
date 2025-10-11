@@ -647,4 +647,5 @@ Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'kernel\' yang d
     <string name="kpm_follow_kernel_file">Ikuti kernel</string>
     <string name="kpm_follow_kernel_description">Gunakan kernel apa adanya tanpa perubahan dari KPM</string>
     <!-- UID Scanner Settings -->
+    <!-- 确认安装相关字符串 -->
 </resources>
