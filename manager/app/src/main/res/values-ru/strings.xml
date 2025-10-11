@@ -660,4 +660,5 @@
     <string name="clean_runtime_environment_confirm">Вы уверены, что хотите очистить среду Runtime? Это остановит службу сканирования и удалит связанные с ней файлы.</string>
     <string name="clean_runtime_environment_success">Runtime окружение успешно очищено</string>
     <string name="clean_runtime_environment_failed">Не удалось очистить среду runtime</string>
+    <!-- 确认安装相关字符串 -->
 </resources>
