@@ -1,12 +1,12 @@
 use crate::defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH};
+#[cfg(target_arch = "aarch64")]
+use crate::kpm;
 use crate::module::{handle_updated_modules, prune_modules};
-use crate::{assets, defs, ksucalls, restorecon, utils, uid_scanner};
+use crate::{assets, defs, ksucalls, restorecon, uid_scanner, utils};
 use anyhow::{Context, Result};
 use log::{info, warn};
 use rustix::fs::{MountFlags, mount};
 use std::path::Path;
-#[cfg(target_arch = "aarch64")]
-use crate::kpm;
 
 pub fn on_post_data_fs() -> Result<()> {
     ksucalls::report_post_fs_data();
@@ -118,27 +118,25 @@ pub fn on_post_data_fs() -> Result<()> {
     }
 
     // Disable Samsung Activation Verify
-    if let Some(model) = utils::getprop("ro.product.model") {
-        if model.starts_with("SM-") {
-            info!("Disable Samsung Activation for model {}", model);
-            if Path::new("/system/app/ActivationDevice_V2").exists() {
-                if let Err(e) = std::fs::create_dir_all("/data/local/tmp/ActivationDevice_V2") {
-                    warn!("Failed to create directory: {}", e);
-                } else {
-                    if let Err(e) = mount(
-                        "/data/local/tmp/ActivationDevice_V2",
-                        "/system/app/ActivationDevice_V2",
-                        "none",
-                        MountFlags::BIND,
-                        "",
-                    ) {
-                        warn!("Failed to mount ActivationDevice_V2: {}", e);
-                    }
-                }
+    if let Some(model) = utils::getprop("ro.product.model")
+        && model.starts_with("SM-")
+    {
+        info!("Disable Samsung Activation for model {}", model);
+        if Path::new("/system/app/ActivationDevice_V2").exists() {
+            if let Err(e) = std::fs::create_dir_all("/data/local/tmp/ActivationDevice_V2") {
+                warn!("Failed to create directory: {}", e);
+            } else if let Err(e) = mount(
+                "/data/local/tmp/ActivationDevice_V2",
+                "/system/app/ActivationDevice_V2",
+                "none",
+                MountFlags::BIND,
+                "",
+            ) {
+                warn!("Failed to mount ActivationDevice_V2: {}", e);
             }
         }
     }
-    
+
     run_stage("post-mount", true);
 
     Ok(())

@@ -1,11 +1,11 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use libc::{c_int, c_ulong, prctl};
 use notify::{RecursiveMode, Watcher};
 use std::{
     ffi::{CStr, CString, OsStr},
-    path::{Path, PathBuf},
+    fs,
     os::unix::fs::PermissionsExt,
-    fs, 
+    path::{Path, PathBuf},
     ptr,
 };
 
@@ -13,13 +13,13 @@ pub const KPM_DIR: &str = "/data/adb/kpm";
 
 // SukiSU KPM prctl command space
 const KSU_OPTIONS: c_int = 0xdeadbeef_u32 as c_int;
-const SUKISU_KPM_LOAD:   c_int = 28;
+const SUKISU_KPM_LOAD: c_int = 28;
 const SUKISU_KPM_UNLOAD: c_int = 29;
-const SUKISU_KPM_NUM:    c_int = 30;
-const SUKISU_KPM_LIST:   c_int = 31;
-const SUKISU_KPM_INFO:   c_int = 32;
-const SUKISU_KPM_CONTROL:c_int = 33;
-const SUKISU_KPM_VERSION:c_int = 34;
+const SUKISU_KPM_NUM: c_int = 30;
+const SUKISU_KPM_LIST: c_int = 31;
+const SUKISU_KPM_INFO: c_int = 32;
+const SUKISU_KPM_CONTROL: c_int = 33;
+const SUKISU_KPM_VERSION: c_int = 34;
 
 /// Convert raw kernel return code to `Result`.
 #[inline(always)]
@@ -56,7 +56,13 @@ pub fn kpm_unload(name: &str) -> Result<()> {
     let name_c = CString::new(name)?;
     let mut rc = -1;
     unsafe {
-        prctl(KSU_OPTIONS, SUKISU_KPM_UNLOAD, name_c.as_ptr() as c_ulong, 0, &mut rc as *mut _ as c_ulong);
+        prctl(
+            KSU_OPTIONS,
+            SUKISU_KPM_UNLOAD,
+            name_c.as_ptr() as c_ulong,
+            0,
+            &mut rc as *mut _ as c_ulong,
+        );
     }
     check_out(rc)?;
     Ok(())
@@ -65,7 +71,15 @@ pub fn kpm_unload(name: &str) -> Result<()> {
 /// Return loaded module count.
 pub fn kpm_num() -> Result<i32> {
     let mut rc = -1;
-    unsafe { prctl(KSU_OPTIONS, SUKISU_KPM_NUM, 0, 0, &mut rc as *mut _ as c_ulong) };
+    unsafe {
+        prctl(
+            KSU_OPTIONS,
+            SUKISU_KPM_NUM,
+            0,
+            0,
+            &mut rc as *mut _ as c_ulong,
+        )
+    };
     let n = check_out(rc)?;
     println!("{n}");
     Ok(n)
@@ -122,7 +136,7 @@ pub fn kpm_control(name: &str, args: &str) -> Result<i32> {
             &mut rc as *mut _ as c_ulong,
         );
     }
-    check_out(rc).map(|v| v as i32)
+    check_out(rc)
 }
 
 /// Print loader version string.
@@ -243,12 +257,11 @@ pub fn remove_all_kpms() -> Result<()> {
     }
     for entry in fs::read_dir(dir)? {
         let p = entry?.path();
-        if p.extension() == Some(OsStr::new("kpm")) {
-            if let Some(name) = p.file_stem().and_then(|s| s.to_str()) {
-                if let Err(e) = unload_kpm(name) {
-                    log::error!("KPM: unload {name} failed: {e}");
-                }
-            }
+        if p.extension() == Some(OsStr::new("kpm"))
+            && let Some(name) = p.file_stem().and_then(|s| s.to_str())
+            && let Err(e) = unload_kpm(name)
+        {
+            log::error!("KPM: unload {name} failed: {e}");
         }
     }
     Ok(())
@@ -282,5 +295,9 @@ pub fn load_kpm_modules() -> Result<()> {
 /// Convert zero-padded kernel buffer to owned String.
 fn buf2str(buf: &[u8]) -> String {
     // SAFETY: buffer is always NUL-terminated by kernel.
-    unsafe { CStr::from_ptr(buf.as_ptr().cast()).to_string_lossy().into_owned() }
+    unsafe {
+        CStr::from_ptr(buf.as_ptr().cast())
+            .to_string_lossy()
+            .into_owned()
+    }
 }

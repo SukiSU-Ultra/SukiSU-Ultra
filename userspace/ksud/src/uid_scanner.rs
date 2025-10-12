@@ -4,7 +4,7 @@ use std::{
     fs,
     io::Write,
     os::unix::{
-        fs::{symlink, PermissionsExt},
+        fs::{PermissionsExt, symlink},
         process::CommandExt,
     },
     path::Path,

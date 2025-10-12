@@ -118,11 +118,11 @@ fn parse_kmi_from_kernel(kernel: &PathBuf, workdir: &Path) -> Result<String> {
     let re =
         Regex::new(r"(?:.* )?(\d+\.\d+)(?:\S+)?(android\d+)").context("Failed to compile regex")?;
     for s in printable_strings {
-        if let Some(caps) = re.captures(s) {
-            if let (Some(kernel_version), Some(android_version)) = (caps.get(1), caps.get(2)) {
-                let kmi = format!("{}-{}", android_version.as_str(), kernel_version.as_str());
-                return Ok(kmi);
-            }
+        if let Some(caps) = re.captures(s)
+            && let (Some(kernel_version), Some(android_version)) = (caps.get(1), caps.get(2))
+        {
+            let kmi = format!("{}-{}", android_version.as_str(), kernel_version.as_str());
+            return Ok(kmi);
         }
     }
     println!("- Failed to get KMI version");
@@ -711,10 +711,8 @@ fn do_patch(
     }
 
     #[cfg(target_os = "android")]
-    if need_backup {
-        if let Err(e) = do_backup(&magiskboot, workdir, &bootimage) {
-            println!("- Backup stock image failed: {e}");
-        }
+    if need_backup && let Err(e) = do_backup(&magiskboot, workdir, &bootimage) {
+        println!("- Backup stock image failed: {e}");
     }
 
     println!("- Repacking boot image");
@@ -951,16 +949,15 @@ fn find_boot_image(
             && !is_replace_kernel
             && vendor_boot_exist
             && !skip_init
-        {
-            if unpack_and_check_init(
+            && unpack_and_check_init(
                 magiskboot,
                 workdir,
                 &vendor_boot_partition,
                 "vendor_ramdisk/init_boot.cpio",
-            )? {
-                println!("- Using vendor_boot partition (vendor_ramdisk/init_boot.cpio).");
-                selected_partition = &vendor_boot_partition;
-            }
+            )?
+        {
+            println!("- Using vendor_boot partition (vendor_ramdisk/init_boot.cpio).");
+            selected_partition = &vendor_boot_partition;
         }
 
         // try vendor_boot/vendor_ramdisk/ramdisk.cpio
@@ -968,16 +965,15 @@ fn find_boot_image(
             && !is_replace_kernel
             && vendor_boot_exist
             && !skip_init
-        {
-            if unpack_and_check_init(
+            && unpack_and_check_init(
                 magiskboot,
                 workdir,
                 &vendor_boot_partition,
                 "vendor_ramdisk/ramdisk.cpio",
-            )? {
-                println!("- Using vendor_boot partition (vendor_ramdisk/ramdisk.cpio).");
-                selected_partition = &vendor_boot_partition;
-            }
+            )?
+        {
+            println!("- Using vendor_boot partition (vendor_ramdisk/ramdisk.cpio).");
+            selected_partition = &vendor_boot_partition;
         }
 
         if selected_partition == &boot_partition {

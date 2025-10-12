@@ -836,6 +836,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "ksud"
+version = "0.1.0"
+dependencies = [
+ "android-properties",
+ "android_logger",
+ "anyhow",
+ "chrono",
+ "clap",
+ "const_format",
+ "derive-new",
+ "encoding_rs",
+ "env_logger",
+ "extattr",
+ "fs4",
+ "getopts",
+ "humansize",
+ "is_executable",
+ "java-properties",
+ "jwalk",
+ "libc",
+ "log",
+ "nom",
+ "notify",
+ "procfs",
+ "regex-lite",
+ "rust-embed",
+ "rustix 0.38.34",
+ "serde_json",
+ "sha1",
+ "sha256",
+ "tempfile",
+ "which",
+ "zip",
+ "zip-extensions",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1835,43 +1872,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388c44dc09d76f1536602ead6d325eb532f5c122f17782bd57fb47baeeb767e2"
 dependencies = [
  "lzma-sys",
-]
-
-[[package]]
-name = "zakozako"
-version = "0.1.0"
-dependencies = [
- "android-properties",
- "android_logger",
- "anyhow",
- "chrono",
- "clap",
- "const_format",
- "derive-new",
- "encoding_rs",
- "env_logger",
- "extattr",
- "fs4",
- "getopts",
- "humansize",
- "is_executable",
- "java-properties",
- "jwalk",
- "libc",
- "log",
- "nom",
- "notify",
- "procfs",
- "regex-lite",
- "rust-embed",
- "rustix 0.38.34",
- "serde_json",
- "sha1",
- "sha256",
- "tempfile",
- "which",
- "zip",
- "zip-extensions",
 ]
 
 [[package]]

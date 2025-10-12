@@ -98,12 +98,11 @@ impl Node {
             };
             if let Some(file_type) = file_type {
                 let mut replace = false;
-                if file_type == Directory {
-                    if let Ok(v) = lgetxattr(&path, REPLACE_DIR_XATTR) {
-                        if String::from_utf8_lossy(&v) == "y" {
-                            replace = true;
-                        }
-                    }
+                if file_type == Directory
+                    && let Ok(v) = lgetxattr(&path, REPLACE_DIR_XATTR)
+                    && String::from_utf8_lossy(&v) == "y"
+                {
+                    replace = true;
                 }
                 return Some(Node {
                     name: name.to_string(),
