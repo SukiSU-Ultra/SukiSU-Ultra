@@ -1,8 +1,12 @@
-use crate::defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH};
 #[cfg(target_arch = "aarch64")]
 use crate::kpm;
-use crate::module::{handle_updated_modules, prune_modules};
-use crate::{assets, defs, ksucalls, restorecon, uid_scanner, utils};
+use crate::{
+    assets, defs,
+    defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH},
+    ksucalls,
+    module::{handle_updated_modules, prune_modules},
+    restorecon, uid_scanner, utils,
+};
 use anyhow::{Context, Result};
 use log::{info, warn};
 use rustix::fs::{MountFlags, mount};

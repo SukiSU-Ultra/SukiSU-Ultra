@@ -1,18 +1,6 @@
-#[allow(clippy::wildcard_imports)]
-use crate::utils::*;
-use crate::{
-    assets, defs, ksucalls,
-    restorecon::{restore_syscon, setsyscon},
-    sepolicy,
-};
-
-use anyhow::{Context, Result, anyhow, bail, ensure};
-use const_format::concatcp;
-use is_executable::is_executable;
-use java_properties::PropertiesIter;
-use log::{info, warn};
-
 use std::fs::{copy, rename};
+#[cfg(unix)]
+use std::os::unix::{prelude::PermissionsExt, process::CommandExt};
 use std::{
     collections::HashMap,
     env::var as env_var,
@@ -22,11 +10,23 @@ use std::{
     process::Command,
     str::FromStr,
 };
+
+use anyhow::{Context, Result, anyhow, bail, ensure};
+use const_format::concatcp;
+use is_executable::is_executable;
+use java_properties::PropertiesIter;
+use log::{info, warn};
 use zip_extensions::zip_extract_file_to_memory;
 
-use crate::defs::{MODULE_DIR, MODULE_UPDATE_DIR, UPDATE_FILE_NAME};
-#[cfg(unix)]
-use std::os::unix::{prelude::PermissionsExt, process::CommandExt};
+#[allow(clippy::wildcard_imports)]
+use crate::{
+    assets,
+    defs::{self, MODULE_DIR, MODULE_UPDATE_DIR, UPDATE_FILE_NAME},
+    ksucalls,
+    restorecon::{restore_syscon, setsyscon},
+    sepolicy,
+    utils::*,
+};
 
 const INSTALLER_CONTENT: &str = include_str!("./installer.sh");
 const INSTALL_MODULE_SCRIPT: &str = concatcp!(

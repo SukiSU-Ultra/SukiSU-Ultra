@@ -1,8 +1,4 @@
-use std::env;
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
-use std::process::Command;
+use std::{env, fs::File, io::Write, path::Path, process::Command};
 
 fn get_git_version() -> Result<(u32, String), std::io::Error> {
     let output = Command::new("git")

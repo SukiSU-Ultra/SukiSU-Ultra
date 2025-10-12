@@ -7,8 +7,9 @@ use android_logger::Config;
 #[cfg(target_os = "android")]
 use log::LevelFilter;
 
-use crate::defs::KSUD_VERBOSE_LOG_FILE;
-use crate::{apk_sign, assets, debug, defs, init_event, ksucalls, module, utils};
+use crate::{
+    apk_sign, assets, debug, defs, defs::KSUD_VERBOSE_LOG_FILE, init_event, ksucalls, module, utils,
+};
 
 /// KernelSU userspace cli
 #[derive(Parser, Debug)]

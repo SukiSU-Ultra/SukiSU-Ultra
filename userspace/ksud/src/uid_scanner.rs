@@ -1,5 +1,3 @@
-use anyhow::Result;
-use log::{info, warn};
 use std::{
     fs,
     io::Write,
@@ -10,6 +8,9 @@ use std::{
     path::Path,
     process::{Command, Stdio},
 };
+
+use anyhow::Result;
+use log::{info, warn};
 
 pub fn start_uid_scanner_daemon() -> Result<()> {
     const SCANNER_PATH: &str = "/data/adb/uid_scanner";
