@@ -658,4 +658,17 @@
     <string name="clean_runtime_environment_confirm">您確定要清理執行環境嗎？這將停止掃描服務並刪除相關檔案</string>
     <string name="clean_runtime_environment_success">執行環境清理成功</string>
     <string name="clean_runtime_environment_failed">執行環境清理失敗</string>
+    <!-- 確認安裝相關字串 -->
+    <string name="confirm_installation">確認安裝</string>
+    <string name="confirm_multiple_installation">確認安裝 (%d 個檔案)</string>
+    <string name="install_confirm">確認安裝</string>
+    <string name="module_package">模組</string>
+    <string name="kernel_package">核心</string>
+    <string name="unknown_package">未知型別</string>
+    <string name="unknown_kernel">未知內核</string>
+    <string name="unknown_file">未知檔案</string>
+    <string name="version">版本</string>
+    <string name="author">作者</string>
+    <string name="description">描述</string>
+    <string name="supported_devices">支援的裝置</string>
 </resources>
