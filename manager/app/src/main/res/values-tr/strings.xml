@@ -618,4 +618,58 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
     <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
     <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
+    <string name="home_hook_type">Hook tipi</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM Yaması</string>
+    <string name="kpm_patch_description">Ek KPM özellikleri eklemek için</string>
+    <string name="enable_kpm_patch">KPM Yaması</string>
+    <string name="kpm_patch_switch_description">Yüklemeden önce çekirdek imajına KPM yamasını uygula</string>
+    <string name="enable_kpm_undo_patch">KPM Yamasını Geri Al</string>
+    <string name="kpm_undo_patch_switch_description">Daha önce uygulanan KPM yamasını geri al</string>
+    <string name="kpm_patch_enabled">KPM yaması etkinleştirildi</string>
+    <string name="kpm_undo_patch_enabled">KPM yaması geri alma etkinleştirildi</string>
+    <string name="kpm_patch_mode">KPM Yama Modu</string>
+    <string name="kpm_undo_patch_mode">KPM Yamasını Geri Alma Modu</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">KPM araçları hazırlanıyor</string>
+    <string name="kpm_applying_patch">KPM yaması uygulanıyor</string>
+    <string name="kpm_undoing_patch">KPM yaması geri alınıyor</string>
+    <string name="kpm_found_image_file">İmaj dosyası bulundu: %s</string>
+    <string name="kpm_patch_success">KPM yaması başarıyla uygulandı</string>
+    <string name="kpm_undo_patch_success">KPM yaması başarıyla geri alındı</string>
+    <string name="kpm_file_repacked">Dosya başarıyla yeniden paketlendi</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Zip dosyası çıkarılamadı</string>
+    <string name="kpm_image_file_not_found">İmaj dosyası bulunamadı</string>
+    <string name="kpm_patch_failed">KPM yaması başarısız oldu</string>
+    <string name="kpm_undo_patch_failed">KPM yamasını geri alma başarısız oldu</string>
+    <string name="kpm_patch_operation_failed">KPM yama işlemi başarısız oldu: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Çekirdeği Takip Et</string>
+    <string name="kpm_follow_kernel_description">Çekirdeği herhangi bir KPM değişikliği olmadan olduğu gibi kullan</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Kullanıcı modu uygulama listesi taraması</string>
+    <string name="uid_auto_scan_summary">Bu seçeneği etkinleştirmek, uygulama listesi için kullanıcı modu taramasını kullanarak kararlılığı artıracaktır. (Uygulama listesinin çekirdek tarafından taranması sırasında donma gibi sorunlar yaşıyorsanız, bu seçeneği etkinleştirmeyi deneyebilirsiniz.)</string>
+    <string name="uid_multi_user_scan_title">Çok Kullanıcılı Uygulama Taraması</string>
+    <string name="uid_multi_user_scan_summary">Etkinleştirildiğinde, iş profilleri de dahil olmak üzere tüm kullanıcıların uygulamalarını tarar.</string>
+    <string name="uid_scanner_setting_failed">Ayar başarısız oldu, lütfen izinleri kontrol edin</string>
+    <string name="uid_scanner_setting_error">Ayar başarısız oldu: %s</string>
+    <string name="clean_runtime_environment">Çalışma Zamanı Ortamını Temizle</string>
+    <string name="clean_runtime_environment_summary">Çalışma zamanı dosyalarını temizleyin ve tarayıcı hizmetini durdurun</string>
+    <string name="clean_runtime_environment_confirm">Çalışma zamanı ortamını temizlemek istediğinizden emin misiniz? Bu işlem tarayıcı hizmetini durduracak ve ilgili dosyaları kaldıracaktır.</string>
+    <string name="clean_runtime_environment_success">Çalışma zamanı ortamı başarıyla temizlendi</string>
+    <string name="clean_runtime_environment_failed">Çalışma zamanı ortamı temizlenemedi</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">Kurulumu Onayla</string>
+    <string name="confirm_multiple_installation">Kurulumu Onayla (%d dosya)</string>
+    <string name="install_confirm">Yükle</string>
+    <string name="module_package">Modül</string>
+    <string name="kernel_package">Kernel</string>
+    <string name="unknown_package">Bilinmiyor</string>
+    <string name="unknown_kernel">Bilinmeyen Kernel</string>
+    <string name="unknown_file">Bilinmeyen Dosya</string>
+    <string name="version">Sürüm</string>
+    <string name="author">Geliştirici</string>
+    <string name="description">Açıklama</string>
+    <string name="supported_devices">Desteklenen Cihazlar</string>
 </resources>
