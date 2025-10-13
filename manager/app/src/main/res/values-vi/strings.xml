@@ -558,6 +558,8 @@
     <string name="add_custom_path">Khác</string>
     <string name="add_app_path">Ứng dụng</string>
     <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
+    <string name="susfs_version_mismatch">Phiên bản thư viện SuSFS không khớp (Kernel: %1$s &amp; Trình quản lý: %2$s). Nên cập nhật Kernel hoặc Trình quản lý</string>
+    <string name="warning">Cảnh báo</string>
     <string name="search_apps">Tìm kiếm ứng dụng</string>
     <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
     <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
