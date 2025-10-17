@@ -602,6 +602,14 @@
     <string name="sus_loop_path_feature_label">Jalur Loop SUS</string>
     <string name="sus_loop_paths_description_title">Konfigurasi Jalur Loop</string>
     <string name="sus_loop_paths_description_text">Jalur loop ditandai ulang sebagai SUS_PATH pada setiap startup aplikasi pengguna non-root atau layanan terisolasi. Ini membantu mengatasi masalah di mana jalur yang ditambahkan mungkin memiliki status inode direset atau inode dibuat ulang di kernel.</string>
+    <string name="avc_log_spoofing">Palsukan log AVC</string>
+    <string name="avc_log_spoofing_enabled">Palsukan log AVC telah diaktifkan</string>
+    <string name="avc_log_spoofing_disabled">Palsukan log AVC telah dinonaktifkan</string>
+    <string name="avc_log_spoofing_description">Dinonaktifkan: Nonaktifkan pemalsuan sus tcontext dari \'su\' yang ditampilkan di avc log di kernel\n
+Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'kernel\' yang ditampilkan di avc log in kernel</string>
+    <string name="avc_log_spoofing_warning">Catatan Penting:\n
+- Secara default pada kernel nilai ini disetel ke \'0\'\n
+- Mengaktifkan ini terkadang membuat pengembang lebih sulit mengidentifikasi penyebab saat melakukan debugging terkait izin atau masalah SELinux, sehingga disarankan agar pengguna menonaktifkannya saat sedang melakukan debugging</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Tervalidasi</string>
     <string name="module_signature_verified">Tanda tangan modul tervalidasi</string>
@@ -610,4 +618,32 @@
     <string name="module_signature_invalid">Penerbit tidak dikenal</string>
     <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
     <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>
+    <string name="home_hook_type">Jenis hook</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Patch KPM</string>
+    <string name="kpm_patch_description">Untuk menambahkan fitur KPM tambahan</string>
+    <string name="enable_kpm_patch">Patch KPM</string>
+    <string name="kpm_patch_switch_description">Terapkan patch KPM ke image kernel sebelum melakukan flashing</string>
+    <string name="kpm_undo_patch_switch_description">Batalkan patch KPM yang telah diterapkan sebelumnya</string>
+    <string name="kpm_patch_enabled">Patch KPM aktif</string>
+    <string name="kpm_patch_mode">Mode Patch KPM</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Sedang menyiapkan Alat KPM</string>
+    <string name="kpm_applying_patch">Menerapkan patch KPM</string>
+    <string name="kpm_undoing_patch">Membatalkan patch KPM</string>
+    <string name="kpm_found_image_file">Menemukan berkas Image: %s</string>
+    <string name="kpm_patch_success">KPM berhasil diterapkan</string>
+    <string name="kpm_undo_patch_success">Patch KPM berhasil dibatalkan</string>
+    <string name="kpm_file_repacked">File berhasil direpack</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Gagal mengekstrak berkas zip</string>
+    <string name="kpm_image_file_not_found">Berkas Image tidak ditemukan</string>
+    <string name="kpm_patch_failed">Patch KPM gagal</string>
+    <string name="kpm_undo_patch_failed">Pembatalan patch KPM gagal</string>
+    <string name="kpm_patch_operation_failed">Operasi patch KPM gagal: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Ikuti kernel</string>
+    <string name="kpm_follow_kernel_description">Gunakan kernel apa adanya tanpa perubahan dari KPM</string>
+    <!-- UID Scanner Settings -->
+    <!-- 确认安装相关字符串 -->
 </resources>
