@@ -557,6 +557,8 @@
     <string name="add_custom_path">Khác</string>
     <string name="add_app_path">Ứng dụng</string>
     <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
+    <string name="susfs_version_mismatch">Phiên bản thư viện SuSFS không khớp (Kernel: %1$s &amp; Trình quản lý: %2$s). Nên cập nhật Kernel hoặc Trình quản lý</string>
+    <string name="warning">Cảnh báo</string>
     <string name="search_apps">Tìm kiếm ứng dụng</string>
     <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
     <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
@@ -670,4 +672,21 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="author">Tác giả</string>
     <string name="description">Mô tả</string>
     <string name="supported_devices">Thiết bị được hỗ trợ</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SuS Maps</string>
+    <string name="susfs_sus_map_label">Đường dẫn thư viện</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">Thêm SuS Map</string>
+    <string name="susfs_edit_sus_map">Chỉnh sửa SuS Map</string>
+    <string name="susfs_sus_map_added_success">Đã thêm SuS Map thành công: %1$s</string>
+    <string name="susfs_sus_map_removed">Đã xoá SuS Map: %1$s</string>
+    <string name="susfs_sus_map_updated">Đã cập nhật SuS Map: %1$s → %2$s</string>
+    <string name="susfs_no_sus_maps_configured">Không có SuS Map nào được cấu hình</string>
+    <string name="susfs_reset_sus_maps_title">Đặt lại SuS Map</string>
+    <string name="susfs_reset_sus_maps_message">Thao tác này sẽ xóa tất cả các SuS Map đã cấu hình. Không thể hoàn tác thao tác này</string>
+    <string name="sus_maps_section">Ẩn Bộ nhớ Map</string>
+    <string name="sus_maps_description_title">Ẩn tệp mmapp khỏi các map khác nhau trong /proc/self/</string>
+    <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
+    <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
+    <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
 </resources>
