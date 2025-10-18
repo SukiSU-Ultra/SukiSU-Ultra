@@ -105,26 +105,24 @@ class MoreSettingsHandlers(
             else -> null
         }
         context.saveThemeMode(newThemeMode)
+        ThemeConfig.updateTheme(darkMode = newThemeMode)
 
         when (index) {
             2 -> { // 深色
-                ThemeConfig.forceDarkMode = true
-                CardConfig.isUserDarkModeEnabled = true
-                CardConfig.isUserLightModeEnabled = false
+                ThemeConfig.updateTheme(darkMode = true)
+                CardConfig.updateThemePreference(darkMode = true, lightMode = false)
                 CardConfig.setThemeDefaults(true)
                 CardConfig.save(context)
             }
             1 -> { // 浅色
-                ThemeConfig.forceDarkMode = false
-                CardConfig.isUserLightModeEnabled = true
-                CardConfig.isUserDarkModeEnabled = false
+                ThemeConfig.updateTheme(darkMode = false)
+                CardConfig.updateThemePreference(darkMode = false, lightMode = true)
                 CardConfig.setThemeDefaults(false)
                 CardConfig.save(context)
             }
             0 -> { // 跟随系统
-                ThemeConfig.forceDarkMode = null
-                CardConfig.isUserLightModeEnabled = false
-                CardConfig.isUserDarkModeEnabled = false
+                ThemeConfig.updateTheme(darkMode = null)
+                CardConfig.updateThemePreference(darkMode = null, lightMode = null)
                 val isNightModeActive = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 CardConfig.setThemeDefaults(isNightModeActive)
                 CardConfig.save(context)
@@ -145,6 +143,7 @@ class MoreSettingsHandlers(
             ThemeColors.Yellow -> "yellow"
             else -> "default"
         })
+        ThemeConfig.updateTheme(theme = theme)
     }
 
     /**
@@ -153,6 +152,7 @@ class MoreSettingsHandlers(
     fun handleDynamicColorChange(enabled: Boolean) {
         state.useDynamicColor = enabled
         context.saveDynamicColorState(enabled)
+        ThemeConfig.updateTheme(dynamicColor = enabled)
     }
 
     /**
@@ -222,8 +222,6 @@ class MoreSettingsHandlers(
         CardConfig.isCustomDimSet = false
         CardConfig.isCustomBackgroundEnabled = false
         saveCardConfig(context)
-
-        ThemeConfig.needsResetOnThemeChange = true
         ThemeConfig.preventBackgroundRefresh = false
 
         context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE).edit {
