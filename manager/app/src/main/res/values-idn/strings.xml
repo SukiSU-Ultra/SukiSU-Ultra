@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Beranda</string>
     <string name="home_not_installed">Tidak Terpasang</string>
     <string name="home_click_to_install">Klik untuk Memasang</string>
@@ -52,7 +51,7 @@
     <string name="home_support_title">Dukung Kami</string>
     <string name="home_support_content">KernelSU bersifat gratis dan open source, sekarang dan selamanya. Namun, Anda dapat menunjukkan dukungan Anda dengan melakukan donasi.</string>
     <string name="about_source_code"><![CDATA[Lihat kode sumber di %1$s<br/>Gabung ke saluran %2$s kami]]></string>
-    <string name="profile" translatable="false">Profil Aplikasi</string>
+    <string name="profile">Profil Aplikasi</string>
     <string name="profile_default">Bawaan</string>
     <string name="profile_template">Templat</string>
     <string name="profile_custom">Khusus</string>

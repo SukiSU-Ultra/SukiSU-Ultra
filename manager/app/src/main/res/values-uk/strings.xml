@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Головна</string>
     <string name="home_not_installed">Не встановлено</string>
     <string name="home_click_to_install">Натисніть, щоб встановити</string>
@@ -52,7 +51,7 @@
     <string name="home_support_title">Підтримати нас</string>
     <string name="home_support_content">KernelSU є, і завжди буде, безкоштовним та з відкритим вихідним кодом. Однак ви можете показати нам свою підтримку, зробивши пожертву.</string>
     <string name="about_source_code"><![CDATA[Переглянути вихідний код на %1$s<br/>Приєднуйтесь до нашого каналу %2$s]]></string>
-    <string name="profile" translatable="false">Профіль додатку</string>
+    <string name="profile">Профіль додатку</string>
     <string name="profile_default">За замовчуванням</string>
     <string name="profile_template">Шаблон</string>
     <string name="profile_custom">Власний</string>
