@@ -21,7 +21,7 @@ use crate::{
     defs::{DISABLE_FILE_NAME, KSU_MOUNT_SOURCE, MODULE_DIR, SKIP_MOUNT_FILE_NAME},
     magic_mount::NodeFileType::{Directory, RegularFile, Symlink, Whiteout},
     restorecon::{lgetfilecon, lsetfilecon},
-    utils::{ensure_dir_exists, get_work_dir},
+    utils::ensure_dir_exists,
 };
 
 const REPLACE_DIR_XATTR: &str = "trusted.overlay.opaque";
@@ -435,10 +435,10 @@ fn do_magic_mount<P: AsRef<Path>, WP: AsRef<Path>>(
     Ok(())
 }
 
-pub fn magic_mount() -> Result<()> {
+pub fn magic_mount(tmp_path: &String) -> Result<()> {
     if let Some(root) = collect_module_files()? {
         log::debug!("collected: {:#?}", root);
-        let tmp_dir = PathBuf::from(get_work_dir());
+        let tmp_dir = Path::new(tmp_path).join("workdir");
         ensure_dir_exists(&tmp_dir)?;
         mount(KSU_MOUNT_SOURCE, &tmp_dir, "tmpfs", MountFlags::empty(), "").context("mount tmp")?;
         mount_change(&tmp_dir, MountPropagationFlags::PRIVATE).context("make tmp private")?;

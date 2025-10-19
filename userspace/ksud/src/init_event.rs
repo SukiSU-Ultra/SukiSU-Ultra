@@ -2,15 +2,26 @@
 use crate::kpm;
 use crate::{
     assets, defs,
-    defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH},
+    defs::NO_MOUNT_PATH,
     ksucalls,
     module::{handle_updated_modules, prune_modules},
     restorecon, uid_scanner, utils,
+    utils::find_tmp_path,
 };
 use anyhow::{Context, Result};
 use log::{info, warn};
-use rustix::fs::{MountFlags, mount};
+use rustix::mount::{MountFlags, mount};
 use std::path::Path;
+
+#[cfg(target_os = "android")]
+pub fn mount_modules_systemlessly() -> Result<()> {
+    crate::magic_mount::magic_mount(&find_tmp_path())
+}
+
+#[cfg(not(target_os = "android"))]
+pub fn mount_modules_systemlessly() -> Result<()> {
+    Ok(())
+}
 
 pub fn on_post_data_fs() -> Result<()> {
     ksucalls::report_post_fs_data();
@@ -86,21 +97,6 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("KPM: Failed to load KPM modules: {}", e);
     }
 
-    // mount temp dir
-    if !Path::new(NO_TMPFS_PATH).exists() {
-        if let Err(e) = mount(
-            KSU_MOUNT_SOURCE,
-            utils::get_tmp_path(),
-            "tmpfs",
-            MountFlags::empty(),
-            "",
-        ) {
-            warn!("do temp dir mount failed: {}", e);
-        }
-    } else {
-        info!("no tmpfs requested");
-    }
-
     // exec modules post-fs-data scripts
     // TODO: Add timeout
     if let Err(e) = crate::module::exec_stage_script("post-fs-data", true) {
@@ -112,10 +108,12 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("load system.prop failed: {e}");
     }
 
+    let tmpfs_path = find_tmp_path();
     // mount module systemlessly by magic mount
+    #[cfg(target_os = "android")]
     if !Path::new(NO_MOUNT_PATH).exists() {
-        if let Err(e) = mount_modules_systemlessly() {
-            warn!("do systemless mount failed: {}", e);
+        if let Err(e) = crate::magic_mount::magic_mount(&tmpfs_path) {
+            warn!("do systemless mount failed: {e}");
         }
     } else {
         info!("no mount requested");
@@ -143,16 +141,6 @@ pub fn on_post_data_fs() -> Result<()> {
 
     run_stage("post-mount", true);
 
-    Ok(())
-}
-
-#[cfg(target_os = "android")]
-pub fn mount_modules_systemlessly() -> Result<()> {
-    crate::magic_mount::magic_mount()
-}
-
-#[cfg(not(target_os = "android"))]
-pub fn mount_modules_systemlessly() -> Result<()> {
     Ok(())
 }
 
