@@ -44,7 +44,7 @@ Generally need to modify the `do_execve` and `compat_do_execve` methods in `fs/e
  		.ptr.compat = __envp,
  	};
 +#if defined(CONFIG_KSU) && defined(CONFIG_KSU_TRACEPOINT_HOOK)
-+    trace_ksu_trace_execveat_hook((int *)AT_FDCWD, &filename, &argv, &envp, 0)); // 32-bit su and 32-on-64 support
++    trace_ksu_trace_execveat_hook((int *)AT_FDCWD, &filename, &argv, &envp, 0); // 32-bit su and 32-on-64 support
 +#endif
  	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
  }
