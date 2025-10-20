@@ -365,7 +365,7 @@
     <string name="susfs_reset_to_default">Reset về Default</string>
     <string name="susfs_apply">Áp dụng</string>
     <!-- SuSFS Reset Confirmation -->
-    <string name="susfs_reset_confirm_title">Xác nhận khôi phục</string>
+    <string name="susfs_reset_confirm_title">Xác nhận Đặt lại</string>
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">Không tìm thấy file ksu_susfs</string>
     <string name="susfs_command_failed">Thực thi lệnh SuSFS thất bại</string>
@@ -411,11 +411,11 @@
     <string name="susfs_try_umount_added_saved">Đường dẫn Try Umount đã lưu thành công: %s</string>
     <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
-    <string name="susfs_reset_paths_title">Khôi phục Đường dẫn SuS</string>
+    <string name="susfs_reset_paths_title">Đặt lại Đường dẫn SuS</string>
     <string name="susfs_reset_paths_message">Thao tác này sẽ xóa tất cả các cấu hình Đường dẫn SuS. Bạn có chắc chắn muốn tiếp tục không?</string>
-    <string name="susfs_reset_mounts_title">Khôi phục SuS Mount</string>
+    <string name="susfs_reset_mounts_title">Đặt lại SuS Mount</string>
     <string name="susfs_reset_mounts_message">Thao tác này sẽ xóa tất cả các cấu hình SuS Mount. Bạn có chắc chắn muốn tiếp tục không?</string>
-    <string name="susfs_reset_umounts_title">Khôi phục Try Umount</string>
+    <string name="susfs_reset_umounts_title">Đặt lại Try Umount</string>
     <string name="susfs_reset_umounts_message">Thao tác này sẽ xóa tất cả các cấu hình Try Umount. Bạn có chắc chắn muốn tiếp tục không?</string>
     <string name="susfs_reset_path_title">Reset Cài đặt Đường dẫn</string>
     <!-- SuSFS Path Settings -->
@@ -485,7 +485,7 @@
     <string name="hint_use_default_value">Gợi ý: Bạn có thể sử dụng \"default\" để thiết lập giá trị ban đầu</string>
     <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
     <string name="add">Thêm</string>
-    <string name="reset_kstat_config_title">Khôi phục Cấu hình Kstat</string>
+    <string name="reset_kstat_config_title">Đặt lại Cấu hình Kstat</string>
     <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này</string>
     <string name="kstat_config_description_title">Mô tả cấu hình Kstat</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Thông tin thống kê cấu hình tĩnh của các File/Folder</string>
@@ -557,6 +557,8 @@
     <string name="add_custom_path">Khác</string>
     <string name="add_app_path">Ứng dụng</string>
     <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
+    <string name="susfs_version_mismatch">Phiên bản thư viện SuSFS không khớp (Kernel: %1$s &amp; Trình quản lý: %2$s). Nên cập nhật Kernel hoặc Trình quản lý</string>
+    <string name="warning">Cảnh báo</string>
     <string name="search_apps">Tìm kiếm ứng dụng</string>
     <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
     <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
@@ -586,9 +588,9 @@
     <string name="susfs_edit_sus_loop_path">Chỉnh sửa Đường dẫn Vòng lặp SuS</string>
     <string name="susfs_loop_path_added_success">Đường dẫn Vòng lặp SuS đã thêm thành công: %1$s</string>
     <string name="susfs_loop_path_removed">Đã xoá Đường dẫn Vòng lặp SuS: %1$s</string>
-    <string name="susfs_loop_path_updated">Đã cập nhật Đường dẫn Vòng lặp SuS: %1$s -&gt; %2$s</string>
+    <string name="susfs_loop_path_updated">Đã cập nhật Đường dẫn Vòng lặp SuS: %1$s → %2$s</string>
     <string name="susfs_no_loop_paths_configured">Không có Đường dẫn Vòng lặp SuS nào được cấu hình</string>
-    <string name="susfs_reset_loop_paths_title">Khôi phục Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_reset_loop_paths_title">Đặt lại Đường dẫn Vòng lặp SuS</string>
     <string name="susfs_reset_loop_paths_message">Bạn có chắc chắn muốn xóa tất cả các Đường dẫn Vòng lặp SuS không? Thao tác này không thể hoàn tác</string>
     <string name="susfs_loop_path_label">Đường dẫn Vòng lặp</string>
     <string name="susfs_loop_path_placeholder">/data/example/path</string>
@@ -670,4 +672,21 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="author">Tác giả</string>
     <string name="description">Mô tả</string>
     <string name="supported_devices">Thiết bị được hỗ trợ</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SuS Maps</string>
+    <string name="susfs_sus_map_label">Đường dẫn thư viện</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">Thêm SuS Map</string>
+    <string name="susfs_edit_sus_map">Chỉnh sửa SuS Map</string>
+    <string name="susfs_sus_map_added_success">Đã thêm SuS Map thành công: %1$s</string>
+    <string name="susfs_sus_map_removed">Đã xoá SuS Map: %1$s</string>
+    <string name="susfs_sus_map_updated">Đã cập nhật SuS Map: %1$s → %2$s</string>
+    <string name="susfs_no_sus_maps_configured">Không có SuS Map nào được cấu hình</string>
+    <string name="susfs_reset_sus_maps_title">Đặt lại SuS Map</string>
+    <string name="susfs_reset_sus_maps_message">Thao tác này sẽ xóa tất cả các SuS Map đã cấu hình. Không thể hoàn tác thao tác này</string>
+    <string name="sus_maps_section">Ẩn Bộ nhớ Map</string>
+    <string name="sus_maps_description_title">Ẩn tệp mmapp khỏi các map khác nhau trong /proc/self/</string>
+    <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
+    <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
+    <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
 </resources>
