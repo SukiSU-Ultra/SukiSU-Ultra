@@ -656,4 +656,34 @@
     <string name="clean_runtime_environment_confirm">您確定要清理執行環境嗎？這將停止掃描服務並刪除相關檔案</string>
     <string name="clean_runtime_environment_success">執行環境清理成功</string>
     <string name="clean_runtime_environment_failed">執行環境清理失敗</string>
+    <!-- 確認安裝相關字串 -->
+    <string name="confirm_installation">確認安裝</string>
+    <string name="confirm_multiple_installation">確認安裝 (%d 個檔案)</string>
+    <string name="install_confirm">確認安裝</string>
+    <string name="module_package">模組</string>
+    <string name="kernel_package">核心</string>
+    <string name="unknown_package">未知型別</string>
+    <string name="unknown_kernel">未知內核</string>
+    <string name="unknown_file">未知檔案</string>
+    <string name="version">版本</string>
+    <string name="author">作者</string>
+    <string name="description">描述</string>
+    <string name="supported_devices">支援的裝置</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SUS 映射</string>
+    <string name="susfs_sus_map_label">庫檔案路徑</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">新增 SUS 映射</string>
+    <string name="susfs_edit_sus_map">編輯 SUS 映射</string>
+    <string name="susfs_sus_map_added_success">SUS 映射新增成功: %1$s</string>
+    <string name="susfs_sus_map_removed">SUS 映射已移除: %1$s</string>
+    <string name="susfs_sus_map_updated">SUS 映射已更新: %1$s -> %2$s</string>
+    <string name="susfs_no_sus_maps_configured">未設定 SUS 映射</string>
+    <string name="susfs_reset_sus_maps_title">重設 SUS 映射</string>
+    <string name="susfs_reset_sus_maps_message">這將移除所有已設定的 SUS 映射。此操作無法復原。</string>
+    <string name="sus_maps_section">記憶體映射隱藏</string>
+    <string name="sus_maps_description_title">隱藏 /proc/self/ 中各種映射裡的 mmap 真實檔案</string>
+    <string name="sus_maps_description_text">從 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隱藏記憶體映射的真實檔案路徑。請注意：此功能不支援隱藏匿名記憶體映射，也無法隱藏由注入庫本身產生的內聯勾子 (Inline Hooks) 或 PLT 勾子 (PLT Hooks)。</string>
+    <string name="sus_maps_warning">重要提示：對於具備完善注入偵測機制的應用程式，此功能可能無法有效繞過偵測。</string>
+    <string name="sus_maps_debug_info">首先透過 ps -enf 尋找目標應用程式的 PID 和 UID，然後檢查 /proc/&lt;pid&gt;/maps 中的相關路徑，並與 /proc/1/mountinfo 中的裝置號碼進行比對以確保一致性。只有當裝置號碼一致時，隱藏映射才能正常運作。</string>
 </resources>
