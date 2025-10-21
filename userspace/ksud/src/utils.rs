@@ -184,15 +184,17 @@ fn is_ok_empty(dir: &str) -> bool {
 }
 
 pub fn find_tmp_path() -> String {
-    let dirs = ["/debug_ramdisk", "/patch_hw", "/oem", "/root", "/sbin"];
-
-    // find empty directory
-    for dir in dirs {
-        if is_ok_empty(dir) {
-            return dir.to_string();
-        }
+    let magic_mount = "/data/adb/ksu/magic";
+    if let Err(e) = std::fs::create_dir_all(magic_mount) {
+        log::error!("Failed to create magic_mount dir {}: {}", magic_mount, e);
     }
-    "".to_string()
+
+    let perm = std::fs::Permissions::from_mode(0o777);
+    if let Err(e) = std::fs::set_permissions(magic_mount, perm) {
+        log::error!("Failed to set 777 on {}: {}", magic_mount, e);
+    }
+
+    magic_mount.to_string()
 }
 
 #[cfg(target_os = "android")]
