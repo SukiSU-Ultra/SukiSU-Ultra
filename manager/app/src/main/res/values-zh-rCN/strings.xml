@@ -312,9 +312,8 @@
     <string name="dpi_confirm_summary">应用需要重启以应用新的 DPI 设置，不会影响系统状态栏或其他应用</string>
     <string name="dpi_applied_success">DPI 已设置为 %1$d，重启应用后生效</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">应用语言</string>
-    <string name="language_follow_system">跟随系统</string>
-    <string name="language_changed">语言已更改，重启应用以应用更改</string>
+    <string name="settings_language">应用语言</string>
+    <string name="language_system_default">跟随系统</string>
     <string name="settings_card_dim">卡片暗度调节</string>
     <!-- Flash related -->
     <string name="error_code">错误代码</string>
@@ -441,7 +440,6 @@
     <string name="auto_bind_mount_feature_label">自动绑定挂载</string>
     <string name="auto_try_umount_bind_feature_label">自动尝试卸载绑定挂载</string>
     <string name="hide_symbols_feature_label">隐藏 KSU SuSFS 符号</string>
-    <string name="magic_mount_feature_label">魔法坐骑支持</string>
     <string name="sus_kstat_feature_label">SuS Kstat 支持</string>
     <string name="sus_su_feature_label">SuS SU 模式切换功能</string>
     <!-- 可切换状态 -->
@@ -559,6 +557,8 @@
     <string name="add_custom_path">其他</string>
     <string name="add_app_path">应用</string>
     <string name="susfs_add_app_path">添加应用路径</string>
+    <string name="susfs_version_mismatch">SuSFS 库版本不匹配，内核：%1$s vs 管理器：%2$s，建议更新内核或管理器</string>
+    <string name="warning">警告</string>
     <string name="search_apps">搜索应用</string>
     <string name="selected_apps_count">%1$d 个已选应用</string>
     <string name="already_added_apps_count">%1$d 个已添加应用</string>
@@ -670,4 +670,21 @@
     <string name="author">作者</string>
     <string name="description">描述</string>
     <string name="supported_devices">支持设备</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SUS映射</string>
+    <string name="susfs_sus_map_label">库文件路径</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">添加SUS映射</string>
+    <string name="susfs_edit_sus_map">编辑SUS映射</string>
+    <string name="susfs_sus_map_added_success">SUS映射添加成功: %1$s</string>
+    <string name="susfs_sus_map_removed">SUS映射已移除: %1$s</string>
+    <string name="susfs_sus_map_updated">SUS映射已更新: %1$s -> %2$s</string>
+    <string name="susfs_no_sus_maps_configured">未配置SUS映射</string>
+    <string name="susfs_reset_sus_maps_title">重置SUS映射</string>
+    <string name="susfs_reset_sus_maps_message">这将移除所有已配置的SUS映射。此操作无法撤销。</string>
+    <string name="sus_maps_section">内存映射隐藏</string>
+    <string name="sus_maps_description_title">隐藏/proc/self/中各种映射中的mmap真实文件</string>
+    <string name="sus_maps_description_text">从 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隐藏内存映射的真实文件路径。请注意：此功能不支持隐藏匿名内存映射，也无法隐藏由注入库本身产生的内联钩子或 PLT 钩子。</string>
+    <string name="sus_maps_warning">重要提示：对于具备完善注入检测机制的应用，此功能可能无法有效绕过检测。</string>
+    <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
 </resources>

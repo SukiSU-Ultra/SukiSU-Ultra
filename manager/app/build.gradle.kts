@@ -51,6 +51,7 @@ android {
     }
 
     buildFeatures {
+        aidl = true
         buildConfig = true
         compose = true
         prefab = true

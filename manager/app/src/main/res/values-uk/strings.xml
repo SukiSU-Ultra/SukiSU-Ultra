@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Головна</string>
     <string name="home_not_installed">Не встановлено</string>
     <string name="home_click_to_install">Натисніть, щоб встановити</string>
@@ -52,7 +51,7 @@
     <string name="home_support_title">Підтримати нас</string>
     <string name="home_support_content">KernelSU є, і завжди буде, безкоштовним та з відкритим вихідним кодом. Однак ви можете показати нам свою підтримку, зробивши пожертву.</string>
     <string name="about_source_code"><![CDATA[Переглянути вихідний код на %1$s<br/>Приєднуйтесь до нашого каналу %2$s]]></string>
-    <string name="profile" translatable="false">Профіль додатку</string>
+    <string name="profile">Профіль додатку</string>
     <string name="profile_default">За замовчуванням</string>
     <string name="profile_template">Шаблон</string>
     <string name="profile_custom">Власний</string>
@@ -312,9 +311,8 @@
     <string name="dpi_confirm_summary">Додаток потрібно перезапустити, щоб застосувати нові налаштування DPI; це не вплине на системний рядок стану або інші додатки</string>
     <string name="dpi_applied_success">DPI встановлено на %1$d, набуде чинності після перезапуску додатку</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">Мова додатку</string>
-    <string name="language_follow_system">Як у системі</string>
-    <string name="language_changed">Мову змінено, перезапуск для застосування змін</string>
+    <string name="settings_language">Мова додатку</string>
+    <string name="language_system_default">Як у системі</string>
     <string name="settings_card_dim">Налаштування затемнення карток</string>
     <!-- Flash related -->
     <string name="error_code">код помилки</string>
@@ -441,7 +439,6 @@
     <string name="auto_bind_mount_feature_label">Автоматичне прив\'язане монтування</string>
     <string name="auto_try_umount_bind_feature_label">Автоматична спроба відмонтування прив\'язаного монтування</string>
     <string name="hide_symbols_feature_label">Приховати символи KSU SUSFS</string>
-    <string name="magic_mount_feature_label">Підтримка Magic Mount</string>
     <string name="sus_kstat_feature_label">Підтримка SUS Kstat</string>
     <string name="sus_su_feature_label">Функція перемикання режиму SUS SU</string>
     <!-- 可切换状态 -->

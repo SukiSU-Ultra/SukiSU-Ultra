@@ -310,37 +310,6 @@ NativeBridgeNP(getHookType, jstring) {
     return GetEnvironment()->NewStringUTF(env, hook_type);
 }
 
-// SuSFS Related Function Status
-NativeBridgeNP(getSusfsFeatureStatus, jobject) {
-    struct susfs_feature_status status;
-    bool result = get_susfs_feature_status(&status);
-
-    if (!result) {
-        return NULL;
-    }
-
-    jclass cls = GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$SusfsFeatureStatus");
-    jmethodID constructor = GetEnvironment()->GetMethodID(env, cls, "<init>", "()V");
-    jobject obj = GetEnvironment()->NewObject(env, cls, constructor);
-
-    SET_BOOLEAN_FIELD(obj, cls, statusSusPath, status.status_sus_path);
-    SET_BOOLEAN_FIELD(obj, cls, statusSusMount, status.status_sus_mount);
-    SET_BOOLEAN_FIELD(obj, cls, statusAutoDefaultMount, status.status_auto_default_mount);
-    SET_BOOLEAN_FIELD(obj, cls, statusAutoBindMount, status.status_auto_bind_mount);
-    SET_BOOLEAN_FIELD(obj, cls, statusSusKstat, status.status_sus_kstat);
-    SET_BOOLEAN_FIELD(obj, cls, statusTryUmount, status.status_try_umount);
-    SET_BOOLEAN_FIELD(obj, cls, statusAutoTryUmountBind, status.status_auto_try_umount_bind);
-    SET_BOOLEAN_FIELD(obj, cls, statusSpoofUname, status.status_spoof_uname);
-    SET_BOOLEAN_FIELD(obj, cls, statusEnableLog, status.status_enable_log);
-    SET_BOOLEAN_FIELD(obj, cls, statusHideSymbols, status.status_hide_symbols);
-    SET_BOOLEAN_FIELD(obj, cls, statusSpoofCmdline, status.status_spoof_cmdline);
-    SET_BOOLEAN_FIELD(obj, cls, statusOpenRedirect, status.status_open_redirect);
-    SET_BOOLEAN_FIELD(obj, cls, statusMagicMount, status.status_magic_mount);
-    SET_BOOLEAN_FIELD(obj, cls, statusSusSu, status.status_sus_su);
-
-    return obj;
-}
-
 // dynamic manager
 NativeBridge(setDynamicManager, jboolean, jint size, jstring hash) {
     if (!hash) {

@@ -26,22 +26,13 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.susfs.component.AddAppPathDialog
-import com.sukisu.ultra.ui.susfs.component.AddKstatStaticallyDialog
-import com.sukisu.ultra.ui.susfs.component.AddPathDialog
-import com.sukisu.ultra.ui.susfs.component.AddTryUmountDialog
-import com.sukisu.ultra.ui.susfs.component.ConfirmDialog
-import com.sukisu.ultra.ui.susfs.component.EnabledFeaturesContent
-import com.sukisu.ultra.ui.susfs.component.KstatConfigContent
-import com.sukisu.ultra.ui.susfs.component.PathSettingsContent
-import com.sukisu.ultra.ui.susfs.component.SusLoopPathsContent
-import com.sukisu.ultra.ui.susfs.component.SusMountsContent
-import com.sukisu.ultra.ui.susfs.component.SusPathsContent
-import com.sukisu.ultra.ui.susfs.component.TryUmountContent
+import com.sukisu.ultra.ui.susfs.component.*
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.susfs.util.SuSFSManager.isSusVersion158
 import com.sukisu.ultra.ui.susfs.util.SuSFSManager.isSusVersion159
+import com.sukisu.ultra.ui.susfs.util.SuSFSManager.isSusVersion1512
+import com.sukisu.ultra.ui.util.getSuSFSVersion
 import com.sukisu.ultra.ui.util.isAbDevice
 import kotlinx.coroutines.launch
 import java.io.File
@@ -55,6 +46,7 @@ enum class SuSFSTab(val displayNameRes: Int) {
     BASIC_SETTINGS(R.string.susfs_tab_basic_settings),
     SUS_PATHS(R.string.susfs_tab_sus_paths),
     SUS_LOOP_PATHS(R.string.susfs_tab_sus_loop_paths),
+    SUS_MAPS(R.string.susfs_tab_sus_maps),
     SUS_MOUNTS(R.string.susfs_tab_sus_mounts),
     TRY_UMOUNT(R.string.susfs_tab_try_umount),
     KSTAT_CONFIG(R.string.susfs_tab_kstat_config),
@@ -62,11 +54,12 @@ enum class SuSFSTab(val displayNameRes: Int) {
     ENABLED_FEATURES(R.string.susfs_tab_enabled_features);
 
     companion object {
-        fun getAllTabs(isSusVersion158: Boolean, isSusVersion159: Boolean): List<SuSFSTab> {
+        fun getAllTabs(isSusVersion158: Boolean, isSusVersion159: Boolean, isSusVersion1512: Boolean): List<SuSFSTab> {
             return when {
-                isSusVersion159 -> entries.toList()
-                isSusVersion158 -> entries.filter { it != SUS_LOOP_PATHS }
-                else -> entries.filter { it != PATH_SETTINGS && it != SUS_LOOP_PATHS }
+                isSusVersion1512 -> entries.toList()
+                isSusVersion159 -> entries.filter { it != SUS_MAPS}
+                isSusVersion158 -> entries.filter { it != SUS_LOOP_PATHS && it != SUS_MAPS }
+                else -> entries.filter { it != PATH_SETTINGS && it != SUS_LOOP_PATHS && it != SUS_MAPS }
             }
         }
     }
@@ -105,6 +98,7 @@ fun SuSFSConfigScreen(
     // 路径管理相关状态
     var susPaths by remember { mutableStateOf(emptySet<String>()) }
     var susLoopPaths by remember { mutableStateOf(emptySet<String>()) }
+    var susMaps by remember { mutableStateOf(emptySet<String>()) }
     var susMounts by remember { mutableStateOf(emptySet<String>()) }
     var tryUmounts by remember { mutableStateOf(emptySet<String>()) }
     var androidDataPath by remember { mutableStateOf("") }
@@ -129,6 +123,7 @@ fun SuSFSConfigScreen(
     // 对话框状态
     var showAddPathDialog by remember { mutableStateOf(false) }
     var showAddLoopPathDialog by remember { mutableStateOf(false) }
+    var showAddSusMapDialog by remember { mutableStateOf(false) }
     var showAddAppPathDialog by remember { mutableStateOf(false) }
     var showAddMountDialog by remember { mutableStateOf(false) }
     var showAddUmountDialog by remember { mutableStateOf(false) }
@@ -138,6 +133,7 @@ fun SuSFSConfigScreen(
     // 编辑状态
     var editingPath by remember { mutableStateOf<String?>(null) }
     var editingLoopPath by remember { mutableStateOf<String?>(null) }
+    var editingSusMap by remember { mutableStateOf<String?>(null) }
     var editingMount by remember { mutableStateOf<String?>(null) }
     var editingUmount by remember { mutableStateOf<String?>(null) }
     var editingKstatConfig by remember { mutableStateOf<String?>(null) }
@@ -146,6 +142,7 @@ fun SuSFSConfigScreen(
     // 重置确认对话框状态
     var showResetPathsDialog by remember { mutableStateOf(false) }
     var showResetLoopPathsDialog by remember { mutableStateOf(false) }
+    var showResetSusMapsDialog by remember { mutableStateOf(false) }
     var showResetMountsDialog by remember { mutableStateOf(false) }
     var showResetUmountsDialog by remember { mutableStateOf(false) }
     var showResetKstatDialog by remember { mutableStateOf(false) }
@@ -159,13 +156,45 @@ fun SuSFSConfigScreen(
 
     var isNavigating by remember { mutableStateOf(false) }
 
-    val allTabs = SuSFSTab.getAllTabs(isSusVersion158(), isSusVersion159())
+    val allTabs = SuSFSTab.getAllTabs(isSusVersion158(), isSusVersion159(), isSusVersion1512())
 
     // 实时判断是否可以启用开机自启动
     val canEnableAutoStart by remember {
         derivedStateOf {
             SuSFSManager.hasConfigurationForAutoStart(context)
         }
+    }
+
+    var showVersionMismatchDialog by remember { mutableStateOf(false) }
+
+    if (showVersionMismatchDialog) {
+        AlertDialog(
+            onDismissRequest = { showVersionMismatchDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.warning),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.susfs_version_mismatch,
+                        try { getSuSFSVersion() } catch (_: Exception) { "unknown" },
+                        SuSFSManager.MAX_SUSFS_VERSION
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showVersionMismatchDialog = false },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            }
+        )
     }
 
     // 文件选择器
@@ -253,25 +282,42 @@ fun SuSFSConfigScreen(
 
     // 加载当前配置
     LaunchedEffect(Unit) {
-        unameValue = SuSFSManager.getUnameValue(context)
-        buildTimeValue = SuSFSManager.getBuildTimeValue(context)
-        autoStartEnabled = SuSFSManager.isAutoStartEnabled(context)
-        executeInPostFsData = SuSFSManager.getExecuteInPostFsData(context)
-        susPaths = SuSFSManager.getSusPaths(context)
-        susLoopPaths = SuSFSManager.getSusLoopPaths(context)
-        susMounts = SuSFSManager.getSusMounts(context)
-        tryUmounts = SuSFSManager.getTryUmounts(context)
-        androidDataPath = SuSFSManager.getAndroidDataPath(context)
-        sdcardPath = SuSFSManager.getSdcardPath(context)
-        kstatConfigs = SuSFSManager.getKstatConfigs(context)
-        addKstatPaths = SuSFSManager.getAddKstatPaths(context)
-        hideSusMountsForAllProcs = SuSFSManager.getHideSusMountsForAllProcs(context)
-        enableHideBl = SuSFSManager.getEnableHideBl(context)
-        enableCleanupResidue = SuSFSManager.getEnableCleanupResidue(context)
-        umountForZygoteIsoService = SuSFSManager.getUmountForZygoteIsoService(context)
-        enableAvcLogSpoofing = SuSFSManager.getEnableAvcLogSpoofing(context)
+        coroutineScope.launch {
+            try {
+                val version = getSuSFSVersion()
+                val binaryName = "ksu_susfs_${version.removePrefix("v")}"
 
-        loadSlotInfo()
+                val isBinaryAvailable = try {
+                    context.assets.open(binaryName).use { true }
+                } catch (_: Exception) { false }
+
+                if (!isBinaryAvailable) {
+                    showVersionMismatchDialog = true
+                }
+            } catch (_: Exception) {
+            }
+
+            unameValue = SuSFSManager.getUnameValue(context)
+            buildTimeValue = SuSFSManager.getBuildTimeValue(context)
+            autoStartEnabled = SuSFSManager.isAutoStartEnabled(context)
+            executeInPostFsData = SuSFSManager.getExecuteInPostFsData(context)
+            susPaths = SuSFSManager.getSusPaths(context)
+            susLoopPaths = SuSFSManager.getSusLoopPaths(context)
+            susMaps = SuSFSManager.getSusMaps(context)
+            susMounts = SuSFSManager.getSusMounts(context)
+            tryUmounts = SuSFSManager.getTryUmounts(context)
+            androidDataPath = SuSFSManager.getAndroidDataPath(context)
+            sdcardPath = SuSFSManager.getSdcardPath(context)
+            kstatConfigs = SuSFSManager.getKstatConfigs(context)
+            addKstatPaths = SuSFSManager.getAddKstatPaths(context)
+            hideSusMountsForAllProcs = SuSFSManager.getHideSusMountsForAllProcs(context)
+            enableHideBl = SuSFSManager.getEnableHideBl(context)
+            enableCleanupResidue = SuSFSManager.getEnableCleanupResidue(context)
+            umountForZygoteIsoService = SuSFSManager.getUmountForZygoteIsoService(context)
+            enableAvcLogSpoofing = SuSFSManager.getEnableAvcLogSpoofing(context)
+
+            loadSlotInfo()
+        }
     }
 
     // 当切换到启用功能状态标签页时加载数据
@@ -430,6 +476,7 @@ fun SuSFSConfigScreen(
                                     executeInPostFsData = SuSFSManager.getExecuteInPostFsData(context)
                                     susPaths = SuSFSManager.getSusPaths(context)
                                     susLoopPaths = SuSFSManager.getSusLoopPaths(context)
+                                    susMaps = SuSFSManager.getSusMaps(context)
                                     susMounts = SuSFSManager.getSusMounts(context)
                                     tryUmounts = SuSFSManager.getTryUmounts(context)
                                     androidDataPath = SuSFSManager.getAndroidDataPath(context)
@@ -546,6 +593,35 @@ fun SuSFSConfigScreen(
         labelRes = R.string.susfs_loop_path_label,
         placeholderRes = R.string.susfs_loop_path_placeholder,
         initialValue = editingLoopPath ?: ""
+    )
+
+    AddPathDialog(
+        showDialog = showAddSusMapDialog,
+        onDismiss = {
+            showAddSusMapDialog = false
+            editingSusMap = null
+        },
+        onConfirm = { path ->
+            coroutineScope.launch {
+                isLoading = true
+                val success = if (editingSusMap != null) {
+                    SuSFSManager.editSusMap(context, editingSusMap!!, path)
+                } else {
+                    SuSFSManager.addSusMap(context, path)
+                }
+                if (success) {
+                    susMaps = SuSFSManager.getSusMaps(context)
+                }
+                isLoading = false
+                showAddSusMapDialog = false
+                editingSusMap = null
+            }
+        },
+        isLoading = isLoading,
+        titleRes = if (editingSusMap != null) R.string.susfs_edit_sus_map else R.string.susfs_add_sus_map,
+        labelRes = R.string.susfs_sus_map_label,
+        placeholderRes = R.string.susfs_sus_map_placeholder,
+        initialValue = editingSusMap ?: ""
     )
 
     AddAppPathDialog(
@@ -769,6 +845,27 @@ fun SuSFSConfigScreen(
     )
 
     ConfirmDialog(
+        showDialog = showResetSusMapsDialog,
+        onDismiss = { showResetSusMapsDialog = false },
+        onConfirm = {
+            coroutineScope.launch {
+                isLoading = true
+                SuSFSManager.saveSusMaps(context, emptySet())
+                susMaps = emptySet()
+                if (SuSFSManager.isAutoStartEnabled(context)) {
+                    SuSFSManager.configureAutoStart(context, true)
+                }
+                isLoading = false
+                showResetSusMapsDialog = false
+            }
+        },
+        titleRes = R.string.susfs_reset_sus_maps_title,
+        messageRes = R.string.susfs_reset_sus_maps_message,
+        isLoading = isLoading,
+        isDestructive = true
+    )
+
+    ConfirmDialog(
         showDialog = showResetMountsDialog,
         onDismiss = { showResetMountsDialog = false },
         onConfirm = {
@@ -982,6 +1079,28 @@ fun SuSFSConfigScreen(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     stringResource(R.string.susfs_reset_loop_paths_title),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+
+                        SuSFSTab.SUS_MAPS -> {
+                            OutlinedButton(
+                                onClick = { showResetSusMapsDialog = true },
+                                enabled = !isLoading && susMaps.isNotEmpty(),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.RestoreFromTrash,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    stringResource(R.string.susfs_reset_sus_maps_title),
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -1248,6 +1367,26 @@ fun SuSFSConfigScreen(
                             onEditLoopPath = { path ->
                                 editingLoopPath = path
                                 showAddLoopPathDialog = true
+                            }
+                        )
+                    }
+                    SuSFSTab.SUS_MAPS -> {
+                        SusMapsContent(
+                            susMaps = susMaps,
+                            isLoading = isLoading,
+                            onAddSusMap = { showAddSusMapDialog = true },
+                            onRemoveSusMap = { map ->
+                                coroutineScope.launch {
+                                    isLoading = true
+                                    if (SuSFSManager.removeSusMap(context, map)) {
+                                        susMaps = SuSFSManager.getSusMaps(context)
+                                    }
+                                    isLoading = false
+                                }
+                            },
+                            onEditSusMap = { map ->
+                                editingSusMap = map
+                                showAddSusMapDialog = true
                             }
                         )
                     }

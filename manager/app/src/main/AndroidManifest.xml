@@ -18,13 +18,17 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.KernelSU"
-        android:requestLegacyExternalStorage="true"
         tools:targetApi="34">
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
+            android:enabled="true"
+            android:launchMode="standard"
+            android:documentLaunchMode="intoExisting"
+            android:autoRemoveFromRecents="true"
             android:theme="@style/Theme.KernelSU">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -51,17 +55,37 @@
                 <data android:mimeType="application/vnd.android.package-archive" />
             </intent-filter>
         </activity>
-
+        <!-- 切换图标 -->
         <activity-alias
             android:name=".ui.MainActivityAlias"
+            android:targetActivity=".ui.MainActivity"
             android:exported="true"
             android:enabled="false"
             android:icon="@mipmap/ic_launcher_alt"
-            android:roundIcon="@mipmap/ic_launcher_alt_round"
-            android:targetActivity=".ui.MainActivity">
+            android:roundIcon="@mipmap/ic_launcher_alt_round">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/vnd.android.package-archive" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/vnd.android.package-archive" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/vnd.android.package-archive" />
             </intent-filter>
         </activity-alias>
 

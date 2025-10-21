@@ -309,9 +309,8 @@
     <string name="dpi_confirm_summary">Die Anwendung muss neu gestartet werden, um die neuen DPI-Einstellungen zu übernehmen, hat keine Auswirkungen auf die System-Statusleiste oder andere Anwendungen</string>
     <string name="dpi_applied_success">DPI wurde auf %1$dgesetzt, wirksam nach dem Neustart der Anwendung</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">App Sprache</string>
-    <string name="language_follow_system">Folge Systemeinstellung</string>
-    <string name="language_changed">Sprache geändert, Neustart um Änderungen zu übernehmen</string>
+    <string name="settings_language">App Sprache</string>
+    <string name="language_system_default">Folge Systemeinstellung</string>
     <string name="settings_card_dim">Kartenfinsternis Anpassung</string>
     <!-- Flash related -->
     <string name="error_code">fehlercode</string>

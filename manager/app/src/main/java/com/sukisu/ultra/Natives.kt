@@ -106,7 +106,6 @@ object Natives {
      * Get SUSFS feature status from kernel
      * @return SusfsFeatureStatus object containing all feature states, or null if failed
      */
-    external fun getSusfsFeatureStatus(): SusfsFeatureStatus?
 
     /**
      * Set dynamic managerature configuration
@@ -182,27 +181,6 @@ object Natives {
         if (version < MINIMAL_SUPPORTED_KERNEL) return true
         return isVersionLessThan(getFullVersion(), MINIMAL_SUPPORTED_KERNEL_FULL)
     }
-
-    @Immutable
-    @Parcelize
-    @Keep
-    data class SusfsFeatureStatus(
-        val statusSusPath: Boolean = false,
-        val statusSusMount: Boolean = false,
-        val statusAutoDefaultMount: Boolean = false,
-        val statusAutoBindMount: Boolean = false,
-        val statusSusKstat: Boolean = false,
-        val statusTryUmount: Boolean = false,
-        val statusAutoTryUmountBind: Boolean = false,
-        val statusSpoofUname: Boolean = false,
-        val statusEnableLog: Boolean = false,
-        val statusHideSymbols: Boolean = false,
-        val statusSpoofCmdline: Boolean = false,
-        val statusOpenRedirect: Boolean = false,
-        val statusMagicMount: Boolean = false,
-        val statusOverlayfsAutoKstat: Boolean = false,
-        val statusSusSu: Boolean = false
-    ) : Parcelable
 
     @Immutable
     @Parcelize

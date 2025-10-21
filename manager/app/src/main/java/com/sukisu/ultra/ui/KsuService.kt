@@ -1,137 +1,75 @@
 package com.sukisu.ultra.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.os.*
 import android.util.Log
 import com.topjohnwu.superuser.ipc.RootService
-import rikka.parcelablelist.ParcelableListSlice
-import java.lang.reflect.Method
+import com.sukisu.zako.IKsuInterface
 
 /**
  * @author ShirkNeko
- * @date 2025/7/2.
+ * @date 2025/10/17.
  */
 class KsuService : RootService() {
 
-    companion object {
-        private const val TAG = "KsuService"
-        private const val DESCRIPTOR = "com.sukisu.ultra.IKsuInterface"
-        private const val TRANSACTION_GET_PACKAGES = IBinder.FIRST_CALL_TRANSACTION + 0
+    private val TAG = "KsuService"
+
+    private val cacheLock = Object()
+    private var _all: List<PackageInfo>? = null
+    private val allPackages: List<PackageInfo>
+        get() = synchronized(cacheLock) {
+            _all ?: loadAllPackages().also { _all = it }
+        }
+
+    private fun loadAllPackages(): List<PackageInfo> {
+        val tmp = arrayListOf<PackageInfo>()
+        for (user in (getSystemService(USER_SERVICE) as UserManager).userProfiles) {
+            val userId = user.getUserIdCompat()
+            tmp += getInstalledPackagesAsUser(userId)
+        }
+        return tmp
     }
 
-    interface IKsuInterface : IInterface {
-        fun getPackages(flags: Int): ParcelableListSlice<PackageInfo>
-    }
+    internal inner class Stub : IKsuInterface.Stub() {
+        override fun getPackageCount(): Int = allPackages.size
 
-    abstract class Stub : Binder(), IKsuInterface {
-        init {
-            attachInterface(this, DESCRIPTOR)
-        }
-
-        companion object {
-            fun asInterface(obj: IBinder?): IKsuInterface? {
-                if (obj == null) return null
-                val iin = obj.queryLocalInterface(DESCRIPTOR)
-                return if (iin != null && iin is IKsuInterface) {
-                    iin
-                } else {
-                    Proxy(obj)
-                }
-            }
-        }
-
-        override fun asBinder(): IBinder = this
-
-        override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
-            val descriptor = DESCRIPTOR
-            when (code) {
-                INTERFACE_TRANSACTION -> {
-                    reply?.writeString(descriptor)
-                    return true
-                }
-                TRANSACTION_GET_PACKAGES -> {
-                    data.enforceInterface(descriptor)
-                    val flagsArg = data.readInt()
-                    val result = getPackages(flagsArg)
-                    reply?.writeNoException()
-                    reply?.writeInt(1)
-                    result.writeToParcel(reply!!, Parcelable.PARCELABLE_WRITE_RETURN_VALUE)
-                    return true
-                }
-            }
-            return super.onTransact(code, data, reply, flags)
-        }
-
-        private class Proxy(private val mRemote: IBinder) : IKsuInterface {
-            override fun getPackages(flags: Int): ParcelableListSlice<PackageInfo> {
-                val data = Parcel.obtain()
-                val reply = Parcel.obtain()
-                return try {
-                    data.writeInterfaceToken(DESCRIPTOR)
-                    data.writeInt(flags)
-                    mRemote.transact(TRANSACTION_GET_PACKAGES, data, reply, 0)
-                    reply.readException()
-                    if (reply.readInt() != 0) {
-                        @Suppress("UNCHECKED_CAST")
-                        ParcelableListSlice.CREATOR.createFromParcel(reply) as ParcelableListSlice<PackageInfo>
-                    } else {
-                        ParcelableListSlice(emptyList<PackageInfo>())
-                    }
-                } finally {
-                    reply.recycle()
-                    data.recycle()
-                }
-            }
-
-            override fun asBinder(): IBinder = mRemote
+        override fun getPackages(start: Int, maxCount: Int): List<PackageInfo> {
+            val list = allPackages
+            val end = (start + maxCount).coerceAtMost(list.size)
+            return if (start >= list.size) emptyList()
+            else list.subList(start, end)
         }
     }
 
-    inner class KsuInterfaceImpl : Stub() {
-        override fun getPackages(flags: Int): ParcelableListSlice<PackageInfo> {
-            val list = getInstalledPackagesAll(flags)
-            Log.i(TAG, "getPackages: ${list.size}")
-            return ParcelableListSlice(list)
-        }
-    }
+    override fun onBind(intent: Intent): IBinder = Stub()
 
-    override fun onBind(intent: Intent): IBinder {
-        return KsuInterfaceImpl()
-    }
-
-    private fun getUserIds(): List<Int> {
-        val result = mutableListOf<Int>()
-        val um = getSystemService(USER_SERVICE) as UserManager
-        val userProfiles = um.userProfiles
-        for (userProfile in userProfiles) {
-            result.add(userProfile.hashCode())
-        }
-        return result
-    }
-
-    private fun getInstalledPackagesAll(flags: Int): ArrayList<PackageInfo> {
-        val packages = ArrayList<PackageInfo>()
-        for (userId in getUserIds()) {
-            Log.i(TAG, "getInstalledPackagesAll: $userId")
-            packages.addAll(getInstalledPackagesAsUser(flags, userId))
-        }
-        return packages
-    }
-
-    private fun getInstalledPackagesAsUser(flags: Int, userId: Int): List<PackageInfo> {
+    @SuppressLint("PrivateApi")
+    private fun getInstalledPackagesAsUser(userId: Int): List<PackageInfo> {
         return try {
             val pm = packageManager
-            val getInstalledPackagesAsUser: Method = pm.javaClass.getDeclaredMethod(
+            val m = pm.javaClass.getDeclaredMethod(
                 "getInstalledPackagesAsUser",
                 Int::class.java,
                 Int::class.java
             )
             @Suppress("UNCHECKED_CAST")
-            getInstalledPackagesAsUser.invoke(pm, flags, userId) as List<PackageInfo>
+            m.invoke(pm, 0, userId) as List<PackageInfo>
         } catch (e: Throwable) {
-            Log.e(TAG, "err", e)
-            ArrayList()
+            Log.e(TAG, "getInstalledPackagesAsUser", e)
+            emptyList()
+        }
+    }
+
+    private fun UserHandle.getUserIdCompat(): Int {
+        return try {
+            javaClass.getDeclaredField("identifier").apply { isAccessible = true }.getInt(this)
+        } catch (_: NoSuchFieldException) {
+            javaClass.getDeclaredMethod("getIdentifier").invoke(this) as Int
+        } catch (e: Throwable) {
+            Log.e("KsuService", "getUserIdCompat", e)
+            0
         }
     }
 }

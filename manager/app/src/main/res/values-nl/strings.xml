@@ -309,9 +309,8 @@
     <string name="dpi_confirm_summary">Application needs to be restarted to apply the new DPI settings, does not affect the system status bar or other applications</string>
     <string name="dpi_applied_success">DPI has been set to %1$d, effective after restarting the application</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">App Language</string>
-    <string name="language_follow_system">Follow System</string>
-    <string name="language_changed">Language changed, restarting to apply changes</string>
+    <string name="settings_language">App Language</string>
+    <string name="language_system_default">Follow System</string>
     <string name="settings_card_dim">Card Darkness Adjustment</string>
     <!-- Flash related -->
     <string name="error_code">error code</string>

@@ -311,6 +311,116 @@ fun SusLoopPathsContent(
 }
 
 /**
+ * SUS Maps内容组件
+ */
+@Composable
+fun SusMapsContent(
+    susMaps: Set<String>,
+    isLoading: Boolean,
+    onAddSusMap: () -> Unit,
+    onRemoveSusMap: (String) -> Unit,
+    onEditSusMap: ((String) -> Unit)? = null
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // 说明卡片
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.sus_maps_description_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.sus_maps_description_text),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.sus_maps_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = stringResource(R.string.sus_maps_debug_info),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+
+            if (susMaps.isEmpty()) {
+                item {
+                    EmptyStateCard(
+                        message = stringResource(R.string.susfs_no_sus_maps_configured)
+                    )
+                }
+            } else {
+                item {
+                    SectionHeader(
+                        title = stringResource(R.string.sus_maps_section),
+                        subtitle = null,
+                        icon = Icons.Default.Security,
+                        count = susMaps.size
+                    )
+                }
+
+                items(susMaps.toList()) { map ->
+                    PathItemCard(
+                        path = map,
+                        icon = Icons.Default.Security,
+                        onDelete = { onRemoveSusMap(map) },
+                        onEdit = if (onEditSusMap != null) { { onEditSusMap(map) } } else null,
+                        isLoading = isLoading
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = onAddSusMap,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.add))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * SUS挂载内容组件
  */
 @Composable

@@ -314,9 +314,8 @@
     <string name="dpi_confirm_summary">Приложение нужно перезапустить, чтобы применить новые настройки DPI. Это не влияет на системную строку состояния или другие приложения</string>
     <string name="dpi_applied_success">DPI был установлен в %1$d, действующий после перезапуска приложения</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">Язык приложения</string>
-    <string name="language_follow_system">Как в системе</string>
-    <string name="language_changed">Язык изменён, перезапуск для применения изменений</string>
+    <string name="settings_language">Язык приложения</string>
+    <string name="language_system_default">Как в системе</string>
     <string name="settings_card_dim">Затемнение карточек</string>
     <!-- Flash related -->
     <string name="error_code">код ошибки</string>
@@ -443,7 +442,6 @@
     <string name="auto_bind_mount_feature_label">Автоматическое бинд монтирование</string>
     <string name="auto_try_umount_bind_feature_label">Автоматически попробовать размонтировать привязать монтировать</string>
     <string name="hide_symbols_feature_label">Скрытие KSU SUSFS Symbols</string>
-    <string name="magic_mount_feature_label">Поддержка Magic Mount</string>
     <string name="sus_kstat_feature_label">Поддержка SUS Kstat</string>
     <string name="sus_su_feature_label">Функция переключения режима SUS SU</string>
     <!-- 可切换状态 -->

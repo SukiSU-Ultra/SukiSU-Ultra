@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Beranda</string>
     <string name="home_not_installed">Tidak Terpasang</string>
     <string name="home_click_to_install">Klik untuk Memasang</string>
@@ -52,7 +51,7 @@
     <string name="home_support_title">Dukung Kami</string>
     <string name="home_support_content">KernelSU bersifat gratis dan open source, sekarang dan selamanya. Namun, Anda dapat menunjukkan dukungan Anda dengan melakukan donasi.</string>
     <string name="about_source_code"><![CDATA[Lihat kode sumber di %1$s<br/>Gabung ke saluran %2$s kami]]></string>
-    <string name="profile" translatable="false">Profil Aplikasi</string>
+    <string name="profile">Profil Aplikasi</string>
     <string name="profile_default">Bawaan</string>
     <string name="profile_template">Templat</string>
     <string name="profile_custom">Khusus</string>
@@ -317,9 +316,8 @@ Tanamkan: Secara permanen memasang ke sistem</string>
     <string name="dpi_confirm_summary">Aplikasi perlu dijalankan ulang agar pengaturan DPI baru diterapkan; ini tidak akan mempengaruhi bilah status sistem atau aplikasi lainnya</string>
     <string name="dpi_applied_success">DPI diatur ke %1$d, akan diterapkan setelah aplikasi dijalankan ulang</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">Bahasa Aplikasi</string>
-    <string name="language_follow_system">Ikuti Sistem</string>
-    <string name="language_changed">Bahasa diubah, mulai ulang untuk menerapkan perubahan</string>
+    <string name="settings_language">Bahasa Aplikasi</string>
+    <string name="language_system_default">Ikuti Sistem</string>
     <string name="settings_card_dim">Pengaturan Pencahayaan Kartu</string>
     <!-- Flash related -->
     <string name="error_code">kode kesalahan</string>
@@ -446,7 +444,6 @@ Tanamkan: Secara permanen memasang ke sistem</string>
     <string name="auto_bind_mount_feature_label">Kaitan Bind Otomatis</string>
     <string name="auto_try_umount_bind_feature_label">Coba Lepas Kaitan Bind Otomatis</string>
     <string name="hide_symbols_feature_label">Sembunyikan Simbol KSU SUSFS</string>
-    <string name="magic_mount_feature_label">Dukungan Magic Mount</string>
     <string name="sus_kstat_feature_label">Dukungan SUS Kstat</string>
     <string name="sus_su_feature_label">Fitur Toggle Mode SUS SU</string>
     <!-- 可切换状态 -->

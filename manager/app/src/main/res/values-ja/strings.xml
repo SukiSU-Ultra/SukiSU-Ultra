@@ -314,9 +314,8 @@
     <string name="dpi_confirm_summary">変更した DPI 設定を適用するにはアプリを再起動する必要がありますが、システムステータスバーや他のアプリには影響しません</string>
     <string name="dpi_applied_success">DPI は %1$d に変更されました。アプリの再起動後に適用されます。</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">アプリの言語</string>
-    <string name="language_follow_system">システムに従う</string>
-    <string name="language_changed">言語の変更を適用するために再起動しています</string>
+    <string name="settings_language">アプリの言語</string>
+    <string name="language_system_default">システムに従う</string>
     <string name="settings_card_dim">カードの暗さを調整</string>
     <!-- Flash related -->
     <string name="error_code">エラーコード</string>
@@ -443,7 +442,6 @@
     <string name="auto_bind_mount_feature_label">自動でバインドマウント</string>
     <string name="auto_try_umount_bind_feature_label">自動でバインドマウントのアンマウントを試す</string>
     <string name="hide_symbols_feature_label">KSU SUSFS シンボルを非表示</string>
-    <string name="magic_mount_feature_label">Magic Mount の対応</string>
     <string name="sus_kstat_feature_label">SUS Kstat の対応</string>
     <string name="sus_su_feature_label">SUS SU モード切り替え機能</string>
     <!-- 可切换状态 -->

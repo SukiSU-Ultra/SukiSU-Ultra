@@ -1,12 +1,10 @@
 package zako.zako.zako.zakoui.screen.moreSettings
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -14,13 +12,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.theme.*
 import com.sukisu.ultra.ui.util.*
 import com.topjohnwu.superuser.Shell
 import zako.zako.zako.zakoui.screen.moreSettings.state.MoreSettingsState
 import zako.zako.zako.zakoui.screen.moreSettings.util.toggleLauncherIcon
-import java.util.*
 
 /**
  * 更多设置处理器
@@ -109,64 +105,28 @@ class MoreSettingsHandlers(
             else -> null
         }
         context.saveThemeMode(newThemeMode)
+        ThemeConfig.updateTheme(darkMode = newThemeMode)
 
         when (index) {
             2 -> { // 深色
-                ThemeConfig.forceDarkMode = true
-                CardConfig.isUserDarkModeEnabled = true
-                CardConfig.isUserLightModeEnabled = false
+                ThemeConfig.updateTheme(darkMode = true)
+                CardConfig.updateThemePreference(darkMode = true, lightMode = false)
                 CardConfig.setThemeDefaults(true)
                 CardConfig.save(context)
             }
             1 -> { // 浅色
-                ThemeConfig.forceDarkMode = false
-                CardConfig.isUserLightModeEnabled = true
-                CardConfig.isUserDarkModeEnabled = false
+                ThemeConfig.updateTheme(darkMode = false)
+                CardConfig.updateThemePreference(darkMode = false, lightMode = true)
                 CardConfig.setThemeDefaults(false)
                 CardConfig.save(context)
             }
             0 -> { // 跟随系统
-                ThemeConfig.forceDarkMode = null
-                CardConfig.isUserLightModeEnabled = false
-                CardConfig.isUserDarkModeEnabled = false
+                ThemeConfig.updateTheme(darkMode = null)
+                CardConfig.updateThemePreference(darkMode = null, lightMode = null)
                 val isNightModeActive = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 CardConfig.setThemeDefaults(isNightModeActive)
                 CardConfig.save(context)
             }
-        }
-    }
-
-    /**
-     * 处理语言设置变更
-     */
-    @SuppressLint("ObsoleteSdkInt")
-    fun handleLanguageChange(code: String) {
-        if (state.currentLanguage != code) {
-            prefs.edit {
-                putString("app_language", code)
-                commit()
-            }
-
-            state.currentLanguage = code
-
-            Toast.makeText(
-                context,
-                context.getString(R.string.language_changed),
-                Toast.LENGTH_SHORT
-            ).show()
-
-            val locale = if (code.isEmpty()) Locale.getDefault() else Locale.forLanguageTag(code)
-            Locale.setDefault(locale)
-            val config = Configuration(context.resources.configuration)
-            config.setLocale(locale)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                context.createConfigurationContext(config)
-            } else {
-                @Suppress("DEPRECATION")
-                context.resources.updateConfiguration(config, context.resources.displayMetrics)
-            }
-            ksuApp.refreshCurrentActivity()
         }
     }
 
@@ -183,6 +143,7 @@ class MoreSettingsHandlers(
             ThemeColors.Yellow -> "yellow"
             else -> "default"
         })
+        ThemeConfig.updateTheme(theme = theme)
     }
 
     /**
@@ -191,6 +152,7 @@ class MoreSettingsHandlers(
     fun handleDynamicColorChange(enabled: Boolean) {
         state.useDynamicColor = enabled
         context.saveDynamicColorState(enabled)
+        ThemeConfig.updateTheme(dynamicColor = enabled)
     }
 
     /**
@@ -260,8 +222,6 @@ class MoreSettingsHandlers(
         CardConfig.isCustomDimSet = false
         CardConfig.isCustomBackgroundEnabled = false
         saveCardConfig(context)
-
-        ThemeConfig.needsResetOnThemeChange = true
         ThemeConfig.preventBackgroundRefresh = false
 
         context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE).edit {

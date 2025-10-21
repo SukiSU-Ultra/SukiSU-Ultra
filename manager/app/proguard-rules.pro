@@ -44,3 +44,5 @@
 -keep class com.sukisu.ultra.ui.webui.WebViewInterface { *; }
 
 -keep,allowobfuscation class * extends com.dergoogler.mmrl.platform.content.IService { *; }
+
+-keep interface com.sukisu.zako.** { *; }

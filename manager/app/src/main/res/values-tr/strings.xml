@@ -312,9 +312,8 @@
     <string name="dpi_confirm_summary">Yeni DPI ayarlarını uygulamak için uygulamanın yeniden başlatılması gerekir, sistem durum çubuğunu veya diğer uygulamaları etkilemez</string>
     <string name="dpi_applied_success">DPI %1$d olarak ayarlandı, uygulama yeniden başlatıldıktan sonra geçerli olur</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">Uygulama Dili</string>
-    <string name="language_follow_system">Sistemi takip et</string>
-    <string name="language_changed">Dil değiştirildi, değişiklikleri uygulamak için yeniden başlatılıyor</string>
+    <string name="settings_language">Uygulama Dili</string>
+    <string name="language_system_default">Sistemi takip et</string>
     <string name="settings_card_dim">Kart Karanlığını Ayarlama</string>
     <!-- Flash related -->
     <string name="error_code">hata kodu</string>
@@ -441,7 +440,6 @@
     <string name="auto_bind_mount_feature_label">Otomatik Bağlama Noktası Bağlama</string>
     <string name="auto_try_umount_bind_feature_label">Otomatik Bağlamayı Kaldırmayı Dene Bağlama</string>
     <string name="hide_symbols_feature_label">KSU SUSFS Sembollerini Gizle</string>
-    <string name="magic_mount_feature_label">Magic Mount Desteği</string>
     <string name="sus_kstat_feature_label">SUS Kstat Desteği</string>
     <string name="sus_su_feature_label">SUS SU mod değiştirme işlevi</string>
     <!-- 可切换状态 -->

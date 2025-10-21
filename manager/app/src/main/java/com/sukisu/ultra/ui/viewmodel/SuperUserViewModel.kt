@@ -3,17 +3,18 @@ package com.sukisu.ultra.ui.viewmodel
 import android.content.*
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
-import android.os.IBinder
-import android.os.Parcelable
-import android.os.SystemClock
+import android.os.*
 import android.util.Log
 import androidx.compose.runtime.*
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
+import java.io.*
+import coil.ImageLoader
+import coil.disk.DiskCache
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.KsuService
-import com.sukisu.ultra.ui.util.HanziToPinyin
+import com.sukisu.ultra.ui.util.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -26,7 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-
+import com.sukisu.zako.IKsuInterface
 // 应用分类
 enum class AppCategory(val displayNameRes: Int, val persistKey: String) {
     ALL(com.sukisu.ultra.R.string.category_all_apps, "ALL"),
@@ -142,8 +143,6 @@ class SuperUserViewModel : ViewModel() {
 
     // 加载进度状态
     var loadingProgress by mutableFloatStateOf(0f)
-        private set
-    var loadingMessage by mutableStateOf("")
         private set
 
     /**
@@ -437,56 +436,44 @@ class SuperUserViewModel : ViewModel() {
         isRefreshing = true
         loadingProgress = 0f
 
-        val result = connectKsuService {
-            Log.w(TAG, "KsuService disconnected")
-        }
-
-        if (result == null) {
-            Log.e(TAG, "Failed to connect to KsuService")
-            isRefreshing = false
-            return
+        val binder = connectKsuService() ?: run {
+            isRefreshing = false; return
         }
 
         withContext(Dispatchers.IO) {
             val pm = ksuApp.packageManager
-            val start = SystemClock.elapsedRealtime()
+            val allPackages = IKsuInterface.Stub.asInterface(binder)
+            val total = allPackages.packageCount
+            val pageSize = 100
+            val result = mutableListOf<AppInfo>()
 
-            try {
-                val service = KsuService.Stub.asInterface(result)
-                val allPackages = service?.getPackages(0)
+            var start = 0
+            while (start < total) {
+                val page = allPackages.getPackages(start, pageSize)
+                if (page.isEmpty()) break
 
-                withContext(Dispatchers.Main) {
-                    stopKsuService()
+                result += page.mapNotNull { packageInfo ->
+                    packageInfo.applicationInfo?.let { appInfo ->
+                        AppInfo(
+                            label = appInfo.loadLabel(pm).toString(),
+                            packageInfo = packageInfo,
+                            profile = Natives.getAppProfile(packageInfo.packageName, appInfo.uid)
+                        )
+                    }
                 }
-                loadingProgress = 0.3f
 
-                val packages = allPackages?.list ?: emptyList()
-
-                apps = packages.map { packageInfo ->
-                    val appInfo = packageInfo.applicationInfo!!
-                    val uid = appInfo.uid
-                    val profile = Natives.getAppProfile(packageInfo.packageName, uid)
-                    AppInfo(
-                        label = appInfo.loadLabel(pm).toString(),
-                        packageInfo = packageInfo,
-                        profile = profile,
-                    )
-                }.filter { it.packageName != ksuApp.packageName }
-
-                loadingProgress = 1f
-
-                Log.i(TAG, "load cost: ${SystemClock.elapsedRealtime() - start}")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching app list", e)
-                withContext(Dispatchers.Main) {
-                    stopKsuService()
-                }
-            } finally {
-                isRefreshing = false
-                loadingProgress = 0f
-                loadingMessage = ""
+                start += page.size
+                loadingProgress = start.toFloat() / total
             }
+
+            stopKsuService()
+
+            appListMutex.withLock {
+                apps = result.filter { it.packageName != ksuApp.packageName }
+            }
+            loadingProgress = 1f
         }
+        isRefreshing = false
     }
     /**
      * 清理资源

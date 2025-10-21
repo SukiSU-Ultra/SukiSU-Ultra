@@ -497,10 +497,25 @@ object ScriptGenerator {
                     if (config.susLoopPaths.isNotEmpty()) {
                         generateSusLoopPathsSection(config.susLoopPaths)
                     }
+
+                    if (config.susMaps.isNotEmpty()) {
+                        generateSusMapsSection(config.susMaps)
+                    }
                 }
             }
 
             appendLine("echo \"$(get_current_time): Boot-Completed脚本执行完成\" >> \"${'$'}LOG_FILE\"")
+        }
+    }
+
+    private fun StringBuilder.generateSusMapsSection(susMaps: Set<String>) {
+        if (susMaps.isNotEmpty()) {
+            appendLine("# 添加SUS映射")
+            susMaps.forEach { map ->
+                appendLine("\"${'$'}SUSFS_BIN\" add_sus_map '$map'")
+                appendLine("echo \"$(get_current_time): 添加SUS映射: $map\" >> \"${'$'}LOG_FILE\"")
+            }
+            appendLine()
         }
     }
 

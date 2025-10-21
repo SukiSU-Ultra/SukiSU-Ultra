@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.theme.component.ImageEditorDialog
@@ -38,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import zako.zako.zako.zakoui.screen.moreSettings.component.ColorCircle
+import zako.zako.zako.zakoui.screen.moreSettings.component.LanguageSelectionDialog
 import zako.zako.zako.zakoui.screen.moreSettings.component.MoreSettingsDialogs
 import zako.zako.zako.zakoui.screen.moreSettings.component.SettingItem
 import zako.zako.zako.zakoui.screen.moreSettings.component.SettingsCard
@@ -171,13 +173,7 @@ private fun AppearanceSettings(
 ) {
     SettingsCard(title = stringResource(R.string.appearance_settings)) {
         // 语言设置
-        SettingItem(
-            icon = Icons.Default.Language,
-            title = stringResource(R.string.language_setting),
-            subtitle = state.supportedLanguages.find { it.first == state.currentLanguage }?.second
-                ?: stringResource(R.string.language_follow_system),
-            onClick = { state.showLanguageDialog = true }
-        )
+        LanguageSetting(state = state)
 
         // 主题模式
         SettingItem(
@@ -713,4 +709,40 @@ private fun DimSlider(
 
 fun saveCardConfig(context: Context) {
     CardConfig.save(context)
+}
+
+@Composable
+private fun LanguageSetting(state: MoreSettingsState) {
+    val context = LocalContext.current
+    val language = stringResource(id = R.string.settings_language)
+
+    // Compute display name based on current app locale
+    val currentLanguageDisplay = remember(state.currentAppLocale) {
+        val locale = state.currentAppLocale
+        if (locale != null) {
+            locale.getDisplayName(locale)
+        } else {
+            context.getString(R.string.language_system_default)
+        }
+    }
+
+    SettingItem(
+        icon = Icons.Filled.Translate,
+        title = language,
+        subtitle = currentLanguageDisplay,
+        onClick = { state.showLanguageDialog = true }
+    )
+
+    // Language Selection Dialog
+    if (state.showLanguageDialog) {
+        LanguageSelectionDialog(
+            onLanguageSelected = { newLocale ->
+                // Update local state immediately
+                state.currentAppLocale = LocaleHelper.getCurrentAppLocale(context)
+                // Apply locale change immediately for Android < 13
+                LocaleHelper.restartActivity(context)
+            },
+            onDismiss = { state.showLanguageDialog = false }
+        )
+    }
 }

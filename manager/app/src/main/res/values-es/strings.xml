@@ -307,9 +307,8 @@
     <string name="dpi_confirm_summary">La aplicación necesita reiniciarse para aplicar la nueva configuración DPI, no afecta a la barra de estado del sistema u otras aplicaciones</string>
     <string name="dpi_applied_success">DPI ha sido establecido a %1$d, efectivo después de reiniciar la aplicación</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">Idioma de la aplicación</string>
-    <string name="language_follow_system">Seguir sistema</string>
-    <string name="language_changed">Idioma cambiado, reiniciando para aplicar cambios</string>
+    <string name="settings_language">Idioma de la aplicación</string>
+    <string name="language_system_default">Seguir sistema</string>
     <string name="settings_card_dim">Ajuste de oscuridad de tarjeta</string>
     <!-- Flash related -->
     <string name="error_code">código de error</string>

@@ -314,9 +314,8 @@
     <string name="dpi_confirm_summary">Application needs to be restarted to apply the new DPI settings, does not affect the system status bar or other applications</string>
     <string name="dpi_applied_success">DPI has been set to %1$d, effective after restarting the application</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">App Language</string>
-    <string name="language_follow_system">Follow System</string>
-    <string name="language_changed">Language changed, restarting to apply changes</string>
+    <string name="settings_language">App Language</string>
+    <string name="language_system_default">Follow System</string>
     <string name="settings_card_dim">Card Darkness Adjustment</string>
     <!-- Flash related -->
     <string name="error_code">error code</string>
@@ -443,7 +442,6 @@
     <string name="auto_bind_mount_feature_label">Auto Bind Mount</string>
     <string name="auto_try_umount_bind_feature_label">Auto Try Umount Bind Mount</string>
     <string name="hide_symbols_feature_label">Hide KSU SUSFS Symbols</string>
-    <string name="magic_mount_feature_label">Magic Mount Support</string>
     <string name="sus_kstat_feature_label">SUS Kstat Support</string>
     <string name="sus_su_feature_label">SUS SU mode switching function</string>
     <!-- 可切换状态 -->
@@ -561,6 +559,8 @@
     <string name="add_custom_path">Other</string>
     <string name="add_app_path">App</string>
     <string name="susfs_add_app_path">Add App Path</string>
+    <string name="susfs_version_mismatch">SuSFS library version mismatch, kernel: %1$s vs manager: %2$s, It is recommended to update the kernel or manager</string>
+    <string name="warning">Warning</string>
     <string name="search_apps">Search Apps</string>
     <string name="selected_apps_count">%1$d apps selected</string>
     <string name="already_added_apps_count">%1$d apps already added</string>
@@ -678,4 +678,21 @@ Important Note:\n
     <string name="author">Author</string>
     <string name="description">Description</string>
     <string name="supported_devices">Supported Devices</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SUS Maps</string>
+    <string name="susfs_sus_map_label">Library Path</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">Add SUS Map</string>
+    <string name="susfs_edit_sus_map">Edit SUS Map</string>
+    <string name="susfs_sus_map_added_success">SUS map added successfully: %1$s</string>
+    <string name="susfs_sus_map_removed">SUS map removed: %1$s</string>
+    <string name="susfs_sus_map_updated">SUS map updated: %1$s -> %2$s</string>
+    <string name="susfs_no_sus_maps_configured">No SUS maps configured</string>
+    <string name="susfs_reset_sus_maps_title">Reset SUS Maps</string>
+    <string name="susfs_reset_sus_maps_message">This will remove all configured SUS maps. This action cannot be undone.</string>
+    <string name="sus_maps_section">Memory Map Hiding</string>
+    <string name="sus_maps_description_title">Hide the mmapped real file from various maps in /proc/self/</string>
+    <string name="sus_maps_description_text">Hide the real file paths of memory mappings from /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Please note: This feature does not support hiding anonymous memory mappings, nor can it hide inline hooks or PLT hooks caused by the injected library itself.</string>
+    <string name="sus_maps_warning">Important Notice: For applications with well-implemented injection detection mechanisms, this feature may not effectively bypass detection.</string>
+    <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly.</string>
 </resources>

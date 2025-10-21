@@ -309,9 +309,8 @@
     <string name="dpi_confirm_summary">L\'application doit être redémarrée pour appliquer les nouveaux paramètres de DPI, n\'affecte pas la barre d\'état du système ou d\'autres applications</string>
     <string name="dpi_applied_success">Le DPI a été réglé sur %1$d, effectif après le redémarrage de l\'application</string>
     <!-- Language settings related strings -->
-    <string name="language_setting">Langue de l\'application</string>
-    <string name="language_follow_system">Suivre le paramètre système</string>
-    <string name="language_changed">Langue modifiée, redémarrage pour appliquer les modifications</string>
+    <string name="settings_language">Langue de l\'application</string>
+    <string name="language_system_default">Suivre le paramètre système</string>
     <string name="settings_card_dim">Ajustement de l\'obscurité de la carte</string>
     <!-- Flash related -->
     <string name="error_code">code d\'erreur</string>

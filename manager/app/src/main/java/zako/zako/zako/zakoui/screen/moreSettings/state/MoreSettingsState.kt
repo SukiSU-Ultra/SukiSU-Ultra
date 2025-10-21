@@ -2,7 +2,6 @@ package zako.zako.zako.zakoui.screen.moreSettings.state
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -10,11 +9,11 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.theme.ThemeConfig
-import java.util.Locale
 
 /**
  * 更多设置状态管理
@@ -37,9 +36,12 @@ class MoreSettingsState(
     // 动态颜色开关状态
     var useDynamicColor by mutableStateOf(ThemeConfig.useDynamicColor)
 
+    // 语言设置
+    var showLanguageDialog by mutableStateOf(false)
+    var currentAppLocale by mutableStateOf(LocaleHelper.getCurrentAppLocale(context))
+
     // 对话框显示状态
     var showThemeModeDialog by mutableStateOf(false)
-    var showLanguageDialog by mutableStateOf(false)
     var showThemeColorDialog by mutableStateOf(false)
     var showDpiConfirmDialog by mutableStateOf(false)
     var showImageEditor by mutableStateOf(false)
@@ -51,8 +53,6 @@ class MoreSettingsState(
     var dynamicSignHash by mutableStateOf("")
     var showDynamicSignDialog by mutableStateOf(false)
 
-    // 获取当前语言设置
-    var currentLanguage by mutableStateOf(prefs.getString("app_language", "") ?: "")
 
     // 各种设置开关状态
     var isSimpleMode by mutableStateOf(prefs.getBoolean("is_simple_mode", false))
@@ -101,49 +101,4 @@ class MoreSettingsState(
         context.getString(R.string.dpi_size_large) to 420,
         context.getString(R.string.dpi_size_extra_large) to 560
     )
-
-    // 获取支持的语言列表
-    val supportedLanguages by lazy {
-        val languages = mutableListOf<Pair<String, String>>()
-        languages.add("" to context.getString(R.string.language_follow_system))
-        val locales = context.resources.configuration.locales
-        for (i in 0 until locales.size()) {
-            val locale = locales.get(i)
-            val code = locale.toLanguageTag()
-            if (!languages.any { it.first == code }) {
-                languages.add(code to locale.getDisplayName(locale))
-            }
-        }
-
-        val commonLocales = listOf(
-            Locale.forLanguageTag("en"), // 英语
-            Locale.forLanguageTag("zh-CN"), // 简体中文
-            Locale.forLanguageTag("zh-HK"), // 繁体中文(香港)
-            Locale.forLanguageTag("zh-TW"), // 繁体中文(台湾)
-            Locale.forLanguageTag("ja"), // 日语
-            Locale.forLanguageTag("fr"), // 法语
-            Locale.forLanguageTag("de"), // 德语
-            Locale.forLanguageTag("es"), // 西班牙语
-            Locale.forLanguageTag("it"), // 意大利语
-            Locale.forLanguageTag("ru"), // 俄语
-            Locale.forLanguageTag("pt"), // 葡萄牙语
-            Locale.forLanguageTag("ko"), // 韩语
-            Locale.forLanguageTag("vi")  // 越南语
-        )
-
-        for (locale in commonLocales) {
-            val code = locale.toLanguageTag()
-            if (!languages.any { it.first == code }) {
-                val config = Configuration(context.resources.configuration)
-                config.setLocale(locale)
-                try {
-                    val testContext = context.createConfigurationContext(config)
-                    testContext.getString(R.string.language_follow_system)
-                    languages.add(code to locale.getDisplayName(locale))
-                } catch (_: Exception) {
-                }
-            }
-        }
-        languages
-    }
 }

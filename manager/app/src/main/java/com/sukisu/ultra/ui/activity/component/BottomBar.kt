@@ -22,6 +22,7 @@ import com.sukisu.ultra.ui.activity.util.AppData.getKpmVersionUse
 import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
 import com.sukisu.ultra.ui.theme.CardConfig.cardElevation
+import com.sukisu.ultra.ui.util.*
 
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class)
