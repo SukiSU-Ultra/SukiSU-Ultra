@@ -24,7 +24,7 @@
 #define SULOG_ENTRY_MAX_LEN 512
 #define SULOG_COMM_LEN 256
 #define DEDUP_ENTRIES  256
-#define DEDUP_SECS     60
+#define DEDUP_SECS     10
 
 struct dedup_key {
     u32     crc;
@@ -324,7 +324,7 @@ void ksu_sulog_report_su_attempt(uid_t uid, const char *comm, const char *target
 		target_path ? target_path : "unknown",
 		success ? "SUCCESS" : "DENIED", current->pid);
 
-	if (!dedup_should_print(uid, DEDUP_SU_GRANT, log_buf, strlen(log_buf)))
+	if (!dedup_should_print(uid, DEDUP_SU_ATTEMPT, log_buf, strlen(log_buf)))
         goto cleanup_attempt;
 	
 	sulog_add_entry(log_buf);
@@ -365,7 +365,7 @@ void ksu_sulog_report_permission_check(uid_t uid, const char *comm, bool allowed
 		timestamp, uid, full_comm,
 		allowed ? "ALLOWED" : "DENIED", current->pid);
 
-	if (!dedup_should_print(uid, DEDUP_SU_GRANT, log_buf, strlen(log_buf)))
+	if (!dedup_should_print(uid, DEDUP_PERM_CHECK, log_buf, strlen(log_buf)))
         goto cleanup_perm;
 	
 	sulog_add_entry(log_buf);
@@ -400,7 +400,7 @@ void ksu_sulog_report_manager_operation(const char *operation, uid_t manager_uid
 		timestamp, operation ? operation : "unknown",
 		manager_uid, target_uid, current->pid);
 
-	if (!dedup_should_print(manager_uid, DEDUP_SU_GRANT, log_buf, strlen(log_buf)))
+	if (!dedup_should_print(manager_uid, DEDUP_MANAGER_OP, log_buf, strlen(log_buf)))
         goto cleanup_mgr;
 	
 	sulog_add_entry(log_buf);
@@ -438,7 +438,7 @@ void ksu_sulog_report_syscall(uid_t uid, const char *comm,
 		 args     ? args     : "none",
 		 current->pid);
 
-	if (!dedup_should_print(uid, DEDUP_SU_GRANT, log_buf, strlen(log_buf)))
+	if (!dedup_should_print(uid, DEDUP_SYSCALL, log_buf, strlen(log_buf)))
         goto cleanup_mgr;
 
 	sulog_add_entry(log_buf);
