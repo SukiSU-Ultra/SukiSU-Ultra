@@ -571,12 +571,14 @@ static void sulog_prctl_cmd(uid_t uid, unsigned long cmd)
 	case CMD_SUSFS_ENABLE_LOG:              name = "prctl_susfs_enable_log"; break;
 	case CMD_SUSFS_SET_CMDLINE_OR_BOOTCONFIG: name = "prctl_susfs_set_cmdline_or_bootconfig"; break;
 	case CMD_SUSFS_ADD_OPEN_REDIRECT:       name = "prctl_susfs_add_open_redirect"; break;
-	case CMD_SUSFS_SUS_SU:                  name = "prctl_susfs_sus_su"; break;
 	case CMD_SUSFS_SHOW_VERSION:            name = "prctl_susfs_show_version"; break;
 	case CMD_SUSFS_SHOW_ENABLED_FEATURES:   name = "prctl_susfs_show_enabled_features"; break;
 	case CMD_SUSFS_SHOW_VARIANT:            name = "prctl_susfs_show_variant"; break;
+#ifdef CONFIG_KSU_SUSFS_SUS_SU
+	case CMD_SUSFS_SUS_SU:                  name = "prctl_susfs_sus_su"; break;
 	case CMD_SUSFS_IS_SUS_SU_READY:         name = "prctl_susfs_is_sus_su_ready"; break;
 	case CMD_SUSFS_SHOW_SUS_SU_WORKING_MODE: name = "prctl_susfs_show_sus_su_working_mode"; break;
+#endif
 	case CMD_SUSFS_ADD_SUS_MAP:             name = "prctl_susfs_add_sus_map"; break;
 	case CMD_SUSFS_ENABLE_AVC_LOG_SPOOFING: name = "prctl_susfs_enable_avc_log_spoofing"; break;
 #endif
