@@ -18,54 +18,13 @@
 #include "sulog.h"
 #include "ksu.h"
 
-#define SULOG_PATH "/data/adb/ksu/log/sulog.log"
-#define SULOG_OLD_PATH "/data/adb/ksu/log/sulog.log.old"
-#define SULOG_MAX_SIZE (128 * 1024 * 1024) // 128MB
-#define SULOG_ENTRY_MAX_LEN 512
-#define SULOG_COMM_LEN 256
-#define DEDUP_ENTRIES  256
-#define DEDUP_SECS     10
-
-struct dedup_key {
-    u32     crc;
-    uid_t   uid;
-    u8      type;
-    u8      _pad[1];
-};
-
-struct dedup_entry {
-    struct dedup_key key;
-    u64     ts_ns;
-};
-
-static struct dedup_entry dedup_tbl[DEDUP_ENTRIES];
-static DEFINE_SPINLOCK(dedup_lock);
-
-enum {
-    DEDUP_SU_GRANT = 0,
-    DEDUP_SU_ATTEMPT,
-    DEDUP_PERM_CHECK,
-    DEDUP_MANAGER_OP,
-    DEDUP_SYSCALL,
-};
-
-static inline u32 dedup_calc_hash(const char *content, size_t len)
-{
-    return crc32(0, content, len);
-}
-
-struct sulog_entry {
-	struct list_head list;
-	char content[SULOG_ENTRY_MAX_LEN];
-};
-
+struct dedup_entry dedup_tbl[SULOG_COMM_LEN];
+DEFINE_SPINLOCK(dedup_lock);
 static LIST_HEAD(sulog_queue);
 static DEFINE_MUTEX(sulog_mutex);
 static struct workqueue_struct *sulog_workqueue;
 static struct work_struct sulog_work;
 static bool sulog_enabled = true;
-
-extern struct timezone sys_tz;
 
 static void get_timestamp(char *buf, size_t len)
 {
@@ -137,7 +96,7 @@ static bool dedup_should_print(uid_t uid, u8 type,
     u64 now = ktime_get_ns();
     u64 delta_ns = DEDUP_SECS * NSEC_PER_SEC;
 
-    u32 idx = key.crc & (DEDUP_ENTRIES - 1);
+    u32 idx = key.crc & (SULOG_COMM_LEN - 1);
     spin_lock(&dedup_lock);
 
     struct dedup_entry *e = &dedup_tbl[idx];
@@ -265,7 +224,7 @@ void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method)
 	
 	if (!timestamp || !full_comm || !log_buf) {
 		pr_err("sulog: failed to allocate memory for su_grant log\n");
-		goto cleanup_grant;
+		goto cleanup;
 	}
 	
 	get_timestamp(timestamp, 32);
@@ -283,11 +242,11 @@ void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method)
 		method ? method : "unknown", current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_SU_GRANT, log_buf, strlen(log_buf)))
-        goto cleanup_grant;
+        goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
-cleanup_grant:
+cleanup:
 	if (timestamp) kfree(timestamp);
 	if (full_comm) kfree(full_comm);
 	if (log_buf) kfree(log_buf);
@@ -306,7 +265,7 @@ void ksu_sulog_report_su_attempt(uid_t uid, const char *comm, const char *target
 	
 	if (!timestamp || !full_comm || !log_buf) {
 		pr_err("sulog: failed to allocate memory for su_attempt log\n");
-		goto cleanup_attempt;
+		goto cleanup;
 	}
 	
 	get_timestamp(timestamp, 32);
@@ -325,11 +284,11 @@ void ksu_sulog_report_su_attempt(uid_t uid, const char *comm, const char *target
 		success ? "SUCCESS" : "DENIED", current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_SU_ATTEMPT, log_buf, strlen(log_buf)))
-        goto cleanup_attempt;
+        goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
-cleanup_attempt:
+cleanup:
 	if (timestamp) kfree(timestamp);
 	if (full_comm) kfree(full_comm);
 	if (log_buf) kfree(log_buf);
@@ -348,7 +307,7 @@ void ksu_sulog_report_permission_check(uid_t uid, const char *comm, bool allowed
 	
 	if (!timestamp || !full_comm || !log_buf) {
 		pr_err("sulog: failed to allocate memory for permission_check log\n");
-		goto cleanup_perm;
+		goto cleanup;
 	}
 	
 	get_timestamp(timestamp, 32);
@@ -366,11 +325,11 @@ void ksu_sulog_report_permission_check(uid_t uid, const char *comm, bool allowed
 		allowed ? "ALLOWED" : "DENIED", current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_PERM_CHECK, log_buf, strlen(log_buf)))
-        goto cleanup_perm;
+        goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
-cleanup_perm:
+cleanup:
 	if (timestamp) kfree(timestamp);
 	if (full_comm) kfree(full_comm);
 	if (log_buf) kfree(log_buf);
@@ -389,23 +348,23 @@ void ksu_sulog_report_manager_operation(const char *operation, uid_t manager_uid
 	
 	if (!timestamp || !full_comm || !log_buf) {
 		pr_err("sulog: failed to allocate memory for manager_operation log\n");
-		goto cleanup_mgr;
+		goto cleanup;
 	}
 	
 	get_timestamp(timestamp, 32);
 	get_full_comm(full_comm, SULOG_COMM_LEN);
 	
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
-		"[%s] MANAGER_OP: OP=%s MANAGER_UID=%d TARGET_UID=%d PID=%d\n",
+		"[%s] MANAGER_OP: OP=%s MANAGER_UID=%d TARGET_UID=%d COMM=%s PID=%d\n",
 		timestamp, operation ? operation : "unknown",
-		manager_uid, target_uid, current->pid);
+		manager_uid, target_uid, full_comm, current->pid);
 
 	if (!dedup_should_print(manager_uid, DEDUP_MANAGER_OP, log_buf, strlen(log_buf)))
-        goto cleanup_mgr;
+        goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
-cleanup_mgr:
+cleanup:
 	if (timestamp) kfree(timestamp);
 	if (full_comm) kfree(full_comm);
 	if (log_buf) kfree(log_buf);
@@ -425,11 +384,16 @@ void ksu_sulog_report_syscall(uid_t uid, const char *comm,
 
 	if (!timestamp || !full_comm || !log_buf) {
 		pr_err("sulog: failed to allocate memory for syscall log\n");
-		goto cleanup_mgr;
+		goto cleanup;
 	}
 
 	get_timestamp(timestamp, 32);
-	get_full_comm(full_comm, SULOG_COMM_LEN);
+	if (comm && strlen(comm) > 0) {
+		strncpy(full_comm, comm, SULOG_COMM_LEN - 1);
+		full_comm[SULOG_COMM_LEN - 1] = '\0';
+	} else {
+		get_full_comm(full_comm, SULOG_COMM_LEN);
+	}
 
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
 		 "[%s] SYSCALL: UID=%d COMM=%s SYSCALL=%s ARGS=%s PID=%d\n",
@@ -439,30 +403,19 @@ void ksu_sulog_report_syscall(uid_t uid, const char *comm,
 		 current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_SYSCALL, log_buf, strlen(log_buf)))
-        goto cleanup_mgr;
+        goto cleanup;
 
 	sulog_add_entry(log_buf);
 
-cleanup_mgr:
+cleanup:
 	if (timestamp) kfree(timestamp);
 	if (full_comm) kfree(full_comm);
 	if (log_buf) kfree(log_buf);
 }
 
-void ksu_sulog_set_enabled(bool enabled)
-{
-	sulog_enabled = enabled;
-	pr_info("sulog: logging %s\n", enabled ? "enabled" : "disabled");
-}
-
-bool ksu_sulog_is_enabled(void)
-{
-	return sulog_enabled;
-}
-
 int ksu_sulog_init(void)
 {
-	sulog_workqueue = create_singlethread_workqueue("ksu_sulog");
+	sulog_workqueue = alloc_workqueue("ksu_sulog", WQ_UNBOUND | WQ_HIGHPRI, 1);
 	if (!sulog_workqueue) {
 		pr_err("sulog: failed to create workqueue\n");
 		return -ENOMEM;
