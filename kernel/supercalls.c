@@ -67,11 +67,6 @@ bool perm_check_all(void)
 	return true; // No permission check
 }
 
-bool perm_check_system_uid(void)
-{
-	return is_system_uid();
-}
-
 
 // 1. BECOME_MANAGER - Verify manager identity
 int do_become_manager(void __user *arg)
@@ -466,45 +461,6 @@ int do_enable_kpm(void __user *arg)
 	return 0;
 }
 
-// 103. SU_ESCALATION_REQUEST - Handle su escalation request
-int do_su_escalation_request(void __user *arg)
-{
-	struct ksu_su_escalation_request_cmd cmd;
-
-	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-		return -EFAULT;
-	}
-
-	int ret = ksu_manual_su_escalate(cmd.target_uid, cmd.target_pid, cmd.user_password);
-
-	if (ret == 0) {
-		return 0;
-	}
-
-	return ret;
-}
-
-// 104. ADD_PENDING_ROOT - Add pending root
-int do_add_pending_root(void __user *arg)
-{
-	struct ksu_add_pending_root_cmd cmd;
-
-	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-		return -EFAULT;
-	}
-
-	if (!is_current_verified()) {
-		pr_warn("add_pending_root: denied, password not verified\n");
-		return -EPERM;
-	}
-
-	add_pending_root(cmd.uid);
-	current_verified = false;
-	pr_info("add_pending_root: pending root added for UID %d\n", cmd.uid);
-
-	return 0;
-}
-
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_BECOME_MANAGER, .handler = do_become_manager, .perm_check = perm_check_manager, .name = "become_manager" },
@@ -526,9 +482,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_ENABLE_SU, .handler = do_enable_su, .perm_check = perm_check_daemon_or_manager, .name = "enable_su" },
 	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = perm_check_daemon_or_manager, .name = "get_full_version" },
 	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_hook_type, .perm_check = perm_check_daemon_or_manager, .name = "hook_type" },
-	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_system_uid, .name = "enable_kpm" },
-	{ .cmd = KSU_IOCTL_SU_ESCALATION_REQUEST, .handler = do_su_escalation_request, .perm_check = perm_check_system_uid, .name = "su_escalation_request" },
-	{ .cmd = KSU_IOCTL_ADD_PENDING_ROOT, .handler = do_add_pending_root, .perm_check = perm_check_system_uid, .name = "add_pending_root" },
+	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_daemon_or_manager, .name = "enable_kpm" },
 	{ .cmd = 0, .handler = NULL, .perm_check = NULL, .name = NULL } // Sentinel
 };
 

@@ -94,16 +94,6 @@ struct ksu_enable_kpm_cmd {
     bool enabled; // Output: true if KPM is enabled
 };
 
-struct ksu_su_escalation_request_cmd {
-    uid_t target_uid; // Input: target UID
-    pid_t target_pid; // Input: target PID
-    const char __user *user_password; // Input: user password
-};
-
-struct ksu_add_pending_root_cmd {
-    uid_t uid; // Input: UID to add to pending root
-};
-
 // IOCTL command definitions
 #define KSU_IOCTL_BECOME_MANAGER _IOWR('K', 1, struct ksu_become_manager_cmd)
 #define KSU_IOCTL_BECOME_DAEMON _IOWR('K', 2, struct ksu_become_daemon_cmd)
@@ -126,8 +116,6 @@ struct ksu_add_pending_root_cmd {
 #define KSU_IOCTL_GET_FULL_VERSION _IOR('K', 100, struct ksu_get_full_version_cmd)
 #define KSU_IOCTL_HOOK_TYPE _IOR('K', 101, struct ksu_hook_type_cmd)
 #define KSU_IOCTL_ENABLE_KPM _IOR('K', 102, struct ksu_enable_kpm_cmd)
-#define KSU_IOCTL_SU_ESCALATION_REQUEST _IOWR('K', 103, struct ksu_su_escalation_request_cmd)
-#define KSU_IOCTL_ADD_PENDING_ROOT _IOW('K', 104, struct ksu_add_pending_root_cmd)
 
 // Handler function declarations
 int do_become_manager(void __user *arg);
@@ -151,8 +139,6 @@ int do_enable_su(void __user *arg);
 int do_get_full_version(void __user *arg);
 int do_enable_kpm(void __user *arg);
 int do_hook_type(void __user *arg);
-int do_su_escalation_request(void __user *arg);
-int do_add_pending_root(void __user *arg);
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);
@@ -165,7 +151,6 @@ bool perm_check_daemon(void);
 bool perm_check_daemon_or_manager(void);
 bool perm_check_basic(void);
 bool perm_check_all(void);
-bool perm_check_system_uid(void);
 
 // IOCTL command mapping
 struct ksu_ioctl_cmd_map {

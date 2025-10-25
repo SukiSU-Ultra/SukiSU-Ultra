@@ -5,6 +5,12 @@
 #include <linux/workqueue.h>
 
 #define KERNEL_SU_VERSION KSU_VERSION
+#define KERNEL_SU_OPTION 0xBADC0DE
+
+#ifdef CONFIG_KSU_MANUAL_SU
+#define CMD_SU_ESCALATION_REQUEST 50
+#define CMD_ADD_PENDING_ROOT 51
+#endif
 
 #define EVENT_POST_FS_DATA 1
 #define EVENT_BOOT_COMPLETED 2
