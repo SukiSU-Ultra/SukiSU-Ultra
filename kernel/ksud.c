@@ -90,14 +90,18 @@ static struct work_struct stop_execve_hook_work;
 static struct work_struct stop_input_hook_work;
 #else
 bool ksu_vfs_read_hook __read_mostly = true;
+bool ksu_execveat_hook __read_mostly = true;
 bool ksu_input_hook __read_mostly = true;
 #endif
-bool ksu_execveat_hook __read_mostly = true;
 
 u32 ksu_devpts_sid;
 
 // Detect whether it is on or not
 static bool is_boot_phase = true;
+
+#ifdef CONFIG_COMPAT
+bool ksu_is_compat __read_mostly = false;
+#endif
 
 void on_post_fs_data(void)
 {
@@ -119,11 +123,88 @@ void on_post_fs_data(void)
     is_boot_phase = false;
 }
 
-// since _ksud handler only uses argv and envp for comparisons
-// this can probably work
-// adapted from ksu_handle_execveat_ksud
-static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const char *envp, size_t envp_len)
+#define MAX_ARG_STRINGS 0x7FFFFFFF
+struct user_arg_ptr {
+#ifdef CONFIG_COMPAT
+	bool is_compat;
+#endif
+	union {
+		const char __user *const __user *native;
+#ifdef CONFIG_COMPAT
+		const compat_uptr_t __user *compat;
+#endif
+	} ptr;
+};
+
+static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
 {
+	const char __user *native;
+
+#ifdef CONFIG_COMPAT
+	if (unlikely(argv.is_compat)) {
+		compat_uptr_t compat;
+
+		if (get_user(compat, argv.ptr.compat + nr))
+			return ERR_PTR(-EFAULT);
+
+		ksu_is_compat = true;
+		return compat_ptr(compat);
+	}
+#endif
+
+	if (get_user(native, argv.ptr.native + nr))
+		return ERR_PTR(-EFAULT);
+
+	return native;
+}
+
+/*
+ * count() counts the number of strings in array ARGV.
+ */
+
+/*
+ * Make sure old GCC compiler can use __maybe_unused,
+ * Test passed in 4.4.x ~ 4.9.x when use GCC.
+ */
+
+static int __maybe_unused count(struct user_arg_ptr argv, int max)
+{
+	int i = 0;
+
+	if (argv.ptr.native != NULL) {
+		for (;;) {
+			const char __user *p = get_user_arg_ptr(argv, i);
+
+			if (!p)
+				break;
+
+			if (IS_ERR(p))
+				return -EFAULT;
+
+			if (i >= max)
+				return -E2BIG;
+			++i;
+
+			if (fatal_signal_pending(current))
+				return -ERESTARTNOHAND;
+			cond_resched();
+		}
+	}
+	return i;
+}
+
+// IMPORTANT NOTE: the call from execve_handler_pre WON'T provided correct value for envp and flags in GKI version
+int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
+			     struct user_arg_ptr *argv,
+			     struct user_arg_ptr *envp, int *flags)
+{
+#ifndef CONFIG_KSU_KPROBES_HOOK
+ 	if (!ksu_execveat_hook) {
+ 		return 0;
+ 	}
+ #endif
+	struct filename *filename;
+
 	static const char app_process[] = "/system/bin/app_process";
 	static bool first_app_process = true;
 
@@ -133,140 +214,111 @@ static int ksu_handle_bprm_ksud(const char *filename, const char *argv1, const c
 	static const char old_system_init[] = "/init";
 	static bool init_second_stage_executed = false;
 
-	// return early when disabled
-	if (!ksu_execveat_hook)
+	if (!filename_ptr)
 		return 0;
 
-	if (!filename)
+	filename = *filename_ptr;
+	if (IS_ERR(filename)) {
 		return 0;
+	}
 
-	// debug! remove me!
-	pr_info("%s: filename: %s argv1: %s envp_len: %zu\n", __func__, filename, argv1, envp_len);
-
-#ifdef CONFIG_KSU_DEBUG
-	const char *envp_n = envp;
-	unsigned int envc = 1;
-	do {
-		pr_info("%s: envp[%d]: %s\n", __func__, envc, envp_n);
-		envp_n += strlen(envp_n) + 1;
-		envc++;
-	} while (envp_n < envp + 256);
-#endif
-
-	if (init_second_stage_executed)
-		goto first_app_process;
-
-	// /system/bin/init with argv1
-	if (!init_second_stage_executed 
-		&& (!memcmp(filename, system_bin_init, sizeof(system_bin_init) - 1))) {
-		if (argv1 && !strcmp(argv1, "second_stage")) {
-			pr_info("%s: /system/bin/init second_stage executed\n", __func__);
-			apply_kernelsu_rules();
-			init_second_stage_executed = true;
-			ksu_android_ns_fs_check();
+	if (unlikely(!memcmp(filename->name, system_bin_init,
+			     sizeof(system_bin_init) - 1) &&
+		     argv)) {
+		// /system/bin/init executed
+		int argc = count(*argv, MAX_ARG_STRINGS);
+		pr_info("/system/bin/init argc: %d\n", argc);
+		if (argc > 1 && !init_second_stage_executed) {
+			const char __user *p = get_user_arg_ptr(*argv, 1);
+			if (p && !IS_ERR(p)) {
+				char first_arg[16];
+				ksu_strncpy_from_user_nofault(
+					first_arg, p, sizeof(first_arg));
+				pr_info("/system/bin/init first arg: %s\n",
+					first_arg);
+				if (!strcmp(first_arg, "second_stage")) {
+					pr_info("/system/bin/init second_stage executed\n");
+					apply_kernelsu_rules();
+					init_second_stage_executed = true;
+					ksu_android_ns_fs_check();
+				}
+			} else {
+				pr_err("/system/bin/init parse args err!\n");
+			}
+		}
+	} else if (unlikely(!memcmp(filename->name, old_system_init,
+				    sizeof(old_system_init) - 1) &&
+			    argv)) {
+		// /init executed
+		int argc = count(*argv, MAX_ARG_STRINGS);
+		pr_info("/init argc: %d\n", argc);
+		if (argc > 1 && !init_second_stage_executed) {
+			/* This applies to versions between Android 6 ~ 7 */
+			const char __user *p = get_user_arg_ptr(*argv, 1);
+			if (p && !IS_ERR(p)) {
+				char first_arg[16];
+				ksu_strncpy_from_user_nofault(
+					first_arg, p, sizeof(first_arg));
+				pr_info("/init first arg: %s\n", first_arg);
+				if (!strcmp(first_arg, "--second-stage")) {
+					pr_info("/init second_stage executed\n");
+					apply_kernelsu_rules();
+					init_second_stage_executed = true;
+					ksu_android_ns_fs_check();
+				}
+			} else {
+				pr_err("/init parse args err!\n");
+			}
+		} else if (argc == 1 && !init_second_stage_executed && envp) {
+			/* This applies to versions between Android 8 ~ 9  */
+			int envc = count(*envp, MAX_ARG_STRINGS);
+			if (envc > 0) {
+				int n;
+				for (n = 1; n <= envc; n++) {
+					const char __user *p =
+						get_user_arg_ptr(*envp, n);
+					if (!p || IS_ERR(p)) {
+						continue;
+					}
+					char env[256];
+					// Reading environment variable strings from user space
+					if (ksu_strncpy_from_user_nofault(
+						    env, p, sizeof(env)) < 0)
+						continue;
+					// Parsing environment variable names and values
+					char *env_name = env;
+					char *env_value = strchr(env, '=');
+					if (env_value == NULL)
+						continue;
+					// Replace equal sign with string terminator
+					*env_value = '\0';
+					env_value++;
+					// Check if the environment variable name and value are matching
+					if (!strcmp(env_name,
+						    "INIT_SECOND_STAGE") &&
+					    (!strcmp(env_value, "1") ||
+					     !strcmp(env_value, "true"))) {
+						pr_info("/init second_stage executed\n");
+						apply_kernelsu_rules();
+						init_second_stage_executed =
+							true;
+						ksu_android_ns_fs_check();
+					}
+				}
+			}
 		}
 	}
 
-	// /init with argv1
-	if (!init_second_stage_executed 
-		&& (!memcmp(filename, old_system_init, sizeof(old_system_init) - 1))) {
-		if (argv1 && !strcmp(argv1, "--second-stage")) {
-			pr_info("%s: /init --second-stage executed\n", __func__);
-			apply_kernelsu_rules();
-			init_second_stage_executed = true;
-			ksu_android_ns_fs_check();
-		}
-	}
-
-	if (!envp || !envp_len)
-		goto first_app_process;
-
-	// /init without argv1/useless-argv1 but usable envp
-	// untested! TODO: test and debug me!
-	if (!init_second_stage_executed && (!memcmp(filename, old_system_init, sizeof(old_system_init) - 1))) {
-		
-		// we hunt for "INIT_SECOND_STAGE"
-		const char *envp_n = envp;
-		unsigned int envc = 1;
-		do {
-			if (strstarts(envp_n, "INIT_SECOND_STAGE"))
-				break;
-			envp_n += strlen(envp_n) + 1;
-			envc++;
-		} while (envp_n < envp + envp_len);
-		pr_info("%s: envp[%d]: %s\n", __func__, envc, envp_n);
-		
-		if (!strcmp(envp_n, "INIT_SECOND_STAGE=1")
-			|| !strcmp(envp_n, "INIT_SECOND_STAGE=true") ) {
-			pr_info("%s: /init +envp: INIT_SECOND_STAGE executed\n", __func__);
-			apply_kernelsu_rules();
-			init_second_stage_executed = true;
-			ksu_android_ns_fs_check();
-		}
-	}
-
-first_app_process:
-	if (first_app_process && !memcmp(filename, app_process, sizeof(app_process) - 1)) {
+	if (unlikely(first_app_process && !memcmp(filename->name, app_process,
+						  sizeof(app_process) - 1))) {
 		first_app_process = false;
-		pr_info("%s: exec app_process, /data prepared, second_stage: %d\n", __func__, init_second_stage_executed);
-		on_post_fs_data();
+		pr_info("exec app_process, /data prepared, second_stage: %d\n",
+			init_second_stage_executed);
+		on_post_fs_data(); // we keep this for old ksud
 		stop_execve_hook();
 	}
 
 	return 0;
-}
-
-int ksu_handle_pre_ksud(const char *filename)
-{
-	if (likely(!ksu_execveat_hook))
-		return 0;
-
-	// not /system/bin/init, not /init, not /system/bin/app_process (64/32 thingy)
-	// return 0;
-	if (likely(strcmp(filename, "/system/bin/init") && strcmp(filename, "/init")
-		&& !strstarts(filename, "/system/bin/app_process") ))
-		return 0;
-
-	if (!current || !current->mm)
-		return 0;
-
-	// https://elixir.bootlin.com/linux/v4.14.1/source/include/linux/mm_types.h#L429
-	// unsigned long arg_start, arg_end, env_start, env_end;
-	unsigned long arg_start = current->mm->arg_start;
-	unsigned long arg_end = current->mm->arg_end;
-	unsigned long env_start = current->mm->env_start;
-	unsigned long env_end = current->mm->env_end;
-
-	size_t arg_len = arg_end - arg_start;
-	size_t envp_len = env_end - env_start;
-
-	if (arg_len <= 0 || envp_len <= 0) // this wont make sense, filter it
-		return 0;
-
-	#define ARGV_MAX 32  // this is enough for argv1
-	#define ENVP_MAX 256  // this is enough for INIT_SECOND_STAGE
-	char args[ARGV_MAX];
-	size_t argv_copy_len = (arg_len > ARGV_MAX) ? ARGV_MAX : arg_len;
-	char envp[ENVP_MAX];
-	size_t envp_copy_len = (envp_len > ENVP_MAX) ? ENVP_MAX : envp_len;
-
-	// we cant use strncpy on here, else it will truncate once it sees \0
-	if (ksu_copy_from_user_retry(args, (void __user *)arg_start, argv_copy_len))
-		return 0;
-
-	if (ksu_copy_from_user_retry(envp, (void __user *)env_start, envp_copy_len))
-		return 0;
-
-	args[ARGV_MAX - 1] = '\0';
-	envp[ENVP_MAX - 1] = '\0';
-
-	// we only need argv1 !
-	// abuse strlen here since it only gets length up to \0
-	char *argv1 = args + strlen(args) + 1;
-	if (argv1 >= args + argv_copy_len) // out of bounds!
-		argv1 = "";
-
-	return ksu_handle_bprm_ksud(filename, argv1, envp, envp_copy_len);
 }
 
 static ssize_t (*orig_read)(struct file *, char __user *, size_t, loff_t *);
@@ -466,121 +518,25 @@ bool ksu_is_safe_mode()
 #ifdef CONFIG_KSU_KPROBES_HOOK
 static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
-	/*
-	asmlinkage int sys_execve(const char __user *filenamei,
-				  const char __user *const __user *argv,
-				  const char __user *const __user *envp, struct pt_regs *regs)
-	*/
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
-	const char __user *filename_user = (const char __user *)PT_REGS_PARM1(real_regs);
-	const char __user *const __user *__argv = (const char __user *const __user *)PT_REGS_PARM2(real_regs);
-	const char __user *const __user *__envp = (const char __user *const __user *)PT_REGS_PARM3(real_regs);
+	const char __user **filename_user =
+		(const char **)&PT_REGS_PARM1(real_regs);
+	const char __user *const __user *__argv =
+		(const char __user *const __user *)PT_REGS_PARM2(real_regs);
+	struct user_arg_ptr argv = { .ptr.native = __argv };
+	struct filename filename_in, *filename_p;
 	char path[32];
 
 	if (!filename_user)
 		return 0;
 
-// filename stage
-	if (ksu_copy_from_user_retry(path, filename_user, sizeof(path)))
-		return 0;
+	memset(path, 0, sizeof(path));
+	ksu_strncpy_from_user_nofault(path, *filename_user, 32);
+	filename_in.name = path;
 
-	path[sizeof(path) - 1] = '\0';
-
-	// not /system/bin/init, not /init, not /system/bin/app_process (64/32 thingy)
-	// we dont care !!
-	if (likely(strcmp(path, "/system/bin/init") && strcmp(path, "/init")
-		&& !strstarts(path, "/system/bin/app_process") ))
-		return 0;
-
-// argv stage
-	char argv1[32] = {0};
-	// memzero_explicit(argv1, 32);
-	if (__argv) {
-		const char __user *arg1_user = NULL;
-		// grab argv[1] pointer
-		// this looks like
-		/* 
-		 * 0x1000 ./program << this is __argv
-		 * 0x1001 -o 
-		 * 0x1002 arg
-		*/
-		if (ksu_copy_from_user_retry(&arg1_user, __argv + 1, sizeof(arg1_user)))
-			goto no_argv1; // copy argv[1] pointer fail, probably no argv1 !!
-
-		if (arg1_user)
-			ksu_copy_from_user_retry(argv1, arg1_user, sizeof(argv1));
-	}
-
-no_argv1:
-	argv1[sizeof(argv1) - 1] = '\0';
-
-// envp stage
-	#define ENVP_MAX 256
-	char envp[ENVP_MAX] = {0};
-	char *dst = envp;
-	size_t envp_len = 0;
-	int i = 0; // to track user pointer offset from __envp
-
-	// memzero_explicit(envp, ENVP_MAX);
-
-	if (__envp) {
-		do {
-			const char __user *env_entry_user = NULL;
-			// this is also like argv above
-			/*
-			 * 0x1001 PATH=/bin
-			 * 0x1002 VARIABLE=value
-			 * 0x1002 some_more_env_var=1
-			 */
-
-			// check if pointer exists
-			if (ksu_copy_from_user_retry(&env_entry_user, __envp + i, sizeof(env_entry_user)))
-				break; 
-
-			// check if no more env entry
-			if (!env_entry_user)
-				break; 
-			
-			// probably redundant to while condition but ok
-			if (envp_len >= ENVP_MAX - 1)
-				break;
-
-			// copy strings from env_entry_user pointer that we collected
-			// also break if failed
-			if (ksu_copy_from_user_retry(dst, env_entry_user, ENVP_MAX - envp_len))
-				break;
-
-			// get the length of that new copy above
-			// get lngth of dst as far as ENVP_MAX - current collected envp_len
-			size_t len = strnlen(dst, ENVP_MAX - envp_len);
-			if (envp_len + len + 1 > ENVP_MAX)
-				break; // if more than 255 bytes, bail
-
-			dst[len] = '\0';
-			// collect total number of copied strings
-			envp_len = envp_len + len + 1;
-			// increment dst address since we need to put something on next iter
-			dst = dst + len + 1;
-			// pointer walk, __envp + i
-			i++;
-		} while (envp_len < ENVP_MAX);
-	}
-
-	/*
-	at this point, we shoul've collected envp from
-		* 0x1001 PATH=/bin
-		* 0x1002 VARIABLE=value
-		* 0x1002 some_more_env_var=1
-	to
-		* 0x1234 PATH=/bin\0VARIABLE=value\0some_more_env_var=1\0\0\0\0
-	*/
-
-	envp[ENVP_MAX - 1] = '\0';
-
-#ifdef CONFIG_KSU_DEBUG
-	pr_info("%s: filename: %s argv[1]:%s envp_len: %zu\n", __func__, path, argv1, envp_len);
-#endif
-	return ksu_handle_bprm_ksud(path, argv1, envp, envp_len);
+	filename_p = &filename_in;
+	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, &argv, NULL,
+					NULL);
 }
 
 static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
@@ -617,7 +573,6 @@ static struct kprobe input_event_kp = {
 	.pre_handler = input_handle_event_handler_pre,
 };
 
-
 static void do_stop_vfs_read_hook(struct work_struct *work)
 {
 	unregister_kprobe(&vfs_read_kp);
@@ -651,9 +606,9 @@ static void stop_execve_hook()
 	bool ret = schedule_work(&stop_execve_hook_work);
 	pr_info("unregister execve kprobe: %d!\n", ret);
 #else
+ 	ksu_execveat_hook = false;
  	pr_info("stop execve_hook\n");
 #endif
-	ksu_execveat_hook = false;
 }
 
 static void stop_input_hook()
