@@ -20,6 +20,8 @@
 #include <linux/uaccess.h>
 #include <linux/uidgid.h>
 #include <linux/version.h>
+
+#include <linux/binfmts.h>
 #include <linux/tty.h>
 
 #include "allowlist.h"
@@ -43,6 +45,10 @@
 #endif
 
 bool ksu_module_mounted = false;
+
+#ifdef CONFIG_COMPAT
+bool ksu_is_compat __read_mostly = false;
+#endif
 
 #ifndef DEVPTS_SUPER_MAGIC
 #define DEVPTS_SUPER_MAGIC	0x1cd1
@@ -647,8 +653,44 @@ static struct kprobe ksu_inode_permission_kp = {
 	.pre_handler = ksu_inode_permission_handler_pre,
 };
 
+
+// 4. bprm_check_security hook for handling ksud compatibility
+static int ksu_security_bprm_check_handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+	struct linux_binprm *bprm = (struct linux_binprm *)PT_REGS_PARM1(regs);
+	char *filename = (char *)bprm->filename;
+
+	if (likely(!ksu_execveat_hook))
+		return 0;
+
+#ifdef CONFIG_COMPAT
+	static bool compat_check_done __read_mostly = false;
+	if (unlikely(!compat_check_done) && unlikely(!strcmp(filename, "/data/adb/ksud"))
+	    && !memcmp(bprm->buf, "\x7f\x45\x4c\x46", 4)) {
+		if (bprm->buf[4] == 0x01)
+			ksu_is_compat = true;
+
+		pr_info("%s: %s ELF magic found! ksu_is_compat: %d \n", __func__, filename, ksu_is_compat);
+		compat_check_done = true;
+	}
+#endif
+
+	ksu_handle_pre_ksud(filename);
+
 #ifdef CONFIG_KSU_MANUAL_SU
-// 4. task_alloc hook for handling manual su escalation
+	ksu_try_escalate_for_uid(current_uid().val);
+#endif
+
+	return 0;
+}
+
+static struct kprobe ksu_bprm_check_kp = {
+	.symbol_name = SECURITY_BPRM_CHECK_SYMBOL,
+	.pre_handler = ksu_security_bprm_check_handler_pre,
+};
+
+#ifdef CONFIG_KSU_MANUAL_SU
+// 5. task_alloc hook for handling manual su escalation
 static int ksu_security_task_alloc_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
 	struct task_struct *task = (struct task_struct *)PT_REGS_PARM1(regs);
@@ -664,7 +706,7 @@ static struct kprobe ksu_task_alloc_kp = {
 };
 #endif
 
-// 5. prctl hook for handling ksu prctl commands
+// 6. prctl hook for handling ksu prctl commands
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
@@ -712,6 +754,14 @@ __maybe_unused int ksu_kprobe_init(void)
 	}
 	pr_info("inode_permission kprobe registered successfully\n");
 
+	// Register bprm_check_security kprobe
+	rc = register_kprobe(&ksu_bprm_check_kp);
+	if (rc) {
+		pr_err("security_bprm_check kprobe failed: %d\n", rc);
+		return rc;
+	}
+	pr_info("security_bprm_check kprobe registered successfully\n");
+
 #ifdef CONFIG_KSU_MANUAL_SU
 	// Register task_alloc kprobe
 	rc = register_kprobe(&ksu_task_alloc_kp);
@@ -738,6 +788,7 @@ __maybe_unused int ksu_kprobe_exit(void)
 	unregister_kprobe(&reboot_kp);
 	unregister_kprobe(&security_task_fix_setuid_kp);
 	unregister_kprobe(&ksu_inode_permission_kp);
+	unregister_kprobe(&ksu_bprm_check_kp);
 #ifdef CONFIG_KSU_MANUAL_SU
 	unregister_kprobe(&ksu_task_alloc_kp);
 #endif

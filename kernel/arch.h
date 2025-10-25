@@ -28,6 +28,7 @@
 #define SECURITY_TASK_FIX_SETUID_SYMBOL "security_task_fix_setuid"
 #define INODE_PERMISSION_SYMBOL "inode_permission"
 #define SECURITY_TASK_ALLOC_SYMBOL "security_task_alloc"
+#define SECURITY_BPRM_CHECK_SYMBOL "security_bprm_check"
 #define PRCTL_SYMBOL "__arm64_sys_prctl"
 
 #elif defined(__x86_64__)
@@ -55,6 +56,7 @@
 #define SECURITY_TASK_FIX_SETUID_SYMBOL "security_task_fix_setuid"
 #define INODE_PERMISSION_SYMBOL "inode_permission"
 #define SECURITY_TASK_ALLOC_SYMBOL "security_task_alloc"
+#define SECURITY_BPRM_CHECK_SYMBOL "security_bprm_check"
 #define PRCTL_SYMBOL "__x64_sys_prctl"
 
 #else
