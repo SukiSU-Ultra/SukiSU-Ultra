@@ -389,6 +389,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	u32 *result = (u32 *)arg5;
 	u32 reply_ok = KERNEL_SU_OPTION;
 
+	if (likely(ksu_is_current_proc_umounted()))
+		return 0; // prevent side channel attack in ksu side
+
 	if (KERNEL_SU_OPTION != option)
 		return 0;
 	
@@ -588,6 +591,10 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 
 	// try umount ksu temp path
 	try_umount("/debug_ramdisk", false, MNT_DETACH);
+
+	get_task_struct(current); // delay fix
+	ksu_set_current_proc_umounted();
+	put_task_struct(current);
 
 	return 0;
 }
