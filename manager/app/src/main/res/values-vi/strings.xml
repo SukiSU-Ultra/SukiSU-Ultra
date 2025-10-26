@@ -689,4 +689,31 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
     <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
     <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">Trình xem log</string>
+    <string name="log_viewer_back">Trở lại</string>
+    <string name="log_viewer_search">Tìm kiếm</string>
+    <string name="log_viewer_clear_logs">Xoá Log</string>
+    <string name="log_viewer_clear_logs_confirm">Bạn có chắc chắn muốn xóa tệp log đã chọn không? Thao tác này không thể hoàn tác</string>
+    <string name="log_viewer_logs_cleared">Đã xoá logs thành công</string>
+    <string name="log_viewer_select_file">Chọn tệp log</string>
+    <string name="log_viewer_current_log">Log hiện tại</string>
+    <string name="log_viewer_old_log">Log cũ</string>
+    <string name="log_viewer_filter_type">Lọc theo loại</string>
+    <string name="log_viewer_all_types">Tất cả các loại</string>
+    <string name="log_viewer_showing_entries">Hiển thị %1$d trong tổng %2$d logs</string>
+    <string name="log_viewer_no_logs">Không tìm thấy logs nào</string>
+    <string name="log_viewer_no_matching_logs">Không tìm thấy logs nào phù hợp</string>
+    <string name="log_viewer_refresh">Làm mới</string>
+    <string name="log_viewer_raw_log">Raw Log</string>
+    <string name="log_viewer_search_placeholder">Tìm kiếm theo UID, lệnh hoặc chi tiết…</string>
+    <string name="log_viewer_clear_search">Xoá tìm kiếm</string>
+    <string name="log_viewer_view_logs">Xem logs sử dụng</string>
+    <string name="log_viewer_view_logs_summary">Xem logs truy cập Superuser</string>
+    <string name="log_viewer_exclude_subtypes">Loại trừ các phân loại</string>
+    <string name="log_viewer_exclude_current_app">Ứng dụng hiện tại</string>
+    <string name="log_viewer_page_info">Trang: %1$d/%2$d | Tổng logs: %3$d</string>
+    <string name="log_viewer_too_many_logs">Quá nhiều logs, chỉ hiển thị %1$d logs mới nhất</string>
+    <string name="log_viewer_load_more">Đang load thêm logs</string>
+    <string name="log_viewer_all_logs_loaded">Tất cả logs đã được hiển thị</string>
 </resources>
