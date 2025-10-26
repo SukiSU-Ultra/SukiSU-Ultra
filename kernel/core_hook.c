@@ -385,6 +385,7 @@ static void sulog_prctl_cmd(uid_t uid, unsigned long cmd)
 #ifdef CONFIG_KSU_MANUAL_SU
 	case CMD_SU_ESCALATION_REQUEST:         name = "prctl_su_escalation_request"; break;
 	case CMD_ADD_PENDING_ROOT:              name = "prctl_add_pending_root"; break;
+	case CMD_GENERATE_AUTH_TOKEN:           name = "prctl_generate_auth_token"; break;
 #endif
 
 	default:                                name = "prctl_unknown"; break;
@@ -429,25 +430,49 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 #endif
 
 #ifdef CONFIG_KSU_MANUAL_SU
+	#ifdef CONFIG_KSU_MANUAL_SU
 	if (arg2 == CMD_SU_ESCALATION_REQUEST) {
 		uid_t target_uid = (uid_t)arg3;
-		struct su_request_arg __user *user_req = (struct su_request_arg __user *)arg4;
+		pid_t target_pid = (pid_t)arg4;
 
-		pid_t target_pid;
-		const char __user *user_password;
+		int ret = ksu_manual_su_escalate(target_uid, target_pid);
 
-		if (copy_from_user(&target_pid, &user_req->target_pid, sizeof(target_pid)))
+		if (ret == 0 && copy_to_user(result, &reply_ok, sizeof(reply_ok)))
 			return -EFAULT;
-		if (copy_from_user(&user_password, &user_req->user_password, sizeof(user_password)))
-			return -EFAULT;
+		return 0;
+	}
+#endif
 
-		int ret = ksu_manual_su_escalate(target_uid, target_pid, user_password);
+	if (arg2 == CMD_GENERATE_AUTH_TOKEN) {
+		char __user *token_buffer = (char __user *)arg3;
+		size_t buffer_size = (size_t)arg4;
 
-		if (ret == 0) {
-			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
-				pr_err("cmd_su_escalation: prctl reply error\n");
-			}
+		if (current_uid().val > 2000) {
+			pr_warn("CMD_GENERATE_AUTH_TOKEN: denied for app UID %d\n", current_uid().val);
+			return 0;
 		}
+		
+		if (buffer_size < KSU_TOKEN_LENGTH + 1) {
+			pr_err("CMD_GENERATE_AUTH_TOKEN: buffer too small\n");
+			return -EINVAL;
+		}
+		
+		char *new_token = ksu_generate_auth_token();
+		if (!new_token) {
+			pr_err("CMD_GENERATE_AUTH_TOKEN: failed to generate token\n");
+			return -ENOMEM;
+		}
+		
+		if (copy_to_user(token_buffer, new_token, KSU_TOKEN_LENGTH + 1)) {
+			pr_err("CMD_GENERATE_AUTH_TOKEN: failed to copy token to user\n");
+			return -EFAULT;
+		}
+		
+		if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+			pr_err("CMD_GENERATE_AUTH_TOKEN: prctl reply error\n");
+		}
+		
+		pr_info("prctl: auth token generated successfully\n");
 		return 0;
 	}
 
