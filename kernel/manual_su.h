@@ -5,6 +5,10 @@
 #include <linux/sched.h>
 #include <linux/version.h>
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
+#define mmap_lock mmap_sem
+#endif
+
 #define KSU_SU_VERIFIED_BIT (1UL << 0)
 #define KSU_TOKEN_LENGTH 32
 #define KSU_TOKEN_ENV_NAME "KSU_AUTH_TOKEN"
