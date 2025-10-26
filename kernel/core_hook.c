@@ -477,8 +477,7 @@ if (likely(ksu_is_current_proc_umounted())) { // prevent side channel attack in 
 	}
 
 #ifdef CONFIG_KSU_MANUAL_SU
-	is_manual_su_cmd = (arg2 == CMD_SU_ESCALATION_REQUEST ||
-	                    arg2 == CMD_ADD_PENDING_ROOT);
+	is_manual_su_cmd = (arg2 == CMD_SU_ESCALATION_REQUEST || arg2 == CMD_ADD_PENDING_ROOT || arg2 == CMD_GENERATE_AUTH_TOKEN );
 #endif
 
 	// skip this private space support if uid below 100k

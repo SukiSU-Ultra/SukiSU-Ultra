@@ -134,22 +134,6 @@ else
 $(info -- KPM is disabled)
 endif
 
-ifeq ($(CONFIG_KSU_MANUAL_SU), y)
-KSU_PW_POOL := abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
-KSU_PW_LEN  := $(shell awk 'BEGIN{srand(); print int(rand()*9)+8}')
-
-ifeq ($(CONFIG_KSU), m)
-KSU_SU_PASSWORD := CilloZako114514
-else
-KSU_SU_PASSWORD := $(shell \
-    tr -dc '$(KSU_PW_POOL)' </dev/urandom | head -c $(KSU_PW_LEN))
-endif
-
-ccflags-y += -DKSU_SU_PASSWORD=\"$(KSU_SU_PASSWORD)\"
-
-$(info -- KSU manual-su password : $(KSU_SU_PASSWORD))
-endif
-
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
 
