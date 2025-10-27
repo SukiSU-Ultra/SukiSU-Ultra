@@ -14,23 +14,16 @@
 #include "manager.h"
 
 extern void escape_to_root_for_cmd_su(uid_t, pid_t);
-#define MAX_PENDING 16
-#define REMOVE_DELAY_CALLS 150
-#define MAX_TOKENS 10
-
-struct pending_uid {
-    uid_t uid;
-    int use_count;
-    int remove_calls;
-};
+static bool current_verified = false;
+static void ksu_cleanup_expired_tokens(void);
+static bool is_current_verified(void);
+static void add_pending_root(uid_t uid);
 
 static struct pending_uid pending_uids[MAX_PENDING] = {0};
 static int pending_cnt = 0;
 static struct ksu_token_entry auth_tokens[MAX_TOKENS] = {0};
 static int token_count = 0;
 static DEFINE_SPINLOCK(token_lock);
-
-bool current_verified = false;
 
 static char* get_token_from_envp(void)
 {
@@ -96,7 +89,7 @@ static char* get_token_from_envp(void)
     return token;
 }
 
-char* ksu_generate_auth_token(void)
+static char* ksu_generate_auth_token(void)
 {
     static char token_buffer[KSU_TOKEN_LENGTH + 1];
     unsigned long flags;
@@ -138,7 +131,7 @@ char* ksu_generate_auth_token(void)
     return token_buffer;
 }
 
-bool ksu_verify_auth_token(const char *token)
+static bool ksu_verify_auth_token(const char *token)
 {
     unsigned long flags;
     bool valid = false;
@@ -171,7 +164,7 @@ bool ksu_verify_auth_token(const char *token)
     return valid;
 }
 
-void ksu_cleanup_expired_tokens(void)
+static void ksu_cleanup_expired_tokens(void)
 {
     unsigned long flags;
     int i, j;
@@ -193,8 +186,29 @@ void ksu_cleanup_expired_tokens(void)
     spin_unlock_irqrestore(&token_lock, flags);
 }
 
-int ksu_manual_su_escalate(uid_t target_uid, pid_t target_pid)
+static int handle_token_generation(struct manual_su_request *request)
 {
+    if (current_uid().val > 2000) {
+        pr_warn("manual_su: token generation denied for app UID %d\n", current_uid().val);
+        return -EPERM;
+    }
+    
+    char *new_token = ksu_generate_auth_token();
+    if (!new_token) {
+        pr_err("manual_su: failed to generate token\n");
+        return -ENOMEM;
+    }
+    
+    strncpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
+    pr_info("manual_su: auth token generated successfully\n");
+    return 0;
+}
+
+static int handle_escalation_request(struct manual_su_request *request)
+{
+    uid_t target_uid = request->target_uid;
+    pid_t target_pid = request->target_pid;
+    
     if (current_uid().val == 0 || is_manager() || ksu_is_allow_uid(current_uid().val))
         goto allowed;
 
@@ -218,7 +232,49 @@ allowed:
     return 0;
 }
 
-bool is_current_verified(void)
+static int handle_add_pending_request(struct manual_su_request *request)
+{
+    uid_t target_uid = request->target_uid;
+    
+    if (!is_current_verified()) {
+        pr_warn("manual_su: add_pending denied, not verified\n");
+        return -EPERM;
+    }
+
+    add_pending_root(target_uid);
+    current_verified = false;
+    pr_info("manual_su: pending root added for UID %d\n", target_uid);
+    return 0;
+}
+
+int ksu_handle_manual_su_request(int option, struct manual_su_request *request)
+{
+    if (!request) {
+        pr_err("manual_su: invalid request pointer\n");
+        return -EINVAL;
+    }
+
+    switch (option) {
+    case MANUAL_SU_OP_GENERATE_TOKEN:
+        pr_info("manual_su: handling token generation request\n");
+        return handle_token_generation(request);
+
+    case MANUAL_SU_OP_ESCALATE:
+        pr_info("manual_su: handling escalation request for UID %d, PID %d\n", 
+                request->target_uid, request->target_pid);
+        return handle_escalation_request(request);
+        
+    case MANUAL_SU_OP_ADD_PENDING:
+        pr_info("manual_su: handling add pending request for UID %d\n", request->target_uid);
+        return handle_add_pending_request(request);
+        
+    default:
+        pr_err("manual_su: unknown option %d\n", option);
+        return -EINVAL;
+    }
+}
+
+static bool is_current_verified(void)
 {
     return current_verified;
 }
@@ -254,7 +310,7 @@ void remove_pending_root(uid_t uid)
     }
 }
 
-void add_pending_root(uid_t uid)
+static void add_pending_root(uid_t uid)
 {
     if (pending_cnt >= MAX_PENDING) {
         pr_warn("pending_root: cache full\n");

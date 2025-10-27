@@ -4,10 +4,30 @@
 #include <linux/types.h>
 #include <linux/sched.h>
 
+#define MAX_PENDING 16
+#define REMOVE_DELAY_CALLS 150
+#define MAX_TOKENS 10
+
 #define KSU_SU_VERIFIED_BIT (1UL << 0)
 #define KSU_TOKEN_LENGTH 32
 #define KSU_TOKEN_ENV_NAME "KSU_AUTH_TOKEN"
-#define KSU_TOKEN_EXPIRE_TIME 30
+#define KSU_TOKEN_EXPIRE_TIME 150
+
+#define MANUAL_SU_OP_GENERATE_TOKEN 0
+#define MANUAL_SU_OP_ESCALATE 1
+#define MANUAL_SU_OP_ADD_PENDING 2
+
+struct pending_uid {
+    uid_t uid;
+    int use_count;
+    int remove_calls;
+};
+
+struct manual_su_request {
+    uid_t target_uid;
+    pid_t target_pid;
+    char token_buffer[KSU_TOKEN_LENGTH + 1];
+};
 
 struct ksu_token_entry {
     char token[KSU_TOKEN_LENGTH + 1];
@@ -15,14 +35,7 @@ struct ksu_token_entry {
     bool used;
 };
 
-int ksu_manual_su_escalate(uid_t target_uid, pid_t target_pid);
-
+int ksu_handle_manual_su_request(int option, struct manual_su_request *request);
 bool is_pending_root(uid_t uid);
 void remove_pending_root(uid_t uid);
-void add_pending_root(uid_t uid);
-bool is_current_verified(void);
-char* ksu_generate_auth_token(void);
-bool ksu_verify_auth_token(const char *token);
-void ksu_cleanup_expired_tokens(void);
-extern bool current_verified;
 #endif

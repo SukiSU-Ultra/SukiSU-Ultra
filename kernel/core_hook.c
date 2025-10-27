@@ -383,9 +383,7 @@ static void sulog_prctl_cmd(uid_t uid, unsigned long cmd)
 	switch (cmd) {
 
 #ifdef CONFIG_KSU_MANUAL_SU
-	case CMD_SU_ESCALATION_REQUEST:         name = "prctl_su_escalation_request"; break;
-	case CMD_ADD_PENDING_ROOT:              name = "prctl_add_pending_root"; break;
-	case CMD_GENERATE_AUTH_TOKEN:           name = "prctl_generate_auth_token"; break;
+	case CMD_MANUAL_SU_REQUEST:             name = "prctl_manual_su_request"; break;
 #endif
 
 	default:                                name = "prctl_unknown"; break;
@@ -430,66 +428,30 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 #endif
 
 #ifdef CONFIG_KSU_MANUAL_SU
-	#ifdef CONFIG_KSU_MANUAL_SU
-	if (arg2 == CMD_SU_ESCALATION_REQUEST) {
-		uid_t target_uid = (uid_t)arg3;
-		pid_t target_pid = (pid_t)arg4;
-
-		int ret = ksu_manual_su_escalate(target_uid, target_pid);
-
-		if (ret == 0 && copy_to_user(result, &reply_ok, sizeof(reply_ok)))
-			return -EFAULT;
-		return 0;
-	}
-#endif
-
-	if (arg2 == CMD_GENERATE_AUTH_TOKEN) {
-		char __user *token_buffer = (char __user *)arg3;
-		size_t buffer_size = (size_t)arg4;
-
-		if (current_uid().val > 2000) {
-			pr_warn("CMD_GENERATE_AUTH_TOKEN: denied for app UID %d\n", current_uid().val);
+	if (arg2 == CMD_MANUAL_SU_REQUEST) {
+		struct manual_su_request request;
+		int su_option = (int)arg3;
+		
+		if (copy_from_user(&request, (void __user *)arg4, sizeof(request))) {
+			pr_err("manual_su: failed to copy request from user\n");
 			return 0;
 		}
-		
-		if (buffer_size < KSU_TOKEN_LENGTH + 1) {
-			pr_err("CMD_GENERATE_AUTH_TOKEN: buffer too small\n");
-			return -EINVAL;
-		}
-		
-		char *new_token = ksu_generate_auth_token();
-		if (!new_token) {
-			pr_err("CMD_GENERATE_AUTH_TOKEN: failed to generate token\n");
-			return -ENOMEM;
-		}
-		
-		if (copy_to_user(token_buffer, new_token, KSU_TOKEN_LENGTH + 1)) {
-			pr_err("CMD_GENERATE_AUTH_TOKEN: failed to copy token to user\n");
-			return -EFAULT;
-		}
-		
-		if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
-			pr_err("CMD_GENERATE_AUTH_TOKEN: prctl reply error\n");
-		}
-		
-		pr_info("prctl: auth token generated successfully\n");
-		return 0;
-	}
 
-	if (arg2 == CMD_ADD_PENDING_ROOT) {
-		uid_t uid = (uid_t)arg3;
+		int ret = ksu_handle_manual_su_request(su_option, &request);
 
-		if (!is_current_verified()) {
-			pr_warn("CMD_ADD_PENDING_ROOT: denied, password not verified\n");
-			return -EPERM;
+		// Copy back result for token generation
+		if (ret == 0 && su_option == MANUAL_SU_OP_GENERATE_TOKEN) {
+			if (copy_to_user((void __user *)arg4, &request, sizeof(request))) {
+				pr_err("manual_su: failed to copy request back to user\n");
+				return 0;
+			}
 		}
-
-		add_pending_root(uid);
-		current_verified = false;
-		pr_info("prctl: pending root added for UID %d\n", uid);
-
-		if (copy_to_user(result, &reply_ok, sizeof(reply_ok)))
-			pr_err("prctl: CMD_ADD_PENDING_ROOT reply error\n");
+		
+		if (ret == 0) {
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("manual_su: prctl reply error\n");
+			}
+		}
 		return 0;
 	}
 #endif
