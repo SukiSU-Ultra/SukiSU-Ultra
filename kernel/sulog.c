@@ -9,6 +9,7 @@
 #include <linux/workqueue.h>
 #include <linux/cred.h>
 #include <linux/sched.h>
+#include <linux/mm.h>
 #include <linux/mutex.h>
 #include <linux/spinlock.h>
 #include <linux/crc32.h>
@@ -42,77 +43,77 @@ static void get_timestamp(char *buf, size_t len)
 		 tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 
-static void get_full_comm(char *comm_buf, size_t buf_len)
+static void ksu_get_cmdline(char *full_comm, const char *comm, size_t buf_len)
 {
-	struct mm_struct *mm;
-	char *cmdline = NULL;
-	unsigned long arg_start, arg_end;
-	int len;
-	
-	mm = get_task_mm(current);
-	if (mm) {
-		arg_start = mm->arg_start;
-		arg_end = mm->arg_end;
-		
-		if (arg_end > arg_start) {
-			len = arg_end - arg_start;
-			if (len > 0 && len < buf_len) {
-				cmdline = kmalloc(len + 1, GFP_ATOMIC);
-				if (cmdline) {
-					if (ksu_copy_from_user_retry(cmdline, (void __user *)arg_start, len) == 0) {
-						cmdline[len] = '\0';
-						char *space = strchr(cmdline, ' ');
-						if (space) *space = '\0';
-						
-						char *slash = strrchr(cmdline, '/');
-						if (slash && *(slash + 1)) {
-							strncpy(comm_buf, slash + 1, buf_len - 1);
-						} else {
-							strncpy(comm_buf, cmdline, buf_len - 1);
-						}
-						comm_buf[buf_len - 1] = '\0';
-						kfree(cmdline);
-						mmput(mm);
-						return;
-					}
-					kfree(cmdline);
-				}
-			}
+	char *kbuf;
+
+	if (!full_comm || buf_len <= 0)
+		return;
+
+	if (comm && strlen(comm) > 0) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+		strscpy(full_comm, comm, buf_len);
+#else
+		strlcpy(full_comm, comm, buf_len);
+#endif
+	} else {
+		kbuf = kmalloc(buf_len, GFP_ATOMIC);
+		if (!kbuf) {
+			pr_err("sulog: failed to allocate memory for kbuf\n");
+			return;
 		}
-		mmput(mm);
+
+		int n = get_cmdline(current, kbuf, buf_len);
+
+		if (n <= 0) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+			strscpy(full_comm, current->comm, buf_len);
+#else
+			strlcpy(full_comm, current->comm, buf_len);
+#endif
+		} else {
+			for (int i = 0; i < n; i++) {
+				if (kbuf[i] == '\0') kbuf[i] = ' ';
+			}
+			kbuf[n < buf_len ? n : buf_len - 1] = '\0';
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+			strscpy(full_comm, kbuf, buf_len);
+#else
+			strlcpy(full_comm, kbuf, buf_len);
+#endif
+		}
+
+		kfree(kbuf);
 	}
-	
-	strncpy(comm_buf, current->comm, buf_len - 1);
-	comm_buf[buf_len - 1] = '\0';
 }
 
 static bool dedup_should_print(uid_t uid, u8 type,
-                               const char *content, size_t len)
+							   const char *content, size_t len)
 {
-    struct dedup_key key = {
-        .crc  = dedup_calc_hash(content, len),
-        .uid  = uid,
-        .type = type,
-    };
-    u64 now = ktime_get_ns();
-    u64 delta_ns = DEDUP_SECS * NSEC_PER_SEC;
+	struct dedup_key key = {
+		.crc  = dedup_calc_hash(content, len),
+		.uid  = uid,
+		.type = type,
+	};
+	u64 now = ktime_get_ns();
+	u64 delta_ns = DEDUP_SECS * NSEC_PER_SEC;
 
-    u32 idx = key.crc & (SULOG_COMM_LEN - 1);
-    spin_lock(&dedup_lock);
+	u32 idx = key.crc & (SULOG_COMM_LEN - 1);
+	spin_lock(&dedup_lock);
 
-    struct dedup_entry *e = &dedup_tbl[idx];
-    if (e->key.crc == key.crc &&
-        e->key.uid == key.uid &&
-        e->key.type == key.type &&
-        (now - e->ts_ns) < delta_ns) {
-        spin_unlock(&dedup_lock);
-        return false;
-    }
+	struct dedup_entry *e = &dedup_tbl[idx];
+	if (e->key.crc == key.crc &&
+		e->key.uid == key.uid &&
+		e->key.type == key.type &&
+		(now - e->ts_ns) < delta_ns) {
+		spin_unlock(&dedup_lock);
+		return false;
+	}
 
-    e->key = key;
-    e->ts_ns = now;
-    spin_unlock(&dedup_lock);
-    return true;
+	e->key = key;
+	e->ts_ns = now;
+	spin_unlock(&dedup_lock);
+	return true;
 }
 
 static void sulog_work_handler(struct work_struct *work)
@@ -172,8 +173,11 @@ static void sulog_add_entry(const char *content)
 		return;
 	}
 	
-	strncpy(entry->content, content, SULOG_ENTRY_MAX_LEN - 1);
-	entry->content[SULOG_ENTRY_MAX_LEN - 1] = '\0';
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+		strscpy(entry->content, content, SULOG_ENTRY_MAX_LEN - 1);
+#else
+		strlcpy(entry->content, content, SULOG_ENTRY_MAX_LEN - 1);
+#endif
 	
 	mutex_lock(&sulog_mutex);
 	list_add_tail(&entry->list, &sulog_queue);
@@ -201,12 +205,7 @@ void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method)
 	
 	get_timestamp(timestamp, 32);
 	
-	if (comm && strlen(comm) > 0) {
-		strncpy(full_comm, comm, SULOG_COMM_LEN - 1);
-		full_comm[SULOG_COMM_LEN - 1] = '\0';
-	} else {
-		get_full_comm(full_comm, SULOG_COMM_LEN);
-	}
+	ksu_get_cmdline(full_comm, comm, SULOG_COMM_LEN);
 	
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
 		"[%s] SU_GRANT: UID=%d COMM=%s METHOD=%s PID=%d\n",
@@ -214,7 +213,7 @@ void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method)
 		method ? method : "unknown", current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_SU_GRANT, log_buf, strlen(log_buf)))
-        goto cleanup;
+		goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
@@ -242,12 +241,7 @@ void ksu_sulog_report_su_attempt(uid_t uid, const char *comm, const char *target
 	
 	get_timestamp(timestamp, 32);
 	
-	if (comm && strlen(comm) > 0) {
-		strncpy(full_comm, comm, SULOG_COMM_LEN - 1);
-		full_comm[SULOG_COMM_LEN - 1] = '\0';
-	} else {
-		get_full_comm(full_comm, SULOG_COMM_LEN);
-	}
+	ksu_get_cmdline(full_comm, comm, SULOG_COMM_LEN);
 	
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
 		"[%s] SU_EXEC: UID=%d COMM=%s TARGET=%s RESULT=%s PID=%d\n",
@@ -256,7 +250,7 @@ void ksu_sulog_report_su_attempt(uid_t uid, const char *comm, const char *target
 		success ? "SUCCESS" : "DENIED", current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_SU_ATTEMPT, log_buf, strlen(log_buf)))
-        goto cleanup;
+		goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
@@ -284,12 +278,7 @@ void ksu_sulog_report_permission_check(uid_t uid, const char *comm, bool allowed
 	
 	get_timestamp(timestamp, 32);
 	
-	if (comm && strlen(comm) > 0) {
-		strncpy(full_comm, comm, SULOG_COMM_LEN - 1);
-		full_comm[SULOG_COMM_LEN - 1] = '\0';
-	} else {
-		get_full_comm(full_comm, SULOG_COMM_LEN);
-	}
+	ksu_get_cmdline(full_comm, comm, SULOG_COMM_LEN);
 	
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
 		"[%s] PERM_CHECK: UID=%d COMM=%s RESULT=%s PID=%d\n",
@@ -297,7 +286,7 @@ void ksu_sulog_report_permission_check(uid_t uid, const char *comm, bool allowed
 		allowed ? "ALLOWED" : "DENIED", current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_PERM_CHECK, log_buf, strlen(log_buf)))
-        goto cleanup;
+		goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
@@ -324,7 +313,8 @@ void ksu_sulog_report_manager_operation(const char *operation, uid_t manager_uid
 	}
 	
 	get_timestamp(timestamp, 32);
-	get_full_comm(full_comm, SULOG_COMM_LEN);
+
+	ksu_get_cmdline(full_comm, NULL, SULOG_COMM_LEN);
 	
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
 		"[%s] MANAGER_OP: OP=%s MANAGER_UID=%d TARGET_UID=%d COMM=%s PID=%d\n",
@@ -332,7 +322,7 @@ void ksu_sulog_report_manager_operation(const char *operation, uid_t manager_uid
 		manager_uid, target_uid, full_comm, current->pid);
 
 	if (!dedup_should_print(manager_uid, DEDUP_MANAGER_OP, log_buf, strlen(log_buf)))
-        goto cleanup;
+		goto cleanup;
 	
 	sulog_add_entry(log_buf);
 	
@@ -343,7 +333,7 @@ cleanup:
 }
 
 void ksu_sulog_report_syscall(uid_t uid, const char *comm,
-			      const char *syscall, const char *args)
+				  const char *syscall, const char *args)
 {
 	char *timestamp, *full_comm, *log_buf;
 
@@ -360,22 +350,18 @@ void ksu_sulog_report_syscall(uid_t uid, const char *comm,
 	}
 
 	get_timestamp(timestamp, 32);
-	if (comm && strlen(comm) > 0) {
-		strncpy(full_comm, comm, SULOG_COMM_LEN - 1);
-		full_comm[SULOG_COMM_LEN - 1] = '\0';
-	} else {
-		get_full_comm(full_comm, SULOG_COMM_LEN);
-	}
+	
+	ksu_get_cmdline(full_comm, comm, SULOG_COMM_LEN);
 
 	snprintf(log_buf, SULOG_ENTRY_MAX_LEN,
 		 "[%s] SYSCALL: UID=%d COMM=%s SYSCALL=%s ARGS=%s PID=%d\n",
 		 timestamp, uid, full_comm,
 		 syscall  ? syscall  : "unknown",
-		 args     ? args     : "none",
+		 args	 ? args	 : "none",
 		 current->pid);
 
 	if (!dedup_should_print(uid, DEDUP_SYSCALL, log_buf, strlen(log_buf)))
-        goto cleanup;
+		goto cleanup;
 
 	sulog_add_entry(log_buf);
 

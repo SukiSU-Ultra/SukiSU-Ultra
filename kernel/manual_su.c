@@ -118,9 +118,12 @@ static char* ksu_generate_auth_token(void)
             token_buffer[i] = '0' + (rand_byte % 10);
         }
     }
-    token_buffer[KSU_TOKEN_LENGTH] = '\0';
     
-    strncpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+		strscpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
+#else
+		strlcpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
+#endif
     auth_tokens[token_count].expire_time = jiffies + KSU_TOKEN_EXPIRE_TIME * HZ;
     auth_tokens[token_count].used = false;
     token_count++;
@@ -198,8 +201,13 @@ static int handle_token_generation(struct manual_su_request *request)
         pr_err("manual_su: failed to generate token\n");
         return -ENOMEM;
     }
-    
-    strncpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+		strscpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
+#else
+		strlcpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
+#endif
+
     pr_info("manual_su: auth token generated successfully\n");
     return 0;
 }
@@ -208,6 +216,16 @@ static int handle_escalation_request(struct manual_su_request *request)
 {
     uid_t target_uid = request->target_uid;
     pid_t target_pid = request->target_pid;
+    struct task_struct *tsk;
+    
+    rcu_read_lock();
+    tsk = pid_task(find_vpid(target_pid), PIDTYPE_PID);
+    if (!tsk || ksu_task_is_dead(tsk)) {
+        rcu_read_unlock();
+        pr_err("cmd_su: PID %d is invalid or dead\n", target_pid);
+        return -ESRCH;
+    }
+    rcu_read_unlock();
     
     if (current_uid().val == 0 || is_manager() || ksu_is_allow_uid(current_uid().val))
         goto allowed;

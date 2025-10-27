@@ -4,11 +4,7 @@
 #include <linux/types.h>
 #include <linux/version.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 245)
 #define __SULOG_GATE        1
-#else
-#define __SULOG_GATE        0
-#endif
 
 #if __SULOG_GATE
 extern struct timezone sys_tz;

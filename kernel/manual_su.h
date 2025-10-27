@@ -4,6 +4,8 @@
 #include <linux/types.h>
 #include <linux/sched.h>
 
+#define ksu_task_is_dead(t) ((t)->exit_state != 0)
+
 #define MAX_PENDING 16
 #define REMOVE_DELAY_CALLS 150
 #define MAX_TOKENS 10
