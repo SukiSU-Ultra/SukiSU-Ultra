@@ -58,9 +58,9 @@ object CardConfig {
         if (isCustom) isCustomDimSet = true
     }
 
-    fun updateShadow(enabled: Boolean, elevation: Dp = 4.dp) {
+    fun updateShadow(enabled: Boolean, elevation: Dp = cardElevation) {
         isShadowEnabled = enabled
-        cardElevation = if (enabled) elevation else 0.dp
+        cardElevation = if (enabled) elevation else cardElevation
     }
 
     fun updateBackground(enabled: Boolean) {
@@ -128,7 +128,7 @@ object CardConfig {
         isUserLightModeEnabled = prefs.getBoolean(Keys.IS_USER_LIGHT_MODE_ENABLED, false)
 
         // 应用阴影设置
-        updateShadow(isShadowEnabled, if (isShadowEnabled) 4.dp else 0.dp)
+        updateShadow(isShadowEnabled, if (isShadowEnabled) cardElevation else 0.dp)
     }
 
     @Deprecated("使用 updateShadow 替代", ReplaceWith("updateShadow(enabled)"))
@@ -151,16 +151,16 @@ object CardStyleProvider {
     fun getCardElevation() = CardDefaults.cardElevation(
         defaultElevation = CardConfig.cardElevation,
         pressedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 4).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         focusedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 6).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         hoveredElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 2).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         draggedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 8).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         disabledElevation = 0.dp
     )

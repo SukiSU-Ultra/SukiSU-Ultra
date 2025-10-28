@@ -47,6 +47,7 @@
 #include "throne_comm.h"
 #include "kernel_compat.h"
 #include "dynamic_manager.h"
+#include "sulog.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU
 #include "manual_su.h"
@@ -157,6 +158,7 @@ void escape_to_root(void)
 
 	if (cred->euid.val == 0) {
 		pr_warn("Already root, don't escape!\n");
+		ksu_sulog_report_su_grant(current_euid().val, NULL, "escape_to_root_failed");
 		abort_creds(cred);
 		return;
 	}
@@ -200,6 +202,9 @@ void escape_to_root(void)
 	spin_unlock_irq(&current->sighand->siglock);
 
 	setup_selinux(profile->selinux_domain);
+#if __SULOG_GATE
+	ksu_sulog_report_su_grant(current_euid().val, NULL, "escape_to_root");
+#endif
 }
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -242,6 +247,9 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 	if (!target_task) {
 		rcu_read_unlock(); 
 		pr_err("cmd_su: target task not found for PID: %d\n", target_pid);
+#if __SULOG_GATE
+		ksu_sulog_report_su_grant(target_uid, "cmd_su", "target_not_found");
+#endif
 		return;
 	}
 	get_task_struct(target_task);
@@ -256,6 +264,9 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 	newcreds = prepare_kernel_cred(target_task);
 	if (newcreds == NULL) {
 		pr_err("cmd_su: failed to allocate new cred for PID: %d\n", target_pid);
+#if __SULOG_GATE
+		ksu_sulog_report_su_grant(target_uid, "cmd_su", "cred_alloc_failed");
+#endif
 		put_task_struct(target_task);
 		return;
 	}
@@ -305,7 +316,9 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 	}
 
 	put_task_struct(target_task);
-
+#if __SULOG_GATE
+	ksu_sulog_report_su_grant(target_uid, "cmd_su", "manual_escalation");
+#endif
 	pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n", target_uid, target_pid);
 }
 #endif
@@ -409,21 +422,60 @@ static void init_uid_scanner(void)
 	}
 }
 
+#if __SULOG_GATE
+static void sulog_prctl_cmd(uid_t uid, unsigned long cmd)
+{
+	const char *name = NULL;
+
+	switch (cmd) {
+	case CMD_GRANT_ROOT:                    name = "prctl_grant_root"; break;
+	case CMD_BECOME_MANAGER:                name = "prctl_become_manager"; break;
+	case CMD_GET_VERSION:                   name = "prctl_get_version"; break;
+	case CMD_GET_FULL_VERSION:              name = "prctl_get_full_version"; break;
+	case CMD_SET_SEPOLICY:                  name = "prctl_set_sepolicy"; break;
+	case CMD_CHECK_SAFEMODE:                name = "prctl_check_safemode"; break;
+	case CMD_GET_ALLOW_LIST:                name = "prctl_get_allow_list"; break;
+	case CMD_GET_DENY_LIST:                 name = "prctl_get_deny_list"; break;
+	case CMD_UID_GRANTED_ROOT:              name = "prctl_uid_granted_root"; break;
+	case CMD_UID_SHOULD_UMOUNT:             name = "prctl_uid_should_umount"; break;
+	case CMD_IS_SU_ENABLED:                 name = "prctl_is_su_enabled"; break;
+	case CMD_ENABLE_SU:                     name = "prctl_enable_su"; break;
+#ifdef CONFIG_KPM
+	case CMD_ENABLE_KPM:                    name = "prctl_enable_kpm"; break;
+#endif
+	case CMD_HOOK_TYPE:                     name = "prctl_hook_type"; break;
+	case CMD_DYNAMIC_MANAGER:               name = "prctl_dynamic_manager"; break;
+	case CMD_GET_MANAGERS:                  name = "prctl_get_managers"; break;
+	case CMD_ENABLE_UID_SCANNER:            name = "prctl_enable_uid_scanner"; break;
+	case CMD_REPORT_EVENT:                  name = "prctl_report_event"; break;
+	case CMD_SET_APP_PROFILE:               name = "prctl_set_app_profile"; break;
+	case CMD_GET_APP_PROFILE:               name = "prctl_get_app_profile"; break;
+
+#ifdef CONFIG_KSU_MANUAL_SU
+	case CMD_MANUAL_SU_REQUEST:             name = "prctl_manual_su_request"; break;
+#endif
+
+	default:                                name = "prctl_unknown"; break;
+	}
+
+	ksu_sulog_report_syscall(uid, NULL, name, NULL);
+}
+#endif
 
 int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		     unsigned long arg4, unsigned long arg5)
 {
-
-
 	// if success, we modify the arg5 as result!
 	bool is_manual_su_cmd = false;
 	u32 *result = (u32 *)arg5;
 	u32 reply_ok = KERNEL_SU_OPTION;
 	uid_t current_uid_val = current_uid().val;
+if (likely(ksu_is_current_proc_umounted())) { // prevent side channel attack in ksu side
+		return 0;
+	}
 
 #ifdef CONFIG_KSU_MANUAL_SU
-	is_manual_su_cmd = (arg2 == CMD_SU_ESCALATION_REQUEST ||
-	                    arg2 == CMD_ADD_PENDING_ROOT);
+	is_manual_su_cmd = (arg2 == CMD_MANUAL_SU_REQUEST);
 #endif
 
 	// skip this private space support if uid below 100k
@@ -451,6 +503,10 @@ skip_check:
 	// just continue old logic
 	bool from_root = !current_uid().val;
 	bool from_manager = is_manager();
+	
+#if __SULOG_GATE
+	sulog_prctl_cmd(current_uid().val, arg2);
+#endif
 
 	if (!from_root && !from_manager 
 		&& !(is_manual_su_cmd ? is_system_uid(): 
@@ -474,7 +530,13 @@ skip_check:
 	}
 
 	if (arg2 == CMD_GRANT_ROOT) {
+#if __SULOG_GATE
+		bool is_allowed = is_allow_su();
+		ksu_sulog_report_permission_check(current_uid().val, current->comm, is_allowed);
+		if (is_allowed) {
+#else
 		if (is_allow_su()) {
+#endif
 			pr_info("allow root for: %d\n", current_uid().val);
 			escape_to_root();
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
@@ -578,6 +640,9 @@ skip_check:
 				post_fs_data_lock = true;
 				pr_info("post-fs-data triggered\n");
 				on_post_fs_data();
+#if __SULOG_GATE
+				ksu_sulog_init();
+#endif
 				// Initialize UID scanner if enabled
 				init_uid_scanner();
 				// Initializing Dynamic Signatures
@@ -737,42 +802,30 @@ skip_check:
 	}
 
 #ifdef CONFIG_KSU_MANUAL_SU
-	if (arg2 == CMD_SU_ESCALATION_REQUEST) {
-		uid_t target_uid = (uid_t)arg3;
-		struct su_request_arg __user *user_req = (struct su_request_arg __user *)arg4;
+	if (arg2 == CMD_MANUAL_SU_REQUEST) {
+		struct manual_su_request request;
+		int su_option = (int)arg3;
+		
+		if (copy_from_user(&request, (void __user *)arg4, sizeof(request))) {
+			pr_err("manual_su: failed to copy request from user\n");
+			return 0;
+		}
 
-		pid_t target_pid;
-		const char __user *user_password;
+		int ret = ksu_handle_manual_su_request(su_option, &request);
 
-		if (copy_from_user(&target_pid, &user_req->target_pid, sizeof(target_pid)))
-			return -EFAULT;
-		if (copy_from_user(&user_password, &user_req->user_password, sizeof(user_password)))
-			return -EFAULT;
-
-		int ret = ksu_manual_su_escalate(target_uid, target_pid, user_password);
-
-		if (ret == 0) {
-			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
-				pr_err("cmd_su_escalation: prctl reply error\n");
+		// Copy back result for token generation
+		if (ret == 0 && su_option == MANUAL_SU_OP_GENERATE_TOKEN) {
+			if (copy_to_user((void __user *)arg4, &request, sizeof(request))) {
+				pr_err("manual_su: failed to copy request back to user\n");
+				return 0;
 			}
 		}
-		return 0;
-	}
-
-	if (arg2 == CMD_ADD_PENDING_ROOT) {
-		uid_t uid = (uid_t)arg3;
-
-		if (!is_current_verified()) {
-			pr_warn("CMD_ADD_PENDING_ROOT: denied, password not verified\n");
-			return -EPERM;
+		
+		if (ret == 0) {
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("manual_su: prctl reply error\n");
+			}
 		}
-
-		add_pending_root(uid);
-		current_verified = false;
-		pr_info("prctl: pending root added for UID %d\n", uid);
-
-		if (copy_to_user(result, &reply_ok, sizeof(reply_ok)))
-			pr_err("prctl: CMD_ADD_PENDING_ROOT reply error\n");
 		return 0;
 	}
 #endif
@@ -813,6 +866,11 @@ skip_check:
 
 		// todo: validate the params
 		if (ksu_set_app_profile(&profile, true)) {
+#if __SULOG_GATE
+			ksu_sulog_report_manager_operation("SET_APP_PROFILE", 
+				current_uid().val, profile.current_uid);
+#endif
+			
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
 				pr_err("prctl reply error, cmd: %lu\n", arg2);
 			}
@@ -993,6 +1051,9 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 			current->pid);
 		return 0;
 	}
+#if __SULOG_GATE
+	ksu_sulog_report_syscall(new_uid.val, NULL, "setuid", NULL);
+#endif
 #ifdef CONFIG_KSU_DEBUG
 	// umount the target mnt
 	pr_info("handle umount for uid: %d, pid: %d\n", new_uid.val,
@@ -1006,6 +1067,13 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 	try_umount("/product", true, 0);
 	try_umount("/system_ext", true, 0);
 	try_umount("/data/adb/modules", false, MNT_DETACH);
+
+	// try umount ksu temp path
+	try_umount("/debug_ramdisk", false, MNT_DETACH);
+
+	get_task_struct(current); // delay fix
+	ksu_set_current_proc_umounted();
+	put_task_struct(current);
 
 	return 0;
 }
@@ -1373,6 +1441,11 @@ void ksu_core_exit(void)
 {
 	ksu_uid_exit();
 	ksu_throne_comm_exit();
+
+#if __SULOG_GATE
+	ksu_sulog_exit();
+#endif
+
 #ifdef CONFIG_KPROBE
 	pr_info("ksu_core_kprobe_exit\n");
 	// we dont use this now

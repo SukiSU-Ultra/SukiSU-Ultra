@@ -36,6 +36,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.LogViewerScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.MoreSettingsScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.BuildConfig
@@ -397,6 +398,18 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             showBottomsheet = true
                         }
                     )
+
+                    // 查看使用日志
+                    KsuIsValid {
+                        SettingItem(
+                            icon = Icons.Filled.Visibility,
+                            title = stringResource(R.string.log_viewer_view_logs),
+                            summary = stringResource(R.string.log_viewer_view_logs_summary),
+                            onClick = {
+                                navigator.navigate(LogViewerScreenDestination)
+                            }
+                        )
+                    }
 
                     if (showBottomsheet) {
                         LogBottomSheet(

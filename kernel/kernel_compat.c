@@ -92,3 +92,4 @@ long ksu_strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
 {
 	return strncpy_from_user_nofault(dst, unsafe_addr, count);
 }
+

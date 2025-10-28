@@ -695,4 +695,31 @@ Important Note:\n
     <string name="sus_maps_description_text">Hide the real file paths of memory mappings from /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Please note: This feature does not support hiding anonymous memory mappings, nor can it hide inline hooks or PLT hooks caused by the injected library itself.</string>
     <string name="sus_maps_warning">Important Notice: For applications with well-implemented injection detection mechanisms, this feature may not effectively bypass detection.</string>
     <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly.</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">Log Viewer</string>
+    <string name="log_viewer_back">Back</string>
+    <string name="log_viewer_search">Search</string>
+    <string name="log_viewer_clear_logs">Clear Logs</string>
+    <string name="log_viewer_clear_logs_confirm">Are you sure you want to clear the selected log file? This action cannot be undone.</string>
+    <string name="log_viewer_logs_cleared">Logs cleared successfully</string>
+    <string name="log_viewer_select_file">Select Log File</string>
+    <string name="log_viewer_current_log">Current Log</string>
+    <string name="log_viewer_old_log">Old Log</string>
+    <string name="log_viewer_filter_type">Filter by Type</string>
+    <string name="log_viewer_all_types">All Types</string>
+    <string name="log_viewer_showing_entries">Showing %1$d of %2$d entries</string>
+    <string name="log_viewer_no_logs">No logs found</string>
+    <string name="log_viewer_no_matching_logs">No matching logs found</string>
+    <string name="log_viewer_refresh">Refresh</string>
+    <string name="log_viewer_raw_log">Raw Log</string>
+    <string name="log_viewer_search_placeholder">Search by UID, command, or details…</string>
+    <string name="log_viewer_clear_search">Clear search</string>
+    <string name="log_viewer_view_logs">View Usage Logs</string>
+    <string name="log_viewer_view_logs_summary">View KernelSU superuser access logs</string>
+    <string name="log_viewer_exclude_subtypes">Exclude sub-types</string>
+    <string name="log_viewer_exclude_current_app">Current App</string>
+    <string name="log_viewer_page_info">Page: %1$d/%2$d | Total logs: %3$d</string>
+    <string name="log_viewer_too_many_logs">Too many logs, showing only the latest %1$d entries</string>
+    <string name="log_viewer_load_more">Load More Logs</string>
+    <string name="log_viewer_all_logs_loaded">All logs displayed</string>
 </resources>
