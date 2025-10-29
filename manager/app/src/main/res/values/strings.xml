@@ -722,4 +722,7 @@ Important Note:\n
     <string name="log_viewer_too_many_logs">Too many logs, showing only the latest %1$d entries</string>
     <string name="log_viewer_load_more">Load More Logs</string>
     <string name="log_viewer_all_logs_loaded">All logs displayed</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">Confirm Uninstallation SukiSU Manger?</string>
+    <string name="miui_uninstall_content">Proceeding with the uninstallation will not affect the core functionality of your root access. The root is designed to operate independently of this manager.</string>
 </resources>
