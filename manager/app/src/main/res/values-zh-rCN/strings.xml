@@ -687,6 +687,7 @@
     <string name="sus_maps_description_text">从 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隐藏内存映射的真实文件路径。请注意：此功能不支持隐藏匿名内存映射，也无法隐藏由注入库本身产生的内联钩子或 PLT 钩子。</string>
     <string name="sus_maps_warning">重要提示：对于具备完善注入检测机制的应用，此功能可能无法有效绕过检测。</string>
     <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
+    <!-- Log Viewer -->
     <string name="log_viewer_title">日志查看器</string>
     <string name="log_viewer_back">返回</string>
     <string name="log_viewer_search">搜索</string>
@@ -713,4 +714,7 @@
     <string name="log_viewer_too_many_logs">日志过多，仅显示最新 %1$d 条</string>
     <string name="log_viewer_load_more">加载更多日志</string>
     <string name="log_viewer_all_logs_loaded">已显示所有日志</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">真要走?</string>
+    <string name="miui_uninstall_content">哼，卸就卸。Root 功能可不会因为失去区区一个管理器就停止运作。别担心，zakozako 只卸载管理器可干不掉 Root 呢，zako~❤️</string>
 </resources>
