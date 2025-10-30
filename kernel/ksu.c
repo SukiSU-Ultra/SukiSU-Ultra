@@ -77,6 +77,8 @@ void kernelsu_exit(void)
 {
 	ksu_allowlist_exit();
 
+	ksu_observer_exit();
+
 	destroy_workqueue(ksu_workqueue);
 
 #ifdef CONFIG_KSU_KPROBES_HOOK
