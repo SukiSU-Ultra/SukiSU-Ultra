@@ -1,12 +1,16 @@
 kernelsu-objs := ksu.o
 kernelsu-objs += allowlist.o
+kernelsu-objs += dynamic_manager.o
+kernelsu-objs += apk_sign.o
 kernelsu-objs += sucompat.o
 kernelsu-objs += pkg_observer.o
+kernelsu-objs += throne_tracker.o
 kernelsu-objs += core_hook.o
 kernelsu-objs += supercalls.o
 kernelsu-objs += ksud.o
 kernelsu-objs += embed_ksud.o
 kernelsu-objs += kernel_compat.o
+kernelsu-objs += throne_comm.o
 kernelsu-objs += sulog.o
 ifeq ($(CONFIG_KSU_MANUAL_SU), y)
 kernelsu-objs += manual_su.o
@@ -84,6 +88,24 @@ endif
 
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 ccflags-y += -DKSU_VERSION_FULL=\"$(KSU_VERSION_FULL)\"
+
+# Custom Signs
+ifdef KSU_EXPECTED_SIZE
+ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
+$(info -- Custom KernelSU Manager signature size: $(KSU_EXPECTED_SIZE))
+endif
+
+ifdef KSU_EXPECTED_HASH
+ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
+$(info -- Custom KernelSU Manager signature hash: $(KSU_EXPECTED_HASH))
+endif
+
+ifdef KSU_MANAGER_PACKAGE
+ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
+$(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
+endif
+
+$(info -- Supported Unofficial Manager: 5ec1cff (GKI) ShirkNeko udochina (GKI and KPM))
 
 ifeq ($(CONFIG_KSU_KPROBES_HOOK), y)
 $(info -- SukiSU: CONFIG_KSU_KPROBES_HOOK)
