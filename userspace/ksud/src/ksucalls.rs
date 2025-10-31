@@ -175,3 +175,32 @@ pub fn set_sepolicy(cmd: &SetSepolicyCmd) -> std::io::Result<()> {
     ksuctl(KSU_IOCTL_SET_SEPOLICY, &mut ioctl_cmd as *mut _)?;
     Ok(())
 }
+
+/// Wait for driver fd with timeout and retry interval
+/// Returns true if fd is found within timeout, false otherwise
+#[cfg(any(target_os = "linux", target_os = "android"))]
+pub fn wait_for_driver_fd(timeout_ms: u64, interval_ms: u64) -> bool {
+    use std::thread;
+    use std::time::{Duration, Instant};
+
+    let timeout = Duration::from_millis(timeout_ms);
+    let interval = Duration::from_millis(interval_ms);
+    let start = Instant::now();
+
+    loop {
+        if scan_driver_fd().is_some() {
+            return true;
+        }
+
+        if start.elapsed() >= timeout {
+            return false;
+        }
+
+        thread::sleep(interval);
+    }
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+pub fn wait_for_driver_fd(_timeout_ms: u64, _interval_ms: u64) -> bool {
+    false
+}

@@ -167,6 +167,10 @@ enum Debug {
         /// switch to gloabl mount namespace
         #[arg(short, long, default_value = "false")]
         global_mnt: bool,
+
+        /// wait for driver fd (timeout: 3s, interval: 200ms)
+        #[arg(long, default_value = "false")]
+        wait_for_fd: bool,
     },
 
     /// Get kernel version
@@ -379,7 +383,16 @@ pub fn run() -> Result<()> {
                 println!("Kernel Version: {}", ksucalls::get_version());
                 Ok(())
             }
-            Debug::Su { global_mnt } => crate::su::grant_root(global_mnt),
+            Debug::Su { global_mnt, wait_for_fd } => {
+                if wait_for_fd {
+                    println!("Waiting for driver fd (timeout: 3s, interval: 200ms)...");
+                    if !ksucalls::wait_for_driver_fd(3000, 200) {
+                        anyhow::bail!("Timeout waiting for driver fd");
+                    }
+                    println!("Driver fd found!");
+                }
+                crate::su::grant_root(global_mnt)
+            },
             Debug::Mount => init_event::mount_modules_systemlessly(),
             Debug::Test => assets::ensure_binaries(false),
         },
