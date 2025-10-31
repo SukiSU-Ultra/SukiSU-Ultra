@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
 
             super.onCreate(savedInstanceState)
 
-            val isManager = Natives.becomeManager(packageName)
+            val isManager = Natives.isManager
             if (isManager) {
                 install()
             }

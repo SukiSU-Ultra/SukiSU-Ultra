@@ -6,17 +6,12 @@
 #include <android/log.h>
 #include <string.h>
 
-
-NativeBridge(becomeManager, jboolean, jstring pkg) {
-    const char* cpkg = GetEnvironment()->GetStringUTFChars(env, pkg, JNI_FALSE);
-    bool result = become_manager(cpkg);
-
-    GetEnvironment()->ReleaseStringUTFChars(env, pkg, cpkg);
-    return result;
-}
-
 NativeBridgeNP(getVersion, jint) {
-    return get_version();
+    uint32_t version = get_version();
+    if (version > INT32_MAX) {
+        LogDebug("Version overflow: %u", version);
+    }
+    return (jint)version;
 }
 
 // get VERSION FULL
@@ -27,15 +22,18 @@ NativeBridgeNP(getFullVersion, jstring) {
 }
 
 NativeBridgeNP(getAllowList, jintArray) {
-    int uids[1024];
-    int size = 0;
-    bool result = get_allow_list(uids, &size);
-
-    LogDebug("getAllowList: %d, size: %d", result, size);
+    struct ksu_get_allow_list_cmd cmd = {};
+    bool result = get_allow_list(&cmd);
 
     if (result) {
-        jintArray array = GetEnvironment()->NewIntArray(env, size);
-        GetEnvironment()->SetIntArrayRegion(env, array, 0, size, uids);
+        jsize array_size = (jsize)cmd.count;
+        if (array_size < 0 || (unsigned int)array_size != cmd.count) {
+            LogDebug("Invalid array size: %u", cmd.count);
+            return GetEnvironment()->NewIntArray(env, 0);
+        }
+
+        jintArray array = GetEnvironment()->NewIntArray(env, array_size);
+        GetEnvironment()->SetIntArrayRegion(env, array, 0, array_size, (const jint *)(cmd.uids));
 
         return array;
     }
@@ -49,6 +47,10 @@ NativeBridgeNP(isSafeMode, jboolean) {
 
 NativeBridgeNP(isLkmMode, jboolean) {
     return is_lkm_mode();
+}
+
+NativeBridgeNP(isManager, jboolean) {
+    return is_manager();
 }
 
 static void fillIntArray(JNIEnv *env, jobject list, int *data, int count) {
@@ -124,7 +126,7 @@ NativeBridge(getAppProfile, jobject, jstring pkg, jint uid) {
     strcpy(profile.key, key);
     profile.current_uid = uid;
 
-    bool useDefaultProfile = !get_app_profile(key, &profile);
+    bool useDefaultProfile = get_app_profile(&profile) != 0;
 
     jclass cls = GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$Profile");
     jmethodID constructor = GetEnvironment()->GetMethodID(env, cls, "<init>", "()V");

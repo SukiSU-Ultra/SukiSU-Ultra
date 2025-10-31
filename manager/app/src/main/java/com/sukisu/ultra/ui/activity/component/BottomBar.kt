@@ -15,7 +15,6 @@ import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.activity.util.*
 import com.sukisu.ultra.ui.activity.util.AppData.getKpmVersionUse
@@ -29,7 +28,7 @@ import com.sukisu.ultra.ui.util.*
 @Composable
 fun BottomBar(navController: NavHostController) {
     val navigator = navController.rememberDestinationsNavigator()
-    val isFullFeatured = AppData.isFullFeatured(ksuApp.packageName)
+    val isFullFeatured = AppData.isFullFeatured()
     val kpmVersion = getKpmVersionUse()
     val cardColor = MaterialTheme.colorScheme.surfaceContainer
     val activity = LocalContext.current as MainActivity

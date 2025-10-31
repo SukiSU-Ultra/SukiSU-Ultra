@@ -17,7 +17,7 @@ class KsuLibSuProvider : IProvider {
 
     override fun isAvailable() = true
 
-    override suspend fun isAuthorized() = Natives.becomeManager(ksuApp.packageName)
+    override suspend fun isAuthorized() = Natives.isManager
 
     private val serviceIntent
         get() = PlatformIntent(

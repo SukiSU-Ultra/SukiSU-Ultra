@@ -7,6 +7,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <android/log.h>
+#include <dirent.h>
+#include <stdlib.h>
+
+#include <sys/syscall.h>
 
 #include "prelude.h"
 #include "ksu.h"
@@ -21,170 +26,187 @@ extern const char* zako_file_verrcidx2str(uint8_t index);
 
 #endif // __aarch64__ || _M_ARM64 || __arm__ || _M_ARM
 
-#define KERNEL_SU_OPTION 0xDEADBEEF
+static int fd = -1;
 
-#define CMD_GRANT_ROOT 0
-
-#define CMD_BECOME_MANAGER 1
-#define CMD_GET_VERSION 2
-#define CMD_ALLOW_SU 3
-#define CMD_DENY_SU 4
-#define CMD_GET_SU_LIST 5
-#define CMD_GET_DENY_LIST 6
-#define CMD_CHECK_SAFEMODE 9
-
-#define CMD_GET_APP_PROFILE 10
-#define CMD_SET_APP_PROFILE 11
-
-#define CMD_IS_UID_GRANTED_ROOT 12
-#define CMD_IS_UID_SHOULD_UMOUNT 13
-#define CMD_IS_SU_ENABLED 14
-#define CMD_ENABLE_SU 15
-
-#define CMD_GET_VERSION_FULL 0xC0FFEE1A
-
-#define CMD_ENABLE_KPM 100
-#define CMD_HOOK_TYPE 101
-#define CMD_DYNAMIC_MANAGER 103
-#define CMD_GET_MANAGERS 104
-#define CMD_ENABLE_UID_SCANNER 105
-
-#define DYNAMIC_MANAGER_OP_SET 0
-#define DYNAMIC_MANAGER_OP_GET 1
-#define DYNAMIC_MANAGER_OP_CLEAR 2
-
-static bool ksuctl(int cmd, void* arg1, void* arg2) {
-    int32_t result = 0;
-    int32_t rtn = prctl(KERNEL_SU_OPTION, cmd, arg1, arg2, &result);
-
-    return result == KERNEL_SU_OPTION && rtn == -1;
-}
-
-bool become_manager(const char* pkg) {
-    char param[128];
-    uid_t uid = getuid();
-    uint32_t userId = uid / 100000;
-    if (userId == 0) {
-        sprintf(param, "/data/data/%s", pkg);
-    } else {
-        snprintf(param, sizeof(param), "/data/user/%d/%s", userId, pkg);
+static inline int scan_driver_fd() {
+    const char *kName = "[ksu_driver]";
+    DIR *dir = opendir("/proc/self/fd");
+    if (!dir) {
+        return -1;
     }
 
-    return ksuctl(CMD_BECOME_MANAGER, param, NULL);
-}
+    int found = -1;
+    struct dirent *de;
+    char path[64];
+    char target[PATH_MAX];
 
-// cache the result to avoid unnecessary syscall
-static bool is_lkm;
-int get_version() {
-    int32_t version = -1;
-    int32_t flags = 0;
-    ksuctl(CMD_GET_VERSION, &version, &flags);
-    if (!is_lkm && (flags & 0x1)) {
-        is_lkm = true;
-    }
-    return version;
-}
+    while ((de = readdir(dir)) != NULL) {
+        if (de->d_name[0] == '.') {
+            continue;
+        }
 
-void get_full_version(char* buff) {
-    ksuctl(CMD_GET_VERSION_FULL, buff, NULL);
-}
+        char *endptr = nullptr;
+        long fd_long = strtol(de->d_name, &endptr, 10);
+        if (!de->d_name[0] || *endptr != '\0' || fd_long < 0 || fd_long > INT_MAX) {
+            continue;
+        }
 
-bool get_allow_list(int *uids, int *size) {
-    return ksuctl(CMD_GET_SU_LIST, uids, size);
-}
+        snprintf(path, sizeof(path), "/proc/self/fd/%s", de->d_name);
+        ssize_t n = readlink(path, target, sizeof(target) - 1);
+        if (n < 0) {
+            continue;
+        }
+        target[n] = '\0';
 
-bool is_safe_mode() {
-    return ksuctl(CMD_CHECK_SAFEMODE, NULL, NULL);
-}
+        const char *base = strrchr(target, '/');
+        base = base ? base + 1 : target;
 
-bool is_lkm_mode() {
-    // you should call get_version first!
-    return is_lkm;
-}
-
-bool uid_should_umount(int uid) {
-    int should;
-    return ksuctl(CMD_IS_UID_SHOULD_UMOUNT, (void*) ((size_t) uid), &should) && should;
-}
-
-bool set_app_profile(const struct app_profile* profile) {
-    return ksuctl(CMD_SET_APP_PROFILE, (void*) profile, NULL);
-}
-
-bool get_app_profile(char* key, struct app_profile* profile) {
-    return ksuctl(CMD_GET_APP_PROFILE, profile, NULL);
-}
-
-bool set_su_enabled(bool enabled) {
-    return ksuctl(CMD_ENABLE_SU, (void*) enabled, NULL);
-}
-
-bool is_su_enabled() {
-    int enabled = true;
-    // if ksuctl failed, we assume su is enabled, and it cannot be disabled.
-    ksuctl(CMD_IS_SU_ENABLED, &enabled, NULL);
-    return enabled;
-}
-
-bool is_KPM_enable() {
-    int enabled = false;
-    ksuctl(CMD_ENABLE_KPM, &enabled, NULL);
-    return enabled;
-}
-
-bool get_hook_type(char* hook_type, size_t size) {
-    if (hook_type == NULL || size == 0) {
-        return false;
-    }
-
-    static char cached_hook_type[16] = {0};
-    if (cached_hook_type[0] == '\0') {
-        if (!ksuctl(CMD_HOOK_TYPE, cached_hook_type, NULL)) {
-            strcpy(cached_hook_type, "Unknown");
+        if (strstr(base, kName)) {
+            found = (int)fd_long;
+            break;
         }
     }
 
-    strncpy(hook_type, cached_hook_type, size);
-    hook_type[size - 1] = '\0';
+    closedir(dir);
+    return found;
+}
+
+static int ksuctl(unsigned long op, void* arg) {
+    if (fd < 0) {
+        fd = scan_driver_fd();
+    }
+    return ioctl(fd, op, arg);
+}
+
+static struct ksu_get_info_cmd g_version = {0};
+
+struct ksu_get_info_cmd get_info() {
+    if (!g_version.version) {
+        ksuctl(KSU_IOCTL_GET_INFO, &g_version);
+    }
+    return g_version;
+}
+
+uint32_t get_version() {
+    auto info = get_info();
+    return info.version;
+}
+
+bool get_allow_list(struct ksu_get_allow_list_cmd *cmd) {
+    return ksuctl(KSU_IOCTL_GET_ALLOW_LIST, cmd) == 0;
+}
+
+bool is_safe_mode() {
+    struct ksu_check_safemode_cmd cmd = {};
+    ksuctl(KSU_IOCTL_CHECK_SAFEMODE, &cmd);
+    return cmd.in_safe_mode;
+}
+
+bool is_lkm_mode() {
+    auto info = get_info();
+    return (info.flags & 0x1) != 0;
+}
+
+bool is_manager() {
+    auto info = get_info();
+    return (info.flags & 0x2) != 0;
+}
+
+bool uid_should_umount(int uid) {
+    struct ksu_uid_should_umount_cmd cmd = {};
+    cmd.uid = uid;
+    ksuctl(KSU_IOCTL_UID_SHOULD_UMOUNT, &cmd);
+    return cmd.should_umount;
+}
+
+bool set_app_profile(const struct app_profile *profile) {
+    struct ksu_set_app_profile_cmd cmd = {};
+    cmd.profile = *profile;
+    return ksuctl(KSU_IOCTL_SET_APP_PROFILE, &cmd) == 0;
+}
+
+int get_app_profile(struct app_profile *profile) {
+    struct ksu_get_app_profile_cmd cmd = {.profile = *profile};
+    int ret = ksuctl(KSU_IOCTL_GET_APP_PROFILE, &cmd);
+    *profile = cmd.profile;
+    return ret;
+}
+
+bool set_su_enabled(bool enabled) {
+    struct ksu_enable_su_cmd cmd = {.enable = enabled};
+    return ksuctl(KSU_IOCTL_ENABLE_SU, &cmd) == 0;
+}
+
+bool is_su_enabled() {
+    struct ksu_is_su_enabled_cmd cmd = {};
+    return ksuctl(KSU_IOCTL_IS_SU_ENABLED, &cmd) == 0 && cmd.enabled;
+}
+
+void get_full_version(char* buff) {
+    struct ksu_get_full_version_cmd cmd = {0};
+    if (ksuctl(KSU_IOCTL_GET_FULL_VERSION, &cmd) == 0) {
+        strncpy(buff, cmd.version_full, KSU_FULL_VERSION_STRING - 1);
+        buff[KSU_FULL_VERSION_STRING - 1] = '\0';
+    } else {
+        buff[0] = '\0';
+    }
+}
+
+bool is_KPM_enable(void)
+{
+    struct ksu_enable_kpm_cmd cmd = {0};
+    if (!ksuctl(KSU_IOCTL_ENABLE_KPM, &cmd)) return false;
+    return cmd.enabled;
+}
+
+bool get_hook_type(char *buf, size_t len)
+{
+    struct ksu_hook_type_cmd cmd = {0};
+    if (!ksuctl(KSU_IOCTL_HOOK_TYPE, &cmd)) return false;
+    strncpy(buf, cmd.hook_type, len - 1);
+    buf[len - 1] = 0;
     return true;
 }
 
-bool set_dynamic_manager(unsigned int size, const char* hash) {
-    if (hash == NULL) {
-        return false;
-    }
-
-    struct dynamic_manager_user_config config;
-    config.operation = DYNAMIC_MANAGER_OP_SET;
-    config.size = size;
-    strncpy(config.hash, hash, sizeof(config.hash) - 1);
-    config.hash[sizeof(config.hash) - 1] = '\0';
-
-    return ksuctl(CMD_DYNAMIC_MANAGER, &config, NULL);
+bool set_dynamic_manager(unsigned int size, const char *hash)
+{
+    struct ksu_dynamic_manager_cmd cmd = {
+            .config = {
+                    .operation = DYNAMIC_MANAGER_OP_SET,
+                    .size      = size
+            }
+    };
+    strlcpy(cmd.config.hash, hash, sizeof(cmd.config.hash));
+    return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd);
 }
 
-bool get_dynamic_manager(struct dynamic_manager_user_config* config) {
-    if (config == NULL) {
-        return false;
-    }
-
-    config->operation = DYNAMIC_MANAGER_OP_GET;
-    return ksuctl(CMD_DYNAMIC_MANAGER, config, NULL);
+bool get_dynamic_manager(struct dynamic_manager_user_config *cfg)
+{
+    if (!cfg) return false;
+    struct ksu_dynamic_manager_cmd cmd = {
+            .config = { .operation = DYNAMIC_MANAGER_OP_GET }
+    };
+    if (!ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd)) return false;
+    memcpy(cfg, &cmd.config, sizeof(*cfg));
+    return true;
 }
 
-bool clear_dynamic_manager() {
-    struct dynamic_manager_user_config config;
-    config.operation = DYNAMIC_MANAGER_OP_CLEAR;
-    return ksuctl(CMD_DYNAMIC_MANAGER, &config, NULL);
+bool clear_dynamic_manager(void)
+{
+    struct ksu_dynamic_manager_cmd cmd = {
+            .config = { .operation = DYNAMIC_MANAGER_OP_CLEAR }
+    };
+    return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd);
 }
 
-bool get_managers_list(struct manager_list_info* info) {
-    if (info == NULL) {
-        return false;
-    }
-
-    return ksuctl(CMD_GET_MANAGERS, info, NULL);
+bool get_managers_list(struct manager_list_info *info)
+{
+    struct ksu_get_managers_cmd cmd = {0};
+    if (!ksuctl(KSU_IOCTL_GET_MANAGERS, &cmd)) return false;
+    memcpy(info, &cmd.manager_info, sizeof(*info));
+    return true;
 }
+
 
 bool verify_module_signature(const char* input) {
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__) || defined(_M_ARM)
@@ -193,13 +215,13 @@ bool verify_module_signature(const char* input) {
         return false;
     }
 
-    int fd = zako_sys_file_open(input);
-    if (fd < 0) {
+    int file_fd = zako_sys_file_open(input);
+    if (file_fd < 0) {
         LogDebug("verify_module_signature: failed to open file: %s", input);
         return false;
     }
 
-    uint32_t results = zako_file_verify_esig(fd, 0);
+    uint32_t results = zako_file_verify_esig(file_fd, 0);
 
     if (results != 0) {
         /* If important error occured, verification process should
@@ -233,7 +255,7 @@ bool verify_module_signature(const char* input) {
     }
 
     exit:
-    close(fd);
+    close(file_fd);
     LogDebug("verify_module_signature: path=%s, results=0x%x, success=%s",
              input, results, (results == 0) ? "true" : "false");
     return results == 0;
@@ -243,16 +265,31 @@ bool verify_module_signature(const char* input) {
 #endif
 }
 
-bool is_uid_scanner_enabled() {
+bool is_uid_scanner_enabled(void)
+{
     bool status = false;
-    ksuctl(CMD_ENABLE_UID_SCANNER, (void*)0, &status);
-    return status;
+
+    struct ksu_enable_uid_scanner_cmd cmd = {
+            .operation  = UID_SCANNER_OP_GET_STATUS,
+            .status_ptr = (__u64)(uintptr_t)&status
+    };
+
+    return ksuctl(KSU_IOCTL_ENABLE_UID_SCANNER, &cmd) == 0 != 0 && status;
 }
 
-bool set_uid_scanner_enabled(bool enabled) {
-    return ksuctl(CMD_ENABLE_UID_SCANNER, (void*)1, (void*)enabled);
+bool set_uid_scanner_enabled(bool enabled)
+{
+    struct ksu_enable_uid_scanner_cmd cmd = {
+            .operation = UID_SCANNER_OP_TOGGLE,
+            .enabled   = enabled
+    };
+    return ksuctl(KSU_IOCTL_ENABLE_UID_SCANNER, &cmd);
 }
 
-bool clear_uid_scanner_environment() {
-    return ksuctl(CMD_ENABLE_UID_SCANNER, (void*)2, NULL);
+bool clear_uid_scanner_environment(void)
+{
+    struct ksu_enable_uid_scanner_cmd cmd = {
+            .operation = UID_SCANNER_OP_CLEAR_ENV
+    };
+    return ksuctl(KSU_IOCTL_ENABLE_UID_SCANNER, &cmd);
 }

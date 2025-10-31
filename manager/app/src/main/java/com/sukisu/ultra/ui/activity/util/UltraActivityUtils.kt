@@ -175,8 +175,8 @@ object AppData {
     /**
      * 检查是否是完整功能模式
      */
-    fun isFullFeatured(packageName: String): Boolean {
-        val isManager = Natives.becomeManager(packageName)
+    fun isFullFeatured(): Boolean {
+        val isManager = Natives.isManager
         return isManager && !Natives.requireNewKernel() && rootAvailable()
     }
 }

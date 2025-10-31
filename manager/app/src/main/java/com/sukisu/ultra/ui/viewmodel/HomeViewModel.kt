@@ -121,7 +121,7 @@ class HomeViewModel : ViewModel() {
             try {
                 val kernelVersion = getKernelVersion()
                 val isManager = try {
-                    Natives.becomeManager(ksuApp.packageName ?: "com.sukisu.ultra")
+                    Natives.isManager
                 } catch (_: Exception) {
                     false
                 }
@@ -346,7 +346,7 @@ class HomeViewModel : ViewModel() {
             try {
                 // 检查KSU状态是否发生变化
                 val currentKsuVersion = try {
-                    if (Natives.becomeManager(ksuApp.packageName ?: "com.sukisu.ultra")) {
+                    if (Natives.isManager) {
                         Natives.version
                     } else null
                 } catch (_: Exception) {
