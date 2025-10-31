@@ -59,6 +59,19 @@ bool perm_check_all(void)
 	return true; // No permission check
 }
 
+static void init_uid_scanner(void)
+{
+	ksu_uid_init();
+	do_load_throne_state(NULL);
+	
+	if (ksu_uid_scanner_enabled) {
+		int ret = ksu_throne_comm_init();
+		if (ret != 0) {
+			pr_err("Failed to initialize throne communication: %d\n", ret);
+		}
+	}
+}
+
 static int do_grant_root(void __user *arg)
 {
 	// Check if current UID is allowed
@@ -108,6 +121,11 @@ static int do_report_event(void __user *arg)
 			post_fs_data_lock = true;
 			pr_info("post-fs-data triggered\n");
 			on_post_fs_data();
+			init_uid_scanner();
+#if __SULOG_GATE	
+			ksu_sulog_init();
+#endif
+        	ksu_dynamic_manager_init();
 		}
 		break;
 	}
@@ -286,6 +304,10 @@ static int do_set_app_profile(void __user *arg)
 	}
 
 	if (!ksu_set_app_profile(&cmd.profile, true)) {
+#if __SULOG_GATE
+			ksu_sulog_report_manager_operation("SET_APP_PROFILE", 
+				current_uid().val, cmd.profile.current_uid);
+#endif
 		return -EFAULT;
 	}
 
@@ -470,37 +492,32 @@ static int do_dynamic_manager(void __user *arg)
 	}
 
 	int ret = ksu_handle_dynamic_manager(&cmd.config);
+	if (ret)
+		return ret;
 
-	if (ret == 0 && cmd.config.operation == DYNAMIC_MANAGER_OP_GET) {
-		if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-			pr_err("dynamic_manager: copy_to_user failed\n");
-			return -EFAULT;
-		}
+	if (cmd.config.operation == DYNAMIC_MANAGER_OP_GET && 
+		copy_to_user(arg, &cmd, sizeof(cmd))) {
+		pr_err("dynamic_manager: copy_to_user failed\n");
+		return -EFAULT;
 	}
 
-	return ret;
+	return 0;
 }
 
 static int do_get_managers(void __user *arg)
 {
 	struct ksu_get_managers_cmd cmd;
 
-	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+	int ret = ksu_get_active_managers(&cmd.manager_info);
+	if (ret)
+		return ret;
+
+	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("get_managers: copy_from_user failed\n");
 		return -EFAULT;
 	}
 
-	struct manager_list_info manager_info;
-	int ret = ksu_get_active_managers(&manager_info);
-
-	if (ret == 0) {
-		if (copy_to_user(arg, &manager_info, sizeof(manager_info))) {
-			pr_err("get_managers: copy_to_user failed\n");
-			return -EFAULT;
-		}
-	}
-
-	return ret;
+	return 0;
 }
 
 static int do_enable_uid_scanner(void __user *arg)
