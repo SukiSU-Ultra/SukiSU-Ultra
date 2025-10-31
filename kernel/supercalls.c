@@ -37,6 +37,7 @@ extern void ksu_sucompat_init(void);
 extern void ksu_sucompat_exit(void);
 
 static bool ksu_su_compat_enabled = true;
+bool ksu_uid_scanner_enabled = false;
 
 // Permission check functions
 bool perm_check_manager(void)
@@ -74,7 +75,7 @@ static int do_grant_root(void __user *arg)
 	return 0;
 }
 
-static int do_get_version(void __user *arg)
+static int do_get_info(void __user *arg)
 {
 	struct ksu_get_info_cmd cmd = {.version = KERNEL_SU_VERSION, .flags = 0};
 
@@ -450,7 +451,7 @@ static int do_enable_uid_scanner(void __user *arg)
         return -EFAULT;
     }
 
-    if (!perm_check_root() && !and extend to import the corresponding command()) {
+    if (!perm_check_root() && !perm_check_manager()) {
         pr_warn("enable_uid_scanner: permission denied\n");
         return -EPERM;
     }

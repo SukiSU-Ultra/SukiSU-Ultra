@@ -7,6 +7,8 @@
 #define KERNEL_SU_VERSION KSU_VERSION
 #define KERNEL_SU_OPTION 0xBADC0DE
 
+extern bool ksu_uid_scanner_enabled;
+
 #ifdef CONFIG_KSU_MANUAL_SU
 #define CMD_MANUAL_SU_REQUEST 50
 #endif
@@ -26,6 +28,10 @@
 #define KSU_VERSION_FULL "v3.x-00000000@unknown"
 #endif
 #define KSU_FULL_VERSION_STRING 255
+
+#define DYNAMIC_MANAGER_OP_SET 0
+#define DYNAMIC_MANAGER_OP_GET 1
+#define DYNAMIC_MANAGER_OP_CLEAR 2
 
 #define UID_SCANNER_OP_GET_STATUS 0
 #define UID_SCANNER_OP_TOGGLE 1

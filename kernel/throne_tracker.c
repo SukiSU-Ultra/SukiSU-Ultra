@@ -556,8 +556,6 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
 	return exist;
 }
 
-extern bool ksu_uid_scanner_enabled;
-
 void track_throne()
 {
 	struct list_head uid_list;
