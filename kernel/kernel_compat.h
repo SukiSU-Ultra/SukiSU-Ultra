@@ -4,6 +4,7 @@
 #include <linux/fs.h>
 #include <linux/version.h>
 #include "ss/policydb.h"
+#include <linux/fcntl.h>
 #include "linux/key.h"
 
 

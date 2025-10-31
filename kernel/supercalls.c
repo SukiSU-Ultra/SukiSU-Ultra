@@ -469,11 +469,6 @@ static int do_dynamic_manager(void __user *arg)
 		return -EFAULT;
 	}
 
-	if (!perm_check_root() && !perm_check_manager()) {
-		pr_warn("dynamic_manager: permission denied\n");
-		return -EPERM;
-	}
-
 	int ret = ksu_handle_dynamic_manager(&cmd.config);
 
 	if (ret == 0 && cmd.config.operation == DYNAMIC_MANAGER_OP_GET) {
@@ -493,11 +488,6 @@ static int do_get_managers(void __user *arg)
 	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
 		pr_err("get_managers: copy_from_user failed\n");
 		return -EFAULT;
-	}
-
-	if (!perm_check_root() && !perm_check_manager()) {
-		pr_warn("get_managers: permission denied\n");
-		return -EPERM;
 	}
 
 	struct manager_list_info manager_info;
@@ -520,11 +510,6 @@ static int do_enable_uid_scanner(void __user *arg)
 	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
 		pr_err("enable_uid_scanner: copy_from_user failed\n");
 		return -EFAULT;
-	}
-
-	if (!perm_check_root() && !perm_check_manager()) {
-		pr_warn("enable_uid_scanner: permission denied\n");
-		return -EPERM;
 	}
 
 	switch (cmd.operation) {
@@ -597,8 +582,8 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_ENABLE_SU, .handler = do_enable_su, .perm_check = perm_check_manager},
 	{ .cmd = KSU_IOCTL_INSTALL_DRIVER, .handler = do_install_driver, .perm_check = perm_check_basic },
 	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = perm_check_manager},
-	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = perm_check_manager},
-	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_basic},
 	{ .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .handler = do_dynamic_manager, .perm_check = perm_check_basic},
 	{ .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = perm_check_basic},
 	{ .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .handler = do_enable_uid_scanner, .perm_check = perm_check_basic},
@@ -622,15 +607,9 @@ static long anon_ksu_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
 			    !ksu_ioctl_handlers[i].perm_check()) {
 				pr_warn("ksu ioctl: permission denied for cmd=0x%x uid=%d\n",
 					cmd, current_uid().val);
-#if __SULOG_GATE
-				ksu_sulog_report_permission_check(current_uid().val, current->comm, false);
-#endif
 				return -EPERM;
 			}
 			// Execute handler
-#if __SULOG_GATE
-			ksu_sulog_report_syscall(current_uid().val, current->comm, "ioctl", NULL);
-#endif
 			return ksu_ioctl_handlers[i].handler(argp);
 		}
 	}

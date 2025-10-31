@@ -7,6 +7,9 @@
 #include <linux/pid.h>
 #include <linux/resource.h>
 #include <linux/rcupdate.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
+#include <linux/file.h>
+#endif
 #include "klog.h" // IWYU pragma: keep
 #include "kernel_compat.h"
 
@@ -41,7 +44,7 @@ void ksu_android_ns_fs_check()
 	android_context_saved_checked = true;
 	task_lock(current);
 	if (current->nsproxy && current->fs &&
-	    current->nsproxy->mnt_ns != init_task.nsproxy->mnt_ns) {
+		current->nsproxy->mnt_ns != init_task.nsproxy->mnt_ns) {
 		android_context_saved_enabled = true;
 #ifdef CONFIG_KSU_DEBUG
 		pr_info("android context saved enabled due to init mnt_ns(%p) != android mnt_ns(%p)\n",
@@ -80,7 +83,7 @@ struct file *ksu_filp_open_compat(const char *filename, int flags, umode_t mode)
 }
 
 ssize_t ksu_kernel_read_compat(struct file *p, void *buf, size_t count,
-			       loff_t *pos)
+				   loff_t *pos)
 {
 	return kernel_read(p, buf, count, pos);
 }
@@ -118,53 +121,53 @@ struct task_struct *ksu_get_target_task(pid_t pid)
 // Helper function to get unused fd from target task
 int ksu_get_task_unused_fd_flags(struct task_struct *task, unsigned flags)
 {
-	unsigned start = 0;
-	unsigned end = READ_ONCE(task->signal->rlim[RLIMIT_NOFILE].rlim_cur);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
+	if (task != current) {
+		pr_err("ksu: cross-task fd allocation not supported\n");
+		return -EINVAL;
+	}
+	return get_unused_fd_flags(flags);
+#else
 	struct files_struct *files = task->files;
-	unsigned int fd;
-	int error;
 	struct fdtable *fdt;
+	unsigned int fd, max_fd;
+	int error = -EMFILE;
 
+	if (task != current) {
+		pr_err("ksu: cross-task fd allocation not supported\n");
+		return -EINVAL;
+	}
 	spin_lock(&files->file_lock);
 	fdt = files_fdtable(files);
-	fd = start;
-	if (fd < files->next_fd)
-		fd = files->next_fd;
-
-	if (likely(fd < fdt->max_fds))
-		fd = find_next_fd(fdt, fd);
-
-	/*
-	 * N.B. For clone tasks sharing a files structure, this test
-	 * will limit the total number of files that can be opened.
-	 */
-	error = -EMFILE;
-	if (unlikely(fd >= end))
-		goto out;
-
-	if (unlikely(fd >= fdt->max_fds)) {
-		error = -ENOMEM;
-		pr_err("ksu: fd %u >= max_fds %u, need to expand fdtable\n", fd, fdt->max_fds);
-		goto out;
+	max_fd = fdt->max_fds;
+	for (fd = 0; fd < max_fd; fd++) {
+		if (!test_bit(fd, fdt->open_fds)) {
+			__set_open_fd(fd, fdt);
+			if (flags & O_CLOEXEC)
+				__set_close_on_exec(fd, fdt);
+			else
+				__clear_close_on_exec(fd, fdt);
+			error = fd;
+			break;
+		}
 	}
-
-	if (start <= files->next_fd)
-		files->next_fd = fd + 1;
-
-	__set_open_fd(fd, fdt);
-	if (flags & O_CLOEXEC)
-		__set_close_on_exec(fd, fdt);
-	else
-		__clear_close_on_exec(fd, fdt);
-	error = fd;
-out:
 	spin_unlock(&files->file_lock);
+	if (error < 0)
+		pr_err("ksu: failed to allocate fd (max=%u)\n", max_fd);
 	return error;
+#endif
 }
 
 // Helper function to install fd to target task
 int ksu_install_fd_to_task(struct task_struct *task, int fd, struct file *file)
 {
+	if (task != current) {
+		pr_err("ksu: cross-task fd install not supported\n");
+		return -EINVAL;
+	}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
+	fd_install(fd, file);
+#else
 	struct files_struct *files = task->files;
 	struct fdtable *fdt;
 
@@ -185,6 +188,6 @@ int ksu_install_fd_to_task(struct task_struct *task, int fd, struct file *file)
 	fdt = rcu_dereference_sched(files->fdt);
 	rcu_assign_pointer(fdt->fd[fd], file);
 	rcu_read_unlock_sched();
-
+#endif
 	return 0;
 }
