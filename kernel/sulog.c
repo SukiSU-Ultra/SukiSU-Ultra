@@ -14,11 +14,9 @@
 #include <linux/spinlock.h>
 #include <linux/crc32.h>
 
-#if __has_include(<linux/rtc.h>)
+#ifdef CONFIG_KSU_RTC_TIME_COMPAT
 #include <linux/rtc.h>
-#endif
 
-#ifndef time64_to_tm
 static inline void time64_to_tm(time64_t totalsecs, int offset, struct tm *result)
 {
     struct rtc_time rtc_tm;
