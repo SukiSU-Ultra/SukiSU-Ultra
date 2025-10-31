@@ -602,11 +602,11 @@
     <string name="sus_loop_path_feature_label">Đường dẫn Vòng lặp SuS</string>
     <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
     <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
-    <string name="avc_log_spoofing">Giả mạo nhật ký AVC</string>
-    <string name="avc_log_spoofing_enabled">Giả mạo nhật ký AVC đã kích hoạt</string>
-    <string name="avc_log_spoofing_disabled">Giả mạo nhật ký AVC đã bị vô hiệu hoá</string>
-    <string name="avc_log_spoofing_description">Tắt: Vô hiệu hoá tính năng giả mạo sus tcontext của \'su\' trong nhật ký AVC của kernel\n
-Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'kernel\' trong nhật ký AVC của kernel</string>
+    <string name="avc_log_spoofing">Giả mạo log AVC</string>
+    <string name="avc_log_spoofing_enabled">Giả mạo log AVC đã kích hoạt</string>
+    <string name="avc_log_spoofing_disabled">Giả mạo log AVC đã bị vô hiệu hoá</string>
+    <string name="avc_log_spoofing_description">Tắt: Vô hiệu hoá tính năng giả mạo sus tcontext của \'su\' trong log AVC của kernel\n
+Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'kernel\' trong log AVC của kernel</string>
     <string name="avc_log_spoofing_warning">Lưu ý quan trọng:\n
 - Giá trị này được đặt thành \'0\' theo mặc định trong kernel\n
 - Việc bật tính năng này đôi khi có thể khiến các nhà phát triển khó xác định nguyên nhân của các vấn đề về quyền hoặc SELinux khi gỡ lỗi, vì vậy người dùng nên tắt tính năng này khi gỡ lỗi</string>
@@ -689,4 +689,34 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
     <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
     <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">Trình xem log</string>
+    <string name="log_viewer_back">Trở lại</string>
+    <string name="log_viewer_search">Tìm kiếm</string>
+    <string name="log_viewer_clear_logs">Xoá Log</string>
+    <string name="log_viewer_clear_logs_confirm">Bạn có chắc chắn muốn xóa tệp log đã chọn không? Thao tác này không thể hoàn tác</string>
+    <string name="log_viewer_logs_cleared">Đã xoá logs thành công</string>
+    <string name="log_viewer_select_file">Chọn tệp log</string>
+    <string name="log_viewer_current_log">Log hiện tại</string>
+    <string name="log_viewer_old_log">Log cũ</string>
+    <string name="log_viewer_filter_type">Lọc theo loại</string>
+    <string name="log_viewer_all_types">Tất cả các loại</string>
+    <string name="log_viewer_showing_entries">Hiển thị %1$d trong tổng %2$d logs</string>
+    <string name="log_viewer_no_logs">Không tìm thấy logs nào</string>
+    <string name="log_viewer_no_matching_logs">Không tìm thấy logs nào phù hợp</string>
+    <string name="log_viewer_refresh">Làm mới</string>
+    <string name="log_viewer_raw_log">Raw Log</string>
+    <string name="log_viewer_search_placeholder">Tìm kiếm theo UID, lệnh hoặc chi tiết…</string>
+    <string name="log_viewer_clear_search">Xoá tìm kiếm</string>
+    <string name="log_viewer_view_logs">Xem logs sử dụng</string>
+    <string name="log_viewer_view_logs_summary">Xem logs truy cập Superuser</string>
+    <string name="log_viewer_exclude_subtypes">Loại trừ các phân loại</string>
+    <string name="log_viewer_exclude_current_app">Ứng dụng hiện tại</string>
+    <string name="log_viewer_page_info">Trang: %1$d/%2$d | Tổng logs: %3$d</string>
+    <string name="log_viewer_too_many_logs">Quá nhiều logs, chỉ hiển thị %1$d logs mới nhất</string>
+    <string name="log_viewer_load_more">Đang load thêm logs</string>
+    <string name="log_viewer_all_logs_loaded">Tất cả logs đã được hiển thị</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">Bạn thực sự muốn ném tôi đi sao 😢?</string>
+    <string name="miui_uninstall_content">Hừm, được rồi, tôi sẽ bị bạn gỡ cài đặt. Chức năng root sẽ không ngừng hoạt động chỉ vì bạn mất một Trình quản lý. Đừng lo, zakozako, chỉ Gỡ cài đặt Trình quản lý thôi thì không thể mất quyền truy cập root được đâu, zako~❤️</string>
 </resources>
