@@ -11,58 +11,46 @@
 
 // Command structures for ioctl
 
-struct ksu_become_manager_cmd {
-	// No fields needed, success is indicated by return value 0
-};
-
 struct ksu_become_daemon_cmd {
-	char token[65]; // Input: daemon token (null-terminated)
+	__u8 token[65]; // Input: daemon token (null-terminated)
 };
 
-struct ksu_grant_root_cmd {
-	// No fields needed, success is indicated by return value 0
-};
-
-struct ksu_get_version_cmd {
-	u32 version; // Output: KERNEL_SU_VERSION
-	u32 version_flags; // Output: flags (bit 0: MODULE mode)
+struct ksu_get_info_cmd {
+	__u32 version; // Output: KERNEL_SU_VERSION
+	__u32 flags; // Output: flags (bit 0: MODULE mode)
 };
 
 struct ksu_report_event_cmd {
-	u32 event; // Input: EVENT_POST_FS_DATA, EVENT_BOOT_COMPLETED, etc.
+	__u32 event; // Input: EVENT_POST_FS_DATA, EVENT_BOOT_COMPLETED, etc.
 };
 
 struct ksu_set_sepolicy_cmd {
-	unsigned long cmd; // Input: sepolicy command
-	void __user *arg; // Input: sepolicy argument pointer
+	__u64 cmd; // Input: sepolicy command
+	__aligned_u64 arg; // Input: sepolicy argument pointer
 };
 
 struct ksu_check_safemode_cmd {
-	bool in_safe_mode; // Output: true if in safe mode, false otherwise
+	__u8 in_safe_mode; // Output: true if in safe mode, false otherwise
 };
 
 struct ksu_get_allow_list_cmd {
-	u32 uids[128]; // Output: array of allowed/denied UIDs
-	u32 count; // Output: number of UIDs in array
-	bool allow; // Input: true for allow list, false for deny list
+	__u32 uids[128]; // Output: array of allowed/denied UIDs
+	__u32 count; // Output: number of UIDs in array
+	__u8 allow; // Input: true for allow list, false for deny list
 };
 
 struct ksu_uid_granted_root_cmd {
-	uid_t uid; // Input: target UID to check
-	bool granted; // Output: true if granted, false otherwise
+	__u32 uid; // Input: target UID to check
+	__u8 granted; // Output: true if granted, false otherwise
 };
 
 struct ksu_uid_should_umount_cmd {
-	uid_t uid; // Input: target UID to check
-	bool should_umount; // Output: true if should umount, false otherwise
+	__u32 uid; // Input: target UID to check
+	__u8 should_umount; // Output: true if should umount, false otherwise
 };
 
 struct ksu_get_manager_uid_cmd {
-	uid_t uid; // Output: manager UID
-};
-
-struct ksu_set_manager_uid_cmd {
-	uid_t uid; // Input: new manager UID
+	__u32 uid; // Output: manager UID
 };
 
 struct ksu_get_app_profile_cmd {
@@ -74,11 +62,11 @@ struct ksu_set_app_profile_cmd {
 };
 
 struct ksu_is_su_enabled_cmd {
-	bool enabled; // Output: true if su compat enabled
+	__u8 enabled; // Output: true if su compat enabled
 };
 
 struct ksu_enable_su_cmd {
-	bool enable; // Input: true to enable, false to disable
+	__u8 enable; // Input: true to enable, false to disable
 };
 
 // Other command structures
@@ -91,54 +79,45 @@ struct ksu_hook_type_cmd {
 };
 
 struct ksu_enable_kpm_cmd {
-    bool enabled; // Output: true if KPM is enabled
+    __u8 enabled; // Output: true if KPM is enabled
+};
+
+struct ksu_dynamic_manager_cmd {
+    struct dynamic_manager_user_config config; // Input/Output: dynamic manager config
+};
+
+struct ksu_get_managers_cmd {
+    struct manager_list_info manager_info; // Output: manager list information
+};
+
+struct ksu_enable_uid_scanner_cmd {
+    __u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS, UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
+    __u32 enabled; // Input: enable or disable (for UID_SCANNER_OP_TOGGLE)
+    void __user *status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
 };
 
 // IOCTL command definitions
-#define KSU_IOCTL_BECOME_MANAGER _IOWR('K', 1, struct ksu_become_manager_cmd)
-#define KSU_IOCTL_BECOME_DAEMON _IOWR('K', 2, struct ksu_become_daemon_cmd)
-#define KSU_IOCTL_GRANT_ROOT _IOWR('K', 3, struct ksu_grant_root_cmd)
-#define KSU_IOCTL_GET_VERSION _IOR('K', 4, struct ksu_get_version_cmd)
-#define KSU_IOCTL_REPORT_EVENT _IOW('K', 5, struct ksu_report_event_cmd)
-#define KSU_IOCTL_SET_SEPOLICY _IOWR('K', 6, struct ksu_set_sepolicy_cmd)
-#define KSU_IOCTL_CHECK_SAFEMODE _IOR('K', 7, struct ksu_check_safemode_cmd)
-#define KSU_IOCTL_GET_ALLOW_LIST _IOWR('K', 8, struct ksu_get_allow_list_cmd)
-#define KSU_IOCTL_GET_DENY_LIST _IOWR('K', 9, struct ksu_get_allow_list_cmd)
-#define KSU_IOCTL_UID_GRANTED_ROOT _IOWR('K', 10, struct ksu_uid_granted_root_cmd)
-#define KSU_IOCTL_UID_SHOULD_UMOUNT _IOWR('K', 11, struct ksu_uid_should_umount_cmd)
-#define KSU_IOCTL_GET_MANAGER_UID _IOR('K', 12, struct ksu_get_manager_uid_cmd)
-#define KSU_IOCTL_SET_MANAGER_UID _IOW('K', 13, struct ksu_set_manager_uid_cmd)
-#define KSU_IOCTL_GET_APP_PROFILE _IOWR('K', 14, struct ksu_get_app_profile_cmd)
-#define KSU_IOCTL_SET_APP_PROFILE _IOW('K', 15, struct ksu_set_app_profile_cmd)
-#define KSU_IOCTL_IS_SU_ENABLED _IOR('K', 16, struct ksu_is_su_enabled_cmd)
-#define KSU_IOCTL_ENABLE_SU _IOW('K', 17, struct ksu_enable_su_cmd)
+#define KSU_IOCTL_GRANT_ROOT _IO('K', 1)
+#define KSU_IOCTL_GET_INFO _IOR('K', 2, struct ksu_get_info_cmd)
+#define KSU_IOCTL_REPORT_EVENT _IOW('K', 3, struct ksu_report_event_cmd)
+#define KSU_IOCTL_SET_SEPOLICY _IOWR('K', 4, struct ksu_set_sepolicy_cmd)
+#define KSU_IOCTL_CHECK_SAFEMODE _IOR('K', 5, struct ksu_check_safemode_cmd)
+#define KSU_IOCTL_GET_ALLOW_LIST _IOWR('K', 6, struct ksu_get_allow_list_cmd)
+#define KSU_IOCTL_GET_DENY_LIST _IOWR('K', 7, struct ksu_get_allow_list_cmd)
+#define KSU_IOCTL_UID_GRANTED_ROOT _IOWR('K', 8, struct ksu_uid_granted_root_cmd)
+#define KSU_IOCTL_UID_SHOULD_UMOUNT _IOWR('K', 9, struct ksu_uid_should_umount_cmd)
+#define KSU_IOCTL_GET_MANAGER_UID _IOR('K', 10, struct ksu_get_manager_uid_cmd)
+#define KSU_IOCTL_GET_APP_PROFILE _IOWR('K', 11, struct ksu_get_app_profile_cmd)
+#define KSU_IOCTL_SET_APP_PROFILE _IOW('K', 12, struct ksu_set_app_profile_cmd)
+#define KSU_IOCTL_IS_SU_ENABLED _IOR('K', 13, struct ksu_is_su_enabled_cmd)
+#define KSU_IOCTL_ENABLE_SU _IOW('K', 14, struct ksu_enable_su_cmd)
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION _IOR('K', 100, struct ksu_get_full_version_cmd)
 #define KSU_IOCTL_HOOK_TYPE _IOR('K', 101, struct ksu_hook_type_cmd)
 #define KSU_IOCTL_ENABLE_KPM _IOR('K', 102, struct ksu_enable_kpm_cmd)
-
-// Handler function declarations
-int do_become_manager(void __user *arg);
-int do_become_daemon(void __user *arg);
-int do_grant_root(void __user *arg);
-int do_get_version(void __user *arg);
-int do_report_event(void __user *arg);
-int do_set_sepolicy(void __user *arg);
-int do_check_safemode(void __user *arg);
-int do_get_allow_list(void __user *arg);
-int do_get_deny_list(void __user *arg);
-int do_uid_granted_root(void __user *arg);
-int do_uid_should_umount(void __user *arg);
-int do_get_manager_uid(void __user *arg);
-int do_set_manager_uid(void __user *arg);
-int do_get_app_profile(void __user *arg);
-int do_set_app_profile(void __user *arg);
-int do_is_su_enabled(void __user *arg);
-int do_enable_su(void __user *arg);
-// Other handler function declarations
-int do_get_full_version(void __user *arg);
-int do_enable_kpm(void __user *arg);
-int do_hook_type(void __user *arg);
+#define KSU_IOCTL_DYNAMIC_MANAGER _IOWR('K', 103, struct ksu_dynamic_manager_cmd)
+#define KSU_IOCTL_GET_MANAGERS _IOWR('K', 104, struct ksu_get_managers_cmd)
+#define KSU_IOCTL_ENABLE_UID_SCANNER _IOWR('K', 105, struct ksu_enable_uid_scanner_cmd)
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);
@@ -147,8 +126,6 @@ typedef bool (*ksu_perm_check_t)(void);
 // Permission check functions
 bool perm_check_manager(void);
 bool perm_check_root(void);
-bool perm_check_daemon(void);
-bool perm_check_daemon_or_manager(void);
 bool perm_check_basic(void);
 bool perm_check_all(void);
 

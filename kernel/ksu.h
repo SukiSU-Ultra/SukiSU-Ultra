@@ -27,6 +27,24 @@
 #endif
 #define KSU_FULL_VERSION_STRING 255
 
+#define UID_SCANNER_OP_GET_STATUS 0
+#define UID_SCANNER_OP_TOGGLE 1
+#define UID_SCANNER_OP_CLEAR_ENV 2
+
+struct dynamic_manager_user_config {
+    unsigned int operation;
+    unsigned int size;
+    char hash[65];
+};
+
+struct manager_list_info {
+    int count;
+    struct {
+        uid_t uid;
+        int signature_index;
+    } managers[2];
+};
+
 struct root_profile {
 	int32_t uid;
 	int32_t gid;
