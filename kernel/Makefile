@@ -31,6 +31,12 @@ obj-$(CONFIG_KSU_TRACEPOINT_HOOK) += ksu_trace_export.o
 
 obj-$(CONFIG_KPM) += kpm/
 
+KDIR := $(KDIR)
+MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+
+$(info -- KDIR: $(KDIR))
+$(info -- MDIR: $(MDIR))
+
 
 REPO_OWNER := SukiSU-Ultra
 REPO_NAME := SukiSU-Ultra
@@ -42,6 +48,13 @@ CURL_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin curl
 
 KSU_GITHUB_VERSION := $(shell $(CURL_BIN) -s "https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
 KSU_GITHUB_VERSION_COMMIT := $(shell $(CURL_BIN) -sI "https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/commits?sha=$(REPO_BRANCH)&per_page=1" | grep -i "link:" | sed -n 's/.*page=\([0-9]*\)>; rel="last".*/\1/p')
+
+ifdef CI_KSU_VERSION
+  KSU_VERSION := $(CI_KSU_VERSION)
+  KSU_VERSION_FULL := $(CI_KSU_VERSION_FULL)
+  $(info -- $(REPO_NAME) version (CI override): $(KSU_VERSION))
+  $(info -- $(REPO_NAME) full version (CI override): $(KSU_VERSION_FULL))
+else
 
 ifeq ($(findstring $(srctree),$(src)),$(srctree))
   KSU_SRC := $(src)
@@ -85,6 +98,7 @@ else
   KSU_VERSION_FULL := $(call get_ksu_version_full,$(KSU_GITHUB_VERSION))
   $(info -- $(REPO_NAME) version (Github): $(KSU_VERSION_FULL))
 endif
+endif
 
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 ccflags-y += -DKSU_VERSION_FULL=\"$(KSU_VERSION_FULL)\"
@@ -116,15 +130,19 @@ $(info -- SukiSU: CONFIG_KSU_MANUAL_HOOK)
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
-KERNEL_TYPE := Non-GKI
+VERSION := $(or $(VERSION),0)
+PATCHLEVEL := $(or $(PATCHLEVEL),0)
+
 # Check for GKI 2.0 (5.10+ or 6.x+)
-ifneq ($(shell test \( $(VERSION) -ge 5 -a $(PATCHLEVEL) -ge 10 \) -o $(VERSION) -ge 6; echo $$?),0)
-# Check for GKI 1.0 (5.4)
-ifeq ($(shell test $(VERSION)-$(PATCHLEVEL) = 5-4; echo $$?),0)
-KERNEL_TYPE := GKI 1.0
-endif
-else
+ifeq ($(shell \
+  [ "$(VERSION)" -gt 5 ] || { [ "$(VERSION)" -eq 5 ] && [ "$(PATCHLEVEL)" -ge 10 ]; } || \
+  [ "$(VERSION)" -ge 6 ]; echo $$?),0)
 KERNEL_TYPE := GKI 2.0
+# Check for GKI 1.0 (5.4)
+else ifeq ($(VERSION)-$(PATCHLEVEL),5-4)
+KERNEL_TYPE := GKI 1.0
+else
+KERNEL_TYPE := Non-GKI
 endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
@@ -138,5 +156,13 @@ endif
 
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
+
+
+all:
+	make -C $(KDIR) M=$(MDIR) modules
+compdb:
+	python3 $(MDIR)/.vscode/generate_compdb.py -O $(KDIR) $(MDIR)
+clean:
+	make -C $(KDIR) M=$(MDIR) clean
 
 # Keep a new line here!! Because someone may append config
