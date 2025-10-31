@@ -137,26 +137,6 @@ pub fn on_post_data_fs() -> Result<()> {
         info!("no mount requested");
     }
 
-    // Disable Samsung Activation Verify
-    if let Some(model) = utils::getprop("ro.product.model")
-        && model.starts_with("SM-")
-    {
-        info!("Disable Samsung Activation for model {}", model);
-        if Path::new("/system/app/ActivationDevice_V2").exists() {
-            if let Err(e) = std::fs::create_dir_all("/data/local/tmp/ActivationDevice_V2") {
-                warn!("Failed to create directory: {}", e);
-            } else if let Err(e) = mount(
-                "/data/local/tmp/ActivationDevice_V2",
-                "/system/app/ActivationDevice_V2",
-                "none",
-                MountFlags::BIND,
-                "",
-            ) {
-                warn!("Failed to mount ActivationDevice_V2: {}", e);
-            }
-        }
-    }
-
     run_stage("post-mount", true);
 
     Ok(())
