@@ -39,66 +39,66 @@ void get_full_version(char* buff);
 #define UID_SCANNER_OP_CLEAR_ENV 2
 
 struct dynamic_manager_user_config {
-    unsigned int operation;
-    unsigned int size;
-    char hash[65];
+	unsigned int operation;
+	unsigned int size;
+	char hash[65];
 };
 
 
 struct root_profile {
-    int32_t uid;
-    int32_t gid;
+	int32_t uid;
+	int32_t gid;
 
-    int32_t groups_count;
-    int32_t groups[KSU_MAX_GROUPS];
+	int32_t groups_count;
+	int32_t groups[KSU_MAX_GROUPS];
 
-    // kernel_cap_t is u32[2] for capabilities v3
-    struct {
-        uint64_t effective;
-        uint64_t permitted;
-        uint64_t inheritable;
-    } capabilities;
+	// kernel_cap_t is u32[2] for capabilities v3
+	struct {
+		uint64_t effective;
+		uint64_t permitted;
+		uint64_t inheritable;
+	} capabilities;
 
-    char selinux_domain[KSU_SELINUX_DOMAIN];
+	char selinux_domain[KSU_SELINUX_DOMAIN];
 
-    int32_t namespaces;
+	int32_t namespaces;
 };
 
 struct non_root_profile {
-    bool umount_modules;
+	bool umount_modules;
 };
 
 struct app_profile {
-    // It may be utilized for backward compatibility, although we have never explicitly made any promises regarding this.
-    uint32_t version;
+	// It may be utilized for backward compatibility, although we have never explicitly made any promises regarding this.
+	uint32_t version;
 
-    // this is usually the package of the app, but can be other value for special apps
-    char key[KSU_MAX_PACKAGE_NAME];
-    int32_t current_uid;
-    bool allow_su;
+	// this is usually the package of the app, but can be other value for special apps
+	char key[KSU_MAX_PACKAGE_NAME];
+	int32_t current_uid;
+	bool allow_su;
 
-    union {
-        struct {
-            bool use_default;
-            char template_name[KSU_MAX_PACKAGE_NAME];
+	union {
+		struct {
+			bool use_default;
+			char template_name[KSU_MAX_PACKAGE_NAME];
 
-            struct root_profile profile;
-        } rp_config;
+			struct root_profile profile;
+		} rp_config;
 
-        struct {
-            bool use_default;
+		struct {
+			bool use_default;
 
-            struct non_root_profile profile;
-        } nrp_config;
-    };
+			struct non_root_profile profile;
+		} nrp_config;
+	};
 };
 
 struct manager_list_info {
-    int count;
-    struct {
-        uid_t uid;
-        int signature_index;
-    } managers[2];
+	int count;
+	struct {
+		uid_t uid;
+		int signature_index;
+	} managers[2];
 };
 
 bool set_app_profile(const struct app_profile* profile);
@@ -111,7 +111,7 @@ bool is_su_enabled();
 
 bool is_KPM_enable();
 
-bool get_hook_type(char* hook_type, size_t size);
+void get_hook_type(char* hook_type);
 
 bool set_dynamic_manager(unsigned int size, const char* hash);
 
@@ -130,92 +130,92 @@ bool set_uid_scanner_enabled(bool enabled);
 bool clear_uid_scanner_environment();
 
 struct ksu_become_daemon_cmd {
-    __u8 token[65]; // Input: daemon token (null-terminated)
+	__u8 token[65]; // Input: daemon token (null-terminated)
 };
 
 struct ksu_get_info_cmd {
-    __u32 version; // Output: KERNEL_SU_VERSION
-    __u32 flags; // Output: flags (bit 0: MODULE mode)
+	__u32 version; // Output: KERNEL_SU_VERSION
+	__u32 flags; // Output: flags (bit 0: MODULE mode)
 };
 
 struct ksu_report_event_cmd {
-    __u32 event; // Input: EVENT_POST_FS_DATA, EVENT_BOOT_COMPLETED, etc.
+	__u32 event; // Input: EVENT_POST_FS_DATA, EVENT_BOOT_COMPLETED, etc.
 };
 
 struct ksu_set_sepolicy_cmd {
-    __u64 cmd; // Input: sepolicy command
-    __aligned_u64 arg; // Input: sepolicy argument pointer
+	__u64 cmd; // Input: sepolicy command
+	__aligned_u64 arg; // Input: sepolicy argument pointer
 };
 
 struct ksu_check_safemode_cmd {
-    __u8 in_safe_mode; // Output: true if in safe mode, false otherwise
+	__u8 in_safe_mode; // Output: true if in safe mode, false otherwise
 };
 
 struct ksu_get_allow_list_cmd {
-    __u32 uids[128]; // Output: array of allowed/denied UIDs
-    __u32 count; // Output: number of UIDs in array
-    __u8 allow; // Input: true for allow list, false for deny list
+	__u32 uids[128]; // Output: array of allowed/denied UIDs
+	__u32 count; // Output: number of UIDs in array
+	__u8 allow; // Input: true for allow list, false for deny list
 };
 
 struct ksu_uid_granted_root_cmd {
-    __u32 uid; // Input: target UID to check
-    __u8 granted; // Output: true if granted, false otherwise
+	__u32 uid; // Input: target UID to check
+	__u8 granted; // Output: true if granted, false otherwise
 };
 
 struct ksu_uid_should_umount_cmd {
-    __u32 uid; // Input: target UID to check
-    __u8 should_umount; // Output: true if should umount, false otherwise
+	__u32 uid; // Input: target UID to check
+	__u8 should_umount; // Output: true if should umount, false otherwise
 };
 
 struct ksu_get_manager_uid_cmd {
-    __u32 uid; // Output: manager UID
+	__u32 uid; // Output: manager UID
 };
 
 struct ksu_set_manager_uid_cmd {
-    __u32 uid; // Input: new manager UID
+	__u32 uid; // Input: new manager UID
 };
 
 struct ksu_get_app_profile_cmd {
-    struct app_profile profile; // Input/Output: app profile structure
+	struct app_profile profile; // Input/Output: app profile structure
 };
 
 struct ksu_set_app_profile_cmd {
-    struct app_profile profile; // Input: app profile structure
+	struct app_profile profile; // Input: app profile structure
 };
 
 struct ksu_is_su_enabled_cmd {
-    __u8 enabled; // Output: true if su compat enabled
+	__u8 enabled; // Output: true if su compat enabled
 };
 
 struct ksu_enable_su_cmd {
-    __u8 enable; // Input: true to enable, false to disable
+	__u8 enable; // Input: true to enable, false to disable
 };
 
 // Other command structures
 struct ksu_get_full_version_cmd {
-    char version_full[KSU_FULL_VERSION_STRING]; // Output: full version string
+	char version_full[KSU_FULL_VERSION_STRING]; // Output: full version string
 };
 
 struct ksu_hook_type_cmd {
-    char hook_type[32]; // Output: hook type string
+	char hook_type[32]; // Output: hook type string
 };
 
 struct ksu_enable_kpm_cmd {
-    __u8 enabled; // Output: true if KPM is enabled
+	__u8 enabled; // Output: true if KPM is enabled
 };
 
 struct ksu_dynamic_manager_cmd {
-    struct dynamic_manager_user_config config; // Input/Output: dynamic manager config
+	struct dynamic_manager_user_config config; // Input/Output: dynamic manager config
 };
 
 struct ksu_get_managers_cmd {
-    struct manager_list_info manager_info; // Output: manager list information
+	struct manager_list_info manager_info; // Output: manager list information
 };
 
 struct ksu_enable_uid_scanner_cmd {
-    __u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS, UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
-    __u32 enabled; // Input: enable or disable (for UID_SCANNER_OP_TOGGLE)
-    __u64 status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
+	__u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS, UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
+	__u32 enabled; // Input: enable or disable (for UID_SCANNER_OP_TOGGLE)
+	__u64 status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
 };
 
 // IOCTL command definitions

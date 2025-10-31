@@ -352,22 +352,24 @@ static int do_get_full_version(void __user *arg)
 }
 
 // 101. HOOK_TYPE - Get hook type
-static int do_hook_type(void __user *arg)
+static int do_get_hook_type(void __user *arg)
 {
-	struct ksu_hook_type_cmd cmd;
+	struct ksu_hook_type_cmd cmd = {0};
+	const char *type = "Kprobes";
 
 #if defined(CONFIG_KSU_TRACEPOINT_HOOK)
-	strncpy(cmd.hook_type, "Tracepoint", sizeof(cmd.hook_type) - 1);
+	type = "Tracepoint";
 #elif defined(CONFIG_KSU_MANUAL_HOOK)
-	strncpy(cmd.hook_type, "Manual", sizeof(cmd.hook_type) - 1);
+	type = "Manual";
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+	strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
 #else
-	strncpy(cmd.hook_type, "Kprobes", sizeof(cmd.hook_type) - 1);
+	strlcpy(cmd.hook_type, type, sizeof(cmd.hook_type));
 #endif
 
-	cmd.hook_type[sizeof(cmd.hook_type) - 1] = '\0';
-
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-		pr_err("hook_type: copy_to_user failed\n");
+		pr_err("get_hook_type: copy_to_user failed\n");
 		return -EFAULT;
 	}
 
@@ -377,7 +379,7 @@ static int do_hook_type(void __user *arg)
 // 102. ENABLE_KPM - Check if KPM is enabled
 static int do_enable_kpm(void __user *arg)
 {
-	struct ksu_enable_kpm_cmd cmd = {0};
+	struct ksu_enable_kpm_cmd cmd;
 	
 	cmd.enabled = IS_ENABLED(CONFIG_KPM);
 
@@ -391,121 +393,121 @@ static int do_enable_kpm(void __user *arg)
 
 static int do_dynamic_manager(void __user *arg)
 {
-    struct ksu_dynamic_manager_cmd cmd;
+	struct ksu_dynamic_manager_cmd cmd;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-        pr_err("dynamic_manager: copy_from_user failed\n");
-        return -EFAULT;
-    }
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		pr_err("dynamic_manager: copy_from_user failed\n");
+		return -EFAULT;
+	}
 
-    if (!perm_check_root() && !perm_check_manager()) {
-        pr_warn("dynamic_manager: permission denied\n");
-        return -EPERM;
-    }
+	if (!perm_check_root() && !perm_check_manager()) {
+		pr_warn("dynamic_manager: permission denied\n");
+		return -EPERM;
+	}
 
-    int ret = ksu_handle_dynamic_manager(&cmd.config);
+	int ret = ksu_handle_dynamic_manager(&cmd.config);
 
-    if (ret == 0 && cmd.config.operation == DYNAMIC_MANAGER_OP_GET) {
-        if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-            pr_err("dynamic_manager: copy_to_user failed\n");
-            return -EFAULT;
-        }
-    }
+	if (ret == 0 && cmd.config.operation == DYNAMIC_MANAGER_OP_GET) {
+		if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+			pr_err("dynamic_manager: copy_to_user failed\n");
+			return -EFAULT;
+		}
+	}
 
-    return ret;
+	return ret;
 }
 
 static int do_get_managers(void __user *arg)
 {
-    struct ksu_get_managers_cmd cmd;
+	struct ksu_get_managers_cmd cmd;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-        pr_err("get_managers: copy_from_user failed\n");
-        return -EFAULT;
-    }
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		pr_err("get_managers: copy_from_user failed\n");
+		return -EFAULT;
+	}
 
-    if (!perm_check_root() && !perm_check_manager()) {
-        pr_warn("get_managers: permission denied\n");
-        return -EPERM;
-    }
+	if (!perm_check_root() && !perm_check_manager()) {
+		pr_warn("get_managers: permission denied\n");
+		return -EPERM;
+	}
 
-    struct manager_list_info manager_info;
-    int ret = ksu_get_active_managers(&manager_info);
+	struct manager_list_info manager_info;
+	int ret = ksu_get_active_managers(&manager_info);
 
-    if (ret == 0) {
-        if (copy_to_user(arg, &manager_info, sizeof(manager_info))) {
-            pr_err("get_managers: copy_to_user failed\n");
-            return -EFAULT;
-        }
-    }
+	if (ret == 0) {
+		if (copy_to_user(arg, &manager_info, sizeof(manager_info))) {
+			pr_err("get_managers: copy_to_user failed\n");
+			return -EFAULT;
+		}
+	}
 
-    return ret;
+	return ret;
 }
 
 static int do_enable_uid_scanner(void __user *arg)
 {
-    struct ksu_enable_uid_scanner_cmd cmd;
+	struct ksu_enable_uid_scanner_cmd cmd;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-        pr_err("enable_uid_scanner: copy_from_user failed\n");
-        return -EFAULT;
-    }
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		pr_err("enable_uid_scanner: copy_from_user failed\n");
+		return -EFAULT;
+	}
 
-    if (!perm_check_root() && !perm_check_manager()) {
-        pr_warn("enable_uid_scanner: permission denied\n");
-        return -EPERM;
-    }
+	if (!perm_check_root() && !perm_check_manager()) {
+		pr_warn("enable_uid_scanner: permission denied\n");
+		return -EPERM;
+	}
 
-    switch (cmd.operation) {
-        case UID_SCANNER_OP_GET_STATUS: {
-            bool status = ksu_uid_scanner_enabled;
-            if (copy_to_user((void __user *)cmd.status_ptr, &status, sizeof(status))) {
-                pr_err("enable_uid_scanner: copy status failed\n");
-                return -EFAULT;
-            }
-            break;
-        }
-        case UID_SCANNER_OP_TOGGLE: {
-            bool enabled = cmd.enabled;
+	switch (cmd.operation) {
+		case UID_SCANNER_OP_GET_STATUS: {
+			bool status = ksu_uid_scanner_enabled;
+			if (copy_to_user((void __user *)cmd.status_ptr, &status, sizeof(status))) {
+				pr_err("enable_uid_scanner: copy status failed\n");
+				return -EFAULT;
+			}
+			break;
+		}
+		case UID_SCANNER_OP_TOGGLE: {
+			bool enabled = cmd.enabled;
 
-            if (enabled == ksu_uid_scanner_enabled) {
-                pr_info("enable_uid_scanner: no need to change, already %s\n", 
-                    enabled ? "enabled" : "disabled");
-                break;
-            }
+			if (enabled == ksu_uid_scanner_enabled) {
+				pr_info("enable_uid_scanner: no need to change, already %s\n", 
+					enabled ? "enabled" : "disabled");
+				break;
+			}
 
-            if (enabled) {
-                // Enable UID scanner
-                int ret = ksu_throne_comm_init();
-                if (ret != 0) {
-                    pr_err("enable_uid_scanner: failed to initialize: %d\n", ret);
-                    return -EFAULT;
-                }
-                pr_info("enable_uid_scanner: enabled\n");
-            } else {
-                // Disable UID scanner
-                ksu_throne_comm_exit();
-                pr_info("enable_uid_scanner: disabled\n");
-            }
+			if (enabled) {
+				// Enable UID scanner
+				int ret = ksu_throne_comm_init();
+				if (ret != 0) {
+					pr_err("enable_uid_scanner: failed to initialize: %d\n", ret);
+					return -EFAULT;
+				}
+				pr_info("enable_uid_scanner: enabled\n");
+			} else {
+				// Disable UID scanner
+				ksu_throne_comm_exit();
+				pr_info("enable_uid_scanner: disabled\n");
+			}
 
-            ksu_uid_scanner_enabled = enabled;
-            ksu_throne_comm_save_state();
-            break;
-        }
-        case UID_SCANNER_OP_CLEAR_ENV: {
-            // Clear environment (force exit)
-            ksu_throne_comm_exit();
-            ksu_uid_scanner_enabled = false;
-            ksu_throne_comm_save_state();
-            pr_info("enable_uid_scanner: environment cleared\n");
-            break;
-        }
-        default:
-            pr_err("enable_uid_scanner: invalid operation\n");
-            return -EINVAL;
-    }
+			ksu_uid_scanner_enabled = enabled;
+			ksu_throne_comm_save_state();
+			break;
+		}
+		case UID_SCANNER_OP_CLEAR_ENV: {
+			// Clear environment (force exit)
+			ksu_throne_comm_exit();
+			ksu_uid_scanner_enabled = false;
+			ksu_throne_comm_save_state();
+			pr_info("enable_uid_scanner: environment cleared\n");
+			break;
+		}
+		default:
+			pr_err("enable_uid_scanner: invalid operation\n");
+			return -EINVAL;
+	}
 
-    return 0;
+	return 0;
 }
 
 // IOCTL handlers mapping table
@@ -525,7 +527,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_IS_SU_ENABLED, .handler = do_is_su_enabled, .perm_check = perm_check_manager , .name = "is_su_enabled" },
 	{ .cmd = KSU_IOCTL_ENABLE_SU, .handler = do_enable_su, .perm_check = perm_check_manager, .name = "enable_su" },
 	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = perm_check_manager, .name = "get_full_version" },
-	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_hook_type, .perm_check = perm_check_manager, .name = "hook_type" },
+	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = perm_check_manager, .name = "hook_type" },
 	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_manager, .name = "enable_kpm" },
 	{ .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .handler = do_dynamic_manager, .perm_check = perm_check_basic, .name = "dynamic_manager" },
 	{ .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = perm_check_basic, .name = "get_managers" },

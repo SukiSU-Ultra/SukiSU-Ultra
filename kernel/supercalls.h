@@ -71,29 +71,29 @@ struct ksu_enable_su_cmd {
 
 // Other command structures
 struct ksu_get_full_version_cmd {
-    char version_full[KSU_FULL_VERSION_STRING]; // Output: full version string
+	char version_full[KSU_FULL_VERSION_STRING]; // Output: full version string
 };
 
 struct ksu_hook_type_cmd {
-    char hook_type[32]; // Output: hook type string
+	char hook_type[32]; // Output: hook type string
 };
 
 struct ksu_enable_kpm_cmd {
-    __u8 enabled; // Output: true if KPM is enabled
+	__u8 enabled; // Output: true if KPM is enabled
 };
 
 struct ksu_dynamic_manager_cmd {
-    struct dynamic_manager_user_config config; // Input/Output: dynamic manager config
+	struct dynamic_manager_user_config config; // Input/Output: dynamic manager config
 };
 
 struct ksu_get_managers_cmd {
-    struct manager_list_info manager_info; // Output: manager list information
+	struct manager_list_info manager_info; // Output: manager list information
 };
 
 struct ksu_enable_uid_scanner_cmd {
-    __u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS, UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
-    __u32 enabled; // Input: enable or disable (for UID_SCANNER_OP_TOGGLE)
-    void __user *status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
+	__u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS, UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
+	__u32 enabled; // Input: enable or disable (for UID_SCANNER_OP_TOGGLE)
+	void __user *status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
 };
 
 // IOCTL command definitions
@@ -134,7 +134,7 @@ struct ksu_ioctl_cmd_map {
 	unsigned int cmd;
 	ksu_ioctl_handler_t handler;
 	ksu_perm_check_t perm_check; // Permission check function
-    const char *name; // Command name for logging
+	const char *name; // Command name for logging
 };
 
 // Install KSU fd to current process
