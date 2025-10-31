@@ -57,6 +57,17 @@ bool perm_check_all(void)
 	return true; // No permission check
 }
 
+// 1. BECOME_MANAGER - Verify manager identity
+int do_become_manager(void __user *arg)
+{
+	if (!ksu_is_manager_uid_valid() ||
+	    ksu_get_manager_uid() != current_uid().val) {
+		return -EPERM;
+	}
+
+	return 0;
+}
+
 // 3. GRANT_ROOT - Escalate to root privileges
 int do_grant_root(void __user *arg)
 {
@@ -402,6 +413,7 @@ int do_enable_kpm(void __user *arg)
 
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
+	{ .cmd = KSU_IOCTL_BECOME_MANAGER, .handler = do_become_manager, .perm_check = perm_check_manager, .name = "become_manager" },
 	{ .cmd = KSU_IOCTL_GRANT_ROOT, .handler = do_grant_root, .perm_check = perm_check_basic, .name = "grant_root" },
 	{ .cmd = KSU_IOCTL_GET_VERSION, .handler = do_get_version, .perm_check = perm_check_all, .name = "get_version" },
 	{ .cmd = KSU_IOCTL_REPORT_EVENT, .handler = do_report_event, .perm_check = perm_check_root, .name = "report_event" },
