@@ -1,0 +1,80 @@
+name: Build KernelSU Kernel Module
+
+on:
+  workflow_call:
+    inputs:
+      kmi:
+        description: 'KMI version'
+        required: true
+        type: string
+      ddk_release:
+        description: 'DDK release version'
+        required: false
+        default: '20251016'
+        type: string
+
+jobs:
+  build-kernelsu-ko:
+    name: Build kernelsu.ko for ${{ inputs.kmi }}
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ylarod/ddk:${{ inputs.kmi }}-${{ inputs.ddk_release }}
+      options: --privileged
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Get version info from GitHub API
+      id: version
+      run: |
+        REPO_OWNER="SukiSU-Ultra"
+        REPO_NAME="SukiSU-Ultra"
+        REPO_BRANCH="main"
+        KSU_VERSION_API="3.2.0"
+
+        GITHUB_VERSION=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+        GITHUB_COMMIT_COUNT=$(curl -sI "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/commits?sha=$REPO_BRANCH&per_page=1" | grep -i '^link:' | sed -n 's/.*page=\([0-9]*\)>; rel="last".*/\1/p')
+
+        KSU_VERSION=$((10000 + GITHUB_COMMIT_COUNT + 700))
+
+        FAKE_HASH=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/commits/$REPO_BRANCH" | grep '"sha":' | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/' | cut -c1-8)
+
+        KSU_VERSION_FULL="v${GITHUB_VERSION:-$KSU_VERSION_API}-${FAKE_HASH}@$REPO_BRANCH"
+
+        echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
+        echo "KSU_VERSION_FULL=$KSU_VERSION_FULL" >> $GITHUB_ENV
+
+    - name: Build kernelsu.ko
+      env:
+        CI_KSU_VERSION: ${{ env.KSU_VERSION }}
+        CI_KSU_VERSION_FULL: ${{ env.KSU_VERSION_FULL }}
+      run: |
+        git config --global --add safe.directory /__w/KernelSU/KernelSU
+
+        cd kernel
+
+        echo "=== Building kernelsu.ko for KMI: ${{ inputs.kmi }} ==="
+
+        CONFIG_KSU=m make
+        
+        echo "=== Build completed ==="
+
+        # Create output directory in GitHub workspace
+        mkdir -p /github/workspace/out
+
+        # Copy with KMI-specific naming
+        OUTPUT_NAME="${{ inputs.kmi }}_kernelsu.ko"
+        cp kernelsu.ko "/github/workspace/out/$OUTPUT_NAME"
+        
+        echo "Copied to: /github/workspace/out/$OUTPUT_NAME"
+        ls -la "/github/workspace/out/$OUTPUT_NAME"
+        echo "Size: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
+        llvm-strip -d "/github/workspace/out/$OUTPUT_NAME"
+        echo "Size after stripping: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
+
+    - name: Upload kernelsu.ko artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.kmi }}-lkm
+        path: /github/workspace/out/${{ inputs.kmi }}_kernelsu.ko

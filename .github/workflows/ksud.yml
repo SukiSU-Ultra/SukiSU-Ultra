@@ -9,10 +9,6 @@ on:
         required: false
         type: string
         default: ubuntu-latest
-      pull_lkm:
-        required: false
-        type: boolean
-        default: true
       pack_lkm:
         required: false
         type: boolean
@@ -29,27 +25,14 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Pull lkms from branch
-      if: ${{ inputs.pack_lkm && inputs.pull_lkm }}
-      uses: actions/checkout@v4
-      with:
-        ref: lkm
-        path: lkm
-
-    - name: Download lkms from artifacts
-      if: ${{ inputs.pack_lkm && !inputs.pull_lkm }}
+    - name: Download artifacts
       uses: actions/download-artifact@v4
-
-    - name: Prepare LKM files
-      if: ${{ inputs.pack_lkm && inputs.pull_lkm }}
-      run: |
-        cp lkm/*_kernelsu.ko ./userspace/ksud/bin/aarch64/
-
-    - name: Prepare LKM files
-      if: ${{ inputs.pack_lkm && !inputs.pull_lkm }}
+    
+    - name: Prepare LKM fies
+      if: ${{ inputs.pack_lkm }}
       run: |
         cp android*-lkm/*_kernelsu.ko ./userspace/ksud/bin/aarch64/
-
+        
     - name: Setup rustup
       run: |
         rustup update stable

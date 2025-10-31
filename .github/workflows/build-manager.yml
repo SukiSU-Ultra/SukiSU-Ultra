@@ -5,6 +5,7 @@ on:
     branches: [ "main", "ci" ]
     paths:
       - '.github/workflows/build-manager.yml'
+      - '.github/workflows/build-lkm.yml'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/ksud/**'
@@ -15,77 +16,13 @@ on:
     paths:
       - 'manager/**'
   workflow_call:
-  workflow_dispatch:
-    inputs:
-      build_lkm:
-        required: true
-        type: choice
-        default: "auto"
-        options:
-          - "true"
-          - "false"
-          - "auto"
-        description: "Whether to build lkm"
-      upload_lkm:
-        required: true
-        type: boolean
-        default: true
-        description: "Whether to upload lkm"
-jobs:
-  check-build-lkm:
-    runs-on: ubuntu-latest
-    outputs:
-      build_lkm: ${{ steps.check-build.outputs.build_lkm }}
-      upload_lkm: ${{ steps.check-build.outputs.upload_lkm }}
-    steps:
-      - name: check build
-        id: check-build
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ inputs.build_lkm }}" != "auto" ]; then
-            kernel_changed="${{ inputs.build_lkm }}"
-          else
-            kernel_changed=true
-            mkdir tmp
-            cd tmp
-            git config --global init.defaultBranch bot
-            git config --global user.name 'Bot'
-            git config --global user.email 'bot@github.shirkneko.io'
-            git init .
-            git remote add origin https://github.com/${{ github.repository }}
-            CURRENT_COMMIT="${{ github.event.head_commit.id }}"
-            git fetch origin $CURRENT_COMMIT --depth=1
-            git fetch origin lkm --depth=1
-            LKM_COMMIT="$(git log --format=%B -n 1 origin/lkm | head -n 1)"
-            LKM_COMMIT="${LKM_COMMIT#Upload LKM from }"
-            LKM_COMMIT=$(echo "$LKM_COMMIT" | tr -d '[:space:]')
-            echo "LKM_COMMIT=$LKM_COMMIT"
-            git fetch origin "$LKM_COMMIT" --depth=1
-            git diff --quiet "$LKM_COMMIT" "$CURRENT_COMMIT" -- kernel :!kernel/setup.sh .github/workflows/build-lkm.yml .github/workflows/build-kernel-*.yml && kernel_changed=false
-            cd ..
-            rm -rf tmp
-          fi
-          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == 'refs/heads/main' ]; then
-            need_upload=true
-          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            need_upload="${{ inputs.upload_lkm }}"
-          else
-            need_upload=false
-          fi
-          echo "kernel changed: $kernel_changed"
-          echo "need upload: $need_upload"
-          echo "build_lkm=$kernel_changed" >> "$GITHUB_OUTPUT"
-          echo "upload_lkm=$need_upload" >> "$GITHUB_OUTPUT"
 
+jobs:
   build-lkm:
-    needs: check-build-lkm
     uses: ./.github/workflows/build-lkm.yml
-    if: ${{ needs.check-build-lkm.outputs.build_lkm == 'true' }}
-    with:
-      upload: ${{ needs.check-build-lkm.outputs.upload_lkm == 'true' }}
     secrets: inherit
   build-susfs:
-    if: ${{ always() }}
-    needs: [ check-build-lkm, build-lkm ]
+    needs: build-lkm
     strategy:
       matrix:
         include:
@@ -97,8 +34,7 @@ jobs:
       os: ${{ matrix.os }}
 
   build-user_scanner:
-    if: ${{ always() }}
-    needs: [ check-build-lkm, build-lkm ]
+    needs: build-lkm
     strategy:
       matrix:
         include:
@@ -110,8 +46,7 @@ jobs:
       os: ${{ matrix.os }}
 
   build-ksud:
-    if: ${{ always() }}
-    needs: [ check-build-lkm, build-lkm ]
+    needs: build-lkm
     strategy:
       matrix:
         include:
@@ -125,11 +60,8 @@ jobs:
     with:
       target: ${{ matrix.target }}
       os: ${{ matrix.os }}
-      pack_lkm: true
-      pull_lkm: ${{ needs.check-build-lkm.outputs.build_lkm != 'true' }}
 
   build-manager:
-    if: ${{ always() }}
     needs: build-ksud
     runs-on: ubuntu-latest
     defaults:
