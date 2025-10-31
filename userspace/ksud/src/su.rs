@@ -17,7 +17,7 @@ use crate::{
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn grant_root(global_mnt: bool) -> Result<()> {
-    rustix::process::ksu_grant_root()?;
+    crate::ksucalls::grant_root()?;
 
     let mut command = Command::new("sh");
     let command = unsafe {
