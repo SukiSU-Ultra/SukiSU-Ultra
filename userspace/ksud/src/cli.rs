@@ -383,7 +383,10 @@ pub fn run() -> Result<()> {
                 println!("Kernel Version: {}", ksucalls::get_version());
                 Ok(())
             }
-            Debug::Su { global_mnt, wait_for_fd } => {
+            Debug::Su {
+                global_mnt,
+                wait_for_fd,
+            } => {
                 if wait_for_fd {
                     println!("Waiting for driver fd (timeout: 3s, interval: 200ms)...");
                     if !ksucalls::wait_for_driver_fd(3000, 200) {
@@ -392,7 +395,7 @@ pub fn run() -> Result<()> {
                     println!("Driver fd found!");
                 }
                 crate::su::grant_root(global_mnt)
-            },
+            }
             Debug::Mount => init_event::mount_modules_systemlessly(),
             Debug::Test => assets::ensure_binaries(false),
         },
