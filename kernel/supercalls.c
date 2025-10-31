@@ -16,17 +16,13 @@
 #include "manager.h"
 #include "sulog.h"
 #include "selinux/selinux.h"
+#include "kernel_compat.h"
 #include "throne_comm.h"
 #include "dynamic_manager.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU
 #include "manual_su.h"
 #endif
-
-#ifdef CONFIG_KPM
-#include "kpm/kpm.h"
-#endif
-
 
 // Forward declarations from core_hook.c
 extern void escape_to_root(void);
@@ -35,6 +31,9 @@ extern bool ksu_module_mounted;
 extern int handle_sepolicy(unsigned long arg3, void __user *arg4);
 extern void ksu_sucompat_init(void);
 extern void ksu_sucompat_exit(void);
+
+// Forward declaration for anon_ksu_fops
+static const struct file_operations anon_ksu_fops;
 
 static bool ksu_su_compat_enabled = true;
 bool ksu_uid_scanner_enabled = false;
@@ -332,6 +331,76 @@ static int do_enable_su(void __user *arg)
 	return 0;
 }
 
+static int do_install_driver(void __user *arg)
+{
+	struct ksu_install_driver_cmd cmd;
+	struct task_struct *task = NULL;
+	struct file *filp = NULL;
+	int ret;
+
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		return -EFAULT;
+	}
+
+	// Validate pid parameter (must be > 0, pid=0 is not allowed)
+	if (cmd.pid == 0) {
+		pr_err("install_driver: pid cannot be 0\n");
+		return -EINVAL;
+	}
+
+	// Get target task
+	task = ksu_get_target_task(cmd.pid);
+	if (!task) {
+		pr_warn("install_driver: failed to get task: %d\n", cmd.pid);
+		ret = -ESRCH;
+		goto out;
+	}
+
+	// Get unused fd from target task
+	cmd.fd = ksu_get_task_unused_fd_flags(task, O_CLOEXEC);
+	if (cmd.fd < 0) {
+		pr_err("install_driver: failed to get unused fd for pid %d\n", cmd.pid);
+		ret = cmd.fd;
+		goto err_put_task;
+	}
+
+	// Create anonymous inode file with existing ksu fops
+	filp = anon_inode_getfile("[ksu_driver]", &anon_ksu_fops, NULL, O_RDWR | O_CLOEXEC);
+	if (IS_ERR(filp)) {
+		pr_err("install_driver: failed to create anon inode file\n");
+		ret = PTR_ERR(filp);
+		// Note: fd is allocated but not installed, will be cleaned up on process exit
+		goto err_put_task;
+	}
+
+	// Install fd to target task
+	ret = ksu_install_fd_to_task(task, cmd.fd, filp);
+	if (ret) {
+		pr_err("install_driver: failed to install fd to task %d\n", cmd.pid);
+		goto err_fput;
+	}
+
+	put_task_struct(task);
+
+	// Copy result back to userspace
+	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+		pr_err("install_driver: copy_to_user failed, fd %d leaked in process %d\n",
+		       cmd.fd, cmd.pid);
+		return -EFAULT;
+	}
+
+	pr_info("ksu driver installed: fd %d for pid %d\n", cmd.fd, cmd.pid);
+
+	return 0;
+
+err_fput:
+	fput(filp);
+err_put_task:
+	put_task_struct(task);
+out:
+	return ret;
+}
+
 // 100. GET_FULL_VERSION - Get full version string
 static int do_get_full_version(void __user *arg)
 {
@@ -512,27 +581,28 @@ static int do_enable_uid_scanner(void __user *arg)
 
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
-	{ .cmd = KSU_IOCTL_GRANT_ROOT, .handler = do_grant_root, .perm_check = perm_check_basic, .name = "grant_root" },
-	{ .cmd = KSU_IOCTL_GET_INFO, .handler = do_get_info, .perm_check = perm_check_all, .name = "get_info" },
-	{ .cmd = KSU_IOCTL_REPORT_EVENT, .handler = do_report_event, .perm_check = perm_check_root, .name = "report_event" },
-	{ .cmd = KSU_IOCTL_SET_SEPOLICY, .handler = do_set_sepolicy, .perm_check = perm_check_root, .name = "set_sepolicy" },
-	{ .cmd = KSU_IOCTL_CHECK_SAFEMODE, .handler = do_check_safemode, .perm_check = perm_check_all, .name = "check_safemode" },
-	{ .cmd = KSU_IOCTL_GET_ALLOW_LIST, .handler = do_get_allow_list, .perm_check = perm_check_basic, .name = "get_allow_list" },
-	{ .cmd = KSU_IOCTL_GET_DENY_LIST, .handler = do_get_deny_list, .perm_check = perm_check_basic, .name = "get_deny_list" },
-	{ .cmd = KSU_IOCTL_UID_GRANTED_ROOT, .handler = do_uid_granted_root, .perm_check = perm_check_basic, .name = "uid_granted_root" },
-	{ .cmd = KSU_IOCTL_UID_SHOULD_UMOUNT, .handler = do_uid_should_umount, .perm_check = perm_check_basic, .name = "uid_should_umount" },
-	{ .cmd = KSU_IOCTL_GET_MANAGER_UID, .handler = do_get_manager_uid, .perm_check = perm_check_basic, .name = "get_manager_uid" },
-	{ .cmd = KSU_IOCTL_GET_APP_PROFILE, .handler = do_get_app_profile, .perm_check = perm_check_manager, .name = "get_app_profile" },
-	{ .cmd = KSU_IOCTL_SET_APP_PROFILE, .handler = do_set_app_profile, .perm_check = perm_check_manager , .name = "set_app_profile" },
-	{ .cmd = KSU_IOCTL_IS_SU_ENABLED, .handler = do_is_su_enabled, .perm_check = perm_check_manager , .name = "is_su_enabled" },
-	{ .cmd = KSU_IOCTL_ENABLE_SU, .handler = do_enable_su, .perm_check = perm_check_manager, .name = "enable_su" },
-	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = perm_check_manager, .name = "get_full_version" },
-	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = perm_check_manager, .name = "hook_type" },
-	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_manager, .name = "enable_kpm" },
-	{ .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .handler = do_dynamic_manager, .perm_check = perm_check_basic, .name = "dynamic_manager" },
-	{ .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = perm_check_basic, .name = "get_managers" },
-	{ .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .handler = do_enable_uid_scanner, .perm_check = perm_check_basic, .name = "enable_uid_scanner" },
-	{ .cmd = 0, .handler = NULL, .perm_check = NULL, .name = NULL } // Sentinel
+	{ .cmd = KSU_IOCTL_GRANT_ROOT, .handler = do_grant_root, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_GET_INFO, .handler = do_get_info, .perm_check = perm_check_all},
+	{ .cmd = KSU_IOCTL_REPORT_EVENT, .handler = do_report_event, .perm_check = perm_check_root},
+	{ .cmd = KSU_IOCTL_SET_SEPOLICY, .handler = do_set_sepolicy, .perm_check = perm_check_root},
+	{ .cmd = KSU_IOCTL_CHECK_SAFEMODE, .handler = do_check_safemode, .perm_check = perm_check_all},
+	{ .cmd = KSU_IOCTL_GET_ALLOW_LIST, .handler = do_get_allow_list, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_GET_DENY_LIST, .handler = do_get_deny_list, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_UID_GRANTED_ROOT, .handler = do_uid_granted_root, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_UID_SHOULD_UMOUNT, .handler = do_uid_should_umount, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_GET_MANAGER_UID, .handler = do_get_manager_uid, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_GET_APP_PROFILE, .handler = do_get_app_profile, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_SET_APP_PROFILE, .handler = do_set_app_profile, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_IS_SU_ENABLED, .handler = do_is_su_enabled, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_ENABLE_SU, .handler = do_enable_su, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_INSTALL_DRIVER, .handler = do_install_driver, .perm_check = perm_check_basic },
+	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_manager},
+	{ .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .handler = do_dynamic_manager, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = perm_check_basic},
+	{ .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .handler = do_enable_uid_scanner, .perm_check = perm_check_basic},
+	{ .cmd = 0, .handler = NULL, .perm_check = NULL} // Sentinel
 };
 
 // IOCTL dispatcher
@@ -540,57 +610,33 @@ static long anon_ksu_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
 {
 	void __user *argp = (void __user *)arg;
 	int i;
-	const char *cmd_name = "unknown";
-	int ret = -ENOTTY;
 
 #ifdef CONFIG_KSU_DEBUG
 	pr_info("ksu ioctl: cmd=0x%x from uid=%d\n", cmd, current_uid().val);
 #endif
 
-	// Determine the command name based on the cmd value
 	for (i = 0; ksu_ioctl_handlers[i].handler; i++) {
 		if (cmd == ksu_ioctl_handlers[i].cmd) {
-			cmd_name = ksu_ioctl_handlers[i].name;
-			break;
+			// Check permission first
+			if (ksu_ioctl_handlers[i].perm_check &&
+			    !ksu_ioctl_handlers[i].perm_check()) {
+				pr_warn("ksu ioctl: permission denied for cmd=0x%x uid=%d\n",
+					cmd, current_uid().val);
+#if __SULOG_GATE
+				ksu_sulog_report_permission_check(current_uid().val, current->comm, false);
+#endif
+				return -EPERM;
+			}
+			// Execute handler
+#if __SULOG_GATE
+			ksu_sulog_report_syscall(current_uid().val, current->comm, "ioctl", NULL);
+#endif
+			return ksu_ioctl_handlers[i].handler(argp);
 		}
 	}
 
-#if __SULOG_GATE
-	// Log the start of the ioctl command
-	ksu_sulog_report_syscall(current_uid().val, NULL, cmd_name, "START");
-#endif
-
-	// Check permission first
-	if (ksu_ioctl_handlers[i].perm_check &&
-		!ksu_ioctl_handlers[i].perm_check()) {
-			pr_warn("ksu ioctl: permission denied for cmd=0x%x uid=%d\n",
-				cmd, current_uid().val);
-#if __SULOG_GATE
-			ksu_sulog_report_syscall(current_uid().val, NULL, cmd_name, "DENIED");
-#endif
-		return -EPERM;
-	}
-
-	// Execute handler
-	ret = ksu_ioctl_handlers[i].handler(argp);
-
-	// Log the result of the ioctl command
-	if (ret == 0) {
-#if __SULOG_GATE
-		ksu_sulog_report_syscall(current_uid().val, NULL, cmd_name, "SUCCESS");
-#endif
-	} else {
-#if __SULOG_GATE
-		ksu_sulog_report_syscall(current_uid().val, NULL, cmd_name, "FAILED");
-#endif
-	}
-
-	if (ksu_ioctl_handlers[i].handler == NULL) {
-		pr_warn("ksu ioctl: unsupported command 0x%x\n", cmd);
-		ret = -ENOTTY;
-	}
-
-	return ret;
+	pr_warn("ksu ioctl: unsupported command 0x%x\n", cmd);
+	return -ENOTTY;
 }
 
 // File release handler

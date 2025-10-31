@@ -3,6 +3,10 @@
 #include <linux/nsproxy.h>
 #include <linux/sched/task.h>
 #include <linux/uaccess.h>
+#include <linux/fdtable.h>
+#include <linux/pid.h>
+#include <linux/resource.h>
+#include <linux/rcupdate.h>
 #include "klog.h" // IWYU pragma: keep
 #include "kernel_compat.h"
 
@@ -93,3 +97,94 @@ long ksu_strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
 	return strncpy_from_user_nofault(dst, unsafe_addr, count);
 }
 
+// Helper function to get task_struct from pid
+struct task_struct *ksu_get_target_task(pid_t pid)
+{
+	struct pid *pid_struct = find_get_pid(pid);
+	if (!pid_struct) {
+		return NULL;
+	}
+
+	// Note: get_pid_task increments the task_struct refcount
+	struct task_struct *task = get_pid_task(pid_struct, PIDTYPE_PID);
+	put_pid(pid_struct);
+	if (!task) {
+		return NULL;
+	}
+
+	return task;
+}
+
+// Helper function to get unused fd from target task
+int ksu_get_task_unused_fd_flags(struct task_struct *task, unsigned flags)
+{
+	unsigned start = 0;
+	unsigned end = READ_ONCE(task->signal->rlim[RLIMIT_NOFILE].rlim_cur);
+	struct files_struct *files = task->files;
+	unsigned int fd;
+	int error;
+	struct fdtable *fdt;
+
+	spin_lock(&files->file_lock);
+	fdt = files_fdtable(files);
+	fd = start;
+	if (fd < files->next_fd)
+		fd = files->next_fd;
+
+	if (likely(fd < fdt->max_fds))
+		fd = find_next_fd(fdt, fd);
+
+	/*
+	 * N.B. For clone tasks sharing a files structure, this test
+	 * will limit the total number of files that can be opened.
+	 */
+	error = -EMFILE;
+	if (unlikely(fd >= end))
+		goto out;
+
+	if (unlikely(fd >= fdt->max_fds)) {
+		error = -ENOMEM;
+		pr_err("ksu: fd %u >= max_fds %u, need to expand fdtable\n", fd, fdt->max_fds);
+		goto out;
+	}
+
+	if (start <= files->next_fd)
+		files->next_fd = fd + 1;
+
+	__set_open_fd(fd, fdt);
+	if (flags & O_CLOEXEC)
+		__set_close_on_exec(fd, fdt);
+	else
+		__clear_close_on_exec(fd, fdt);
+	error = fd;
+out:
+	spin_unlock(&files->file_lock);
+	return error;
+}
+
+// Helper function to install fd to target task
+int ksu_install_fd_to_task(struct task_struct *task, int fd, struct file *file)
+{
+	struct files_struct *files = task->files;
+	struct fdtable *fdt;
+
+	rcu_read_lock_sched();
+
+	if (unlikely(files->resize_in_progress)) {
+		rcu_read_unlock_sched();
+		spin_lock(&files->file_lock);
+		fdt = files_fdtable(files);
+
+		rcu_assign_pointer(fdt->fd[fd], file);
+
+		spin_unlock(&files->file_lock);
+		return 0;
+	}
+	/* coupled with smp_wmb() in expand_fdtable() */
+	smp_rmb();
+	fdt = rcu_dereference_sched(files->fdt);
+	rcu_assign_pointer(fdt->fd[fd], file);
+	rcu_read_unlock_sched();
+
+	return 0;
+}

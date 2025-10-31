@@ -94,4 +94,9 @@ static long ksu_copy_from_user_retry(void *to,
 	return copy_from_user(to, from, count);
 }
 
+// Helper functions for cross-process fd installation
+extern struct task_struct *ksu_get_target_task(pid_t pid);
+extern int ksu_get_task_unused_fd_flags(struct task_struct *task, unsigned flags);
+extern int ksu_install_fd_to_task(struct task_struct *task, int fd, struct file *file);
+
 #endif
