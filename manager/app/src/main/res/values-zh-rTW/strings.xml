@@ -649,7 +649,7 @@
     <string name="uid_auto_scan_summary">開啟後將使用使用者態掃描應用列表，提高穩定性 (因內核掃描應用列表出現卡死等問題可以嘗試開啟此選項) </string>
     <string name="uid_multi_user_scan_title">多使用者應用掃描</string>
     <string name="uid_multi_user_scan_summary">開啟後將掃描所有使用者的應用，包括工作資料等</string>
-    <string name="uid_scanner_setting_failed">設定失敗，請檢查許可權</string>
+    <string name="uid_scanner_setting_failed">请重新打开管理器</string>
     <string name="uid_scanner_setting_error">設定失敗: %s</string>
     <string name="clean_runtime_environment">清理執行環境</string>
     <string name="clean_runtime_environment_summary">清理執行時檔案並停止掃描服務</string>

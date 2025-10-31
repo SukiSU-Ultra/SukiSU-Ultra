@@ -658,7 +658,7 @@ Important Note:\n
     <string name="uid_auto_scan_summary">Enabling this option will use user-mode scanning for the application list, improving stability. (If you encounter issues such as freezing during kernel scanning of the application list, you may try enabling this option.)</string>
     <string name="uid_multi_user_scan_title">Multi-User Application Scanning</string>
     <string name="uid_multi_user_scan_summary">When enabled, scans applications for all users, including work profiles</string>
-    <string name="uid_scanner_setting_failed">Setting failed, please check permissions</string>
+    <string name="uid_scanner_setting_failed">Please restart the Manager.</string>
     <string name="uid_scanner_setting_error">Setting failed: %s</string>
     <string name="clean_runtime_environment">Clean Runtime Environment</string>
     <string name="clean_runtime_environment_summary">Clean up runtime files and stop the scanner service</string>

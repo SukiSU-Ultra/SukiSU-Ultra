@@ -650,7 +650,7 @@
     <string name="uid_auto_scan_summary">开启后将使用用户态扫描应用列表，提高稳定性 (因内核扫描应用列表出现卡死等问题可以尝试打开此选项) </string>
     <string name="uid_multi_user_scan_title">多用户应用扫描</string>
     <string name="uid_multi_user_scan_summary">开启后将扫描所有用户的应用，包括工作资料等</string>
-    <string name="uid_scanner_setting_failed">设置失败，请检查权限</string>
+    <string name="uid_scanner_setting_failed">请重新打开管理器</string>
     <string name="uid_scanner_setting_error">设置失败: %s</string>
     <string name="clean_runtime_environment">清理运行环境</string>
     <string name="clean_runtime_environment_summary">清理运行时文件并停止扫描服务</string>

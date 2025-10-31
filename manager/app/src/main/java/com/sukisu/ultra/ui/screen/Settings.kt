@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -49,6 +50,7 @@ import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.*
 import com.topjohnwu.superuser.ShellUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -204,28 +206,25 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                 summary = stringResource(R.string.uid_auto_scan_summary),
                                 checked = uidAutoScanEnabled,
                                 onCheckedChange = { enabled ->
-                                    scope.launch {
-                                        try {
-                                            if (setUidAutoScan(enabled)) {
-                                                uidAutoScanEnabled = enabled
-                                                prefs.edit { putBoolean("uid_auto_scan", enabled) }
-
-                                                if (!enabled) {
-                                                    uidMultiUserScanEnabled = false
-                                                    prefs.edit { putBoolean("uid_multi_user_scan", false) }
-                                                }
-                                            } else {
-                                                snackBarHost.showSnackbar(context.getString(R.string.uid_scanner_setting_failed))
-                                            }
-                                        } catch (e: Exception) {
-                                            snackBarHost.showSnackbar(
-                                                context.getString(
-                                                    R.string.uid_scanner_setting_error,
-                                                    e.message ?: ""
-                                                )
-                                            )
-                                        }
+                                    uidAutoScanEnabled = enabled
+                                    if (!enabled) {
+                                        uidMultiUserScanEnabled = false
+                                        prefs.edit { putBoolean("uid_multi_user_scan", false) }
                                     }
+
+                                    scope.setUidAutoScanAsync(
+                                        context = context,
+                                        snackBarHost = snackBarHost,
+                                        targetEnabled = enabled,
+                                        onUiChanged = { newValue ->
+                                            uidAutoScanEnabled = newValue
+                                            if (!newValue) {
+                                                uidMultiUserScanEnabled = false
+                                                prefs.edit { putBoolean("uid_multi_user_scan", false) }
+                                            }
+                                        },
+                                        prefs = prefs
+                                    )
                                 }
                             )
 
@@ -239,23 +238,15 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                     icon = Icons.Filled.Groups,
                                     title = stringResource(R.string.uid_multi_user_scan_title),
                                     summary = stringResource(R.string.uid_multi_user_scan_summary),
-                                    checked = uidMultiUserScanEnabled,
-                                    onCheckedChange = { enabled ->
-                                        scope.launch {
-                                            try {
-                                                if (setUidMultiUserScan(enabled)) {
-                                                    uidMultiUserScanEnabled = enabled
-                                                    prefs.edit { putBoolean("uid_multi_user_scan", enabled) }
-                                                } else {
-                                                    snackBarHost.showSnackbar(context.getString(R.string.uid_scanner_setting_failed))
-                                                }
-                                            } catch (e: Exception) {
-                                                snackBarHost.showSnackbar(
-                                                    context.getString(
-                                                        R.string.uid_scanner_setting_error,
-                                                        e.message ?: ""
-                                                    )
-                                                )
+                                    checked = uidMultiUserScanEnabled,onCheckedChange = { enabled ->
+                                        uidMultiUserScanEnabled = enabled
+                                        scope.launch(Dispatchers.IO) {
+                                            val ok = setUidMultiUserScan(enabled)
+                                            if (!ok) {
+                                                uidMultiUserScanEnabled = !enabled
+                                                snackBarHost.showSnackbar(context.getString(R.string.uid_scanner_setting_failed))
+                                            } else {
+                                                prefs.edit { putBoolean("uid_multi_user_scan", enabled) }
                                             }
                                         }
                                     }
@@ -960,4 +951,25 @@ private fun TopBar(
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
+}
+
+private fun CoroutineScope.setUidAutoScanAsync(
+    context: Context,
+    snackBarHost: SnackbarHostState,
+    targetEnabled: Boolean,
+    onUiChanged: (Boolean) -> Unit,
+    prefs: SharedPreferences
+) = launch(Dispatchers.IO) {
+    onUiChanged(targetEnabled)
+
+    val ok = setUidAutoScan(targetEnabled)
+
+    if (!ok) {
+        onUiChanged(!targetEnabled)
+        snackBarHost.showSnackbar(
+            context.getString(R.string.uid_scanner_setting_failed)
+        )
+    } else {
+        prefs.edit { putBoolean("uid_auto_scan", targetEnabled) }
+    }
 }
