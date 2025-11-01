@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -48,8 +49,9 @@ import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.*
-import com.topjohnwu.superuser.ShellUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -179,127 +181,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         )
                         // UID 扫描开关
                         if (Natives.version >= Natives.MINIMAL_SUPPORTED_UID_SCANNER) {
-                            var uidAutoScanEnabled by rememberSaveable {
-                                mutableStateOf(prefs.getBoolean("uid_auto_scan", false))
-                            }
-
-                            var uidMultiUserScanEnabled by rememberSaveable {
-                                mutableStateOf(prefs.getBoolean("uid_multi_user_scan", false))
-                            }
-
-                            LaunchedEffect(Unit) {
-                                uidAutoScanEnabled = Natives.isUidScannerEnabled()
-                                uidMultiUserScanEnabled = getUidMultiUserScan()
-
-                                prefs.edit {
-                                    putBoolean("uid_auto_scan", uidAutoScanEnabled)
-                                    putBoolean("uid_multi_user_scan", uidMultiUserScanEnabled)
-                                }
-                            }
-
-                            // 用户态扫描应用列表开关
-                            SwitchItem(
-                                icon = Icons.Filled.Scanner,
-                                title = stringResource(R.string.uid_auto_scan_title),
-                                summary = stringResource(R.string.uid_auto_scan_summary),
-                                checked = uidAutoScanEnabled,
-                                onCheckedChange = { enabled ->
-                                    scope.launch {
-                                        try {
-                                            if (setUidAutoScan(enabled)) {
-                                                uidAutoScanEnabled = enabled
-                                                prefs.edit { putBoolean("uid_auto_scan", enabled) }
-
-                                                if (!enabled) {
-                                                    uidMultiUserScanEnabled = false
-                                                    prefs.edit { putBoolean("uid_multi_user_scan", false) }
-                                                }
-                                            } else {
-                                                snackBarHost.showSnackbar(context.getString(R.string.uid_scanner_setting_failed))
-                                            }
-                                        } catch (e: Exception) {
-                                            snackBarHost.showSnackbar(
-                                                context.getString(
-                                                    R.string.uid_scanner_setting_error,
-                                                    e.message ?: ""
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-                            )
-
-                            // 多用户应用扫描开关 - 仅在启用用户态扫描时显示
-                            AnimatedVisibility(
-                                visible = uidAutoScanEnabled,
-                                enter = fadeIn() + expandVertically(),
-                                exit = fadeOut() + shrinkVertically()
-                            ) {
-                                SwitchItem(
-                                    icon = Icons.Filled.Groups,
-                                    title = stringResource(R.string.uid_multi_user_scan_title),
-                                    summary = stringResource(R.string.uid_multi_user_scan_summary),
-                                    checked = uidMultiUserScanEnabled,
-                                    onCheckedChange = { enabled ->
-                                        scope.launch {
-                                            try {
-                                                if (setUidMultiUserScan(enabled)) {
-                                                    uidMultiUserScanEnabled = enabled
-                                                    prefs.edit { putBoolean("uid_multi_user_scan", enabled) }
-                                                } else {
-                                                    snackBarHost.showSnackbar(context.getString(R.string.uid_scanner_setting_failed))
-                                                }
-                                            } catch (e: Exception) {
-                                                snackBarHost.showSnackbar(
-                                                    context.getString(
-                                                        R.string.uid_scanner_setting_error,
-                                                        e.message ?: ""
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-                            // 清理运行环境
-                            AnimatedVisibility(
-                                visible = uidAutoScanEnabled,
-                                enter = fadeIn() + expandVertically(),
-                                exit = fadeOut() + shrinkVertically()
-                            ) {
-                                val confirmDialog = rememberConfirmDialog()
-                                val scope = rememberCoroutineScope()
-
-                                SettingItem(
-                                    icon = Icons.Filled.CleaningServices,
-                                    title = stringResource(R.string.clean_runtime_environment),
-                                    summary = stringResource(R.string.clean_runtime_environment_summary),
-                                    onClick = {
-                                        scope.launch {
-                                            val result = confirmDialog.awaitConfirm(
-                                                title = context.getString(R.string.clean_runtime_environment),
-                                                content = context.getString(R.string.clean_runtime_environment_confirm)
-                                            )
-                                            if (result == ConfirmResult.Confirmed) {
-                                                val cleanResult = cleanRuntimeEnvironment()
-                                                if (cleanResult) {
-                                                    uidAutoScanEnabled = false
-                                                    prefs.edit { putBoolean("uid_auto_scan", false) }
-
-                                                    uidMultiUserScanEnabled = false
-                                                    prefs.edit { putBoolean("uid_multi_user_scan", false) }
-
-                                                    Natives.setUidScannerEnabled(false)
-
-                                                    snackBarHost.showSnackbar(context.getString(R.string.clean_runtime_environment_success))
-                                                } else {
-                                                    snackBarHost.showSnackbar(context.getString(R.string.clean_runtime_environment_failed))
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                            }
+                            UidScannerSection(prefs, snackBarHost, scope, context)
                         }
                     }
                 )
@@ -478,24 +360,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
 
             Spacer(modifier = Modifier.height(SPACING_LARGE))
         }
-    }
-}
-
-fun cleanRuntimeEnvironment(): Boolean {
-    val shell = getRootShell()
-    return try {
-        try {
-            ShellUtils.fastCmd(shell, "/data/adb/uid_scanner stop")
-        } catch (_: Exception) {
-        }
-        ShellUtils.fastCmdResult(shell, "rm -rf /data/misc/user_uid")
-        ShellUtils.fastCmdResult(shell, "rm -rf /data/adb/uid_scanner")
-        ShellUtils.fastCmdResult(shell, "rm -rf /data/adb/ksu/bin/user_uid")
-        ShellUtils.fastCmdResult(shell, "rm -rf /data/adb/service.d/uid_scanner.sh")
-        Natives.clearUidScannerEnvironment()
-        true
-    } catch (_: Exception) {
-        false
     }
 }
 
@@ -960,4 +824,125 @@ private fun TopBar(
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
+}
+
+@Composable
+private fun UidScannerSection(
+    prefs: SharedPreferences,
+    snackBarHost: SnackbarHostState,
+    scope: CoroutineScope,
+    context: Context
+) {
+    if (Natives.version < Natives.MINIMAL_SUPPORTED_UID_SCANNER) return
+
+    val realAuto = Natives.isUidScannerEnabled()
+    val realMulti = getUidMultiUserScan()
+
+    var autoOn by remember { mutableStateOf(realAuto) }
+    var multiOn by remember { mutableStateOf(realMulti) }
+
+    LaunchedEffect(Unit) {
+        autoOn = realAuto
+        multiOn = realMulti
+        prefs.edit {
+            putBoolean("uid_auto_scan", autoOn)
+            putBoolean("uid_multi_user_scan", multiOn)
+        }
+    }
+
+    SwitchItem(
+        icon = Icons.Filled.Scanner,
+        title = stringResource(R.string.uid_auto_scan_title),
+        summary = stringResource(R.string.uid_auto_scan_summary),
+        checked = autoOn,
+        onCheckedChange = { target ->
+            autoOn = target
+            if (!target) multiOn = false
+
+            scope.launch(Dispatchers.IO) {
+                setUidAutoScan(target)
+                val actual = Natives.isUidScannerEnabled() || readUidScannerFile()
+                withContext(Dispatchers.Main) {
+                    autoOn = actual
+                    if (!actual) multiOn = false
+                    prefs.edit {
+                        putBoolean("uid_auto_scan", actual)
+                        putBoolean("uid_multi_user_scan", multiOn)
+                    }
+                    if (actual != target) {
+                        snackBarHost.showSnackbar(
+                            context.getString(R.string.uid_scanner_setting_failed)
+                        )
+                    }
+                }
+            }
+        }
+    )
+
+    AnimatedVisibility(
+        visible = autoOn,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
+        SwitchItem(
+            icon = Icons.Filled.Groups,
+            title = stringResource(R.string.uid_multi_user_scan_title),
+            summary = stringResource(R.string.uid_multi_user_scan_summary),
+            checked = multiOn,
+            onCheckedChange = { target ->
+                scope.launch(Dispatchers.IO) {
+                    val ok = setUidMultiUserScan(target)
+                    withContext(Dispatchers.Main) {
+                        if (ok) {
+                            multiOn = target
+                            prefs.edit { putBoolean("uid_multi_user_scan", target) }
+                        } else {
+                            snackBarHost.showSnackbar(
+                                context.getString(R.string.uid_scanner_setting_failed)
+                            )
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    AnimatedVisibility(
+        visible = autoOn,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
+        val confirmDialog = rememberConfirmDialog()
+        SettingItem(
+            icon = Icons.Filled.CleaningServices,
+            title = stringResource(R.string.clean_runtime_environment),
+            summary = stringResource(R.string.clean_runtime_environment_summary),
+            onClick = {
+                scope.launch {
+                    if (confirmDialog.awaitConfirm(
+                            title = context.getString(R.string.clean_runtime_environment),
+                            content = context.getString(R.string.clean_runtime_environment_confirm)
+                        ) == ConfirmResult.Confirmed
+                    ) {
+                        if (cleanRuntimeEnvironment()) {
+                            autoOn = false
+                            multiOn = false
+                            prefs.edit {
+                                putBoolean("uid_auto_scan", false)
+                                putBoolean("uid_multi_user_scan", false)
+                            }
+                            Natives.setUidScannerEnabled(false)
+                            snackBarHost.showSnackbar(
+                                context.getString(R.string.clean_runtime_environment_success)
+                            )
+                        } else {
+                            snackBarHost.showSnackbar(
+                                context.getString(R.string.clean_runtime_environment_failed)
+                            )
+                        }
+                    }
+                }
+            }
+        )
+    }
 }

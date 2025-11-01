@@ -52,6 +52,8 @@ private val SPACING_LARGE = 16.dp
 private const val PAGE_SIZE = 10000
 private const val MAX_TOTAL_LOGS = 100000
 
+private const val LOGS_PATCH = "/data/adb/ksu/log/sulog.log"
+
 data class LogEntry(
     val timestamp: String,
     val type: LogType,
@@ -113,7 +115,6 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
 
     var logEntries by remember { mutableStateOf<List<LogEntry>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
-    var selectedLogFile by rememberSaveable { mutableStateOf("current") }
     var filterType by rememberSaveable { mutableStateOf<LogType?>(null) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showSearchBar by rememberSaveable { mutableStateOf(false) }
@@ -167,7 +168,6 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
             isLoading = true
             try {
                 loadLogsWithPagination(
-                    selectedLogFile,
                     page,
                     forceRefresh,
                     lastLogFileHash
@@ -196,12 +196,12 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
         }
     }
 
-    LaunchedEffect(selectedLogFile) {
+    LaunchedEffect(Unit) {
         while (true) {
             delay(5_000)
             if (!isLoading) {
                 scope.launch {
-                    val hasNewLogs = checkForNewLogs(selectedLogFile, lastLogFileHash)
+                    val hasNewLogs = checkForNewLogs(lastLogFileHash)
                     if (hasNewLogs) {
                         loadPage(0, true)
                     }
@@ -210,7 +210,7 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
         }
     }
 
-    LaunchedEffect(selectedLogFile) {
+    LaunchedEffect(Unit) {
         loadPage(0, true)
     }
 
@@ -232,7 +232,7 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
                         )
                         if (result == ConfirmResult.Confirmed) {
                             loadingDialog.withLoading {
-                                clearLogs(selectedLogFile)
+                                clearLogs()
                                 loadPage(0, true)
                             }
                             snackBarHost.showSnackbar(context.getString(R.string.log_viewer_logs_cleared))
@@ -249,14 +249,7 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            // 控制面板
             LogControlPanel(
-                selectedLogFile = selectedLogFile,
-                onLogFileSelected = {
-                    selectedLogFile = it
-                    pageInfo = LogPageInfo()
-                    logEntries = emptyList()
-                },
                 filterType = filterType,
                 onFilterTypeSelected = { filterType = it },
                 logCount = filteredEntries.size,
@@ -299,8 +292,6 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
 
 @Composable
 private fun LogControlPanel(
-    selectedLogFile: String,
-    onLogFileSelected: (String) -> Unit,
     filterType: LogType?,
     onFilterTypeSelected: (LogType?) -> Unit,
     logCount: Int,
@@ -348,28 +339,6 @@ private fun LogControlPanel(
                 Column(
                     modifier = Modifier.padding(horizontal = SPACING_LARGE)
                 ) {
-                    // 文件选择
-                    Text(
-                        text = stringResource(R.string.log_viewer_select_file),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(SPACING_MEDIUM))
-                    Row(horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)) {
-                        FilterChip(
-                            onClick = { onLogFileSelected("current") },
-                            label = { Text(stringResource(R.string.log_viewer_current_log)) },
-                            selected = selectedLogFile == "current"
-                        )
-                        FilterChip(
-                            onClick = { onLogFileSelected("old") },
-                            label = { Text(stringResource(R.string.log_viewer_old_log)) },
-                            selected = selectedLogFile == "old"
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(SPACING_LARGE))
-
                     // 类型过滤
                     Text(
                         text = stringResource(R.string.log_viewer_filter_type),
@@ -544,7 +513,7 @@ private fun LogEntryCard(entry: LogEntry) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { expanded = !expanded },
-        colors = getCardColors(MaterialTheme.colorScheme.surface),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -779,17 +748,12 @@ private fun LogViewerTopBar(
 }
 
 private suspend fun checkForNewLogs(
-    logFile: String,
     lastHash: String
 ): Boolean {
     return withContext(Dispatchers.IO) {
         try {
             val shell = getRootShell()
-            val logPath = if (logFile == "current") {
-                "/data/adb/ksu/log/sulog.log"
-            } else {
-                "/data/adb/ksu/log/sulog.log.old"
-            }
+            val logPath = "/data/adb/ksu/log/sulog.log"
 
             val result = runCmd(shell, "stat -c '%Y %s' $logPath 2>/dev/null || echo '0 0'")
             val currentHash = result.trim()
@@ -802,7 +766,6 @@ private suspend fun checkForNewLogs(
 }
 
 private suspend fun loadLogsWithPagination(
-    logFile: String,
     page: Int,
     forceRefresh: Boolean,
     lastHash: String,
@@ -811,17 +774,11 @@ private suspend fun loadLogsWithPagination(
     withContext(Dispatchers.IO) {
         try {
             val shell = getRootShell()
-            val logPath = if (logFile == "current") {
-                "/data/adb/ksu/log/sulog.log"
-            } else {
-                "/data/adb/ksu/log/sulog.log.old"
-            }
 
             // 获取文件信息
-            val statResult = runCmd(shell, "stat -c '%Y %s' $logPath 2>/dev/null || echo '0 0'")
+            val statResult = runCmd(shell, "stat -c '%Y %s' $LOGS_PATCH 2>/dev/null || echo '0 0'")
             val currentHash = statResult.trim()
 
-            // 如果不是强制刷新且文件没有变化，则不加载
             if (!forceRefresh && currentHash == lastHash && currentHash != "0 0") {
                 withContext(Dispatchers.Main) {
                     onLoaded(emptyList(), LogPageInfo(), currentHash)
@@ -830,7 +787,7 @@ private suspend fun loadLogsWithPagination(
             }
 
             // 获取总行数
-            val totalLinesResult = runCmd(shell, "wc -l < $logPath 2>/dev/null || echo '0'")
+            val totalLinesResult = runCmd(shell, "wc -l < $LOGS_PATCH 2>/dev/null || echo '0'")
             val totalLines = totalLinesResult.trim().toIntOrNull() ?: 0
 
             if (totalLines == 0) {
@@ -861,7 +818,7 @@ private suspend fun loadLogsWithPagination(
                 return@withContext
             }
 
-            val result = runCmd(shell, "sed -n '${startLine},${endLine}p' $logPath 2>/dev/null || echo ''")
+            val result = runCmd(shell, "sed -n '${startLine},${endLine}p' $LOGS_PATCH 2>/dev/null || echo ''")
             val entries = parseLogEntries(result)
 
             val hasMore = endLine < totalLines
@@ -878,19 +835,12 @@ private suspend fun loadLogsWithPagination(
     }
 }
 
-private suspend fun clearLogs(logFile: String) {
+private suspend fun clearLogs() {
     withContext(Dispatchers.IO) {
         try {
             val shell = getRootShell()
-            val logPath = if (logFile == "current") {
-                "/data/adb/ksu/log/sulog.log"
-            } else {
-                "/data/adb/ksu/log/sulog.log.old"
-            }
-
-            runCmd(shell, "echo '' > $logPath")
+            runCmd(shell, "echo '' > $LOGS_PATCH")
         } catch (_: Exception) {
-            // 忽略错误
         }
     }
 }

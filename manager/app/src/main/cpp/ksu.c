@@ -30,8 +30,8 @@ static int fd = -1;
 
 static inline int scan_driver_fd() {
 	const char *kName = "[ksu_driver]";
-	DIR *dir = opendir("/proc/self/fd");
-	if (!dir) {
+	DIR *fd_dir = opendir("/proc/self/fd");
+	if (!fd_dir) {
 		return -1;
 	}
 
@@ -40,7 +40,7 @@ static inline int scan_driver_fd() {
 	char path[64];
 	char target[PATH_MAX];
 
-	while ((de = readdir(dir)) != NULL) {
+	while ((de = readdir(fd_dir)) != NULL) {
 		if (de->d_name[0] == '.') {
 			continue;
 		}
@@ -67,7 +67,7 @@ static inline int scan_driver_fd() {
 		}
 	}
 
-	closedir(dir);
+	closedir(fd_dir);
 	return found;
 }
 
@@ -142,6 +142,10 @@ bool is_su_enabled() {
 	return ksuctl(KSU_IOCTL_IS_SU_ENABLED, &cmd) == 0 && cmd.enabled;
 }
 
+bool grant_root(void) {
+    return ksuctl(KSU_IOCTL_GRANT_ROOT, NULL) == 0;
+}
+
 void get_full_version(char* buff) {
 	struct ksu_get_full_version_cmd cmd = {0};
 	if (ksuctl(KSU_IOCTL_GET_FULL_VERSION, &cmd) == 0) {
@@ -155,7 +159,7 @@ void get_full_version(char* buff) {
 bool is_KPM_enable(void)
 {
 	struct ksu_enable_kpm_cmd cmd = {};
-    return ksuctl(KSU_IOCTL_ENABLE_KPM, &cmd) == 0 && cmd.enabled;
+	return ksuctl(KSU_IOCTL_ENABLE_KPM, &cmd) == 0 && cmd.enabled;
 }
 
 void get_hook_type(char* buff)
@@ -171,40 +175,45 @@ void get_hook_type(char* buff)
 
 bool set_dynamic_manager(unsigned int size, const char *hash)
 {
-	struct ksu_dynamic_manager_cmd cmd = {
-			.config = {
-					.operation = DYNAMIC_MANAGER_OP_SET,
-					.size	  = size
-			}
-	};
+	struct ksu_dynamic_manager_cmd cmd = {0};
+	cmd.config.operation = DYNAMIC_MANAGER_OP_SET;
+	cmd.config.size	  = size;
 	strlcpy(cmd.config.hash, hash, sizeof(cmd.config.hash));
-	return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd);
+
+	return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd) == 0;
 }
 
 bool get_dynamic_manager(struct dynamic_manager_user_config *cfg)
 {
-	if (!cfg) return false;
-	struct ksu_dynamic_manager_cmd cmd = {
-			.config = { .operation = DYNAMIC_MANAGER_OP_GET }
-	};
-	if (!ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd)) return false;
-	memcpy(cfg, &cmd.config, sizeof(*cfg));
+	if (!cfg) 
+		return false;
+
+	struct ksu_dynamic_manager_cmd cmd = {0};
+	cmd.config.operation = DYNAMIC_MANAGER_OP_GET;
+
+	if (ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd) != 0)
+		return false;
+
+	*cfg = cmd.config;
 	return true;
 }
 
 bool clear_dynamic_manager(void)
 {
-	struct ksu_dynamic_manager_cmd cmd = {
-			.config = { .operation = DYNAMIC_MANAGER_OP_CLEAR }
-	};
-	return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd);
+	struct ksu_dynamic_manager_cmd cmd = {0};
+	cmd.config.operation = DYNAMIC_MANAGER_OP_CLEAR;
+	return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd) == 0;
 }
 
 bool get_managers_list(struct manager_list_info *info)
 {
+	if (!info)
+		return false;
 	struct ksu_get_managers_cmd cmd = {0};
-	if (!ksuctl(KSU_IOCTL_GET_MANAGERS, &cmd)) return false;
-	memcpy(info, &cmd.manager_info, sizeof(*info));
+	if (ksuctl(KSU_IOCTL_GET_MANAGERS, &cmd) != 0)
+		return false;
+
+	*info = cmd.manager_info;
 	return true;
 }
 

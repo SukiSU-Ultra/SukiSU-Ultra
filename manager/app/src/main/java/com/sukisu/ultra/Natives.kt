@@ -100,6 +100,7 @@ object Natives {
      */
     external fun isSuEnabled(): Boolean
     external fun setSuEnabled(enabled: Boolean): Boolean
+    external fun grantRoot(): Boolean
     external fun isKPMEnabled(): Boolean
     external fun getHookType(): String
 

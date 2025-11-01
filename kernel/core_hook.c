@@ -2,13 +2,14 @@
 #include <linux/cred.h>
 #include <linux/dcache.h>
 #include <linux/err.h>
+#include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/init_task.h>
-#include <linux/kallsyms.h>
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
-#include <linux/lsm_hooks.h>
 #include <linux/mm.h>
+#include <linux/mount.h>
+#include <linux/namei.h>
 #include <linux/nsproxy.h>
 #include <linux/path.h>
 #include <linux/printk.h>
@@ -20,20 +21,8 @@
 #include <linux/uaccess.h>
 #include <linux/uidgid.h>
 #include <linux/version.h>
-#include <linux/mount.h>
 #include <linux/binfmts.h>
 #include <linux/tty.h>
-
-#include <linux/fs.h>
-#include <linux/namei.h>
-
-#ifdef MODULE
-#include <linux/list.h>
-#include <linux/irqflags.h>
-#include <linux/mm_types.h>
-#include <linux/rcupdate.h>
-#include <linux/vmalloc.h>
-#endif
 
 #include "allowlist.h"
 #include "arch.h"
@@ -400,6 +389,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	u32 *result = (u32 *)arg5;
 	u32 reply_ok = KERNEL_SU_OPTION;
 
+	if (likely(ksu_is_current_proc_umounted()))
+		return 0; // prevent side channel attack in ksu side
+
 	if (KERNEL_SU_OPTION != option)
 		return 0;
 	
@@ -538,12 +530,23 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 		return 0;
 	}
 
-	if (ksu_get_manager_uid() == new_uid.val) {
-		pr_info("install fd for: %d\n", new_uid.val);
-		spin_lock_irq(&current->sighand->siglock);
-		ksu_install_fd();
-		spin_unlock_irq(&current->sighand->siglock);
+	bool is_allowed = ksu_is_allow_uid(new_uid.val);
+	bool is_manager = (ksu_get_manager_uid() == new_uid.val);
+
+	if (!is_allowed && !is_manager)
 		return 0;
+
+	if (current->sighand) {
+		unsigned long flags;
+		spin_lock_irqsave(&current->sighand->siglock, flags);
+
+		if (is_allowed)
+			disable_seccomp();
+
+		if (is_manager)
+			ksu_install_fd();
+
+		spin_unlock_irqrestore(&current->sighand->siglock, flags);
 	}
 
     // this hook is used for umounting overlayfs for some uid, if there isn't any module mounted, just ignore it!
@@ -589,6 +592,10 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 
 	// try umount ksu temp path
 	try_umount("/debug_ramdisk", false, MNT_DETACH);
+
+	get_task_struct(current); // delay fix
+	ksu_set_current_proc_umounted();
+	put_task_struct(current);
 
 	return 0;
 }
@@ -659,6 +666,76 @@ static struct kprobe prctl_kp = {
 	.pre_handler = handler_pre,
 };
 
+// 4.inode_permission hook for handling devpts
+static int ksu_inode_permission_handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+	struct inode *inode = (struct inode *)PT_REGS_PARM1(regs);
+
+	if (inode && inode->i_sb && unlikely(inode->i_sb->s_magic == DEVPTS_SUPER_MAGIC)) {
+		// pr_info("%s: handling devpts for: %s \n", __func__, current->comm);
+		__ksu_handle_devpts(inode);
+	}
+
+	return 0;
+}
+
+static struct kprobe ksu_inode_permission_kp = {
+	.symbol_name = INODE_PERMISSION_SYMBOL,
+	.pre_handler = ksu_inode_permission_handler_pre,
+};
+
+
+// 5. bprm_check_security hook for handling ksud compatibility
+static int ksu_bprm_check_handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+	struct linux_binprm *bprm = (struct linux_binprm *)PT_REGS_PARM1(regs);
+	char *filename = (char *)bprm->filename;
+
+	if (likely(!ksu_execveat_hook))
+		return 0;
+
+#ifdef CONFIG_COMPAT
+	static bool compat_check_done __read_mostly = false;
+	if (unlikely(!compat_check_done) && unlikely(!strcmp(filename, "/data/adb/ksud"))
+	    && !memcmp(bprm->buf, "\x7f\x45\x4c\x46", 4)) {
+		if (bprm->buf[4] == 0x01)
+			ksu_is_compat = true;
+
+		pr_info("%s: %s ELF magic found! ksu_is_compat: %d \n", __func__, filename, ksu_is_compat);
+		compat_check_done = true;
+	}
+#endif
+
+	ksu_handle_pre_ksud(filename);
+
+#ifdef CONFIG_KSU_MANUAL_SU
+	ksu_try_escalate_for_uid(current_uid().val);
+#endif
+
+	return 0;
+}
+
+static struct kprobe ksu_bprm_check_kp = {
+	.symbol_name = BPRM_CHECK_SECURITY_SYMBOL,
+	.pre_handler = ksu_bprm_check_handler_pre,
+};
+
+#ifdef CONFIG_KSU_MANUAL_SU
+// 6. task_alloc hook for handling manual su escalation
+static int ksu_task_alloc_handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+	struct task_struct *task = (struct task_struct *)PT_REGS_PARM1(regs);
+
+	ksu_try_escalate_for_uid(task_uid(task).val);
+	return 0;
+}
+
+static struct kprobe ksu_task_alloc_kp = {
+	.symbol_name = TASK_ALLOC_SYMBOL,
+	.pre_handler = ksu_task_alloc_handler_pre,
+};
+#endif
+
 __maybe_unused int ksu_kprobe_init(void)
 {
 	int rc = 0;
@@ -675,6 +752,7 @@ __maybe_unused int ksu_kprobe_init(void)
 	rc = register_kprobe(&security_task_fix_setuid_kp);
 	if (rc) {
 		pr_err("security_task_fix_setuid kprobe failed: %d\n", rc);
+		unregister_kprobe(&reboot_kp);
 	} else {
 		pr_info("security_task_fix_setuid kprobe registered successfully\n");
 	}
@@ -687,6 +765,32 @@ __maybe_unused int ksu_kprobe_init(void)
 		pr_info("prctl kprobe registered successfully.\n");
 	}
 
+	// Register inode_permission kprobe
+	rc = register_kprobe(&ksu_inode_permission_kp);
+	if (rc) {
+		pr_err("inode_permission kprobe failed: %d\n", rc);
+	} else {
+		pr_info("inode_permission kprobe registered successfully\n");
+	}
+
+	// Register bprm_check_security kprobe
+	rc = register_kprobe(&ksu_bprm_check_kp);
+	if (rc) {
+		pr_err("bprm_check_security kprobe failed: %d\n", rc);
+	} else {
+		pr_info("bprm_check_security kprobe registered successfully\n");
+	}
+
+#ifdef CONFIG_KSU_MANUAL_SU
+	// Register task_alloc kprobe
+	rc = register_kprobe(&ksu_task_alloc_kp);
+	if (rc) {
+		pr_err("task_alloc kprobe failed: %d\n", rc);
+	} else {
+		pr_info("task_alloc kprobe registered successfully\n");
+	}
+#endif
+
 	return 0;
 }
 
@@ -695,93 +799,12 @@ __maybe_unused int ksu_kprobe_exit(void)
 	unregister_kprobe(&reboot_kp);
 	unregister_kprobe(&security_task_fix_setuid_kp);
 	unregister_kprobe(&prctl_kp);
-	return 0;
-}
-
-// Init functons - LSM hooks
-
-// 1.inode_permission hook for handling devpts
-int ksu_inode_permission(struct inode *inode, int mask)
-{
-	if (inode && inode->i_sb 
-		&& unlikely(inode->i_sb->s_magic == DEVPTS_SUPER_MAGIC)) {
-		//pr_info("%s: handling devpts for: %s \n", __func__, current->comm);
-		__ksu_handle_devpts(inode);
-	}
-	return 0;
-}
-
+	unregister_kprobe(&ksu_inode_permission_kp);
+	unregister_kprobe(&ksu_bprm_check_kp);
 #ifdef CONFIG_KSU_MANUAL_SU
-// 2. task_alloc hook for handling manual su escalation
-static int ksu_task_alloc(struct task_struct *task,
-                          unsigned long clone_flags)
-{
-	ksu_try_escalate_for_uid(task_uid(task).val);
+	unregister_kprobe(&ksu_task_alloc_kp);
+#endif
 	return 0;
-}
-#endif
-
-#ifndef CONFIG_KSU_KPROBES_HOOK
-// 3.bprm_check_security hook for handling ksud compatibility
-int ksu_bprm_check(struct linux_binprm *bprm)
-{
-	char *filename = (char *)bprm->filename;
-	
-	if (likely(!ksu_execveat_hook))
-		return 0;
-
-#ifdef CONFIG_COMPAT
-	static bool compat_check_done __read_mostly = false;
-	if ( unlikely(!compat_check_done) && unlikely(!strcmp(filename, "/data/adb/ksud"))
-		&& !memcmp(bprm->buf, "\x7f\x45\x4c\x46", 4) ) {
-		if (bprm->buf[4] == 0x01 )
-			ksu_is_compat = true;
-
-		pr_info("%s: %s ELF magic found! ksu_is_compat: %d \n", __func__, filename, ksu_is_compat);
-		compat_check_done = true;
-	}
-#endif
-
-	ksu_handle_pre_ksud(filename);
-
-#ifdef CONFIG_KSU_MANUAL_SU
-	ksu_try_escalate_for_uid(current_uid().val);
-#endif
-
-	return 0;
-
-}
-#endif
-
-static struct security_hook_list ksu_hooks[] = {
-	LSM_HOOK_INIT(inode_permission, ksu_inode_permission),
-#ifdef CONFIG_KSU_MANUAL_SU
-	LSM_HOOK_INIT(task_alloc, ksu_task_alloc),
-#endif
-#ifndef CONFIG_KSU_KPROBES_HOOK
-	LSM_HOOK_INIT(bprm_check_security, ksu_bprm_check),
-#endif
-};
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-const struct lsm_id ksu_lsmid = {
-	.name = "ksu",
-	.id = 912,
-};
-#endif
-
-void __init ksu_lsm_hook_init(void)
-{
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
-	// https://elixir.bootlin.com/linux/v6.8/source/include/linux/lsm_hooks.h#L120
-	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), &ksu_lsmid);
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
-	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), "ksu");
-#else
-	// https://elixir.bootlin.com/linux/v4.10.17/source/include/linux/lsm_hooks.h#L1892
-	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks));
-#endif
 }
 
 void __init ksu_core_init(void)
@@ -792,11 +815,15 @@ void __init ksu_core_init(void)
 		pr_err("ksu_kprobe_init failed: %d\n", rc);
 	}
 #endif
-	ksu_lsm_hook_init();
 }
 
 void ksu_core_exit(void)
 {
+	ksu_uid_exit();
+	ksu_throne_comm_exit();
+#if __SULOG_GATE
+	ksu_sulog_exit();
+#endif
 #ifdef CONFIG_KPROBES
 	pr_info("ksu_core_exit\n");
 	ksu_kprobe_exit();
