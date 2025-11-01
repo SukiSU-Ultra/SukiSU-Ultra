@@ -10,8 +10,8 @@
 #define EXPECTED_HASH_OTHER   "0000000000000000000000000000000000000000000000000000000000000000"
 
 typedef struct {
-	unsigned size;
-	const char *sha256;
+    unsigned size;
+    const char *sha256;
 } apk_sign_key_t;
 
 #endif /* MANAGER_SIGN_H */

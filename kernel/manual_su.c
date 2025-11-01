@@ -120,9 +120,9 @@ static char* ksu_generate_auth_token(void)
     }
     
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
-		strscpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
+        strscpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
 #else
-		strlcpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
+        strlcpy(auth_tokens[token_count].token, token_buffer, KSU_TOKEN_LENGTH + 1);
 #endif
     auth_tokens[token_count].expire_time = jiffies + KSU_TOKEN_EXPIRE_TIME * HZ;
     auth_tokens[token_count].used = false;
@@ -203,9 +203,9 @@ static int handle_token_generation(struct manual_su_request *request)
     }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
-		strscpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
+        strscpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
 #else
-		strlcpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
+        strlcpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
 #endif
 
     pr_info("manual_su: auth token generated successfully\n");

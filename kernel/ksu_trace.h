@@ -8,24 +8,24 @@
 #include <linux/tracepoint.h>
 
 DECLARE_TRACE(ksu_trace_execveat_hook,
-	TP_PROTO(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags),
-	TP_ARGS(fd, filename_ptr, argv, envp, flags));
+    TP_PROTO(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags),
+    TP_ARGS(fd, filename_ptr, argv, envp, flags));
 
 DECLARE_TRACE(ksu_trace_faccessat_hook,
-	TP_PROTO(int *dfd, const char __user **filename_user, int *mode, int *flags),
-	TP_ARGS(dfd, filename_user, mode, flags));
+    TP_PROTO(int *dfd, const char __user **filename_user, int *mode, int *flags),
+    TP_ARGS(dfd, filename_user, mode, flags));
 
 DECLARE_TRACE(ksu_trace_sys_read_hook,
-	TP_PROTO(unsigned int fd, char __user **buf_ptr, size_t *count_ptr),
-	TP_ARGS(fd, buf_ptr, count_ptr));
+    TP_PROTO(unsigned int fd, char __user **buf_ptr, size_t *count_ptr),
+    TP_ARGS(fd, buf_ptr, count_ptr));
 
 DECLARE_TRACE(ksu_trace_stat_hook,
-	TP_PROTO(int *dfd, const char __user **filename_user, int *flags),
-	TP_ARGS(dfd, filename_user, flags));
+    TP_PROTO(int *dfd, const char __user **filename_user, int *flags),
+    TP_ARGS(dfd, filename_user, flags));
 
 DECLARE_TRACE(ksu_trace_input_hook,
-	TP_PROTO(unsigned int *type, unsigned int *code, int *value),
-	TP_ARGS(type, code, value));
+    TP_PROTO(unsigned int *type, unsigned int *code, int *value),
+    TP_ARGS(type, code, value));
 
 #endif /* _KSU_TRACE_H */
 

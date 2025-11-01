@@ -1,38 +1,38 @@
 menu "KernelSU"
 
 config KSU
-	tristate "KernelSU function support"
-	depends on OVERLAY_FS
-	default y
-	help
-	  Enable kernel-level root privileges on Android System.
-	  To compile as a module, choose M here: the
-	  module will be called kernelsu.
+    tristate "KernelSU function support"
+    depends on OVERLAY_FS
+    default y
+    help
+      Enable kernel-level root privileges on Android System.
+      To compile as a module, choose M here: the
+      module will be called kernelsu.
 
 config KSU_DEBUG
-	bool "KernelSU debug mode"
-	depends on KSU
-	default n
-	help
-	  Enable KernelSU debug mode.
+    bool "KernelSU debug mode"
+    depends on KSU
+    default n
+    help
+      Enable KernelSU debug mode.
 
 config KSU_MANUAL_SU
-	bool "Use manual su"
-	depends on KSU
-	default y
-	help
-	  Use manual su and authorize the corresponding command line and application via prctl
+    bool "Use manual su"
+    depends on KSU
+    default y
+    help
+      Use manual su and authorize the corresponding command line and application via prctl
 
 config KPM
-	bool "Enable SukiSU KPM"
-	depends on KSU && 64BIT
-	default n
-	help
-	  Enabling this option will activate the KPM feature of SukiSU.
-	  This option is suitable for scenarios where you need to force KPM to be enabled.
-	  but it may affect system stability.
-	select KALLSYMS
-	select KALLSYMS_ALL
+    bool "Enable SukiSU KPM"
+    depends on KSU && 64BIT
+    default n
+    help
+      Enabling this option will activate the KPM feature of SukiSU.
+      This option is suitable for scenarios where you need to force KPM to be enabled.
+      but it may affect system stability.
+    select KALLSYMS
+    select KALLSYMS_ALL
 
 choice
     prompt "KernelSU hook type"
@@ -43,21 +43,21 @@ choice
 
 config KSU_KPROBES_HOOK
     bool "Hook KernelSU with Kprobes"
-	depends on KPROBES
-	help
-	  If enabled, Hook required KernelSU syscalls with Kernel-probe.
+    depends on KPROBES
+    help
+      If enabled, Hook required KernelSU syscalls with Kernel-probe.
 
 config KSU_TRACEPOINT_HOOK
     bool "Hook KernelSU with Tracepoint"
-	depends on TRACEPOINTS
-	help
-	  If enabled, Hook required KernelSU syscalls with Tracepoint.
+    depends on TRACEPOINTS
+    help
+      If enabled, Hook required KernelSU syscalls with Tracepoint.
 
 config KSU_MANUAL_HOOK
     bool "Hook KernelSU manually"
-	depends on KSU != m
-	help
-	  If enabled, Hook required KernelSU syscalls with manually-patched function.
+    depends on KSU != m
+    help
+      If enabled, Hook required KernelSU syscalls with manually-patched function.
 
 endchoice
 

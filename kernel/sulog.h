@@ -41,8 +41,8 @@ static inline u32 dedup_calc_hash(const char *content, size_t len)
 }
 
 struct sulog_entry {
-	struct list_head list;
-	char content[SULOG_ENTRY_MAX_LEN];
+    struct list_head list;
+    char content[SULOG_ENTRY_MAX_LEN];
 };
 
 void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method);

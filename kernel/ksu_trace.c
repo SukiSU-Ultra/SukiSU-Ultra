@@ -16,7 +16,7 @@ extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 void ksu_trace_execveat_hook_callback(void *data, int *fd, struct filename **filename_ptr,
                 void *argv, void *envp, int *flags)
 {
-	ksu_handle_execveat(fd, filename_ptr, argv, envp, flags);
+    ksu_handle_execveat(fd, filename_ptr, argv, envp, flags);
 }
 
 void ksu_trace_faccessat_hook_callback(void *data, int *dfd, const char __user **filename_user,
@@ -28,8 +28,8 @@ void ksu_trace_faccessat_hook_callback(void *data, int *dfd, const char __user *
 void ksu_trace_sys_read_hook_callback(void *data, unsigned int fd, char __user **buf_ptr,
                 size_t *count_ptr)
 {
-	if (unlikely(ksu_vfs_read_hook))
-		ksu_handle_sys_read(fd, buf_ptr, count_ptr);
+    if (unlikely(ksu_vfs_read_hook))
+        ksu_handle_sys_read(fd, buf_ptr, count_ptr);
 }
 
 void ksu_trace_stat_hook_callback(void *data, int *dfd, const char __user **filename_user,
@@ -41,8 +41,8 @@ void ksu_trace_stat_hook_callback(void *data, int *dfd, const char __user **file
 void ksu_trace_input_hook_callback(void *data, unsigned int *type, unsigned int *code,
                 int *value)
 {
-	if (unlikely(ksu_input_hook))
-		ksu_handle_input_handle_event(type, code, value);
+    if (unlikely(ksu_input_hook))
+        ksu_handle_input_handle_event(type, code, value);
 }
 
 // end tracepoint callback functions
