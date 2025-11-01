@@ -532,24 +532,22 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
-    bool is_allowed = ksu_is_allow_uid(new_uid.val);
-    bool is_manager = (ksu_get_manager_uid() == new_uid.val);
+    if (ksu_get_manager_uid() == new_uid.val) {
+        pr_info("install fd for: %d\n", new_uid.val);
 
-    if (!is_allowed && !is_manager)
+        ksu_install_fd();
+        spin_lock_irq(&current->sighand->siglock);
+        ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+        spin_unlock_irq(&current->sighand->siglock);
         return 0;
+    }
 
-    if (current->sighand) {
-        unsigned long flags;
-        spin_lock_irqsave(&current->sighand->siglock, flags);
-
-        if (is_allowed)
-            disable_seccomp();
-
-        if (is_manager)
-            ksu_install_fd();
+    if (ksu_is_allow_uid(new_uid.val)) {
+        if (current->seccomp.mode == SECCOMP_MODE_FILTER && current->seccomp.filter) {
+            spin_lock_irq(&current->sighand->siglock);
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
-
-        spin_unlock_irqrestore(&current->sighand->siglock, flags);
+            spin_unlock_irq(&current->sighand->siglock);
+        }
     }
 
     // this hook is used for umounting overlayfs for some uid, if there isn't any module mounted, just ignore it!
