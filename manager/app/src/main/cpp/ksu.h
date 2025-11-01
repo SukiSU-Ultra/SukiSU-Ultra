@@ -24,8 +24,6 @@ bool is_manager();
 
 void get_full_version(char* buff);
 
-bool grant_root(void);
-
 #define KSU_APP_PROFILE_VER 2
 #define KSU_MAX_PACKAGE_NAME 256
 // NGROUPS_MAX for Linux is 65535 generally, but we only supports 32 groups.

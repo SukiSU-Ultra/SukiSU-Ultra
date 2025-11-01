@@ -300,10 +300,6 @@ NativeBridge(setSuEnabled, jboolean, jboolean enabled) {
 	return set_su_enabled(enabled);
 }
 
-NativeBridgeNP(grantRoot, jboolean) {
-    return grant_root();
-}
-
 // Check if KPM is enabled
 NativeBridgeNP(isKPMEnabled, jboolean) {
 	return is_KPM_enable();

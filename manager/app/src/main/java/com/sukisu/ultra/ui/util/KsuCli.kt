@@ -89,38 +89,12 @@ fun createRootShell(globalMnt: Boolean = false): Shell {
 }
 
 fun execKsud(args: String, newShell: Boolean = false): Boolean {
-    if (rootAvailable()) {
-        return if (newShell) {
-            withNewRootShell { ShellUtils.fastCmdResult(this, "${getKsuDaemonPath()} $args") }
-        } else {
-            ShellUtils.fastCmdResult(getRootShell(), "${getKsuDaemonPath()} $args")
+    return if (newShell) {
+        withNewRootShell {
+            ShellUtils.fastCmdResult(this, "${getKsuDaemonPath()} $args")
         }
-    }
-
-    return try {
-        val latch = CountDownLatch(1)
-        var result = false
-
-        Thread {
-            runCatching {
-                if (Natives.grantRoot()) {
-                    result = withNewRootShell {
-                        ShellUtils.fastCmdResult(this, "${getKsuDaemonPath()} $args")
-                    }
-                    if (result && !rootAvailable()) {
-                        KsuCli.SHELL.close()
-                        KsuCli.SHELL = createRootShell()
-                    }
-                }
-            }.onFailure { Log.e(TAG, "grantRoot failed", it) }
-            latch.countDown()
-        }.apply { isDaemon = true }.start()
-
-        latch.await()
-        result
-    } catch (e: Exception) {
-        Log.e(TAG, "Background elevation failed", e)
-        false
+    } else {
+        ShellUtils.fastCmdResult(getRootShell(), "${getKsuDaemonPath()} $args")
     }
 }
 

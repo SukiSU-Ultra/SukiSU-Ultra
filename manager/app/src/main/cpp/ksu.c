@@ -142,10 +142,6 @@ bool is_su_enabled() {
 	return ksuctl(KSU_IOCTL_IS_SU_ENABLED, &cmd) == 0 && cmd.enabled;
 }
 
-bool grant_root(void) {
-    return ksuctl(KSU_IOCTL_GRANT_ROOT, NULL) == 0;
-}
-
 void get_full_version(char* buff) {
 	struct ksu_get_full_version_cmd cmd = {0};
 	if (ksuctl(KSU_IOCTL_GET_FULL_VERSION, &cmd) == 0) {
