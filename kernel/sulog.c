@@ -14,7 +14,7 @@
 #include <linux/spinlock.h>
 #include <linux/crc32.h>
 
-#ifdef CONFIG_KSU_RTC_TIME_COMPAT
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
 #include <linux/rtc.h>
 
 static inline void time64_to_tm(time64_t totalsecs, int offset, struct tm *result)
