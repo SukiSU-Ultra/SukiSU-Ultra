@@ -725,5 +725,4 @@ Important Note:\n
     <!-- MiUI Uninstall Desc -->
     <string name="miui_uninstall_title">Confirm Uninstallation SukiSU Manager?</string>
     <string name="miui_uninstall_content">Proceeding with the uninstallation will not affect the core functionality of your root access. The root is designed to operate independently of this manager.</string>
-
 </resources>
