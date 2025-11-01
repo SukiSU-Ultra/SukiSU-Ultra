@@ -41,7 +41,7 @@
     <string name="refresh">Làm mới</string>
     <string name="show_system_apps">Hiển thị ứng dụng hệ thống</string>
     <string name="hide_system_apps">Ẩn ứng dụng hệ thống</string>
-    <string name="send_log">Gửi logs</string>
+    <string name="send_log">Gửi nhật ký</string>
     <string name="safe_mode">Chế độ an toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="module_magisk_conflict">Các module không khả dụng do xung đột với Magisk!</string>
@@ -75,7 +75,7 @@
     <string name="force_stop_app" formatted="false">Buộc dừng</string>
     <string name="restart_app">Khởi động lại</string>
     <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
-    <string name="module_changelog">Changelog</string>
+    <string name="module_changelog">Nhật ký thay đổi</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
     <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng</string>
     <string name="app_profile_template_create">Tạo mẫu</string>
@@ -97,7 +97,7 @@
     <string name="app_profile_template_sync">Đồng bộ hoá các mẫu trực tuyến</string>
     <string name="app_profile_template_save_failed">Lưu mẫu thất bại</string>
     <string name="app_profile_template_import_empty">Bộ nhớ tạm đang trống!</string>
-    <string name="module_changelog_failed">Lấy changelog thất bại: %s</string>
+    <string name="module_changelog_failed">Lấy nhật ký thay đổi thất bại: %s</string>
     <string name="settings_check_update">Kiểm tra cập nhật</string>
     <string name="settings_check_update_summary">Tự động kiểm tra cập nhật khi mở ứng dụng</string>
     <string name="grant_root_failed">Cấp quyền root thất bại!</string>
@@ -124,8 +124,8 @@
     <string name="flash_success">Flash thành công</string>
     <string name="flash_failed">Flash thất bại</string>
     <string name="selected_lkm">Đã chọn LKM: %s</string>
-    <string name="save_log">Lưu logs</string>
-    <string name="log_saved">Logs đã được lưu</string>
+    <string name="save_log">Lưu nhật ký</string>
+    <string name="log_saved">Nhật ký đã được lưu</string>
     <string name="sus_su_mode">Chế độ SuS SU:</string>
     <!-- Module related -->
     <string name="module_install_confirm">Xác nhận cài đặt module %1$s？</string>
@@ -317,7 +317,7 @@
     <string name="settings_card_dim">Độ trong suốt của thẻ</string>
     <!-- Flash related -->
     <string name="error_code">Error code</string>
-    <string name="check_log">Vui lòng kiểm tra logs</string>
+    <string name="check_log">Vui lòng kiểm tra nhật ký</string>
     <string name="installing_module">Đang cài đặt module %1$d/%2$d</string>
     <string name="module_failed_count">Cài đặt module %d thất bại</string>
     <string name="module_download_error">Tải xuống module thất bại</string>
@@ -435,7 +435,7 @@
     <string name="spoof_uname_feature_label">Hỗ trợ giả mạo Uname</string>
     <string name="spoof_cmdline_feature_label">Giả mạo Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">Mở hỗ trợ chuyển hướng</string>
-    <string name="enable_log_feature_label">Hỗ trợ ghi logs</string>
+    <string name="enable_log_feature_label">Hỗ trợ ghi nhật ký</string>
     <string name="auto_default_mount_feature_label">Tự động Mount mặc định</string>
     <string name="auto_bind_mount_feature_label">Tự động Bind Mount</string>
     <string name="auto_try_umount_bind_feature_label">Tự động Try Umount Bind Mount</string>
@@ -443,12 +443,12 @@
     <string name="sus_kstat_feature_label">Hỗ trợ SuS Kstat</string>
     <string name="sus_su_feature_label">Chức năng chuyển đổi chế độ SuS SU</string>
     <!-- 可切换状态 -->
-    <string name="susfs_feature_configurable">Nhấn để bật/tắt ghi logs</string>
-    <string name="susfs_enable_log_label">Kích hoạt logs SuSFS</string>
-    <string name="susfs_log_config_description">Bật hoặc tắt ghi logs cho SuSFS</string>
-    <string name="susfs_log_config_title">Cấu hình ghi logs SuSFS</string>
-    <string name="susfs_log_enabled">Bật ghi logs SuSFS</string>
-    <string name="susfs_log_disabled">Tắt ghi logs SuSFS</string>
+    <string name="susfs_feature_configurable">Nhấn để bật/tắt ghi nhật ký</string>
+    <string name="susfs_enable_log_label">Kích hoạt nhật ký SuSFS</string>
+    <string name="susfs_log_config_description">Bật hoặc tắt ghi nhật ký cho SuSFS</string>
+    <string name="susfs_log_config_title">Cấu hình ghi nhật ký SuSFS</string>
+    <string name="susfs_log_enabled">Bật ghi nhật ký SuSFS</string>
+    <string name="susfs_log_disabled">Tắt ghi nhật ký SuSFS</string>
     <string name="module_update_json">JSON cập nhật</string>
     <string name="module_update_json_copied">JSON URL cập nhật đã được sao chép vào clipboard</string>
     <!-- Settings related strings -->
@@ -689,4 +689,34 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
     <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
     <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">Trình xem nhật ký</string>
+    <string name="log_viewer_back">Trở lại</string>
+    <string name="log_viewer_search">Tìm kiếm</string>
+    <string name="log_viewer_clear_logs">Xoá nhật ký</string>
+    <string name="log_viewer_clear_logs_confirm">Bạn có chắc chắn muốn xóa tệp nhật ký đã chọn không? Thao tác này không thể hoàn tác</string>
+    <string name="log_viewer_logs_cleared">Đã xoá nhật ký thành công</string>
+    <string name="log_viewer_select_file">Chọn tệp nhật ký</string>
+    <string name="log_viewer_current_log">Nhật ký hiện tại</string>
+    <string name="log_viewer_old_log">Nhật ký cũ</string>
+    <string name="log_viewer_filter_type">Lọc theo loại</string>
+    <string name="log_viewer_all_types">Tất cả các loại</string>
+    <string name="log_viewer_showing_entries">Hiển thị %1$d trong tổng %2$d nhật ký</string>
+    <string name="log_viewer_no_logs">Không tìm thấy nhật ký nào</string>
+    <string name="log_viewer_no_matching_logs">Không tìm thấy nhật ký nào phù hợp</string>
+    <string name="log_viewer_refresh">Làm mới</string>
+    <string name="log_viewer_raw_log">Raw Log</string>
+    <string name="log_viewer_search_placeholder">Tìm kiếm theo UID, lệnh hoặc chi tiết…</string>
+    <string name="log_viewer_clear_search">Xoá tìm kiếm</string>
+    <string name="log_viewer_view_logs">Xem nhật ký sử dụng</string>
+    <string name="log_viewer_view_logs_summary">Xem nhật ký truy cập Superuser</string>
+    <string name="log_viewer_exclude_subtypes">Loại trừ các phân loại</string>
+    <string name="log_viewer_exclude_current_app">Ứng dụng hiện tại</string>
+    <string name="log_viewer_page_info">Trang: %1$d/%2$d | Tổng nhật ký: %3$d</string>
+    <string name="log_viewer_too_many_logs">Quá nhiều nhật ký, chỉ hiển thị %1$d nhật ký mới nhất</string>
+    <string name="log_viewer_load_more">Đang load thêm nhật ký</string>
+    <string name="log_viewer_all_logs_loaded">Tất cả nhật ký đã được hiển thị</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">Bạn muốn xoá tôi đi sao 😭</string>
+    <string name="miui_uninstall_content">Hừm, được rồi, tôi sẽ bị bạn gỡ cài đặt. Chức năng root sẽ không ngừng hoạt động chỉ vì bạn mất một Trình quản lý. Đừng lo, zakozako, chỉ Gỡ cài đặt Trình quản lý thôi thì không thể mất quyền truy cập root được đâu, zako~❤️</string>
 </resources>
