@@ -203,6 +203,4 @@ $(info -- You have not integrate susfs in your kernel.)
 $(info -- Read: https://gitlab.com/simonpunk/susfs4ksu)
 endif
 
-# Enable legacy time64_to_tm compatibility if configured
-ccflags-$(CONFIG_KSU_RTC_TIME_COMPAT) += -DCONFIG_KSU_RTC_TIME_COMPAT
 # Keep a new line here!! Because someone may append config
