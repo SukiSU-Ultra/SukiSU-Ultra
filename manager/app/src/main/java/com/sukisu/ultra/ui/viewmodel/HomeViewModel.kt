@@ -126,13 +126,7 @@ class HomeViewModel : ViewModel() {
                     false
                 }
 
-                val ksuVersion = if (isManager) {
-                    try {
-                        Natives.version
-                    } catch (_: Exception) {
-                        null
-                    }
-                } else null
+                val ksuVersion = if (isManager) Natives.version else null
 
                 val fullVersion = try {
                     Natives.getFullVersion()
@@ -163,13 +157,7 @@ class HomeViewModel : ViewModel() {
                 }
 
                 val lkmMode = ksuVersion?.let {
-                    try {
-                        if (it >= Natives.MINIMAL_SUPPORTED_KERNEL_LKM && kernelVersion.isGKI()) {
-                            Natives.isLkmMode
-                        } else null
-                    } catch (_: Exception) {
-                        null
-                    }
+                    if (kernelVersion.isGKI()) Natives.isLkmMode else null
                 }
 
                 val isRootAvailable = try {

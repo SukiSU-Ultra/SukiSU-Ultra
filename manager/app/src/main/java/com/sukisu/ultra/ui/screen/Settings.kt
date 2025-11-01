@@ -335,7 +335,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         )
                     }
 
-                    val lkmMode = Natives.version >= Natives.MINIMAL_SUPPORTED_KERNEL_LKM && Natives.isLkmMode
+                    val lkmMode = Natives.isLkmMode
                     if (lkmMode) {
                         UninstallItem(navigator) {
                             loadingDialog.withLoading(it)

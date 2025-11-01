@@ -162,14 +162,14 @@ bool is_KPM_enable(void)
 	return ksuctl(KSU_IOCTL_ENABLE_KPM, &cmd) == 0 && cmd.enabled;
 }
 
-void get_hook_type(char* buff)
+void get_hook_type(char *buff)
 {
 	struct ksu_hook_type_cmd cmd = {0};
 	if (ksuctl(KSU_IOCTL_HOOK_TYPE, &cmd) == 0) {
 		strncpy(buff, cmd.hook_type, 32 - 1);
 		buff[32 - 1] = '\0';
 	} else {
-		buff[0] = '\0';
+		strcpy(buff, "Unknown");
 	}
 }
 
