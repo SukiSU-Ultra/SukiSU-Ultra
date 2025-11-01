@@ -65,16 +65,6 @@ config KPM
 	    This option is suitable for scenarios where you need to force KPM to be enabled.
 	    but it may affect system stability.
 
-config KSU_RTC_TIME_COMPAT
-	  bool "Enable legacy rtc_time compatibility"
-	  depends on KSU
-      default n
-      help
-        Some older kernels (e.g. 4.4 or earlier) do not export time64_to_tm().
-        Enabling this option provides a fallback inline implementation to
-        avoid build failures.
-        Leave this disabled unless you are building for legacy kernels.
-
 choice
     prompt "KernelSU hook type"
     depends on KSU
