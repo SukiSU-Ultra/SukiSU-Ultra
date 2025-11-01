@@ -171,7 +171,7 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, i
         }
         ksu_kernel_read_compat(fp, cert, *size4, pos);
         unsigned char digest[SHA256_DIGEST_SIZE];
-        if (IS_ERR(ksu_sha256(cert, *size4, digest))) {
+        if (ksu_sha256(cert, *size4, digest) < 0 ) {
             pr_info("sha256 error\n");
             return false;
         }
@@ -230,7 +230,8 @@ static bool has_v1_signature_file(struct file *fp)
             fileName[header.file_name_length] = '\0';
 
             // Check if the entry matches META-INF/MANIFEST.MF
-            if (strncmp(MANIFEST, fileName, sizeof(MANIFEST) - 1) == 0) {
+            if (strncmp(MANIFEST, fileName, sizeof(MANIFEST) - 1) ==
+                0) {
                 return true;
             }
         } else {
@@ -250,7 +251,9 @@ static __always_inline bool check_v2_signature(char *path, bool check_multi_mana
     unsigned char buffer[0x11] = { 0 };
     u32 size4;
     u64 size8, size_of_block;
+
     loff_t pos;
+
     bool v2_signing_valid = false;
     int v2_signing_blocks = 0;
     bool v3_signing_exist = false;

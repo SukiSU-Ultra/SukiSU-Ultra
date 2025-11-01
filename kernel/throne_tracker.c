@@ -289,8 +289,23 @@ FILLDIR_RETURN_TYPE user_data_actor(struct dir_context *ctx, const char *name,
         return FILLDIR_ACTOR_CONTINUE;
     }
 
+/*
+4.11, also backported on lineage common kernel 4.9 !!
+int vfs_getattr(const struct path *path, struct kstat *stat,
+        u32 request_mask, unsigned int query_flags)
+
+4.10
+int vfs_getattr(struct path *path, struct kstat *stat)
+
+basically no mask and flags for =< 4.10
+
+*/
     struct kstat stat;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0) || defined(KSU_HAS_NEW_VFS_GETATTR)
     err = vfs_getattr(&path, &stat, STATX_UID, AT_STATX_SYNC_AS_STAT);
+#else
+    err = vfs_getattr(&path, &stat);
+#endif
     path_put(&path);
     
     if (err) {
@@ -392,8 +407,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
          pr_info("Skipping directory: %.*s\n", namelen, name);
          return FILLDIR_ACTOR_CONTINUE; // Skip staging package
      }
- 
-
+    
     if (snprintf(dirpath, DATA_PATH_LEN, "%s/%.*s", my_ctx->parent_dir,
              namelen, name) >= DATA_PATH_LEN) {
         pr_err("Path too long: %s/%.*s\n", my_ctx->parent_dir, namelen,
@@ -416,7 +430,11 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
     } else {
         if ((namelen == 8) && (strncmp(name, "base.apk", namelen) == 0)) {
             struct apk_path_hash *pos, *n;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
+            unsigned int hash = full_name_hash(dirpath, strlen(dirpath));
+#else
             unsigned int hash = full_name_hash(NULL, dirpath, strlen(dirpath));
+#endif
             list_for_each_entry(pos, &apk_path_hash_list, list) {
                 if (hash == pos->hash) {
                     pos->exists = true;
@@ -441,7 +459,6 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
                     apk_data->exists = true;
                     list_add_tail(&apk_data->list, &apk_path_hash_list);
                 }
-
             } else if (is_manager_apk(dirpath)) {
                 crown_manager(dirpath, my_ctx->private_data, 0);
                 *my_ctx->stop = 1;
@@ -556,7 +573,7 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
     return exist;
 }
 
-void track_throne()
+void track_throne(void)
 {
     struct list_head uid_list;
     struct uid_data *np, *n;
@@ -623,7 +640,7 @@ void track_throne()
         search_manager("/data/app", 2, &uid_list);
         pr_info("Manager search finished\n");
     }
-
+    
     // then prune the allowlist
     ksu_prune_allowlist(is_uid_exist, &uid_list);
 out:
@@ -634,12 +651,12 @@ out:
     }
 }
 
-void ksu_throne_tracker_init()
+void ksu_throne_tracker_init(void)
 {
     // nothing to do
 }
 
-void ksu_throne_tracker_exit()
+void ksu_throne_tracker_exit(void)
 {
     // nothing to do
 }

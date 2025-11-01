@@ -145,6 +145,7 @@ static ssize_t uid_scanner_write(struct file *file, const char __user *buffer,
     return count;
 }
 
+#ifdef KSU_COMPAT_HAS_PROC_OPS
 static const struct proc_ops uid_scanner_proc_ops = {
     .proc_open = uid_scanner_open,
     .proc_read = seq_read,
@@ -152,6 +153,16 @@ static const struct proc_ops uid_scanner_proc_ops = {
     .proc_lseek = seq_lseek,
     .proc_release = single_release,
 };
+#else
+static const struct file_operations uid_scanner_proc_ops = {
+    .owner = THIS_MODULE,
+    .open = uid_scanner_open,
+    .read = seq_read,
+    .write = uid_scanner_write,
+    .llseek = seq_lseek,
+    .release = single_release,
+};
+#endif
 
 int ksu_throne_comm_init(void)
 {
