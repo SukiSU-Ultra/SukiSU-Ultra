@@ -1,6 +1,6 @@
 use std::fs;
 #[cfg(any(target_os = "linux", target_os = "android"))]
-use std::os::unix::io::RawFd;
+use std::os::fd::RawFd;
 use std::sync::OnceLock;
 
 // Event constants
@@ -84,13 +84,8 @@ fn init_driver_fd() -> Option<RawFd> {
         };
         if fd >= 0 { Some(fd) } else { None }
     } else {
-         fd
+        fd
     }
-}
-
-#[cfg(not(any(target_os = "linux", target_os = "android")))]
-fn init_driver_fd() -> Option<RawFd> {
-    None
 }
 
 // ioctl wrapper using libc
