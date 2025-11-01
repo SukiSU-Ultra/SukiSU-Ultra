@@ -88,6 +88,11 @@ fn init_driver_fd() -> Option<RawFd> {
     }
 }
 
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+fn init_driver_fd() -> Option<RawFd> {
+    None
+}
+
 // ioctl wrapper using libc
 #[cfg(any(target_os = "linux", target_os = "android"))]
 fn ksuctl<T>(request: u32, arg: *mut T) -> std::io::Result<i32> {
