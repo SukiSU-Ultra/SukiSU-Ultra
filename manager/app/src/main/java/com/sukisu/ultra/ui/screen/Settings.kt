@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.FolderDelete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -165,6 +166,23 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                 }
                             )
                         }
+
+                        var isKernelUmountDisabled by rememberSaveable {
+                            mutableStateOf(!Natives.isKernelUmountEnabled())
+                        }
+                        SwitchItem(
+                            icon = Icons.Rounded.FolderDelete,
+                            title = stringResource(id = R.string.settings_disable_kernel_umount),
+                            summary = stringResource(id = R.string.settings_disable_kernel_umount_summary),
+                            checked = isKernelUmountDisabled,
+                            onCheckedChange = { checked: Boolean ->
+                                val shouldEnable = !checked
+                                if (Natives.setKernelUmountEnabled(shouldEnable)) {
+                                    isKernelUmountDisabled = !shouldEnable
+                                }
+                            }
+                        )
+
                         // 强制签名验证开关
                         var forceSignatureVerification by rememberSaveable {
                             mutableStateOf(prefs.getBoolean("force_signature_verification", false))

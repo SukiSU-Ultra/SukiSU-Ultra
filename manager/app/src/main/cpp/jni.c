@@ -5,6 +5,7 @@
 #include <sys/prctl.h>
 #include <android/log.h>
 #include <string.h>
+#include <linux/capability.h>
 
 NativeBridgeNP(getVersion, jint) {
 	uint32_t version = get_version();
@@ -298,6 +299,14 @@ NativeBridgeNP(isSuEnabled, jboolean) {
 
 NativeBridge(setSuEnabled, jboolean, jboolean enabled) {
 	return set_su_enabled(enabled);
+}
+
+NativeBridgeNP(isKernelUmountEnabled, jboolean) {
+    return is_kernel_umount_enabled();
+}
+
+NativeBridge(setKernelUmountEnabled, jboolean, jboolean enabled) {
+    return set_kernel_umount_enabled(enabled);
 }
 
 // Check if KPM is enabled

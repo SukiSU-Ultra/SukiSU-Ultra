@@ -98,7 +98,16 @@ object Natives {
      */
     external fun isSuEnabled(): Boolean
     external fun setSuEnabled(enabled: Boolean): Boolean
-    external fun grantRoot(): Boolean
+
+    /**
+     * Kernel module umount can be disabled temporarily.
+     *  0: disabled
+     *  1: enabled
+     *  negative : error
+     */
+    external fun isKernelUmountEnabled(): Boolean
+    external fun setKernelUmountEnabled(enabled: Boolean): Boolean
+
     external fun isKPMEnabled(): Boolean
     external fun getHookType(): String
 

@@ -166,6 +166,8 @@
     <string name="su_not_allowed">Granting superuser to %s is not allowed</string>
     <string name="settings_disable_su">Disable su compatibility</string>
     <string name="settings_disable_su_summary">Temporarily disable any applications from obtaining root privileges via the ⁠su command (Existing root processes will not be affected)</string>
+    <string name="settings_disable_kernel_umount">Disable kernel umount</string>
+    <string name="settings_disable_kernel_umount_summary">Temporarily disable kernel-level umount behavior controlled by KernelSU.</string>
     <string name="module_install_multiple_confirm_with_names">Sure you want to install the following %1$d modules? \n\n%2$s</string>
     <string name="more_settings">More settings</string>
     <string name="selinux">SELinux</string>

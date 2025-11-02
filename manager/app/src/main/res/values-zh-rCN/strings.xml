@@ -164,6 +164,8 @@
     <string name="su_not_allowed">不允许授予 %s 超级用户权限</string>
     <string name="settings_disable_su">禁用 su 兼容性</string>
     <string name="settings_disable_su_summary">临时禁止任何应用程序通过 su 命令获取 Root 权限（现有的 Root 进程不受影响）</string>
+    <string name="settings_disable_kernel_umount">关闭内核 umount</string>
+    <string name="settings_disable_kernel_umount_summary">临时关闭 KernelSU 控制的内核级 umount 行为。</string>
     <string name="module_install_multiple_confirm_with_names">确定要安装以下 %1$d 个模块吗？\n\n%2$s</string>
     <string name="more_settings">更多设置</string>
     <string name="selinux">SELinux</string>
