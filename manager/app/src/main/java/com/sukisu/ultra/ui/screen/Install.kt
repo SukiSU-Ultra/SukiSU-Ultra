@@ -17,6 +17,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Input
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Security
@@ -205,12 +206,29 @@ fun InstallScreen(
         }
     }
 
+    val selectLkmLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            it.data?.data?.let { uri ->
+                lkmSelection = LkmSelection.LkmUri(uri)
+            }
+        }
+    }
+
+    val onLkmUpload = {
+        selectLkmLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "application/octet-stream"
+        })
+    }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
         topBar = {
             TopBar(
                 onBack = { navigator.popBackStack() },
+                onLkmUpload = onLkmUpload,
                 scrollBehavior = scrollBehavior
             )
         },
@@ -934,6 +952,7 @@ fun rememberSelectKmiDialog(onSelected: (String?) -> Unit): DialogHandle {
 @Composable
 private fun TopBar(
     onBack: () -> Unit = {},
+    onLkmUpload: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -966,6 +985,17 @@ private fun TopBar(
         windowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal
         ),
+        actions = {
+            IconButton(
+                modifier = Modifier.padding(end = 16.dp),
+                onClick = onLkmUpload
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Input,
+                    contentDescription = null
+                )
+            }
+        },
         scrollBehavior = scrollBehavior
     )
 }
