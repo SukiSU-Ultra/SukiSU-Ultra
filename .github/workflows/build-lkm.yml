@@ -41,6 +41,9 @@ jobs:
           - version: "android15-6.6"
             sub_level: 98
             os_patch_level: 2025-09
+          - version: "android16-6.12"
+            sub_level: 38
+            os_patch_level: 2025-09
     # uses: ./.github/workflows/gki-kernel-mock.yml when debugging
     uses: ./.github/workflows/gki-kernel.yml
     with:
