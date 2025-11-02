@@ -563,8 +563,8 @@ static void do_umount_work(struct work_struct *work)
     // try umount ksu temp path
     try_umount("/debug_ramdisk", false, MNT_DETACH);
 
+    // fixme: dec refcount
     current->nsproxy->mnt_ns = old_mnt_ns;
-    put_mnt_ns(umount_work->mnt_ns);
 
     kfree(umount_work);
 }
@@ -650,8 +650,8 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
+    // fixme: inc refcount
     umount_work->mnt_ns = current->nsproxy->mnt_ns;
-    get_mnt_ns(umount_work->mnt_ns);
 
     INIT_WORK(&umount_work->work, do_umount_work);
 
