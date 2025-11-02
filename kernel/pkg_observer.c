@@ -66,7 +66,7 @@ static int add_mark_on_inode(struct inode *inode, u32 mask,
     if (!m)
         return -ENOMEM;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
     fsnotify_init_mark(m, g);
     m->mask = mask;
     ret = fsnotify_add_inode_mark(m, inode, 0);
