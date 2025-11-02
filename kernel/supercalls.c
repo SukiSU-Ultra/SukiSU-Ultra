@@ -543,6 +543,8 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = manager_or_root, .name = "do_get_managers"},
     { .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .handler = do_enable_uid_scanner, .perm_check = manager_or_root, .name = "do_enable_uid_scanner"},
     { .cmd = 0, .handler = NULL, .perm_check = NULL, .name = NULL} // Sentine
+};
+
 // IOCTL dispatcher
 static long anon_ksu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
