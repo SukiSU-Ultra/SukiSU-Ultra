@@ -654,6 +654,35 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     return 0;
 }
 
+// downstream: make sure to pass arg as reference, this can allow us to extend things.
+int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg)
+{
+
+    if (magic1 != KSU_INSTALL_MAGIC1)
+        return 0;
+
+#ifdef CONFIG_KSU_DEBUG
+    pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1, magic2);
+#endif
+
+    // Check if this is a request to install KSU fd
+    if (magic2 == KSU_INSTALL_MAGIC2) {
+        int fd = ksu_install_fd();
+        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
+
+        // downstream: dereference all arg usage!
+        if (copy_to_user((void __user *)*arg, &fd, sizeof(fd))) {
+            pr_err("install ksu fd reply err\n");
+        }
+
+        return 0;
+    }
+
+    // extensions
+
+    return 0;
+}
+
 // Init functons - kprobe hooks
 
 // 1. Reboot hook for installing fd
@@ -662,20 +691,10 @@ static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
     struct pt_regs *real_regs = PT_REAL_REGS(regs);
     int magic1 = (int)PT_REGS_PARM1(real_regs);
     int magic2 = (int)PT_REGS_PARM2(real_regs);
-    unsigned long arg4;
+    int cmd = (int)PT_REGS_PARM3(real_regs);
+    void __user **arg = (void __user **)&PT_REGS_SYSCALL_PARM4(real_regs);
 
-    // Check if this is a request to install KSU fd
-    if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == KSU_INSTALL_MAGIC2) {
-        int fd = ksu_install_fd();
-        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
-
-        arg4 = (unsigned long)PT_REGS_SYSCALL_PARM4(real_regs);
-        if (copy_to_user((int *)arg4, &fd, sizeof(fd))) {
-            pr_err("install ksu fd reply err\n");
-        }
-    }
-
-    return 0;
+    return ksu_handle_sys_reboot(magic1, magic2, cmd, arg);
 }
 
 static struct kprobe reboot_kp = {
