@@ -87,6 +87,11 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("apply root profile sepolicy failed: {e}");
     }
 
+    // load feature config
+    if let Err(e) = crate::feature::init_features() {
+        warn!("init features failed: {e}");
+    }
+
     #[cfg(target_arch = "aarch64")]
     if let Err(e) = kpm::start_kpm_watcher() {
         warn!("KPM: Failed to start KPM watcher: {e}");
