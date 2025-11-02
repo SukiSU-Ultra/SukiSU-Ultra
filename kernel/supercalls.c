@@ -36,22 +36,22 @@ extern void ksu_sucompat_exit(void);
 bool ksu_uid_scanner_enabled = false;
 
 // Permission check functions
-bool perm_check_manager(void)
+bool only_manager(void)
 {
     return is_manager();
 }
 
-bool perm_check_root(void)
+bool only_root(void)
 {
     return current_uid().val == 0;
 }
 
-bool perm_check_basic(void)
+bool manager_or_root(void)
 {
     return current_uid().val == 0 || is_manager();
 }
 
-bool perm_check_all(void)
+bool always_allow(void)
 {
     return true; // No permission check
 }
@@ -522,29 +522,27 @@ static int do_enable_uid_scanner(void __user *arg)
 
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
-    { .cmd = KSU_IOCTL_GRANT_ROOT, .handler = do_grant_root, .perm_check = perm_check_basic, .name = "do_grant_root"},
-    { .cmd = KSU_IOCTL_GET_INFO, .handler = do_get_info, .perm_check = perm_check_all, .name = "do_get_info"},
-    { .cmd = KSU_IOCTL_REPORT_EVENT, .handler = do_report_event, .perm_check = perm_check_root, .name = "do_report_event"},
-    { .cmd = KSU_IOCTL_SET_SEPOLICY, .handler = do_set_sepolicy, .perm_check = perm_check_root, .name = "do_set_sepolicy"},
-    { .cmd = KSU_IOCTL_CHECK_SAFEMODE, .handler = do_check_safemode, .perm_check = perm_check_all, .name = "do_check_safemode"},
-    { .cmd = KSU_IOCTL_GET_ALLOW_LIST, .handler = do_get_allow_list, .perm_check = perm_check_basic, .name = "do_get_allow_list"},
-    { .cmd = KSU_IOCTL_GET_DENY_LIST, .handler = do_get_deny_list, .perm_check = perm_check_basic, .name = "do_get_deny_list"},
-    { .cmd = KSU_IOCTL_UID_GRANTED_ROOT, .handler = do_uid_granted_root, .perm_check = perm_check_basic, .name = "do_uid_granted_root"},
-    { .cmd = KSU_IOCTL_UID_SHOULD_UMOUNT, .handler = do_uid_should_umount, .perm_check = perm_check_basic, .name = "do_uid_should_umount"},
-    { .cmd = KSU_IOCTL_GET_MANAGER_UID, .handler = do_get_manager_uid, .perm_check = perm_check_basic, .name = "do_get_manager_uid"},
-    { .cmd = KSU_IOCTL_GET_APP_PROFILE, .handler = do_get_app_profile, .perm_check = perm_check_manager, .name = "do_get_app_profile"},
-    { .cmd = KSU_IOCTL_SET_APP_PROFILE, .handler = do_set_app_profile, .perm_check = perm_check_manager, .name = "do_set_app_profile"},
-    { .cmd = KSU_IOCTL_GET_FEATURE, .handler = do_get_feature, .perm_check = perm_check_basic, .name = "do_get_feature"},
-    { .cmd = KSU_IOCTL_SET_FEATURE, .handler = do_set_feature, .perm_check = perm_check_basic, .name = "do_set_feature"},
-    { .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = perm_check_basic, .name = "do_get_full_version"},
-    { .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = perm_check_basic, .name = "do_get_hook_type"},
-    { .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = perm_check_basic, .name = "do_enable_kpm"},
-    { .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .handler = do_dynamic_manager, .perm_check = perm_check_basic, .name = "do_dynamic_manager"},
-    { .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = perm_check_basic, .name = "do_get_managers"},
-    { .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .handler = do_enable_uid_scanner, .perm_check = perm_check_basic, .name = "do_enable_uid_scanner"},
-    { .cmd = 0, .handler = NULL, .perm_check = NULL, .name = NULL} // Sentinel
-};
-
+    { .cmd = KSU_IOCTL_GRANT_ROOT, .handler = do_grant_root, .perm_check = manager_or_root, .name = "do_grant_root"},
+    { .cmd = KSU_IOCTL_GET_INFO, .handler = do_get_info, .perm_check = always_allow, .name = "do_get_info"},
+    { .cmd = KSU_IOCTL_REPORT_EVENT, .handler = do_report_event, .perm_check = only_root, .name = "do_report_event"},
+    { .cmd = KSU_IOCTL_SET_SEPOLICY, .handler = do_set_sepolicy, .perm_check = only_root, .name = "do_set_sepolicy"},
+    { .cmd = KSU_IOCTL_CHECK_SAFEMODE, .handler = do_check_safemode, .perm_check = always_allow, .name = "do_check_safemode"},
+    { .cmd = KSU_IOCTL_GET_ALLOW_LIST, .handler = do_get_allow_list, .perm_check = manager_or_root, .name = "do_get_allow_list"},
+    { .cmd = KSU_IOCTL_GET_DENY_LIST, .handler = do_get_deny_list, .perm_check = manager_or_root, .name = "do_get_deny_list"},
+    { .cmd = KSU_IOCTL_UID_GRANTED_ROOT, .handler = do_uid_granted_root, .perm_check = manager_or_root, .name = "do_uid_granted_root"},
+    { .cmd = KSU_IOCTL_UID_SHOULD_UMOUNT, .handler = do_uid_should_umount, .perm_check = manager_or_root, .name = "do_uid_should_umount"},
+    { .cmd = KSU_IOCTL_GET_MANAGER_UID, .handler = do_get_manager_uid, .perm_check = manager_or_root, .name = "do_get_manager_uid"},
+    { .cmd = KSU_IOCTL_GET_APP_PROFILE, .handler = do_get_app_profile, .perm_check = only_manager, .name = "do_get_app_profile"},
+    { .cmd = KSU_IOCTL_SET_APP_PROFILE, .handler = do_set_app_profile, .perm_check = only_manager, .name = "do_set_app_profile"},
+    { .cmd = KSU_IOCTL_GET_FEATURE, .handler = do_get_feature, .perm_check = manager_or_root, .name = "do_get_feature"},
+    { .cmd = KSU_IOCTL_SET_FEATURE, .handler = do_set_feature, .perm_check = manager_or_root, .name = "do_set_feature"},
+    { .cmd = KSU_IOCTL_GET_FULL_VERSION, .handler = do_get_full_version, .perm_check = always_allow, .name = "do_get_full_version"},
+    { .cmd = KSU_IOCTL_HOOK_TYPE, .handler = do_get_hook_type, .perm_check = manager_or_root, .name = "do_get_hook_type"},
+    { .cmd = KSU_IOCTL_ENABLE_KPM, .handler = do_enable_kpm, .perm_check = manager_or_root, .name = "do_enable_kpm"},
+    { .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .handler = do_dynamic_manager, .perm_check = manager_or_root, .name = "do_dynamic_manager"},
+    { .cmd = KSU_IOCTL_GET_MANAGERS, .handler = do_get_managers, .perm_check = manager_or_root, .name = "do_get_managers"},
+    { .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .handler = do_enable_uid_scanner, .perm_check = manager_or_root, .name = "do_enable_uid_scanner"},
+    { .cmd = 0, .handler = NULL, .perm_check = NULL, .name = NULL} // Sentine
 // IOCTL dispatcher
 static long anon_ksu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {

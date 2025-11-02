@@ -128,10 +128,10 @@ typedef int (*ksu_ioctl_handler_t)(void __user *arg);
 typedef bool (*ksu_perm_check_t)(void);
 
 // Permission check functions
-bool perm_check_manager(void);
-bool perm_check_root(void);
-bool perm_check_basic(void);
-bool perm_check_all(void);
+bool only_manager(void);
+bool only_root(void);
+bool manager_or_root(void);
+bool always_allow(void);
 
 // IOCTL command mapping
 struct ksu_ioctl_cmd_map {
