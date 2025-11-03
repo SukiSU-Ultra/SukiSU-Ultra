@@ -63,6 +63,36 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 
 请参考此文档 [https://github.com/~ (non-GKI 内核集成)](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source) 和 [https://github.com/~ (GKI 内核构建)](https://kernelsu.org/zh_CN/guide/how-to-build.html) 进行手动集成。虽然第一个链接的标题是“适用于 non-GKI”，但它也适用于 GKI。两者都可以正常工作。
 
+并且手动修改 kernel/reboot.c, 进行手动 reboot hook
+
+```diff[reboot.c]
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index 8f08af3a7d04..3809b8aa6213 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -302,6 +302,9 @@ EXPORT_SYMBOL_GPL(kernel_power_off);
+
+ DEFINE_MUTEX(system_transition_mutex);
+
++#ifdef CONFIG_KSU
++extern void ksu_handle_reboot(int magic1, int magic2, void __user * arg);
++#endif
+ /*
+  * Reboot system call: for obvious reasons only root may call it,
+  * and even root needs to set up some magic numbers in the registers
+@@ -317,6 +320,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+        char buffer[256];
+        int ret = 0;
+
++#ifdef CONFIG_KSU
++       ksu_handle_reboot(magic1, magic2, arg);
++#endif
++
+        /* We only trust the superuser with rebooting the system. */
+        if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+                return -EPERM;
+```
+
 还有另一种集成方法，但是仍在开发中。
 
 <!-- 这是 backslashxx 的syscall manual hook，但目前无法使用。 -->

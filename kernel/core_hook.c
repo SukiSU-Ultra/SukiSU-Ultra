@@ -665,6 +665,17 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     return 0;
 }
 
+void ksu_handle_reboot(int magic1, int magic2, void __user * arg) {
+    if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == KSU_INSTALL_MAGIC2) {
+        int fd = ksu_install_fd();
+        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
+
+        if (copy_to_user(arg, &fd, sizeof(fd))) {
+            pr_err("install ksu fd reply err\n");
+        }
+    }
+}
+
 // Init functons - kprobe hooks
 
 // 1. Reboot hook for installing fd
@@ -676,15 +687,8 @@ static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
     unsigned long arg4;
 
     // Check if this is a request to install KSU fd
-    if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == KSU_INSTALL_MAGIC2) {
-        int fd = ksu_install_fd();
-        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
-
-        arg4 = (unsigned long)PT_REGS_SYSCALL_PARM4(real_regs);
-        if (copy_to_user((int *)arg4, &fd, sizeof(fd))) {
-            pr_err("install ksu fd reply err\n");
-        }
-    }
+    arg4 = (unsigned long)PT_REGS_SYSCALL_PARM4(real_regs);
+    ksu_handle_reboot(magic1, magic2, (void __user *) arg4);
 
     return 0;
 }
