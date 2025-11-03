@@ -665,16 +665,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     return 0;
 }
 
-void ksu_handle_reboot(int magic1, int magic2, void __user * arg) {
-    if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == KSU_INSTALL_MAGIC2) {
-        int fd = ksu_install_fd();
-        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
-
-        if (copy_to_user(arg, &fd, sizeof(fd))) {
-            pr_err("install ksu fd reply err\n");
-        }
-    }
-}
+extern void ksu_handle_reboot(int magic1, int magic2, void __user * arg); // supercalls.c
 
 // Init functons - kprobe hooks
 
