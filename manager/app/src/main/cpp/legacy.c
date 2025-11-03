@@ -50,7 +50,7 @@ static bool ksuctl(int cmd, void* arg1, void* arg2) {
 
 struct ksu_version_info legacy_get_info()
 {
-    int32_t version = -1;
+    int32_t version = 0;
     int32_t flags = 0;
     ksuctl(CMD_GET_VERSION, &version, &flags);
     return (struct ksu_version_info){version, flags};

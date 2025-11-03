@@ -5,6 +5,10 @@
 #include <linux/ioctl.h>
 #include "ksu.h"
 
+#ifdef CONFIG_KPM
+#include "kpm/kpm.h"
+#endif
+
 // Magic numbers for reboot hook to install fd
 #define KSU_INSTALL_MAGIC1 0xDEADBEEF
 #define KSU_INSTALL_MAGIC2 0xCAFEBABE

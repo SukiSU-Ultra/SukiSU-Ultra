@@ -209,3 +209,16 @@ int sukisu_is_kpm_control_code(unsigned long arg2) {
     return (arg2 >= CMD_KPM_CONTROL &&
                     arg2 <= CMD_KPM_CONTROL_MAX) ? 1 : 0;
 }
+
+int do_kpm(void __user *arg)
+{
+    struct ksu_kpm_cmd cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        pr_err("kpm: copy_from_user failed\n");
+        return -EFAULT;
+    }
+
+    return sukisu_handle_kpm(cmd.arg2, cmd.arg3, cmd.arg4, cmd.arg5);
+}
+

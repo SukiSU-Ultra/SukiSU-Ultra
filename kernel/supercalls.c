@@ -553,6 +553,9 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .name = "SET_DYNAMIC_MANAGER", .handler = do_dynamic_manager, .perm_check = manager_or_root},
     { .cmd = KSU_IOCTL_GET_MANAGERS, .name = "GET_MANAGERS", .handler = do_get_managers, .perm_check = manager_or_root},
     { .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .name = "SET_ENABLE_UID_SCANNER", .handler = do_enable_uid_scanner, .perm_check = manager_or_root},
+#ifdef CONFIG_KPM
+    { .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root},
+#endif
     { .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL} // Sentine
 };
 

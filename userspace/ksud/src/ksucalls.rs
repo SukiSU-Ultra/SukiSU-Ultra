@@ -15,6 +15,8 @@ const KSU_IOCTL_SET_SEPOLICY: u32 = 0xc0004b04; // _IOC(_IOC_READ|_IOC_WRITE, 'K
 const KSU_IOCTL_CHECK_SAFEMODE: u32 = 0x80004b05; // _IOC(_IOC_READ, 'K', 5, 0)
 const KSU_IOCTL_GET_FEATURE: u32 = 0xc0004b0d; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 13, 0)
 const KSU_IOCTL_SET_FEATURE: u32 = 0x40004b0e; // _IOC(_IOC_WRITE, 'K', 14, 0)
+#[allow(dead_code)]
+const KSU_IOCTL_KPM: u32 = 0xc0004bc8; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -218,5 +220,21 @@ pub fn get_feature(feature_id: u32) -> std::io::Result<(u64, bool)> {
 pub fn set_feature(feature_id: u32, value: u64) -> std::io::Result<()> {
     let mut cmd = SetFeatureCmd { feature_id, value };
     ksuctl(KSU_IOCTL_SET_FEATURE, &mut cmd as *mut _)?;
+    Ok(())
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+#[allow(dead_code)]
+pub struct KsuKpmCmd {
+    pub arg2: u64,
+    pub arg3: u64,
+    pub arg4: u64,
+    pub arg5: u64,
+}
+
+#[allow(dead_code)]
+pub fn kpm_ioctl(cmd: &mut KsuKpmCmd) -> std::io::Result<()> {
+    ksuctl(KSU_IOCTL_KPM, cmd as *mut _)?;
     Ok(())
 }
