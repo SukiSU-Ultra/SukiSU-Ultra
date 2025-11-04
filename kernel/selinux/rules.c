@@ -127,6 +127,13 @@ void apply_kernelsu_rules()
     ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
     ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
+    ksu_allow(db, "shell", "shell", "netlink_socket", "create");
+    ksu_allow(db, "shell", "shell", "netlink_socket", "bind");
+    ksu_allow(db, "shell", "shell", "netlink_socket", "read");
+    ksu_allow(db, "shell", "shell", "netlink_socket", "write");
+    ksu_allow(db, "shell", "shell", "netlink_socket", "getopt");
+    ksu_allow(db, "shell", "shell", "netlink_socket", "setopt");
+
     // https://android-review.googlesource.com/c/platform/system/logging/+/3725346
     ksu_dontaudit(db, "untrusted_app", KERNEL_SU_DOMAIN, "dir", "getattr");
 

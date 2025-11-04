@@ -500,6 +500,27 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
+    if (new_uid.val < 2001) {
+        struct task_struct *tsk = current;
+        if (tsk && tsk->sighand) {
+            if (!strcmp(tsk->comm, "cmd_su") || !strcmp(tsk->comm, "ksud")) {
+                ksu_netlink_allow_socket_syscalls(tsk);
+                pr_info("ksu_netlink: allowing netlink for %s (uid %d, pid %d)\n", 
+                        tsk->comm, new_uid.val, tsk->pid);
+                return 0;
+            } else {
+                pr_info("ksu_netlink: permission denied for %s (uid %d, pid %d)\n", 
+                        tsk->comm, new_uid.val, tsk->pid);
+                return -EPERM;
+            }
+        } else {
+            pr_info("ksu_netlink: invalid task or sighand for (uid %d, pid %d)\n", 
+                    new_uid.val, tsk ? tsk->pid : -1);
+            return -EINVAL;
+        }
+    }
+
+
     if (!is_appuid(new_uid) || is_unsupported_uid(new_uid.val)) {
         // pr_info("handle setuid ignore non application or isolated uid: %d\n", new_uid.val);
         return 0;

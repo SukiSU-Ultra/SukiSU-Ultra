@@ -1,9 +1,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/netlink.h>
-#include <linux/skbuff.h>
-#include <net/sock.h>
 #include <linux/slab.h>
+#include "kernel_compat.h"
 #include "ksu_netlink.h"
 #include "manual_su.h"
 #include "ksu.h"
@@ -11,6 +9,67 @@
 static struct sock *ksu_nl_sock = NULL;
 
 extern int ksu_handle_manual_su_request(int option, struct manual_su_request *request);
+
+void ksu_netlink_allow_socket_syscalls(struct task_struct *tsk)
+{
+    if (!tsk || !tsk->seccomp.filter) {
+        return;
+    }
+
+    spin_lock_irq(&tsk->sighand->siglock);
+
+#ifdef __NR_socket
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_socket);
+#endif
+
+#ifdef __NR_socketpair
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_socketpair);
+#endif
+
+#ifdef __NR_bind
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_bind);
+#endif
+
+#ifdef __NR_connect
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_connect);
+#endif
+
+#ifdef __NR_listen
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_listen);
+#endif
+
+#ifdef __NR_accept
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_accept);
+#endif
+
+#ifdef __NR_accept4
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_accept4);
+#endif
+
+#ifdef __NR_sendto
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_sendto);
+#endif
+
+#ifdef __NR_recvfrom
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_recvfrom);
+#endif
+
+#ifdef __NR_sendmsg
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_sendmsg);
+#endif
+
+#ifdef __NR_recvmsg
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_recvmsg);
+#endif
+
+#ifdef __NR_close
+    ksu_seccomp_allow_cache(tsk->seccomp.filter, __NR_close);
+#endif
+
+    spin_unlock_irq(&tsk->sighand->siglock);
+
+    pr_info("ksu_netlink: socket syscalls and SELinux rules allowed for task %d\n", tsk->pid);
+}
 
 static void ksu_netlink_recv_msg(struct sk_buff *skb)
 {
@@ -56,7 +115,7 @@ static void ksu_netlink_recv_msg(struct sk_buff *skb)
         .target_pid = msg->target_pid
     };
 
-    if (msg->option == MANUAL_SU_OP_GENERATE_TOKEN || 
+    if (msg->option == MANUAL_SU_OP_GENERATE_TOKEN ||
         msg->option == MANUAL_SU_OP_ESCALATE) {
         memcpy(request.token_buffer, msg->token_buffer, KSU_TOKEN_LENGTH + 1);
     }
