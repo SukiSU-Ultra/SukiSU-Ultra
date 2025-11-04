@@ -3,13 +3,14 @@
 
 #include <linux/types.h>
 #include <linux/workqueue.h>
+#include "kernel_compat.h"
 
 #define KERNEL_SU_VERSION KSU_VERSION
 #define KERNEL_SU_OPTION 0xDEADBEEF
 
 extern bool ksu_uid_scanner_enabled;
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
 #define CMD_MANUAL_SU_REQUEST 50
 #endif
 

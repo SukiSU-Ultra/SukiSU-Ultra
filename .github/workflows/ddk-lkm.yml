@@ -18,7 +18,7 @@ jobs:
     name: Build kernelsu.ko for ${{ inputs.kmi }}
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/shirkneko/ddk:${{ inputs.kmi }}-${{ inputs.ddk_release }}
+      image: ghcr.io/ylarod/ddk:${{ inputs.kmi }}-${{ inputs.ddk_release }}
       options: --privileged
 
     steps:

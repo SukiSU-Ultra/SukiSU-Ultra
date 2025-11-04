@@ -14,6 +14,15 @@
 #define __KPROBES_HOOK 1
 #endif
 
+#if defined(CONFIG_KPROBES) && !(defined(CONFIG_KSU_MANUAL_SU))
+#define __MANUAL_SU 1
+#elif defined(CONFIG_KPROBES) && defined(CONFIG_KSU_MANUAL_SU)
+#define __MANUAL_SU 1
+#elif !defined(CONFIG_KSU_MANUAL_SU)
+#define __MANUAL_SU 0
+#else
+#define __MANUAL_SU 1
+#endif
 
 #if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
 // arch/arm64/include/asm/barrier.h, adding dsb probably unneeded

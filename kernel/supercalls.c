@@ -21,7 +21,7 @@
 #include "throne_comm.h"
 #include "dynamic_manager.h"
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
 #include "manual_su.h"
 #endif
 

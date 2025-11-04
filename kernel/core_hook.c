@@ -37,11 +37,10 @@
 #include "ksud.h"
 #include "manager.h"
 #include "selinux/selinux.h"
-#include "kernel_compat.h"
 #include "supercalls.h"
 #include "sulog.h"
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
 #include "manual_su.h"
 #endif
 
@@ -57,7 +56,7 @@ bool ksu_is_compat __read_mostly = false;
 
 extern int __ksu_handle_devpts(struct inode *inode); // sucompat.c
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
 static void ksu_try_escalate_for_uid(uid_t uid)
 {
     if (!is_pending_root(uid))
@@ -241,7 +240,7 @@ void escape_to_root(void)
 #endif
 }
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
 
 static void disable_seccomp_for_task(struct task_struct *tsk)
 {
@@ -402,7 +401,7 @@ static void sulog_prctl_cmd(uid_t uid, unsigned long cmd)
 
     switch (cmd) {
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
     case CMD_MANUAL_SU_REQUEST:             name = "prctl_manual_su_request"; break;
 #endif
 
@@ -438,7 +437,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
     pr_info("option: 0x%x, cmd: %ld\n", option, arg2);
 #endif
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
     if (arg2 == CMD_MANUAL_SU_REQUEST) {
         struct manual_su_request request;
         int su_option = (int)arg3;
@@ -779,7 +778,7 @@ static int ksu_bprm_check_handler_pre(struct kprobe *p, struct pt_regs *regs)
 
     ksu_handle_pre_ksud(filename);
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
     ksu_try_escalate_for_uid(current_uid().val);
 #endif
 
@@ -791,7 +790,7 @@ static struct kprobe ksu_bprm_check_kp = {
     .pre_handler = ksu_bprm_check_handler_pre,
 };
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
 // 6. task_alloc hook for handling manual su escalation
 static int ksu_task_alloc_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
@@ -852,7 +851,7 @@ __maybe_unused int ksu_kprobe_init(void)
         pr_info("bprm_check_security kprobe registered successfully\n");
     }
 
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
     // Register task_alloc kprobe
     rc = register_kprobe(&ksu_task_alloc_kp);
     if (rc) {
@@ -872,7 +871,7 @@ __maybe_unused int ksu_kprobe_exit(void)
     unregister_kprobe(&prctl_kp);
     unregister_kprobe(&ksu_inode_permission_kp);
     unregister_kprobe(&ksu_bprm_check_kp);
-#ifdef CONFIG_KSU_MANUAL_SU
+#ifdef __MANUAL_SU
     unregister_kprobe(&ksu_task_alloc_kp);
 #endif
     return 0;
