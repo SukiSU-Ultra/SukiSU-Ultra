@@ -69,17 +69,6 @@ static void init_uid_scanner(void)
     }
 }
 
-void ksu_handle_reboot(int magic1, int magic2, void __user * arg) {
-    if (magic1 == KSU_INSTALL_MAGIC1 && magic2 == KSU_INSTALL_MAGIC2) {
-        int fd = ksu_install_fd();
-        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
-
-        if (copy_to_user(arg, &fd, sizeof(fd))) {
-            pr_err("install ksu fd reply err\n");
-        }
-    }
-}
-
 static int do_grant_root(void __user *arg)
 {
     // Check if current UID is allowed
