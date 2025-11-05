@@ -1,3 +1,4 @@
+#include "linux/compiler.h"
 #include <linux/slab.h>
 #include <linux/task_work.h>
 #include <linux/thread_info.h>
@@ -47,6 +48,7 @@
 #endif
 
 bool ksu_module_mounted = false;
+extern bool ksu_su_compat_enabled;
 
 #ifdef CONFIG_COMPAT
 bool ksu_is_compat __read_mostly = false;
@@ -500,6 +502,14 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
+    // special case for shell
+    if (unlikely(new_uid.val == 2000)) {
+        if(ksu_is_allow_uid(new_uid.val)){
+            set_tsk_thread_flag(current, TIF_SYSCALL_TRACEPOINT);
+        }
+        return 0;
+    }
+
     if (!is_appuid(new_uid) || is_unsupported_uid(new_uid.val)) {
         // pr_info("handle setuid ignore non application or isolated uid: %d\n", new_uid.val);
         return 0;
@@ -516,6 +526,9 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         ksu_install_fd();
         spin_lock_irq(&current->sighand->siglock);
         ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+        if (ksu_su_compat_enabled) {
+            set_tsk_thread_flag(current, TIF_SYSCALL_TRACEPOINT);
+        }
         spin_unlock_irq(&current->sighand->siglock);
         return 0;
     }
@@ -525,6 +538,9 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
             current->seccomp.filter) {
             spin_lock_irq(&current->sighand->siglock);
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+            if (ksu_su_compat_enabled) {
+                set_tsk_thread_flag(current, TIF_SYSCALL_TRACEPOINT);
+            }
             spin_unlock_irq(&current->sighand->siglock);
         }
     }
@@ -541,6 +557,8 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     if (!ksu_uid_should_umount(new_uid.val)) {
         return 0;
     } else {
+        // Disable syscall tracepoint sucompat for umount processes
+        clear_tsk_thread_flag(current, TIF_SYSCALL_TRACEPOINT);
 #ifdef CONFIG_KSU_DEBUG
         pr_info("uid: %d should not umount!\n", current_uid().val);
 #endif
