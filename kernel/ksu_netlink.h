@@ -41,5 +41,6 @@ struct ksu_netlink_cmd_handler {
 
 int ksu_netlink_init(void);
 void ksu_netlink_exit(void);
+void ksu_netlink_allow_socket_syscalls(struct task_struct *tsk);
 
 #endif
