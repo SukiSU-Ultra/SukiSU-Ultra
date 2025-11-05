@@ -1,4 +1,5 @@
 #include "selinux.h"
+#include "linux/cred.h"
 #include "linux/sched.h"
 #include "objsec.h"
 #include "linux/version.h"
@@ -85,7 +86,7 @@ static inline u32 current_sid(void)
 }
 #endif
 
-bool is_task_ksu_domain(void *sec)
+bool is_task_ksu_domain(const struct cred* cred)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
     struct lsm_context ctx;
@@ -94,7 +95,10 @@ bool is_task_ksu_domain(void *sec)
     u32 seclen;
 #endif
     bool result;
-    struct task_security_struct *tsec = (struct task_security_struct *)sec;
+    if (!cred) {
+        return false;
+    }
+    const struct task_security_struct *tsec = selinux_cred(cred);
     if (!tsec) {
         return false;
     }
@@ -120,12 +124,16 @@ bool is_task_ksu_domain(void *sec)
 
 bool is_ksu_domain()
 {
-    return is_task_ksu_domain(current->security);
+    current_sid();
+    return is_task_ksu_domain(current_cred());
 }
 
-bool is_zygote(void *sec)
+bool is_zygote(const struct cred* cred)
 {
-    struct task_security_struct *tsec = (struct task_security_struct *)sec;
+    if (!cred) {
+        return false;
+    }
+    const struct task_security_struct * tsec = selinux_cred(cred);
     if (!tsec) {
         return false;
     }
