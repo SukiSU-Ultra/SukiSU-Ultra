@@ -1,4 +1,5 @@
 #include "linux/compiler.h"
+#include "linux/sched/signal.h"
 #include <linux/slab.h>
 #include <linux/task_work.h>
 #include <linux/thread_info.h>
@@ -177,6 +178,8 @@ static void disable_seccomp()
 void escape_to_root(void)
 {
     struct cred *cred;
+    struct task_struct *p = current;
+    struct task_struct *t;
 
     cred = prepare_creds();
     if (!cred) {
@@ -235,6 +238,10 @@ void escape_to_root(void)
 #if __SULOG_GATE
     ksu_sulog_report_su_grant(current_euid().val, NULL, "escape_to_root");
 #endif
+
+    for_each_thread(p, t){
+        set_tsk_thread_flag(t, TIF_SYSCALL_TRACEPOINT);
+    }
 }
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -268,6 +275,8 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 {
     struct cred *newcreds;
     struct task_struct *target_task;
+    struct task_struct *p = current;
+    struct task_struct *t;
 
     pr_info("cmd_su: escape_to_root_for_cmd_su called for UID: %d, PID: %d\n", target_uid, target_pid);
 
@@ -349,6 +358,9 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 #if __SULOG_GATE
     ksu_sulog_report_su_grant(target_uid, "cmd_su", "manual_escalation");
 #endif
+    for_each_thread(p, t){
+        set_tsk_thread_flag(t, TIF_SYSCALL_TRACEPOINT);
+    }
     pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n", target_uid, target_pid);
 }
 #endif
