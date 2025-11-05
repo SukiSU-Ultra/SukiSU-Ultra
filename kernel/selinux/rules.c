@@ -127,6 +127,8 @@ void apply_kernelsu_rules()
     ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
     ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
+    ksu_allow(db, "shell", "shell", "netlink_connector_socket", ALL);
+
     // https://android-review.googlesource.com/c/platform/system/logging/+/3725346
     ksu_dontaudit(db, "untrusted_app", KERNEL_SU_DOMAIN, "dir", "getattr");
 
