@@ -95,13 +95,6 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("init features failed: {e}");
     }
 
-    // apply saved umount configuration
-    if !is_safe_mode()
-        && let Err(e) = crate::umount::apply_saved_config()
-    {
-        warn!("apply saved umount configuration failed: {e}");
-    }
-
     #[cfg(target_arch = "aarch64")]
     if let Err(e) = kpm::start_kpm_watcher() {
         warn!("KPM: Failed to start KPM watcher: {e}");

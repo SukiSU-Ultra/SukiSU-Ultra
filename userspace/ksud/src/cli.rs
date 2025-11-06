@@ -339,37 +339,19 @@ enum Umount {
         /// umount flags (default: 0)
         #[arg(long, default_value = "0")]
         flags: u32,
-
-        /// save to config file
-        #[arg(long, default_value = "false")]
-        save: bool,
     },
 
     /// Remove an umount path
     Remove {
         /// path to remove
         path: String,
-
-        /// save to config file
-        #[arg(long, default_value = "false")]
-        save: bool,
     },
 
     /// List all umount paths
     List,
 
     /// Clear all umount paths
-    Clear {
-        /// save to config file
-        #[arg(long, default_value = "false")]
-        save: bool,
-    },
-
-    /// Save current umount paths to config file
-    Save,
-
-    /// Load umount paths from config file
-    Load,
+    Clear,
 
     /// Apply saved configuration from boot
     Apply,
@@ -541,59 +523,11 @@ pub fn run() -> Result<()> {
                 path,
                 check_mnt,
                 flags,
-                save,
-            } => {
-                crate::umount::add_umount_path(&path, check_mnt, flags)?;
-                if save {
-                    let paths = crate::umount::get_umount_paths()?;
-                    crate::umount::save_umount_config(&paths)?;
-                    println!("Configuration saved");
-                }
-                Ok(())
-            }
-            Umount::Remove { path, save } => {
-                crate::umount::remove_umount_path(&path)?;
-                if save {
-                    let paths = crate::umount::get_umount_paths()?;
-                    crate::umount::save_umount_config(&paths)?;
-                    println!("Configuration saved");
-                }
-                Ok(())
-            }
+            } => crate::umount::add_umount_path(&path, check_mnt, flags),
+            Umount::Remove { path } => crate::umount::remove_umount_path(&path),
             Umount::List => crate::umount::list_umount_paths(),
-            Umount::Clear { save } => {
-                crate::umount::clear_umount_paths()?;
-                if save {
-                    crate::umount::save_umount_config(&[])?;
-                    println!("Configuration saved");
-                }
-                Ok(())
-            }
-            Umount::Save => {
-                let paths = crate::umount::get_umount_paths()?;
-                crate::umount::save_umount_config(&paths)?;
-                println!("Umount paths saved to config file");
-                Ok(())
-            }
-            Umount::Load => {
-                let paths = crate::umount::load_umount_config()?;
-                if paths.is_empty() {
-                    println!("No saved umount paths found");
-                } else {
-                    for entry in paths {
-                        println!(
-                            "Loaded: {} (check_mnt: {}, flags: {})",
-                            entry.path, entry.check_mnt, entry.flags
-                        );
-                    }
-                }
-                Ok(())
-            }
-            Umount::Apply => {
-                crate::umount::apply_saved_config()?;
-                println!("Saved umount configuration applied");
-                Ok(())
-            }
+            Umount::Clear => crate::umount::clear_umount_paths(),
+            Umount::Apply => crate::umount::apply_saved_config(),
         },
     };
 

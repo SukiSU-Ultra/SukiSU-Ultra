@@ -47,6 +47,8 @@ int __init kernelsu_init(void)
 
     ksu_allowlist_init();
 
+    ksu_umount_paths_init();
+
     ksu_throne_tracker_init();
 
 #ifdef KSU_KPROBES_HOOK

@@ -118,9 +118,18 @@ static const struct ksu_feature_handler enhanced_security_handler = {
 };
 
 // ========================Dynamic unmounting of mount points============================
+
+#define UMOUNT_FILE_MAGIC 0x554d4e54 // 'UMNT', u32
+#define UMOUNT_FILE_VERSION 1 // u32
+#define KERNEL_SU_UMOUNT_PATHS "/data/adb/ksu/.umount_paths"
+
+static struct work_struct ksu_umount_save_work;
+static struct work_struct ksu_umount_load_work;
+static DEFINE_MUTEX(umount_persist_mutex);
 static struct umount_path_entry umount_paths[MAX_UMOUNT_PATHS];
 static int umount_paths_count = 0;
 static DEFINE_SPINLOCK(umount_paths_lock);
+static bool ksu_persistent_umount_paths(void);
 
 static void init_default_umount_paths(void)
 {
@@ -151,15 +160,7 @@ static void init_default_umount_paths(void)
         umount_paths[5].check_mnt = false;
         umount_paths[5].flags = MNT_DETACH;
         
-        strncpy(umount_paths[6].path, "/data/adb/kpm", sizeof(umount_paths[6].path));
-        umount_paths[6].check_mnt = false;
-        umount_paths[6].flags = MNT_DETACH;
-        
-        strncpy(umount_paths[7].path, "/debug_ramdisk", sizeof(umount_paths[7].path));
-        umount_paths[7].check_mnt = false;
-        umount_paths[7].flags = MNT_DETACH;
-        
-        umount_paths_count = 8;
+        umount_paths_count = DEFAULT_UMOUNT_PATHS_COUNT;
     }
     
     spin_unlock(&umount_paths_lock);
@@ -167,9 +168,18 @@ static void init_default_umount_paths(void)
 
 int ksu_add_umount_path(const char *path, bool check_mnt, int flags)
 {
+    int i;
     int ret = -ENOMEM;
     
     spin_lock(&umount_paths_lock);
+    
+    for (i = 0; i < umount_paths_count; i++) {
+        if (strcmp(umount_paths[i].path, path) == 0) {
+            pr_info("umount path already exists: %s\n", path);
+            spin_unlock(&umount_paths_lock);
+            return -EEXIST;
+        }
+    }
     
     if (umount_paths_count < MAX_UMOUNT_PATHS) {
         strncpy(umount_paths[umount_paths_count].path, path, 
@@ -179,23 +189,43 @@ int ksu_add_umount_path(const char *path, bool check_mnt, int flags)
         umount_paths[umount_paths_count].flags = flags;
         umount_paths_count++;
         ret = 0;
+        pr_info("umount path added: %s (total: %d)\n", path, umount_paths_count);
+    } else {
+        pr_warn("umount paths limit reached, cannot add: %s\n", path);
     }
     
     spin_unlock(&umount_paths_lock);
+    
+    if (ret == 0) {
+        ksu_persistent_umount_paths();
+    }
     
     return ret;
 }
 
 int ksu_remove_umount_path(const char *path)
 {
-    int i, ret = -ENOENT;
+    int i, j, ret = -ENOENT;
     
     spin_lock(&umount_paths_lock);
     
-    for (i = 0; i < umount_paths_count; i++) {
+    for (i = 0; i < DEFAULT_UMOUNT_PATHS_COUNT; i++) {
         if (strcmp(umount_paths[i].path, path) == 0) {
-            memmove(&umount_paths[i], &umount_paths[i + 1], 
-                    (umount_paths_count - i - 1) * sizeof(struct umount_path_entry));
+            pr_warn("cannot remove default umount path: %s\n", path);
+            spin_unlock(&umount_paths_lock);
+            return -EPERM;
+        }
+    }
+    
+    for (i = DEFAULT_UMOUNT_PATHS_COUNT; i < umount_paths_count; i++) {
+        if (strcmp(umount_paths[i].path, path) == 0) {
+            pr_info("removing umount path: %s\n", path);
+            
+            for (j = i; j < umount_paths_count - 1; j++) {
+                memcpy(&umount_paths[j], &umount_paths[j + 1], 
+                       sizeof(struct umount_path_entry));
+            }
+            
             umount_paths_count--;
             ret = 0;
             break;
@@ -203,6 +233,12 @@ int ksu_remove_umount_path(const char *path)
     }
     
     spin_unlock(&umount_paths_lock);
+    
+    if (ret == 0) {
+        ksu_persistent_umount_paths();
+    } else {
+        pr_info("umount path not found: %s\n", path);
+    }
     
     return ret;
 }
@@ -226,8 +262,152 @@ int ksu_get_umount_paths(struct umount_path_entry *paths, int *count)
 void ksu_clear_umount_paths(void)
 {
     spin_lock(&umount_paths_lock);
-    umount_paths_count = 0;
+    
+    if (umount_paths_count > DEFAULT_UMOUNT_PATHS_COUNT) {
+        umount_paths_count = DEFAULT_UMOUNT_PATHS_COUNT;
+        pr_info("custom umount paths cleared, keeping %d default paths\n", DEFAULT_UMOUNT_PATHS_COUNT);
+    }
+    
     spin_unlock(&umount_paths_lock);
+}
+
+void do_save_umount_paths(struct work_struct *work)
+{
+    u32 magic = UMOUNT_FILE_MAGIC;
+    u32 version = UMOUNT_FILE_VERSION;
+    u32 count;
+    loff_t off = 0;
+    int i;
+
+    struct file *fp =
+        ksu_filp_open_compat(KERNEL_SU_UMOUNT_PATHS, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (IS_ERR(fp)) {
+        pr_err("save_umount_paths create file failed: %ld\n", PTR_ERR(fp));
+        return;
+    }
+
+    if (ksu_kernel_write_compat(fp, &magic, sizeof(magic), &off) != sizeof(magic)) {
+        pr_err("save_umount_paths write magic failed.\n");
+        goto exit;
+    }
+
+    if (ksu_kernel_write_compat(fp, &version, sizeof(version), &off) != sizeof(version)) {
+        pr_err("save_umount_paths write version failed.\n");
+        goto exit;
+    }
+
+    spin_lock(&umount_paths_lock);
+    count = (umount_paths_count > DEFAULT_UMOUNT_PATHS_COUNT) ? 
+            (umount_paths_count - DEFAULT_UMOUNT_PATHS_COUNT) : 0;
+    
+    if (ksu_kernel_write_compat(fp, &count, sizeof(count), &off) != sizeof(count)) {
+        pr_err("save_umount_paths write count failed.\n");
+        spin_unlock(&umount_paths_lock);
+        goto exit;
+    }
+
+    for (i = DEFAULT_UMOUNT_PATHS_COUNT; i < umount_paths_count; i++) {
+        pr_info("save umount path: %s, check_mnt: %d, flags: %d\n",
+            umount_paths[i].path, umount_paths[i].check_mnt, umount_paths[i].flags);
+
+        ksu_kernel_write_compat(fp, &umount_paths[i], 
+                               sizeof(struct umount_path_entry), &off);
+    }
+    spin_unlock(&umount_paths_lock);
+
+exit:
+    filp_close(fp, 0);
+}
+
+void do_load_umount_paths(struct work_struct *work)
+{
+    loff_t off = 0;
+    ssize_t ret = 0;
+    struct file *fp = NULL;
+    u32 magic;
+    u32 version;
+    u32 count;
+    int i;
+
+    init_default_umount_paths();
+
+    fp = ksu_filp_open_compat(KERNEL_SU_UMOUNT_PATHS, O_RDONLY, 0);
+    if (IS_ERR(fp)) {
+        pr_info("load_umount_paths: no saved paths file: %ld\n", PTR_ERR(fp));
+        return;
+    }
+
+    if (ksu_kernel_read_compat(fp, &magic, sizeof(magic), &off) != sizeof(magic) ||
+        magic != UMOUNT_FILE_MAGIC) {
+        pr_err("umount_paths file invalid magic: 0x%x!\n", magic);
+        goto exit;
+    }
+
+    if (ksu_kernel_read_compat(fp, &version, sizeof(version), &off) != sizeof(version)) {
+        pr_err("umount_paths read version failed\n");
+        goto exit;
+    }
+
+    pr_info("umount_paths file version: %d\n", version);
+
+    if (version != UMOUNT_FILE_VERSION) {
+        pr_warn("umount_paths version mismatch, expected %d, got %d\n", 
+                UMOUNT_FILE_VERSION, version);
+        goto exit;
+    }
+
+    if (ksu_kernel_read_compat(fp, &count, sizeof(count), &off) != sizeof(count)) {
+        pr_err("umount_paths read count failed\n");
+        goto exit;
+    }
+
+    pr_info("loading %d custom umount paths\n", count);
+
+    for (i = 0; i < count && i < (MAX_UMOUNT_PATHS - DEFAULT_UMOUNT_PATHS_COUNT); i++) {
+        struct umount_path_entry entry;
+        
+        ret = ksu_kernel_read_compat(fp, &entry, sizeof(entry), &off);
+        if (ret != sizeof(entry)) {
+            pr_err("load_umount_paths read entry %d failed: %zd\n", i, ret);
+            break;
+        }
+
+        pr_info("load umount path: %s, check_mnt: %d, flags: %d\n",
+            entry.path, entry.check_mnt, entry.flags);
+
+        spin_lock(&umount_paths_lock);
+        if (umount_paths_count < MAX_UMOUNT_PATHS) {
+            memcpy(&umount_paths[umount_paths_count], &entry, sizeof(entry));
+            umount_paths_count++;
+        }
+        spin_unlock(&umount_paths_lock);
+    }
+
+    pr_info("loaded %d custom umount paths, total: %d\n", i, umount_paths_count);
+
+exit:
+    filp_close(fp, 0);
+}
+
+bool ksu_persistent_umount_paths(void)
+{
+    return ksu_queue_work(&ksu_umount_save_work);
+}
+
+bool ksu_load_umount_paths(void)
+{
+    return ksu_queue_work(&ksu_umount_load_work);
+}
+
+void ksu_umount_paths_init(void)
+{
+    INIT_WORK(&ksu_umount_save_work, do_save_umount_paths);
+    INIT_WORK(&ksu_umount_load_work, do_load_umount_paths);
+}
+
+void ksu_umount_paths_exit(void)
+{
+    do_save_umount_paths(NULL);
 }
 // ======================================================================================
 
@@ -966,7 +1146,7 @@ __maybe_unused int ksu_kprobe_exit(void)
 
 void __init ksu_core_init(void)
 {
-    init_default_umount_paths();
+    ksu_load_umount_paths();
 #ifdef CONFIG_KPROBES
     int rc = ksu_kprobe_init();
     if (rc) {
@@ -983,6 +1163,7 @@ void __init ksu_core_init(void)
 
 void ksu_core_exit(void)
 {
+    ksu_umount_paths_exit();
     ksu_uid_exit();
     ksu_throne_comm_exit();
 #if __SULOG_GATE

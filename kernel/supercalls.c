@@ -119,6 +119,7 @@ static int do_report_event(void __user *arg)
             pr_info("post-fs-data triggered\n");
             on_post_fs_data();
             init_uid_scanner();
+            ksu_load_umount_paths();
 #if __SULOG_GATE    
             ksu_sulog_init();
 #endif
