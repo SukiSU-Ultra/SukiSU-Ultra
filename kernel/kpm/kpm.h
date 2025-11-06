@@ -5,14 +5,14 @@
 #include <linux/ioctl.h>
 
 struct ksu_kpm_cmd {
-    __aligned_u64 arg2;
-    __aligned_u64 arg3;
-    __aligned_u64 arg4;
-    __aligned_u64 arg5;
+    __aligned_u64 __user control_code;
+    __aligned_u64 __user arg1;
+    __aligned_u64 __user arg2;
+    __aligned_u64 __user result_code;
 };
 
-int sukisu_handle_kpm(unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);
-int sukisu_is_kpm_control_code(unsigned long arg2);
+int sukisu_handle_kpm(unsigned long control_code, unsigned long arg3, unsigned long arg4, unsigned long result_code);
+int sukisu_is_kpm_control_code(unsigned long control_code);
 int do_kpm(void __user *arg);
 
 #define KSU_IOCTL_KPM _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
