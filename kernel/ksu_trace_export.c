@@ -1,8 +1,0 @@
-#define CREATE_TRACE_POINTS
-#include "ksu_trace.h"
-
-EXPORT_TRACEPOINT_SYMBOL_GPL(ksu_trace_execveat_hook);
-EXPORT_TRACEPOINT_SYMBOL_GPL(ksu_trace_faccessat_hook);
-EXPORT_TRACEPOINT_SYMBOL_GPL(ksu_trace_sys_read_hook);
-EXPORT_TRACEPOINT_SYMBOL_GPL(ksu_trace_stat_hook);
-EXPORT_TRACEPOINT_SYMBOL_GPL(ksu_trace_input_hook);

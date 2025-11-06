@@ -385,11 +385,11 @@ static int do_get_full_version(void __user *arg)
 static int do_get_hook_type(void __user *arg)
 {
     struct ksu_hook_type_cmd cmd = {0};
-    const char *type = "Kprobes";
+    const char *type = "Unknown";
 
-#if defined(CONFIG_KSU_TRACEPOINT_HOOK)
+#if defined(KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK)
     type = "Tracepoint";
-#elif defined(CONFIG_KSU_MANUAL_HOOK)
+#elif defined(KSU_MANUAL_HOOK)
     type = "Manual";
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)

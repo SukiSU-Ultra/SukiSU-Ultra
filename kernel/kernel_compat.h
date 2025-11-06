@@ -6,12 +6,10 @@
 #include "ss/policydb.h"
 #include "linux/key.h"
 
-#if defined(CONFIG_ARM) || defined(CONFIG_ARM64)
-// arch/arm64/include/asm/barrier.h, adding dsb probably unneeded
-#define DONT_GET_SMART() do { barrier(); isb(); } while (0)
+#if defined(CONFIG_KPROBES) && !defined(KSU_MANUAL_HOOK)
+#define KSU_KPROBES_HOOK 1
 #else
-// well, compiler atleast, and not our targets
-#define DONT_GET_SMART() barrier()
+#define KSU_KPROBES_HOOK 0
 #endif
 
 /*

@@ -19,10 +19,6 @@ ccflags-y += -DCONFIG_KSU_MANUAL_SU
 kernelsu-objs += manual_su.o
 endif
 
-ifeq ($(CONFIG_KSU_TRACEPOINT_HOOK), y)
-kernelsu-objs += ksu_trace.o
-endif
-
 kernelsu-objs += selinux/selinux.o
 kernelsu-objs += selinux/sepolicy.o
 kernelsu-objs += selinux/rules.o
@@ -30,7 +26,6 @@ ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
 
 obj-$(CONFIG_KSU) += kernelsu.o
-obj-$(CONFIG_KSU_TRACEPOINT_HOOK) += ksu_trace_export.o
 
 obj-$(CONFIG_KPM) += kpm/
 
@@ -124,15 +119,12 @@ ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
 $(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
 endif
 
-ifeq ($(CONFIG_KSU_KPROBES_HOOK), y)
-$(info -- SukiSU: CONFIG_KSU_KPROBES_HOOK)
-ccflags-y += -DCONFIG_KSU_KPROBES_HOOK
-else ifeq ($(CONFIG_KSU_TRACEPOINT_HOOK), y)
-$(info -- SukiSU: CONFIG_KSU_TRACEPOINT_HOOK)
-ccflags-y += -DCONFIG_KSU_TRACEPOINT_HOOK
+ifeq ($(CONFIG_KSU_TRACEPOINT_HOOK), y)
+$(info -- SukiSU: KSU_TRACEPOINT_HOOK)
+ccflags-y += -DKSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
 else ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
-$(info -- SukiSU: CONFIG_KSU_MANUAL_HOOK)
-ccflags-y += -DCONFIG_KSU_MANUAL_HOOK
+$(info -- SukiSU: KSU_MANUAL_HOOK)
+ccflags-y += -DKSU_MANUAL_HOOK
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)

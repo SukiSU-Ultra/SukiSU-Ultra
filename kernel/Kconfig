@@ -36,17 +36,11 @@ config KPM
 choice
     prompt "KernelSU hook type"
     depends on KSU
-    default KSU_KPROBES_HOOK
-
-config KSU_KPROBES_HOOK
-    bool "Hook KernelSU with Kprobes"
-    depends on KPROBES
-    help
-      If enabled, Hook required KernelSU syscalls with Kernel-probe.
+    default KSU_TRACEPOINT_HOOK
 
 config KSU_TRACEPOINT_HOOK
     bool "Hook KernelSU with Tracepoint"
-    depends on TRACEPOINTS
+    depends on HAVE_SYSCALL_TRACEPOINTS
     help
       If enabled, Hook required KernelSU syscalls with Tracepoint.
 

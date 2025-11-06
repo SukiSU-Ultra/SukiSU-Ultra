@@ -31,7 +31,7 @@ jobs:
         cd kernel
 
         echo "=== Building kernelsu.ko for KMI: ${{ inputs.kmi }} ==="
-        CONFIG_KSU=m CONFIG_KSU_KPROBES_HOOK=y CONFIG_KSU_MANUAL_SU=y make
+        CONFIG_KSU=m CONFIG_KSU_TRACEPOINT_HOOK=y CONFIG_KSU_MANUAL_SU=y make
         
         echo "=== Build completed ==="
         # Create output directory in GitHub workspace

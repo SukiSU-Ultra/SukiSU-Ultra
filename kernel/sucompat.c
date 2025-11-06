@@ -68,7 +68,7 @@ static const struct ksu_feature_handler su_compat_handler = {
     .set_handler = su_compat_feature_set,
 };
 
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
 static bool ksu_sucompat_hook_state __read_mostly = true;
 #endif
 
@@ -100,7 +100,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 {
     const char su[] = SU_PATH;
 
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     if (!ksu_sucompat_hook_state) {
          return 0;
      }
@@ -130,7 +130,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
     // const char sh[] = SH_PATH;
     const char su[] = SU_PATH;
 
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     if (!ksu_sucompat_hook_state) {
          return 0;
      }
@@ -188,7 +188,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     const char sh[] = KSUD_PATH;
     const char su[] = SU_PATH;
 
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     if (!ksu_sucompat_hook_state) {
          return 0;
      }
@@ -234,7 +234,7 @@ int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
     const char su[] = SU_PATH;
     char path[sizeof(su) + 1];
 
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     if (!ksu_sucompat_hook_state){
          return 0;
      }
@@ -279,7 +279,7 @@ int ksu_handle_devpts(struct inode *inode)
 int __ksu_handle_devpts(struct inode *inode)
 {
 
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     if (!ksu_sucompat_hook_state)
         return 0;
 #endif
@@ -305,7 +305,7 @@ int __ksu_handle_devpts(struct inode *inode)
     return 0;
 }
 
-#ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
+#ifdef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
 
 // Tracepoint probe for sys_enter
 static void sucompat_sys_enter_handler(void *data, struct pt_regs *regs,
@@ -340,9 +340,9 @@ static void sucompat_sys_enter_handler(void *data, struct pt_regs *regs,
     }
 }
 
-#endif // CONFIG_HAVE_SYSCALL_TRACEPOINTS
+#endif // KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
 
-#ifdef CONFIG_KSU_KPROBES_HOOK
+#ifdef KSU_KPROBES_HOOK
 
 static int pts_unix98_lookup_pre(struct kprobe *p, struct pt_regs *regs)
 {
@@ -425,7 +425,7 @@ void ksu_sucompat_enable()
 {
     int ret;
     pr_info("sucompat: ksu_sucompat_enable called\n");
-#ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
+#ifdef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     // Register sys_enter tracepoint for syscall interception
     ret = register_trace_sys_enter(sucompat_sys_enter_handler, NULL);
     unmark_all_process();
@@ -440,7 +440,7 @@ void ksu_sucompat_enable()
      pr_info("ksu_sucompat_init: hooks enabled: execve/execveat_su, faccessat, stat\n");
 #endif
 
-#ifdef CONFIG_KSU_KPROBES_HOOK
+#ifdef KSU_KPROBES_HOOK
     // Register kprobe for pts_unix98_lookup
     pts_kp = init_kprobe("pts_unix98_lookup", pts_unix98_lookup_pre);
 #endif
@@ -449,7 +449,7 @@ void ksu_sucompat_enable()
 void ksu_sucompat_disable()
 {
     pr_info("sucompat: ksu_sucompat_disable called\n");
-#ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
+#ifdef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
     // Unregister sys_enter tracepoint
     unregister_trace_sys_enter(sucompat_sys_enter_handler, NULL);
     tracepoint_synchronize_unregister();
@@ -459,7 +459,7 @@ void ksu_sucompat_disable()
     pr_info("ksu_sucompat_exit: hooks disabled: execve/execveat_su, faccessat, stat\n");
 #endif
 
-#ifdef CONFIG_KSU_KPROBES_HOOK
+#ifdef KSU_KPROBES_HOOK
     // Unregister pts_unix98_lookup kprobe
     destroy_kprobe(&pts_kp);
 #endif
