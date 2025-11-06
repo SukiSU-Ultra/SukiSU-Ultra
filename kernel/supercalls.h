@@ -118,6 +118,15 @@ struct ksu_manual_su_cmd {
 };
 #endif
 
+struct ksu_umount_path_cmd {
+    __u32 operation; // 0=add, 1=remove, 2=get, 3=clear
+    char path[256];
+    __u8 check_mnt;
+    __u32 flags;
+    __u32 count; // for get operation
+    void __user *paths_ptr; // for get operation
+};
+
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
@@ -144,6 +153,7 @@ struct ksu_manual_su_cmd {
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ|_IOC_WRITE, 'K', 106, 0)
 #endif
+#define KSU_IOCTL_UMOUNT_PATH _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);

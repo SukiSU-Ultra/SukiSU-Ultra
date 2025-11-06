@@ -117,6 +117,120 @@ static const struct ksu_feature_handler enhanced_security_handler = {
     .set_handler = enhanced_security_feature_set,
 };
 
+// ========================Dynamic unmounting of mount points============================
+static struct umount_path_entry umount_paths[MAX_UMOUNT_PATHS];
+static int umount_paths_count = 0;
+static DEFINE_SPINLOCK(umount_paths_lock);
+
+static void init_default_umount_paths(void)
+{
+    spin_lock(&umount_paths_lock);
+    
+    if (umount_paths_count == 0) {
+        strncpy(umount_paths[0].path, "/odm", sizeof(umount_paths[0].path));
+        umount_paths[0].check_mnt = true;
+        umount_paths[0].flags = 0;
+        
+        strncpy(umount_paths[1].path, "/system", sizeof(umount_paths[1].path));
+        umount_paths[1].check_mnt = true;
+        umount_paths[1].flags = 0;
+        
+        strncpy(umount_paths[2].path, "/vendor", sizeof(umount_paths[2].path));
+        umount_paths[2].check_mnt = true;
+        umount_paths[2].flags = 0;
+        
+        strncpy(umount_paths[3].path, "/product", sizeof(umount_paths[3].path));
+        umount_paths[3].check_mnt = true;
+        umount_paths[3].flags = 0;
+        
+        strncpy(umount_paths[4].path, "/system_ext", sizeof(umount_paths[4].path));
+        umount_paths[4].check_mnt = true;
+        umount_paths[4].flags = 0;
+        
+        strncpy(umount_paths[5].path, "/data/adb/modules", sizeof(umount_paths[5].path));
+        umount_paths[5].check_mnt = false;
+        umount_paths[5].flags = MNT_DETACH;
+        
+        strncpy(umount_paths[6].path, "/data/adb/kpm", sizeof(umount_paths[6].path));
+        umount_paths[6].check_mnt = false;
+        umount_paths[6].flags = MNT_DETACH;
+        
+        strncpy(umount_paths[7].path, "/debug_ramdisk", sizeof(umount_paths[7].path));
+        umount_paths[7].check_mnt = false;
+        umount_paths[7].flags = MNT_DETACH;
+        
+        umount_paths_count = 8;
+    }
+    
+    spin_unlock(&umount_paths_lock);
+}
+
+int ksu_add_umount_path(const char *path, bool check_mnt, int flags)
+{
+    int ret = -ENOMEM;
+    
+    spin_lock(&umount_paths_lock);
+    
+    if (umount_paths_count < MAX_UMOUNT_PATHS) {
+        strncpy(umount_paths[umount_paths_count].path, path, 
+                sizeof(umount_paths[umount_paths_count].path) - 1);
+        umount_paths[umount_paths_count].path[sizeof(umount_paths[umount_paths_count].path) - 1] = '\0';
+        umount_paths[umount_paths_count].check_mnt = check_mnt;
+        umount_paths[umount_paths_count].flags = flags;
+        umount_paths_count++;
+        ret = 0;
+    }
+    
+    spin_unlock(&umount_paths_lock);
+    
+    return ret;
+}
+
+int ksu_remove_umount_path(const char *path)
+{
+    int i, ret = -ENOENT;
+    
+    spin_lock(&umount_paths_lock);
+    
+    for (i = 0; i < umount_paths_count; i++) {
+        if (strcmp(umount_paths[i].path, path) == 0) {
+            memmove(&umount_paths[i], &umount_paths[i + 1], 
+                    (umount_paths_count - i - 1) * sizeof(struct umount_path_entry));
+            umount_paths_count--;
+            ret = 0;
+            break;
+        }
+    }
+    
+    spin_unlock(&umount_paths_lock);
+    
+    return ret;
+}
+
+int ksu_get_umount_paths(struct umount_path_entry *paths, int *count)
+{
+    int i;
+    
+    spin_lock(&umount_paths_lock);
+    
+    *count = umount_paths_count;
+    for (i = 0; i < umount_paths_count && i < MAX_UMOUNT_PATHS; i++) {
+        memcpy(&paths[i], &umount_paths[i], sizeof(struct umount_path_entry));
+    }
+    
+    spin_unlock(&umount_paths_lock);
+    
+    return 0;
+}
+
+void ksu_clear_umount_paths(void)
+{
+    spin_lock(&umount_paths_lock);
+    umount_paths_count = 0;
+    spin_unlock(&umount_paths_lock);
+}
+// ======================================================================================
+
 static inline bool is_allow_su()
 {
     if (is_manager()) {
@@ -494,22 +608,20 @@ static void umount_tw_func(struct callback_head *cb)
 {
     struct umount_tw *tw = container_of(cb, struct umount_tw, cb);
     const struct cred *saved = NULL;
+    int i;
+    
     if (tw->old_cred) {
         saved = override_creds(tw->old_cred);
     }
 
-    // fixme: use `collect_mounts` and `iterate_mount` to iterate all mountpoint and
-    // filter the mountpoint whose target is `/data/adb`
-    try_umount("/odm", true, 0);
-    try_umount("/system", true, 0);
-    try_umount("/vendor", true, 0);
-    try_umount("/product", true, 0);
-    try_umount("/system_ext", true, 0);
-    try_umount("/data/adb/modules", false, MNT_DETACH);
-    try_umount("/data/adb/kpm", false, MNT_DETACH);
-
-    // try umount ksu temp path
-    try_umount("/debug_ramdisk", false, MNT_DETACH);
+    // Iterate through the list of dynamically mounted points
+    spin_lock(&umount_paths_lock);
+    for (i = 0; i < umount_paths_count; i++) {
+        try_umount(umount_paths[i].path, 
+                   umount_paths[i].check_mnt, 
+                   umount_paths[i].flags);
+    }
+    spin_unlock(&umount_paths_lock);
 
     if (saved)
         revert_creds(saved);
@@ -854,6 +966,7 @@ __maybe_unused int ksu_kprobe_exit(void)
 
 void __init ksu_core_init(void)
 {
+    init_default_umount_paths();
 #ifdef CONFIG_KPROBES
     int rc = ksu_kprobe_init();
     if (rc) {

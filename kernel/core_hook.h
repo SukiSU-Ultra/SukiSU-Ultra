@@ -14,4 +14,17 @@ void nuke_ext4_sysfs(void);
 
 extern bool ksu_module_mounted;
 
+#define MAX_UMOUNT_PATHS 40
+
+struct umount_path_entry {
+    char path[256];
+    bool check_mnt;
+    int flags;
+};
+
+int ksu_add_umount_path(const char *path, bool check_mnt, int flags);
+int ksu_remove_umount_path(const char *path);
+int ksu_get_umount_paths(struct umount_path_entry *paths, int *count);
+void ksu_clear_umount_paths(void);
+
 #endif

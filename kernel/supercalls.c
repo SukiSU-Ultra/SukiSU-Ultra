@@ -616,6 +616,65 @@ static int do_manual_su(void __user *arg)
 }
 #endif
 
+static int do_umount_path(void __user *arg)
+{
+    struct ksu_umount_path_cmd cmd;
+    int ret = 0;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        pr_err("umount_path: copy_from_user failed\n");
+        return -EFAULT;
+    }
+
+    switch (cmd.operation) {
+    case 0: // add
+        ret = ksu_add_umount_path(cmd.path, cmd.check_mnt, cmd.flags);
+        if (ret == 0) {
+            pr_info("umount_path: added %s\n", cmd.path);
+        }
+        break;
+        
+    case 1: // remove
+        ret = ksu_remove_umount_path(cmd.path);
+        if (ret == 0) {
+            pr_info("umount_path: removed %s\n", cmd.path);
+        }
+        break;
+        
+    case 2: { // get
+        struct umount_path_entry *paths = kmalloc(
+            sizeof(struct umount_path_entry) * MAX_UMOUNT_PATHS, GFP_KERNEL);
+        if (!paths)
+            return -ENOMEM;
+            
+        ksu_get_umount_paths(paths, (int *)&cmd.count);
+        
+        if (copy_to_user((void __user *)cmd.paths_ptr, paths, 
+                         sizeof(struct umount_path_entry) * cmd.count)) {
+            kfree(paths);
+            return -EFAULT;
+        }
+        
+        kfree(paths);
+        
+        if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+            return -EFAULT;
+        }
+        break;
+    }
+    
+    case 3: // clear
+        ksu_clear_umount_paths();
+        pr_info("umount_path: cleared all paths\n");
+        break;
+        
+    default:
+        ret = -EINVAL;
+    }
+
+    return ret;
+}
+
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_GRANT_ROOT, .name = "GRANT_ROOT", .handler = do_grant_root, .perm_check = allowed_for_su },
@@ -645,6 +704,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 #ifdef CONFIG_KPM
     { .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root},
 #endif
+    { .cmd = KSU_IOCTL_UMOUNT_PATH, .name = "UMOUNT_PATH", .handler = do_umount_path, .perm_check = manager_or_root},
     { .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL} // Sentine
 };
 
