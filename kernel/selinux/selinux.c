@@ -163,7 +163,7 @@ bool is_zygote(void *sec)
     return result;
 }
 
-#ifdef CONFIG_KSU_SUSFS
+#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 static inline void susfs_set_sid(const char *secctx_name, u32 *out_sid)
 {
     int err;
