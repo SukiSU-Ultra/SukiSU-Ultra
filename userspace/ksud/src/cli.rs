@@ -137,6 +137,12 @@ enum Commands {
         command: kpm_cmd::Kpm,
     },
 
+    /// Manage dynamic umount paths
+    Umount {
+        #[command(subcommand)]
+        command: Umount,
+    },
+
     /// For developers
     Debug {
         #[command(subcommand)]
@@ -319,6 +325,56 @@ enum Feature {
     Save,
 }
 
+#[derive(clap::Subcommand, Debug)]
+enum Umount {
+    /// Add an umount path
+    Add {
+        /// path to umount
+        path: String,
+
+        /// check if mount is overlay (default: false)
+        #[arg(long, default_value = "false")]
+        check_mnt: bool,
+
+        /// umount flags (default: 0)
+        #[arg(long, default_value = "0")]
+        flags: u32,
+
+        /// save to config file
+        #[arg(long, default_value = "false")]
+        save: bool,
+    },
+
+    /// Remove an umount path
+    Remove {
+        /// path to remove
+        path: String,
+
+        /// save to config file
+        #[arg(long, default_value = "false")]
+        save: bool,
+    },
+
+    /// List all umount paths
+    List,
+
+    /// Clear all umount paths
+    Clear {
+        /// save to config file
+        #[arg(long, default_value = "false")]
+        save: bool,
+    },
+
+    /// Save current umount paths to config file
+    Save,
+
+    /// Load umount paths from config file
+    Load,
+
+    /// Apply saved configuration from boot
+    Apply,
+}
+
 #[cfg(target_arch = "aarch64")]
 mod kpm_cmd {
     use clap::Subcommand;
@@ -480,6 +536,65 @@ pub fn run() -> Result<()> {
                 Kpm::Version => crate::kpm::kpm_version_loader(),
             }
         }
+        Commands::Umount { command } => match command {
+            Umount::Add {
+                path,
+                check_mnt,
+                flags,
+                save,
+            } => {
+                crate::umount::add_umount_path(&path, check_mnt, flags)?;
+                if save {
+                    let paths = crate::umount::get_umount_paths()?;
+                    crate::umount::save_umount_config(&paths)?;
+                    println!("Configuration saved");
+                }
+                Ok(())
+            }
+            Umount::Remove { path, save } => {
+                crate::umount::remove_umount_path(&path)?;
+                if save {
+                    let paths = crate::umount::get_umount_paths()?;
+                    crate::umount::save_umount_config(&paths)?;
+                    println!("Configuration saved");
+                }
+                Ok(())
+            }
+            Umount::List => crate::umount::list_umount_paths(),
+            Umount::Clear { save } => {
+                crate::umount::clear_umount_paths()?;
+                if save {
+                    crate::umount::save_umount_config(&[])?;
+                    println!("Configuration saved");
+                }
+                Ok(())
+            }
+            Umount::Save => {
+                let paths = crate::umount::get_umount_paths()?;
+                crate::umount::save_umount_config(&paths)?;
+                println!("Umount paths saved to config file");
+                Ok(())
+            }
+            Umount::Load => {
+                let paths = crate::umount::load_umount_config()?;
+                if paths.is_empty() {
+                    println!("No saved umount paths found");
+                } else {
+                    for entry in paths {
+                        println!(
+                            "Loaded: {} (check_mnt: {}, flags: {})",
+                            entry.path, entry.check_mnt, entry.flags
+                        );
+                    }
+                }
+                Ok(())
+            }
+            Umount::Apply => {
+                crate::umount::apply_saved_config()?;
+                println!("Saved umount configuration applied");
+                Ok(())
+            }
+        },
     };
 
     if let Err(e) = &result {

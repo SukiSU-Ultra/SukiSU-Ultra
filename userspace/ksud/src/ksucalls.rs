@@ -18,6 +18,8 @@ const KSU_IOCTL_SET_FEATURE: u32 = 0x40004b0e; // _IOC(_IOC_WRITE, 'K', 14, 0)
 const KSU_IOCTL_GET_WRAPPER_FD: u32 = 0x00006f10; // _IOC(_IOC_NONE, 'K', 10000, 0)
 #[allow(dead_code)]
 const KSU_IOCTL_KPM: u32 = 0xc0004bc8; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
+#[allow(dead_code)]
+const KSU_IOCTL_UMOUNT_PATH: u32 = 0xc0004b6b; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -251,4 +253,44 @@ pub struct KsuKpmCmd {
 pub fn kpm_ioctl(cmd: &mut KsuKpmCmd) -> std::io::Result<()> {
     ksuctl(KSU_IOCTL_KPM, cmd as *mut _)?;
     Ok(())
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+#[allow(dead_code)]
+pub struct KsuUmountPathCmd {
+    pub operation: u32,
+    pub path: [u8; 256],
+    pub check_mnt: u8,
+    pub flags: u32,
+    pub count: u32,
+    pub paths_ptr: u64,
+}
+
+#[allow(dead_code)]
+impl Default for KsuUmountPathCmd {
+    fn default() -> Self {
+        KsuUmountPathCmd {
+            operation: 0,
+            path: [0; 256],
+            check_mnt: 0,
+            flags: 0,
+            count: 0,
+            paths_ptr: 0,
+        }
+    }
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
+#[allow(dead_code)]
+pub fn umount_ioctl(cmd: &KsuUmountPathCmd) -> std::io::Result<()> {
+    let mut ioctl_cmd = *cmd;
+    ksuctl(KSU_IOCTL_UMOUNT_PATH, &mut ioctl_cmd as *mut _)?;
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+#[allow(dead_code)]
+pub fn umount_ioctl(_cmd: &KsuUmountPathCmd) -> std::io::Result<()> {
+    Err(std::io::Error::from_raw_os_error(libc::ENOSYS))
 }
