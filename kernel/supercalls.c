@@ -481,7 +481,7 @@ static int do_enable_uid_scanner(void __user *arg)
             bool enabled = cmd.enabled;
 
             if (enabled == ksu_uid_scanner_enabled) {
-                pr_info("enable_uid_scanner: no need to change, already %s\n", 
+                pr_info("enable_uid_scanner: no need to change, already %s\n",
                     enabled ? "enabled" : "disabled");
                 break;
             }
@@ -520,6 +520,49 @@ static int do_enable_uid_scanner(void __user *arg)
     return 0;
 }
 
+#ifdef CONFIG_KSU_MANUAL_SU
+static bool system_uid_check(void)
+{
+    return current_uid().val <= 2000;
+}
+
+static int do_manual_su(void __user *arg)
+{
+    struct ksu_manual_su_cmd cmd;
+    struct manual_su_request request;
+    int res;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        pr_err("manual_su: copy_from_user failed\n");
+        return -EFAULT;
+    }
+
+    pr_info("manual_su request, option=%d, uid=%d, pid=%d\n",
+            cmd.option, cmd.target_uid, cmd.target_pid);
+
+    memset(&request, 0, sizeof(request));
+    request.target_uid = cmd.target_uid;
+    request.target_pid = cmd.target_pid;
+
+    if (cmd.option == MANUAL_SU_OP_GENERATE_TOKEN ||
+        cmd.option == MANUAL_SU_OP_ESCALATE) {
+        memcpy(request.token_buffer, cmd.token_buffer, sizeof(request.token_buffer));
+    }
+
+    res = ksu_handle_manual_su_request(cmd.option, &request);
+
+    if (cmd.option == MANUAL_SU_OP_GENERATE_TOKEN && res == 0) {
+        memcpy(cmd.token_buffer, request.token_buffer, sizeof(cmd.token_buffer));
+        if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+            pr_err("manual_su: copy_to_user failed\n");
+            return -EFAULT;
+        }
+    }
+
+    return res;
+}
+#endif
+
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_GRANT_ROOT, .name = "GRANT_ROOT", .handler = do_grant_root, .perm_check = allowed_for_su },
@@ -542,6 +585,9 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_DYNAMIC_MANAGER, .name = "SET_DYNAMIC_MANAGER", .handler = do_dynamic_manager, .perm_check = manager_or_root},
     { .cmd = KSU_IOCTL_GET_MANAGERS, .name = "GET_MANAGERS", .handler = do_get_managers, .perm_check = manager_or_root},
     { .cmd = KSU_IOCTL_ENABLE_UID_SCANNER, .name = "SET_ENABLE_UID_SCANNER", .handler = do_enable_uid_scanner, .perm_check = manager_or_root},
+#ifdef CONFIG_KSU_MANUAL_SU
+    { .cmd = KSU_IOCTL_MANUAL_SU, .name = "MANUAL_SU", .handler = do_manual_su, .perm_check = system_uid_check},
+#endif
 #ifdef CONFIG_KPM
     { .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root},
 #endif

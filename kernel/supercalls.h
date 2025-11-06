@@ -104,6 +104,15 @@ struct ksu_enable_uid_scanner_cmd {
     void __user *status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
 };
 
+#ifdef CONFIG_KSU_MANUAL_SU
+struct ksu_manual_su_cmd {
+    __u32 option; // Input: operation type (MANUAL_SU_OP_GENERATE_TOKEN, MANUAL_SU_OP_ESCALATE, MANUAL_SU_OP_ADD_PENDING)
+    __u32 target_uid; // Input: target UID
+    __u32 target_pid; // Input: target PID
+    char token_buffer[33]; // Input/Output: token buffer
+};
+#endif
+
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
@@ -126,6 +135,9 @@ struct ksu_enable_uid_scanner_cmd {
 #define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ|_IOC_WRITE, 'K', 103, 0)
 #define KSU_IOCTL_GET_MANAGERS _IOC(_IOC_READ|_IOC_WRITE, 'K', 104, 0)
 #define KSU_IOCTL_ENABLE_UID_SCANNER _IOC(_IOC_READ|_IOC_WRITE, 'K', 105, 0)
+#ifdef CONFIG_KSU_MANUAL_SU
+#define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ|_IOC_WRITE, 'K', 106, 0)
+#endif
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);
