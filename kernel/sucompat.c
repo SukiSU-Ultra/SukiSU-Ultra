@@ -91,7 +91,7 @@ static inline char __user *ksud_user_path(void)
 
 static inline bool __is_su_allowed(const void *ptr_to_check)
 {
-#ifndef CONFIG_KSU_KPROBES_HOOK
+#ifdef CONFIG_KSU_KPROBES_HOOK
 	if (!ksu_su_compat_enabled)
 		return false;
 #endif
