@@ -52,6 +52,7 @@ static ssize_t mksu_wrapper_write_iter (struct kiocb *iocb, struct iov_iter *iov
 	return orig->f_op->write_iter(iocb, iovi);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 static int mksu_wrapper_iopoll(struct kiocb *kiocb, struct io_comp_batch* icb, unsigned int v) {
 	struct ksu_file_wrapper* data = kiocb->ki_filp->private_data;
@@ -66,6 +67,7 @@ static int mksu_wrapper_iopoll(struct kiocb *kiocb, bool spin) {
 	kiocb->ki_filp = orig;
 	return orig->f_op->iopoll(kiocb, spin);
 }
+#endif
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
@@ -257,6 +259,7 @@ static ssize_t mksu_wrapper_copy_file_range(struct file *f1, loff_t off1, struct
 	return -EINVAL;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 static loff_t mksu_wrapper_remap_file_range(struct file *file_in, loff_t pos_in,
 				struct file *file_out, loff_t pos_out,
 				loff_t len, unsigned int remap_flags) {
@@ -277,6 +280,29 @@ static int mksu_wrapper_fadvise(struct file *fp, loff_t off1, loff_t off2, int f
 	}
 	return -EINVAL;
 }
+#else
+static int mksu_wrapper_clone_file_range(struct file *file_in, loff_t pos_in,
+				struct file *file_out, loff_t pos_out, u64 len) {
+	// TODO: determine which file to use
+	struct ksu_file_wrapper* data = file_in->private_data;
+	struct file* orig = data->orig;
+	if (orig->f_op->clone_file_range) {
+		return orig->f_op->clone_file_range(orig, pos_in, file_out, pos_out, len);
+	}
+	return -EINVAL;
+}
+
+static ssize_t mksu_wrapper_dedupe_file_range(struct file *src_file, u64 loff,
+				u64 len, struct file *dst_file, u64 dst_loff) {
+	// TODO: determine which file to use
+	struct ksu_file_wrapper* data = src_file->private_data;
+	struct file* orig = data->orig;
+	if (orig->f_op->dedupe_file_range) {
+		return orig->f_op->dedupe_file_range(orig, loff, len, dst_file, dst_loff);
+	}
+	return -EINVAL;
+}
+#endif
 
 static int mksu_wrapper_release(struct inode *inode, struct file *filp) {
 	mksu_delete_file_wrapper(filp->private_data);
@@ -298,7 +324,9 @@ struct ksu_file_wrapper* mksu_create_file_wrapper(struct file* fp) {
 	p->ops.write = fp->f_op->write ? mksu_wrapper_write : NULL;
 	p->ops.read_iter = fp->f_op->read_iter ? mksu_wrapper_read_iter : NULL;
 	p->ops.write_iter = fp->f_op->write_iter ? mksu_wrapper_write_iter : NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 	p->ops.iopoll = fp->f_op->iopoll ? mksu_wrapper_iopoll : NULL;
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 	p->ops.iterate = fp->f_op->iterate ? mksu_wrapper_iterate : NULL;
 #endif
@@ -309,7 +337,7 @@ struct ksu_file_wrapper* mksu_create_file_wrapper(struct file* fp) {
 	p->ops.mmap = fp->f_op->mmap ? mksu_wrapper_mmap : NULL;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 	p->ops.fop_flags = fp->f_op->fop_flags;
-#else
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
 	p->ops.mmap_supported_flags = fp->f_op->mmap_supported_flags;
 #endif
 	p->ops.open = fp->f_op->open ? mksu_wrapper_open : NULL;
@@ -330,8 +358,13 @@ struct ksu_file_wrapper* mksu_create_file_wrapper(struct file* fp) {
 	p->ops.fallocate = fp->f_op->fallocate ? mksu_wrapper_fallocate : NULL;
 	p->ops.show_fdinfo = fp->f_op->show_fdinfo ? mksu_wrapper_show_fdinfo : NULL;
 	p->ops.copy_file_range = fp->f_op->copy_file_range ? mksu_wrapper_copy_file_range : NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	p->ops.remap_file_range = fp->f_op->remap_file_range ? mksu_wrapper_remap_file_range : NULL;
 	p->ops.fadvise = fp->f_op->fadvise ? mksu_wrapper_fadvise : NULL;
+#else
+	p->ops.clone_file_range = fp->f_op->clone_file_range ? mksu_wrapper_clone_file_range : NULL;
+	p->ops.dedupe_file_range = fp->f_op->dedupe_file_range ? mksu_wrapper_dedupe_file_range : NULL;
+#endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
 	p->ops.splice_eof = fp->f_op->splice_eof ? mksu_wrapper_splice_eof : NULL;

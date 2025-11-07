@@ -1176,7 +1176,11 @@ do_umount:
     tw->old_cred = get_current_cred();
     tw->cb.func = umount_tw_func;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
     int err = task_work_add(current, &tw->cb, TWA_RESUME);
+#else
+    int err = task_work_add(current, &tw->cb, true);
+#endif
     if (err) {
         if (tw->old_cred) {
             put_cred(tw->old_cred);
@@ -1328,7 +1332,11 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     tw->old_cred = get_current_cred();
     tw->cb.func = umount_tw_func;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
     int err = task_work_add(current, &tw->cb, TWA_RESUME);
+#else
+    int err = task_work_add(current, &tw->cb, true);
+#endif
     if (err) {
         if (tw->old_cred) {
             put_cred(tw->old_cred);
