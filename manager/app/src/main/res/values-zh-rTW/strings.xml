@@ -579,7 +579,6 @@
     <string name="multi_manager_list">活躍管理器</string>
     <string name="no_active_manager">無活躍管理器</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
-    <string name="default_signature">SukiSU</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 循環路徑</string>
     <string name="susfs_add_sus_loop_path">新增 SuS 循環路徑</string>
@@ -593,9 +592,9 @@
     <string name="susfs_loop_path_label">循環路徑</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 內的路徑才能透過循環路徑新增。</string>
     <string name="susfs_loop_path_invalid_location">錯誤：循環路徑不能位於 /storage/ 或 /sdcard/ 目錄內</string>
-    <!-- 循环路径功能描述 -->
     <string name="loop_paths_section">循環路徑</string>
     <string name="add_loop_path">新增循環路徑</string>
+    <!-- 循环路径功能描述 -->
     <string name="sus_loop_path_feature_label">SuS 循環路徑</string>
     <string name="sus_loop_paths_description_title">循環路徑設定</string>
     <string name="sus_loop_paths_description_text">循環路徑會在每次非 root 使用者應用程式或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決新增的路徑可能因 inode 狀態重設或內核中 inode 重新建立而失效的問題</string>
@@ -616,7 +615,7 @@
     <string name="module_signature_invalid_message">未經簽名的模組可能不完整。為了對設備進行保護，已阻止安裝此模組。</string>
     <string name="module_signature_verification_failed">未經簽名的模組可能不完整。你想安裝來自未知發布者的模組嗎？</string>
     <string name="home_hook_type">鉤子類型</string>
-    <!-- KPM修补相关字符串 -->
+    <!-- KPM patching related strings -->
     <string name="kpm_patch_options">KPM 修補</string>
     <string name="kpm_patch_description">用於新增附加的 KPM 功能</string>
     <string name="enable_kpm_patch">KPM 修補</string>
@@ -627,7 +626,7 @@
     <string name="kpm_undo_patch_enabled">KPM 撤銷修補已啟用</string>
     <string name="kpm_patch_mode">KPM 修補模式</string>
     <string name="kpm_undo_patch_mode">KPM 撤銷修補模式</string>
-    <!-- KPM工作流程相關 -->
+    <!-- KPM workflow related -->
     <string name="kpm_preparing_tools">準備 KPM 修補工具</string>
     <string name="kpm_applying_patch">正在應用 KPM 修補</string>
     <string name="kpm_undoing_patch">正在撤銷 KPM 修補</string>
@@ -635,13 +634,13 @@
     <string name="kpm_patch_success">KPM 修補成功</string>
     <string name="kpm_undo_patch_success">KPM 撤銷修補成功</string>
     <string name="kpm_file_repacked">檔案重新打包完成</string>
-    <!-- KPM錯誤資訊 -->
+    <!-- KPM error messages -->
     <string name="kpm_extract_zip_failed">解壓壓縮檔失敗</string>
     <string name="kpm_image_file_not_found">未找到 Image 檔案</string>
     <string name="kpm_patch_failed">KPM 修補失敗</string>
     <string name="kpm_undo_patch_failed">KPM 撤銷修補失敗</string>
     <string name="kpm_patch_operation_failed">KPM 修補操作失敗: %s</string>
-    <!-- KPM選項單選按鈕組字串 -->
+    <!-- KPM option radio group strings -->
     <string name="kpm_follow_kernel_file">跟隨內核</string>
     <string name="kpm_follow_kernel_description">原樣使用內核，不進行任何 KPM 修改</string>
     <!-- UID Scanner Settings -->
@@ -656,7 +655,7 @@
     <string name="clean_runtime_environment_confirm">您確定要清理執行環境嗎？這將停止掃描服務並刪除相關檔案</string>
     <string name="clean_runtime_environment_success">執行環境清理成功</string>
     <string name="clean_runtime_environment_failed">執行環境清理失敗</string>
-    <!-- 確認安裝相關字串 -->
+    <!-- 确认安装相关字符串 -->
     <string name="confirm_installation">確認安裝</string>
     <string name="confirm_multiple_installation">確認安裝 (%d 個檔案)</string>
     <string name="install_confirm">確認安裝</string>
@@ -672,12 +671,11 @@
     <!-- SUS Map related strings -->
     <string name="susfs_tab_sus_maps">SUS 映射</string>
     <string name="susfs_sus_map_label">庫檔案路徑</string>
-    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
     <string name="susfs_add_sus_map">新增 SUS 映射</string>
     <string name="susfs_edit_sus_map">編輯 SUS 映射</string>
     <string name="susfs_sus_map_added_success">SUS 映射新增成功: %1$s</string>
     <string name="susfs_sus_map_removed">SUS 映射已移除: %1$s</string>
-    <string name="susfs_sus_map_updated">SUS 映射已更新: %1$s -> %2$s</string>
+    <string name="susfs_sus_map_updated">SUS 映射已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">未設定 SUS 映射</string>
     <string name="susfs_reset_sus_maps_title">重設 SUS 映射</string>
     <string name="susfs_reset_sus_maps_message">這將移除所有已設定的 SUS 映射。此操作無法復原。</string>
@@ -686,4 +684,6 @@
     <string name="sus_maps_description_text">從 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隱藏記憶體映射的真實檔案路徑。請注意：此功能不支援隱藏匿名記憶體映射，也無法隱藏由注入庫本身產生的內聯勾子 (Inline Hooks) 或 PLT 勾子 (PLT Hooks)。</string>
     <string name="sus_maps_warning">重要提示：對於具備完善注入偵測機制的應用程式，此功能可能無法有效繞過偵測。</string>
     <string name="sus_maps_debug_info">首先透過 ps -enf 尋找目標應用程式的 PID 和 UID，然後檢查 /proc/&lt;pid&gt;/maps 中的相關路徑，並與 /proc/1/mountinfo 中的裝置號碼進行比對以確保一致性。只有當裝置號碼一致時，隱藏映射才能正常運作。</string>
+    <!-- Log Viewer -->
+    <!-- MiUI Uninstall Desc -->
 </resources>
