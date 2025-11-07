@@ -45,13 +45,11 @@ pub fn ensure_file_exists<T: AsRef<Path>>(file: T) -> Result<()> {
 }
 
 pub fn ensure_dir_exists<T: AsRef<Path>>(dir: T) -> Result<()> {
-    let result = create_dir_all(&dir).map_err(Error::from);
-    if dir.as_ref().is_dir() {
-        result
-    } else if result.is_ok() {
-        bail!("{} is not a regular directory", dir.as_ref().display())
+    let result = create_dir_all(&dir);
+    if dir.as_ref().is_dir() && result.is_err() {
+        Ok(())
     } else {
-        result
+        bail!("{} is not a regular directory", dir.as_ref().display())
     }
 }
 
