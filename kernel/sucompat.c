@@ -189,7 +189,7 @@ int ksu_handle_devpts(struct inode *inode)
 int __ksu_handle_devpts(struct inode *inode)
 {
 #ifndef CONFIG_KSU_KPROBES_HOOK
-	if (!ksu_sucompat_hook_state)
+	if (!ksu_su_compat_enabled)
 		return 0;
 #endif
 

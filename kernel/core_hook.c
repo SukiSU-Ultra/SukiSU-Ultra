@@ -26,6 +26,8 @@
 #ifndef KSU_HAS_PATH_UMOUNT
 #include <linux/syscalls.h> // sys_umount (<4.17) & ksys_umount (4.17+)
 #endif
+#include <linux/binfmts.h>
+#include <linux/err.h>
 
 #include "allowlist.h"
 #include "arch.h"
