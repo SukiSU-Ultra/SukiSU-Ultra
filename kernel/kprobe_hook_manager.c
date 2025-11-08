@@ -1,12 +1,13 @@
-#include <linux/fs.h>
+#include "kprobe_hook_manager.h"
+#include <linux/err.h>
+#include <linux/slab.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/kprobes.h>
 #include <linux/sched.h>
 #include <linux/uidgid.h>
-#include <linux/binfmts.h>
-#include <linux/tty.h>
 
+#include "arch.h"
 #include "klog.h"
 #include "ksud.h"
 
@@ -17,12 +18,6 @@
 #ifdef CONFIG_COMPAT
 bool ksu_is_compat __read_mostly = false;
 #endif
-
-#ifndef DEVPTS_SUPER_MAGIC
-#define DEVPTS_SUPER_MAGIC    0x1cd1
-#endif
-
-extern int __ksu_handle_devpts(struct inode *inode); // sucompat.c
 
 #ifdef CONFIG_KSU_MANUAL_SU
 static void ksu_try_escalate_for_uid(uid_t uid)
@@ -148,7 +143,7 @@ __maybe_unused int ksu_kprobe_exit(void)
     return 0;
 }
 
-void __init ksu_kprobe_hook_init(void)
+void ksu_kprobe_hook_init(void)
 {
     int rc = 0;
 #ifdef CONFIG_KPROBES

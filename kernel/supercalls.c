@@ -28,8 +28,6 @@
 #include "manual_su.h"
 #endif
 
-int ksu_install_fd(void)
-
 bool ksu_uid_scanner_enabled = false;
 
 // Permission check functions

@@ -16,7 +16,10 @@
 #include "sucompat.h"
 #include "app_profile.h"
 #include "syscall_hook_manager.h"
+
+
 #include "sulog.h"
+#include "kprobe_hook_manager.h"
 
 #define SU_PATH "/system/bin/su"
 #define SH_PATH "/system/bin/sh"
@@ -188,7 +191,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     pr_info("do_execveat_common su found\n");
     memcpy((void *)filename->name, sh, sizeof(sh));
 
-    escape_to_root();
+    escape_with_root_profile();
 
     return 0;
 }

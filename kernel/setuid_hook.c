@@ -146,30 +146,6 @@ static void try_umount(const char *mnt, bool check_mnt, int flags)
     ksu_umount_mnt(&path, flags);
 }
 
-struct umount_tw {
-    struct callback_head cb;
-    const struct cred *old_cred;
-};
-
-static void umount_tw_func(struct callback_head *cb)
-{
-    struct umount_tw *tw = container_of(cb, struct umount_tw, cb);
-    const struct cred *saved = NULL;
-    if (tw->old_cred) {
-        saved = override_creds(tw->old_cred);
-    }
-
-    ksu_umount_manager_execute_all(tw->old_cred);
-
-    if (saved)
-        revert_creds(saved);
-
-    if (tw->old_cred)
-        put_cred(tw->old_cred);
-
-    kfree(tw);
-}
-
 int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {
     uid_t new_uid = ruid;
@@ -260,14 +236,9 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
     return 0;
 }
 
-void __init ksu_setuid_hook_init(void)
+void ksu_setuid_hook_init(void)
 {
-    int rc = 0;
     ksu_kernel_umount_init();
-    rc = ksu_umount_manager_init();
-    if (rc) {
-        pr_err("Failed to initialize umount manager: %d\n", rc);
-    }
     if (ksu_register_feature_handler(&enhanced_security_handler)) {
         pr_err("Failed to register enhanced security feature handler\n");
     }
@@ -275,5 +246,7 @@ void __init ksu_setuid_hook_init(void)
 
 void ksu_setuid_hook_exit(void)
 {
+    pr_info("ksu_core_exit\n");
+    ksu_kernel_umount_exit();
     ksu_unregister_feature_handler(KSU_FEATURE_ENHANCED_SECURITY);
 }

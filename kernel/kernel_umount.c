@@ -17,24 +17,6 @@
 #include "feature.h"
 #include "ksud.h"
 
-#include <linux/sched.h>
-#include <linux/slab.h>
-#include <linux/task_work.h>
-#include <linux/cred.h>
-#include <linux/fs.h>
-#include <linux/mount.h>
-#include <linux/namei.h>
-#include <linux/nsproxy.h>
-#include <linux/path.h>
-#include <linux/printk.h>
-#include <linux/types.h>
-
-#include "kernel_umount.h"
-#include "klog.h" // IWYU pragma: keep
-#include "allowlist.h"
-#include "selinux/selinux.h"
-#include "feature.h"
-#include "ksud.h"
 #include "umount_manager.h"
 
 static bool ksu_kernel_umount_enabled = true;
@@ -156,6 +138,8 @@ static inline bool is_unsupported_uid(uid_t uid)
 
 int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 {
+    struct umount_tw *tw;
+
     // this hook is used for umounting overlayfs for some uid, if there isn't any module mounted, just ignore it!
     if (!ksu_module_mounted) {
         return 0;
@@ -208,6 +192,11 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 
 void ksu_kernel_umount_init(void)
 {
+    int rc = 0;
+    rc = ksu_umount_manager_init();
+    if (rc) {
+        pr_err("Failed to initialize umount manager: %d\n", rc);
+    }
     if (ksu_register_feature_handler(&kernel_umount_handler)) {
         pr_err("Failed to register kernel_umount feature handler\n");
     }

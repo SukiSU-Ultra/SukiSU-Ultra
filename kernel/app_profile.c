@@ -13,7 +13,9 @@
 #include "selinux/selinux.h"
 #include "syscall_hook_manager.h"
 #include "sucompat.h"
+
 #include "sulog.h"
+#include "kprobe_hook_manager.h"
 
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION (6, 7, 0)
