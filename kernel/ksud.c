@@ -214,7 +214,11 @@ first_app_process:
         rcu_read_lock();
         init_task = rcu_dereference(current->parent);
         if (init_task) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
             task_work_add(init_task, &on_post_fs_data_cb, TWA_RESUME);
+#else
+            task_work_add(init_task, &on_post_fs_data_cb, true);
+#endif
         }
         rcu_read_unlock();
 

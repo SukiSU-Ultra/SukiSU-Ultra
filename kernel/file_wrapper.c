@@ -249,7 +249,6 @@ static void ksu_wrapper_show_fdinfo(struct seq_file *m, struct file *f) {
 	}
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 static ssize_t ksu_wrapper_copy_file_range(struct file *f1, loff_t off1, struct file *f2,
 		loff_t off2, size_t sz, unsigned int flags) {
 	// TODO: determine which file to use
@@ -261,6 +260,7 @@ static ssize_t ksu_wrapper_copy_file_range(struct file *f1, loff_t off1, struct 
 	return -EINVAL;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 static loff_t ksu_wrapper_remap_file_range(struct file *file_in, loff_t pos_in,
 				struct file *file_out, loff_t pos_out,
 				loff_t len, unsigned int remap_flags) {
@@ -272,29 +272,6 @@ static loff_t ksu_wrapper_remap_file_range(struct file *file_in, loff_t pos_in,
 	}
 	return -EINVAL;
 }
-#else
-static int ksu_wrapper_clone_file_range(struct file *file_in, loff_t pos_in,
-				struct file *file_out, loff_t pos_out, u64 len) {
-	// TODO: determine which file to use
-	struct ksu_file_proxy* data = file_in->private_data;
-	struct file* orig = data->orig;
-	if (orig->f_op->clone_file_range) {
-		return orig->f_op->clone_file_range(orig, pos_in, file_out, pos_out, len);
-	}
-	return -EINVAL;
-}
-
-static ssize_t ksu_wrapper_dedupe_file_range(struct file *src_file, u64 loff,
-				u64 len, struct file *dst_file, u64 dst_loff) {
-	// TODO: determine which file to use
-	struct ksu_file_proxy* data = src_file->private_data;
-	struct file* orig = data->orig;
-	if (orig->f_op->dedupe_file_range) {
-		return orig->f_op->dedupe_file_range(orig, loff, len, dst_file, dst_loff);
-	}
-	return -EINVAL;
-}
-#endif
 
 static int ksu_wrapper_fadvise(struct file *fp, loff_t off1, loff_t off2, int flags) {
 	struct ksu_file_wrapper* data = fp->private_data;
@@ -304,6 +281,27 @@ static int ksu_wrapper_fadvise(struct file *fp, loff_t off1, loff_t off2, int fl
 	}
 	return -EINVAL;
 }
+#else
+static int ksu_wrapper_clone_file_range(struct file *file_in, loff_t pos_in,
+				struct file *file_out, loff_t pos_out, u64 len) {
+	struct ksu_file_wrapper* data = file_in->private_data;
+	struct file* orig = data->orig;
+	if (orig->f_op->clone_file_range) {
+		return orig->f_op->clone_file_range(orig, pos_in, file_out, pos_out, len);
+	}
+	return -EINVAL;
+}
+
+static ssize_t ksu_wrapper_dedupe_file_range(struct file *src_file, u64 loff,
+				u64 len, struct file *dst_file, u64 dst_loff) {
+	struct ksu_file_wrapper* data = src_file->private_data;
+	struct file* orig = data->orig;
+	if (orig->f_op->dedupe_file_range) {
+		return orig->f_op->dedupe_file_range(orig, loff, len, dst_file, dst_loff);
+	}
+	return -EINVAL;
+}
+#endif
 
 static int ksu_wrapper_release(struct inode *inode, struct file *filp) {
 	ksu_delete_file_wrapper(filp->private_data);
