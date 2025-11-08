@@ -44,10 +44,6 @@ static const struct ksu_feature_handler su_compat_handler = {
     .set_handler = su_compat_feature_set,
 };
 
-#ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
-static bool ksu_sucompat_hook_state __read_mostly = true;
-#endif
-
 static void __user *userspace_stack_buffer(const void *d, size_t len)
 {
     /* To avoid having to mmap a page in userspace, just write below the stack
@@ -77,7 +73,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
     const char su[] = SU_PATH;
 
 #ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
-    if (!ksu_sucompat_hook_state) {
+    if (!ksu_su_compat_enabled) {
         return 0;
     }
 #endif
@@ -107,7 +103,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
     const char su[] = SU_PATH;
 
 #ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
-    if (!ksu_sucompat_hook_state) {
+    if (!ksu_su_compat_enabled) {
          return 0;
      }
 #endif
@@ -159,7 +155,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     const char su[] = SU_PATH;
 
 #ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
-    if (!ksu_sucompat_hook_state) {
+    if (!ksu_su_compat_enabled) {
          return 0;
      }
 #endif
@@ -211,7 +207,7 @@ int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user,
     char path[sizeof(su) + 1];
 
 #ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
-    if (!ksu_sucompat_hook_state){
+    if (!ksu_su_compat_enabled){
          return 0;
      }
 #endif
@@ -250,7 +246,7 @@ int __ksu_handle_devpts(struct inode *inode)
 {
 
 #ifndef KSU_HAVE_SYSCALL_TRACEPOINTS_HOOK
-    if (!ksu_sucompat_hook_state)
+    if (!ksu_su_compat_enabled)
         return 0;
 #endif
 

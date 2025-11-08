@@ -13,12 +13,32 @@
 #include "ksud.h"
 #include "supercalls.h"
 
+#include "sulog.h"
+#include "throne_comm.h"
+#include "dynamic_manager.h"
+#include "kprobe_hook_manager.h"
 
 static struct workqueue_struct *ksu_workqueue;
 
 bool ksu_queue_work(struct work_struct *work)
 {
     return queue_work(ksu_workqueue, work);
+}
+
+void sukisu_custom_config_init(void)
+{
+    ksu_kprobe_hook_init();
+}
+
+void sukisu_custom_config_exit(void)
+{
+    ksu_kprobe_hook_exit();
+    ksu_uid_exit();
+    ksu_throne_comm_exit();
+    ksu_dynamic_manager_exit();
+#if __SULOG_GATE
+    ksu_sulog_exit();
+#endif
 }
 
 int __init kernelsu_init(void)
@@ -36,6 +56,8 @@ int __init kernelsu_init(void)
     ksu_feature_init();
 
     ksu_supercalls_init();
+
+    sukisu_custom_config_init();
 
     ksu_syscall_hook_manager_init();
 
@@ -75,6 +97,8 @@ void kernelsu_exit(void)
 #endif
 
     ksu_syscall_hook_manager_exit();
+
+    sukisu_custom_config_exit();
 
     ksu_supercalls_exit();
     
