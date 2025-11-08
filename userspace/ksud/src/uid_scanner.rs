@@ -5,21 +5,20 @@ use std::{
         fs::{PermissionsExt, symlink},
         process::CommandExt,
     },
-    path::Path,
     process::{Command, Stdio},
 };
 
 use anyhow::Result;
 use log::{info, warn};
 
-pub fn start_uid_scanner_daemon() -> Result<()> {
-    const SCANNER_PATH: &str = "/data/adb/uid_scanner";
-    const LINK_DIR: &str = "/data/adb/ksu/bin";
-    const LINK_PATH: &str = "/data/adb/ksu/bin/uid_scanner";
-    const SERVICE_DIR: &str = "/data/adb/service.d";
-    const SERVICE_PATH: &str = "/data/adb/service.d/uid_scanner.sh";
+const SCANNER_PATH: &str = "/data/adb/uid_scanner";
+const LINK_DIR: &str = "/data/adb/ksu/bin";
+const LINK_PATH: &str = "/data/adb/ksu/bin/uid_scanner";
+const SERVICE_DIR: &str = "/data/adb/service.d";
+const SERVICE_PATH: &str = "/data/adb/service.d/uid_scanner.sh";
 
-    if !Path::new(SCANNER_PATH).exists() {
+pub fn start_uid_scanner_daemon() -> Result<()> {
+    if !fs::exists(SCANNER_PATH)? {
         warn!("uid scanner binary not found at {}", SCANNER_PATH);
         return Ok(());
     }
@@ -32,7 +31,7 @@ pub fn start_uid_scanner_daemon() -> Result<()> {
     {
         if let Err(e) = fs::create_dir_all(LINK_DIR) {
             warn!("failed to create {}: {}", LINK_DIR, e);
-        } else if !Path::new(LINK_PATH).exists() {
+        } else if !fs::exists(LINK_PATH)? {
             match symlink(SCANNER_PATH, LINK_PATH) {
                 Ok(_) => info!("created symlink {} -> {}", SCANNER_PATH, LINK_PATH),
                 Err(e) => warn!("failed to create symlink: {}", e),
@@ -42,13 +41,11 @@ pub fn start_uid_scanner_daemon() -> Result<()> {
 
     if let Err(e) = fs::create_dir_all(SERVICE_DIR) {
         warn!("failed to create {}: {}", SERVICE_DIR, e);
-    } else if !Path::new(SERVICE_PATH).exists() {
-        let content = r#"#!/system/bin/sh
-# KSU uid_scanner auto-restart script
-until [ -d "/sdcard/Android" ]; do sleep 1; done
-sleep 10
-/data/adb/uid_scanner restart
-"#;
+    }
+
+    if !fs::exists(SERVICE_PATH)? {
+        let content = include_str!("uid_scanner.sh");
+
         match fs::OpenOptions::new()
             .write(true)
             .create_new(true)
