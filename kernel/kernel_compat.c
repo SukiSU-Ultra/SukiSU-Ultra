@@ -241,6 +241,7 @@ long ksu_copy_from_user_nofault(void *dst, const void __user *src, size_t size)
 #endif
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
 struct action_cache {
     DECLARE_BITMAP(allow_native, NR_syscalls);
 #ifdef SECCOMP_ARCH_COMPAT
@@ -296,3 +297,4 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
     }
 #endif
 }
+#endif

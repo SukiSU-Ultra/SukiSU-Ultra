@@ -80,7 +80,9 @@ static long ksu_copy_from_user_retry(void *to,
 #define ksu_access_ok(addr, size)    access_ok(VERIFY_READ, addr, size)
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
 extern void ksu_seccomp_clear_cache(struct seccomp_filter *filter, int nr);
 extern void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr);
+#endif
 
 #endif
