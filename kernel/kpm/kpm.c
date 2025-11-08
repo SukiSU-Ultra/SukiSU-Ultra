@@ -126,36 +126,36 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
 {
     int res = -1;
     if (control_code == SUKISU_KPM_LOAD) {
-        char kernel_load_path[256] = { 0 };
-        char kernel_args_buffer[256] = { 0 };
+        char kernel_load_path[256];
+        char kernel_args_buffer[256];
 
         if (arg1 == 0) {
             res = -EINVAL;
             goto exit;
         }
         
-        strncpy_from_user((char *)&kernel_load_path, (const char *)arg1, 255);
+        strncpy_from_user((char *)&kernel_load_path, (const char *)arg1, sizeof(kernel_load_path));
         
         if (arg2 != 0)
-            strncpy_from_user((char *)&kernel_args_buffer, (const char *)arg2, 255);
+            strncpy_from_user((char *)&kernel_args_buffer, (const char *)arg2, sizeof(kernel_args_buffer));
 
         sukisu_kpm_load_module_path((const char *)&kernel_load_path,
                         (const char *)&kernel_args_buffer, NULL, &res);
     } else if (control_code == SUKISU_KPM_UNLOAD) {
-        char kernel_name_buffer[256] = { 0 };
+        char kernel_name_buffer[256];
 
         if (arg1 == 0) {
             res = -EINVAL;
             goto exit;
         }
         
-        strncpy_from_user((char *)&kernel_name_buffer, (const char *)arg1, 255);
+        strncpy_from_user((char *)&kernel_name_buffer, (const char *)arg1, sizeof(kernel_name_buffer));
         
         sukisu_kpm_unload_module((const char *)&kernel_name_buffer, NULL, &res);
     } else if (control_code == SUKISU_KPM_NUM) {
         sukisu_kpm_num(&res);
     } else if (control_code == SUKISU_KPM_INFO) {
-        char kernel_name_buffer[256] = { 0 };
+        char kernel_name_buffer[256];
         char buf[256];
         int size;
 
@@ -164,14 +164,14 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
             goto exit;
         }
         
-        strncpy_from_user((char *)&kernel_name_buffer, (const char __user *)arg1, 255);
+        strncpy_from_user((char *)&kernel_name_buffer, (const char __user *)arg1, sizeof(kernel_name_buffer));
         
         sukisu_kpm_info((const char *)&kernel_name_buffer, (char *)&buf, sizeof(buf), &size);
 
         res = copy_to_user(arg2, &buf, size);
 
     } else if (control_code == SUKISU_KPM_LIST) {
-        char buf[4096];
+        char buf[1024];
         int len = (int) arg2;
 
         if (len <= 0) {
