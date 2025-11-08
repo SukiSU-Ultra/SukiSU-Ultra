@@ -10,6 +10,7 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
+#include "arch.h"
 #include "allowlist.h"
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
@@ -26,6 +27,8 @@
 #ifdef CONFIG_KSU_MANUAL_SU
 #include "manual_su.h"
 #endif
+
+int ksu_install_fd(void)
 
 bool ksu_uid_scanner_enabled = false;
 
@@ -670,6 +673,52 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL} // Sentine
 };
 
+// downstream: make sure to pass arg as reference, this can allow us to extend things.
+int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg)
+{
+
+    if (magic1 != KSU_INSTALL_MAGIC1)
+        return 0;
+
+#ifdef CONFIG_KSU_DEBUG
+    pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1, magic2);
+#endif
+
+    // Check if this is a request to install KSU fd
+    if (magic2 == KSU_INSTALL_MAGIC2) {
+        int fd = ksu_install_fd();
+        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
+
+        // downstream: dereference all arg usage!
+        if (copy_to_user((void __user *)*arg, &fd, sizeof(fd))) {
+            pr_err("install ksu fd reply err\n");
+        }
+
+        return 0;
+    }
+
+    // extensions
+
+    return 0;
+}
+
+// Reboot hook for installing fd
+static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+    struct pt_regs *real_regs = PT_REAL_REGS(regs);
+    int magic1 = (int)PT_REGS_PARM1(real_regs);
+    int magic2 = (int)PT_REGS_PARM2(real_regs);
+    int cmd = (int)PT_REGS_PARM3(real_regs);
+    void __user **arg = (void __user **)&PT_REGS_SYSCALL_PARM4(real_regs);
+
+    return ksu_handle_sys_reboot(magic1, magic2, cmd, arg);
+}
+
+static struct kprobe reboot_kp = {
+    .symbol_name = REBOOT_SYMBOL,
+    .pre_handler = reboot_handler_pre,
+};
+
 void ksu_supercalls_init(void)
 {
     int i;
@@ -678,6 +727,17 @@ void ksu_supercalls_init(void)
     for (i = 0; ksu_ioctl_handlers[i].handler; i++) {
         pr_info("  %-18s = 0x%08x\n", ksu_ioctl_handlers[i].name, ksu_ioctl_handlers[i].cmd);
     }
+
+    int rc = register_kprobe(&reboot_kp);
+    if (rc) {
+        pr_err("reboot kprobe failed: %d\n", rc);
+    } else {
+        pr_info("reboot kprobe registered successfully\n");
+    }
+}
+
+void ksu_supercalls_exit(void){
+    unregister_kprobe(&reboot_kp);
 }
 
 static inline void ksu_ioctl_audit(unsigned int cmd, const char *cmd_name, uid_t uid, int ret)

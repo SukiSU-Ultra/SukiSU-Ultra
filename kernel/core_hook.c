@@ -363,54 +363,6 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
     return 0;
 }
 
-// downstream: make sure to pass arg as reference, this can allow us to extend things.
-int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg)
-{
-
-    if (magic1 != KSU_INSTALL_MAGIC1)
-        return 0;
-
-#ifdef CONFIG_KSU_DEBUG
-    pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1, magic2);
-#endif
-
-    // Check if this is a request to install KSU fd
-    if (magic2 == KSU_INSTALL_MAGIC2) {
-        int fd = ksu_install_fd();
-        pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
-
-        // downstream: dereference all arg usage!
-        if (copy_to_user((void __user *)*arg, &fd, sizeof(fd))) {
-            pr_err("install ksu fd reply err\n");
-        }
-
-        return 0;
-    }
-
-    // extensions
-
-    return 0;
-}
-
-// Init functons - kprobe hooks
-
-// 1. Reboot hook for installing fd
-static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
-{
-    struct pt_regs *real_regs = PT_REAL_REGS(regs);
-    int magic1 = (int)PT_REGS_PARM1(real_regs);
-    int magic2 = (int)PT_REGS_PARM2(real_regs);
-    int cmd = (int)PT_REGS_PARM3(real_regs);
-    void __user **arg = (void __user **)&PT_REGS_SYSCALL_PARM4(real_regs);
-
-    return ksu_handle_sys_reboot(magic1, magic2, cmd, arg);
-}
-
-static struct kprobe reboot_kp = {
-    .symbol_name = REBOOT_SYMBOL,
-    .pre_handler = reboot_handler_pre,
-};
-
 // 2. cap_task_fix_setuid hook for handling setuid
 static int cap_task_fix_setuid_handler_pre(struct kprobe *p,
                                            struct pt_regs *regs)
@@ -501,15 +453,6 @@ static struct kprobe ksu_task_alloc_kp = {
 __maybe_unused int ksu_kprobe_init(void)
 {
     int rc = 0;
-
-    // Register reboot kprobe
-    rc = register_kprobe(&reboot_kp);
-    if (rc) {
-        pr_err("reboot kprobe failed: %d\n", rc);
-    } else {
-        pr_info("reboot kprobe registered successfully\n");
-    }
-
     rc = register_kprobe(&cap_task_fix_setuid_kp);
     if (rc) {
         pr_err("cap_task_fix_setuid kprobe failed: %d\n", rc);
@@ -549,7 +492,6 @@ __maybe_unused int ksu_kprobe_init(void)
 
 __maybe_unused int ksu_kprobe_exit(void)
 {
-    unregister_kprobe(&reboot_kp);
     unregister_kprobe(&cap_task_fix_setuid_kp);
     unregister_kprobe(&ksu_inode_permission_kp);
     unregister_kprobe(&ksu_bprm_check_kp);
