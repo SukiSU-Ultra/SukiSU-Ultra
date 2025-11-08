@@ -25,7 +25,7 @@
 
 #include "kernel_compat.h"
 #include "selinux/selinux.h"
-#include "hook_manager.h"
+#include "syscall_hook_manager.h"
 
 bool ksu_module_mounted __read_mostly = false;
 

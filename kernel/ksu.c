@@ -9,7 +9,7 @@
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
 #include "throne_tracker.h"
-#include "hook_manager.h"
+#include "syscall_hook_manager.h"
 #include "ksud.h"
 #include "supercalls.h"
 
@@ -37,7 +37,7 @@ int __init kernelsu_init(void)
 
     ksu_supercalls_init();
 
-    ksu_hook_manager_init();
+    ksu_syscall_hook_manager_init();
 
     ksu_workqueue = alloc_ordered_workqueue("kernelsu_work_queue", 0);
 
@@ -74,7 +74,7 @@ void kernelsu_exit(void)
     ksu_ksud_exit();
 #endif
 
-    ksu_hook_manager_exit();
+    ksu_syscall_hook_manager_exit();
 
     ksu_supercalls_exit();
     
