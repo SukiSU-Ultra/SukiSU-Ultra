@@ -1,18 +1,20 @@
+use crate::{
+    defs,
+    ksucalls::proxy_file,
+    utils::{self, umask},
+};
+use anyhow::{Context, Ok, Result, bail};
+use getopts::Options;
+use libc::c_int;
+use log::{error, warn};
 #[cfg(unix)]
 use std::os::unix::process::CommandExt;
 use std::{env, ffi::CStr, path::PathBuf, process::Command};
 
-use anyhow::{Ok, Result};
-use getopts::Options;
 #[cfg(any(target_os = "linux", target_os = "android"))]
 use rustix::{
     process::getuid,
     thread::{Gid, Uid, set_thread_res_gid, set_thread_res_uid},
-};
-
-use crate::{
-    defs,
-    utils::{self, umask},
 };
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -59,6 +61,29 @@ fn set_identity(uid: u32, gid: u32, groups: &[u32]) {
         let uid = unsafe { Uid::from_raw(uid) };
         set_thread_res_gid(gid, gid, gid).ok();
         set_thread_res_uid(uid, uid, uid).ok();
+    }
+}
+
+#[cfg(target_os = "android")]
+fn wrap_tty(fd: c_int) {
+    let inner_fn = move || -> Result<()> {
+        if unsafe { libc::isatty(fd) != 1 } {
+            warn!("not a tty: {fd}");
+            return Ok(());
+        }
+        let new_fd = proxy_file(fd).context("proxy_file")?;
+        if unsafe { libc::dup2(new_fd, fd) } == -1 {
+            bail!("dup {new_fd} -> {fd} errno: {}", unsafe {
+                *libc::__errno()
+            });
+        } else {
+            unsafe { libc::close(new_fd) };
+            Ok(())
+        }
+    };
+
+    if let Err(e) = inner_fn() {
+        error!("wrap tty {fd}: {e:?}");
     }
 }
 
@@ -261,6 +286,13 @@ pub fn root_shell() -> Result<()> {
             #[cfg(any(target_os = "linux", target_os = "android"))]
             if mount_master {
                 let _ = utils::switch_mnt_ns(1);
+            }
+
+            #[cfg(target_os = "android")]
+            if true {
+                wrap_tty(0);
+                wrap_tty(1);
+                wrap_tty(2);
             }
 
             set_identity(uid, gid, &groups);

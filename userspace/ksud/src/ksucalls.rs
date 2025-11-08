@@ -15,8 +15,11 @@ const KSU_IOCTL_SET_SEPOLICY: u32 = 0xc0004b04; // _IOC(_IOC_READ|_IOC_WRITE, 'K
 const KSU_IOCTL_CHECK_SAFEMODE: u32 = 0x80004b05; // _IOC(_IOC_READ, 'K', 5, 0)
 const KSU_IOCTL_GET_FEATURE: u32 = 0xc0004b0d; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 13, 0)
 const KSU_IOCTL_SET_FEATURE: u32 = 0x40004b0e; // _IOC(_IOC_WRITE, 'K', 14, 0)
+const KSU_IOCTL_PROXY_FILE: u32 = 0x00004b0f; // _IOC(_IOC_NONE, 'K', 15, 0)
 #[allow(dead_code)]
 const KSU_IOCTL_KPM: u32 = 0xc0004bc8; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
+#[allow(dead_code)]
+const KSU_IOCTL_UMOUNT_MANAGER: u32 = 0xc0004b6b; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -56,6 +59,13 @@ struct GetFeatureCmd {
 struct SetFeatureCmd {
     feature_id: u32,
     value: u64,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct ProxyFileCmd {
+    fd: i32,
+    flags: u32,
 }
 
 // Global driver fd cache
@@ -223,18 +233,64 @@ pub fn set_feature(feature_id: u32, value: u64) -> std::io::Result<()> {
     Ok(())
 }
 
+pub fn proxy_file(fd: RawFd) -> std::io::Result<RawFd> {
+    let mut cmd = ProxyFileCmd { fd, flags: 0 };
+    let result = ksuctl(KSU_IOCTL_PROXY_FILE, &mut cmd as *mut _)?;
+    Ok(result)
+}
+
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 #[allow(dead_code)]
 pub struct KsuKpmCmd {
+    pub control_code: u64,
+    pub arg1: u64,
     pub arg2: u64,
-    pub arg3: u64,
-    pub arg4: u64,
-    pub arg5: u64,
+    pub result_code: u64,
 }
 
 #[allow(dead_code)]
 pub fn kpm_ioctl(cmd: &mut KsuKpmCmd) -> std::io::Result<()> {
     ksuctl(KSU_IOCTL_KPM, cmd as *mut _)?;
     Ok(())
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+#[allow(dead_code)]
+pub struct UmountManagerCmd {
+    pub operation: u32,
+    pub path: [u8; 256],
+    pub check_mnt: u8,
+    pub flags: i32,
+    pub count: u32,
+    pub entries_ptr: u64,
+}
+
+#[allow(dead_code)]
+impl Default for UmountManagerCmd {
+    fn default() -> Self {
+        UmountManagerCmd {
+            operation: 0,
+            path: [0; 256],
+            check_mnt: 0,
+            flags: 0,
+            count: 0,
+            entries_ptr: 0,
+        }
+    }
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
+#[allow(dead_code)]
+pub fn umount_manager_ioctl(cmd: &UmountManagerCmd) -> std::io::Result<()> {
+    let mut ioctl_cmd = *cmd;
+    ksuctl(KSU_IOCTL_UMOUNT_MANAGER, &mut ioctl_cmd as *mut _)?;
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+#[allow(dead_code)]
+pub fn umount_manager_ioctl(_cmd: &UmountManagerCmd) -> std::io::Result<()> {
+    Err(std::io::Error::from_raw_os_error(libc::ENOSYS))
 }

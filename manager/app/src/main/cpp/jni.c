@@ -310,6 +310,14 @@ NativeBridge(setKernelUmountEnabled, jboolean, jboolean enabled) {
     return set_kernel_umount_enabled(enabled);
 }
 
+NativeBridgeNP(isEnhancedSecurityEnabled, jboolean) {
+    return is_enhanced_security_enabled();
+}
+
+NativeBridge(setEnhancedSecurityEnabled, jboolean, jboolean enabled) {
+    return set_enhanced_security_enabled(enabled);
+}
+
 // Check if KPM is enabled
 NativeBridgeNP(isKPMEnabled, jboolean) {
 	return is_KPM_enable();

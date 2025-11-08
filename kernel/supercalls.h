@@ -77,6 +77,11 @@ struct ksu_set_feature_cmd {
     __u64 value; // Input: feature value/state to set
 };
 
+struct ksu_proxy_file_cmd {
+    __u32 fd;
+    __u32 flags; // CLOEXEC
+};
+
 // Other command structures
 struct ksu_get_full_version_cmd {
     char version_full[KSU_FULL_VERSION_STRING]; // Output: full version string
@@ -128,6 +133,7 @@ struct ksu_manual_su_cmd {
 #define KSU_IOCTL_SET_APP_PROFILE _IOC(_IOC_WRITE, 'K', 12, 0)
 #define KSU_IOCTL_GET_FEATURE _IOC(_IOC_READ|_IOC_WRITE, 'K', 13, 0)
 #define KSU_IOCTL_SET_FEATURE _IOC(_IOC_WRITE, 'K', 14, 0)
+#define KSU_IOCTL_PROXY_FILE _IOC(_IOC_NONE, 'K', 15, 0)
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE _IOC(_IOC_READ, 'K', 101, 0)
@@ -138,6 +144,7 @@ struct ksu_manual_su_cmd {
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ|_IOC_WRITE, 'K', 106, 0)
 #endif
+#define KSU_IOCTL_UMOUNT_MANAGER _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);

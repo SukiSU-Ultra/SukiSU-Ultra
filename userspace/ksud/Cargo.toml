@@ -46,6 +46,7 @@ tempfile = "3"
 chrono = "0.4"
 regex-lite = "0.1"
 fs4 = "0.13"
+serde = { version = "1.0", features = ["derive"] }
 
 [target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]
 rustix = { git = "https://github.com/Kernel-SU/rustix.git", branch = "main", features = [

@@ -2,15 +2,15 @@
 accompanist-drawablepainter = "0.37.3"
 agp = "8.13.0"
 gson = "2.13.2"
-kotlin = "2.2.20"
-ksp = "2.2.20-2.0.2"
-compose-bom = "2025.09.01"
+kotlin = "2.2.21"
+ksp = "2.2.21-2.0.4"
+compose-bom = "2025.11.00"
 lifecycle = "2.9.4"
-navigation = "2.9.5"
+navigation = "2.9.6"
 activity-compose = "1.11.0"
 kotlinx-coroutines = "1.10.2"
 coil-compose = "2.7.0"
-compose-destination = "2.2.0"
+compose-destination = "2.3.0"
 sheets-compose-dialogs = "1.3.0"
 markdown = "4.6.2"
 webkit = "1.14.0"
@@ -19,11 +19,13 @@ parcelablelist = "2.0.1"
 libsu = "6.0.0"
 apksign = "1.4"
 cmaker = "1.2"
-compose-material = "1.9.2"
+compose-material = "1.9.4"
 compose-material3 = "1.4.0"
-compose-ui = "1.9.2"
+compose-ui = "1.9.4"
 documentfile = "1.1.0"
 mmrl = "2bb00b3c2b"
+ndk = "29.0.13599879-beta2"
+foundation = "1.9.4"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -81,7 +83,7 @@ sheet-compose-dialogs-input = { group = "com.maxkeppeler.sheets-compose-dialogs"
 
 markdown = { group = "io.noties.markwon", name = "core", version.ref = "markdown" }
 
-lsposed-cxx = { module = "org.lsposed.libcxx:libcxx", version = "29.0.13599879-beta2" }
+lsposed-cxx = { module = "org.lsposed.libcxx:libcxx", version.ref = "ndk" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 
@@ -89,3 +91,4 @@ mmrl-webui = { group = "com.github.MMRLApp.MMRL", name = "webui", version.ref = 
 mmrl-platform = { group = "com.github.MMRLApp.MMRL", name = "platform", version.ref = "mmrl" }
 mmrl-ui = { group = "com.github.MMRLApp.MMRL", name = "ui", version.ref = "mmrl" }
 mmrl-hidden-api = { group = "com.github.MMRLApp.MMRL", name = "hidden-api", version.ref = "mmrl" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }

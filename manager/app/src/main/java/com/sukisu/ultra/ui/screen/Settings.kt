@@ -11,13 +11,18 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.EnhancedEncryption
 import androidx.compose.material.icons.rounded.FolderDelete
+import androidx.compose.material.icons.rounded.RemoveCircle
+import androidx.compose.material.icons.rounded.RemoveModerator
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,6 +44,7 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.LogViewerScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.UmountManagerScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.MoreSettingsScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.BuildConfig
@@ -130,60 +136,153 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             }
                         )
 
-                        // 卸载模块开关
-                        var umountChecked by rememberSaveable {
-                            mutableStateOf(Natives.isDefaultUmountModules())
-                        }
-
-                        SwitchItem(
-                            icon = Icons.Filled.FolderDelete,
-                            title = stringResource(R.string.settings_umount_modules_default),
-                            summary = stringResource(R.string.settings_umount_modules_default_summary),
-                            checked = umountChecked,
-                            onCheckedChange = { enabled ->
-                                if (Natives.setDefaultUmountModules(enabled)) {
-                                    umountChecked = enabled
-                                }
-                            }
+                        val modeItems = listOf(
+                            stringResource(id = R.string.settings_mode_default),
+                            stringResource(id = R.string.settings_mode_temp_enable),
+                            stringResource(id = R.string.settings_mode_always_enable),
                         )
-
-                        // SU 禁用开关
-                        var isSuDisabled by rememberSaveable {
-                            mutableStateOf(!Natives.isSuEnabled())
-                        }
-
-                        SwitchItem(
-                            icon = Icons.Filled.RemoveModerator,
-                            title = stringResource(R.string.settings_disable_su),
-                            summary = stringResource(R.string.settings_disable_su_summary),
-                            checked = isSuDisabled,
-                            onCheckedChange = { enabled ->
-                                val shouldEnable = !enabled
-                                if (Natives.setSuEnabled(shouldEnable)) {
-                                    isSuDisabled = enabled
-                                }
-                            }
-                        )
-
-                        // 禁用内核卸载开关
-                        if (Natives.version >= Natives.MINIMAL_NEW_IOCTL_KERNEL) {
-                            var isKernelUmountDisabled by rememberSaveable {
-                                mutableStateOf(!Natives.isKernelUmountEnabled())
-                            }
-
-                            SwitchItem(
-                                icon = Icons.Rounded.FolderDelete,
-                                title = stringResource(id = R.string.settings_disable_kernel_umount),
-                                summary = stringResource(id = R.string.settings_disable_kernel_umount_summary),
-                                checked = isKernelUmountDisabled,
-                                onCheckedChange = { checked: Boolean ->
-                                    val shouldEnable = !checked
-                                    if (Natives.setKernelUmountEnabled(shouldEnable)) {
-                                        isKernelUmountDisabled = !shouldEnable
-                                    }
+                        var enhancedSecurityMode by rememberSaveable {
+                            mutableIntStateOf(
+                                run {
+                                    val currentEnabled = Natives.isEnhancedSecurityEnabled()
+                                    val savedPersist = prefs.getInt("enhanced_security_mode", 0)
+                                    if (savedPersist == 2) 2 else if (currentEnabled) 1 else 0
                                 }
                             )
                         }
+                        SettingDropdown(
+                            icon = Icons.Rounded.EnhancedEncryption,
+                            title = stringResource(id = R.string.settings_enable_enhanced_security),
+                            summary = stringResource(id = R.string.settings_enable_enhanced_security_summary),
+                            items = modeItems,
+                            selectedIndex = enhancedSecurityMode,
+                            onSelectedIndexChange = { index ->
+                                when (index) {
+                                    // Default: disable and save to persist
+                                    0 -> if (Natives.setEnhancedSecurityEnabled(false)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("enhanced_security_mode", 0) }
+                                        enhancedSecurityMode = 0
+                                    }
+
+                                    // Temporarily enable: save disabled state first, then enable
+                                    1 -> if (Natives.setEnhancedSecurityEnabled(false)) {
+                                        execKsud("feature save", true)
+                                        if (Natives.setEnhancedSecurityEnabled(true)) {
+                                            prefs.edit { putInt("enhanced_security_mode", 0) }
+                                            enhancedSecurityMode = 1
+                                        }
+                                    }
+
+                                    // Permanently enable: enable and save
+                                    2 -> if (Natives.setEnhancedSecurityEnabled(true)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("enhanced_security_mode", 2) }
+                                        enhancedSecurityMode = 2
+                                    }
+                                }
+                            }
+                        )
+
+                        var suCompatMode by rememberSaveable {
+                            mutableIntStateOf(
+                                run {
+                                    val currentEnabled = Natives.isSuEnabled()
+                                    val savedPersist = prefs.getInt("su_compat_mode", 0)
+                                    if (savedPersist == 2) 2 else if (!currentEnabled) 1 else 0
+                                }
+                            )
+                        }
+                        SettingDropdown(
+                            icon = Icons.Rounded.RemoveModerator,
+                            title = stringResource(id = R.string.settings_disable_su),
+                            summary = stringResource(id = R.string.settings_disable_su_summary),
+                            items = modeItems,
+                            selectedIndex = suCompatMode,
+                            onSelectedIndexChange = { index ->
+                                when (index) {
+                                    // Default: enable and save to persist
+                                    0 -> if (Natives.setSuEnabled(true)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("su_compat_mode", 0) }
+                                        suCompatMode = 0
+                                    }
+
+                                    // Temporarily disable: save enabled state first, then disable
+                                    1 -> if (Natives.setSuEnabled(true)) {
+                                        execKsud("feature save", true)
+                                        if (Natives.setSuEnabled(false)) {
+                                            prefs.edit { putInt("su_compat_mode", 0) }
+                                            suCompatMode = 1
+                                        }
+                                    }
+
+                                    // Permanently disable: disable and save
+                                    2 -> if (Natives.setSuEnabled(false)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("su_compat_mode", 2) }
+                                        suCompatMode = 2
+                                    }
+                                }
+                            }
+                        )
+
+                        var kernelUmountMode by rememberSaveable {
+                            mutableIntStateOf(
+                                run {
+                                    val currentEnabled = Natives.isKernelUmountEnabled()
+                                    val savedPersist = prefs.getInt("kernel_umount_mode", 0)
+                                    if (savedPersist == 2) 2 else if (!currentEnabled) 1 else 0
+                                }
+                            )
+                        }
+                        SettingDropdown(
+                            icon = Icons.Rounded.RemoveCircle,
+                            title = stringResource(id = R.string.settings_disable_kernel_umount),
+                            summary = stringResource(id = R.string.settings_disable_kernel_umount_summary),
+                            items = modeItems,
+                            selectedIndex = kernelUmountMode,
+                            onSelectedIndexChange = { index ->
+                                when (index) {
+                                    // Default: enable and save to persist
+                                    0 -> if (Natives.setKernelUmountEnabled(true)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("kernel_umount_mode", 0) }
+                                        kernelUmountMode = 0
+                                    }
+
+                                    // Temporarily disable: save enabled state first, then disable
+                                    1 -> if (Natives.setKernelUmountEnabled(true)) {
+                                        execKsud("feature save", true)
+                                        if (Natives.setKernelUmountEnabled(false)) {
+                                            prefs.edit { putInt("kernel_umount_mode", 0) }
+                                            kernelUmountMode = 1
+                                        }
+                                    }
+
+                                    // Permanently disable: disable and save
+                                    2 -> if (Natives.setKernelUmountEnabled(false)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("kernel_umount_mode", 2) }
+                                        kernelUmountMode = 2
+                                    }
+                                }
+                            }
+                        )
+
+                        // 卸载模块开关
+                        var umountChecked by rememberSaveable { mutableStateOf(Natives.isDefaultUmountModules()) }
+                        SwitchItem(
+                            icon = Icons.Rounded.FolderDelete,
+                            title = stringResource(id = R.string.settings_umount_modules_default),
+                            summary = stringResource(id = R.string.settings_umount_modules_default_summary),
+                            checked = umountChecked,
+                            onCheckedChange = {
+                                if (Natives.setDefaultUmountModules(it)) {
+                                    umountChecked = it
+                                }
+                            }
+                        )
 
 
                         // 强制签名验证开关
@@ -313,6 +412,19 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             }
                         )
                     }
+                    val lkmMode = Natives.isLkmMode
+                    KsuIsValid {
+                        if (lkmMode) {
+                            SettingItem(
+                                icon = Icons.Filled.FolderOff,
+                                title = stringResource(R.string.umount_path_manager),
+                                summary = stringResource(R.string.umount_path_manager_summary),
+                                onClick = {
+                                    navigator.navigate(UmountManagerScreenDestination)
+                                }
+                            )
+                        }
+                    }
 
                     if (showBottomsheet) {
                         LogBottomSheet(
@@ -355,8 +467,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             }
                         )
                     }
-
-                    val lkmMode = Natives.isLkmMode
                     if (lkmMode) {
                         UninstallItem(navigator) {
                             loadingDialog.withLoading(it)
@@ -962,6 +1072,106 @@ private fun UidScannerSection(
                             )
                         }
                     }
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingDropdown(
+    icon: ImageVector,
+    title: String,
+    summary: String,
+    items: List<String>,
+    selectedIndex: Int,
+    leftAction: (@Composable () -> Unit)? = null,
+    onSelectedIndexChange: (Int) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val selectedItemText = items.getOrNull(selectedIndex) ?: ""
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDialog = true }
+            .padding(horizontal = SPACING_LARGE, vertical = 12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        if (leftAction != null) {
+            leftAction()
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(end = SPACING_LARGE)
+                    .size(24.dp)
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(SPACING_SMALL))
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(SPACING_SMALL))
+            Text(
+                text = selectedItemText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = title) },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(items.size) { index ->
+                        val item = items[index]
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onSelectedIndexChange(index)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedIndex == index,
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(text = item)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
                 }
             }
         )

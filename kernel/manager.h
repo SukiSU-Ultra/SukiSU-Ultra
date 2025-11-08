@@ -40,6 +40,4 @@ static inline void ksu_invalidate_manager_uid(void)
 }
 
 int ksu_observer_init(void);
-void ksu_observer_exit(void);
-
 #endif

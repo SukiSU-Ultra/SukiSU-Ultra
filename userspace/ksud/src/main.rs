@@ -17,6 +17,7 @@ mod restorecon;
 mod sepolicy;
 mod su;
 mod uid_scanner;
+mod umount_manager;
 mod utils;
 
 fn main() -> anyhow::Result<()> {

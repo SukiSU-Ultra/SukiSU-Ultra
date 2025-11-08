@@ -60,7 +60,7 @@ bool ksu_input_hook __read_mostly = true;
 #endif
 bool ksu_execveat_hook __read_mostly = true;
 
-u32 ksu_devpts_sid;
+u32 ksu_file_sid;
 
 // Detect whether it is on or not
 static bool is_boot_phase = true;
@@ -81,11 +81,11 @@ void on_post_fs_data(void)
     // sanity check, this may influence the performance
     stop_input_hook();
 
-    ksu_devpts_sid = ksu_get_devpts_sid();
-    pr_info("devpts sid: %d\n", ksu_devpts_sid);
-
     // End of boot state
     is_boot_phase = false;
+
+    ksu_file_sid = ksu_get_ksu_file_sid();
+	pr_info("ksu_file sid: %d\n", ksu_file_sid);
 }
 
 // since _ksud handler only uses argv and envp for comparisons

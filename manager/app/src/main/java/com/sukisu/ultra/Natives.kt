@@ -109,6 +109,15 @@ object Natives {
     external fun isKernelUmountEnabled(): Boolean
     external fun setKernelUmountEnabled(enabled: Boolean): Boolean
 
+    /**
+     * Enhanced security can be enabled/disabled.
+     *  0: disabled
+     *  1: enabled
+     *  negative : error
+     */
+    external fun isEnhancedSecurityEnabled(): Boolean
+    external fun setEnhancedSecurityEnabled(enabled: Boolean): Boolean
+
     external fun isKPMEnabled(): Boolean
     external fun getHookType(): String
 

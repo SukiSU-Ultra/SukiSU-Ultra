@@ -1,6 +1,3 @@
-use crate::ksucalls;
-use anyhow::{Result, anyhow, bail};
-use notify::{RecursiveMode, Watcher};
 use std::{
     ffi::{CStr, CString, OsStr},
     fs,
@@ -8,19 +5,24 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::{Result, anyhow, bail};
+use notify::{RecursiveMode, Watcher};
+
+use crate::ksucalls;
+
 pub const KPM_DIR: &str = "/data/adb/kpm";
 
-const SUKISU_KPM_LOAD: u64 = 1;
-const SUKISU_KPM_UNLOAD: u64 = 2;
-const SUKISU_KPM_NUM: u64 = 3;
-const SUKISU_KPM_LIST: u64 = 4;
-const SUKISU_KPM_INFO: u64 = 5;
-const SUKISU_KPM_CONTROL: u64 = 6;
-const SUKISU_KPM_VERSION: u64 = 7;
+const KPM_LOAD: u64 = 1;
+const KPM_UNLOAD: u64 = 2;
+const KPM_NUM: u64 = 3;
+const KPM_LIST: u64 = 4;
+const KPM_INFO: u64 = 5;
+const KPM_CONTROL: u64 = 6;
+const KPM_VERSION: u64 = 7;
 
 /// Convert raw kernel return code to `Result`.
 #[inline(always)]
-fn check_out(rc: i32) -> Result<i32> {
+fn check_ret(rc: i32) -> Result<i32> {
     if rc < 0 {
         bail!("KPM error: {}", std::io::Error::from_raw_os_error(-rc));
     }
@@ -34,14 +36,14 @@ pub fn kpm_load(path: &str, args: Option<&str>) -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_LOAD,
-        arg3: path_c.as_ptr() as u64,
-        arg4: args_c.as_ref().map_or(0, |s| s.as_ptr() as u64),
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_LOAD,
+        arg1: path_c.as_ptr() as u64,
+        arg2: args_c.as_ref().map_or(0, |s| s.as_ptr() as u64),
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)?;
+    check_ret(result)?;
     println!("Success");
     Ok(())
 }
@@ -52,14 +54,14 @@ pub fn kpm_unload(name: &str) -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_UNLOAD,
-        arg3: name_c.as_ptr() as u64,
-        arg4: 0,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_UNLOAD,
+        arg1: name_c.as_ptr() as u64,
+        arg2: 0,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)?;
+    check_ret(result)?;
     Ok(())
 }
 
@@ -67,14 +69,14 @@ pub fn kpm_unload(name: &str) -> Result<()> {
 pub fn kpm_num() -> Result<i32> {
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_NUM,
-        arg3: 0,
-        arg4: 0,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_NUM,
+        arg1: 0,
+        arg2: 0,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    let n = check_out(result)?;
+    let n = check_ret(result)?;
     println!("{n}");
     Ok(n)
 }
@@ -85,14 +87,14 @@ pub fn kpm_list() -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_LIST,
-        arg3: buf.as_mut_ptr() as u64,
-        arg4: buf.len() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_LIST,
+        arg1: buf.as_mut_ptr() as u64,
+        arg2: buf.len() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)?;
+    check_ret(result)?;
     print!("{}", buf2str(&buf));
     Ok(())
 }
@@ -104,14 +106,14 @@ pub fn kpm_info(name: &str) -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_INFO,
-        arg3: name_c.as_ptr() as u64,
-        arg4: buf.as_mut_ptr() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_INFO,
+        arg1: name_c.as_ptr() as u64,
+        arg2: buf.as_mut_ptr() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)?;
+    check_ret(result)?;
     println!("{}", buf2str(&buf));
     Ok(())
 }
@@ -123,14 +125,14 @@ pub fn kpm_control(name: &str, args: &str) -> Result<i32> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_CONTROL,
-        arg3: name_c.as_ptr() as u64,
-        arg4: args_c.as_ptr() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_CONTROL,
+        arg1: name_c.as_ptr() as u64,
+        arg2: args_c.as_ptr() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)
+    check_ret(result)
 }
 
 /// Print loader version string.
@@ -139,14 +141,14 @@ pub fn kpm_version_loader() -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_VERSION,
-        arg3: buf.as_mut_ptr() as u64,
-        arg4: buf.len() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_VERSION,
+        arg1: buf.as_mut_ptr() as u64,
+        arg2: buf.len() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)?;
+    check_ret(result)?;
     print!("{}", buf2str(&buf));
     Ok(())
 }
@@ -157,14 +159,14 @@ pub fn check_kpm_version() -> Result<String> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: SUKISU_KPM_VERSION,
-        arg3: buf.as_mut_ptr() as u64,
-        arg4: buf.len() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_VERSION,
+        arg1: buf.as_mut_ptr() as u64,
+        arg2: buf.len() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
-    check_out(result)?;
+    check_ret(result)?;
     let ver = buf2str(&buf);
     if ver.is_empty() {
         bail!("KPM: invalid version response: {ver}");
@@ -177,6 +179,7 @@ pub fn check_kpm_version() -> Result<String> {
 pub fn ensure_kpm_dir() -> Result<()> {
     fs::create_dir_all(KPM_DIR)?;
     let meta = fs::metadata(KPM_DIR)?;
+
     if meta.permissions().mode() & 0o777 != 0o777 {
         fs::set_permissions(KPM_DIR, fs::Permissions::from_mode(0o777))?;
     }
@@ -187,6 +190,7 @@ pub fn ensure_kpm_dir() -> Result<()> {
 pub fn start_kpm_watcher() -> Result<()> {
     check_kpm_version()?; // bails if loader too old
     ensure_kpm_dir()?;
+
     if crate::utils::is_safe_mode() {
         log::warn!("KPM: safe-mode – removing all modules");
         remove_all_kpms()?;
@@ -205,7 +209,10 @@ pub fn start_kpm_watcher() -> Result<()> {
 fn handle_kpm_event(evt: notify::Event) {
     if let notify::EventKind::Create(_) = evt.kind {
         for p in evt.paths {
-            if p.extension() == Some(OsStr::new("kpm")) && load_kpm(&p).is_err() {
+            if let Some(ex) = p.extension()
+                && ex == OsStr::new("kpm")
+                && load_kpm(&p).is_err()
+            {
                 log::warn!("KPM: failed to load {}", p.display());
             }
         }
@@ -221,22 +228,30 @@ pub fn load_kpm(path: &Path) -> Result<()> {
 /// Unload module and delete file.
 pub fn unload_kpm(name: &str) -> Result<()> {
     kpm_unload(name)?;
+
     if let Some(p) = find_kpm_file(name)? {
         let _ = fs::remove_file(&p);
         log::info!("KPM: deleted {}", p.display());
     }
+
     Ok(())
 }
 
 /// Locate `/data/adb/kpm/<name>.kpm`.
 fn find_kpm_file(name: &str) -> Result<Option<PathBuf>> {
     let dir = Path::new(KPM_DIR);
+
     if !dir.is_dir() {
         return Ok(None);
     }
+
     for entry in fs::read_dir(dir)? {
         let p = entry?.path();
-        if p.extension() == Some(OsStr::new("kpm")) && p.file_stem() == Some(OsStr::new(name)) {
+        if let Some(ex) = p.extension()
+            && ex == OsStr::new("kpm")
+            && let Some(fs) = p.file_stem()
+            && fs == OsStr::new(name)
+        {
             return Ok(Some(p));
         }
     }
@@ -251,7 +266,8 @@ pub fn remove_all_kpms() -> Result<()> {
     }
     for entry in fs::read_dir(dir)? {
         let p = entry?.path();
-        if p.extension() == Some(OsStr::new("kpm"))
+        if let Some(ex) = p.extension()
+            && ex == OsStr::new("kpm")
             && let Some(name) = p.file_stem().and_then(|s| s.to_str())
             && let Err(e) = unload_kpm(name)
         {
@@ -265,14 +281,19 @@ pub fn remove_all_kpms() -> Result<()> {
 pub fn load_kpm_modules() -> Result<()> {
     check_kpm_version()?;
     ensure_kpm_dir()?;
+
     let dir = Path::new(KPM_DIR);
     if !dir.is_dir() {
         return Ok(());
     }
+
     let (mut ok, mut ng) = (0, 0);
+
     for entry in fs::read_dir(dir)? {
         let p = entry?.path();
-        if p.extension() == Some(OsStr::new("kpm")) {
+        if let Some(ex) = p.extension()
+            && ex == OsStr::new("kpm")
+        {
             match load_kpm(&p) {
                 Ok(_) => ok += 1,
                 Err(e) => {

@@ -44,6 +44,9 @@
 #include "supercalls.h"
 #include "sucompat.h"
 #include "sulog.h"
+#include "throne_tracker.h"
+#include "throne_comm.h"
+#include "umount_manager.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU
 #include "manual_su.h"
@@ -389,6 +392,7 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 
 
 #ifdef CONFIG_EXT4_FS
+extern void ext4_unregister_sysfs(struct super_block *sb);
 void nuke_ext4_sysfs(void) 
 {
     struct path path;
@@ -453,7 +457,7 @@ static bool should_umount(struct path *path)
     }
     return false;
 }
-
+extern int path_umount(struct path *path, int flags);
 static void ksu_umount_mnt(struct path *path, int flags)
 {
     int err = path_umount(path, flags);
@@ -498,18 +502,7 @@ static void umount_tw_func(struct callback_head *cb)
         saved = override_creds(tw->old_cred);
     }
 
-    // fixme: use `collect_mounts` and `iterate_mount` to iterate all mountpoint and
-    // filter the mountpoint whose target is `/data/adb`
-    try_umount("/odm", true, 0);
-    try_umount("/system", true, 0);
-    try_umount("/vendor", true, 0);
-    try_umount("/product", true, 0);
-    try_umount("/system_ext", true, 0);
-    try_umount("/data/adb/modules", false, MNT_DETACH);
-    try_umount("/data/adb/kpm", false, MNT_DETACH);
-
-    // try umount ksu temp path
-    try_umount("/debug_ramdisk", false, MNT_DETACH);
+    ksu_umount_manager_execute_all(tw->old_cred);
 
     if (saved)
         revert_creds(saved);
@@ -539,16 +532,16 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
                 if (!is_ksu_domain()) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
                         current->pid, current->comm, old_uid.val, new_uid.val);
-                    send_sig(SIGKILL, current, 0);
+                    force_sig(SIGKILL);
                     return 0;
                 }
             }
             // disallow appuid decrease to any other uid if it is allowed to su
             if (is_appuid(old_uid)) {
-                if (new_uid.val < old_uid.val && ksu_is_allow_uid_for_current(old_uid.val)) {
+                if (new_uid.val < old_uid.val && !ksu_is_allow_uid_for_current(old_uid.val)) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
                         current->pid, current->comm, old_uid.val, new_uid.val);
-                    send_sig(SIGKILL, current, 0);
+                    force_sig(SIGKILL);
                     return 0;
                 }
             }
@@ -568,16 +561,22 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     }
 
     // if on private space, see if its possibly the manager
-    if (new_uid.val > 100000 && new_uid.val % 100000 == ksu_get_manager_uid()) {
+    if (unlikely(new_uid.val > 100000 && new_uid.val % 100000 == ksu_get_manager_uid())) {
         ksu_set_manager_uid(new_uid.val);
     }
 
-    if (ksu_get_manager_uid() == new_uid.val) {
+    if (unlikely(ksu_get_manager_uid() == new_uid.val)) {
         pr_info("install fd for: %d\n", new_uid.val);
 
         ksu_install_fd();
         spin_lock_irq(&current->sighand->siglock);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
         ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+#else
+        // we dont have those new fancy things upstream has
+	    // lets just do original thing where we disable seccomp
+        disable_seccomp();
+#endif
         if (ksu_su_compat_enabled) {
             ksu_set_task_tracepoint_flag(current);
         }
@@ -585,11 +584,17 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
-    if (ksu_is_allow_uid_for_current(new_uid.val)) {
+    if (unlikely(ksu_is_allow_uid_for_current(new_uid.val))) {
         if (current->seccomp.mode == SECCOMP_MODE_FILTER &&
             current->seccomp.filter) {
             spin_lock_irq(&current->sighand->siglock);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+#else
+            // we don't have those new fancy things upstream has
+            // lets just do original thing where we disable seccomp
+            disable_seccomp();
+#endif
             spin_unlock_irq(&current->sighand->siglock);
         }
         if (ksu_su_compat_enabled) {
@@ -854,14 +859,22 @@ __maybe_unused int ksu_kprobe_exit(void)
 
 void __init ksu_core_init(void)
 {
+    int rc = 0;
 #ifdef CONFIG_KPROBES
-    int rc = ksu_kprobe_init();
+    rc = ksu_kprobe_init();
     if (rc) {
         pr_err("ksu_kprobe_init failed: %d\n", rc);
     }
 #endif
+    rc = ksu_umount_manager_init();
+    if (rc) {
+        pr_err("Failed to initialize umount manager: %d\n", rc);
+    }
     if (ksu_register_feature_handler(&kernel_umount_handler)) {
         pr_err("Failed to register umount feature handler\n");
+    }
+    if (ksu_register_feature_handler(&enhanced_security_handler)) {
+        pr_err("Failed to register enhanced security feature handler\n");
     }
 }
 
@@ -877,4 +890,6 @@ void ksu_core_exit(void)
     ksu_kprobe_exit();
 #endif
     ksu_unregister_feature_handler(KSU_FEATURE_KERNEL_UMOUNT);
+    ksu_unregister_feature_handler(KSU_FEATURE_ENHANCED_SECURITY);
+    
 }

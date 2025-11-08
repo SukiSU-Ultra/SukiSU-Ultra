@@ -14,6 +14,7 @@
 #include "manager.h"
 #include "throne_tracker.h"
 #include "kernel_compat.h"
+#include "apk_sign.h"
 #include "dynamic_manager.h"
 #include "throne_comm.h"
 
@@ -234,7 +235,6 @@ struct my_dir_context {
 #define FILLDIR_ACTOR_CONTINUE 0
 #define FILLDIR_ACTOR_STOP -EINVAL
 #endif
-
 FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
                  int namelen, loff_t off, u64 ino,
                  unsigned int d_type)

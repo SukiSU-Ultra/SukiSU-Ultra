@@ -137,6 +137,12 @@ enum Commands {
         command: kpm_cmd::Kpm,
     },
 
+    /// Manage kernel umount paths
+    Umount {
+        #[command(subcommand)]
+        command: Umount,
+    },
+
     /// For developers
     Debug {
         #[command(subcommand)]
@@ -343,6 +349,44 @@ mod kpm_cmd {
     }
 }
 
+#[derive(clap::Subcommand, Debug)]
+enum Umount {
+    /// Add custom umount path
+    Add {
+        /// Mount path to add
+        path: String,
+
+        /// Check mount type (overlay)
+        #[arg(long, default_value = "false")]
+        check_mnt: bool,
+
+        /// Umount flags (0 or 8 for MNT_DETACH)
+        #[arg(long, default_value = "-1")]
+        flags: i32,
+    },
+
+    /// Remove custom umount path
+    Remove {
+        /// Mount path to remove
+        path: String,
+    },
+
+    /// List all umount paths
+    List,
+
+    /// Clear all custom paths (keep defaults)
+    ClearCustom,
+
+    /// Save configuration to file
+    Save,
+
+    /// Load and apply configuration from file
+    Load,
+
+    /// Apply current configuration to kernel
+    Apply,
+}
+
 pub fn run() -> Result<()> {
     #[cfg(target_os = "android")]
     android_logger::init_once(
@@ -480,6 +524,19 @@ pub fn run() -> Result<()> {
                 Kpm::Version => crate::kpm::kpm_version_loader(),
             }
         }
+        Commands::Umount { command } => match command {
+            Umount::Add {
+                path,
+                check_mnt,
+                flags,
+            } => crate::umount_manager::add_umount_path(&path, check_mnt, flags),
+            Umount::Remove { path } => crate::umount_manager::remove_umount_path(&path),
+            Umount::List => crate::umount_manager::list_umount_paths(),
+            Umount::ClearCustom => crate::umount_manager::clear_custom_paths(),
+            Umount::Save => crate::umount_manager::save_umount_config(),
+            Umount::Load => crate::umount_manager::load_and_apply_config(),
+            Umount::Apply => crate::umount_manager::apply_config_to_kernel(),
+        },
     };
 
     if let Err(e) = &result {
