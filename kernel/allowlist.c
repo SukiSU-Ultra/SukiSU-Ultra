@@ -14,7 +14,6 @@
 #include <linux/compiler_types.h>
 #endif
 
-#include "ksu.h"
 #include "klog.h" // IWYU pragma: keep
 #include "selinux/selinux.h"
 #include "allowlist.h"

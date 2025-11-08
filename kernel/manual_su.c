@@ -12,8 +12,8 @@
 #include "ksu.h"
 #include "allowlist.h"
 #include "manager.h"
+#include "app_profile.h"
 
-extern void escape_to_root_for_cmd_su(uid_t, pid_t);
 static bool current_verified = false;
 static void ksu_cleanup_expired_tokens(void);
 static bool is_current_verified(void);

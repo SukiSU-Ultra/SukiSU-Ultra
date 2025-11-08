@@ -4,6 +4,7 @@
 #include <linux/types.h>
 #include <linux/ioctl.h>
 #include "ksu.h"
+#include "app_profile.h"
 
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
