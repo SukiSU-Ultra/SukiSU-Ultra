@@ -1,7 +1,7 @@
 use crate::{
+    defs,
     ksucalls::proxy_file,
     utils::{self, umask},
-    defs,
 };
 use anyhow::{Context, Ok, Result, bail};
 use getopts::Options;
