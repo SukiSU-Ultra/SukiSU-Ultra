@@ -32,7 +32,6 @@
 #include <linux/tty.h>
 
 #include "allowlist.h"
-#include "arch.h"
 #include "core_hook.h"
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
@@ -43,6 +42,7 @@
 #include "sulog.h"
 #include "seccomp_cache.h"
 #include "ksud.h"
+#include "hook_manager.h"
 
 #include "throne_comm.h"
 #include "umount_manager.h"
@@ -135,13 +135,13 @@ static inline bool is_unsupported_uid(uid_t uid)
 
 // ksu_handle_prctl removed - now using ioctl via reboot hook
 
-static bool is_appuid(kuid_t uid)
+static bool is_appuid(uid_t uid)
 {
 #define PER_USER_RANGE 100000
 #define FIRST_APPLICATION_UID 10000
 #define LAST_APPLICATION_UID 19999
 
-    uid_t appid = uid.val % PER_USER_RANGE;
+    uid_t appid = uid % PER_USER_RANGE;
     return appid >= FIRST_APPLICATION_UID && appid <= LAST_APPLICATION_UID;
 }
 
@@ -219,34 +219,30 @@ static void umount_tw_func(struct callback_head *cb)
     kfree(tw);
 }
 
-int ksu_handle_setuid(struct cred *new, const struct cred *old)
+int ksu_handle_setuid(uid_t ruid, uid_t euid, uid_t suid)
 {
     struct umount_tw *tw;
-    if (!new || !old) {
-        return 0;
-    }
+    uid_t new_uid = ruid;
+	uid_t old_uid = current_uid().val;
+    // pr_info("handle_setuid from %d to %d\n", old_uid, new_uid);
 
-    kuid_t new_uid = new->uid;
-    kuid_t old_uid = old->uid;
-    // pr_info("handle_setuid from %d to %d\n", old_uid.val, new_uid.val);
-
-    if (0 != old_uid.val) {
+    if (0 != old_uid) {
         // old process is not root, ignore it.
         if (ksu_enhanced_security_enabled) {
             // disallow any non-ksu domain escalation from non-root to root!
-            if (unlikely(new_uid.val) == 0) {
+            if (unlikely(new_uid) == 0) {
                 if (!is_ksu_domain()) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
-                        current->pid, current->comm, old_uid.val, new_uid.val);
+                        current->pid, current->comm, old_uid, new_uid);
                     force_sig(SIGKILL);
                     return 0;
                 }
             }
             // disallow appuid decrease to any other uid if it is allowed to su
             if (is_appuid(old_uid)) {
-                if (new_uid.val < old_uid.val && !ksu_is_allow_uid_for_current(old_uid.val)) {
+                if (new_uid < old_uid && !ksu_is_allow_uid_for_current(old_uid)) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
-                        current->pid, current->comm, old_uid.val, new_uid.val);
+                        current->pid, current->comm, old_uid, new_uid);
                     force_sig(SIGKILL);
                     return 0;
                 }
@@ -255,24 +251,24 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
-    if (new_uid.val == 2000) {
+    if (new_uid == 2000) {
         if (ksu_su_compat_enabled) {
             ksu_set_task_tracepoint_flag(current);
         }
     }
 
-    if (!is_appuid(new_uid) || is_unsupported_uid(new_uid.val)) {
-        // pr_info("handle setuid ignore non application or isolated uid: %d\n", new_uid.val);
+    if (!is_appuid(new_uid) || is_unsupported_uid(new_uid)) {
+        // pr_info("handle setuid ignore non application or isolated uid: %d\n", new_uid);
         return 0;
     }
 
     // if on private space, see if its possibly the manager
-    if (unlikely(new_uid.val > 100000 && new_uid.val % 100000 == ksu_get_manager_uid())) {
-        ksu_set_manager_uid(new_uid.val);
+    if (unlikely(new_uid > 100000 && new_uid % 100000 == ksu_get_manager_uid())) {
+         ksu_set_manager_uid(new_uid);
     }
 
-    if (unlikely(ksu_get_manager_uid() == new_uid.val)) {
-        pr_info("install fd for: %d\n", new_uid.val);
+    if (unlikely(ksu_get_manager_uid() == new_uid)) {
+        pr_info("install fd for: %d\n", new_uid);
 
         ksu_install_fd();
         spin_lock_irq(&current->sighand->siglock);
@@ -290,7 +286,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
-    if (unlikely(ksu_is_allow_uid_for_current(new_uid.val))) {
+    if (unlikely(ksu_is_allow_uid_for_current(new_uid))) {
         if (current->seccomp.mode == SECCOMP_MODE_FILTER &&
             current->seccomp.filter) {
             spin_lock_irq(&current->sighand->siglock);
@@ -322,7 +318,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
         return 0;
     }
 
-    if (!ksu_uid_should_umount(new_uid.val)) {
+    if (!ksu_uid_should_umount(new_uid)) {
         return 0;
     } else {
 #ifdef CONFIG_KSU_DEBUG
@@ -333,7 +329,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
     // check old process's selinux context, if it is not zygote, ignore it!
     // because some su apps may setuid to untrusted_app but they are in global mount namespace
     // when we umount for such process, that is a disaster!
-    bool is_zygote_child = is_zygote(old);
+    bool is_zygote_child = is_zygote(get_current_cred());
     if (!is_zygote_child) {
         pr_info("handle umount ignore non zygote child: %d\n", current->pid);
         return 0;
@@ -345,7 +341,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 
 #ifdef CONFIG_KSU_DEBUG
     // umount the target mnt
-    pr_info("handle umount for uid: %d, pid: %d\n", new_uid.val, current->pid);
+    pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);
 #endif
 
     tw = kmalloc(sizeof(*tw), GFP_ATOMIC);
@@ -597,5 +593,4 @@ void ksu_core_exit(void)
 #endif
     ksu_unregister_feature_handler(KSU_FEATURE_KERNEL_UMOUNT);
     ksu_unregister_feature_handler(KSU_FEATURE_ENHANCED_SECURITY);
-    
 }

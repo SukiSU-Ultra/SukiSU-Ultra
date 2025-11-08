@@ -6,13 +6,10 @@
 #include <linux/version.h>
 
 #include "allowlist.h"
-#include "arch.h"
-#include "core_hook.h"
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
-#include "ksu.h"
 #include "throne_tracker.h"
-#include "sucompat.h"
+#include "hook_manager.h"
 #include "ksud.h"
 #include "supercalls.h"
 
@@ -40,15 +37,13 @@ int __init kernelsu_init(void)
 
     ksu_supercalls_init();
 
-    ksu_core_init();
+    ksu_hook_manager_init();
 
     ksu_workqueue = alloc_ordered_workqueue("kernelsu_work_queue", 0);
 
     ksu_allowlist_init();
 
     ksu_throne_tracker_init();
-
-    ksu_sucompat_init();
 
 #ifdef KSU_KPROBES_HOOK
     ksu_ksud_init();
@@ -75,13 +70,11 @@ void kernelsu_exit(void)
 
     destroy_workqueue(ksu_workqueue);
 
-    ksu_sucompat_exit();
-
 #ifdef KSU_KPROBES_HOOK
     ksu_ksud_exit();
 #endif
 
-    ksu_core_exit();
+    ksu_hook_manager_exit();
     ksu_feature_exit();
 }
 
