@@ -95,6 +95,7 @@ long ksu_strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
     return strncpy_from_user_nofault(dst, unsafe_addr, count);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
 struct action_cache {
     DECLARE_BITMAP(allow_native, SECCOMP_ARCH_NATIVE_NR);
 #ifdef SECCOMP_ARCH_COMPAT
@@ -150,3 +151,5 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
     }
 #endif
 }
+
+#endif
