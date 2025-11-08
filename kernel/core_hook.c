@@ -591,7 +591,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
 #else
-            // we dont have those new fancy things upstream has
+            // we don't have those new fancy things upstream has
 	        // lets just do original thing where we disable seccomp
             disable_seccomp();
 #endif
