@@ -61,7 +61,7 @@
 noinline NO_OPTIMIZE void sukisu_kpm_load_module_path(const char *path,
                 const char *args, void *ptr, int *result)
 {
-    printk("KPM: Stub function called (sukisu_kpm_load_module_path). "
+    pr_info("kpm: Stub function called (sukisu_kpm_load_module_path). "
                     "path=%s args=%s ptr=%p\n", path, args, ptr);
 
     __asm__ volatile("nop");
@@ -71,7 +71,7 @@ EXPORT_SYMBOL(sukisu_kpm_load_module_path);
 noinline NO_OPTIMIZE void sukisu_kpm_unload_module(const char *name,
                 void *ptr, int *result)
 {
-    printk("KPM: Stub function called (sukisu_kpm_unload_module). "
+    pr_info("kpm: Stub function called (sukisu_kpm_unload_module). "
                     "name=%s ptr=%p\n", name, ptr);
 
     __asm__ volatile("nop");
@@ -80,7 +80,7 @@ EXPORT_SYMBOL(sukisu_kpm_unload_module);
 
 noinline NO_OPTIMIZE void sukisu_kpm_num(int *result)
 {
-    printk("KPM: Stub function called (sukisu_kpm_num).\n");
+    pr_info("kpm: Stub function called (sukisu_kpm_num).\n");
 
     __asm__ volatile("nop");
 }
@@ -89,7 +89,7 @@ EXPORT_SYMBOL(sukisu_kpm_num);
 noinline NO_OPTIMIZE void sukisu_kpm_info(const char *name, char *buf, int bufferSize,
                 int *size)
 {
-    printk("KPM: Stub function called (sukisu_kpm_info). "
+    pr_info("kpm: Stub function called (sukisu_kpm_info). "
                     "name=%s buffer=%p\n", name, buf);
 
     __asm__ volatile("nop");
@@ -99,7 +99,7 @@ EXPORT_SYMBOL(sukisu_kpm_info);
 noinline NO_OPTIMIZE void sukisu_kpm_list(void *out, int bufferSize,
                 int *result)
 {
-    printk("KPM: Stub function called (sukisu_kpm_list). "
+    pr_info("kpm: Stub function called (sukisu_kpm_list). "
                     "buffer=%p size=%d\n", out, bufferSize);
 }
 EXPORT_SYMBOL(sukisu_kpm_list);
@@ -107,7 +107,7 @@ EXPORT_SYMBOL(sukisu_kpm_list);
 noinline NO_OPTIMIZE void sukisu_kpm_control(const char *name, const char *args, long arg_len,
                 int *result)
 {
-    printk("KPM: Stub function called (sukisu_kpm_control). "
+    pr_info("kpm: Stub function called (sukisu_kpm_control). "
                     "name=%p args=%p arg_len=%ld\n", name, args, arg_len);
 
     __asm__ volatile("nop");
@@ -116,7 +116,7 @@ EXPORT_SYMBOL(sukisu_kpm_control);
 
 noinline NO_OPTIMIZE void sukisu_kpm_version(char *buf, int bufferSize)
 {
-    printk("KPM: Stub function called (sukisu_kpm_version). "
+    pr_info("kpm: Stub function called (sukisu_kpm_version). "
                     "buffer=%p\n", buf);
 }
 EXPORT_SYMBOL(sukisu_kpm_version);
@@ -133,6 +133,8 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
             res = -EINVAL;
             goto exit;
         }
+
+        if ()
         
         strncpy_from_user((char *)&kernel_load_path, (const char *)arg1, sizeof(kernel_load_path));
         
@@ -187,7 +189,7 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
         }
 
         if (copy_to_user(arg1, &buf, len) < 1) 
-            printk("KPM: Copy to user failed.");
+            pr_info("kpm: Copy to user failed.");
         
     } else if (control_code == SUKISU_KPM_CONTROL) {
         char kpm_name[KPM_NAME_LEN] = { 0 };
@@ -217,7 +219,7 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
 
 exit:
     if (copy_to_user(result_code, &res, sizeof(res)) < 1)
-        printk("KPM: Copy to user failed.");
+        pr_info("kpm: Copy to user failed.");
     
     return 0;
 }
