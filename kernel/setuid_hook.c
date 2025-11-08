@@ -201,7 +201,7 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
     struct umount_tw *tw;
     uid_t new_uid = ruid;
 	uid_t old_uid = current_uid().val;
-    // pr_info("handle_setuid from %d to %d\n", old_uid, new_uid);
+    pr_info("handle_setuid from %d to %d\n", old_uid, new_uid);
 
     if (0 != old_uid) {
         // old process is not root, ignore it.
@@ -244,8 +244,7 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
     }
 
     if (unlikely(ksu_get_manager_uid() == new_uid)) {
-        pr_info("install fd for: %d\n", new_uid);
-
+        pr_info("install fd for manager: %d\n", new_uid);
         ksu_install_fd();
         spin_lock_irq(&current->sighand->siglock);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2) // Android backport this feature in 5.10.2
