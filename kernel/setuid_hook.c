@@ -37,9 +37,8 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager.h"
 #include "selinux/selinux.h"
-#include "supercalls.h"
-#include "sucompat.h"
 #include "seccomp_cache.h"
+#include "supercalls.h"
 #include "syscall_hook_manager.h"
 #include "kernel_umount.h"
 
