@@ -1,6 +1,7 @@
 use crate::{
-    defs,
+    ksucalls::proxy_file,
     utils::{self, umask},
+    defs,
 };
 use anyhow::{Context, Ok, Result, bail};
 use getopts::Options;
@@ -9,7 +10,6 @@ use log::{error, warn};
 #[cfg(unix)]
 use std::os::unix::process::CommandExt;
 use std::{env, ffi::CStr, path::PathBuf, process::Command};
-use crate::ksucalls::proxy_file;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 use rustix::{
