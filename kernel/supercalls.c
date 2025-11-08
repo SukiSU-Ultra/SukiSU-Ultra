@@ -135,9 +135,8 @@ static int do_report_event(void __user *arg)
         break;
     }
     case EVENT_MODULE_MOUNTED: {
-        ksu_module_mounted = true;
         pr_info("module mounted!\n");
-        nuke_ext4_sysfs();
+        on_module_mounted();
         break;
     }
     default:

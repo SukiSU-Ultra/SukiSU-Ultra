@@ -52,8 +52,6 @@
 #include "manual_su.h"
 #endif
 
-bool ksu_module_mounted __read_mostly = false;
-
 #ifdef CONFIG_COMPAT
 bool ksu_is_compat __read_mostly = false;
 #endif
@@ -387,35 +385,6 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
         ksu_set_task_tracepoint_flag(t);
     }
     pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n", target_uid, target_pid);
-}
-#endif
-
-
-#ifdef CONFIG_EXT4_FS
-extern void ext4_unregister_sysfs(struct super_block *sb);
-void nuke_ext4_sysfs(void) 
-{
-    struct path path;
-    int err = kern_path("/data/adb/modules", 0, &path);
-    if (err) {
-        pr_err("nuke path err: %d\n", err);
-        return;
-    }
-
-    struct super_block *sb = path.dentry->d_inode->i_sb;
-    const char *name = sb->s_type->name;
-    if (strcmp(name, "ext4") != 0) {
-        pr_info("nuke but module aren't mounted\n");
-        return;
-    }
-
-    ext4_unregister_sysfs(sb);
-    path_put(&path);
-}
-#else
-inline void nuke_ext4_sysfs(void) 
-{
-
 }
 #endif
 
