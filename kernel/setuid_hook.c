@@ -229,13 +229,12 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
     }
 
     if (new_uid == 2000) {
-        if (ksu_su_compat_enabled) {
-            ksu_set_task_tracepoint_flag(current);
-        }
+        ksu_set_task_tracepoint_flag(current);
     }
 
     if (!is_appuid(new_uid) || is_unsupported_uid(new_uid)) {
-        // pr_info("handle setuid ignore non application or isolated uid: %d\n", new_uid);
+        pr_info("handle setuid ignore non application or isolated uid: %d\n", new_uid);
+        ksu_clear_task_tracepoint_flag(current);
         return 0;
     }
 
@@ -256,9 +255,7 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 	    // lets just do original thing where we disable seccomp
         disable_seccomp();
 #endif
-        if (ksu_su_compat_enabled) {
-            ksu_set_task_tracepoint_flag(current);
-        }
+        ksu_set_task_tracepoint_flag(current);
         spin_unlock_irq(&current->sighand->siglock);
         return 0;
     }
@@ -276,14 +273,9 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 #endif
             spin_unlock_irq(&current->sighand->siglock);
         }
-        if (ksu_su_compat_enabled) {
-            ksu_set_task_tracepoint_flag(current);
-        }
+        ksu_set_task_tracepoint_flag(current);
     } else {
-        // Disable syscall tracepoint sucompat for non-allowed processes
-        if (ksu_su_compat_enabled) {
-            ksu_clear_task_tracepoint_flag(current);
-        }
+        ksu_clear_task_tracepoint_flag(current);
     }
 
     // Handle kernel umount
