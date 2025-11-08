@@ -243,10 +243,10 @@ pub fn proxy_file(fd: RawFd) -> std::io::Result<RawFd> {
 #[derive(Clone, Copy, Default)]
 #[allow(dead_code)]
 pub struct KsuKpmCmd {
+    pub control_code: u64,
+    pub arg1: u64,
     pub arg2: u64,
-    pub arg3: u64,
-    pub arg4: u64,
-    pub arg5: u64,
+    pub result_code: u64,
 }
 
 #[allow(dead_code)]

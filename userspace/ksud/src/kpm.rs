@@ -36,10 +36,10 @@ pub fn kpm_load(path: &str, args: Option<&str>) -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_LOAD,
-        arg3: path_c.as_ptr() as u64,
-        arg4: args_c.as_ref().map_or(0, |s| s.as_ptr() as u64),
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_LOAD,
+        arg1: path_c.as_ptr() as u64,
+        arg2: args_c.as_ref().map_or(0, |s| s.as_ptr() as u64),
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -54,10 +54,10 @@ pub fn kpm_unload(name: &str) -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_UNLOAD,
-        arg3: name_c.as_ptr() as u64,
-        arg4: 0,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_UNLOAD,
+        arg1: name_c.as_ptr() as u64,
+        arg2: 0,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -69,10 +69,10 @@ pub fn kpm_unload(name: &str) -> Result<()> {
 pub fn kpm_num() -> Result<i32> {
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_NUM,
-        arg3: 0,
-        arg4: 0,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_NUM,
+        arg1: 0,
+        arg2: 0,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -87,10 +87,10 @@ pub fn kpm_list() -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_LIST,
-        arg3: buf.as_mut_ptr() as u64,
-        arg4: buf.len() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_LIST,
+        arg1: buf.as_mut_ptr() as u64,
+        arg2: buf.len() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -106,10 +106,10 @@ pub fn kpm_info(name: &str) -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_INFO,
-        arg3: name_c.as_ptr() as u64,
-        arg4: buf.as_mut_ptr() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_INFO,
+        arg1: name_c.as_ptr() as u64,
+        arg2: buf.as_mut_ptr() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -125,10 +125,10 @@ pub fn kpm_control(name: &str, args: &str) -> Result<i32> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_CONTROL,
-        arg3: name_c.as_ptr() as u64,
-        arg4: args_c.as_ptr() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_CONTROL,
+        arg1: name_c.as_ptr() as u64,
+        arg2: args_c.as_ptr() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -141,10 +141,10 @@ pub fn kpm_version_loader() -> Result<()> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_VERSION,
-        arg3: buf.as_mut_ptr() as u64,
-        arg4: buf.len() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_VERSION,
+        arg1: buf.as_mut_ptr() as u64,
+        arg2: buf.len() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
@@ -159,10 +159,10 @@ pub fn check_kpm_version() -> Result<String> {
 
     let mut result: i32 = -1;
     let mut cmd = ksucalls::KsuKpmCmd {
-        arg2: KPM_VERSION,
-        arg3: buf.as_mut_ptr() as u64,
-        arg4: buf.len() as u64,
-        arg5: &mut result as *mut i32 as u64,
+        control_code: KPM_VERSION,
+        arg1: buf.as_mut_ptr() as u64,
+        arg2: buf.len() as u64,
+        result_code: &mut result as *mut i32 as u64,
     };
 
     ksucalls::kpm_ioctl(&mut cmd)?;
