@@ -1,9 +1,19 @@
 #ifndef ___SUKISU_KPM_H
 #define ___SUKISU_KPM_H
 
+struct ksu_kpm_cmd {
+    __aligned_u64 arg2;
+    __aligned_u64 arg3;
+    __aligned_u64 arg4;
+    __aligned_u64 arg5;
+};
+
 int sukisu_handle_kpm(unsigned long arg2, unsigned long arg3,
 		      unsigned long arg4, unsigned long arg5);
 int sukisu_is_kpm_control_code(unsigned long arg2);
+int do_kpm(void __user *arg);
+
+#define KSU_IOCTL_KPM _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
 
 // KPM控制代码
 #define CMD_KPM_CONTROL 28
