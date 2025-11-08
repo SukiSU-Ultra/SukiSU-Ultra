@@ -592,7 +592,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
             ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
 #else
             // we don't have those new fancy things upstream has
-	        // lets just do original thing where we disable seccomp
+            // lets just do original thing where we disable seccomp
             disable_seccomp();
 #endif
             spin_unlock_irq(&current->sighand->siglock);
