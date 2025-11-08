@@ -22,6 +22,7 @@
 #include "kernel_compat.h"
 #include "throne_comm.h"
 #include "dynamic_manager.h"
+#include "kpm/kpm.h"
 
 // Forward declarations from core_hook.c
 extern void escape_to_root(void);
@@ -612,7 +613,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root},
 #endif
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL} // Sentine
-}
+};
 
 void ksu_supercalls_init(void)
 {
