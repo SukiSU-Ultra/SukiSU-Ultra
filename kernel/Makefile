@@ -153,6 +153,11 @@ ifeq ($(shell grep -q "struct proc_ops " $(srctree)/include/linux/proc_fs.h; ech
 ccflags-y += -DKSU_COMPAT_HAS_PROC_OPS
 endif
 
+# Struct selinux_state check
+ifeq ($(shell grep -q "struct selinux_state " $(srctree)/security/selinux/include/security.h; echo $$?),0)
+ccflags-y += -DKSU_COMPAT_HAS_SELINUX_STATE
+endif
+
 # Custom Signs
 ifdef KSU_EXPECTED_SIZE
 ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)

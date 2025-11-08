@@ -1063,7 +1063,11 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
                 if (!is_ksu_domain()) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
                         current->pid, current->comm, old_uid.val, new_uid.val);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
                     force_sig(SIGKILL);
+#else
+                    force_sig(SIGKILL, current);
+#endif
                     return 0;
                 }
             }
@@ -1072,7 +1076,11 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
                 if (new_uid.val < old_uid.val && !ksu_is_allow_uid_for_current(old_uid.val)) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
                         current->pid, current->comm, old_uid.val, new_uid.val);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
                     force_sig(SIGKILL);
+#else
+                    force_sig(SIGKILL, current);
+#endif
                     return 0;
                 }
             }
@@ -1239,7 +1247,11 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
                 if (!is_ksu_domain()) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
                         current->pid, current->comm, old_uid.val, new_uid.val);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
                     force_sig(SIGKILL);
+#else
+                    force_sig(SIGKILL, current);
+#endif
                     return 0;
                 }
             }
@@ -1248,7 +1260,11 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
                 if (new_uid.val < old_uid.val && !ksu_is_allow_uid_for_current(old_uid.val)) {
                     pr_warn("find suspicious EoP: %d %s, from %d to %d\n", 
                         current->pid, current->comm, old_uid.val, new_uid.val);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
                     force_sig(SIGKILL);
+#else
+                    force_sig(SIGKILL, current);
+#endif
                     return 0;
                 }
             }
