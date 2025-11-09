@@ -235,7 +235,9 @@ static inline bool check_syscall_fastpath(int nr)
     case __NR_execve:
     case __NR_setresuid:
     case __NR_clone:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
     case __NR_clone3:
+#endif
         return true;
     default:
         return false;
@@ -251,7 +253,7 @@ int ksu_handle_init_mark_tracker(const char __user **filename_user)
         return 0;
 
     memset(path, 0, sizeof(path));
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (likely(strstr(path, "/app_process") == NULL && strstr(path, "/adbd") == NULL && strstr(path, "/ksud") == NULL)) {
 		pr_info("hook_manager: unmark %d exec %s", current->pid, path);

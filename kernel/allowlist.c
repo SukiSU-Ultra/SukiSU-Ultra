@@ -19,6 +19,7 @@
 
 #include "klog.h" // IWYU pragma: keep
 #include "ksud.h"
+#include "kernel_compat.h"
 #include "selinux/selinux.h"
 #include "allowlist.h"
 #include "manager.h"
@@ -431,11 +432,7 @@ void persistent_allow_list()
         goto put_task;
     }
     cb->func = do_persistent_allow_list;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
     task_work_add(tsk, cb, TWA_RESUME);
-#else
-    task_work_add(tsk, cb, true);
-#endif
 
 put_task:
     put_task_struct(tsk);

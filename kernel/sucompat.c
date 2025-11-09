@@ -97,7 +97,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 
     char path[sizeof(su) + 1];
     memset(path, 0, sizeof(path));
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su, sizeof(su)))) {
 #if __SULOG_GATE
@@ -144,7 +144,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
     pr_info("vfs_statx su->sh!\n");
     memcpy((void *)filename->name, sh, sizeof(sh));
 #else
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su, sizeof(su)))) {
 #if __SULOG_GATE
@@ -174,7 +174,7 @@ int ksu_handle_execve_sucompat(const char __user **filename_user,
         return 0;
 
     memset(path, 0, sizeof(path));
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (likely(memcmp(path, su, sizeof(su))))
         return 0;
@@ -248,7 +248,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 {
     char path[sizeof(su_path) + 1] = {0};
 
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
         pr_info("faccessat su->sh!\n");
@@ -299,7 +299,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
     pr_info("ksu_handle_stat: su->sh!\n");
     memcpy((void *)filename->name, sh_path, sizeof(sh_path));
 #else
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
         pr_info("ksu_handle_stat: su->sh!\n");
