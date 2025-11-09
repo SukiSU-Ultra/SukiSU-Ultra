@@ -10,10 +10,12 @@
 #include <linux/path.h>
 #include <linux/printk.h>
 #include <linux/types.h>
+#include <linux/uaccess.h>
 
 #include "manager.h"
 #include "kernel_umount.h"
 #include "klog.h" // IWYU pragma: keep
+#include "kernel_compat.h"
 #include "allowlist.h"
 #include "selinux/selinux.h"
 #include "feature.h"
@@ -228,11 +230,7 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
     tw->old_cred = get_current_cred();
     tw->cb.func = umount_tw_func;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
     int err = task_work_add(current, &tw->cb, TWA_RESUME);
-#else
-    int err = task_work_add(current, &tw->cb, true);
-#endif
     if (err) {
         if (tw->old_cred) {
             put_cred(tw->old_cred);

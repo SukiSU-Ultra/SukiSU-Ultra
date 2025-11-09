@@ -208,10 +208,14 @@ static inline bool check_syscall_fastpath(int nr)
     case __NR_faccessat:
     case __NR_execve:
     case __NR_setresuid:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
     case __NR_faccessat2:
+#endif
     case __NR_execveat:
     case __NR_clone:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
     case __NR_clone3:
+#endif
         return true;
     default:
         return false;
@@ -228,7 +232,7 @@ int ksu_handle_init_mark_tracker(int *fd, const char __user **filename_user,
         return 0;
     
     memset(path, 0, sizeof(path));
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (likely(strstr(path, "adbd") == NULL)){
         ksu_clear_task_tracepoint_flag(current);
@@ -280,7 +284,7 @@ static inline void ksu_handle_bprm_check_security(struct pt_regs *regs, long id)
         return;
 
     memset(path_buf, 0, sizeof(path_buf));
-    strncpy_from_user_nofault(path_buf, filename, sizeof(path_buf));
+    ksu_strncpy_from_user_nofault(path_buf, filename, sizeof(path_buf));
 
 #ifdef CONFIG_COMPAT
     static bool compat_check_done __read_mostly = false;
@@ -368,7 +372,11 @@ static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
 		}
 
 		// Handle inode_permission via faccessat
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
 		if (id == __NR_faccessat || id == __NR_faccessat2)
+#else
+		if (id == __NR_faccessat)
+#endif
         	return ksu_handle_inode_permission(regs);
 
 		// Handle bprm_check_security via execve/execveat

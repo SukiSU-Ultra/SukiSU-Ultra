@@ -48,4 +48,14 @@ static long ksu_copy_from_user_retry(void *to,
 #define ksu_access_ok(addr, size)    access_ok(VERIFY_READ, addr, size)
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
+#define TWA_RESUME true
+#endif
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+#define ksu_force_sig(sig)      force_sig(sig);
+#else
+#define ksu_force_sig(sig)      force_sig(sig, current);
+#endif
+
 #endif
