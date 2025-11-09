@@ -419,8 +419,11 @@ void persistent_allow_list()
         goto put_task;
     }
     cb->func = do_persistent_allow_list;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
     task_work_add(tsk, cb, TWA_RESUME);
-
+#else
+    task_work_add(tsk, cb, TWA_SIGNAL);
+#endif
 put_task:
     put_task_struct(tsk);
 }
