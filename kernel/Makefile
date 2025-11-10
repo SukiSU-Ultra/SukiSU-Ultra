@@ -121,7 +121,7 @@ endif
 
 # Check if __poll_t is available
 ifeq ($(shell grep -q "__poll_t" $(srctree)/include/linux/poll.h; echo $$?),1)
-ccflags-y += -DKSU_NEED_POLL_T_DEF
+ccflags-y += -DKSU_NO___POLL_T
 endif
 
 ifeq ($(shell grep -q "anon_inode_getfd_secure" $(srctree)/fs/anon_inodes.c; echo $$?),0)
