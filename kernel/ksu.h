@@ -95,6 +95,8 @@ struct app_profile {
 	};
 };
 
+bool ksu_queue_work(struct work_struct *work);
+
 #if 0
 static inline int startswith(char *s, char *prefix)
 {
