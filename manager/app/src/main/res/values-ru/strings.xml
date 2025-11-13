@@ -112,6 +112,9 @@
 \n Используйте эту опцию только после завершения OTA.
 \n Продолжить?</string>
     <string name="install_next">Далее</string>
+    <string name="install_select_partition">Выбрать раздел</string>
+    <string name="install_upload_lkm_file">Использовать локальный файл LKM</string>
+    <string name="install_only_support_ko_file">Поддерживаются только файлы .ko</string>
     <string name="select_file_tip">Образ раздела %1$s рекомендуется</string>
     <string name="select_file_tip_vendor">(нестабильный)</string>
     <string name="select_kmi">Выбрать KMI</string>
@@ -166,6 +169,13 @@
     <string name="su_not_allowed">Предоставление рут-доступа %s запрещено</string>
     <string name="settings_disable_su">Отключить su совместимость</string>
     <string name="settings_disable_su_summary">Временно отключить все приложения от получения рут-доступа через su команду (запущенные процессы с рут-доступом не будут затронуты).</string>
+    <string name="settings_disable_kernel_umount">Отключить размонтирование ядра</string>
+    <string name="settings_disable_kernel_umount_summary">Временное отключение умного уровня ядра KernelSU.</string>
+    <string name="settings_enable_enhanced_security">Включить повышенную безопасность</string>
+    <string name="settings_enable_enhanced_security_summary">Включить более строгие политики безопасности.</string>
+    <string name="settings_mode_default">По умолчанию</string>
+    <string name="settings_mode_temp_enable">Временно включены</string>
+    <string name="settings_mode_always_enable">Постоянно включены</string>
     <string name="module_install_multiple_confirm_with_names">Уверены, что хотите установить следующие %1$d модули? \n\n%2$s</string>
     <string name="more_settings">Доп. настройки</string>
     <string name="selinux">SELinux</string>
@@ -559,6 +569,8 @@
     <string name="add_custom_path">Другое</string>
     <string name="add_app_path">Приложение</string>
     <string name="susfs_add_app_path">Добавить путь приложения</string>
+    <string name="susfs_version_mismatch">Несоответствие версий библиотеки SuSFS! Ядро: %1$s, менеджер: %2$s. Рекомендуется обновить ядро или менеджер</string>
+    <string name="warning">Внимание</string>
     <string name="search_apps">Поиск приложений</string>
     <string name="selected_apps_count">Выбрано %1$d приложений</string>
     <string name="already_added_apps_count">%1$d приложений уже добавлено</string>
@@ -618,4 +630,127 @@
     <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
     <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>
     <string name="home_hook_type">Типы хуков</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Патч KPM</string>
+    <string name="kpm_patch_description">Добавление дополнительных функций KPM</string>
+    <string name="enable_kpm_patch">Патч KPM</string>
+    <string name="kpm_patch_switch_description">Применить патч KPM к образу ядра перед прошивкой</string>
+    <string name="enable_kpm_undo_patch">Патч для отмены KPM</string>
+    <string name="kpm_undo_patch_switch_description">Отменить ранее применённый патч KPM</string>
+    <string name="kpm_patch_enabled">Патч KPM включен</string>
+    <string name="kpm_undo_patch_enabled">Патч для отмены KPM включен</string>
+    <string name="kpm_patch_mode">Режим патча KPM</string>
+    <string name="kpm_undo_patch_mode">Режим отмены патча KPM</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Подготовка инструментов KPM</string>
+    <string name="kpm_applying_patch">Применение патча KPM</string>
+    <string name="kpm_undoing_patch">Отмена патча KPM</string>
+    <string name="kpm_found_image_file">Найден файл образа: %s</string>
+    <string name="kpm_patch_success">Патч KPM успешно применен</string>
+    <string name="kpm_undo_patch_success">Патч KPM успешно отменён</string>
+    <string name="kpm_file_repacked">Файл успешно переупакован</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Не удалось извлечь zip-файл</string>
+    <string name="kpm_image_file_not_found">Файл образа не найден</string>
+    <string name="kpm_patch_failed">Ошибка патча KPM</string>
+    <string name="kpm_undo_patch_failed">Ошибка патча отмены KPM</string>
+    <string name="kpm_patch_operation_failed">Ошибка патча KPM: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Следовать за ядром</string>
+    <string name="kpm_follow_kernel_description">Использовать ядро без каких-либо изменений KPM</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Пользовательский режим сканирования списка приложений</string>
+    <string name="uid_auto_scan_summary">Включение этой опции позволит использовать сканирование пользовательского режима для списка приложений, улучшая стабильность. (Если вы столкнетесь с такими проблемами, как замораживание во время сканирования ядра списка приложений, вы можете включить эту опцию.)</string>
+    <string name="uid_multi_user_scan_title">Поиск многопользовательских приложений</string>
+    <string name="uid_multi_user_scan_summary">Когда включено, сканирует приложения для всех пользователей, включая рабочие профили</string>
+    <string name="uid_scanner_setting_failed">Не удалось установить, проверьте права доступа</string>
+    <string name="uid_scanner_setting_error">Не удалось установить: %s</string>
+    <string name="clean_runtime_environment">Очистить среду Runtime</string>
+    <string name="clean_runtime_environment_summary">Очистить среду Runtime и остановить службу сканирования</string>
+    <string name="clean_runtime_environment_confirm">Вы уверены, что хотите очистить среду Runtime? Это остановит службу сканирования и удалит связанные с ней файлы.</string>
+    <string name="clean_runtime_environment_success">Runtime окружение успешно очищено</string>
+    <string name="clean_runtime_environment_failed">Не удалось очистить среду runtime</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">Подтвердите установку</string>
+    <string name="confirm_multiple_installation">Подтвердите установку (%d файлов)</string>
+    <string name="install_confirm">Установить</string>
+    <string name="module_package">Модули</string>
+    <string name="kernel_package">Ядро</string>
+    <string name="unknown_package">Неизвестно</string>
+    <string name="unknown_kernel">Неизвестное ядро</string>
+    <string name="unknown_file">Неизвестный файл</string>
+    <string name="version">Версия</string>
+    <string name="author">Автор</string>
+    <string name="description">Описание</string>
+    <string name="supported_devices">Поддерживаемые устройства</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SUS Maps</string>
+    <string name="susfs_sus_map_label">Путь к библиотеке</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">Добавить SUS Map</string>
+    <string name="susfs_edit_sus_map">Изменить SUS Map</string>
+    <string name="susfs_sus_map_added_success">SUS map успешно добавлен: %1$s</string>
+    <string name="susfs_sus_map_removed">SUS map удален: %1$s</string>
+    <string name="susfs_sus_map_updated">SUS map обновлен: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_sus_maps_configured">SUS maps не настроены</string>
+    <string name="susfs_reset_sus_maps_title">Сбросить SUS Maps</string>
+    <string name="susfs_reset_sus_maps_message">Это действие удалит все настроенные SUS maps. Это действие нельзя отменить.</string>
+    <string name="sus_maps_section">Скрытие физической памяти</string>
+    <string name="sus_maps_description_title">Скрыть настоящий файл mmapped с разных карт в /proc/self/</string>
+    <string name="sus_maps_description_text">Скрыть реальные пути к папкам памяти из /proc/self/[maps|smaps_rollup|map_files|mem|pagemap]. Обратите внимание: эта функция не поддерживает скрытие анонимных карт и может скрыть встроенные хуки или PLT хуки вызванные инъекцией самой библиотеки.</string>
+    <string name="sus_maps_warning">Важное уведомление: для приложений с хорошо реализованными механизмами обнаружений эта функция может работать не эффективно .</string>
+    <string name="sus_maps_debug_info">Сначала найдите PID и UID целевого приложения, используя ps -enf, затем проверьте соответствующие пути в /proc/&lt;pid&gt;/maps и сравните номера устройства с номерами в /proc/1/mountinfo. Функция скрытия  будет работать должным образом только если номера устройств совпадают.</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">Просмотр логов</string>
+    <string name="log_viewer_back">Назад</string>
+    <string name="log_viewer_search">Поиск</string>
+    <string name="log_viewer_clear_logs">Очистить логи</string>
+    <string name="log_viewer_clear_logs_confirm">Вы уверены, что хотите удалить выбранный файл журнала? Это действие нельзя отменить.</string>
+    <string name="log_viewer_logs_cleared">Логи успешно очищены</string>
+    <string name="log_viewer_select_file">Выберите файл журнала</string>
+    <string name="log_viewer_current_log">Текущий лог</string>
+    <string name="log_viewer_old_log">Старый лог</string>
+    <string name="log_viewer_filter_type">Фильтрация по типу</string>
+    <string name="log_viewer_all_types">Все типы</string>
+    <string name="log_viewer_showing_entries">Показаны записи %1$d из %2$d</string>
+    <string name="log_viewer_no_logs">Логи не найдены</string>
+    <string name="log_viewer_no_matching_logs">Совпадающих журналов не найдено</string>
+    <string name="log_viewer_refresh">Обновить</string>
+    <string name="log_viewer_raw_log">Необработанный лог</string>
+    <string name="log_viewer_search_placeholder">Поиск по UID, команде или деталям…</string>
+    <string name="log_viewer_clear_search">Очистить поиск</string>
+    <string name="log_viewer_view_logs">Просмотр логов использования</string>
+    <string name="log_viewer_view_logs_summary">Просмотр журналов доступа к KernelSU</string>
+    <string name="log_viewer_exclude_subtypes">Исключить подтипы</string>
+    <string name="log_viewer_exclude_current_app">Текущее приложение</string>
+    <string name="log_viewer_page_info">Страница: %1$d/%2$d | Всего журналов: %3$d</string>
+    <string name="log_viewer_too_many_logs">Слишком много журналов, отображаются только последние записи %1$d</string>
+    <string name="log_viewer_load_more">Загрузить больше логов</string>
+    <string name="log_viewer_all_logs_loaded">Все логи отображаются</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">Подтвердите удаление SukiSU Manager?</string>
+    <string name="miui_uninstall_content">Удаление не повлияет на функциональность вашего root-доступа. Он продолжит работать от этого менеджера.</string>
+    <string name="incompatible_kernel_msg">    Текущий менеджер несовместим с этим ядром! Пожалуйста, обновите ядро до версии %2$d или выше (сейчас %1$d)
+    </string>
+    <string name="umount_path_manager">Управление путями размонтирования</string>
+    <string name="umount_path_manager_summary">Управления путями размонтирования ядра</string>
+    <string name="umount_path_restart_notice">Для применения изменений необходима перезагрузка. Система применит новый конфиг при следующем запуске.</string>
+    <string name="add_umount_path">Добавить путь размонтирования</string>
+    <string name="mount_path">Смонтировать путь</string>
+    <string name="check_mount_type">Проверить тип монтирования</string>
+    <string name="check_mount_type_overlay">Проверить, является ли оверлеем</string>
+    <string name="umount_flags">Флаги размонтирования</string>
+    <string name="umount_flags_hint">0=Обычное размонтирование, 8=MNT_DETACH, -1=Автоматически</string>
+    <string name="flags">Флаги</string>
+    <string name="confirm_delete">Подтвердите удаление</string>
+    <string name="confirm_delete_umount_path">Вы уверены, что хотите удалить путь размонтирования%s?</string>
+    <string name="umount_path_added">Путь добавлен, изменения вступят в силу после перезагрузки</string>
+    <string name="umount_path_removed">Путь удален, изменения вступят в силу после перезагрузки</string>
+    <string name="operation_failed">Неудача</string>
+    <string name="confirm_action">Подтвердите действие</string>
+    <string name="confirm_clear_custom_paths">Вы уверены, что хотите удалить все кастомные пути? (Стандартные пути не будут удалены)</string>
+    <string name="custom_paths_cleared">Кастомные пути удалены</string>
+    <string name="clear_custom_paths">Удалить кастомные пути</string>
+    <string name="apply_config">Применить конфигурацию</string>
+    <string name="config_applied">Конфигурация применена к ядру</string>
 </resources>
