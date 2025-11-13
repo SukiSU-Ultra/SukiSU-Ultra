@@ -590,6 +590,7 @@
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活跃管理器</string>
     <string name="no_active_manager">无活跃管理器</string>
+    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk 实现</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 循环路径</string>
@@ -602,6 +603,7 @@
     <string name="susfs_reset_loop_paths_title">重置循环路径</string>
     <string name="susfs_reset_loop_paths_message">确定要清空所有 SuS 循环路径吗？此操作无法撤销。</string>
     <string name="susfs_loop_path_label">循环路径</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 内的路径才能通过循环路径添加。</string>
     <string name="susfs_loop_path_invalid_location">错误：循环路径不能位于 /storage/ 或 /sdcard/ 目录内</string>
     <string name="loop_paths_section">循环路径</string>
@@ -627,7 +629,7 @@
     <string name="module_signature_invalid_message">未经签名的模块可能不完整。为了对设备进行保护，已阻止安装此模块。</string>
     <string name="module_signature_verification_failed">未经签名的模块可能不完整。你想安装来自未知发布者的模块吗？</string>
     <string name="home_hook_type">钩子类型</string>
-    <!-- KPM修补相关字符串 -->
+    <!-- KPM patching related strings -->
     <string name="kpm_patch_options">KPM 修补</string>
     <string name="kpm_patch_description">用于添加附加的 KPM 功能</string>
     <string name="enable_kpm_patch">KPM 修补</string>
@@ -638,7 +640,7 @@
     <string name="kpm_undo_patch_enabled">KPM 撤销修补已启用</string>
     <string name="kpm_patch_mode">KPM 修补模式</string>
     <string name="kpm_undo_patch_mode">KPM 撤销修补模式</string>
-    <!-- KPM工作流程相关 -->
+    <!-- KPM workflow related -->
     <string name="kpm_preparing_tools">准备 KPM 修补工具</string>
     <string name="kpm_applying_patch">正在应用 KPM 修补</string>
     <string name="kpm_undoing_patch">正在撤销 KPM 修补</string>
@@ -646,13 +648,13 @@
     <string name="kpm_patch_success">KPM 修补成功</string>
     <string name="kpm_undo_patch_success">KPM 撤销修补成功</string>
     <string name="kpm_file_repacked">文件重新打包完成</string>
-    <!-- KPM错误信息 -->
+    <!-- KPM error messages -->
     <string name="kpm_extract_zip_failed">解压压缩包失败</string>
     <string name="kpm_image_file_not_found">未找到 Image 文件</string>
     <string name="kpm_patch_failed">KPM 修补失败</string>
     <string name="kpm_undo_patch_failed">KPM 撤销修补失败</string>
     <string name="kpm_patch_operation_failed">KPM 修补操作失败: %s</string>
-    <!-- KPM选项单选按钮组字符串 -->
+    <!-- KPM option radio group strings -->
     <string name="kpm_follow_kernel_file">跟随内核</string>
     <string name="kpm_follow_kernel_description">原样使用内核，不进行任何 KPM 修改</string>
     <!-- UID Scanner Settings -->
@@ -688,7 +690,7 @@
     <string name="susfs_edit_sus_map">编辑SUS映射</string>
     <string name="susfs_sus_map_added_success">SUS映射添加成功: %1$s</string>
     <string name="susfs_sus_map_removed">SUS映射已移除: %1$s</string>
-    <string name="susfs_sus_map_updated">SUS映射已更新: %1$s -> %2$s</string>
+    <string name="susfs_sus_map_updated">SUS映射已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">未配置SUS映射</string>
     <string name="susfs_reset_sus_maps_title">重置SUS映射</string>
     <string name="susfs_reset_sus_maps_message">这将移除所有已配置的SUS映射。此操作无法撤销。</string>
@@ -727,9 +729,7 @@
     <!-- MiUI Uninstall Desc -->
     <string name="miui_uninstall_title">真要走?</string>
     <string name="miui_uninstall_content">哼，卸就卸。Root 功能可不会因为失去区区一个管理器就停止运作。别担心，zakozako 只卸载管理器可干不掉 Root 呢，zako~❤️</string>
-    <string name="incompatible_kernel_msg">
-    当前管理器与此内核不兼容！请将内核升级至版本 %2$d 或以上（当前 %1$d）
-</string>
+    <string name="incompatible_kernel_msg">    当前管理器与此内核不兼容！请将内核升级至版本 %2$d 或以上（当前 %1$d）</string>
     <string name="umount_path_manager">Umount 路径管理</string>
     <string name="umount_path_manager_summary">管理内核卸载路径</string>
     <string name="umount_path_restart_notice">添加或删除路径后需要重启设备才能生效。系统会在下次启动时应用新的配置。</string>
