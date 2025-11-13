@@ -110,6 +110,8 @@
     <string name="install_inactive_slot">Etkin olmayan yuvaya yükle (OTA sonrası)</string>
     <string name="install_inactive_slot_warning">Cihazınız, yeniden başlatma sonrasında **ZORUNLU** olarak mevcut etkin olmayan yuvaya önyükleme yapacaktır!\nSadece OTA tamamlandıktan sonra bu seçeneği kullanın.\nDevam etmek istiyor musunuz?</string>
     <string name="install_next">İleri</string>
+    <string name="install_upload_lkm_file">Yerel LKM dosyası kullan</string>
+    <string name="install_only_support_ko_file">Yalnızca .ko dosyaları desteklenir</string>
     <string name="select_file_tip">%1$s bölüm görüntüsü önerilir</string>
     <string name="select_file_tip_vendor">(kararsız)</string>
     <string name="select_kmi">KMI seçin</string>
@@ -164,6 +166,13 @@
     <string name="su_not_allowed">%s için süper kullanıcı yetkisi verilemiyor</string>
     <string name="settings_disable_su">Su uyumluluğunu devre dışı bırak</string>
     <string name="settings_disable_su_summary">Geçici olarak herhangi bir uygulamanın su komutu aracılığıyla root ayrıcalıkları elde etmesini devre dışı bırakır (mevcut root işlemleri etkilenmez).</string>
+    <string name="settings_disable_kernel_umount">Çekirdek ayırmasını devre dışı bırak</string>
+    <string name="settings_disable_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesindeki ayırma davranışını devre dışı bırakın.</string>
+    <string name="settings_enable_enhanced_security">Gelişmiş güvenliği etkinleştir</string>
+    <string name="settings_enable_enhanced_security_summary">Daha katı güvenlik politikalarını etkinleştirin.</string>
+    <string name="settings_mode_default">Varsayılan</string>
+    <string name="settings_mode_temp_enable">Geçici olarak etkinleştir</string>
+    <string name="settings_mode_always_enable">Kalıcı olarak etkinleştir</string>
     <string name="module_install_multiple_confirm_with_names">Aşağıdaki %1$d modülü yüklemek istediğinizden emin misiniz? \n\n%2$s</string>
     <string name="more_settings">Daha fazla ayar</string>
     <string name="selinux">SELinux</string>
@@ -557,6 +566,8 @@
     <string name="add_custom_path">Diğer</string>
     <string name="add_app_path">Uygulama</string>
     <string name="susfs_add_app_path">Uygulama Yolu Ekle</string>
+    <string name="susfs_version_mismatch">SuSFS kütüphane sürümü uyuşmazlığı, çekirdek: %1$s vs yönetici: %2$s, Çekirdeği veya yöneticiyi güncellemeniz önerilir</string>
+    <string name="warning">Uyarı</string>
     <string name="search_apps">Uygulama Ara</string>
     <string name="selected_apps_count">%1$d uygulama seçildi</string>
     <string name="already_added_apps_count">%1$d uygulama zaten eklendi</string>
@@ -616,4 +627,106 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'k
     <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
     <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
     <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
+    <string name="home_hook_type">Hook tipi</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM Yaması</string>
+    <string name="kpm_patch_description">Ek KPM özellikleri eklemek için</string>
+    <string name="enable_kpm_patch">KPM Yaması</string>
+    <string name="kpm_patch_switch_description">Yüklemeden önce çekirdek imajına KPM yamasını uygula</string>
+    <string name="enable_kpm_undo_patch">KPM Yamasını Geri Al</string>
+    <string name="kpm_undo_patch_switch_description">Daha önce uygulanan KPM yamasını geri al</string>
+    <string name="kpm_patch_enabled">KPM yaması etkinleştirildi</string>
+    <string name="kpm_undo_patch_enabled">KPM yaması geri alma etkinleştirildi</string>
+    <string name="kpm_patch_mode">KPM Yama Modu</string>
+    <string name="kpm_undo_patch_mode">KPM Yamasını Geri Alma Modu</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">KPM araçları hazırlanıyor</string>
+    <string name="kpm_applying_patch">KPM yaması uygulanıyor</string>
+    <string name="kpm_undoing_patch">KPM yaması geri alınıyor</string>
+    <string name="kpm_found_image_file">İmaj dosyası bulundu: %s</string>
+    <string name="kpm_patch_success">KPM yaması başarıyla uygulandı</string>
+    <string name="kpm_undo_patch_success">KPM yaması başarıyla geri alındı</string>
+    <string name="kpm_file_repacked">Dosya başarıyla yeniden paketlendi</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Zip dosyası çıkarılamadı</string>
+    <string name="kpm_image_file_not_found">İmaj dosyası bulunamadı</string>
+    <string name="kpm_patch_failed">KPM yaması başarısız oldu</string>
+    <string name="kpm_undo_patch_failed">KPM yamasını geri alma başarısız oldu</string>
+    <string name="kpm_patch_operation_failed">KPM yama işlemi başarısız oldu: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Çekirdeği Takip Et</string>
+    <string name="kpm_follow_kernel_description">Çekirdeği herhangi bir KPM değişikliği olmadan olduğu gibi kullan</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Kullanıcı modu uygulama listesi taraması</string>
+    <string name="uid_auto_scan_summary">Bu seçeneği etkinleştirmek, uygulama listesi için kullanıcı modu taramasını kullanarak kararlılığı artıracaktır. (Uygulama listesinin çekirdek tarafından taranması sırasında donma gibi sorunlar yaşıyorsanız, bu seçeneği etkinleştirmeyi deneyebilirsiniz.)</string>
+    <string name="uid_multi_user_scan_title">Çok Kullanıcılı Uygulama Taraması</string>
+    <string name="uid_multi_user_scan_summary">Etkinleştirildiğinde, iş profilleri de dahil olmak üzere tüm kullanıcıların uygulamalarını tarar.</string>
+    <string name="uid_scanner_setting_failed">Ayar başarısız oldu, lütfen izinleri kontrol edin</string>
+    <string name="uid_scanner_setting_error">Ayar başarısız oldu: %s</string>
+    <string name="clean_runtime_environment">Çalışma Zamanı Ortamını Temizle</string>
+    <string name="clean_runtime_environment_summary">Çalışma zamanı dosyalarını temizleyin ve tarayıcı hizmetini durdurun</string>
+    <string name="clean_runtime_environment_confirm">Çalışma zamanı ortamını temizlemek istediğinizden emin misiniz? Bu işlem tarayıcı hizmetini durduracak ve ilgili dosyaları kaldıracaktır.</string>
+    <string name="clean_runtime_environment_success">Çalışma zamanı ortamı başarıyla temizlendi</string>
+    <string name="clean_runtime_environment_failed">Çalışma zamanı ortamı temizlenemedi</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">Kurulumu Onayla</string>
+    <string name="confirm_multiple_installation">Kurulumu Onayla (%d dosya)</string>
+    <string name="install_confirm">Yükle</string>
+    <string name="module_package">Modül</string>
+    <string name="kernel_package">Kernel</string>
+    <string name="unknown_package">Bilinmiyor</string>
+    <string name="unknown_kernel">Bilinmeyen Kernel</string>
+    <string name="unknown_file">Bilinmeyen Dosya</string>
+    <string name="version">Sürüm</string>
+    <string name="author">Geliştirici</string>
+    <string name="description">Açıklama</string>
+    <string name="supported_devices">Desteklenen Cihazlar</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SUS Eşlemeleri</string>
+    <string name="susfs_sus_map_label">Kütüphane Yolu</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">SUS Eşlemesi Ekle</string>
+    <string name="susfs_edit_sus_map">SUS Eşlemesini Düzenle</string>
+    <string name="susfs_sus_map_added_success">SUS eşlemesi başarıyla eklendi: %1$s</string>
+    <string name="susfs_sus_map_removed">SUS eşlemesi kaldırıldı: %1$s</string>
+    <string name="susfs_sus_map_updated">SUS eşlemesi güncellendi: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_sus_maps_configured">Yapılandırılmış SUS eşlemesi yok</string>
+    <string name="susfs_reset_sus_maps_title">SUS Eşlemelerini Sıfırla</string>
+    <string name="susfs_reset_sus_maps_message">Bu, yapılandırılmış tüm SUS eşlemelerini kaldıracaktır. Bu işlem geri alınamaz.</string>
+    <string name="sus_maps_section">Bellek Eşlemesi Gizleme</string>
+    <string name="sus_maps_description_title">/proc/self/ içindeki çeşitli eşlemelerden mmap\'lenmiş gerçek dosyayı gizle</string>
+    <string name="sus_maps_description_text">Bellek eşlemelerinin gerçek dosya yollarını /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] konumundan gizleyin. Lütfen dikkat: Bu özellik, anonim bellek eşlemelerini gizlemeyi desteklemez ve enjekte edilen kütüphanenin kendisinin neden olduğu satır içi kancaları veya PLT kancalarını da gizleyemez.</string>
+    <string name="sus_maps_warning">Önemli Not: İyi uygulanmış enjeksiyon tespit mekanizmalarına sahip uygulamalar için bu özellik, tespiti etkili bir şekilde atlatamayabilir.</string>
+    <string name="sus_maps_debug_info">Öncelikle, ps -enf kullanarak hedef uygulamanın PID ve UID\'sini bulun, ardından /proc/&lt;pid&gt;/maps içindeki ilgili yolları kontrol edin ve tutarlılığı sağlamak için cihaz numaralarını /proc/1/mountinfo\'dakilerle karşılaştırın. Yalnızca cihaz numaraları eşleştiğinde harita gizleme işlevi düzgün çalışabilir.</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">Günlük Görüntüleyici</string>
+    <string name="log_viewer_back">Geri</string>
+    <string name="log_viewer_search">Ara</string>
+    <string name="log_viewer_clear_logs">Günlükleri Temizle</string>
+    <string name="log_viewer_clear_logs_confirm">Seçili günlük dosyasını temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
+    <string name="log_viewer_logs_cleared">Günlükler başarıyla temizlendi</string>
+    <string name="log_viewer_select_file">Günlük Dosyası Seç</string>
+    <string name="log_viewer_current_log">Mevcut Günlük</string>
+    <string name="log_viewer_old_log">Eski Günlük</string>
+    <string name="log_viewer_filter_type">Türe Göre Filtrele</string>
+    <string name="log_viewer_all_types">Tüm Türler</string>
+    <string name="log_viewer_showing_entries">%2$d girişten %1$d tanesi gösteriliyor</string>
+    <string name="log_viewer_no_logs">Günlük bulunamadı</string>
+    <string name="log_viewer_no_matching_logs">Eşleşen günlük bulunamadı</string>
+    <string name="log_viewer_refresh">Yenile</string>
+    <string name="log_viewer_raw_log">Ham Günlük</string>
+    <string name="log_viewer_search_placeholder">UID, komut veya ayrıntılara göre ara…</string>
+    <string name="log_viewer_clear_search">Aramayı temizle</string>
+    <string name="log_viewer_view_logs">Kullanım Günlüklerini Görüntüle</string>
+    <string name="log_viewer_view_logs_summary">KernelSU süper kullanıcı erişim günlüklerini görüntüle</string>
+    <string name="log_viewer_exclude_subtypes">Alt türleri hariç tut</string>
+    <string name="log_viewer_exclude_current_app">Mevcut Uygulama</string>
+    <string name="log_viewer_page_info">Sayfa: %1$d/%2$d | Toplam günlük: %3$d</string>
+    <string name="log_viewer_too_many_logs">Çok fazla günlük var, yalnızca son %1$d giriş gösteriliyor</string>
+    <string name="log_viewer_load_more">Daha Fazla Günlük Yükle</string>
+    <string name="log_viewer_all_logs_loaded">Tüm günlükler görüntülendi</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">SukiSU Yöneticisi Kaldırılsın mı?</string>
+    <string name="miui_uninstall_content">Kaldırma işlemine devam etmek, root erişiminizin temel işlevselliğini etkilemeyecektir. Root, bu yöneticiden bağımsız olarak çalışacak şekilde tasarlanmıştır.</string>
+    <string name="incompatible_kernel_msg">Mevcut yönetici bu çekirdekle uyumsuz! Lütfen çekirdeği %2$d veya daha yüksek bir sürüme yükseltin (mevcut sürüm %1$d)</string>
 </resources>
