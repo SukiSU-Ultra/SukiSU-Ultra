@@ -112,6 +112,8 @@
 \nHANYA gunakan setelah proses OTA selesai.
 \nLanjutkan?</string>
     <string name="install_next">Selanjutnya</string>
+    <string name="install_upload_lkm_file">Gunakan berkas LKM lokal</string>
+    <string name="install_only_support_ko_file">Hanya berkas .ko yang didukung</string>
     <string name="select_file_tip">%1$s image partisi terekomendasi</string>
     <string name="select_file_tip_vendor">(tidak stabil)</string>
     <string name="select_kmi">Pilih KMI</string>
@@ -166,6 +168,13 @@
     <string name="su_not_allowed">Memberikan hak superuser kepada %s tidak diizinkan</string>
     <string name="settings_disable_su">Nonaktifkan kompatibilitas SU</string>
     <string name="settings_disable_su_summary">Nonaktifkan sementara kemampuan aplikasi untuk mendapatkan hak akses root melalui perintah ⁠su (proses root yang sedang berjalan tidak akan terpengaruh)</string>
+    <string name="settings_disable_kernel_umount">Nonaktifkan pelepasan (unmount) kernel</string>
+    <string name="settings_disable_kernel_umount_summary">Nonaktifkan perilaku unmount pada level kernel yang digunakan oleh KernelSU.</string>
+    <string name="settings_enable_enhanced_security">Aktifkan keamanan yang ditingkatkan</string>
+    <string name="settings_enable_enhanced_security_summary">Aktifkan kebijakan keamanan yang lebih ketat.</string>
+    <string name="settings_mode_default">Bawaan</string>
+    <string name="settings_mode_temp_enable">Aktifkan sementara</string>
+    <string name="settings_mode_always_enable">Aktifkan secara permanen</string>
     <string name="module_install_multiple_confirm_with_names">Apakah Anda yakin ingin menginstal %1$d modul berikut?\n\n%2$s</string>
     <string name="more_settings">Setelan lainnya</string>
     <string name="selinux">Selinux</string>
@@ -559,6 +568,8 @@
     <string name="add_custom_path">Lainnya</string>
     <string name="add_app_path">Aplikasi</string>
     <string name="susfs_add_app_path">Tambahkan Jalur Aplikasi</string>
+    <string name="susfs_version_mismatch">Versi pustaka SuSFS tidak cocok, kernel: %1$s vs manajer: %2$s. Disarankan untuk memperbarui kernel atau manajer</string>
+    <string name="warning">Peringatan</string>
     <string name="search_apps">Cari Aplikasi</string>
     <string name="selected_apps_count">%1$d aplikasi dipilih</string>
     <string name="already_added_apps_count">%1$d aplikasi sudah ditambahkan</string>
@@ -602,6 +613,14 @@
     <string name="sus_loop_path_feature_label">Jalur Loop SUS</string>
     <string name="sus_loop_paths_description_title">Konfigurasi Jalur Loop</string>
     <string name="sus_loop_paths_description_text">Jalur loop ditandai ulang sebagai SUS_PATH pada setiap startup aplikasi pengguna non-root atau layanan terisolasi. Ini membantu mengatasi masalah di mana jalur yang ditambahkan mungkin memiliki status inode direset atau inode dibuat ulang di kernel.</string>
+    <string name="avc_log_spoofing">Palsukan log AVC</string>
+    <string name="avc_log_spoofing_enabled">Palsukan log AVC telah diaktifkan</string>
+    <string name="avc_log_spoofing_disabled">Palsukan log AVC telah dinonaktifkan</string>
+    <string name="avc_log_spoofing_description">Dinonaktifkan: Nonaktifkan pemalsuan sus tcontext dari \'su\' yang ditampilkan di avc log di kernel\n
+Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'kernel\' yang ditampilkan di avc log in kernel</string>
+    <string name="avc_log_spoofing_warning">Catatan Penting:\n
+- Secara default pada kernel nilai ini disetel ke \'0\'\n
+- Mengaktifkan ini terkadang membuat pengembang lebih sulit mengidentifikasi penyebab saat melakukan debugging terkait izin atau masalah SELinux, sehingga disarankan agar pengguna menonaktifkannya saat sedang melakukan debugging</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Tervalidasi</string>
     <string name="module_signature_verified">Tanda tangan modul tervalidasi</string>
@@ -610,4 +629,77 @@
     <string name="module_signature_invalid">Penerbit tidak dikenal</string>
     <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
     <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>
+    <string name="home_hook_type">Jenis hook</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">Patch KPM</string>
+    <string name="kpm_patch_description">Untuk menambahkan fitur KPM tambahan</string>
+    <string name="enable_kpm_patch">Patch KPM</string>
+    <string name="kpm_patch_switch_description">Terapkan patch KPM ke image kernel sebelum melakukan flashing</string>
+    <string name="enable_kpm_undo_patch">Batalkan Patch KPM</string>
+    <string name="kpm_undo_patch_switch_description">Batalkan patch KPM yang telah diterapkan sebelumnya</string>
+    <string name="kpm_patch_enabled">Patch KPM aktif</string>
+    <string name="kpm_undo_patch_enabled">Pembatalan patch KPM diaktifkan</string>
+    <string name="kpm_patch_mode">Mode Patch KPM</string>
+    <string name="kpm_undo_patch_mode">Mode Pembatalan Patch KPM</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">Sedang menyiapkan Alat KPM</string>
+    <string name="kpm_applying_patch">Menerapkan patch KPM</string>
+    <string name="kpm_undoing_patch">Membatalkan patch KPM</string>
+    <string name="kpm_found_image_file">Menemukan berkas Image: %s</string>
+    <string name="kpm_patch_success">KPM berhasil diterapkan</string>
+    <string name="kpm_undo_patch_success">Patch KPM berhasil dibatalkan</string>
+    <string name="kpm_file_repacked">File berhasil direpack</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">Gagal mengekstrak berkas zip</string>
+    <string name="kpm_image_file_not_found">Berkas Image tidak ditemukan</string>
+    <string name="kpm_patch_failed">Patch KPM gagal</string>
+    <string name="kpm_undo_patch_failed">Pembatalan patch KPM gagal</string>
+    <string name="kpm_patch_operation_failed">Operasi patch KPM gagal: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">Ikuti kernel</string>
+    <string name="kpm_follow_kernel_description">Gunakan kernel apa adanya tanpa perubahan dari KPM</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">Daftar aplikasi pemindaian pada mode pengguna</string>
+    <string name="uid_auto_scan_summary">Mengaktifkan opsi ini akan menggunakan pemindaian mode pengguna untuk daftar aplikasi, sehingga meningkatkan kestabilan. (Jika Anda mengalami masalah seperti hang saat kernel memindai daftar aplikasi, Anda dapat mencoba mengaktifkan opsi ini.)</string>
+    <string name="uid_multi_user_scan_title">Pemindaian Aplikasi Multi-Pengguna</string>
+    <string name="uid_multi_user_scan_summary">Ketika diaktifkan, fitur ini akan memindai aplikasi untuk semua pengguna, termasuk profil kerja</string>
+    <string name="uid_scanner_setting_failed">Gagal mengatur, silakan periksa perizinan</string>
+    <string name="uid_scanner_setting_error">Gagal mengatur: %s</string>
+    <string name="clean_runtime_environment">Bersihkan Lingkungan Runtime</string>
+    <string name="clean_runtime_environment_summary">Bersihkan berkas runtime dan hentikan layanan pemindai</string>
+    <string name="clean_runtime_environment_confirm">Apakah Anda yakin ingin membersihkan lingkungan runtime? Tindakan ini akan menghentikan layanan pemindai dan menghapus berkas yang terkait.</string>
+    <string name="clean_runtime_environment_success">Lingkungan runtime berhasil dibersihkan</string>
+    <string name="clean_runtime_environment_failed">Gagal membersihkan lingkungan runtime</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">Konfirmasi Instalasi</string>
+    <string name="confirm_multiple_installation">Konfirmasi Instalasi (Berkas %d)</string>
+    <string name="install_confirm">Instal</string>
+    <string name="module_package">Modul</string>
+    <string name="kernel_package">Kernel</string>
+    <string name="unknown_package">Tidak diketahui</string>
+    <string name="unknown_kernel">Kernel tidak diketahui</string>
+    <string name="unknown_file">Berkas tidak diketahui</string>
+    <string name="version">Versi</string>
+    <string name="author">Pembuat</string>
+    <string name="description">Deskripsi</string>
+    <string name="supported_devices">Perangkat yang didukung</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">Peta SUS</string>
+    <string name="susfs_sus_map_label">Jalur Pustaka</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">Tambahkan Peta SUS</string>
+    <string name="susfs_edit_sus_map">Sunting Peta SUS</string>
+    <string name="susfs_sus_map_added_success">Peta SUS berhasil ditambahkan: %1$s</string>
+    <string name="susfs_sus_map_removed">Peta SUS telah dihapus: %1$s</string>
+    <string name="susfs_sus_map_updated">Peta SUS telah diperbarui: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_sus_maps_configured">Tidak ada peta SUS yang dikonfigurasi</string>
+    <string name="susfs_reset_sus_maps_title">Atur ulang Peta SUS</string>
+    <string name="susfs_reset_sus_maps_message">Tindakan ini akan menghapus semua peta SUS yang telah dikonfigurasi. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="sus_maps_section">Penyembunyian Peta Memori</string>
+    <string name="sus_maps_description_title">Sembunyikan berkas nyata yang di-mmapped dari berbagai peta di /proc/self/</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_search">Cari</string>
+    <string name="log_viewer_clear_logs">Bersihkan Log</string>
+    <string name="log_viewer_clear_logs_confirm">Apakah Anda yakin ingin mengosongkan berkas log yang dipilih? Tindakan ini tidak dapat dibatalkan.</string>
+    <!-- MiUI Uninstall Desc -->
 </resources>
