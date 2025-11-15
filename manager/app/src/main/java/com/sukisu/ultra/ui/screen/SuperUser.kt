@@ -1,14 +1,46 @@
 package com.sukisu.ultra.ui.screen
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -20,10 +52,46 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RestoreFromTrash
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -87,9 +155,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
 
     LaunchedEffect(navigator) {
         viewModel.search = ""
-        if (viewModel.appList.isEmpty()) {
-            // viewModel.fetchAppList()
-        }
     }
 
     LaunchedEffect(viewModel.selectedApps, viewModel.showBatchActions) {
@@ -344,18 +409,20 @@ private fun SuperUserContent(
                                 appGroup.packageNames.forEach { viewModel.toggleAppSelection(it) }
                             }
                         },
-                        viewModel = viewModel,
-                        navigator = navigator,
-                        isExpanded = expandedGroups.value.contains(appGroup.uid)
+                        viewModel = viewModel
                     )
                 }
 
-                if (expandedGroups.value.contains(appGroup.uid) && appGroup.apps.size > 1) {
-                    items(appGroup.apps.drop(1), key = { it.packageName }) { app ->
+                items(appGroup.apps, key = { it.packageName }) { app ->
+                    AnimatedVisibility(
+                        visible = expandedGroups.value.contains(appGroup.uid) && appGroup.apps.size > 1,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
                         ListItem(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                                .padding(start = 10.dp)
                                 .clickable {
                                     navigator.navigate(AppProfileScreenDestination(app))
                                 },
@@ -786,9 +853,7 @@ private fun AppGroupItem(
     onToggleSelection: () -> Unit,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    viewModel: SuperUserViewModel,
-    navigator: DestinationsNavigator,
-    isExpanded: Boolean = false
+    viewModel: SuperUserViewModel
 ) {
     val mainApp = appGroup.mainApp
 
@@ -800,37 +865,16 @@ private fun AppGroupItem(
             )
         },
         headlineContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(mainApp.label)
-                if (appGroup.apps.size > 1) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                    ) {
-                        Text(
-                            text = "${appGroup.apps.size} apps",
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+            Text(mainApp.label)
         },
         supportingContent = {
             Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("UID: ${appGroup.uid}")
+                val summaryText = if (appGroup.apps.size > 1) {
+                    stringResource(R.string.group_contains_apps, appGroup.apps.size)
+                } else {
+                    mainApp.packageName
                 }
-                if (appGroup.apps.size == 1) {
-                    Text(mainApp.packageName)
-                }
+                Text(summaryText)
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -864,6 +908,17 @@ private fun AppGroupItem(
                             )
                         )
                     }
+                    if (appGroup.apps.size > 1) {
+                        Natives.getUserName(appGroup.uid)?.let {
+                            LabelItem(
+                                text = it,
+                                style = LabelItemDefaults.style.copy(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                            )
+                        }
+                    }
                 }
             }
         },
@@ -878,7 +933,17 @@ private fun AppGroupItem(
             )
         },
         trailingContent = {
-            if (viewModel.showBatchActions) {
+            AnimatedVisibility(
+                visible = viewModel.showBatchActions,
+                enter = fadeIn(animationSpec = tween(200)) + scaleIn(
+                    animationSpec = tween(200),
+                    initialScale = 0.6f
+                ),
+                exit = fadeOut(animationSpec = tween(200)) + scaleOut(
+                    animationSpec = tween(200),
+                    targetScale = 0.6f
+                )
+            ) {
                 val checkboxInteractionSource = remember { MutableInteractionSource() }
                 val isCheckboxPressed by checkboxInteractionSource.collectIsPressedAsState()
 
