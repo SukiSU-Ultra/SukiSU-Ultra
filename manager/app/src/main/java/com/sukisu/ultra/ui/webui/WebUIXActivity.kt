@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.dergoogler.mmrl.platform.Platform
 import com.dergoogler.mmrl.platform.model.ModId
 import com.dergoogler.mmrl.ui.component.Loading
+import com.dergoogler.mmrl.webui.model.WebUIConfig
 import com.dergoogler.mmrl.webui.screen.WebUIScreen
 import com.dergoogler.mmrl.webui.util.rememberWebUIOptions
 import com.sukisu.ultra.BuildConfig
@@ -94,6 +95,13 @@ class WebUIXActivity : ComponentActivity() {
                     cls = WebUIXActivity::class.java,
                     userAgentString = userAgent
                 )
+
+                // idk why webuix not allow root impl change webuiConfig
+                // so we use magic to force exitConfirm shutdown
+                val field = WebUIConfig::class.java.getDeclaredField("exitConfirm")
+                field.isAccessible = true
+                field.set(options.config, false)
+                field.isAccessible = false
 
                 WebUIScreen(
                     webView = webView,
