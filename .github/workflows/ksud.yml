@@ -44,6 +44,7 @@ jobs:
       with:
         workspaces: userspace/ksud
         cache-targets: false
+        shared-key: "ksud-rust"
 
     - name: Install cross
       run: |
