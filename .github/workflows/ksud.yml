@@ -40,11 +40,6 @@ jobs:
         rustup update stable
         rustup target add x86_64-apple-darwin
         rustup target add aarch64-apple-darwin
-    - uses: Swatinem/rust-cache@v2
-      with:
-        workspaces: userspace/ksud
-        cache-targets: false
-        shared-key: "ksud-rust"
 
     - name: Install cross
       run: |
