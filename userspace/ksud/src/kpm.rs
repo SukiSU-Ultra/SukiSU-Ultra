@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
 use notify::{RecursiveMode, Watcher};
 
 use crate::ksucalls::ksuctl;
@@ -37,7 +37,6 @@ fn kpm_ioctl(cmd: &mut KsuKpmCmd) -> std::io::Result<()> {
 }
 
 /// Convert raw kernel return code to `Result`.
-#[inline(always)]
 fn check_ret(rc: i32) -> Result<i32> {
     if rc < 0 {
         bail!("KPM error: {}", std::io::Error::from_raw_os_error(-rc));
@@ -46,8 +45,11 @@ fn check_ret(rc: i32) -> Result<i32> {
 }
 
 /// Load a `.kpm` into kernel space.
-pub fn kpm_load(path: &str, args: Option<&str>) -> Result<()> {
-    let path_c = CString::new(path)?;
+pub fn kpm_load<P>(path: P, args: Option<&str>) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let path_c = CString::new(path.as_ref().to_string_lossy().to_string())?;
     let args_c = args.map(CString::new).transpose()?;
 
     let mut result: i32 = -1;
@@ -193,10 +195,10 @@ pub fn check_kpm_version() -> Result<String> {
 
 /// Create `/data/adb/kpm` with 0o777 if missing.
 pub fn ensure_kpm_dir() -> Result<()> {
-    fs::create_dir_all(KPM_DIR)?;
+    let _ = fs::create_dir_all(KPM_DIR);
     let meta = fs::metadata(KPM_DIR)?;
 
-    if meta.permissions().mode() & 0o777 != 0o777 {
+    if meta.permissions().mode() != 0o777 {
         fs::set_permissions(KPM_DIR, fs::Permissions::from_mode(0o777))?;
     }
     Ok(())
@@ -227,30 +229,12 @@ fn handle_kpm_event(evt: notify::Event) {
         for p in evt.paths {
             if let Some(ex) = p.extension()
                 && ex == OsStr::new("kpm")
-                && load_kpm(&p).is_err()
+                && kpm_load(&p, None).is_err()
             {
                 log::warn!("KPM: failed to load {}", p.display());
             }
         }
     }
-}
-
-/// Load single `.kpm` file.
-pub fn load_kpm(path: &Path) -> Result<()> {
-    let s = path.to_str().ok_or_else(|| anyhow!("bad path"))?;
-    kpm_load(s, None)
-}
-
-/// Unload module and delete file.
-pub fn unload_kpm(name: &str) -> Result<()> {
-    kpm_unload(name)?;
-
-    if let Some(p) = find_kpm_file(name)? {
-        let _ = fs::remove_file(&p);
-        log::info!("KPM: deleted {}", p.display());
-    }
-
-    Ok(())
 }
 
 /// Locate `/data/adb/kpm/<name>.kpm`.
@@ -280,12 +264,25 @@ pub fn remove_all_kpms() -> Result<()> {
     if !dir.is_dir() {
         return Ok(());
     }
+
     for entry in fs::read_dir(dir)? {
         let p = entry?.path();
         if let Some(ex) = p.extension()
             && ex == OsStr::new("kpm")
             && let Some(name) = p.file_stem().and_then(|s| s.to_str())
-            && let Err(e) = unload_kpm(name)
+            && let Err(e) = (|| -> Result<()> {
+                kpm_unload(name)?;
+
+                if let Some(p) = find_kpm_file(name)? {
+                    if let Err(e) = fs::remove_file(&p) {
+                        log::warn!("KPM: deleted {} failed: {e}", p.display());
+                        return Err(e.into());
+                    }
+                    log::info!("KPM: deleted {}", p.display());
+                }
+
+                Ok(())
+            })()
         {
             log::error!("KPM: unload {name} failed: {e}");
         }
@@ -310,7 +307,7 @@ pub fn load_kpm_modules() -> Result<()> {
         if let Some(ex) = p.extension()
             && ex == OsStr::new("kpm")
         {
-            match load_kpm(&p) {
+            match kpm_load(&p, None) {
                 Ok(_) => ok += 1,
                 Err(e) => {
                     log::warn!("KPM: load {} failed: {e}", p.display());
