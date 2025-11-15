@@ -250,7 +250,7 @@ where
 fn do_magic_mount<P, WP>(path: P, work_dir_path: WP, current: Node, has_tmpfs: bool) -> Result<()>
 where
     P: AsRef<Path>,
-    WP: AsRef<Path>
+    WP: AsRef<Path>,
 {
     let mut current = current;
     let path = path.as_ref().join(&current.name);
