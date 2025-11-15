@@ -60,7 +60,10 @@ struct Node {
 }
 
 impl Node {
-    fn collect_module_files<T: AsRef<Path>>(&mut self, module_dir: T) -> Result<bool> {
+    fn collect_module_files<P>(&mut self, module_dir: P) -> Result<bool>
+    where
+        P: AsRef<Path>,
+    {
         let dir = module_dir.as_ref();
         let mut has_file = false;
         for entry in dir.read_dir()?.flatten() {
@@ -83,7 +86,10 @@ impl Node {
         Ok(has_file)
     }
 
-    fn new_root<T: ToString>(name: T) -> Self {
+    fn new_root<T>(name: T) -> Self
+    where
+        T: ToString,
+    {
         Node {
             name: name.to_string(),
             file_type: Directory,
@@ -94,7 +100,10 @@ impl Node {
         }
     }
 
-    fn new_module<T: ToString>(name: T, entry: &DirEntry) -> Option<Self> {
+    fn new_module<T>(name: T, entry: &DirEntry) -> Option<Self>
+    where
+        T: ToString,
+    {
         if let Ok(metadata) = entry.metadata() {
             let path = entry.path();
             let file_type = if metadata.file_type().is_char_device() && metadata.rdev() == 0 {
@@ -174,7 +183,10 @@ fn collect_module_files() -> Result<Option<Node>> {
     }
 }
 
-fn clone_symlink<Src: AsRef<Path>, Dst: AsRef<Path>>(src: Src, dst: Dst) -> Result<()> {
+fn clone_symlink<P>(src: P, dst: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
     let src_symlink = read_link(src.as_ref())?;
     symlink(&src_symlink, dst.as_ref())?;
     lsetfilecon(dst.as_ref(), lgetfilecon(src.as_ref())?.as_str())?;
@@ -187,11 +199,10 @@ fn clone_symlink<Src: AsRef<Path>, Dst: AsRef<Path>>(src: Src, dst: Dst) -> Resu
     Ok(())
 }
 
-fn mount_mirror<P: AsRef<Path>, WP: AsRef<Path>>(
-    path: P,
-    work_dir_path: WP,
-    entry: &DirEntry,
-) -> Result<()> {
+fn mount_mirror<P>(path: P, work_dir_path: P, entry: &DirEntry) -> Result<()>
+where
+    P: AsRef<Path>,
+{
     let path = path.as_ref().join(entry.file_name());
     let work_dir_path = work_dir_path.as_ref().join(entry.file_name());
     let file_type = entry.file_type()?;
@@ -236,12 +247,11 @@ fn mount_mirror<P: AsRef<Path>, WP: AsRef<Path>>(
     Ok(())
 }
 
-fn do_magic_mount<P: AsRef<Path>, WP: AsRef<Path>>(
-    path: P,
-    work_dir_path: WP,
-    current: Node,
-    has_tmpfs: bool,
-) -> Result<()> {
+fn do_magic_mount<P, WP>(path: P, work_dir_path: WP, current: Node, has_tmpfs: bool) -> Result<()>
+where
+    P: AsRef<Path>,
+    WP: AsRef<Path>
+{
     let mut current = current;
     let path = path.as_ref().join(&current.name);
     let work_dir_path = work_dir_path.as_ref().join(&current.name);
