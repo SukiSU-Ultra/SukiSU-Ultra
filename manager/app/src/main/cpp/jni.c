@@ -6,6 +6,7 @@
 #include <android/log.h>
 #include <string.h>
 #include <linux/capability.h>
+#include <pwd.h>
 
 NativeBridgeNP(getVersion, jint) {
     uint32_t version = get_version();
@@ -316,6 +317,14 @@ NativeBridgeNP(isEnhancedSecurityEnabled, jboolean) {
 
 NativeBridge(setEnhancedSecurityEnabled, jboolean, jboolean enabled) {
     return set_enhanced_security_enabled(enabled);
+}
+
+NativeBridge(getUserName, jstring, jint uid) {
+    struct passwd *pw = getpwuid((uid_t) uid);
+    if (pw && pw->pw_name && pw->pw_name[0] != '\0') {
+        return GetEnvironment()->NewStringUTF(env, pw->pw_name);
+    }
+    return NULL;
 }
 
 // Check if KPM is enabled

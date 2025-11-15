@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 
-// 菜单项数据类
 data class FabMenuItem(
     val icon: ImageVector,
     val labelRes: Int,
@@ -29,7 +28,6 @@ data class FabMenuItem(
     val onClick: () -> Unit
 )
 
-// 动画配置
 object FabAnimationConfig {
     const val ANIMATION_DURATION = 300
     const val STAGGER_DELAY = 50
@@ -53,23 +51,15 @@ fun VerticalExpandableFab(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    // 主按钮旋转动画
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 45f else 0f,
-        animationSpec = tween(
-            durationMillis = animationDurationMs,
-            easing = FastOutSlowInEasing
-        ),
+        animationSpec = tween(animationDurationMs, easing = FastOutSlowInEasing),
         label = "mainButtonRotation"
     )
 
-    // 主按钮缩放动画
     val mainButtonScale by animateFloatAsState(
         targetValue = if (isExpanded) 1.1f else 1f,
-        animationSpec = tween(
-            durationMillis = animationDurationMs,
-            easing = FastOutSlowInEasing
-        ),
+        animationSpec = tween(animationDurationMs, easing = FastOutSlowInEasing),
         label = "mainButtonScale"
     )
 
@@ -77,14 +67,9 @@ fun VerticalExpandableFab(
         modifier = modifier.wrapContentSize(),
         contentAlignment = Alignment.BottomEnd
     ) {
-        // 子菜单按钮
         menuItems.forEachIndexed { index, menuItem ->
             val animatedOffsetY by animateFloatAsState(
-                targetValue = if (isExpanded) {
-                    -(buttonSpacing.value * (index + 1))
-                } else {
-                    0f
-                },
+                targetValue = if (isExpanded) -(buttonSpacing.value * (index + 1)) else 0f,
                 animationSpec = tween(
                     durationMillis = animationDurationMs,
                     delayMillis = if (isExpanded) {
@@ -125,7 +110,6 @@ fun VerticalExpandableFab(
                 label = "fabAlpha$index"
             )
 
-            // 子按钮容器（包含标签）
             Row(
                 modifier = Modifier
                     .offset(y = animatedOffsetY.dp)
@@ -134,7 +118,6 @@ fun VerticalExpandableFab(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
-                // 标签
                 AnimatedVisibility(
                     visible = isExpanded && animatedScale > 0.5f,
                     enter = slideInHorizontally(
@@ -161,7 +144,6 @@ fun VerticalExpandableFab(
                     }
                 }
 
-                // 子按钮
                 SmallFloatingActionButton(
                     onClick = {
                         menuItem.onClick()
@@ -193,15 +175,12 @@ fun VerticalExpandableFab(
             }
         }
 
-        // 主按钮
         FloatingActionButton(
             onClick = {
                 onMainButtonClick?.invoke()
                 isExpanded = !isExpanded
             },
-            modifier = Modifier
-                .size(buttonSize)
-                .scale(mainButtonScale),
+            modifier = Modifier.size(buttonSize).scale(mainButtonScale),
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 6.dp,
                 pressedElevation = 8.dp,
@@ -221,7 +200,6 @@ fun VerticalExpandableFab(
     }
 }
 
-// 预设菜单项
 object FabMenuPresets {
     fun getScrollMenuItems(
         onScrollToTop: () -> Unit,

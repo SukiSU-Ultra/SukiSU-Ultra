@@ -176,6 +176,8 @@ object Natives {
      */
     external fun clearUidScannerEnvironment(): Boolean
 
+    external fun getUserName(uid: Int): String?
+
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999
 
