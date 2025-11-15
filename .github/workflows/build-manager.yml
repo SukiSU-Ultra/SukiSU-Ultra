@@ -84,7 +84,7 @@ jobs:
           if [ "${{ matrix.spoofed }}" == "true" ]; then
             echo "title=Spoofed-Manager" >> $GITHUB_OUTPUT
             # maybe need a new var
-            echo "topicid=519956" >> $GITHUB_OUTPUT
+            echo "topicid=${{ vars.MESSAGE_SPOOFED_THREAD_ID }}" >> $GITHUB_OUTPUT
           else
             echo "title=Manager" >> $GITHUB_OUTPUT
             echo "topicid=${{ vars.MESSAGE_THREAD_ID }}" >> $GITHUB_OUTPUT
