@@ -238,7 +238,7 @@ pub fn uninstall(magiskboot_path: Option<PathBuf>) -> Result<()> {
     boot_patch::restore(None, magiskboot_path, true)?;
     println!("- Uninstall KernelSU manager..");
     Command::new("pm")
-        .args(["uninstall", "me.weishu.kernelsu"])
+        .args(["uninstall", "com.sukisu.ultra"])
         .spawn()?;
     println!("- Rebooting in 5 seconds..");
     std::thread::sleep(std::time::Duration::from_secs(5));
