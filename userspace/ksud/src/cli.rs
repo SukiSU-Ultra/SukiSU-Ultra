@@ -625,7 +625,11 @@ pub fn run() -> Result<()> {
     };
 
     if let Err(e) = &result {
-        log::error!("Error: {e:?}");
+        for c in e.chain() {
+            log::error!("{c:#?}");
+        }
+
+        log::error!("{:#?}", e.backtrace());
     }
     result
 }
