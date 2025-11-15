@@ -217,7 +217,7 @@ pub fn start_kpm_watcher() -> Result<()> {
 
     let mut watcher = notify::recommended_watcher(|res: Result<_, _>| match res {
         Ok(evt) => handle_kpm_event(evt),
-        Err(e) => log::error!("KPM: watcher error: {e:?}"),
+        Err(e) => log::error!("KPM: watcher error: {e}"),
     })?;
     watcher.watch(Path::new(KPM_DIR), RecursiveMode::NonRecursive)?;
     log::info!("KPM: watcher active on {KPM_DIR}");
@@ -275,7 +275,7 @@ pub fn remove_all_kpms() -> Result<()> {
 
                 if let Some(p) = find_kpm_file(name)? {
                     if let Err(e) = fs::remove_file(&p) {
-                        log::warn!("KPM: deleted {} failed: {e}", p.display());
+                        log::warn!("KPM: delete {} failed: {e}", p.display());
                         return Err(e.into());
                     }
                     log::info!("KPM: deleted {}", p.display());
