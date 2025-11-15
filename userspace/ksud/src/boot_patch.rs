@@ -24,7 +24,7 @@ fn ensure_gki_kernel() -> Result<()> {
 }
 
 #[cfg(target_os = "android")]
-pub fn get_kernel_version() -> Result<(i32, i32, i32)> {
+fn get_kernel_version() -> Result<(i32, i32, i32)> {
     let uname = rustix::system::uname();
     let version = uname.release().to_string_lossy();
     let re = Regex::new(r"(\d+)\.(\d+)\.(\d+)")?;
