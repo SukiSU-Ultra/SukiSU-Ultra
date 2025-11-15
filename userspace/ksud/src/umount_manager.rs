@@ -1,12 +1,14 @@
-use crate::ksucalls::UmountManagerCmd;
 use anyhow::{Context, Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::ksucalls::ksuctl;
+
 const MAGIC_NUMBER_HEADER: &[u8; 4] = b"KUMT";
 const MAGIC_VERSION: u32 = 1;
 const CONFIG_FILE: &str = "/data/adb/ksu/.umount";
+const KSU_IOCTL_UMOUNT_MANAGER: u32 = 0xc0004b6b; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct UmountEntry {
@@ -25,6 +27,30 @@ pub struct UmountManager {
     config: UmountConfig,
     config_path: PathBuf,
     defaults: Vec<UmountEntry>,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct UmountManagerCmd {
+    pub operation: u32,
+    pub path: [u8; 256],
+    pub check_mnt: u8,
+    pub flags: i32,
+    pub count: u32,
+    pub entries_ptr: u64,
+}
+
+impl Default for UmountManagerCmd {
+    fn default() -> Self {
+        UmountManagerCmd {
+            operation: 0,
+            path: [0; 256],
+            check_mnt: 0,
+            flags: 0,
+            count: 0,
+            entries_ptr: 0,
+        }
+    }
 }
 
 impl UmountManager {
@@ -212,8 +238,7 @@ impl UmountManager {
 
         cmd.path[..path_bytes.len()].copy_from_slice(path_bytes);
 
-        crate::ksucalls::umount_manager_ioctl(&cmd)
-            .context(format!("Failed to add entry: {}", entry.path))?;
+        umount_manager_ioctl(&cmd).context(format!("Failed to add entry: {}", entry.path))?;
 
         Ok(())
     }
@@ -272,6 +297,18 @@ pub fn list_umount_paths() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
+fn umount_manager_ioctl(cmd: &UmountManagerCmd) -> std::io::Result<()> {
+    let mut ioctl_cmd = *cmd;
+    ksuctl(KSU_IOCTL_UMOUNT_MANAGER, &mut ioctl_cmd as *mut _)?;
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "android")))]
+pub fn umount_manager_ioctl(_cmd: &UmountManagerCmd) -> std::io::Result<()> {
+    Err(std::io::Error::from_raw_os_error(libc::ENOSYS))
 }
 
 pub fn clear_custom_paths() -> Result<()> {

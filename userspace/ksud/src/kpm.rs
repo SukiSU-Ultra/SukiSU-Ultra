@@ -8,7 +8,7 @@ use std::{
 use anyhow::{Result, anyhow, bail};
 use notify::{RecursiveMode, Watcher};
 
-use crate::ksucalls;
+use crate::ksucalls::ksuctl;
 
 pub const KPM_DIR: &str = "/data/adb/kpm";
 
@@ -19,6 +19,22 @@ const KPM_LIST: u64 = 4;
 const KPM_INFO: u64 = 5;
 const KPM_CONTROL: u64 = 6;
 const KPM_VERSION: u64 = 7;
+
+const KSU_IOCTL_KPM: u32 = 0xc0004bc8; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct KsuKpmCmd {
+    pub control_code: u64,
+    pub arg1: u64,
+    pub arg2: u64,
+    pub result_code: u64,
+}
+
+fn kpm_ioctl(cmd: &mut KsuKpmCmd) -> std::io::Result<()> {
+    ksuctl(KSU_IOCTL_KPM, cmd as *mut _)?;
+    Ok(())
+}
 
 /// Convert raw kernel return code to `Result`.
 #[inline(always)]
@@ -35,14 +51,14 @@ pub fn kpm_load(path: &str, args: Option<&str>) -> Result<()> {
     let args_c = args.map(CString::new).transpose()?;
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_LOAD,
         arg1: path_c.as_ptr() as u64,
         arg2: args_c.as_ref().map_or(0, |s| s.as_ptr() as u64),
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)?;
     println!("Success");
     Ok(())
@@ -53,14 +69,14 @@ pub fn kpm_unload(name: &str) -> Result<()> {
     let name_c = CString::new(name)?;
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_UNLOAD,
         arg1: name_c.as_ptr() as u64,
         arg2: 0,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)?;
     Ok(())
 }
@@ -68,14 +84,14 @@ pub fn kpm_unload(name: &str) -> Result<()> {
 /// Return loaded module count.
 pub fn kpm_num() -> Result<i32> {
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_NUM,
         arg1: 0,
         arg2: 0,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     let n = check_ret(result)?;
     println!("{n}");
     Ok(n)
@@ -86,14 +102,14 @@ pub fn kpm_list() -> Result<()> {
     let mut buf = vec![0u8; 1024];
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_LIST,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)?;
     print!("{}", buf2str(&buf));
     Ok(())
@@ -105,14 +121,14 @@ pub fn kpm_info(name: &str) -> Result<()> {
     let mut buf = vec![0u8; 256];
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_INFO,
         arg1: name_c.as_ptr() as u64,
         arg2: buf.as_mut_ptr() as u64,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)?;
     println!("{}", buf2str(&buf));
     Ok(())
@@ -124,14 +140,14 @@ pub fn kpm_control(name: &str, args: &str) -> Result<i32> {
     let args_c = CString::new(args)?;
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_CONTROL,
         arg1: name_c.as_ptr() as u64,
         arg2: args_c.as_ptr() as u64,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)
 }
 
@@ -140,14 +156,14 @@ pub fn kpm_version_loader() -> Result<()> {
     let mut buf = vec![0u8; 1024];
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_VERSION,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)?;
     print!("{}", buf2str(&buf));
     Ok(())
@@ -158,14 +174,14 @@ pub fn check_kpm_version() -> Result<String> {
     let mut buf = vec![0u8; 1024];
 
     let mut result: i32 = -1;
-    let mut cmd = ksucalls::KsuKpmCmd {
+    let mut cmd = KsuKpmCmd {
         control_code: KPM_VERSION,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &mut result as *mut i32 as u64,
     };
 
-    ksucalls::kpm_ioctl(&mut cmd)?;
+    kpm_ioctl(&mut cmd)?;
     check_ret(result)?;
     let ver = buf2str(&buf);
     if ver.is_empty() {
