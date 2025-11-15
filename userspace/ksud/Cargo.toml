@@ -45,7 +45,6 @@ sha1 = "0.10"
 tempfile = "3"
 chrono = "0.4"
 regex-lite = "0.1"
-fs4 = "0.13"
 serde = { version = "1.0", features = ["derive"] }
 
 [target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]
@@ -54,7 +53,6 @@ rustix = { git = "https://github.com/Kernel-SU/rustix.git", branch = "main", fea
 ] }
 # some android specific dependencies which compiles under unix are also listed here for convenience of coding
 android-properties = { version = "0.2", features = ["bionic-deprecated"] }
-procfs = "0.17"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = { version = "0.14", default-features = false }
