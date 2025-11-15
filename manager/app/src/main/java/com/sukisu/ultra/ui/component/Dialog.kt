@@ -8,11 +8,16 @@ import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
@@ -428,27 +433,36 @@ private fun ConfirmDialog(visuals: ConfirmDialogVisuals, confirm: () -> Unit, di
 @Composable
 private fun MarkdownContent(content: String) {
     val contentColor = LocalContentColor.current
+    val scrollState = rememberScrollState()
 
-    AndroidView(
-        factory = { context ->
-            TextView(context).apply {
-                movementMethod = LinkMovementMethod.getInstance()
-                setSpannableFactory(NoCopySpannableFactory.getInstance())
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    breakStrategy = LineBreaker.BREAK_STRATEGY_SIMPLE
-                }
-                hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            }
-        },
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
-        update = {
-            Markwon.create(it.context).setMarkdown(it, content)
-            it.setTextColor(contentColor.toArgb())
-        }
-    )
+            .verticalScroll(
+                state = scrollState,
+                flingBehavior = ScrollableDefaults.flingBehavior()
+            )
+            .padding(12.dp)
+    ) {
+        AndroidView(
+            factory = { context ->
+                TextView(context).apply {
+                    movementMethod = LinkMovementMethod.getInstance()
+                    setSpannableFactory(NoCopySpannableFactory.getInstance())
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        breakStrategy = LineBreaker.BREAK_STRATEGY_SIMPLE
+                    }
+                    hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                }
+            },
+            update = {
+                Markwon.create(it.context).setMarkdown(it, content)
+                it.setTextColor(contentColor.toArgb())
+            }
+        )
+    }
 }
