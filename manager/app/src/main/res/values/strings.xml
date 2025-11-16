@@ -760,4 +760,5 @@ Important Note:\n
     <string name="apply_config">Apply Configuration</string>
     <string name="config_applied">Configuration applied to kernel</string>
     <string name="mnt_detach">MNT_DETACH</string>
+    <string name="group_contains_apps">Contains %d apps</string>
 </resources>
