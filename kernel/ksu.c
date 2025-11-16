@@ -70,9 +70,7 @@ int __init kernelsu_init(void)
 
     sukisu_custom_config_init();
 
-#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS)
     ksu_syscall_hook_manager_init();
-#endif
 
     ksu_workqueue = alloc_ordered_workqueue("kernelsu_work_queue", 0);
 
@@ -109,9 +107,9 @@ void kernelsu_exit(void)
 
 #if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS)
     ksu_ksud_exit();
+#endif
 
     ksu_syscall_hook_manager_exit();
-#endif
 
     sukisu_custom_config_exit();
 

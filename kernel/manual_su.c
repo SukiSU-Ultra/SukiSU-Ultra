@@ -50,7 +50,7 @@ static char* get_token_from_envp(void)
         return NULL;
     }
     
-    env_copy = kmalloc(env_len + 1, GFP_KERNEL);
+    env_copy = kzalloc(env_len + 1, GFP_KERNEL);
     if (!env_copy) {
         up_read(&mm->mmap_lock);
         return NULL;
@@ -73,7 +73,7 @@ static char* get_token_from_envp(void)
             char *token_end = strchr(token_start, '\0');
             
             if (token_end && (token_end - token_start) == KSU_TOKEN_LENGTH) {
-                token = kmalloc(KSU_TOKEN_LENGTH + 1, GFP_KERNEL);
+                token = kzalloc(KSU_TOKEN_LENGTH + 1, GFP_KERNEL);
                 if (token) {
                     memcpy(token, token_start, KSU_TOKEN_LENGTH);
                     token[KSU_TOKEN_LENGTH] = '\0';

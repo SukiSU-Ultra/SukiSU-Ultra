@@ -326,6 +326,7 @@ static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
 
 void ksu_syscall_hook_manager_init(void)
 {
+#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS)
 	int ret;
 	pr_info("hook_manager: ksu_hook_manager_init called\n");
 
@@ -347,6 +348,7 @@ void ksu_syscall_hook_manager_init(void)
 		pr_info("hook_manager: sys_enter tracepoint registered\n");
 	}
 #endif
+#endif
 
 	ksu_setuid_hook_init();
 	ksu_sucompat_init();
@@ -354,6 +356,7 @@ void ksu_syscall_hook_manager_init(void)
 
 void ksu_syscall_hook_manager_exit(void)
 {
+#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS)
 	pr_info("hook_manager: ksu_hook_manager_exit called\n");
 #ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
 	unregister_trace_sys_enter(ksu_sys_enter_handler, NULL);
@@ -364,6 +367,7 @@ void ksu_syscall_hook_manager_exit(void)
 #ifdef CONFIG_KRETPROBES
 	destroy_kretprobe(&syscall_regfunc_rp);
 	destroy_kretprobe(&syscall_unregfunc_rp);
+#endif
 #endif
 
 	ksu_sucompat_exit();

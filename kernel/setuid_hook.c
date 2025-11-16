@@ -249,6 +249,10 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
         return 0;
     }
 
+#if __SULOG_GATE
+    ksu_sulog_report_syscall(new_uid, NULL, "setuid", NULL);
+#endif
+
     // Check if spawned process is isolated service first, and force to do umount if so  
     if (is_zygote_isolated_service_uid(new_uid) && susfs_is_umount_for_zygote_iso_service_enabled) {
         goto do_umount;
@@ -305,17 +309,16 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
     return 0;
 
 do_umount:
-#ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
     if (!ksu_kernel_umount_enabled || !ksu_module_mounted) {
         goto skip_try_umount;
         
     }
-
+#ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
     pr_info("susfs: running susfs_try_umount_all() for uid: %u\n", new_uid);
     susfs_try_umount_all();
+#endif // #ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
 
 skip_try_umount:
-#endif // #ifdef CONFIG_KSU_SUSFS_TRY_UMOUNT
 
     get_task_struct(current);
 

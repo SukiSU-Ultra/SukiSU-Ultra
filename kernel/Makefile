@@ -96,6 +96,9 @@ ccflags-y += -DKSU_VERSION_FULL=\"$(KSU_VERSION_FULL)\"
 ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
 ccflags-y += -DKSU_MANUAL_HOOK
 $(info -- SukiSU: KSU_MANUAL_HOOK)
+else ifeq ($(CONFIG_KSU_SUSFS), y)
+ccflags-y += -DCONFIG_KSU_SUSFS
+$(info -- SukiSU: SUSFS_INLINE_HOOK)
 else
 ccflags-y += -DKSU_KPROBES_HOOK
 ccflags-y += -DKSU_TP_HOOK

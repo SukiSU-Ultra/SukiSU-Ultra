@@ -269,7 +269,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 
     if (d_type == DT_DIR && my_ctx->depth > 0 &&
         (my_ctx->stop && !*my_ctx->stop)) {
-        struct data_path *data = kmalloc(sizeof(struct data_path), GFP_ATOMIC);
+        struct data_path *data = kzalloc(sizeof(struct data_path), GFP_ATOMIC);
 
         if (!data) {
             pr_err("Failed to allocate memory for %s\n", dirpath);
@@ -304,28 +304,23 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
             // Check for dynamic sign or multi-manager signatures
             if (is_multi_manager && (signature_index == DYNAMIC_SIGN_INDEX || signature_index >= 2)) {
                 crown_manager(dirpath, my_ctx->private_data, signature_index);
-                
-                struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
-                if (apk_data) {
-                    apk_data->hash = hash;
-                    apk_data->exists = true;
-                    list_add_tail(&apk_data->list, &apk_path_hash_list);
-                }
             } else if (is_manager_apk(dirpath)) {
                 crown_manager(dirpath, my_ctx->private_data, 0);
                 *my_ctx->stop = 1;
+            }
 
+            struct apk_path_hash *apk_data = kzalloc(sizeof(*apk_data), GFP_ATOMIC);
+            if (apk_data) {
+                apk_data->hash  = hash;
+                apk_data->exists = true;
+                list_add_tail(&apk_data->list, &apk_path_hash_list);
+            }
+
+            if (is_manager_apk(dirpath)) {
                 // Manager found, clear APK cache list
-                list_for_each_entry_safe (pos, n, &apk_path_hash_list, list) {
+                list_for_each_entry_safe(pos, n, &apk_path_hash_list, list) {
                     list_del(&pos->list);
                     kfree(pos);
-                }
-            } else {
-                struct apk_path_hash *apk_data = kmalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
-                if (apk_data) {
-                    apk_data->hash = hash;
-                    apk_data->exists = true;
-                    list_add_tail(&apk_data->list, &apk_path_hash_list);
                 }
             }
         }

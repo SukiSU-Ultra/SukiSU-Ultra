@@ -205,14 +205,16 @@ static const char sh_path[] = SH_PATH;
 static const char su_path[] = SU_PATH;
 static const char ksud_path[] = KSUD_PATH;
 
-extern bool ksu_kernel_umount_enabled;
-
 // the call from execve_handler_pre won't provided correct value for __never_use_argument, use them after fix execve_handler_pre, keeping them for consistence for manually patched code
 int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
                  void *__never_use_argv, void *__never_use_envp,
                  int *__never_use_flags)
 {
     struct filename *filename;
+
+    if (!ksu_su_compat_enabled){
+        return 0;
+    }
 
     if (unlikely(!filename_ptr))
         return 0;
@@ -224,6 +226,12 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 
     if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
         return 0;
+
+#if __SULOG_GATE
+    bool is_allowed = ksu_is_allow_uid_for_current(current_uid().val);
+    ksu_sulog_report_syscall(current_uid().val, NULL, "execve", su_path);
+    ksu_sulog_report_su_attempt(current_uid().val, NULL, su_path, is_allowed);
+#endif
 
     pr_info("do_execveat_common su found\n");
     memcpy((void *)filename->name, ksud_path, sizeof(ksud_path));
@@ -248,14 +256,19 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 {
     char path[sizeof(su_path) + 1] = {0};
 
+    if (!ksu_su_compat_enabled){
+        return 0;
+    }
+
     ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
+#if __SULOG_GATE
+        ksu_sulog_report_syscall(current_uid().val, NULL, "faccessat", path);
+#endif
         pr_info("faccessat su->sh!\n");
         *filename_user = sh_user_path();
     }
-
-    return 0;
 
     return 0;
 }
@@ -277,6 +290,10 @@ int ksu_handle_stat(int *dfd, struct filename **filename, int *flags) {
 #else
 int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 {
+    if (!ksu_su_compat_enabled){
+        return 0;
+    }
+
     if (unlikely(!filename_user)) {
         return 0;
     }
@@ -302,6 +319,9 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
     ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
+#if __SULOG_GATE
+        ksu_sulog_report_syscall(current_uid().val, NULL, "newfstatat", path);
+#endif
         pr_info("ksu_handle_stat: su->sh!\n");
         *filename_user = sh_user_path();
     }
@@ -313,27 +333,31 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 
 int ksu_handle_devpts(struct inode *inode)
 {
-        if (!current->mm) {
-                return 0;
-        }
-
-        uid_t uid = current_uid().val;
-        if (uid % 100000 < 10000) {
-                // not untrusted_app, ignore it
-                return 0;
-        }
-
-        if (!__ksu_is_allow_uid_for_current(uid))
-                return 0;
-
-        if (ksu_file_sid) {
-                struct inode_security_struct *sec = selinux_inode(inode);
-                if (sec) {
-                        sec->sid = ksu_file_sid;
-                }
-        }
-
+    if (!current->mm) {
         return 0;
+    }
+
+    if (!ksu_su_compat_enabled){
+        return 0;
+    }
+
+    uid_t uid = current_uid().val;
+    if (uid % 100000 < 10000) {
+        // not untrusted_app, ignore it
+        return 0;
+    }
+
+    if (!__ksu_is_allow_uid_for_current(uid))
+            return 0;
+
+    if (ksu_file_sid) {
+        struct inode_security_struct *sec = selinux_inode(inode);
+        if (sec) {
+            sec->sid = ksu_file_sid;
+        }
+    }
+
+    return 0;
 }
 #endif // #ifndef CONFIG_KSU_SUSFS
 

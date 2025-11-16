@@ -180,7 +180,7 @@ static void sulog_add_entry(char *log_buf, size_t len, uid_t uid, u8 dedup_type)
     if (!dedup_should_print(uid, dedup_type, log_buf, len))
         return;
 
-    entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
+    entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
     if (!entry)
         return;
 
