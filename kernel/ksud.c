@@ -105,10 +105,10 @@ void on_post_fs_data(void)
 }
 
 extern void ext4_unregister_sysfs(struct super_block *sb);
-static void nuke_ext4_sysfs(void)
+int nuke_ext4_sysfs(const char* mnt)
 {
 	struct path path;
-	int err = kern_path("/data/adb/modules", 0, &path);
+	int err = kern_path(mnt, 0, &path);
 	if (err) {
 		pr_err("nuke path err: %d\n", err);
 		return;

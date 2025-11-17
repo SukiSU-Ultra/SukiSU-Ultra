@@ -78,6 +78,10 @@ struct ksu_set_feature_cmd {
     __u64 value; // Input: feature value/state to set
 };
 
+struct ksu_nuke_ext4_sysfs_cmd {
+    __aligned_u64 arg; // Input: mnt pointer
+};
+
 // Other command structures
 struct ksu_get_full_version_cmd {
     char version_full[KSU_FULL_VERSION_STRING]; // Output: full version string
@@ -148,7 +152,7 @@ struct ksu_add_try_umount_cmd {
 #define KSU_IOCTL_SET_FEATURE _IOC(_IOC_WRITE, 'K', 14, 0)
 #define KSU_IOCTL_GET_WRAPPER_FD _IOC(_IOC_WRITE, 'K', 15, 0)
 #define KSU_IOCTL_MANAGE_MARK _IOC(_IOC_READ | _IOC_WRITE, 'K', 16, 0)
-// #define KSU_IOCTL_NUKE_EXT4_SYSFS _IOC(_IOC_WRITE, 'K', 17, 0)
+#define KSU_IOCTL_NUKE_EXT4_SYSFS _IOC(_IOC_WRITE, 'K', 17, 0)
 #define KSU_IOCTL_ADD_TRY_UMOUNT _IOC(_IOC_WRITE, 'K', 18, 0)
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
