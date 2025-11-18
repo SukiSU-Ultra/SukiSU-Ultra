@@ -286,6 +286,7 @@ static int ksu_wrapper_clone_file_range(struct file *file_in, loff_t pos_in,
 	}
 	return -EINVAL;
 }
+#endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 static int ksu_wrapper_dedupe_file_range(struct file *src_file, loff_t loff,
 				struct file *dst_file, loff_t dst_loff, u64 len) {
