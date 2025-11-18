@@ -123,3 +123,27 @@ long ksu_strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
 	return ret;
 }
 #endif
+
+long ksu_copy_from_user_nofault(void *dst, const void __user *src, size_t size)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+    return copy_from_user_nofault(dst, src, size);
+#else
+    // https://elixir.bootlin.com/linux/v5.8/source/mm/maccess.c#L205
+    long ret = -EFAULT;
+    mm_segment_t old_fs = get_fs();
+
+    set_fs(USER_DS);
+    // tweaked to use ksu_access_ok
+    if (ksu_access_ok(src, size)) {
+        pagefault_disable();
+        ret = __copy_from_user_inatomic(dst, src, size);
+        pagefault_enable();
+    }
+    set_fs(old_fs);
+
+    if (ret)
+        return -EFAULT;
+    return 0;
+#endif
+}

@@ -39,7 +39,7 @@ extern ssize_t ksu_kernel_read_compat(struct file *p, void *buf, size_t count,
 				      loff_t *pos);
 extern ssize_t ksu_kernel_write_compat(struct file *p, const void *buf,
 				       size_t count, loff_t *pos);
-extern long ksu_copy_from_user_nofault(void *dst, const void __user *src, size_t size);
+extern long ksu_strncpy_from_user_nofault(void *dst, const void __user *src, size_t size);
 /*
  * ksu_copy_from_user_retry
  * try nofault copy first, if it fails, try with plain
@@ -49,7 +49,7 @@ extern long ksu_copy_from_user_nofault(void *dst, const void __user *src, size_t
 static long ksu_copy_from_user_retry(void *to, 
 		const void __user *from, unsigned long count)
 {
-	long ret = ksu_copy_from_user_nofault(to, from, count);
+	long ret = ksu_strncpy_from_user_nofault(to, from, count);
 	if (likely(!ret))
 		return ret;
 

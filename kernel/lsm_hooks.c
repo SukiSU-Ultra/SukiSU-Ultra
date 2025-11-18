@@ -5,6 +5,7 @@
 #include <linux/err.h>
 
 #include "klog.h" // IWYU pragma: keep
+#include "ksud.h"
 #include "kernel_compat.h"
 #include "setuid_hook.h"
 
