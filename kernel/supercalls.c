@@ -19,6 +19,7 @@
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
 #include "ksud.h"
+#include "kernel_compat.h"
 #include "manager.h"
 #include "sulog.h"
 #include "selinux/selinux.h"
@@ -812,10 +813,10 @@ static void ksu_install_fd_tw_func(struct callback_head *cb)
 
     if (copy_to_user(tw->outp, &fd, sizeof(fd))) {
         pr_err("install ksu fd reply err\n");
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
         close_fd(fd);
 #else
-        ksys_close(fd);
+        __close_fd(current->files, fd);
 #endif
     }
 
