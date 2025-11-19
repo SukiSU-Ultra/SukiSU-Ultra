@@ -15,7 +15,9 @@
 #include <linux/sched.h>
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0) && !KSU_OPTIONAL_SELINUX_INODE
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) || defined(KSU_OPTIONAL_SELINUX_INODE)
+#include "../../../security/selinux/include/objsec.h"
+#else
 #include "objsec.h"
 #endif // import inode_security_struct
 
