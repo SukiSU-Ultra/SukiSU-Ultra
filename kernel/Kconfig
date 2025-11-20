@@ -85,24 +85,6 @@ config KSU_SUSFS_SUS_MOUNT
 		- Mounts mounted by process with ksu domain will be forced to be assigned the dev name "KSU".
 		- mnt_id and mnt_group_id of the sus mount will be assigned to a much bigger number to solve the issue of id not being contiguous.
 
-config KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT
-	bool "Enable to hide KSU's default mounts automatically (experimental)"
-	depends on KSU_SUSFS_SUS_MOUNT
-	default y
-	help
-		- Automatically add KSU's default mounts to sus_mount.
-		- No susfs command is needed in userspace.
-		- Only mount operation from process with ksu domain will be checked.
-
-config KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT
-	bool "Enable to hide suspicious bind mounts automatically (experimental)"
-	depends on KSU_SUSFS_SUS_MOUNT
-	default y
-	help
-		- Automatically add binded mounts to sus_mount.
-		- No susfs command is needed in userspace.
-		- Only mount operation from process with ksu domain will be checked.
-
 config KSU_SUSFS_SUS_KSTAT
 	bool "Enable to spoof suspicious kstat"
 	depends on KSU_SUSFS
