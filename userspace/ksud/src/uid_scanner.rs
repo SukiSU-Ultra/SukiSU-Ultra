@@ -19,28 +19,28 @@ const SERVICE_PATH: &str = "/data/adb/service.d/uid_scanner.sh";
 
 pub fn start_uid_scanner_daemon() -> Result<()> {
     if !fs::exists(SCANNER_PATH)? {
-        warn!("uid scanner binary not found at {}", SCANNER_PATH);
+        warn!("uid scanner binary not found at {SCANNER_PATH}");
         return Ok(());
     }
 
     if let Err(e) = fs::set_permissions(SCANNER_PATH, fs::Permissions::from_mode(0o755)) {
-        warn!("failed to set permissions for {}: {}", SCANNER_PATH, e);
+        warn!("failed to set permissions for {SCANNER_PATH}: {e}");
     }
 
     #[cfg(unix)]
     {
         if let Err(e) = fs::create_dir_all(LINK_DIR) {
-            warn!("failed to create {}: {}", LINK_DIR, e);
+            warn!("failed to create {LINK_DIR}: {e}");
         } else if !fs::exists(LINK_PATH)? {
             match symlink(SCANNER_PATH, LINK_PATH) {
-                Ok(_) => info!("created symlink {} -> {}", SCANNER_PATH, LINK_PATH),
-                Err(e) => warn!("failed to create symlink: {}", e),
+                Ok(()) => info!("created symlink {SCANNER_PATH} -> {LINK_PATH}"),
+                Err(e) => warn!("failed to create symlink: {e}"),
             }
         }
     }
 
     if let Err(e) = fs::create_dir_all(SERVICE_DIR) {
-        warn!("failed to create {}: {}", SERVICE_DIR, e);
+        warn!("failed to create {SERVICE_DIR}: {e}");
     }
 
     if !fs::exists(SERVICE_PATH)? {
@@ -55,8 +55,8 @@ pub fn start_uid_scanner_daemon() -> Result<()> {
                 f.sync_all()?;
                 fs::set_permissions(SERVICE_PATH, fs::Permissions::from_mode(0o755))
             }) {
-            Ok(_) => info!("created service script {}", SERVICE_PATH),
-            Err(e) => warn!("failed to write {}: {}", SERVICE_PATH, e),
+            Ok(()) => info!("created service script {SERVICE_PATH}"),
+            Err(e) => warn!("failed to write {SERVICE_PATH}: {e}"),
         }
     }
 
@@ -81,7 +81,7 @@ pub fn start_uid_scanner_daemon() -> Result<()> {
             info!("uid scanner daemon started with pid: {}", child.id());
             std::mem::drop(child);
         }
-        Err(e) => warn!("failed to start uid scanner daemon: {}", e),
+        Err(e) => warn!("failed to start uid scanner daemon: {e}"),
     }
 
     Ok(())

@@ -20,6 +20,7 @@ const KPM_INFO: u64 = 5;
 const KPM_CONTROL: u64 = 6;
 const KPM_VERSION: u64 = 7;
 
+#[allow(clippy::unreadable_literal)]
 const KSU_IOCTL_KPM: u32 = 0xc0004bc8; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
 
 #[repr(C)]
@@ -32,7 +33,7 @@ struct KsuKpmCmd {
 }
 
 fn kpm_ioctl(cmd: &mut KsuKpmCmd) -> std::io::Result<()> {
-    ksuctl(KSU_IOCTL_KPM, cmd as *mut _)?;
+    ksuctl(KSU_IOCTL_KPM, std::ptr::from_mut(cmd))?;
     Ok(())
 }
 
@@ -57,7 +58,7 @@ where
         control_code: KPM_LOAD,
         arg1: path_c.as_ptr() as u64,
         arg2: args_c.as_ref().map_or(0, |s| s.as_ptr() as u64),
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -75,7 +76,7 @@ pub fn kpm_unload(name: &str) -> Result<()> {
         control_code: KPM_UNLOAD,
         arg1: name_c.as_ptr() as u64,
         arg2: 0,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -90,7 +91,7 @@ pub fn kpm_num() -> Result<i32> {
         control_code: KPM_NUM,
         arg1: 0,
         arg2: 0,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -108,7 +109,7 @@ pub fn kpm_list() -> Result<()> {
         control_code: KPM_LIST,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -127,7 +128,7 @@ pub fn kpm_info(name: &str) -> Result<()> {
         control_code: KPM_INFO,
         arg1: name_c.as_ptr() as u64,
         arg2: buf.as_mut_ptr() as u64,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -146,7 +147,7 @@ pub fn kpm_control(name: &str, args: &str) -> Result<i32> {
         control_code: KPM_CONTROL,
         arg1: name_c.as_ptr() as u64,
         arg2: args_c.as_ptr() as u64,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -162,7 +163,7 @@ pub fn kpm_version_loader() -> Result<()> {
         control_code: KPM_VERSION,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -180,7 +181,7 @@ pub fn check_kpm_version() -> Result<String> {
         control_code: KPM_VERSION,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
-        result_code: &mut result as *mut i32 as u64,
+        result_code: &raw mut result as u64,
     };
 
     kpm_ioctl(&mut cmd)?;
@@ -308,7 +309,7 @@ pub fn load_kpm_modules() -> Result<()> {
             && ex == OsStr::new("kpm")
         {
             match kpm_load(&p, None) {
-                Ok(_) => ok += 1,
+                Ok(()) => ok += 1,
                 Err(e) => {
                     log::warn!("KPM: load {} failed: {e}", p.display());
                     ng += 1;

@@ -8,6 +8,7 @@ use crate::ksucalls::ksuctl;
 const MAGIC_NUMBER_HEADER: &[u8; 4] = b"KUMT";
 const MAGIC_VERSION: u32 = 1;
 const CONFIG_FILE: &str = "/data/adb/ksu/.umount";
+#[allow(clippy::unreadable_literal)]
 const KSU_IOCTL_UMOUNT_MANAGER: u32 = 0xc0004b6b; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -39,7 +40,7 @@ struct UmountManagerCmd {
 
 impl Default for UmountManagerCmd {
     fn default() -> Self {
-        UmountManagerCmd {
+        Self {
             operation: 0,
             path: [0; 256],
             flags: 0,
@@ -61,7 +62,7 @@ impl UmountManager {
             }
         };
 
-        Ok(UmountManager {
+        Ok(Self {
             config,
             config_path: path,
         })
@@ -81,7 +82,7 @@ impl UmountManager {
 
         let version = u32::from_le_bytes([data[4], data[5], data[6], data[7]]);
         if version != MAGIC_VERSION {
-            return Err(anyhow!("Unsupported config version: {}", version));
+            return Err(anyhow!("Unsupported config version: {version}"));
         }
 
         let json_data = &data[8..];
@@ -110,7 +111,7 @@ impl UmountManager {
     pub fn add_entry(&mut self, path: &str, flags: i32) -> Result<()> {
         let exists = self.config.entries.iter().any(|e| e.path == path);
         if exists {
-            return Err(anyhow!("Entry already exists: {}", path));
+            return Err(anyhow!("Entry already exists: {path}"));
         }
 
         let entry = UmountEntry {
@@ -128,7 +129,7 @@ impl UmountManager {
         self.config.entries.retain(|e| e.path != path);
 
         if before == self.config.entries.len() {
-            return Err(anyhow!("Entry not found: {}", path));
+            return Err(anyhow!("Entry not found: {path}"));
         }
         Ok(())
     }
@@ -182,7 +183,7 @@ pub fn add_umount_path(path: &str, flags: i32) -> Result<()> {
     let mut manager = init_umount_manager()?;
     manager.add_entry(path, flags)?;
     manager.save_config()?;
-    println!("✓ Added umount path: {}", path);
+    println!("✓ Added umount path: {path}");
     Ok(())
 }
 
@@ -190,7 +191,7 @@ pub fn remove_umount_path(path: &str) -> Result<()> {
     let mut manager = init_umount_manager()?;
     manager.remove_entry(path)?;
     manager.save_config()?;
-    println!("✓ Removed umount path: {}", path);
+    println!("✓ Removed umount path: {path}");
     Ok(())
 }
 
@@ -221,7 +222,7 @@ pub fn list_umount_paths() -> Result<()> {
 #[cfg(any(target_os = "linux", target_os = "android"))]
 fn umount_manager_ioctl(cmd: &UmountManagerCmd) -> std::io::Result<()> {
     let mut ioctl_cmd = *cmd;
-    ksuctl(KSU_IOCTL_UMOUNT_MANAGER, &mut ioctl_cmd as *mut _)?;
+    ksuctl(KSU_IOCTL_UMOUNT_MANAGER, &raw mut ioctl_cmd)?;
     Ok(())
 }
 
@@ -241,7 +242,7 @@ pub fn clear_custom_paths() -> Result<()> {
 pub fn save_umount_config() -> Result<()> {
     let manager = init_umount_manager()?;
     manager.save_config()?;
-    println!("✓ Configuration saved to: {}", CONFIG_FILE);
+    println!("✓ Configuration saved to: {CONFIG_FILE}");
     Ok(())
 }
 
