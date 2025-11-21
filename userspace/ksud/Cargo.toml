@@ -6,11 +6,11 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-notify = "8.2"
+notify = "6.1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 const_format = "0.2"
-zip = { version = "6",  features = [
+zip = { version = "3",  features = [
     "deflate",
     "deflate64",
     "time",
@@ -38,7 +38,7 @@ rust-embed = { version = "8", features = [
     "debug-embed",
     "compression", # must clean build after updating binaries
 ] }
-which = "8"
+which = "7"
 getopts = "0.2"
 sha256 = "1"
 sha1 = "0.10"
@@ -48,14 +48,14 @@ regex-lite = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 
 [target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]
-rustix = { git = "https://github.com/Kernel-SU/rustix.git", rev = "4a53fbc7cb7a07cabe87125cc21dbc27db316259", features = [
+rustix = { git = "https://github.com/Kernel-SU/rustix.git", branch = "main", features = [
     "all-apis",
 ] }
 # some android specific dependencies which compiles under unix are also listed here for convenience of coding
 android-properties = { version = "0.2", features = ["bionic-deprecated"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger = { version = "0.15", default-features = false }
+android_logger = { version = "0.14", default-features = false }
 
 [profile.release]
 overflow-checks = false
