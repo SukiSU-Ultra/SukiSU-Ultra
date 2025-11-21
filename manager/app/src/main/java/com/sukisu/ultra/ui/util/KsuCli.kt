@@ -576,8 +576,6 @@ fun getSuSFSFeatures(): String {
 }
 
 fun getZygiskImplement(): String {
-    val shell = getRootShell()
-
     val zygiskModuleIds = listOf(
         "zygisksu",
         "rezygisk",
@@ -585,14 +583,19 @@ fun getZygiskImplement(): String {
     )
 
     for (moduleId in zygiskModuleIds) {
-        val modulePath = "/data/adb/modules/$moduleId"
-        when {
-            ShellUtils.fastCmdResult(shell, "test -f $modulePath/module.prop && test ! -f $modulePath/disable") -> {
-                val result = ShellUtils.fastCmd(shell, "grep '^name=' $modulePath/module.prop | cut -d'=' -f2")
-                Log.i(TAG, "Zygisk implement: $result")
-                return result
-            }
-        }
+        // 忽略禁用/即将删除
+        if (SuFile.open("/data/adb/modules/$moduleId/disable").isFile || SuFile.open("/data/adb/modules/$moduleId/remove").isFile) continue
+
+        // 读取prop
+        val propFile = SuFile.open("/data/adb/modules/$moduleId/module.prop")
+        if (!propFile.isFile) continue
+
+        val prop = Properties()
+        prop.load(propFile.newInputStream())
+
+        val name = prop.getProperty("name")
+        Log.i(TAG, "Zygisk implement: $name")
+        return name
     }
 
     Log.i(TAG, "Zygisk implement: None")
