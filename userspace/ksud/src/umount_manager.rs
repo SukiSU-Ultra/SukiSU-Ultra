@@ -137,9 +137,8 @@ impl UmountManager {
         self.config.entries.clone()
     }
 
-    pub fn clear_custom_entries(&mut self) -> Result<()> {
+    pub fn clear_custom_entries(&mut self) {
         self.config.entries.retain(|e| e.is_default);
-        Ok(())
     }
 
     pub fn apply_to_kernel(&self) -> Result<()> {
@@ -233,7 +232,7 @@ pub fn umount_manager_ioctl(_cmd: &UmountManagerCmd) -> std::io::Result<()> {
 
 pub fn clear_custom_paths() -> Result<()> {
     let mut manager = init_umount_manager()?;
-    manager.clear_custom_entries()?;
+    manager.clear_custom_entries();
     manager.save_config()?;
     println!("✓ Cleared all custom paths");
     Ok(())
