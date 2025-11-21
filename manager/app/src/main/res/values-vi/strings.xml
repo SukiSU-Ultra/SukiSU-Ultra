@@ -109,6 +109,9 @@
     <string name="install_inactive_slot">Cài đặt vào phân vùng chưa được sử dụng (Sau OTA)</string>
     <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng chưa được sử dụng!\nChỉ sử dụng tùy chọn này sau khi cập nhật OTA hoàn tất.\nTiếp tục?</string>
     <string name="install_next">Kế tiếp</string>
+    <string name="install_select_partition">Chọn phân vùng</string>
+    <string name="install_upload_lkm_file">Sử dụng file LKM cục bộ</string>
+    <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
     <string name="select_file_tip">Phân vùng %1$s được khuyến nghị</string>
     <string name="select_kmi">Chọn KMI</string>
     <string name="settings_uninstall">Gỡ cài đặt</string>
@@ -161,6 +164,13 @@
     <string name="su_not_allowed">Không thể cấp quyền Superuser cho %s</string>
     <string name="settings_disable_su">Vô hiệu hoá lệnh SU</string>
     <string name="settings_disable_su_summary">Vô hiệu hoá khả năng thực thi lệnh SU để lấy quyền root (Những app đã cấp trước đó không bị ảnh hưởng)</string>
+    <string name="settings_disable_kernel_umount">Vô hiệu hoá kernel umount</string>
+    <string name="settings_disable_kernel_umount_summary">Vô hiệu hoá umount kernel-level được kiểm soát bởi KernelSU</string>
+    <string name="settings_enable_enhanced_security">Kích hoạt bảo mật nâng cao</string>
+    <string name="settings_enable_enhanced_security_summary">Cho phép chính sách bảo mật chặt chẽ hơn</string>
+    <string name="settings_mode_default">Mặc định</string>
+    <string name="settings_mode_temp_enable">Tạm thời kích hoạt</string>
+    <string name="settings_mode_always_enable">Luôn luôn kích hoạt</string>
     <string name="module_install_multiple_confirm_with_names">Bạn có chắc muốn cài đặt các module %1$d không? \n\n%2$s</string>
     <string name="more_settings">Nhiều cài đặt hơn</string>
     <string name="selinux">SELinux</string>
@@ -185,6 +195,7 @@
     <string name="theme_light">Sáng</string>
     <string name="theme_dark">Tối</string>
     <string name="manual_hook">Hook thủ công</string>
+    <string name="inline_hook">Inline Hook</string>
     <string name="dynamic_color_title">Màu sắc động</string>
     <string name="dynamic_color_summary">Sử dụng màu sắc động làm chủ đề hệ thống</string>
     <string name="choose_theme_color">Chọn màu chủ đề</string>
@@ -708,4 +719,29 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'k
     <!-- MiUI Uninstall Desc -->
     <string name="miui_uninstall_title">Bạn muốn xoá tôi đi sao 😭</string>
     <string name="miui_uninstall_content">Hừm, được rồi, tôi sẽ bị bạn gỡ cài đặt. Chức năng root sẽ không ngừng hoạt động chỉ vì bạn mất một Trình quản lý. Đừng lo chỉ Gỡ cài đặt Trình quản lý thôi thì không thể mất quyền truy cập root được đâu, zako~❤️</string>
+    <string name="incompatible_kernel_msg">Trình quản lý hiện tại không tương thích với Kernel này! Vui lòng nâng cấp Kernel lên phiên bản %2$d hoặc cao hơn (Hiện tại là %1$d)</string>
+    <string name="umount_path_manager">Quản lý Đường dẫn Umount</string>
+    <string name="umount_path_manager_summary">Quản lý Đường dẫn Kernel Umount</string>
+    <string name="umount_path_restart_notice">Cần khởi động lại để các thay đổi có hiệu lực. Hệ thống sẽ áp dụng cấu hình mới vào lần khởi động tiếp theo</string>
+    <string name="add_umount_path">Thêm Đường dẫn Umount</string>
+    <string name="mount_path">Đường dẫn Mount</string>
+    <string name="umount_flags">Umount Flags</string>
+    <string name="umount_flags_hint">0=Normal Umount, 8=MNT_DETACH, -1=Auto</string>
+    <string name="flags">Flags</string>
+    <string name="default_entry">Nhập mặc định</string>
+    <string name="confirm_delete">Xác nhận Xoá?</string>
+    <string name="confirm_delete_umount_path">Bạn có chắc chắn muốn xóa đường dẫn %s không?</string>
+    <string name="umount_path_added">Đã thêm đường dẫn, sẽ có hiệu lực sau khi khởi động lại</string>
+    <string name="umount_path_removed">Đường dẫn đã bị xóa, sẽ có hiệu lực sau khi khởi động lại</string>
+    <string name="operation_failed">Thao tác thất bại</string>
+    <string name="confirm_action">Xác nhận Khởi chạy?</string>
+    <string name="confirm_clear_custom_paths">Bạn có chắc chắn muốn xóa tất cả các đường dẫn tùy chỉnh không? (Các đường dẫn mặc định sẽ được giữ nguyên)</string>
+    <string name="custom_paths_cleared">Đường dẫn tùy chỉnh đã được xóa</string>
+    <string name="clear_custom_paths">Xóa Đường dẫn Tùy chỉnh</string>
+    <string name="apply_config">Áp dụng Cấu hình</string>
+    <string name="config_applied">Cấu hình đã được áp dụng cho Kernel</string>
+    <string name="mnt_detach">MNT_DETACH</string>
+    <string name="group_contains_apps">Chứa %d ứng dụng</string>
+    <string name="settings_disable_sulog">Vô hiệu hoá ghi nhật ký Superuser</string>
+    <string name="settings_disable_sulog_summary">Vô hiệu hoá ghi nhật ký truy cập Superuser</string>
 </resources>
