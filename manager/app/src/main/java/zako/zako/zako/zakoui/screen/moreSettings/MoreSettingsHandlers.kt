@@ -342,6 +342,14 @@ class MoreSettingsHandlers(
     }
 
     /**
+     * 处理隐藏元模块实现变更
+     */
+    fun handleHideMetaModuleImplementChange(newValue: Boolean) {
+        prefs.edit { putBoolean("is_hide_meta_module_Implement", newValue) }
+        state.isHideMetaModuleImplement = newValue
+    }
+
+    /**
      * 处理隐藏链接卡片变更
      */
     fun handleHideLinkCardChange(newValue: Boolean) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="learn_more">了解更多</string>
     <string name="home">主页</string>
     <string name="home_not_installed">未安装</string>
     <string name="home_click_to_install">点击安装</string>
@@ -34,6 +35,7 @@
     <string name="reboot_edl">重启到 EDL</string>
     <string name="about">关于</string>
     <string name="module_uninstall_confirm">确定要卸载模块 %s 吗？</string>
+    <string name="metamodule_uninstall_confirm">"您确定要卸载模块 %s 吗？此操作将影响所有模块，并且元模块提供的某些功能（如挂载）将不再工作。  "</string>
     <string name="module_uninstall_success">%s 已卸载</string>
     <string name="module_uninstall_failed">卸载失败：%s</string>
     <string name="module_version">版本</string>
@@ -188,10 +190,12 @@
     <string name="hide_susfs_status_summary">隐藏主页上的 SuSFS 状态信息</string>
     <string name="hide_zygisk_implement">隐藏 Zygisk 状态信息</string>
     <string name="hide_zygisk_implement_summary">隐藏主页上的 Zygisk 实现状态信息</string>
+    <string name="hide_meta_module_implement">隐藏元模块状态信息</string>
+    <string name="hide_meta_module_implement_summary">隐藏主页上的元模块实现状态信息</string>
     <string name="hide_link_card">隐藏链接卡片</string>
     <string name="hide_link_card_summary">隐藏主页上的链接卡片信息</string>
     <string name="hide_tag_card">隐藏模块标签行</string>
-    <string name="hide_tag_card_summary">隐藏模块卡片中的文件夹名称和大小标签</string>
+    <string name="hide_tag_card_summary">隐藏模块卡片中的文件夹名称、大小标签和是否为元模块</string>
     <string name="theme_mode">主题模式</string>
     <string name="theme_follow_system">跟随系统</string>
     <string name="theme_light">浅色</string>
@@ -328,6 +332,8 @@
     <string name="module_failed_count">%d 个模块安装失败</string>
     <string name="module_download_error">模块下载失败</string>
     <string name="kernel_flashing">内核刷写</string>
+    <string name="warning_of_meta_module_title">需要元模块</string>
+    <string name="warning_of_meta_module_summary">这个模块需要挂载一些文件。需要安装元模块，使它正常工作</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">全部</string>
     <string name="category_root_apps">Root</string>
@@ -588,6 +594,7 @@
     <string name="no_active_manager">无活跃管理器</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk 实现</string>
+    <string name="home_meta_module_implement">元模块实现</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SuS 循环路径</string>
     <string name="susfs_add_sus_loop_path">添加 SuS 循环路径</string>

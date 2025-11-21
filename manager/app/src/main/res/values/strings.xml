@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Home</string>
+    <string name="learn_more">Learn more</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_click_to_install">Click to install</string>
     <string name="home_working">Working</string>
@@ -35,6 +36,7 @@
     <string name="reboot_edl">Reboot to EDL</string>
     <string name="about">About</string>
     <string name="module_uninstall_confirm">Are you sure you want to uninstall module %s?</string>
+    <string name="metamodule_uninstall_confirm">"Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work.  "</string>
     <string name="module_uninstall_success">%s uninstalled</string>
     <string name="module_uninstall_failed">Failed to uninstall: %s</string>
     <string name="module_version">Version</string>
@@ -190,10 +192,12 @@
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
     <string name="hide_zygisk_implement">Hide Zygisk status</string>
     <string name="hide_zygisk_implement_summary">Hide Zygisk implementation information on the home page</string>
+    <string name="hide_meta_module_implement">Hide Meta Module status</string>
+    <string name="hide_meta_module_implement_summary">Hide Meta Module implementation information on the home page</string>
     <string name="hide_link_card">Hide Link Card Status</string>
     <string name="hide_link_card_summary">Hide link card information on the home page</string>
     <string name="hide_tag_card">Hide module label rows</string>
-    <string name="hide_tag_card_summary">Hide folder name and size labels in module cards</string>
+    <string name="hide_tag_card_summary">Hide folder name,size,metamodule notice labels in module cards</string>
     <string name="theme_mode">Theme</string>
     <string name="theme_follow_system">Follow system</string>
     <string name="theme_light">Light</string>
@@ -331,6 +335,8 @@
     <string name="module_failed_count">%d Failed to install a new module</string>
     <string name="module_download_error">Module download failed</string>
     <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="warning_of_meta_module_title">Require Meta module</string>
+    <string name="warning_of_meta_module_summary">This module want to mount /system, meta module will handle that. Otherwise, it might not work.</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">All</string>
     <string name="category_root_apps">Root</string>
@@ -591,6 +597,7 @@
     <string name="no_active_manager">No active manager</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk implement</string>
+    <string name="home_meta_module_implement">Meta Module implement</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SUS Loop Paths</string>
     <string name="susfs_add_sus_loop_path">Add SUS Loop Path</string>

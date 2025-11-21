@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.ComponentActivity
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.ui.platform.LocalUriHandler
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
@@ -52,8 +54,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
+import com.sukisu.ultra.ui.component.rememberCustomDialog
 import com.sukisu.ultra.ui.util.module.ModuleOperationUtils
 import com.sukisu.ultra.ui.util.module.ModuleUtils
+import com.topjohnwu.superuser.io.SuFile
 
 /**
  * @author ShirkNeko
@@ -152,6 +156,7 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
     var tempText: String
     val logContent = rememberSaveable { StringBuilder() }
     var showFloatAction by rememberSaveable { mutableStateOf(false) }
+    var shouldWarningUserMetaModule by rememberSaveable { mutableStateOf(false) }
     // 添加状态跟踪是否已经完成刷写
     var hasFlashCompleted by rememberSaveable { mutableStateOf(false) }
     var hasExecuted by rememberSaveable { mutableStateOf(false) }
@@ -170,6 +175,39 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
     val logSavedString = stringResource(R.string.log_saved)
     val installingModuleString = stringResource(R.string.installing_module)
 
+    val alertDialog = rememberCustomDialog { dismiss: () -> Unit ->
+        val uriHandler = LocalUriHandler.current
+        AlertDialog(
+            onDismissRequest = { dismiss() },
+            icon = {
+                Icon(Icons.Outlined.Info, contentDescription = null)
+            },
+            title = {
+                Row(modifier = Modifier
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(text = stringResource(R.string.warning_of_meta_module_title))
+                }
+            },
+            text = {
+                Text(text = stringResource(R.string.warning_of_meta_module_summary))
+            },
+            confirmButton = {
+                FilledTonalButton(onClick = { dismiss() }) {
+                    Text(text = stringResource(id = android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = {
+                        uriHandler.openUri("https://kernelsu.org/guide/metamodule.html")
+                }) {
+                    Text(text = stringResource(id = R.string.learn_more))
+                }
+            },
+        )
+    }
+
     // 当前模块安装状态
     val currentStatus = moduleInstallStatus.value
 
@@ -182,16 +220,19 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                         totalModules = flashIt.uris.size,
                         currentModule = 1
                     )
+                    shouldWarningUserMetaModule = false
                     hasFlashCompleted = false
                     hasExecuted = false
                     moduleVerificationMap.clear()
                 }
             }
             is FlashIt.FlashModuleUpdate -> {
+                shouldWarningUserMetaModule = false
                 hasUpdateCompleted = false
                 hasUpdateExecuted = false
             }
             else -> {
+                shouldWarningUserMetaModule = false
                 hasFlashCompleted = false
                 hasExecuted = false
             }
@@ -240,10 +281,29 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 }
                 hasUpdateCompleted = true
 
+                if (!hasMetaModule() && code == 0) {
+                    // 如果没安装 MetaModule，且此模块需要挂载，并且当前模块安装成功，警告用户
+                    scope.launch {
+                        val mountOldDirectory = SuFile.open("/data/adb/modules/${getModuleIdFromUri(context,flashIt.uri)}/system")
+                        val mountNewDirectory = SuFile.open("/data/adb/modules_update/${getModuleIdFromUri(context,flashIt.uri)}/system")
+                        if (!(mountNewDirectory.isDirectory) && !(mountOldDirectory.isDirectory)) return@launch
+                        shouldWarningUserMetaModule = true
+
+                        alertDialog.show()
+                        shouldWarningUserMetaModule = false
+                    }
+                }
+
                 // 如果是外部安装或需要自动退出的模块更新且不需要重启，延迟后自动返回
                 if (isExternalInstall || shouldAutoExit) {
                     scope.launch {
+                        while (shouldWarningUserMetaModule) {
+                            kotlinx.coroutines.delay(100)
+                        }
                         kotlinx.coroutines.delay(1000)
+                        while (shouldWarningUserMetaModule) {
+                            kotlinx.coroutines.delay(100)
+                        }
                         if (shouldAutoExit) {
                             val sharedPref = context.getSharedPreferences("kernel_flash_prefs", Context.MODE_PRIVATE)
                             sharedPref.edit { remove("auto_exit_after_flash") }
@@ -334,6 +394,38 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 }
 
                 hasFlashCompleted = true
+                if (!hasMetaModule() && code == 0) {
+                    // 没有 MetaModule，且安装成功，检查此模块是否有自动挂载
+                    scope.launch {
+                        var mountOldDirectory : File
+                        var mountNewDirectory : File
+                        when (flashIt) {
+                            is FlashIt.FlashModules -> {
+                                mountOldDirectory = SuFile.open("/data/adb/modules/${getModuleIdFromUri(context,flashIt.uris[flashIt.currentIndex])}/system")
+                                mountNewDirectory = SuFile.open("/data/adb/modules_update/${getModuleIdFromUri(context,flashIt.uris[flashIt.currentIndex])}/system")
+                            }
+
+                            is FlashIt.FlashModule -> {
+                                mountOldDirectory = SuFile.open("/data/adb/modules/${getModuleIdFromUri(context,flashIt.uri)}/system")
+                                mountNewDirectory = SuFile.open("/data/adb/modules_update/${getModuleIdFromUri(context,flashIt.uri)}/system")
+                            }
+
+                            is FlashIt.FlashModuleUpdate -> {
+                                mountOldDirectory = SuFile.open("/data/adb/modules/${getModuleIdFromUri(context,flashIt.uri)}/system")
+                                mountNewDirectory = SuFile.open("/data/adb/modules_update/${getModuleIdFromUri(context,flashIt.uri)}/system")
+                            }
+
+                            else -> return@launch
+                        }
+                        if (!mountNewDirectory.isDirectory && !mountOldDirectory.isDirectory) return@launch
+                        shouldWarningUserMetaModule = true
+
+                        if (!hasMetaModule() && (flashIt !is FlashIt.FlashModules || flashIt.currentIndex >= flashIt.uris.size - 1)) {
+                            // 如果没有 MetaModule，且当前不是多模块刷写或是最后一个需要自动刷写的模块，而且有模块需要挂载，警告用户
+                            alertDialog.show()
+                        }
+                    }
+                }
 
                 if (flashIt is FlashIt.FlashModules && flashIt.currentIndex < flashIt.uris.size - 1) {
                     val nextFlashIt = flashIt.copy(
@@ -346,7 +438,13 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 } else if ((isExternalInstall || shouldAutoExit) && flashIt is FlashIt.FlashModules && flashIt.currentIndex >= flashIt.uris.size - 1) {
                     // 如果是外部安装或需要自动退出且是最后一个模块，安装完成后自动返回
                     scope.launch {
+                        while (shouldWarningUserMetaModule) {
+                            kotlinx.coroutines.delay(100)
+                        }
                         kotlinx.coroutines.delay(1000)
+                        while (shouldWarningUserMetaModule) {
+                            kotlinx.coroutines.delay(100)
+                        }
                         if (shouldAutoExit) {
                             val sharedPref = context.getSharedPreferences("kernel_flash_prefs", Context.MODE_PRIVATE)
                             sharedPref.edit { remove("auto_exit_after_flash") }
@@ -356,7 +454,13 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 } else if ((isExternalInstall || shouldAutoExit) && flashIt is FlashIt.FlashModule) {
                     // 如果是外部安装或需要自动退出的单个模块，安装完成后自动返回
                     scope.launch {
+                        while (shouldWarningUserMetaModule) {
+                            kotlinx.coroutines.delay(100)
+                        }
                         kotlinx.coroutines.delay(1000)
+                        while (shouldWarningUserMetaModule) {
+                            kotlinx.coroutines.delay(100)
+                        }
                         if (shouldAutoExit) {
                             val sharedPref = context.getSharedPreferences("kernel_flash_prefs", Context.MODE_PRIVATE)
                             sharedPref.edit { remove("auto_exit_after_flash") }
@@ -701,6 +805,22 @@ suspend fun getModuleNameFromUri(context: Context, uri: Uri): String {
             ModuleUtils.extractModuleName(context, uri)
         } catch (_: Exception) {
             context.getString(R.string.unknown_module)
+        }
+    }
+}
+
+suspend fun getModuleIdFromUri(context: Context, uri: Uri): String? {
+    return withContext(Dispatchers.IO) {
+        try {
+            if (uri == Uri.EMPTY) {
+                return@withContext null
+            }
+            if (!ModuleUtils.isUriAccessible(context, uri)) {
+                return@withContext null
+            }
+            ModuleUtils.extractModuleId(context, uri)
+        } catch (_: Exception) {
+            null
         }
     }
 }

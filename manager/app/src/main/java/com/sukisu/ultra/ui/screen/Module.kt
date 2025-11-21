@@ -752,6 +752,7 @@ private fun ModuleList(
     val uninstall = stringResource(R.string.uninstall)
     val cancel = stringResource(android.R.string.cancel)
     val moduleUninstallConfirm = stringResource(R.string.module_uninstall_confirm)
+    val metaModuleUninstallConfirm = stringResource(R.string.metamodule_uninstall_confirm)
     val updateText = stringResource(R.string.module_update)
     val changelogText = stringResource(R.string.module_changelog)
     val downloadingText = stringResource(R.string.module_downloading)
@@ -847,9 +848,10 @@ private fun ModuleList(
     suspend fun onModuleUninstallClicked(module: ModuleViewModel.ModuleInfo) {
         val isUninstall = !module.remove
         if (isUninstall) {
+            val formatter = if (module.metamodule) metaModuleUninstallConfirm else moduleUninstallConfirm
             val confirmResult = confirmDialog.awaitConfirm(
                 moduleStr,
-                content = moduleUninstallConfirm.format(module.name),
+                content = formatter.format(module.name),
                 confirm = uninstall,
                 dismiss = cancel
             )
@@ -1199,6 +1201,22 @@ fun ModuleItem(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    if (module.metamodule) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                        ) {
+                            Text(
+                                text = "META",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                     Surface(
                         shape = RoundedCornerShape(4.dp),
                         color = MaterialTheme.colorScheme.primary,
@@ -1329,8 +1347,9 @@ fun ModuleItemPreview() {
         update = true,
         remove = false,
         updateJson = "",
-        hasWebUi = false,
-        hasActionScript = false,
+        hasWebUi = true,
+        hasActionScript = true,
+        metamodule = true,
         dirId = "dirId",
         config = ModuleConfig(),
         isVerified = true,

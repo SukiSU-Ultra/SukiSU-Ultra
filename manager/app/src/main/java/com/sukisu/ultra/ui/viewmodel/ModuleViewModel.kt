@@ -85,6 +85,7 @@ class ModuleViewModel : ViewModel() {
         val updateJson: String,
         val hasWebUi: Boolean,
         val hasActionScript: Boolean,
+        val metamodule: Boolean,
         val dirId: String, // real module id (dir name)
         var config: ModuleConfig? = null,
         var isVerified: Boolean = false, // 添加验证状态字段
@@ -151,6 +152,7 @@ class ModuleViewModel : ViewModel() {
                             obj.optString("updateJson"),
                             obj.getBooleanCompat("web"),
                             obj.getBooleanCompat("action"),
+                            obj.getBooleanCompat("metamodule"),
                             obj.optString("dir_id", obj.getString("id"))
                         )
                     }.toList()
@@ -305,6 +307,7 @@ fun ModuleViewModel.ModuleInfo.copy(
     updateJson: String = this.updateJson,
     hasWebUi: Boolean = this.hasWebUi,
     hasActionScript: Boolean = this.hasActionScript,
+    metamodule: Boolean = this.metamodule,
     dirId: String = this.dirId,
     config: ModuleConfig? = this.config,
     isVerified: Boolean = this.isVerified,
@@ -312,7 +315,7 @@ fun ModuleViewModel.ModuleInfo.copy(
 ): ModuleViewModel.ModuleInfo {
     return ModuleViewModel.ModuleInfo(
         id, name, author, version, versionCode, description,
-        enabled, update, remove, updateJson, hasWebUi, hasActionScript,
+        enabled, update, remove, updateJson, hasWebUi, hasActionScript, metamodule,
         dirId, config, isVerified, verificationTimestamp
     )
 }

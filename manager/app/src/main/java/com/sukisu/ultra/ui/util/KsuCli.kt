@@ -19,8 +19,10 @@ import kotlinx.parcelize.Parcelize
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ksuApp
+import com.topjohnwu.superuser.io.SuFile
 import org.json.JSONArray
 import java.io.File
+import java.util.Properties
 
 
 /**
@@ -109,6 +111,10 @@ fun install() {
     val magiskboot = File(ksuApp.applicationInfo.nativeLibraryDir, "libmagiskboot.so").absolutePath
     val result = execKsud("install --magiskboot $magiskboot", true)
     Log.w(TAG, "install result: $result, cost: ${SystemClock.elapsedRealtime() - start}ms")
+}
+
+fun hasMetaModule(): Boolean {
+    return getMetaModuleImplement() != "None"
 }
 
 fun listModules(): String {
@@ -573,6 +579,26 @@ fun getSuSFSFeatures(): String {
     val shell = getRootShell()
     val cmd = "${getSuSFSDaemonPath()} show enabled_features"
     return runCmd(shell, cmd)
+}
+
+fun getMetaModuleImplement(): String {
+    try {
+        val metaModuleProp = SuFile.open("/data/adb/metamodule/module.prop")
+        if (!metaModuleProp.isFile) {
+            Log.i(TAG, "Meta module implement: None")
+            return "None"
+        }
+
+        val prop = Properties()
+        prop.load(metaModuleProp.newInputStream())
+
+        val name = prop.getProperty("name")
+        Log.i(TAG, "Meta module implement: $name")
+        return name
+    } catch (t : Throwable) {
+        Log.i(TAG, "Meta module implement: None")
+        return "None"
+    }
 }
 
 fun getZygiskImplement(): String {

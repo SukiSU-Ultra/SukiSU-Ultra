@@ -312,6 +312,16 @@ private fun HideOptionsSettings(
         onChange = handlers::handleHideZygiskImplementChange
     )
 
+    // 元模块实现状态信息
+    SwitchSettingItem(
+        icon = Icons.Filled.VisibilityOff,
+        title = stringResource(R.string.hide_meta_module_implement),
+        summary = stringResource(R.string.hide_meta_module_implement_summary),
+        checked = state.isHideMetaModuleImplement,
+        onChange = handlers::handleHideMetaModuleImplementChange
+    )
+
+    // KPM 状态信息隐藏
     if (Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
         SwitchSettingItem(
             icon = Icons.Filled.VisibilityOff,

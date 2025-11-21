@@ -54,7 +54,8 @@ class HomeViewModel : ViewModel() {
         val kpmModuleCount: Int = 0,
         val managersList: Natives.ManagersList? = null,
         val isDynamicSignEnabled: Boolean = false,
-        val zygiskImplement: String = ""
+        val zygiskImplement: String = "",
+        val metaModuleImplement: String = ""
     )
 
     // 状态变量
@@ -78,6 +79,8 @@ class HomeViewModel : ViewModel() {
     var isHideSusfsStatus by mutableStateOf(false)
         private set
     var isHideZygiskImplement by mutableStateOf(false)
+        private set
+    var isHideMetaModuleImplement by mutableStateOf(false)
         private set
     var isHideLinkCard by mutableStateOf(false)
         private set
@@ -109,6 +112,7 @@ class HomeViewModel : ViewModel() {
             isHideSusfsStatus = settingsPrefs.getBoolean("is_hide_susfs_status", false)
             isHideLinkCard = settingsPrefs.getBoolean("is_hide_link_card", false)
             isHideZygiskImplement = settingsPrefs.getBoolean("is_hide_zygisk_Implement", false)
+            isHideMetaModuleImplement = settingsPrefs.getBoolean("is_hide_meta_module_Implement", false)
             showKpmInfo = settingsPrefs.getBoolean("show_kpm_info", false)
         }
     }
@@ -222,7 +226,8 @@ class HomeViewModel : ViewModel() {
                         superuserCount = moduleInfo.second,
                         moduleCount = moduleInfo.third,
                         kpmModuleCount = moduleInfo.fourth,
-                        zygiskImplement = moduleInfo.fifth
+                        zygiskImplement = moduleInfo.fifth,
+                        metaModuleImplement = moduleInfo.sixth
                     )
                 }
 
@@ -398,7 +403,7 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private suspend fun loadModuleInfo(): Tuple5<String, Int, Int, Int, String> {
+    private suspend fun loadModuleInfo(): Tuple6<String, Int, Int, Int, String, String> {
         return withContext(Dispatchers.IO) {
             val kpmVersion = try {
                 getKpmVersion()
@@ -430,7 +435,13 @@ class HomeViewModel : ViewModel() {
                 "None"
             }
 
-            Tuple5(kpmVersion, superuserCount, moduleCount, kpmModuleCount, zygiskImplement)
+            val metaModuleImplement = try {
+                getMetaModuleImplement()
+            } catch (_: Exception) {
+                "None"
+            }
+
+            Tuple6(kpmVersion, superuserCount, moduleCount, kpmModuleCount, zygiskImplement, metaModuleImplement)
         }
     }
 
@@ -566,6 +577,15 @@ class HomeViewModel : ViewModel() {
             Pair("Unknown", 0L)
         }
     }
+
+    data class Tuple6<T1, T2, T3, T4, T5, T6>(
+        val first: T1,
+        val second: T2,
+        val third: T3,
+        val fourth: T4,
+        val fifth: T5,
+        val sixth: T6
+    )
 
     data class Tuple5<T1, T2, T3, T4, T5>(
         val first: T1,
