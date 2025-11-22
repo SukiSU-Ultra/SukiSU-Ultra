@@ -2,7 +2,6 @@ package com.sukisu.ultra.ui.screen
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -212,7 +211,10 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             value = getFeatureStatus("su_compat")
                         }
                         val suSummary = when (suStatus) {
-                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "unsupported" -> {
+                                suCompatMode = 0 // fix wrongly display
+                                stringResource(id = R.string.feature_status_unsupported_summary)
+                            }
                             "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                             else -> stringResource(id = R.string.settings_disable_su_summary)
                         }
@@ -272,7 +274,10 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             value = getFeatureStatus("kernel_umount")
                         }
                         val umountSummary = when (umountStatus) {
-                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "unsupported" -> {
+                                kernelUmountMode = 0 // fix wrongly display
+                                stringResource(id = R.string.feature_status_unsupported_summary)
+                            }
                             "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                             else -> stringResource(id = R.string.settings_disable_kernel_umount_summary)
                         }
@@ -332,7 +337,11 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             value = getFeatureStatus("sulog")
                         }
                         val suLogSummary = when (suLogStatus) {
-                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "unsupported" -> {
+                                isSuLogEnabled = true // some old kernel support sulog, we need allow show sulog in there
+                                suLogMode = 0 // fix wrongly display
+                                stringResource(id = R.string.feature_status_unsupported_summary)
+                            }
                             "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                             else -> stringResource(id = R.string.settings_disable_sulog_summary)
                         }
