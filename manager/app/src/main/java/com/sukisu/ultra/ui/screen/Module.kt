@@ -72,6 +72,7 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.*
+import com.sukisu.ultra.ui.component.ZipFileDetector.parseModuleInfo
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.*
@@ -86,6 +87,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 data class ModuleBottomSheetMenuItem(
@@ -108,7 +110,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val prefs = context.getSharedPreferences("settings", MODE_PRIVATE)
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
-    val confirmDialog = rememberConfirmDialog()
     var lastClickTime by remember { mutableStateOf(0L) }
 
     var showSignatureDialog by remember { mutableStateOf(false) }
@@ -127,6 +128,26 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val listState = rememberLazyListState()
     val fabVisible by rememberFabVisibilityState(listState)
 
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    var pendingZipFiles by remember { mutableStateOf<List<ZipFileInfo>>(emptyList()) }
+    InstallConfirmationDialog(
+        show = showConfirmationDialog,
+        zipFiles = pendingZipFiles,
+        onConfirm = { info ->
+            showConfirmationDialog = false
+            navigator.navigate(
+                FlashScreenDestination(
+                    FlashIt.FlashModules(ArrayList(info.filter { it.type == ZipType.MODULE }.map { it.uri }))
+                )
+            )
+            viewModel.markNeedRefresh()
+        },
+        onDismiss = {
+            showConfirmationDialog = false
+            pendingZipFiles = emptyList()
+        }
+    )
+
     val selectZipLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -136,6 +157,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
         val data = it.data ?: return@rememberLauncherForActivityResult
 
         scope.launch {
+            val zipFiles = mutableListOf<ZipFileInfo>()
             val clipData = data.clipData
             if (clipData != null) {
                 val selectedModules = mutableListOf<Uri>()
@@ -164,65 +186,44 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     snackBarHost.showSnackbar("Unable to access selected module files")
                     return@launch
                 }
+                selectedModules.forEach { it ->
+                    zipFiles.add(parseModuleInfo(context, it))
+                }
+                pendingZipFiles = zipFiles
 
-                val modulesList = selectedModuleNames.values.joinToString("\n• ", "• ")
-                val confirmResult = confirmDialog.awaitConfirm(
-                    title = context.getString(R.string.module_install),
-                    content = context.getString(R.string.module_install_multiple_confirm_with_names, selectedModules.size, modulesList),
-                    confirm = context.getString(R.string.install),
-                    dismiss = context.getString(R.string.cancel)
-                )
+                // 验证模块签名
+                val forceVerification = prefs.getBoolean("force_signature_verification", false)
+                val verificationResults = mutableMapOf<Uri, Boolean>()
 
-                if (confirmResult == ConfirmResult.Confirmed) {
-                    // 验证模块签名
-                    val forceVerification = prefs.getBoolean("force_signature_verification", false)
-                    val verificationResults = mutableMapOf<Uri, Boolean>()
+                for (uri in selectedModules) {
+                    val isVerified = verifyModuleSignature(context, uri)
+                    verificationResults[uri] = isVerified
+                    // 存储验证状态
+                    setModuleVerificationStatus(uri, isVerified)
 
-                    for (uri in selectedModules) {
-                        val isVerified = verifyModuleSignature(context, uri)
-                        verificationResults[uri] = isVerified
-                        // 存储验证状态
-                        setModuleVerificationStatus(uri, isVerified)
-
-                        if (forceVerification && !isVerified) {
-                            withContext(Dispatchers.Main) {
-                                signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
-                                isForceVerificationFailed = true
-                                showSignatureDialog = true
-                            }
-                            return@launch
-                        } else if (!isVerified) {
-                            withContext(Dispatchers.Main) {
-                                signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
-                                isForceVerificationFailed = false
-                                pendingInstallAction = {
-                                    try {
-                                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
-                                        viewModel.markNeedRefresh()
-                                    } catch (e: Exception) {
-                                        Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
-                                        scope.launch {
-                                            snackBarHost.showSnackbar("Error while installing module: ${e.message}")
-                                        }
-                                    }
-                                }
-                                showSignatureDialog = true
-                            }
-                            return@launch
+                    if (forceVerification && !isVerified) {
+                        withContext(Dispatchers.Main) {
+                            signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
+                            isForceVerificationFailed = true
+                            showSignatureDialog = true
                         }
-                    }
-
-                    // 所有模块签名验证通过，直接安装
-                    if (verificationResults.all { it -> it.value }) {
-                        try {
-                            navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
-                            viewModel.markNeedRefresh()
-                        } catch (e: Exception) {
-                            Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
-                            snackBarHost.showSnackbar("Error while installing module: ${e.message}")
+                        return@launch
+                    } else if (!isVerified) {
+                        withContext(Dispatchers.Main) {
+                            signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
+                            isForceVerificationFailed = false
+                            pendingInstallAction = {
+                                showConfirmationDialog = true
+                            }
+                            showSignatureDialog = true
                         }
+                        return@launch
                     }
                 }
+
+                // 所有模块签名验证通过，直接安装
+                if (verificationResults.all { it -> it.value })
+                    showConfirmationDialog = true
             } else {
                 val uri = data.data ?: return@launch
                 // 单个安装模块
@@ -234,41 +235,31 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
 
                     ModuleUtils.takePersistableUriPermission(context, uri)
 
-                    val moduleName = ModuleUtils.extractModuleName(context, uri)
+                    zipFiles.add(parseModuleInfo(context, uri))
+                    pendingZipFiles = zipFiles
 
-                    val confirmResult = confirmDialog.awaitConfirm(
-                        title = context.getString(R.string.module_install),
-                        content = context.getString(R.string.module_install_confirm, moduleName),
-                        confirm = context.getString(R.string.install),
-                        dismiss = context.getString(R.string.cancel)
-                    )
+                    // 验证模块签名
+                    val forceVerification = prefs.getBoolean("force_signature_verification", false)
+                    val isVerified = verifyModuleSignature(context, uri)
+                    // 存储验证状态
+                    setModuleVerificationStatus(uri, isVerified)
 
-                    if (confirmResult == ConfirmResult.Confirmed) {
-                        // 验证模块签名
-                        val forceVerification = prefs.getBoolean("force_signature_verification", false)
-                        val isVerified = verifyModuleSignature(context, uri)
-                        // 存储验证状态
-                        setModuleVerificationStatus(uri, isVerified)
-
-                        if (forceVerification && !isVerified) {
-                            signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
-                            isForceVerificationFailed = true
-                            showSignatureDialog = true
-                            return@launch
-                        } else if (!isVerified) {
-                            signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
-                            isForceVerificationFailed = false
-                            pendingInstallAction = {
-                                navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
-                                viewModel.markNeedRefresh()
-                            }
-                            showSignatureDialog = true
-                            return@launch
+                    if (forceVerification && !isVerified) {
+                        signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
+                        isForceVerificationFailed = true
+                        showSignatureDialog = true
+                        return@launch
+                    } else if (!isVerified) {
+                        signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
+                        isForceVerificationFailed = false
+                        pendingInstallAction = {
+                            showConfirmationDialog = true
                         }
-
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
-                        viewModel.markNeedRefresh()
+                        showSignatureDialog = true
+                        return@launch
                     }
+
+                    showConfirmationDialog = true
                 } catch (e: Exception) {
                     Log.e("ModuleScreen", "Error processing a single URI: $uri, Error: ${e.message}")
                     snackBarHost.showSnackbar("Error processing module file: ${e.message}")
