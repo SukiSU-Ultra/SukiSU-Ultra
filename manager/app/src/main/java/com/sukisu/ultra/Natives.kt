@@ -22,7 +22,7 @@ object Natives {
     // 12040: Support disable sucompat mode
     const val KERNEL_SU_DOMAIN = "u:r:su:s0"
 
-    const val MINIMAL_SUPPORTED_KERNEL_FULL = "v3.1.8"
+    const val MINIMAL_SUPPORTED_KERNEL_FULL = "v4.0.0"
 
     const val MINIMAL_SUPPORTED_KPM = 12800
 
