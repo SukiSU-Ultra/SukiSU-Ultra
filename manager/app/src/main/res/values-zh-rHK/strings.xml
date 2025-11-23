@@ -376,21 +376,17 @@
     <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">基本配置</string>
     <string name="susfs_tab_sus_paths">SuS 路徑</string>
-    <string name="susfs_tab_sus_mounts">SuS 掛載</string>
     <string name="susfs_tab_try_umount">嘗試卸載</string>
     <string name="susfs_tab_path_settings">路徑配置</string>
     <string name="susfs_tab_enabled_features">啟用功能狀態</string>
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">添加 SuS 路徑</string>
-    <string name="susfs_add_sus_mount">添加 SuS 掛載</string>
     <string name="susfs_add_try_umount">嘗試添加卸載</string>
     <string name="susfs_sus_path_added_success">SuS 路徑添加成功</string>
     <string name="susfs_path_not_found_error">錯誤冇此找到路徑</string>
     <string name="susfs_path_label">路徑</string>
-    <string name="susfs_mount_path_label">掛載路徑</string>
     <string name="susfs_path_placeholder">例如: /system/addon.d</string>
     <string name="susfs_no_paths_configured">暫冇 SuS 路徑配置</string>
-    <string name="susfs_no_mounts_configured">暫冇 SuS 掛載配置</string>
     <string name="susfs_no_umounts_configured">暫冇嘗試卸載配置</string>
     <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">卸載模式</string>
@@ -405,8 +401,6 @@
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">重置 SuS 路徑</string>
     <string name="susfs_reset_paths_message">這將清除所有 SuS 路徑配置，確定要繼續嗎？</string>
-    <string name="susfs_reset_mounts_title">重置 SuS 掛載</string>
-    <string name="susfs_reset_mounts_message">這將清除所有 SuS 掛載配置，確定要繼續嗎？</string>
     <string name="susfs_reset_umounts_title">重置嘗試卸載</string>
     <string name="susfs_reset_umounts_message">這將清除所有嘗試卸載配置，確定要繼續嗎？</string>
     <string name="susfs_reset_path_title">重置路徑配置</string>
@@ -422,18 +416,13 @@
     <string name="susfs_feature_disabled">已禁用</string>
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">SuS 路徑支援</string>
-    <string name="sus_mount_feature_label">SuS 掛載支援</string>
     <string name="try_umount_feature_label">嘗試卸載支援</string>
     <string name="spoof_uname_feature_label">欺騙 uname 支援</string>
     <string name="spoof_cmdline_feature_label">欺騙 Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">開放重定向支援</string>
     <string name="enable_log_feature_label">日誌記錄支援</string>
-    <string name="auto_default_mount_feature_label">自動默認掛載</string>
-    <string name="auto_bind_mount_feature_label">自動綁定掛載</string>
-    <string name="auto_try_umount_bind_feature_label">自動嘗試卸載綁定掛載</string>
     <string name="hide_symbols_feature_label">隱藏 KSU SuSFS 符號</string>
     <string name="sus_kstat_feature_label">SuS Kstat 支援</string>
-    <string name="sus_su_feature_label">SuS SU 模式切換功能</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">可配置嘅 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
@@ -529,7 +518,6 @@
     <string name="cleanup_residue">清理工具殘留</string>
     <string name="cleanup_residue_description">清理各種模組以及工具嘅殘留檔案同目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
-    <string name="susfs_edit_sus_mount">編輯 SuS 掛載</string>
     <string name="susfs_edit_try_umount">編輯嘗試解除安裝</string>
     <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
