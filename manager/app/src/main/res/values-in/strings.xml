@@ -389,21 +389,17 @@
     <!-- SuSFS Tab Titles -->
     <string name="susfs_tab_basic_settings">Pengaturan Dasar</string>
     <string name="susfs_tab_sus_paths">Jalur SUS</string>
-    <string name="susfs_tab_sus_mounts">Pemasangan SUS</string>
     <string name="susfs_tab_try_umount">Coba Umount</string>
     <string name="susfs_tab_path_settings">Pengaturan Path</string>
     <string name="susfs_tab_enabled_features">Status Fitur yang Diaktifkan</string>
     <!-- SuSFS Path Management -->
     <string name="susfs_add_sus_path">Tambahkan Jalur SUS</string>
-    <string name="susfs_add_sus_mount">Tambahkan Pemasangan SUS</string>
     <string name="susfs_add_try_umount">Tambahkan Coba Umount</string>
     <string name="susfs_sus_path_added_success">Jalur SUS berhasil ditambahkan</string>
     <string name="susfs_path_not_found_error">Kesalahan jalur tidak ditemukan</string>
     <string name="susfs_path_label">Jalur</string>
-    <string name="susfs_mount_path_label">Jalur Pemasangan</string>
     <string name="susfs_path_placeholder">contoh: /system/addon.d</string>
     <string name="susfs_no_paths_configured">Tidak ada jalur SUS yang dikonfigurasi</string>
-    <string name="susfs_no_mounts_configured">Tidak ada pemasangan SUS yang dikonfigurasi</string>
     <string name="susfs_no_umounts_configured">Tidak ada coba umount yang dikonfigurasi</string>
     <!-- SuSFS Umount Mode -->
     <string name="susfs_umount_mode_label">Mode Umount</string>
@@ -418,8 +414,6 @@
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">Setel Ulang Jalur SUS</string>
     <string name="susfs_reset_paths_message">Ini akan menghapus semua konfigurasi jalur SUS. Apakah Anda yakin ingin melanjutkan?</string>
-    <string name="susfs_reset_mounts_title">Setel Ulang Pemasangan SUS</string>
-    <string name="susfs_reset_mounts_message">Ini akan menghapus semua konfigurasi mount SUS. Apakah Anda yakin ingin melanjutkan?</string>
     <string name="susfs_reset_umounts_title">Setel Ulang Coba Umount</string>
     <string name="susfs_reset_umounts_message">Ini akan menghapus semua konfigurasi umount. Apakah Anda yakin ingin melanjutkan?</string>
     <string name="susfs_reset_path_title">Setel Ulang Pengaturan Jalur</string>
@@ -435,18 +429,13 @@
     <string name="susfs_feature_disabled">Dinonaktifkan</string>
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">Dukungan Jalur SUS</string>
-    <string name="sus_mount_feature_label">Dukungan Pemasangan SUS</string>
     <string name="try_umount_feature_label">Dukungan Coba Umount</string>
     <string name="spoof_uname_feature_label">Dukungan Spoof uname</string>
     <string name="spoof_cmdline_feature_label">Spoof Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">Dukungan Pengalihan Terbuka</string>
     <string name="enable_log_feature_label">Dukungan Logging</string>
-    <string name="auto_default_mount_feature_label">Pemasangan Default Otomatis</string>
-    <string name="auto_bind_mount_feature_label">Pemasangan Bind Otomatis</string>
-    <string name="auto_try_umount_bind_feature_label">Coba Umount Bind Mount Otomatis</string>
     <string name="hide_symbols_feature_label">Sembunyikan Simbol KSU SUSFS</string>
     <string name="sus_kstat_feature_label">Dukungan SUS Kstat</string>
-    <string name="sus_su_feature_label">Fungsi pengalihan mode SUS SU</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">Fitur SuSFS yang Dapat Dikonfigurasi</string>
     <string name="susfs_enable_log_label">Aktifkan Log SuSFS</string>
@@ -542,7 +531,6 @@
     <string name="cleanup_residue">Bersihkan Residu</string>
     <string name="cleanup_residue_description">Bersihkan file dan direktori sisa dari berbagai modul dan alat (mungkin terhapus secara tidak sengaja, mengakibatkan kehilangan dan gagal memulai, gunakan dengan hati-hati)</string>
     <string name="susfs_edit_sus_path">Edit Jalur SUS</string>
-    <string name="susfs_edit_sus_mount">Edit Pemasangan SUS</string>
     <string name="susfs_edit_try_umount">Edit Coba Umount</string>
     <string name="edit_kstat_statically_title">Edit Konfigurasi Statis Kstat</string>
     <string name="edit_kstat_path_title">Edit Jalur Kstat</string>
