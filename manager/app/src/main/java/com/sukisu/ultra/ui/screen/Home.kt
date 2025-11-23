@@ -26,7 +26,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -44,6 +43,7 @@ import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KsuIsValid
+import com.sukisu.ultra.ui.component.WarningCard
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
@@ -520,31 +520,6 @@ private fun StatusCard(
 }
 
 @Composable
-fun WarningCard(
-    message: String,
-    color: Color = MaterialTheme.colorScheme.error,
-    onClick: (() -> Unit)? = null
-) {
-    ElevatedCard(
-        colors = getCardColors(color),
-        elevation = getCardElevation(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(onClick?.let { Modifier.clickable { it() } } ?: Modifier)
-                .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
-}
-
-@Composable
 fun ContributionCard() {
     val uriHandler = LocalUriHandler.current
     val links = listOf("https://github.com/ShirkNeko", "https://github.com/udochina")
@@ -919,16 +894,4 @@ private fun IncompatibleKernelCard() {
         message = msg,
         color = MaterialTheme.colorScheme.error
     )
-}
-
-@Preview
-@Composable
-private fun WarningCardPreview() {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        WarningCard(message = "Warning message")
-        WarningCard(
-            message = "Warning message ",
-            MaterialTheme.colorScheme.outlineVariant,
-            onClick = {})
-    }
 }
