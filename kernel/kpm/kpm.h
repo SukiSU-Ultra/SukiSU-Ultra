@@ -5,10 +5,10 @@
 #include <linux/ioctl.h>
 
 struct ksu_kpm_cmd {
-    __aligned_u64 __user control_code;
-    __aligned_u64 __user arg1;
-    __aligned_u64 __user arg2;
-    __aligned_u64 __user result_code;
+	__aligned_u64 __user control_code;
+	__aligned_u64 __user arg1;
+	__aligned_u64 __user arg2;
+	__aligned_u64 __user result_code;
 };
 
 int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, unsigned long arg2, unsigned long result_code);

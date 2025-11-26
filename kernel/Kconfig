@@ -1,52 +1,58 @@
 menu "KernelSU"
 
 config KSU
-      tristate "KernelSU function support"
-      default y
-      help
-        Enable kernel-level root privileges on Android System.
-        To compile as a module, choose M here: the
-        module will be called kernelsu.
+	  tristate "KernelSU function support"
+	  default y
+	  help
+		Enable kernel-level root privileges on Android System.
+		To compile as a module, choose M here: the
+		module will be called kernelsu.
 
 config KSU_DEBUG
-      bool "KernelSU debug mode"
-      depends on KSU
-      default n
-      help
-        Enable KernelSU debug mode.
-
-config KSU_MULTI_MANAGER_SUPPORT
-    bool "Multi KernelSU manager support"
-    depends on KSU
-    default n
-    help
-        Enable multi KernelSU manager support
-
+	  bool "KernelSU debug mode"
+	  depends on KSU
+	  default n
+	  help
+		Enable KernelSU debug mode.
 
 config KSU_ALLOWLIST_WORKAROUND
-    bool "KernelSU Session Keyring Init workaround"
+	bool "KernelSU Session Keyring Init workaround"
+	depends on KSU
+	default n
+	help
+	  Enable session keyring init workaround for problematic devices.
+	  Useful for situations where the SU allowlist is not kept after a reboot
+
+config KSU_MANUAL_SU
+    bool "Use manual su"
     depends on KSU
-    default n
+    default y
     help
-      Enable session keyring init workaround for problematic devices.
-      Useful for situations where the SU allowlist is not kept after a reboot
+      Use manual su and authorize the corresponding command line and application via prctl
+
+config KSU_MULTI_MANAGER_SUPPORT
+	bool "Multi KernelSU manager support"
+	depends on KSU
+	default n
+	help
+		Enable multi KernelSU manager support
 
 config KPM
-      bool "Enable SukiSU KPM"
-      depends on KSU && 64BIT
-      select KALLSYMS
-      select KALLSYMS_ALL
-      default n
-      help
-        Enabling this option will activate the KPM feature of SukiSU.
-        This option is suitable for scenarios where you need to force KPM to be enabled.
-        but it may affect system stability.
+	  bool "Enable SukiSU KPM"
+	  depends on KSU && 64BIT
+	  select KALLSYMS
+	  select KALLSYMS_ALL
+	  default n
+	  help
+		Enabling this option will activate the KPM feature of SukiSU.
+		This option is suitable for scenarios where you need to force KPM to be enabled.
+		but it may affect system stability.
 
 config KSU_MANUAL_HOOK
-    bool "Hook KernelSU manually"
-    depends on KSU != m
-    help
-      If enabled, Hook required KernelSU syscalls with manually-patched function.
+	bool "Hook KernelSU manually"
+	depends on KSU != m
+	help
+	  If enabled, Hook required KernelSU syscalls with manually-patched function.
 
 menu "KernelSU - SUSFS"
 
@@ -79,24 +85,6 @@ config KSU_SUSFS_SUS_MOUNT
 		- Mounts mounted by process with ksu domain will be forced to be assigned the dev name "KSU".
 		- mnt_id and mnt_group_id of the sus mount will be assigned to a much bigger number to solve the issue of id not being contiguous.
 
-config KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT
-	bool "Enable to hide KSU's default mounts automatically (experimental)"
-	depends on KSU_SUSFS_SUS_MOUNT
-	default y
-	help
-		- Automatically add KSU's default mounts to sus_mount.
-		- No susfs command is needed in userspace.
-		- Only mount operation from process with ksu domain will be checked.
-
-config KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT
-	bool "Enable to hide suspicious bind mounts automatically (experimental)"
-	depends on KSU_SUSFS_SUS_MOUNT
-	default y
-	help
-		- Automatically add binded mounts to sus_mount.
-		- No susfs command is needed in userspace.
-		- Only mount operation from process with ksu domain will be checked.
-
 config KSU_SUSFS_SUS_KSTAT
 	bool "Enable to spoof suspicious kstat"
 	depends on KSU_SUSFS
@@ -104,23 +92,6 @@ config KSU_SUSFS_SUS_KSTAT
 	help
 		- Allow spoofing the kstat of user-defined file/directory.
 		- Effective only on zygote spawned user app process.
-
-config KSU_SUSFS_TRY_UMOUNT
-	bool "Enable to use ksu's try_umount"
-	depends on KSU_SUSFS
-	default y
-	help
-		- Allow using try_umount to umount other user-defined mount paths prior to ksu's default umount paths.
-		- Effective on all NO-root-access-granted processes.
-
-config KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT
-	bool "Enable to add bind mounts to ksu's try_umount automatically (experimental)"
-	depends on KSU_SUSFS_TRY_UMOUNT
-	default y
-	help
-		- Automatically add binded mounts to ksu's try_umount.
-		- No susfs command is needed in userspace.
-		- Only mount operation from process with ksu domain will be checked.
 
 config KSU_SUSFS_SPOOF_UNAME
 	bool "Enable to spoof uname"

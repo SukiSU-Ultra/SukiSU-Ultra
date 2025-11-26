@@ -25,21 +25,21 @@
 #define MANUAL_SU_OP_ADD_PENDING 2
 
 struct pending_uid {
-    uid_t uid;
-    int use_count;
-    int remove_calls;
+	uid_t uid;
+	int use_count;
+	int remove_calls;
 };
 
 struct manual_su_request {
-    uid_t target_uid;
-    pid_t target_pid;
-    char token_buffer[KSU_TOKEN_LENGTH + 1];
+	uid_t target_uid;
+	pid_t target_pid;
+	char token_buffer[KSU_TOKEN_LENGTH + 1];
 };
 
 struct ksu_token_entry {
-    char token[KSU_TOKEN_LENGTH + 1];
-    unsigned long expire_time;
-    bool used;
+	char token[KSU_TOKEN_LENGTH + 1];
+	unsigned long expire_time;
+	bool used;
 };
 
 int ksu_handle_manual_su_request(int option, struct manual_su_request *request);

@@ -39,11 +39,11 @@ void sukisu_custom_config_init(void)
 
 void sukisu_custom_config_exit(void)
 {
-    ksu_uid_exit();
-    ksu_throne_comm_exit();
-    ksu_dynamic_manager_exit();
+	ksu_uid_exit();
+	ksu_throne_comm_exit();
+	ksu_dynamic_manager_exit();
 #if __SULOG_GATE
-    ksu_sulog_exit();
+	ksu_sulog_exit();
 #endif
 }
 
@@ -53,69 +53,69 @@ int __init kernelsu_init(void)
 		UTS_RELEASE, UTS_MACHINE, KSU_VERSION);
 		
 #ifdef CONFIG_KSU_DEBUG
-    pr_alert("*************************************************************");
-    pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
-    pr_alert("**                                                         **");
-    pr_alert("**         You are running KernelSU in DEBUG mode          **");
-    pr_alert("**                                                         **");
-    pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
-    pr_alert("*************************************************************");
+	pr_alert("*************************************************************");
+	pr_alert("**	 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE	**");
+	pr_alert("**														 **");
+	pr_alert("**		 You are running KernelSU in DEBUG mode		  **");
+	pr_alert("**														 **");
+	pr_alert("**	 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE	**");
+	pr_alert("*************************************************************");
 #endif
 
-    ksu_feature_init();
+	ksu_feature_init();
 
-    ksu_lsm_hook_init();
+	ksu_lsm_hook_init();
 
-    ksu_supercalls_init();
+	ksu_supercalls_init();
 
-    sukisu_custom_config_init();
+	sukisu_custom_config_init();
 
-    ksu_syscall_hook_manager_init();
+	ksu_syscall_hook_manager_init();
 
-    ksu_workqueue = alloc_ordered_workqueue("kernelsu_work_queue", 0);
+	ksu_workqueue = alloc_ordered_workqueue("kernelsu_work_queue", 0);
 
-    ksu_allowlist_init();
+	ksu_allowlist_init();
 
-    ksu_throne_tracker_init();
+	ksu_throne_tracker_init();
 
 #ifdef CONFIG_KSU_SUSFS
-    susfs_init();
+	susfs_init();
 #endif
 
 #if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS)
-    ksu_ksud_init();
+	ksu_ksud_init();
 #endif
 
 #ifdef MODULE
 #ifndef CONFIG_KSU_DEBUG
-    kobject_del(&THIS_MODULE->mkobj.kobj);
+	kobject_del(&THIS_MODULE->mkobj.kobj);
 #endif
 #endif
-    return 0;
+	return 0;
 }
 
 extern void ksu_observer_exit(void);
 void kernelsu_exit(void)
 {
-    ksu_allowlist_exit();
+	ksu_allowlist_exit();
 
-    ksu_observer_exit();
+	ksu_observer_exit();
 
-    ksu_throne_tracker_exit();
+	ksu_throne_tracker_exit();
 
-    destroy_workqueue(ksu_workqueue);
+	destroy_workqueue(ksu_workqueue);
 
 #if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS)
-    ksu_ksud_exit();
+	ksu_ksud_exit();
 #endif
 
-    ksu_syscall_hook_manager_exit();
+	ksu_syscall_hook_manager_exit();
 
-    sukisu_custom_config_exit();
+	sukisu_custom_config_exit();
 
-    ksu_supercalls_exit();
-    
-    ksu_feature_exit();
+	ksu_supercalls_exit();
+	
+	ksu_feature_exit();
 }
 
 module_init(kernelsu_init);

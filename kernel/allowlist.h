@@ -8,6 +8,8 @@
 #define PER_USER_RANGE 100000
 #define FIRST_APPLICATION_UID 10000
 #define LAST_APPLICATION_UID 19999
+#define FIRST_ISOLATED_UID 99000
+#define LAST_ISOLATED_UID 99999
 
 void ksu_allowlist_init(void);
 
@@ -23,11 +25,13 @@ bool __ksu_is_allow_uid(uid_t uid);
 
 // Check if the uid is in allow list, or current is ksu domain root
 bool __ksu_is_allow_uid_for_current(uid_t uid);
-#define ksu_is_allow_uid_for_current(uid) unlikely(__ksu_is_allow_uid_for_current(uid))
+#define ksu_is_allow_uid_for_current(uid)									  \
+	unlikely(__ksu_is_allow_uid_for_current(uid))
 
 bool ksu_get_allow_list(int *array, int *length, bool allow);
 
-void ksu_prune_allowlist(bool (*is_uid_exist)(uid_t, char *, void *), void *data);
+void ksu_prune_allowlist(bool (*is_uid_exist)(uid_t, char *, void *),
+			 void *data);
 
 bool ksu_get_app_profile(struct app_profile *);
 bool ksu_set_app_profile(struct app_profile *, bool persist);
@@ -37,8 +41,14 @@ struct root_profile *ksu_get_root_profile(uid_t uid);
 
 static inline bool is_appuid(uid_t uid)
 {
+	uid_t appid = uid % PER_USER_RANGE;
+	return appid >= FIRST_APPLICATION_UID && appid <= LAST_APPLICATION_UID;
+}
+
+static inline bool is_isolated_process(uid_t uid)
+{
     uid_t appid = uid % PER_USER_RANGE;
-    return appid >= FIRST_APPLICATION_UID && appid <= LAST_APPLICATION_UID;
+    return appid >= FIRST_ISOLATED_UID && appid <= LAST_ISOLATED_UID;
 }
 
 #ifdef CONFIG_KSU_MANUAL_SU

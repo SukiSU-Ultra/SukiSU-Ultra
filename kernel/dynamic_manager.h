@@ -10,25 +10,25 @@
 #define DYNAMIC_SIGN_INDEX 100
 
 struct dynamic_sign_key {
-    unsigned int size;
-    const char *hash;
+	unsigned int size;
+	const char *hash;
 };
 
 #define DYNAMIC_SIGN_DEFAULT_CONFIG { \
-    .size = 0x300, \
-    .hash = "0000000000000000000000000000000000000000000000000000000000000000" \
+	.size = 0x300, \
+	.hash = "0000000000000000000000000000000000000000000000000000000000000000" \
 }
 
 struct dynamic_manager_config {
-    unsigned int size;
-    char hash[65];
-    int is_set;
+	unsigned int size;
+	char hash[65];
+	int is_set;
 };
 
 struct manager_info {
-    uid_t uid;
-    int signature_index;
-    bool is_active;
+	uid_t uid;
+	int signature_index;
+	bool is_active;
 };
 
 // Dynamic sign operations
