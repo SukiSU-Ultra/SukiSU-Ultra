@@ -50,7 +50,7 @@ config KPM
 
 config KSU_MANUAL_HOOK
 	bool "Hook KernelSU manually"
-	depends on KSU != m
+	depends on KSU != m && !KSU_SUSFS
 	help
 	  If enabled, Hook required KernelSU syscalls with manually-patched function.
 
