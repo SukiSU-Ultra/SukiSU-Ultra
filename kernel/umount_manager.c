@@ -5,6 +5,7 @@
 #include <linux/path.h>
 #include <linux/mount.h>
 #include <linux/cred.h>
+#include <linux/fs.h>
 
 #include "klog.h"
 #include "kernel_umount.h"
