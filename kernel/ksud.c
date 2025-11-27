@@ -111,7 +111,7 @@ int nuke_ext4_sysfs(const char* mnt)
 	int err = kern_path(mnt, 0, &path);
 	if (err) {
 		pr_err("nuke path err: %d\n", err);
-		return;
+		return err;
 	}
 
 	struct super_block *sb = path.dentry->d_inode->i_sb;
@@ -119,18 +119,18 @@ int nuke_ext4_sysfs(const char* mnt)
 	if (strcmp(name, "ext4") != 0) {
 		pr_info("nuke but module aren't mounted\n");
 		path_put(&path);
-		return;
+		return -EINVAL;
 	}
 
 	ext4_unregister_sysfs(sb);
 	path_put(&path);
+	return 0;
 }
 
 void on_module_mounted(void)
 {
 	pr_info("on_module_mounted!\n");
 	ksu_module_mounted = true;
-	nuke_ext4_sysfs();
 }
 
 void on_boot_completed(void)
