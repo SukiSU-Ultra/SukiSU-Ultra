@@ -24,6 +24,7 @@ ifeq ($(CONFIG_KSU_MANUAL_SU), y)
 ccflags-y += -DCONFIG_KSU_MANUAL_SU
 kernelsu-objs += manual_su.o
 endif
+kernelsu-objs += util.o
 
 kernelsu-objs += selinux/selinux.o
 kernelsu-objs += selinux/sepolicy.o

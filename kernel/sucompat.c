@@ -18,25 +18,10 @@
 #include "syscall_hook_manager.h"
 
 #include "sulog.h"
+#include "util.h"
 
 #define SU_PATH "/system/bin/su"
 #define SH_PATH "/system/bin/sh"
-
-#ifndef preempt_enable_no_resched_notrace
-#define preempt_enable_no_resched_notrace() \
-do { \
-    barrier(); \
-    __preempt_count_dec(); \
-} while (0)
-#endif
-
-#ifndef preempt_disable_notrace
-#define preempt_disable_notrace() \
-do { \
-    __preempt_count_inc(); \
-    barrier(); \
-} while (0)
-#endif
 
 bool ksu_su_compat_enabled __read_mostly = true;
 

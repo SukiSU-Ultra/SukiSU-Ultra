@@ -22,6 +22,7 @@
 #include "arch.h"
 #include "klog.h" // IWYU pragma: keep
 #include "ksud.h"
+#include "util.h"
 #include "selinux/selinux.h"
 #include "throne_tracker.h"
 
@@ -88,11 +89,11 @@ void on_post_fs_data(void)
     is_boot_phase = false;
 
     ksu_file_sid = ksu_get_ksu_file_sid();
-	pr_info("ksu_file sid: %d\n", ksu_file_sid);
+    pr_info("ksu_file sid: %d\n", ksu_file_sid);
 }
 
 extern void ext4_unregister_sysfs(struct super_block *sb);
-int nuke_ext4_sysfs(const char* mnt)
+int nuke_ext4_sysfs(const char *mnt)
 {
 #ifdef CONFIG_EXT4_FS
     struct path path;
@@ -117,12 +118,14 @@ int nuke_ext4_sysfs(const char* mnt)
 #endif
 }
 
-void on_module_mounted(void){
+void on_module_mounted(void)
+{
     pr_info("on_module_mounted!\n");
     ksu_module_mounted = true;
 }
 
-void on_boot_completed(void){
+void on_boot_completed(void)
+{
     ksu_boot_completed = true;
     pr_info("on_boot_completed!\n");
     track_throne(true);
@@ -527,12 +530,25 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
     struct user_arg_ptr argv = { .ptr.native = __argv };
     struct filename filename_in, *filename_p;
     char path[32];
+    long ret;
+    unsigned long addr;
+    const char __user *fn;
 
     if (!filename_user)
         return 0;
 
+    addr = untagged_addr((unsigned long)*filename_user);
+    fn = (const char __user *)addr;
+
     memset(path, 0, sizeof(path));
-    strncpy_from_user_nofault(path, *filename_user, 32);
+    ret = strncpy_from_user_nofault(path, fn, 32);
+    if (ret < 0 && try_set_access_flag(addr)) {
+        ret = strncpy_from_user_nofault(path, fn, 32);
+    }
+    if (ret < 0) {
+        pr_err("Access filename failed for execve_handler_pre\n");
+        return 0;
+    }
     filename_in.name = path;
 
     filename_p = &filename_in;
