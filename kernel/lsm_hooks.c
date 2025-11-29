@@ -103,7 +103,7 @@ static const struct lsm_id ksu_lsmid = {
 };
 #endif
 
-void ksu_lsm_hook_init(void)
+void __init ksu_lsm_hook_init(void)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), &ksu_lsmid);
