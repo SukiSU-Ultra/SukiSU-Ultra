@@ -15,6 +15,7 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 
 1. Kernel-based `su` and root access management
 2. Module system based on [Magic Mount](https://github.com/5ec1cff/KernelSU)
+   > **Note:** SukiSU now delegates all module mounting to the installed *metamodule*; the core no longer handles mount operations.
 3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock up the root power in a cage
 4. Support non-GKI and GKI 1.0
 5. KPM Support
