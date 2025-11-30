@@ -1,4 +1,3 @@
-use anyhow::Result;
 use libc::SYS_reboot;
 
 const SUSFS_MAX_VERSION_BUFSIZE: usize = 16;
@@ -21,7 +20,7 @@ struct SusfsFeatures {
     err: i32,
 }
 
-pub fn get_susfs_version() -> usize {
+pub fn get_susfs_version() -> String {
     let mut cmd = SusfsVersion {
         susfs_version: [0; SUSFS_MAX_VERSION_BUFSIZE],
         err: ERR_CMD_NOT_SUPPORTED,
@@ -38,20 +37,22 @@ pub fn get_susfs_version() -> usize {
     };
 
     if ret < 0 {
-        return 0;
+        return "unsupport".to_string();
     }
 
     let ver = cmd.susfs_version.iter().position(|&b| b == 0).unwrap_or(16);
-    std::str::from_utf8(&cmd.susfs_version[..ver]).unwrap_or("<invalid>");
-
-    ver
+    String::from_utf8((&cmd.susfs_version[..ver]).to_vec()).unwrap_or("<invalid>".to_string())
 }
 
 pub fn get_susfs_status() -> bool {
-    if get_susfs_version() < 0 { false } else { true }
+    if get_susfs_version() == "unsupport" {
+        false
+    } else {
+        true
+    }
 }
 
-pub fn get_susfs_features() {
+pub fn get_susfs_features() -> String {
     let mut cmd = SusfsFeatures {
         enabled_features: [0; SUSFS_ENABLED_FEATURES_SIZE],
         err: ERR_CMD_NOT_SUPPORTED,
@@ -68,7 +69,7 @@ pub fn get_susfs_features() {
     };
 
     if ret < 0 {
-        return;
+        return String::new();
     }
 
     let features = cmd
@@ -76,6 +77,6 @@ pub fn get_susfs_features() {
         .iter()
         .position(|&b| b == 0)
         .unwrap_or(16);
-    std::str::from_utf8(&cmd.enabled_features[..features]).unwrap_or("<invalid>");
-    println!("{}", features);
+    String::from_utf8((&cmd.enabled_features[..features]).to_vec())
+        .unwrap_or("<invalid>".to_string())
 }
