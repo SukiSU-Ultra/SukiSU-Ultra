@@ -17,7 +17,6 @@ mod cli;
 mod debug;
 mod defs;
 mod feature;
-mod susfs;
 mod init_event;
 #[cfg(target_arch = "aarch64")]
 mod kpm;
@@ -29,6 +28,7 @@ mod profile;
 mod restorecon;
 mod sepolicy;
 mod su;
+mod susfs;
 #[cfg(target_os = "android")]
 mod uid_scanner;
 mod umount_manager;

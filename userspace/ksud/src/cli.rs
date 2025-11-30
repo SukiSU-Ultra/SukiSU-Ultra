@@ -522,7 +522,7 @@ pub fn run() -> Result<()> {
                 Susfs::Status => {
                     println!("{}", susfs::get_susfs_status())
                 }
-                Susfs::Features => susfs::get_susfs_features(),
+                Susfs::Features => println!("{}", susfs::get_susfs_features()),
             }
             Ok(())
         }
