@@ -516,12 +516,10 @@ pub fn run() -> Result<()> {
         }
         Commands::Susfs { command } => {
             match command {
-                Susfs::Version => {
-                    println!("{}", susfs::get_susfs_version())
-                }
-                Susfs::Status => {
-                    println!("{}", susfs::get_susfs_status())
-                }
+                Susfs::Version => println!("{}", susfs::get_susfs_version()),
+
+                Susfs::Status => println!("{}", susfs::get_susfs_status()),
+
                 Susfs::Features => println!("{}", susfs::get_susfs_features()),
             }
             Ok(())
