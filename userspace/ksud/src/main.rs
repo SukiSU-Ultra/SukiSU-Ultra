@@ -28,6 +28,7 @@ mod profile;
 mod restorecon;
 mod sepolicy;
 mod su;
+mod susfs;
 #[cfg(target_os = "android")]
 mod uid_scanner;
 mod umount_manager;
