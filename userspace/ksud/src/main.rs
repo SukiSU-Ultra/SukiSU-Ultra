@@ -17,6 +17,7 @@ mod cli;
 mod debug;
 mod defs;
 mod feature;
+mod susfs;
 mod init_event;
 #[cfg(target_arch = "aarch64")]
 mod kpm;
