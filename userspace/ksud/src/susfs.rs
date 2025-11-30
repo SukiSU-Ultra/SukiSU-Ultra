@@ -1,3 +1,4 @@
+#![allow(clippy::unreadable_literal)]
 use libc::SYS_reboot;
 
 const SUSFS_MAX_VERSION_BUFSIZE: usize = 16;
@@ -41,15 +42,11 @@ pub fn get_susfs_version() -> String {
     }
 
     let ver = cmd.susfs_version.iter().position(|&b| b == 0).unwrap_or(16);
-    String::from_utf8((&cmd.susfs_version[..ver]).to_vec()).unwrap_or("<invalid>".to_string())
+    String::from_utf8(cmd.susfs_version[..ver].to_vec()).unwrap_or_else(|_| "<invalid>".to_string())
 }
 
 pub fn get_susfs_status() -> bool {
-    if get_susfs_version() == "unsupport" {
-        false
-    } else {
-        true
-    }
+    get_susfs_version() != "unsupport"
 }
 
 pub fn get_susfs_features() -> String {
@@ -77,6 +74,6 @@ pub fn get_susfs_features() -> String {
         .iter()
         .position(|&b| b == 0)
         .unwrap_or(16);
-    String::from_utf8((&cmd.enabled_features[..features]).to_vec())
-        .unwrap_or("<invalid>".to_string())
+    String::from_utf8(cmd.enabled_features[..features].to_vec())
+        .unwrap_or_else(|_| "<invalid>".to_string())
 }
