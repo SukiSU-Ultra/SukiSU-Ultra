@@ -456,7 +456,7 @@ class ModuleSizeCache(context: Context) {
     private fun calculateModuleFolderSize(dirId: String): Long {
         return try {
             val shell = getRootShell()
-            val command = "du -sb /data/adb/modules/$dirId"
+            val command = "/data/adb/ksu/bin/busybox du -sb /data/adb/modules/$dirId"
             val result = shell.newJob().add(command).to(ArrayList(), null).exec()
 
             if (result.isSuccess && result.out.isNotEmpty()) {
