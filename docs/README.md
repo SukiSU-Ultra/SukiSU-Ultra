@@ -23,7 +23,7 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 
 ## Compatibility Status
 
-- KernelSU (before v1.0.0) officially supports Android GKI 2.0 devices (kernel 5.10+).
+- SukiSU officially supports Android GKI 2.0 devices (kernel 5.10+).
 
 - Older kernels (4.4+) are also compatible, but the kernel will have to be built manually.
 
