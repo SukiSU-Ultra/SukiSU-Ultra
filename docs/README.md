@@ -27,7 +27,7 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 
 - Older kernels (4.4+) are also compatible, but the kernel will have to be built manually.
 
-- With more backports, KernelSU can supports 3.x kernel (3.4-3.18).
+- With more backports, SukiSU can support 3.x kernel (3.4-3.18).
 
 - Currently, only `arm64-v8a`, `armeabi-v7a (bare)` and `X86_64`(some) are supported.
 
