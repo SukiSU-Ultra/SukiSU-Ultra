@@ -230,6 +230,7 @@ object BackgroundManager {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun KernelSUTheme(
     darkTheme: Boolean = when(ThemeConfig.forceDarkMode) {
@@ -252,7 +253,7 @@ fun KernelSUTheme(
     // 系统栏样式
     SystemBarController(darkTheme)
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = Typography
     ) {

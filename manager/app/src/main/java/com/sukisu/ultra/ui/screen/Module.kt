@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dergoogler.mmrl.platform.Platform
 import com.dergoogler.mmrl.platform.model.ModuleConfig
@@ -73,6 +74,7 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.*
 import com.sukisu.ultra.ui.component.ZipFileDetector.parseModuleInfo
+import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.*
@@ -83,6 +85,7 @@ import com.sukisu.ultra.ui.util.module.verifyModuleSignature
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import com.sukisu.ultra.ui.webui.WebUIXActivity
+import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -283,7 +286,8 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val hasMagisk = hasMagisk()
     val hideInstallButton = isSafeMode || hasMagisk
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val topAppBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
     val webUILauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()

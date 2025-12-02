@@ -7,16 +7,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.LifecycleCoroutineScope
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.util.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.*
 import android.net.Uri
@@ -110,53 +107,6 @@ object AppData {
         val superuserCount: StateFlow<Int> = _superuserCount.asStateFlow()
         val moduleCount: StateFlow<Int> = _moduleCount.asStateFlow()
         val kpmModuleCount: StateFlow<Int> = _kpmModuleCount.asStateFlow()
-
-        /**
-         * 刷新所有数据计数
-         */
-        fun refreshData() {
-            _superuserCount.value = getSuperuserCountUse()
-            _moduleCount.value = getModuleCountUse()
-            _kpmModuleCount.value = getKpmModuleCountUse()
-        }
-    }
-
-    /**
-     * 获取超级用户应用计数
-     */
-    fun getSuperuserCountUse(): Int {
-        return try {
-            if (!rootAvailable()) return 0
-            getSuperuserCount()
-        } catch (_: Exception) {
-            0
-        }
-    }
-
-    /**
-     * 获取模块计数
-     */
-    fun getModuleCountUse(): Int {
-        return try {
-            if (!rootAvailable()) return 0
-            getModuleCount()
-        } catch (_: Exception) {
-            0
-        }
-    }
-
-    /**
-     * 获取KPM模块计数
-     */
-    fun getKpmModuleCountUse(): Int {
-        return try {
-            if (!rootAvailable()) return 0
-            val kpmVersion = getKpmVersionUse()
-            if (kpmVersion.isEmpty() || kpmVersion.startsWith("Error")) return 0
-            getKpmModuleCount()
-        } catch (_: Exception) {
-            0
-        }
     }
 
     /**
@@ -178,40 +128,6 @@ object AppData {
     fun isFullFeatured(): Boolean {
         val isManager = Natives.isManager
         return isManager && !Natives.requireNewKernel() && rootAvailable()
-    }
-}
-
-object DataRefreshUtils {
-    fun startDataRefreshCoroutine(scope: LifecycleCoroutineScope) {
-        scope.launch(Dispatchers.IO) {
-            while (isActive) {
-                AppData.DataRefreshManager.refreshData()
-                delay(5000)
-            }
-        }
-    }
-
-    fun startSettingsMonitorCoroutine(
-        scope: LifecycleCoroutineScope,
-        activity: MainActivity,
-        settingsStateFlow: MutableStateFlow<MainActivity.SettingsState>
-    ) {
-        scope.launch(Dispatchers.IO) {
-            while (isActive) {
-                val prefs = activity.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                settingsStateFlow.value = MainActivity.SettingsState(
-                    isHideOtherInfo = prefs.getBoolean("is_hide_other_info", false),
-                    showKpmInfo = prefs.getBoolean("show_kpm_info", false)
-                )
-                delay(1000)
-            }
-        }
-    }
-
-    fun refreshData(scope: LifecycleCoroutineScope) {
-        scope.launch {
-            AppData.DataRefreshManager.refreshData()
-        }
     }
 }
 

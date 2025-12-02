@@ -71,7 +71,7 @@ private val SPACING_LARGE = 16.dp
 @Destination<RootGraph>
 @Composable
 fun SettingScreen(navigator: DestinationsNavigator) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -1029,7 +1029,7 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
@@ -1040,12 +1040,9 @@ private fun TopBar(
     } else {
         colorScheme.background
     }
-    TopAppBar(
+    LargeFlexibleTopAppBar(
         title = {
-            Text(
-                text = stringResource(R.string.settings),
-                style = MaterialTheme.typography.titleLarge
-            )
+            Text(text = stringResource(R.string.settings))
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = cardColor.copy(alpha = cardAlpha),

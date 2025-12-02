@@ -238,9 +238,9 @@
     <string name="kpm_control_success">Thành công</string>
     <string name="kpm_control_failed">Thất bại</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
-    <string name="not_supported">Không được hỗ trợ</string>
-    <string name="supported">Được hỗ trợ</string>
-    <string name="kernel_patched">Kernel chưa được vá</string>
+    <string name="kpm_not_supported">Không được hỗ trợ (%s)</string>
+    <string name="kpm_supported">Được hỗ trợ (%s)</string>
+    <string name="kernel_not_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
     <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>

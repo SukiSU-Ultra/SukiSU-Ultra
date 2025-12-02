@@ -223,9 +223,9 @@
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">失敗</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra は将来的に KSU から比較的に独立したブランチになりますが、公式の KernelSU や MKSU などの貢献に感謝しています！</string>
-    <string name="not_supported">非対応</string>
-    <string name="supported">対応</string>
-    <string name="kernel_patched">カーネルはパッチされていません</string>
+    <string name="kpm_not_supported">非対応 (%s)</string>
+    <string name="kpm_supported">対応 (%s)</string>
+    <string name="kernel_not_patched">カーネルはパッチされていません</string>
     <string name="kernel_not_enabled">カーネルは未設定です</string>
     <string name="custom_settings">カスタム設定</string>
     <string name="kpm_install_mode">KPM をインストール</string>

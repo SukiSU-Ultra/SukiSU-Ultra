@@ -220,9 +220,9 @@
     <string name="kpm_control_success">Успішно</string>
     <string name="kpm_control_failed">Невдача</string>
     <string name="home_click_to_ContributionCard_kernelsu">У майбутньому SukiSU Ultra буде відносно незалежною гілкою KSU, але ми все ще вдячні офіційному KernelSU, MKSU та іншим за їхній внесок!</string>
-    <string name="not_supported">Не підтримується</string>
-    <string name="supported">Підтримується</string>
-    <string name="kernel_patched">Ядро не пропатчене</string>
+    <string name="kpm_not_supported">Не підтримується (%s)</string>
+    <string name="kpm_supported">Підтримується (%s)</string>
+    <string name="kernel_not_patched">Ядро не пропатчене</string>
     <string name="kernel_not_enabled">Ядро не налаштоване</string>
     <string name="custom_settings">Власні налаштування</string>
     <string name="kpm_install_mode">Встановлення KPM</string>

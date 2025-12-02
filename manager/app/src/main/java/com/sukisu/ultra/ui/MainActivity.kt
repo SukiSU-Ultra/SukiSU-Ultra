@@ -41,7 +41,6 @@ import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.activity.component.BottomBar
 import com.sukisu.ultra.ui.activity.util.AnimatedBottomBar
-import com.sukisu.ultra.ui.activity.util.DataRefreshUtils
 import com.sukisu.ultra.ui.activity.util.DisplayUtils
 import com.sukisu.ultra.ui.activity.util.ThemeChangeContentObserver
 import com.sukisu.ultra.ui.activity.util.ThemeUtils
@@ -280,10 +279,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // 数据刷新协程
-        DataRefreshUtils.startDataRefreshCoroutine(lifecycleScope)
-        DataRefreshUtils.startSettingsMonitorCoroutine(lifecycleScope, this, settingsStateFlow)
-
         // 初始化主题相关设置
         ThemeUtils.initializeThemeSettings(this, settingsStateFlow)
     }
@@ -292,24 +287,8 @@ class MainActivity : ComponentActivity() {
         try {
             super.onResume()
             ThemeUtils.onActivityResume()
-
-            // 仅在需要时刷新数据
-            if (isInitialized) {
-                refreshData()
-            }
         } catch (e: Exception) {
             e.printStackTrace()
-        }
-    }
-
-    private fun refreshData() {
-        lifecycleScope.launch {
-            try {
-                superUserViewModel.fetchAppList()
-                DataRefreshUtils.refreshData(lifecycleScope)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
     }
 

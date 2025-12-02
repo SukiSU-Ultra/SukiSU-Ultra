@@ -219,9 +219,9 @@
     <string name="kpm_control_success">Erfolgreich</string>
     <string name="kpm_control_failed">Fehlgeschlagen</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra wird in Zukunft ein relativ unabhängiger Zweig der KSU sein, aber wir schätzen immer noch die offiziellen KernelSU und MKSU usw. für ihre Beiträge!</string>
-    <string name="not_supported">Nicht unterstützt</string>
-    <string name="supported">Unterstützt:</string>
-    <string name="kernel_patched">Kernel nicht gepatcht</string>
+    <string name="kpm_not_supported">Nicht unterstützt (%s)</string>
+    <string name="kpm_supported">Unterstützt: (%s)</string>
+    <string name="kernel_not_patched">Kernel nicht gepatcht</string>
     <string name="kernel_not_enabled">Kernel nicht konfiguriert</string>
     <string name="custom_settings">Eigene Einstellungen</string>
     <string name="kpm_install_mode">KPM Install</string>
