@@ -1033,9 +1033,7 @@ fun ModuleItem(
         val indication = LocalIndication.current
         val viewModel = viewModel<ModuleViewModel>()
 
-        val sizeStr = remember(module.dirId) {
-            viewModel.getModuleSize(module.dirId)
-        }
+        val sizeStr = viewModel.getModuleSize(module.dirId)
 
         Column(
             modifier = Modifier

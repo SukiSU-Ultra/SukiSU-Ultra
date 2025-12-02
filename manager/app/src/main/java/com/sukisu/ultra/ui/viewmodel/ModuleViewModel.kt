@@ -228,7 +228,9 @@ class ModuleViewModel : ViewModel() {
                 // 首次加载模块列表时，初始化缓存
                 if (::moduleSizeCache.isInitialized) {
                     val currentModules = modules.map { it.dirId }
-                    moduleSizeCache.initializeCacheIfNeeded(currentModules)
+                    if (moduleSizeCache.initializeCacheIfNeeded(currentModules)) {
+                        fetchModuleList()
+                    }
                 }
 
                 isNeedRefresh = false
@@ -408,12 +410,14 @@ class ModuleSizeCache(context: Context) {
 
     /**
      * 检查缓存是否已初始化，如果没有则初始化
+     * @return 是否有缓存更新
      */
-    fun initializeCacheIfNeeded(currentModules: List<String>) {
+    fun initializeCacheIfNeeded(currentModules: List<String>) : Boolean {
         val isInitialized = cachePrefs.getBoolean(CACHE_INITIALIZED_KEY, false)
         if (!isInitialized || sizeCache.isEmpty()) {
             Log.d(TAG, "首次初始化缓存，计算所有模块大小")
             refreshCache(currentModules)
+            return true
         } else {
             // 检查是否有新模块需要计算大小
             val newModules = currentModules.filter { !sizeCache.containsKey(it) }
@@ -425,7 +429,9 @@ class ModuleSizeCache(context: Context) {
                     Log.d(TAG, "新模块 $dirId 大小: ${formatFileSize(size)}")
                 }
                 saveCacheToPrefs()
+                return true
             }
+            return false
         }
     }
 
