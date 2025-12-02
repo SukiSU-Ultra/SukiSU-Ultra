@@ -61,7 +61,7 @@ object Natives {
     }
 
     init {
-        System.loadLibrary("zakosign")
+        //System.loadLibrary("zakosign")
         System.loadLibrary("kernelsu")
     }
 

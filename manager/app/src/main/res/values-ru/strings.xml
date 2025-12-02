@@ -233,9 +233,9 @@
     <string name="kpm_control_success">Успешно</string>
     <string name="kpm_control_failed">Провален</string>
     <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
-    <string name="not_supported">Не поддерживается</string>
-    <string name="supported">Поддерживается</string>
-    <string name="kernel_patched">Ядро не изменено</string>
+    <string name="kpm_not_supported">Не поддерживается (%s)</string>
+    <string name="kpm_supported">Поддерживается (%s)</string>
+    <string name="kernel_not_patched">Ядро не изменено</string>
     <string name="kernel_not_enabled">Ядро не настроено</string>
     <string name="custom_settings">Персонализация</string>
     <string name="kpm_install_mode">Установка KPM</string>

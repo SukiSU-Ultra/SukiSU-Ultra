@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.component
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
@@ -26,7 +27,7 @@ import com.sukisu.ultra.ui.theme.CardConfig
 
 private const val TAG = "SearchBar"
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchAppBar(
     title: @Composable () -> Unit,
@@ -42,49 +43,44 @@ fun SearchAppBar(
     val focusRequester = remember { FocusRequester() }
     var onSearch by remember { mutableStateOf(false) }
 
-    // 获取卡片颜色和透明度
     val colorScheme = MaterialTheme.colorScheme
-    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
-        colorScheme.surfaceContainerLow
-    } else {
-        colorScheme.background
-    }
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) colorScheme.surfaceContainerLow else colorScheme.background
     val cardAlpha = CardConfig.cardAlpha
 
-    if (onSearch) {
-        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    // 搜索框获取焦点
+    if (onSearch) LaunchedEffect(Unit) {
+        keyboardController?.show()
+        focusRequester.requestFocus()
+        scrollBehavior?.state?.heightOffset = scrollBehavior.state.heightOffsetLimit
     }
-    DisposableEffect(Unit) {
-        onDispose {
-            keyboardController?.hide()
-        }
-    }
+    DisposableEffect(Unit) { onDispose { keyboardController?.hide() } }
 
-    TopAppBar(
+    LargeFlexibleTopAppBar(
         title = {
-            Box {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // 默认标题
                 AnimatedVisibility(
-                    modifier = Modifier.align(Alignment.CenterStart),
                     visible = !onSearch,
                     enter = fadeIn(),
-                    exit = fadeOut(),
-                    content = { title() }
-                )
+                    exit = ExitTransition.None
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                        title()
+                    }
+                }
 
+                // 搜索框
                 AnimatedVisibility(
                     visible = onSearch,
                     enter = fadeIn(),
-                    exit = fadeOut()
+                    exit = ExitTransition.None
                 ) {
                     OutlinedTextField(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 2.dp, bottom = 2.dp, end = if (onBackClick != null) 0.dp else 14.dp)
                             .focusRequester(focusRequester)
-                            .onFocusChanged { focusState ->
-                                if (focusState.isFocused) onSearch = true
-                                Log.d(TAG, "onFocusChanged: $focusState")
-                            },
+                            .onFocusChanged { focusState -> if (focusState.isFocused) onSearch = true },
                         value = searchText,
                         onValueChange = onSearchTextChange,
                         trailingIcon = {
@@ -110,26 +106,18 @@ fun SearchAppBar(
         },
         navigationIcon = {
             if (onBackClick != null) {
-                IconButton(
-                    onClick = onBackClick,
-                    content = { Icon(Icons.AutoMirrored.Outlined.ArrowBack, null) }
-                )
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
+                }
             }
         },
         actions = {
-            AnimatedVisibility(
-                visible = !onSearch
-            ) {
-                IconButton(
-                    onClick = { onSearch = true },
-                    content = { Icon(Icons.Filled.Search, null) }
-                )
+            AnimatedVisibility(visible = !onSearch) {
+                IconButton(onClick = { onSearch = true }) {
+                    Icon(Icons.Filled.Search, contentDescription = null)
+                }
             }
-
-            if (dropdownContent != null) {
-                dropdownContent()
-            }
-
+            dropdownContent?.invoke()
         },
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior,
@@ -139,6 +127,7 @@ fun SearchAppBar(
         )
     )
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview

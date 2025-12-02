@@ -230,9 +230,9 @@
     <string name="kpm_control_success">Başarılı</string>
     <string name="kpm_control_failed">Başarısız</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra, gelecekte KSU\'nun nispeten bağımsız bir dalı olacak, ancak yine de resmi KernelSU ve MKSU gibi katkılarından dolayı teşekkür ederiz!</string>
-    <string name="not_supported">Desteklenmiyor</string>
-    <string name="supported">Destekleniyor</string>
-    <string name="kernel_patched">Çekirdek yamalanmadı</string>
+    <string name="kpm_not_supported">Desteklenmiyor (%s)</string>
+    <string name="kpm_supported">Destekleniyor (%s)</string>
+    <string name="kernel_not_patched">Çekirdek yamalanmadı</string>
     <string name="kernel_not_enabled">Çekirdek yapılandırılmadı</string>
     <string name="custom_settings">Özel ayarlar</string>
     <string name="kpm_install_mode">KPM Yükleme</string>

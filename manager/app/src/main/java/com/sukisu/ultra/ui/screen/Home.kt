@@ -14,19 +14,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -57,7 +57,6 @@ import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.reboot
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
@@ -66,7 +65,7 @@ import kotlin.random.Random
  * @author ShirkNeko
  * @date 2025/9/29.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Destination<RootGraph>(start = true)
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
@@ -74,38 +73,16 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val viewModel = viewModel<HomeViewModel>()
     val coroutineScope = rememberCoroutineScope()
 
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = viewModel.isRefreshing,
-        onRefresh = {
-            viewModel.onPullRefresh(context)
-        }
-    )
+    val pullRefreshState = rememberPullToRefreshState()
 
-    LaunchedEffect(key1 = navigator) {
-        viewModel.loadUserSettings(context)
+    LaunchedEffect(Unit) {
         coroutineScope.launch {
-            viewModel.loadCoreData()
-            delay(100)
-            viewModel.loadExtendedData(context)
-        }
-
-        // 启动数据变化监听
-        coroutineScope.launch {
-            while (true) {
-                delay(5000) // 每5秒检查一次
-                viewModel.autoRefreshIfNeeded(context)
-            }
+            viewModel.refreshData(context)
         }
     }
 
-    // 监听数据刷新状态流
-    LaunchedEffect(viewModel.dataRefreshTrigger) {
-        viewModel.dataRefreshTrigger.collect { _ ->
-            // 数据刷新时的额外处理可以在这里添加
-        }
-    }
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val topAppBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -120,15 +97,18 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal
         )
     ) { innerPadding ->
-        Box(
+        PullToRefreshBox(
+            state = pullRefreshState,
+            isRefreshing = viewModel.isRefreshing,
+            onRefresh = { viewModel.refreshData(context) },
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .pullRefresh(pullRefreshState)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
                     .verticalScroll(scrollState)
                     .padding(top = 12.dp, start = 16.dp, end = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -168,15 +148,15 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     }
                 }
 
-                // 更新检查
-                if (viewModel.isExtendedDataLoaded) {
-                    val checkUpdate = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                        .getBoolean("check_update", true)
-                    if (checkUpdate) {
-                        UpdateCard()
-                    }
+                val checkUpdate = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                    .getBoolean("check_update", true)
+                if (checkUpdate) {
+                    UpdateCard()
+                }
 
-                    // 信息卡片
+                AnimatedVisibility(
+                    visible = viewModel.isExtendedDataLoaded
+                ) {
                     InfoCard(
                         systemInfo = viewModel.systemInfo,
                         isSimpleMode = viewModel.isSimpleMode,
@@ -186,24 +166,13 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         showKpmInfo = viewModel.showKpmInfo,
                         lkmMode = viewModel.systemStatus.lkmMode,
                     )
-
-                    // 链接卡片
-                    if (!viewModel.isSimpleMode && !viewModel.isHideLinkCard) {
-                        ContributionCard()
-                        DonateCard()
-                        LearnMoreCard()
-                    }
                 }
 
-                if (!viewModel.isExtendedDataLoaded) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                // 链接卡片
+                if (!viewModel.isSimpleMode && !viewModel.isHideLinkCard) {
+                    ContributionCard()
+                    DonateCard()
+                    LearnMoreCard()
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -268,7 +237,7 @@ fun RebootDropdownItem(@StringRes id: Int, reason: String = "") {
         onClick = { reboot(reason) })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
@@ -283,11 +252,10 @@ private fun TopBar(
         colorScheme.background
     }
 
-    TopAppBar(
+    LargeFlexibleTopAppBar(
         title = {
             Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge
+                text = stringResource(R.string.app_name)
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -707,7 +675,7 @@ private fun InfoCard(
             )
 
             if (!isSimpleMode &&
-                (systemInfo.suSFSStatus != "Supported")) {
+                (systemInfo.susfsStatus != "Supported")) {
                 InfoCardItem(
                     stringResource(R.string.home_hook_type),
                     Natives.getHookType(),
@@ -717,7 +685,8 @@ private fun InfoCard(
 
             // 活跃管理器
             if (!isSimpleMode && systemInfo.isDynamicSignEnabled && systemInfo.managersList != null) {
-                val signatureMap = systemInfo.managersList.managers.groupBy { it.signatureIndex }
+                val signatureMap =
+                    systemInfo.managersList.managers.groupBy { it.signatureIndex }
 
                 val managersText = buildString {
                     signatureMap.toSortedMap().forEach { (signatureIndex, managers) ->
@@ -748,11 +717,11 @@ private fun InfoCard(
 
             InfoCardItem(
                 stringResource(R.string.home_selinux_status),
-                systemInfo.seLinuxStatus,
+                systemInfo.selinuxStatus,
                 icon = Icons.Default.Security,
             )
 
-            if (!isHideZygiskImplement && !isSimpleMode && systemInfo.zygiskImplement != "None") {
+            if (!isHideZygiskImplement && !isSimpleMode && systemInfo.zygiskImplement.isNotEmpty() && systemInfo.zygiskImplement != "None") {
                 InfoCardItem(
                     stringResource(R.string.home_zygisk_implement),
                     systemInfo.zygiskImplement,
@@ -760,7 +729,7 @@ private fun InfoCard(
                 )
             }
 
-            if (!isHideMetaModuleImplement && !isSimpleMode && systemInfo.metaModuleImplement != "None") {
+            if (!isHideMetaModuleImplement && !isSimpleMode && systemInfo.metaModuleImplement.isNotEmpty() && systemInfo.metaModuleImplement != "None") {
                 InfoCardItem(
                     stringResource(R.string.home_meta_module_implement),
                     systemInfo.metaModuleImplement,
@@ -768,33 +737,37 @@ private fun InfoCard(
                 )
             }
 
-            if (!isSimpleMode) {
-                if (lkmMode != true && !showKpmInfo) {
-                    val displayVersion =
-                        if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
-                            val statusText = if (Natives.isKPMEnabled()) {
-                                stringResource(R.string.kernel_patched)
-                            } else {
-                                stringResource(R.string.kernel_not_enabled)
-                            }
-                            "${stringResource(R.string.not_supported)} ($statusText)"
-                        } else {
-                            "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
-                        }
+            if (lkmMode == false && !isSimpleMode && !showKpmInfo) {
+                val kpmNotSupport =
+                    systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")
+                val displayText = when {
+                    kpmNotSupport && Natives.isKPMEnabled() -> {
+                        stringResource(
+                            R.string.kpm_not_supported,
+                            stringResource(R.string.kernel_not_patched)
+                        )
+                    }
 
-                    InfoCardItem(
-                        stringResource(R.string.home_kpm_version),
-                        displayVersion,
-                        icon = Icons.Default.Archive
-                    )
+                    kpmNotSupport && !Natives.isKPMEnabled() -> {
+                        stringResource(
+                            R.string.kpm_not_supported,
+                            stringResource(R.string.kernel_not_enabled)
+                        )
+                    }
+
+                    else -> {
+                        stringResource(R.string.kpm_supported, systemInfo.kpmVersion)
+                    }
                 }
+
+                InfoCardItem(
+                    stringResource(R.string.home_kpm_version),
+                    displayText,
+                    icon = Icons.Default.Archive
+                )
             }
 
-            if (!isSimpleMode && !isHideSusfsStatus &&
-                systemInfo.suSFSStatus == "Supported" &&
-                systemInfo.suSFSVersion.isNotEmpty()
-            ) {
-
+            if (!isSimpleMode && !isHideSusfsStatus && systemInfo.susfsStatus == "Supported" && systemInfo.susfsVersion.isNotEmpty()) {
                 val infoText = SuSFSInfoText(systemInfo)
 
                 InfoCardItem(
@@ -810,7 +783,7 @@ private fun InfoCard(
 @SuppressLint("ComposableNaming")
 @Composable
 private fun SuSFSInfoText(systemInfo: HomeViewModel.SystemInfo): String = buildString {
-    append(systemInfo.suSFSVersion)
+    append(systemInfo.susfsVersion)
 
     when {
         Natives.getHookType() == "Manual" -> {

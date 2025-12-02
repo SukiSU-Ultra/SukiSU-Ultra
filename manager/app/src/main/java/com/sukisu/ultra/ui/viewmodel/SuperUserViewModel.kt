@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.KsuService
@@ -299,12 +300,14 @@ class SuperUserViewModel : ViewModel() {
 
     private fun stopKsuService() {
         serviceConnection?.let {
-            try {
-                val intent = Intent(ksuApp, KsuService::class.java)
-                com.topjohnwu.superuser.ipc.RootService.stop(intent)
-                serviceConnection = null
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to stop KsuService", e)
+            viewModelScope.launch(Dispatchers.Main) {
+                try {
+                    val intent = Intent(ksuApp, KsuService::class.java)
+                    com.topjohnwu.superuser.ipc.RootService.stop(intent)
+                    serviceConnection = null
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to stop KsuService", e)
+                }
             }
         }
     }

@@ -232,9 +232,9 @@
     <string name="kpm_control_success">Sukses</string>
     <string name="kpm_control_failed">Gagal</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
-    <string name="not_supported">Tidak Mendukung</string>
-    <string name="supported">Mendukung</string>
-    <string name="kernel_patched">Kernel belum ditambal</string>
+    <string name="kpm_not_supported">Tidak Mendukung (%s)</string>
+    <string name="kpm_supported">Mendukung (%s)</string>
+    <string name="kernel_not_patched">Kernel belum ditambal</string>
     <string name="kernel_not_enabled">Kernel belum dikonfigurasi</string>
     <string name="custom_settings">Pengaturan kostum</string>
     <string name="kpm_install_mode">Instalasi KPM</string>

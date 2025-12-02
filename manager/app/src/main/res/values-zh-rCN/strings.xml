@@ -237,9 +237,9 @@
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">错误</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未来将会成为一个相对独立的 KSU 分支，但是依然感谢官方 KernelSU 和 MKSU 等做出的贡献</string>
-    <string name="not_supported">不支持</string>
-    <string name="supported">支持</string>
-    <string name="kernel_patched">内核未进行补丁</string>
+    <string name="kpm_not_supported">不支持 (%s)</string>
+    <string name="kpm_supported">支持 (%s)</string>
+    <string name="kernel_not_patched">内核未进行补丁</string>
     <string name="kernel_not_enabled">内核未配置</string>
     <string name="custom_settings">个性化设置</string>
     <string name="kpm_install_mode">安装</string>
@@ -718,4 +718,7 @@
     <string name="group_contains_apps">包含 %1$d 个应用</string>
     <string name="settings_disable_sulog"> 禁用超级用户日志 </string>
     <string name="settings_disable_sulog_summary">禁用 KernelSU 超级用户访问记录</string>
+    <string name="meta_module_disabled">元模块已被禁用! 自下次重启开始, 所有模块挂载不可用!</string>
+    <string name="meta_module_removed">元模块被标记为删除! 自下次重启开始, 所有模块挂载不可用!</string>
+    <string name="no_meta_module_installed">没有元模块被安装! 所有模块挂载不可用!</string>
 </resources>
