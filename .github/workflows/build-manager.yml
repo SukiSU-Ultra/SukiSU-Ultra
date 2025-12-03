@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        spoofed: ["true","false"]
+        spoofed: ["false"]
     defaults:
       run:
         working-directory: ./manager
