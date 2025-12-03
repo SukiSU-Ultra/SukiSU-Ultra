@@ -3,6 +3,7 @@
 
 #include <linux/types.h>
 #include <linux/workqueue.h>
+#include <linux/cred.h>
 
 #define KERNEL_SU_VERSION KSU_VERSION
 #define KERNEL_SU_OPTION 0xDEADBEEF
@@ -58,5 +59,7 @@ static inline int endswith(const char *s, const char *t)
     return strcmp(s + slen - tlen, t);
 }
 #endif
+
+extern struct cred* ksu_cred;
 
 #endif
