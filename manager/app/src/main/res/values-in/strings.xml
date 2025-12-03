@@ -583,7 +583,7 @@
     <string name="avc_log_spoofing_enabled">Palsukan log AVC telah diaktifkan</string>
     <string name="avc_log_spoofing_disabled">Palsukan log AVC telah dinonaktifkan</string>
     <string name="avc_log_spoofing_description">Dinonaktifkan: Nonaktifkan pemalsuan sus tcontext dari \'su\' yang ditampilkan di avc log di kernel\n
-Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'kernel\' yang ditampilkan di avc log in kernel</string>
+Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'u:r:priv_app:s0:c512,c768\' yang ditampilkan di avc log in kernel</string>
     <string name="avc_log_spoofing_warning">Catatan Penting:\n
 - Secara default pada kernel nilai ini disetel ke \'0\'\n
 - Mengaktifkan ini terkadang membuat pengembang lebih sulit mengidentifikasi penyebab saat melakukan debugging terkait izin atau masalah SELinux, sehingga disarankan agar pengguna menonaktifkannya saat sedang melakukan debugging</string>

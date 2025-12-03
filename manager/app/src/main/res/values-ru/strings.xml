@@ -583,7 +583,7 @@
     <string name="avc_log_spoofing">Спуф AVC лога</string>
     <string name="avc_log_spoofing_enabled">Спуф AVC лога включен</string>
     <string name="avc_log_spoofing_disabled">Спуф AVC лога отключен</string>
-    <string name="avc_log_spoofing_description">отключен: Отключить спуффинг sus tcontext от \'su\' показывать в Avc логе в ядре.\n включен: Включить спуффинг sus tcontext от \'su\' с \'ядром\' показывать в Avc логе в ядре</string>
+    <string name="avc_log_spoofing_description">отключен: Отключить спуффинг sus tcontext от \'su\' показывать в Avc логе в ядре.\n включен: Включить спуффинг sus tcontext от \'su\' с \'u:r:priv_app:s0:c512,c768\' показывать в Avc логе в ядре</string>
     <string name="avc_log_spoofing_warning">Важное замечание:\n
 - Значение по умолчанию в ядре установлено как \'0\'\n
 - Включение этой опции иногда затрудняет разработчикам определение причины при отладке проблем, связанных с разрешениями или SELinux, поэтому пользователям рекомендуется отключать её во время отладки</string>

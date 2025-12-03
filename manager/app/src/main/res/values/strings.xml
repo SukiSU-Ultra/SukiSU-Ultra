@@ -595,7 +595,7 @@
     <string name="avc_log_spoofing_disabled">AVC log spoofing has been disabled</string>
     <string name="avc_log_spoofing_description">
 Disabled: Disable spoofing the sus tcontext of \'su\' shown in avc log in kernel\n
-Enabled: Enable spoofing the sus tcontext of \'su\' with \'kernel\' shown in avc log in kernel
+Enabled: Enable spoofing the sus tcontext of \'su\' with \'u:r:priv_app:s0:c512,c768\' shown in avc log in kernel
 </string>
     <string name="avc_log_spoofing_warning">
 Important Note:\n

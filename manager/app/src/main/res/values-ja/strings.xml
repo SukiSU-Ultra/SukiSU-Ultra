@@ -572,7 +572,7 @@
     <string name="avc_log_spoofing_enabled">AVC ログの偽装が有効化されました</string>
     <string name="avc_log_spoofing_disabled">AVC ログの偽装が無効化されました</string>
     <string name="avc_log_spoofing_description">無効: カーネルの AVC ログに表示される「su」の SUS T コンテキストの偽装を無効化します。\n
-有効: カーネルの AVC ログに表示される「kernel」を使用して「su」の SUS T コンテキストを偽装する機能を有効化します。</string>
+有効: カーネルの AVC ログに表示される「u:r:priv_app:s0:c512,c768」を使用して「su」の SUS T コンテキストを偽装する機能を有効化します。</string>
     <string name="avc_log_spoofing_warning">重要な注意事項:\n
 - カーネルはデフォルトで「0」に設定されています。\n
 - これを有効化すると、開発者が何らかの権限や SELinux の問題をデバッグするときに原因を特定するのが難しくなる場合があるため、デバッグ時はこれを無効化することをお勧めします。</string>

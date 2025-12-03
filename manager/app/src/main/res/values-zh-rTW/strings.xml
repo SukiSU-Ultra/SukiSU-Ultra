@@ -568,7 +568,7 @@
     <string name="avc_log_spoofing_enabled">AVC 日誌偽裝已啟用</string>
     <string name="avc_log_spoofing_disabled">AVC 日誌偽裝已停用</string>
     <string name="avc_log_spoofing_description">停用: 停用在內核 AVC 日誌中偽裝 \'su\' 的 sus tcontext。\n
-    啟用: 啟用在內核 AVC 日誌中將 \'su\' 的 sus tcontext 偽裝為 \'kernel\'</string>
+    啟用: 啟用在內核 AVC 日誌中將 \'su\' 的 sus tcontext 偽裝為 \'u:r:priv_app:s0:c512,c768\'</string>
     <string name="avc_log_spoofing_warning">重要提示：\n
 - 內核中預設設定為 \'0\'\n
 - 啟用此功能有時會使開發人員在除錯許可權或 SELinux 問題時難以識別原因，因此建議使用者在除錯時禁用此功能。</string>

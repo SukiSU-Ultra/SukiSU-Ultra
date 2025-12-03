@@ -552,7 +552,7 @@
     <string name="avc_log_spoofing_enabled">AVC 日誌欺騙已經啟用</string>
     <string name="avc_log_spoofing_disabled">AVC 日誌欺騙已經禁用</string>
     <string name="avc_log_spoofing_description">禁用：喺核心 AVC 日誌入面禁用對 \'su\' 嘅 sus tcontext 進行欺騙。\n
-啟用：喺核心 AVC 日誌入面將 \'su\' 嘅 sus tcontext 欺騙成 \'kernel\'。</string>
+啟用：喺核心 AVC 日誌入面將 \'su\' 嘅 sus tcontext 欺騙成 \'u:r:priv_app:s0:c512,c768\'。</string>
     <string name="avc_log_spoofing_warning">重要提示：\n
 - 核心入面嘅預設設定係 \'0\'。\n
 - 啟用呢個功能有時會令到開發人員喺除錯權限或者 SELinux 問題嗰陣難以搵出原因，所以建議用戶喺除錯時禁用呢個功能。</string>
