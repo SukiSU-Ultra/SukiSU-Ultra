@@ -393,23 +393,10 @@ object ScriptGenerator {
                 appendLine()
             }
 
-            generateUmountZygoteIsoServiceSection(config.umountForZygoteIsoService, config.support158)
-
             // 添加AVC日志欺骗设置
             generateAvcLogSpoofingSection(config.enableAvcLogSpoofing)
 
             appendLine($$"echo \"$(get_current_time): Post-FS-Data脚本执行完成\" >> \"$LOG_FILE\"")
-        }
-    }
-
-    // 添加新的生成方法
-    private fun StringBuilder.generateUmountZygoteIsoServiceSection(umountForZygoteIsoService: Boolean, support158: Boolean) {
-        if (support158) {
-            appendLine("# 设置Zygote隔离服务卸载状态")
-            val umountValue = if (umountForZygoteIsoService) 1 else 0
-            appendLine($$"\"$SUSFS_BIN\" umount_for_zygote_iso_service $$umountValue")
-            appendLine($$"echo \"$(get_current_time): Zygote隔离服务卸载设置为: $${if (umountForZygoteIsoService) "启用" else "禁用"}\" >> \"$LOG_FILE\"")
-            appendLine()
         }
     }
 
