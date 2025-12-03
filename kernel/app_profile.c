@@ -151,6 +151,10 @@ void escape_with_root_profile(void)
     }
 }
 
+void escape_to_root_for_init(void) {
+	setup_selinux(KERNEL_SU_CONTEXT);
+}
+
 #ifdef CONFIG_KSU_MANUAL_SU
 
 #include "ksud.h"
