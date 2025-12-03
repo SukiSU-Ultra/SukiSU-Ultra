@@ -526,10 +526,6 @@
     <string name="kstat_config_updated">Pembaruan konfigurasi Kstat</string>
     <string name="kstat_path_updated">Pembaruan jalur Kstat</string>
     <string name="susfs_update_full_clone">Pembaruan full clone Susfs</string>
-    <string name="umount_zygote_iso_service">Lepas Layanan Isolasi Zygote</string>
-    <string name="umount_zygote_iso_service_description">Aktifkan opsi ini untuk melepaskan titik pemasangan layanan isolasi Zygote saat sistem mulai</string>
-    <string name="umount_zygote_iso_service_enabled">Lepas layanan isolasi Zygote diaktifkan</string>
-    <string name="umount_zygote_iso_service_disabled">Lepas layanan isolasi Zygote dinonaktifkan</string>
     <string name="app_paths_section">Jalur Aplikasi</string>
     <string name="other_paths_section">Jalur lainnya</string>
     <string name="add_custom_path">Lainnya</string>

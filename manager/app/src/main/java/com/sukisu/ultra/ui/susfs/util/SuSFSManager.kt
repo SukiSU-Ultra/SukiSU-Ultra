@@ -54,7 +54,6 @@ object SuSFSManager {
     private const val KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS = "hide_sus_mounts_for_all_procs"
     private const val KEY_ENABLE_CLEANUP_RESIDUE = "enable_cleanup_residue"
     private const val KEY_ENABLE_HIDE_BL = "enable_hide_bl"
-    private const val KEY_UMOUNT_FOR_ZYGOTE_ISO_SERVICE = "umount_for_zygote_iso_service"
     private const val KEY_ENABLE_AVC_LOG_SPOOFING = "enable_avc_log_spoofing"
 
 
@@ -165,7 +164,6 @@ object SuSFSManager {
         val support158: Boolean,
         val enableHideBl: Boolean,
         val enableCleanupResidue: Boolean,
-        val umountForZygoteIsoService: Boolean,
         val enableAvcLogSpoofing: Boolean
     ) {
         /**
@@ -275,7 +273,6 @@ object SuSFSManager {
             support158 = isSusVersion158(),
             enableHideBl = getEnableHideBl(context),
             enableCleanupResidue = getEnableCleanupResidue(context),
-            umountForZygoteIsoService = getUmountForZygoteIsoService(context),
             enableAvcLogSpoofing = getEnableAvcLogSpoofing(context)
         )
     }
@@ -338,13 +335,6 @@ object SuSFSManager {
 
     fun getEnableCleanupResidue(context: Context): Boolean =
         getPrefs(context).getBoolean(KEY_ENABLE_CLEANUP_RESIDUE, false)
-
-    // Zygote隔离服务卸载控制
-    fun saveUmountForZygoteIsoService(context: Context, enabled: Boolean) =
-        getPrefs(context).edit { putBoolean(KEY_UMOUNT_FOR_ZYGOTE_ISO_SERVICE, enabled) }
-
-    fun getUmountForZygoteIsoService(context: Context): Boolean =
-        getPrefs(context).getBoolean(KEY_UMOUNT_FOR_ZYGOTE_ISO_SERVICE, false)
 
     // AVC日志欺骗配置
     fun saveEnableAvcLogSpoofing(context: Context, enabled: Boolean) =
@@ -574,7 +564,6 @@ object SuSFSManager {
             KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS to getHideSusMountsForAllProcs(context),
             KEY_ENABLE_HIDE_BL to getEnableHideBl(context),
             KEY_ENABLE_CLEANUP_RESIDUE to getEnableCleanupResidue(context),
-            KEY_UMOUNT_FOR_ZYGOTE_ISO_SERVICE to getUmountForZygoteIsoService(context),
             KEY_ENABLE_AVC_LOG_SPOOFING to getEnableAvcLogSpoofing(context),
         )
     }
@@ -1190,29 +1179,6 @@ object SuSFSManager {
             showToast(context, "Error updating SUS map: ${e.message}")
             false
         }
-    }
-
-    // Zygote隔离服务卸载控制
-    suspend fun setUmountForZygoteIsoService(context: Context, enabled: Boolean): Boolean {
-        if (!isSusVersion158()) {
-            return false
-        }
-
-        val result = executeSusfsCommandWithOutput(context, "umount_for_zygote_iso_service ${if (enabled) 1 else 0}")
-        val success = result.isSuccess && result.output.isEmpty()
-
-        if (success) {
-            saveUmountForZygoteIsoService(context, enabled)
-            if (isAutoStartEnabled(context)) updateMagiskModule(context)
-            showToast(context, if (enabled)
-                context.getString(R.string.umount_zygote_iso_service_enabled)
-            else
-                context.getString(R.string.umount_zygote_iso_service_disabled)
-            )
-        } else {
-            showToast(context, context.getString(R.string.susfs_command_failed))
-        }
-        return success
     }
 
     // 添加kstat配置

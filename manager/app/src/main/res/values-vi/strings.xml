@@ -515,10 +515,6 @@
     <string name="kstat_config_updated">Cập nhật cấu hình Kstat</string>
     <string name="kstat_path_updated">Cập nhật Đường dẫn Kstat</string>
     <string name="susfs_update_full_clone">Cập nhật bản sao SuSFS đầy đủ</string>
-    <string name="umount_zygote_iso_service">Umount dịch vụ cô lập Zygote</string>
-    <string name="umount_zygote_iso_service_description">Umount các điểm dịch vụ cô lập Zygote khi khởi động hệ thống</string>
-    <string name="umount_zygote_iso_service_enabled">Umount dịch vụ cô lập Zygote đã bật</string>
-    <string name="umount_zygote_iso_service_disabled">Umount dịch vụ cô lập Zygote đã tắt</string>
     <string name="app_paths_section">Đường dẫn ứng dụng</string>
     <string name="other_paths_section">Đường dẫn khác</string>
     <string name="add_custom_path">Khác</string>
