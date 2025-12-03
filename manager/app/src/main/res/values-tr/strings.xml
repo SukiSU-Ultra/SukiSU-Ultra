@@ -524,10 +524,6 @@
     <string name="kstat_config_updated">Kstat yapılandırması güncellendi</string>
     <string name="kstat_path_updated">Kstat yolu güncellendi</string>
     <string name="susfs_update_full_clone">Susfs tam klon güncellemesi</string>
-    <string name="umount_zygote_iso_service">Zygote İzolasyon Servisi Bağlantısını Kes</string>
-    <string name="umount_zygote_iso_service_description">Sistem başlangıcında Zygote izolasyon servisi bağlama noktalarının bağlantısını kesmek için bu seçeneği etkinleştirin</string>
-    <string name="umount_zygote_iso_service_enabled">Zygote izolasyon servisi bağlantı kesme etkinleştirildi</string>
-    <string name="umount_zygote_iso_service_disabled">Zygote izolasyon servisi bağlantı kesme devre dışı bırakıldı</string>
     <string name="app_paths_section">Uygulama Yolu</string>
     <string name="other_paths_section">Diğer yollar</string>
     <string name="add_custom_path">Diğer</string>

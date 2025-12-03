@@ -103,8 +103,6 @@ fun SuSFSConfigScreen(
     // SUS挂载隐藏控制状态
     var hideSusMountsForAllProcs by remember { mutableStateOf(true) }
 
-    var umountForZygoteIsoService by remember { mutableStateOf(false) }
-
     // Kstat配置相关状态
     var kstatConfigs by remember { mutableStateOf(emptySet<String>()) }
     var addKstatPaths by remember { mutableStateOf(emptySet<String>()) }
@@ -301,7 +299,6 @@ fun SuSFSConfigScreen(
             hideSusMountsForAllProcs = SuSFSManager.getHideSusMountsForAllProcs(context)
             enableHideBl = SuSFSManager.getEnableHideBl(context)
             enableCleanupResidue = SuSFSManager.getEnableCleanupResidue(context)
-            umountForZygoteIsoService = SuSFSManager.getUmountForZygoteIsoService(context)
             enableAvcLogSpoofing = SuSFSManager.getEnableAvcLogSpoofing(context)
 
             loadSlotInfo()
@@ -472,7 +469,6 @@ fun SuSFSConfigScreen(
                                     hideSusMountsForAllProcs = SuSFSManager.getHideSusMountsForAllProcs(context)
                                     enableHideBl = SuSFSManager.getEnableHideBl(context)
                                     enableCleanupResidue = SuSFSManager.getEnableCleanupResidue(context)
-                                    umountForZygoteIsoService = SuSFSManager.getUmountForZygoteIsoService(context)
                                     enableAvcLogSpoofing = SuSFSManager.getEnableAvcLogSpoofing(context)
                                 }
                                 isLoading = false
@@ -1183,18 +1179,6 @@ fun SuSFSConfigScreen(
                                     }
                                     isLoading = false
                                 }
-                            },
-                            umountForZygoteIsoService = umountForZygoteIsoService,
-                            onUmountForZygoteIsoServiceChange = { enabled ->
-                                coroutineScope.launch {
-                                    isLoading = true
-                                    val success =
-                                        SuSFSManager.setUmountForZygoteIsoService(context, enabled)
-                                    if (success) {
-                                        umountForZygoteIsoService = enabled
-                                    }
-                                    isLoading = false
-                                }
                             }
                         )
                     }
@@ -1373,8 +1357,6 @@ private fun BasicSettingsContent(
     onEnableAvcLogSpoofingChange: (Boolean) -> Unit,
     hideSusMountsForAllProcs: Boolean,
     onHideSusMountsForAllProcsChange: (Boolean) -> Unit,
-    umountForZygoteIsoService: Boolean,
-    onUmountForZygoteIsoServiceChange: (Boolean) -> Unit
 ) {
     var scriptLocationExpanded by remember { mutableStateOf(false) }
     val isAbDevice = produceState(initialValue = false) {
@@ -1758,59 +1740,6 @@ private fun BasicSettingsContent(
                 isLoading = isLoading,
                 onToggleHiding = onHideSusMountsForAllProcsChange
             )
-        }
-
-        // 卸载 Zygote 隔离服务开关（仅在1.5.8+版本显示）
-        if (isSusVersion158) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Security,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.umount_zygote_iso_service),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.umount_zygote_iso_service_description),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 14.sp
-                        )
-                    }
-                    Switch(
-                        checked = umountForZygoteIsoService,
-                        onCheckedChange = onUmountForZygoteIsoServiceChange,
-                        enabled = !isLoading
-                    )
-                }
-            }
         }
 
         // 槽位信息按钮

@@ -533,10 +533,6 @@
     <string name="kstat_config_updated">Kstat 配置更新</string>
     <string name="kstat_path_updated">Kstat 路径更新</string>
     <string name="susfs_update_full_clone">Susfs 完整克隆更新</string>
-    <string name="umount_zygote_iso_service">卸载 Zygote 隔离服务</string>
-    <string name="umount_zygote_iso_service_description">启用此选项将在系统启动时卸载 Zygote 隔离服务挂载点</string>
-    <string name="umount_zygote_iso_service_enabled">Zygote 隔离服务卸载已启用</string>
-    <string name="umount_zygote_iso_service_disabled">Zygote 隔离服务卸载已禁用</string>
     <string name="app_paths_section">应用路径</string>
     <string name="other_paths_section">其他路径</string>
     <string name="add_custom_path">其他</string>

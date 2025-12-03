@@ -527,10 +527,6 @@
     <string name="kstat_config_updated">Обновить конфиг Kstat</string>
     <string name="kstat_path_updated">Обновить путь Kstat</string>
     <string name="susfs_update_full_clone">Полное обновление клона SuSFS</string>
-    <string name="umount_zygote_iso_service">Размонтировать сервис изоляции Zygote</string>
-    <string name="umount_zygote_iso_service_description">Включите эту опцию, чтобы размонтировать точки монтирования Zygote при запуске системы</string>
-    <string name="umount_zygote_iso_service_enabled">Размонтирование служб Zygote включено</string>
-    <string name="umount_zygote_iso_service_disabled">Размонтирование служб Zygote выключено</string>
     <string name="app_paths_section">Путь к приложению</string>
     <string name="other_paths_section">Другие пути</string>
     <string name="add_custom_path">Другое</string>

@@ -517,10 +517,6 @@
     <string name="kstat_config_updated">Kstat の構成を更新</string>
     <string name="kstat_path_updated">Kstat のパスを更新</string>
     <string name="susfs_update_full_clone">フルクローンの SuSFS を更新</string>
-    <string name="umount_zygote_iso_service">Zygote 分離サービスをアンマウント</string>
-    <string name="umount_zygote_iso_service_description">このオプションを有効化すると、システムの起動時に Zygote 分離サービスのマウントポイントがアンマウントされます。</string>
-    <string name="umount_zygote_iso_service_enabled">Zygote 分離サービスのアンマウントが有効です</string>
-    <string name="umount_zygote_iso_service_disabled">Zygote 分離サービスのアンマウントが無効です</string>
     <string name="app_paths_section">アプリのパス</string>
     <string name="other_paths_section">その他のパス</string>
     <string name="add_custom_path">その他</string>
