@@ -174,7 +174,6 @@ struct ksu_manual_su_cmd {
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ|_IOC_WRITE, 'K', 106, 0)
 #endif
-#define KSU_IOCTL_UMOUNT_MANAGER _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);

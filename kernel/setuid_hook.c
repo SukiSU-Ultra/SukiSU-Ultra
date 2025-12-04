@@ -41,11 +41,16 @@
 #include "selinux/selinux.h"
 #include "seccomp_cache.h"
 #include "supercalls.h"
-#ifndef CONFIG_KSU_SUSFS
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 #include "syscall_hook_manager.h"
 #endif
 #include "kernel_umount.h"
 #include "sulog.h"
+
+#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+#include <linux/lsm_hooks.h>
+#include <linux/security.h>
+#endif
 
 #ifdef CONFIG_KSU_SUSFS
 static inline bool is_zygote_isolated_service_uid(uid_t uid)
@@ -110,13 +115,13 @@ static inline bool is_allow_su(void)
 #endif
 extern void disable_seccomp(struct task_struct *tsk);
 
-#ifndef CONFIG_KSU_SUSFS
-int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
-{
+int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid) {
 	// we rely on the fact that zygote always call setresuid(3) with same uids
-	uid_t new_uid = ruid;
-	uid_t old_uid = current_uid().val;
+	return ksu_handle_setuid(ruid, current_uid().val, euid);
+}
 
+#ifndef CONFIG_KSU_SUSFS
+int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid) {// (new_euid)
 	if (old_uid != new_uid)
 		pr_info("handle_setresuid from %d to %d\n", old_uid, new_uid);
 
@@ -198,11 +203,7 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 	return 0;
 }
 #else
-int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
-	// we rely on the fact that zygote always call setresuid(3) with same uids
-	uid_t new_uid = ruid;
-	uid_t old_uid = current_uid().val;
-
+int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid) {
 	// if old process is root, ignore it.
 	if (old_uid != 0 && ksu_enhanced_security_enabled) {
 		// disallow any non-ksu domain escalation from non-root to root!
@@ -309,17 +310,50 @@ do_umount:
 }
 #endif // #ifndef CONFIG_KSU_SUSFS
 
+#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+static int ksu_task_fix_setuid(struct cred *new, const struct cred *old,
+			       int flags)
+{
+	uid_t new_uid = new->uid.val;
+	uid_t old_uid = old->uid.val;
+	uid_t new_euid = new->euid.val;
+
+	return ksu_handle_setuid(new_uid, old_uid, new_euid);
+}
+
+static struct security_hook_list ksu_hooks[] = {
+	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid)
+};
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,8,0)
+const struct lsm_id ksu_lsmid = {
+	.name = "ksu",
+	.id = 996,
+};
+#endif
+#endif
+
 void ksu_setuid_hook_init(void)
 {
 	ksu_kernel_umount_init();
 	if (ksu_register_feature_handler(&enhanced_security_handler)) {
 		pr_err("Failed to register enhanced security feature handler\n");
 	}
+
+#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,8,0)
+	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), &ksu_lsmid);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), "ksu");
+#else
+	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks));
+#endif
+#endif
 }
 
 void ksu_setuid_hook_exit(void)
 {
-	pr_info("ksu_core_exit\n");
+	pr_info("ksu_setuid_hook_exit\n");
 	ksu_kernel_umount_exit();
 	ksu_unregister_feature_handler(KSU_FEATURE_ENHANCED_SECURITY);
 }

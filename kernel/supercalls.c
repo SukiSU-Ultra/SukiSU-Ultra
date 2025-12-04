@@ -40,8 +40,6 @@
 #include "manual_su.h"
 #endif
 
-#include "umount_manager.h"
-
 #ifdef CONFIG_KSU_SUSFS
 bool susfs_is_boot_completed_triggered = false;
 #endif // #ifdef CONFIG_KSU_SUSFS
@@ -871,35 +869,6 @@ static int do_manual_su(void __user *arg)
 }
 #endif
 
-static int do_umount_manager(void __user *arg)
-{
-	struct ksu_umount_manager_cmd cmd;
-
-	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-		pr_err("umount_manager: copy_from_user failed\n");
-		return -EFAULT;
-	}
-
-	switch (cmd.operation) {
-	case UMOUNT_OP_ADD: {
-		return ksu_umount_manager_add(cmd.path, cmd.flags, false);
-	}
-	case UMOUNT_OP_REMOVE: {
-		return ksu_umount_manager_remove(cmd.path);
-	}
-	case UMOUNT_OP_LIST: {
-		struct ksu_umount_entry_info __user *entries = 
-			(struct ksu_umount_entry_info __user *)cmd.entries_ptr;
-		return ksu_umount_manager_get_entries(entries, &cmd.count);
-	}
-	case UMOUNT_OP_CLEAR_CUSTOM: {
-		return ksu_umount_manager_clear_custom();
-	}
-	default:
-		return -EINVAL;
-	}
-}
-
 
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
@@ -933,7 +902,6 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 #ifdef CONFIG_KPM
 	{ .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root},
 #endif
-	{ .cmd = KSU_IOCTL_UMOUNT_MANAGER, .name = "UMOUNT_MANAGER", .handler = do_umount_manager, .perm_check = manager_or_root},
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL} // Sentine
 };
 

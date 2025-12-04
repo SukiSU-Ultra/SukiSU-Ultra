@@ -28,7 +28,7 @@ config KSU_MANUAL_SU
 	depends on KSU
 	default y
 	help
-	  Use manual su and authorize the corresponding command line and application via prctl
+	  Use manual su and authorize the corresponding command line and application via fd
 
 config KSU_MULTI_MANAGER_SUPPORT
 	bool "Multi KernelSU manager support"
@@ -53,6 +53,15 @@ config KSU_MANUAL_HOOK
 	depends on KSU != m && !KSU_SUSFS
 	help
 	  If enabled, Hook required KernelSU syscalls with manually-patched function.
+
+config KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+	bool "Automatically hook setuid by lsm"
+	depends on KSU_MANUAL_HOOK
+	default y
+	help
+	  If turn off this option, you need checkout to kernel/sys.c 
+	  in SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
+	  add a ksu_handle_setresuid calls in there
 
 menu "KernelSU - SUSFS"
 

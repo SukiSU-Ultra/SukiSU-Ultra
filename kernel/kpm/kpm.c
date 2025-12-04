@@ -120,8 +120,8 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
 {
 	int res = -1;
 	if (control_code == SUKISU_KPM_LOAD) {
-		char kernel_load_path[256];
-		char kernel_args_buffer[256];
+		char kernel_load_path[256] = {0};
+		char kernel_args_buffer[256] = {0};
 
 		if (arg1 == 0) {
 			res = -EINVAL;
@@ -145,7 +145,7 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
 		sukisu_kpm_load_module_path((const char *)&kernel_load_path,
 						(const char *)&kernel_args_buffer, NULL, &res);
 	} else if (control_code == SUKISU_KPM_UNLOAD) {
-		char kernel_name_buffer[256];
+		char kernel_name_buffer[256] = {0};
 
 		if (arg1 == 0) {
 			res = -EINVAL;
@@ -162,8 +162,8 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
 	} else if (control_code == SUKISU_KPM_NUM) {
 		sukisu_kpm_num(&res);
 	} else if (control_code == SUKISU_KPM_INFO) {
-		char kernel_name_buffer[256];
-		char buf[256];
+		char kernel_name_buffer[256] = {0};
+		char buf[256] = {0};
 		int size;
 
 		if (arg1 == 0 || arg2 == 0) {
@@ -186,7 +186,7 @@ noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, u
 		res = copy_to_user(arg2, &buf, size);
 
 	} else if (control_code == SUKISU_KPM_LIST) {
-		char buf[1024];
+		char buf[1024] = {0};
 		int len = (int) arg2;
 
 		if (len <= 0) {

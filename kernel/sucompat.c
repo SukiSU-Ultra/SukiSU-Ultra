@@ -87,136 +87,6 @@ static char __user *ksud_user_path(void)
 	return userspace_stack_buffer(ksud_path, sizeof(ksud_path));
 }
 
-#ifndef CONFIG_KSU_SUSFS
-int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
-			 int *__unused_flags)
-{
-	const char su[] = SU_PATH;
-
-#ifdef KSU_MANUAL_HOOK
-	if (!ksu_su_compat_enabled) {
-		return 0;
-	}
-#endif
-
-	if (!ksu_is_allow_uid_for_current(current_uid().val)) {
-		return 0;
-	}
-
-	char path[sizeof(su) + 1];
-	memset(path, 0, sizeof(path));
-	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
-
-	if (unlikely(!memcmp(path, su, sizeof(su)))) {
-#if __SULOG_GATE
-		ksu_sulog_report_syscall(current_uid().val, NULL, "faccessat", path);
-#endif
-		pr_info("faccessat su->sh!\n");
-		*filename_user = sh_user_path();
-	}
-
-	return 0;
-}
-
-int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
-{
-	// const char sh[] = SH_PATH;
-	const char su[] = SU_PATH;
-
-#ifdef KSU_MANUAL_HOOK
-	if (!ksu_su_compat_enabled) {
-		return 0;
-	}
-#endif
-	if (!ksu_is_allow_uid_for_current(current_uid().val)) {
-		return 0;
-	}
-
-	if (unlikely(!filename_user)) {
-		return 0;
-	}
-
-	char path[sizeof(su) + 1];
-	memset(path, 0, sizeof(path));
-	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
-
-	if (unlikely(!memcmp(path, su, sizeof(su)))) {
-#if __SULOG_GATE
-		ksu_sulog_report_syscall(current_uid().val, NULL, "newfstatat", path);
-#endif
-		pr_info("newfstatat su->sh!\n");
-		*filename_user = sh_user_path();
-	}
-
-	return 0;
-}
-
-int ksu_handle_execve_sucompat(const char __user **filename_user,
-				   void *__never_use_argv, void *__never_use_envp,
-				   int *__never_use_flags)
-{
-	const char su[] = SU_PATH;
-	const char __user *fn;
-	char path[sizeof(su) + 1];
-	long ret;
-	unsigned long addr;
-
-#ifdef KSU_MANUAL_HOOK
-	if (!ksu_su_compat_enabled){
-		return 0;
-	}
-#endif
-	if (unlikely(!filename_user))
-		return 0;
-
-#if __SULOG_GATE
-	bool is_allowed = ksu_is_allow_uid_for_current(current_uid().val);
-	ksu_sulog_report_syscall(current_uid().val, NULL, "execve", path);
-	
-	if (!is_allowed)
-		return 0;
-
-	ksu_sulog_report_su_attempt(current_uid().val, NULL, path, is_allowed);
-#else
-	if (!ksu_is_allow_uid_for_current(current_uid().val)) {
-		return 0;
-	}
-#endif
-
-	addr = untagged_addr((unsigned long)*filename_user);
-	fn = (const char __user *)addr;
-	memset(path, 0, sizeof(path));
-	ret = strncpy_from_user_nofault(path, fn, sizeof(path));
-
-	if (ret < 0 && try_set_access_flag(addr)) {
-		ret = strncpy_from_user_nofault(path, fn, sizeof(path));
-	}
-
-	if (ret < 0 && preempt_count()) {
-		/* This is crazy, but we know what we are doing:
-		 * Temporarily exit atomic context to handle page faults, then restore it */
-		pr_info("Access filename failed, try rescue..\n");
-		preempt_enable_no_resched_notrace();
-		ret = strncpy_from_user(path, fn, sizeof(path));
-		preempt_disable_notrace();
-	}
-
-	if (ret < 0) {
-		pr_warn("Access filename when execve failed: %ld", ret);
-		return 0;
-	}
-
-	if (likely(memcmp(path, su, sizeof(su))))
-		return 0;
-
-	pr_info("sys_execve su found\n");
-	*filename_user = ksud_user_path();
-
-	escape_with_root_profile();
-
-	return 0;
-}
-#else
 static const char sh_path[] = SH_PATH;
 static const char su_path[] = SU_PATH;
 static const char ksud_path[] = KSUD_PATH;
@@ -233,6 +103,9 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 	}
 
 	if (unlikely(!filename_ptr))
+		return 0;
+
+	if (!ksu_is_allow_uid_for_current(current_uid().val))
 		return 0;
 
 	filename = *filename_ptr;
@@ -276,6 +149,9 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 		return 0;
 	}
 
+	if (!ksu_is_allow_uid_for_current(current_uid().val))
+		return 0;
+
 	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
 	if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
@@ -291,6 +167,13 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 int ksu_handle_stat(int *dfd, struct filename **filename, int *flags) {
+	if (!ksu_su_compat_enabled){
+		return 0;
+	}
+
+	if (!ksu_is_allow_uid_for_current(current_uid().val))
+		return 0;
+	
 	if (unlikely(IS_ERR(*filename) || (*filename)->name == NULL)) {
 		return 0;
 	}
@@ -313,6 +196,9 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 	if (unlikely(!filename_user)) {
 		return 0;
 	}
+
+	if (!ksu_is_allow_uid_for_current(current_uid().val))
+		return 0;
 
 	char path[sizeof(su_path) + 1] = {0};
 
@@ -347,41 +233,11 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 }
 #endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 
-int ksu_handle_devpts(struct inode *inode)
+// dead code: devpts handling
+int __maybe_unused ksu_handle_devpts(struct inode *inode)
 {
-	if (!current->mm) {
-		return 0;
-	}
-
-	if (!ksu_su_compat_enabled){
-		return 0;
-	}
-
-	uid_t uid = current_uid().val;
-	if (uid % 100000 < 10000) {
-		// not untrusted_app, ignore it
-		return 0;
-	}
-
-	if (!__ksu_is_allow_uid_for_current(uid))
-			return 0;
-
-	if (ksu_file_sid) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) ||						   \
-	defined(KSU_OPTIONAL_SELINUX_INODE)
-		struct inode_security_struct *sec = selinux_inode(inode);
-#else
-		struct inode_security_struct *sec =
-			(struct inode_security_struct *)inode->i_security;
-#endif
-		if (sec) {
-			sec->sid = ksu_file_sid;
-		}
-	}
-
 	return 0;
 }
-#endif // #ifndef CONFIG_KSU_SUSFS
 
 // sucompat: permitted process can execute 'su' to gain root access.
 void ksu_sucompat_init()

@@ -364,9 +364,6 @@ void ksu_syscall_hook_manager_init(void)
 	}
 #endif
 #endif
-
-	ksu_setuid_hook_init();
-	ksu_sucompat_init();
 }
 
 void ksu_syscall_hook_manager_exit(void)
@@ -384,7 +381,4 @@ void ksu_syscall_hook_manager_exit(void)
 	destroy_kretprobe(&syscall_unregfunc_rp);
 #endif
 #endif
-
-	ksu_sucompat_exit();
-	ksu_setuid_hook_exit();
 }

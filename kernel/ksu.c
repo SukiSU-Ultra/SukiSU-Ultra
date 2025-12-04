@@ -27,6 +27,8 @@ struct cred* ksu_cred;
 #include "sulog.h"
 #include "throne_comm.h"
 #include "dynamic_manager.h"
+#include "sucompat.h"
+#include "setuid_hook.h"
 
 void sukisu_custom_config_init(void)
 {
@@ -72,6 +74,8 @@ int __init kernelsu_init(void)
 #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_syscall_hook_manager_init();
 #endif
+	ksu_setuid_hook_init();
+	ksu_sucompat_init();
 
 	ksu_allowlist_init();
 
@@ -109,6 +113,8 @@ void kernelsu_exit(void)
 #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_syscall_hook_manager_exit();
 #endif
+	ksu_sucompat_exit();
+	ksu_setuid_hook_exit();
 
 	sukisu_custom_config_exit();
 
