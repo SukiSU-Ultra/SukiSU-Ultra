@@ -871,6 +871,7 @@ object SuSFSManager {
             "CONFIG_KSU_SUSFS_ENABLE_LOG" to context.getString(R.string.enable_log_feature_label),
             "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS" to context.getString(R.string.hide_symbols_feature_label),
             "CONFIG_KSU_SUSFS_SUS_KSTAT" to context.getString(R.string.sus_kstat_feature_label),
+            "CONFIG_KSU_SUSFS_SUS_MAP" to context.getString(R.string.sus_map_feature_label),
         )
 
 
@@ -898,6 +899,7 @@ object SuSFSManager {
             "enable_log_feature_label" to context.getString(R.string.enable_log_feature_label),
             "hide_symbols_feature_label" to context.getString(R.string.hide_symbols_feature_label),
             "sus_kstat_feature_label" to context.getString(R.string.sus_kstat_feature_label),
+            "sus_map_feature_label" to context.getString(R.string.sus_map_feature_label)
         )
 
         return defaultFeatures.map { (_, displayName) ->

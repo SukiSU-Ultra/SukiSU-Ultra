@@ -5,6 +5,9 @@
 #include <linux/slab.h>
 #include <linux/version.h>
 #include <linux/workqueue.h>
+#include <linux/task_work.h>
+#include <linux/sched.h>
+#include <linux/pid.h>
 #ifdef CONFIG_KSU_DEBUG
 #include <linux/moduleparam.h>
 #endif
@@ -18,6 +21,7 @@
 #include "dynamic_manager.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager.h"
+#include "ksu.h"
 
 #define MAX_MANAGERS 2
 
@@ -33,10 +37,11 @@ static struct manager_info active_managers[MAX_MANAGERS];
 static DEFINE_SPINLOCK(managers_lock);
 static DEFINE_SPINLOCK(dynamic_manager_lock);
 
-// Work queues for persistent storage
-static struct work_struct save_dynamic_manager_work;
-static struct work_struct load_dynamic_manager_work;
-static struct work_struct clear_dynamic_manager_work;
+// Task work structure for persistent storage
+struct save_dynamic_manager_tw {
+    struct callback_head cb;
+    struct dynamic_manager_config config;
+};
 
 bool ksu_is_dynamic_manager_enabled(void)
 {
@@ -214,52 +219,51 @@ int ksu_get_active_managers(struct manager_list_info *info)
     return 0;
 }
 
-static void do_save_dynamic_manager(struct work_struct *work)
+static void do_save_dynamic_manager(struct callback_head *_cb)
 {
+    struct save_dynamic_manager_tw *tw = container_of(_cb, struct save_dynamic_manager_tw, cb);
     u32 magic = DYNAMIC_MANAGER_FILE_MAGIC;
     u32 version = DYNAMIC_MANAGER_FILE_VERSION;
-    struct dynamic_manager_config config_to_save;
     loff_t off = 0;
-    unsigned long flags;
     struct file *fp;
+    const struct cred *saved = override_creds(ksu_cred);
 
-    spin_lock_irqsave(&dynamic_manager_lock, flags);
-    config_to_save = dynamic_manager;
-    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
-
-    if (!config_to_save.is_set) {
+    if (!tw->config.is_set) {
         pr_info("Dynamic sign config not set, skipping save\n");
-        return;
+        goto revert;
     }
 
     fp = filp_open(KERNEL_SU_DYNAMIC_MANAGER, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (IS_ERR(fp)) {
         pr_err("save_dynamic_manager create file failed: %ld\n", PTR_ERR(fp));
-        return;
+        goto revert;
     }
 
     if (kernel_write(fp, &magic, sizeof(magic), &off) != sizeof(magic)) {
         pr_err("save_dynamic_manager write magic failed.\n");
-        goto exit;
+        goto close_file;
     }
 
     if (kernel_write(fp, &version, sizeof(version), &off) != sizeof(version)) {
         pr_err("save_dynamic_manager write version failed.\n");
-        goto exit;
+        goto close_file;
     }
 
-    if (kernel_write(fp, &config_to_save, sizeof(config_to_save), &off) != sizeof(config_to_save)) {
+    if (kernel_write(fp, &tw->config, sizeof(tw->config), &off) != sizeof(tw->config)) {
         pr_err("save_dynamic_manager write config failed.\n");
-        goto exit;
+        goto close_file;
     }
 
     pr_info("Dynamic sign config saved successfully\n");
 
-exit:
+close_file:
     filp_close(fp, 0);
+revert:
+    revert_creds(saved);
+    kfree(tw);
 }
 
-static void do_load_dynamic_manager(struct work_struct *work)
+static void do_load_dynamic_manager(struct callback_head *_cb)
 {
     loff_t off = 0;
     ssize_t ret = 0;
@@ -269,6 +273,7 @@ static void do_load_dynamic_manager(struct work_struct *work)
     struct dynamic_manager_config loaded_config;
     unsigned long flags;
     int i;
+    const struct cred *saved = override_creds(ksu_cred);
 
     fp = filp_open(KERNEL_SU_DYNAMIC_MANAGER, O_RDONLY, 0);
     if (IS_ERR(fp)) {
@@ -277,18 +282,18 @@ static void do_load_dynamic_manager(struct work_struct *work)
         } else {
             pr_err("load_dynamic_manager open file failed: %ld\n", PTR_ERR(fp));
         }
-        return;
+        goto revert;
     }
 
     if (kernel_read(fp, &magic, sizeof(magic), &off) != sizeof(magic) ||
         magic != DYNAMIC_MANAGER_FILE_MAGIC) {
         pr_err("dynamic manager file invalid magic: %x!\n", magic);
-        goto exit;
+        goto close_file;
     }
 
     if (kernel_read(fp, &version, sizeof(version), &off) != sizeof(version)) {
         pr_err("dynamic manager read version failed\n");
-        goto exit;
+        goto close_file;
     }
 
     pr_info("dynamic manager file version: %d\n", version);
@@ -296,22 +301,22 @@ static void do_load_dynamic_manager(struct work_struct *work)
     ret = kernel_read(fp, &loaded_config, sizeof(loaded_config), &off);
     if (ret <= 0) {
         pr_info("load_dynamic_manager read err: %zd\n", ret);
-        goto exit;
+        goto close_file;
     }
 
     if (ret != sizeof(loaded_config)) {
         pr_err("load_dynamic_manager read incomplete config: %zd/%zu\n", ret, sizeof(loaded_config));
-        goto exit;
+        goto close_file;
     }
 
     if (loaded_config.size < 0x100 || loaded_config.size > 0x1000) {
         pr_err("Invalid saved config size: 0x%x\n", loaded_config.size);
-        goto exit;
+        goto close_file;
     }
 
     if (strlen(loaded_config.hash) != 64) {
         pr_err("Invalid saved config hash length: %zu\n", strlen(loaded_config.hash));
-        goto exit;
+        goto close_file;
     }
 
     // Validate hash format
@@ -319,7 +324,7 @@ static void do_load_dynamic_manager(struct work_struct *work)
         char c = loaded_config.hash[i];
         if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
             pr_err("Invalid saved config hash character at position %d: %c\n", i, c);
-            goto exit;
+            goto close_file;
         }
     }
 
@@ -330,27 +335,56 @@ static void do_load_dynamic_manager(struct work_struct *work)
     pr_info("Dynamic sign config loaded: size=0x%x, hash=%.16s...\n", 
             loaded_config.size, loaded_config.hash);
 
-exit:
+close_file:
     filp_close(fp, 0);
+revert:
+    revert_creds(saved);
+    kfree(_cb);
 }
 
 static bool persistent_dynamic_manager(void)
 {
-    return ksu_queue_work(&save_dynamic_manager_work);
+    struct task_struct *tsk;
+    struct save_dynamic_manager_tw *tw;
+    unsigned long flags;
+
+    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!tsk) {
+        pr_err("persistent_dynamic_manager find init task err\n");
+        return false;
+    }
+
+    tw = kzalloc(sizeof(*tw), GFP_KERNEL);
+    if (!tw) {
+        pr_err("persistent_dynamic_manager alloc cb err\n");
+        goto put_task;
+    }
+
+    spin_lock_irqsave(&dynamic_manager_lock, flags);
+    tw->config = dynamic_manager;
+    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
+
+    tw->cb.func = do_save_dynamic_manager;
+    task_work_add(tsk, &tw->cb, TWA_RESUME);
+
+put_task:
+    put_task_struct(tsk);
+    return true;
 }
 
-static void do_clear_dynamic_manager(struct work_struct *work)
+static void do_clear_dynamic_manager(struct callback_head *_cb)
 {
     loff_t off = 0;
     struct file *fp;
     char zero_buffer[512];
+    const struct cred *saved = override_creds(ksu_cred);
 
     memset(zero_buffer, 0, sizeof(zero_buffer));
 
     fp = filp_open(KERNEL_SU_DYNAMIC_MANAGER, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (IS_ERR(fp)) {
         pr_err("clear_dynamic_manager create file failed: %ld\n", PTR_ERR(fp));
-        return;
+        goto revert;
     }
 
     // Write null bytes to overwrite the file content
@@ -361,11 +395,33 @@ static void do_clear_dynamic_manager(struct work_struct *work)
     }
 
     filp_close(fp, 0);
+revert:
+    revert_creds(saved);
+    kfree(_cb);
 }
 
 static bool clear_dynamic_manager_file(void)
 {
-    return ksu_queue_work(&clear_dynamic_manager_work);
+    struct task_struct *tsk;
+    struct callback_head *cb;
+
+    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!tsk) {
+        pr_err("clear_dynamic_manager_file find init task err\n");
+        return false;
+    }
+
+    cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+    if (!cb) {
+        pr_err("clear_dynamic_manager_file alloc cb err\n");
+        goto put_task;
+    }
+    cb->func = do_clear_dynamic_manager;
+    task_work_add(tsk, cb, TWA_RESUME);
+
+put_task:
+    put_task_struct(tsk);
+    return true;
 }
 
 int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config)
@@ -456,16 +512,31 @@ int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config)
 
 bool ksu_load_dynamic_manager(void)
 {
-    return ksu_queue_work(&load_dynamic_manager_work);
+    struct task_struct *tsk;
+    struct callback_head *cb;
+
+    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!tsk) {
+        pr_err("ksu_load_dynamic_manager find init task err\n");
+        return false;
+    }
+
+    cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+    if (!cb) {
+        pr_err("ksu_load_dynamic_manager alloc cb err\n");
+        goto put_task;
+    }
+    cb->func = do_load_dynamic_manager;
+    task_work_add(tsk, cb, TWA_RESUME);
+
+put_task:
+    put_task_struct(tsk);
+    return true;
 }
 
 void ksu_dynamic_manager_init(void)
 {
     int i;
-    
-    INIT_WORK(&save_dynamic_manager_work, do_save_dynamic_manager);
-    INIT_WORK(&load_dynamic_manager_work, do_load_dynamic_manager);
-    INIT_WORK(&clear_dynamic_manager_work, do_clear_dynamic_manager);
     
     // Initialize manager slots
     for (i = 0; i < MAX_MANAGERS; i++) {
@@ -479,10 +550,34 @@ void ksu_dynamic_manager_init(void)
 
 void ksu_dynamic_manager_exit(void)
 {
+    struct task_struct *tsk;
+    struct save_dynamic_manager_tw *tw;
+    unsigned long flags;
+
     clear_dynamic_manager();
     
     // Save current config before exit
-    do_save_dynamic_manager(NULL);
+    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!tsk) {
+        pr_err("ksu_dynamic_manager_exit find init task err\n");
+        return;
+    }
+
+    tw = kzalloc(sizeof(*tw), GFP_KERNEL);
+    if (!tw) {
+        pr_err("ksu_dynamic_manager_exit alloc cb err\n");
+        goto put_task;
+    }
+
+    spin_lock_irqsave(&dynamic_manager_lock, flags);
+    tw->config = dynamic_manager;
+    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
+
+    tw->cb.func = do_save_dynamic_manager;
+    task_work_add(tsk, &tw->cb, TWA_RESUME);
+
+put_task:
+    put_task_struct(tsk);
     pr_info("Dynamic sign exited with persistent storage\n");
 }
 

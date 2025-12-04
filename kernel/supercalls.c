@@ -67,8 +67,7 @@ bool allowed_for_su(void)
 
 static void init_uid_scanner(void)
 {
-    ksu_uid_init();
-    do_load_throne_state(NULL);
+    ksu_throne_comm_load_state();
     
     if (ksu_uid_scanner_enabled) {
         int ret = ksu_throne_comm_init();

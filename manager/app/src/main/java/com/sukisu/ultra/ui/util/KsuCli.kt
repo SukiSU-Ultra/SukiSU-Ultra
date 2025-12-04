@@ -559,25 +559,20 @@ fun restartApp(packageName: String) {
     launchApp(packageName)
 }
 
-fun getSuSFSDaemonPath(): String {
-    return ksuApp.applicationInfo.nativeLibraryDir + File.separator + "libksu_susfs.so"
+fun getSuSFSStatus(): String {
+    val shell = getRootShell()
+    return ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} susfs status").trim()
 }
 
 fun getSuSFSVersion(): String {
     val shell = getRootShell()
-    val result = ShellUtils.fastCmd(shell, "${getSuSFSDaemonPath()} show version")
-    return result
-}
-
-fun getSuSFSVariant(): String {
-    val shell = getRootShell()
-    val result = ShellUtils.fastCmd(shell, "${getSuSFSDaemonPath()} show variant")
+    val result = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} susfs version")
     return result
 }
 
 fun getSuSFSFeatures(): String {
     val shell = getRootShell()
-    val cmd = "${getSuSFSDaemonPath()} show enabled_features"
+    val cmd = "${getKsuDaemonPath()} susfs features"
     return runCmd(shell, cmd)
 }
 
@@ -595,7 +590,7 @@ fun getMetaModuleImplement(): String {
         val name = prop.getProperty("name")
         Log.i(TAG, "Meta module implement: $name")
         return name
-    } catch (t : Throwable) {
+    } catch (_ : Throwable) {
         Log.i(TAG, "Meta module implement: None")
         return "None"
     }

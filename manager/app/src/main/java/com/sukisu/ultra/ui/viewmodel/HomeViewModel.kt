@@ -448,11 +448,10 @@ class HomeViewModel : ViewModel() {
     private suspend fun loadSuSFSInfo(): Tuple4<String, String, String, String> {
         return withContext(Dispatchers.IO) {
             val suSFS = try {
-                val rawFeature = getSuSFSFeatures()
-                if (rawFeature.isNotEmpty() && !rawFeature.startsWith("[-]")) {
+                if (getSuSFSStatus().equals("true", ignoreCase = true)) {
                     "Supported"
                 } else {
-                    rawFeature
+                    "Unsupported"
                 }
             } catch (_: Exception) {
                 "Unknown"
@@ -472,19 +471,13 @@ class HomeViewModel : ViewModel() {
                 return@withContext Tuple4(suSFS, "", "", "")
             }
 
-            val suSFSVariant = try {
-                getSuSFSVariant()
-            } catch (_: Exception) {
-                ""
-            }
-
             val suSFSFeatures = try {
                 getSuSFSFeatures()
             } catch (_: Exception) {
                 ""
             }
 
-            Tuple4(suSFS, suSFSVersion, suSFSVariant, suSFSFeatures)
+            Tuple4(suSFS, suSFSVersion, "", suSFSFeatures)
         }
     }
 

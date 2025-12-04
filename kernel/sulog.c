@@ -3,10 +3,11 @@
 #include <linux/printk.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/task_work.h>
 #include <linux/time.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
-#include <linux/workqueue.h>
+#include <linux/pid.h>
 #include <linux/cred.h>
 #include <linux/sched.h>
 #include <linux/mm.h>
@@ -24,8 +25,6 @@
 struct dedup_entry dedup_tbl[SULOG_COMM_LEN];
 static DEFINE_SPINLOCK(dedup_lock);
 static LIST_HEAD(sulog_queue);
-static struct workqueue_struct *sulog_workqueue;
-static struct work_struct sulog_work;
 static bool sulog_enabled __read_mostly = true;
 
 static int sulog_feature_get(u64 *value)
@@ -150,13 +149,14 @@ static bool dedup_should_print(uid_t uid, u8 type, const char *content, size_t l
     return true;
 }
 
-static void sulog_work_handler(struct work_struct *work)
+static void sulog_process_queue(void)
 {
     struct file *fp;
     struct sulog_entry *entry, *tmp;
     LIST_HEAD(local_queue);
     loff_t pos = 0;
     unsigned long flags;
+    const struct cred *old_cred;
 
     spin_lock_irqsave(&dedup_lock, flags);
     list_splice_init(&sulog_queue, &local_queue);
@@ -165,10 +165,12 @@ static void sulog_work_handler(struct work_struct *work)
     if (list_empty(&local_queue))
         return;
 
+    old_cred = override_creds(ksu_cred);
+
     fp = filp_open(SULOG_PATH, O_WRONLY | O_CREAT | O_APPEND, 0640);
     if (IS_ERR(fp)) {
         pr_err("sulog: failed to open log file: %ld\n", PTR_ERR(fp));
-        goto cleanup;
+        goto revert_creds_out;
     }
 
     if (fp->f_inode->i_size > SULOG_MAX_SIZE) {
@@ -185,11 +187,49 @@ static void sulog_work_handler(struct work_struct *work)
     vfs_fsync(fp, 0);
     filp_close(fp, 0);
 
-cleanup:
+revert_creds_out:
+    revert_creds(old_cred);
+
     list_for_each_entry_safe(entry, tmp, &local_queue, list) {
         list_del(&entry->list);
         kfree(entry);
     }
+}
+
+static void sulog_task_work_handler(struct callback_head *work)
+{
+    sulog_process_queue();
+    kfree(work);
+}
+
+static void sulog_schedule_task_work(void)
+{
+    struct task_struct *tsk;
+    struct callback_head *cb;
+    int ret;
+
+    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!tsk) {
+        pr_err("sulog: failed to find init task\n");
+        return;
+    }
+
+    cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
+    if (!cb) {
+        pr_err("sulog: failed to allocate task_work callback\n");
+        goto put_task;
+    }
+
+    cb->func = sulog_task_work_handler;
+
+    ret = task_work_add(tsk, cb, TWA_RESUME);
+    if (ret) {
+        pr_err("sulog: failed to queue task work: %d\n", ret);
+        kfree(cb);
+    }
+
+put_task:
+    put_task_struct(tsk);
 }
 
 static void sulog_add_entry(char *log_buf, size_t len, uid_t uid, u8 dedup_type)
@@ -213,8 +253,7 @@ static void sulog_add_entry(char *log_buf, size_t len, uid_t uid, u8 dedup_type)
     list_add_tail(&entry->list, &sulog_queue);
     spin_unlock_irqrestore(&dedup_lock, flags);
 
-    if (sulog_workqueue)
-        queue_work(sulog_workqueue, &sulog_work);
+    sulog_schedule_task_work();
 }
 
 void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method)
@@ -330,13 +369,6 @@ int ksu_sulog_init(void)
         pr_err("Failed to register sulog feature handler\n");
     }
 
-    sulog_workqueue = alloc_workqueue("ksu_sulog", WQ_UNBOUND | WQ_HIGHPRI, 1);
-    if (!sulog_workqueue) {
-        pr_err("sulog: failed to create workqueue\n");
-        return -ENOMEM;
-    }
-
-    INIT_WORK(&sulog_work, sulog_work_handler);
     pr_info("sulog: initialized successfully\n");
     return 0;
 }
@@ -350,11 +382,7 @@ void ksu_sulog_exit(void)
 
     sulog_enabled = false;
 
-    if (sulog_workqueue) {
-        flush_workqueue(sulog_workqueue);
-        destroy_workqueue(sulog_workqueue);
-        sulog_workqueue = NULL;
-    }
+    sulog_process_queue();
 
     spin_lock_irqsave(&dedup_lock, flags);
     list_for_each_entry_safe(entry, tmp, &sulog_queue, list) {

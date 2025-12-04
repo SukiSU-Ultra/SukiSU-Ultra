@@ -52,7 +52,7 @@ import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.util.checkNewVersion
-import com.sukisu.ultra.ui.util.getSuSFSVersion
+import com.sukisu.ultra.ui.util.getSuSFSStatus
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.reboot
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
@@ -297,8 +297,7 @@ private fun TopBar(
         actions = {
             if (isDataLoaded) {
                 // SuSFS 配置按钮
-                val susfsVersion = getSuSFSVersion()
-                if (susfsVersion.isNotEmpty() && !susfsVersion.startsWith("[-]") && SuSFSManager.isBinaryAvailable(context)) {
+                if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
                     IconButton(onClick = {
                         navigator.navigate(SuSFSConfigScreenDestination)
                     }) {

@@ -9,14 +9,10 @@ int ksu_throne_comm_init(void);
 
 void ksu_throne_comm_exit(void);
 
-int ksu_uid_init(void);
-
 void ksu_uid_exit(void);
 
 bool ksu_throne_comm_load_state(void);
 
 void ksu_throne_comm_save_state(void);
-
-void do_load_throne_state(struct work_struct *work);
 
 #endif

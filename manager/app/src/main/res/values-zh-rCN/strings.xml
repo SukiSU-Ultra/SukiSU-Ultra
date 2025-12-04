@@ -405,8 +405,6 @@
     <string name="susfs_path_label">路径</string>
     <string name="susfs_path_placeholder">例如: /system/addon.d</string>
     <string name="susfs_no_paths_configured">暂无 SuS 路径配置</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">重置 SuS 路径</string>
     <string name="susfs_reset_paths_message">这将清除所有 SuS 路径配置，确定要继续吗？</string>
@@ -429,6 +427,7 @@
     <string name="enable_log_feature_label">日志记录支持</string>
     <string name="hide_symbols_feature_label">隐藏 KSU SuSFS 符号</string>
     <string name="sus_kstat_feature_label">SuS Kstat 支持</string>
+    <string name="sus_map_feature_label">SUS Map 支持</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 启用日志</string>
