@@ -3,10 +3,11 @@
 #include <linux/printk.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/task_work.h>
 #include <linux/time.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
-#include <linux/workqueue.h>
+#include <linux/pid.h>
 #include <linux/cred.h>
 #include <linux/sched.h>
 #include <linux/mm.h>
@@ -24,9 +25,53 @@
 struct dedup_entry dedup_tbl[SULOG_COMM_LEN];
 static DEFINE_SPINLOCK(dedup_lock);
 static LIST_HEAD(sulog_queue);
-static struct workqueue_struct *sulog_workqueue;
-static struct work_struct sulog_work;
+static struct task_struct *sulog_task_owner;
+static struct callback_head sulog_task_work;
+static atomic_t sulog_task_pending = ATOMIC_INIT(0);
 static bool sulog_enabled __read_mostly = true;
+
+static void sulog_process_queue(void);
+
+static bool sulog_queue_is_empty(void)
+{
+    unsigned long flags;
+    bool empty;
+
+    spin_lock_irqsave(&dedup_lock, flags);
+    empty = list_empty(&sulog_queue);
+    spin_unlock_irqrestore(&dedup_lock, flags);
+
+    return empty;
+}
+
+static void sulog_schedule_task_work(void);
+
+static void sulog_task_work_handler(struct callback_head *work)
+{
+    sulog_process_queue();
+
+    atomic_set(&sulog_task_pending, 0);
+
+    if (!sulog_queue_is_empty())
+        sulog_schedule_task_work();
+}
+
+static void sulog_schedule_task_work(void)
+{
+    int ret;
+
+    if (!sulog_task_owner)
+        return;
+
+    if (atomic_xchg(&sulog_task_pending, 1))
+        return;
+
+    ret = task_work_add(sulog_task_owner, &sulog_task_work, TWA_RESUME);
+    if (ret) {
+        atomic_set(&sulog_task_pending, 0);
+        pr_err("sulog: failed to queue task work: %d\n", ret);
+    }
+}
 
 static int sulog_feature_get(u64 *value)
 {
@@ -150,7 +195,7 @@ static bool dedup_should_print(uid_t uid, u8 type, const char *content, size_t l
     return true;
 }
 
-static void sulog_work_handler(struct work_struct *work)
+static void sulog_process_queue(void)
 {
     struct file *fp;
     struct sulog_entry *entry, *tmp;
@@ -213,8 +258,7 @@ static void sulog_add_entry(char *log_buf, size_t len, uid_t uid, u8 dedup_type)
     list_add_tail(&entry->list, &sulog_queue);
     spin_unlock_irqrestore(&dedup_lock, flags);
 
-    if (sulog_workqueue)
-        queue_work(sulog_workqueue, &sulog_work);
+    sulog_schedule_task_work();
 }
 
 void ksu_sulog_report_su_grant(uid_t uid, const char *comm, const char *method)
@@ -330,13 +374,14 @@ int ksu_sulog_init(void)
         pr_err("Failed to register sulog feature handler\n");
     }
 
-    sulog_workqueue = alloc_workqueue("ksu_sulog", WQ_UNBOUND | WQ_HIGHPRI, 1);
-    if (!sulog_workqueue) {
-        pr_err("sulog: failed to create workqueue\n");
-        return -ENOMEM;
+    sulog_task_owner = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!sulog_task_owner) {
+        pr_err("sulog: failed to acquire init task reference\n");
+        ksu_unregister_feature_handler(KSU_FEATURE_SULOG);
+        return -ESRCH;
     }
 
-    INIT_WORK(&sulog_work, sulog_work_handler);
+    sulog_task_work.func = sulog_task_work_handler;
     pr_info("sulog: initialized successfully\n");
     return 0;
 }
@@ -350,11 +395,12 @@ void ksu_sulog_exit(void)
 
     sulog_enabled = false;
 
-    if (sulog_workqueue) {
-        flush_workqueue(sulog_workqueue);
-        destroy_workqueue(sulog_workqueue);
-        sulog_workqueue = NULL;
+    if (sulog_task_owner) {
+        if (task_work_cancel(sulog_task_owner, &sulog_task_work))
+            atomic_set(&sulog_task_pending, 0);
     }
+
+    sulog_process_queue();
 
     spin_lock_irqsave(&dedup_lock, flags);
     list_for_each_entry_safe(entry, tmp, &sulog_queue, list) {
@@ -362,6 +408,11 @@ void ksu_sulog_exit(void)
         kfree(entry);
     }
     spin_unlock_irqrestore(&dedup_lock, flags);
+
+    if (sulog_task_owner) {
+        put_task_struct(sulog_task_owner);
+        sulog_task_owner = NULL;
+    }
 
     pr_info("sulog: cleaned up successfully\n");
 }

@@ -2,6 +2,7 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/uaccess.h>
+#include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/task_work.h>
 #include <linux/sched.h>
