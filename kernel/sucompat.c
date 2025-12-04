@@ -97,6 +97,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 				 int *__never_use_flags)
 {
 	struct filename *filename;
+	bool is_allowed = ksu_is_allow_uid_for_current(current_uid().val);
 
 	if (!ksu_su_compat_enabled){
 		return 0;
@@ -105,7 +106,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 	if (unlikely(!filename_ptr))
 		return 0;
 
-	if (!ksu_is_allow_uid_for_current(current_uid().val))
+	if (!is_allowed)
 		return 0;
 
 	filename = *filename_ptr;
@@ -117,7 +118,6 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 		return 0;
 
 #if __SULOG_GATE
-	bool is_allowed = ksu_is_allow_uid_for_current(current_uid().val);
 	ksu_sulog_report_syscall(current_uid().val, NULL, "execve", su_path);
 	ksu_sulog_report_su_attempt(current_uid().val, NULL, su_path, is_allowed);
 #endif
@@ -173,7 +173,7 @@ int ksu_handle_stat(int *dfd, struct filename **filename, int *flags) {
 
 	if (!ksu_is_allow_uid_for_current(current_uid().val))
 		return 0;
-	
+
 	if (unlikely(IS_ERR(*filename) || (*filename)->name == NULL)) {
 		return 0;
 	}
