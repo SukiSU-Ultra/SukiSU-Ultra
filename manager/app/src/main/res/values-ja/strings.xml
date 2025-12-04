@@ -389,8 +389,6 @@
     <string name="susfs_path_label">パス</string>
     <string name="susfs_path_placeholder">例: /system/addon.d</string>
     <string name="susfs_no_paths_configured">SUS パスが未構成です</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">SUS パスをリセット</string>
     <string name="susfs_reset_paths_message">すべての SUS パスの構成が消去されます。続行してもよろしいですか？</string>
@@ -581,4 +579,47 @@
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
     <string name="home_hook_type">フックタイプ</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM パッチ</string>
+    <string name="kpm_patch_description">KPM に追加機能を加える</string>
+    <string name="enable_kpm_patch">KPM パッチ</string>
+    <string name="kpm_patch_switch_description">フラッシュする前にカーネルイメージに KPM パッチを適用する</string>
+    <string name="enable_kpm_undo_patch">KPM パッチを元に戻す</string>
+    <string name="kpm_undo_patch_switch_description">以前に適用した KPM パッチを元に戻します</string>
+    <string name="kpm_patch_enabled">KPM パッチ有効</string>
+    <string name="kpm_undo_patch_enabled">KPM パッチを元に戻すが有効</string>
+    <string name="kpm_patch_mode">KPM パッチモード</string>
+    <string name="kpm_undo_patch_mode">KPM パッチモードを元に戻す</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">KPM ツールの準備</string>
+    <string name="kpm_applying_patch">KPM パッチを適用中</string>
+    <string name="kpm_undoing_patch">KPM パッチを元に戻す</string>
+    <string name="kpm_found_image_file">見つかったイメージ: %s</string>
+    <string name="kpm_patch_success">KPM パッチの適用に成功しました</string>
+    <string name="kpm_undo_patch_success">KPM パッチが正常に元に戻されました</string>
+    <string name="kpm_file_repacked">ファイルの再パックが成功しました</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">zip ファイルの展開に失敗しました</string>
+    <string name="kpm_image_file_not_found">イメージファイルがありません</string>
+    <string name="kpm_patch_failed">KPM パッチに失敗</string>
+    <string name="kpm_undo_patch_failed">KPM パッチを戻せませんでした</string>
+    <string name="kpm_patch_operation_failed">KPM パッチの操作に失敗しました: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">カーネルに従う</string>
+    <string name="kpm_follow_kernel_description">KPM を変更せずにカーネルをそのまま使用します</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">アプリリストをユーザーモードでスキャン</string>
+    <string name="uid_auto_scan_summary">このオプションを有効化するとアプリリストのユーザーモードスキャンが使用されるため、安定性が向上します (アプリリストのカーネルスキャン中にフリーズなどの問題が発生する場合は、このオプションを有効化すると良いでしょう)。</string>
+    <string name="uid_multi_user_scan_title">マルチユーザーのアプリをスキャン</string>
+    <string name="uid_multi_user_scan_summary">有効化すると仕事用プロファイルを含むすべてのユーザーのアプリをスキャンします</string>
+    <string name="uid_scanner_setting_failed">設定に失敗、権限を確認してください</string>
+    <string name="clean_runtime_environment">ランタイム環境を消去</string>
+    <string name="clean_runtime_environment_summary">ランタイムファイルを消去し、スキャナーサービスを停止します</string>
+    <string name="clean_runtime_environment_confirm">ランタイム環境を消去してもよろしいですか？これにより、スキャナーサービスの停止と関連ファイルが削除されます。</string>
+    <string name="clean_runtime_environment_success">ランタイム環境の消去に成功しました</string>
+    <string name="clean_runtime_environment_failed">ランタイム環境の消去に失敗しました</string>
+    <!-- 确认安装相关字符串 -->
+    <!-- SUS Map related strings -->
+    <!-- Log Viewer -->
+    <!-- MiUI Uninstall Desc -->
 </resources>
