@@ -25,53 +25,7 @@
 struct dedup_entry dedup_tbl[SULOG_COMM_LEN];
 static DEFINE_SPINLOCK(dedup_lock);
 static LIST_HEAD(sulog_queue);
-static struct task_struct *sulog_task_owner;
-static struct callback_head sulog_task_work;
-static atomic_t sulog_task_pending = ATOMIC_INIT(0);
 static bool sulog_enabled __read_mostly = true;
-
-static void sulog_process_queue(void);
-
-static bool sulog_queue_is_empty(void)
-{
-    unsigned long flags;
-    bool empty;
-
-    spin_lock_irqsave(&dedup_lock, flags);
-    empty = list_empty(&sulog_queue);
-    spin_unlock_irqrestore(&dedup_lock, flags);
-
-    return empty;
-}
-
-static void sulog_schedule_task_work(void);
-
-static void sulog_task_work_handler(struct callback_head *work)
-{
-    sulog_process_queue();
-
-    atomic_set(&sulog_task_pending, 0);
-
-    if (!sulog_queue_is_empty())
-        sulog_schedule_task_work();
-}
-
-static void sulog_schedule_task_work(void)
-{
-    int ret;
-
-    if (!sulog_task_owner)
-        return;
-
-    if (atomic_xchg(&sulog_task_pending, 1))
-        return;
-
-    ret = task_work_add(sulog_task_owner, &sulog_task_work, TWA_RESUME);
-    if (ret) {
-        atomic_set(&sulog_task_pending, 0);
-        pr_err("sulog: failed to queue task work: %d\n", ret);
-    }
-}
 
 static int sulog_feature_get(u64 *value)
 {
@@ -202,6 +156,7 @@ static void sulog_process_queue(void)
     LIST_HEAD(local_queue);
     loff_t pos = 0;
     unsigned long flags;
+    const struct cred *old_cred;
 
     spin_lock_irqsave(&dedup_lock, flags);
     list_splice_init(&sulog_queue, &local_queue);
@@ -210,10 +165,12 @@ static void sulog_process_queue(void)
     if (list_empty(&local_queue))
         return;
 
+    old_cred = override_creds(ksu_cred);
+
     fp = filp_open(SULOG_PATH, O_WRONLY | O_CREAT | O_APPEND, 0640);
     if (IS_ERR(fp)) {
         pr_err("sulog: failed to open log file: %ld\n", PTR_ERR(fp));
-        goto cleanup;
+        goto revert_creds_out;
     }
 
     if (fp->f_inode->i_size > SULOG_MAX_SIZE) {
@@ -230,11 +187,49 @@ static void sulog_process_queue(void)
     vfs_fsync(fp, 0);
     filp_close(fp, 0);
 
-cleanup:
+revert_creds_out:
+    revert_creds(old_cred);
+
     list_for_each_entry_safe(entry, tmp, &local_queue, list) {
         list_del(&entry->list);
         kfree(entry);
     }
+}
+
+static void sulog_task_work_handler(struct callback_head *work)
+{
+    sulog_process_queue();
+    kfree(work);
+}
+
+static void sulog_schedule_task_work(void)
+{
+    struct task_struct *tsk;
+    struct callback_head *cb;
+    int ret;
+
+    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
+    if (!tsk) {
+        pr_err("sulog: failed to find init task\n");
+        return;
+    }
+
+    cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
+    if (!cb) {
+        pr_err("sulog: failed to allocate task_work callback\n");
+        goto put_task;
+    }
+
+    cb->func = sulog_task_work_handler;
+
+    ret = task_work_add(tsk, cb, TWA_RESUME);
+    if (ret) {
+        pr_err("sulog: failed to queue task work: %d\n", ret);
+        kfree(cb);
+    }
+
+put_task:
+    put_task_struct(tsk);
 }
 
 static void sulog_add_entry(char *log_buf, size_t len, uid_t uid, u8 dedup_type)
@@ -374,14 +369,6 @@ int ksu_sulog_init(void)
         pr_err("Failed to register sulog feature handler\n");
     }
 
-    sulog_task_owner = get_pid_task(find_vpid(1), PIDTYPE_PID);
-    if (!sulog_task_owner) {
-        pr_err("sulog: failed to acquire init task reference\n");
-        ksu_unregister_feature_handler(KSU_FEATURE_SULOG);
-        return -ESRCH;
-    }
-
-    sulog_task_work.func = sulog_task_work_handler;
     pr_info("sulog: initialized successfully\n");
     return 0;
 }
@@ -395,11 +382,6 @@ void ksu_sulog_exit(void)
 
     sulog_enabled = false;
 
-    if (sulog_task_owner) {
-        if (task_work_cancel(sulog_task_owner, &sulog_task_work))
-            atomic_set(&sulog_task_pending, 0);
-    }
-
     sulog_process_queue();
 
     spin_lock_irqsave(&dedup_lock, flags);
@@ -408,11 +390,6 @@ void ksu_sulog_exit(void)
         kfree(entry);
     }
     spin_unlock_irqrestore(&dedup_lock, flags);
-
-    if (sulog_task_owner) {
-        put_task_struct(sulog_task_owner);
-        sulog_task_owner = NULL;
-    }
 
     pr_info("sulog: cleaned up successfully\n");
 }
