@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import com.sukisu.ultra.ui.util.HanziToPinyin
 import com.sukisu.ultra.ui.util.listModules
 import com.sukisu.ultra.ui.util.getRootShell
-import com.sukisu.ultra.ui.util.module.ModuleVerificationManager
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -88,7 +87,6 @@ class ModuleViewModel : ViewModel() {
         val metamodule: Boolean,
         val dirId: String, // real module id (dir name)
         var config: ModuleConfig? = null,
-        var isVerified: Boolean = false, // 添加验证状态字段
         var verificationTimestamp: Long = 0L, // 添加验证时间戳
     )
 
@@ -148,48 +146,6 @@ class ModuleViewModel : ViewModel() {
                 val result = listModules()
 
                 Log.i(TAG, "result: $result")
-
-                val array = JSONArray(result)
-                val moduleInfos = (0 until array.length())
-                    .asSequence()
-                    .map { array.getJSONObject(it) }
-                    .map { obj ->
-                        ModuleInfo(
-                            obj.getString("id"),
-                            obj.optString("name"),
-                            obj.optString("author", "Unknown"),
-                            obj.optString("version", "Unknown"),
-                            obj.getIntCompat("versionCode", 0),
-                            obj.optString("description"),
-                            obj.getBooleanCompat("enabled"),
-                            obj.getBooleanCompat("update"),
-                            obj.getBooleanCompat("remove"),
-                            obj.optString("updateJson"),
-                            obj.getBooleanCompat("web"),
-                            obj.getBooleanCompat("action"),
-                            obj.getBooleanCompat("metamodule"),
-                            obj.optString("dir_id", obj.getString("id"))
-                        )
-                    }.toList()
-
-                // 批量检查所有模块的验证状态
-                val moduleIds = moduleInfos.map { it.dirId }
-                val verificationStatus = ModuleVerificationManager.batchCheckVerificationStatus(moduleIds)
-
-                // 更新模块验证状态
-                modules = moduleInfos.map { moduleInfo ->
-                    val isVerified = verificationStatus[moduleInfo.dirId] ?: false
-                    val verificationTimestamp = if (isVerified) {
-                        ModuleVerificationManager.getVerificationTimestamp(moduleInfo.dirId)
-                    } else {
-                        0L
-                    }
-
-                    moduleInfo.copy(
-                        isVerified = isVerified,
-                        verificationTimestamp = verificationTimestamp
-                    )
-                }
 
                 launch {
                     modules.forEach { module ->
@@ -327,13 +283,12 @@ fun ModuleViewModel.ModuleInfo.copy(
     metamodule: Boolean = this.metamodule,
     dirId: String = this.dirId,
     config: ModuleConfig? = this.config,
-    isVerified: Boolean = this.isVerified,
     verificationTimestamp: Long = this.verificationTimestamp
 ): ModuleViewModel.ModuleInfo {
     return ModuleViewModel.ModuleInfo(
         id, name, author, version, versionCode, description,
         enabled, update, remove, updateJson, hasWebUi, hasActionScript, metamodule,
-        dirId, config, isVerified, verificationTimestamp
+        dirId, config, verificationTimestamp
     )
 }
 

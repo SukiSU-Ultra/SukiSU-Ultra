@@ -134,10 +134,6 @@
     <string name="confirm">Підтвердити</string>
     <string name="cancel">Скасувати</string>
     <!-- Backup related -->
-    <string name="backup_success">Резервне копіювання успішне (tar.gz)</string>
-    <string name="backup_failed">Не вдалося створити резервну копію: %1$s</string>
-    <string name="backup_modules">резервне копіювання модулів</string>
-    <string name="restore_modules">відновлення модулів</string>
     <!-- Restore related messages -->
     <string name="restore_success">Модулі успішно відновлено, потрібне перезавантаження</string>
     <string name="restore_failed">Не вдалося відновити: %1$s</string>

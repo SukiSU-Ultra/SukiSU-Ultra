@@ -1,7 +1,9 @@
 package com.sukisu.ultra.ui.screen
 
 import android.annotation.SuppressLint
-import android.app.Activity.*
+import android.app.Activity.CLIPBOARD_SERVICE
+import android.app.Activity.MODE_PRIVATE
+import android.app.Activity.RESULT_OK
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -19,12 +21,24 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
@@ -33,11 +47,44 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Wysiwyg
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Extension
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -59,7 +106,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dergoogler.mmrl.platform.Platform
 import com.dergoogler.mmrl.platform.model.ModuleConfig
@@ -72,25 +118,34 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.*
+import com.sukisu.ultra.ui.component.AnimatedFab
+import com.sukisu.ultra.ui.component.ConfirmResult
+import com.sukisu.ultra.ui.component.InstallConfirmationDialog
+import com.sukisu.ultra.ui.component.SearchAppBar
 import com.sukisu.ultra.ui.component.ZipFileDetector.parseModuleInfo
-import com.sukisu.ultra.ui.theme.CardConfig
+import com.sukisu.ultra.ui.component.ZipFileInfo
+import com.sukisu.ultra.ui.component.ZipType
+import com.sukisu.ultra.ui.component.rememberConfirmDialog
+import com.sukisu.ultra.ui.component.rememberFabVisibilityState
+import com.sukisu.ultra.ui.component.rememberLoadingDialog
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
-import com.sukisu.ultra.ui.util.*
-import com.sukisu.ultra.ui.util.module.ModuleModify
-import com.sukisu.ultra.ui.util.module.ModuleOperationUtils
+import com.sukisu.ultra.ui.util.DownloadListener
+import com.sukisu.ultra.ui.util.LocalSnackbarHost
+import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.hasMagisk
 import com.sukisu.ultra.ui.util.module.ModuleUtils
-import com.sukisu.ultra.ui.util.module.verifyModuleSignature
+import com.sukisu.ultra.ui.util.reboot
+import com.sukisu.ultra.ui.util.toggleModule
+import com.sukisu.ultra.ui.util.undoUninstallModule
+import com.sukisu.ultra.ui.util.uninstallModule
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import com.sukisu.ultra.ui.webui.WebUIXActivity
-import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 data class ModuleBottomSheetMenuItem(
@@ -114,11 +169,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
     var lastClickTime by remember { mutableStateOf(0L) }
-
-    var showSignatureDialog by remember { mutableStateOf(false) }
-    var signatureDialogMessage by remember { mutableStateOf("") }
-    var isForceVerificationFailed by remember { mutableStateOf(false) }
-    var pendingInstallAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.initializeCache(context)
@@ -194,39 +244,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 }
                 pendingZipFiles = zipFiles
 
-                // 验证模块签名
-                val forceVerification = prefs.getBoolean("force_signature_verification", false)
-                val verificationResults = mutableMapOf<Uri, Boolean>()
-
-                for (uri in selectedModules) {
-                    val isVerified = verifyModuleSignature(context, uri)
-                    verificationResults[uri] = isVerified
-                    // 存储验证状态
-                    setModuleVerificationStatus(uri, isVerified)
-
-                    if (forceVerification && !isVerified) {
-                        withContext(Dispatchers.Main) {
-                            signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
-                            isForceVerificationFailed = true
-                            showSignatureDialog = true
-                        }
-                        return@launch
-                    } else if (!isVerified) {
-                        withContext(Dispatchers.Main) {
-                            signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
-                            isForceVerificationFailed = false
-                            pendingInstallAction = {
-                                showConfirmationDialog = true
-                            }
-                            showSignatureDialog = true
-                        }
-                        return@launch
-                    }
-                }
-
-                // 所有模块签名验证通过，直接安装
-                if (verificationResults.all { it -> it.value })
-                    showConfirmationDialog = true
+                showConfirmationDialog = true
             } else {
                 val uri = data.data ?: return@launch
                 // 单个安装模块
@@ -241,27 +259,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     zipFiles.add(parseModuleInfo(context, uri))
                     pendingZipFiles = zipFiles
 
-                    // 验证模块签名
-                    val forceVerification = prefs.getBoolean("force_signature_verification", false)
-                    val isVerified = verifyModuleSignature(context, uri)
-                    // 存储验证状态
-                    setModuleVerificationStatus(uri, isVerified)
-
-                    if (forceVerification && !isVerified) {
-                        signatureDialogMessage = context.getString(R.string.module_signature_invalid_message)
-                        isForceVerificationFailed = true
-                        showSignatureDialog = true
-                        return@launch
-                    } else if (!isVerified) {
-                        signatureDialogMessage = context.getString(R.string.module_signature_verification_failed)
-                        isForceVerificationFailed = false
-                        pendingInstallAction = {
-                            showConfirmationDialog = true
-                        }
-                        showSignatureDialog = true
-                        return@launch
-                    }
-
                     showConfirmationDialog = true
                 } catch (e: Exception) {
                     Log.e("ModuleScreen", "Error processing a single URI: $uri, Error: ${e.message}")
@@ -270,9 +267,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
             }
         }
     }
-
-    val backupLauncher = ModuleModify.rememberModuleBackupLauncher(context, snackBarHost)
-    val restoreLauncher = ModuleModify.rememberModuleRestoreLauncher(context, snackBarHost)
 
     LaunchedEffect(Unit) {
         if (viewModel.moduleList.isEmpty() || viewModel.isNeedRefresh) {
@@ -292,33 +286,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val webUILauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { viewModel.fetchModuleList() }
-
-    val bottomSheetMenuItems = remember {
-        listOf(
-            ModuleBottomSheetMenuItem(
-                icon = Icons.Outlined.Save,
-                titleRes = R.string.backup_modules,
-                onClick = {
-                    backupLauncher.launch(ModuleModify.createBackupIntent())
-                    scope.launch {
-                        bottomSheetState.hide()
-                        showBottomSheet = false
-                    }
-                }
-            ),
-            ModuleBottomSheetMenuItem(
-                icon = Icons.Outlined.RestoreFromTrash,
-                titleRes = R.string.restore_modules,
-                onClick = {
-                    restoreLauncher.launch(ModuleModify.createRestoreIntent())
-                    scope.launch {
-                        bottomSheetState.hide()
-                        showBottomSheet = false
-                    }
-                }
-            )
-        )
-    }
 
     Scaffold(
         topBar = {
@@ -492,7 +459,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 }
             ) {
                 ModuleBottomSheetContent(
-                    menuItems = bottomSheetMenuItems,
                     viewModel = viewModel,
                     prefs = prefs,
                     scope = scope,
@@ -501,71 +467,12 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 )
             }
         }
-
-        // 签名验证弹窗
-        if (showSignatureDialog) {
-            AlertDialog(
-                onDismissRequest = { showSignatureDialog = false },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                },
-                title = {
-                    Text(
-                        text = stringResource(R.string.module_signature_invalid),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                },
-                text = {
-                    Text(text = signatureDialogMessage)
-                },
-                confirmButton = {
-                    if (isForceVerificationFailed) {
-                        // 强制验证失败，只显示确定按钮
-                        TextButton(
-                            onClick = { showSignatureDialog = false }
-                        ) {
-                            Text(stringResource(R.string.confirm))
-                        }
-                    } else {
-                        // 非强制验证失败，显示继续安装按钮
-                        TextButton(
-                            onClick = {
-                                showSignatureDialog = false
-                                pendingInstallAction?.invoke()
-                                pendingInstallAction = null
-                            }
-                        ) {
-                            Text(stringResource(R.string.install))
-                        }
-                    }
-                },
-                dismissButton = if (!isForceVerificationFailed) {
-                    {
-                        TextButton(
-                            onClick = {
-                                showSignatureDialog = false
-                                pendingInstallAction = null
-                            }
-                        ) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                    }
-                } else {
-                    null
-                }
-            )
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModuleBottomSheetContent(
-    menuItems: List<ModuleBottomSheetMenuItem>,
     viewModel: ModuleViewModel,
     prefs: android.content.SharedPreferences,
     scope: kotlinx.coroutines.CoroutineScope,
@@ -585,24 +492,7 @@ private fun ModuleBottomSheetContent(
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
         )
 
-        // 菜单选项网格
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(4),
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(menuItems) { menuItem ->
-                ModuleBottomSheetMenuItemView(
-                    menuItem = menuItem
-                )
-            }
-        }
-
         // 排序选项
-        Spacer(modifier = Modifier.height(24.dp))
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp))
 
         Text(
             text = stringResource(R.string.sort_options),
@@ -667,59 +557,6 @@ private fun ModuleBottomSheetContent(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ModuleBottomSheetMenuItemView(menuItem: ModuleBottomSheetMenuItem) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1.0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessHigh
-        ),
-        label = "menuItemScale"
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) { menuItem.onClick() }
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Surface(
-            modifier = Modifier.size(48.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ) {
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = menuItem.icon,
-                    contentDescription = stringResource(menuItem.titleRes),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(menuItem.titleRes),
-            style = MaterialTheme.typography.labelSmall,
-            textAlign = TextAlign.Center,
-            maxLines = 2
-        )
     }
 }
 
@@ -821,9 +658,6 @@ private fun ModuleList(
                 fileName,
                 downloading,
                 onDownloaded = { uri ->
-                    // 验证更新模块的签名
-                    val isVerified = verifyModuleSignature(context, uri)
-                    setModuleVerificationStatus(uri, isVerified)
                     onUpdateModule(uri)
                 },
                 onDownloading = {
@@ -858,8 +692,6 @@ private fun ModuleList(
         val success = loadingDialog.withLoading {
             withContext(Dispatchers.IO) {
                 if (isUninstall) {
-                    // 卸载时移除验证标志
-                    ModuleOperationUtils.handleModuleUninstall(module.dirId)
                     uninstallModule(module.dirId)
                 } else {
                     undoUninstallModule(module.dirId)
@@ -1077,34 +909,6 @@ fun ModuleItem(
                             textDecoration = textDecoration,
                             modifier = Modifier.weight(1f, false)
                         )
-
-                        // 显示验证标签
-                        if (module.isVerified) {
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Verified,
-                                        contentDescription = stringResource(R.string.module_signature_verified),
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text(
-                                        text = stringResource(R.string.module_verified),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
                     }
 
                     Text(
@@ -1345,7 +1149,6 @@ fun ModuleItemPreview() {
         metamodule = true,
         dirId = "dirId",
         config = ModuleConfig(),
-        isVerified = true,
         verificationTimestamp = System.currentTimeMillis()
     )
     ModuleItem(EmptyDestinationsNavigator, module, "", {}, {}, {}, {})

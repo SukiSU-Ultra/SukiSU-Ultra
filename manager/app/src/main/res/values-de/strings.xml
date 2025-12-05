@@ -135,10 +135,6 @@
     <string name="confirm">Bestätigen</string>
     <string name="cancel">Abbrechen</string>
     <!-- Backup related -->
-    <string name="backup_success">Sicherung erfolgreich (tar.gz)</string>
-    <string name="backup_failed">Sicherung fehlgeschlagen: %1$s</string>
-    <string name="backup_modules">sicherungsmodule</string>
-    <string name="restore_modules">wiederherstellen</string>
     <!-- Restore related messages -->
     <string name="restore_success">Module erfolgreich wiederhergestellt, Neustart erforderlich</string>
     <string name="restore_failed">Wiederherstellung fehlgeschlagen: %1$s</string>

@@ -135,10 +135,6 @@
     <string name="confirm">تأكيد</string>
     <string name="cancel">إلغاء</string>
     <!-- Backup related -->
-    <string name="backup_success">النسخ الاحتياطي ناجح (tar.gz)</string>
-    <string name="backup_failed">فشل النسخ الاحتياطي: %1$s</string>
-    <string name="backup_modules">وحدات النسخ الاحتياطي</string>
-    <string name="restore_modules">استعادة الوحدات</string>
     <!-- Restore related messages -->
     <string name="restore_success">تم استعادة الوحدات بنجاح, إعادة التشغيل مطلوبة</string>
     <string name="restore_failed">فشل الاستعادة: %1$s</string>

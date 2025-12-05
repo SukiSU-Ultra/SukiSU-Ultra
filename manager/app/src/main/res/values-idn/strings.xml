@@ -136,10 +136,6 @@ Lanjutkan?</string>
     <string name="confirm">Konfirmasi</string>
     <string name="cancel">Batal</string>
     <!-- Backup related -->
-    <string name="backup_success">Pencadangan Berhasil (tar.gz)</string>
-    <string name="backup_failed">Gagal membuat cadangan: %1$s</string>
-    <string name="backup_modules">cadangan modul</string>
-    <string name="restore_modules">pulihkan modul</string>
     <!-- Restore related messages -->
     <string name="restore_success">Modul berhasil dipulihkan, perlu reboot</string>
     <string name="restore_failed">Gagal memulihkan: %1$s</string>

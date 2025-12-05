@@ -135,10 +135,6 @@
     <string name="confirm">確認</string>
     <string name="cancel">キャンセル</string>
     <!-- Backup related -->
-    <string name="backup_success">バックアップが完了しました (tar.gz)</string>
-    <string name="backup_failed">バックアップに失敗: %1$s</string>
-    <string name="backup_modules">モジュールをバックアップ</string>
-    <string name="restore_modules">モジュールを復元</string>
     <!-- Restore related messages -->
     <string name="restore_success">モジュールは正常に復元されました、再起動が必要です</string>
     <string name="restore_failed">復元に失敗: %1$s</string>
@@ -574,11 +570,5 @@
 - これを有効化すると、開発者が何らかの権限や SELinux の問題をデバッグするときに原因を特定するのが難しくなる場合があるため、デバッグ時はこれを無効化することをお勧めします。</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">検証済み</string>
-    <string name="module_signature_verified">モジュールの署名が検証されました</string>
-    <string name="module_signature_verification">署名の検証</string>
-    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。（ARM アーキテクチャのみ）</string>
-    <string name="module_signature_invalid">不明な発行元</string>
-    <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
-    <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
     <string name="home_hook_type">フックタイプ</string>
 </resources>
