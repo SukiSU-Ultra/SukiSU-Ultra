@@ -159,7 +159,9 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid) {// (new_euid)
 		ksu_install_fd();
 		spin_lock_irq(&current->sighand->siglock);
 		ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
 		ksu_set_task_tracepoint_flag(current);
+#endif
 		spin_unlock_irq(&current->sighand->siglock);
 		return 0;
 	}
@@ -172,10 +174,15 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid) {// (new_euid)
 						__NR_reboot);
 			spin_unlock_irq(&current->sighand->siglock);
 		}
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
 		ksu_set_task_tracepoint_flag(current);
+#endif
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
 	} else {
 		ksu_clear_task_tracepoint_flag_if_needed(current);
 	}
+#endif
+
 #else
 	if (ksu_is_allow_uid_for_current(new_uid)) {
 		spin_lock_irq(&current->sighand->siglock);
@@ -260,9 +267,13 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid) {
 						__NR_reboot);
 			spin_unlock_irq(&current->sighand->siglock);
 		}
-	} else {
+	} 
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
+	else {
 		ksu_clear_task_tracepoint_flag_if_needed(current);
 	}
+#endif
+
 #else
 	if (ksu_is_allow_uid_for_current(new_uid)) {
 		spin_lock_irq(&current->sighand->siglock);
