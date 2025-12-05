@@ -6,7 +6,11 @@
 #include <linux/version.h>
 #include <linux/workqueue.h>
 #include <linux/task_work.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#include <linux/sched/task.h>
+#else
 #include <linux/sched.h>
+#endif
 #include <linux/pid.h>
 #ifdef CONFIG_KSU_DEBUG
 #include <linux/moduleparam.h>

@@ -102,7 +102,9 @@ int ksu_handle_execveat_init(struct filename *filename) {
             escape_to_root_for_init();
         } else if (likely(strstr(filename->name, "/app_process") == NULL && strstr(filename->name, "/adbd") == NULL)) {
             pr_info("hook_manager: unmark %d exec %s\n", current->pid, filename->name);
+#ifdef CONFIG_KSU_SUSFS
             susfs_set_current_proc_umounted();
+#endif
         }
         return 0;
     }
