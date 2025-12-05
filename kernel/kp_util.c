@@ -3,7 +3,11 @@
 #include <linux/printk.h>
 #include <linux/preempt.h>
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#include <linux/sched/task.h>
+#else
 #include <linux/sched.h>
+#endif
 #endif
 #include <asm/current.h>
 
@@ -28,7 +32,7 @@ static bool try_set_access_flag(unsigned long addr)
 	if (!mm)
 		return false;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208)
 	if (!mmap_read_trylock(mm))
 		return false;
 #else
@@ -84,7 +88,7 @@ static bool try_set_access_flag(unsigned long addr)
 out_pte_unlock:
 	pte_unmap_unlock(ptep, ptl);
 out_unlock:
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208)
 	mmap_read_unlock(mm);
 #else
 	up_read(&mm->mmap_sem);
