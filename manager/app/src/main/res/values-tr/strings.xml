@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Ana Sayfa</string>
+    <string name="learn_more">Daha fazla bilgi edinin</string>
     <string name="home_not_installed">Yüklü değil</string>
     <string name="home_click_to_install">Yüklemek için tıklayın</string>
     <string name="home_working">Çalışıyor</string>
@@ -34,6 +35,7 @@
     <string name="reboot_edl">EDL moduna yeniden başlat</string>
     <string name="about">Hakkında</string>
     <string name="module_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz?</string>
+    <string name="metamodule_uninstall_confirm">"%s modülünü kaldırmak istediğinizden emin misiniz? Bu eylem tüm modülleri etkileyecek ve meta modül tarafından sağlanan belirli özellikler (örneğin bağlama) artık çalışmayacaktır."</string>
     <string name="module_uninstall_success">%s kaldırıldı</string>
     <string name="module_uninstall_failed">Kaldırılamadı: %s</string>
     <string name="module_version">Sürüm</string>
@@ -109,6 +111,7 @@
     <string name="install_inactive_slot">Etkin olmayan yuvaya yükle (OTA sonrası)</string>
     <string name="install_inactive_slot_warning">Cihazınız, yeniden başlatma sonrasında **ZORUNLU** olarak mevcut etkin olmayan yuvaya önyükleme yapacaktır!\nSadece OTA tamamlandıktan sonra bu seçeneği kullanın.\nDevam etmek istiyor musunuz?</string>
     <string name="install_next">İleri</string>
+    <string name="install_select_partition">Bölüm seçin</string>
     <string name="install_upload_lkm_file">Yerel LKM dosyası kullan</string>
     <string name="install_only_support_ko_file">Yalnızca .ko dosyaları desteklenir</string>
     <string name="select_file_tip">%1$s bölüm görüntüsü önerilir</string>
@@ -167,6 +170,8 @@
     <string name="settings_disable_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesindeki ayırma davranışını devre dışı bırakın.</string>
     <string name="settings_enable_enhanced_security">Gelişmiş güvenliği etkinleştir</string>
     <string name="settings_enable_enhanced_security_summary">Daha katı güvenlik politikalarını etkinleştirin.</string>
+    <string name="feature_status_unsupported_summary">Çekirdek bu özelliği desteklemiyor.</string>
+    <string name="feature_status_managed_summary">Bu özellik bir modül tarafından yönetiliyor.</string>
     <string name="settings_mode_default">Varsayılan</string>
     <string name="settings_mode_temp_enable">Geçici olarak etkinleştir</string>
     <string name="settings_mode_always_enable">Kalıcı olarak etkinleştir</string>
@@ -185,6 +190,8 @@
     <string name="hide_susfs_status_summary">Ana sayfadaki SuSFS durum bilgilerini gizle</string>
     <string name="hide_zygisk_implement">Zygisk durumunu gizle</string>
     <string name="hide_zygisk_implement_summary">Ana sayfada Zygisk uygulama bilgisini gizle</string>
+    <string name="hide_meta_module_implement">Meta Modül durumunu gizle</string>
+    <string name="hide_meta_module_implement_summary">Ana sayfadaki Meta Modül uygulama bilgilerini gizle</string>
     <string name="hide_link_card">Bağlantı Kartı Durumunu Gizle</string>
     <string name="hide_link_card_summary">Ana sayfadaki bağlantı kartı bilgilerini gizle</string>
     <string name="hide_tag_card">Modül etiket satırlarını gizle</string>
@@ -194,6 +201,7 @@
     <string name="theme_light">Açık</string>
     <string name="theme_dark">Koyu</string>
     <string name="manual_hook">Manuel Kanca</string>
+    <string name="inline_hook">Satır İçi Kanca</string>
     <string name="dynamic_color_title">Dinamik renkler</string>
     <string name="dynamic_color_summary">Sistem temaları kullanarak dinamik renkler</string>
     <string name="choose_theme_color">Bir tema rengi seçin</string>
@@ -325,6 +333,8 @@
     <string name="module_failed_count">%d yeni modül yüklenemedi</string>
     <string name="module_download_error">Modül indirme başarısız</string>
     <string name="kernel_flashing">Çekirdek Yükleniyor</string>
+    <string name="warning_of_meta_module_title">Meta modül gerektirir</string>
+    <string name="warning_of_meta_module_summary">Bu modül /system bölümünü bağlamak istiyor, meta modül bunu halledecektir. Aksi takdirde, çalışmayabilir.</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Tümü</string>
     <string name="category_root_apps">Root</string>
@@ -396,8 +406,6 @@
     <string name="susfs_path_label">Yol</string>
     <string name="susfs_path_placeholder">örn.: /system/addon.d</string>
     <string name="susfs_no_paths_configured">Yapılandırılmış SUS yolu yok</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">SUS Yollarını Sıfırla</string>
     <string name="susfs_reset_paths_message">Bu, tüm SUS yol yapılandırmalarını temizleyecektir. Devam etmek istiyor musunuz?</string>
@@ -554,6 +562,7 @@
     <string name="no_active_manager">Aktif yönetici yok</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk uygulaması</string>
+    <string name="home_meta_module_implement">Meta Modül uygulaması</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SUS Döngü Yolları</string>
     <string name="susfs_add_sus_loop_path">SUS Döngü Yolu Ekle</string>
@@ -687,4 +696,26 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'u
     <string name="miui_uninstall_title">SukiSU Yöneticisi Kaldırılsın mı?</string>
     <string name="miui_uninstall_content">Kaldırma işlemine devam etmek, root erişiminizin temel işlevselliğini etkilemeyecektir. Root, bu yöneticiden bağımsız olarak çalışacak şekilde tasarlanmıştır.</string>
     <string name="incompatible_kernel_msg">Mevcut yönetici bu çekirdekle uyumsuz! Lütfen çekirdeği %2$d veya daha yüksek bir sürüme yükseltin (mevcut sürüm %1$d)</string>
+    <string name="umount_path_manager">Bağlantı Kaldırma Yolu Yönetimi</string>
+    <string name="umount_path_manager_summary">Çekirdek bağlantı kaldırma yollarını yönetin</string>
+    <string name="umount_path_restart_notice">Değişikliklerin etkili olması için yeniden başlatma gereklidir. Sistem, yeni yapılandırmayı bir sonraki önyüklemede uygulayacaktır.</string>
+    <string name="add_umount_path">Bağlantı Kaldırma Yolu Ekle</string>
+    <string name="mount_path">Bağlama Yolu</string>
+    <string name="umount_flags">Bağlantı Kaldırma Bayrakları</string>
+    <string name="flags">Bayraklar</string>
+    <string name="confirm_delete">Silmeyi Onayla</string>
+    <string name="confirm_delete_umount_path">%s yolunu silmek istediğinizden emin misiniz?</string>
+    <string name="umount_path_added">Yol eklendi, yeniden başlattıktan sonra geçerli olacak</string>
+    <string name="umount_path_removed">Yol kaldırıldı, yeniden başlattıktan sonra geçerli olacak</string>
+    <string name="operation_failed">İşlem başarısız oldu</string>
+    <string name="confirm_action">Eylemi Onayla</string>
+    <string name="confirm_clear_custom_paths">Tüm özel yolları temizlemek istediğinizden emin misiniz? (Varsayılan yollar korunacaktır)</string>
+    <string name="custom_paths_cleared">Özel yollar temizlendi</string>
+    <string name="clear_custom_paths">Özel Yolları Temizle</string>
+    <string name="apply_config">Yapılandırmayı Uygula</string>
+    <string name="config_applied">Yapılandırma çekirdeğe uygulandı</string>
+    <string name="mnt_detach">MNT_DETACH</string>
+    <string name="group_contains_apps">%d uygulama içeriyor</string>
+    <string name="settings_disable_sulog">Süper kullanıcı günlük kaydını devre dışı bırak</string>
+    <string name="settings_disable_sulog_summary">KernelSU süper kullanıcı erişim günlük kaydını devre dışı bırakır</string>
 </resources>
