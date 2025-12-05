@@ -97,18 +97,6 @@ object UltraActivityUtils {
 }
 
 object AppData {
-    object DataRefreshManager {
-        // 私有状态流
-        private val _superuserCount = MutableStateFlow(0)
-        private val _moduleCount = MutableStateFlow(0)
-        private val _kpmModuleCount = MutableStateFlow(0)
-
-        // 公开的只读状态流
-        val superuserCount: StateFlow<Int> = _superuserCount.asStateFlow()
-        val moduleCount: StateFlow<Int> = _moduleCount.asStateFlow()
-        val kpmModuleCount: StateFlow<Int> = _kpmModuleCount.asStateFlow()
-    }
-
     /**
      * 获取KPM版本
      */
