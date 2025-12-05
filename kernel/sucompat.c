@@ -1,5 +1,10 @@
-#include <linux/compiler_types.h>
 #include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#include <linux/compiler_types.h>
+#else /* Ensure compatibility with kernel versions below 4.14. */
+#include <linux/compiler-gcc.h>
+#include <linux/compiler.h>
+#endif
 #include <linux/preempt.h>
 #include <linux/printk.h>
 #include <linux/mm.h>
