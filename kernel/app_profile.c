@@ -16,29 +16,30 @@
 #include <linux/thread_info.h>
 #include <linux/uidgid.h>
 #include <linux/syscalls.h>
-#include "objsec.h"
 #include <linux/spinlock.h>
 #include <linux/tty.h>
 #include <linux/security.h> 
 
+#include "objsec.h"
 #include "allowlist.h"
 #include "app_profile.h"
 #include "arch.h"
 #include "kernel_compat.h"
 #include "klog.h" // IWYU pragma: keep
 #include "selinux/selinux.h"
-#ifndef CONFIG_KSU_SUSFS
-#include "syscall_hook_manager.h"
-#endif
-#include "sulog.h"
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION (6, 7, 0)
-	static struct group_info root_groups = { .usage = REFCOUNT_INIT(2), };
-#else 
-	static struct group_info root_groups = { .usage = ATOMIC_INIT(2) };
+#ifdef CONFIG_KSU_SYSCALL_HOOK
+#include "syscall_handler.h"
 #endif
 
-static void setup_groups(struct root_profile *profile, struct cred *cred)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0) && defined(CONFIG_CC_IS_GCC))
+static struct group_info root_groups = {
+	.usage = REFCOUNT_INIT(2),
+};
+#else
+static struct group_info root_groups = { .usage = ATOMIC_INIT(2) };
+#endif
+
+void setup_groups(struct root_profile *profile, struct cred *cred)
 {
 	if (profile->groups_count > KSU_MAX_GROUPS) {
 		pr_warn("Failed to setgroups, too large group: %d!\n",
@@ -82,15 +83,16 @@ static void setup_groups(struct root_profile *profile, struct cred *cred)
 	put_group_info(group_info);
 }
 
+// RKSU: Use it wisely, not static.
 void disable_seccomp(struct task_struct *tsk)
 {
-	if (unlikely(!tsk))
+	if (!tsk)
 		return;
 
 	assert_spin_locked(&tsk->sighand->siglock);
 
 	// disable seccomp
-#if defined(CONFIG_GENERIC_ENTRY) &&										   \
+#if defined(CONFIG_GENERIC_ENTRY) &&                                           \
 	LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 	clear_syscall_work(SECCOMP);
 #else
@@ -98,37 +100,40 @@ void disable_seccomp(struct task_struct *tsk)
 #endif
 
 #ifdef CONFIG_SECCOMP
+	// Skip releasing filter ref when its already NULL.
+	if (tsk->seccomp.filter == NULL)
+		return;
+
 	tsk->seccomp.mode = 0;
-	if (tsk->seccomp.filter) {
-		// 5.9+ have filter_count, but optional.
-#ifdef KSU_OPTIONAL_SECCOMP_FILTER_CNT
-		atomic_set(&tsk->seccomp.filter_count, 0);
+	// 5.9+ have filter_count, but optional.
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0) ||                          \
+     defined(KSU_OPTIONAL_SECCOMP_FILTER_CNT))
+	atomic_set(&tsk->seccomp.filter_count, 0);
 #endif
-		// some old kernel backport seccomp_filter_release..
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0) &&							\
-	defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE)
-		seccomp_filter_release(tsk);
-#else
-		// never, ever call seccomp_filter_release on 6.10+ (no effect)
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) &&						  \
-	 LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0))
-		seccomp_filter_release(tsk);
-#else
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
-		put_seccomp_filter(tsk);
+	// some old kernel backport seccomp_filter_release..
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0) &&                           \
+     defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE))
+	seccomp_filter_release(tsk);
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
+	put_seccomp_filter(tsk);
 #endif
-		tsk->seccomp.filter = NULL;
+	// never, ever call seccomp_filter_release on 6.10+ (no effect)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) &&                          \
+     LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0))
+	seccomp_filter_release(tsk);
 #endif
-#endif
-	}
+	// finally, we freed the filter to avoid UAF.
+	tsk->seccomp.filter = NULL;
 #endif
 }
 
 void escape_with_root_profile(void)
 {
 	struct cred *cred;
-	// a bit useless, but we just want less ifdefs
-	struct task_struct *p = current;
+#ifdef CONFIG_KSU_SYSCALL_HOOK
+	struct task_struct *p, *t;
+	p = current;
+#endif
 
 	if (current_euid().val == 0) {
 		pr_warn("Already root, don't escape!\n");
@@ -155,7 +160,7 @@ void escape_with_root_profile(void)
 	cred->securebits = 0;
 
 	BUILD_BUG_ON(sizeof(profile->capabilities.effective) !=
-			 sizeof(kernel_cap_t));
+		     sizeof(kernel_cap_t));
 
 	// setup capabilities
 	// we need CAP_DAC_READ_SEARCH becuase `/data/adb/ksud` is not accessible for non root process
@@ -163,11 +168,11 @@ void escape_with_root_profile(void)
 	u64 cap_for_ksud =
 		profile->capabilities.effective | CAP_DAC_READ_SEARCH;
 	memcpy(&cred->cap_effective, &cap_for_ksud,
-		   sizeof(cred->cap_effective));
+	       sizeof(cred->cap_effective));
 	memcpy(&cred->cap_permitted, &profile->capabilities.effective,
-		   sizeof(cred->cap_permitted));
+	       sizeof(cred->cap_permitted));
 	memcpy(&cred->cap_bset, &profile->capabilities.effective,
-		   sizeof(cred->cap_bset));
+	       sizeof(cred->cap_bset));
 
 	setup_groups(profile, cred);
 
@@ -175,24 +180,24 @@ void escape_with_root_profile(void)
 
 	// Refer to kernel/seccomp.c: seccomp_set_mode_strict
 	// When disabling Seccomp, ensure that current->sighand->siglock is held during the operation.
-	spin_lock_irq(&p->sighand->siglock);
-	disable_seccomp(p);
-	spin_unlock_irq(&p->sighand->siglock);
+	spin_lock_irq(&current->sighand->siglock);
+	disable_seccomp(current);
+	spin_unlock_irq(&current->sighand->siglock);
 
 	setup_selinux(profile->selinux_domain);
 #if __SULOG_GATE
 	ksu_sulog_report_su_grant(current_euid().val, NULL, "escape_to_root");
 #endif
 
-#ifndef CONFIG_KSU_SUSFS
-	struct task_struct *t;
+#ifdef CONFIG_KSU_SYSCALL_HOOK
 	for_each_thread (p, t) {
 		ksu_set_task_tracepoint_flag(t);
 	}
 #endif
 }
 
-void escape_to_root_for_init(void) {
+void __maybe_unused escape_to_root_for_init(void)
+{
 	setup_selinux(KERNEL_SU_CONTEXT);
 }
 

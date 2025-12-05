@@ -89,25 +89,26 @@ struct ksu_manage_mark_cmd {
 	__u32 result; // Output: for get operation - mark status or reg_count
 };
 
+struct ksu_nuke_ext4_sysfs_cmd {
+	__aligned_u64 arg; // Input: mnt pointer
+};
+
 #define KSU_MARK_GET 1
 #define KSU_MARK_MARK 2
 #define KSU_MARK_UNMARK 3
 #define KSU_MARK_REFRESH 4
 
-struct ksu_nuke_ext4_sysfs_cmd {
-	__aligned_u64 arg; // Input: mnt pointer
-};
-
 struct ksu_add_try_umount_cmd {
-	__aligned_u64 arg; // char ptr, this is the mountpoint
+	__aligned_u64 arg; // char ptr, this is the mountpoint (or output buffer for LIST)
 	__u32 flags; // this is the flag we use for it
-	__u8 mode; // denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry
+	__u8 mode; // denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry 3:list
+	__u32 buf_size; // buffer size for LIST mode
 };
 
-#define KSU_UMOUNT_WIPE 0  // ignore everything and wipe list
-#define KSU_UMOUNT_ADD 1   // add entry (path + flags)
-#define KSU_UMOUNT_DEL 2   // delete entry, strcmp
-
+#define KSU_UMOUNT_WIPE 0 // ignore everything and wipe list
+#define KSU_UMOUNT_ADD 1 // add entry (path + flags)
+#define KSU_UMOUNT_DEL 2 // delete entry, strcmp
+#define KSU_UMOUNT_LIST 3 // list all entries
 
 // Other command structures
 struct ksu_get_full_version_cmd {
@@ -149,30 +150,30 @@ struct ksu_manual_su_cmd {
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
 #define KSU_IOCTL_REPORT_EVENT _IOC(_IOC_WRITE, 'K', 3, 0)
-#define KSU_IOCTL_SET_SEPOLICY _IOC(_IOC_READ|_IOC_WRITE, 'K', 4, 0)
+#define KSU_IOCTL_SET_SEPOLICY _IOC(_IOC_READ | _IOC_WRITE, 'K', 4, 0)
 #define KSU_IOCTL_CHECK_SAFEMODE _IOC(_IOC_READ, 'K', 5, 0)
-#define KSU_IOCTL_GET_ALLOW_LIST _IOC(_IOC_READ|_IOC_WRITE, 'K', 6, 0)
-#define KSU_IOCTL_GET_DENY_LIST _IOC(_IOC_READ|_IOC_WRITE, 'K', 7, 0)
-#define KSU_IOCTL_UID_GRANTED_ROOT _IOC(_IOC_READ|_IOC_WRITE, 'K', 8, 0)
-#define KSU_IOCTL_UID_SHOULD_UMOUNT _IOC(_IOC_READ|_IOC_WRITE, 'K', 9, 0)
+#define KSU_IOCTL_GET_ALLOW_LIST _IOC(_IOC_READ | _IOC_WRITE, 'K', 6, 0)
+#define KSU_IOCTL_GET_DENY_LIST _IOC(_IOC_READ | _IOC_WRITE, 'K', 7, 0)
+#define KSU_IOCTL_UID_GRANTED_ROOT _IOC(_IOC_READ | _IOC_WRITE, 'K', 8, 0)
+#define KSU_IOCTL_UID_SHOULD_UMOUNT _IOC(_IOC_READ | _IOC_WRITE, 'K', 9, 0)
 #define KSU_IOCTL_GET_MANAGER_UID _IOC(_IOC_READ, 'K', 10, 0)
-#define KSU_IOCTL_GET_APP_PROFILE _IOC(_IOC_READ|_IOC_WRITE, 'K', 11, 0)
+#define KSU_IOCTL_GET_APP_PROFILE _IOC(_IOC_READ | _IOC_WRITE, 'K', 11, 0)
 #define KSU_IOCTL_SET_APP_PROFILE _IOC(_IOC_WRITE, 'K', 12, 0)
-#define KSU_IOCTL_GET_FEATURE _IOC(_IOC_READ|_IOC_WRITE, 'K', 13, 0)
+#define KSU_IOCTL_GET_FEATURE _IOC(_IOC_READ | _IOC_WRITE, 'K', 13, 0)
 #define KSU_IOCTL_SET_FEATURE _IOC(_IOC_WRITE, 'K', 14, 0)
 #define KSU_IOCTL_GET_WRAPPER_FD _IOC(_IOC_WRITE, 'K', 15, 0)
-#define KSU_IOCTL_MANAGE_MARK _IOC(_IOC_READ|_IOC_WRITE, 'K', 16, 0)
+#define KSU_IOCTL_MANAGE_MARK _IOC(_IOC_READ | _IOC_WRITE, 'K', 16, 0)
 #define KSU_IOCTL_NUKE_EXT4_SYSFS _IOC(_IOC_WRITE, 'K', 17, 0)
-#define KSU_IOCTL_ADD_TRY_UMOUNT _IOC(_IOC_WRITE, 'K', 18, 0)
+#define KSU_IOCTL_ADD_TRY_UMOUNT _IOC(_IOC_READ | _IOC_WRITE, 'K', 18, 0)
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE _IOC(_IOC_READ, 'K', 101, 0)
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
-#define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ|_IOC_WRITE, 'K', 103, 0)
-#define KSU_IOCTL_GET_MANAGERS _IOC(_IOC_READ|_IOC_WRITE, 'K', 104, 0)
-#define KSU_IOCTL_ENABLE_UID_SCANNER _IOC(_IOC_READ|_IOC_WRITE, 'K', 105, 0)
+#define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0)
+#define KSU_IOCTL_GET_MANAGERS _IOC(_IOC_READ | _IOC_WRITE, 'K', 104, 0)
+#define KSU_IOCTL_ENABLE_UID_SCANNER _IOC(_IOC_READ | _IOC_WRITE, 'K', 105, 0)
 #ifdef CONFIG_KSU_MANUAL_SU
-#define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ|_IOC_WRITE, 'K', 106, 0)
+#define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)
 #endif
 
 // IOCTL handler types
@@ -187,10 +188,15 @@ struct ksu_ioctl_cmd_map {
 	ksu_perm_check_t perm_check; // Permission check function
 };
 
+#define KSU_IOCTL(CMD, NAME, HANDLER, PERM)                                    \
+	{ .cmd = KSU_IOCTL_##CMD,                                              \
+	  .name = NAME,                                                        \
+	  .handler = HANDLER,                                                  \
+	  .perm_check = PERM }
+
 // Install KSU fd to current process
 int ksu_install_fd(void);
 
 void ksu_supercalls_init(void);
 void ksu_supercalls_exit(void);
-
 #endif // __KSU_H_SUPERCALLS

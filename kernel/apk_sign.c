@@ -15,10 +15,10 @@
 #endif
 
 #include "apk_sign.h"
-#include "dynamic_manager.h"
 #include "klog.h" // IWYU pragma: keep
-#include "manager_sign.h"
 #include "kernel_compat.h"
+#include "manager_sign.h"
+#include "dynamic_manager.h"
 
 struct sdesc {
 	struct shash_desc shash;
@@ -26,14 +26,14 @@ struct sdesc {
 };
 
 static apk_sign_key_t apk_sign_keys[] = {
-	{EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO}, // SukiSU
+	{ EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO }, // SukiSU
 #ifdef CONFIG_KSU_MULTI_MANAGER_SUPPORT
-	{EXPECTED_SIZE_WEISHU, EXPECTED_HASH_WEISHU}, // Official
-	{EXPECTED_SIZE_5EC1CFF, EXPECTED_HASH_5EC1CFF}, // 5ec1cff/KernelSU
-	{EXPECTED_SIZE_RSUNTK, EXPECTED_HASH_RSUNTK}, // rsuntk/KernelSU
-	{EXPECTED_SIZE_NEKO, EXPECTED_HASH_NEKO}, // Neko/KernelSU
+	{ EXPECTED_SIZE_WEISHU, EXPECTED_HASH_WEISHU }, // Official
+	{ EXPECTED_SIZE_5EC1CFF, EXPECTED_HASH_5EC1CFF }, // 5ec1cff/KernelSU
+	{ EXPECTED_SIZE_RSUNTK, EXPECTED_HASH_RSUNTK }, // rsuntk/KernelSU
+	{ EXPECTED_SIZE_NEKO, EXPECTED_HASH_NEKO }, // Neko/KernelSU
 #ifdef EXPECTED_SIZE
-	{EXPECTED_SIZE, EXPECTED_HASH}, // Custom
+	{ EXPECTED_SIZE, EXPECTED_HASH }, // Custom
 #endif
 #endif
 };
@@ -52,7 +52,7 @@ static struct sdesc *init_sdesc(struct crypto_shash *alg)
 }
 
 static int calc_hash(struct crypto_shash *alg, const unsigned char *data,
-			 unsigned int datalen, unsigned char *digest)
+		     unsigned int datalen, unsigned char *digest)
 {
 	struct sdesc *sdesc;
 	int ret;
@@ -69,7 +69,7 @@ static int calc_hash(struct crypto_shash *alg, const unsigned char *data,
 }
 
 static int ksu_sha256(const unsigned char *data, unsigned int datalen,
-			  unsigned char *digest)
+		      unsigned char *digest)
 {
 	struct crypto_shash *alg;
 	char *hash_alg_name = "sha256";
@@ -177,7 +177,7 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, i
 		}
 		ksu_kernel_read_compat(fp, cert, *size4, pos);
 		unsigned char digest[SHA256_DIGEST_SIZE];
-		if (ksu_sha256(cert, *size4, digest) < 0 ) {
+		if (ksu_sha256(cert, *size4, digest) < 0) {
 			pr_info("sha256 error\n");
 			return false;
 		}
@@ -186,7 +186,8 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, i
 		hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
 
 		bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
-		pr_info("sha256: %s, expected: %s, index: %d\n", hash_str, sign_key.sha256, i);
+		pr_info("sha256: %s, expected: %s, index: %d\n",
+			 hash_str, sign_key.sha256, i);
 		
 		if (strcmp(sign_key.sha256, hash_str) == 0) {
 			signature_valid = true;
@@ -222,8 +223,8 @@ static bool has_v1_signature_file(struct file *fp)
 	loff_t pos = 0;
 
 	while (ksu_kernel_read_compat(fp, &header,
-					  sizeof(struct zip_entry_header), &pos) ==
-		   sizeof(struct zip_entry_header)) {
+				      sizeof(struct zip_entry_header), &pos) ==
+	       sizeof(struct zip_entry_header)) {
 		if (header.signature != 0x04034b50) {
 			// ZIP magic: 'PK'
 			return false;
@@ -232,12 +233,12 @@ static bool has_v1_signature_file(struct file *fp)
 		if (header.file_name_length == sizeof(MANIFEST) - 1) {
 			char fileName[sizeof(MANIFEST)];
 			ksu_kernel_read_compat(fp, fileName,
-						   header.file_name_length, &pos);
+					       header.file_name_length, &pos);
 			fileName[header.file_name_length] = '\0';
 
 			// Check if the entry matches META-INF/MANIFEST.MF
 			if (strncmp(MANIFEST, fileName, sizeof(MANIFEST) - 1) ==
-				0) {
+			    0) {
 				return true;
 			}
 		} else {
@@ -321,7 +322,7 @@ static __always_inline bool check_v2_signature(char *path, bool check_multi_mana
 		uint32_t id;
 		uint32_t offset;
 		ksu_kernel_read_compat(fp, &size8, 0x8,
-					   &pos); // sequence length
+				       &pos); // sequence length
 		if (size8 == size_of_block) {
 			break;
 		}
@@ -350,7 +351,7 @@ static __always_inline bool check_v2_signature(char *path, bool check_multi_mana
 	if (v2_signing_blocks != 1) {
 #ifdef CONFIG_KSU_DEBUG
 		pr_err("Unexpected v2 signature count: %d\n",
-			   v2_signing_blocks);
+		       v2_signing_blocks);
 #endif
 		v2_signing_valid = false;
 	}

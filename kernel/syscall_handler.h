@@ -4,11 +4,7 @@
 #include <linux/version.h>
 #include <linux/sched.h>
 #include <linux/thread_info.h>
-#include <linux/init.h>
-#include <linux/binfmts.h>
-#include <linux/tty.h>
-#include <linux/fs.h>
-#include "selinux/selinux.h"
+#include "kernel_compat.h"
 
 // Hook manager initialization and cleanup
 void ksu_syscall_hook_manager_init(void);
@@ -22,7 +18,6 @@ void ksu_mark_running_process(void);
 // Per-task mark operations
 int ksu_get_task_mark(pid_t pid);
 int ksu_set_task_mark(pid_t pid, bool mark);
-
 
 static inline void ksu_set_task_tracepoint_flag(struct task_struct *t)
 {
@@ -43,5 +38,4 @@ static inline void ksu_clear_task_tracepoint_flag(struct task_struct *t)
 }
 
 void ksu_clear_task_tracepoint_flag_if_needed(struct task_struct *t);
-
 #endif
