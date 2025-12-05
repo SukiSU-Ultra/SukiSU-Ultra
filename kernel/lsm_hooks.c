@@ -43,13 +43,31 @@ static int ksu_key_permission(key_ref_t key_ref, const struct cred *cred,
 }
 #endif
 
+#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+extern int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid);
+static int ksu_task_fix_setuid(struct cred *new, const struct cred *old,
+			       int flags)
+{
+	uid_t new_uid = new->uid.val;
+	uid_t old_uid = old->uid.val;
+	uid_t new_euid = new->euid.val;
+
+	return ksu_handle_setuid(new_uid, old_uid, new_euid);
+}
+#endif
+
 static struct security_hook_list ksu_hooks[] = {
 #if LINUX_VERSION_CODE > KERNEL_VERSION(4, 10, 0) && defined(CONFIG_KSU_MANUAL_SU)
 	LSM_HOOK_INIT(task_alloc, ksu_task_alloc),
 #endif
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) || \
 	defined(CONFIG_IS_HW_HISI) || defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
-	LSM_HOOK_INIT(key_permission, ksu_key_permission)
+	LSM_HOOK_INIT(key_permission, ksu_key_permission),
+#endif
+
+#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid),
 #endif
 };
 

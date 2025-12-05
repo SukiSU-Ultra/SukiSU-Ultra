@@ -47,11 +47,6 @@
 #include "kernel_umount.h"
 #include "sulog.h"
 
-#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
-#include <linux/lsm_hooks.h>
-#include <linux/security.h>
-#endif
-
 #ifdef CONFIG_KSU_SUSFS
 static inline bool is_zygote_isolated_service_uid(uid_t uid)
 {
@@ -310,45 +305,12 @@ do_umount:
 }
 #endif // #ifndef CONFIG_KSU_SUSFS
 
-#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
-static int ksu_task_fix_setuid(struct cred *new, const struct cred *old,
-			       int flags)
-{
-	uid_t new_uid = new->uid.val;
-	uid_t old_uid = old->uid.val;
-	uid_t new_euid = new->euid.val;
-
-	return ksu_handle_setuid(new_uid, old_uid, new_euid);
-}
-
-static struct security_hook_list ksu_hooks[] = {
-	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid)
-};
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,8,0)
-const struct lsm_id ksu_lsmid = {
-	.name = "ksu",
-	.id = 996,
-};
-#endif
-#endif
-
 void ksu_setuid_hook_init(void)
 {
 	ksu_kernel_umount_init();
 	if (ksu_register_feature_handler(&enhanced_security_handler)) {
 		pr_err("Failed to register enhanced security feature handler\n");
 	}
-
-#ifdef CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,8,0)
-	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), &ksu_lsmid);
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
-	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks), "ksu");
-#else
-	security_add_hooks(ksu_hooks, ARRAY_SIZE(ksu_hooks));
-#endif
-#endif
 }
 
 void ksu_setuid_hook_exit(void)
