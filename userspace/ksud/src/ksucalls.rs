@@ -19,7 +19,7 @@ const KSU_IOCTL_SET_FEATURE: u32 = 0x40004b0e; // _IOC(_IOC_WRITE, 'K', 14, 0)
 const KSU_IOCTL_GET_WRAPPER_FD: u32 = 0x40004b0f; // _IOC(_IOC_WRITE, 'K', 15, 0)
 const KSU_IOCTL_MANAGE_MARK: u32 = 0xc0004b10; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 16, 0)
 const KSU_IOCTL_NUKE_EXT4_SYSFS: u32 = 0x40004b11; // _IOC(_IOC_WRITE, 'K', 17, 0)
-const KSU_IOCTL_ADD_TRY_UMOUNT: u32 = 0xc0004b12; // _IOC(_IOC_READ|_IOC_WRITE, 'K', 18, 0)
+const KSU_IOCTL_ADD_TRY_UMOUNT: u32 = 0x40004b12; // _IOC(_IOC_WRITE, 'K', 18, 0) 
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -85,10 +85,9 @@ pub struct NukeExt4SysfsCmd {
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 struct AddTryUmountCmd {
-    arg: u64,      // char ptr, this is the mountpoint (or output buffer for LIST)
-    flags: u32,    // this is the flag we use for it
-    mode: u8,      // denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry 3:list
-    buf_size: u32, // buffer size for LIST mode
+    arg: u64,   // char ptr, this is the mountpoint
+    flags: u32, // this is the flag we use for it
+    mode: u8,   // denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry
 }
 
 // Mark operation constants
@@ -101,7 +100,6 @@ const KSU_MARK_REFRESH: u32 = 4;
 const KSU_UMOUNT_WIPE: u8 = 0;
 const KSU_UMOUNT_ADD: u8 = 1;
 const KSU_UMOUNT_DEL: u8 = 2;
-const KSU_UMOUNT_LIST: u8 = 3;
 
 // Global driver fd cache
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -333,8 +331,7 @@ pub fn umount_list_wipe() -> std::io::Result<()> {
     let mut cmd = AddTryUmountCmd {
         arg: 0,
         flags: 0,
-        mode: KSU_UMOUNT_WIPE,
-        buf_size: 0,
+        mode: KSU_UMOUNT_WIPE
     };
     ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
     Ok(())
@@ -346,8 +343,7 @@ pub fn umount_list_add(path: &str, flags: u32) -> anyhow::Result<()> {
     let mut cmd = AddTryUmountCmd {
         arg: c_path.as_ptr() as u64,
         flags,
-        mode: KSU_UMOUNT_ADD,
-        buf_size: 0,
+        mode: KSU_UMOUNT_ADD
     };
     ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
     Ok(())
@@ -359,27 +355,8 @@ pub fn umount_list_del(path: &str) -> anyhow::Result<()> {
     let mut cmd = AddTryUmountCmd {
         arg: c_path.as_ptr() as u64,
         flags: 0,
-        mode: KSU_UMOUNT_DEL,
-        buf_size: 0,
+        mode: KSU_UMOUNT_DEL
     };
     ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
     Ok(())
-}
-
-/// List all mount points in umount list
-pub fn umount_list_list() -> anyhow::Result<String> {
-    const BUF_SIZE: usize = 4096;
-    let mut buffer = vec![0u8; BUF_SIZE];
-    let mut cmd = AddTryUmountCmd {
-        arg: buffer.as_mut_ptr() as u64,
-        flags: 0,
-        mode: KSU_UMOUNT_LIST,
-        buf_size: BUF_SIZE as u32,
-    };
-    ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
-
-    // Find null terminator or end of buffer
-    let len = buffer.iter().position(|&b| b == 0).unwrap_or(BUF_SIZE);
-    let result = String::from_utf8_lossy(&buffer[..len]).to_string();
-    Ok(result)
 }
