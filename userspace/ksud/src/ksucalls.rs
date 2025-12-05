@@ -343,7 +343,7 @@ pub fn umount_list_add(path: &str, flags: u32) -> anyhow::Result<()> {
     let mut cmd = AddTryUmountCmd {
         arg: c_path.as_ptr() as u64,
         flags,
-        mode: KSU_UMOUNT_ADD
+        mode: KSU_UMOUNT_ADD,
     };
     ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
     Ok(())
@@ -355,7 +355,7 @@ pub fn umount_list_del(path: &str) -> anyhow::Result<()> {
     let mut cmd = AddTryUmountCmd {
         arg: c_path.as_ptr() as u64,
         flags: 0,
-        mode: KSU_UMOUNT_DEL
+        mode: KSU_UMOUNT_DEL,
     };
     ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
     Ok(())
