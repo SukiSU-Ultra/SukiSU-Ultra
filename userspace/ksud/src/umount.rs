@@ -2,7 +2,7 @@ use crate::{defs, ksucalls};
 use anyhow::{Context, Result};
 use log::{info, warn};
 use std::fs;
-use std::io::{BufReader, Read, Write};
+use std::io::{BufReader, Read};
 use std::path::Path;
 
 // Magic number for umount config file
