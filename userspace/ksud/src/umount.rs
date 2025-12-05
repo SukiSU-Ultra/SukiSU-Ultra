@@ -8,44 +8,6 @@ use std::path::Path;
 // Magic number for umount config file
 const UMOUNT_CONFIG_MAGIC: u32 = 0x4B53_554D; // KSUM
 
-pub fn save_umount_config() -> Result<()> {
-    let list_output =
-        ksucalls::umount_list_list().context("Failed to get umount list from kernel")?;
-
-    let config_path = Path::new(defs::UMOUNT_CONFIG_PATH);
-
-    // Ensure directory exists
-    if let Some(parent) = config_path.parent() {
-        fs::create_dir_all(parent).context("Failed to create config directory")?;
-    }
-
-    let mut file = fs::File::create(config_path).context("Failed to create umount config file")?;
-
-    // Write magic number
-    file.write_all(&UMOUNT_CONFIG_MAGIC.to_le_bytes())
-        .context("Failed to write magic number")?;
-
-    // Parse list output and write entries
-    let lines: Vec<&str> = list_output.lines().collect();
-    // Skip header lines (first 2 lines)
-    for line in lines.iter().skip(2) {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 2 {
-            let path = parts[0];
-            let flags = parts[1].parse::<u32>().unwrap_or(0);
-
-            // Write path length (u32), path bytes, flags (u32)
-            let path_bytes = path.as_bytes();
-            file.write_all(&(path_bytes.len() as u32).to_le_bytes())?;
-            file.write_all(path_bytes)?;
-            file.write_all(&flags.to_le_bytes())?;
-        }
-    }
-
-    info!("Saved umount config to {}", defs::UMOUNT_CONFIG_PATH);
-    Ok(())
-}
-
 pub fn load_umount_config() -> Result<()> {
     let config_path = Path::new(defs::UMOUNT_CONFIG_PATH);
 
