@@ -331,7 +331,7 @@ pub fn umount_list_wipe() -> std::io::Result<()> {
     let mut cmd = AddTryUmountCmd {
         arg: 0,
         flags: 0,
-        mode: KSU_UMOUNT_WIPE
+        mode: KSU_UMOUNT_WIPE,
     };
     ksuctl(KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
     Ok(())
