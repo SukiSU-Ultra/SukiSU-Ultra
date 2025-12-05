@@ -147,6 +147,29 @@ class ModuleViewModel : ViewModel() {
 
                 Log.i(TAG, "result: $result")
 
+                val array = JSONArray(result)
+                modules = (0 until array.length())
+                    .asSequence()
+                    .map { array.getJSONObject(it) }
+                    .map { obj ->
+                        ModuleInfo(
+                            obj.getString("id"),
+                            obj.optString("name"),
+                            obj.optString("author", "Unknown"),
+                            obj.optString("version", "Unknown"),
+                            obj.getIntCompat("versionCode", 0),
+                            obj.optString("description"),
+                            obj.getBooleanCompat("enabled"),
+                            obj.getBooleanCompat("update"),
+                            obj.getBooleanCompat("remove"),
+                            obj.optString("updateJson"),
+                            obj.getBooleanCompat("web"),
+                            obj.getBooleanCompat("action"),
+                            obj.getBooleanCompat("metamodule"),
+                            obj.optString("dir_id", obj.getString("id"))
+                        )
+                    }.toList()
+
                 launch {
                     modules.forEach { module ->
                         withContext(Dispatchers.IO) {
