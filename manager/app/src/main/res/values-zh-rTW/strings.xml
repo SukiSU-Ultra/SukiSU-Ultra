@@ -133,10 +133,6 @@
     <string name="confirm">確定</string>
     <string name="cancel">取消</string>
     <!-- Backup related -->
-    <string name="backup_success">備份成功 (tar.gz)</string>
-    <string name="backup_failed">備份失敗：%1$s</string>
-    <string name="backup_modules">備份模組</string>
-    <string name="restore_modules">還原模組</string>
     <!-- Restore related messages -->
     <string name="restore_success">模組已成功還原，需重新啟動生效</string>
     <string name="restore_failed">還原失敗：%1$s</string>
@@ -570,12 +566,6 @@
 - 啟用此功能有時會使開發人員在除錯許可權或 SELinux 問題時難以識別原因，因此建議使用者在除錯時禁用此功能。</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">已驗證</string>
-    <string name="module_signature_verified">模組簽名已驗證</string>
-    <string name="module_signature_verification">驗證簽名</string>
-    <string name="module_signature_verification_summary">模組安裝時，強制驗證簽名。 (僅 ARM 架構可用)</string>
-    <string name="module_signature_invalid">未知發布者</string>
-    <string name="module_signature_invalid_message">未經簽名的模組可能不完整。為了對設備進行保護，已阻止安裝此模組。</string>
-    <string name="module_signature_verification_failed">未經簽名的模組可能不完整。你想安裝來自未知發布者的模組嗎？</string>
     <string name="home_hook_type">鉤子類型</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">KPM 修補</string>

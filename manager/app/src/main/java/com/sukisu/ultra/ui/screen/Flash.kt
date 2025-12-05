@@ -55,7 +55,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
 import com.sukisu.ultra.ui.component.rememberCustomDialog
-import com.sukisu.ultra.ui.util.module.ModuleOperationUtils
 import com.sukisu.ultra.ui.util.module.ModuleUtils
 import com.topjohnwu.superuser.io.SuFile
 
@@ -81,9 +80,6 @@ data class ModuleInstallStatus(
 )
 
 private var moduleInstallStatus = mutableStateOf(ModuleInstallStatus())
-
-// 存储模块URI和验证状态的映射
-private var moduleVerificationMap = mutableMapOf<Uri, Boolean>()
 
 fun setFlashingStatus(status: FlashingStatus) {
     currentFlashingStatus.value = status
@@ -118,10 +114,6 @@ fun updateModuleInstallStatus(
             verifiedModules = updatedVerifiedModules
         )
     }
-}
-
-fun setModuleVerificationStatus(uri: Uri, isVerified: Boolean) {
-    moduleVerificationMap[uri] = isVerified
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -223,7 +215,6 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                     shouldWarningUserMetaModule = false
                     hasFlashCompleted = false
                     hasExecuted = false
-                    moduleVerificationMap.clear()
                 }
             }
             is FlashIt.FlashModuleUpdate -> {
@@ -263,10 +254,6 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                     setFlashingStatus(FlashingStatus.FAILED)
                 } else {
                     setFlashingStatus(FlashingStatus.SUCCESS)
-
-                    // 处理模块更新成功后的验证标志
-                    val isVerified = moduleVerificationMap[flashIt.uri] ?: false
-                    ModuleOperationUtils.handleModuleUpdate(context, flashIt.uri, isVerified)
 
                     viewModel.markNeedRefresh()
                 }
@@ -364,27 +351,6 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                     }
                 } else {
                     setFlashingStatus(FlashingStatus.SUCCESS)
-
-                    // 处理模块安装成功后的验证标志
-                    when (flashIt) {
-                        is FlashIt.FlashModule -> {
-                            val isVerified = moduleVerificationMap[flashIt.uri] ?: false
-                            ModuleOperationUtils.handleModuleInstallSuccess(context, flashIt.uri, isVerified)
-                            if (isVerified) {
-                                updateModuleInstallStatus(verifiedModule = moduleInstallStatus.value.currentModuleName)
-                            }
-                        }
-                        is FlashIt.FlashModules -> {
-                            val currentUri = flashIt.uris[flashIt.currentIndex]
-                            val isVerified = moduleVerificationMap[currentUri] ?: false
-                            ModuleOperationUtils.handleModuleInstallSuccess(context, currentUri, isVerified)
-                            if (isVerified) {
-                                updateModuleInstallStatus(verifiedModule = moduleInstallStatus.value.currentModuleName)
-                            }
-                        }
-
-                        else -> {}
-                    }
 
                     viewModel.markNeedRefresh()
                 }

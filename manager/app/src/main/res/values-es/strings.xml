@@ -133,10 +133,6 @@
     <string name="confirm">Confirmar</string>
     <string name="cancel">Cancelar</string>
     <!-- Backup related -->
-    <string name="backup_success">Copia de seguridad exitosa (tar.gz)</string>
-    <string name="backup_failed">Copia de seguridad fallida: %1$s</string>
-    <string name="backup_modules">módulos de respaldo</string>
-    <string name="restore_modules">restaurar módulos</string>
     <!-- Restore related messages -->
     <string name="restore_success">Módulos restaurados con éxito, se requiere reiniciar</string>
     <string name="restore_failed">Restauración fallida: %1$s</string>

@@ -135,10 +135,6 @@
     <string name="confirm">Confirmer</string>
     <string name="cancel">Annuler</string>
     <!-- Backup related -->
-    <string name="backup_success">Sauvegarde réussie (tar.gz)</string>
-    <string name="backup_failed">Échec de la sauvegarde : %1$s</string>
-    <string name="backup_modules">modules de sauvegarde</string>
-    <string name="restore_modules">Restaurer les modules</string>
     <!-- Restore related messages -->
     <string name="restore_success">Succès de la sauvegarde, redémarrer</string>
     <string name="restore_failed">Échec de la restauration : %1$s</string>

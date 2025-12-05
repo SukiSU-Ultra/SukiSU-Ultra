@@ -61,7 +61,6 @@ object Natives {
     }
 
     init {
-        //System.loadLibrary("zakosign")
         System.loadLibrary("kernelsu")
     }
 
@@ -161,9 +160,6 @@ object Natives {
      * @return ManagersList object containing active managers, or null if failed or not enabled
      */
     external fun getManagersList(): ManagersList?
-
-    // 模块签名验证
-    external fun verifyModuleSignature(modulePath: String): Boolean
 
     /**
      * Check if UID scanner is currently enabled
