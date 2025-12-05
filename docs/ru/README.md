@@ -2,7 +2,7 @@
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
 
 
-[English](../README.md) | [简体中文](./zh/README.md) | [日本語](./ja/README.md) | [Türkçe](./tr/README.md) | **Русский**
+[English](../README.md) | [简体中文](../zh/README.md) | [日本語](../ja/README.md) | [Türkçe](../tr/README.md) | **Русский**
 
 Решение для получения root доступа на основе ядра для устройств Android, форкнутый от [`tiann/KernelSU`](https://github.com/tiann/KernelSU) с добавлением некоторых интересных изменений.
 
