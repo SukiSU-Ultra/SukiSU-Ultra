@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -859,10 +858,12 @@ private fun AppGroupItem(
                                     animationSpec = tween(200, easing = LinearOutSlowInEasing),
                                     label = ""
                                 ).value
-                            )
+                            ).size(18.dp)
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(4.dp))
 
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (appGroup.allowSu) {
