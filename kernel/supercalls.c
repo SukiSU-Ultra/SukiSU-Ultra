@@ -656,51 +656,6 @@ static int add_try_umount(void __user *arg)
 			
 			return 0;
 		}
-
-		case KSU_UMOUNT_LIST: {
-            char *output_buf;
-            size_t output_size = cmd.buf_size ? cmd.buf_size : 4096;
-            size_t offset = 0;
-            int ret = 0;
-
-            if (!cmd.arg || !output_size)
-                return -EINVAL;
-
-            output_buf = kzalloc(output_size, GFP_KERNEL);
-            if (!output_buf)
-                return -ENOMEM;
-
-            // Write header
-            offset += snprintf(output_buf + offset, output_size - offset, 
-                              "Mount Point\tFlags\n");
-            offset += snprintf(output_buf + offset, output_size - offset, 
-                              "----------\t-----\n");
-
-            down_read(&mount_list_lock);
-            list_for_each_entry(entry, &mount_list, list) {
-                int written = snprintf(output_buf + offset, output_size - offset,
-                                      "%s\t%u\n", entry->umountable, entry->flags);
-                if (written < 0) {
-                    ret = -EFAULT;
-                    break;
-                }
-                if (written >= (int)(output_size - offset)) {
-                    ret = -ENOSPC;
-                    break;
-                }
-                offset += written;
-            }
-            up_read(&mount_list_lock);
-
-            if (ret == 0) {
-                if (copy_to_user((void __user *)cmd.arg, output_buf, offset)) {
-                    ret = -EFAULT;
-                }
-            }
-
-            kfree(output_buf);
-            return ret;
-        }
 		
 		default: {
 			pr_err("cmd_add_try_umount: invalid operation %u\n", cmd.mode);
