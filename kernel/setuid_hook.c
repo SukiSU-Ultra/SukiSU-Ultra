@@ -176,8 +176,6 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid) {// (new_euid)
 		}
 #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
 		ksu_set_task_tracepoint_flag(current);
-#endif
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
 	} else {
 		ksu_clear_task_tracepoint_flag_if_needed(current);
 	}
