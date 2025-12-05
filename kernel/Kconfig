@@ -1,49 +1,41 @@
 menu "KernelSU"
 
 config KSU
-	tristate "KernelSU function support"
-	default y
-	help
-	  Enable kernel-level root privileges on Android System.
-	  To compile as a module, choose M here: the
-	  module will be called kernelsu.
+	  tristate "KernelSU function support"
+	  default y
+	  help
+		Enable kernel-level root privileges on Android System.
+		To compile as a module, choose M here: the
+		module will be called kernelsu.
 
 config KSU_DEBUG
-	bool "KernelSU debug mode"
-	depends on KSU
-	default n
-	help
-	  Enable KernelSU debug mode.
+	  bool "KernelSU debug mode"
+	  depends on KSU
+	  default n
+	  help
+		Enable KernelSU debug mode.
 
 config KSU_ALLOWLIST_WORKAROUND
-	bool "KernelSU allowlist workaround"
+	bool "KernelSU Session Keyring Init workaround"
 	depends on KSU
 	default n
 	help
-	  Enable workaround for broken allowlist save
+	  Enable session keyring init workaround for problematic devices.
+	  Useful for situations where the SU allowlist is not kept after a reboot
 
-choice
-	prompt "KernelSU hooks"
-	default KSU_MANUAL_HOOK if !KPROBES
-	default KSU_SYSCALL_HOOK if KPROBES && KRETPROBES && HAVE_SYSCALL_TRACEPOINTS
-	help
-	  KernelSU core hooks.
-
-config KSU_MANUAL_HOOK
-	bool "KernelSU manual hook mode."
-	depends on KSU && KSU != m
-	help
-	  Enable manual hook support.
-
-config KSU_SYSCALL_HOOK
-	bool "KernelSU syscall hook mode."
+config KSU_MANUAL_SU
+	bool "Use manual su"
 	depends on KSU
-	depends on KPROBES && KRETPROBES && HAVE_SYSCALL_TRACEPOINTS
+	default y
 	help
-	  Enable KPROBES, KRETPROBES and TRACEPOINT hook for KernelSU core.
-	  This should not be used on kernel below 5.10.
+	  Use manual su and authorize the corresponding command line and application via fd
 
-endchoice
+config KSU_MULTI_MANAGER_SUPPORT
+	bool "Multi KernelSU manager support"
+	depends on KSU
+	default n
+	help
+		Enable multi KernelSU manager support
 
 config KPM
 	  bool "Enable SukiSU KPM"
@@ -55,5 +47,112 @@ config KPM
 		Enabling this option will activate the KPM feature of SukiSU.
 		This option is suitable for scenarios where you need to force KPM to be enabled.
 		but it may affect system stability.
+
+config KSU_MANUAL_HOOK
+	bool "Hook KernelSU manually"
+	depends on KSU != m && !KSU_SUSFS
+	help
+	  If enabled, Hook required KernelSU syscalls with manually-patched function.
+
+config KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
+	bool "Automatically hook setuid by lsm"
+	depends on KSU_MANUAL_HOOK
+	default y
+	help
+	  If turn off this option, you need checkout to kernel/sys.c 
+	  in SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
+	  add a ksu_handle_setresuid calls in there
+
+menu "KernelSU - SUSFS"
+
+config KSU_SUSFS
+	bool "KernelSU addon - SUSFS"
+	depends on KSU
+	depends on THREAD_INFO_IN_TASK
+	default n
+	help
+		Patch and Enable SUSFS to kernel with KernelSU.
+
+config KSU_SUSFS_SUS_PATH
+	bool "Enable to hide suspicious path (NOT recommended)"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow hiding the user-defined path and all its sub-paths from various system calls.
+		- Includes temp fix for the leaks of app path in /sdcard/Android/data directory.
+		- Effective only on zygote spawned user app process.
+		- Use with cautious as it may cause performance loss and will be vulnerable to side channel attacks,
+		  just disable this feature if it doesn't work for you or you don't need it at all.
+
+config KSU_SUSFS_SUS_MOUNT
+	bool "Enable to hide suspicious mounts"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow hiding the user-defined mount paths from /proc/self/[mounts|mountinfo|mountstat].
+		- Effective on all processes for hiding mount entries.
+		- Mounts mounted by process with ksu domain will be forced to be assigned the dev name "KSU".
+		- mnt_id and mnt_group_id of the sus mount will be assigned to a much bigger number to solve the issue of id not being contiguous.
+
+config KSU_SUSFS_SUS_KSTAT
+	bool "Enable to spoof suspicious kstat"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow spoofing the kstat of user-defined file/directory.
+		- Effective only on zygote spawned user app process.
+
+config KSU_SUSFS_SPOOF_UNAME
+	bool "Enable to spoof uname"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow spoofing the string returned by uname syscall to user-defined string.
+		- Effective on all processes.
+
+config KSU_SUSFS_ENABLE_LOG
+	bool "Enable logging susfs log to kernel"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow logging susfs log to kernel, uncheck it to completely disable all susfs log.
+
+config KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS
+	bool "Enable to automatically hide ksu and susfs symbols from /proc/kallsyms"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Automatically hide ksu and susfs symbols from '/proc/kallsyms'.
+		- Effective on all processes.
+
+config KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
+	bool "Enable to spoof /proc/bootconfig (gki) or /proc/cmdline (non-gki)"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Spoof the output of /proc/bootconfig (gki) or /proc/cmdline (non-gki) with a user-defined file.
+		- Effective on all processes.
+
+config KSU_SUSFS_OPEN_REDIRECT
+	bool "Enable to redirect a path to be opened with another path (experimental)"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow redirecting a target path to be opened with another user-defined path.
+		- Effective only on processes with uid < 2000.
+		- Please be reminded that process with open access to the target and redirected path can be detected.
+
+config KSU_SUSFS_SUS_MAP
+	bool "Enable to hide some mmapped real file from different proc maps interfaces"
+	depends on KSU_SUSFS
+	default y
+	help
+		- Allow hiding mmapped real file from /proc/<pid>/[maps|smaps|smaps_rollup|map_files|mem|pagemap]
+		- It does NOT support hiding for anon memory.
+		- It does NOT hide any inline hooks or plt hooks cause by the injected library itself.
+		- It may not be able to evade detections by apps that implement a good injection detection.
+		- Effective only on zygote spawned umounted user app process.
+
+endmenu
 
 endmenu

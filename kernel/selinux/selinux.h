@@ -5,17 +5,17 @@
 #include "linux/version.h"
 #include "linux/cred.h"
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) ||						\
+	defined(KSU_COMPAT_HAS_SELINUX_STATE)
+#define KSU_COMPAT_USE_SELINUX_STATE
+#endif
+
 // TODO: rename to "ksu"
 #define KERNEL_SU_DOMAIN "su"
 #define KERNEL_SU_FILE "ksu_file"
 
 #define KERNEL_SU_CONTEXT "u:r:" KERNEL_SU_DOMAIN ":s0"
 #define KSU_FILE_CONTEXT "u:object_r:" KERNEL_SU_FILE ":s0"
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) ||                        \
-	defined(KSU_COMPAT_HAS_SELINUX_STATE)
-#define KSU_COMPAT_USE_SELINUX_STATE
-#endif
 
 void setup_selinux(const char *);
 
@@ -37,6 +37,19 @@ u32 ksu_get_ksu_file_sid(void);
 
 int handle_sepolicy(unsigned long arg3, void __user *arg4);
 
-void setup_ksu_cred(void);
+void setup_ksu_cred();
+
+#ifdef CONFIG_KSU_SUSFS
+bool susfs_is_sid_equal(void *sec, u32 sid2);
+u32 susfs_get_sid_from_name(const char *secctx_name);
+u32 susfs_get_current_sid(void);
+void susfs_set_zygote_sid(void);
+bool susfs_is_current_zygote_domain(void);
+void susfs_set_ksu_sid(void);
+bool susfs_is_current_ksu_domain(void);
+void susfs_set_init_sid(void);
+bool susfs_is_current_init_domain(void);
+void susfs_set_priv_app_sid(void);
+#endif // #ifdef CONFIG_KSU_SUSFS
 
 #endif

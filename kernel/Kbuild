@@ -1,38 +1,44 @@
-ksu_obj-y := ksu_init.o
-ksu_obj-y += allowlist.o
-ksu_obj-y += app_profile.o
-ksu_obj-y += apk_sign.o
-ksu_obj-y += sucompat.o
-ksu_obj-y += throne_tracker.o
-ksu_obj-y += setuid_hook.o
-ksu_obj-$(CONFIG_KSU_MANUAL_HOOK) += lsm_hook.o
-ksu_obj-$(CONFIG_KSU_SYSCALL_HOOK) += kp_hook.o kp_util.o syscall_handler.o pkg_observer.o
-ksu_obj-y += kernel_compat.o
-ksu_obj-y += kernel_umount.o
-ksu_obj-y += supercalls.o
-ksu_obj-y += feature.o
-ksu_obj-y += ksud.o
-ksu_obj-y += seccomp_cache.o
-ksu_obj-y += file_wrapper.o
-ksu_obj-y += selinux/selinux.o
-ksu_obj-y += selinux/sepolicy.o
-ksu_obj-y += selinux/rules.o
+kernelsu-objs := ksu.o
+kernelsu-objs += allowlist.o
+kernelsu-objs += dynamic_manager.o
+kernelsu-objs += app_profile.o
+kernelsu-objs += apk_sign.o
+kernelsu-objs += sucompat.o
+ifeq ($(CONFIG_KSU_SUSFS)$(CONFIG_KSU_MANUAL_HOOK), nn)
+kernelsu-objs += syscall_hook_manager.o
+endif
+kernelsu-objs += throne_tracker.o
+kernelsu-objs += pkg_observer.o
+kernelsu-objs += setuid_hook.o
+kernelsu-objs += lsm_hooks.o
+kernelsu-objs += kernel_compat.o
+kernelsu-objs += kernel_umount.o
+kernelsu-objs += supercalls.o
+kernelsu-objs += feature.o
+kernelsu-objs += throne_tracker.o
+kernelsu-objs += ksud.o
+kernelsu-objs += embed_ksud.o
+kernelsu-objs += seccomp_cache.o
+kernelsu-objs += file_wrapper.o
+kernelsu-objs += util.o
+kernelsu-objs += throne_comm.o
+kernelsu-objs += sulog.o
 
-ksu_obj-y += dynamic_manager.o
-ksu_obj-y += throne_comm.o
-ksu_obj-y += sulog.o
-ksu_obj-$(CONFIG_KSU_MANUAL_SU) += manual_su.o
-obj-$(CONFIG_KPM) += kpm/
+ifeq ($(CONFIG_KSU_MANUAL_SU), y)
+ccflags-y += -DCONFIG_KSU_MANUAL_SU
+kernelsu-objs += manual_su.o
+endif
 
-kernelsu-objs := $(ksu_obj-y)
+kernelsu-objs += selinux/selinux.o
+kernelsu-objs += selinux/sepolicy.o
+kernelsu-objs += selinux/rules.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
 
 obj-$(CONFIG_KSU) += kernelsu.o
 
-KDIR := $(KDIR)
-MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+obj-$(CONFIG_KPM) += kpm/
 
 REPO_OWNER := SukiSU-Ultra
 REPO_NAME := SukiSU-Ultra
@@ -91,20 +97,18 @@ endif
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 ccflags-y += -DKSU_VERSION_FULL=\"$(KSU_VERSION_FULL)\"
 
-# Checks hooks state
+$(info -- Supported Unofficial Manager: 5ec1cff (GKI) rsuntk (Non-GKI) ShirkNeko udochina (GKI and non-GKI and KPM))
+
 ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
-$(info -- KernelSU: CONFIG_KSU_MANUAL_HOOK)
-ccflags-y += -DCONFIG_KSU_MANUAL_HOOK
-endif
-
-ifeq ($(CONFIG_KSU_SYSCALL_HOOK), y)
-$(info -- KernelSU: CONFIG_KSU_SYSCALL_HOOK)
-ccflags-y += -DCONFIG_KSU_SYSCALL_HOOK
-endif
-
-ifeq ($(CONFIG_KSU_SUSFS), y)
-$(info -- KernelSU: SUSFS_INLINE_HOOK)
+ccflags-y += -DKSU_MANUAL_HOOK
+$(info -- SukiSU: KSU_MANUAL_HOOK)
+else ifeq ($(CONFIG_KSU_SUSFS), y)
 ccflags-y += -DCONFIG_KSU_SUSFS
+$(info -- SukiSU: SUSFS_INLINE_HOOK)
+else
+ccflags-y += -DKSU_KPROBES_HOOK
+ccflags-y += -DKSU_TP_HOOK
+$(info -- SukiSU: KSU_TRACEPOINT_HOOK)
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
@@ -132,7 +136,6 @@ endif
 ifeq ($(shell grep -q "current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_CURRENT_SID
 endif
-
 ifeq ($(shell grep -q "struct selinux_state " $(srctree)/security/selinux/include/security.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_SELINUX_STATE
 endif
@@ -141,38 +144,34 @@ endif
 ifeq ($(shell grep -q "strncpy_from_user_nofault" $(srctree)/include/linux/uaccess.h; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_STRNCPY
 endif
-
 ifeq ($(shell grep -q "ssize_t kernel_read" $(srctree)/fs/read_write.c; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_KERNEL_READ
 endif
-
 ifeq ($(shell grep "ssize_t kernel_write" $(srctree)/fs/read_write.c | grep -q "const void" ; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_KERNEL_WRITE
 endif
-
 ifeq ($(shell grep -q "int\s\+path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
 ccflags-y += -DKSU_HAS_PATH_UMOUNT
 endif
-
 ifeq ($(shell grep -q "inode_security_struct\s\+\*selinux_inode" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_SELINUX_INODE
 endif
-
 ifeq ($(shell grep -q "task_security_struct\s\+\*selinux_cred" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_SELINUX_CRED
 endif
-
-ifeq ($(shell grep -q "atomic_t\s\+filter_count" $(srctree)/include/linux/seccomp.h; echo $$?),0)
+# seccomp_types.h were added on 6.7
+ifeq ($(shell grep -q "atomic_t\s\+filter_count" $(srctree)/include/linux/seccomp.h $(srctree)/include/linux/seccomp_types.h; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_SECCOMP_FILTER_CNT
 endif
-
 # some old kernel backport this, let's check if put_seccomp_filter still exist
 ifneq ($(shell grep -wq "put_seccomp_filter" $(srctree)/kernel/seccomp.c $(srctree)/include/linux/seccomp.h; echo $$?),0)
 ccflags-y += -DKSU_OPTIONAL_SECCOMP_FILTER_RELEASE
 endif
-
 ifeq ($(shell grep -q "anon_inode_getfd_secure" $(srctree)/fs/anon_inodes.c; echo $$?),0)
 ccflags-y += -DKSU_HAS_GETFD_SECURE
+endif
+ifeq ($(shell grep -A1 "^int vfs_getattr" $(srctree)/fs/stat.c | grep -q "query_flags"; echo $$?),0)
+ccflags-y += -DKSU_HAS_NEW_VFS_GETATTR
 endif
 
 # Checks Samsung
@@ -182,7 +181,6 @@ endif
 ifeq ($(shell grep -q "SEC_SELINUX_PORTING_COMMON" $(srctree)/security/selinux/avc.c; echo $$?),0)
 ccflags-y += -DSAMSUNG_SELINUX_PORTING
 endif
-
 # Function proc_ops check
 ifeq ($(shell grep -q "struct proc_ops " $(srctree)/include/linux/proc_fs.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_PROC_OPS
@@ -201,10 +199,21 @@ endif
 
 ifdef KSU_MANAGER_PACKAGE
 ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
-$(info -- KernelSU Manager package name: $(KSU_MANAGER_PACKAGE))
+$(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
 endif
 
-ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
-ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-missing-prototypes
 
-# Keep a new line here !! Because someone may append config
+ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
+ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-unused-variable
+
+## For susfs stuff ##
+ifeq ($(shell test -e $(srctree)/fs/susfs.c; echo $$?),0)
+$(eval SUSFS_VERSION=$(shell cat $(srctree)/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g'))
+$(info )
+$(info -- SUSFS_VERSION: $(SUSFS_VERSION))
+else
+$(info -- You have not integrated susfs in your kernel yet.)
+$(info -- Read: https://gitlab.com/simonpunk/susfs4ksu)
+endif
+
+# Keep a new line here!! Because someone may append config
