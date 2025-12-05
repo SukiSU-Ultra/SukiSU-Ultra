@@ -220,22 +220,11 @@ static void on_post_fs_data_cbfun(struct callback_head *cb)
 static struct callback_head on_post_fs_data_cb = { .func =
 													   on_post_fs_data_cbfun };
 
-#ifdef CONFIG_KSU_SUSFS
-extern int ksu_handle_execveat_init(struct filename *filename);
-#endif // #ifdef CONFIG_KSU_SUSFS
-
 // IMPORTANT NOTE: the call from execve_handler_pre WON'T provided correct value for envp and flags in GKI version
 int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 							 struct user_arg_ptr *argv,
 							 struct user_arg_ptr *envp, int *flags)
 {
-#if !defined(KSU_KPROBES_HOOK) && defined(CONFIG_KSU_SUSFS)
-	if (!ksu_handle_execveat_init(filename)) {
-        // - return non-zero here if ksu_handle_execveat_init() return success
-        //   as we don't want it to execute ksu_handle_execveat_sucompat()
-        return 1;
-    }
-#endif
 	struct filename *filename;
 
 	static const char app_process[] = "/system/bin/app_process";

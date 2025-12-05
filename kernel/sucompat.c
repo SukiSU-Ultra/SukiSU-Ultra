@@ -95,15 +95,24 @@ static const char ksud_path[] = KSUD_PATH;
 
 extern bool ksu_kernel_umount_enabled;
 
-int ksu_handle_execveat_init(struct filename *filename) {
+int ksu_handle_execveat_init(struct filename **filename_ptr) {
+	struct filename *filename;
+	filename = *filename_ptr;
+	if (IS_ERR(filename)) {
+		return 0;
+	}
+
     if (current->pid != 1 && is_init(get_current_cred())) {
         if (unlikely(strcmp(filename->name, KSUD_PATH) == 0)) {
             pr_info("hook_manager: escape to root for init executing ksud: %d\n", current->pid);
             escape_to_root_for_init();
-        } else if (likely(strstr(filename->name, "/app_process") == NULL && strstr(filename->name, "/adbd") == NULL)) {
+        } 
+#ifdef CONFIG_KSU_SUSFS
+		else if (likely(strstr(filename->name, "/app_process") == NULL && strstr(filename->name, "/adbd") == NULL)) {
             pr_info("hook_manager: unmark %d exec %s\n", current->pid, filename->name);
             susfs_set_current_proc_umounted();
         }
+#endif
         return 0;
     }
     return 1;
@@ -132,10 +141,6 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 		return 0;
 	}
 
-	if (!ksu_handle_execveat_init(filename)) {
-        return 0;
-    }
-
 	if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
 		return 0;
 
@@ -155,9 +160,14 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 			void *envp, int *flags)
 {
+	if (!ksu_handle_execveat_init(filename_ptr)) {
+        return 0;
+    }
+	
 	if (ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags)) {
 		return 0;
 	}
+
 	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp,
 						flags);
 }
