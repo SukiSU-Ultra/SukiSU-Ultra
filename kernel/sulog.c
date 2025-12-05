@@ -15,7 +15,6 @@
 #else
 #include <linux/sched.h>
 #endif
-#include <linux/version.h>
 #include <linux/mm.h>
 #include <linux/mutex.h>
 #include <linux/spinlock.h>
