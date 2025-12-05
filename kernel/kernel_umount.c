@@ -125,8 +125,6 @@ static void umount_tw_func(struct callback_head *cb)
 	}
 	up_read(&mount_list_lock);
 
-	ksu_umount_manager_execute_all(saved);
-
 	revert_creds(saved);
 
 	kfree(tw);
