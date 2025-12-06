@@ -13,7 +13,8 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import java.nio.charset.StandardCharsets
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GithubMarkdown(content: String) {
     val context = LocalContext.current
@@ -190,7 +192,7 @@ fun GithubMarkdown(content: String) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator()
+            LoadingIndicator()
         }
     }
 }

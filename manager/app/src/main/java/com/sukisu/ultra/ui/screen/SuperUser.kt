@@ -27,6 +27,8 @@ import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -306,7 +308,7 @@ private fun SuperUserFab(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SuperUserContent(
     innerPadding: PaddingValues,
@@ -321,11 +323,20 @@ private fun SuperUserContent(
     val density = LocalDensity.current
     val targetSizePx = remember(density) { with(density) { 36.dp.roundToPx() } }
     val context = LocalContext.current
+    val pullRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
+        state = pullRefreshState,
         modifier = Modifier.padding(innerPadding),
         onRefresh = { scope.launch { viewModel.fetchAppList() } },
-        isRefreshing = viewModel.isRefreshing
+        isRefreshing = viewModel.isRefreshing,
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = pullRefreshState,
+                isRefreshing = viewModel.isRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        },
     ) {
         LazyColumn(
             state = listState,

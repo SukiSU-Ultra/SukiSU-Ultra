@@ -1,10 +1,8 @@
 package com.sukisu.ultra.ui.component
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,8 +23,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.ui.theme.CardConfig
 
-private const val TAG = "SearchBar"
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchAppBar(
@@ -37,6 +33,7 @@ fun SearchAppBar(
     onBackClick: (() -> Unit)? = null,
     onConfirm: (() -> Unit)? = null,
     dropdownContent: @Composable (() -> Unit)? = null,
+    navigationContent: @Composable (() -> Unit)? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -109,6 +106,8 @@ fun SearchAppBar(
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
                 }
+            } else {
+                navigationContent?.invoke()
             }
         },
         actions = {

@@ -30,13 +30,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SignalWifiOff
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -44,6 +44,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -56,6 +57,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -133,6 +136,7 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
     )
     var showBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(Unit) {
         viewModel.sortStargazerCountFirst = prefs.getBoolean("module_repo_sort_star_first", false)
@@ -151,6 +155,16 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(id = R.string.settings),
+                        )
+                    }
+                },
+                navigationContent = {
+                    IconButton(
+                        onClick = { navigator.popBackStack() },
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
                             contentDescription = stringResource(id = R.string.settings),
                         )
                     }
@@ -211,7 +225,7 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
                         }
                     }
                 } else {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                     viewModel.refresh(onFailure = {
                         offline = true
                     })
@@ -219,9 +233,17 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
             }
         } else {
             PullToRefreshBox(
+                state = pullRefreshState,
                 isRefreshing = viewModel.isRefreshing,
                 onRefresh = {
                     viewModel.refresh()
+                },
+                indicator = {
+                    PullToRefreshDefaults.LoadingIndicator(
+                        state = pullRefreshState,
+                        isRefreshing = viewModel.isRefreshing,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                    )
                 },
                 modifier = Modifier.padding(innerPadding)
             ) {
@@ -437,35 +459,31 @@ fun OnlineModuleItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val colorOfIdContent = if (module.metamodule) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onPrimary
-                val colorOfIdSurface = if (module.metamodule) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                ) {
+                    Text(
+                        text = module.moduleId,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 if (module.metamodule) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier
                     ) {
                         Text(
                             text = "META",
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                if (!LocalContext.current.getSharedPreferences("settings", MODE_PRIVATE).getBoolean("is_hide_tag_row", false)) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = colorOfIdSurface,
-                        modifier = Modifier
-                    ) {
-                        Text(
-                            text = module.moduleId,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                            color = colorOfIdContent,
+                            color = MaterialTheme.colorScheme.onTertiary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -496,7 +514,8 @@ fun OnlineModuleItem(
 
             Row {
                 Column(
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     if (module.latestReleaseTime.isNotBlank()) {
                         Text(
