@@ -19,6 +19,7 @@
 #include "selinux/selinux.h"
 #include "kp_util.h"
 #include "ksud.h"
+#include "kernel_compat.h"
 
 // Tracepoint registration count management
 // == 1: just us

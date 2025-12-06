@@ -22,6 +22,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager.h"
 #include "ksu.h"
+#include "kernel_compat.h"
 
 #define MAX_MANAGERS 2
 
@@ -239,17 +240,17 @@ static void do_save_dynamic_manager(struct callback_head *_cb)
 		goto revert;
 	}
 
-	if (kernel_write(fp, &magic, sizeof(magic), &off) != sizeof(magic)) {
+	if (ksu_kernel_write_compat(fp, &magic, sizeof(magic), &off) != sizeof(magic)) {
 		pr_err("save_dynamic_manager write magic failed.\n");
 		goto close_file;
 	}
 
-	if (kernel_write(fp, &version, sizeof(version), &off) != sizeof(version)) {
+	if (ksu_kernel_write_compat(fp, &version, sizeof(version), &off) != sizeof(version)) {
 		pr_err("save_dynamic_manager write version failed.\n");
 		goto close_file;
 	}
 
-	if (kernel_write(fp, &tw->config, sizeof(tw->config), &off) != sizeof(tw->config)) {
+	if (ksu_kernel_write_compat(fp, &tw->config, sizeof(tw->config), &off) != sizeof(tw->config)) {
 		pr_err("save_dynamic_manager write config failed.\n");
 		goto close_file;
 	}

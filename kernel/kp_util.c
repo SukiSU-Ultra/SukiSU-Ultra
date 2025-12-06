@@ -2,6 +2,13 @@
 #include <linux/pgtable.h>
 #include <linux/printk.h>
 #include <linux/preempt.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#include <linux/sched/task.h>
+#else
+#include <linux/sched.h>
+#endif
+#endif
 #include <asm/current.h>
 
 #include "kernel_compat.h"
@@ -13,7 +20,9 @@ static bool try_set_access_flag(unsigned long addr)
 	struct mm_struct *mm = current->mm;
 	struct vm_area_struct *vma;
 	pgd_t *pgd;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 	p4d_t *p4d;
+#endif
 	pud_t *pud;
 	pmd_t *pmd;
 	pte_t *ptep, pte;
@@ -23,8 +32,13 @@ static bool try_set_access_flag(unsigned long addr)
 	if (!mm)
 		return false;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208)
 	if (!mmap_read_trylock(mm))
 		return false;
+#else
+	if (!down_read_trylock(&mm->mmap_sem))
+		return false;
+#endif
 
 	vma = find_vma(mm, addr);
 	if (!vma || addr < vma->vm_start)
@@ -34,11 +48,15 @@ static bool try_set_access_flag(unsigned long addr)
 	if (!pgd_present(*pgd))
 		goto out_unlock;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 	p4d = p4d_offset(pgd, addr);
 	if (!p4d_present(*p4d))
 		goto out_unlock;
 
 	pud = pud_offset(p4d, addr);
+#else
+	pud = pud_offset(pgd, addr);
+#endif
 	if (!pud_present(*pud))
 		goto out_unlock;
 
@@ -70,7 +88,11 @@ static bool try_set_access_flag(unsigned long addr)
 out_pte_unlock:
 	pte_unmap_unlock(ptep, ptl);
 out_unlock:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208)
 	mmap_read_unlock(mm);
+#else
+	up_read(&mm->mmap_sem);
+#endif
 	return ret;
 #else
 	return false;
