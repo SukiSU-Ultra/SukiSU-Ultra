@@ -2,7 +2,7 @@
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
 
 
-[English](../README.md) | [简体中文](../zh/README.md) | [日本語](../ja/README.md) | [Türkçe](../tr/README.md) | **Русский**
+[English](../README.md) | [简体中文](../zh/README.md) | [日本語](../ja/README.md) | [Türkçe](./tr/README.md) | **Русский**
 
 Решение для получения root доступа на основе ядра для устройств Android, форкнутый от [`tiann/KernelSU`](https://github.com/tiann/KernelSU) с добавлением некоторых интересных изменений.
 
@@ -15,7 +15,7 @@
 
 1. Управление `su` и root доступом на основе ядра
 2. Система модулей основанная на [Magic Mount](https://github.com/5ec1cff/KernelSU)
-   > **Note:** SukiSU now delegates all module mounting to the installed *metamodule*; the core no longer handles mount operations.
+   > **Note:** SukiSU теперь делегирует все операции по монтированию модулей установленному *метамодулю*; ядро ​​больше не обрабатывает операции по монтированию.
 3. [App Profile](https://kernelsu.org/guide/app-profile.html): Запереть root-доступ в клетку
 4. Поддержка не-GKI и GKI 1.0
 5. Поддержка KPM

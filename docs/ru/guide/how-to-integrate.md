@@ -2,7 +2,7 @@
 
 SukiSU можно интегрировать как в _GKI_, так и в _не-GKI_ ядра - он был бэкпортнут до _4.14_.
 
-<!-- Должно быть 3.4, но syscall manual hook от backslashxx нельзя использовать в SukiSU -->
+<!-- It should be 3.4, but backslashxx's syscall manual hook cannot use in SukiSU-->
 
 Кастомизации некоторых OEM могут привести к тому, что до 50% кода ядра будет находиться вне дерева (out-of-tree) и не будет из upstream Linux или ACK. По этой причине нестандартный характер _не-GKI_ ядер привёл к значительной фрагментации ядра, и у нас не было универсального метода их сборки. Следовательно, мы не можем предоставить загрузочные образы (_boot images_) для _не-GKI_ ядер.
 
@@ -13,7 +13,7 @@ SukiSU можно интегрировать как в _GKI_, так и в _не
 1. **KPROBES hook:**
 
    - Метод по умолчанию для GKI-ядер.
-   - Требует, `# CONFIG_KSU_MANUAL_HOOK is not set` и `CONFIG_KPROBES=y`
+   - Требует `# CONFIG_KSU_MANUAL_HOOK is not set` и `CONFIG_KPROBES=y`
    - Используется для Loadable Kernel Module (LKM).
 
 2. **Manual hook:**
@@ -95,4 +95,4 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 
 - `main` (susfs-main)
 - `test` (susfs-test)
-- version (например: susfs-1.5.7, вы должны проверить [ветки](https://github.com/SukiSU-Ultra/SukiSU-Ultra/branches))
+- версия (например: susfs-1.5.7, вы должны проверить [ветки](https://github.com/SukiSU-Ultra/SukiSU-Ultra/branches))
