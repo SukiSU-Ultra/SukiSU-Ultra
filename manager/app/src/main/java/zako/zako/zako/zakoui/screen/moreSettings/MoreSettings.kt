@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -65,6 +66,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,6 +83,7 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.theme.ThemeColors
@@ -117,7 +120,8 @@ fun MoreSettingsScreen(
 
     // 创建设置状态管理器
     val settingsState = remember { MoreSettingsState(context, prefs, systemIsDark) }
-    val settingsHandlers = remember { MoreSettingsHandlers(context, prefs, settingsState) }
+    val activity = LocalActivity.current as MainActivity
+    val settingsHandlers = remember { MoreSettingsHandlers(activity, prefs, settingsState) }
 
     // 图片选择器
     val pickImageLauncher = rememberLauncherForActivityResult(
@@ -692,7 +696,7 @@ private fun AlphaSlider(
         },
         onValueChangeFinished = {
             coroutineScope.launch(Dispatchers.IO) {
-                saveCardConfig(handlers.context)
+                saveCardConfig(handlers.activity)
             }
         },
         valueRange = 0f..1f,
@@ -745,7 +749,7 @@ private fun DimSlider(
         },
         onValueChangeFinished = {
             coroutineScope.launch(Dispatchers.IO) {
-                saveCardConfig(handlers.context)
+                saveCardConfig(handlers.activity)
             }
         },
         valueRange = 0f..1f,

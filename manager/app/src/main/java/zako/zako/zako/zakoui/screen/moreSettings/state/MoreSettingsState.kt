@@ -57,6 +57,7 @@ class MoreSettingsState(
     // 各种设置开关状态
     var isSimpleMode by mutableStateOf(prefs.getBoolean("is_simple_mode", false))
     var isHideVersion by mutableStateOf(prefs.getBoolean("is_hide_version", false))
+    var isHideModuleRepo by mutableStateOf(prefs.getBoolean("is_hide_module_repo", false))
     var isHideOtherInfo by mutableStateOf(prefs.getBoolean("is_hide_other_info", false))
     var isShowKpmInfo by mutableStateOf(prefs.getBoolean("show_kpm_info", false))
     var isHideZygiskImplement by mutableStateOf(prefs.getBoolean("is_hide_zygisk_Implement", false))

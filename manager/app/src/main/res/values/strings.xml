@@ -22,7 +22,9 @@
     <string name="module_failed_to_disable">Failed to disable module: %s</string>
     <string name="module_empty">No module installed</string>
     <string name="module">Module</string>
+    <string name="module_repo">Module Repo</string>
     <string name="module_sort_action_first">Sort (Action first)</string>
+    <string name="module_sort_star_first">Sort (Stars first)</string>
     <string name="module_sort_enabled_first">Sort (Enabled first)</string>
     <string name="uninstall">Uninstall</string>
     <string name="module_install">Install</string>
@@ -719,4 +721,14 @@ Important Note:\n
     <string name="meta_module_disabled">Metamodule has been disabled. Starting from the next system startup, all mounts from modules are unavailable</string>
     <string name="meta_module_removed">Metamodule has been uninstalled. Starting from the next system startup, all mounts from modules are unavailable.</string>
     <string name="no_meta_module_installed">No Metamodule has been installed. Starting from the next system startup, all mounts from modules are unavailable.</string>
+    <string name="network_offline">You are offline</string>
+    <string name="network_retry">Retry</string>
+    <string name="please_check_network">Please check your internet connection, and try again</string>
+    <string name="latest_release_time">Last Release: %s</string>
+    <string name="latest_update_time">Last Update: %s</string>
+    <string name="confirm_install_module_title">Do you want install %s module?</string>
+    <string name="assets_multiple_select_dialog_title">Select you want install asset</string>
+    <string name="assets_multiple_select_dialog_content_description">Size: %s, Download count: %s</string>
+    <string name="assets_multiple_select_dialog_warning">No any asset selected</string>
+    <string name="installed">Installed</string>
 </resources>

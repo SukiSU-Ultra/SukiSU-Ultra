@@ -21,7 +21,9 @@
     <string name="module_failed_to_disable">无法禁用模块：%s</string>
     <string name="module_empty">没有安装模块</string>
     <string name="module">模块</string>
+    <string name="module_repo">模块仓库</string>
     <string name="module_sort_action_first">排序（可执行优先）</string>
+    <string name="module_sort_star_first">排序 (星标数优先)</string>
     <string name="module_sort_enabled_first">排序（已启用优先）</string>
     <string name="uninstall">卸载</string>
     <string name="module_install">安装</string>
@@ -711,4 +713,14 @@
     <string name="meta_module_disabled">元模块已禁用，重启后模块将不再挂载</string>
     <string name="meta_module_removed">元模块已删除，重启后模块将不再挂载</string>
     <string name="no_meta_module_installed">未安装元模块，现在不进行挂载</string>
+    <string name="network_offline">您处于离线状态</string>
+    <string name="network_retry">重试</string>
+    <string name="please_check_network">请检查网络连接情况，然后稍后重试</string>
+    <string name="latest_release_time">上次发版: %s</string>
+    <string name="latest_update_time">上次更新: %s</string>
+    <string name="confirm_install_module_title">要安装模块 %s 吗?</string>
+    <string name="assets_multiple_select_dialog_title">请选择你想安装的附件</string>
+    <string name="assets_multiple_select_dialog_content_description">大小: %s, 下载数: %s</string>
+    <string name="assets_multiple_select_dialog_warning">没有任何附件被选择</string>
+    <string name="installed">已安装</string>
 </resources>
