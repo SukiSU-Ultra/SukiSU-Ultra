@@ -282,6 +282,7 @@ fun KernelFlashScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FlashProgressIndicator(
     flashState: FlashState,
@@ -369,7 +370,7 @@ private fun FlashProgressIndicator(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            LinearProgressIndicator(
+            LinearWavyProgressIndicator(
                 progress = { progress.value },
                 modifier = Modifier
                     .fillMaxWidth()

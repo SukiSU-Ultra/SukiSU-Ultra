@@ -41,7 +41,7 @@ data class UmountPathEntry(
     val flags: Int,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Destination<RootGraph>
 @Composable
 fun UmountManagerScreen(navigator: DestinationsNavigator) {
@@ -136,7 +136,7 @@ fun UmountManagerScreen(navigator: DestinationsNavigator) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             } else {
                 LazyColumn(

@@ -569,6 +569,7 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
 }
 
 // 显示模块安装进度条和状态
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleInstallProgressBar(
     currentIndex: Int,
@@ -622,7 +623,7 @@ fun ModuleInstallProgressBar(
             Spacer(modifier = Modifier.height(8.dp))
 
             // 进度条
-            LinearProgressIndicator(
+            LinearWavyProgressIndicator(
                 progress = { progress.value },
                 modifier = Modifier
                     .fillMaxWidth()
