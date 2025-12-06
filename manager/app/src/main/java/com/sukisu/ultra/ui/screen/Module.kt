@@ -45,7 +45,9 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Wysiwyg
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Extension
@@ -111,6 +113,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.ModuleRepoScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.sukisu.ultra.Natives
@@ -288,6 +291,16 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 onSearchTextChange = { viewModel.search = it },
                 onClearClick = { viewModel.search = "" },
                 dropdownContent = {
+                    IconButton(
+                        onClick = {
+                            navigator.navigate(ModuleRepoScreenDestination)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Cloud,
+                            contentDescription = stringResource(id = R.string.module_repo),
+                        )
+                    }
                     IconButton(
                         onClick = { showBottomSheet = true },
                     ) {

@@ -18,6 +18,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 lateinit var ksuApp: KernelSUApplication
 
@@ -65,7 +66,11 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
                             .header("User-Agent", "SukiSU/${BuildConfig.VERSION_CODE}")
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
-                }.build()
+                }
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .writeTimeout(5, TimeUnit.SECONDS)
+                .build()
     }
     override val viewModelStore: ViewModelStore
         get() = appViewModelStore

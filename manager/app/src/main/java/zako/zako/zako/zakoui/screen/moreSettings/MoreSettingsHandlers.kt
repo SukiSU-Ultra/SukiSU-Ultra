@@ -6,38 +6,17 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CleaningServices
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Scanner
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.ConfirmResult
-import com.sukisu.ultra.ui.component.rememberConfirmDialog
-import com.sukisu.ultra.ui.screen.SettingItem
-import com.sukisu.ultra.ui.screen.SwitchItem
+import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.theme.*
-import com.sukisu.ultra.ui.util.*
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import zako.zako.zako.zakoui.screen.moreSettings.state.MoreSettingsState
 import zako.zako.zako.zakoui.screen.moreSettings.util.toggleLauncherIcon
 
@@ -45,7 +24,7 @@ import zako.zako.zako.zakoui.screen.moreSettings.util.toggleLauncherIcon
  * 更多设置处理器
  */
 class MoreSettingsHandlers(
-    val context: Context,
+    val activity: MainActivity,
     private val prefs: SharedPreferences,
     private val state: MoreSettingsState
 ) {
@@ -55,7 +34,7 @@ class MoreSettingsHandlers(
      */
     fun initializeSettings() {
         // 加载设置
-        CardConfig.load(context)
+        CardConfig.load(activity)
         state.cardAlpha = CardConfig.cardAlpha
         state.cardDim = CardConfig.cardDim
         state.isCustomBackgroundEnabled = ThemeConfig.customBackgroundUri != null
@@ -91,7 +70,7 @@ class MoreSettingsHandlers(
         state.currentDpi = prefs.getInt("app_dpi", state.systemDpi)
         state.tempDpi = state.currentDpi
 
-        CardConfig.save(context)
+        CardConfig.save(activity)
 
         // 初始化 SELinux 状态
         state.selinuxEnabled = Shell.cmd("getenforce").exec().out.firstOrNull() == "Enforcing"
@@ -118,7 +97,7 @@ class MoreSettingsHandlers(
             2 -> true // 深色
             else -> null
         }
-        context.saveThemeMode(newThemeMode)
+        activity.saveThemeMode(newThemeMode)
         ThemeConfig.updateTheme(darkMode = newThemeMode)
 
         when (index) {
@@ -126,20 +105,20 @@ class MoreSettingsHandlers(
                 ThemeConfig.updateTheme(darkMode = true)
                 CardConfig.updateThemePreference(darkMode = true, lightMode = false)
                 CardConfig.setThemeDefaults(true)
-                CardConfig.save(context)
+                CardConfig.save(activity)
             }
             1 -> { // 浅色
                 ThemeConfig.updateTheme(darkMode = false)
                 CardConfig.updateThemePreference(darkMode = false, lightMode = true)
                 CardConfig.setThemeDefaults(false)
-                CardConfig.save(context)
+                CardConfig.save(activity)
             }
             0 -> { // 跟随系统
                 ThemeConfig.updateTheme(darkMode = null)
                 CardConfig.updateThemePreference(darkMode = null, lightMode = null)
-                val isNightModeActive = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                val isNightModeActive = (activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 CardConfig.setThemeDefaults(isNightModeActive)
-                CardConfig.save(context)
+                CardConfig.save(activity)
             }
         }
     }
@@ -148,7 +127,7 @@ class MoreSettingsHandlers(
      * 处理主题色变更
      */
     fun handleThemeColorChange(theme: ThemeColors) {
-        context.saveThemeColors(when (theme) {
+        activity.saveThemeColors(when (theme) {
             ThemeColors.Green -> "green"
             ThemeColors.Purple -> "purple"
             ThemeColors.Orange -> "orange"
@@ -165,7 +144,7 @@ class MoreSettingsHandlers(
      */
     fun handleDynamicColorChange(enabled: Boolean) {
         state.useDynamicColor = enabled
-        context.saveDynamicColorState(enabled)
+        activity.saveDynamicColorState(enabled)
         ThemeConfig.updateTheme(dynamicColor = enabled)
     }
 
@@ -194,14 +173,14 @@ class MoreSettingsHandlers(
 
             state.currentDpi = state.tempDpi
             Toast.makeText(
-                context,
-                context.getString(R.string.dpi_applied_success, state.tempDpi),
+                activity,
+                activity.getString(R.string.dpi_applied_success, state.tempDpi),
                 Toast.LENGTH_SHORT
             ).show()
 
-            val restartIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            val restartIntent = activity.packageManager.getLaunchIntentForPackage(activity.packageName)
             restartIntent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(restartIntent)
+            activity.startActivity(restartIntent)
 
             state.showDpiConfirmDialog = false
         }
@@ -211,15 +190,15 @@ class MoreSettingsHandlers(
      * 处理自定义背景
      */
     fun handleCustomBackground(transformedUri: Uri) {
-        context.saveAndApplyCustomBackground(transformedUri)
+        activity.saveAndApplyCustomBackground(transformedUri)
         state.isCustomBackgroundEnabled = true
         CardConfig.cardElevation = 0.dp
         CardConfig.isCustomBackgroundEnabled = true
-        saveCardConfig(context)
+        saveCardConfig(activity)
 
         Toast.makeText(
-            context,
-            context.getString(R.string.background_set_success),
+            activity,
+            activity.getString(R.string.background_set_success),
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -228,23 +207,23 @@ class MoreSettingsHandlers(
      * 处理移除自定义背景
      */
     fun handleRemoveCustomBackground() {
-        context.saveCustomBackground(null)
+        activity.saveCustomBackground(null)
         state.isCustomBackgroundEnabled = false
         CardConfig.cardAlpha = 1f
         CardConfig.cardDim = 0f
         CardConfig.isCustomAlphaSet = false
         CardConfig.isCustomDimSet = false
         CardConfig.isCustomBackgroundEnabled = false
-        saveCardConfig(context)
+        saveCardConfig(activity)
         ThemeConfig.preventBackgroundRefresh = false
 
-        context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE).edit {
+        activity.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE).edit {
             putBoolean("prevent_background_refresh", false)
         }
 
         Toast.makeText(
-            context,
-            context.getString(R.string.background_removed),
+            activity,
+            activity.getString(R.string.background_removed),
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -281,8 +260,8 @@ class MoreSettingsHandlers(
     fun handleIconChange(newValue: Boolean) {
         prefs.edit { putBoolean("use_alt_icon", newValue) }
         state.useAltIcon = newValue
-        toggleLauncherIcon(context, newValue)
-        Toast.makeText(context, context.getString(R.string.icon_switched), Toast.LENGTH_SHORT).show()
+        toggleLauncherIcon(activity, newValue)
+        Toast.makeText(activity, activity.getString(R.string.icon_switched), Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -315,6 +294,9 @@ class MoreSettingsHandlers(
     fun handleHideOtherInfoChange(newValue: Boolean) {
         prefs.edit { putBoolean("is_hide_other_info", newValue) }
         state.isHideOtherInfo = newValue
+        activity.settingsStateFlow.value = activity.settingsStateFlow.value.copy(
+            isHideOtherInfo = newValue
+        )
     }
 
     /**
@@ -323,6 +305,9 @@ class MoreSettingsHandlers(
     fun handleShowKpmInfoChange(newValue: Boolean) {
         prefs.edit { putBoolean("show_kpm_info", newValue) }
         state.isShowKpmInfo = newValue
+        activity.settingsStateFlow.value = activity.settingsStateFlow.value.copy(
+            showKpmInfo = newValue
+        )
     }
 
     /**
@@ -382,15 +367,15 @@ class MoreSettingsHandlers(
             if (result.isSuccess) {
                 state.selinuxEnabled = enabled
                 val message = if (enabled)
-                    context.getString(R.string.selinux_enabled_toast)
+                    activity.getString(R.string.selinux_enabled_toast)
                 else
-                    context.getString(R.string.selinux_disabled_toast)
+                    activity.getString(R.string.selinux_disabled_toast)
 
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(
-                    context,
-                    context.getString(R.string.selinux_change_failed),
+                    activity,
+                    activity.getString(R.string.selinux_change_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -411,21 +396,21 @@ class MoreSettingsHandlers(
                     state.dynamicSignSize = size
                     state.dynamicSignHash = hash
                     Toast.makeText(
-                        context,
-                        context.getString(R.string.dynamic_manager_set_success),
+                        activity,
+                        activity.getString(R.string.dynamic_manager_set_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
                     Toast.makeText(
-                        context,
-                        context.getString(R.string.dynamic_manager_set_failed),
+                        activity,
+                        activity.getString(R.string.dynamic_manager_set_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             } else {
                 Toast.makeText(
-                    context,
-                    context.getString(R.string.invalid_sign_config),
+                    activity,
+                    activity.getString(R.string.invalid_sign_config),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -437,14 +422,14 @@ class MoreSettingsHandlers(
                 state.dynamicSignSize = ""
                 state.dynamicSignHash = ""
                 Toast.makeText(
-                    context,
-                    context.getString(R.string.dynamic_manager_disabled_success),
+                    activity,
+                    activity.getString(R.string.dynamic_manager_disabled_success),
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
                 Toast.makeText(
-                    context,
-                    context.getString(R.string.dynamic_manager_clear_failed),
+                    activity,
+                    activity.getString(R.string.dynamic_manager_clear_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             }

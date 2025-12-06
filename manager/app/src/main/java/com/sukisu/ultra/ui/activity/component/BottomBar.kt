@@ -19,11 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
@@ -67,14 +69,17 @@ fun BottomBar(navController: NavHostController) {
             scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
         ).containerColor
     ) {
-        BottomBarDestination.entries.forEach { destination ->
-            val shouldShowButton : Boolean = when (destination) {
+        val destinations = BottomBarDestination.entries.filter { destination ->
+            when (destination) {
                 BottomBarDestination.Kpm -> {
                     kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && !showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM
                 }
                 else -> true
             }
+        }
 
+
+        destinations.forEach { destination ->
             val badge : @Composable BoxScope.() -> Unit = {
                 when (destination) {
                     BottomBarDestination.Kpm -> {
@@ -119,7 +124,6 @@ fun BottomBar(navController: NavHostController) {
                     else -> null
                 }
             }
-            if (!shouldShowButton) return@forEach
             if (!isFullFeatured && destination.rootRequired) return@forEach
             val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
 

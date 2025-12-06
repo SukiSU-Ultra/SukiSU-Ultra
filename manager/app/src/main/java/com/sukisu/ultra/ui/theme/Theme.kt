@@ -592,3 +592,13 @@ fun Context.saveThemeColors(themeName: String) {
 fun Context.saveDynamicColorState(enabled: Boolean) {
     ThemeManager.saveDynamicColorState(this, enabled)
 }
+
+@Composable
+@ReadOnlyComposable
+fun isInDarkTheme(themeMode: Int): Boolean {
+    return when (themeMode) {
+        1, 4 -> false  // Force light mode
+        2, 5 -> true   // Force dark mode
+        else -> isSystemInDarkTheme()  // Follow system (0 or default)
+    }
+}
