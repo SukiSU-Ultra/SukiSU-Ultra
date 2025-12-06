@@ -317,7 +317,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 {
     char path[sizeof(su_path) + 1] = {0};
 
-    strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+    ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
     if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
 #if __SULOG_GATE
