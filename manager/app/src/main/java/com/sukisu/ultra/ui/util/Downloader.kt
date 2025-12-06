@@ -215,7 +215,7 @@ private fun monitorDownload(
 }
 
 fun checkNewVersion(): LatestVersionInfo {
-    val url = "https://api.github.com/repos/ShirkNeko/SukiSU-Ultra/releases/latest"
+    val url = "https://api.github.com/repos/SukiSU-Ultra/SukiSU-Ultra/releases/latest"
     val defaultValue = LatestVersionInfo()
     return runCatching {
         val client = okhttp3.OkHttpClient.Builder()

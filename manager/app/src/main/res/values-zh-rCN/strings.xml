@@ -708,7 +708,7 @@
     <string name="group_contains_apps">包含 %1$d 个应用</string>
     <string name="settings_disable_sulog"> 禁用超级用户日志 </string>
     <string name="settings_disable_sulog_summary">禁用 KernelSU 超级用户访问记录</string>
-    <string name="meta_module_disabled">元模块已被禁用! 自下次重启开始, 所有模块挂载不可用!</string>
-    <string name="meta_module_removed">元模块被标记为删除! 自下次重启开始, 所有模块挂载不可用!</string>
-    <string name="no_meta_module_installed">没有元模块被安装! 所有模块挂载不可用!</string>
+    <string name="meta_module_disabled">元模块已禁用，重启后模块将不再挂载</string>
+    <string name="meta_module_removed">元模块已删除，重启后模块将不再挂载</string>
+    <string name="no_meta_module_installed">未安装元模块，现在不进行挂载</string>
 </resources>

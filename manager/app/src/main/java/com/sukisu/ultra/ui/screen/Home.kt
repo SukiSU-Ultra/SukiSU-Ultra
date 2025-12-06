@@ -214,6 +214,13 @@ fun UpdateCard() {
         WarningCard(
             message = stringResource(id = R.string.new_version_available).format(newVersionCode),
             color = MaterialTheme.colorScheme.outlineVariant,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
             onClick = {
                 if (changelog.isEmpty()) {
                     uriHandler.openUri(newVersionUrl)
@@ -864,7 +871,6 @@ private fun IncompatibleKernelCard() {
     )
 
     WarningCard(
-        message = msg,
-        color = MaterialTheme.colorScheme.error
+        message = msg
     )
 }

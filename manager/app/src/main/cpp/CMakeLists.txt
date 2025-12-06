@@ -14,3 +14,8 @@ add_library(kernelsu
 )
 
 find_library(log-lib log)
+
+target_link_libraries(
+        kernelsu
+        ${log-lib}
+)
