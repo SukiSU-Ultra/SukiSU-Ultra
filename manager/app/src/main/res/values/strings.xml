@@ -716,7 +716,7 @@ Important Note:\n
     <string name="group_contains_apps">Contains %d apps</string>
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
-    <string name="meta_module_disabled">Metamodule was disabled! All modules mounts will not working since next reboot!</string>
-    <string name="meta_module_removed">Metamodule was removed All modules mounts will not working since next reboot!</string>
-    <string name="no_meta_module_installed">Metamodule not installed. All modules mounts not working!</string>
+    <string name="meta_module_disabled">Metamodule has been disabled. Starting from the next system startup, all mounts from modules are unavailable</string>
+    <string name="meta_module_removed">Metamodule has been uninstalled. Starting from the next system startup, all mounts from modules are unavailable.</string>
+    <string name="no_meta_module_installed">No Metamodule has been installed. Starting from the next system startup, all mounts from modules are unavailable.</string>
 </resources>

@@ -13,6 +13,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -82,7 +87,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -115,6 +119,7 @@ import com.sukisu.ultra.ui.component.AnimatedFab
 import com.sukisu.ultra.ui.component.ConfirmResult
 import com.sukisu.ultra.ui.component.InstallConfirmationDialog
 import com.sukisu.ultra.ui.component.SearchAppBar
+import com.sukisu.ultra.ui.component.WarningCard
 import com.sukisu.ultra.ui.component.ZipFileDetector.parseModuleInfo
 import com.sukisu.ultra.ui.component.ZipFileInfo
 import com.sukisu.ultra.ui.component.ZipType
@@ -135,6 +140,7 @@ import com.sukisu.ultra.ui.util.uninstallModule
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import com.sukisu.ultra.ui.webui.WebUIXActivity
+import com.topjohnwu.superuser.io.SuFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -549,6 +555,51 @@ private fun ModuleBottomSheetContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun MetaModuleWarningCard(
+    viewModel: ModuleViewModel
+) {
+    val hasSystemModule = viewModel.moduleList.any { module ->
+        SuFile.open("/data/adb/modules/${module.dirId}/system").exists()
+    }
+
+    val metaProp = SuFile.open("/data/adb/metamodule/module.prop").exists()
+    val metaRemoved = SuFile.open("/data/adb/metamodule/remove").exists()
+    val metaDisabled = SuFile.open("/data/adb/metamodule/disable").exists()
+
+    val warningText = when {
+        hasSystemModule && !metaProp ->
+            stringResource(R.string.no_meta_module_installed)
+
+        metaProp && metaRemoved && hasSystemModule ->
+            stringResource(R.string.meta_module_removed)
+
+        metaProp && metaDisabled && hasSystemModule ->
+            stringResource(R.string.meta_module_disabled)
+
+        else -> null
+    }
+
+    if (warningText == null) return
+    var show by remember { mutableStateOf(true) }
+
+    AnimatedVisibility(
+        visible = show,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
+        WarningCard(
+            message = warningText,
+            onClose = {
+                show = false
+            }
+        )
+
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun ModuleList(
     navigator: DestinationsNavigator,
     viewModel: ModuleViewModel,
@@ -731,6 +782,9 @@ private fun ModuleList(
                 )
             },
         ) {
+            item {
+                MetaModuleWarningCard(viewModel)
+            }
             when {
                 viewModel.moduleList.isEmpty() -> {
                     item {
