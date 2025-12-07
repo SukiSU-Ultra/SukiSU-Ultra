@@ -36,7 +36,7 @@
     <string name="reboot_edl">Reboot to EDL</string>
     <string name="about">About</string>
     <string name="module_uninstall_confirm">Are you sure you want to uninstall module %s?</string>
-    <string name="metamodule_uninstall_confirm">"Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work.  "</string>
+    <string name="metamodule_uninstall_confirm">Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work</string>
     <string name="module_uninstall_success">%s uninstalled</string>
     <string name="module_uninstall_failed">Failed to uninstall: %s</string>
     <string name="module_version">Version</string>
@@ -167,13 +167,13 @@
     <string name="home_device_model">Device model</string>
     <string name="su_not_allowed">Granting superuser to %s is not allowed</string>
     <string name="settings_disable_su">Disable su compatibility</string>
-    <string name="settings_disable_su_summary">Disable the ability of any app to gain root privileges via the ⁠su command (existing root processes won\'t be affected).</string>
+    <string name="settings_disable_su_summary">Disable the ability of any app to gain root privileges via the ⁠su command (existing root processes won\'t be affected)</string>
     <string name="settings_disable_kernel_umount">Disable kernel umount</string>
-    <string name="settings_disable_kernel_umount_summary">Disable kernel-level umount behavior controlled by KernelSU.</string>
+    <string name="settings_disable_kernel_umount_summary">Disable kernel-level umount behavior controlled by KernelSU</string>
     <string name="settings_enable_enhanced_security">Enable enhanced security</string>
-    <string name="settings_enable_enhanced_security_summary">Enable stricter security policies.</string>
-    <string name="feature_status_unsupported_summary">Kernel does not support this feature.</string>
-    <string name="feature_status_managed_summary">This feature is managed by a module.</string>
+    <string name="settings_enable_enhanced_security_summary">Enable stricter security policies</string>
+    <string name="feature_status_unsupported_summary">Kernel does not support this feature</string>
+    <string name="feature_status_managed_summary">This feature is managed by a module</string>
     <string name="settings_mode_default">Default</string>
     <string name="settings_mode_temp_enable">Temporarily enable</string>
     <string name="settings_mode_always_enable">Permanently enable</string>
@@ -336,7 +336,7 @@
     <string name="module_download_error">Module download failed</string>
     <string name="kernel_flashing">Kernel Flashing</string>
     <string name="warning_of_meta_module_title">Require Meta module</string>
-    <string name="warning_of_meta_module_summary">This module want to mount /system, meta module will handle that. Otherwise, it might not work.</string>
+    <string name="warning_of_meta_module_summary">This module want to mount /system, meta module will handle that. Otherwise, it might not work</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">All</string>
     <string name="category_root_apps">Root</string>
@@ -636,13 +636,13 @@ Important Note:\n
     <string name="kpm_follow_kernel_description">Use kernel as-is without any KPM modifications</string>
     <!-- UID Scanner Settings -->
     <string name="uid_auto_scan_title">User-mode scanning application list</string>
-    <string name="uid_auto_scan_summary">Enabling this option will use user-mode scanning for the application list, improving stability. (If you encounter issues such as freezing during kernel scanning of the application list, you may try enabling this option.)</string>
+    <string name="uid_auto_scan_summary">Enabling this option will use user-mode scanning for the application list, improving stability. (if you encounter issues such as freezing during kernel scanning of the application list, you may try enabling this option)</string>
     <string name="uid_multi_user_scan_title">Multi-User Application Scanning</string>
     <string name="uid_multi_user_scan_summary">When enabled, scans applications for all users, including work profiles</string>
     <string name="uid_scanner_setting_failed">Setting failed, please check permissions</string>
     <string name="clean_runtime_environment">Clean Runtime Environment</string>
     <string name="clean_runtime_environment_summary">Clean up runtime files and stop the scanner service</string>
-    <string name="clean_runtime_environment_confirm">Are you sure you want to clean the runtime environment? This will stop the scanner service and remove related files.</string>
+    <string name="clean_runtime_environment_confirm">Are you sure you want to clean the runtime environment? This will stop the scanner service and remove related files</string>
     <string name="clean_runtime_environment_success">Runtime environment cleaned successfully</string>
     <string name="clean_runtime_environment_failed">Failed to clean runtime environment</string>
     <!-- 确认安装相关字符串 -->
@@ -669,18 +669,18 @@ Important Note:\n
     <string name="susfs_sus_map_updated">SUS map updated: %1$s -> %2$s</string>
     <string name="susfs_no_sus_maps_configured">No SUS maps configured</string>
     <string name="susfs_reset_sus_maps_title">Reset SUS Maps</string>
-    <string name="susfs_reset_sus_maps_message">This will remove all configured SUS maps. This action cannot be undone.</string>
+    <string name="susfs_reset_sus_maps_message">This will remove all configured SUS maps. This action cannot be undone</string>
     <string name="sus_maps_section">Memory Map Hiding</string>
     <string name="sus_maps_description_title">Hide the mmapped real file from various maps in /proc/self/</string>
-    <string name="sus_maps_description_text">Hide the real file paths of memory mappings from /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Please note: This feature does not support hiding anonymous memory mappings, nor can it hide inline hooks or PLT hooks caused by the injected library itself.</string>
-    <string name="sus_maps_warning">Important Notice: For applications with well-implemented injection detection mechanisms, this feature may not effectively bypass detection.</string>
-    <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly.</string>
+    <string name="sus_maps_description_text">Hide the real file paths of memory mappings from /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Please note: This feature does not support hiding anonymous memory mappings, nor can it hide inline hooks or PLT hooks caused by the injected library itself</string>
+    <string name="sus_maps_warning">Important Notice: For applications with well-implemented injection detection mechanisms, this feature may not effectively bypass detection</string>
+    <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">Log Viewer</string>
     <string name="log_viewer_back">Back</string>
     <string name="log_viewer_search">Search</string>
     <string name="log_viewer_clear_logs">Clear Logs</string>
-    <string name="log_viewer_clear_logs_confirm">Are you sure you want to clear the selected log file? This action cannot be undone.</string>
+    <string name="log_viewer_clear_logs_confirm">Are you sure you want to clear the selected log file? This action cannot be undone</string>
     <string name="log_viewer_logs_cleared">Logs cleared successfully</string>
     <string name="log_viewer_filter_type">Filter by Type</string>
     <string name="log_viewer_all_types">All Types</string>
@@ -707,7 +707,7 @@ Important Note:\n
     </string>
     <string name="umount_path_manager">Umount Path Management</string>
     <string name="umount_path_manager_summary">Manage kernel unmount paths</string>
-    <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot.</string>
+    <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot</string>
     <string name="add_umount_path">Add Umount Path</string>
     <string name="mount_path">Mount Path</string>
     <string name="umount_flags">Unmount Flags</string>
@@ -728,4 +728,5 @@ Important Note:\n
     <string name="group_contains_apps">Contains %d apps</string>
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
+
 </resources>
