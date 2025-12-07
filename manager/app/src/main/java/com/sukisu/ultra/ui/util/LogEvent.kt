@@ -54,7 +54,7 @@ fun getBugreportFile(context: Context): File {
 
     shell.newJob().add("cat /proc/1/mountinfo > ${mountsFile.absolutePath}").exec()
     shell.newJob().add("cat /proc/filesystems > ${fileSystemsFile.absolutePath}").exec()
-    shell.newJob().add("busybox tree /data/adb > ${adbFileTree.absolutePath}").exec()
+    shell.newJob().add("/data/adb/ksu/bin/busybox tree /data/adb > ${adbFileTree.absolutePath}").exec()
     shell.newJob().add("ls -alRZ /data/adb > ${adbFileDetails.absolutePath}").exec()
     shell.newJob().add("du -sh /data/adb/ksu/* > ${ksuFileSize.absolutePath}").exec()
     shell.newJob().add("cp /data/system/packages.list ${appListFile.absolutePath}").exec()

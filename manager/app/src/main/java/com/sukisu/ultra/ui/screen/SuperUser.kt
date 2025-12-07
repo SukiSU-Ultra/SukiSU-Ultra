@@ -70,6 +70,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.FabMenuPresets
 import com.sukisu.ultra.ui.component.SearchAppBar
 import com.sukisu.ultra.ui.component.VerticalExpandableFab
+import com.sukisu.ultra.ui.util.HanziToPinyin
 import com.sukisu.ultra.ui.util.module.ModuleModify
 import com.sukisu.ultra.ui.viewmodel.AppCategory
 import com.sukisu.ultra.ui.viewmodel.SortType
@@ -177,7 +178,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     Scaffold(
         topBar = {
             SearchAppBar(
-                title = { TopBarTitle(viewModel.selectedCategory, appCounts) },
+                title = { TopBarTitle(viewModel.selectedCategory, appCounts, scrollBehavior) },
                 searchText = viewModel.search,
                 onSearchTextChange = { viewModel.search = it },
                 onClearClick = { viewModel.search = "" },
@@ -223,11 +224,15 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBarTitle(
     selectedCategory: AppCategory,
-    appCounts: Map<AppCategory, Int>
+    appCounts: Map<AppCategory, Int>,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
+    val isCollapsed = scrollBehavior.state.collapsedFraction >= 0.8f
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -235,24 +240,30 @@ private fun TopBarTitle(
         Text(stringResource(R.string.superuser))
 
         if (selectedCategory != AppCategory.ALL) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.padding(start = 4.dp)
+            AnimatedVisibility(
+                visible = isCollapsed,
+                enter = fadeIn(),
+                exit = ExitTransition.None
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.padding(start = 4.dp)
                 ) {
-                    Text(
-                        text = stringResource(selectedCategory.displayNameRes),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Text(
-                        text = "(${appCounts[selectedCategory] ?: 0})",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(selectedCategory.displayNameRes),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "(${appCounts[selectedCategory] ?: 0})",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
         }
@@ -378,7 +389,24 @@ private fun SuperUserContent(
 
                 if (appGroup.apps.size <= 1) return@forEachIndexed
 
-                items(appGroup.apps, key = { "${it.packageName}-${it.uid}" }) { app ->
+                val filteredApps = appGroup.apps.filter { app ->
+                    app.label.contains(viewModel.search, true) ||
+                            app.packageName.contains(viewModel.search, true) ||
+                            HanziToPinyin.getInstance().toPinyinString(app.label)
+                                ?.contains(viewModel.search, true) == true
+                }
+
+                item {
+                    LaunchedEffect(viewModel.search) {
+                        if (viewModel.search.isNotEmpty() && filteredApps.isNotEmpty()) {
+                            expandedGroups.value = expandedGroups.value + appGroup.uid
+                        } else if (viewModel.search.isEmpty()) {
+                            expandedGroups.value = expandedGroups.value - appGroup.uid
+                        }
+                    }
+                }
+
+                items(filteredApps, key = { "${it.packageName}-${it.uid}" }) { app ->
                     val painter = rememberAsyncImagePainter(
                         model = ImageRequest.Builder(context)
                             .data(app.packageInfo)

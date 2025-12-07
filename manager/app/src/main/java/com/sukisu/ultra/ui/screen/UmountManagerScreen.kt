@@ -45,7 +45,7 @@ data class UmountPathEntry(
 @Destination<RootGraph>
 @Composable
 fun UmountManagerScreen(navigator: DestinationsNavigator) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -68,12 +68,14 @@ fun UmountManagerScreen(navigator: DestinationsNavigator) {
     }
 
     LaunchedEffect(Unit) {
+        scrollBehavior.state.heightOffset =
+            scrollBehavior.state.heightOffsetLimit
         loadPaths()
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.umount_path_manager)) },
                 navigationIcon = {
                     IconButton(onClick = { navigator.navigateUp() }) {
