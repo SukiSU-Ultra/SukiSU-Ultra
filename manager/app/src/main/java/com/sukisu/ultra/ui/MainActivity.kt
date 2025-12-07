@@ -6,14 +6,26 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavBackStackEntry
@@ -23,10 +35,19 @@ import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationStyle
 import com.ramcosta.composedestinations.generated.NavGraphs
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
-import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.ui.activity.component.BottomBar
+import com.sukisu.ultra.ui.activity.util.AnimatedBottomBar
+import com.sukisu.ultra.ui.activity.util.DataRefreshUtils
+import com.sukisu.ultra.ui.activity.util.DisplayUtils
+import com.sukisu.ultra.ui.activity.util.ThemeChangeContentObserver
+import com.sukisu.ultra.ui.activity.util.ThemeUtils
+import com.sukisu.ultra.ui.activity.util.UltraActivityUtils
+import com.sukisu.ultra.ui.component.InstallConfirmationDialog
+import com.sukisu.ultra.ui.component.ZipFileInfo
 import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.KernelSUTheme
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
@@ -34,11 +55,9 @@ import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import com.sukisu.ultra.ui.webui.initPlatform
-import com.sukisu.ultra.ui.component.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.ui.activity.component.BottomBar
-import com.sukisu.ultra.ui.activity.util.*
+import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
 
 class MainActivity : ComponentActivity() {
     private lateinit var superUserViewModel: SuperUserViewModel
@@ -130,6 +149,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val navigator = navController.rememberDestinationsNavigator()
+
+                    BackHandler(currentDestination != null && currentDestination.route != HomeScreenDestination.route) {
+                        navigator.navigate(HomeScreenDestination) {
+                            navigator.clearBackStack(NavGraphs.root as NavHostGraphSpec)
+                            launchSingleTop = true
+                        }
+                    }
 
                     InstallConfirmationDialog(
                         show = showConfirmationDialog.value,
