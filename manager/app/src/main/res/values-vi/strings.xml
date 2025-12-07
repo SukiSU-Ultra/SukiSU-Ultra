@@ -35,7 +35,7 @@
     <string name="reboot_edl">Khởi động lại vào EDL</string>
     <string name="about">Thông tin</string>
     <string name="module_uninstall_confirm">Bạn có THẬT SỰ muốn gỡ cài đặt module %s không?</string>
-    <string name="metamodule_uninstall_confirm">"Bạn có chắc chắn muốn gỡ cài đặt module %s không? Thao tác này sẽ ảnh hưởng đến tất cả các module và một số tính năng do siêu module cung cấp (chẳng hạn như mount) sẽ không còn hoạt động nữa"</string>
+    <string name="metamodule_uninstall_confirm">Bạn có chắc chắn muốn gỡ cài đặt module %s không? Thao tác này sẽ ảnh hưởng đến tất cả các module và một số tính năng do siêu module cung cấp (chẳng hạn như mount) sẽ không còn hoạt động nữa</string>
     <string name="module_uninstall_success">%s đã được gỡ cài đặt</string>
     <string name="module_uninstall_failed">Gỡ cài đặt thất bại: %s</string>
     <string name="module_version">Phiên bản</string>
@@ -473,7 +473,7 @@
     <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
     <string name="add">Thêm</string>
     <string name="reset_kstat_config_title">Đặt lại Cấu hình Kstat</string>
-    <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này.</string>
+    <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này</string>
     <string name="kstat_config_description_title">Mô tả cấu hình Kstat</string>
     <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Thông tin thống kê cấu hình tĩnh của các File/Folder</string>
     <string name="kstat_config_description_add">• add_sus_kstat: Thêm đường dẫn trước khi mount để lưu trữ thông tin trạng thái ban đầu</string>
@@ -481,7 +481,7 @@
     <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: ​​Chỉ cập nhật ino, giữ nguyên các giá trị gốc khác</string>
     <string name="static_kstat_config">Cấu hình Kstat tĩnh</string>
     <string name="kstat_path_management">Quản lý Đường dẫn Kstat</string>
-    <string name="no_kstat_config_message">Chưa có cấu hình Kstat, hãy nhấp vào nút bên dưới để thêm.</string>
+    <string name="no_kstat_config_message">Chưa có cấu hình Kstat, hãy nhấp vào nút bên dưới để thêm</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
     <string name="susfs_hide_mounts_control_title">Điều khiển ẩn SuS Mount</string>
     <string name="susfs_hide_mounts_control_description">Kiểm soát hành vi ẩn của SuS Mount với các tiến trình</string>
@@ -522,7 +522,7 @@
     <string name="hide_bl_script">Trạng thái Lock BL</string>
     <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái lock bootloader ở chế độ dịch vụ late_start</string>
     <string name="cleanup_residue">Dọn rác</string>
-    <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được).</string>
+    <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
     <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>
     <string name="edit_kstat_statically_title">Chỉnh sửa cấu hình Kstat tĩnh</string>
     <string name="edit_kstat_path_title">Chỉnh sửa Đường dẫn Kstat</string>
@@ -538,7 +538,7 @@
     <string name="add_custom_path">Khác</string>
     <string name="add_app_path">Ứng dụng</string>
     <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
-    <string name="susfs_version_mismatch">Phiên bản thư viện SuSFS không khớp (Kernel: %1$s &amp; Trình quản lý: %2$s). Nên cập nhật Kernel hoặc Trình quản lý.</string>
+    <string name="susfs_version_mismatch">Phiên bản thư viện SuSFS không khớp (Kernel: %1$s &amp; Trình quản lý: %2$s). Nên cập nhật Kernel hoặc Trình quản lý</string>
     <string name="warning">Cảnh báo</string>
     <string name="search_apps">Tìm kiếm ứng dụng</string>
     <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
@@ -573,7 +573,7 @@
     <string name="susfs_loop_path_updated">Đã cập nhật Đường dẫn Vòng lặp SuS: %1$s → %2$s</string>
     <string name="susfs_no_loop_paths_configured">Không có Đường dẫn Vòng lặp SuS nào được cấu hình</string>
     <string name="susfs_reset_loop_paths_title">Đặt lại Đường dẫn Vòng lặp SuS</string>
-    <string name="susfs_reset_loop_paths_message">Bạn có chắc chắn muốn xóa tất cả các Đường dẫn Vòng lặp SuS không? Thao tác này không thể hoàn tác.</string>
+    <string name="susfs_reset_loop_paths_message">Bạn có chắc chắn muốn xóa tất cả các Đường dẫn Vòng lặp SuS không? Thao tác này không thể hoàn tác</string>
     <string name="susfs_loop_path_label">Đường dẫn Vòng lặp</string>
     <string name="susfs_loop_path_placeholder">/data/example/path</string>
     <string name="susfs_loop_path_restriction_warning">Lưu ý: Chỉ những đường dẫn KHÔNG nằm trong /storage/ và /sdcard/ mới có thể được thêm vào thông qua Đường dẫn Vòng lặp</string>
@@ -597,7 +597,7 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="module_signature_verification">Xác minh chữ ký</string>
     <string name="module_signature_verification_summary">Buộc xác minh chữ ký khi cài đặt module (chỉ khả dụng cho kiến trúc ARM)</string>
     <string name="module_signature_invalid">Tác giả không xác định</string>
-    <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt.</string>
+    <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt</string>
     <string name="module_signature_verification_failed">Các module chưa được ký có thể chưa hoàn chỉnh. Bạn có muốn cài đặt module này từ một tác giả chưa xác định không?</string>
     <string name="home_hook_type">Chế độ Hook</string>
     <!-- KPM patching related strings -->
@@ -620,7 +620,7 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="kpm_undo_patch_success">Hoàn tác vá KPM thành công</string>
     <string name="kpm_file_repacked">Nén lại file thành công</string>
     <!-- KPM error messages -->
-    <string name="kpm_extract_zip_failed">Giải nén file thất bại.</string>
+    <string name="kpm_extract_zip_failed">Giải nén file thất bại</string>
     <string name="kpm_image_file_not_found">Không tìm thấy file image</string>
     <string name="kpm_patch_failed">Vá KPM thất bại</string>
     <string name="kpm_undo_patch_failed">Hoàn tác Vá KPM thất bại</string>
@@ -663,7 +663,7 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="susfs_sus_map_updated">Đã cập nhật SuS Map: %1$s → %2$s</string>
     <string name="susfs_no_sus_maps_configured">Không có SuS Map nào được cấu hình</string>
     <string name="susfs_reset_sus_maps_title">Đặt lại SuS Map</string>
-    <string name="susfs_reset_sus_maps_message">Thao tác này sẽ xóa tất cả các SuS Map đã cấu hình. Không thể hoàn tác thao tác này.</string>
+    <string name="susfs_reset_sus_maps_message">Thao tác này sẽ xóa tất cả các SuS Map đã cấu hình. Không thể hoàn tác thao tác này</string>
     <string name="sus_maps_section">Ẩn Bộ nhớ Map</string>
     <string name="sus_maps_description_title">Ẩn tệp mmapp khỏi các map khác nhau trong /proc/self/</string>
     <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
@@ -711,7 +711,7 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="umount_path_removed">Đường dẫn đã bị xóa, sẽ có hiệu lực sau khi khởi động lại</string>
     <string name="operation_failed">Thao tác thất bại</string>
     <string name="confirm_action">Xác nhận Khởi chạy?</string>
-    <string name="confirm_clear_custom_paths">Bạn có chắc chắn muốn xóa tất cả các đường dẫn tùy chỉnh không? (Các đường dẫn mặc định sẽ được giữ nguyên)</string>
+    <string name="confirm_clear_custom_paths">Bạn có chắc chắn muốn xóa tất cả các đường dẫn tùy chỉnh không? (các đường dẫn mặc định sẽ được giữ nguyên)</string>
     <string name="custom_paths_cleared">Đường dẫn tùy chỉnh đã được xóa</string>
     <string name="clear_custom_paths">Xóa Đường dẫn Tùy chỉnh</string>
     <string name="apply_config">Áp dụng Cấu hình</string>
