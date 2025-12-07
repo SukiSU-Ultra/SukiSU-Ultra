@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.component
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -43,6 +44,20 @@ fun SearchAppBar(
     val colorScheme = MaterialTheme.colorScheme
     val cardColor = if (CardConfig.isCustomBackgroundEnabled) colorScheme.surfaceContainerLow else colorScheme.background
     val cardAlpha = CardConfig.cardAlpha
+
+    BackHandler(enabled = onSearch) {
+        onSearch = false
+        keyboardController?.hide()
+        onClearClick()
+    }
+
+    LaunchedEffect(scrollBehavior?.state?.collapsedFraction) {
+        val fraction = scrollBehavior?.state?.collapsedFraction ?: 1f
+        if (onSearch && fraction < 1f) {
+            onSearch = false
+            keyboardController?.hide()
+        }
+    }
 
     // 搜索框获取焦点
     if (onSearch) LaunchedEffect(Unit) {
