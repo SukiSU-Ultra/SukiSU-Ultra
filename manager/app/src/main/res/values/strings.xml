@@ -123,8 +123,8 @@
     <string name="settings_uninstall_permanent">Uninstall permanently</string>
     <string name="settings_restore_stock_image">Restore stock image</string>
     <string name="settings_uninstall_temporary_message">Temporarily uninstall KernelSU, restore to original state after next reboot</string>
-    <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (Root and all modules) completely and permanently</string>
-    <string name="settings_restore_stock_image_message">Restore the stock factory image (If a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\"</string>
+    <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (root and all modules) completely and permanently</string>
+    <string name="settings_restore_stock_image_message">Restore the stock factory image (if a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\"</string>
     <string name="flashing">Flashing</string>
     <string name="flash_success">Flash success</string>
     <string name="flash_failed">Flash failed</string>
@@ -524,7 +524,7 @@
     <string name="hide_bl_script">Lock state</string>
     <string name="hide_bl_script_description">Overwrite bootloader locking status attribute in late_start service mode</string>
     <string name="cleanup_residue">Cleanup Residue</string>
-    <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (May be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
+    <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (may be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
     <string name="susfs_edit_sus_path">Edit SUS Path</string>
     <string name="edit_kstat_statically_title">Edit Kstat Static Configuration</string>
     <string name="edit_kstat_path_title">Edit Kstat Path</string>
@@ -601,7 +601,7 @@ Important Note:\n
     <string name="module_verified">Validated</string>
     <string name="module_signature_verified">Module signature verified</string>
     <string name="module_signature_verification">Signature Verification</string>
-    <string name="module_signature_verification_summary">Force signature verification when installing modules (Only available for ARM architecture)</string>
+    <string name="module_signature_verification_summary">Force signature verification when installing modules (only available for ARM architecture)</string>
     <string name="module_signature_invalid">Unknown publisher</string>
     <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked</string>
     <string name="module_signature_verification_failed">Unsigned modules may be incomplete. Do you want to allow the following module from an unknown publisher to install in this device?</string>
@@ -719,7 +719,7 @@ Important Note:\n
     <string name="umount_path_removed">Path removed, will take effect after reboot</string>
     <string name="operation_failed">Operation failed</string>
     <string name="confirm_action">Confirm Action</string>
-    <string name="confirm_clear_custom_paths">Are you sure you want to clear all custom paths? (Default paths will be preserved)</string>
+    <string name="confirm_clear_custom_paths">Are you sure you want to clear all custom paths? (default paths will be preserved)</string>
     <string name="custom_paths_cleared">Custom paths cleared</string>
     <string name="clear_custom_paths">Clear Custom Paths</string>
     <string name="apply_config">Apply Configuration</string>
@@ -728,5 +728,4 @@ Important Note:\n
     <string name="group_contains_apps">Contains %d apps</string>
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
-
 </resources>
