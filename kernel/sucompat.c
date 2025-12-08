@@ -371,7 +371,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 
 	char path[sizeof(su_path) + 1] = {0};
 
-	strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
 	if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
 #if __SULOG_GATE
@@ -405,7 +405,12 @@ int ksu_handle_devpts(struct inode *inode)
 		return 0;
 
 	if (ksu_file_sid) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) || defined(KSU_OPTIONAL_SELINUX_INODE)
 		struct inode_security_struct *sec = selinux_inode(inode);
+#else
+		struct inode_security_struct *sec =
+			(struct inode_security_struct *)inode->i_security;
+#endif
 		if (sec) {
 			sec->sid = ksu_file_sid;
 		}
