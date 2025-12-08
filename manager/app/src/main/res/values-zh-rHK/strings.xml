@@ -116,8 +116,6 @@
     <string name="settings_uninstall_permanent">永久卸載</string>
     <string name="settings_restore_stock_image">恢復原廠鏡像</string>
     <string name="settings_uninstall_temporary_message">臨時卸載 KernelSU，下次重新啟動後恢復至原始狀態。</string>
-    <string name="settings_uninstall_permanent_message">完全並永久卸載 KernelSU（Root 權限同所有模組）。</string>
-    <string name="settings_restore_stock_image_message">恢復原廠鏡像（若存在備份），一般喺 OTA 前使用；如果您需要卸載 KernelSU，請使用\"永久卸載\"。</string>
     <string name="flashing">刷寫中</string>
     <string name="flash_success">刷寫完成</string>
     <string name="flash_failed">刷寫失敗</string>
@@ -160,7 +158,6 @@
     <string name="home_device_model">裝置</string>
     <string name="su_not_allowed">唔允許授予 %s 超級用戶權限</string>
     <string name="settings_disable_su">禁用 su 兼容性</string>
-    <string name="settings_disable_su_summary">臨時禁止任何應用程式通過 su 命令獲取 Root 權限（現有嘅 Root 進程唔受影響）</string>
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多配置</string>
     <string name="selinux">SELinux</string>
@@ -500,7 +497,6 @@
     <string name="hide_bl_script">隱藏 BL 指令碼</string>
     <string name="hide_bl_script_description">啟用隱藏 Bootloader 解鎖狀態指令碼</string>
     <string name="cleanup_residue">清理工具殘留</string>
-    <string name="cleanup_residue_description">清理各種模組以及工具嘅殘留檔案同目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
     <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
@@ -554,7 +550,6 @@
     <string name="module_verified">已驗證</string>
     <string name="module_signature_verified">模組簽名已驗證</string>
     <string name="module_signature_verification">驗證簽名</string>
-    <string name="module_signature_verification_summary">模組安裝嗰陣，會強制驗證個簽名。（淨係 ARM架構 用得）</string>
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護裝置，已經阻止安裝呢個模組。</string>
     <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
