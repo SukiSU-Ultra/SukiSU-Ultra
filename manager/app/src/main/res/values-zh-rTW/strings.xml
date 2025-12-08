@@ -116,8 +116,6 @@
     <string name="settings_uninstall_permanent">永久解除安裝</string>
     <string name="settings_restore_stock_image">還原原廠映像檔</string>
     <string name="settings_uninstall_temporary_message">臨時解除安裝 KernelSU，下次重新啟動後恢復至原始狀態。</string>
-    <string name="settings_uninstall_permanent_message">完全且永久解除安裝 KernelSU（含 Root 權限和所有模組）。</string>
-    <string name="settings_restore_stock_image_message">還原原廠映像檔（若存在備份），通常在 OTA 前使用；若需解除安裝 KernelSU，請使用\"永久解除安裝\"。</string>
     <string name="flashing">正在刷寫</string>
     <string name="flash_success">刷寫完成</string>
     <string name="flash_failed">刷寫失敗</string>
@@ -160,7 +158,6 @@
     <string name="home_device_model">設備型號</string>
     <string name="su_not_allowed">不允許授予 %s 超級使用者權限</string>
     <string name="settings_disable_su">禁用 su 相容性</string>
-    <string name="settings_disable_su_summary">暫時禁止任何應用程式透過 su 命令取得 Root 權限（現有的 Root 程序不受影響）</string>
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多設定</string>
     <string name="selinux">SELinux</string>
@@ -502,7 +499,6 @@
     <string name="hide_bl_script">上鎖狀態</string>
     <string name="hide_bl_script_description">覆蓋引導鎖狀態屬性於 late_start 服務模式</string>
     <string name="cleanup_residue">清理工具殘留</string>
-    <string name="cleanup_residue_description">清理各種模組以及工具的殘留檔案和目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
     <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
@@ -570,7 +566,6 @@
     <string name="module_verified">已驗證</string>
     <string name="module_signature_verified">模組簽名已驗證</string>
     <string name="module_signature_verification">驗證簽名</string>
-    <string name="module_signature_verification_summary">模組安裝時，強制驗證簽名。 (僅 ARM 架構可用)</string>
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名的模組可能不完整。為了對設備進行保護，已阻止安裝此模組。</string>
     <string name="module_signature_verification_failed">未經簽名的模組可能不完整。你想安裝來自未知發布者的模組嗎？</string>
@@ -605,13 +600,11 @@
     <string name="kpm_follow_kernel_description">原樣使用內核，不進行任何 KPM 修改</string>
     <!-- UID Scanner Settings -->
     <string name="uid_auto_scan_title">使用者態掃描應用列表</string>
-    <string name="uid_auto_scan_summary">開啟後將使用使用者態掃描應用列表，提高穩定性 (因內核掃描應用列表出現卡死等問題可以嘗試開啟此選項) </string>
     <string name="uid_multi_user_scan_title">多使用者應用掃描</string>
     <string name="uid_multi_user_scan_summary">開啟後將掃描所有使用者的應用，包括工作資料等</string>
     <string name="uid_scanner_setting_failed">設定失敗，請檢查許可權</string>
     <string name="clean_runtime_environment">清理執行環境</string>
     <string name="clean_runtime_environment_summary">清理執行時檔案並停止掃描服務</string>
-    <string name="clean_runtime_environment_confirm">您確定要清理執行環境嗎？這將停止掃描服務並刪除相關檔案</string>
     <string name="clean_runtime_environment_success">執行環境清理成功</string>
     <string name="clean_runtime_environment_failed">執行環境清理失敗</string>
     <!-- 确认安装相关字符串 -->
@@ -637,12 +630,8 @@
     <string name="susfs_sus_map_updated">SUS 映射已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">未設定 SUS 映射</string>
     <string name="susfs_reset_sus_maps_title">重設 SUS 映射</string>
-    <string name="susfs_reset_sus_maps_message">這將移除所有已設定的 SUS 映射。此操作無法復原。</string>
     <string name="sus_maps_section">記憶體映射隱藏</string>
     <string name="sus_maps_description_title">隱藏 /proc/self/ 中各種映射裡的 mmap 真實檔案</string>
-    <string name="sus_maps_description_text">從 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隱藏記憶體映射的真實檔案路徑。請注意：此功能不支援隱藏匿名記憶體映射，也無法隱藏由注入庫本身產生的內聯勾子 (Inline Hooks) 或 PLT 勾子 (PLT Hooks)。</string>
-    <string name="sus_maps_warning">重要提示：對於具備完善注入偵測機制的應用程式，此功能可能無法有效繞過偵測。</string>
-    <string name="sus_maps_debug_info">首先透過 ps -enf 尋找目標應用程式的 PID 和 UID，然後檢查 /proc/&lt;pid&gt;/maps 中的相關路徑，並與 /proc/1/mountinfo 中的裝置號碼進行比對以確保一致性。只有當裝置號碼一致時，隱藏映射才能正常運作。</string>
     <!-- Log Viewer -->
     <!-- MiUI Uninstall Desc -->
 </resources>
