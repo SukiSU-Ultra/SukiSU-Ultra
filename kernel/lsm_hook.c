@@ -116,7 +116,7 @@ static struct security_hook_list ksu_hooks[] = {
 	LSM_HOOK_INIT(key_permission, ksu_key_permission),
 #endif
 #ifdef CONFIG_KSU_MANUAL_HOOK
-	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid)
+	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid),
 	LSM_HOOK_INIT(inode_rename, ksu_inode_rename),
 #endif
 #if LINUX_VERSION_CODE > KERNEL_VERSION(4, 10, 0) && defined(CONFIG_KSU_MANUAL_SU)
