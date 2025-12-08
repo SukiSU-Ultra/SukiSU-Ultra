@@ -7,9 +7,13 @@
 #include <linux/time.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 #include <linux/pid.h>
 #include <linux/cred.h>
 #include <linux/sched.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#include <linux/sched/task.h>
+#endif
 #include <linux/mm.h>
 #include <linux/mutex.h>
 #include <linux/spinlock.h>

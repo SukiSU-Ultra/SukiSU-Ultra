@@ -8,7 +8,9 @@
 #include <linux/task_work.h>
 #include <linux/sched.h>
 #include <linux/pid.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/task.h>
+#endif
 #ifdef CONFIG_KSU_DEBUG
 #include <linux/moduleparam.h>
 #endif

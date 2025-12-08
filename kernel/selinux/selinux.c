@@ -127,10 +127,11 @@ bool is_task_ksu_domain(const struct cred *cred)
 		return false;
 	}
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
-	const struct task_security_struct * tsec = selinux_cred(cred);
+	const struct task_security_struct * tsec;
 #else 
-	const struct cred_security_struct *tsec = selinux_cred(cred);
+	const struct cred_security_struct *tsec;
 #endif
+	tsec = cred->security;
 	if (!tsec) {
 		return false;
 	}
@@ -157,10 +158,11 @@ bool is_context(const struct cred *cred, const char *context)
 		return false;
 	}
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
-	const struct task_security_struct * tsec = selinux_cred(cred);
+	const struct task_security_struct * tsec;
 #else 
-	const struct cred_security_struct *tsec = selinux_cred(cred);
+	const struct cred_security_struct *tsec;
 #endif
+	tsec = cred->security;
 	if (!tsec) {
 		return false;
 	}

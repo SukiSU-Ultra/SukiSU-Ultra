@@ -26,7 +26,11 @@ bool try_set_access_flag(unsigned long addr)
 	if (!mm)
 		return false;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208) // should be 5.8, but Android only uses LTS kernel and this feature is backported to this version
 	if (!mmap_read_trylock(mm))
+#else
+	if (!down_read_trylock(&mm->mmap_sem))
+#endif
 		return false;
 
 	vma = find_vma(mm, addr);
@@ -73,7 +77,11 @@ bool try_set_access_flag(unsigned long addr)
 out_pte_unlock:
 	pte_unmap_unlock(ptep, ptl);
 out_unlock:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208)
 	mmap_read_unlock(mm);
+#else
+	up_read(&mm->mmap_sem);
+#endif
 	return ret;
 #else
 	return false;
