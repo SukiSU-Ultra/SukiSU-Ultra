@@ -15,10 +15,10 @@
 #endif
 
 #include "apk_sign.h"
-#include "dynamic_manager.h"
 #include "klog.h" // IWYU pragma: keep
-#include "manager_sign.h"
 #include "kernel_compat.h"
+#include "manager_sign.h"
+#include "dynamic_manager.h"
 
 struct sdesc {
 	struct shash_desc shash;
@@ -26,14 +26,14 @@ struct sdesc {
 };
 
 static apk_sign_key_t apk_sign_keys[] = {
-	{EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO}, // SukiSU
+	{ EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO }, // SukiSU
 #ifdef CONFIG_KSU_MULTI_MANAGER_SUPPORT
-	{EXPECTED_SIZE_WEISHU, EXPECTED_HASH_WEISHU}, // Official
-	{EXPECTED_SIZE_5EC1CFF, EXPECTED_HASH_5EC1CFF}, // 5ec1cff/KernelSU
-	{EXPECTED_SIZE_RSUNTK, EXPECTED_HASH_RSUNTK}, // rsuntk/KernelSU
-	{EXPECTED_SIZE_NEKO, EXPECTED_HASH_NEKO}, // Neko/KernelSU
+	{ EXPECTED_SIZE_WEISHU, EXPECTED_HASH_WEISHU }, // Official
+	{ EXPECTED_SIZE_5EC1CFF, EXPECTED_HASH_5EC1CFF }, // 5ec1cff/KernelSU
+	{ EXPECTED_SIZE_RSUNTK, EXPECTED_HASH_RSUNTK }, // rsuntk/KernelSU
+	{ EXPECTED_SIZE_NEKO, EXPECTED_HASH_NEKO }, // Neko/KernelSU
 #ifdef EXPECTED_SIZE
-	{EXPECTED_SIZE, EXPECTED_HASH}, // Custom
+	{ EXPECTED_SIZE, EXPECTED_HASH }, // Custom
 #endif
 #endif
 };
@@ -177,7 +177,7 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, i
 		}
 		ksu_kernel_read_compat(fp, cert, *size4, pos);
 		unsigned char digest[SHA256_DIGEST_SIZE];
-		if (ksu_sha256(cert, *size4, digest) < 0 ) {
+		if (ksu_sha256(cert, *size4, digest) < 0) {
 			pr_info("sha256 error\n");
 			return false;
 		}
@@ -186,7 +186,8 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset, i
 		hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
 
 		bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
-		pr_info("sha256: %s, expected: %s, index: %d\n", hash_str, sign_key.sha256, i);
+		pr_info("sha256: %s, expected: %s, index: %d\n",
+			 hash_str, sign_key.sha256, i);
 		
 		if (strcmp(sign_key.sha256, hash_str) == 0) {
 			signature_valid = true;
@@ -395,15 +396,15 @@ clean:
 
 #ifdef CONFIG_KSU_DEBUG
 
-int ksu_debug_manager_uid = -1;
+int ksu_debug_manager_appid = -1;
 
 #include "manager.h"
 
 static int set_expected_size(const char *val, const struct kernel_param *kp)
 {
 	int rv = param_set_uint(val, kp);
-	ksu_set_manager_uid(ksu_debug_manager_uid);
-	pr_info("ksu_manager_uid set to %d\n", ksu_debug_manager_uid);
+	ksu_set_manager_appid(ksu_debug_manager_appid);
+	pr_info("ksu_manager_appid set to %d\n", ksu_debug_manager_appid);
 	return rv;
 }
 
@@ -412,8 +413,8 @@ static struct kernel_param_ops expected_size_ops = {
 	.get = param_get_uint,
 };
 
-module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
-		&ksu_debug_manager_uid, S_IRUSR | S_IWUSR);
+module_param_cb(ksu_debug_manager_appid, &expected_size_ops,
+		&ksu_debug_manager_appid, S_IRUSR | S_IWUSR);
 
 #endif
 

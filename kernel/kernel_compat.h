@@ -4,7 +4,6 @@
 #include <linux/fs.h>
 #include <linux/version.h>
 #include <linux/task_work.h>
-#include <linux/fdtable.h>
 #include "ss/policydb.h"
 #include "linux/key.h"
 
@@ -45,6 +44,8 @@ extern ssize_t ksu_kernel_write_compat(struct file *p, const void *buf,
 extern struct key *init_session_keyring;
 #endif
 
+extern int do_close_fd(unsigned int fd);
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 #define ksu_access_ok(addr, size) access_ok(addr, size)
 #else
@@ -57,17 +58,8 @@ extern struct key *init_session_keyring;
 // task_work_add (struct, struct, bool)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
 #ifndef TWA_RESUME
-#define TWA_RESUME	true
+#define TWA_RESUME true
 #endif
 #endif
-
-static inline int do_close_fd(unsigned int fd)
-{
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-	return close_fd(fd);
-#else
-	return __close_fd(current->files, fd);
-#endif
-}
 
 #endif

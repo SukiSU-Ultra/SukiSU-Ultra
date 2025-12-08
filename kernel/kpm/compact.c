@@ -51,13 +51,13 @@ static int sukisu_is_current_uid_manager(void)
 
 static uid_t sukisu_get_manager_uid(void)
 {
-	return ksu_manager_uid;
+	return ksu_manager_appid;
 }
 
 static void sukisu_set_manager_uid(uid_t uid, int force)
 {
-	if (force || ksu_manager_uid == -1)
-		ksu_manager_uid = uid;
+	if (force || ksu_manager_appid == -1)
+		ksu_manager_appid = uid;
 }
 
 struct CompactAddressSymbol {

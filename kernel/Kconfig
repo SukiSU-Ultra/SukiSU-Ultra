@@ -1,41 +1,53 @@
 menu "KernelSU"
 
 config KSU
-	  tristate "KernelSU function support"
-	  default y
-	  help
-		Enable kernel-level root privileges on Android System.
-		To compile as a module, choose M here: the
-		module will be called kernelsu.
-
-config KSU_DEBUG
-	  bool "KernelSU debug mode"
-	  depends on KSU
-	  default n
-	  help
-		Enable KernelSU debug mode.
-
-config KSU_ALLOWLIST_WORKAROUND
-	bool "KernelSU Session Keyring Init workaround"
-	depends on KSU
-	default n
-	help
-	  Enable session keyring init workaround for problematic devices.
-	  Useful for situations where the SU allowlist is not kept after a reboot
-
-config KSU_MANUAL_SU
-	bool "Use manual su"
-	depends on KSU
+	tristate "KernelSU function support"
 	default y
 	help
-	  Use manual su and authorize the corresponding command line and application via fd
+	  Enable kernel-level root privileges on Android System.
+	  To compile as a module, choose M here: the
+	  module will be called kernelsu.
 
-config KSU_MULTI_MANAGER_SUPPORT
-	bool "Multi KernelSU manager support"
+config KSU_DEBUG
+	bool "KernelSU debug mode"
 	depends on KSU
 	default n
 	help
-		Enable multi KernelSU manager support
+	  Enable KernelSU debug mode.
+
+config KSU_ALLOWLIST_WORKAROUND
+	bool "KernelSU allowlist workaround"
+	depends on KSU
+	default n
+	help
+	  Enable workaround for broken allowlist save
+
+choice
+	prompt "KernelSU hooks"
+	default KSU_NONE_HOOK
+	help
+	  KernelSU core hooks.
+
+config KSU_MANUAL_HOOK
+	bool "KernelSU manual hook mode."
+	depends on KSU && KSU != m
+	help
+	  Enable manual hook support.
+
+config KSU_SYSCALL_HOOK
+	bool "KernelSU syscall hook mode."
+	depends on KSU
+	depends on KPROBES && KRETPROBES && HAVE_SYSCALL_TRACEPOINTS
+	help
+	  Enable KPROBES, KRETPROBES and TRACEPOINT hook for KernelSU core.
+	  This should not be used on kernel below 5.10.
+config KSU_NONE_HOOK
+	bool "KernelSU none hook mode."
+	depends on KSU && KSU != m
+	help
+	  Enable susfs.
+
+endchoice
 
 config KPM
 	  bool "Enable SukiSU KPM"
@@ -48,23 +60,14 @@ config KPM
 		This option is suitable for scenarios where you need to force KPM to be enabled.
 		but it may affect system stability.
 
-config KSU_MANUAL_HOOK
-	bool "Hook KernelSU manually"
-	depends on KSU != m && !KSU_SUSFS
-	help
-	  If enabled, Hook required KernelSU syscalls with manually-patched function.
-
-config KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
-	bool "Automatically hook setuid by lsm"
-	depends on KSU_MANUAL_HOOK
-	default y
-	help
-	  If turn off this option, you need checkout to kernel/sys.c 
-	  in SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
-	  add a ksu_handle_setresuid calls in there
+config KSU_MANUAL_SU
+    bool "Use manual su"
+    depends on KSU
+    default y
+    help
+      Use manual su and authorize the corresponding command line and application via prctl
 
 menu "KernelSU - SUSFS"
-
 config KSU_SUSFS
 	bool "KernelSU addon - SUSFS"
 	depends on KSU
@@ -91,7 +94,6 @@ config KSU_SUSFS_SUS_MOUNT
 	help
 		- Allow hiding the user-defined mount paths from /proc/self/[mounts|mountinfo|mountstat].
 		- Effective on all processes for hiding mount entries.
-		- Mounts mounted by process with ksu domain will be forced to be assigned the dev name "KSU".
 		- mnt_id and mnt_group_id of the sus mount will be assigned to a much bigger number to solve the issue of id not being contiguous.
 
 config KSU_SUSFS_SUS_KSTAT

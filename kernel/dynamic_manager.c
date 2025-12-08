@@ -26,6 +26,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager.h"
 #include "ksu.h"
+#include "kernel_compat.h"
 
 #define MAX_MANAGERS 2
 
@@ -149,7 +150,7 @@ int ksu_get_manager_signature_index(uid_t uid)
 	int i;
 	
 	// Check traditional manager first
-	if (ksu_manager_uid != KSU_INVALID_UID && uid == ksu_manager_uid) {
+	if (ksu_manager_appid != KSU_INVALID_APPID && uid == ksu_manager_appid) {
 		return DYNAMIC_SIGN_INDEX;
 	}
 	
@@ -198,8 +199,8 @@ int ksu_get_active_managers(struct manager_list_info *info)
 	}
 
 	// Add traditional manager first
-	if (ksu_manager_uid != KSU_INVALID_UID && count < 2) {
-		info->managers[count].uid = ksu_manager_uid;
+	if (ksu_manager_appid != KSU_INVALID_APPID && count < 2) {
+		info->managers[count].uid = ksu_manager_appid;
 		info->managers[count].signature_index = 0;
 		count++;
 	}
@@ -243,17 +244,17 @@ static void do_save_dynamic_manager(struct callback_head *_cb)
 		goto revert;
 	}
 
-	if (kernel_write(fp, &magic, sizeof(magic), &off) != sizeof(magic)) {
+	if (ksu_kernel_write_compat(fp, &magic, sizeof(magic), &off) != sizeof(magic)) {
 		pr_err("save_dynamic_manager write magic failed.\n");
 		goto close_file;
 	}
 
-	if (kernel_write(fp, &version, sizeof(version), &off) != sizeof(version)) {
+	if (ksu_kernel_write_compat(fp, &version, sizeof(version), &off) != sizeof(version)) {
 		pr_err("save_dynamic_manager write version failed.\n");
 		goto close_file;
 	}
 
-	if (kernel_write(fp, &tw->config, sizeof(tw->config), &off) != sizeof(tw->config)) {
+	if (ksu_kernel_write_compat(fp, &tw->config, sizeof(tw->config), &off) != sizeof(tw->config)) {
 		pr_err("save_dynamic_manager write config failed.\n");
 		goto close_file;
 	}
