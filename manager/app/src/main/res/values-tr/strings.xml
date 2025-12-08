@@ -35,7 +35,6 @@
     <string name="reboot_edl">EDL moduna yeniden başlat</string>
     <string name="about">Hakkında</string>
     <string name="module_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz?</string>
-    <string name="metamodule_uninstall_confirm">"%s modülünü kaldırmak istediğinizden emin misiniz? Bu eylem tüm modülleri etkileyecek ve meta modül tarafından sağlanan belirli özellikler (örneğin bağlama) artık çalışmayacaktır."</string>
     <string name="module_uninstall_success">%s kaldırıldı</string>
     <string name="module_uninstall_failed">Kaldırılamadı: %s</string>
     <string name="module_version">Sürüm</string>
@@ -121,8 +120,6 @@
     <string name="settings_uninstall_permanent">Kalıcı olarak kaldır</string>
     <string name="settings_restore_stock_image">Fabrika görüntüsünü geri yükle</string>
     <string name="settings_uninstall_temporary_message">KernelSU\'yu geçici olarak kaldırın, bir sonraki yeniden başlatmadan sonra orijinal duruma geri dönün.</string>
-    <string name="settings_uninstall_permanent_message">KernelSU\'yu (Root ve tüm modüller) tamamen ve kalıcı olarak kaldırın.</string>
-    <string name="settings_restore_stock_image_message">Fabrika görüntüsünü geri yükleyin (yedek varsa), genellikle OTA öncesi kullanılır; KernelSU\'yu kaldırmak istiyorsanız lütfen \"Kalıcı olarak kaldır\" seçeneğini kullanın.</string>
     <string name="flashing">Kurulum işlemi</string>
     <string name="flash_success">Kurulum başarılı</string>
     <string name="flash_failed">Kurulum başarısız</string>
@@ -165,13 +162,8 @@
     <string name="home_device_model">Cihaz modeli</string>
     <string name="su_not_allowed">%s için süper kullanıcı yetkisi verilemiyor</string>
     <string name="settings_disable_su">Su uyumluluğunu devre dışı bırak</string>
-    <string name="settings_disable_su_summary">Geçici olarak herhangi bir uygulamanın su komutu aracılığıyla root ayrıcalıkları elde etmesini devre dışı bırakır (mevcut root işlemleri etkilenmez).</string>
     <string name="settings_disable_kernel_umount">Çekirdek ayırmasını devre dışı bırak</string>
-    <string name="settings_disable_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesindeki ayırma davranışını devre dışı bırakın.</string>
     <string name="settings_enable_enhanced_security">Gelişmiş güvenliği etkinleştir</string>
-    <string name="settings_enable_enhanced_security_summary">Daha katı güvenlik politikalarını etkinleştirin.</string>
-    <string name="feature_status_unsupported_summary">Çekirdek bu özelliği desteklemiyor.</string>
-    <string name="feature_status_managed_summary">Bu özellik bir modül tarafından yönetiliyor.</string>
     <string name="settings_mode_default">Varsayılan</string>
     <string name="settings_mode_temp_enable">Geçici olarak etkinleştir</string>
     <string name="settings_mode_always_enable">Kalıcı olarak etkinleştir</string>
@@ -334,7 +326,6 @@
     <string name="module_download_error">Modül indirme başarısız</string>
     <string name="kernel_flashing">Çekirdek Yükleniyor</string>
     <string name="warning_of_meta_module_title">Meta modül gerektirir</string>
-    <string name="warning_of_meta_module_summary">Bu modül /system bölümünü bağlamak istiyor, meta modül bunu halledecektir. Aksi takdirde, çalışmayabilir.</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Tümü</string>
     <string name="category_root_apps">Root</string>
@@ -521,7 +512,6 @@
     <string name="hide_bl_script">Kilitli durum</string>
     <string name="hide_bl_script_description">late_start hizmet modunda önyükleme kilidi durumu özniteliğini geçersiz kıl</string>
     <string name="cleanup_residue">Kalıntıları Temizle</string>
-    <string name="cleanup_residue_description">Çeşitli modüllerin ve araçların kalıntı dosyalarını ve dizinlerini temizleyin (yanlışlıkla silinerek kayba ve başlatılamamaya neden olabilir, dikkatli kullanın)</string>
     <string name="susfs_edit_sus_path">SUS Yolunu Düzenle</string>
     <string name="edit_kstat_statically_title">Kstat Statik Yapılandırmasını Düzenle</string>
     <string name="edit_kstat_path_title">Kstat Yolunu Düzenle</string>
@@ -594,7 +584,6 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'u
     <string name="module_verified">Doğrulandı</string>
     <string name="module_signature_verified">Modül imzası doğrulandı</string>
     <string name="module_signature_verification">İmza Doğrulaması</string>
-    <string name="module_signature_verification_summary">Modüller yüklendiğinde imza doğrulamasını zorunlu kıl. (Sadece ARM mimarisi için geçerlidir)</string>
     <string name="module_signature_invalid">Bilinmeyen yayıncı</string>
     <string name="module_signature_invalid_message">İmzasız modüller eksik veya değiştirilmiş olabilir. Cihazınızı korumak için bu modülün kurulumu engellenmiştir.</string>
     <string name="module_signature_verification_failed">İmzasız modüller eksik veya değiştirilmiş olabilir. Bilinmeyen bir yayıncıdan gelen aşağıdaki modülün bu cihaza kurulmasına izin vermek istiyor musunuz?</string>
@@ -629,13 +618,11 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'u
     <string name="kpm_follow_kernel_description">Çekirdeği herhangi bir KPM değişikliği olmadan olduğu gibi kullan</string>
     <!-- UID Scanner Settings -->
     <string name="uid_auto_scan_title">Kullanıcı modu uygulama listesi taraması</string>
-    <string name="uid_auto_scan_summary">Bu seçeneği etkinleştirmek, uygulama listesi için kullanıcı modu taramasını kullanarak kararlılığı artıracaktır. (Uygulama listesinin çekirdek tarafından taranması sırasında donma gibi sorunlar yaşıyorsanız, bu seçeneği etkinleştirmeyi deneyebilirsiniz.)</string>
     <string name="uid_multi_user_scan_title">Çok Kullanıcılı Uygulama Taraması</string>
     <string name="uid_multi_user_scan_summary">Etkinleştirildiğinde, iş profilleri de dahil olmak üzere tüm kullanıcıların uygulamalarını tarar.</string>
     <string name="uid_scanner_setting_failed">Ayar başarısız oldu, lütfen izinleri kontrol edin</string>
     <string name="clean_runtime_environment">Çalışma Zamanı Ortamını Temizle</string>
     <string name="clean_runtime_environment_summary">Çalışma zamanı dosyalarını temizleyin ve tarayıcı hizmetini durdurun</string>
-    <string name="clean_runtime_environment_confirm">Çalışma zamanı ortamını temizlemek istediğinizden emin misiniz? Bu işlem tarayıcı hizmetini durduracak ve ilgili dosyaları kaldıracaktır.</string>
     <string name="clean_runtime_environment_success">Çalışma zamanı ortamı başarıyla temizlendi</string>
     <string name="clean_runtime_environment_failed">Çalışma zamanı ortamı temizlenemedi</string>
     <!-- 确认安装相关字符串 -->
@@ -662,18 +649,13 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'u
     <string name="susfs_sus_map_updated">SUS eşlemesi güncellendi: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">Yapılandırılmış SUS eşlemesi yok</string>
     <string name="susfs_reset_sus_maps_title">SUS Eşlemelerini Sıfırla</string>
-    <string name="susfs_reset_sus_maps_message">Bu, yapılandırılmış tüm SUS eşlemelerini kaldıracaktır. Bu işlem geri alınamaz.</string>
     <string name="sus_maps_section">Bellek Eşlemesi Gizleme</string>
     <string name="sus_maps_description_title">/proc/self/ içindeki çeşitli eşlemelerden mmap\'lenmiş gerçek dosyayı gizle</string>
-    <string name="sus_maps_description_text">Bellek eşlemelerinin gerçek dosya yollarını /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] konumundan gizleyin. Lütfen dikkat: Bu özellik, anonim bellek eşlemelerini gizlemeyi desteklemez ve enjekte edilen kütüphanenin kendisinin neden olduğu satır içi kancaları veya PLT kancalarını da gizleyemez.</string>
-    <string name="sus_maps_warning">Önemli Not: İyi uygulanmış enjeksiyon tespit mekanizmalarına sahip uygulamalar için bu özellik, tespiti etkili bir şekilde atlatamayabilir.</string>
-    <string name="sus_maps_debug_info">Öncelikle, ps -enf kullanarak hedef uygulamanın PID ve UID\'sini bulun, ardından /proc/&lt;pid&gt;/maps içindeki ilgili yolları kontrol edin ve tutarlılığı sağlamak için cihaz numaralarını /proc/1/mountinfo\'dakilerle karşılaştırın. Yalnızca cihaz numaraları eşleştiğinde harita gizleme işlevi düzgün çalışabilir.</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">Günlük Görüntüleyici</string>
     <string name="log_viewer_back">Geri</string>
     <string name="log_viewer_search">Ara</string>
     <string name="log_viewer_clear_logs">Günlükleri Temizle</string>
-    <string name="log_viewer_clear_logs_confirm">Seçili günlük dosyasını temizlemek istediğinizden emin misiniz? Bu işlem geri alınamaz.</string>
     <string name="log_viewer_logs_cleared">Günlükler başarıyla temizlendi</string>
     <string name="log_viewer_filter_type">Türe Göre Filtrele</string>
     <string name="log_viewer_all_types">Tüm Türler</string>
@@ -698,7 +680,6 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'u
     <string name="incompatible_kernel_msg">Mevcut yönetici bu çekirdekle uyumsuz! Lütfen çekirdeği %2$d veya daha yüksek bir sürüme yükseltin (mevcut sürüm %1$d)</string>
     <string name="umount_path_manager">Bağlantı Kaldırma Yolu Yönetimi</string>
     <string name="umount_path_manager_summary">Çekirdek bağlantı kaldırma yollarını yönetin</string>
-    <string name="umount_path_restart_notice">Değişikliklerin etkili olması için yeniden başlatma gereklidir. Sistem, yeni yapılandırmayı bir sonraki önyüklemede uygulayacaktır.</string>
     <string name="add_umount_path">Bağlantı Kaldırma Yolu Ekle</string>
     <string name="mount_path">Bağlama Yolu</string>
     <string name="umount_flags">Bağlantı Kaldırma Bayrakları</string>
@@ -709,7 +690,6 @@ etkin: Çekirdekteki AVC günlük kaydında, \'su\' komutuna ait tcontext\'i \'u
     <string name="umount_path_removed">Yol kaldırıldı, yeniden başlattıktan sonra geçerli olacak</string>
     <string name="operation_failed">İşlem başarısız oldu</string>
     <string name="confirm_action">Eylemi Onayla</string>
-    <string name="confirm_clear_custom_paths">Tüm özel yolları temizlemek istediğinizden emin misiniz? (Varsayılan yollar korunacaktır)</string>
     <string name="custom_paths_cleared">Özel yollar temizlendi</string>
     <string name="clear_custom_paths">Özel Yolları Temizle</string>
     <string name="apply_config">Yapılandırmayı Uygula</string>
