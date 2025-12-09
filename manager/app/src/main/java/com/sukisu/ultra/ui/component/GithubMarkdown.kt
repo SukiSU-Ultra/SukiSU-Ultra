@@ -11,6 +11,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import android.widget.FrameLayout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -100,7 +101,8 @@ fun GithubMarkdown(content: String, backgroundColor: androidx.compose.ui.graphic
 
     AndroidView(
         factory = { context ->
-            WebView(context).apply {
+            val frameLayout = FrameLayout(context)
+            val webView = WebView(context).apply {
                 try {
                     setBackgroundColor(Color.TRANSPARENT)
                     isVerticalScrollBarEnabled = false
@@ -155,7 +157,7 @@ fun GithubMarkdown(content: String, backgroundColor: androidx.compose.ui.graphic
                                 val body = reply.body ?: return null
                                 WebResourceResponse(mimeType, charset, body.byteStream())
                             } catch (e: IOException) {
-                                return WebResourceResponse(
+                                WebResourceResponse(
                                     "text/html", "utf-8",
                                     ByteArrayInputStream(Log.getStackTraceString(e).toByteArray(StandardCharsets.UTF_8))
                                 )
@@ -174,6 +176,8 @@ fun GithubMarkdown(content: String, backgroundColor: androidx.compose.ui.graphic
                     Log.e("GithubMarkdown", "WebView setup failed", e)
                 }
             }
+            frameLayout.addView(webView)
+            frameLayout
         },
         modifier = Modifier
             .fillMaxWidth()
