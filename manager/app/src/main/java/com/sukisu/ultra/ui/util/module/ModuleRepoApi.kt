@@ -1,54 +1,19 @@
-package com.sukisu.ultra.ui.activity.util
+package com.sukisu.ultra.ui.util.module
 
+import android.os.Parcelable
 import android.util.Log
 import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.ui.activity.util.isNetworkAvailable
+import kotlinx.parcelize.Parcelize
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 
 const val TAG = "ModuleRepoApi"
-data class RepoSummary(
-    val latestVersion: String,
-    val versionCode: Int,
-    val downloadUrl: String
-)
-
-fun sanitizeVersionString(version: String): String {
-    return version.replace(Regex("[^a-zA-Z0-9.\\-_]"), "_")
-}
-
-fun fetchRepoIndex(): Map<String, RepoSummary> {
-    if (!isNetworkAvailable(ksuApp)) return emptyMap()
-    val url = "https://modules.kernelsu.org/modules.json"
-    return runCatching {
-        ksuApp.okhttpClient.newCall(Request.Builder().url(url).build()).execute().use { resp ->
-            if (!resp.isSuccessful) emptyMap() else {
-                val body = resp.body?.string() ?: return@use emptyMap()
-                val arr = JSONArray(body)
-                val result = mutableMapOf<String, RepoSummary>()
-                for (idx in 0 until arr.length()) {
-                    val obj = arr.optJSONObject(idx) ?: continue
-                    val id = obj.optString("moduleId", "").ifBlank { continue }
-                    val lr = obj.optJSONObject("latestRelease") ?: continue
-                    val ver = sanitizeVersionString(lr.optString("name", lr.optString("version", "")))
-                    val vcode = lr.optInt("versionCode", 0)
-                    val dl = lr.optString("downloadUrl", "")
-                    if (vcode > 0 && dl.isNotBlank()) {
-                        result[id] = RepoSummary(ver, vcode, dl)
-                    }
-                }
-                result
-            }
-        }
-    }.getOrElse {
-        Log.e(TAG,"Module Repo Api Calling FAILED", it)
-        emptyMap()
-    }
-}
 
 data class ModuleDetail(
-    val readme: String?,
+    val readme: String,
     val latestTag: String,
     val latestTime: String,
     val latestAssetName: String?,
@@ -59,52 +24,24 @@ data class ModuleDetail(
     val url: String?
 )
 
+@Immutable
+@Parcelize
 data class ReleaseInfo(
     val name: String,
     val tagName: String,
     val publishedAt: String,
     val descriptionHTML: String,
     val assets: List<ReleaseAssetInfo>
-)
+) : Parcelable
 
 @Immutable
+@Parcelize
 data class ReleaseAssetInfo(
     val name: String,
     val downloadUrl: String,
     val size: Long,
     val downloadCount: Int
-)
-
-fun fetchReleaseDescriptionHtml(moduleId: String, latestTag: String): String? {
-    if (!isNetworkAvailable(ksuApp)) return null
-
-    val url = "https://modules.kernelsu.org/module/$moduleId.json"
-    return runCatching {
-        ksuApp.okhttpClient.newCall(Request.Builder().url(url).build()).execute().use { resp ->
-            if (!resp.isSuccessful) null else {
-                val body = resp.body?.string() ?: return@use null
-                val obj = JSONObject(body)
-                val releasesArray = obj.optJSONArray("releases") ?: return@use null
-                var fallbackHtml: String? = null
-                for (i in 0 until releasesArray.length()) {
-                    val r = releasesArray.optJSONObject(i) ?: continue
-                    val descHtml = r.optString("descriptionHTML", "")
-                    if (fallbackHtml == null && descHtml.isNotBlank()) {
-                        fallbackHtml = descHtml
-                    }
-                    val rname = r.optString("name", r.optString("tagName", r.optString("version", "")))
-                    if (rname == latestTag && descHtml.isNotBlank()) {
-                        return@use descHtml
-                    }
-                }
-                fallbackHtml
-            }
-        }
-    }.getOrElse {
-        Log.e(TAG,"Module Repo Api Calling FAILED", it)
-        null
-    }
-}
+) : Parcelable
 
 fun fetchModuleDetail(moduleId: String): ModuleDetail? {
     if (!isNetworkAvailable(ksuApp)) return null
@@ -115,7 +52,7 @@ fun fetchModuleDetail(moduleId: String): ModuleDetail? {
             val body = resp.body?.string() ?: return@use null
             val obj = JSONObject(body)
 
-            val readme = obj.optString("readme", "").ifBlank { null }
+            val readme = obj.optString("readmeHTML", "")
             fun stripTicks(s: String): String {
                 val t = s.trim()
                 return if (t.startsWith("`") && t.endsWith("`") && t.length >= 2) t.substring(1, t.length - 1) else t

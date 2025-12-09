@@ -1,9 +1,8 @@
-package com.sukisu.ultra.ui.screen
+package com.sukisu.ultra.ui.screen.moduleRepo
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,10 +29,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SignalWifiOff
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.WebAsset
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -89,10 +89,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.OnlineModuleDetailScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.activity.util.ReleaseAssetInfo
+import com.sukisu.ultra.ui.util.module.ReleaseAssetInfo
+import com.sukisu.ultra.ui.util.module.ReleaseInfo
 import com.sukisu.ultra.ui.activity.util.isNetworkAvailable
 import com.sukisu.ultra.ui.component.ConfirmDialogHandle
 import com.sukisu.ultra.ui.component.ConfirmResult
@@ -100,17 +102,18 @@ import com.sukisu.ultra.ui.component.DialogHandle
 import com.sukisu.ultra.ui.component.SearchAppBar
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.rememberCustomDialog
+import com.sukisu.ultra.ui.screen.FlashIt
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
 import com.sukisu.ultra.ui.util.download
 import com.sukisu.ultra.ui.viewmodel.ModuleRepoViewModel
 import com.sukisu.ultra.ui.viewmodel.ModuleRepoViewModel.RepoModule
+import com.sukisu.ultra.ui.viewmodel.formatFileSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 /**
  * @author AlexLiuDev233
@@ -140,6 +143,8 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
 
     LaunchedEffect(Unit) {
         viewModel.sortStargazerCountFirst = prefs.getBoolean("module_repo_sort_star_first", false)
+        scrollBehavior.state.heightOffset =
+            scrollBehavior.state.heightOffsetLimit
     }
 
     Scaffold(
@@ -164,8 +169,8 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
                         onClick = { navigator.popBackStack() },
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
-                            contentDescription = stringResource(id = R.string.settings),
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.back),
                         )
                     }
                 },
@@ -375,6 +380,9 @@ fun OnlineModuleItem(
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier = Modifier.clickable {
+            navigator.navigate(OnlineModuleDetailScreenDestination(module))
+        },
         elevation = getCardElevation(),
     ) {
         Column(
@@ -512,69 +520,64 @@ fun OnlineModuleItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                ) {
-                    if (module.latestReleaseTime.isNotBlank()) {
-                        Text(
-                            text = stringResource(
-                                R.string.latest_release_time,
-                                module.latestReleaseTime
-                            ),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.End
-                        )
-                    }
-                    if (module.updatedAt.isNotBlank()) {
-                        Text(
-                            text = stringResource(R.string.latest_update_time, module.updatedAt),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.End
-                        )
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                if (module.latestAsset != null) {
-                    val confirmInstallTitle = stringResource(R.string.confirm_install_module_title, module.moduleName)
+            Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically)) {
+                    Spacer(modifier = Modifier.weight(1f))
                     FilledTonalButton(
                         modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                         onClick = {
-                            viewModel.viewModelScope.launch {
-                                val result = confirmDialog.awaitConfirm(
-                                    title = confirmInstallTitle,
-                                    html = true,
-                                    content = module.latestAsset.releaseLog
-                                )
-
-                                if (result == ConfirmResult.Canceled) return@launch
-
-                                val assets = module.latestAsset.assets
-                                Log.i("DEBUG", "assets size: ${assets.size}")
-                                if (assets.size <= 1) {
-                                    assets.firstOrNull()?.let { asset ->
-                                        downloadAssetAndInstall(context, module, asset, navigator, viewModel)
-                                    }
-                                } else {
-                                    currentModuleForChooseDialog.value = module
-                                    chooseDialog.show()
-                                }
-                            }
+                            navigator.navigate(OnlineModuleDetailScreenDestination(module))
                         },
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = Icons.Outlined.Download,
+                            imageVector = Icons.Outlined.WebAsset,
                             contentDescription = null
                         )
-                        Text(
-                            text = stringResource(R.string.install),
-                            textAlign = TextAlign.End
-                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+
+                    if (module.latestAsset != null) {
+                        val confirmInstallTitle =
+                            stringResource(R.string.confirm_install_module_title, module.moduleName)
+                        FilledTonalButton(
+                            modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
+                            onClick = {
+                                viewModel.viewModelScope.launch {
+                                    val result = confirmDialog.awaitConfirm(
+                                        title = confirmInstallTitle,
+                                        html = true,
+                                        content = module.latestAsset.descriptionHTML
+                                    )
+
+                                    if (result == ConfirmResult.Canceled) return@launch
+
+                                    val assets = module.latestAsset.assets
+                                    if (assets.size <= 1) {
+                                        assets.firstOrNull()?.let { asset ->
+                                            downloadAssetAndInstall(
+                                                context,
+                                                module,
+                                                asset,
+                                                navigator,
+                                                viewModel.viewModelScope
+                                            )
+                                        }
+                                    } else {
+                                        currentModuleForChooseDialog.value = module
+                                        chooseDialog.show()
+                                    }
+                                }
+                            },
+                            contentPadding = ButtonDefaults.TextButtonContentPadding,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = Icons.Outlined.Download,
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             }
@@ -582,16 +585,16 @@ fun OnlineModuleItem(
     }
 }
 
-private fun downloadAssetAndInstall(
+fun downloadAssetAndInstall(
     context: Context,
     module: RepoModule,
     asset: ReleaseAssetInfo,
     navigator: DestinationsNavigator,
-    viewModel: ModuleRepoViewModel
+    coroutineScope: CoroutineScope
 ) {
     val downloadingText = context.getText(R.string.module_downloading).toString()
     val downloadErrorText = context.getText(R.string.module_download_error).toString()
-    viewModel.viewModelScope.launch {
+    coroutineScope.launch {
         withContext(Dispatchers.IO) {
             download(
                 context,
@@ -636,19 +639,6 @@ fun ChooseDialogContent(
     }
     var selectedAsset by remember { mutableStateOf<ReleaseAssetInfo?>(null) }
 
-    fun formatFileSize(bytes: Long): String {
-        val kb = 1024.0
-        val mb = kb * 1024
-        val gb = mb * 1024
-
-        return when {
-            bytes >= gb -> String.format(Locale.US, "%.2f GB", bytes / gb)
-            bytes >= mb -> String.format(Locale.US, "%.2f MB", bytes / mb)
-            bytes >= kb -> String.format(Locale.US, "%.2f KB", bytes / kb)
-            else -> "$bytes B"
-        }
-    }
-
     Dialog(
         onDismissRequest = { dismiss() }
     ) {
@@ -670,6 +660,7 @@ fun ChooseDialogContent(
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
+                Spacer(modifier = Modifier.height(10.dp))
 
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
@@ -723,7 +714,7 @@ fun ChooseDialogContent(
                             }
                             selectedAsset?.let { selected ->
                                 dismiss()
-                                downloadAssetAndInstall(context,module,selected, navigator, viewModel)
+                                downloadAssetAndInstall(context,module,selected, navigator, viewModel.viewModelScope)
                             }
                         }
                     ) {
@@ -738,7 +729,7 @@ fun ChooseDialogContent(
 
 // 下面全是预览相关了
 
-private fun initFakeRepoModuleForPreview() : RepoModule {
+fun initFakeRepoModuleForPreview() : RepoModule {
     return RepoModule(
         moduleId = "id",
         moduleName = "name",
@@ -759,9 +750,11 @@ private fun initFakeRepoModuleForPreview() : RepoModule {
         latestRelease = "latestRelease",
         latestReleaseTime = "latestReleaseTime",
         latestVersionCode = 1,
-        latestAsset = ModuleRepoViewModel.ReleaseData(
+        latestAsset = ReleaseInfo(
             name = "name",
-            releaseLog = "releaseLog",
+            tagName = "tagName",
+            publishedAt = "publishedAt",
+            descriptionHTML = "descriptionHTML",
             assets = ArrayList<ReleaseAssetInfo>().apply {
                 add(
                     ReleaseAssetInfo(
@@ -771,7 +764,6 @@ private fun initFakeRepoModuleForPreview() : RepoModule {
                         downloadCount = 0
                     )
                 )
-            }.apply {
                 add(
                     ReleaseAssetInfo(
                         name = "name2",
@@ -782,11 +774,14 @@ private fun initFakeRepoModuleForPreview() : RepoModule {
                 )
             }
         ),
-        installed = true
+        installed = true,
+        readme = "README",
+        sourceUrl = "Source URL",
+        releases = emptyList()
     )
 }
 
-@Preview
+@Preview(locale = "en")
 @Composable
 fun OnlineModuleItemPreview() {
     val currentModuleForChooseDialog = remember { mutableStateOf<RepoModule?>(null) }
@@ -801,7 +796,7 @@ fun OnlineModuleItemPreview() {
     )
 }
 
-@Preview
+@Preview(locale = "zh-rCN", showBackground = true)
 @Composable
 fun ChooseDialogPreview() {
     val currentModuleForChooseDialog = remember { mutableStateOf<RepoModule?>(initFakeRepoModuleForPreview()) }

@@ -691,6 +691,7 @@
     <string name="umount_path_manager">Umount 路径管理</string>
     <string name="umount_path_manager_summary">管理内核卸载路径</string>
     <string name="umount_path_restart_notice">添加或删除路径后需要重启设备才能生效。系统会在下次启动时应用新的配置。</string>
+    <string name="no_any_umount_path">没有任何内核卸载路径</string>
     <string name="add_umount_path">添加 Umount 路径</string>
     <string name="mount_path">挂载路径</string>
     <string name="umount_flags">卸载标志</string>
@@ -716,11 +717,17 @@
     <string name="network_offline">您处于离线状态</string>
     <string name="network_retry">重试</string>
     <string name="please_check_network">请检查网络连接情况，然后稍后重试</string>
-    <string name="latest_release_time">上次发版: %s</string>
-    <string name="latest_update_time">上次更新: %s</string>
     <string name="confirm_install_module_title">要安装模块 %s 吗?</string>
     <string name="assets_multiple_select_dialog_title">请选择你想安装的附件</string>
     <string name="assets_multiple_select_dialog_content_description">大小: %s, 下载数: %s</string>
     <string name="assets_multiple_select_dialog_warning">没有任何附件被选择</string>
     <string name="installed">已安装</string>
+    <string name="open_module_home_page">在浏览器中打开模块主页</string>
+    <string name="readme">自述文件</string>
+    <string name="release">版本</string>
+    <string name="info">信息</string>
+    <string name="author_link">模块作者链接</string>
+    <string name="source_code">源码</string>
+    <string name="assert_support_content">%s,%d 下载</string>
+    <string name="show_detail_or_hide_detail">显示或隐藏详情</string>
 </resources>

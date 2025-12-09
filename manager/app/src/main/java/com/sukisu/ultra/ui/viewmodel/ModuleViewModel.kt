@@ -7,25 +7,22 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
+import com.sukisu.ultra.ui.util.HanziToPinyin
+import com.sukisu.ultra.ui.util.getRootShell
+import com.sukisu.ultra.ui.util.listModules
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.ui.util.HanziToPinyin
-import com.sukisu.ultra.ui.util.listModules
-import com.sukisu.ultra.ui.util.getRootShell
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
-import java.text.DecimalFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import kotlin.math.log10
-import kotlin.math.pow
-import androidx.core.content.edit
 
 /**
  * @author ShirkNeko
@@ -492,15 +489,19 @@ private fun JSONObject.getIntCompat(key: String, default: Int = 0): Int {
 }
 
 /**
- * 格式化文件大小的工具函数
+ * 格式化文件大小
  */
 fun formatFileSize(bytes: Long): String {
-    if (bytes <= 0) return "0 KB"
+    val kb = 1024.0
+    val mb = kb * 1024
+    val gb = mb * 1024
+    val tb = gb * 1024
 
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
-
-    return DecimalFormat("#,##0.#").format(
-        bytes / 1024.0.pow(digitGroups.toDouble())
-    ) + " " + units[digitGroups]
+    return when {
+        bytes >= tb -> "%.2f TB".format(bytes / tb)
+        bytes >= gb -> "%.2f GB".format(bytes / gb)
+        bytes >= mb -> "%.2f MB".format(bytes / mb)
+        bytes >= kb -> "%.2f KB".format(bytes / kb)
+        else -> "$bytes B"
+    }
 }
