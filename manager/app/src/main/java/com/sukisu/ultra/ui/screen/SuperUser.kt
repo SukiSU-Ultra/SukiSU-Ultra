@@ -216,9 +216,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                 viewModel = viewModel,
                 appCounts = appCounts,
                 backupLauncher = backupLauncher,
-                restoreLauncher = restoreLauncher,
-                scope = scope,
-                listState = listState
+                restoreLauncher = restoreLauncher
             )
         }
     }
@@ -239,31 +237,25 @@ private fun TopBarTitle(
     ) {
         Text(stringResource(R.string.superuser))
 
-        if (selectedCategory != AppCategory.ALL) {
-            AnimatedVisibility(
-                visible = isCollapsed,
-                enter = fadeIn(),
-                exit = ExitTransition.None
+        if (selectedCategory != AppCategory.ALL && isCollapsed) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.padding(start = 4.dp)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.padding(start = 4.dp)
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = stringResource(selectedCategory.displayNameRes),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Text(
-                            text = "(${appCounts[selectedCategory] ?: 0})",
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                    Text(
+                        text = stringResource(selectedCategory.displayNameRes),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "(${appCounts[selectedCategory] ?: 0})",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
         }
@@ -477,9 +469,7 @@ private fun SuperUserBottomSheet(
     viewModel: SuperUserViewModel,
     appCounts: Map<AppCategory, Int>,
     backupLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>,
-    restoreLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>,
-    scope: CoroutineScope,
-    listState: androidx.compose.foundation.lazy.LazyListState
+    restoreLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>
 ) {
     val bottomSheetMenuItems = remember(viewModel.showSystemApps) {
         listOf(
@@ -487,11 +477,6 @@ private fun SuperUserBottomSheet(
                 icon = Icons.Filled.Refresh,
                 titleRes = R.string.refresh,
                 onClick = {
-                    scope.launch {
-                        viewModel.fetchAppList()
-                        bottomSheetState.hide()
-                        onDismiss()
-                    }
                 }
             ),
             BottomSheetMenuItem(
@@ -499,11 +484,6 @@ private fun SuperUserBottomSheet(
                 titleRes = if (viewModel.showSystemApps) R.string.hide_system_apps else R.string.show_system_apps,
                 onClick = {
                     viewModel.updateShowSystemApps(!viewModel.showSystemApps)
-                    scope.launch {
-                        kotlinx.coroutines.delay(100)
-                        bottomSheetState.hide()
-                        onDismiss()
-                    }
                 }
             ),
             BottomSheetMenuItem(
@@ -511,10 +491,6 @@ private fun SuperUserBottomSheet(
                 titleRes = R.string.backup_allowlist,
                 onClick = {
                     backupLauncher.launch(ModuleModify.createAllowlistBackupIntent())
-                    scope.launch {
-                        bottomSheetState.hide()
-                        onDismiss()
-                    }
                 }
             ),
             BottomSheetMenuItem(
@@ -522,10 +498,6 @@ private fun SuperUserBottomSheet(
                 titleRes = R.string.restore_allowlist,
                 onClick = {
                     restoreLauncher.launch(ModuleModify.createAllowlistRestoreIntent())
-                    scope.launch {
-                        bottomSheetState.hide()
-                        onDismiss()
-                    }
                 }
             )
         )
@@ -549,19 +521,10 @@ private fun SuperUserBottomSheet(
             currentSortType = viewModel.currentSortType,
             onSortTypeChanged = { newSortType ->
                 viewModel.updateCurrentSortType(newSortType)
-                scope.launch {
-                    bottomSheetState.hide()
-                    onDismiss()
-                }
             },
             selectedCategory = viewModel.selectedCategory,
             onCategorySelected = { newCategory ->
                 viewModel.updateSelectedCategory(newCategory)
-                scope.launch {
-                    listState.animateScrollToItem(0)
-                    bottomSheetState.hide()
-                    onDismiss()
-                }
             },
             appCounts = appCounts
         )

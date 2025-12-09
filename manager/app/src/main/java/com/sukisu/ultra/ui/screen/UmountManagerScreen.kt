@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -9,6 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -53,11 +57,12 @@ fun UmountManagerScreen(navigator: DestinationsNavigator) {
 
     var pathList by remember { mutableStateOf<List<UmountPathEntry>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
+    val pullToRefreshState = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
 
     fun loadPaths() {
         scope.launch(Dispatchers.IO) {
-            isLoading = true
             val result = listUmountPaths()
             val entries = parseUmountPaths(result)
             withContext(Dispatchers.Main) {
@@ -82,11 +87,6 @@ fun UmountManagerScreen(navigator: DestinationsNavigator) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
-                actions = {
-                    IconButton(onClick = { loadPaths() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = null)
-                    }
-                },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(
@@ -109,118 +109,106 @@ fun UmountManagerScreen(navigator: DestinationsNavigator) {
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(SPACING_LARGE),
-                colors = getCardColors(MaterialTheme.colorScheme.primaryContainer),
-                elevation = getCardElevation()
-            ) {
-                Column(
-                    modifier = Modifier.padding(SPACING_LARGE)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(SPACING_MEDIUM))
-                    Text(
-                        text = stringResource(R.string.umount_path_restart_notice),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
-            if (isLoading) {
+            if (isLoading) { // 初次加载时动画
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+                    contentAlignment = Alignment.Center,
                 ) {
                     LoadingIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
-                    verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+                PullToRefreshBox(
+                    state = pullToRefreshState,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        loadPaths()
+                        isRefreshing = false
+                    },
+                    indicator = {
+                        PullToRefreshDefaults.LoadingIndicator(
+                            state = pullToRefreshState,
+                            isRefreshing = isRefreshing,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                        )
+                    },
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                 ) {
-                    items(pathList, key = { it.path }) { entry ->
-                        UmountPathCard(
-                            entry = entry,
-                            onDelete = {
-                                scope.launch(Dispatchers.IO) {
-                                    val success = removeUmountPath(entry.path)
-                                    withContext(Dispatchers.Main) {
-                                        if (success) {
-                                            snackBarHost.showSnackbar(
-                                                context.getString(R.string.umount_path_removed)
-                                            )
-                                            loadPaths()
-                                        } else {
-                                            snackBarHost.showSnackbar(
-                                                context.getString(R.string.operation_failed)
-                                            )
-                                        }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            horizontal = SPACING_LARGE,
+                            vertical = SPACING_MEDIUM
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+                    ) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp),
+                                colors = getCardColors(MaterialTheme.colorScheme.primaryContainer),
+                                elevation = getCardElevation()
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(5.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Info,
+                                        contentDescription = null,
+                                        modifier = Modifier.padding(10.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.umount_path_restart_notice),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                        }
+
+                        if (pathList.isEmpty()) {
+                            item {
+                                Spacer(modifier = Modifier.height(15.dp))
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp),
+                                    elevation = getCardElevation()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(5.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Info,
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(10.dp),
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.no_any_umount_path),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
                                     }
                                 }
                             }
-                        )
-                    }
+                        }
 
-                    item {
-                        Spacer(modifier = Modifier.height(SPACING_LARGE))
-                    }
-
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = SPACING_LARGE),
-                            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
-                        ) {
-                            Button(
-                                onClick = {
-                                    scope.launch {
-                                        if (confirmDialog.awaitConfirm(
-                                                title = context.getString(R.string.confirm_action),
-                                                content = context.getString(R.string.confirm_clear_custom_paths)
-                                            ) == ConfirmResult.Confirmed) {
-                                            withContext(Dispatchers.IO) {
-                                                val success = clearCustomUmountPaths()
-                                                withContext(Dispatchers.Main) {
-                                                    if (success) {
-                                                        snackBarHost.showSnackbar(
-                                                            context.getString(R.string.custom_paths_cleared)
-                                                        )
-                                                        loadPaths()
-                                                    } else {
-                                                        snackBarHost.showSnackbar(
-                                                            context.getString(R.string.operation_failed)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(Icons.Filled.DeleteForever, contentDescription = null)
-                                Spacer(modifier = Modifier.width(SPACING_MEDIUM))
-                                Text(stringResource(R.string.clear_custom_paths))
-                            }
-
-                            Button(
-                                onClick = {
+                        items(pathList, key = { it.path }) { entry ->
+                            UmountPathCard(
+                                entry = entry,
+                                onDelete = {
                                     scope.launch(Dispatchers.IO) {
-                                        val success = applyUmountConfigToKernel()
+                                        val success = removeUmountPath(entry.path)
                                         withContext(Dispatchers.Main) {
                                             if (success) {
                                                 snackBarHost.showSnackbar(
-                                                    context.getString(R.string.config_applied)
+                                                    context.getString(R.string.umount_path_removed)
                                                 )
+                                                loadPaths()
                                             } else {
                                                 snackBarHost.showSnackbar(
                                                     context.getString(R.string.operation_failed)
@@ -228,12 +216,77 @@ fun UmountManagerScreen(navigator: DestinationsNavigator) {
                                             }
                                         }
                                     }
-                                },
-                                modifier = Modifier.weight(1f)
+                                }
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(SPACING_LARGE))
+                        }
+
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = SPACING_LARGE),
+                                horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
                             ) {
-                                Icon(Icons.Filled.Check, contentDescription = null)
-                                Spacer(modifier = Modifier.width(SPACING_MEDIUM))
-                                Text(stringResource(R.string.apply_config))
+                                Button(
+                                    onClick = {
+                                        scope.launch {
+                                            if (confirmDialog.awaitConfirm(
+                                                    title = context.getString(R.string.confirm_action),
+                                                    content = context.getString(R.string.confirm_clear_custom_paths)
+                                                ) == ConfirmResult.Confirmed
+                                            ) {
+                                                withContext(Dispatchers.IO) {
+                                                    val success = clearCustomUmountPaths()
+                                                    withContext(Dispatchers.Main) {
+                                                        if (success) {
+                                                            snackBarHost.showSnackbar(
+                                                                context.getString(R.string.custom_paths_cleared)
+                                                            )
+                                                            loadPaths()
+                                                        } else {
+                                                            snackBarHost.showSnackbar(
+                                                                context.getString(R.string.operation_failed)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Filled.DeleteForever, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(SPACING_MEDIUM))
+                                    Text(stringResource(R.string.clear_custom_paths))
+                                }
+
+                                Button(
+                                    onClick = {
+                                        scope.launch(Dispatchers.IO) {
+                                            val success = applyUmountConfigToKernel()
+                                            withContext(Dispatchers.Main) {
+                                                if (success) {
+                                                    snackBarHost.showSnackbar(
+                                                        context.getString(R.string.config_applied)
+                                                    )
+                                                } else {
+                                                    snackBarHost.showSnackbar(
+                                                        context.getString(R.string.operation_failed)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Filled.Check, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(SPACING_MEDIUM))
+                                    Text(stringResource(R.string.apply_config))
+                                }
                             }
                         }
                     }

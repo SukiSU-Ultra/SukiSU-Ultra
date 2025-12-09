@@ -698,6 +698,7 @@ Important Note:\n
     <string name="umount_path_manager">Umount Path Management</string>
     <string name="umount_path_manager_summary">Manage kernel unmount paths</string>
     <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot</string>
+    <string name="no_any_umount_path">Not have any umount path</string>
     <string name="add_umount_path">Add Umount Path</string>
     <string name="mount_path">Mount Path</string>
     <string name="umount_flags">Unmount Flags</string>
@@ -724,11 +725,17 @@ Important Note:\n
     <string name="network_offline">You are offline</string>
     <string name="network_retry">Retry</string>
     <string name="please_check_network">Please check your internet connection, and try again</string>
-    <string name="latest_release_time">Last Release: %s</string>
-    <string name="latest_update_time">Last Update: %s</string>
     <string name="confirm_install_module_title">Do you want install %s module?</string>
     <string name="assets_multiple_select_dialog_title">Select you want install asset</string>
     <string name="assets_multiple_select_dialog_content_description">Size: %s, Download count: %s</string>
     <string name="assets_multiple_select_dialog_warning">No any asset selected</string>
     <string name="installed">Installed</string>
+    <string name="open_module_home_page">Open module homepage in browser</string>
+    <string name="readme">Readme</string>
+    <string name="release">Releases</string>
+    <string name="info">Info</string>
+    <string name="author_link">Link of module author</string>
+    <string name="source_code">Source code</string>
+    <string name="assert_support_content">%s,%d downloads</string>
+    <string name="show_detail_or_hide_detail">Show or hide detail</string>
 </resources>

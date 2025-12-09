@@ -21,6 +21,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -442,7 +443,7 @@ private fun ConfirmDialog(visuals: ConfirmDialogVisuals, confirm: () -> Unit, di
                 MarkdownContent(content = visuals.content)
             }
             else if (visuals.isHtml) {
-                GithubMarkdown(content = visuals.content)
+                GithubMarkdown(content = visuals.content, backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh)
             }
             else {
                 Text(text = visuals.content)

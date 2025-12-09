@@ -66,7 +66,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -468,10 +467,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
             ) {
                 ModuleBottomSheetContent(
                     viewModel = viewModel,
-                    prefs = prefs,
-                    scope = scope,
-                    bottomSheetState = bottomSheetState,
-                    onDismiss = { showBottomSheet = false }
+                    prefs = prefs
                 )
             }
         }
@@ -482,10 +478,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
 @Composable
 private fun ModuleBottomSheetContent(
     viewModel: ModuleViewModel,
-    prefs: android.content.SharedPreferences,
-    scope: kotlinx.coroutines.CoroutineScope,
-    bottomSheetState: SheetState,
-    onDismiss: () -> Unit
+    prefs: android.content.SharedPreferences
 ) {
     Column(
         modifier = Modifier
@@ -530,11 +523,6 @@ private fun ModuleBottomSheetContent(
                         prefs.edit {
                             putBoolean("module_sort_action_first", checked)
                         }
-                        scope.launch {
-                            viewModel.fetchModuleList()
-                            bottomSheetState.hide()
-                            onDismiss()
-                        }
                     }
                 )
             }
@@ -555,11 +543,6 @@ private fun ModuleBottomSheetContent(
                         viewModel.sortEnabledFirst = checked
                         prefs.edit {
                             putBoolean("module_sort_enabled_first", checked)
-                        }
-                        scope.launch {
-                            viewModel.fetchModuleList()
-                            bottomSheetState.hide()
-                            onDismiss()
                         }
                     }
                 )
@@ -1063,22 +1046,6 @@ fun ModuleItem(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (module.metamodule) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                        ) {
-                            Text(
-                                text = "META",
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
                     Surface(
                         shape = RoundedCornerShape(4.dp),
                         color = MaterialTheme.colorScheme.primary,
@@ -1092,6 +1059,22 @@ fun ModuleItem(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                    }
+                    if (module.metamodule) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier
+                        ) {
+                            Text(
+                                text = "META",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                     Surface(
                         shape = RoundedCornerShape(4.dp),

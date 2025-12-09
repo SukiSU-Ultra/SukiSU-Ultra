@@ -1,9 +1,9 @@
 package com.sukisu.ultra.ui.viewmodel
 
+import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,9 +12,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ksuApp
-import com.sukisu.ultra.ui.activity.util.ReleaseAssetInfo
-import com.sukisu.ultra.ui.activity.util.fetchModuleDetail
-import com.sukisu.ultra.ui.activity.util.fetchReleaseDescriptionHtml
+import com.sukisu.ultra.ui.util.module.ReleaseInfo
+import com.sukisu.ultra.ui.util.module.fetchModuleDetail
 import com.sukisu.ultra.ui.activity.util.isNetworkAvailable
 import com.sukisu.ultra.ui.util.HanziToPinyin
 import com.topjohnwu.superuser.io.SuFile
@@ -24,10 +23,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.ArrayList
 
 /**
  * @author AlexLiuDev233
@@ -61,19 +60,14 @@ class ModuleRepoViewModel : ViewModel() {
     var search by mutableStateOf("")
 
     @Immutable
+    @Parcelize
     data class Author(
         val name: String,
         val link: String,
-    )
+    ) : Parcelable
 
     @Immutable
-    data class ReleaseData(
-        val name: String,
-        val releaseLog: String,
-        val assets: List<ReleaseAssetInfo>
-    )
-
-    @Immutable
+    @Parcelize
     data class RepoModule(
         val moduleId: String,
         val moduleName: String,
@@ -87,9 +81,12 @@ class ModuleRepoViewModel : ViewModel() {
         val latestRelease: String,
         val latestReleaseTime: String,
         val latestVersionCode: Int,
-        val latestAsset: ReleaseData?,
-        val installed: Boolean
-    )
+        val latestAsset: ReleaseInfo?,
+        val installed: Boolean,
+        val readme: String,
+        val sourceUrl: String,
+        val releases: List<ReleaseInfo>
+    ) : Parcelable
 
     fun refresh(
         onFailure: (() -> Unit)? = null
@@ -169,19 +166,12 @@ class ModuleRepoViewModel : ViewModel() {
         var latestRelease = ""
         var latestReleaseTime = ""
         var latestVersionCode = 0
-        var latestAsset: ReleaseData? = null
+        var latestAsset: ReleaseInfo? = null
+        val releases: MutableList<ReleaseInfo> = ArrayList()
         val lr = item.optJSONObject("latestRelease")
         if (lr != null) {
             val lrName = lr.optString("name", lr.optString("version", ""))
             val lrTime = lr.optString("time", "")
-            var lrUrl = lr.optString("downloadUrl", "")
-            lrUrl = lrUrl.trim().let {
-                var s = it
-                if (s.startsWith("`") && s.endsWith("`") && s.length >= 2) {
-                    s = s.substring(1, s.length - 1)
-                }
-                s
-            }
             val vcAny = lr.opt("versionCode")
             latestVersionCode = when (vcAny) {
                 is Number -> vcAny.toInt()
@@ -190,23 +180,16 @@ class ModuleRepoViewModel : ViewModel() {
             }
             latestRelease = lrName
             latestReleaseTime = lrTime
-            if (lrUrl.isNotEmpty()) {
-                val fileName = lrUrl.substringAfterLast('/')
-                latestAsset = ReleaseData(name = fileName, releaseLog = "", assets = emptyList())
-            }
         }
-        if (latestAsset != null) {
-            val detail = withContext(Dispatchers.IO) {
-                fetchModuleDetail((moduleId))
-            }
-            detail?.releases?.forEach { it ->
-                if (it.name != latestRelease) return@forEach
+        val detail = withContext(Dispatchers.IO) {
+            fetchModuleDetail((moduleId))
+        }
 
-                latestAsset = latestAsset?.copy(
-                    releaseLog = it.descriptionHTML,
-                    assets = it.assets
-                )
-            }
+        detail?.releases?.forEach { it ->
+            releases.add(it)
+            if (it.name != latestRelease) return@forEach
+
+            latestAsset = it
         }
 
         return RepoModule(
@@ -223,7 +206,10 @@ class ModuleRepoViewModel : ViewModel() {
             latestReleaseTime = latestReleaseTime,
             latestVersionCode = latestVersionCode,
             latestAsset = latestAsset,
-            installed = SuFile.open("/data/adb/modules/${moduleId}/module.prop").exists()
+            installed = SuFile.open("/data/adb/modules/${moduleId}/module.prop").exists(),
+            readme = detail?.readme.orEmpty(),
+            sourceUrl = detail?.sourceUrl.orEmpty(),
+            releases = releases
         )
     }
 }
