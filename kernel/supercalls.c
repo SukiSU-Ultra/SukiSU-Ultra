@@ -689,6 +689,56 @@ static int do_nuke_ext4_sysfs(void __user *arg)
 
 	return nuke_ext4_sysfs(mnt);
 }
+
+static int list_try_umount(void __user *arg)
+{
+    struct ksu_list_try_umount_cmd cmd;
+    struct mount_entry *entry;
+    char *output_buf;
+    size_t output_size;
+    size_t offset = 0;
+    int ret = 0;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+
+    output_size = cmd.buf_size ? cmd.buf_size : 4096;
+
+    if (!cmd.arg || output_size == 0)
+        return -EINVAL;
+
+    output_buf = kzalloc(output_size, GFP_KERNEL);
+    if (!output_buf)
+        return -ENOMEM;
+
+    offset += snprintf(output_buf + offset, output_size - offset, "Mount Point\tFlags\n");
+    offset += snprintf(output_buf + offset, output_size - offset, "----------\t-----\n");
+
+    down_read(&mount_list_lock);
+    list_for_each_entry(entry, &mount_list, list) {
+        int written = snprintf(output_buf + offset, output_size - offset,
+                               "%s\t%u\n", entry->umountable, entry->flags);
+        if (written < 0) {
+            ret = -EFAULT;
+            break;
+        }
+        if (written >= (int)(output_size - offset)) {
+            ret = -ENOSPC;
+            break;
+        }
+        offset += written;
+    }
+    up_read(&mount_list_lock);
+
+    if (ret == 0) {
+        if (copy_to_user((void __user *)cmd.arg, output_buf, offset))
+            ret = -EFAULT;
+    }
+
+    kfree(output_buf);
+    return ret;
+}
+
 // 100. GET_FULL_VERSION - Get full version string
 static int do_get_full_version(void __user *arg)
 {
@@ -714,7 +764,7 @@ static int do_get_hook_type(void __user *arg)
 	struct ksu_hook_type_cmd cmd = {0};
 	const char *type = "Tracepoint";
 	
-#if defined(KSU_MANUAL_HOOK)
+#if defined(CONFIG_KSU_MANUAL_HOOK)
 	type = "Manual";
 #elif defined(CONFIG_KSU_SUSFS)
 	type = "Inline";
@@ -942,7 +992,8 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	KSU_IOCTL(KPM, "KPM_OPERATION", do_kpm,
 		  manager_or_root),
 #endif
-
+	KSU_IOCTL(LIST_TRY_UMOUNT, "LIST_TRY_UMOUNT", list_try_umount,
+		  manager_or_root),
 	// Sentinel
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL }
 };

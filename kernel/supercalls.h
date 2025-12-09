@@ -104,6 +104,11 @@ struct ksu_add_try_umount_cmd {
 	__u8 mode; // denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry
 };
 
+struct ksu_list_try_umount_cmd {
+    __aligned_u64 arg; // User buffer
+    __u32 buf_size; // Buffer size provided by userspace
+};
+
 #define KSU_UMOUNT_WIPE 0 // ignore everything and wipe list
 #define KSU_UMOUNT_ADD 1 // add entry (path + flags)
 #define KSU_UMOUNT_DEL 2 // delete entry, strcmp
@@ -173,6 +178,7 @@ struct ksu_manual_su_cmd {
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)
 #endif
+#define KSU_IOCTL_LIST_TRY_UMOUNT _IOC(_IOC_READ|_IOC_WRITE, 'K', 301, 0)
 
 // IOCTL handler types
 typedef int (*ksu_ioctl_handler_t)(void __user *arg);

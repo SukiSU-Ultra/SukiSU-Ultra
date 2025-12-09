@@ -45,6 +45,8 @@
 #include "syscall_handler.h"
 #endif
 #include "kernel_umount.h"
+#include "kernel_compat.h"
+
 #include "sulog.h"
 
 #ifdef CONFIG_KSU_SUSFS
@@ -101,6 +103,25 @@ static inline bool is_allow_su(void)
 	return ksu_is_allow_uid_for_current(current_uid().val);
 }
 
+static void ksu_install_manager_fd_tw_func(struct callback_head *cb)
+{
+	ksu_install_fd();
+	kfree(cb);
+}
+
+static void do_install_manager_fd(void)
+{
+	struct callback_head *cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
+	if (!cb)
+		return;
+
+	cb->func = ksu_install_manager_fd_tw_func;
+	if (task_work_add(current, cb, TWA_RESUME)) {
+		kfree(cb);
+		pr_warn("install manager fd add task_work failed\n");
+	}
+}
+
 // force_sig kcompat, TODO: move it out of core_hook.c
 // https://elixir.bootlin.com/linux/v5.3-rc1/source/kernel/signal.c#L1613
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0)
@@ -108,12 +129,6 @@ static inline bool is_allow_su(void)
 #else
 #define __force_sig(sig) force_sig(sig, current)
 #endif
-
-static void ksu_install_manager_fd_tw_func(struct callback_head *cb)
-{
-    ksu_install_fd();
-    kfree(cb);
-}
 
 extern void disable_seccomp(struct task_struct *tsk);
 #ifndef CONFIG_KSU_SUSFS
@@ -130,8 +145,7 @@ int ksu_handle_setuid_common(uid_t new_uid, uid_t old_uid, uid_t new_euid,
 		// euid is what we care about here as it controls permission
 		if (unlikely(new_euid == 0) && !is_ksu_domain()) {
 			pr_warn("find suspicious EoP: %d %s, from %d to %d\n",
-				current->pid, current->comm, old_uid,
-				new_uid);
+				current->pid, current->comm, old_uid, new_uid);
 			__force_sig(SIGKILL);
 			return 0;
 		}
@@ -154,23 +168,15 @@ int ksu_handle_setuid_common(uid_t new_uid, uid_t old_uid, uid_t new_euid,
 	}
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
-	if (ksu_get_manager_appid() == new_uid) {
+	if (ksu_get_manager_appid() == new_uid % PER_USER_RANGE) {
 		spin_lock_irq(&current->sighand->siglock);
 		ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
 #ifdef CONFIG_KSU_SYSCALL_HOOK
 		ksu_set_task_tracepoint_flag(current);
 #endif
 		spin_unlock_irq(&current->sighand->siglock);
-
-        pr_info("install fd for manager: %d\n", new_uid);
-        struct callback_head *cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
-        if (!cb)
-            return 0;
-        cb->func = ksu_install_manager_fd_tw_func;
-        if (task_work_add(current, cb, TWA_RESUME)) {
-            kfree(cb);
-            pr_warn("install manager fd add task_work failed\n");
-        }
+		pr_info("install fd for manager (uid=%d)\n", new_uid);
+		do_install_manager_fd();
 		return 0;
 	}
 
@@ -189,22 +195,19 @@ int ksu_handle_setuid_common(uid_t new_uid, uid_t old_uid, uid_t new_euid,
 #endif
 	}
 #else
-	if (ksu_get_manager_appid() == new_uid) {
-		pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
-		ksu_install_fd();
+	if (ksu_get_manager_appid() == new_uid % PER_USER_RANGE) {
 		spin_lock_irq(&current->sighand->siglock);
 		disable_seccomp(current);
 		spin_unlock_irq(&current->sighand->siglock);
+		pr_info("install fd for manager (uid=%d)\n", new_uid);
+        do_install_manager_fd();
 		return 0;
 	}
 
 	if (ksu_is_allow_uid_for_current(new_uid)) {
-		// FIXME: Should do proper checking
-		if (current->seccomp.filter != NULL) {
-			spin_lock_irq(&current->sighand->siglock);
-			disable_seccomp(current);
-			spin_unlock_irq(&current->sighand->siglock);
-		}
+		spin_lock_irq(&current->sighand->siglock);
+		disable_seccomp(current);
+		spin_unlock_irq(&current->sighand->siglock);
 	}
 #endif
 
@@ -246,6 +249,13 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
 		}
 		return 0;
 	}
+
+    // if on private space, see if its possibly the manager
+	if (new_uid > PER_USER_RANGE &&
+		new_uid % PER_USER_RANGE == ksu_get_manager_appid()) {
+		ksu_set_manager_appid(new_uid);
+	}
+    
 	// We only interest in process spwaned by zygote
 	if (!susfs_is_sid_equal(current_cred()->security, susfs_zygote_sid)) {
 		return 0;
@@ -266,16 +276,8 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
 		spin_lock_irq(&current->sighand->siglock);
 		ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
 		spin_unlock_irq(&current->sighand->siglock);
-
-        pr_info("install fd for manager: %d\n", new_uid);
-        struct callback_head *cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
-        if (!cb)
-            return 0;
-        cb->func = ksu_install_manager_fd_tw_func;
-        if (task_work_add(current, cb, TWA_RESUME)) {
-            kfree(cb);
-            pr_warn("install manager fd add task_work failed\n");
-        }
+		pr_info("install fd for manager (uid=%d)\n", new_uid);
+        do_install_manager_fd();
 		return 0;
 	}
 
@@ -293,12 +295,12 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
 		}
 	}
 #else
-	if (ksu_get_manager_appid() == new_uid % PER_USER_RANGE)) {
-		pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
-		ksu_install_fd();
+	if (ksu_get_manager_appid() == new_uid % PER_USER_RANGE) {
 		spin_lock_irq(&current->sighand->siglock);
 		disable_seccomp(current);
 		spin_unlock_irq(&current->sighand->siglock);
+		pr_info("install fd for manager (uid=%d)\n", new_uid);
+		do_install_manager_fd();
 		return 0;
 	}
 
@@ -308,12 +310,9 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid){
 	}
 
 	if (ksu_is_allow_uid_for_current(new_uid)) {
-		// FIXME: Should do proper checking
-		if (current->seccomp.filter != NULL) {
-			spin_lock_irq(&current->sighand->siglock);
-			disable_seccomp(current);
-			spin_unlock_irq(&current->sighand->siglock);
-		}
+		spin_lock_irq(&current->sighand->siglock);
+		disable_seccomp(current);
+		spin_unlock_irq(&current->sighand->siglock);
 	}
 #endif
 

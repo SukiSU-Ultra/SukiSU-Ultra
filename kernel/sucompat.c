@@ -107,36 +107,28 @@ static inline bool __is_su_allowed(const void *ptr_to_check)
 }
 #define is_su_allowed(ptr) __is_su_allowed((const void *)ptr)
 
-int ksu_handle_execveat_init(struct filename **filename_ptr)
+static inline void ksu_handle_execveat_init(struct filename **filename_ptr) 
 {
-#if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_SUSFS)
 	struct filename *filename;
 	filename = *filename_ptr;
-	if (IS_ERR(filename)) {
-		return 0;
-	}
+
+	if (unlikely(!filename_ptr))
+		return;
+	if (IS_ERR(filename))
+		return;
 
 	if (current->pid != 1 && is_init(get_current_cred())) {
 		if (unlikely(strcmp(filename->name, KSUD_PATH) == 0)) {
-			pr_info("hook_manager: escape to root for init executing ksud: %d\n",
-				current->pid);
+			pr_info("hook_manager: escape to root for init executing ksud: %d\n", current->pid);
 			escape_to_root_for_init();
-			return 0;
-		} else if (strstr(filename->name, "/app_process") != NULL ||
-		    strstr(filename->name, "/adbd") != NULL) {
-			pr_info("hook_manager: allow init exec %s\n", filename->name);
-			return 0;
-		}
+		} 
 #ifdef CONFIG_KSU_SUSFS
 		else if (likely(strstr(filename->name, "/app_process") == NULL && strstr(filename->name, "/adbd") == NULL)) {
 			pr_info("hook_manager: unmark %d exec %s\n", current->pid, filename->name);
 			susfs_set_current_proc_umounted();
 		}
 #endif
-		return 0;
 	}
-#endif
-	return 1;
 }
 
 static int ksu_sucompat_user_common(const char __user **filename_user,
@@ -261,15 +253,10 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 			void *envp, int *flags)
 {
-	if (!ksu_handle_execveat_init(filename_ptr)) {
-        return 0;
-    }
-
-	if (ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags)) {
-		return 0;
-	}
+	ksu_handle_execveat_init(filename_ptr);
+	ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags);
 	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp,
-						flags);
+							flags);
 }
 
 // dead code: devpts handling
@@ -322,15 +309,10 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 			void *envp, int *flags)
 {
-	if (!ksu_handle_execveat_init(filename_ptr)) {
-        return 0;
-    }
-
-	if (ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags)) {
-		return 0;
-	}
+	ksu_handle_execveat_init(filename_ptr);
+	ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags);
 	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp,
-						flags);
+							flags);
 }
 
 int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
@@ -389,7 +371,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 
 	char path[sizeof(su_path) + 1] = {0};
 
-	strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
 	if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
 #if __SULOG_GATE
@@ -423,7 +405,12 @@ int ksu_handle_devpts(struct inode *inode)
 		return 0;
 
 	if (ksu_file_sid) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) || defined(KSU_OPTIONAL_SELINUX_INODE)
 		struct inode_security_struct *sec = selinux_inode(inode);
+#else
+		struct inode_security_struct *sec =
+			(struct inode_security_struct *)inode->i_security;
+#endif
 		if (sec) {
 			sec->sid = ksu_file_sid;
 		}
