@@ -5,7 +5,7 @@ import android.os.Build
 import android.system.Os
 import com.topjohnwu.superuser.ShellUtils
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.ui.screen.getManagerVersion
+import com.sukisu.ultra.ui.screen.main.getManagerVersion
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter

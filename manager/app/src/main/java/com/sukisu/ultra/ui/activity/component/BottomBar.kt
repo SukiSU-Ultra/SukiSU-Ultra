@@ -24,16 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.ramcosta.composedestinations.generated.NavGraphs
-import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
-import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
-import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.MainActivity
-import com.sukisu.ultra.ui.activity.util.AppData
-import com.sukisu.ultra.ui.activity.util.AppData.getKpmVersionUse
 import com.sukisu.ultra.ui.screen.BottomBarDestination
 import com.sukisu.ultra.ui.theme.CardConfig.cardAlpha
+import com.sukisu.ultra.ui.util.LocalHandlePageChange
+import com.sukisu.ultra.ui.util.LocalSelectedPage
 import com.sukisu.ultra.ui.util.getKpmModuleCount
 import com.sukisu.ultra.ui.util.getModuleCount
 import com.sukisu.ultra.ui.util.getSuperuserCount
@@ -41,23 +36,22 @@ import com.sukisu.ultra.ui.util.getSuperuserCount
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun BottomBar(navController: NavHostController) {
-    val navigator = navController.rememberDestinationsNavigator()
-    val isFullFeatured = AppData.isFullFeatured()
-    val kpmVersion = getKpmVersionUse()
+fun BottomBar(destinations: List<BottomBarDestination>) {
     val cardColor = MaterialTheme.colorScheme.surfaceContainer
     val activity = LocalContext.current as MainActivity
     val settings by activity.settingsStateFlow.collectAsState()
 
     // 检查是否隐藏红点
     val isHideOtherInfo = settings.isHideOtherInfo
-    val showKpmInfo = settings.showKpmInfo
+
+    // 翻页处理
+    val page = LocalSelectedPage.current
+    val handlePageChange = LocalHandlePageChange.current
 
     // 收集计数数据
     val superuserCount = getSuperuserCount()
     val moduleCount = getModuleCount()
     val kpmModuleCount = getKpmModuleCount()
-
 
     FlexibleBottomAppBar(
         modifier = Modifier.windowInsetsPadding(
@@ -69,17 +63,8 @@ fun BottomBar(navController: NavHostController) {
             scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
         ).containerColor
     ) {
-        val destinations = BottomBarDestination.entries.filter { destination ->
-            when (destination) {
-                BottomBarDestination.Kpm -> {
-                    kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && !showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM
-                }
-                else -> true
-            }
-        }
-
-
-        destinations.forEach { destination ->
+        destinations.forEachIndexed { index, destination ->
+            val pageSelected = index == page
             val badge : @Composable BoxScope.() -> Unit = {
                 when (destination) {
                     BottomBarDestination.Kpm -> {
@@ -124,28 +109,17 @@ fun BottomBar(navController: NavHostController) {
                     else -> null
                 }
             }
-            if (!isFullFeatured && destination.rootRequired) return@forEach
-            val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
 
             NavigationBarItem(
-                selected = isCurrentDestOnBackStack,
+                selected = pageSelected,
                 onClick = {
-                    if (isCurrentDestOnBackStack) {
-                        navigator.popBackStack(destination.direction, false)
-                    }
-                    navigator.navigate(destination.direction) {
-                        popUpTo(NavGraphs.root) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    handlePageChange(index)
                 },
                 icon = {
                     BadgedBox(
                         badge = badge
                     ) {
-                        if (isCurrentDestOnBackStack) {
+                        if (pageSelected) {
                             Icon(destination.iconSelected, stringResource(destination.label))
                         } else {
                             Icon(destination.iconNotSelected, stringResource(destination.label))
