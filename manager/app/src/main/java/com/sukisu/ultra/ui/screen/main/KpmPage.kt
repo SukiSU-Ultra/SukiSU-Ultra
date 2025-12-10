@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ui.screen
+package com.sukisu.ultra.ui.screen.main
 
 import android.content.Context
 import android.content.Intent
@@ -21,8 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootGraph
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.ui.component.*
@@ -36,18 +34,16 @@ import java.io.FileInputStream
 import java.net.*
 import android.app.Activity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 
 /**
- * KPM 管理界面
- * 以下内核模块功能由KernelPatch开发，经过修改后加入SukiSU Ultra的内核模块功能
- * 开发者：ShirkNeko, Liaokong
+ * @author ShirkNeko, liankong
+ * @date 2025/3/30
  */
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination<RootGraph>
 @Composable
-fun KpmScreen(
-    viewModel: KpmViewModel = viewModel()
-) {
+fun KpmPage(bottomPadding: Dp) {
+    val viewModel: KpmViewModel = viewModel<KpmViewModel>()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackBarHost = remember { SnackbarHostState() }
@@ -261,6 +257,7 @@ fun KpmScreen(
     var isNoticeClosed by remember { mutableStateOf(sharedPreferences.getBoolean("is_notice_closed", false)) }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = bottomPadding),
         topBar = {
             SearchAppBar(
                 title = { Text(stringResource(R.string.kpm_title)) },
@@ -510,7 +507,7 @@ private suspend fun handleModuleUninstall(
         )
         false
     }
-    
+
     val confirmResult = confirmDialog.awaitConfirm(
         title = confirmTitle,
         content = confirmContent,
@@ -706,15 +703,15 @@ private fun checkStringsCommand(tempFile: File): Int {
     val shell = getRootShell()
     val command = "strings ${tempFile.absolutePath} | grep -E 'name=|version=|license=|author='"
     val result = shell.newJob().add(command).to(ArrayList(), null).exec()
-    
+
     if (!result.isSuccess) {
         return 0
     }
-    
+
     var matchCount = 0
     val keywords = listOf("name=", "version=", "license=", "author=")
     var nameExists = false
-    
+
     for (line in result.out) {
         if (!nameExists && line.startsWith("name=")) {
             nameExists = true

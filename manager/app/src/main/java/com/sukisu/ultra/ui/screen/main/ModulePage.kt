@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ui.screen
+package com.sukisu.ultra.ui.screen.main
 
 import android.annotation.SuppressLint
 import android.app.Activity.CLIPBOARD_SERVICE
@@ -110,8 +110,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dergoogler.mmrl.platform.Platform
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.ModuleRepoScreenDestination
@@ -130,6 +128,7 @@ import com.sukisu.ultra.ui.component.ZipType
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.rememberFabVisibilityState
 import com.sukisu.ultra.ui.component.rememberLoadingDialog
+import com.sukisu.ultra.ui.screen.FlashIt
 import com.sukisu.ultra.ui.theme.getCardColors
 import com.sukisu.ultra.ui.theme.getCardElevation
 import com.sukisu.ultra.ui.util.DownloadListener
@@ -157,9 +156,8 @@ import java.util.concurrent.TimeUnit
  */
 @SuppressLint("ResourceType", "AutoboxingStateCreation")
 @OptIn(ExperimentalMaterial3Api::class)
-@Destination<RootGraph>
 @Composable
-fun ModuleScreen(navigator: DestinationsNavigator) {
+fun ModulePage(navigator: DestinationsNavigator, bottomPadding: Dp) {
     val viewModel = viewModel<ModuleViewModel>()
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", MODE_PRIVATE)
@@ -285,6 +283,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     ) { viewModel.fetchModuleList() }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = bottomPadding),
         topBar = {
             SearchAppBar(
                 title = { Text(stringResource(R.string.module)) },

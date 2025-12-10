@@ -33,12 +33,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.ui.platform.LocalUriHandler
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.ModuleScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import com.sukisu.ultra.R
@@ -54,6 +54,8 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
+import com.ramcosta.composedestinations.generated.destinations.MainScreenDestination
+import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.component.rememberCustomDialog
 import com.sukisu.ultra.ui.util.module.ModuleUtils
 import com.topjohnwu.superuser.io.SuFile
@@ -448,6 +450,9 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
         }
     }
 
+    val activity = LocalActivity.current as MainActivity?
+    val pages = if (activity != null ) BottomBarDestination.getPages(activity.settingsStateFlow.collectAsState().value) else null
+
     val onBack: () -> Unit = {
         val canGoBack = when (flashIt) {
             is FlashIt.FlashModuleUpdate -> currentFlashingStatus.value != FlashingStatus.FLASHING
@@ -461,7 +466,10 @@ fun FlashScreen(navigator: DestinationsNavigator, flashIt: FlashIt) {
                 if (flashIt is FlashIt.FlashModules || flashIt is FlashIt.FlashModuleUpdate) {
                     viewModel.markNeedRefresh()
                     viewModel.fetchModuleList()
-                    navigator.navigate(ModuleScreenDestination)
+                    pages?.forEachIndexed { index, destination ->
+                        if (destination != BottomBarDestination.Module) return@forEachIndexed
+                        navigator.navigate(MainScreenDestination(index))
+                    }
                 } else {
                     viewModel.markNeedRefresh()
                     viewModel.fetchModuleList()
