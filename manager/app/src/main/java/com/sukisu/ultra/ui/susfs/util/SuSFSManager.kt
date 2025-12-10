@@ -346,32 +346,32 @@ object SuSFSManager {
 
     // 路径和配置管理
     fun saveSusPaths(context: Context, paths: Set<String>) =
-        getPrefs(context).edit { putStringSet(KEY_SUS_PATHS, paths) }
+        getPrefs(context).edit { putStringSet(KEY_SUS_PATHS, paths.toSet()) }
 
     fun getSusPaths(context: Context): Set<String> =
         getPrefs(context).getStringSet(KEY_SUS_PATHS, emptySet()) ?: emptySet()
 
     // 循环路径管理
     fun saveSusLoopPaths(context: Context, paths: Set<String>) =
-        getPrefs(context).edit { putStringSet(KEY_SUS_LOOP_PATHS, paths) }
+        getPrefs(context).edit { putStringSet(KEY_SUS_LOOP_PATHS, paths.toSet()) }
 
     fun getSusLoopPaths(context: Context): Set<String> =
         getPrefs(context).getStringSet(KEY_SUS_LOOP_PATHS, emptySet()) ?: emptySet()
 
     fun saveSusMaps(context: Context, maps: Set<String>) =
-        getPrefs(context).edit { putStringSet(KEY_SUS_MAPS, maps) }
+        getPrefs(context).edit { putStringSet(KEY_SUS_MAPS, maps.toSet()) }
 
     fun getSusMaps(context: Context): Set<String> =
         getPrefs(context).getStringSet(KEY_SUS_MAPS, emptySet()) ?: emptySet()
 
     fun saveKstatConfigs(context: Context, configs: Set<String>) =
-        getPrefs(context).edit { putStringSet(KEY_KSTAT_CONFIGS, configs) }
+        getPrefs(context).edit { putStringSet(KEY_KSTAT_CONFIGS, configs.toSet()) }
 
     fun getKstatConfigs(context: Context): Set<String> =
         getPrefs(context).getStringSet(KEY_KSTAT_CONFIGS, emptySet()) ?: emptySet()
 
     fun saveAddKstatPaths(context: Context, paths: Set<String>) =
-        getPrefs(context).edit { putStringSet(KEY_ADD_KSTAT_PATHS, paths) }
+        getPrefs(context).edit { putStringSet(KEY_ADD_KSTAT_PATHS, paths.toSet()) }
 
     fun getAddKstatPaths(context: Context): Set<String> =
         getPrefs(context).getStringSet(KEY_ADD_KSTAT_PATHS, emptySet()) ?: emptySet()
@@ -662,7 +662,7 @@ object SuSFSManager {
                     is Boolean -> putBoolean(key, value)
                     is Set<*> -> {
                         @Suppress("UNCHECKED_CAST")
-                        putStringSet(key, value as Set<String>)
+                        putStringSet(key, (value as Set<String>).toSet())
                     }
                     is Int -> putInt(key, value)
                     is Long -> putLong(key, value)
