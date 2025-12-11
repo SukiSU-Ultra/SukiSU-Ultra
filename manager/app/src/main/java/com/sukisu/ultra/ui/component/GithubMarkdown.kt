@@ -37,6 +37,7 @@ import com.sukisu.ultra.ui.activity.util.adjustLightnessArgb
 import com.sukisu.ultra.ui.activity.util.cssColorFromArgb
 import com.sukisu.ultra.ui.activity.util.ensureVisibleByMix
 import com.sukisu.ultra.ui.activity.util.relativeLuminance
+import com.sukisu.ultra.ui.theme.ThemeConfig
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
@@ -51,10 +52,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun GithubMarkdown(content: String, backgroundColor: androidx.compose.ui.graphics.Color) {
     var loading by remember { mutableStateOf(true) }
-    val context = LocalContext.current
-    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    val themeMode = prefs.getInt("color_mode", 0)
-    val isDark = isInDarkTheme(themeMode)
+    val isDark = isInDarkTheme(ThemeConfig.forceDarkMode)
     val dir = if (LocalLayoutDirection.current == LayoutDirection.Rtl) "rtl" else "ltr"
 
     val bgArgb = backgroundColor.toArgb()

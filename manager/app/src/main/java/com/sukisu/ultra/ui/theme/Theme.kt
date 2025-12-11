@@ -233,11 +233,7 @@ object BackgroundManager {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun KernelSUTheme(
-    darkTheme: Boolean = when(ThemeConfig.forceDarkMode) {
-        true -> true
-        false -> false
-        null -> isSystemInDarkTheme()
-    },
+    darkTheme: Boolean = isInDarkTheme(ThemeConfig.forceDarkMode),
     dynamicColor: Boolean = ThemeConfig.useDynamicColor,
     content: @Composable () -> Unit
 ) {
@@ -595,10 +591,10 @@ fun Context.saveDynamicColorState(enabled: Boolean) {
 
 @Composable
 @ReadOnlyComposable
-fun isInDarkTheme(themeMode: Int): Boolean {
-    return when (themeMode) {
-        1, 4 -> false  // Force light mode
-        2, 5 -> true   // Force dark mode
-        else -> isSystemInDarkTheme()  // Follow system (0 or default)
+fun isInDarkTheme(themeMode: Boolean?): Boolean {
+    return when(themeMode) {
+        true -> true // 强制深色
+        false -> false // 强制浅色
+        null -> isSystemInDarkTheme() // 跟随系统
     }
 }
