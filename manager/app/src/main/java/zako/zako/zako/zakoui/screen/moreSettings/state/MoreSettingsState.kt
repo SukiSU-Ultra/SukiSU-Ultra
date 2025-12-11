@@ -2,7 +2,6 @@ package zako.zako.zako.zakoui.screen.moreSettings.state
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -44,7 +43,6 @@ class MoreSettingsState(
     var showThemeModeDialog by mutableStateOf(false)
     var showThemeColorDialog by mutableStateOf(false)
     var showDpiConfirmDialog by mutableStateOf(false)
-    var showImageEditor by mutableStateOf(false)
 
     // 动态管理器配置状态
     var dynamicSignConfig by mutableStateOf<Natives.DynamicManagerConfig?>(null)
@@ -57,7 +55,6 @@ class MoreSettingsState(
     // 各种设置开关状态
     var isSimpleMode by mutableStateOf(prefs.getBoolean("is_simple_mode", false))
     var isHideVersion by mutableStateOf(prefs.getBoolean("is_hide_version", false))
-    var isHideModuleRepo by mutableStateOf(prefs.getBoolean("is_hide_module_repo", false))
     var isHideOtherInfo by mutableStateOf(prefs.getBoolean("is_hide_other_info", false))
     var isShowKpmInfo by mutableStateOf(prefs.getBoolean("show_kpm_info", false))
     var isHideZygiskImplement by mutableStateOf(prefs.getBoolean("is_hide_zygisk_Implement", false))
@@ -76,9 +73,6 @@ class MoreSettingsState(
     var cardAlpha by mutableFloatStateOf(CardConfig.cardAlpha)
     var cardDim by mutableFloatStateOf(CardConfig.cardDim)
     var isCustomBackgroundEnabled by mutableStateOf(ThemeConfig.customBackgroundUri != null)
-
-    // 图片选择状态
-    var selectedImageUri by mutableStateOf<Uri?>(null)
 
     // DPI 设置
     val systemDpi = context.resources.displayMetrics.densityDpi
