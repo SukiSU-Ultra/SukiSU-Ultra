@@ -2,11 +2,15 @@ package zako.zako.zako.zakoui.screen.moreSettings
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -66,7 +70,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,6 +81,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -88,7 +92,6 @@ import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.theme.CardConfig
 import com.sukisu.ultra.ui.theme.ThemeColors
 import com.sukisu.ultra.ui.theme.ThemeConfig
-import com.sukisu.ultra.ui.theme.component.ImageEditorDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -102,6 +105,7 @@ import zako.zako.zako.zakoui.screen.moreSettings.component.SwitchSettingItem
 import zako.zako.zako.zakoui.screen.moreSettings.component.UidScannerSection
 import zako.zako.zako.zakoui.screen.moreSettings.state.MoreSettingsState
 import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
+import java.io.File
 import kotlin.math.roundToInt
 
 @SuppressLint("LocalContextConfigurationRead", "LocalContextResourcesRead", "ObsoleteSdkInt")
@@ -124,34 +128,70 @@ fun MoreSettingsScreen(
     val settingsHandlers = remember { MoreSettingsHandlers(activity, prefs, settingsState) }
 
     // 图片选择器
-    val pickImageLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
+    val cropImageLauncher = rememberLauncherForActivityResult(
+        object : ActivityResultContract<Uri, Uri?>() {
+            override fun createIntent(context: Context, input: Uri): Intent {
+                val tempFile = File(context.cacheDir, "background_crop_cache").apply {
+                    parentFile?.mkdirs()
+                    if (!exists()) createNewFile()
+                }
+                val tempUri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    tempFile
+                )
+
+                context.contentResolver.openInputStream(input)?.use { inputStream ->
+                    tempFile.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+
+                return Intent("com.android.camera.action.CROP").apply {
+                    setDataAndType(tempUri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    putExtra("crop", "true")
+
+                    val displayMetrics = context.resources.displayMetrics
+                    val screenWidth = displayMetrics.widthPixels
+                    val screenHeight = displayMetrics.heightPixels
+
+                    putExtra("aspectX", screenWidth)
+                    putExtra("aspectY", screenHeight)
+                    putExtra("outputX", screenWidth)
+                    putExtra("outputY", screenHeight)
+
+                    putExtra("return-data", false)
+
+                    putExtra(MediaStore.EXTRA_OUTPUT, tempUri)
+                }
+            }
+
+            override fun parseResult(
+                resultCode: Int,
+                intent: Intent?
+            ): Uri? {
+                return intent?.data
+            }
+        }
     ) { uri: Uri? ->
         uri?.let {
-            settingsState.selectedImageUri = it
-            settingsState.showImageEditor = true
+            settingsHandlers.handleCustomBackground(it)
+        }
+    }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            cropImageLauncher.launch(uri)
         }
     }
 
     // 初始化设置
     LaunchedEffect(Unit) {
         settingsHandlers.initializeSettings()
-    }
-
-    // 显示图片编辑对话框
-    if (settingsState.showImageEditor && settingsState.selectedImageUri != null) {
-        ImageEditorDialog(
-            imageUri = settingsState.selectedImageUri!!,
-            onDismiss = {
-                settingsState.showImageEditor = false
-                settingsState.selectedImageUri = null
-            },
-            onConfirm = { transformedUri ->
-                settingsHandlers.handleCustomBackground(transformedUri)
-                settingsState.showImageEditor = false
-                settingsState.selectedImageUri = null
-            }
-        )
     }
 
     // 各种设置对话框
@@ -225,7 +265,7 @@ fun MoreSettingsScreen(
 private fun AppearanceSettings(
     state: MoreSettingsState,
     handlers: MoreSettingsHandlers,
-    pickImageLauncher: ActivityResultLauncher<String>,
+    pickImageLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
     coroutineScope: CoroutineScope
 ) {
     SettingsCard(title = stringResource(R.string.appearance_settings)) {
@@ -609,7 +649,7 @@ private fun DpiSliderControls(
 private fun CustomBackgroundSettings(
     state: MoreSettingsState,
     handlers: MoreSettingsHandlers,
-    pickImageLauncher: ActivityResultLauncher<String>,
+    pickImageLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
     coroutineScope: CoroutineScope
 ) {
     // 自定义背景开关
@@ -620,7 +660,8 @@ private fun CustomBackgroundSettings(
         checked = state.isCustomBackgroundEnabled,
         onChange = { isChecked ->
             if (isChecked) {
-                pickImageLauncher.launch("image/*")
+                pickImageLauncher.launch(PickVisualMediaRequest.Builder().setMediaType(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly).build())
             } else {
                 handlers.handleRemoveCustomBackground()
             }
