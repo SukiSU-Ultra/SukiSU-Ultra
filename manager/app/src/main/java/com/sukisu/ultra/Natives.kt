@@ -67,6 +67,9 @@ object Natives {
 
     val version: Int
         external get
+    
+    val KSU_WORK_DIR = "/data/adb/ksu/"
+    val GLOBAL_NAMESPACE_FILE = KSU_WORK_DIR + ".global_mnt"
 
     // get the uid list of allowed su processes.
     val allowList: IntArray

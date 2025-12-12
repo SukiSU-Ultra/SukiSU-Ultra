@@ -74,6 +74,8 @@ private val SPACING_LARGE = 16.dp
 fun SettingScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
+    var isGlobalNamespaceEnabled by rememberSaveable { mutableStateOf(false) }
+    isGlobalNamespaceEnabled = isGlobalNamespaceEnabled()
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     var isSuLogEnabled by remember { mutableStateOf(Natives.isSuLogEnabled()) }
@@ -133,7 +135,22 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                 navigator.navigate(AppProfileTemplateScreenDestination)
                             }
                         )
-
+                        SwitchItem(
+                           icon = Icons.Rounded.EnhancedEncryption,
+                           title = stringResource(id = R.string.settings_global_namespace_mode),
+                           summary = stringResource(id = R.string.settings_global_namespace_mode_summary),
+                           checked = isGlobalNamespaceEnabled,
+                           onCheckedChange = {
+                               setGlobalNamespaceEnabled(
+                                   if (isGlobalNamespaceEnabled) {
+                                       "0"
+                                   } else {
+                                       "1"
+                                   }
+                               )
+                               isGlobalNamespaceEnabled = it
+                           }
+                        )
                         val modeItems = listOf(
                             stringResource(id = R.string.settings_mode_default),
                             stringResource(id = R.string.settings_mode_temp_enable),

@@ -41,6 +41,8 @@ mod android {
     pub const KSU_BACKUP_FILE_PREFIX: &str = "ksu_backup_";
     pub const BACKUP_FILENAME: &str = "stock_image.sha1";
     pub const UMOUNT_CONFIG_PATH: &str = concatcp!(WORKING_DIR, ".umount");
+
+    pub const GLOBAL_NAMESPACE_FILE: &str = concatcp!(WORKING_DIR, ".global_mnt");
 }
 
 pub const VERSION_CODE: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION_CODE"));
