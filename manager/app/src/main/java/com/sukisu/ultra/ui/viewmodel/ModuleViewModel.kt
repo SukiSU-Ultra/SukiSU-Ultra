@@ -388,6 +388,8 @@ class ModuleSizeCache(context: Context) {
      * @return 是否有缓存更新
      */
     fun initializeCacheIfNeeded(currentModules: List<String>) : Boolean {
+        if (currentModules.isEmpty()) return false
+
         val isInitialized = cachePrefs.getBoolean(CACHE_INITIALIZED_KEY, false)
         if (!isInitialized || sizeCache.isEmpty()) {
             Log.d(TAG, "首次初始化缓存，计算所有模块大小")
