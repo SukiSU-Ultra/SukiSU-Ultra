@@ -138,10 +138,6 @@
     <string name="confirm">Xác nhận</string>
     <string name="cancel">Thoát</string>
     <!-- Backup related -->
-    <string name="backup_success">Sao lưu thành công (tar.gz)</string>
-    <string name="backup_failed">Sao lưu thất bại: %1$s</string>
-    <string name="backup_modules">Sao lưu các module</string>
-    <string name="restore_modules">Khôi phục các module</string>
     <!-- Restore related messages -->
     <string name="restore_success">Các module đã được khôi phục thành công, cần khởi động lại</string>
     <string name="restore_failed">Khôi phục thất bại: %1$s</string>
@@ -238,9 +234,9 @@
     <string name="kpm_control_success">Thành công</string>
     <string name="kpm_control_failed">Thất bại</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
-    <string name="not_supported">Không được hỗ trợ</string>
-    <string name="supported">Được hỗ trợ</string>
-    <string name="kernel_patched">Kernel chưa được vá</string>
+    <string name="kpm_not_supported">Không được hỗ trợ (%s)</string>
+    <string name="kpm_supported">Được hỗ trợ (%s)</string>
+    <string name="kernel_not_patched">Kernel chưa được vá</string>
     <string name="kernel_not_enabled">Kernel chưa được cấu hình</string>
     <string name="custom_settings">Cài đặt giản lược</string>
     <string name="kpm_install_mode">Cài đặt KPM</string>
@@ -591,14 +587,6 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="avc_log_spoofing_warning">Lưu ý quan trọng:\n
 - Giá trị này được đặt thành \'0\' theo mặc định trong kernel\n
 - Việc bật tính năng này đôi khi có thể khiến các nhà phát triển khó xác định nguyên nhân của các vấn đề về quyền hoặc SELinux khi gỡ lỗi, vì vậy người dùng nên tắt tính năng này khi gỡ lỗi</string>
-    <!-- 模块签名功能描述 -->
-    <string name="module_verified">Đã xác minh</string>
-    <string name="module_signature_verified">Chữ ký module đã được xác minh</string>
-    <string name="module_signature_verification">Xác minh chữ ký</string>
-    <string name="module_signature_verification_summary">Buộc xác minh chữ ký khi cài đặt module (chỉ khả dụng cho kiến trúc ARM)</string>
-    <string name="module_signature_invalid">Tác giả không xác định</string>
-    <string name="module_signature_invalid_message">Các module chưa được ký có thể chưa hoàn chỉnh. Để bảo vệ thiết bị của bạn, module này đã bị chặn cài đặt</string>
-    <string name="module_signature_verification_failed">Các module chưa được ký có thể chưa hoàn chỉnh. Bạn có muốn cài đặt module này từ một tác giả chưa xác định không?</string>
     <string name="home_hook_type">Chế độ Hook</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">Vá KPM</string>

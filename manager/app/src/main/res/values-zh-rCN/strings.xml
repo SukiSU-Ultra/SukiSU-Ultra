@@ -21,7 +21,9 @@
     <string name="module_failed_to_disable">无法禁用模块：%s</string>
     <string name="module_empty">没有安装模块</string>
     <string name="module">模块</string>
+    <string name="module_repo">模块仓库</string>
     <string name="module_sort_action_first">排序（可执行优先）</string>
+    <string name="module_sort_star_first">排序 (星标数优先)</string>
     <string name="module_sort_enabled_first">排序（已启用优先）</string>
     <string name="uninstall">卸载</string>
     <string name="module_install">安装</string>
@@ -138,10 +140,6 @@
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
     <!-- Backup related -->
-    <string name="backup_success">备份成功 (tar.gz)</string>
-    <string name="backup_failed">备份失败：%1$s</string>
-    <string name="backup_modules">备份模块</string>
-    <string name="restore_modules">恢复模块</string>
     <!-- Restore related messages -->
     <string name="restore_success">模块已成功还原，需重启生效</string>
     <string name="restore_failed">还原失败：%1$s</string>
@@ -237,9 +235,9 @@
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">错误</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未来将会成为一个相对独立的 KSU 分支，但是依然感谢官方 KernelSU 和 MKSU 等做出的贡献</string>
-    <string name="not_supported">不支持</string>
-    <string name="supported">支持</string>
-    <string name="kernel_patched">内核未进行补丁</string>
+    <string name="kpm_not_supported">不支持 (%s)</string>
+    <string name="kpm_supported">支持 (%s)</string>
+    <string name="kernel_not_patched">内核未进行补丁</string>
     <string name="kernel_not_enabled">内核未配置</string>
     <string name="custom_settings">个性化设置</string>
     <string name="kpm_install_mode">安装</string>
@@ -592,12 +590,6 @@
 - 启用此功能有时会使开发人员在调试权限或 SELinux 问题时难以识别原因，因此建议用户在调试时禁用此功能。</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">已验证</string>
-    <string name="module_signature_verified">模块签名已验证</string>
-    <string name="module_signature_verification">验证签名</string>
-    <string name="module_signature_verification_summary">模块安装时，强制验证签名。（仅 ARM架构 可用）</string>
-    <string name="module_signature_invalid">未知发布者</string>
-    <string name="module_signature_invalid_message">未经签名的模块可能不完整。为了对设备进行保护，已阻止安装此模块。</string>
-    <string name="module_signature_verification_failed">未经签名的模块可能不完整。你想安装来自未知发布者的模块吗？</string>
     <string name="home_hook_type">钩子类型</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">KPM 修补</string>
@@ -699,6 +691,7 @@
     <string name="umount_path_manager">Umount 路径管理</string>
     <string name="umount_path_manager_summary">管理内核卸载路径</string>
     <string name="umount_path_restart_notice">添加或删除路径后需要重启设备才能生效。系统会在下次启动时应用新的配置。</string>
+    <string name="no_any_umount_path">没有任何内核卸载路径</string>
     <string name="add_umount_path">添加 Umount 路径</string>
     <string name="mount_path">挂载路径</string>
     <string name="umount_flags">卸载标志</string>
@@ -718,4 +711,23 @@
     <string name="group_contains_apps">包含 %1$d 个应用</string>
     <string name="settings_disable_sulog"> 禁用超级用户日志 </string>
     <string name="settings_disable_sulog_summary">禁用 KernelSU 超级用户访问记录</string>
+    <string name="meta_module_disabled">元模块已禁用，重启后模块将不再挂载</string>
+    <string name="meta_module_removed">元模块已删除，重启后模块将不再挂载</string>
+    <string name="no_meta_module_installed">未安装元模块，现在不进行挂载</string>
+    <string name="network_offline">您处于离线状态</string>
+    <string name="network_retry">重试</string>
+    <string name="please_check_network">请检查网络连接情况，然后稍后重试</string>
+    <string name="confirm_install_module_title">要安装模块 %s 吗?</string>
+    <string name="assets_multiple_select_dialog_title">请选择你想安装的附件</string>
+    <string name="assets_multiple_select_dialog_content_description">大小: %s, 下载数: %s</string>
+    <string name="assets_multiple_select_dialog_warning">没有任何附件被选择</string>
+    <string name="installed">已安装</string>
+    <string name="open_module_home_page">在浏览器中打开模块主页</string>
+    <string name="readme">自述文件</string>
+    <string name="release">版本</string>
+    <string name="info">信息</string>
+    <string name="author_link">模块作者链接</string>
+    <string name="source_code">源码</string>
+    <string name="assert_support_content">%s,%d 下载</string>
+    <string name="show_detail_or_hide_detail">显示或隐藏详情</string>
 </resources>

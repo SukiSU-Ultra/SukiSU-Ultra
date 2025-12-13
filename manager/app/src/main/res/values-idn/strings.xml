@@ -136,10 +136,6 @@ Lanjutkan?</string>
     <string name="confirm">Konfirmasi</string>
     <string name="cancel">Batal</string>
     <!-- Backup related -->
-    <string name="backup_success">Pencadangan Berhasil (tar.gz)</string>
-    <string name="backup_failed">Gagal membuat cadangan: %1$s</string>
-    <string name="backup_modules">cadangan modul</string>
-    <string name="restore_modules">pulihkan modul</string>
     <!-- Restore related messages -->
     <string name="restore_success">Modul berhasil dipulihkan, perlu reboot</string>
     <string name="restore_failed">Gagal memulihkan: %1$s</string>
@@ -223,9 +219,9 @@ Lanjutkan?</string>
     <string name="kpm_control_success">Berhasil</string>
     <string name="kpm_control_failed">Gagal</string>
     <string name="home_click_to_ContributionCard_kernelsu">Ke depannya, SukiSU Ultra akan menjadi cabang KSU yang relatif independen, tetapi kami tetap berterima kasih kepada KernelSU resmi, MKSU, dan lainnya atas kontribusi mereka!</string>
-    <string name="not_supported">Tidak Didukung</string>
-    <string name="supported">Didukung</string>
-    <string name="kernel_patched">Kernel Belum Di-patch</string>
+    <string name="kpm_not_supported">Tidak Didukung (%s)</string>
+    <string name="kpm_supported">Didukung (%s)</string>
+    <string name="kernel_not_patched">Kernel Belum Di-patch</string>
     <string name="kernel_not_enabled">Kernel Belum Diaktifkan</string>
     <string name="custom_settings">Pengaturan Khusus</string>
     <string name="kpm_install_mode">Pemasangan KPM</string>

@@ -104,7 +104,7 @@ private fun loadExcludedSubTypes(context: Context): Set<LogExclType> {
     }.toSet()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Destination<RootGraph>
 @Composable
 fun LogViewerScreen(navigator: DestinationsNavigator) {
@@ -270,7 +270,7 @@ fun LogViewerScreen(navigator: DestinationsNavigator) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             } else if (filteredEntries.isEmpty()) {
                 EmptyLogState(
@@ -437,6 +437,7 @@ private fun LogControlPanel(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LogList(
     entries: List<LogEntry>,
@@ -467,7 +468,7 @@ private fun LogList(
                     contentAlignment = Alignment.Center
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(
+                        LoadingIndicator(
                             modifier = Modifier.size(24.dp)
                         )
                     } else {

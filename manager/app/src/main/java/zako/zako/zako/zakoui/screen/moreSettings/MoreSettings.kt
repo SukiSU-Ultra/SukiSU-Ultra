@@ -2,24 +2,77 @@ package zako.zako.zako.zakoui.screen.moreSettings
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Opacity
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,17 +81,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
+import androidx.core.content.FileProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.theme.component.ImageEditorDialog
+import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.component.KsuIsValid
-import com.sukisu.ultra.ui.screen.SwitchItem
-import com.sukisu.ultra.ui.theme.*
+import com.sukisu.ultra.ui.theme.CardConfig
+import com.sukisu.ultra.ui.theme.ThemeColors
+import com.sukisu.ultra.ui.theme.ThemeConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,6 +104,8 @@ import zako.zako.zako.zakoui.screen.moreSettings.component.SettingsDivider
 import zako.zako.zako.zakoui.screen.moreSettings.component.SwitchSettingItem
 import zako.zako.zako.zakoui.screen.moreSettings.component.UidScannerSection
 import zako.zako.zako.zakoui.screen.moreSettings.state.MoreSettingsState
+import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
+import java.io.File
 import kotlin.math.roundToInt
 
 @SuppressLint("LocalContextConfigurationRead", "LocalContextResourcesRead", "ObsoleteSdkInt")
@@ -69,37 +124,74 @@ fun MoreSettingsScreen(
 
     // 创建设置状态管理器
     val settingsState = remember { MoreSettingsState(context, prefs, systemIsDark) }
-    val settingsHandlers = remember { MoreSettingsHandlers(context, prefs, settingsState) }
+    val activity = LocalActivity.current as MainActivity
+    val settingsHandlers = remember { MoreSettingsHandlers(activity, prefs, settingsState) }
 
     // 图片选择器
-    val pickImageLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
+    val cropImageLauncher = rememberLauncherForActivityResult(
+        object : ActivityResultContract<Uri, Uri?>() {
+            override fun createIntent(context: Context, input: Uri): Intent {
+                val tempFile = File(context.cacheDir, "background_crop_cache").apply {
+                    parentFile?.mkdirs()
+                    if (!exists()) createNewFile()
+                }
+                val tempUri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    tempFile
+                )
+
+                context.contentResolver.openInputStream(input)?.use { inputStream ->
+                    tempFile.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+
+                return Intent("com.android.camera.action.CROP").apply {
+                    setDataAndType(tempUri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    putExtra("crop", "true")
+
+                    val displayMetrics = context.resources.displayMetrics
+                    val screenWidth = displayMetrics.widthPixels
+                    val screenHeight = displayMetrics.heightPixels
+
+                    putExtra("aspectX", screenWidth)
+                    putExtra("aspectY", screenHeight)
+                    putExtra("outputX", screenWidth)
+                    putExtra("outputY", screenHeight)
+
+                    putExtra("return-data", false)
+
+                    putExtra(MediaStore.EXTRA_OUTPUT, tempUri)
+                }
+            }
+
+            override fun parseResult(
+                resultCode: Int,
+                intent: Intent?
+            ): Uri? {
+                return intent?.data
+            }
+        }
     ) { uri: Uri? ->
         uri?.let {
-            settingsState.selectedImageUri = it
-            settingsState.showImageEditor = true
+            settingsHandlers.handleCustomBackground(it)
+        }
+    }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            cropImageLauncher.launch(uri)
         }
     }
 
     // 初始化设置
     LaunchedEffect(Unit) {
         settingsHandlers.initializeSettings()
-    }
-
-    // 显示图片编辑对话框
-    if (settingsState.showImageEditor && settingsState.selectedImageUri != null) {
-        ImageEditorDialog(
-            imageUri = settingsState.selectedImageUri!!,
-            onDismiss = {
-                settingsState.showImageEditor = false
-                settingsState.selectedImageUri = null
-            },
-            onConfirm = { transformedUri ->
-                settingsHandlers.handleCustomBackground(transformedUri)
-                settingsState.showImageEditor = false
-                settingsState.selectedImageUri = null
-            }
-        )
     }
 
     // 各种设置对话框
@@ -173,7 +265,7 @@ fun MoreSettingsScreen(
 private fun AppearanceSettings(
     state: MoreSettingsState,
     handlers: MoreSettingsHandlers,
-    pickImageLauncher: ActivityResultLauncher<String>,
+    pickImageLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
     coroutineScope: CoroutineScope
 ) {
     SettingsCard(title = stringResource(R.string.appearance_settings)) {
@@ -373,22 +465,6 @@ private fun AdvancedSettings(
             onChange = handlers::handleSelinuxChange
         )
 
-        var forceSignatureVerification by rememberSaveable {
-            mutableStateOf(prefs.getBoolean("force_signature_verification", false))
-        }
-
-        // 强制签名验证开关
-        SwitchItem(
-            icon = Icons.Filled.Security,
-            title = stringResource(R.string.module_signature_verification),
-            summary = stringResource(R.string.module_signature_verification_summary),
-            checked = forceSignatureVerification,
-            onCheckedChange = { enabled ->
-                prefs.edit { putBoolean("force_signature_verification", enabled) }
-                forceSignatureVerification = enabled
-            }
-        )
-
         // UID 扫描开关
         if (Natives.version >= Natives.MINIMAL_SUPPORTED_UID_SCANNER && Natives.version >= Natives.MINIMAL_NEW_IOCTL_KERNEL) {
             UidScannerSection(prefs, snackBarHost, scope, context)
@@ -573,7 +649,7 @@ private fun DpiSliderControls(
 private fun CustomBackgroundSettings(
     state: MoreSettingsState,
     handlers: MoreSettingsHandlers,
-    pickImageLauncher: ActivityResultLauncher<String>,
+    pickImageLauncher: ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?>,
     coroutineScope: CoroutineScope
 ) {
     // 自定义背景开关
@@ -584,7 +660,8 @@ private fun CustomBackgroundSettings(
         checked = state.isCustomBackgroundEnabled,
         onChange = { isChecked ->
             if (isChecked) {
-                pickImageLauncher.launch("image/*")
+                pickImageLauncher.launch(PickVisualMediaRequest.Builder().setMediaType(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly).build())
             } else {
                 handlers.handleRemoveCustomBackground()
             }
@@ -660,7 +737,7 @@ private fun AlphaSlider(
         },
         onValueChangeFinished = {
             coroutineScope.launch(Dispatchers.IO) {
-                saveCardConfig(handlers.context)
+                saveCardConfig(handlers.activity)
             }
         },
         valueRange = 0f..1f,
@@ -713,7 +790,7 @@ private fun DimSlider(
         },
         onValueChangeFinished = {
             coroutineScope.launch(Dispatchers.IO) {
-                saveCardConfig(handlers.context)
+                saveCardConfig(handlers.activity)
             }
         },
         valueRange = 0f..1f,

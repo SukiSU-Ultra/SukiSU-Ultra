@@ -138,10 +138,6 @@
     <string name="confirm">Подтвердить</string>
     <string name="cancel">Отмена</string>
     <!-- Backup related -->
-    <string name="backup_success">Резервная копия создана успешно</string>
-    <string name="backup_failed">Ошибка резервного копирования: %1$s</string>
-    <string name="backup_modules">Резервное копирование модулей</string>
-    <string name="restore_modules">Восстановить модули</string>
     <!-- Restore related messages -->
     <string name="restore_success">Модули восстановлены, требуется перезагрузка</string>
     <string name="restore_failed">Ошибка восстановления: %1$s</string>
@@ -233,9 +229,9 @@
     <string name="kpm_control_success">Успешно</string>
     <string name="kpm_control_failed">Провален</string>
     <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
-    <string name="not_supported">Не поддерживается</string>
-    <string name="supported">Поддерживается</string>
-    <string name="kernel_patched">Ядро не изменено</string>
+    <string name="kpm_not_supported">Не поддерживается (%s)</string>
+    <string name="kpm_supported">Поддерживается (%s)</string>
+    <string name="kernel_not_patched">Ядро не изменено</string>
     <string name="kernel_not_enabled">Ядро не настроено</string>
     <string name="custom_settings">Персонализация</string>
     <string name="kpm_install_mode">Установка KPM</string>
@@ -585,12 +581,6 @@
 - Включение этой опции иногда затрудняет разработчикам определение причины при отладке проблем, связанных с разрешениями или SELinux, поэтому пользователям рекомендуется отключать её во время отладки</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Проверенные</string>
-    <string name="module_signature_verified">Подпись модуля подтверждена</string>
-    <string name="module_signature_verification">Подтверждение подписи</string>
-    <string name="module_signature_verification_summary">При установке модуля принудительно проверять подпись. (Только для архитектуры ARM)</string>
-    <string name="module_signature_invalid">Неизвестный издатель</string>
-    <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
-    <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>
     <string name="home_hook_type">Типы хуков</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">Патч KPM</string>

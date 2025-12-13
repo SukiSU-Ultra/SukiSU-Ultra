@@ -230,13 +230,10 @@ object BackgroundManager {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun KernelSUTheme(
-    darkTheme: Boolean = when(ThemeConfig.forceDarkMode) {
-        true -> true
-        false -> false
-        null -> isSystemInDarkTheme()
-    },
+    darkTheme: Boolean = isInDarkTheme(ThemeConfig.forceDarkMode),
     dynamicColor: Boolean = ThemeConfig.useDynamicColor,
     content: @Composable () -> Unit
 ) {
@@ -252,7 +249,7 @@ fun KernelSUTheme(
     // 系统栏样式
     SystemBarController(darkTheme)
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = Typography
     ) {
@@ -590,4 +587,14 @@ fun Context.saveThemeColors(themeName: String) {
 
 fun Context.saveDynamicColorState(enabled: Boolean) {
     ThemeManager.saveDynamicColorState(this, enabled)
+}
+
+@Composable
+@ReadOnlyComposable
+fun isInDarkTheme(themeMode: Boolean?): Boolean {
+    return when(themeMode) {
+        true -> true // 强制深色
+        false -> false // 强制浅色
+        null -> isSystemInDarkTheme() // 跟随系统
+    }
 }

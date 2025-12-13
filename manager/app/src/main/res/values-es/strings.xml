@@ -133,10 +133,6 @@
     <string name="confirm">Confirmar</string>
     <string name="cancel">Cancelar</string>
     <!-- Backup related -->
-    <string name="backup_success">Copia de seguridad exitosa (tar.gz)</string>
-    <string name="backup_failed">Copia de seguridad fallida: %1$s</string>
-    <string name="backup_modules">módulos de respaldo</string>
-    <string name="restore_modules">restaurar módulos</string>
     <!-- Restore related messages -->
     <string name="restore_success">Módulos restaurados con éxito, se requiere reiniciar</string>
     <string name="restore_failed">Restauración fallida: %1$s</string>
@@ -217,9 +213,9 @@
     <string name="kpm_control_success">Correctamente realizado</string>
     <string name="kpm_control_failed">Fallido</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra será una rama relativamente independiente de KSU en el futuro, pero todavía apreciamos el KernelSU oficial y MKSU etc. ¡por sus contribuciones!</string>
-    <string name="not_supported">Sin soporte</string>
-    <string name="supported">Apoyado</string>
-    <string name="kernel_patched">Kernel no parcheado</string>
+    <string name="kpm_not_supported">Sin soporte (%s)</string>
+    <string name="kpm_supported">Apoyado (%s)</string>
+    <string name="kernel_not_patched">Kernel no parcheado</string>
     <string name="kernel_not_enabled">Kernel no configurado</string>
     <string name="custom_settings">Ajustes personalizados</string>
     <string name="kpm_install_mode">KPM Install</string>

@@ -137,10 +137,6 @@
     <string name="confirm">Konfirmasi</string>
     <string name="cancel">Batal</string>
     <!-- Backup related -->
-    <string name="backup_success">Pencadangan berhasil (tar.gz)</string>
-    <string name="backup_failed">Pencadangan gagal: %1$s</string>
-    <string name="backup_modules">cadangkan modul</string>
-    <string name="restore_modules">pulihkan modul</string>
     <!-- Restore related messages -->
     <string name="restore_success">Modul berhasil dipulihkan, restart diperlukan</string>
     <string name="restore_failed">Pemulihan gagal: %1$s</string>
@@ -232,9 +228,9 @@
     <string name="kpm_control_success">Sukses</string>
     <string name="kpm_control_failed">Gagal</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
-    <string name="not_supported">Tidak Mendukung</string>
-    <string name="supported">Mendukung</string>
-    <string name="kernel_patched">Kernel belum ditambal</string>
+    <string name="kpm_not_supported">Tidak Mendukung (%s)</string>
+    <string name="kpm_supported">Mendukung (%s)</string>
+    <string name="kernel_not_patched">Kernel belum ditambal</string>
     <string name="kernel_not_enabled">Kernel belum dikonfigurasi</string>
     <string name="custom_settings">Pengaturan kostum</string>
     <string name="kpm_install_mode">Instalasi KPM</string>
@@ -585,12 +581,6 @@ Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'u:r:priv_app:s0
 - Mengaktifkan ini terkadang membuat pengembang lebih sulit mengidentifikasi penyebab saat melakukan debugging terkait izin atau masalah SELinux, sehingga disarankan agar pengguna menonaktifkannya saat sedang melakukan debugging</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">Tervalidasi</string>
-    <string name="module_signature_verified">Tanda tangan modul tervalidasi</string>
-    <string name="module_signature_verification">Verifikasi Tanda Tangan</string>
-    <string name="module_signature_verification_summary">Verifikasi tanda tangan secara paksa saat modul dipasang. (Hanya tersedia untuk arsitektur ARM)</string>
-    <string name="module_signature_invalid">Penerbit tidak dikenal</string>
-    <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
-    <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>
     <string name="home_hook_type">Jenis hook</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">Patch KPM</string>

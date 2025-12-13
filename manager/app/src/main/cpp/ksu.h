@@ -119,8 +119,6 @@ bool clear_dynamic_manager();
 
 bool get_managers_list(struct manager_list_info* info);
 
-bool verify_module_signature(const char* input);
-
 bool is_uid_scanner_enabled();
 
 bool set_uid_scanner_enabled(bool enabled);

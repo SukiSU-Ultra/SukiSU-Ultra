@@ -22,7 +22,7 @@ object Natives {
     // 12040: Support disable sucompat mode
     const val KERNEL_SU_DOMAIN = "u:r:su:s0"
 
-    const val MINIMAL_SUPPORTED_KERNEL_FULL = "v3.1.8"
+    const val MINIMAL_SUPPORTED_KERNEL_FULL = "v4.0.0"
 
     const val MINIMAL_SUPPORTED_KPM = 12800
 
@@ -61,7 +61,6 @@ object Natives {
     }
 
     init {
-        System.loadLibrary("zakosign")
         System.loadLibrary("kernelsu")
     }
 
@@ -161,9 +160,6 @@ object Natives {
      * @return ManagersList object containing active managers, or null if failed or not enabled
      */
     external fun getManagersList(): ManagersList?
-
-    // 模块签名验证
-    external fun verifyModuleSignature(modulePath: String): Boolean
 
     /**
      * Check if UID scanner is currently enabled

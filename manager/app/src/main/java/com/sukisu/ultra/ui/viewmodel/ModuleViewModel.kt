@@ -7,26 +7,22 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dergoogler.mmrl.platform.model.ModuleConfig
 import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
+import com.sukisu.ultra.ui.util.HanziToPinyin
+import com.sukisu.ultra.ui.util.getRootShell
+import com.sukisu.ultra.ui.util.listModules
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.ui.util.HanziToPinyin
-import com.sukisu.ultra.ui.util.listModules
-import com.sukisu.ultra.ui.util.getRootShell
-import com.sukisu.ultra.ui.util.module.ModuleVerificationManager
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
-import java.text.DecimalFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import kotlin.math.log10
-import kotlin.math.pow
-import androidx.core.content.edit
 
 /**
  * @author ShirkNeko
@@ -88,9 +84,9 @@ class ModuleViewModel : ViewModel() {
         val metamodule: Boolean,
         val dirId: String, // real module id (dir name)
         var config: ModuleConfig? = null,
-        var isVerified: Boolean = false, // 添加验证状态字段
-        var verificationTimestamp: Long = 0L, // 添加验证时间戳
-    )
+    ) {
+        var moduleUpdate by mutableStateOf<Triple<String, String, String>?>(null)
+    }
 
     var isRefreshing by mutableStateOf(false)
         private set
@@ -150,7 +146,7 @@ class ModuleViewModel : ViewModel() {
                 Log.i(TAG, "result: $result")
 
                 val array = JSONArray(result)
-                val moduleInfos = (0 until array.length())
+                modules = (0 until array.length())
                     .asSequence()
                     .map { array.getJSONObject(it) }
                     .map { obj ->
@@ -171,25 +167,6 @@ class ModuleViewModel : ViewModel() {
                             obj.optString("dir_id", obj.getString("id"))
                         )
                     }.toList()
-
-                // 批量检查所有模块的验证状态
-                val moduleIds = moduleInfos.map { it.dirId }
-                val verificationStatus = ModuleVerificationManager.batchCheckVerificationStatus(moduleIds)
-
-                // 更新模块验证状态
-                modules = moduleInfos.map { moduleInfo ->
-                    val isVerified = verificationStatus[moduleInfo.dirId] ?: false
-                    val verificationTimestamp = if (isVerified) {
-                        ModuleVerificationManager.getVerificationTimestamp(moduleInfo.dirId)
-                    } else {
-                        0L
-                    }
-
-                    moduleInfo.copy(
-                        isVerified = isVerified,
-                        verificationTimestamp = verificationTimestamp
-                    )
-                }
 
                 launch {
                     modules.forEach { module ->
@@ -217,10 +194,13 @@ class ModuleViewModel : ViewModel() {
                                 if (module.config == null) {
                                     module.config = ModuleConfig()
                                 }
+
                             } catch (e: Exception) {
                                 Log.e(TAG, "Failed to load any config for module ${module.id}", e)
                                 module.config = ModuleConfig()
                             }
+
+                            module.moduleUpdate = checkUpdate(module)
                         }
                     }
                 }
@@ -228,7 +208,9 @@ class ModuleViewModel : ViewModel() {
                 // 首次加载模块列表时，初始化缓存
                 if (::moduleSizeCache.isInitialized) {
                     val currentModules = modules.map { it.dirId }
-                    moduleSizeCache.initializeCacheIfNeeded(currentModules)
+                    if (moduleSizeCache.initializeCacheIfNeeded(currentModules)) {
+                        fetchModuleList()
+                    }
                 }
 
                 isNeedRefresh = false
@@ -324,14 +306,12 @@ fun ModuleViewModel.ModuleInfo.copy(
     hasActionScript: Boolean = this.hasActionScript,
     metamodule: Boolean = this.metamodule,
     dirId: String = this.dirId,
-    config: ModuleConfig? = this.config,
-    isVerified: Boolean = this.isVerified,
-    verificationTimestamp: Long = this.verificationTimestamp
+    config: ModuleConfig? = this.config
 ): ModuleViewModel.ModuleInfo {
     return ModuleViewModel.ModuleInfo(
         id, name, author, version, versionCode, description,
         enabled, update, remove, updateJson, hasWebUi, hasActionScript, metamodule,
-        dirId, config, isVerified, verificationTimestamp
+        dirId, config
     )
 }
 
@@ -408,12 +388,16 @@ class ModuleSizeCache(context: Context) {
 
     /**
      * 检查缓存是否已初始化，如果没有则初始化
+     * @return 是否有缓存更新
      */
-    fun initializeCacheIfNeeded(currentModules: List<String>) {
+    fun initializeCacheIfNeeded(currentModules: List<String>) : Boolean {
+        if (currentModules.isEmpty()) return false
+
         val isInitialized = cachePrefs.getBoolean(CACHE_INITIALIZED_KEY, false)
         if (!isInitialized || sizeCache.isEmpty()) {
             Log.d(TAG, "首次初始化缓存，计算所有模块大小")
             refreshCache(currentModules)
+            return true
         } else {
             // 检查是否有新模块需要计算大小
             val newModules = currentModules.filter { !sizeCache.containsKey(it) }
@@ -425,7 +409,9 @@ class ModuleSizeCache(context: Context) {
                     Log.d(TAG, "新模块 $dirId 大小: ${formatFileSize(size)}")
                 }
                 saveCacheToPrefs()
+                return true
             }
+            return false
         }
     }
 
@@ -508,15 +494,19 @@ private fun JSONObject.getIntCompat(key: String, default: Int = 0): Int {
 }
 
 /**
- * 格式化文件大小的工具函数
+ * 格式化文件大小
  */
 fun formatFileSize(bytes: Long): String {
-    if (bytes <= 0) return "0 KB"
+    val kb = 1024.0
+    val mb = kb * 1024
+    val gb = mb * 1024
+    val tb = gb * 1024
 
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
-
-    return DecimalFormat("#,##0.#").format(
-        bytes / 1024.0.pow(digitGroups.toDouble())
-    ) + " " + units[digitGroups]
+    return when {
+        bytes >= tb -> "%.2f TB".format(bytes / tb)
+        bytes >= gb -> "%.2f GB".format(bytes / gb)
+        bytes >= mb -> "%.2f MB".format(bytes / mb)
+        bytes >= kb -> "%.2f KB".format(bytes / kb)
+        else -> "$bytes B"
+    }
 }
