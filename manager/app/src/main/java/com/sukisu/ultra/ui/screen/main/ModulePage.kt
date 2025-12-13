@@ -83,7 +83,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -106,6 +105,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dergoogler.mmrl.platform.Platform
 import com.dergoogler.mmrl.platform.model.ModuleConfig
@@ -822,50 +822,52 @@ private fun ModuleList(
 
                 else -> {
                     items(viewModel.moduleList) { module ->
-                        val scope = rememberCoroutineScope()
-                        val updatedModule by produceState(initialValue = Triple("", "", "")) {
-                            scope.launch(Dispatchers.IO) {
-                                value = viewModel.checkUpdate(module)
-                            }
-                        }
-
                         ModuleItem(
                             navigator = navigator,
                             module = module,
-                            updateUrl = updatedModule.first,
+                            updateUrl = module.moduleUpdate?.first.orEmpty(),
                             onUninstallClicked = {
-                                scope.launch { onModuleUninstallClicked(module) }
+                                viewModel.viewModelScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        onModuleUninstallClicked(module)
+                                    }
+                                }
                             },
                             onCheckChanged = {
-                                scope.launch {
-                                    val success = withContext(Dispatchers.IO) {
-                                        toggleModule(module.dirId, !module.enabled)
-                                    }
-                                    if (success) {
-                                        viewModel.fetchModuleList()
-
-                                        val result = snackBarHost.showSnackbar(
-                                            message = rebootToApply,
-                                            actionLabel = reboot,
-                                            duration = SnackbarDuration.Long
-                                        )
-                                        if (result == SnackbarResult.ActionPerformed) {
-                                            reboot()
+                                viewModel.viewModelScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        val success = withContext(Dispatchers.IO) {
+                                            toggleModule(module.dirId, !module.enabled)
                                         }
-                                    } else {
-                                        val message = if (module.enabled) failedDisable else failedEnable
-                                        snackBarHost.showSnackbar(message.format(module.name))
+                                        if (success) {
+                                            viewModel.fetchModuleList()
+
+                                            val result = snackBarHost.showSnackbar(
+                                                message = rebootToApply,
+                                                actionLabel = reboot,
+                                                duration = SnackbarDuration.Long
+                                            )
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                reboot()
+                                            }
+                                        } else {
+                                            val message =
+                                                if (module.enabled) failedDisable else failedEnable
+                                            snackBarHost.showSnackbar(message.format(module.name))
+                                        }
                                     }
                                 }
                             },
                             onUpdate = {
-                                scope.launch {
-                                    onModuleUpdate(
-                                        module,
-                                        updatedModule.third,
-                                        updatedModule.first,
-                                        "${module.name}-${updatedModule.second}.zip"
-                                    )
+                                viewModel.viewModelScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        onModuleUpdate(
+                                            module,
+                                            module.moduleUpdate!!.third,
+                                            module.moduleUpdate!!.first,
+                                            "${module.name}-${module.moduleUpdate!!.second}.zip"
+                                        )
+                                    }
                                 }
                             },
                             onClick = {
@@ -1195,8 +1197,7 @@ fun ModuleItemPreview() {
         hasActionScript = true,
         metamodule = true,
         dirId = "dirId",
-        config = ModuleConfig(),
-        verificationTimestamp = System.currentTimeMillis()
+        config = ModuleConfig()
     )
     ModuleItem(EmptyDestinationsNavigator, module, "", {}, {}, {}, {})
 }
