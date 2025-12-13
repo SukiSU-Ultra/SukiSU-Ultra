@@ -84,8 +84,9 @@ class ModuleViewModel : ViewModel() {
         val metamodule: Boolean,
         val dirId: String, // real module id (dir name)
         var config: ModuleConfig? = null,
-        var verificationTimestamp: Long = 0L, // 添加验证时间戳
-    )
+    ) {
+        var moduleUpdate by mutableStateOf<Triple<String, String, String>?>(null)
+    }
 
     var isRefreshing by mutableStateOf(false)
         private set
@@ -193,10 +194,13 @@ class ModuleViewModel : ViewModel() {
                                 if (module.config == null) {
                                     module.config = ModuleConfig()
                                 }
+
                             } catch (e: Exception) {
                                 Log.e(TAG, "Failed to load any config for module ${module.id}", e)
                                 module.config = ModuleConfig()
                             }
+
+                            module.moduleUpdate = checkUpdate(module)
                         }
                     }
                 }
@@ -302,13 +306,12 @@ fun ModuleViewModel.ModuleInfo.copy(
     hasActionScript: Boolean = this.hasActionScript,
     metamodule: Boolean = this.metamodule,
     dirId: String = this.dirId,
-    config: ModuleConfig? = this.config,
-    verificationTimestamp: Long = this.verificationTimestamp
+    config: ModuleConfig? = this.config
 ): ModuleViewModel.ModuleInfo {
     return ModuleViewModel.ModuleInfo(
         id, name, author, version, versionCode, description,
         enabled, update, remove, updateJson, hasWebUi, hasActionScript, metamodule,
-        dirId, config, verificationTimestamp
+        dirId, config
     )
 }
 
