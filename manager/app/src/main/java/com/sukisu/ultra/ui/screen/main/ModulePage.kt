@@ -668,9 +668,6 @@ private fun ModuleList(
         val changelog = changelogResult.getOrElse {
             showToast(fetchChangeLogFailed.format(it.message))
             return
-        }.ifBlank {
-            showToast(fetchChangeLogFailed.format(module.name))
-            return
         }
 
         val confirmResult = confirmDialog.awaitConfirm(
