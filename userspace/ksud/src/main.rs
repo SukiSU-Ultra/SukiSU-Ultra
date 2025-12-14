@@ -24,7 +24,7 @@ mod defs;
 mod feature;
 #[cfg(target_os = "android")]
 mod init_event;
-#[cfg(target_arch = "aarch64")]
+#[cfg(target_os = "android")]
 mod kpm;
 #[cfg(target_os = "android")]
 mod ksucalls;
@@ -42,7 +42,7 @@ mod restorecon;
 mod sepolicy;
 #[cfg(target_os = "android")]
 mod su;
-#[cfg(target_arch = "aarch64")]
+#[cfg(target_os = "android")]
 mod susfs;
 #[cfg(target_os = "android")]
 mod uid_scanner;
