@@ -1047,11 +1047,12 @@ static int ksu_handle_fd_request(void __user *arg)
 int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 			  void __user **arg)
 {
+	void __user *argp;
 	if (magic1 != KSU_INSTALL_MAGIC1)
 		return -EINVAL;
 
 	// Rare case
-	if (!arg)
+	if (unlikely(!arg))
 		return -EINVAL;
 
 #ifdef CONFIG_KSU_DEBUG
@@ -1059,7 +1060,8 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 		magic2);
 #endif
 
-	void __user *argp = (void __user *)*arg;
+	// Dereference **arg (\xx)
+	argp = (void __user *)*arg;
 
 	// Check if this is a request to install KSU fd
 	if (magic2 == KSU_INSTALL_MAGIC2) {
