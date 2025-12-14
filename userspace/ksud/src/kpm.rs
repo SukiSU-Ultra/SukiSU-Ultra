@@ -74,7 +74,7 @@ pub fn list() -> Result<()> {
         return Ok(());
     }
 
-    println!("{}", buf.to_string_lossy());
+    println!("{}", buf2str(&buf));
 
     Ok(())
 }
@@ -122,7 +122,7 @@ pub fn info(name: String) -> Result<()> {
         );
         return Ok(());
     }
-    println!("{}", buf.to_string_lossy());
+    println!("{}", buf2str(&buf));
     Ok(())
 }
 
@@ -193,7 +193,7 @@ pub fn version() -> Result<()> {
         return Ok(());
     }
 
-    print!("{}", buf.to_string_lossy().trim());
+    print!("{}", buf2str(&buf).trim());
     Ok(())
 }
 
@@ -218,8 +218,7 @@ pub fn check_version() -> Result<String> {
         return Ok(String::new());
     }
 
-    let binding = buf.to_string_lossy();
-    let ver = binding.trim();
+    let ver = buf2str(&buf).trim();
 
     if ver.is_empty() {
         bail!("KPM: invalid version response: {ver}");
@@ -273,4 +272,17 @@ fn load_all_modules() -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Convert zero-padded kernel buffer to owned String.
+/// DON'T REMOVE!!! we must use this method, because kernel use \0 to end of buffer
+/// if directly to_string_lossy, we will get a lot of uninit data
+/// refer: res = copy_to_user(arg1, &buffer, len + 1);
+fn buf2str(buf: &[u8]) -> String {
+    // SAFETY: buffer is always NUL-terminated by kernel.
+    unsafe {
+        CStr::from_ptr(buf.as_ptr().cast())
+            .to_string_lossy()
+            .into_owned()
+    }
 }
