@@ -735,18 +735,18 @@ pub fn run() -> Result<()> {
             use crate::cli::kpm_cmd::Kpm;
             match command {
                 Kpm::Load { path, args } => {
-                    crate::kpm::kpm_load(path.to_str().unwrap(), args.as_deref())
+                    crate::kpm::load_module(path.to_str().unwrap(), args.as_deref())
                 }
-                Kpm::Unload { name } => crate::kpm::kpm_unload(&name),
-                Kpm::Num => crate::kpm::kpm_num().map(|_| ()),
-                Kpm::List => crate::kpm::kpm_list(),
-                Kpm::Info { name } => crate::kpm::kpm_info(&name),
+                Kpm::Unload { name } => crate::kpm::unload_module(name),
+                Kpm::Num => crate::kpm::num().map(|_| ()),
+                Kpm::List => crate::kpm::list(),
+                Kpm::Info { name } => crate::kpm::info(name),
                 Kpm::Control { name, args } => {
-                    let ret = crate::kpm::kpm_control(&name, &args)?;
+                    let ret = crate::kpm::control(name, args)?;
                     println!("{ret}");
                     Ok(())
                 }
-                Kpm::Version => crate::kpm::kpm_version_loader(),
+                Kpm::Version => crate::kpm::version(),
             }
         }
     };
