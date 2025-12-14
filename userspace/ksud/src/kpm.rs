@@ -6,7 +6,6 @@ use std::{
 };
 
 use anyhow::{Result, bail};
-use rustix::path::Arg;
 
 use crate::ksucalls::ksuctl;
 
