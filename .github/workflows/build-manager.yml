@@ -1,6 +1,7 @@
 name: Build Manager
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main", "dev", "ci", "miuix" ]
     paths:
