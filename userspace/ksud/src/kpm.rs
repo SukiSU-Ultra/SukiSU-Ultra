@@ -1,5 +1,5 @@
 use std::{
-    ffi::{CString, OsStr},
+    ffi::{CStr, CString, OsStr},
     fs, io,
     os::unix::fs::PermissionsExt,
     path::Path,
