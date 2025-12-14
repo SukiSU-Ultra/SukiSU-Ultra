@@ -62,6 +62,7 @@ pub fn get_common_script_envs() -> Vec<(&'static str, String)> {
     vec![
         ("ASH_STANDALONE", "1".to_string()),
         ("KSU", "true".to_string()),
+        ("KSU_SUKISU", "true".to_string()),
         ("KSU_KERNEL_VER_CODE", ksucalls::get_version().to_string()),
         ("KSU_VER_CODE", defs::VERSION_CODE.to_string()),
         ("KSU_VER", defs::VERSION_NAME.to_string()),
