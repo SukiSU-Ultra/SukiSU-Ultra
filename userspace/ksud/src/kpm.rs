@@ -35,11 +35,7 @@ where
     P: AsRef<Path>,
 {
     let path = CString::new(path.as_ref().to_string_lossy().to_string())?;
-    let args = if args.is_none() {
-        CString::new(String::new())
-    } else {
-        CString::new(args.unwrap())
-    }?;
+    let args = args.map_or_else(|| CString::new(String::new()), CString::new)?;
 
     let mut ret = -1;
     let mut cmd = KsuKpmCmd {
@@ -49,7 +45,7 @@ where
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!("Failed to load kpm: {}", io::Error::from_raw_os_error(ret));
@@ -68,7 +64,7 @@ pub fn list() -> Result<()> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -94,7 +90,7 @@ pub fn unload_module(name: String) -> Result<()> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -117,7 +113,7 @@ pub fn info(name: String) -> Result<()> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -142,7 +138,7 @@ pub fn control(name: String, args: String) -> Result<i32> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -163,7 +159,7 @@ pub fn num() -> Result<i32> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -187,7 +183,7 @@ pub fn version() -> Result<()> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -212,7 +208,7 @@ pub fn check_version() -> Result<String> {
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &mut cmd)?;
+    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(

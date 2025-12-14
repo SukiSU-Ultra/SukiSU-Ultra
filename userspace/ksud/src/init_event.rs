@@ -88,13 +88,8 @@ pub fn on_post_data_fs() -> Result<()> {
     }
 
     #[cfg(target_arch = "aarch64")]
-    if let Err(e) = kpm::start_kpm_watcher() {
+    if let Err(e) = kpm::booted_load() {
         warn!("KPM: Failed to start KPM watcher: {e}");
-    }
-
-    #[cfg(target_arch = "aarch64")]
-    if let Err(e) = kpm::load_kpm_modules() {
-        warn!("KPM: Failed to load KPM modules: {e}");
     }
 
     // execute metamodule post-fs-data script first (priority)
