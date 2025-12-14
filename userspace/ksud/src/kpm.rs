@@ -196,7 +196,7 @@ pub fn version() -> Result<()> {
     let binding = buf2str(&buf);
     let ver = binding.trim();
     
-    print!("{}", ver);
+    print!("{ver}");
     Ok(())
 }
 
