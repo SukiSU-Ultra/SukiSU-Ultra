@@ -253,28 +253,6 @@ pub fn booted_load() -> Result<()> {
     Ok(())
 }
 
-fn unload_all_modules() -> Result<()> {
-    let dir = Path::new(KPM_DIR);
-
-    if !dir.is_dir() {
-        return Ok(());
-    }
-
-    for entry in dir.read_dir()? {
-        let p = entry?.path();
-
-        if let Some(ex) = p.extension()
-            && ex == OsStr::new("kpm")
-        {
-            if p.file_name().is_none() {
-                continue;
-            }
-            unload_module(p.file_name().unwrap().to_string_lossy().to_string())?;
-        }
-    }
-    Ok(())
-}
-
 fn load_all_modules() -> Result<()> {
     let dir = Path::new(KPM_DIR);
 
