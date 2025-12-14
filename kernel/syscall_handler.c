@@ -1,13 +1,13 @@
-#include "linux/compiler.h"
-#include "linux/cred.h"
-#include "linux/printk.h"
-#include "selinux/selinux.h"
+#include <linux/compiler.h>
+#include <linux/cred.h>
+#include <linux/printk.h>
 #include <linux/spinlock.h>
 #include <linux/kprobes.h>
 #include <linux/tracepoint.h>
-#include <asm/syscall.h>
 #include <linux/ptrace.h>
 #include <linux/slab.h>
+#include <asm/syscall.h>
+
 #include <trace/events/syscalls.h>
 
 #include "allowlist.h"
@@ -63,7 +63,7 @@ void ksu_unmark_all_process(void)
 	pr_info("hook_manager: unmark all user process done!\n");
 }
 
-static void ksu_mark_running_process_locked()
+static void ksu_mark_running_process_locked(void)
 {
 	struct task_struct *p, *t;
 	read_lock(&tasklist_lock);
@@ -93,7 +93,7 @@ static void ksu_mark_running_process_locked()
 	read_unlock(&tasklist_lock);
 }
 
-void ksu_mark_running_process()
+void ksu_mark_running_process(void)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&tracepoint_reg_lock, flags);
@@ -118,12 +118,9 @@ int ksu_get_task_mark(pid_t pid)
 		get_task_struct(task);
 		rcu_read_unlock();
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
-		marked = test_task_syscall_work(task, SYSCALL_TRACEPOINT) ? 1 :
-									    0;
+		marked = test_task_syscall_work(task, SYSCALL_TRACEPOINT) ? 1 : 0;
 #else
-		marked = test_tsk_thread_flag(task, TIF_SYSCALL_TRACEPOINT) ?
-				 1 :
-				 0;
+		marked = test_tsk_thread_flag(task, TIF_SYSCALL_TRACEPOINT) ? 1 : 0;
 #endif
 		put_task_struct(task);
 	} else {

@@ -136,7 +136,7 @@ extern void disable_seccomp(struct task_struct *tsk);
 int ksu_handle_setuid_common(uid_t new_uid, uid_t old_uid, uid_t new_euid)
 {
 #ifdef CONFIG_KSU_DEBUG
-	pr_info("handle_set{res}uid from %d to %d\n", old_uid, new_uid);
+	pr_info("handle_setuid from %d to %d\n", old_uid, new_uid);
 #endif
 
 	// if old process is root, ignore it.
@@ -357,7 +357,7 @@ void ksu_setuid_hook_init(void)
 
 void ksu_setuid_hook_exit(void)
 {
-	pr_info("ksu_core_exit\n");
+	pr_info("ksu setuid exit\n");
 	ksu_kernel_umount_exit();
 	ksu_unregister_feature_handler(KSU_FEATURE_ENHANCED_SECURITY);
 }

@@ -50,30 +50,29 @@ static const struct ksu_feature_handler kernel_umount_handler = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) ||                           \
 	defined(KSU_HAS_PATH_UMOUNT)
 extern int path_umount(struct path *path, int flags);
-static void ksu_umount_mnt(const char *__never_use_mnt, struct path *path,
+static int ksu_umount_mnt(const char *__never_use_mnt, struct path *path,
 			   int flags)
 {
-	int err = path_umount(path, flags);
-	if (err) {
-		pr_info("umount %s failed: %d\n", path->dentry->d_iname, err);
-	}
+	return path_umount(path, flags);
 }
 #else
-static void ksu_sys_umount(const char *mnt, int flags)
+static int ksu_sys_umount(const char *mnt, int flags)
 {
 	char __user *usermnt = (char __user *)mnt;
 	mm_segment_t old_fs;
+	int ret = 0;
 
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
-	ksys_umount(usermnt, flags);
+	ret = ksys_umount(usermnt, flags);
 #else
-	sys_umount(usermnt, flags); // cuz asmlinkage long sys##name
+	// Perhaps its not necessary to cast it
+	ret = (int)sys_umount(usermnt, flags); // cuz asmlinkage long sys##name
 #endif
 	set_fs(old_fs);
+	return ret;
 }
-
 #define ksu_umount_mnt(mnt, __unused, flags)                                   \
 	({                                                                     \
 		path_put(__unused);                                            \
@@ -85,8 +84,8 @@ static void ksu_sys_umount(const char *mnt, int flags)
 static void try_umount(const char *mnt, int flags)
 {
 	struct path path;
-	int err = kern_path(mnt, 0, &path);
-	if (err) {
+	int ret = 0;
+	if (kern_path(mnt, 0, &path)) {
 		return;
 	}
 
@@ -96,7 +95,11 @@ static void try_umount(const char *mnt, int flags)
 		return;
 	}
 
-	ksu_umount_mnt(mnt, &path, flags);
+	ret = ksu_umount_mnt(mnt, &path, flags);
+	if (ret) {
+		pr_info("%s: umounting %s (flags=0x%x) failed, err: %d\n",
+			__func__, mnt, flags, ret);
+	}
 }
 
 struct umount_tw {
@@ -118,7 +121,6 @@ static void umount_tw_func(struct callback_head *cb)
 	up_read(&mount_list_lock);
 
 	revert_creds(saved);
-
 	kfree(tw);
 }
 

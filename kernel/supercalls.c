@@ -1048,16 +1048,22 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 			  void __user **arg)
 {
 	if (magic1 != KSU_INSTALL_MAGIC1)
-		return 0;
+		return -EINVAL;
+
+	// Rare case
+	if (!arg)
+		return -EINVAL;
 
 #ifdef CONFIG_KSU_DEBUG
-	pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1,
+	pr_info("sys_reboot: magic: 0x%x (id: %d)\n", magic1,
 		magic2);
 #endif
 
+	void __user *argp = (void __user *)*arg;
+
 	// Check if this is a request to install KSU fd
 	if (magic2 == KSU_INSTALL_MAGIC2) {
-		return ksu_handle_fd_request((void __user *)*arg);
+		return ksu_handle_fd_request(argp);
 	}
 
 	return 0;

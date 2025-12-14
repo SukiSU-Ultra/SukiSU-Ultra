@@ -558,8 +558,7 @@ void ksu_allowlist_init(void)
 
 void ksu_allowlist_exit(void)
 {
-	struct perm_data *np = NULL;
-	struct perm_data *n = NULL;
+	struct perm_data *np, *n = NULL;
 
 	// free allowlist
 	mutex_lock(&allowlist_mutex);

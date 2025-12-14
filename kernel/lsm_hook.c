@@ -79,12 +79,14 @@ static int ksu_inode_rename(struct inode *old_inode, struct dentry *old_dentry,
 		new_dentry->d_iname, buf);
 
 	/*
-	 * RKSU: track_throne(true) only occurs when
-	 * on_boot_completed. So let's make it once-lock.
+	 * RKSU note:
+	 * track_throne(true) only occurs on on_boot_completed event.
+	 * When using this LSM, we must handle it here, else it returns
+	 * ENOENT (-2).
 	 */
-	static bool do_once = false;
-	if (ksu_boot_completed && !do_once) {
-		do_once = true;
+	static bool did = false;
+	if (ksu_boot_completed && !did) {
+		did = true;
 		track_throne(true);
 		return 0;
 	}

@@ -448,9 +448,7 @@ struct ksu_file_wrapper *ksu_create_file_wrapper(struct file *fp)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 	p->ops.sendpage = fp->f_op->sendpage ? ksu_wrapper_sendpage : NULL;
 #endif
-	p->ops.get_unmapped_area = fp->f_op->get_unmapped_area ?
-					   ksu_wrapper_get_unmapped_area :
-					   NULL;
+	p->ops.get_unmapped_area = fp->f_op->get_unmapped_area ? ksu_wrapper_get_unmapped_area : NULL;
 	p->ops.check_flags = fp->f_op->check_flags;
 	p->ops.flock = fp->f_op->flock ? ksu_wrapper_flock : NULL;
 	p->ops.splice_write =
@@ -468,9 +466,7 @@ struct ksu_file_wrapper *ksu_create_file_wrapper(struct file *fp)
 		fp->f_op->copy_file_range ? ksu_wrapper_copy_file_range : NULL;
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0)
-	p->ops.remap_file_range = fp->f_op->remap_file_range ?
-					  ksu_wrapper_remap_file_range :
-					  NULL;
+	p->ops.remap_file_range = fp->f_op->remap_file_range ? ksu_wrapper_remap_file_range : NULL;
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 	p->ops.fadvise = fp->f_op->fadvise ? ksu_wrapper_fadvise : NULL;

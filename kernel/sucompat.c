@@ -139,7 +139,7 @@ static int ksu_sucompat_user_common(const char __user **filename_user,
 				    const char *syscall_name,
 				    const bool escalate)
 {
-	char path[sizeof(su)]; // sizeof includes nullterm already!
+	char path[sizeof(su) + 1];
 	memset(path, 0, sizeof(path));
 	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
