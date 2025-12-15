@@ -67,8 +67,7 @@ static int ksu_sys_umount(const char *mnt, int flags)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
 	ret = ksys_umount(usermnt, flags);
 #else
-	// Perhaps its not necessary to cast it
-	ret = (int)sys_umount(usermnt, flags); // cuz asmlinkage long sys##name
+	ret = sys_umount(usermnt, flags); // cuz asmlinkage long sys##name
 #endif
 	set_fs(old_fs);
 	return ret;

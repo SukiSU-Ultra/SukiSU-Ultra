@@ -87,6 +87,39 @@ ssize_t ksu_kernel_write_compat(struct file *p, const void *buf, size_t count,
 #endif
 }
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0) && !defined(KSU_HAS_PATH_MOUNT))
+extern long do_mount(const char *dev_name, const char __user *dir_name,
+		     const char *type_page, unsigned long flags,
+		     void *data_page);
+
+int path_mount(const char *dev_name, struct path *path, const char *type_page,
+	       unsigned long flags, void *data_page)
+{
+	mm_segment_t old_fs;
+	long ret = 0;
+	char buf[384];
+
+	char *realpath = d_path(path, buf, 384);
+	if (IS_ERR(realpath)) {
+		pr_err("ksu_mount: d_path failed, err: %lu\n",
+		       PTR_ERR(realpath));
+		return PTR_ERR(realpath);
+	}
+
+	// https://github.com/backslashxx/KernelSU/blob/e02c2771b106c68f0b8a17234b5b1846664852f0/kernel/kernel_compat.c#L123
+	// This check is handy.
+	if (!(realpath && realpath != buf))
+		return -ENOENT;
+
+	old_fs = get_fs();
+	set_fs(KERNEL_DS);
+	ret = do_mount(dev_name, (const char __user *)realpath, type_page,
+		       flags, data_page);
+	set_fs(old_fs);
+	return ret;
+}
+#endif
+
 static inline long
 do_strncpy_user_nofault(char *dst, const void __user *unsafe_addr, long count)
 {
