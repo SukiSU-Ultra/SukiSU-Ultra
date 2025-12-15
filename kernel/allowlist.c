@@ -28,6 +28,7 @@
 #ifdef CONFIG_KSU_SYSCALL_HOOK
 #include "syscall_handler.h"
 #endif
+#include "su_mount_ns.h"
 
 #define FILE_MAGIC 0x7f4b5355 // ' KSU', u32
 #define FILE_FORMAT_VERSION 3 // u32
@@ -84,7 +85,7 @@ static void init_default_profiles(void)
 	default_root_profile.groups[0] = 0;
 	memcpy(&default_root_profile.capabilities.effective, &full_cap,
 	       sizeof(default_root_profile.capabilities.effective));
-	default_root_profile.namespaces = 0;
+	default_root_profile.namespaces = KSU_NS_INHERITED;
 	strcpy(default_root_profile.selinux_domain, KSU_DEFAULT_SELINUX_DOMAIN);
 
 	// This means that we will umount modules by default!

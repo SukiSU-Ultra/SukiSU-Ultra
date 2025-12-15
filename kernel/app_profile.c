@@ -32,6 +32,7 @@
 #endif // #ifndef CONFIG_KSU_SUSFS
 
 #include "sulog.h"
+#include "su_mount_ns.h"
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0) && defined(CONFIG_CC_IS_GCC))
 static struct group_info root_groups = {
@@ -196,6 +197,7 @@ void escape_with_root_profile(void)
 		ksu_set_task_tracepoint_flag(t);
 	}
 #endif // #ifndef CONFIG_KSU_SUSFS
+	setup_mount_ns(profile->namespaces);
 }
 
 void escape_to_root_for_init(void)

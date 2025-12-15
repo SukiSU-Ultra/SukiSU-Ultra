@@ -11,6 +11,7 @@ ksu_obj-$(CONFIG_KSU_SYSCALL_HOOK) += kp_hook.o kp_util.o syscall_handler.o pkg_
 ksu_obj-y += kernel_compat.o
 ksu_obj-y += kernel_umount.o
 ksu_obj-y += supercalls.o
+ksu_obj-y += su_mount_ns.o
 ksu_obj-y += feature.o
 ksu_obj-y += ksud.o
 ksu_obj-y += seccomp_cache.o
@@ -155,6 +156,10 @@ endif
 
 ifeq ($(shell grep -q "int\s\+path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
 ccflags-y += -DKSU_HAS_PATH_UMOUNT
+endif
+
+ifeq ($(shell grep -q "int\s\+path_mount" $(srctree)/fs/namespace.c; echo $$?),0)
+ccflags-y += -DKSU_HAS_PATH_MOUNT
 endif
 
 ifeq ($(shell grep -q "inode_security_struct\s\+\*selinux_inode" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
