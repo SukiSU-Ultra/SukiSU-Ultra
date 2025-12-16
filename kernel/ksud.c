@@ -549,6 +549,8 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	unsigned long addr;
 	const char __user *fn;
 
+	int fd = AT_FDCWD;
+
 	if (!filename_user)
 		return 0;
 
@@ -567,7 +569,7 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	filename_in.name = path;
 
 	filename_p = &filename_in;
-	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, &argv, NULL, NULL);
+	return ksu_handle_execveat_ksud(&fd, &filename_p, &argv, NULL, NULL);
 }
 
 static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
@@ -575,7 +577,7 @@ static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
 	unsigned int fd = PT_REGS_PARM1(real_regs);
 	char __user **buf_ptr = (char __user **)&PT_REGS_PARM2(real_regs);
-	size_t count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
+	size_t *count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
 
 	return ksu_handle_sys_read(fd, buf_ptr, count_ptr);
 }
