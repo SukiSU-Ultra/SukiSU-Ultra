@@ -111,6 +111,9 @@
 \nこのオプションは、OTA が完了した後にのみ使用してください。
 \n続行しますか？</string>
     <string name="install_next">次へ</string>
+    <string name="install_select_partition">パーティションを選択</string>
+    <string name="install_upload_lkm_file">ローカル KVM ファイルを使用する</string>
+    <string name="install_only_support_ko_file">.ko ファイルのみ対応しています</string>
     <string name="select_file_tip">%1$s のパーティションイメージを推奨します。</string>
     <string name="select_kmi">KMI を選択してください</string>
     <string name="settings_uninstall">アンインストール</string>
@@ -118,8 +121,6 @@
     <string name="settings_uninstall_permanent">完全にアンインストールする</string>
     <string name="settings_restore_stock_image">ストックイメージを復元</string>
     <string name="settings_uninstall_temporary_message">KernelSU を一時的にアンインストールし、次回の再起動後に元の状態に戻します。</string>
-    <string name="settings_uninstall_permanent_message">KernelSU (root およびすべてのモジュール) を完全かつ恒久的にアンインストールします。</string>
-    <string name="settings_restore_stock_image_message">バックアップが存在する場合、工場出荷時のイメージを復元できます (OTA の前に使用してください)。KernelSU をアンインストールする必要がある場合は、「完全にアンインストールする」を使用してください。</string>
     <string name="flashing">フラッシュ</string>
     <string name="flash_success">フラッシュが成功しました</string>
     <string name="flash_failed">フラッシュに失敗しました</string>
@@ -162,7 +163,12 @@
     <string name="home_device_model">デバイスモデル</string>
     <string name="su_not_allowed">「%s」にスーパーユーザー権限を付与することはできません</string>
     <string name="settings_disable_su">su の互換性を無効化する</string>
-    <string name="settings_disable_su_summary">su コマンドを使用してアプリが root 権限を取得する動作を一時的に無効化します (既存の root プロセスは影響を受けません)。</string>
+    <string name="settings_disable_kernel_umount">カーネルアンマウントを無効化</string>
+    <string name="settings_enable_enhanced_security">強化されたセキュリティを有効化</string>
+    <string name="settings_enable_enhanced_security_summary">より厳格なセキュリティポリシーを有効化</string>
+    <string name="settings_mode_default">デフォルト</string>
+    <string name="settings_mode_temp_enable">一時的に有効化</string>
+    <string name="settings_mode_always_enable">恒久的に有効化</string>
     <string name="module_install_multiple_confirm_with_names">%1$d 個のモジュールをインストールしてもよろしいですか？\n\n%2$s</string>
     <string name="more_settings">その他の設定</string>
     <string name="selinux">SELinux</string>
@@ -178,6 +184,7 @@
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします。</string>
     <string name="hide_zygisk_implement">Zygisk のステータスを非表示</string>
     <string name="hide_zygisk_implement_summary">ホームページ上の Zygisk 実装情報を非表示にします。</string>
+    <string name="hide_meta_module_implement">メタモジュールステータスを非表示</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
     <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="hide_tag_card">モジュールラベルの行を非表示</string>
@@ -187,6 +194,7 @@
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
     <string name="manual_hook">手動でフック</string>
+    <string name="inline_hook">インラインフック</string>
     <string name="dynamic_color_title">ダイナミックカラー</string>
     <string name="dynamic_color_summary">システムテーマのダイナミックカラーを使用します。</string>
     <string name="choose_theme_color">テーマカラーを選択</string>
@@ -318,6 +326,7 @@
     <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
     <string name="module_download_error">モデルのダウンロードに失敗しました</string>
     <string name="kernel_flashing">カーネルをフラッシュ中</string>
+    <string name="warning_of_meta_module_title">メタモジュールが必要です</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">すべて</string>
     <string name="category_root_apps">Root</string>
@@ -389,8 +398,6 @@
     <string name="susfs_path_label">パス</string>
     <string name="susfs_path_placeholder">例: /system/addon.d</string>
     <string name="susfs_no_paths_configured">SUS パスが未構成です</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">SUS パスをリセット</string>
     <string name="susfs_reset_paths_message">すべての SUS パスの構成が消去されます。続行してもよろしいですか？</string>
@@ -413,6 +420,7 @@
     <string name="enable_log_feature_label">ログの対応</string>
     <string name="hide_symbols_feature_label">KSU SUSFS シンボルを非表示</string>
     <string name="sus_kstat_feature_label">SUS Kstat の対応</string>
+    <string name="sus_map_feature_label">SUS マップの対応</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">構成可能な SuSFS の機能</string>
     <string name="susfs_enable_log_label">SuSFS のログ取得を有効化</string>
@@ -506,7 +514,6 @@
     <string name="hide_bl_script">ロック状態</string>
     <string name="hide_bl_script_description">late_start サービスモードでブートローダーのロック状態属性を上書きする</string>
     <string name="cleanup_residue">残骸をクリーンアップ</string>
-    <string name="cleanup_residue_description">様々なモジュールや残骸となったツールのファイルとディレクトリをクリーンアップします (誤って削除すると損失や起動の失敗に繋がる可能性があるため、注意して使用してください)</string>
     <string name="susfs_edit_sus_path">SUS のパスを編集</string>
     <string name="edit_kstat_statically_title">Kstat 静的構成を編集</string>
     <string name="edit_kstat_path_title">Kstat のパスを編集</string>
@@ -522,6 +529,7 @@
     <string name="add_custom_path">その他</string>
     <string name="add_app_path">アプリ</string>
     <string name="susfs_add_app_path">追加のアプリパス</string>
+    <string name="warning">警告</string>
     <string name="search_apps">アプリを検索</string>
     <string name="selected_apps_count">%1$d 個のアプリを選択済み</string>
     <string name="already_added_apps_count">%1$d 個のアプリを追加済み</string>
@@ -545,6 +553,7 @@
     <string name="no_active_manager">有効なマネージャーがありません</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk を実装</string>
+    <string name="home_meta_module_implement">メタモジュールの実装</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">SUS ループパス</string>
     <string name="susfs_add_sus_loop_path">SUS ループパスを追加</string>
@@ -576,9 +585,109 @@
     <string name="module_verified">検証済み</string>
     <string name="module_signature_verified">モジュールの署名が検証されました</string>
     <string name="module_signature_verification">署名の検証</string>
-    <string name="module_signature_verification_summary">モジュールのインストール時に署名の検証を強制します。（ARM アーキテクチャのみ）</string>
     <string name="module_signature_invalid">不明な発行元</string>
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
     <string name="home_hook_type">フックタイプ</string>
+    <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM パッチ</string>
+    <string name="kpm_patch_description">KPM に追加機能を加える</string>
+    <string name="enable_kpm_patch">KPM パッチ</string>
+    <string name="kpm_patch_switch_description">フラッシュする前にカーネルイメージに KPM パッチを適用する</string>
+    <string name="enable_kpm_undo_patch">KPM パッチを元に戻す</string>
+    <string name="kpm_undo_patch_switch_description">以前に適用した KPM パッチを元に戻します</string>
+    <string name="kpm_patch_enabled">KPM パッチ有効</string>
+    <string name="kpm_undo_patch_enabled">KPM パッチを元に戻すが有効</string>
+    <string name="kpm_patch_mode">KPM パッチモード</string>
+    <string name="kpm_undo_patch_mode">KPM パッチモードを元に戻す</string>
+    <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">KPM ツールの準備</string>
+    <string name="kpm_applying_patch">KPM パッチを適用中</string>
+    <string name="kpm_undoing_patch">KPM パッチを元に戻す</string>
+    <string name="kpm_found_image_file">見つかったイメージ: %s</string>
+    <string name="kpm_patch_success">KPM パッチの適用に成功しました</string>
+    <string name="kpm_undo_patch_success">KPM パッチが正常に元に戻されました</string>
+    <string name="kpm_file_repacked">ファイルの再パックが成功しました</string>
+    <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">zip ファイルの展開に失敗しました</string>
+    <string name="kpm_image_file_not_found">イメージファイルがありません</string>
+    <string name="kpm_patch_failed">KPM パッチに失敗</string>
+    <string name="kpm_undo_patch_failed">KPM パッチを戻せませんでした</string>
+    <string name="kpm_patch_operation_failed">KPM パッチの操作に失敗しました: %s</string>
+    <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">カーネルに従う</string>
+    <string name="kpm_follow_kernel_description">KPM を変更せずにカーネルをそのまま使用します</string>
+    <!-- UID Scanner Settings -->
+    <string name="uid_auto_scan_title">アプリリストをユーザーモードでスキャン</string>
+    <string name="uid_multi_user_scan_title">マルチユーザーのアプリをスキャン</string>
+    <string name="uid_multi_user_scan_summary">有効化すると仕事用プロファイルを含むすべてのユーザーのアプリをスキャンします</string>
+    <string name="uid_scanner_setting_failed">設定に失敗、権限を確認してください</string>
+    <string name="clean_runtime_environment">ランタイム環境を消去</string>
+    <string name="clean_runtime_environment_summary">ランタイムファイルを消去し、スキャナーサービスを停止します</string>
+    <string name="clean_runtime_environment_success">ランタイム環境の消去に成功しました</string>
+    <string name="clean_runtime_environment_failed">ランタイム環境の消去に失敗しました</string>
+    <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">インストールを確認</string>
+    <string name="confirm_multiple_installation">インストールを確認 (%d 個のファイル)</string>
+    <string name="install_confirm">インストール</string>
+    <string name="module_package">モジュール</string>
+    <string name="kernel_package">カーネル</string>
+    <string name="unknown_package">不明</string>
+    <string name="unknown_kernel">不明なカーネル</string>
+    <string name="unknown_file">不明なファイル</string>
+    <string name="version">バージョン</string>
+    <string name="author">作者</string>
+    <string name="description">説明</string>
+    <string name="supported_devices">対応しているデバイス</string>
+    <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SUS マップ</string>
+    <string name="susfs_sus_map_label">ライブラリのパス</string>
+    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
+    <string name="susfs_add_sus_map">SUS マップを追加</string>
+    <string name="susfs_edit_sus_map">SUS マップを編集</string>
+    <string name="susfs_sus_map_added_success">SUS マップを追加しました: %1$s</string>
+    <string name="susfs_sus_map_removed">SUS マップを削除しました: %1$s</string>
+    <string name="susfs_sus_map_updated">SUS マップを更新しました: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_sus_maps_configured">SUS マップが未構成です</string>
+    <string name="susfs_reset_sus_maps_title">SUS マップをリセット</string>
+    <string name="susfs_reset_sus_maps_message">構成されている SUS マップをすべて削除します。この操作は元に戻せません。</string>
+    <string name="sus_maps_section">メモリマップの非表示</string>
+    <!-- Log Viewer -->
+    <string name="log_viewer_title">ログビューア</string>
+    <string name="log_viewer_back">戻る</string>
+    <string name="log_viewer_search">検索</string>
+    <string name="log_viewer_clear_logs">ログを消去</string>
+    <string name="log_viewer_logs_cleared">ログを消去しました</string>
+    <string name="log_viewer_filter_type">タイプで絞り込み</string>
+    <string name="log_viewer_all_types">すべてのタイプ</string>
+    <string name="log_viewer_no_logs">ログが見つかりません</string>
+    <string name="log_viewer_refresh">更新</string>
+    <string name="log_viewer_raw_log">生のログ</string>
+    <string name="log_viewer_search_placeholder">UID、コマンドまたは詳細で検索…</string>
+    <string name="log_viewer_clear_search">検索を消去</string>
+    <string name="log_viewer_view_logs">使用ログを表示</string>
+    <string name="log_viewer_view_logs_summary">KernelSU スーパーユーザーアクセスログを表示</string>
+    <string name="log_viewer_exclude_subtypes">サブタイプを除外</string>
+    <string name="log_viewer_exclude_current_app">現在のアプリ</string>
+    <string name="log_viewer_page_info">ページ: %1$d/%2$d | ログの合計: %3$d</string>
+    <string name="log_viewer_load_more">さらにログを読み込む</string>
+    <!-- MiUI Uninstall Desc -->
+    <string name="umount_path_manager">アンマウントパスの管理</string>
+    <string name="umount_path_manager_summary">カーネルアンマウントパスの管理</string>
+    <string name="add_umount_path">アンマウントパスを追加</string>
+    <string name="mount_path">マウントパス</string>
+    <string name="umount_flags">アンマウントフラグ</string>
+    <string name="umount_flags_hint">0=通常のアンマウント、2=MNT_DETACH</string>
+    <string name="flags">フラグ</string>
+    <string name="confirm_delete">構成を削除</string>
+    <string name="operation_failed">操作が失敗しました</string>
+    <string name="confirm_action">アクションを確認</string>
+    <string name="custom_paths_cleared">カスタムパスを消去しました</string>
+    <string name="clear_custom_paths">カスタムパスを消去</string>
+    <string name="apply_config">構成を適用</string>
+    <string name="config_applied">カーネルに適用された構成</string>
+    <string name="mnt_detach">MNT_DETACH</string>
+    <string name="group_contains_apps">%d 個のアプリが含まれています</string>
+    <string name="settings_disable_sulog">スーパーユーザーログを無効化</string>
+    <string name="settings_disable_sulog_summary">KernelSU スーパーユーザーアクセスログを無効化</string>
 </resources>
