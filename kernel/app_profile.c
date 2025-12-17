@@ -200,9 +200,8 @@ void escape_to_root_for_init(void)
 #define DEVPTS_SUPER_MAGIC 0x1cd1
 #endif
 
-static void disable_seccomp_for_target_task(void)
+static void disable_seccomp_for_target_task(struct task_struct *tsk)
 {
-	struct task_struct *tsk = target_task;
 	if (!tsk)
 		return;
 
@@ -337,7 +336,7 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 
 	if (target_task->sighand) {
 		spin_lock_irqsave(&target_task->sighand->siglock, flags);
-		disable_seccomp_for_target_task();
+		disable_seccomp_for_target_task(target_task);
 		spin_unlock_irqrestore(&target_task->sighand->siglock, flags);
 	}
 
