@@ -12,6 +12,7 @@
 #include "ksud.h"
 #include "supercalls.h"
 #include "ksu.h"
+#include "file_wrapper.h"
 
 struct cred *ksu_cred;
 
@@ -63,6 +64,8 @@ int __init kernelsu_init(void)
     ksu_throne_tracker_init();
 
     ksu_ksud_init();
+
+    ksu_file_wrapper_init();
 
 #ifdef MODULE
 #ifndef CONFIG_KSU_DEBUG
