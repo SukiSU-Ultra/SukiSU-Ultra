@@ -150,10 +150,10 @@
     <string name="restart_now">Restart Now</string>
     <string name="unknown_error">Unknown error</string>
     <!-- Command related -->
-    <string name="command_execution_failed">Command execution failed: %1$s</string>
+    <string name="command_execution_failed">Failed to execute command: %1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">Allowlist backup successful</string>
-    <string name="allowlist_backup_failed">Allowlist backup failed: %1$s</string>
+    <string name="allowlist_backup_success">Allowlist backed up successfully</string>
+    <string name="allowlist_backup_failed">Failed to backup allowlist: %1$s</string>
     <string name="allowlist_restore_confirm_title">Confirm Allowlist Restoration</string>
     <string name="allowlist_restore_confirm_message">This operation will overwrite the current allowlist. Continue?</string>
     <string name="allowlist_restore_success">Allowlist restored successfully</string>
@@ -223,14 +223,14 @@
     <string name="no">No</string>
     <string name="failed_reboot">Reboot Failed</string>
     <string name="kpm_title">KPM</string>
-    <string name="kpm_empty">No installed kernel modules at this time</string>
+    <string name="kpm_empty">No installed KernelPatch Modules at this time</string>
     <string name="kpm_version">Version</string>
     <string name="kpm_author">Author</string>
     <string name="kpm_uninstall">Uninstall</string>
     <string name="kpm_uninstall_success">Uninstalled successfully</string>
     <string name="kpm_uninstall_failed">Failed to uninstall</string>
-    <string name="kpm_install_success">Load of kpm module successful</string>
-    <string name="kpm_install_failed">Load of kpm module failed</string>
+    <string name="kpm_install_success">KPM loaded successfuly</string>
+    <string name="kpm_install_failed">Failed to load KPM</string>
     <string name="kpm_args">Parameters</string>
     <string name="kpm_control">Execute</string>
     <string name="home_kpm_version">KPM Version</string>
@@ -302,8 +302,8 @@
     <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon</string>
     <string name="icon_switched">Icon switched</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Hides KPM Function</string>
-    <string name="show_kpm_info_summary">Hides KPM information and Function in home and bottom bar</string>
+    <string name="show_kpm_info">Hide KPM Function</string>
+    <string name="show_kpm_info_summary">Hide KPM information and Function in home and bottom bar</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Select the WebUI engine to use</string>
     <string name="engine_auto_select">Automatic Selection</string>
@@ -319,7 +319,7 @@
     <string name="dpi_size_large">Big</string>
     <string name="dpi_size_extra_large">Oversize</string>
     <string name="dpi_size_custom">Customizable</string>
-    <string name="dpi_apply_settings">Applying DPI settings</string>
+    <string name="dpi_apply_settings">Apply DPI settings</string>
     <string name="dpi_confirm_title">Confirm DPI change</string>
     <string name="dpi_confirm_message">Are you sure you want to change the application DPI from %1$d to %2$d?</string>
     <string name="dpi_confirm_summary">Application needs to be restarted to apply the new DPI settings, does not affect the system status bar or other applications</string>
@@ -729,3 +729,4 @@ Important Note:\n
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
 </resources>
+
