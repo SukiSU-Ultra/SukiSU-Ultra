@@ -13,6 +13,7 @@
 #include <linux/types.h>
 #include <linux/uaccess.h>
 #include <linux/uidgid.h>
+#include <linux/stat.h>
 
 #ifdef CONFIG_KSU_SUSFS
 #include <linux/susfs.h>
