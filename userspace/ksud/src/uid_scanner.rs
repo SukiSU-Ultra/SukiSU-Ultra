@@ -1,164 +1,117 @@
 use anyhow::{Context, Result};
 use log::{error, info, warn};
 use std::ffi::CString;
-use std::fs::{self, File};
-use std::io::{BufRead, BufReader, Read, Write};
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
+use std::fs;
+use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
+use std::time::{SystemTime, UNIX_EPOCH};
+use crate::ksucalls;
 #[cfg(target_os = "android")]
 use libc;
 
-// Signal flag for kernel-initiated scan requests
-static KERNEL_SCAN_REQUEST: AtomicBool = AtomicBool::new(false);
+const K: u32 = b'K' as u32;
+const KSU_IOCTL_UID_SCANNER: i32 = libc::_IOWR::<()>(K, 105);
+
+const UID_SCANNER_OP_REGISTER_PID: u32 = 1;
+const UID_SCANNER_OP_UPDATE_UID_LIST: u32 = 2;
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct UidListEntry {
+    uid: u32,
+    package_name: [u8; 256],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct RegisterUidScannerCmd {
+    operation: u32, // UID_SCANNER_OP_*
+    pid: i32,       // daemon PID (for REGISTER_PID operation)
+    entries_ptr: u64, // pointer to array of UidListEntry (for UPDATE_UID_LIST)
+    count: u32,     // number of entries (for UPDATE_UID_LIST)
+}
+
+/// Register UID scanner daemon with kernel
+pub fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
+    let mut cmd = RegisterUidScannerCmd {
+        operation: UID_SCANNER_OP_REGISTER_PID,
+        pid,
+        entries_ptr: 0,
+        count: 0,
+    };
+    ksucalls::ksuctl(KSU_IOCTL_REGISTER_UID_SCANNER, &raw mut cmd)?;
+    Ok(())
+}
+
+/// Unregister UID scanner daemon from kernel
+pub fn unregister_uid_scanner_daemon() -> std::io::Result<()> {
+    register_uid_scanner_daemon(0)
+}
+
+/// Update UID list in kernel
+fn update_uid_list_in_kernel(entries: &[(u32, String)]) -> Result<()> {
+    if entries.is_empty() {
+        return Ok(());
+    }
+
+    // Convert entries to kernel format
+    let mut kernel_entries: Vec<UidListEntry> = Vec::with_capacity(entries.len());
+    for (uid, pkg) in entries {
+        let mut entry = UidListEntry::default();
+        entry.uid = *uid;
+        
+        let pkg_bytes = pkg.as_bytes();
+        let copy_len = pkg_bytes.len().min(255); // Leave room for null terminator
+        entry.package_name[..copy_len].copy_from_slice(&pkg_bytes[..copy_len]);
+        entry.package_name[copy_len] = 0; // Null terminator
+        
+        kernel_entries.push(entry);
+    }
+
+    let mut cmd = RegisterUidScannerCmd {
+        operation: UID_SCANNER_OP_UPDATE_UID_LIST,
+        pid: 0,
+        entries_ptr: kernel_entries.as_ptr() as u64,
+        count: kernel_entries.len() as u32,
+    };
+
+    ksucalls::ksuctl(KSU_IOCTL_REGISTER_UID_SCANNER, &raw mut cmd)
+        .with_context(|| "failed to update UID list in kernel")?;
+
+    Ok(())
+}
 
 #[cfg(target_os = "android")]
 unsafe extern "C" fn scan_signal_handler(_sig: libc::c_int) {
-    KERNEL_SCAN_REQUEST.store(true, Ordering::Relaxed);
+    // Signal received, perform scan directly
+    perform_scan_update();
 }
 
 const USER_DATA_BASE_PATH: &str = "/data/user_de";
-const USER_UID_BASE_DIR: &str = "/data/adb/ksu/user_uid";
-const UID_LIST_PATH: &str = "/data/adb/ksu/user_uid/uid_list";
-const CONFIG_FILE_PATH: &str = "/data/adb/ksu/user_uid/uid_scanner.conf";
-const STATE_FILE_PATH: &str = "/data/adb/ksu/user_uid/.state";
-const PID_FILE_PATH: &str = "/data/adb/ksu/user_uid/daemon.pid";
-
 const MAX_USERS: usize = 8;
-const DEFAULT_SCAN_INTERVAL_SECS: u64 = 300;
-
-#[derive(Clone, Debug)]
-struct ScannerConfig {
-    multi_user_scan: bool,
-    auto_scan: bool,
-    scan_interval_secs: u64,
-}
-
-impl Default for ScannerConfig {
-    fn default() -> Self {
-        Self {
-            multi_user_scan: false,
-            auto_scan: true,
-            scan_interval_secs: DEFAULT_SCAN_INTERVAL_SECS,
-        }
-    }
-}
 
 fn is_kernel_enabled() -> bool {
-    let path = Path::new(STATE_FILE_PATH);
-    let mut buf = [0u8; 1];
-
-    match File::open(path).and_then(|mut f| f.read_exact(&mut buf)) {
-        Ok(()) => {
-            let enabled = buf[0] == b'1';
+    use crate::feature::FeatureId;
+    
+    match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
+        Ok((value, supported)) => {
+            if !supported {
+                info!("uid_scanner: feature not supported by kernel");
+                return false;
+            }
+            let enabled = value != 0;
             if !enabled {
-                info!("uid_scanner: kernel flag disabled (ksu_uid_scanner_enabled=0)");
+                info!("uid_scanner: kernel feature disabled (uid_scanner=0)");
             }
             enabled
         }
         Err(e) => {
-            info!(
-                "uid_scanner: kernel state not available ({}), treating as disabled",
-                e
-            );
+            warn!("uid_scanner: failed to get feature status: {}, treating as disabled", e);
             false
         }
     }
-}
-
-fn ensure_directory_exists(path: &Path) -> Result<()> {
-    if !path.exists() {
-        fs::create_dir_all(path)
-            .with_context(|| format!("failed to create directory {}", path.display()))?;
-    }
-    let mut perms = fs::metadata(path)?.permissions();
-    perms.set_mode(0o777);
-    fs::set_permissions(path, perms)?;
-    Ok(())
-}
-
-fn load_config() -> Result<ScannerConfig> {
-    let path = Path::new(CONFIG_FILE_PATH);
-    if !path.exists() {
-        let cfg = ScannerConfig::default();
-        save_config(&cfg)?;
-        info!("uid_scanner: config not found, created default config");
-        return Ok(cfg);
-    }
-
-    let file = File::open(path).with_context(|| "failed to open uid_scanner config")?;
-    let reader = BufReader::new(file);
-
-    let mut cfg = ScannerConfig::default();
-
-    for line in reader.lines() {
-        let line = line.unwrap_or_default();
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-
-        let mut parts = line.splitn(2, '=');
-        let key = parts.next().unwrap_or_default().trim();
-        let value = parts.next().unwrap_or_default().trim();
-
-        match key {
-            "multi_user_scan" => {
-                cfg.multi_user_scan = value == "1";
-            }
-            "auto_scan" => {
-                cfg.auto_scan = value == "1";
-            }
-            "scan_interval" => {
-                if let Ok(v) = value.parse::<u64>() {
-                    cfg.scan_interval_secs = v.max(1);
-                }
-            }
-            _ => (),
-        }
-    }
-
-    info!(
-        "uid_scanner: config loaded (multi_user_scan={}, auto_scan={}, interval={}s)",
-        cfg.multi_user_scan, cfg.auto_scan, cfg.scan_interval_secs
-    );
-
-    Ok(cfg)
-}
-
-fn save_config(cfg: &ScannerConfig) -> Result<()> {
-    let dir = Path::new(USER_UID_BASE_DIR);
-    ensure_directory_exists(dir)?;
-
-    let mut file =
-        File::create(CONFIG_FILE_PATH).with_context(|| "failed to create uid_scanner config")?;
-
-    writeln!(file, "# UID Scanner Configuration")?;
-    writeln!(file, "multi_user_scan={}", if cfg.multi_user_scan { 1 } else { 0 })?;
-    writeln!(file, "auto_scan={}", if cfg.auto_scan { 1 } else { 0 })?;
-    writeln!(file, "scan_interval={}", cfg.scan_interval_secs)?;
-
-    file.flush()?;
-    file.sync_all().ok();
-
-    info!("uid_scanner: config saved");
-    Ok(())
-}
-
-pub fn set_multi_user_scan(enabled: bool) -> Result<()> {
-    let mut cfg = load_config().unwrap_or_default();
-    cfg.multi_user_scan = enabled;
-    save_config(&cfg)?;
-    info!("uid_scanner: multi_user_scan set to {}", enabled);
-    Ok(())
-}
-
-pub fn get_multi_user_scan() -> bool {
-    load_config().map(|c| c.multi_user_scan).unwrap_or(false)
 }
 
 fn get_users_from_pm(user_dirs: &mut Vec<PathBuf>) {
@@ -221,13 +174,8 @@ fn get_users_from_directory_scan(user_dirs: &mut Vec<PathBuf>) {
     }
 }
 
-fn get_user_directories(cfg: &ScannerConfig) -> Vec<PathBuf> {
+fn get_user_directories() -> Vec<PathBuf> {
     let mut user_dirs = Vec::new();
-
-    if !cfg.multi_user_scan {
-        user_dirs.push(PathBuf::from(format!("{USER_DATA_BASE_PATH}/0")));
-        return user_dirs;
-    }
 
     get_users_from_pm(&mut user_dirs);
     if user_dirs.is_empty() {
@@ -237,13 +185,10 @@ fn get_user_directories(cfg: &ScannerConfig) -> Vec<PathBuf> {
     user_dirs
 }
 
-fn perform_uid_scan(cfg: &ScannerConfig) -> Result<usize> {
-    let dir = Path::new(USER_UID_BASE_DIR);
-    ensure_directory_exists(dir)?;
-
+fn perform_uid_scan() -> Result<usize> {
     let mut entries = Vec::<(u32, String)>::new();
 
-    let user_dirs = get_user_directories(cfg);
+    let user_dirs = get_user_directories();
     info!(
         "uid_scanner: scan started, {} user directories",
         user_dirs.len()
@@ -277,21 +222,11 @@ fn perform_uid_scan(cfg: &ScannerConfig) -> Result<usize> {
 
     info!("uid_scanner: scan complete, found {} packages", entries.len());
 
-    let mut file =
-        File::create(UID_LIST_PATH).with_context(|| "failed to open uid_list for write")?;
+    // Send UID list directly to kernel via IOCTL
+    update_uid_list_in_kernel(&entries)
+        .with_context(|| "failed to update UID list in kernel")?;
 
-    for (uid, pkg) in &entries {
-        writeln!(file, "{uid} {pkg}")?;
-    }
-
-    file.flush()?;
-    file.sync_all().ok();
-
-    info!(
-        "uid_scanner: whitelist written {} entries to {}",
-        entries.len(),
-        UID_LIST_PATH
-    );
+    info!("uid_scanner: updated {} entries in kernel", entries.len());
 
     Ok(entries.len())
 }
@@ -319,29 +254,11 @@ fn set_process_name(name: &str) -> Result<()> {
     Ok(())
 }
 
-fn write_pid_file() -> Result<()> {
-    let dir = Path::new(USER_UID_BASE_DIR);
-    ensure_directory_exists(dir)?;
-
-    let pid = std::process::id();
-    let mut file = fs::OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .mode(0o644)
-        .open(PID_FILE_PATH)
-        .with_context(|| "failed to create PID file")?;
-    writeln!(file, "{}", pid)?;
-    file.flush()?;
-    file.sync_all().ok();
-
-    // Ensure permissions are correct
-    let mut perms = fs::metadata(PID_FILE_PATH)?.permissions();
-    perms.set_mode(0o644);
-    fs::set_permissions(PID_FILE_PATH, perms)
-        .with_context(|| "failed to set PID file permissions")?;
-
-    info!("uid_scanner: PID file written: {} (pid={})", PID_FILE_PATH, pid);
+fn register_with_kernel() -> Result<()> {
+    let pid = std::process::id() as i32;
+    register_uid_scanner_daemon(pid)
+        .with_context(|| "failed to register daemon PID with kernel")?;
+    info!("uid_scanner: registered with kernel (pid={})", pid);
     Ok(())
 }
 
@@ -358,76 +275,94 @@ fn setup_signal_handler() -> Result<()> {
     Ok(())
 }
 
-fn perform_scan_update(cfg: &ScannerConfig) {
-    match perform_uid_scan(cfg) {
-        Ok(_) => info!("uid_scanner: scan completed successfully"),
+fn perform_scan_update() {
+    match perform_uid_scan() {
+        Ok(count) => info!("uid_scanner: scan completed, {count} entries"),
         Err(e) => error!("uid_scanner: scan failed: {e}"),
     }
 }
 
-pub fn run_daemon() -> Result<()> {
-    let dir = Path::new(USER_UID_BASE_DIR);
-    ensure_directory_exists(dir)?;
-
-    // Relax directory perms for kernel and other tools
-    let mut perms = fs::metadata(dir)?.permissions();
-    perms.set_mode(0o777);
-    fs::set_permissions(dir, perms)?;
-
+#[cfg(target_os = "android")]
+fn daemon_main() -> Result<()> {
     // Generate random process name and set it
-    #[cfg(target_os = "android")]
-    {
-        let random_name = generate_random_process_name();
-        set_process_name(&random_name)?;
-        info!("uid_scanner: process name set to: {}", random_name);
-    }
+    let random_name = generate_random_process_name();
+    set_process_name(&random_name)?;
+    info!("uid_scanner: process name set to: {}", random_name);
 
-    // Write PID file so kernel can find us
-    write_pid_file()?;
+    // Register PID with kernel so it can send us signals
+    register_with_kernel()?;
 
-    #[cfg(target_os = "android")]
+    // Setup signal handler
     setup_signal_handler()?;
 
     info!("uid_scanner: daemon starting");
 
-    let mut cfg = load_config().unwrap_or_default();
+    // Perform initial scan
+    perform_scan_update();
 
-    let mut kernel_enabled = is_kernel_enabled();
+    // Main loop: wait for signals
+    loop {
+        thread::park();
+    }
+}
 
-    if kernel_enabled {
-        if cfg.auto_scan {
-            perform_scan_update(&cfg);
-        } else {
-            info!("uid_scanner: auto_scan disabled, waiting for manual or kernel requests");
-        }
-    } else {
-        info!("uid_scanner: kernel disabled, initial scan skipped");
+#[cfg(not(target_os = "android"))]
+fn daemon_main() -> Result<()> {
+    // Non-Android platforms: just run directly
+    register_with_kernel()?;
+    info!("uid_scanner: daemon starting");
+    perform_scan_update();
+    loop {
+        thread::park();
+    }
+}
+
+pub fn run_daemon() -> Result<()> {
+    // Check if kernel flag is enabled before starting
+    if !is_kernel_enabled() {
+        info!("uid_scanner: kernel flag disabled, daemon will not start");
+        return Ok(());
     }
 
-    loop {
-        // Reload config & kernel flag periodically to pick up runtime changes
-        if let Ok(new_cfg) = load_config() {
-            cfg = new_cfg;
+    #[cfg(target_os = "android")]
+    {
+        // Fork a child process to run the daemon
+        let pid = unsafe { libc::fork() };
+        
+        match pid {
+            -1 => {
+                // Fork failed
+                let err = std::io::Error::last_os_error();
+                anyhow::bail!("fork failed: {}", err);
+            }
+            0 => {
+                // Child process: run daemon
+                // This process is now independent and will be reparented to init
+                std::process::exit(match daemon_main() {
+                    Ok(_) => 0,
+                    Err(e) => {
+                        error!("uid_scanner daemon error: {e}");
+                        1
+                    }
+                });
+            }
+            _ => {
+                // Parent process: return immediately
+                info!("uid_scanner: daemon forked with PID {}", pid);
+                Ok(())
+            }
         }
-        kernel_enabled = is_kernel_enabled();
+    }
 
-        // Check for kernel-initiated scan request via signal
-        let kernel_request = KERNEL_SCAN_REQUEST.swap(false, Ordering::Relaxed);
-        if kernel_request {
-            info!("uid_scanner: kernel scan request received via signal");
-        }
-
-        if kernel_enabled && (cfg.auto_scan || kernel_request) {
-            perform_scan_update(&cfg);
-        }
-
-        thread::sleep(Duration::from_secs(cfg.scan_interval_secs));
+    #[cfg(not(target_os = "android"))]
+    {
+        // Non-Android: run directly
+        daemon_main()
     }
 }
 
 /// One-shot scan, intended for manual invocation from CLI/manager.
 pub fn scan_once() -> Result<()> {
-    let cfg = load_config().unwrap_or_default();
-    perform_scan_update(&cfg);
+    perform_scan_update();
     Ok(())
 }

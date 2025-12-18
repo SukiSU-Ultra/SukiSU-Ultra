@@ -9,6 +9,7 @@ use crate::{
 use anyhow::{Context, Result};
 use log::{info, warn};
 use std::path::Path;
+use std::process::Command;
 
 pub fn on_post_data_fs() -> Result<()> {
     ksucalls::report_post_fs_data();
@@ -115,11 +116,50 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("load umount config failed: {e}");
     }
 
+    // Start UID scanner daemon via init service
+    // This allows init to manage the process lifecycle and provide auto-restart
+    if let Err(e) = start_uid_scanner_service() {
+        warn!("Failed to start uid_scanner service: {e}");
+    }
+
     run_stage("post-mount", true);
 
     std::env::set_current_dir("/").with_context(|| "failed to chdir to /")?;
 
     Ok(())
+}
+
+fn start_uid_scanner_service() -> Result<()> {
+    use crate::feature::FeatureId;
+    
+    // Check if uid_scanner feature is enabled
+    match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
+        Ok((value, supported)) => {
+            if !supported || value == 0 {
+                info!("uid_scanner: feature disabled, skip starting service");
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            info!("uid_scanner: failed to check feature status, skip starting service");
+            return Ok(());
+        }
+    }
+
+    // Start the service via init
+    let output = Command::new("setprop")
+        .arg("ctl.start")
+        .arg("ksu_uid_scanner")
+        .output()
+        .with_context(|| "failed to execute setprop command")?;
+
+    if output.status.success() {
+        info!("uid_scanner: service started via init");
+        Ok(())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("failed to start service: {}", stderr);
+    }
 }
 
 fn run_stage(stage: &str, block: bool) {

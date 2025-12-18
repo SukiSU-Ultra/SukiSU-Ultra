@@ -568,56 +568,6 @@ fun getSuSFSFeatures(): String {
     val cmd = "${getKsuDaemonPath()} susfs features"
     return runCmd(shell, cmd)
 }
-fun setUidAutoScan(enabled: Boolean): Boolean {
-    val shell = getRootShell()
-    val throneResult = Natives.setUidScannerEnabled(enabled)
-    return throneResult
-}
-
-fun setUidMultiUserScan(enabled: Boolean): Boolean {
-    val shell = getRootShell()
-    val enableValue = if (enabled) 1 else 0
-    val cmd = "${getKsuDaemonPath()} uid-scanner set-multi-user $enableValue"
-    val result = ShellUtils.fastCmdResult(shell, cmd)
-    return result
-}
-
-fun getUidMultiUserScan(): Boolean {
-    val shell = getRootShell()
-
-    val cmd = "grep 'multi_user_scan=' /data/adb/ksu/user_uid/uid_scanner.conf | cut -d'=' -f2"
-    val result = ShellUtils.fastCmd(shell, cmd).trim()
-
-    return try {
-        result.toInt() == 1
-    } catch (_: NumberFormatException) {
-        false
-    }
-}
-
-fun cleanRuntimeEnvironment(): Boolean {
-    val shell = getRootShell()
-    return try {
-        try {
-            ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} uid-scanner scan-once")
-        } catch (_: Exception) {
-        }
-        ShellUtils.fastCmdResult(shell, "rm -rf /data/adb/ksu/user_uid")
-        Natives.clearUidScannerEnvironment()
-        true
-    } catch (_: Exception) {
-        false
-    }
-}
-
-fun readUidScannerFile(): Boolean {
-    val shell = getRootShell()
-    return try {
-        ShellUtils.fastCmd(shell, "cat /data/adb/ksu/.uid_scanner").trim() == "1"
-    } catch (_: Exception) {
-        false
-    }
-}
 
 fun addUmountPath(path: String, flags: Int): Boolean {
     val shell = getRootShell()

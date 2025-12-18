@@ -249,6 +249,22 @@ bool is_sulog_enabled() {
     return value != 0;
 }
 
+bool is_uid_scanner_enabled() {
+    uint64_t value = 0;
+    bool supported = false;
+    if (!get_feature(KSU_FEATURE_UID_SCANNER, &value, &supported)) {
+        return false;
+    }
+    if (!supported) {
+        return false;
+    }
+    return value != 0;
+}
+
+bool set_uid_scanner_enabled(bool enabled) {
+    return set_feature(KSU_FEATURE_UID_SCANNER, enabled ? 1 : 0);
+}
+
 void get_full_version(char* buff) {
 	struct ksu_get_full_version_cmd cmd = {0};
 	if (ksuctl(KSU_IOCTL_GET_FULL_VERSION, &cmd) == 0) {
@@ -313,90 +329,3 @@ bool get_managers_list(struct manager_list_info *info)
 	return true;
 }
 
-bool is_uid_scanner_enabled(void)
-{
-	bool status = false;
-
-	struct ksu_enable_uid_scanner_cmd cmd = {
-			.operation  = UID_SCANNER_OP_GET_STATUS,
-			.status_ptr = (__u64)(uintptr_t)&status
-	};
-
-	return ksuctl(KSU_IOCTL_ENABLE_UID_SCANNER, &cmd) == 0 != 0 && status;
-}
-
-bool set_uid_scanner_enabled(bool enabled)
-{
-	struct ksu_enable_uid_scanner_cmd cmd = {
-			.operation = UID_SCANNER_OP_TOGGLE,
-			.enabled   = enabled
-	};
-	return ksuctl(KSU_IOCTL_ENABLE_UID_SCANNER, &cmd);
-}
-
-bool clear_uid_scanner_environment(void)
-{
-	struct ksu_enable_uid_scanner_cmd cmd = {
-			.operation = UID_SCANNER_OP_CLEAR_ENV
-	};
-	return ksuctl(KSU_IOCTL_ENABLE_UID_SCANNER, &cmd);
-}
-
-#if 0
-bool verify_module_signature(const char* input) {
-#if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__) || defined(_M_ARM)
-	if (input == NULL) {
-		LogDebug("verify_module_signature: input path is null");
-		return false;
-	}
-
-	int file_fd = zako_sys_file_open(input);
-	if (file_fd < 0) {
-		LogDebug("verify_module_signature: failed to open file: %s", input);
-		return false;
-	}
-
-	uint32_t results = zako_file_verify_esig(file_fd, 0);
-
-	if (results != 0) {
-		/* If important error occured, verification process should
-		   be considered as failed due to unexpected modification
-		   potentially happened. */
-		if ((results & ZAKO_ESV_IMPORTANT_ERROR) != 0) {
-			LogDebug("verify_module_signature: Verification failed! (important error)");
-		} else {
-			/* This is for manager that doesn't want to do certificate checks */
-			LogDebug("verify_module_signature: Verification partially passed");
-		}
-	} else {
-		LogDebug("verify_module_signature: Verification passed!");
-		goto exit;
-	}
-
-	/* Go through all bit fields */
-	for (size_t i = 0; i < sizeof(uint32_t) * 8; i++) {
-		if ((results & (1 << i)) == 0) {
-			continue;
-		}
-
-		/* Convert error bit field index into human readable string */
-		const char* message = zako_file_verrcidx2str((uint8_t)i);
-		// Error message: message
-		if (message != NULL) {
-			LogDebug("verify_module_signature: Error bit %zu: %s", i, message);
-		} else {
-			LogDebug("verify_module_signature: Error bit %zu: Unknown error", i);
-		}
-	}
-
-	exit:
-	close(file_fd);
-	LogDebug("verify_module_signature: path=%s, results=0x%x, success=%s",
-			 input, results, (results == 0) ? "true" : "false");
-	return results == 0;
-#else
-	LogDebug("verify_module_signature: not supported on non-ARM architecture, path=%s", input ? input : "null");
-	return false;
-#endif
-}
-#endif

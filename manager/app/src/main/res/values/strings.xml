@@ -25,7 +25,6 @@
     <string name="module_sort_action_first">Action first</string>
     <string name="module_sort_enabled_first">Enabled first</string>
     <string name="module_repos">Repos</string>
-    <string name="module_repos_sort_update_first">Update first</string>
     <string name="module_repos_sort_name">Sort by name</string>
     <string name="module_repos_source_code">Source code</string>
     <string name="confirm">Confirm</string>
@@ -80,7 +79,6 @@
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Rules</string>
     <string name="module_update">Update</string>
-    <string name="module_reinstall">Reinstall</string>
     <string name="module_downloading">Downloading module: %s</string>
     <string name="module_start_downloading">Start downloading: %s</string>
     <string name="new_version_available">New version %s is available, click to upgrade!</string>
@@ -235,16 +233,6 @@
     <string name="dynamic_manager_disabled_success">Dynamic Manager disabled</string>
     <string name="dynamic_manager_clear_failed">Failed to clear dynamic Manager</string>
     <!-- UID Scanner Settings -->
-    <string name="uid_auto_scan_title">User-mode scanning application list</string>
-    <string name="uid_auto_scan_summary">Enabling this option will use user-mode scanning for the application list, improving stability. (If you encounter issues such as freezing during kernel scanning of the application list, you may try enabling this option.)</string>
-    <string name="uid_multi_user_scan_title">Multi-User Application Scanning</string>
-    <string name="uid_multi_user_scan_summary">When enabled, scans applications for all users, including work profiles</string>
-    <string name="uid_scanner_setting_failed">Setting failed, please check permissions</string>
-    <string name="clean_runtime_environment">Clean Runtime Environment</string>
-    <string name="clean_runtime_environment_summary">Clean up runtime files and stop the scanner service</string>
-    <string name="clean_runtime_environment_confirm">Are you sure you want to clean the runtime environment? This will stop the scanner service and remove related files.</string>
-    <string name="clean_runtime_environment_success">Runtime environment cleaned successfully</string>
-    <string name="clean_runtime_environment_failed">Failed to clean runtime environment</string>
     <!-- umount Manager -->
     <string name="umount_path_manager">Umount Path Management</string>
     <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot.</string>
@@ -533,4 +521,6 @@
     <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly.</string>
     <string name="icon_switch_title">Alternate icon</string>
     <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon</string>
+    <string name="settings_enable_uid_scanner">User mode scanning application list</string>
+    <string name="settings_enable_uid_scanner_summary">After enabling, it will use user-mode scanning for the application list to enhance stability. </string>
 </resources>

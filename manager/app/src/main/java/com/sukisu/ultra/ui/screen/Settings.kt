@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.FolderDelete
 import androidx.compose.material.icons.rounded.RemoveCircle
 import androidx.compose.material.icons.rounded.RemoveModerator
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Scanner
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.UploadFile
@@ -583,6 +584,66 @@ fun SettingPager(
                                         prefs.edit { putInt("sulog_mode", 2) }
                                         suLogMode = 2
                                         isSuLogEnabled = false
+                                    }
+                                }
+                            }
+                        )
+
+                        val currentUidScannerEnabled = Natives.isUidScannerEnabled()
+                        var uidScannerMode by rememberSaveable { mutableIntStateOf(if (currentUidScannerEnabled) 1 else 0) }
+                        val uidScannerPersistValue by produceState(initialValue = null as Long?) {
+                            value = getFeaturePersistValue("uid_scanner")
+                        }
+                        LaunchedEffect(uidScannerPersistValue) {
+                            uidScannerPersistValue?.let { v ->
+                                uidScannerMode = if (v != 0L) 2 else if (currentUidScannerEnabled) 1 else 0
+                            }
+                        }
+                        val uidScannerStatus by produceState(initialValue = "") {
+                            value = getFeatureStatus("uid_scanner")
+                        }
+                        val uidScannerSummary = when (uidScannerStatus) {
+                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                            else -> stringResource(id = R.string.settings_enable_uid_scanner_summary)
+                        }
+                        SuperDropdown(
+                            title = stringResource(id = R.string.settings_enable_uid_scanner),
+                            summary = uidScannerSummary,
+                            items = modeItems,
+                            leftAction = {
+                                Icon(
+                                    Icons.Rounded.Scanner,
+                                    modifier = Modifier.padding(end = 16.dp),
+                                    contentDescription = stringResource(id = R.string.settings_enable_uid_scanner),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            enabled = uidScannerStatus == "supported",
+                            selectedIndex = uidScannerMode,
+                            onSelectedIndexChange = { index ->
+                                when (index) {
+                                    // Default: disable and save to persist
+                                    0 -> if (Natives.setUidScannerEnabled(false)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("uid_scanner_mode", 0) }
+                                        uidScannerMode = 0
+                                    }
+
+                                    // Temporarily enable: save disabled state first, then enable
+                                    1 -> if (Natives.setUidScannerEnabled(false)) {
+                                        execKsud("feature save", true)
+                                        if (Natives.setUidScannerEnabled(true)) {
+                                            prefs.edit { putInt("uid_scanner_mode", 0) }
+                                            uidScannerMode = 1
+                                        }
+                                    }
+
+                                    // Permanently enable: enable and save
+                                    2 -> if (Natives.setUidScannerEnabled(true)) {
+                                        execKsud("feature save", true)
+                                        prefs.edit { putInt("uid_scanner_mode", 2) }
+                                        uidScannerMode = 2
                                     }
                                 }
                             }

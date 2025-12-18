@@ -36,8 +36,6 @@ static const char KERNEL_SU_RC[] =
     "    start logd\n"
     // We should wait for the post-fs-data finish
     "    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " post-fs-data\n"
-    // Start uid scanner system service
-    "    start ksu_uid_scanner\n"
     "\n"
 
     "on nonencrypted\n"
@@ -54,10 +52,12 @@ static const char KERNEL_SU_RC[] =
     "\n"
 
     "service ksu_uid_scanner " KSUD_PATH " uid-scanner daemon\n"
-    "    class main\n"
+    "    class core\n"
     "    user root\n"
     "    seclabel u:r:" KERNEL_SU_DOMAIN ":s0\n"
     "    oneshot\n"
+    "    disabled\n"
+    "\n"
 
     "\n";
 

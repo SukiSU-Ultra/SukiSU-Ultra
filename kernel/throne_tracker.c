@@ -22,7 +22,6 @@ uid_t ksu_manager_appid = KSU_INVALID_APPID;
 static uid_t locked_manager_uid = KSU_INVALID_APPID;
 static uid_t locked_dynamic_manager_uid = KSU_INVALID_APPID;
 
-#define KSU_UID_LIST_PATH "/data/adb/ksu/user_uid/uid_list"
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
 
 struct uid_data {
@@ -31,88 +30,33 @@ struct uid_data {
     char package[KSU_MAX_PACKAGE_NAME];
 };
 
-// Try read /data/adb/ksu/user_uid/uid_list
 static int uid_from_um_list(struct list_head *uid_list)
 {
-    struct file *fp;
-    char *buf = NULL;
-    loff_t size, pos = 0;
-    ssize_t nr;
-    int cnt = 0;
-    const struct cred *saved;
-
-    saved = override_creds(ksu_cred);
-
-    fp = filp_open(KSU_UID_LIST_PATH, O_RDONLY, 0);
-    if (IS_ERR(fp))
-        return -ENOENT;
-
-    size = fp->f_inode->i_size;
-    if (size <= 0) {
-        filp_close(fp, NULL);
-        revert_creds(saved);
-        return -ENODATA;
-    }
-
-    buf = kzalloc(size + 1, GFP_ATOMIC);
-    if (!buf) {
-        pr_err("uid_list: OOM %lld B\n", size);
-        filp_close(fp, NULL);
-        revert_creds(saved);
-        return -ENOMEM;
-    }
-
-    nr = kernel_read(fp, buf, size, &pos);
-    filp_close(fp, NULL);
-    if (nr != size) {
-        pr_err("uid_list: short read %zd/%lld\n", nr, size);
-        kfree(buf);
-        revert_creds(saved);
-        return -EIO;
-    }
-    buf[size] = '\0';
-
-    for (char *line = buf, *next; line; line = next) {
-        next = strchr(line, '\n');
-        if (next)
-            *next++ = '\0';
-
-        while (*line == ' ' || *line == '\t' || *line == '\r')
-            ++line;
-        if (!*line)
-            continue;
-
-        char *uid_str = strsep(&line, " \t");
-        char *pkg = line;
-        if (!pkg)
-            continue;
-        while (*pkg == ' ' || *pkg == '\t')
-            ++pkg;
-        if (!*pkg)
-            continue;
-
-        u32 uid;
-        if (kstrtou32(uid_str, 10, &uid)) {
-            pr_warn_once("uid_list: bad uid <%s>\n", uid_str);
-            continue;
+    int count = 0;
+    
+    bool add_uid_entry(uid_t uid, const char *package_name) {
+        struct uid_data *d = kzalloc(sizeof(*d), GFP_KERNEL);
+        if (!d) {
+            pr_err("uid_list: OOM for uid=%u\n", uid);
+            return false;
         }
-
-        struct uid_data *d = kzalloc(sizeof(*d), GFP_ATOMIC);
-        if (unlikely(!d)) {
-            pr_err("uid_list: OOM uid=%u\n", uid);
-            continue;
-        }
-
+        
         d->uid = uid;
-        strscpy(d->package, pkg, KSU_MAX_PACKAGE_NAME);
+        strncpy(d->package, package_name, KSU_MAX_PACKAGE_NAME - 1);
+        d->package[KSU_MAX_PACKAGE_NAME - 1] = '\0';
         list_add_tail(&d->list, uid_list);
-        ++cnt;
+        count++;
+        return true;
     }
-
-    kfree(buf);
-    revert_creds(saved);
-    pr_info("uid_list: loaded %d entries\n", cnt);
-    return cnt > 0 ? 0 : -ENODATA;
+    
+    int ret = ksu_iterate_uid_list(add_uid_entry);
+    if (ret < 0) {
+        pr_warn("uid_list: failed to iterate kernel list: %d\n", ret);
+        return ret;
+    }
+    
+    pr_info("uid_list: loaded %d entries from kernel\n", count);
+    return count > 0 ? 0 : -ENODATA;
 }
 
 static int get_pkg_from_apk_path(char *pkg, const char *path)
@@ -463,16 +407,16 @@ void track_throne(bool prune_only)
     INIT_LIST_HEAD(&uid_list);
 
     if (ksu_uid_scanner_enabled) {
-        pr_info("Scanning %s directory..\n", KSU_UID_LIST_PATH);
-
+        pr_info("Using kernel UID scanner list\n");
+        
         ret = uid_from_um_list(&uid_list);
         if (ret == 0) {
-            pr_info("Loaded UIDs from %s success\n", KSU_UID_LIST_PATH);
+            pr_info("Loaded UIDs from kernel scanner success\n");
             goto uid_ready;
         }
 
-        pr_warn("%s read failed (err=%d), fallback to %s\n",
-                KSU_UID_LIST_PATH, ret, SYSTEM_PACKAGES_LIST_PATH);
+        pr_warn("Kernel UID list not ready (err=%d), fallback to %s\n",
+                ret, SYSTEM_PACKAGES_LIST_PATH);
     }
 
     {

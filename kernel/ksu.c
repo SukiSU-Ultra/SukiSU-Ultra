@@ -22,11 +22,12 @@ struct cred *ksu_cred;
 
 void sukisu_custom_config_init(void)
 {
+    ksu_pkg_userspace_init();
 }
 
 void sukisu_custom_config_exit(void)
 {
-    ksu_throne_comm_save_state();
+    ksu_pkg_userspace_exit();
     ksu_dynamic_manager_exit();
 #if __SULOG_GATE
     ksu_sulog_exit();

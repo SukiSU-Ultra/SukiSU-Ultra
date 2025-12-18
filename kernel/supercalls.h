@@ -136,11 +136,19 @@ struct ksu_get_managers_cmd {
     struct manager_list_info manager_info; // Output: manager list information
 };
 
-struct ksu_enable_uid_scanner_cmd {
-    __u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS, UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
-    __u32 enabled; // Input: enable or disable (for UID_SCANNER_OP_TOGGLE)
-    void __user *
-        status_ptr; // Input: pointer to store status (for UID_SCANNER_OP_GET_STATUS)
+#define UID_SCANNER_OP_REGISTER_PID 1
+#define UID_SCANNER_OP_UPDATE_UID_LIST 2
+
+struct ksu_uid_list_entry {
+    __u32 uid;
+    char package_name[256];
+};
+
+struct ksu_register_uid_scanner_cmd {
+    __u32 operation; // Input: UID_SCANNER_OP_*
+    __s32 pid; // Input: daemon PID (for REGISTER_PID operation, 0 to unregister)
+    __aligned_u64 entries_ptr; // Input: pointer to array of ksu_uid_list_entry (for UPDATE_UID_LIST)
+    __u32 count; // Input: number of entries (for UPDATE_UID_LIST)
 };
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -177,7 +185,7 @@ struct ksu_manual_su_cmd {
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
 #define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0)
 #define KSU_IOCTL_GET_MANAGERS _IOC(_IOC_READ | _IOC_WRITE, 'K', 104, 0)
-#define KSU_IOCTL_ENABLE_UID_SCANNER _IOC(_IOC_READ | _IOC_WRITE, 'K', 105, 0)
+#define KSU_IOCTL_UID_SCANNER _IOC(_IOC_READ | _IOC_WRITE, 'K', 105, 0)
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)
 #endif

@@ -19,6 +19,7 @@ pub enum FeatureId {
     KernelUmount = 1,
     EnhancedSecurity = 2,
     SuLog = 3,
+    UidScanner = 4,
 }
 
 impl FeatureId {
@@ -28,6 +29,7 @@ impl FeatureId {
             1 => Some(Self::KernelUmount),
             2 => Some(Self::EnhancedSecurity),
             3 => Some(Self::SuLog),
+            4 => Some(Self::UidScanner),
             _ => None,
         }
     }
@@ -38,6 +40,7 @@ impl FeatureId {
             Self::KernelUmount => "kernel_umount",
             Self::EnhancedSecurity => "enhanced_security",
             Self::SuLog => "sulog",
+            Self::UidScanner => "uid_scanner",
         }
     }
 
@@ -55,6 +58,9 @@ impl FeatureId {
             Self::SuLog => {
                 "SU Log - enables logging of SU command usage to kernel log for auditing purposes"
             }
+            Self::UidScanner => {
+                "UID Scanner - enables userspace UID scanning daemon for package tracking"
+            }
         }
     }
 }
@@ -65,6 +71,7 @@ fn parse_feature_id(name: &str) -> Result<FeatureId> {
         "kernel_umount" | "1" => Ok(FeatureId::KernelUmount),
         "enhanced_security" | "2" => Ok(FeatureId::EnhancedSecurity),
         "sulog" | "3" => Ok(FeatureId::SuLog),
+        "uid_scanner" | "4" => Ok(FeatureId::UidScanner),
         _ => bail!("Unknown feature: {name}"),
     }
 }
@@ -352,6 +359,7 @@ pub fn save_config() -> Result<()> {
         FeatureId::KernelUmount,
         FeatureId::EnhancedSecurity,
         FeatureId::SuLog,
+        FeatureId::UidScanner,
     ];
 
     for feature_id in &all_features {

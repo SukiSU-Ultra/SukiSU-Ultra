@@ -23,7 +23,6 @@
     <string name="module_sort_action_first">可执行优先</string>
     <string name="module_sort_enabled_first">已启用优先</string>
     <string name="module_repos">模块仓库</string>
-    <string name="module_repos_sort_update_first">可更新优先</string>
     <string name="module_repos_sort_name">按名称排序</string>
     <string name="module_repos_source_code">源码</string>
     <string name="uninstall">卸载</string>
@@ -76,7 +75,6 @@
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">规则</string>
     <string name="module_update">更新</string>
-    <string name="module_reinstall">重装</string>
     <string name="module_downloading">正在下载模块：%s</string>
     <string name="module_start_downloading">开始下载：%s</string>
     <string name="new_version_available">发现新版本：%s，点击升级！</string>
@@ -229,16 +227,6 @@
     <string name="invalid_sign_config">无效的管理器配置</string>
     <string name="dynamic_manager_disabled_success">动态管理器已禁用</string>
     <string name="dynamic_manager_clear_failed">清空动态管理器配置失败</string>
-    <string name="uid_auto_scan_title">用户态扫描应用列表</string>
-    <string name="uid_auto_scan_summary">开启后将使用用户态扫描应用列表，提高稳定性 (因内核扫描应用列表出现卡死等问题可以尝试打开此选项) </string>
-    <string name="uid_multi_user_scan_title">多用户应用扫描</string>
-    <string name="uid_multi_user_scan_summary">开启后将扫描所有用户的应用，包括工作资料等</string>
-    <string name="uid_scanner_setting_failed">设置失败，请检查权限</string>
-    <string name="clean_runtime_environment">清理运行环境</string>
-    <string name="clean_runtime_environment_summary">清理运行时文件并停止扫描服务</string>
-    <string name="clean_runtime_environment_confirm">您确定要清理运行环境吗？这将停止扫描服务并删除相关文件</string>
-    <string name="clean_runtime_environment_success">运行环境清理成功</string>
-    <string name="clean_runtime_environment_failed">运行环境清理失败</string>
     <!-- umount Manager -->
     <string name="umount_path_manager">Umount 路径管理</string>
     <string name="umount_path_restart_notice">添加或删除路径后需要重启设备才能生效。系统会在下次启动时应用新的配置。</string>
@@ -526,4 +514,6 @@
     <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
     <string name="icon_switch_title">备选图标</string>
     <string name="icon_switch_summary">更换为 KernelSU 图标</string>
+    <string name="settings_enable_uid_scanner">用户态扫描应用列表</string>
+    <string name="settings_enable_uid_scanner_summary">开启后将使用用户态扫描应用列表，提高稳定性</string>
 </resources>

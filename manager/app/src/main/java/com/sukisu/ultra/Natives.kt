@@ -121,6 +121,9 @@ object Natives {
      */
     external fun isSuLogEnabled(): Boolean
     external fun setSuLogEnabled(enabled: Boolean): Boolean
+
+    external fun isUidScannerEnabled(): Boolean
+    external fun setUidScannerEnabled(enabled: Boolean): Boolean
     external fun getHookType(): String
 
     /**
@@ -149,28 +152,6 @@ object Natives {
      * @return ManagersList object containing active managers, or null if failed or not enabled
      */
     external fun getManagersList(): ManagersList?
-
-    /**
-     * Check if UID scanner is currently enabled
-     * @return true if UID scanner is enabled, false otherwise
-     */
-    external fun isUidScannerEnabled(): Boolean
-
-    /**
-     * Enable or disable UID scanner
-     * @param enabled true to enable, false to disable
-     * @return true if operation was successful, false otherwise
-     */
-    external fun setUidScannerEnabled(enabled: Boolean): Boolean
-
-    /**
-     * Clear UID scanner environment (force exit)
-     * This will forcefully stop all UID scanner operations and clear the environment
-     * @return true if operation was successful, false otherwise
-     */
-    external fun clearUidScannerEnvironment(): Boolean
-
-    
 
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999

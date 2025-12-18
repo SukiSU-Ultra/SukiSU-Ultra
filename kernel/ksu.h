@@ -8,8 +8,6 @@
 #define KERNEL_SU_VERSION KSU_VERSION
 #define KERNEL_SU_OPTION 0xDEADBEEF
 
-extern bool ksu_uid_scanner_enabled;
-
 #define EVENT_POST_FS_DATA 1
 #define EVENT_BOOT_COMPLETED 2
 #define EVENT_MODULE_MOUNTED 3
