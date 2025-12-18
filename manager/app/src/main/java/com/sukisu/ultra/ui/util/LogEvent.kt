@@ -5,7 +5,7 @@ import android.os.Build
 import android.system.Os
 import com.topjohnwu.superuser.ShellUtils
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.ui.screen.getManagerVersion
+import com.sukisu.ultra.ui.screen.main.getManagerVersion
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
@@ -54,7 +54,7 @@ fun getBugreportFile(context: Context): File {
 
     shell.newJob().add("cat /proc/1/mountinfo > ${mountsFile.absolutePath}").exec()
     shell.newJob().add("cat /proc/filesystems > ${fileSystemsFile.absolutePath}").exec()
-    shell.newJob().add("busybox tree /data/adb > ${adbFileTree.absolutePath}").exec()
+    shell.newJob().add("/data/adb/ksu/bin/busybox tree /data/adb > ${adbFileTree.absolutePath}").exec()
     shell.newJob().add("ls -alRZ /data/adb > ${adbFileDetails.absolutePath}").exec()
     shell.newJob().add("du -sh /data/adb/ksu/* > ${ksuFileSize.absolutePath}").exec()
     shell.newJob().add("cp /data/system/packages.list ${appListFile.absolutePath}").exec()

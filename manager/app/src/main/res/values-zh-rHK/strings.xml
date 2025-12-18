@@ -133,10 +133,6 @@
     <string name="confirm">確定</string>
     <string name="cancel">取消</string>
     <!-- Backup related -->
-    <string name="backup_success">備份成功 (tar.gz)</string>
-    <string name="backup_failed">備份失敗：%1$s</string>
-    <string name="backup_modules">備份模組</string>
-    <string name="restore_modules">恢復模組</string>
     <!-- Restore related messages -->
     <string name="restore_success">模組已成功還原，需重新啟動生效</string>
     <string name="restore_failed">還原失敗：%1$s</string>
@@ -219,9 +215,9 @@
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">錯誤</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未來將會成為一個相對獨立嘅 KSU 分支，但仲係會感謝官方 KernelSU 同 MKSU 等做出嘅貢獻</string>
-    <string name="not_supported">唔支援</string>
-    <string name="supported">支援</string>
-    <string name="kernel_patched">核心未進行補丁</string>
+    <string name="kpm_not_supported">唔支援 (%s)</string>
+    <string name="kpm_supported">支援 (%s)</string>
+    <string name="kernel_not_patched">核心未進行補丁</string>
     <string name="kernel_not_enabled">核心未配置</string>
     <string name="custom_settings">個性化配置</string>
     <string name="kpm_install_mode">安裝</string>
@@ -554,12 +550,6 @@
 - 啟用呢個功能有時會令到開發人員喺除錯權限或者 SELinux 問題嗰陣難以搵出原因，所以建議用戶喺除錯時禁用呢個功能。</string>
     <!-- 模块签名功能描述 -->
     <string name="module_verified">已驗證</string>
-    <string name="module_signature_verified">模組簽名已驗證</string>
-    <string name="module_signature_verification">驗證簽名</string>
-    <string name="module_signature_verification_summary">模組安裝嗰陣，會強制驗證個簽名。（淨係 ARM架構 用得）</string>
-    <string name="module_signature_invalid">未知發布者</string>
-    <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護裝置，已經阻止安裝呢個模組。</string>
-    <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
     <!-- KPM patching related strings -->
     <!-- KPM workflow related -->
     <!-- KPM error messages -->

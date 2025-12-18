@@ -15,14 +15,7 @@ add_library(kernelsu
 
 find_library(log-lib log)
 
-if(ANDROID_ABI STREQUAL "arm64-v8a")
-    set(zakosign-lib ${CMAKE_SOURCE_DIR}/../jniLibs/arm64-v8a/libzakosign.so)
-elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
-    set(zakosign-lib ${CMAKE_SOURCE_DIR}/../jniLibs/armeabi-v7a/libzakosign.so)
-endif()
-
-if(ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "armeabi-v7a")
-    target_link_libraries(kernelsu ${log-lib} ${zakosign-lib})
-else()
-    target_link_libraries(kernelsu ${log-lib})
-endif()
+target_link_libraries(
+        kernelsu
+        ${log-lib}
+)

@@ -135,10 +135,6 @@
     <string name="confirm">تأكيد</string>
     <string name="cancel">إلغاء</string>
     <!-- Backup related -->
-    <string name="backup_success">النسخ الاحتياطي ناجح (tar.gz)</string>
-    <string name="backup_failed">فشل النسخ الاحتياطي: %1$s</string>
-    <string name="backup_modules">وحدات النسخ الاحتياطي</string>
-    <string name="restore_modules">استعادة الوحدات</string>
     <!-- Restore related messages -->
     <string name="restore_success">تم استعادة الوحدات بنجاح, إعادة التشغيل مطلوبة</string>
     <string name="restore_failed">فشل الاستعادة: %1$s</string>
@@ -219,9 +215,9 @@
     <string name="kpm_control_success">نجحت</string>
     <string name="kpm_control_failed">فشل</string>
     <string name="home_click_to_ContributionCard_kernelsu">وستشكل سوكيسو أولترا في المستقبل فرعا مستقلا نسبيا من فروع الوحدة، ولكننا لا نزال نقدر كيرنيل سو وموكسو الرسميين وما إلى ذلك. لإسهاماتهم!</string>
-    <string name="not_supported">غير مدعوم</string>
-    <string name="supported">إدعمنا</string>
-    <string name="kernel_patched">النواة غير مصحوبة</string>
+    <string name="kpm_not_supported">غير مدعوم (%s)</string>
+    <string name="kpm_supported">إدعمنا (%s)</string>
+    <string name="kernel_not_patched">النواة غير مصحوبة</string>
     <string name="kernel_not_enabled">لم يتم تكوين النواة</string>
     <string name="custom_settings">الإعدادات المُخصصة</string>
     <string name="kpm_install_mode">KPM Install</string>

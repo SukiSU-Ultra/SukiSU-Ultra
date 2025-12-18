@@ -135,10 +135,6 @@
     <string name="confirm">Bestätigen</string>
     <string name="cancel">Abbrechen</string>
     <!-- Backup related -->
-    <string name="backup_success">Sicherung erfolgreich (tar.gz)</string>
-    <string name="backup_failed">Sicherung fehlgeschlagen: %1$s</string>
-    <string name="backup_modules">sicherungsmodule</string>
-    <string name="restore_modules">wiederherstellen</string>
     <!-- Restore related messages -->
     <string name="restore_success">Module erfolgreich wiederhergestellt, Neustart erforderlich</string>
     <string name="restore_failed">Wiederherstellung fehlgeschlagen: %1$s</string>
@@ -219,9 +215,9 @@
     <string name="kpm_control_success">Erfolgreich</string>
     <string name="kpm_control_failed">Fehlgeschlagen</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra wird in Zukunft ein relativ unabhängiger Zweig der KSU sein, aber wir schätzen immer noch die offiziellen KernelSU und MKSU usw. für ihre Beiträge!</string>
-    <string name="not_supported">Nicht unterstützt</string>
-    <string name="supported">Unterstützt:</string>
-    <string name="kernel_patched">Kernel nicht gepatcht</string>
+    <string name="kpm_not_supported">Nicht unterstützt (%s)</string>
+    <string name="kpm_supported">Unterstützt: (%s)</string>
+    <string name="kernel_not_patched">Kernel nicht gepatcht</string>
     <string name="kernel_not_enabled">Kernel nicht konfiguriert</string>
     <string name="custom_settings">Eigene Einstellungen</string>
     <string name="kpm_install_mode">KPM Install</string>

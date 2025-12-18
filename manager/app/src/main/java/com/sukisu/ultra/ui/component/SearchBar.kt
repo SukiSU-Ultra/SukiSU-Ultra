@@ -1,9 +1,9 @@
 package com.sukisu.ultra.ui.component
 
-import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,9 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.ui.theme.CardConfig
 
-private const val TAG = "SearchBar"
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchAppBar(
     title: @Composable () -> Unit,
@@ -36,55 +34,65 @@ fun SearchAppBar(
     onBackClick: (() -> Unit)? = null,
     onConfirm: (() -> Unit)? = null,
     dropdownContent: @Composable (() -> Unit)? = null,
+    navigationContent: @Composable (() -> Unit)? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     var onSearch by remember { mutableStateOf(false) }
 
-    // 获取卡片颜色和透明度
     val colorScheme = MaterialTheme.colorScheme
-    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
-        colorScheme.surfaceContainerLow
-    } else {
-        colorScheme.background
-    }
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) colorScheme.surfaceContainerLow else colorScheme.background
     val cardAlpha = CardConfig.cardAlpha
 
-    if (onSearch) {
-        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    BackHandler(enabled = onSearch) {
+        onSearch = false
+        keyboardController?.hide()
+        onClearClick()
     }
-    DisposableEffect(Unit) {
-        onDispose {
+
+    LaunchedEffect(scrollBehavior?.state?.collapsedFraction) {
+        val fraction = scrollBehavior?.state?.collapsedFraction ?: 1f
+        if (onSearch && fraction < 1f) {
+            onSearch = false
             keyboardController?.hide()
         }
     }
 
-    TopAppBar(
+    // 搜索框获取焦点
+    if (onSearch) LaunchedEffect(Unit) {
+        keyboardController?.show()
+        focusRequester.requestFocus()
+        scrollBehavior?.state?.heightOffset = scrollBehavior.state.heightOffsetLimit
+    }
+    DisposableEffect(Unit) { onDispose { keyboardController?.hide() } }
+
+    LargeFlexibleTopAppBar(
         title = {
-            Box {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // 默认标题
                 AnimatedVisibility(
-                    modifier = Modifier.align(Alignment.CenterStart),
                     visible = !onSearch,
                     enter = fadeIn(),
-                    exit = fadeOut(),
-                    content = { title() }
-                )
+                    exit = ExitTransition.None
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                        title()
+                    }
+                }
 
+                // 搜索框
                 AnimatedVisibility(
                     visible = onSearch,
                     enter = fadeIn(),
-                    exit = fadeOut()
+                    exit = ExitTransition.None
                 ) {
                     OutlinedTextField(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 2.dp, bottom = 2.dp, end = if (onBackClick != null) 0.dp else 14.dp)
                             .focusRequester(focusRequester)
-                            .onFocusChanged { focusState ->
-                                if (focusState.isFocused) onSearch = true
-                                Log.d(TAG, "onFocusChanged: $focusState")
-                            },
+                            .onFocusChanged { focusState -> if (focusState.isFocused) onSearch = true },
                         value = searchText,
                         onValueChange = onSearchTextChange,
                         trailingIcon = {
@@ -110,26 +118,20 @@ fun SearchAppBar(
         },
         navigationIcon = {
             if (onBackClick != null) {
-                IconButton(
-                    onClick = onBackClick,
-                    content = { Icon(Icons.AutoMirrored.Outlined.ArrowBack, null) }
-                )
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
+                }
+            } else {
+                navigationContent?.invoke()
             }
         },
         actions = {
-            AnimatedVisibility(
-                visible = !onSearch
-            ) {
-                IconButton(
-                    onClick = { onSearch = true },
-                    content = { Icon(Icons.Filled.Search, null) }
-                )
+            AnimatedVisibility(visible = !onSearch) {
+                IconButton(onClick = { onSearch = true }) {
+                    Icon(Icons.Filled.Search, contentDescription = null)
+                }
             }
-
-            if (dropdownContent != null) {
-                dropdownContent()
-            }
-
+            dropdownContent?.invoke()
         },
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior,
@@ -139,6 +141,7 @@ fun SearchAppBar(
         )
     )
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview

@@ -22,7 +22,9 @@
     <string name="module_failed_to_disable">Failed to disable module: %s</string>
     <string name="module_empty">No module installed</string>
     <string name="module">Module</string>
+    <string name="module_repo">Module Repo</string>
     <string name="module_sort_action_first">Sort (Action first)</string>
+    <string name="module_sort_star_first">Sort (Stars first)</string>
     <string name="module_sort_enabled_first">Sort (Enabled first)</string>
     <string name="uninstall">Uninstall</string>
     <string name="module_install">Install</string>
@@ -140,10 +142,6 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <!-- Backup related -->
-    <string name="backup_success">Backup successful (tar.gz)</string>
-    <string name="backup_failed">Backup failed: %1$s</string>
-    <string name="backup_modules">Backup modules</string>
-    <string name="restore_modules">Restore modules</string>
     <!-- Restore related messages -->
     <string name="restore_success">Modules restored successfully, restart required</string>
     <string name="restore_failed">Restore failed: %1$s</string>
@@ -240,9 +238,9 @@
     <string name="kpm_control_success">Success</string>
     <string name="kpm_control_failed">Failed</string>
     <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
-    <string name="not_supported">Unsupported</string>
-    <string name="supported">Supported</string>
-    <string name="kernel_patched">Kernel not patched</string>
+    <string name="kpm_not_supported">Unsupported (%s)</string>
+    <string name="kpm_supported">Supported (%s)</string>
+    <string name="kernel_not_patched">Kernel not patched</string>
     <string name="kernel_not_enabled">Kernel not configured</string>
     <string name="custom_settings">Custom settings</string>
     <string name="kpm_install_mode">KPM Install</string>
@@ -597,14 +595,6 @@ Important Note:\n
 - It is set to \'0\' by default in kernel\n
 - Enabling this will sometimes make developers hard to identify the cause when they are debugging with some permission or SELinux issue, so users are advised to disable this when doing
 </string>
-    <!-- 模块签名功能描述 -->
-    <string name="module_verified">Validated</string>
-    <string name="module_signature_verified">Module signature verified</string>
-    <string name="module_signature_verification">Signature Verification</string>
-    <string name="module_signature_verification_summary">Force signature verification when installing modules (only available for ARM architecture)</string>
-    <string name="module_signature_invalid">Unknown publisher</string>
-    <string name="module_signature_invalid_message">Unsigned modules may be incomplete. To protect your device, installation of this module has been blocked</string>
-    <string name="module_signature_verification_failed">Unsigned modules may be incomplete. Do you want to allow the following module from an unknown publisher to install in this device?</string>
     <string name="home_hook_type">Hook type</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">KPM Patch</string>
@@ -708,6 +698,7 @@ Important Note:\n
     <string name="umount_path_manager">Umount Path Management</string>
     <string name="umount_path_manager_summary">Manage kernel unmount paths</string>
     <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot</string>
+    <string name="no_any_umount_path">Not have any umount path</string>
     <string name="add_umount_path">Add Umount Path</string>
     <string name="mount_path">Mount Path</string>
     <string name="umount_flags">Unmount Flags</string>
@@ -728,4 +719,23 @@ Important Note:\n
     <string name="group_contains_apps">Contains %d apps</string>
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
+    <string name="meta_module_disabled">Metamodule has been disabled. Starting from the next system startup, all mounts from modules are unavailable</string>
+    <string name="meta_module_removed">Metamodule has been uninstalled. Starting from the next system startup, all mounts from modules are unavailable.</string>
+    <string name="no_meta_module_installed">No Metamodule has been installed. Starting from the next system startup, all mounts from modules are unavailable.</string>
+    <string name="network_offline">You are offline</string>
+    <string name="network_retry">Retry</string>
+    <string name="please_check_network">Please check your internet connection, and try again</string>
+    <string name="confirm_install_module_title">Do you want install %s module?</string>
+    <string name="assets_multiple_select_dialog_title">Select you want install asset</string>
+    <string name="assets_multiple_select_dialog_content_description">Size: %s, Download count: %s</string>
+    <string name="assets_multiple_select_dialog_warning">No any asset selected</string>
+    <string name="installed">Installed</string>
+    <string name="open_module_home_page">Open module homepage in browser</string>
+    <string name="readme">Readme</string>
+    <string name="release">Releases</string>
+    <string name="info">Info</string>
+    <string name="author_link">Link of module author</string>
+    <string name="source_code">Source code</string>
+    <string name="assert_support_content">%s,%d downloads</string>
+    <string name="show_detail_or_hide_detail">Show or hide detail</string>
 </resources>

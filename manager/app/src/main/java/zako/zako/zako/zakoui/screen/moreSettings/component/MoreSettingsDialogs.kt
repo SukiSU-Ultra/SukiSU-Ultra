@@ -35,7 +35,8 @@ import zako.zako.zako.zakoui.screen.moreSettings.util.LocaleHelper
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ConfirmResult
 import com.sukisu.ultra.ui.component.rememberConfirmDialog
-import com.sukisu.ultra.ui.screen.SwitchItem
+import com.sukisu.ultra.ui.screen.main.SettingItem
+import com.sukisu.ultra.ui.screen.main.SwitchItem
 import com.sukisu.ultra.ui.theme.*
 import com.sukisu.ultra.ui.util.cleanRuntimeEnvironment
 import com.sukisu.ultra.ui.util.getUidMultiUserScan
@@ -585,7 +586,7 @@ fun UidScannerSection(
         exit = fadeOut() + shrinkVertically()
     ) {
         val confirmDialog = rememberConfirmDialog()
-        com.sukisu.ultra.ui.screen.SettingItem(
+        SettingItem(
             icon = Icons.Filled.CleaningServices,
             title = stringResource(R.string.clean_runtime_environment),
             summary = stringResource(R.string.clean_runtime_environment_summary),
