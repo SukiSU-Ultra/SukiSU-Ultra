@@ -47,9 +47,6 @@ pub fn on_post_data_fs() -> Result<()> {
 
     assets::ensure_binaries(true).with_context(|| "Failed to extract bin assets")?;
 
-    // Start UID scanner daemon with highest priority
-    crate::uid_scanner::start_uid_scanner_daemon()?;
-
     // if we are in safe mode, we should disable all modules
     if safe_mode {
         warn!("safe mode, skip post-fs-data scripts and disable all modules!");

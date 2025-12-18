@@ -65,17 +65,6 @@ bool allowed_for_su(void)
     return is_allowed;
 }
 
-static void init_uid_scanner(void)
-{
-    ksu_throne_comm_load_state();
-    if (ksu_uid_scanner_enabled) {
-        int ret = ksu_throne_comm_init();
-        if (ret != 0) {
-            pr_err("Failed to initialize throne communication: %d\n", ret);
-        }
-    }
-}
-
 static int do_grant_root(void __user *arg)
 {
     // we already check uid above on allowed_for_su()
@@ -121,7 +110,7 @@ static int do_report_event(void __user *arg)
             post_fs_data_lock = true;
             pr_info("post-fs-data triggered\n");
             on_post_fs_data();
-            init_uid_scanner();
+            ksu_throne_comm_load_state();
 #if __SULOG_GATE
             ksu_sulog_init();
 #endif
@@ -745,32 +734,19 @@ static int do_enable_uid_scanner(void __user *arg)
         bool enabled = cmd.enabled;
 
         if (enabled == ksu_uid_scanner_enabled) {
-            pr_info("enable_uid_scanner: no need to change, already %s\n",
+            pr_info("enable_uid_scanner: already %s\n",
                     enabled ? "enabled" : "disabled");
             break;
         }
 
-        if (enabled) {
-            // Enable UID scanner
-            int ret = ksu_throne_comm_init();
-            if (ret != 0) {
-                pr_err("enable_uid_scanner: failed to initialize: %d\n", ret);
-                return -EFAULT;
-            }
-            pr_info("enable_uid_scanner: enabled\n");
-        } else {
-            // Disable UID scanner
-            ksu_throne_comm_exit();
-            pr_info("enable_uid_scanner: disabled\n");
-        }
-
         ksu_uid_scanner_enabled = enabled;
         ksu_throne_comm_save_state();
+        pr_info("enable_uid_scanner: %s\n",
+                ksu_uid_scanner_enabled ? "enabled" : "disabled");
         break;
     }
     case UID_SCANNER_OP_CLEAR_ENV: {
-        // Clear environment (force exit)
-        ksu_throne_comm_exit();
+        // Clear environment flag, actual files will be cleaned by userspace
         ksu_uid_scanner_enabled = false;
         ksu_throne_comm_save_state();
         pr_info("enable_uid_scanner: environment cleared\n");

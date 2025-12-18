@@ -26,8 +26,7 @@ void sukisu_custom_config_init(void)
 
 void sukisu_custom_config_exit(void)
 {
-    ksu_uid_exit();
-    ksu_throne_comm_exit();
+    ksu_throne_comm_save_state();
     ksu_dynamic_manager_exit();
 #if __SULOG_GATE
     ksu_sulog_exit();

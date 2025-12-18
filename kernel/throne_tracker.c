@@ -20,7 +20,7 @@ uid_t ksu_manager_appid = KSU_INVALID_APPID;
 static uid_t locked_manager_uid = KSU_INVALID_APPID;
 static uid_t locked_dynamic_manager_uid = KSU_INVALID_APPID;
 
-#define KSU_UID_LIST_PATH "/data/misc/user_uid/uid_list"
+#define KSU_UID_LIST_PATH "/data/adb/ksu/user_uid/uid_list"
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
 
 struct uid_data {

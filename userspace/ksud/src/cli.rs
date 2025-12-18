@@ -110,6 +110,12 @@ enum Commands {
         #[command(subcommand)]
         command: Kernel,
     },
+
+    /// UID scanner integration
+    UidScanner {
+        #[command(subcommand)]
+        command: UidScannerCmd,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -399,6 +405,21 @@ enum Kernel {
     },
     /// Notify that module is mounted
     NotifyModuleMounted,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum UidScannerCmd {
+    /// Run uid scanner daemon (long running)
+    Daemon,
+    /// Perform one scan and exit
+    ScanOnce,
+    /// Enable or disable multi-user scanning
+    SetMultiUser {
+        /// 1 to enable, 0 to disable
+        enabled: u8,
+    },
+    /// Get current multi-user scanning status
+    GetMultiUser,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -736,6 +757,18 @@ pub fn run() -> Result<()> {
             },
             Kernel::NotifyModuleMounted => {
                 ksucalls::report_module_mounted();
+                Ok(())
+            }
+        },
+        Commands::UidScanner { command } => match command {
+            UidScannerCmd::Daemon => crate::uid_scanner::run_daemon(),
+            UidScannerCmd::ScanOnce => crate::uid_scanner::scan_once(),
+            UidScannerCmd::SetMultiUser { enabled } => {
+                crate::uid_scanner::set_multi_user_scan(enabled != 0)
+            }
+            UidScannerCmd::GetMultiUser => {
+                let enabled = crate::uid_scanner::get_multi_user_scan();
+                println!("{}", if enabled { "1" } else { "0" });
                 Ok(())
             }
         },

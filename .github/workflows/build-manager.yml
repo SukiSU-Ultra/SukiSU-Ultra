@@ -8,7 +8,6 @@ on:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ksud.yml'
-      - '.github/workflows/user_scanner.yml'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
@@ -18,7 +17,6 @@ on:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ksud.yml'
-      - '.github/workflows/user_scanner.yml'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
@@ -28,17 +26,6 @@ jobs:
   build-lkm:
     uses: ./.github/workflows/build-lkm.yml
     secrets: inherit
-  build-user_scanner:
-    needs: build-lkm
-    strategy:
-      matrix:
-        include:
-          - target: All-linux-android
-            os: ubuntu-latest
-    uses: ./.github/workflows/user_scanner.yml
-    with:
-      target: ${{ matrix.target }}
-      os: ${{ matrix.os }}
 
   build-ksuinit:
     uses: ./.github/workflows/ksuinit.yml
@@ -135,11 +122,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Download all userscanner artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: userscanner-all-linux-android
-          path: .
 
       - name: Download arm64 ksud
         uses: actions/download-artifact@v4
@@ -167,15 +149,6 @@ jobs:
           cp -f ../aarch64-linux-android/release/ksud ../manager/app/src/main/jniLibs/arm64-v8a/libksud.so
           cp -f ../x86_64-linux-android/release/ksud ../manager/app/src/main/jniLibs/x86_64/libksud.so
           cp -f ../armv7-linux-androideabi/release/ksud ../manager/app/src/main/jniLibs/armeabi-v7a/libksud.so
-
-      - name: Copy user_scanner to app jniLibs
-        run: |
-          mkdir -p app/src/main/jniLibs/arm64-v8a
-          mkdir -p app/src/main/jniLibs/x86_64
-          mkdir -p app/src/main/jniLibs/armeabi-v7a
-          cp -f ../arm64-v8a/uid_scanner ../manager/app/src/main/jniLibs/arm64-v8a/libuid_scanner.so
-          cp -f ../x86_64/uid_scanner ../manager/app/src/main/jniLibs/x86_64/libuid_scanner.so
-          cp -f ../armeabi-v7a/uid_scanner ../manager/app/src/main/jniLibs/armeabi-v7a/libuid_scanner.so
 
       - name: Build with Gradle
         if: ${{ steps.determine.outputs.SKIP != 'true' }}
