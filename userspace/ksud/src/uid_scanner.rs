@@ -8,13 +8,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[cfg(target_os = "android")]
 use libc;
-
-#[cfg(target_os = "android")]
-use crate::restorecon;
 
 // Signal flag for kernel-initiated scan requests
 static KERNEL_SCAN_REQUEST: AtomicBool = AtomicBool::new(false);
@@ -351,7 +348,7 @@ fn write_pid_file() -> Result<()> {
 #[cfg(target_os = "android")]
 fn setup_signal_handler() -> Result<()> {
     unsafe {
-        if libc::signal(libc::SIGUSR1, scan_signal_handler as unsafe extern "C" fn(libc::c_int))
+        if libc::signal(libc::SIGUSR1, scan_signal_handler as usize)
             == libc::SIG_ERR
         {
             anyhow::bail!("failed to set SIGUSR1 handler");

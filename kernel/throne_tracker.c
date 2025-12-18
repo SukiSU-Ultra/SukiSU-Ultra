@@ -39,7 +39,6 @@ static int uid_from_um_list(struct list_head *uid_list)
     loff_t size, pos = 0;
     ssize_t nr;
     int cnt = 0;
-    int ret = 0;
     const struct cred *saved;
 
     saved = override_creds(ksu_cred);
