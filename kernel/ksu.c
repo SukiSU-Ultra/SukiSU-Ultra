@@ -17,7 +17,7 @@
 struct cred *ksu_cred;
 
 #include "sulog.h"
-#include "throne_comm.h"
+#include "pkg_userspace.h"
 #include "dynamic_manager.h"
 
 void sukisu_custom_config_init(void)

@@ -7,7 +7,7 @@
 #include <linux/version.h>
 
 #include "klog.h"
-#include "throne_comm.h"
+#include "pkg_userspace.h"
 #include "ksu.h"
 
 #define UID_SCANNER_STATE_FILE "/data/adb/ksu/user_uid/.state"

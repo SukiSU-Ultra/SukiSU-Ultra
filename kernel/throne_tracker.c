@@ -14,7 +14,7 @@
 #include "throne_tracker.h"
 #include "apk_sign.h"
 #include "dynamic_manager.h"
-#include "throne_comm.h"
+#include "pkg_userspace.h"
 
 uid_t ksu_manager_appid = KSU_INVALID_APPID;
 static uid_t locked_manager_uid = KSU_INVALID_APPID;

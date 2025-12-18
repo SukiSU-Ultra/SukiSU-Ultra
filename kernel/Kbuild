@@ -17,7 +17,7 @@ kernelsu-objs += ksud.o
 kernelsu-objs += seccomp_cache.o
 kernelsu-objs += file_wrapper.o
 kernelsu-objs += util.o
-kernelsu-objs += throne_comm.o
+kernelsu-objs += pkg_userspace.o
 kernelsu-objs += sulog.o
 
 ifeq ($(CONFIG_KSU_MANUAL_SU), y)
@@ -138,11 +138,6 @@ endif
 # Check new vfs_getattr()
 ifeq ($(shell grep -A1 "^int vfs_getattr" $(srctree)/fs/stat.c | grep -q "query_flags" ; echo $$?),0)
 ccflags-y += -DKSU_HAS_NEW_VFS_GETATTR
-endif
-
-# Function proc_ops check
-ifeq ($(shell grep -q "struct proc_ops " $(srctree)/include/linux/proc_fs.h; echo $$?),0)
-ccflags-y += -DKSU_COMPAT_HAS_PROC_OPS
 endif
 
 ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat -Wno-missing-prototypes
