@@ -5,103 +5,17 @@
 #include <linux/pid.h>
 #include <linux/slab.h>
 #include <linux/version.h>
+#include <linux/signal.h>
+#include <linux/cred.h>
+#include <linux/mm.h>
+#include <linux/kstrtox.h>
 
 #include "klog.h"
 #include "pkg_userspace.h"
 #include "ksu.h"
 
 #define UID_SCANNER_STATE_FILE "/data/adb/ksu/user_uid/.state"
-#define UID_SCANNER_REQUEST_FILE "/data/adb/ksu/user_uid/scan_request"
-
-static void ksu_write_file_async(const char *path, const char *buf, int len);
-
-struct ksu_file_write_ctx {
-    struct callback_head cb;
-    char *path;
-    char *buf;
-    int len;
-};
-
-static void ksu_write_file_cb(struct callback_head *_cb)
-{
-    struct ksu_file_write_ctx *ctx =
-        container_of(_cb, struct ksu_file_write_ctx, cb);
-    struct file *fp;
-    loff_t off = 0;
-    const struct cred *saved = override_creds(ksu_cred);
-
-    fp = filp_open(ctx->path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (IS_ERR(fp)) {
-        pr_err("ksu_write_file_cb open %s failed: %ld\n", ctx->path,
-               PTR_ERR(fp));
-        goto out;
-    }
-
-    if (kernel_write(fp, ctx->buf, ctx->len, &off) != ctx->len) {
-        pr_err("ksu_write_file_cb write %s failed\n", ctx->path);
-    }
-
-    filp_close(fp, 0);
-
-out:
-    revert_creds(saved);
-    kfree(ctx->path);
-    kfree(ctx->buf);
-    kfree(ctx);
-}
-
-static void ksu_write_file_async(const char *path, const char *buf, int len)
-{
-    struct task_struct *tsk;
-    struct ksu_file_write_ctx *ctx;
-
-    if (!path || !buf || len <= 0) {
-        return;
-    }
-
-    tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
-    if (!tsk) {
-        pr_err("ksu_write_file_async find init task err\n");
-        return;
-    }
-
-    ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-    if (!ctx) {
-        pr_err("ksu_write_file_async alloc ctx err\n");
-        goto put_task;
-    }
-
-    ctx->path = kstrdup(path, GFP_KERNEL);
-    if (!ctx->path) {
-        pr_err("ksu_write_file_async dup path err\n");
-        goto free_ctx;
-    }
-
-    ctx->buf = kmemdup(buf, len, GFP_KERNEL);
-    if (!ctx->buf) {
-        pr_err("ksu_write_file_async dup buf err\n");
-        goto free_path;
-    }
-
-    ctx->len = len;
-    ctx->cb.func = ksu_write_file_cb;
-    task_work_add(tsk, &ctx->cb, TWA_RESUME);
-    goto put_task;
-
-free_path:
-    kfree(ctx->path);
-free_ctx:
-    kfree(ctx);
-put_task:
-    put_task_struct(tsk);
-}
-
-void ksu_request_userspace_scan(void)
-{
-    static const char msg[] = "RESCAN\n";
-    ksu_write_file_async(UID_SCANNER_REQUEST_FILE, msg, sizeof(msg) - 1);
-    pr_info("requested userspace uid rescan\n");
-}
+#define PID_FILE_PATH "/data/adb/ksu/user_uid/daemon.pid"
 
 static void do_save_throne_state(struct callback_head *_cb)
 {
@@ -210,4 +124,59 @@ void ksu_throne_comm_save_state(void)
 
 put_task:
     put_task_struct(tsk);
+}
+
+void ksu_request_userspace_scan(void)
+{
+    struct file *fp;
+    char pid_buf[16];
+    loff_t off = 0;
+    ssize_t nr;
+    pid_t daemon_pid = 0;
+    struct pid *pid_struct;
+    struct task_struct *target;
+    const struct cred *saved = override_creds(ksu_cred);
+
+    // Read PID from file
+    fp = filp_open(PID_FILE_PATH, O_RDONLY, 0);
+    if (IS_ERR(fp)) {
+        pr_warn("uid_list: failed to open PID file: %ld\n",
+                PTR_ERR(fp));
+        revert_creds(saved);
+        return;
+    }
+
+    nr = kernel_read(fp, pid_buf, sizeof(pid_buf) - 1, &off);
+    filp_close(fp, 0);
+    revert_creds(saved);
+
+    if (nr <= 0) {
+        pr_warn("uid_list: failed to read PID file\n");
+        return;
+    }
+
+    pid_buf[nr] = '\0';
+    if (kstrtoint(pid_buf, 10, &daemon_pid) != 0 || daemon_pid <= 0) {
+        pr_warn("uid_list: invalid PID in file: %s\n",
+                pid_buf);
+        return;
+    }
+
+    pid_struct = find_get_pid(daemon_pid);
+    if (!pid_struct) {
+        pr_warn("uid_list: PID %d not found\n", daemon_pid);
+        return;
+    }
+
+    target = pid_task(pid_struct, PIDTYPE_PID);
+    if (target) {
+        send_sig(SIGUSR1, target, 0);
+        pr_info("uid_list: sent SIGUSR1 to daemon (pid=%d)\n",
+                daemon_pid);
+    } else {
+        pr_warn("uid_list: task for PID %d not found\n",
+                daemon_pid);
+    }
+
+    put_pid(pid_struct);
 }

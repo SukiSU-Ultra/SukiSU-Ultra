@@ -7,6 +7,7 @@
 #include <linux/version.h>
 #include <linux/stat.h>
 #include <linux/namei.h>
+#include <linux/cred.h>
 
 #include "allowlist.h"
 #include "klog.h" // IWYU pragma: keep
@@ -15,6 +16,7 @@
 #include "apk_sign.h"
 #include "dynamic_manager.h"
 #include "pkg_userspace.h"
+#include "ksu.h"
 
 uid_t ksu_manager_appid = KSU_INVALID_APPID;
 static uid_t locked_manager_uid = KSU_INVALID_APPID;
@@ -29,7 +31,7 @@ struct uid_data {
     char package[KSU_MAX_PACKAGE_NAME];
 };
 
-// Try read /data/misc/user_uid/uid_list
+// Try read /data/adb/ksu/user_uid/uid_list
 static int uid_from_um_list(struct list_head *uid_list)
 {
     struct file *fp;
@@ -37,6 +39,10 @@ static int uid_from_um_list(struct list_head *uid_list)
     loff_t size, pos = 0;
     ssize_t nr;
     int cnt = 0;
+    int ret = 0;
+    const struct cred *saved;
+
+    saved = override_creds(ksu_cred);
 
     fp = filp_open(KSU_UID_LIST_PATH, O_RDONLY, 0);
     if (IS_ERR(fp))
@@ -45,6 +51,7 @@ static int uid_from_um_list(struct list_head *uid_list)
     size = fp->f_inode->i_size;
     if (size <= 0) {
         filp_close(fp, NULL);
+        revert_creds(saved);
         return -ENODATA;
     }
 
@@ -52,6 +59,7 @@ static int uid_from_um_list(struct list_head *uid_list)
     if (!buf) {
         pr_err("uid_list: OOM %lld B\n", size);
         filp_close(fp, NULL);
+        revert_creds(saved);
         return -ENOMEM;
     }
 
@@ -60,6 +68,7 @@ static int uid_from_um_list(struct list_head *uid_list)
     if (nr != size) {
         pr_err("uid_list: short read %zd/%lld\n", nr, size);
         kfree(buf);
+        revert_creds(saved);
         return -EIO;
     }
     buf[size] = '\0';
@@ -102,6 +111,7 @@ static int uid_from_um_list(struct list_head *uid_list)
     }
 
     kfree(buf);
+    revert_creds(saved);
     pr_info("uid_list: loaded %d entries\n", cnt);
     return cnt > 0 ? 0 : -ENODATA;
 }
@@ -446,6 +456,7 @@ void track_throne(bool prune_only)
     loff_t pos = 0;
     loff_t line_start = 0;
     char buf[KSU_MAX_PACKAGE_NAME];
+    int ret;
     static bool manager_exist = false;
     static bool dynamic_manager_exist = false;
 
@@ -455,13 +466,14 @@ void track_throne(bool prune_only)
     if (ksu_uid_scanner_enabled) {
         pr_info("Scanning %s directory..\n", KSU_UID_LIST_PATH);
 
-        if (uid_from_um_list(&uid_list) == 0) {
+        ret = uid_from_um_list(&uid_list);
+        if (ret == 0) {
             pr_info("Loaded UIDs from %s success\n", KSU_UID_LIST_PATH);
             goto uid_ready;
         }
 
-        pr_warn("%s read failed, fallback to %s\n", KSU_UID_LIST_PATH,
-                SYSTEM_PACKAGES_LIST_PATH);
+        pr_warn("%s read failed (err=%d), fallback to %s\n",
+                KSU_UID_LIST_PATH, ret, SYSTEM_PACKAGES_LIST_PATH);
     }
 
     {

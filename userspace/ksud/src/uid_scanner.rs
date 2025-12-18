@@ -1,19 +1,35 @@
 use anyhow::{Context, Result};
 use log::{error, info, warn};
+use std::ffi::CString;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Read, Write};
-use std::os::unix::fs::{MetadataExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::time::Duration;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[cfg(target_os = "android")]
+use libc;
+
+#[cfg(target_os = "android")]
+use crate::restorecon;
+
+// Signal flag for kernel-initiated scan requests
+static KERNEL_SCAN_REQUEST: AtomicBool = AtomicBool::new(false);
+
+#[cfg(target_os = "android")]
+unsafe extern "C" fn scan_signal_handler(_sig: libc::c_int) {
+    KERNEL_SCAN_REQUEST.store(true, Ordering::Relaxed);
+}
 
 const USER_DATA_BASE_PATH: &str = "/data/user_de";
 const USER_UID_BASE_DIR: &str = "/data/adb/ksu/user_uid";
 const UID_LIST_PATH: &str = "/data/adb/ksu/user_uid/uid_list";
 const CONFIG_FILE_PATH: &str = "/data/adb/ksu/user_uid/uid_scanner.conf";
-const REQUEST_FILE_PATH: &str = "/data/adb/ksu/user_uid/scan_request";
 const STATE_FILE_PATH: &str = "/data/adb/ksu/user_uid/.state";
+const PID_FILE_PATH: &str = "/data/adb/ksu/user_uid/daemon.pid";
 
 const MAX_USERS: usize = 8;
 const DEFAULT_SCAN_INTERVAL_SECS: u64 = 300;
@@ -283,25 +299,66 @@ fn perform_uid_scan(cfg: &ScannerConfig) -> Result<usize> {
     Ok(entries.len())
 }
 
-fn check_kernel_request() -> bool {
-    let path = Path::new(REQUEST_FILE_PATH);
-    if !path.exists() {
-        return false;
-    }
+#[cfg(target_os = "android")]
+fn generate_random_process_name() -> String {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let pid = std::process::id();
+    // Generate a random-looking name using timestamp and PID
+    format!("ksu{:x}{:x}", timestamp & 0xffff, pid & 0xffff)
+}
 
-    let mut buf = String::new();
-    if let Ok(mut file) = File::open(path) {
-        if file.read_to_string(&mut buf).is_ok()
-            && buf.starts_with("RESCAN")
-        {
-            // best-effort cleanup
-            let _ = fs::remove_file(path);
-            info!("uid_scanner: kernel rescan request detected");
-            return true;
+#[cfg(target_os = "android")]
+fn set_process_name(name: &str) -> Result<()> {
+    let cname = CString::new(name)?;
+    unsafe {
+        // PR_SET_NAME sets the process name (visible in /proc/pid/comm)
+        if libc::prctl(libc::PR_SET_NAME, cname.as_ptr() as libc::c_ulong, 0, 0, 0) != 0 {
+            anyhow::bail!("prctl PR_SET_NAME failed: {}", std::io::Error::last_os_error());
         }
     }
+    Ok(())
+}
 
-    false
+fn write_pid_file() -> Result<()> {
+    let dir = Path::new(USER_UID_BASE_DIR);
+    ensure_directory_exists(dir)?;
+
+    let pid = std::process::id();
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .mode(0o644)
+        .open(PID_FILE_PATH)
+        .with_context(|| "failed to create PID file")?;
+    writeln!(file, "{}", pid)?;
+    file.flush()?;
+    file.sync_all().ok();
+
+    // Ensure permissions are correct
+    let mut perms = fs::metadata(PID_FILE_PATH)?.permissions();
+    perms.set_mode(0o644);
+    fs::set_permissions(PID_FILE_PATH, perms)
+        .with_context(|| "failed to set PID file permissions")?;
+
+    info!("uid_scanner: PID file written: {} (pid={})", PID_FILE_PATH, pid);
+    Ok(())
+}
+
+#[cfg(target_os = "android")]
+fn setup_signal_handler() -> Result<()> {
+    unsafe {
+        if libc::signal(libc::SIGUSR1, scan_signal_handler as unsafe extern "C" fn(libc::c_int))
+            == libc::SIG_ERR
+        {
+            anyhow::bail!("failed to set SIGUSR1 handler");
+        }
+        info!("uid_scanner: SIGUSR1 signal handler installed");
+    }
+    Ok(())
 }
 
 fn perform_scan_update(cfg: &ScannerConfig) {
@@ -319,6 +376,20 @@ pub fn run_daemon() -> Result<()> {
     let mut perms = fs::metadata(dir)?.permissions();
     perms.set_mode(0o777);
     fs::set_permissions(dir, perms)?;
+
+    // Generate random process name and set it
+    #[cfg(target_os = "android")]
+    {
+        let random_name = generate_random_process_name();
+        set_process_name(&random_name)?;
+        info!("uid_scanner: process name set to: {}", random_name);
+    }
+
+    // Write PID file so kernel can find us
+    write_pid_file()?;
+
+    #[cfg(target_os = "android")]
+    setup_signal_handler()?;
 
     info!("uid_scanner: daemon starting");
 
@@ -343,7 +414,13 @@ pub fn run_daemon() -> Result<()> {
         }
         kernel_enabled = is_kernel_enabled();
 
-        if kernel_enabled && (cfg.auto_scan || check_kernel_request()) {
+        // Check for kernel-initiated scan request via signal
+        let kernel_request = KERNEL_SCAN_REQUEST.swap(false, Ordering::Relaxed);
+        if kernel_request {
+            info!("uid_scanner: kernel scan request received via signal");
+        }
+
+        if kernel_enabled && (cfg.auto_scan || kernel_request) {
             perform_scan_update(&cfg);
         }
 
