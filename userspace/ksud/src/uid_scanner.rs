@@ -18,19 +18,31 @@ const UID_SCANNER_OP_REGISTER_PID: u32 = 1;
 const UID_SCANNER_OP_UPDATE_UID_LIST: u32 = 2;
 
 #[repr(C)]
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 struct UidListEntry {
     uid: u32,
     package_name: [u8; 256],
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 struct RegisterUidScannerCmd {
     operation: u32, // UID_SCANNER_OP_*
     pid: i32,       // daemon PID (for REGISTER_PID operation)
     entries_ptr: u64, // pointer to array of UidListEntry (for UPDATE_UID_LIST)
     count: u32,     // number of entries (for UPDATE_UID_LIST)
+}
+
+impl Default for UidListEntry {
+    fn default() -> Self {
+        Self { uid: 0, package_name: [0u8; 256] }
+    }
+}
+
+impl Default for RegisterUidScannerCmd {
+    fn default() -> Self {
+        Self { operation: 0, pid: 0, entries_ptr: 0, count: 0 }
+    }
 }
 
 /// Register UID scanner daemon with kernel
@@ -41,7 +53,7 @@ pub fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
         entries_ptr: 0,
         count: 0,
     };
-    ksucalls::ksuctl(KSU_IOCTL_REGISTER_UID_SCANNER, &raw mut cmd)?;
+    ksucalls::ksuctl(KSU_IOCTL_UID_SCANNER, &raw mut cmd)?;
     Ok(())
 }
 
@@ -77,7 +89,7 @@ fn update_uid_list_in_kernel(entries: &[(u32, String)]) -> Result<()> {
         count: kernel_entries.len() as u32,
     };
 
-    ksucalls::ksuctl(KSU_IOCTL_REGISTER_UID_SCANNER, &raw mut cmd)
+    ksucalls::ksuctl(KSU_IOCTL_UID_SCANNER, &raw mut cmd)
         .with_context(|| "failed to update UID list in kernel")?;
 
     Ok(())
