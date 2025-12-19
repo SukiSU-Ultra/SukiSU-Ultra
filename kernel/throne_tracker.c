@@ -30,26 +30,47 @@ struct uid_data {
     char package[KSU_MAX_PACKAGE_NAME];
 };
 
+struct uid_list_context {
+    struct list_head *uid_list;
+    int *count;
+};
+
+static struct uid_list_context *g_uid_list_ctx;
+
+static bool add_uid_entry(uid_t uid, const char *package_name)
+{
+    if (!g_uid_list_ctx) {
+        pr_err("uid_list: context not set\n");
+        return false;
+    }
+    
+    struct uid_data *d = kzalloc(sizeof(*d), GFP_KERNEL);
+    if (!d) {
+        pr_err("uid_list: OOM for uid=%u\n", uid);
+        return false;
+    }
+    
+    d->uid = uid;
+    strncpy(d->package, package_name, KSU_MAX_PACKAGE_NAME - 1);
+    d->package[KSU_MAX_PACKAGE_NAME - 1] = '\0';
+    list_add_tail(&d->list, g_uid_list_ctx->uid_list);
+    (*g_uid_list_ctx->count)++;
+    return true;
+}
+
 static int uid_from_um_list(struct list_head *uid_list)
 {
     int count = 0;
+    struct uid_list_context ctx = {
+        .uid_list = uid_list,
+        .count = &count
+    };
     
-    bool add_uid_entry(uid_t uid, const char *package_name) {
-        struct uid_data *d = kzalloc(sizeof(*d), GFP_KERNEL);
-        if (!d) {
-            pr_err("uid_list: OOM for uid=%u\n", uid);
-            return false;
-        }
-        
-        d->uid = uid;
-        strncpy(d->package, package_name, KSU_MAX_PACKAGE_NAME - 1);
-        d->package[KSU_MAX_PACKAGE_NAME - 1] = '\0';
-        list_add_tail(&d->list, uid_list);
-        count++;
-        return true;
-    }
+    g_uid_list_ctx = &ctx;
     
     int ret = ksu_iterate_uid_list(add_uid_entry);
+    g_uid_list_ctx = NULL;
+    
     if (ret < 0) {
         pr_warn("uid_list: failed to iterate kernel list: %d\n", ret);
         return ret;
