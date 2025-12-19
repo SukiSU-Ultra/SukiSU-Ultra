@@ -3,8 +3,10 @@ use log::{error, info, warn};
 
 use std::{
     ffi::CString,
-    fs,
+    fs::{self, File},
+    io,
     os::unix::fs::MetadataExt,
+    os::unix::io::{AsRawFd, FromRawFd},
     path::{Path, PathBuf},
     process::Command,
     thread,
@@ -79,7 +81,7 @@ fn scan_signal_handler() {
 }
 
 /// Register UID scanner daemon with kernel
-fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
+fn register_uid_scanner_daemon(pid: i32) -> Result<()> {
     let mut cmd = RegisterUidScannerCmd {
         operation: UID_SCANNER_OP_REGISTER_PID,
         pid,
@@ -257,6 +259,59 @@ fn setup_signal_handler() -> Result<()> {
     Ok(())
 }
 
+/// Daemonize the current process by forking and detaching from terminal
+fn daemonize() -> Result<()> {
+    unsafe {
+        let pid = libc::fork();
+        if pid < 0 {
+            anyhow::bail!("fork failed: {}", io::Error::last_os_error());
+        }
+        if pid > 0 {
+            std::process::exit(0);
+        }
+
+        if libc::setsid() < 0 {
+            anyhow::bail!("setsid failed: {}", io::Error::last_os_error());
+        }
+
+        let pid = libc::fork();
+        if pid < 0 {
+            anyhow::bail!("fork failed: {}", io::Error::last_os_error());
+        }
+        if pid > 0 {
+            std::process::exit(0);
+        }
+
+        if libc::chdir(b"/\0".as_ptr() as *const libc::c_char) < 0 {
+            anyhow::bail!("chdir failed: {}", io::Error::last_os_error());
+        }
+
+        let max_fd = libc::sysconf(libc::_SC_OPEN_MAX);
+        if max_fd > 0 {
+            for fd in 0..max_fd as i32 {
+                let _ = libc::close(fd);
+            }
+        }
+
+        {
+            let dev_null = File::open("/dev/null")?;
+            let null_fd = dev_null.as_raw_fd();
+            
+            if libc::dup2(null_fd, libc::STDIN_FILENO) < 0 {
+                anyhow::bail!("dup2 stdin failed: {}", io::Error::last_os_error());
+            }
+            if libc::dup2(null_fd, libc::STDOUT_FILENO) < 0 {
+                anyhow::bail!("dup2 stdout failed: {}", io::Error::last_os_error());
+            }
+            if libc::dup2(null_fd, libc::STDERR_FILENO) < 0 {
+                anyhow::bail!("dup2 stderr failed: {}", io::Error::last_os_error());
+            }
+        }
+    }
+
+    Ok(())
+}
+
 fn daemon_main() -> Result<()> {
     match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
         Ok((value, supported)) => {
@@ -294,12 +349,13 @@ fn daemon_main() -> Result<()> {
 }
 
 pub fn run_daemon() -> Result<()> {
-    // Run daemon in background thread, don't block caller
-    thread::spawn(|| {
-        if let Err(e) = daemon_main() {
-            error!("uid_scanner daemon error: {e}");
-        }
-    });
+    daemonize().context("failed to daemonize process")?;
+    
+    if let Err(e) = daemon_main() {
+        error!("uid_scanner daemon error: {e}");
+        std::process::exit(1);
+    }
+    
     Ok(())
 }
 
