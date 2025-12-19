@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Главная</string>
+    <string name="learn_more">Узнать больше</string>
     <string name="home_not_installed">Не установлен</string>
     <string name="home_click_to_install">Нажмите, чтобы установить</string>
     <string name="home_working">Работает</string>
@@ -121,8 +122,6 @@
     <string name="settings_uninstall_permanent">Удалить полностью</string>
     <string name="settings_restore_stock_image">Восстановить сток образ</string>
     <string name="settings_uninstall_temporary_message">Временно удалить KernelSU, восстановить исходное состояние после следующей перезагрузки.</string>
-    <string name="settings_uninstall_permanent_message">Удалить KernelSU (рут и все модули) полностью.</string>
-    <string name="settings_restore_stock_image_message">Восстановить исходный заводской образ (если существует резервная копия), обычно используется перед OTA; если вам нужно удалить KernelSU, используйте «Удалить полностью».</string>
     <string name="flashing">Установка</string>
     <string name="flash_success">Установка выполнена</string>
     <string name="flash_failed">Установка не выполнена</string>
@@ -148,10 +147,7 @@
     <string name="restart_now">Перезапустить сейчас</string>
     <string name="unknown_error">Неизвестная ошибка</string>
     <!-- Command related -->
-    <string name="command_execution_failed">Выполнение команды не удалось: %1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">Резервная копия создана успешно</string>
-    <string name="allowlist_backup_failed">Ошибка резервного копирования списка: %1$s</string>
     <string name="allowlist_restore_confirm_title">Подтвердите восстановление списка</string>
     <string name="allowlist_restore_confirm_message">Эта операция перезапишет текущий список разрешений. Продолжить?</string>
     <string name="allowlist_restore_success">Список успешно восстановлен</string>
@@ -165,11 +161,8 @@
     <string name="home_device_model">Модель устройства</string>
     <string name="su_not_allowed">Предоставление рут-доступа %s запрещено</string>
     <string name="settings_disable_su">Отключить su совместимость</string>
-    <string name="settings_disable_su_summary">Временно отключить все приложения от получения рут-доступа через su команду (запущенные процессы с рут-доступом не будут затронуты).</string>
     <string name="settings_disable_kernel_umount">Отключить размонтирование ядра</string>
-    <string name="settings_disable_kernel_umount_summary">Временное отключение умного уровня ядра KernelSU.</string>
     <string name="settings_enable_enhanced_security">Включить повышенную безопасность</string>
-    <string name="settings_enable_enhanced_security_summary">Включить более строгие политики безопасности.</string>
     <string name="settings_mode_default">По умолчанию</string>
     <string name="settings_mode_temp_enable">Временно включены</string>
     <string name="settings_mode_always_enable">Постоянно включены</string>
@@ -188,6 +181,8 @@
     <string name="hide_susfs_status_summary">Скрывать информацию о статусе SuSFS на главной странице</string>
     <string name="hide_zygisk_implement">Скрыть статус Zygisk</string>
     <string name="hide_zygisk_implement_summary">Скрывать информацию об имплементации Zygisk на главной странице</string>
+    <string name="hide_meta_module_implement">Спрятать статус Мета-модуля</string>
+    <string name="hide_meta_module_implement_summary">Скрывать информацию об имплементации Мета-модуля на главной странице</string>
     <string name="hide_link_card">Скрыть карточки со ссылками</string>
     <string name="hide_link_card_summary">Скрывать карточки со ссылками на главной странице</string>
     <string name="hide_tag_card">Скрыть строки модуля</string>
@@ -216,14 +211,11 @@
     <string name="no">Нет</string>
     <string name="failed_reboot">Не удалось перезагрузиться</string>
     <string name="kpm_title">KPM</string>
-    <string name="kpm_empty">На данный момент нет установленных модулей ядра</string>
     <string name="kpm_version">Версия</string>
     <string name="kpm_author">Автор</string>
     <string name="kpm_uninstall">Удалить</string>
     <string name="kpm_uninstall_success">Удаление завершено</string>
     <string name="kpm_uninstall_failed">Не удалось удалить</string>
-    <string name="kpm_install_success">KPM модуль успешно загружен</string>
-    <string name="kpm_install_failed">Ошибка загрузки KPM модуля</string>
     <string name="kpm_args">Параметры</string>
     <string name="kpm_control">Выполнить</string>
     <string name="home_kpm_version">Статус KPM</string>
@@ -295,8 +287,6 @@
     <string name="icon_switch_summary">Поменять иконку приложения на иконку KernelSU</string>
     <string name="icon_switched">Иконка поменяна</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Скрыть статус KPM</string>
-    <string name="show_kpm_info_summary">Скрывать информацию и функции KPM на домашней странице и панели навигации</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Движок WebUI</string>
     <string name="engine_auto_select">Автовыбор</string>
@@ -312,7 +302,6 @@
     <string name="dpi_size_large">большой</string>
     <string name="dpi_size_extra_large"> огромный</string>
     <string name="dpi_size_custom">настраиваемый</string>
-    <string name="dpi_apply_settings">Применить настройки DPI</string>
     <string name="dpi_confirm_title">Подтвердите изменение DPI</string>
     <string name="dpi_confirm_message">Вы уверены, что хотите изменить DPI приложения с %1$d на %2$d?</string>
     <string name="dpi_confirm_summary">Приложение нужно перезапустить, чтобы применить новые настройки DPI. Это не влияет на системную строку состояния или другие приложения</string>
@@ -328,6 +317,7 @@
     <string name="module_failed_count">%d не удалось установить новый модуль</string>
     <string name="module_download_error">Ошибка загрузки модуля</string>
     <string name="kernel_flashing">Прошить ядро</string>
+    <string name="warning_of_meta_module_title">Требуется Мета-модуль</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Все</string>
     <string name="category_root_apps">Рут-доступ</string>
@@ -399,8 +389,6 @@
     <string name="susfs_path_label">Путь</string>
     <string name="susfs_path_placeholder">например: /system/addon.d</string>
     <string name="susfs_no_paths_configured">SUS пути не настроены</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">Сбросить SUS пути</string>
     <string name="susfs_reset_paths_message">Это очистит все конфигурации пути SUS. Вы уверены, что хотите продолжить?</string>
@@ -516,7 +504,6 @@
     <string name="hide_bl_script">Заблокированное состояние</string>
     <string name="hide_bl_script_description">Переопределить свойство состояния блокировки загрузчика в режиме службы late_start</string>
     <string name="cleanup_residue">Очистка</string>
-    <string name="cleanup_residue_description">Очистка остаточных файлов и каталогов различных модулей и инструментов (может быть удален по ошибке, в результате потери и неспособности начаться, используйте с осторожностью)</string>
     <string name="susfs_edit_sus_path">Редактировать путь SUS</string>
     <string name="edit_kstat_statically_title">Изменить статическую конфигурацию Kstat</string>
     <string name="edit_kstat_path_title">Редактировать путь Kstat</string>
@@ -557,6 +544,7 @@
     <string name="no_active_manager">Нет активного менеджера</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Реализация Zygisk</string>
+    <string name="home_meta_module_implement">Реализация Мета-модуля</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">Пути цикла SUS</string>
     <string name="susfs_add_sus_loop_path">Добавить путь SUS </string>
@@ -587,7 +575,6 @@
     <string name="module_verified">Проверенные</string>
     <string name="module_signature_verified">Подпись модуля подтверждена</string>
     <string name="module_signature_verification">Подтверждение подписи</string>
-    <string name="module_signature_verification_summary">При установке модуля принудительно проверять подпись. (Только для архитектуры ARM)</string>
     <string name="module_signature_invalid">Неизвестный издатель</string>
     <string name="module_signature_invalid_message">Неподписанные модули могут быть неполными. Для защиты устройства установка этого модуля была заблокирована.</string>
     <string name="module_signature_verification_failed">Неподписанные модули могут быть неполными. Вы хотите разрешить установку на этом устройстве следующего модуля от неизвестного издателя?</string>
@@ -622,13 +609,11 @@
     <string name="kpm_follow_kernel_description">Использовать ядро без каких-либо изменений KPM</string>
     <!-- UID Scanner Settings -->
     <string name="uid_auto_scan_title">Пользовательский режим сканирования списка приложений</string>
-    <string name="uid_auto_scan_summary">Включение этой опции позволит использовать сканирование пользовательского режима для списка приложений, улучшая стабильность. (Если вы столкнетесь с такими проблемами, как замораживание во время сканирования ядра списка приложений, вы можете включить эту опцию.)</string>
     <string name="uid_multi_user_scan_title">Поиск многопользовательских приложений</string>
     <string name="uid_multi_user_scan_summary">Когда включено, сканирует приложения для всех пользователей, включая рабочие профили</string>
     <string name="uid_scanner_setting_failed">Не удалось установить, проверьте права доступа</string>
     <string name="clean_runtime_environment">Очистить среду Runtime</string>
     <string name="clean_runtime_environment_summary">Очистить среду Runtime и остановить службу сканирования</string>
-    <string name="clean_runtime_environment_confirm">Вы уверены, что хотите очистить среду Runtime? Это остановит службу сканирования и удалит связанные с ней файлы.</string>
     <string name="clean_runtime_environment_success">Runtime окружение успешно очищено</string>
     <string name="clean_runtime_environment_failed">Не удалось очистить среду runtime</string>
     <!-- 确认安装相关字符串 -->
@@ -655,18 +640,13 @@
     <string name="susfs_sus_map_updated">SUS map обновлен: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">SUS maps не настроены</string>
     <string name="susfs_reset_sus_maps_title">Сбросить SUS Maps</string>
-    <string name="susfs_reset_sus_maps_message">Это действие удалит все настроенные SUS maps. Это действие нельзя отменить.</string>
     <string name="sus_maps_section">Скрытие физической памяти</string>
     <string name="sus_maps_description_title">Скрыть настоящий файл mmapped с разных карт в /proc/self/</string>
-    <string name="sus_maps_description_text">Скрыть реальные пути к папкам памяти из /proc/self/[maps|smaps_rollup|map_files|mem|pagemap]. Обратите внимание: эта функция не поддерживает скрытие анонимных карт и может скрыть встроенные хуки или PLT хуки вызванные инъекцией самой библиотеки.</string>
-    <string name="sus_maps_warning">Важное уведомление: для приложений с хорошо реализованными механизмами обнаружений эта функция может работать не эффективно .</string>
-    <string name="sus_maps_debug_info">Сначала найдите PID и UID целевого приложения, используя ps -enf, затем проверьте соответствующие пути в /proc/&lt;pid&gt;/maps и сравните номера устройства с номерами в /proc/1/mountinfo. Функция скрытия  будет работать должным образом только если номера устройств совпадают.</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">Просмотр логов</string>
     <string name="log_viewer_back">Назад</string>
     <string name="log_viewer_search">Поиск</string>
     <string name="log_viewer_clear_logs">Очистить логи</string>
-    <string name="log_viewer_clear_logs_confirm">Вы уверены, что хотите удалить выбранный файл журнала? Это действие нельзя отменить.</string>
     <string name="log_viewer_logs_cleared">Логи успешно очищены</string>
     <string name="log_viewer_filter_type">Фильтрация по типу</string>
     <string name="log_viewer_all_types">Все типы</string>
@@ -692,11 +672,9 @@
     </string>
     <string name="umount_path_manager">Управление путями размонтирования</string>
     <string name="umount_path_manager_summary">Управления путями размонтирования ядра</string>
-    <string name="umount_path_restart_notice">Для применения изменений необходима перезагрузка. Система применит новый конфиг при следующем запуске.</string>
     <string name="add_umount_path">Добавить путь размонтирования</string>
     <string name="mount_path">Смонтировать путь</string>
     <string name="umount_flags">Флаги размонтирования</string>
-    <string name="umount_flags_hint">0=Обычное размонтирование, 8=MNT_DETACH, -1=Автоматически</string>
     <string name="flags">Флаги</string>
     <string name="confirm_delete">Подтвердите удаление</string>
     <string name="confirm_delete_umount_path">Вы уверены, что хотите удалить путь размонтирования%s?</string>
@@ -704,9 +682,11 @@
     <string name="umount_path_removed">Путь удален, изменения вступят в силу после перезагрузки</string>
     <string name="operation_failed">Неудача</string>
     <string name="confirm_action">Подтвердите действие</string>
-    <string name="confirm_clear_custom_paths">Вы уверены, что хотите удалить все кастомные пути? (Стандартные пути не будут удалены)</string>
     <string name="custom_paths_cleared">Кастомные пути удалены</string>
     <string name="clear_custom_paths">Удалить кастомные пути</string>
     <string name="apply_config">Применить конфигурацию</string>
     <string name="config_applied">Конфигурация применена к ядру</string>
+    <string name="mnt_detach">MNT_DETACH</string>
+    <string name="group_contains_apps">Содержит %d приложений</string>
+    <string name="settings_disable_sulog">Отключить журнал суперпользователя</string>
 </resources>
