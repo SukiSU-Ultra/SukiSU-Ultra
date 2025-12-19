@@ -120,8 +120,6 @@
     <string name="settings_uninstall_permanent">Hapus permanen</string>
     <string name="settings_restore_stock_image">Pulihkan image bawaan</string>
     <string name="settings_uninstall_temporary_message">Sementara menghapus KernelSU, memulihkan ke kondisi asal setelah reboot berikutnya.</string>
-    <string name="settings_uninstall_permanent_message">Hapus permanen KernelSU (root dan modul).</string>
-    <string name="settings_restore_stock_image_message">Pulihkan image bawaan ROM (jika cadangan tersedia), umumnya dilakukan sebelum OTA; jika ingin menghapus KernelSU, gunakan fungsi \"Hapus permanen\".</string>
     <string name="flashing">Pasang</string>
     <string name="flash_success">Pemasangan Berhasil</string>
     <string name="flash_failed">Pemasangan Gagal</string>
@@ -147,10 +145,7 @@
     <string name="restart_now">Mulai Ulang Sekarang</string>
     <string name="unknown_error">Kesalahan tidak diketahui</string>
     <!-- Command related -->
-    <string name="command_execution_failed">Eksekusi perintah gagal: %1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">Cadangan daftar izin berhasil</string>
-    <string name="allowlist_backup_failed">Gagal mencadangkan daftar izin: %1$s</string>
     <string name="allowlist_restore_confirm_title">Konfirmasi Pemulihan Daftar Izin</string>
     <string name="allowlist_restore_confirm_message">Operasi ini akan menimpa daftar izin saat ini. Lanjutkan?</string>
     <string name="allowlist_restore_success">Daftar izin berhasil dipulihkan</string>
@@ -164,11 +159,8 @@
     <string name="home_device_model">Model Perangkat</string>
     <string name="su_not_allowed">Memberikan hak superuser kepada %s tidak diizinkan</string>
     <string name="settings_disable_su">Nonaktifkan kompatibilitas SU</string>
-    <string name="settings_disable_su_summary">Nonaktifkan sementara kemampuan aplikasi untuk mendapatkan hak akses root melalui perintah ⁠su (proses root yang sedang berjalan tidak akan terpengaruh)</string>
     <string name="settings_disable_kernel_umount">Nonaktifkan pelepasan (unmount) kernel</string>
-    <string name="settings_disable_kernel_umount_summary">Nonaktifkan perilaku unmount pada level kernel yang digunakan oleh KernelSU.</string>
     <string name="settings_enable_enhanced_security">Aktifkan keamanan yang ditingkatkan</string>
-    <string name="settings_enable_enhanced_security_summary">Aktifkan kebijakan keamanan yang lebih ketat.</string>
     <string name="settings_mode_default">Bawaan</string>
     <string name="settings_mode_temp_enable">Aktifkan sementara</string>
     <string name="settings_mode_always_enable">Aktifkan secara permanen</string>
@@ -215,14 +207,11 @@
     <string name="no">Tidak</string>
     <string name="failed_reboot">Mulai ulang gagal</string>
     <string name="kpm_title">KPM</string>
-    <string name="kpm_empty">Tidak ada modul kernel yang terpasang saat ini</string>
     <string name="kpm_version">Versi</string>
     <string name="kpm_author">Pembuat</string>
     <string name="kpm_uninstall">Uninstal</string>
     <string name="kpm_uninstall_success">Berhasil di Uninstal</string>
     <string name="kpm_uninstall_failed">Gagal Uninstal</string>
-    <string name="kpm_install_success">Memuat module KPM berhasil</string>
-    <string name="kpm_install_failed">Memuat module KPM gagal!</string>
     <string name="kpm_args">Parameter</string>
     <string name="kpm_control">Eksekusi</string>
     <string name="home_kpm_version">Versi KPM</string>
@@ -294,8 +283,6 @@
     <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU</string>
     <string name="icon_switched">Ikon dirubah</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Tampilkan fungsi KPM</string>
-    <string name="show_kpm_info_summary">Tampilkan fungsi informasi KPM dan menu KPM di bilah navigasi</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Pilih jenis webUI untuk digunakan</string>
     <string name="engine_auto_select">Otomatis memilih</string>
@@ -311,7 +298,6 @@
     <string name="dpi_size_large">Besar</string>
     <string name="dpi_size_extra_large">Jumbo</string>
     <string name="dpi_size_custom">Kustomisasi</string>
-    <string name="dpi_apply_settings">Terapkan setelan DPI</string>
     <string name="dpi_confirm_title">Konfirmasi perubahan DPI</string>
     <string name="dpi_confirm_message">Apa kamu yakin ingin merubah DPI aplikasi dari %1$d ke %2$d?</string>
     <string name="dpi_confirm_summary">Aplikasi membutuhkan restar untuk menerapkan opsi DPI ini, perubahan ini tidak mengganggu DPI sistem</string>
@@ -398,8 +384,6 @@
     <string name="susfs_path_label">Jalur</string>
     <string name="susfs_path_placeholder">contoh: /system/addon.d</string>
     <string name="susfs_no_paths_configured">Tidak ada jalur SUS yang dikonfigurasi</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">Setel Ulang Jalur SUS</string>
     <string name="susfs_reset_paths_message">Ini akan menghapus semua konfigurasi jalur SUS. Apakah Anda yakin ingin melanjutkan?</string>
@@ -515,7 +499,6 @@
     <string name="hide_bl_script">Status kunci</string>
     <string name="hide_bl_script_description">Timpa atribut status penguncian bootloader dalam mode layanan late_start</string>
     <string name="cleanup_residue">Bersihkan Residu</string>
-    <string name="cleanup_residue_description">Bersihkan file dan direktori sisa dari berbagai modul dan alat (mungkin terhapus secara tidak sengaja, mengakibatkan kehilangan dan gagal memulai, gunakan dengan hati-hati)</string>
     <string name="susfs_edit_sus_path">Edit Jalur SUS</string>
     <string name="edit_kstat_statically_title">Edit Konfigurasi Statis Kstat</string>
     <string name="edit_kstat_path_title">Edit Jalur Kstat</string>
@@ -587,7 +570,6 @@ Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'u:r:priv_app:s0
     <string name="module_verified">Tervalidasi</string>
     <string name="module_signature_verified">Tanda tangan modul tervalidasi</string>
     <string name="module_signature_verification">Verifikasi Tanda Tangan</string>
-    <string name="module_signature_verification_summary">Verifikasi tanda tangan secara paksa saat modul dipasang. (Hanya tersedia untuk arsitektur ARM)</string>
     <string name="module_signature_invalid">Penerbit tidak dikenal</string>
     <string name="module_signature_invalid_message">Modul yang tidak ditandatangani mungkin tidak lengkap. Untuk melindungi perangkat Anda, pemasangan modul ini diblokir.</string>
     <string name="module_signature_verification_failed">Modul yang tidak ditandatangani mungkin tidak lengkap. Apakah Anda ingin mengizinkan modul berikut dari penerbit tidak dikenal untuk dipasang di perangkat ini?</string>
@@ -622,13 +604,11 @@ Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'u:r:priv_app:s0
     <string name="kpm_follow_kernel_description">Gunakan kernel apa adanya tanpa perubahan dari KPM</string>
     <!-- UID Scanner Settings -->
     <string name="uid_auto_scan_title">Daftar aplikasi pemindaian pada mode pengguna</string>
-    <string name="uid_auto_scan_summary">Mengaktifkan opsi ini akan menggunakan pemindaian mode pengguna untuk daftar aplikasi, sehingga meningkatkan kestabilan. (Jika Anda mengalami masalah seperti hang saat kernel memindai daftar aplikasi, Anda dapat mencoba mengaktifkan opsi ini.)</string>
     <string name="uid_multi_user_scan_title">Pemindaian Aplikasi Multi-Pengguna</string>
     <string name="uid_multi_user_scan_summary">Ketika diaktifkan, fitur ini akan memindai aplikasi untuk semua pengguna, termasuk profil kerja</string>
     <string name="uid_scanner_setting_failed">Gagal mengatur, silakan periksa perizinan</string>
     <string name="clean_runtime_environment">Bersihkan Lingkungan Runtime</string>
     <string name="clean_runtime_environment_summary">Bersihkan berkas runtime dan hentikan layanan pemindai</string>
-    <string name="clean_runtime_environment_confirm">Apakah Anda yakin ingin membersihkan lingkungan runtime? Tindakan ini akan menghentikan layanan pemindai dan menghapus berkas yang terkait.</string>
     <string name="clean_runtime_environment_success">Lingkungan runtime berhasil dibersihkan</string>
     <string name="clean_runtime_environment_failed">Gagal membersihkan lingkungan runtime</string>
     <!-- 确认安装相关字符串 -->
@@ -655,12 +635,10 @@ Diaktifkan: Aktifkan pemalsuan sus tcontext dari \'su\' dengan \'u:r:priv_app:s0
     <string name="susfs_sus_map_updated">Peta SUS telah diperbarui: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">Tidak ada peta SUS yang dikonfigurasi</string>
     <string name="susfs_reset_sus_maps_title">Atur ulang Peta SUS</string>
-    <string name="susfs_reset_sus_maps_message">Tindakan ini akan menghapus semua peta SUS yang telah dikonfigurasi. Tindakan ini tidak dapat dibatalkan.</string>
     <string name="sus_maps_section">Penyembunyian Peta Memori</string>
     <string name="sus_maps_description_title">Sembunyikan berkas nyata yang di-mmapped dari berbagai peta di /proc/self/</string>
     <!-- Log Viewer -->
     <string name="log_viewer_search">Cari</string>
     <string name="log_viewer_clear_logs">Bersihkan Log</string>
-    <string name="log_viewer_clear_logs_confirm">Apakah Anda yakin ingin mengosongkan berkas log yang dipilih? Tindakan ini tidak dapat dibatalkan.</string>
     <!-- MiUI Uninstall Desc -->
 </resources>
