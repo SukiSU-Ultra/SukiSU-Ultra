@@ -111,6 +111,7 @@ enum Commands {
         command: Kernel,
     },
 
+    #[cfg(target_os = "android")]
     /// UID scanner integration
     UidScanner {
         #[command(subcommand)]
@@ -407,6 +408,7 @@ enum Kernel {
     NotifyModuleMounted,
 }
 
+#[cfg(target_os = "android")]
 #[derive(clap::Subcommand, Debug)]
 enum UidScannerCmd {
     /// Run uid scanner daemon (long running)
@@ -753,6 +755,7 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
         },
+        #[cfg(target_os = "android")]
         Commands::UidScanner { command } => match command {
             UidScannerCmd::Daemon => crate::uid_scanner::run_daemon(),
             UidScannerCmd::ScanOnce => crate::uid_scanner::scan_once(),

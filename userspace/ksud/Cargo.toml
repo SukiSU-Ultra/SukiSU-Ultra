@@ -28,6 +28,7 @@ rustix = { version = "=1.0.8", features = [
 ] }
 android-properties = { version = "0.2", features = ["bionic-deprecated"] }
 android_logger = { version = "0.15", default-features = false }
+signal-hook = "0.3"
 zip = { version = "3",  features = [
     "deflate",
     "deflate64",

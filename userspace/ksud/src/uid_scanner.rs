@@ -3,8 +3,7 @@ use log::{error, info, warn};
 
 use std::{
     ffi::CString,
-    fs::{self, OpenOptions},
-    io::Write,
+    fs,
     os::unix::fs::MetadataExt,
     path::{Path, PathBuf},
     process::Command,
@@ -14,6 +13,7 @@ use std::{
 
 use crate::{feature::FeatureId, ksucalls};
 use libc;
+use signal_hook::low_level::register;
 
 const K: u32 = b'K' as u32;
 const KSU_IOCTL_UID_SCANNER: i32 = libc::_IOWR::<()>(K, 105);
@@ -24,13 +24,7 @@ const UID_SCANNER_OP_UPDATE_UID_LIST: u32 = 2;
 const USER_DATA_BASE_PATH: &str = "/data/user_de";
 const MAX_USERS: usize = 8;
 
-unsafe extern "C" fn scan_signal_handler(_sig: libc::c_int) {
-    // Signal received, perform scan directly
-    perform_scan_update();
-}
-
 #[repr(C)]
-#[derive(Clone, Copy)]
 struct UidListEntry {
     uid: u32,
     package_name: [u8; 256],
@@ -43,7 +37,7 @@ impl Default for UidListEntry {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Default)]
 struct RegisterUidScannerCmd {
     operation: u32, // UID_SCANNER_OP_*
     pid: i32,       // daemon PID (for REGISTER_PID operation)
@@ -51,14 +45,41 @@ struct RegisterUidScannerCmd {
     count: u32,     // number of entries (for UPDATE_UID_LIST)
 }
 
-impl Default for RegisterUidScannerCmd {
-    fn default() -> Self {
-        Self { operation: 0, pid: 0, entries_ptr: 0, count: 0 }
+fn perform_scan_update() {
+    match perform_uid_scan() {
+        Ok(count) => info!("uid_scanner: scan completed, {count} entries"),
+        Err(e) => error!("uid_scanner: scan failed: {e}"),
     }
 }
 
+fn generate_random_process_name() -> String {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let pid = std::process::id();
+    // Generate a random-looking name using timestamp and PID
+    format!("uid{:x}{:x}", timestamp & 0xffff, pid & 0xffff)
+}
+
+fn set_process_name(name: &str) -> Result<()> {
+    let cname = CString::new(name)?;
+    unsafe {
+        // PR_SET_NAME sets the process name (visible in /proc/pid/comm)
+        if libc::prctl(libc::PR_SET_NAME, cname.as_ptr() as libc::c_ulong, 0, 0, 0) != 0 {
+            anyhow::bail!("prctl PR_SET_NAME failed: {}", std::io::Error::last_os_error());
+        }
+    }
+    Ok(())
+}
+
+fn scan_signal_handler() {
+    // Signal received, perform scan directly
+    perform_scan_update();
+}
+
 /// Register UID scanner daemon with kernel
-pub fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
+fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
     let mut cmd = RegisterUidScannerCmd {
         operation: UID_SCANNER_OP_REGISTER_PID,
         pid,
@@ -66,6 +87,14 @@ pub fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
         count: 0,
     };
     ksucalls::ksuctl(KSU_IOCTL_UID_SCANNER, &raw mut cmd)?;
+    Ok(())
+}
+
+fn register_with_kernel() -> Result<()> {
+    let pid = std::process::id() as i32;
+    register_uid_scanner_daemon(pid)
+        .with_context(|| "failed to register daemon PID with kernel")?;
+    info!("uid_scanner: registered with kernel (pid={})", pid);
     Ok(())
 }
 
@@ -174,7 +203,7 @@ fn get_user_directories() -> Vec<PathBuf> {
 }
 
 fn perform_uid_scan() -> Result<usize> {
-    let mut entries = Vec::<(u32, String)>::new();
+    let mut entries: Vec<(u32, String)> = Vec::new();
 
     let user_dirs = get_user_directories();
     info!(
@@ -221,24 +250,32 @@ fn perform_uid_scan() -> Result<usize> {
 
 fn setup_signal_handler() -> Result<()> {
     unsafe {
-        if libc::signal(libc::SIGUSR1, scan_signal_handler as usize)
-            == libc::SIG_ERR
-        {
-            anyhow::bail!("failed to set SIGUSR1 handler");
-        }
-        info!("uid_scanner: SIGUSR1 signal handler installed");
+        register(libc::SIGUSR1, scan_signal_handler)
+            .map_err(|e| anyhow::anyhow!("failed to register SIGUSR1 handler: {}", e))?;
     }
+    info!("uid_scanner: SIGUSR1 signal handler installed");
     Ok(())
 }
 
-fn perform_scan_update() {
-    match perform_uid_scan() {
-        Ok(count) => info!("uid_scanner: scan completed, {count} entries"),
-        Err(e) => error!("uid_scanner: scan failed: {e}"),
+fn daemon_main() -> Result<()> {
+    match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
+        Ok((value, supported)) => {
+            if !supported || value == 0 {
+                info!("uid_scanner: feature disabled, skip starting daemon");
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            info!("uid_scanner: failed to check feature status, skip starting daemon");
+            return Ok(());
+        }
     }
-}
-
-pub fn run_daemon() -> Result<()> {
+    
+    // Set random process name to avoid exposure
+    let random_name = generate_random_process_name();
+    set_process_name(&random_name)
+        .unwrap_or_else(|e| warn!("uid_scanner: failed to set process name: {e}"));
+    info!("uid_scanner: process name set to: {}", random_name);
     // Register PID with kernel so it can send us signals
     register_with_kernel()?;
 
@@ -256,6 +293,15 @@ pub fn run_daemon() -> Result<()> {
     }
 }
 
+pub fn run_daemon() -> Result<()> {
+    // Run daemon in background thread, don't block caller
+    thread::spawn(|| {
+        if let Err(e) = daemon_main() {
+            error!("uid_scanner daemon error: {e}");
+        }
+    });
+    Ok(())
+}
 
 /// One-shot scan, intended for manual invocation from CLI/manager.
 pub fn scan_once() -> Result<()> {
@@ -278,18 +324,7 @@ pub fn start_uid_scanner_service() -> Result<()> {
         }
     }
 
-    // Start the service via init
-    let output = Command::new("setprop")
-        .arg("ctl.start")
-        .arg("uid_scanner")
-        .output()
-        .with_context(|| "failed to execute setprop command")?;
-
-    if output.status.success() {
-        info!("uid_scanner: service started via init");
-        Ok(())
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("failed to start service: {}", stderr);
-    }
+    run_daemon()?;
+    info!("uid_scanner: daemon started in background");
+    Ok(())
 }

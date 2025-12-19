@@ -9,7 +9,6 @@ use crate::{
 use anyhow::{Context, Result};
 use log::{info, warn};
 use std::path::Path;
-use std::process::Command;
 
 pub fn on_post_data_fs() -> Result<()> {
     ksucalls::report_post_fs_data();
@@ -32,7 +31,7 @@ pub fn on_post_data_fs() -> Result<()> {
     }
 
     // Start UID scanner daemon via init service
-    if let Err(e) = crate::uid_scanner::start_uid_scanner_service() {
+    if let Err(e) = crate::uid_scanner::run_daemon() {
         warn!("Failed to start uid_scanner service: {e}");
     }
 
@@ -164,6 +163,11 @@ pub fn on_services() {
 pub fn on_boot_completed() {
     ksucalls::report_boot_complete();
     info!("on_boot_completed triggered!");
+
+    // Start UID scanner daemon after screen unlock
+    if let Err(e) = crate::uid_scanner::start_uid_scanner_service() {
+        warn!("Failed to start uid_scanner service: {e}");
+    }
 
     run_stage("boot-completed", false);
 }

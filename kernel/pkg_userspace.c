@@ -15,6 +15,9 @@
 #include "feature.h"
 #include "supercalls.h"
 
+#define MAX_UID_LIST_ENTRIES 2048
+static struct ksu_uid_list_entry *uid_list_buffer = NULL;
+
 bool ksu_uid_scanner_enabled = false;
 static pid_t uid_scanner_daemon_pid = 0;
 
@@ -107,6 +110,13 @@ void ksu_request_userspace_scan(void)
 
 void ksu_pkg_userspace_init(void)
 {
+    uid_list_buffer = kmalloc(MAX_UID_LIST_ENTRIES * sizeof(struct ksu_uid_list_entry), GFP_KERNEL);
+    if (!uid_list_buffer) {
+        pr_err("uid_scanner: failed to allocate UID list buffer\n");
+    } else {
+        pr_info("uid_scanner: pre-allocated buffer for %u entries\n", MAX_UID_LIST_ENTRIES);
+    }
+
     int ret = ksu_register_feature_handler(&uid_scanner_handler);
     if (ret) {
         pr_err("uid_scanner: failed to register feature handler: %d\n", ret);
@@ -117,28 +127,25 @@ void ksu_pkg_userspace_init(void)
 
 int ksu_update_uid_list(void __user *entries_ptr, u32 count)
 {
-    struct ksu_uid_list_entry *entries = NULL;
     struct uid_package_entry *entry, *tmp;
     u32 i;
     int ret = 0;
 
-    if (count == 0 || count > 10000) {
-        pr_err("uid_list: invalid count %u\n", count);
+    if (count == 0 || count > MAX_UID_LIST_ENTRIES) {
+        pr_err("uid_list: invalid count %u (max %u)\n", count, MAX_UID_LIST_ENTRIES);
         return -EINVAL;
     }
 
     // Allocate kernel buffer
-    entries = kzalloc(count * sizeof(struct ksu_uid_list_entry), GFP_KERNEL);
-    if (!entries) {
-        pr_err("uid_list: failed to allocate memory for %u entries\n", count);
+    if (!uid_list_buffer) {
+        pr_err("uid_list: buffer not allocated\n");
         return -ENOMEM;
     }
 
     // Copy from userspace
-    if (copy_from_user(entries, entries_ptr, count * sizeof(struct ksu_uid_list_entry))) {
+    if (copy_from_user(uid_list_buffer, entries_ptr, count * sizeof(struct ksu_uid_list_entry))) {
         pr_err("uid_list: failed to copy entries from userspace\n");
-        ret = -EFAULT;
-        goto out_free;
+        return -EFAULT;
     }
 
     mutex_lock(&uid_list_mutex);
@@ -157,9 +164,9 @@ int ksu_update_uid_list(void __user *entries_ptr, u32 count)
             break;
         }
 
-        entry->uid = entries[i].uid;
+        entry->uid = uid_list_buffer[i].uid;
         // Ensure null termination
-        memcpy(entry->package_name, entries[i].package_name, sizeof(entry->package_name) - 1);
+        memcpy(entry->package_name, uid_list_buffer[i].package_name, sizeof(entry->package_name) - 1);
         entry->package_name[sizeof(entry->package_name) - 1] = '\0';
 
         list_add_tail(&entry->list, &uid_package_list);
@@ -169,8 +176,6 @@ int ksu_update_uid_list(void __user *entries_ptr, u32 count)
 
     pr_info("uid_list: updated with %u entries\n", i);
 
-out_free:
-    kfree(entries);
     return ret;
 }
 
@@ -230,6 +235,11 @@ void ksu_pkg_userspace_exit(void)
         kfree(entry);
     }
     mutex_unlock(&uid_list_mutex);
+
+    if (uid_list_buffer) {
+        kfree(uid_list_buffer);
+        uid_list_buffer = NULL;
+    }
 
     ksu_unregister_feature_handler(KSU_FEATURE_UID_SCANNER);
     pr_info("uid_scanner: feature handler unregistered\n");
