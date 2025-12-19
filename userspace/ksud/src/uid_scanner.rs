@@ -6,11 +6,11 @@ use std::{
     fs::{self, File},
     io,
     os::unix::fs::MetadataExt,
-    os::unix::io::{AsRawFd, FromRawFd},
+    os::unix::io::AsRawFd,
     path::{Path, PathBuf},
     process::Command,
     thread,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use crate::{feature::FeatureId, ksucalls};
@@ -366,20 +366,14 @@ pub fn scan_once() -> Result<()> {
 }
 
 pub fn start_uid_scanner_service() -> Result<()> {
-    // Check if uid_scanner feature is enabled
-    match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
-        Ok((value, supported)) => {
-            if !supported || value == 0 {
-                info!("uid_scanner: feature disabled, skip starting service");
-                return Ok(());
-            }
-        }
-        Err(_) => {
-            info!("uid_scanner: failed to check feature status, skip starting service");
-            return Ok(());
-        }
+    // Wait for /sdcard/Android directory to be mounted
+    let android_dir = Path::new("/sdcard/Android");
+    while !android_dir.exists() || !android_dir.is_dir() {
+        thread::sleep(Duration::from_secs(1));
     }
 
+    thread::sleep(Duration::from_secs(5));
+    
     run_daemon()?;
     info!("uid_scanner: daemon started in background");
     Ok(())

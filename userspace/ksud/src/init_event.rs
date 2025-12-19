@@ -30,11 +30,6 @@ pub fn on_post_data_fs() -> Result<()> {
         return Ok(());
     }
 
-    // Start UID scanner daemon via init service
-    if let Err(e) = crate::uid_scanner::run_daemon() {
-        warn!("Failed to start uid_scanner service: {e}");
-    }
-
     let safe_mode = crate::utils::is_safe_mode();
 
     if safe_mode {
@@ -87,6 +82,11 @@ pub fn on_post_data_fs() -> Result<()> {
         warn!("safe mode, skip load feature config");
     } else if let Err(e) = crate::feature::init_features() {
         warn!("init features failed: {e}");
+    }
+
+    // Start UID scanner daemon via init service
+    if let Err(e) = crate::uid_scanner::run_daemon() {
+        warn!("Failed to start uid_scanner service: {e}");
     }
 
     #[cfg(target_arch = "aarch64")]
