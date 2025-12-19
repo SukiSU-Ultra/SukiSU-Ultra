@@ -55,7 +55,6 @@ static const char KERNEL_SU_RC[] =
     "    class core\n"
     "    user root\n"
     "    seclabel u:r:" KERNEL_SU_DOMAIN ":s0\n"
-    "    oneshot\n"
     "    disabled\n"
     "\n"
 

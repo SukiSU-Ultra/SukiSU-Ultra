@@ -117,7 +117,6 @@ pub fn on_post_data_fs() -> Result<()> {
     }
 
     // Start UID scanner daemon via init service
-    // This allows init to manage the process lifecycle and provide auto-restart
     if let Err(e) = start_uid_scanner_service() {
         warn!("Failed to start uid_scanner service: {e}");
     }

@@ -251,7 +251,7 @@ fn generate_random_process_name() -> String {
         .as_secs();
     let pid = std::process::id();
     // Generate a random-looking name using timestamp and PID
-    format!("ksu{:x}{:x}", timestamp & 0xffff, pid & 0xffff)
+    format!("uid{:x}{:x}", timestamp & 0xffff, pid & 0xffff)
 }
 
 #[cfg(target_os = "android")]
@@ -336,41 +336,7 @@ pub fn run_daemon() -> Result<()> {
         return Ok(());
     }
 
-    #[cfg(target_os = "android")]
-    {
-        // Fork a child process to run the daemon
-        let pid = unsafe { libc::fork() };
-        
-        match pid {
-            -1 => {
-                // Fork failed
-                let err = std::io::Error::last_os_error();
-                anyhow::bail!("fork failed: {}", err);
-            }
-            0 => {
-                // Child process: run daemon
-                // This process is now independent and will be reparented to init
-                std::process::exit(match daemon_main() {
-                    Ok(_) => 0,
-                    Err(e) => {
-                        error!("uid_scanner daemon error: {e}");
-                        1
-                    }
-                });
-            }
-            _ => {
-                // Parent process: return immediately
-                info!("uid_scanner: daemon forked with PID {}", pid);
-                Ok(())
-            }
-        }
-    }
-
-    #[cfg(not(target_os = "android"))]
-    {
-        // Non-Android: run directly
-        daemon_main()
-    }
+    daemon_main()
 }
 
 /// One-shot scan, intended for manual invocation from CLI/manager.
