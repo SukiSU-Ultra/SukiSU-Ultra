@@ -1,14 +1,18 @@
 use anyhow::{Context, Result};
 use log::{error, info, warn};
-use std::ffi::CString;
-use std::fs;
-use std::os::unix::fs::MetadataExt;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::thread;
-use std::time::{SystemTime, UNIX_EPOCH};
-use crate::ksucalls;
-#[cfg(target_os = "android")]
+
+use std::{
+    ffi::CString,
+    fs::{self, OpenOptions},
+    io::Write,
+    os::unix::fs::MetadataExt,
+    path::{Path, PathBuf},
+    process::Command,
+    thread,
+    time::{SystemTime, UNIX_EPOCH},
+};
+
+use crate::{feature::FeatureId, ksucalls};
 use libc;
 
 const K: u32 = b'K' as u32;
@@ -17,11 +21,25 @@ const KSU_IOCTL_UID_SCANNER: i32 = libc::_IOWR::<()>(K, 105);
 const UID_SCANNER_OP_REGISTER_PID: u32 = 1;
 const UID_SCANNER_OP_UPDATE_UID_LIST: u32 = 2;
 
+const USER_DATA_BASE_PATH: &str = "/data/user_de";
+const MAX_USERS: usize = 8;
+
+unsafe extern "C" fn scan_signal_handler(_sig: libc::c_int) {
+    // Signal received, perform scan directly
+    perform_scan_update();
+}
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct UidListEntry {
     uid: u32,
     package_name: [u8; 256],
+}
+
+impl Default for UidListEntry {
+    fn default() -> Self {
+        Self { uid: 0, package_name: [0u8; 256] }
+    }
 }
 
 #[repr(C)]
@@ -31,12 +49,6 @@ struct RegisterUidScannerCmd {
     pid: i32,       // daemon PID (for REGISTER_PID operation)
     entries_ptr: u64, // pointer to array of UidListEntry (for UPDATE_UID_LIST)
     count: u32,     // number of entries (for UPDATE_UID_LIST)
-}
-
-impl Default for UidListEntry {
-    fn default() -> Self {
-        Self { uid: 0, package_name: [0u8; 256] }
-    }
 }
 
 impl Default for RegisterUidScannerCmd {
@@ -55,11 +67,6 @@ pub fn register_uid_scanner_daemon(pid: i32) -> std::io::Result<()> {
     };
     ksucalls::ksuctl(KSU_IOCTL_UID_SCANNER, &raw mut cmd)?;
     Ok(())
-}
-
-/// Unregister UID scanner daemon from kernel
-pub fn unregister_uid_scanner_daemon() -> std::io::Result<()> {
-    register_uid_scanner_daemon(0)
 }
 
 /// Update UID list in kernel
@@ -93,37 +100,6 @@ fn update_uid_list_in_kernel(entries: &[(u32, String)]) -> Result<()> {
         .with_context(|| "failed to update UID list in kernel")?;
 
     Ok(())
-}
-
-#[cfg(target_os = "android")]
-unsafe extern "C" fn scan_signal_handler(_sig: libc::c_int) {
-    // Signal received, perform scan directly
-    perform_scan_update();
-}
-
-const USER_DATA_BASE_PATH: &str = "/data/user_de";
-const MAX_USERS: usize = 8;
-
-fn is_kernel_enabled() -> bool {
-    use crate::feature::FeatureId;
-    
-    match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
-        Ok((value, supported)) => {
-            if !supported {
-                info!("uid_scanner: feature not supported by kernel");
-                return false;
-            }
-            let enabled = value != 0;
-            if !enabled {
-                info!("uid_scanner: kernel feature disabled (uid_scanner=0)");
-            }
-            enabled
-        }
-        Err(e) => {
-            warn!("uid_scanner: failed to get feature status: {}, treating as disabled", e);
-            false
-        }
-    }
 }
 
 fn get_users_from_pm(user_dirs: &mut Vec<PathBuf>) {
@@ -243,38 +219,6 @@ fn perform_uid_scan() -> Result<usize> {
     Ok(entries.len())
 }
 
-#[cfg(target_os = "android")]
-fn generate_random_process_name() -> String {
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-    let pid = std::process::id();
-    // Generate a random-looking name using timestamp and PID
-    format!("uid{:x}{:x}", timestamp & 0xffff, pid & 0xffff)
-}
-
-#[cfg(target_os = "android")]
-fn set_process_name(name: &str) -> Result<()> {
-    let cname = CString::new(name)?;
-    unsafe {
-        // PR_SET_NAME sets the process name (visible in /proc/pid/comm)
-        if libc::prctl(libc::PR_SET_NAME, cname.as_ptr() as libc::c_ulong, 0, 0, 0) != 0 {
-            anyhow::bail!("prctl PR_SET_NAME failed: {}", std::io::Error::last_os_error());
-        }
-    }
-    Ok(())
-}
-
-fn register_with_kernel() -> Result<()> {
-    let pid = std::process::id() as i32;
-    register_uid_scanner_daemon(pid)
-        .with_context(|| "failed to register daemon PID with kernel")?;
-    info!("uid_scanner: registered with kernel (pid={})", pid);
-    Ok(())
-}
-
-#[cfg(target_os = "android")]
 fn setup_signal_handler() -> Result<()> {
     unsafe {
         if libc::signal(libc::SIGUSR1, scan_signal_handler as usize)
@@ -294,13 +238,7 @@ fn perform_scan_update() {
     }
 }
 
-#[cfg(target_os = "android")]
-fn daemon_main() -> Result<()> {
-    // Generate random process name and set it
-    let random_name = generate_random_process_name();
-    set_process_name(&random_name)?;
-    info!("uid_scanner: process name set to: {}", random_name);
-
+pub fn run_daemon() -> Result<()> {
     // Register PID with kernel so it can send us signals
     register_with_kernel()?;
 
@@ -318,29 +256,40 @@ fn daemon_main() -> Result<()> {
     }
 }
 
-#[cfg(not(target_os = "android"))]
-fn daemon_main() -> Result<()> {
-    // Non-Android platforms: just run directly
-    register_with_kernel()?;
-    info!("uid_scanner: daemon starting");
-    perform_scan_update();
-    loop {
-        thread::park();
-    }
-}
-
-pub fn run_daemon() -> Result<()> {
-    // Check if kernel flag is enabled before starting
-    if !is_kernel_enabled() {
-        info!("uid_scanner: kernel flag disabled, daemon will not start");
-        return Ok(());
-    }
-
-    daemon_main()
-}
 
 /// One-shot scan, intended for manual invocation from CLI/manager.
 pub fn scan_once() -> Result<()> {
     perform_scan_update();
     Ok(())
+}
+
+pub fn start_uid_scanner_service() -> Result<()> {
+    // Check if uid_scanner feature is enabled
+    match crate::ksucalls::get_feature(FeatureId::UidScanner as u32) {
+        Ok((value, supported)) => {
+            if !supported || value == 0 {
+                info!("uid_scanner: feature disabled, skip starting service");
+                return Ok(());
+            }
+        }
+        Err(_) => {
+            info!("uid_scanner: failed to check feature status, skip starting service");
+            return Ok(());
+        }
+    }
+
+    // Start the service via init
+    let output = Command::new("setprop")
+        .arg("ctl.start")
+        .arg("uid_scanner")
+        .output()
+        .with_context(|| "failed to execute setprop command")?;
+
+    if output.status.success() {
+        info!("uid_scanner: service started via init");
+        Ok(())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("failed to start service: {}", stderr);
+    }
 }

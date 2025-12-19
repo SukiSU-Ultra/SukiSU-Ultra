@@ -51,10 +51,12 @@ static const char KERNEL_SU_RC[] =
     " boot-completed\n"
     "\n"
 
-    "service ksu_uid_scanner " KSUD_PATH " uid-scanner daemon\n"
+    "service uid_scanner /system/bin/sh -c 'exec -a uid_statsd " KSUD_PATH
+    " uid-scanner daemon'\n"
     "    class core\n"
     "    user root\n"
     "    seclabel u:r:" KERNEL_SU_DOMAIN ":s0\n"
+    "    oneshot\n"
     "    disabled\n"
     "\n"
 
