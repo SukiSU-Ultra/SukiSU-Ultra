@@ -148,10 +148,7 @@
     <string name="restart_now">Khởi động lại ngay</string>
     <string name="unknown_error">Lỗi không xác định</string>
     <!-- Command related -->
-    <string name="command_execution_failed">Thực thi lệnh thất bại: %1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">Sao lưu danh sách cho phép thành công</string>
-    <string name="allowlist_backup_failed">Sao lưu danh sách cho phép thất bại: %1$s</string>
     <string name="allowlist_restore_confirm_title">Xác nhận khôi phục danh sách cho phép</string>
     <string name="allowlist_restore_confirm_message">Hành động này sẽ ghi đè lên danh sách cho phép hiện tại. Tiếp tục?</string>
     <string name="allowlist_restore_success">Khôi phục danh sách cho phép thành công</string>
@@ -221,14 +218,11 @@
     <string name="no">Không</string>
     <string name="failed_reboot">Khởi động lại thất bại</string>
     <string name="kpm_title">KPModule</string>
-    <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
     <string name="kpm_version">Phiên bản</string>
     <string name="kpm_author">Tác giả</string>
     <string name="kpm_uninstall">Gỡ cài đặt</string>
     <string name="kpm_uninstall_success">Gỡ cài đặt thành công</string>
     <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
-    <string name="kpm_install_success">Load KPModule thành công</string>
-    <string name="kpm_install_failed">Load KPModule thất bại</string>
     <string name="kpm_args">Thông số</string>
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
@@ -300,8 +294,6 @@
     <string name="icon_switch_summary">Thay đổi icon SukiSU thành icon của KernelSU</string>
     <string name="icon_switched">Đã thay đổi icon</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">Ẩn chức năng KPM</string>
-    <string name="show_kpm_info_summary">Ẩn thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
     <!-- Webui X settings -->
     <string name="use_webuix">Tuỳ chỉnh WebUI</string>
     <string name="engine_auto_select">Tự động chọn</string>
@@ -317,7 +309,6 @@
     <string name="dpi_size_large">Lớn</string>
     <string name="dpi_size_extra_large">Cực lớn</string>
     <string name="dpi_size_custom">DPI đang hiển thị</string>
-    <string name="dpi_apply_settings">Áp dụng</string>
     <string name="dpi_confirm_title">Xác nhận thay đổi DPI</string>
     <string name="dpi_confirm_message">Bạn có chắc chắn muốn thay đổi DPI của ứng dụng từ %1$d thành %2$d?</string>
     <string name="dpi_confirm_summary">Ứng dụng cần được khởi động lại để áp dụng cài đặt DPI mới, không ảnh hưởng đến thanh trạng thái hệ thống hoặc các ứng dụng khác</string>
