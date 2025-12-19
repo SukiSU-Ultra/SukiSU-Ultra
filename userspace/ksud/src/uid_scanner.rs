@@ -2,11 +2,13 @@ use anyhow::{Context, Result};
 use log::{error, info, warn};
 
 use std::{
+    env,
     ffi::CString,
     fs::{self, File},
     io,
     os::unix::fs::MetadataExt,
     os::unix::io::AsRawFd,
+    os::unix::process::CommandExt,
     path::{Path, PathBuf},
     process::Command,
     thread,
@@ -52,27 +54,6 @@ fn perform_scan_update() {
         Ok(count) => info!("uid_scanner: scan completed, {count} entries"),
         Err(e) => error!("uid_scanner: scan failed: {e}"),
     }
-}
-
-fn generate_random_process_name() -> String {
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-    let pid = std::process::id();
-    // Generate a random-looking name using timestamp and PID
-    format!("uid{:x}{:x}", timestamp & 0xffff, pid & 0xffff)
-}
-
-fn set_process_name(name: &str) -> Result<()> {
-    let cname = CString::new(name)?;
-    unsafe {
-        // PR_SET_NAME sets the process name (visible in /proc/pid/comm)
-        if libc::prctl(libc::PR_SET_NAME, cname.as_ptr() as libc::c_ulong, 0, 0, 0) != 0 {
-            anyhow::bail!("prctl PR_SET_NAME failed: {}", std::io::Error::last_os_error());
-        }
-    }
-    Ok(())
 }
 
 fn scan_signal_handler() {
@@ -259,57 +240,9 @@ fn setup_signal_handler() -> Result<()> {
     Ok(())
 }
 
-/// Daemonize the current process by forking and detaching from terminal
-fn daemonize() -> Result<()> {
-    unsafe {
-        let pid = libc::fork();
-        if pid < 0 {
-            anyhow::bail!("fork failed: {}", io::Error::last_os_error());
-        }
-        if pid > 0 {
-            std::process::exit(0);
-        }
-
-        if libc::setsid() < 0 {
-            anyhow::bail!("setsid failed: {}", io::Error::last_os_error());
-        }
-
-        let pid = libc::fork();
-        if pid < 0 {
-            anyhow::bail!("fork failed: {}", io::Error::last_os_error());
-        }
-        if pid > 0 {
-            std::process::exit(0);
-        }
-
-        if libc::chdir(b"/\0".as_ptr() as *const libc::c_char) < 0 {
-            anyhow::bail!("chdir failed: {}", io::Error::last_os_error());
-        }
-
-        let max_fd = libc::sysconf(libc::_SC_OPEN_MAX);
-        if max_fd > 0 {
-            for fd in 0..max_fd as i32 {
-                let _ = libc::close(fd);
-            }
-        }
-
-        {
-            let dev_null = File::open("/dev/null")?;
-            let null_fd = dev_null.as_raw_fd();
-            
-            if libc::dup2(null_fd, libc::STDIN_FILENO) < 0 {
-                anyhow::bail!("dup2 stdin failed: {}", io::Error::last_os_error());
-            }
-            if libc::dup2(null_fd, libc::STDOUT_FILENO) < 0 {
-                anyhow::bail!("dup2 stdout failed: {}", io::Error::last_os_error());
-            }
-            if libc::dup2(null_fd, libc::STDERR_FILENO) < 0 {
-                anyhow::bail!("dup2 stderr failed: {}", io::Error::last_os_error());
-            }
-        }
-    }
-
-    Ok(())
+/// Check if we're running as uid_scanner daemon
+pub fn is_daemon_mode() -> bool {
+    env::var("KSU_UID_SCANNER_DAEMON").is_ok()
 }
 
 fn daemon_main() -> Result<()> {
@@ -326,11 +259,6 @@ fn daemon_main() -> Result<()> {
         }
     }
     
-    // Set random process name to avoid exposure
-    let random_name = generate_random_process_name();
-    set_process_name(&random_name)
-        .unwrap_or_else(|e| warn!("uid_scanner: failed to set process name: {e}"));
-    info!("uid_scanner: process name set to: {}", random_name);
     // Register PID with kernel so it can send us signals
     register_with_kernel()?;
 
@@ -349,12 +277,54 @@ fn daemon_main() -> Result<()> {
 }
 
 pub fn run_daemon() -> Result<()> {
-    daemonize().context("failed to daemonize process")?;
-    
-    if let Err(e) = daemon_main() {
-        error!("uid_scanner daemon error: {e}");
-        std::process::exit(1);
+    if is_daemon_mode() {
+        if let Err(e) = daemon_main() {
+            error!("uid_scanner daemon error: {e}");
+            std::process::exit(1);
+        }
+        return Ok(());
     }
+
+    let exe_path = env::current_exe()
+        .context("failed to get current executable path")?;
+    
+    let mut command = Command::new(&exe_path);
+    
+    #[cfg(unix)]
+    {
+        command = command.process_group(0);
+        
+        command = unsafe {
+            command.pre_exec(|| {
+                use crate::utils::switch_cgroups;
+                
+                switch_cgroups();
+                
+                let dev_null = File::open("/dev/null")
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                let null_fd = dev_null.as_raw_fd();
+                
+                unsafe {
+                    if libc::dup2(null_fd, libc::STDIN_FILENO) < 0 {
+                        return Err(std::io::Error::last_os_error());
+                    }
+                    if libc::dup2(null_fd, libc::STDOUT_FILENO) < 0 {
+                        return Err(std::io::Error::last_os_error());
+                    }
+                    if libc::dup2(null_fd, libc::STDERR_FILENO) < 0 {
+                        return Err(std::io::Error::last_os_error());
+                    }
+                }
+                
+                Ok(())
+            })
+        };
+    }
+    
+    command = command.env("KSU_UID_SCANNER_DAEMON", "1");
+    
+    command.spawn()
+        .context("failed to spawn uid_scanner daemon process")?;
     
     Ok(())
 }
@@ -371,8 +341,6 @@ pub fn start_uid_scanner_service() -> Result<()> {
     while !android_dir.exists() || !android_dir.is_dir() {
         thread::sleep(Duration::from_secs(1));
     }
-
-    thread::sleep(Duration::from_secs(5));
     
     run_daemon()?;
     info!("uid_scanner: daemon started in background");
