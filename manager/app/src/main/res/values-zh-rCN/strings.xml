@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="learn_more">了解更多</string>
     <string name="home">主页</string>
+    <string name="learn_more">了解更多</string>
     <string name="home_not_installed">未安装</string>
     <string name="home_click_to_install">点击安装</string>
     <string name="home_working">工作中</string>
@@ -35,7 +35,7 @@
     <string name="reboot_edl">重启到 EDL</string>
     <string name="about">关于</string>
     <string name="module_uninstall_confirm">确定要卸载模块 %s 吗？</string>
-    <string name="metamodule_uninstall_confirm">"您确定要卸载模块 %s 吗？此操作将影响所有模块，并且元模块提供的某些功能（如挂载）将不再工作。  "</string>
+    <string name="metamodule_uninstall_confirm"></string>
     <string name="module_uninstall_success">%s 已卸载</string>
     <string name="module_uninstall_failed">卸载失败：%s</string>
     <string name="module_version">版本</string>
@@ -121,8 +121,6 @@
     <string name="settings_uninstall_permanent">永久卸载</string>
     <string name="settings_restore_stock_image">恢复原厂镜像</string>
     <string name="settings_uninstall_temporary_message">临时卸载 KernelSU，下次重启后恢复至原始状态。</string>
-    <string name="settings_uninstall_permanent_message">完全并永久卸载 KernelSU（Root 权限和所有模块）。</string>
-    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 KernelSU，请使用\"永久卸载\"。</string>
     <string name="flashing">刷写中</string>
     <string name="flash_success">刷写完成</string>
     <string name="flash_failed">刷写失败</string>
@@ -148,10 +146,7 @@
     <string name="restart_now">立即重启</string>
     <string name="unknown_error">未知错误</string>
     <!-- Command related -->
-    <string name="command_execution_failed">命令执行失败：%1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">应用列表备份成功</string>
-    <string name="allowlist_backup_failed">应用列表备份失败：%1$s</string>
     <string name="allowlist_restore_confirm_title">确认还原应用列表</string>
     <string name="allowlist_restore_confirm_message">此操作将覆盖当前的应用列表，是否继续？</string>
     <string name="allowlist_restore_success">应用列表还原成功</string>
@@ -165,13 +160,8 @@
     <string name="home_device_model">设备</string>
     <string name="su_not_allowed">不允许授予 %s 超级用户权限</string>
     <string name="settings_disable_su">禁用 su 兼容性</string>
-    <string name="settings_disable_su_summary">禁止任何应用通过 su 命令获取 root 权限（已运行的 root 进程不受影响）。</string>
     <string name="settings_disable_kernel_umount">关闭内核 umount</string>
-    <string name="settings_disable_kernel_umount_summary">关闭 KernelSU 控制的内核级 umount 行为。</string>
     <string name="settings_enable_enhanced_security">增强安全性</string>
-    <string name="settings_enable_enhanced_security_summary">使用更严格的安全策略。</string>
-    <string name="feature_status_unsupported_summary">内核不支持此功能。</string>
-    <string name="feature_status_managed_summary">此功能由模块管理。</string>
     <string name="settings_mode_default">默认</string>
     <string name="settings_mode_temp_enable">临时启用</string>
     <string name="settings_mode_always_enable">始终启用</string>
@@ -201,6 +191,7 @@
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
     <string name="manual_hook">Manual Hook</string>
+    <string name="inline_hook"></string>
     <string name="dynamic_color_title">动态颜色</string>
     <string name="dynamic_color_summary">使用系统主题的动态颜色</string>
     <string name="choose_theme_color">选择主题色</string>
@@ -220,14 +211,11 @@
     <string name="no">否</string>
     <string name="failed_reboot">重启失败</string>
     <string name="kpm_title">内核模块</string>
-    <string name="kpm_empty">暂无已安装的内核模块</string>
     <string name="kpm_version">版本</string>
     <string name="kpm_author">作者</string>
     <string name="kpm_uninstall">卸载</string>
     <string name="kpm_uninstall_success">卸载成功</string>
     <string name="kpm_uninstall_failed">卸载失败</string>
-    <string name="kpm_install_success">加载 KPM 模块成功</string>
-    <string name="kpm_install_failed">加载 KPM 模块失败</string>
     <string name="kpm_args">参数</string>
     <string name="kpm_control">调参</string>
     <string name="home_kpm_version">KPM 版本</string>
@@ -299,8 +287,6 @@
     <string name="icon_switch_summary">更换为 KernelSU 图标</string>
     <string name="icon_switched">已切换图标</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">隐藏 KPM 功能</string>
-    <string name="show_kpm_info_summary">在主页和底栏隐藏 KPM 相关功能和信息</string>
     <!-- Webui X settings -->
     <string name="use_webuix">选择使用的 WebUI 引擎</string>
     <string name="engine_auto_select">自动选择</string>
@@ -316,7 +302,6 @@
     <string name="dpi_size_large">大</string>
     <string name="dpi_size_extra_large">超大</string>
     <string name="dpi_size_custom">自定义</string>
-    <string name="dpi_apply_settings">应用 DPI 设置</string>
     <string name="dpi_confirm_title">确认更改 DPI</string>
     <string name="dpi_confirm_message">你确定要将应用 DPI 从 %1$d 更改为 %2$d 吗？</string>
     <string name="dpi_confirm_summary">应用需要重启以应用新的 DPI 设置，不会影响系统状态栏或其他应用</string>
@@ -333,7 +318,6 @@
     <string name="module_download_error">模块下载失败</string>
     <string name="kernel_flashing">内核刷写</string>
     <string name="warning_of_meta_module_title">需要元模块</string>
-    <string name="warning_of_meta_module_summary">这个模块需要挂载一些文件。需要安装元模块，使它正常工作</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">全部</string>
     <string name="category_root_apps">Root</string>
@@ -521,7 +505,6 @@
     <string name="hide_bl_script">上锁状态</string>
     <string name="hide_bl_script_description">覆盖引导锁状态属性于 late_start 服务模式</string>
     <string name="cleanup_residue">清理工具残留</string>
-    <string name="cleanup_residue_description">清理各种模块以及工具的残留文件和目录（可能会误删导致丢失以及无法启动，谨慎使用）</string>
     <string name="susfs_edit_sus_path">编辑 SuS 路径</string>
     <string name="edit_kstat_statically_title">编辑 Kstat 静态配置</string>
     <string name="edit_kstat_path_title">编辑 Kstat 路径</string>
@@ -594,7 +577,6 @@
     <string name="module_verified">已验证</string>
     <string name="module_signature_verified">模块签名已验证</string>
     <string name="module_signature_verification">验证签名</string>
-    <string name="module_signature_verification_summary">模块安装时，强制验证签名。（仅 ARM架构 可用）</string>
     <string name="module_signature_invalid">未知发布者</string>
     <string name="module_signature_invalid_message">未经签名的模块可能不完整。为了对设备进行保护，已阻止安装此模块。</string>
     <string name="module_signature_verification_failed">未经签名的模块可能不完整。你想安装来自未知发布者的模块吗？</string>
@@ -629,13 +611,11 @@
     <string name="kpm_follow_kernel_description">原样使用内核，不进行任何 KPM 修改</string>
     <!-- UID Scanner Settings -->
     <string name="uid_auto_scan_title">用户态扫描应用列表</string>
-    <string name="uid_auto_scan_summary">开启后将使用用户态扫描应用列表，提高稳定性 (因内核扫描应用列表出现卡死等问题可以尝试打开此选项) </string>
     <string name="uid_multi_user_scan_title">多用户应用扫描</string>
     <string name="uid_multi_user_scan_summary">开启后将扫描所有用户的应用，包括工作资料等</string>
     <string name="uid_scanner_setting_failed">设置失败，请检查权限</string>
     <string name="clean_runtime_environment">清理运行环境</string>
     <string name="clean_runtime_environment_summary">清理运行时文件并停止扫描服务</string>
-    <string name="clean_runtime_environment_confirm">您确定要清理运行环境吗？这将停止扫描服务并删除相关文件</string>
     <string name="clean_runtime_environment_success">运行环境清理成功</string>
     <string name="clean_runtime_environment_failed">运行环境清理失败</string>
     <!-- 确认安装相关字符串 -->
@@ -662,18 +642,13 @@
     <string name="susfs_sus_map_updated">SUS映射已更新: %1$s -&gt; %2$s</string>
     <string name="susfs_no_sus_maps_configured">未配置SUS映射</string>
     <string name="susfs_reset_sus_maps_title">重置SUS映射</string>
-    <string name="susfs_reset_sus_maps_message">这将移除所有已配置的SUS映射。此操作无法撤销。</string>
     <string name="sus_maps_section">内存映射隐藏</string>
     <string name="sus_maps_description_title">隐藏/proc/self/中各种映射中的mmap真实文件</string>
-    <string name="sus_maps_description_text">从 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隐藏内存映射的真实文件路径。请注意：此功能不支持隐藏匿名内存映射，也无法隐藏由注入库本身产生的内联钩子或 PLT 钩子。</string>
-    <string name="sus_maps_warning">重要提示：对于具备完善注入检测机制的应用，此功能可能无法有效绕过检测。</string>
-    <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">日志查看器</string>
     <string name="log_viewer_back">返回</string>
     <string name="log_viewer_search">搜索</string>
     <string name="log_viewer_clear_logs">清空日志</string>
-    <string name="log_viewer_clear_logs_confirm">确定要清空选中的日志文件吗？此操作无法撤销。</string>
     <string name="log_viewer_logs_cleared">日志清空成功</string>
     <string name="log_viewer_filter_type">按类型筛选</string>
     <string name="log_viewer_all_types">所有类型</string>
@@ -698,7 +673,6 @@
     <string name="incompatible_kernel_msg">    当前管理器与此内核不兼容！请将内核升级至版本 %2$d 或以上（当前 %1$d）</string>
     <string name="umount_path_manager">Umount 路径管理</string>
     <string name="umount_path_manager_summary">管理内核卸载路径</string>
-    <string name="umount_path_restart_notice">添加或删除路径后需要重启设备才能生效。系统会在下次启动时应用新的配置。</string>
     <string name="add_umount_path">添加 Umount 路径</string>
     <string name="mount_path">挂载路径</string>
     <string name="umount_flags">卸载标志</string>
@@ -710,11 +684,11 @@
     <string name="umount_path_removed">路径已删除，重启后生效</string>
     <string name="operation_failed">操作失败</string>
     <string name="confirm_action">确认操作</string>
-    <string name="confirm_clear_custom_paths">确定要清除所有自定义路径吗？（默认路径将保留）</string>
     <string name="custom_paths_cleared">自定义路径已清除</string>
     <string name="clear_custom_paths">清除自定义</string>
     <string name="apply_config">应用配置</string>
     <string name="config_applied">配置已应用到内核</string>
+    <string name="mnt_detach">Thanks</string>
     <string name="group_contains_apps">包含 %1$d 个应用</string>
     <string name="settings_disable_sulog"> 禁用超级用户日志 </string>
     <string name="settings_disable_sulog_summary">禁用 KernelSU 超级用户访问记录</string>
