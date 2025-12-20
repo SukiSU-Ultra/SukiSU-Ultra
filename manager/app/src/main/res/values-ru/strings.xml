@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Главная</string>
+    <string name="learn_more">Узнать больше</string>
     <string name="home_not_installed">Не установлен</string>
     <string name="home_click_to_install">Нажмите, чтобы установить</string>
     <string name="home_working">Работает</string>
@@ -188,6 +189,8 @@
     <string name="hide_susfs_status_summary">Скрывать информацию о статусе SuSFS на главной странице</string>
     <string name="hide_zygisk_implement">Скрыть статус Zygisk</string>
     <string name="hide_zygisk_implement_summary">Скрывать информацию об имплементации Zygisk на главной странице</string>
+    <string name="hide_meta_module_implement">Спрятать статус Мета-модуля</string>
+    <string name="hide_meta_module_implement_summary">Скрывать информацию об имплементации Мета-модуля на главной странице</string>
     <string name="hide_link_card">Скрыть карточки со ссылками</string>
     <string name="hide_link_card_summary">Скрывать карточки со ссылками на главной странице</string>
     <string name="hide_tag_card">Скрыть строки модуля</string>
@@ -328,6 +331,7 @@
     <string name="module_failed_count">%d не удалось установить новый модуль</string>
     <string name="module_download_error">Ошибка загрузки модуля</string>
     <string name="kernel_flashing">Прошить ядро</string>
+    <string name="warning_of_meta_module_title">Требуется Мета-модуль</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Все</string>
     <string name="category_root_apps">Рут-доступ</string>
@@ -399,8 +403,6 @@
     <string name="susfs_path_label">Путь</string>
     <string name="susfs_path_placeholder">например: /system/addon.d</string>
     <string name="susfs_no_paths_configured">SUS пути не настроены</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">Сбросить SUS пути</string>
     <string name="susfs_reset_paths_message">Это очистит все конфигурации пути SUS. Вы уверены, что хотите продолжить?</string>
@@ -557,6 +559,7 @@
     <string name="no_active_manager">Нет активного менеджера</string>
     <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Реализация Zygisk</string>
+    <string name="home_meta_module_implement">Реализация Мета-модуля</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">Пути цикла SUS</string>
     <string name="susfs_add_sus_loop_path">Добавить путь SUS </string>
@@ -698,4 +701,7 @@
     <string name="clear_custom_paths">Удалить кастомные пути</string>
     <string name="apply_config">Применить конфигурацию</string>
     <string name="config_applied">Конфигурация применена к ядру</string>
+    <string name="mnt_detach">MNT_DETACH</string>
+    <string name="group_contains_apps">Содержит %d приложений</string>
+    <string name="settings_disable_sulog">Отключить журнал суперпользователя</string>
 </resources>
