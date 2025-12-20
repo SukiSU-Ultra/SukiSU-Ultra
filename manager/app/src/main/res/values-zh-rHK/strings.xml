@@ -116,8 +116,6 @@
     <string name="settings_uninstall_permanent">永久卸載</string>
     <string name="settings_restore_stock_image">恢復原廠鏡像</string>
     <string name="settings_uninstall_temporary_message">臨時卸載 KernelSU，下次重新啟動後恢復至原始狀態。</string>
-    <string name="settings_uninstall_permanent_message">完全並永久卸載 KernelSU（Root 權限同所有模組）。</string>
-    <string name="settings_restore_stock_image_message">恢復原廠鏡像（若存在備份），一般喺 OTA 前使用；如果您需要卸載 KernelSU，請使用\"永久卸載\"。</string>
     <string name="flashing">刷寫中</string>
     <string name="flash_success">刷寫完成</string>
     <string name="flash_failed">刷寫失敗</string>
@@ -143,10 +141,7 @@
     <string name="restart_now">立即重新啟動</string>
     <string name="unknown_error">未知錯誤</string>
     <!-- Command related -->
-    <string name="command_execution_failed">命令執行失敗：%1$s</string>
     <!-- Allowlist related -->
-    <string name="allowlist_backup_success">應用列表備份成功</string>
-    <string name="allowlist_backup_failed">應用列表備份失敗：%1$s</string>
     <string name="allowlist_restore_confirm_title">確認還原應用列表</string>
     <string name="allowlist_restore_confirm_message">此操作將覆蓋當前嘅應用列表，是否繼續？</string>
     <string name="allowlist_restore_success">應用列表還原成功</string>
@@ -160,7 +155,6 @@
     <string name="home_device_model">裝置</string>
     <string name="su_not_allowed">唔允許授予 %s 超級用戶權限</string>
     <string name="settings_disable_su">禁用 su 兼容性</string>
-    <string name="settings_disable_su_summary">臨時禁止任何應用程式通過 su 命令獲取 Root 權限（現有嘅 Root 進程唔受影響）</string>
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多配置</string>
     <string name="selinux">SELinux</string>
@@ -202,14 +196,11 @@
     <string name="no">否</string>
     <string name="failed_reboot">重新啟動失敗</string>
     <string name="kpm_title">核心模組</string>
-    <string name="kpm_empty">暫冇已安裝嘅核心模組</string>
     <string name="kpm_version">版本</string>
     <string name="kpm_author">作者</string>
     <string name="kpm_uninstall">卸載</string>
     <string name="kpm_uninstall_success">卸載成功</string>
     <string name="kpm_uninstall_failed">卸載失敗</string>
-    <string name="kpm_install_success">加載 KPM 模組成功</string>
-    <string name="kpm_install_failed">加載 KPM 模組失敗</string>
     <string name="kpm_args">參數</string>
     <string name="kpm_control">調參</string>
     <string name="home_kpm_version">KPM 版本</string>
@@ -281,8 +272,6 @@
     <string name="icon_switch_summary">更換為 KernelSU 圖標</string>
     <string name="icon_switched">已切換圖標</string>
     <!-- KPM display settings -->
-    <string name="show_kpm_info">隱藏 KPM 功能</string>
-    <string name="show_kpm_info_summary">喺主頁同底欄隱藏 KPM 相關功能同信息</string>
     <!-- Webui X settings -->
     <string name="use_webuix">選擇使用嘅 WebUI 引擎</string>
     <string name="engine_auto_select">自動選擇</string>
@@ -298,7 +287,6 @@
     <string name="dpi_size_large">大</string>
     <string name="dpi_size_extra_large">超大</string>
     <string name="dpi_size_custom">自定義</string>
-    <string name="dpi_apply_settings">應用 DPI 配置</string>
     <string name="dpi_confirm_title">確認更改 DPI</string>
     <string name="dpi_confirm_message">您確定要將應用 DPI 從 %1$d 更改為 %2$d 嗎？</string>
     <string name="dpi_confirm_summary">應用需要重新啟動以應用新嘅 DPI 配置，唔會影響系統狀態欄或其他應用</string>
@@ -385,8 +373,6 @@
     <string name="susfs_path_label">路徑</string>
     <string name="susfs_path_placeholder">例如: /system/addon.d</string>
     <string name="susfs_no_paths_configured">暫冇 SuS 路徑配置</string>
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
     <!-- SuSFS Reset Categories -->
     <string name="susfs_reset_paths_title">重置 SuS 路徑</string>
     <string name="susfs_reset_paths_message">這將清除所有 SuS 路徑配置，確定要繼續嗎？</string>
@@ -502,7 +488,6 @@
     <string name="hide_bl_script">隱藏 BL 指令碼</string>
     <string name="hide_bl_script_description">啟用隱藏 Bootloader 解鎖狀態指令碼</string>
     <string name="cleanup_residue">清理工具殘留</string>
-    <string name="cleanup_residue_description">清理各種模組以及工具嘅殘留檔案同目錄(可能會誤刪導致丟失以及無法啟動，謹慎使用)</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
     <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
@@ -556,7 +541,6 @@
     <string name="module_verified">已驗證</string>
     <string name="module_signature_verified">模組簽名已驗證</string>
     <string name="module_signature_verification">驗證簽名</string>
-    <string name="module_signature_verification_summary">模組安裝嗰陣，會強制驗證個簽名。（淨係 ARM架構 用得）</string>
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護裝置，已經阻止安裝呢個模組。</string>
     <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
@@ -564,7 +548,6 @@
     <!-- KPM workflow related -->
     <!-- KPM error messages -->
     <!-- KPM option radio group strings -->
-    <!-- UID Scanner Settings -->
     <!-- 确认安装相关字符串 -->
     <!-- SUS Map related strings -->
     <!-- Log Viewer -->
