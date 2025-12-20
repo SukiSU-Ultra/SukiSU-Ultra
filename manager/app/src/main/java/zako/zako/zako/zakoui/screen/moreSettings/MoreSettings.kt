@@ -387,20 +387,6 @@ private fun AdvancedSettings(
                 forceSignatureVerification = enabled
             }
         )
-
-        // 动态管理器设置
-        if (Natives.version >= Natives.MINIMAL_SUPPORTED_DYNAMIC_MANAGER && Natives.version >= Natives.MINIMAL_NEW_IOCTL_KERNEL) {
-            SettingItem(
-                icon = Icons.Filled.Security,
-                title = stringResource(R.string.dynamic_manager_title),
-                subtitle = if (state.isDynamicSignEnabled) {
-                    stringResource(R.string.dynamic_manager_enabled_summary, state.dynamicSignSize)
-                } else {
-                    stringResource(R.string.dynamic_manager_disabled)
-                },
-                onClick = { state.showDynamicSignDialog = true }
-            )
-        }
     }
 }
 

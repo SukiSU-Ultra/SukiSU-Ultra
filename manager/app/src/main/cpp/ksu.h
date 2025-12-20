@@ -32,17 +32,6 @@ void get_full_version(char* buff);
 #define KSU_MAX_GROUPS 32
 #define KSU_SELINUX_DOMAIN 64
 
-#define DYNAMIC_MANAGER_OP_SET 0
-#define DYNAMIC_MANAGER_OP_GET 1
-#define DYNAMIC_MANAGER_OP_CLEAR 2
-
-struct dynamic_manager_user_config {
-	unsigned int operation;
-	unsigned int size;
-	char hash[65];
-};
-
-
 struct root_profile {
 	int32_t uid;
 	int32_t gid;
@@ -91,14 +80,6 @@ struct app_profile {
 	};
 };
 
-struct manager_list_info {
-	int count;
-	struct {
-		uid_t uid;
-		int signature_index;
-	} managers[2];
-};
-
 bool set_app_profile(const struct app_profile* profile);
 
 int get_app_profile(struct app_profile* profile);
@@ -107,15 +88,8 @@ bool is_KPM_enable();
 
 void get_hook_type(char* hook_type);
 
-bool set_dynamic_manager(unsigned int size, const char* hash);
-
-bool get_dynamic_manager(struct dynamic_manager_user_config* config);
-
-bool clear_dynamic_manager();
-
-bool get_managers_list(struct manager_list_info* info);
-
 bool verify_module_signature(const char* input);
+
 // Feature IDs
 enum ksu_feature_id {
     KSU_FEATURE_SU_COMPAT = 0,
@@ -216,14 +190,6 @@ struct ksu_enable_kpm_cmd {
     uint8_t enabled; // Output: true if KPM is enabled
 };
 
-struct ksu_dynamic_manager_cmd {
-	struct dynamic_manager_user_config config; // Input/Output: dynamic manager config
-};
-
-struct ksu_get_managers_cmd {
-	struct manager_list_info manager_info; // Output: manager list information
-};
-
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
@@ -244,8 +210,6 @@ struct ksu_get_managers_cmd {
 #define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE _IOC(_IOC_READ, 'K', 101, 0)
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
-#define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ|_IOC_WRITE, 'K', 103, 0)
-#define KSU_IOCTL_GET_MANAGERS _IOC(_IOC_READ|_IOC_WRITE, 'K', 104, 0)
 
 bool get_allow_list(struct ksu_get_allow_list_cmd *);
 
@@ -267,9 +231,5 @@ bool legacy_is_su_enabled();
 bool legacy_is_KPM_enable();
 bool legacy_get_hook_type(char* hook_type, size_t size);
 void legacy_get_full_version(char* buff);
-bool legacy_set_dynamic_manager(unsigned int size, const char* hash);
-bool legacy_get_dynamic_manager(struct dynamic_manager_user_config* config);
-bool legacy_clear_dynamic_manager();
-bool legacy_get_managers_list(struct manager_list_info* info);
 
 #endif //KERNELSU_KSU_H

@@ -740,37 +740,6 @@ private fun InfoCard(
                 )
             }
 
-            // 活跃管理器
-            if (!isSimpleMode && systemInfo.isDynamicSignEnabled && systemInfo.managersList != null) {
-                val signatureMap = systemInfo.managersList.managers.groupBy { it.signatureIndex }
-
-                val managersText = buildString {
-                    signatureMap.toSortedMap().forEach { (signatureIndex, managers) ->
-                        append(managers.joinToString(", ") { "UID: ${it.uid}" })
-                        append(" ")
-                        append(
-                            when (signatureIndex) {
-                                0 -> "(${stringResource(R.string.default_signature)})"
-                                100 -> "(${stringResource(R.string.dynamic_managerature)})"
-                                else -> if (signatureIndex >= 1) "(${
-                                    stringResource(
-                                        R.string.signature_index,
-                                        signatureIndex
-                                    )
-                                })" else "(${stringResource(R.string.unknown_signature)})"
-                            }
-                        )
-                        append(" | ")
-                    }
-                }.trimEnd(' ', '|')
-
-                InfoCardItem(
-                    stringResource(R.string.multi_manager_list),
-                    managersText.ifEmpty { stringResource(R.string.no_active_manager) },
-                    icon = Icons.Default.Group,
-                )
-            }
-
             InfoCardItem(
                 stringResource(R.string.home_selinux_status),
                 systemInfo.seLinuxStatus,

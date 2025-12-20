@@ -46,14 +46,6 @@ class MoreSettingsState(
     var showDpiConfirmDialog by mutableStateOf(false)
     var showImageEditor by mutableStateOf(false)
 
-    // 动态管理器配置状态
-    var dynamicSignConfig by mutableStateOf<Natives.DynamicManagerConfig?>(null)
-    var isDynamicSignEnabled by mutableStateOf(false)
-    var dynamicSignSize by mutableStateOf("")
-    var dynamicSignHash by mutableStateOf("")
-    var showDynamicSignDialog by mutableStateOf(false)
-
-
     // 各种设置开关状态
     var isSimpleMode by mutableStateOf(prefs.getBoolean("is_simple_mode", false))
     var isHideVersion by mutableStateOf(prefs.getBoolean("is_hide_version", false))

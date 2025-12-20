@@ -95,16 +95,6 @@ class MoreSettingsHandlers(
 
         // 初始化 SELinux 状态
         state.selinuxEnabled = Shell.cmd("getenforce").exec().out.firstOrNull() == "Enforcing"
-
-        // 初始化动态管理器配置
-        state.dynamicSignConfig = Natives.getDynamicManager()
-        state.dynamicSignConfig?.let { config ->
-            if (config.isValid()) {
-                state.isDynamicSignEnabled = true
-                state.dynamicSignSize = config.size.toString()
-                state.dynamicSignHash = config.hash
-            }
-        }
     }
 
     /**
@@ -394,74 +384,6 @@ class MoreSettingsHandlers(
                     Toast.LENGTH_SHORT
                 ).show()
             }
-        }
-    }
-
-    /**
-     * 处理动态管理器配置
-     */
-    fun handleDynamicManagerConfig(enabled: Boolean, size: String, hash: String) {
-        if (enabled) {
-            val parsedSize = parseDynamicSignSize(size)
-            if (parsedSize != null && parsedSize > 0 && hash.length == 64) {
-                val success = Natives.setDynamicManager(parsedSize, hash)
-                if (success) {
-                    state.dynamicSignConfig = Natives.DynamicManagerConfig(parsedSize, hash)
-                    state.isDynamicSignEnabled = true
-                    state.dynamicSignSize = size
-                    state.dynamicSignHash = hash
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.dynamic_manager_set_success),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.dynamic_manager_set_failed),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            } else {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.invalid_sign_config),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        } else {
-            val success = Natives.clearDynamicManager()
-            if (success) {
-                state.dynamicSignConfig = null
-                state.isDynamicSignEnabled = false
-                state.dynamicSignSize = ""
-                state.dynamicSignHash = ""
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.dynamic_manager_disabled_success),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.dynamic_manager_clear_failed),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
-    /**
-     * 解析动态签名大小
-     */
-    private fun parseDynamicSignSize(input: String): Int? {
-        return try {
-            when {
-                input.startsWith("0x", true) -> input.substring(2).toInt(16)
-                else -> input.toInt()
-            }
-        } catch (_: NumberFormatException) {
-            null
         }
     }
 }

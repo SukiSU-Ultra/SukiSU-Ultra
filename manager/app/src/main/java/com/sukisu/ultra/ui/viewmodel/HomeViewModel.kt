@@ -52,8 +52,6 @@ class HomeViewModel : ViewModel() {
         val superuserCount: Int = 0,
         val moduleCount: Int = 0,
         val kpmModuleCount: Int = 0,
-        val managersList: Natives.ManagersList? = null,
-        val isDynamicSignEnabled: Boolean = false,
         val zygiskImplement: String = "",
         val metaModuleImplement: String = ""
     )
@@ -245,13 +243,6 @@ class HomeViewModel : ViewModel() {
                 }
 
                 delay(100)
-
-                // 加载管理器列表
-                val managerInfo = loadManagerInfo()
-                systemInfo = systemInfo.copy(
-                    managersList = managerInfo.first,
-                    isDynamicSignEnabled = managerInfo.second
-                )
 
                 isExtendedDataLoaded = true
             } catch (_: Exception) {
@@ -478,34 +469,6 @@ class HomeViewModel : ViewModel() {
             }
 
             Tuple4(suSFS, suSFSVersion, "", suSFSFeatures)
-        }
-    }
-
-    private suspend fun loadManagerInfo(): Pair<Natives.ManagersList?, Boolean> {
-        return withContext(Dispatchers.IO) {
-            val dynamicSignConfig = try {
-                Natives.getDynamicManager()
-            } catch (_: Exception) {
-                null
-            }
-
-            val isDynamicSignEnabled = try {
-                dynamicSignConfig?.isValid() == true
-            } catch (_: Exception) {
-                false
-            }
-
-            val managersList = if (isDynamicSignEnabled) {
-                try {
-                    Natives.getManagersList()
-                } catch (_: Exception) {
-                    null
-                }
-            } else {
-                null
-            }
-
-            Pair(managersList, isDynamicSignEnabled)
         }
     }
 

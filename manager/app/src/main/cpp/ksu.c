@@ -275,50 +275,6 @@ void get_hook_type(char *buff) {
     }
 }
 
-bool set_dynamic_manager(unsigned int size, const char *hash)
-{
-	struct ksu_dynamic_manager_cmd cmd = {0};
-	cmd.config.operation = DYNAMIC_MANAGER_OP_SET;
-	cmd.config.size	  = size;
-	strlcpy(cmd.config.hash, hash, sizeof(cmd.config.hash));
-
-	return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd) == 0;
-}
-
-bool get_dynamic_manager(struct dynamic_manager_user_config *cfg)
-{
-	if (!cfg) 
-		return false;
-
-	struct ksu_dynamic_manager_cmd cmd = {0};
-	cmd.config.operation = DYNAMIC_MANAGER_OP_GET;
-
-	if (ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd) != 0)
-		return false;
-
-	*cfg = cmd.config;
-	return true;
-}
-
-bool clear_dynamic_manager(void)
-{
-	struct ksu_dynamic_manager_cmd cmd = {0};
-	cmd.config.operation = DYNAMIC_MANAGER_OP_CLEAR;
-	return ksuctl(KSU_IOCTL_DYNAMIC_MANAGER, &cmd) == 0;
-}
-
-bool get_managers_list(struct manager_list_info *info)
-{
-	if (!info)
-		return false;
-	struct ksu_get_managers_cmd cmd = {0};
-	if (ksuctl(KSU_IOCTL_GET_MANAGERS, &cmd) != 0)
-		return false;
-
-	*info = cmd.manager_info;
-	return true;
-}
-
 bool verify_module_signature(const char* input) {
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm__) || defined(_M_ARM)
 	if (input == NULL) {

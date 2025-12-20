@@ -113,36 +113,3 @@ bool legacy_get_hook_type(char* hook_type, size_t size) {
 void legacy_get_full_version(char* buff) {
     ksuctl(CMD_GET_VERSION_FULL, buff, NULL);
 }
-
-bool legacy_set_dynamic_manager(unsigned int size, const char* hash) {
-    if (hash == NULL) {
-        return false;
-    }
-    struct dynamic_manager_user_config config;
-    config.operation = DYNAMIC_MANAGER_OP_SET;
-    config.size = size;
-    strncpy(config.hash, hash, sizeof(config.hash) - 1);
-    config.hash[sizeof(config.hash) - 1] = '\0';
-    return ksuctl(CMD_DYNAMIC_MANAGER, &config, NULL);
-}
-
-bool legacy_get_dynamic_manager(struct dynamic_manager_user_config* config) {
-    if (config == NULL) {
-        return false;
-    }
-    config->operation = DYNAMIC_MANAGER_OP_GET;
-    return ksuctl(CMD_DYNAMIC_MANAGER, config, NULL);
-}
-
-bool legacy_clear_dynamic_manager() {
-    struct dynamic_manager_user_config config;
-    config.operation = DYNAMIC_MANAGER_OP_CLEAR;
-    return ksuctl(CMD_DYNAMIC_MANAGER, &config, NULL);
-}
-
-bool legacy_get_managers_list(struct manager_list_info* info) {
-    if (info == NULL) {
-        return false;
-    }
-    return ksuctl(CMD_GET_MANAGERS, info, NULL);
-}
