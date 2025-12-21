@@ -201,7 +201,7 @@
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
     <string name="manual_hook">Manual Hook</string>
-    <string name="inline_hook"></string>
+    <string name="inline_hook">Inline Hook</string>
     <string name="dynamic_color_title">动态颜色</string>
     <string name="dynamic_color_summary">使用系统主题的动态颜色</string>
     <string name="choose_theme_color">选择主题色</string>
