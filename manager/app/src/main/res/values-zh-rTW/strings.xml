@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">首頁</string>
+    <string name="learn_more">瞭解更多</string>
     <string name="home_not_installed">未安裝</string>
     <string name="home_click_to_install">點擊開始安裝</string>
     <string name="home_working">運作中</string>
@@ -34,6 +35,7 @@
     <string name="reboot_edl">重新啟動至 EDL</string>
     <string name="about">關於</string>
     <string name="module_uninstall_confirm">確定要解除安裝模組 %s 嗎？</string>
+    <string name="metamodule_uninstall_confirm">您確定要移除 %s 模組？這個動作將會將影響所有模組，元模組提供的某些功能（例如掛載）將不再有效</string>
     <string name="module_uninstall_success">%s 已解除安裝</string>
     <string name="module_uninstall_failed">解除安裝失敗：%s</string>
     <string name="module_version">版本</string>
@@ -109,6 +111,9 @@
     <string name="install_inactive_slot">安裝至未使用的槽位（OTA 後）</string>
     <string name="install_inactive_slot_warning">將在重新啟動後強制切換至另一槽位！\n注意：僅能在 OTA 更新完成後重新啟動前使用。\n確定繼續？</string>
     <string name="install_next">下一步</string>
+    <string name="install_select_partition">選擇分割區</string>
+    <string name="install_upload_lkm_file">使用本地 LKM 檔案</string>
+    <string name="install_only_support_ko_file">只支援 .ko 副檔名的檔案</string>
     <string name="select_file_tip">建議選擇 %1$s 分區映像檔</string>
     <string name="select_kmi">選擇 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
@@ -161,6 +166,7 @@
     <string name="su_not_allowed">不允許授予 %s 超級使用者權限</string>
     <string name="settings_disable_su">禁用 su 相容性</string>
     <string name="settings_disable_su_summary">暫時禁止任何應用程式透過 su 命令取得 Root 權限（現有的 Root 程序不受影響）</string>
+    <string name="settings_disable_kernel_umount">停用內核卸載</string>
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多設定</string>
     <string name="selinux">SELinux</string>
