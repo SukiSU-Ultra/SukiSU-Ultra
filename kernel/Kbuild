@@ -194,6 +194,11 @@ ifeq ($(shell grep -q "struct proc_ops " $(srctree)/include/linux/proc_fs.h; ech
 ccflags-y += -DKSU_COMPAT_HAS_PROC_OPS
 endif
 
+# Type ns_get_path check
+ifeq ($(shell grep -q "int ns_get_path" $(srctree)/include/linux/proc_ns.h; echo $$?),0)
+ccflags-y += -DKSU_TYPE_INT_NS_GET_PATH
+endif
+
 # Custom Signs
 ifdef KSU_EXPECTED_SIZE
 ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)

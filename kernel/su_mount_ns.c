@@ -84,7 +84,7 @@ int ksys_unshare(unsigned long unshare_flags)
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
+#ifdef KSU_TYPE_INT_NS_GET_PATH
 	typedef long  ns_ret_t;
 	#define NS_RET_OK(r)   ((r) == 0)
 	#define NS_RET_ERR(r)  (r)
