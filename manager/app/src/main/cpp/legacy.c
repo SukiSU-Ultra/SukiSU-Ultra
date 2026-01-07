@@ -44,7 +44,7 @@
 static bool ksuctl(int cmd, void* arg1, void* arg2) {
     int32_t result = 0;
     int32_t rtn = prctl(KERNEL_SU_OPTION, cmd, arg1, arg2, &result);
-    return result == KERNEL_SU_OPTION && rtn == -1;
+    return (rtn == 0 && result == KERNEL_SU_OPTION);
 }
 
 struct ksu_version_info legacy_get_info()
