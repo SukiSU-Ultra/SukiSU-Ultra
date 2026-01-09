@@ -194,7 +194,8 @@ static struct DynamicStructInfo *dynamic_struct_infos[] = {
 int sukisu_super_find_struct(const char *struct_name, size_t *out_size,
 			     int *out_members)
 {
-	for (size_t i = 0; i < (sizeof(dynamic_struct_infos) /
+	size_t i; // for C89 standard or later
+	for (i = 0; i < (sizeof(dynamic_struct_infos) /
 				sizeof(dynamic_struct_infos[0]));
 	     i++) {
 		struct DynamicStructInfo *info = dynamic_struct_infos[i];
@@ -223,13 +224,15 @@ EXPORT_SYMBOL(sukisu_super_find_struct);
 int sukisu_super_access(const char *struct_name, const char *member_name,
 			size_t *out_offset, size_t *out_size)
 {
-	for (size_t i = 0; i < (sizeof(dynamic_struct_infos) /
+	size_t i; // for C89 standard or later
+	for (i = 0; i < (sizeof(dynamic_struct_infos) /
 				sizeof(dynamic_struct_infos[0]));
 	     i++) {
 		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
 		if (strcmp(struct_name, info->name) == 0) {
-			for (size_t i1 = 0; i1 < info->count; i1++) {
+			size_t i1; // for C89 standard or later
+			for (i1 = 0; i1 < info->count; i1++) {
 				if (strcmp(info->members[i1].name,
 					   member_name) == 0) {
 					if (out_offset)
@@ -271,13 +274,15 @@ int sukisu_super_container_of(const char *struct_name, const char *member_name,
 	if (ptr == NULL)
 		return -3;
 
-	for (size_t i = 0; i < (sizeof(dynamic_struct_infos) /
+	size_t i; // for C89 standard or later	
+	for (i = 0; i < (sizeof(dynamic_struct_infos) /
 				sizeof(dynamic_struct_infos[0]));
 	     i++) {
 		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
 		if (strcmp(struct_name, info->name) == 0) {
-			for (size_t i1 = 0; i1 < info->count; i1++) {
+			size_t i1; // for C89 standard or later
+			for (i1 = 0; i1 < info->count; i1++) {
 				if (strcmp(info->members[i1].name,
 					   member_name) == 0) {
 					*out_ptr = (void *)DYNAMIC_CONTAINER_OF(
