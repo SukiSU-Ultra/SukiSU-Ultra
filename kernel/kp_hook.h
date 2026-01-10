@@ -3,7 +3,7 @@
 
 // ksud.c
 enum ksud_stop_code {
-	VFS_READ_HOOK_KP = 0,
+	INIT_RC_HOOK_KP = 0,
 	EXECVE_HOOK_KP,
 	INPUT_EVENT_HOOK_KP,
 };
