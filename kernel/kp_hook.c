@@ -8,6 +8,14 @@
 		.pre_handler = pre,                                            \
 	}
 
+#define DECL_KRP(name, sym, ent, han)                                                \
+	struct kretprobe name = {                                                 \
+		.kp.symbol_name = sym,                                            \
+		.entry_handler = ent,                                            \
+		.handler = han,                                            \
+		.data_size = sizeof(void *),
+	}
+
 // ksud.c
 
 static struct work_struct stop_vfs_read_work, stop_execve_hook_work,
@@ -40,10 +48,53 @@ static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
 	unsigned int fd = PT_REGS_PARM1(real_regs);
-	char __user **buf_ptr = (char __user **)&PT_REGS_PARM2(real_regs);
-	size_t *count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
+	ksu_handle_sys_read(fd);
+	return 0;
+}
 
-	return ksu_handle_sys_read(fd, buf_ptr, count_ptr);
+static int sys_fstat_handler_pre(struct kretprobe_instance *p,
+					struct pt_regs *regs)
+{
+	struct pt_regs *real_regs = PT_REAL_REGS(regs);
+	unsigned int fd = PT_REGS_PARM1(real_regs);
+	void *statbuf = PT_REGS_PARM2(real_regs);
+	*(void **)&p->data = NULL;
+
+	struct file *file = fget(fd);
+	if (!file)
+		return 1;
+	if (is_init_rc(file)) {
+		pr_info("stat init.rc");
+		fput(file);
+		*(void **)&p->data = statbuf;
+		return 0;
+	}
+	fput(file);
+	return 1;
+}
+
+static int sys_fstat_handler_post(struct kretprobe_instance *p,
+					struct pt_regs *regs)
+{
+	void __user *statbuf = *(void **)&p->data;
+	if (statbuf) {
+		void __user *st_size_ptr = statbuf + offsetof(struct stat, st_size);
+		long size, new_size;
+		if (!copy_from_user_nofault(&size, st_size_ptr, sizeof(long))) {
+			new_size = size + ksu_rc_len;
+			pr_info("adding ksu_rc_len: %ld -> %ld", size, new_size);
+			if (!copy_to_user_nofault(st_size_ptr, &new_size, sizeof(long))) {
+				pr_info("added ksu_rc_len");
+			} else {
+				pr_err("add ksu_rc_len failed: statbuf 0x%lx",
+					(unsigned long)st_size_ptr);
+			}
+		} else {
+			pr_err("read statbuf 0x%lx failed", (unsigned long)st_size_ptr);
+		}
+	}
+
+	return 0;
 }
 
 static int input_handle_event_handler_pre(struct kprobe *p,
@@ -56,12 +107,14 @@ static int input_handle_event_handler_pre(struct kprobe *p,
 }
 
 static DECL_KP(execve_kp, SYS_EXECVE_SYMBOL, sys_execve_handler_pre);
-static DECL_KP(vfs_read_kp, SYS_READ_SYMBOL, sys_read_handler_pre);
+static DECL_KP(sys_read_kp, SYS_READ_SYMBOL, sys_read_handler_pre);
+static DECL_KRP(sys_fstat_kp, SYS_FSTAT_SYMBOL, sys_fstat_handler_pre, sys_fstat_handler_post);
 static DECL_KP(input_event_kp, "input_event", input_handle_event_handler_pre);
 
-static void do_stop_vfs_read_hook(struct work_struct *work)
+static void do_stop_init_rc_hook(struct work_struct *work)
 {
-	unregister_kprobe(&vfs_read_kp);
+	unregister_kprobe(&sys_read_kp);
+	unregister_kretprobe(&sys_fstat_kp);
 }
 
 static void do_stop_execve_hook(struct work_struct *work)
@@ -79,9 +132,9 @@ void kp_handle_ksud_stop(enum ksud_stop_code stop_code)
 {
 	bool ret;
 	switch (stop_code) {
-	case VFS_READ_HOOK_KP: {
-		ret = schedule_work(&stop_vfs_read_work);
-		pr_info("unregister vfs_read kprobe: %d!\n", ret);
+	case INIT_RC_HOOK_KP: {
+		ret = schedule_work(&stop_init_rc_hook_work);
+		pr_info("unregister init_rc_hook kprobe: %d!\n", ret);
 		break;
 	}
 	case EXECVE_HOOK_KP: {
@@ -112,13 +165,16 @@ void kp_handle_ksud_init(void)
 	ret = register_kprobe(&execve_kp);
 	pr_info("ksud: execve_kp: %d\n", ret);
 
-	ret = register_kprobe(&vfs_read_kp);
-	pr_info("ksud: vfs_read_kp: %d\n", ret);
+	ret = register_kprobe(&sys_read_kp);
+	pr_info("ksud: sys_read_kp: %d\n", ret);
+
+	ret = register_kretprobe(&sys_fstat_kp);
+	pr_info("ksud: sys_fstat_kp: %d\n", ret);
 
 	ret = register_kprobe(&input_event_kp);
 	pr_info("ksud: input_event_kp: %d\n", ret);
 
-	INIT_WORK(&stop_vfs_read_work, do_stop_vfs_read_hook);
+	INIT_WORK(&stop_init_rc_hook_work, do_stop_init_rc_hook);
 	INIT_WORK(&stop_execve_hook_work, do_stop_execve_hook);
 	INIT_WORK(&stop_input_hook_work, do_stop_input_hook);
 }
@@ -126,8 +182,8 @@ void kp_handle_ksud_init(void)
 void kp_handle_ksud_exit(void)
 {
 	unregister_kprobe(&execve_kp);
-	// this should be done before unregister vfs_read_kp
-	// unregister_kprobe(&vfs_read_kp);
+	// this should be done before unregister sys_read_kp
+	// unregister_kprobe(&sys_read_kp);
 	unregister_kprobe(&input_event_kp);
 }
 
