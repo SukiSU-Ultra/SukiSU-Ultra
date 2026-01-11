@@ -506,7 +506,11 @@ static bool is_init_rc(struct file *fp)
 	return true;
 }
 
+#ifndef CONFIG_KSU_SUSFS
 static void ksu_handle_sys_read(unsigned int fd)
+#else
+void ksu_handle_sys_read(unsigned int fd)
+#endif // #ifndef CONFIG_KSU_SUSFS
 {
 	struct file *file = fget(fd);
 	if (!file) {
@@ -584,6 +588,23 @@ bool ksu_is_safe_mode(void)
 {
 	return is_volumedown_enough(volumedown_pressed_count);
 }
+
+#ifdef CONFIG_KSU_SUSFS
+void ksu_handle_sys_newfstatat(int fd, loff_t *kstat_size_ptr) {
+	loff_t new_size = *kstat_size_ptr + ksu_rc_len;
+	struct file *file = fget(fd);
+
+	if (!file)
+		return;
+
+	if (is_init_rc(file)) {
+		pr_info("stat init.rc");
+		pr_info("adding ksu_rc_len: %lld -> %lld", *kstat_size_ptr, new_size);
+		*kstat_size_ptr = new_size;
+	}
+	fput(file);
+}
+#endif // #ifdef CONFIG_KSU_SUSFS
 
 static void stop_init_rc_hook(void)
 {
