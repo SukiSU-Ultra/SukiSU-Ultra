@@ -108,7 +108,7 @@ static int input_handle_event_handler_pre(struct kprobe *p,
 
 static DECL_KP(execve_kp, SYS_EXECVE_SYMBOL, sys_execve_handler_pre);
 static DECL_KP(sys_read_kp, SYS_READ_SYMBOL, sys_read_handler_pre);
-static DECL_KRP(sys_fstat_kp, SYS_NEWFSTATAT_SYMBOL, sys_fstat_handler_pre, sys_fstat_handler_post);
+static DECL_KRP(sys_fstat_kp, SYS_FSTAT_SYMBOL, sys_fstat_handler_pre, sys_fstat_handler_post);
 static DECL_KP(input_event_kp, "input_event", input_handle_event_handler_pre);
 
 static void do_stop_init_rc_hook(struct work_struct *work)
