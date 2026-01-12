@@ -514,8 +514,8 @@ static bool is_init_rc(struct file *fp)
 
 void ksu_handle_sys_read(unsigned int fd)
 {
-#ifdef CONFIG_KSU_SYSCALL_HOOK
 	struct file *file = fget(fd);
+#if defined(CONFIG_KSU_SYSCALL_HOOK)
 	if (!file) {
 		return;
 	}
@@ -525,7 +525,7 @@ void ksu_handle_sys_read(unsigned int fd)
 	}
 #else
 	/* Do nothing */
-	return false;
+	return;
 #endif
 
 	// we only process the first read

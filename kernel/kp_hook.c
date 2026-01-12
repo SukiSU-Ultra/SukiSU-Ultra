@@ -13,7 +13,7 @@
 		.kp.symbol_name = sym,                                            \
 		.entry_handler = ent,                                            \
 		.handler = han,                                            \
-		.data_size = sizeof(void *),
+		.data_size = sizeof(void *),                             \
 	}
 
 // ksud.c
