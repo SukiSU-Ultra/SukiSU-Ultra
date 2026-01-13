@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">主頁</string>
+    <string name="learn_more">了解更多</string>
     <string name="home_not_installed">未安裝</string>
     <string name="home_click_to_install">點擊安裝</string>
     <string name="home_working">工作中</string>
@@ -34,6 +35,7 @@
     <string name="reboot_edl">重新啟動到 EDL</string>
     <string name="about">關於</string>
     <string name="module_uninstall_confirm">確定要卸載模組 %s 嗎？</string>
+    <string name="metamodule_uninstall_confirm">你確定要卸載模組 %s 嗎？呢個動作會影響所有模組，而由元模組提供嘅某啲功能（例如掛載）將唔再運作</string>
     <string name="module_uninstall_success">%s 已卸載</string>
     <string name="module_uninstall_failed">卸載失敗：%s</string>
     <string name="module_version">版本</string>
@@ -109,6 +111,9 @@
     <string name="install_inactive_slot">安裝到未使用嘅槽位（OTA 後）</string>
     <string name="install_inactive_slot_warning">將喺重新啟動後強制切換到另一個槽位！\n注意只能喺 OTA 更新完成後嘅重新啟動之前使用。\n確認？</string>
     <string name="install_next">下一步</string>
+    <string name="install_select_partition">選擇分區</string>
+    <string name="install_upload_lkm_file">使用本地 LKM 檔案</string>
+    <string name="install_only_support_ko_file">只支援 .ko 格式檔案</string>
     <string name="select_file_tip">建議選擇 %1$s 分區鏡像</string>
     <string name="select_kmi">選擇 KMI</string>
     <string name="settings_uninstall">卸載</string>
@@ -116,6 +121,8 @@
     <string name="settings_uninstall_permanent">永久卸載</string>
     <string name="settings_restore_stock_image">恢復原廠鏡像</string>
     <string name="settings_uninstall_temporary_message">臨時卸載 KernelSU，下次重新啟動後恢復至原始狀態。</string>
+    <string name="settings_uninstall_permanent_message">完全並永久卸載 KernelSU（Root權限同所有模組）</string>
+    <string name="settings_restore_stock_image_message">恢復原廠系統映像（如果有備份嘅話），通常喺更新 OTA 前使用；如果您需要卸載 KernelSU，請使用「永久卸載」。</string>
     <string name="flashing">刷寫中</string>
     <string name="flash_success">刷寫完成</string>
     <string name="flash_failed">刷寫失敗</string>
@@ -141,7 +148,10 @@
     <string name="restart_now">立即重新啟動</string>
     <string name="unknown_error">未知錯誤</string>
     <!-- Command related -->
+    <string name="command_execution_failed">指令執行失敗：%1$s</string>
     <!-- Allowlist related -->
+    <string name="allowlist_backup_success">備份允許清單成功</string>
+    <string name="allowlist_backup_failed">備份允許清單失敗：%1$s</string>
     <string name="allowlist_restore_confirm_title">確認還原應用列表</string>
     <string name="allowlist_restore_confirm_message">此操作將覆蓋當前嘅應用列表，是否繼續？</string>
     <string name="allowlist_restore_success">應用列表還原成功</string>
@@ -155,6 +165,14 @@
     <string name="home_device_model">裝置</string>
     <string name="su_not_allowed">唔允許授予 %s 超級用戶權限</string>
     <string name="settings_disable_su">禁用 su 兼容性</string>
+    <string name="settings_disable_su_summary">停用所有應用程式透過⁠ su 指令獲取 Root 權限的功能（現有嘅 Root 進程不受影響）。</string>
+    <string name="settings_disable_kernel_umount">停用核心 umount</string>
+    <string name="settings_disable_kernel_umount_summary">停用由 KernelSU 控制的核心層面 umount 行為。</string>
+    <string name="feature_status_unsupported_summary">核心不支援此功能</string>
+    <string name="feature_status_managed_summary">此功能由模組管理</string>
+    <string name="settings_mode_default">預設</string>
+    <string name="settings_mode_temp_enable">暫時啓用</string>
+    <string name="settings_mode_always_enable">永久啓用</string>
     <string name="module_install_multiple_confirm_with_names">確定要安裝以下 %1$d 個模組嗎？\n\n%2$s</string>
     <string name="more_settings">更多配置</string>
     <string name="selinux">SELinux</string>
@@ -168,6 +186,10 @@
     <string name="hide_other_info_summary">隱藏導航欄上嘅超級用戶數、模組數同 KPM 模組數紅點</string>
     <string name="hide_susfs_status">隱藏 SuSFS 狀態信息</string>
     <string name="hide_susfs_status_summary">隱藏主頁上嘅 SuSFS 狀態信息</string>
+    <string name="hide_zygisk_implement">隱藏 Zygisk 狀態資訊</string>
+    <string name="hide_zygisk_implement_summary">隱藏主頁上嘅 Zygisk 實現狀態資訊</string>
+    <string name="hide_meta_module_implement">隱藏元模組狀態</string>
+    <string name="hide_meta_module_implement_summary">隱藏首頁上嘅元模組實現狀態資訊</string>
     <string name="hide_link_card">隱藏鏈接卡片</string>
     <string name="hide_link_card_summary">隱藏主頁上嘅鏈接卡片信息</string>
     <string name="hide_tag_card">隱藏模組標籤行</string>
@@ -177,6 +199,7 @@
     <string name="theme_light">淺色</string>
     <string name="theme_dark">深色</string>
     <string name="manual_hook">Manual Hook</string>
+    <string name="inline_hook">Inline Hook</string>
     <string name="dynamic_color_title">動態顏色</string>
     <string name="dynamic_color_summary">使用系統主題嘅動態顏色</string>
     <string name="choose_theme_color">選擇主題色</string>
@@ -196,11 +219,14 @@
     <string name="no">否</string>
     <string name="failed_reboot">重新啟動失敗</string>
     <string name="kpm_title">核心模組</string>
+    <string name="kpm_empty">目前未安裝任何核心模組</string>
     <string name="kpm_version">版本</string>
     <string name="kpm_author">作者</string>
     <string name="kpm_uninstall">卸載</string>
     <string name="kpm_uninstall_success">卸載成功</string>
     <string name="kpm_uninstall_failed">卸載失敗</string>
+    <string name="kpm_install_success">載入 KPM 模組成功 </string>
+    <string name="kpm_install_failed">載入 KPM 模組失敗</string>
     <string name="kpm_args">參數</string>
     <string name="kpm_control">調參</string>
     <string name="home_kpm_version">KPM 版本</string>
@@ -272,6 +298,8 @@
     <string name="icon_switch_summary">更換為 KernelSU 圖標</string>
     <string name="icon_switched">已切換圖標</string>
     <!-- KPM display settings -->
+    <string name="show_kpm_info">隱藏 KPM 功能</string>
+    <string name="show_kpm_info_summary">隱藏主頁同底部欄嘅 KPM 相關資訊同功能</string>
     <!-- Webui X settings -->
     <string name="use_webuix">選擇使用嘅 WebUI 引擎</string>
     <string name="engine_auto_select">自動選擇</string>
@@ -287,6 +315,7 @@
     <string name="dpi_size_large">大</string>
     <string name="dpi_size_extra_large">超大</string>
     <string name="dpi_size_custom">自定義</string>
+    <string name="dpi_apply_settings">套用 DPI 設定</string>
     <string name="dpi_confirm_title">確認更改 DPI</string>
     <string name="dpi_confirm_message">您確定要將應用 DPI 從 %1$d 更改為 %2$d 嗎？</string>
     <string name="dpi_confirm_summary">應用需要重新啟動以應用新嘅 DPI 配置，唔會影響系統狀態欄或其他應用</string>
@@ -302,6 +331,8 @@
     <string name="module_failed_count">%d 個模組安裝失敗</string>
     <string name="module_download_error">模組下載失敗</string>
     <string name="kernel_flashing">核心刷寫</string>
+    <string name="warning_of_meta_module_title">需要元模組</string>
+    <string name="warning_of_meta_module_summary">呢個模組想掛載啲文件，需要安裝元模組，唔系嘅話，佢可能唔會工作</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">全部</string>
     <string name="category_root_apps">Root</string>
@@ -395,6 +426,7 @@
     <string name="enable_log_feature_label">日誌記錄支援</string>
     <string name="hide_symbols_feature_label">隱藏 KSU SuSFS 符號</string>
     <string name="sus_kstat_feature_label">SuS Kstat 支援</string>
+    <string name="sus_map_feature_label">SUS Map 支援</string>
     <!-- 可切换状态 -->
     <string name="susfs_feature_configurable">可配置嘅 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
@@ -488,6 +520,7 @@
     <string name="hide_bl_script">隱藏 BL 指令碼</string>
     <string name="hide_bl_script_description">啟用隱藏 Bootloader 解鎖狀態指令碼</string>
     <string name="cleanup_residue">清理工具殘留</string>
+    <string name="cleanup_residue_description">清理各個模組及工具的殘留檔案和目錄（可能會誤刪，導致資料遺失及無法啟動，請謹慎使用）</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
     <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
@@ -503,6 +536,8 @@
     <string name="add_custom_path">其他</string>
     <string name="add_app_path">應用</string>
     <string name="susfs_add_app_path">添加應用程式路徑</string>
+    <string name="susfs_version_mismatch">SuSFS 函式庫版本不匹配，核心: %1$s 與管理程式: %2$s，建議更新核心或管理器</string>
+    <string name="warning">警告</string>
     <string name="search_apps">搜尋應用程式</string>
     <string name="selected_apps_count">%1$d 個已選應用程式</string>
     <string name="already_added_apps_count">%1$d 個已添加應用程式</string>
@@ -524,8 +559,25 @@
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活躍管理器</string>
     <string name="no_active_manager">唔活躍管理器</string>
+    <string name="default_signature">SukiSU</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
+    <string name="home_meta_module_implement">元模組實現</string>
     <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">SuS 循環路徑</string>
+    <string name="susfs_add_sus_loop_path">新增 SuS 循環路徑</string>
+    <string name="susfs_edit_sus_loop_path">編輯 SuS 循環路徑</string>
+    <string name="susfs_loop_path_added_success">SuS 循環路徑新增成功: %1$s</string>
+    <string name="susfs_loop_path_removed">SuS 循環路徑已移除: %1$s</string>
+    <string name="susfs_loop_path_updated">SuS 循環路徑已更新: %1$s -&gt; %2$s</string>
+    <string name="susfs_no_loop_paths_configured">未配置 SuS 循環路徑</string>
+    <string name="susfs_reset_loop_paths_title">重設循環路徑</string>
+    <string name="susfs_reset_loop_paths_message">確定要清空所有 SuS 循環路徑嗎？此操作無法撤銷。</string>
+    <string name="susfs_loop_path_label">循環路徑</string>
+    <string name="susfs_loop_path_placeholder">/data/example/path</string>
+    <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 及 /sdcard/ 內嘅路徑先至可以透過循環路徑新增</string>
+    <string name="susfs_loop_path_invalid_location">錯誤：循環路徑唔可以喺 /storage/ 或 /sdcard/ 目錄內</string>
+    <string name="loop_paths_section">循環路徑</string>
+    <string name="add_loop_path">新增循環路徑</string>
     <!-- 循环路径功能描述 -->
     <string name="sus_loop_paths_description_title">循環路徑配置</string>
     <string name="sus_loop_paths_description_text">循環路徑會喺每次非 root 用戶應用程式或者隔離服務啟動時，重新標記做 SUS_PATH。咁樣可以解決因為 inode 狀態重設或者核心重新建立 inode 而令到添加嘅路徑失效嘅問題。</string>
@@ -541,14 +593,42 @@
     <string name="module_verified">已驗證</string>
     <string name="module_signature_verified">模組簽名已驗證</string>
     <string name="module_signature_verification">驗證簽名</string>
+    <string name="module_signature_verification_summary">安裝模組時強制驗證簽名（只適用於 ARM 架構）</string>
     <string name="module_signature_invalid">未知發布者</string>
     <string name="module_signature_invalid_message">未經簽名嘅模組可能唔完整。為咗保護裝置，已經阻止安裝呢個模組。</string>
     <string name="module_signature_verification_failed">未經簽名嘅模組可能唔完整。你想唔想安裝嚟自未知發布者嘅模組？</string>
+    <string name="home_hook_type">Hook 類型</string>
     <!-- KPM patching related strings -->
+    <string name="kpm_patch_options">KPM 修補</string>
+    <string name="kpm_patch_description">用嚟新增附加嘅 KPM 功能</string>
+    <string name="enable_kpm_patch">KPM 修補</string>
+    <string name="kpm_patch_switch_description">喺刷機之前對內核映像進行 KPM 修補</string>
+    <string name="enable_kpm_undo_patch">KPM 撤銷修補</string>
+    <string name="kpm_undo_patch_switch_description">撤銷之前應用嘅 KPM 修補</string>
+    <string name="kpm_patch_enabled">KPM 修補已啓用</string>
+    <string name="kpm_undo_patch_enabled">KPM 撤銷修補已啓用</string>
+    <string name="kpm_patch_mode">KPM 修補模式</string>
+    <string name="kpm_undo_patch_mode">KPM 撤銷修補模式</string>
     <!-- KPM workflow related -->
+    <string name="kpm_preparing_tools">準備 KPM 修補工具</string>
+    <string name="kpm_applying_patch">正在應用 KPM 修補</string>
+    <string name="kpm_undoing_patch">正在撤銷 KPM 修補</string>
+    <string name="kpm_found_image_file">揾到 Image 檔案: %s</string>
+    <string name="kpm_patch_success">KPM 修補成功</string>
+    <string name="kpm_undo_patch_success">KPM 撤銷修補成功</string>
+    <string name="kpm_file_repacked">檔案重新打包完成</string>
     <!-- KPM error messages -->
+    <string name="kpm_extract_zip_failed">解壓壓縮檔失敗</string>
+    <string name="kpm_image_file_not_found">未揾到 Image 檔案</string>
+    <string name="kpm_patch_failed">KPM 修補失敗</string>
+    <string name="kpm_undo_patch_failed">KPM 撤銷修補失敗</string>
+    <string name="kpm_patch_operation_failed">KPM 修補操作失敗: %s</string>
     <!-- KPM option radio group strings -->
+    <string name="kpm_follow_kernel_file">跟隨核心</string>
+    <string name="kpm_follow_kernel_description">原樣使用核心，不進行任何 KPM 修改</string>
     <!-- 确认安装相关字符串 -->
+    <string name="confirm_installation">確認安裝</string>
+    <string name="confirm_multiple_installation">確認安裝 (%d 個檔案)</string>
     <!-- SUS Map related strings -->
     <!-- Log Viewer -->
     <!-- MiUI Uninstall Desc -->
