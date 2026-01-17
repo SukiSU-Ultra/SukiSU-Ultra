@@ -1,0 +1,8 @@
+services:
+  ddk:
+    platform: linux/amd64
+    image: docker.cnb.cool/ylarod/ddk/ddk-builder:latest
+    stdin_open: true
+    tty: true
+    volumes:
+      - ..:/workspace:cached

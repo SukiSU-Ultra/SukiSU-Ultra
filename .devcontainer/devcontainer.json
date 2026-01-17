@@ -1,0 +1,34 @@
+{
+  "name": "ddk-module-dev",
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "service": "ddk",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/ylarod/ddk/features/ddk-clang:latest": {
+      "clangVer": "clang-r510928",
+      "setDefault": true
+    },
+    "ghcr.io/ylarod/ddk/features/ddk-src:latest": {
+      "androidVer": "android15-6.6",
+      "withKdir": true,
+      "setDefault": true
+    }
+  },
+  "remoteUser": "root",
+  "postCreateCommand": "echo Devcontainer ready",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.copilot",
+        "github.copilot-chat",
+        "github.vscode-github-actions",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-azuretools.vscode-containers",
+        "ms-azuretools.vscode-docker",
+        "ms-ceintl.vscode-language-pack-zh-hans"
+      ]
+    }
+  }
+}
