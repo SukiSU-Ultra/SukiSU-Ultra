@@ -647,7 +647,7 @@ void ksu_ksud_exit(void)
 }
 
 #ifdef CONFIG_KSU_SUSFS
-void ksu_handle_sys_newfstatat(int fd, loff_t *kstat_size_ptr) {
+void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr) {
     loff_t new_size = *kstat_size_ptr + ksu_rc_len;
     struct file *file = fget(fd);
 
