@@ -7,7 +7,7 @@
     <string name="home_working">Đang hoạt động</string>
     <string name="home_working_version">Phiên bản: %s</string>
     <string name="home_unsupported">Không được hỗ trợ</string>
-    <string name="home_unsupported_reason">Không phát hiện được Trình điều khiển SukiSU Ultra trên Kernel của bạn, Kernel sai?</string>
+    <string name="home_unsupported_reason">Không phát hiện được Trình điều khiển QyanSU trên Kernel của bạn, Kernel sai?</string>
     <string name="home_kernel">Phiên bản Kernel</string>
     <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_manager_version">Phiên bản Trình quản lý</string>
@@ -47,12 +47,12 @@
     <string name="safe_mode">Chế độ an toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
     <string name="module_magisk_conflict">Các module không khả dụng do xung đột với Magisk!</string>
-    <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các module!</string>
-    <string name="home_support_title">Ủng hộ chúng tôi</string>
-    <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
-    <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi<br/><br/>Hình ảnh của các tệp có nhãn dán nhân vật anime thuộc bản quyền của %3$s, Quyền sở hữu trí tuệ thương hiệu trong hình ảnh thuộc về %4$s. Trước khi sử dụng các tệp này, ngoài việc tuân thủ %5$s, bạn cũng cần tuân thủ sự cho phép của hai tác giả để sử dụng các nội dung nghệ thuật này]]></string>
+    <string name="home_learn_kernelsu">Tìm hiểu về QyanSU</string>
+    <string name="home_learn_kernelsu_url">https://www.facebook.com/ho.quy.dan.2024</string>
+    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt QyanSU và sử dụng các module!</string>
+    <string name="home_support_title">Ủng hộ tôi</string>
+    <string name="home_support_content">QyanSU là mã nguồn đóng nên nếu bạn muốn sử dụng thì có thể quyên góp cho nhà phát triển!</string>
+    <string name="about_source_code"><![CDATA[Theo dõi developer tại %1$s<br/>Liên hệ developer qua %2$s.<br/><br/>Hình ảnh của các tệp có nhãn dán nhân vật anime thuộc bản quyền của %3$s, Quyền sở hữu trí tuệ thương hiệu trong hình ảnh thuộc về %4$s. Trước khi sử dụng các tệp này, ngoài việc tuân thủ %5$s, bạn cũng cần tuân thủ sự cho phép của hai tác giả để sử dụng các nội dung nghệ thuật này]]></string>
     <string name="profile_default">Mặc định</string>
     <string name="profile_template">Bản mẫu</string>
     <string name="profile_custom">Tuỳ chỉnh</string>
@@ -62,10 +62,10 @@
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
     <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
-    <string name="require_kernel_version" formatted="false">Phiên bản SukiSU Ultra hiện tại %s quá thấp để Trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
+    <string name="require_kernel_version" formatted="false">Phiên bản QyanSU hiện tại %s quá thấp để Trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %s hoặc cao hơn!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
     <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ</string>
-    <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép SukiSU Ultra khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
+    <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép QyanSU khôi phục mọi file đã được các module sửa đổi trong ứng dụng này</string>
     <string name="profile_selinux_domain">Tên miền</string>
     <string name="profile_selinux_rules">Quy tắc</string>
     <string name="module_update">Cập nhật</string>
@@ -120,9 +120,9 @@
     <string name="settings_uninstall_temporary">Gỡ cài đặt tạm thời</string>
     <string name="settings_uninstall_permanent">Gỡ cài đặt vĩnh viễn</string>
     <string name="settings_restore_stock_image">Khôi phục phân vùng khởi động về mặc định</string>
-    <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời SukiSU Ultra, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo</string>
-    <string name="settings_uninstall_permanent_message">Gỡ cài đặt SukiSU Ultra (root và tất cả các module) sạch hoàn toàn, trả về trạng thái ban đầu</string>
-    <string name="settings_restore_stock_image_message">Khôi phục lại boot lúc đầu (nếu có bản sao lưu), thường được sử dụng trước OTA; nếu bạn cần gỡ hẳn SukiSU Ultra, sử dụng \"Gỡ cài đặt vĩnh viễn\"</string>
+    <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời QyanSU, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo</string>
+    <string name="settings_uninstall_permanent_message">Gỡ cài đặt QyanSU (root và tất cả các module) sạch hoàn toàn, trả về trạng thái ban đầu</string>
+    <string name="settings_restore_stock_image_message">Khôi phục lại boot lúc đầu (nếu có bản sao lưu), thường được sử dụng trước OTA; nếu bạn cần gỡ hẳn QyanSU, sử dụng \"Gỡ cài đặt vĩnh viễn\"</string>
     <string name="flashing">Đang Flash...</string>
     <string name="flash_success">Flash thành công</string>
     <string name="flash_failed">Flash thất bại</string>
@@ -231,11 +231,11 @@
     <string name="kpm_control">Tuỳ chỉnh</string>
     <string name="home_kpm_version">Phiên bản KPM</string>
     <string name="close_notice">Đóng</string>
-    <string name="kernel_module_notice">Các chức năng Kernel Module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng Kernel Module của SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">Tương lai của SukiSU Ultra</string>
+    <string name="kernel_module_notice">Các chức năng Kernel Module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng Kernel Module của QyanSU</string>
+    <string name="home_ContributionCard_kernelsu">Tương lai của QyanSU</string>
     <string name="kpm_control_success">Thành công</string>
     <string name="kpm_control_failed">Thất bại</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">QyanSU sẽ là một nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi xin cảm ơn KernelSU và MKSU,... vì những đóng góp của họ!</string>
     <string name="not_supported">Không được hỗ trợ</string>
     <string name="supported">Được hỗ trợ</string>
     <string name="kernel_patched">Kernel chưa được vá</string>
@@ -295,7 +295,7 @@
     <string name="background_set_success">Đã cài đặt hình nền thành công</string>
     <string name="background_removed">Đã xóa hình nền tùy chỉnh</string>
     <string name="icon_switch_title">Thay thế icon</string>
-    <string name="icon_switch_summary">Thay đổi icon SukiSU thành icon của KernelSU</string>
+    <string name="icon_switch_summary">Thay đổi icon QyanSU thành icon của KernelSU</string>
     <string name="icon_switched">Đã thay đổi icon</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Ẩn chức năng KPM</string>
@@ -559,7 +559,7 @@
     <string name="unknown_signature">Không xác định</string>
     <string name="multi_manager_list">Trình quản lý đang hoạt động</string>
     <string name="no_active_manager">Trình quản lý đang không hoạt động</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">QyanSU</string>
     <string name="home_zygisk_implement">Triển khai Zygisk</string>
     <string name="home_meta_module_implement">Triển khai Siêu Module</string>
     <!-- 循环路径相关 -->
@@ -681,7 +681,7 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="log_viewer_load_more">Đang load thêm nhật ký</string>
     <string name="log_viewer_all_logs_loaded">Tất cả nhật ký đã được hiển thị</string>
     <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">Bạn muốn Gỡ cài đặt SukiSU sao 😭?</string>
+    <string name="miui_uninstall_title">Bạn muốn Gỡ cài đặt QyanSU sao 😭?</string>
     <string name="miui_uninstall_content">Hừm, được rồi. Tôi sẽ bị bạn Gỡ cài đặt. Chức năng root sẽ không ngừng hoạt động chỉ vì bạn mất một Trình quản lý. Đừng lo chỉ Gỡ cài đặt Trình quản lý thôi thì không thể mất quyền truy cập root được đâu, zako~❤️.</string>
     <string name="incompatible_kernel_msg">Trình quản lý hiện tại không tương thích với Kernel này! Vui lòng nâng cấp Kernel lên phiên bản %2$d hoặc cao hơn (hiện tại là %1$d)</string>
     <string name="umount_path_manager">Quản lý Đường dẫn Umount</string>
