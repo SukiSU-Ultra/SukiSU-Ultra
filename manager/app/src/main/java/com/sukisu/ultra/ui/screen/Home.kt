@@ -547,7 +547,7 @@ fun WarningCard(
 @Composable
 fun ContributionCard() {
     val uriHandler = LocalUriHandler.current
-    val links = listOf("https://github.com/ShirkNeko", "https://github.com/udochina")
+    val links = listOf("https://github.com/danpropc", "https://github.com/danpropc")
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainer),
