@@ -87,11 +87,11 @@ private fun AboutCardContent() {
                 val annotatedString = AnnotatedString.fromHtml(
                     htmlString = stringResource(
                         id = R.string.about_source_code,
-                        "<b><a href=\"https://www.facebook.com/ho.quy.dan.2024">Facebook</a></b>",
-                        "<b><a href=\"https://t.me/danpropc">Telegram</a></b>",
+                        "<b><a href=\"https://github.com/ShirkNeko/SukiSU-Ultra\">GitHub</a></b>",
+                        "<b><a href=\"https://t.me/danpropc\">Telegram</a></b>",
                         "<b>怡子曰曰</b>",
                         "<b>明风 OuO</b>",
-                        "<b><a href=\"https://www.facebook.com/ho.quy.dan.2024">bản quyền</a></b>"
+                        "<b><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt\">CC BY-NC-SA 4.0</a></b>"
                     ),
                     linkStyles = TextLinkStyles(
                         style = SpanStyle(
