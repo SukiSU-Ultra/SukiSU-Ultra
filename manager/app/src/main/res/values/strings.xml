@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
-    <string name="home">Home</string>
-    <string name="learn_more">Learn more</string>
-    <string name="home_not_installed">Not installed</string>
-    <string name="home_click_to_install">Click to install</string>
-    <string name="home_working">Working</string>
-    <string name="home_working_version">Version: %s</string>
-    <string name="home_unsupported">Unsupported</string>
-    <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?</string>
-    <string name="home_kernel">Kernel version</string>
-    <string name="home_susfs_version">SuSFS Version</string>
-    <string name="home_manager_version">Manager version</string>
-    <string name="home_selinux_status">SELinux status</string>
-    <string name="selinux_status_disabled">Disabled</string>
+    <string name="app_name" translatable="false">QyanSU Manager</string>
+    <string name="home">Nhà</string>
+    <string name="learn_more">Tìm hiểu thêm</string>
+    <string name="home_not_installed">Chưa được cài đặt</string>
+    <string name="home_click_to_install">Bấm để cài đặt</string>
+    <string name="home_working">Đang hoạt động</string>
+    <string name="home_working_version">Phiên bản: %s</string>
+    <string name="home_unsupported">Không hỗ trợ</string>
+    <string name="home_unsupported_reason">Không tìm thấy KernelSU driver</string>
+    <string name="home_kernel">Phiên bản Kernel:</string>
+    <string name="home_susfs_version">Phiên bản SuSFS</string>
+    <string name="home_manager_version">Phiên bản manager</string>
+    <string name="home_selinux_status">Trạng thái SELinux</string>
+    <string name="selinux_status_disabled">Tắt</string>
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
-    <string name="selinux_status_unknown">Unknown</string>
+    <string name="selinux_status_unknown">Không xác định</string>
     <string name="superuser">Superuser</string>
-    <string name="module_failed_to_enable">Failed to enable module: %s</string>
-    <string name="module_failed_to_disable">Failed to disable module: %s</string>
-    <string name="module_empty">No module installed</string>
+    <string name="module_failed_to_enable">Bật module thất bại: %s</string>
+    <string name="module_failed_to_disable">Tắt module thất bại: %s</string>
+    <string name="module_empty">Không có module nào được cài đặt</string>
     <string name="module">Module</string>
-    <string name="module_sort_action_first">Sort (Action first)</string>
-    <string name="module_sort_enabled_first">Sort (Enabled first)</string>
-    <string name="uninstall">Uninstall</string>
-    <string name="module_install">Install</string>
-    <string name="install">Install</string>
-    <string name="reboot">Reboot</string>
-    <string name="settings">Settings</string>
-    <string name="reboot_userspace">Soft Reboot</string>
-    <string name="reboot_recovery">Reboot to Recovery</string>
-    <string name="reboot_bootloader">Reboot to Bootloader</string>
-    <string name="reboot_download">Reboot to Download</string>
-    <string name="reboot_edl">Reboot to EDL</string>
-    <string name="about">About</string>
-    <string name="module_uninstall_confirm">Are you sure you want to uninstall module %s?</string>
+    <string name="module_sort_action_first">Sắp xếp theo (Hoạt động trước)</string>
+    <string name="module_sort_enabled_first">Sắp xếp theo (Bật trước)</string>
+    <string name="uninstall">Gỡ cài đặt</string>
+    <string name="module_install">Cài đặt</string>
+    <string name="install">Cài đặt</string>
+    <string name="reboot">Khởi động lại</string>
+    <string name="settings">Cài đặt</string>
+    <string name="reboot_userspace">Khởi động lại nhanh</string>
+    <string name="reboot_recovery">Khởi động lại vào Recovery</string>
+    <string name="reboot_bootloader">Khởi động lại vào Bootloader</string>
+    <string name="reboot_download">Khởi động lại vào tải xuống</string>
+    <string name="reboot_edl">Khởi động lại vào EDL</string>
+    <string name="about">Về tôi</string>
+    <string name="module_uninstall_confirm">Bạn có chắc chắn muốn gỡ cài đặt module %s?</string>
     <string name="metamodule_uninstall_confirm">Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work</string>
     <string name="module_uninstall_success">%s uninstalled</string>
     <string name="module_uninstall_failed">Failed to uninstall: %s</string>
-    <string name="module_version">Version</string>
-    <string name="module_author">Author</string>
+    <string name="module_version">Phiên bản</string>
+    <string name="module_author">Tác giả</string>
     <string name="refresh">Refresh</string>
     <string name="show_system_apps">Show system apps</string>
     <string name="hide_system_apps">Hide system apps</string>
@@ -48,11 +48,11 @@
     <string name="safe_mode">Safe mode</string>
     <string name="reboot_to_apply">Reboot to take effect</string>
     <string name="module_magisk_conflict">Modules are unavailable due to a conflict with Magisk!</string>
-    <string name="home_learn_kernelsu">Learn KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Learn how to install KernelSU and use modules</string>
-    <string name="home_support_title">Support Us</string>
-    <string name="home_support_content">KernelSU is, and always will be, free, and open source. You can however show us that you care by making a donation</string>
+    <string name="home_learn_kernelsu">Thêm về QyanSU</string>
+    <string name="home_learn_kernelsu_url">https://www.facebook.com/ho.quy.dan.2024</string>
+    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt QyanSU và sử dụng các module.</string>
+    <string name="home_support_title">Hỗ trợ tôi</string>
+    <string name="home_support_content">QyanSU là mã nguồn đóng nên nếu bạn muốn sử dụng thì có thể quyên góp cho nhà phát triển!</string>
     <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel<br/><br/>The images of the files with anime character sticker are copyrighted by %3$s, the Brand Intellectual Property in the images is owned by %4$s. Before using these files, in addition to complying with %5$s, you also need to comply with the authorization of the two authors to use these artistic contents]]></string>
     <string name="profile" translatable="false">App Profile</string>
     <string name="profile_default">Default</string>
@@ -67,7 +67,7 @@
     <string name="require_kernel_version" formatted="false">The current KernelSU version %s is too low for the manager to work properly. Please upgrade to version %s or higher!</string>
     <string name="settings_umount_modules_default">Umount modules by default</string>
     <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set</string>
-    <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app</string>
+    <string name="profile_umount_modules_summary">Enabling this option will allow QyanSU to restore any modified files by the modules for this app</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Rules</string>
     <string name="module_update">Update</string>
@@ -233,11 +233,11 @@
     <string name="kpm_control">Execute</string>
     <string name="home_kpm_version">KPM Version</string>
     <string name="close_notice">Close</string>
-    <string name="kernel_module_notice">The following kernel module functions were developed by KernelPatch and modified to include the kernel module functions of SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra Look forward to</string>
+    <string name="kernel_module_notice">Các hàm mô-đun nhân sau đây được phát triển bởi KernelPatch và được sửa đổi để bao gồm các hàm module nhân của QyanSU.</string>
+    <string name="home_ContributionCard_kernelsu">QyanSU Look forward to</string>
     <string name="kpm_control_success">Success</string>
     <string name="kpm_control_failed">Failed</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">QyanSU sẽ là một chi nhánh tương đối độc lập của KSU trong tương lai, nhưng chúng tôi vẫn đánh giá cao những đóng góp của các tổ chức chính thức như KernelSU và MKSU!</string>
     <string name="not_supported">Unsupported</string>
     <string name="supported">Supported</string>
     <string name="kernel_patched">Kernel not patched</string>
@@ -495,7 +495,7 @@
     <string name="susfs_hide_mounts_setting_all">Hide for all processes</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Hide only for non-KSU processes</string>
     <string name="kernel_simple_kernel">Kernel Version Concise Mode</string>
-    <string name="kernel_simple_kernel_summary">Enable or disable the clean mode displayed by the SukiSU kernel version</string>
+    <string name="kernel_simple_kernel_summary">Enable or disable the clean mode displayed by the QyanSU kernel version</string>
     <string name="susfs_android_data_path_set">Android Data path has been set to: %s</string>
     <string name="susfs_sdcard_path_set">SD card path has been set to: %s</string>
     <string name="susfs_path_setup_warning">Path setup may not be fully successful, but SUS paths will continue to be added</string>
@@ -561,7 +561,7 @@
     <string name="unknown_signature">Unknown</string>
     <string name="multi_manager_list">Active Manager</string>
     <string name="no_active_manager">No active manager</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">QyanSU</string>
     <string name="home_zygisk_implement">Zygisk implement</string>
     <string name="home_meta_module_implement">Meta Module implement</string>
     <!-- 循环路径相关 -->
@@ -693,7 +693,7 @@ Important Note:\n
     <string name="log_viewer_load_more">Load More Logs</string>
     <string name="log_viewer_all_logs_loaded">All logs displayed</string>
     <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">Confirm Uninstallation SukiSU Manager?</string>
+    <string name="miui_uninstall_title">Confirm Uninstallation QyanSU Manager?</string>
     <string name="miui_uninstall_content">Proceeding with the uninstallation will not affect the core functionality of your root access. The root is designed to operate independently of this manager.</string>
     <string name="incompatible_kernel_msg">
     The current manager is incompatible with this kernel! Please upgrade the kernel to version %2$d or higher (currently %1$d)
