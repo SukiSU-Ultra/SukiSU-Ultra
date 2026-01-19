@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KernelSU"
         tools:targetApi="34">
-        <!-- 专门为小米手机桌面卸载添加了提示，提升用户体验 -->
+        <!-- Một lời nhắc cụ thể đã được thêm vào màn hình chính của điện thoại Xiaomi để cải thiện trải nghiệm người dùng khi gỡ cài đặt ứng dụng. -->
         <meta-data
             android:name="app_description_title"
             android:resource="@string/miui_uninstall_title" />
@@ -63,7 +63,7 @@
                 <data android:mimeType="application/vnd.android.package-archive" />
             </intent-filter>
         </activity>
-        <!-- 切换图标 -->
+        <!-- Biểu tượng công tắc -->
         <activity-alias
             android:name=".ui.MainActivityAlias"
             android:targetActivity=".ui.MainActivity"
