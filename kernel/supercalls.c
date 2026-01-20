@@ -949,8 +949,8 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 		}
 #endif //#ifdef CONFIG_KSU_SUSFS_SUS_PATH
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-		if (cmd == CMD_SUSFS_HIDE_SUS_MNTS_FOR_ALL_PROCS) {
-			susfs_set_hide_sus_mnts_for_all_procs(arg);
+		if (cmd == CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS) {
+			susfs_set_hide_sus_mnts_for_non_su_procs(arg);
 			return 0;
 		}
 #endif //#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
