@@ -476,7 +476,11 @@ static bool check_init_path(char *dpath)
 	return true;
 }
 
+#ifdef CONFIG_KSU_SUSFS
 static bool is_init_rc(struct file *fp)
+#else
+bool is_init_rc(struct file *fp)
+#endif
 {
 #ifdef CONFIG_KSU_MANUAL_HOOK
 	if (!ksu_init_rc_hook) {
@@ -514,8 +518,8 @@ static bool is_init_rc(struct file *fp)
 
 void ksu_handle_sys_read(unsigned int fd)
 {
+#ifdef CONFIG_KSU_SYSCALL_HOOK
 	struct file *file = fget(fd);
-#if defined(CONFIG_KSU_SYSCALL_HOOK)
 	if (!file) {
 		return;
 	}
@@ -523,10 +527,6 @@ void ksu_handle_sys_read(unsigned int fd)
 	if (!is_init_rc(file)) {
 		goto skip;
 	}
-#else
-	/* Do nothing */
-	return;
-#endif
 
 	// we only process the first read
 	static bool rc_hooked = false;
@@ -559,6 +559,7 @@ void ksu_handle_sys_read(unsigned int fd)
 
 skip:
 	fput(file);
+#endif
 }
 
 static unsigned int volumedown_pressed_count = 0;
