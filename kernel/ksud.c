@@ -267,7 +267,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			     struct user_arg_ptr *argv,
 			     struct user_arg_ptr *envp, int *flags)
 {
-#if defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_SUSFS)
+#if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_SUSFS)
 	if (!ksu_execveat_hook) {
 		return 0;
 	}
@@ -518,8 +518,8 @@ bool is_init_rc(struct file *fp)
 
 void ksu_handle_sys_read(unsigned int fd)
 {
-#ifdef CONFIG_KSU_SYSCALL_HOOK
 	struct file *file = fget(fd);
+#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_SUSFS)
 	if (!file) {
 		return;
 	}
