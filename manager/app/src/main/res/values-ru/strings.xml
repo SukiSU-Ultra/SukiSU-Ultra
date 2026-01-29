@@ -334,6 +334,7 @@
     <string name="module_download_error">Ошибка загрузки модуля</string>
     <string name="kernel_flashing">Прошить ядро</string>
     <string name="warning_of_meta_module_title">Требуется Мета-модуль</string>
+    <string name="warning_of_meta_module_summary">Этот модуль хочет смонтировать /system, meta модуль обработает это. В противном случае он может не работать</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">Все</string>
     <string name="category_root_apps">Рут-доступ</string>
@@ -713,4 +714,5 @@
     <string name="mnt_detach">MNT_DETACH</string>
     <string name="group_contains_apps">Содержит %d приложений</string>
     <string name="settings_disable_sulog">Отключить журнал суперпользователя</string>
+    <string name="settings_disable_sulog_summary">Выключить логирование журналов доступа KernelSU</string>
 </resources>
