@@ -51,15 +51,55 @@ void apply_kernelsu_rules(void)
 	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "netdomain");
 	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "bluetoothdomain");
 
-	// Create unconstrained file type
+	// KernelSU file type - restricted access
 	ksu_type(db, KERNEL_SU_FILE, "file_type");
 	ksu_typeattribute(db, KERNEL_SU_FILE, "mlstrustedobject");
-	ksu_allow(db, ALL, KERNEL_SU_FILE, ALL, ALL);
+	// Only allow trusted domains to access KernelSU files
+	ksu_allow(db, KERNEL_SU_DOMAIN, KERNEL_SU_FILE, ALL, ALL);
+	ksu_allow(db, "init", KERNEL_SU_FILE, ALL, ALL);
+	ksu_allow(db, "zygote", KERNEL_SU_FILE, ALL, ALL);
+	
+	// Zygote permissions for Zygisk - using stock types only
+	ksu_allow(db, "zygote", "adb_data_file", "dir", "search");
+	ksu_allow(db, "zygote", "adb_data_file", "dir", "read");
+	ksu_allow(db, "zygote", "adb_data_file", "dir", "open");
+	ksu_allow(db, "zygote", "adb_data_file", "file", "read");
+	ksu_allow(db, "zygote", "adb_data_file", "file", "open");
+	ksu_allow(db, "zygote", "adb_data_file", "file", "execute");
+	ksu_allow(db, "zygote", "adb_data_file", "file", "execute_no_trans");
+	ksu_allow(db, "zygote", "adb_data_file", "file", "map");
+	ksu_allow(db, "zygote", "adb_data_file", "file", "getattr");
+	
+	// Allow zygote to execute system libraries (for module loading)
+	ksu_allow(db, "zygote", "system_file", "file", "execute");
+	ksu_allow(db, "zygote", "system_file", "file", "execute_no_trans");
+	ksu_allow(db, "zygote", "system_file", "file", "map");
+	
+	// Zygote ptrace capabilities (for injection)
+	ksu_allow(db, "zygote", "zygote", "capability", "sys_ptrace");
+	ksu_allow(db, "zygote", "zygote", "process", "ptrace");
+	
+	// Allow zygote to interact with KernelSU domain
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "file", "read");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "file", "open");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "dir", "search");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "dir", "read");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "fd", "use");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "unix_stream_socket", "connectto");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "unix_stream_socket", "read");
+	ksu_allow(db, "zygote", KERNEL_SU_DOMAIN, "unix_stream_socket", "write");
+	
+	// Memfd/tmpfs for module loading
+	ksu_allow(db, "zygote", "zygote", "capability", "ipc_lock");
+	ksu_allow(db, "zygote", "tmpfs", "file", "read");
+	ksu_allow(db, "zygote", "tmpfs", "file", "write");
+	ksu_allow(db, "zygote", "tmpfs", "file", "execute");
+	ksu_allow(db, "zygote", "tmpfs", "file", "map");
 
-	// allow all!
+	// KernelSU domain full permissions
 	ksu_allow(db, KERNEL_SU_DOMAIN, ALL, ALL, ALL);
 
-	// allow us do any ioctl
+	// ioctl permissions
 	if (db->policyvers >= POLICYDB_VERSION_XPERMS_IOCTL) {
 		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "blk_file", ALL);
 		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "fifo_file", ALL);
@@ -67,10 +107,27 @@ void apply_kernelsu_rules(void)
 		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "file", ALL);
 	}
 
-	// our ksud triggered by init
+	// Init can trigger ksud
 	ksu_allow(db, "init", KERNEL_SU_DOMAIN, ALL, ALL);
 
-	// copied from Magisk rules
+	
+	// Kernel domain - specific permissions only
+	ksu_allow(db, "kernel", "adb_data_file", "dir", "search");
+	ksu_allow(db, "kernel", "adb_data_file", "dir", "read");
+	ksu_allow(db, "kernel", "adb_data_file", "dir", "open");
+	ksu_allow(db, "kernel", "adb_data_file", "file", "read");
+	ksu_allow(db, "kernel", "adb_data_file", "file", "open");
+	ksu_allow(db, "kernel", "adb_data_file", "file", "execute");
+	ksu_allow(db, "kernel", "adb_data_file", "file", "execute_no_trans");
+	ksu_allow(db, "kernel", "adb_data_file", "file", "getattr");
+	ksu_allow(db, "kernel", "system_file", "file", "execute");
+	ksu_allow(db, "kernel", "system_file", "file", "execute_no_trans");
+	ksu_allow(db, "kernel", "toolbox_exec", "file", "execute");
+	ksu_allow(db, "kernel", "toolbox_exec", "file", "execute_no_trans");
+	ksu_allow(db, "kernel", "kernel", "capability", "dac_override");
+	ksu_allow(db, "kernel", "kernel", "capability", "dac_read_search");
+	
+	// Magisk-style rules for compatibility
 	// suRights
 	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "dir", "search");
 	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "dir", "read");
@@ -96,8 +153,7 @@ void apply_kernelsu_rules(void)
 	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "dir", "search");
 	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "file", "read");
 	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "file", "open");
-	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "process",
-		  "getattr");
+	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "process", "getattr");
 
 	// Allow all binder transactions
 	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "binder", ALL);
@@ -107,8 +163,6 @@ void apply_kernelsu_rules(void)
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
 #ifdef CONFIG_KSU_SUSFS
-	// Allow umount in zygote process without installing zygisk
-	//ksu_allow(db, "zygote", "labeledfs", "filesystem", "unmount");
 	susfs_set_priv_app_sid();
 	susfs_set_init_sid();
 	susfs_set_ksu_sid();

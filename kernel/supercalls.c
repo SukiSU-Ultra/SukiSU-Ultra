@@ -19,6 +19,7 @@
 #ifdef CONFIG_KSU_SUSFS
 #include <linux/namei.h>
 #include <linux/susfs.h>
+#include <linux/vmalloc.h>
 #endif // #ifdef CONFIG_KSU_SUSFS
 
 #include "supercalls.h"
@@ -625,19 +626,52 @@ static int list_try_umount(void __user *arg)
 	size_t output_size;
 	size_t offset = 0;
 	int ret = 0;
+	bool using_vmalloc = false;
+	int mount_count = 0;
+	
+	#define MAX_UMOUNT_LIST_SIZE (2 * 1024 * 1024)  // 2MB absolute max
+	#define DEFAULT_UMOUNT_SIZE (64 * 1024)         // 64KB default
 
 	if (copy_from_user(&cmd, arg, sizeof(cmd)))
 		return -EFAULT;
 
-	output_size = cmd.buf_size ? cmd.buf_size : 4096;
-
-	if (!cmd.arg || output_size == 0)
+	if (!cmd.arg)
 		return -EINVAL;
 
-	output_buf = kzalloc(output_size, GFP_KERNEL);
-	if (!output_buf)
-		return -ENOMEM;
+	// Count mounts first to estimate size needed
+	down_read(&mount_list_lock);
+	list_for_each_entry(entry, &mount_list, list) {
+		mount_count++;
+	}
+	up_read(&mount_list_lock);
 
+	// Calculate needed size: ~200 bytes per mount + 1KB header
+	output_size = 1024 + (mount_count * 200);
+	
+	// Use at least default size, cap at maximum
+	if (output_size < DEFAULT_UMOUNT_SIZE)
+		output_size = DEFAULT_UMOUNT_SIZE;
+	if (output_size > MAX_UMOUNT_LIST_SIZE)
+		output_size = MAX_UMOUNT_LIST_SIZE;
+
+	pr_info("KernelSU: Allocating %zu bytes for %d mounts (user requested %zu)\n",
+	        output_size, mount_count, cmd.buf_size);
+
+	// Try kzalloc first with NOWARN flag
+	output_buf = kzalloc(output_size, GFP_KERNEL | __GFP_NOWARN);
+	if (!output_buf) {
+		// Fallback to vzalloc for large allocations
+		pr_info("KernelSU: kzalloc failed for %zu bytes, using vzalloc\n", 
+		        output_size);
+		output_buf = vzalloc(output_size);
+		using_vmalloc = true;
+	}
+
+	if (!output_buf) {
+		pr_err("KernelSU: Failed to allocate %zu bytes for umount list\n",
+		       output_size);
+		return -ENOMEM;
+	}
 	offset += snprintf(output_buf + offset, output_size - offset,
 			   "Mount Point\tFlags\n");
 	offset += snprintf(output_buf + offset, output_size - offset,
@@ -653,6 +687,8 @@ static int list_try_umount(void __user *arg)
 			break;
 		}
 		if (written >= (int)(output_size - offset)) {
+			// Should rarely happen since we calculated size
+			pr_warn("KernelSU: Buffer full, truncating mount list\n");
 			ret = -ENOSPC;
 			break;
 		}
@@ -665,7 +701,11 @@ static int list_try_umount(void __user *arg)
 			ret = -EFAULT;
 	}
 
-	kfree(output_buf);
+	// Free using the correct method
+	if (using_vmalloc)
+		vfree(output_buf);
+	else
+		kfree(output_buf);
 	return ret;
 }
 
