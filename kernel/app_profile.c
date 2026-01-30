@@ -241,7 +241,7 @@ static void disable_seccomp_for_task(struct task_struct *tsk)
 	// When disabling Seccomp, ensure that tsk->sighand->siglock is held during the operation.
 	spin_lock_irq(&tsk->sighand->siglock);
 	// disable seccomp
-    clear_tsk_thread_flag(tsk, TIF_SECCOMP);
+	clear_tsk_thread_flag(tsk, TIF_SECCOMP);
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) ||                          \
      defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE))

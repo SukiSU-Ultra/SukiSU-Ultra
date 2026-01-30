@@ -27,7 +27,7 @@
 #include "syscall_handler.c"
 #endif
 
-#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||          \
+#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||           \
 	(LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0) &&                      \
 	 defined(CONFIG_KSU_MANUAL_HOOK))
 // + ksu_handle_setresuid hook for 6.8+

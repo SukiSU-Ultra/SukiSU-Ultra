@@ -36,7 +36,7 @@ static int ksu_key_permission(key_ref_t key_ref, const struct cred *cred,
 #endif
 
 #if defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_SUSFS)
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 8, 0) &&                          \
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 8, 0) &&                           \
      defined(CONFIG_KSU_MANUAL_HOOK))
 static int ksu_inode_rename(struct inode *old_inode, struct dentry *old_dentry,
 			    struct inode *new_inode, struct dentry *new_dentry)
@@ -110,7 +110,7 @@ static struct security_hook_list ksu_hooks[] = {
 	LSM_HOOK_INIT(key_permission, ksu_key_permission),
 #endif
 #if defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_SUSFS)
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 8, 0) &&                          \
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 8, 0) &&                           \
      defined(CONFIG_KSU_MANUAL_HOOK))
 	LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid),
 	LSM_HOOK_INIT(inode_rename, ksu_inode_rename),

@@ -8,12 +8,12 @@
 		.pre_handler = pre,                                            \
 	}
 
-#define DECL_KRP(name, sym, ent, han)                                                \
-	struct kretprobe name = {                                                 \
-		.kp.symbol_name = sym,                                            \
-		.entry_handler = ent,                                            \
-		.handler = han,                                            \
-		.data_size = sizeof(void *),                             \
+#define DECL_KRP(name, sym, ent, han)                                          \
+	struct kretprobe name = {                                              \
+		.kp.symbol_name = sym,                                         \
+		.entry_handler = ent,                                          \
+		.handler = han,                                                \
+		.data_size = sizeof(void *),                                   \
 	}
 
 // ksud.c
@@ -53,7 +53,7 @@ static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 }
 
 static int sys_fstat_handler_pre(struct kretprobe_instance *p,
-					struct pt_regs *regs)
+				 struct pt_regs *regs)
 {
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
 	unsigned int fd = PT_REGS_PARM1(real_regs);
@@ -74,23 +74,27 @@ static int sys_fstat_handler_pre(struct kretprobe_instance *p,
 }
 
 static int sys_fstat_handler_post(struct kretprobe_instance *p,
-					struct pt_regs *regs)
+				  struct pt_regs *regs)
 {
 	void __user *statbuf = *(void **)&p->data;
 	if (statbuf) {
-		void __user *st_size_ptr = statbuf + offsetof(struct stat, st_size);
+		void __user *st_size_ptr =
+			statbuf + offsetof(struct stat, st_size);
 		long size, new_size;
 		if (!copy_from_user_nofault(&size, st_size_ptr, sizeof(long))) {
 			new_size = size + ksu_rc_len;
-			pr_info("adding ksu_rc_len: %ld -> %ld", size, new_size);
-			if (!copy_to_user_nofault(st_size_ptr, &new_size, sizeof(long))) {
+			pr_info("adding ksu_rc_len: %ld -> %ld", size,
+				new_size);
+			if (!copy_to_user_nofault(st_size_ptr, &new_size,
+						  sizeof(long))) {
 				pr_info("added ksu_rc_len");
 			} else {
 				pr_err("add ksu_rc_len failed: statbuf 0x%lx",
-					(unsigned long)st_size_ptr);
+				       (unsigned long)st_size_ptr);
 			}
 		} else {
-			pr_err("read statbuf 0x%lx failed", (unsigned long)st_size_ptr);
+			pr_err("read statbuf 0x%lx failed",
+			       (unsigned long)st_size_ptr);
 		}
 	}
 
@@ -108,7 +112,8 @@ static int input_handle_event_handler_pre(struct kprobe *p,
 
 static DECL_KP(execve_kp, SYS_EXECVE_SYMBOL, sys_execve_handler_pre);
 static DECL_KP(sys_read_kp, SYS_READ_SYMBOL, sys_read_handler_pre);
-static DECL_KRP(sys_fstat_kp, SYS_FSTAT_SYMBOL, sys_fstat_handler_pre, sys_fstat_handler_post);
+static DECL_KRP(sys_fstat_kp, SYS_FSTAT_SYMBOL, sys_fstat_handler_pre,
+		sys_fstat_handler_post);
 static DECL_KP(input_event_kp, "input_event", input_handle_event_handler_pre);
 
 static void do_stop_init_rc_hook(struct work_struct *work)

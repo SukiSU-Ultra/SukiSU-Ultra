@@ -552,8 +552,8 @@ static bool add_filename_trans(struct policydb *db, const char *s,
 	}
 
 	if (trans == NULL) {
-		trans = (struct filename_trans_datum *)kcalloc(1, sizeof(*trans),
-							       GFP_ATOMIC);
+		trans = (struct filename_trans_datum *)kcalloc(
+			1, sizeof(*trans), GFP_ATOMIC);
 		struct filename_trans_key *new_key =
 			(struct filename_trans_key *)kzalloc(sizeof(*new_key),
 							     GFP_ATOMIC);
@@ -578,8 +578,8 @@ static bool add_filename_trans(struct policydb *db, const char *s,
 		hashtab_search(db->filename_trans, &key);
 
 	if (trans == NULL) {
-		trans = (struct filename_trans_datum *)kcalloc(1, sizeof(*trans),
-							       GFP_ATOMIC);
+		trans = (struct filename_trans_datum *)kcalloc(
+			1, sizeof(*trans), GFP_ATOMIC);
 		if (!trans) {
 			pr_err("add_filename_trans: Failed to alloc datum\n");
 			return false;
