@@ -629,6 +629,11 @@ static int list_try_umount(void __user *arg)
 	if (copy_from_user(&cmd, arg, sizeof(cmd)))
 		return -EFAULT;
 
+	if (cmd.buf_size > 1024 * 1024) {
+		pr_err("list_try_umount: invalid buf_size %u\n", cmd.buf_size);
+		return -EINVAL;
+	}
+
 	output_size = cmd.buf_size ? cmd.buf_size : 4096;
 
 	if (!cmd.arg || output_size == 0)
