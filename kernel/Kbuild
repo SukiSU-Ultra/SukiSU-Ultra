@@ -35,7 +35,7 @@ MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 REPO_OWNER := SukiSU-Ultra
 REPO_NAME := SukiSU-Ultra
 REPO_BRANCH := main
-KSU_VERSION_API := 4.1.0
+KSU_VERSION_API := 4.1.1
 
 GIT_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git
 CURL_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin curl
