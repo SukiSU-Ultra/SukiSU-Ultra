@@ -16,7 +16,7 @@ static inline bool is_selinux_disabled(void)
 #ifdef KSU_COMPAT_USE_SELINUX_STATE
 	return selinux_state.disabled;
 #else
-	return selinux_disabled;
+	return !selinux_is_enabled();  // Proper function call with ();
 #endif
 #else
 	return false;
