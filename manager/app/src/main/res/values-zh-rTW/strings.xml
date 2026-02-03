@@ -20,6 +20,13 @@
     <string name="module_failed_to_disable">無法停用模組：%s</string>
     <string name="module_empty">查無已安裝的模組</string>
     <string name="module">模組</string>
+    <string name="module_install_prompt_with_name">將安裝以下模組：%1$s</string>
+    <string name="module_sort_action_first">執行優先</string>
+    <string name="module_sort_enabled_first">啟用優先</string>
+    <string name="module_repos">模組倉庫</string>
+    <string name="module_repos_sort_name">按名稱排序</string>
+    <string name="module_repos_source_code">源碼</string>
+    <string name="confirm">確認</string>
     <string name="uninstall">解除安裝</string>
     <string name="module_install">安裝</string>
     <string name="install">安裝</string>
@@ -47,106 +54,99 @@
     <string name="home_support_title">協助發展</string>
     <string name="home_support_content">KernelSU 一向以免費與開放原始碼自居，矢志不渝。若想協助我們，可以用小額捐款表達你對專案發展的大力支持。</string>
     <string name="about_source_code"><![CDATA[前往 %1$s 檢閱原始碼<br/>前往 %2$s 加入頻道]]></string>
-    <string name="profile_umount_modules">解除掛載模組功能</string>
-    <string name="failed_to_update_app_profile">無法更新「%s」App Profile</string>
-    <string name="require_kernel_version">管理工具無法以老舊的 KernelSU %1$d 版本正常運作。請升級至 %2$d 以上的版本！</string>
-    <string name="settings_umount_modules_default">預設解除掛載模組功能</string>
-    <string name="settings_umount_modules_default_summary">將 App Profile 的全域預設行為設作「解除掛載模組功能」。啟用後，將向未指派 Profile 的應用程式移除模組功能。</string>
-    <string name="profile_umount_modules_summary">啟用選項後，KernelSU 會將應用程式內遭模組修改的檔案恢復原狀。</string>
     <string name="profile_default">預設</string>
-    <string name="profile_custom">自訂</string>
-    <string name="profile_capabilities">權限</string>
-    <string name="profile_selinux_rules">規則</string>
-    <string name="module_downloading">正在下載模組：%s</string>
-    <string name="restart_app">重新執行</string>
     <string name="profile_template">範本</string>
+    <string name="profile_custom">自訂</string>
     <string name="profile_name">Profile 名稱</string>
     <string name="profile_namespace">命名空間掛載</string>
     <string name="profile_namespace_inherited">繼承</string>
     <string name="profile_namespace_global">全域</string>
     <string name="profile_namespace_individual">個體</string>
     <string name="profile_groups">群組</string>
+    <string name="profile_capabilities">權限</string>
     <string name="profile_selinux_context">SELinux 上下文</string>
+    <string name="profile_umount_modules">解除掛載模組功能</string>
+    <string name="failed_to_update_app_profile">無法更新「%s」App Profile</string>
+    <string name="require_kernel_version">管理工具無法以老舊的 KernelSU %1$d 版本正常運作。請升級至 %2$d 以上的版本！</string>
+    <string name="settings_umount_modules_default">預設解除掛載模組功能</string>
+    <string name="settings_umount_modules_default_summary">將 App Profile 的全域預設行為設作「解除掛載模組功能」。啟用後，將向未指派 Profile 的應用程式移除模組功能。</string>
+    <string name="profile_umount_modules_summary">啟用選項後，KernelSU 會將應用程式內遭模組修改的檔案恢復原狀。</string>
     <string name="profile_selinux_domain">定域</string>
+    <string name="profile_selinux_rules">規則</string>
     <string name="module_update">更新</string>
+    <string name="module_downloading">正在下載模組：%s</string>
     <string name="module_start_downloading">準備下載模組：%s</string>
     <string name="new_version_available">版本 %s 現已開放下載，點選開始更新。</string>
     <string name="launch_app">開始執行</string>
     <string name="force_stop_app">強制停止</string>
+    <string name="restart_app">重新執行</string>
     <string name="failed_to_update_sepolicy">無法為「%s」更新 SELinux 規則</string>
+    <string name="su_not_allowed">無法授予「%s」超級使用者存取</string>
     <string name="module_changelog">更新說明</string>
-    <string name="app_profile_template_id_invalid">範本編號無效</string>
+    <string name="settings_profile_template">App Profile 範本</string>
+    <string name="settings_profile_template_summary">管理 App Profile 的本地、線上範本</string>
     <string name="app_profile_template_create">建立範本</string>
     <string name="app_profile_template_edit">編輯範本</string>
     <string name="app_profile_template_id">編號</string>
-    <string name="settings_profile_template">App Profile 範本</string>
-    <string name="settings_profile_template_summary">管理 App Profile 的本地、線上範本</string>
-    <string name="app_profile_template_import_success">已成功匯入</string>
-    <string name="app_profile_export_to_clipboard">匯出至剪貼簿</string>
-    <string name="app_profile_template_export_empty">查無可供匯出的本地範本！</string>
-    <string name="app_profile_template_id_exist">編號已由其他範本領有！</string>
-    <string name="app_profile_import_from_clipboard">自剪貼簿匯入</string>
+    <string name="app_profile_template_id_invalid">範本編號無效</string>
     <string name="app_profile_template_name">名稱</string>
-    <string name="app_profile_import_export">匯入／匯出</string>
-    <string name="app_profile_template_save_failed">無法儲存範本</string>
     <string name="app_profile_template_description">說明</string>
     <string name="app_profile_template_save">儲存</string>
     <string name="app_profile_template_delete">刪除</string>
-    <string name="app_profile_template_import_empty">查無剪貼簿內容！</string>
     <string name="app_profile_template_view">檢視範本</string>
-    <string name="enable_web_debugging_summary">旨在偵錯 WebUI。請依自身狀況適時啟用。</string>
-    <string name="enable_web_debugging">啟用 WebView 偵錯</string>
-    <string name="grant_root_failed">無法獲取 Root 權限！</string>
-    <string name="open">開啟</string>
+    <string name="app_profile_template_id_exist">編號已由其他範本領有！</string>
+    <string name="app_profile_import_export">匯入／匯出</string>
+    <string name="app_profile_import_from_clipboard">自剪貼簿匯入</string>
+    <string name="app_profile_export_to_clipboard">匯出至剪貼簿</string>
+    <string name="app_profile_template_export_empty">查無可供匯出的本地範本！</string>
+    <string name="app_profile_template_import_success">已成功匯入</string>
+    <string name="app_profile_template_save_failed">無法儲存範本</string>
+    <string name="app_profile_template_import_empty">查無剪貼簿內容！</string>
     <string name="settings_check_update">檢查更新</string>
     <string name="settings_check_update_summary">開啟本應用程式時，自動檢查更新</string>
+    <string name="grant_root_failed">無法獲取 Root 權限！</string>
+    <string name="action">執行</string>
+    <string name="open">開啟</string>
+    <string name="enable_web_debugging">啟用 WebView 偵錯</string>
+    <string name="enable_web_debugging_summary">旨在偵錯 WebUI。請依自身狀況適時啟用。</string>
+    <string name="direct_install">直接安裝（推薦）</string>
     <string name="select_file">選擇檔案</string>
     <string name="install_inactive_slot">安裝至非作用擴充槽（適用於 OTA 更新過後）</string>
     <string name="install_inactive_slot_warning">你的裝置將在重新啟動時**強制**開機至目前的非作用擴充槽！\n確保僅在 OTA 更新過後選擇此選項。\n是否繼續？</string>
-    <string name="direct_install">直接安裝（推薦）</string>
     <string name="install_next">繼續</string>
-    <string name="select_kmi">選擇 KMI</string>
     <string name="select_file_tip">建議選擇 %1$s 分區的映像檔</string>
+    <string name="select_kmi">選擇 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
     <string name="settings_uninstall_temporary">暫時性解除安裝</string>
+    <string name="settings_uninstall_permanent">永久性解除安裝</string>
     <string name="settings_restore_stock_image">恢復原廠映像檔</string>
     <string name="settings_uninstall_temporary_message">暫時解除安裝 KernelSU。會在下次重新啟動時恢復原狀。</string>
-    <string name="settings_uninstall_permanent">永久性解除安裝</string>
     <string name="settings_uninstall_permanent_message">徹底解除安裝 KernelSU（含 Root 授權與所有的模組）。</string>
+    <string name="settings_restore_stock_image_message">若裝置內含有備份檔案，遂以 OTA 更新前的原廠系統映像檔進行復原。若需要解除安裝 KernelSU，請選擇「永久性解除安裝」。</string>
     <string name="flashing">正在閃刷</string>
     <string name="flash_success">閃刷成功</string>
-    <string name="settings_restore_stock_image_message">若裝置內含有備份檔案，遂以 OTA 更新前的原廠系統映像檔進行復原。若需要解除安裝 KernelSU，請選擇「永久性解除安裝」。</string>
     <string name="flash_failed">閃刷失敗</string>
     <string name="selected_lkm">已選定 LKM：%s</string>
     <string name="save_log">儲存日誌</string>
-    <string name="action">執行</string>
-    <string name="module_sort_enabled_first">啟用優先</string>
-    <string name="module_sort_action_first">執行優先</string>
-    <string name="module_install_prompt_with_name">將安裝以下模組：%1$s</string>
-    <string name="confirm">確認</string>
-    <string name="su_not_allowed">無法授予「%s」超級使用者存取</string>
     <string name="log_saved">已儲存運作日誌</string>
+    <string name="settings_sucompat">傳統 su 命令支援</string>
+    <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅對新行程生效。</string>
+    <string name="settings_kernel_umount">核心處理解除掛載模組</string>
+    <string name="settings_kernel_umount_summary">在核心為需要的應用程式解除掛載模組</string>
     <string name="processing">處理中…</string>
     <string name="refresh_pulling">下拉刷新</string>
     <string name="refresh_release">鬆開刷新</string>
     <string name="refresh_refresh">正在刷新…</string>
     <string name="refresh_complete">刷新成功</string>
-    <string name="module_repos">模組倉庫</string>
-    <string name="module_repos_source_code">源碼</string>
-    <string name="module_repos_sort_name">按名稱排序</string>
     <string name="undo">撤銷</string>
     <string name="settings_theme">主題</string>
-    <string name="settings_theme_mode_system">跟隨系統</string>
-    <string name="settings_theme_mode_monet_system">Monet (跟隨系統)</string>
-    <string name="settings_theme_mode_light">淺色</string>
-    <string name="settings_theme_mode_monet_light">Monet (淺色)</string>
-    <string name="settings_theme_mode_dark">深色</string>
-    <string name="settings_theme_mode_monet_dark">Monet (深色)</string>
     <string name="settings_theme_summary">選擇應用的主題模式。</string>
-    <string name="settings_sucompat">傳統 su 命令支援</string>
-    <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅對新行程生效。</string>
-    <string name="settings_kernel_umount">核心處理解除掛載模組</string>
-    <string name="settings_kernel_umount_summary">在核心為需要的應用程式解除掛載模組</string>
+    <string name="settings_theme_mode_system">跟隨系統</string>
+    <string name="settings_theme_mode_light">淺色</string>
+    <string name="settings_theme_mode_dark">深色</string>
+    <string name="settings_theme_mode_monet_system">Monet (跟隨系統)</string>
+    <string name="settings_theme_mode_monet_light">Monet (淺色)</string>
+    <string name="settings_theme_mode_monet_dark">Monet (深色)</string>
     <string name="module_shortcut_title">建立捷徑</string>
     <string name="module_shortcut_name_label">捷徑名稱</string>
     <string name="module_shortcut_icon_pick">選擇自訂圖示</string>
@@ -159,4 +159,30 @@
     <string name="module_shortcut_permission_tip_xiaomi">請在 Xiaomi 設定中為此應用啟用「建立桌面捷徑」權限。</string>
     <string name="module_shortcut_permission_tip_oppo">請在 OPPO 設定中為此應用啟用「桌面捷徑」權限。</string>
     <string name="module_shortcut_permission_tip_default">若建立捷徑失敗，請在系統設定中為此應用啟用桌面捷徑權限。</string>
+    <!-- Customize -->
+    <!-- Log Viewer -->
+    <!-- umount Manager -->
+    <!-- Personalization Settings -->
+    <!-- Kernel Flash Progress Related -->
+    <!-- kpm -->
+    <!-- Tools -->
+    <!-- Zip File Type Labels -->
+    <!-- Zip Install Prompts -->
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- SUS Map related strings -->
 </resources>
