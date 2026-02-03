@@ -19,7 +19,7 @@
 #define KSU_COMPAT_USE_SELINUX_STATE
 #endif
 
-void setup_selinux(const char *);
+void setup_selinux(const char *, struct cred *);
 
 void setenforce(bool);
 

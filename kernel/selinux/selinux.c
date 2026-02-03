@@ -74,9 +74,9 @@ is_ksu_transition(const struct task_security_struct *old_tsec,
 }
 #endif
 
-void setup_selinux(const char *domain)
+void setup_selinux(const char *domain, struct cred *cred)
 {
-	if (transive_to_domain(domain, (struct cred *)__task_cred(current))) {
+	if (transive_to_domain(domain, cred)) {
 		pr_err("transive domain failed.\n");
 		return;
 	}
