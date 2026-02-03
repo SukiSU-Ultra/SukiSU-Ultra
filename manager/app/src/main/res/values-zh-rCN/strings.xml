@@ -20,11 +20,13 @@
     <string name="module_failed_to_disable">无法禁用模块：%s</string>
     <string name="module_empty">没有安装模块</string>
     <string name="module">模块</string>
+    <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
     <string name="module_sort_action_first">可执行优先</string>
     <string name="module_sort_enabled_first">已启用优先</string>
     <string name="module_repos">模块仓库</string>
     <string name="module_repos_sort_name">按名称排序</string>
     <string name="module_repos_source_code">源码</string>
+    <string name="confirm">确认</string>
     <string name="uninstall">卸载</string>
     <string name="module_install">安装</string>
     <string name="install">安装</string>
@@ -134,37 +136,18 @@
     <string name="selected_lkm">已选择的 LKM：%s</string>
     <string name="save_log">保存日志</string>
     <string name="log_saved">日志已保存</string>
-    <string name="settings_mode_enable_by_default">启用（默认）</string>
-    <string name="settings_mode_disable_until_reboot">禁用直到下次重启</string>
-    <string name="settings_mode_disable_always">始终禁用</string>
     <string name="settings_sucompat">传统 su 命令支持</string>
     <string name="settings_sucompat_summary">允许通过 /system/bin/su 获取 Root 权限</string>
     <string name="settings_kernel_umount">内核处理卸载模块</string>
     <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块</string>
-    <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
-    <string name="confirm">确认</string>
+    <string name="settings_mode_enable_by_default">启用（默认）</string>
+    <string name="settings_mode_disable_until_reboot">禁用直到下次重启</string>
+    <string name="settings_mode_disable_always">始终禁用</string>
     <string name="processing">处理中…</string>
     <string name="refresh_pulling">下拉刷新</string>
     <string name="refresh_release">松开刷新</string>
     <string name="refresh_refresh">正在刷新…</string>
     <string name="refresh_complete">刷新成功</string>
-    <string name="module_shortcut_title">创建快捷方式</string>
-    <string name="module_shortcut_name_label">快捷方式名称</string>
-    <string name="module_shortcut_icon_pick">选择自定义图标</string>
-    <string name="module_shortcut_add">添加快捷方式</string>
-    <string name="module_shortcut_not_supported">启动器不支持桌面快捷方式。</string>
-    <string name="module_shortcut_created">已在桌面创建快捷方式。</string>
-    <string name="module_shortcut_updated">快捷方式已更新。</string>
-    <string name="module_shortcut_delete">删除快捷方式</string>
-    <string name="module_shortcut_type_title">选择类型</string>
-    <string name="module_shortcut_permission_tip_xiaomi">请在 Xiaomi 设置中为本应用启用“创建桌面快捷方式”权限。</string>
-    <string name="module_shortcut_permission_tip_oppo">请在 OPPO 设置中为本应用启用“桌面快捷方式”权限。</string>
-    <string name="module_shortcut_permission_tip_default">若创建快捷方式失败，请在系统设置中为本应用启用桌面快捷方式权限。</string>
-    <string name="no_such_module">模块 %s 不存在</string>
-    <string name="module_unavailable">模块 %s 被禁用，待更新或待卸载</string>
-    <string name="select_file_tip_nogki">请选择要修补的 GKI 设备镜像文件</string>
-    <string name="current_kmi">本设备 KMI 版本: %s</string>
-    <string name="current_device_kmi">当前设备的 KMI</string>
     <string name="undo">撤销</string>
     <string name="module_undo_uninstall_success">成功撤销卸载 %s</string>
     <string name="module_undo_uninstall_failed">撤销卸载 %s 失败</string>
@@ -193,6 +176,23 @@
     <string name="tab_readme">自述</string>
     <string name="tab_releases">版本</string>
     <string name="tab_info">信息</string>
+    <string name="module_shortcut_title">创建快捷方式</string>
+    <string name="module_shortcut_name_label">快捷方式名称</string>
+    <string name="module_shortcut_icon_pick">选择自定义图标</string>
+    <string name="module_shortcut_add">添加快捷方式</string>
+    <string name="module_shortcut_not_supported">启动器不支持桌面快捷方式。</string>
+    <string name="module_shortcut_created">已在桌面创建快捷方式。</string>
+    <string name="module_shortcut_updated">快捷方式已更新。</string>
+    <string name="module_shortcut_delete">删除快捷方式</string>
+    <string name="module_shortcut_type_title">选择类型</string>
+    <string name="module_shortcut_permission_tip_xiaomi">请在 Xiaomi 设置中为本应用启用“创建桌面快捷方式”权限。</string>
+    <string name="module_shortcut_permission_tip_oppo">请在 OPPO 设置中为本应用启用“桌面快捷方式”权限。</string>
+    <string name="module_shortcut_permission_tip_default">若创建快捷方式失败，请在系统设置中为本应用启用桌面快捷方式权限。</string>
+    <string name="no_such_module">模块 %s 不存在</string>
+    <string name="module_unavailable">模块 %s 被禁用，待更新或待卸载</string>
+    <string name="select_file_tip_nogki">请选择要修补的 GKI 设备镜像文件</string>
+    <string name="current_kmi">本设备 KMI 版本: %s</string>
+    <string name="current_device_kmi">当前设备的 KMI</string>
     <!-- Customize -->
     <string name="hook_type">钩子类型</string>
     <string name="home_susfs_version">SuSFS 版本</string>
@@ -320,7 +320,6 @@
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (模块)</string>
     <string name="zip_type_kernel"> (内核)</string>
-    <string name="zip_file_unknown">unknown.zip</string>
     <!-- Zip Install Prompts -->
     <string name="kernel_install_prompt_with_name">将安装以下内核：%1$s</string>
     <string name="mixed_install_prompt_with_name">将安装以下文件：%1$s</string>
@@ -381,8 +380,6 @@
     <string name="susfs_log_config_title">SuSFS 日志配置</string>
     <string name="susfs_execution_location_label">执行位置</string>
     <string name="susfs_current_execution_location">当前执行位置：%s</string>
-    <string name="susfs_execution_location_service">Service</string>
-    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
     <string name="susfs_slot_info_title">槽位信息</string>
     <string name="susfs_slot_info_description">查看当前启动槽位信息并复制数值</string>
     <string name="susfs_current_active_slot">当前活动槽位：%s</string>
@@ -392,12 +389,11 @@
     <string name="susfs_slot_use_uname">使用 Uname</string>
     <string name="susfs_slot_use_build_time">使用构建时间</string>
     <string name="susfs_slot_info_unavailable">无法获取槽位信息</string>
-    <!-- SuSFS 自启动相关字符串 -->
     <!-- SuSFS Kstat相关字符串 -->
     <string name="susfs_tab_kstat_config">Kstat 配置</string>
     <string name="add_kstat_statically_title">添加 Kstat 静态配置</string>
     <string name="file_or_directory_path_label">文件/目录路径</string>
-    <string name="hint_use_default_value">提示：可以使用 "default" 来使用原始值</string>
+    <string name="hint_use_default_value">提示：可以使用 \"default\" 来使用原始值</string>
     <string name="add_kstat_path_title">添加 Kstat 路径</string>
     <string name="add">添加</string>
     <string name="reset_kstat_config_title">重置 Kstat 配置</string>
