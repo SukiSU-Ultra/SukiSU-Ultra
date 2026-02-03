@@ -197,11 +197,11 @@ void escape_with_root_profile(void)
 
 	setup_groups(profile, cred);
 
+	setup_selinux(profile->selinux_domain);
+
 	commit_creds(cred);
 
 	disable_seccomp();
-
-	setup_selinux(profile->selinux_domain);
 
 #ifdef CONFIG_KSU_SYSCALL_HOOK
 	for_each_thread (current, t) {
@@ -214,7 +214,14 @@ void escape_with_root_profile(void)
 
 void escape_to_root_for_init(void)
 {
-	setup_selinux(KERNEL_SU_CONTEXT);
+	struct cred *cred = prepare_creds();
+	if (!cred) {
+		pr_err("Failed to prepare init's creds!\n");
+		return;
+	}
+
+	setup_selinux(KERNEL_SU_CONTEXT, cred);
+	commit_creds(cred);
 }
 
 #ifdef CONFIG_KSU_MANUAL_SU
