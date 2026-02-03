@@ -19,7 +19,7 @@ struct sulog_entry {
 } __attribute__((packed));
 
 #define SULOG_ENTRY_MAX 250
-#define SULOG_BUFSIZ SULOG_ENTRY_MAX * (sizeof (struct sulog_entry))
+#define SULOG_BUFSIZ SULOG_ENTRY_MAX *(sizeof(struct sulog_entry))
 
 static void *sulog_buf_ptr = NULL;
 static uint8_t sulog_index_next = 0;
@@ -31,8 +31,9 @@ void sulog_init_heap()
 	sulog_buf_ptr = kzalloc(SULOG_BUFSIZ, GFP_KERNEL);
 	if (!sulog_buf_ptr)
 		return;
-	
-	pr_info("sulog_init: allocated %lu bytes on 0x%p \n", SULOG_BUFSIZ, sulog_buf_ptr);
+
+	pr_info("sulog_init: allocated %lu bytes on 0x%p \n", SULOG_BUFSIZ,
+		sulog_buf_ptr);
 }
 
 /*
@@ -51,7 +52,7 @@ static inline uint32_t boottime_s_get()
 {
 	ktime_t boottime_kt = ktime_get_boottime();
 
-#ifdef CONFIG_64BIT 
+#ifdef CONFIG_64BIT
 	uint64_t boottime_s = *(uint64_t *)&boottime_kt / 1000000000;
 #else
 	uint64_t boottime_s = *(uint64_t *)&boottime_kt;
@@ -67,7 +68,7 @@ void write_sulog(uint8_t sym)
 		return;
 
 	unsigned int offset = sulog_index_next * sizeof(struct sulog_entry);
-	struct sulog_entry entry = {0};
+	struct sulog_entry entry = { 0 };
 
 	// WARNING!!! this is LE only!
 	entry.s_time = boottime_s_get();
@@ -104,28 +105,31 @@ int send_sulog_dump(void __user *uptr)
 	if (!sulog_buf_ptr)
 		return 1;
 
-	struct sulog_entry_rcv_ptr sbuf = {0};
+	struct sulog_entry_rcv_ptr sbuf = { 0 };
 
-	if (copy_from_user(&sbuf, uptr, sizeof(sbuf) ))
+	if (copy_from_user(&sbuf, uptr, sizeof(sbuf)))
 		return 1;
 
-	if (!sbuf.index_ptr || !sbuf.buf_ptr || !sbuf.uptime_ptr )
+	if (!sbuf.index_ptr || !sbuf.buf_ptr || !sbuf.uptime_ptr)
 		return 1;
 
 	// send uptime
 
-	uint32_t uptime =  boottime_s_get();
+	uint32_t uptime = boottime_s_get();
 
-	if (copy_to_user((void __user *)sbuf.uptime_ptr, &uptime, sizeof(uptime) ))
+	if (copy_to_user((void __user *)sbuf.uptime_ptr, &uptime,
+			 sizeof(uptime)))
 		return 1;
 
 	// send index
-	if (copy_to_user((void __user *)sbuf.index_ptr, &sulog_index_next, sizeof(sulog_index_next) ))
+	if (copy_to_user((void __user *)sbuf.index_ptr, &sulog_index_next,
+			 sizeof(sulog_index_next)))
 		return 1;
 
 	// send buffer data
 	spin_lock(&sulog_lock);
-	if (copy_to_user((void __user *)sbuf.buf_ptr, sulog_buf_ptr, SULOG_BUFSIZ )) {
+	if (copy_to_user((void __user *)sbuf.buf_ptr, sulog_buf_ptr,
+			 SULOG_BUFSIZ)) {
 		spin_unlock(&sulog_lock);
 		return 1;
 	}

@@ -390,8 +390,8 @@ static void do_persistent_allow_list(struct callback_head *_cb)
 	loff_t off = 0;
 
 	mutex_lock(&allowlist_mutex);
-	fp = ksu_filp_open_compat(
-		KERNEL_SU_ALLOWLIST, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	fp = ksu_filp_open_compat(KERNEL_SU_ALLOWLIST,
+				  O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (IS_ERR(fp)) {
 		pr_err("save_allow_list create file failed: %ld\n",
 		       PTR_ERR(fp));
@@ -445,7 +445,10 @@ void persistent_allow_list(void)
 		goto put_task;
 	}
 	cb->func = do_persistent_allow_list;
-	task_work_add(tsk, cb, TWA_RESUME);
+	if (task_work_add(tsk, cb, TWA_RESUME)) {
+		kfree(cb);
+		pr_warn("save_allow_list add task_work failed\n");
+	}
 
 put_task:
 	put_task_struct(tsk);

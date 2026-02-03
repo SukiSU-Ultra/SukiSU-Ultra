@@ -107,6 +107,7 @@ struct ksu_add_try_umount_cmd {
 struct ksu_list_try_umount_cmd {
 	__aligned_u64 arg; // User buffer
 	__u32 buf_size; // Buffer size provided by userspace
+	__u32 __reserved; // Reserved for future use
 };
 
 #define KSU_UMOUNT_WIPE 0 // ignore everything and wipe list

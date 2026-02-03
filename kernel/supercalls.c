@@ -402,14 +402,14 @@ static int do_manage_mark(void __user *arg)
 		cmd.result = (u32)ret;
 		break;
 #else
-        if (susfs_is_current_proc_umounted()) {
-            ret = 0; // SYSCALL_TRACEPOINT is NOT flagged
-        } else {
-            ret = 1; // SYSCALL_TRACEPOINT is flagged
-        }
-        pr_info("manage_mark: ret for pid %d: %d\n", cmd.pid, ret);
-        cmd.result = (u32)ret;
-        break;
+		if (susfs_is_current_proc_umounted()) {
+			ret = 0; // SYSCALL_TRACEPOINT is NOT flagged
+		} else {
+			ret = 1; // SYSCALL_TRACEPOINT is flagged
+		}
+		pr_info("manage_mark: ret for pid %d: %d\n", cmd.pid, ret);
+		cmd.result = (u32)ret;
+		break;
 #endif // #ifndef CONFIG_KSU_SUSFS
 	}
 	case KSU_MARK_MARK: {
@@ -425,9 +425,9 @@ static int do_manage_mark(void __user *arg)
 			}
 		}
 #else
-        if (cmd.pid != 0) {
-            return ret;
-        }
+		if (cmd.pid != 0) {
+			return ret;
+		}
 #endif // #ifndef CONFIG_KSU_SUSFS
 		break;
 	}
@@ -444,9 +444,9 @@ static int do_manage_mark(void __user *arg)
 			}
 		}
 #else
-        if (cmd.pid != 0) {
-            return ret;
-        }
+		if (cmd.pid != 0) {
+			return ret;
+		}
 #endif // #ifndef CONFIG_KSU_SUSFS
 		break;
 	}
@@ -455,7 +455,7 @@ static int do_manage_mark(void __user *arg)
 		ksu_mark_running_process();
 		pr_info("manage_mark: refreshed running processes\n");
 #else
-        pr_info("susfs: cmd: KSU_MARK_REFRESH: do nothing\n");
+		pr_info("susfs: cmd: KSU_MARK_REFRESH: do nothing\n");
 #endif // #ifndef CONFIG_KSU_SUSFS
 		break;
 	}
@@ -600,7 +600,8 @@ static int do_nuke_ext4_sysfs(void __user *arg)
 
 	memset(mnt, 0, sizeof(mnt));
 
-	const char __user *mnt_user = (const char __user *)(unsigned long)cmd.arg;
+	const char __user *mnt_user =
+		(const char __user *)(unsigned long)cmd.arg;
 
 	ret = strncpy_from_user(mnt, mnt_user, sizeof(mnt));
 	if (ret < 0) {
@@ -635,7 +636,14 @@ static int list_try_umount(void __user *arg)
 	if (copy_from_user(&cmd, arg, sizeof(cmd)))
 		return -EFAULT;
 
-	if (!cmd.arg)
+	if (cmd.buf_size > 1024 * 1024) {
+		pr_err("list_try_umount: invalid buf_size %u\n", cmd.buf_size);
+		return -EINVAL;
+	}
+
+	output_size = cmd.buf_size ? cmd.buf_size : 4096;
+
+	if (!cmd.arg || output_size == 0)
 		return -EINVAL;
 
 	// Count mounts first to estimate size needed
@@ -711,16 +719,16 @@ static int list_try_umount(void __user *arg)
 
 static int do_get_sulog_dump(void __user *arg)
 {
-    int ret;
+	int ret;
 
-    if (current_uid().val != 0)
+	if (current_uid().val != 0)
 		return -EFAULT;
 
-    ret = send_sulog_dump(arg);
-    if (ret)
-        return -EFAULT;
+	ret = send_sulog_dump(arg);
+	if (ret)
+		return -EFAULT;
 
-    return 0;
+	return 0;
 }
 
 // 100. GET_FULL_VERSION - Get full version string
@@ -920,12 +928,12 @@ static int ksu_handle_fd_request(void __user *arg)
 static int ksu_handle_fd_request(void __user *arg)
 {
 	int fd = ksu_install_fd();
-	
+
 	if (copy_to_user(arg, &fd, sizeof(fd))) {
 		pr_err("install ksu fd reply err\n");
 		do_close_fd(fd);
 	}
-	
+
 	return 0;
 }
 #endif
@@ -1058,7 +1066,7 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 	}
 
 	// Check if this is a request to install KSU fd
-    // Dereference **arg.. with IS_ERR check.
+	// Dereference **arg.. with IS_ERR check.
 	void __user *argp = (void __user *)*arg;
 	if (IS_ERR(argp)) {
 		pr_err("Failed to deref user arg, err: %lu\n", PTR_ERR(argp));
@@ -1069,8 +1077,8 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 	if (magic2 == KSU_INSTALL_MAGIC2) {
 		return ksu_handle_fd_request(argp);
 	}
-	
-    return 0;
+
+	return 0;
 }
 #endif // #ifndef CONFIG_KSU_SUSFS
 

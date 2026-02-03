@@ -40,7 +40,7 @@
 #include "sucompat.h"
 #endif
 
-#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||                \
+#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||           \
 	(LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0) &&                      \
 	 defined(CONFIG_KSU_MANUAL_HOOK))
 extern int ksu_observer_init(void);
@@ -99,7 +99,7 @@ void on_post_fs_data(void)
 	already_post_fs_data = true;
 	pr_info("on_post_fs_data!\n");
 	ksu_load_allow_list();
-#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||          \
+#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||           \
 	(LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0) &&                      \
 	 defined(CONFIG_KSU_MANUAL_HOOK))
 	ksu_observer_init();
@@ -117,7 +117,7 @@ int nuke_ext4_sysfs(const char *mnt)
 	struct super_block *sb = NULL;
 	const char *name = NULL;
 	int err;
-	
+
 	err = kern_path(mnt, 0, &path);
 	if (err) {
 		pr_err("nuke path err: %d\n", err);
@@ -147,7 +147,7 @@ void on_boot_completed(void)
 {
 	ksu_boot_completed = true;
 	pr_info("on_boot_completed!\n");
-#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||          \
+#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_SUSFS) ||           \
 	(LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0) &&                      \
 	 defined(CONFIG_KSU_MANUAL_HOOK))
 	track_throne(true);
@@ -519,7 +519,8 @@ bool is_init_rc(struct file *fp)
 void ksu_handle_sys_read(unsigned int fd)
 {
 	struct file *file = fget(fd);
-#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_SUSFS)
+#if defined(CONFIG_KSU_SYSCALL_HOOK) || defined(CONFIG_KSU_MANUAL_HOOK) ||     \
+	defined(CONFIG_KSU_SUSFS)
 	if (!file) {
 		return;
 	}
@@ -648,18 +649,20 @@ void ksu_ksud_exit(void)
 }
 
 #ifdef CONFIG_KSU_SUSFS
-void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr) {
-    loff_t new_size = *kstat_size_ptr + ksu_rc_len;
-    struct file *file = fget(fd);
+void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
+{
+	loff_t new_size = *kstat_size_ptr + ksu_rc_len;
+	struct file *file = fget(fd);
 
-    if (!file)
-        return;
+	if (!file)
+		return;
 
-    if (is_init_rc(file)) {
-        pr_info("stat init.rc");
-        pr_info("adding ksu_rc_len: %lld -> %lld", *kstat_size_ptr, new_size);
-        *kstat_size_ptr = new_size;
-    }
-    fput(file);
+	if (is_init_rc(file)) {
+		pr_info("stat init.rc");
+		pr_info("adding ksu_rc_len: %lld -> %lld", *kstat_size_ptr,
+			new_size);
+		*kstat_size_ptr = new_size;
+	}
+	fput(file);
 }
 #endif // #ifdef CONFIG_KSU_SUSFS

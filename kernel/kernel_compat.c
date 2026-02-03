@@ -187,7 +187,7 @@ int do_close_fd(unsigned int fd)
 static void *__kvmalloc(size_t size, gfp_t flags)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
-// https://elixir.bootlin.com/linux/v4.4.302/source/security/apparmor/lib.c#L79
+	// https://elixir.bootlin.com/linux/v4.4.302/source/security/apparmor/lib.c#L79
 	void *buffer = NULL;
 
 	if (size == 0)

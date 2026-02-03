@@ -85,13 +85,13 @@ int ksys_unshare(unsigned long unshare_flags)
 #endif
 
 #ifdef KSU_TYPE_INT_NS_GET_PATH
-	typedef long  ns_ret_t;
-	#define NS_RET_OK(r)   ((r) == 0)
-	#define NS_RET_ERR(r)  (r)
+typedef long ns_ret_t;
+#define NS_RET_OK(r) ((r) == 0)
+#define NS_RET_ERR(r) (r)
 #else
-	typedef void *ns_ret_t;
-	#define NS_RET_OK(r)   (!IS_ERR(r))
-	#define NS_RET_ERR(r)  PTR_ERR(r)
+typedef void *ns_ret_t;
+#define NS_RET_OK(r) (!IS_ERR(r))
+#define NS_RET_ERR(r) PTR_ERR(r)
 #endif
 
 // global mode , need CAP_SYS_ADMIN and CAP_SYS_CHROOT to perform setns
@@ -143,7 +143,8 @@ try_setns:
 	ns_ret_t path_ret = ns_get_path(&ns_path, pid1_task, &mntns_operations);
 	put_task_struct(pid1_task);
 	if (!NS_RET_OK(path_ret)) {
-		pr_warn("failed get path for init mount namespace: %ld\n", NS_RET_ERR(path_ret));
+		pr_warn("failed get path for init mount namespace: %ld\n",
+			NS_RET_ERR(path_ret));
 		goto out;
 	}
 	struct file *ns_file = dentry_open(&ns_path, O_RDONLY, ksu_cred);

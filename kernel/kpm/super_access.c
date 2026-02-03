@@ -196,7 +196,7 @@ int sukisu_super_find_struct(const char *struct_name, size_t *out_size,
 {
 	size_t i; // for C89 standard or later
 	for (i = 0; i < (sizeof(dynamic_struct_infos) /
-				sizeof(dynamic_struct_infos[0]));
+			 sizeof(dynamic_struct_infos[0]));
 	     i++) {
 		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
@@ -226,7 +226,7 @@ int sukisu_super_access(const char *struct_name, const char *member_name,
 {
 	size_t i; // for C89 standard or later
 	for (i = 0; i < (sizeof(dynamic_struct_infos) /
-				sizeof(dynamic_struct_infos[0]));
+			 sizeof(dynamic_struct_infos[0]));
 	     i++) {
 		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
@@ -274,9 +274,9 @@ int sukisu_super_container_of(const char *struct_name, const char *member_name,
 	if (ptr == NULL)
 		return -3;
 
-	size_t i; // for C89 standard or later	
+	size_t i; // for C89 standard or later
 	for (i = 0; i < (sizeof(dynamic_struct_infos) /
-				sizeof(dynamic_struct_infos[0]));
+			 sizeof(dynamic_struct_infos[0]));
 	     i++) {
 		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
