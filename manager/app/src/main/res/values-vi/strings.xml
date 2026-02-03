@@ -1,27 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profile">Hồ sơ ứng dụng</string>
-    <string name="profile_default">Mặc định</string>
-    <string name="profile_template">Bản mẫu</string>
-    <string name="profile_custom">Tuỳ chỉnh</string>
-    <string name="profile_name">Tên hồ sơ</string>
-    <string name="profile_groups">Nhóm</string>
-    <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
-    <string name="settings_umount_modules_default">Umount modules</string>
-    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ.</string>
-    <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép KernelSU khôi phục mọi file đã được các module sửa đổi trong ứng dụng này.</string>
-    <string name="module_update">Cập nhật</string>
-    <string name="module_downloading">Đang tải xuống module: %s</string>
-    <string name="module_start_downloading">Bắt đầu tải xuống: %s</string>
-    <string name="new_version_available">Phiên bản mới %s đã có sẵn, nhấn để cập nhật!</string>
-    <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
-    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các module.</string>
-    <string name="home_support_title">Ủng hộ chúng tôi</string>
-    <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
-    <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi]]></string>
-    <string name="module_magisk_conflict">Các module bị vô hiệu hoá do xung đột với Magisk!</string>
-    <string name="module_uninstall_confirm">Bạn có THẬT SỰ muốn gỡ cài đặt module %s không?</string>
-    <string name="send_log">Gửi nhật ký</string>
     <string name="home">Trang chủ</string>
     <string name="home_not_installed">Chưa cài đặt</string>
     <string name="home_click_to_install">Nhấn để cài đặt</string>
@@ -31,17 +9,19 @@
     <string name="home_unsupported_reason">KernelSU hiện tại chỉ hỗ trợ Kernel GKI.</string>
     <string name="home_kernel">Phiên bản Kernel</string>
     <string name="home_manager_version">Phiên bản Trình quản lý</string>
-    <string name="home_fingerprint">Fingerprint</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
     <string name="selinux_status_disabled">Vô hiệu hoá</string>
-    <string name="selinux_status_enforcing">Enforcing</string>
-    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
-    <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">Không thể kích hoạt module: %s</string>
     <string name="module_failed_to_disable">Không thể vô hiệu hoá module: %s</string>
     <string name="module_empty">Chưa có module nào được cài đặt</string>
-    <string name="module">Module</string>
+    <string name="module_install_prompt_with_name">Các module sau đây sẽ được cài đặt: %1$s</string>
+    <string name="module_sort_action_first">Khởi chạy trước</string>
+    <string name="module_sort_enabled_first">Bật trước</string>
+    <string name="module_repos">Thư viện</string>
+    <string name="module_repos_sort_name">Tên (A → Z)</string>
+    <string name="module_repos_source_code">Mã nguồn</string>
+    <string name="confirm">Xác nhận</string>
     <string name="uninstall">Gỡ cài đặt</string>
     <string name="module_install">Cài đặt</string>
     <string name="install">Cài đặt</string>
@@ -53,99 +33,115 @@
     <string name="reboot_download">Khởi động lại vào Download</string>
     <string name="reboot_edl">Khởi động lại vào EDL</string>
     <string name="about">Thông tin</string>
+    <string name="module_uninstall_confirm">Bạn có THẬT SỰ muốn gỡ cài đặt module %s không?</string>
+    <string name="metamodule_uninstall_confirm">"Bạn có chắc chắn muốn gỡ cài đặt module %s không? Thao tác này sẽ ảnh hưởng đến tất cả các module và một số tính năng do siêu module cung cấp (chẳng hạn như mount) sẽ không còn hoạt động nữa."</string>
     <string name="module_uninstall_success">%s đã được gỡ cài đặt</string>
     <string name="module_uninstall_failed">Gỡ cài đặt thất bại: %s</string>
     <string name="module_version">Phiên bản</string>
     <string name="module_author">Tác giả</string>
     <string name="show_system_apps">Hiển thị các ứng dụng hệ thống</string>
+    <string name="send_log">Gửi nhật ký</string>
     <string name="safe_mode">Chế độ an toàn</string>
+    <string name="safe_mode_module_disabled">Việc cài đặt module bị vô hiệu hoá ở chế độ an toàn</string>
     <string name="reboot_to_apply">Khởi động lại để có hiệu lực</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="profile_selinux_domain">Tên miền</string>
-    <string name="profile_selinux_rules">Quy tắc</string>
-    <string name="launch_app">Khởi chạy</string>
-    <string name="restart_app">Khởi động lại</string>
+    <string name="module_magisk_conflict">Các module bị vô hiệu hoá do xung đột với Magisk!</string>
+    <string name="home_learn_kernelsu">Tìm hiểu về KernelSU</string>
+    <string name="home_click_to_learn_kernelsu">Tìm hiểu cách cài đặt KernelSU và sử dụng các module.</string>
+    <string name="home_support_title">Ủng hộ chúng tôi</string>
+    <string name="home_support_content">KernelSU sẽ luôn là miễn phí và mã nguồn mở. Tuy nhiên, bạn có thể cho chúng tôi thấy rằng bạn quan tâm bằng cách quyên góp!</string>
+    <string name="about_source_code"><![CDATA[Xem mã nguồn tại %1$s<br/>Tham gia kênh %2$s của chúng tôi]]></string>
+    <string name="profile_default">Mặc định</string>
+    <string name="profile_template">Bản mẫu</string>
+    <string name="profile_custom">Tuỳ chỉnh</string>
+    <string name="profile_name">Tên hồ sơ</string>
     <string name="profile_namespace">Không gian tên</string>
-    <string name="profile_capabilities">Tính tương thích</string>
-    <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
-    <string name="force_stop_app">Buộc dừng</string>
     <string name="profile_namespace_inherited">Thừa hưởng</string>
     <string name="profile_namespace_global">Toàn cục</string>
     <string name="profile_namespace_individual">Riêng biệt</string>
+    <string name="profile_groups">Nhóm</string>
+    <string name="profile_capabilities">Tính tương thích</string>
     <string name="profile_selinux_context">Bối cảnh SELinux</string>
-    <string name="profile_umount_modules">Umount modules</string>
+    <string name="failed_to_update_app_profile">Cập nhật Hồ sơ ứng dụng cho %s thất bại</string>
     <string name="require_kernel_version">Phiên bản KernelSU hiện tại %1$d quá thấp để Trình quản lý hoạt động bình thường. Vui lòng cập nhật lên phiên bản %2$d hoặc cao hơn!</string>
-    <string name="app_profile_template_import_success">Đã nhập thành công</string>
-    <string name="app_profile_export_to_clipboard">Xuất vào bộ nhớ tạm</string>
-    <string name="app_profile_template_export_empty">Không tìm thấy mẫu cục bộ để xuất!</string>
-    <string name="app_profile_template_id_exist">ID mẫu đã tồn tại!</string>
+    <string name="settings_umount_modules_default_summary">Giá trị mặc định chung cho \"Umount modules\" trong Hồ sơ ứng dụng. Nếu được bật, mọi thay đổi hệ thống do các module gây ra sẽ bị gỡ bỏ khỏi hệ thống và các ứng dụng chưa thiết lập hồ sơ.</string>
+    <string name="profile_umount_modules_summary">Bật tùy chọn này sẽ cho phép KernelSU khôi phục mọi file đã được các module sửa đổi trong ứng dụng này.</string>
+    <string name="profile_selinux_domain">Tên miền</string>
+    <string name="profile_selinux_rules">Quy tắc</string>
+    <string name="module_update">Cập nhật</string>
+    <string name="module_downloading">Đang tải xuống module: %s</string>
+    <string name="module_start_downloading">Bắt đầu tải xuống: %s</string>
+    <string name="new_version_available">Phiên bản mới %s đã có sẵn, nhấn để cập nhật!</string>
+    <string name="launch_app">Khởi chạy</string>
+    <string name="force_stop_app">Buộc dừng</string>
+    <string name="restart_app">Khởi động lại</string>
+    <string name="failed_to_update_sepolicy">Cập nhật quy tắc SELinux cho %s thất bại</string>
+    <string name="su_not_allowed">Không thể cấp quyền Superuser cho %s</string>
     <string name="module_changelog">Nhật ký thay đổi</string>
-    <string name="app_profile_import_from_clipboard">Nhập từ bộ nhớ tạm</string>
-    <string name="app_profile_template_name">Tên</string>
-    <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ</string>
-    <string name="app_profile_template_create">Tạo mẫu</string>
-    <string name="app_profile_import_export">Nhập/Xuất</string>
-    <string name="app_profile_template_save_failed">Lưu mẫu thất bại</string>
-    <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
     <string name="settings_profile_template">Mẫu Hồ sơ ứng dụng</string>
+    <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng.</string>
+    <string name="app_profile_template_create">Tạo mẫu</string>
+    <string name="app_profile_template_edit">Chỉnh sửa mẫu</string>
+    <string name="app_profile_template_id_invalid">ID mẫu không hợp lệ</string>
+    <string name="app_profile_template_name">Tên</string>
     <string name="app_profile_template_description">Mô tả</string>
     <string name="app_profile_template_save">Lưu</string>
-    <string name="settings_profile_template_summary">Quản lý mẫu cục bộ và trực tuyến của Hồ sơ ứng dụng.</string>
     <string name="app_profile_template_delete">Xóa</string>
-    <string name="app_profile_template_import_empty">Bộ nhớ tạm đang trống!</string>
     <string name="app_profile_template_view">Xem mẫu</string>
-    <string name="app_profile_template_id">ID</string>
-    <string name="enable_web_debugging">Gỡ lỗi WebView</string>
-    <string name="enable_web_debugging_summary">Có thể sử dụng để gỡ lỗi WebUI. Vui lòng chỉ bật khi cần thiết.</string>
-    <string name="grant_root_failed">Cấp quyền root thất bại!</string>
+    <string name="app_profile_template_id_exist">ID mẫu đã tồn tại!</string>
+    <string name="app_profile_import_export">Nhập/Xuất</string>
+    <string name="app_profile_import_from_clipboard">Nhập từ bộ nhớ tạm</string>
+    <string name="app_profile_export_to_clipboard">Xuất vào bộ nhớ tạm</string>
+    <string name="app_profile_template_export_empty">Không tìm thấy mẫu cục bộ để xuất!</string>
+    <string name="app_profile_template_import_success">Đã nhập thành công</string>
+    <string name="app_profile_template_save_failed">Lưu mẫu thất bại</string>
+    <string name="app_profile_template_import_empty">Bộ nhớ tạm đang trống!</string>
+    <string name="app_profile_affects_following_apps">Ảnh hưởng đến các ứng dụng sau</string>
     <string name="settings_check_update">Kiểm tra cập nhật</string>
     <string name="settings_check_update_summary">Tự động kiểm tra cập nhật khi mở ứng dụng.</string>
+    <string name="settings_module_check_update">Kiểm tra cập nhật module</string>
+    <string name="grant_root_failed">Cấp quyền root thất bại!</string>
+    <string name="action">Khởi chạy</string>
     <string name="open">Mở</string>
-    <string name="install_inactive_slot">Cài đặt vào phân vùng không hoạt động (Sau OTA)</string>
-    <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng không hoạt động hiện tại sau khi khởi động lại!\nChỉ dùng tùy chọn này khi cập nhật OTA đã hoàn tất!\nTiếp tục?</string>
-    <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời KernelSU, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo.</string>
-    <string name="select_kmi">Chọn KMI</string>
-    <string name="install_next">Kế tiếp</string>
+    <string name="enable_web_debugging">Gỡ lỗi WebView</string>
+    <string name="enable_web_debugging_summary">Có thể sử dụng để gỡ lỗi WebUI. Vui lòng chỉ bật khi cần thiết.</string>
     <string name="direct_install">Cài đặt trực tiếp (Khuyến nghị)</string>
     <string name="select_file">Chọn file</string>
+    <string name="install_inactive_slot">Cài đặt vào phân vùng không hoạt động (Sau OTA)</string>
+    <string name="install_inactive_slot_warning">Thiết bị của bạn sẽ **BUỘC** phải khởi động vào phân vùng không hoạt động hiện tại sau khi khởi động lại!\nChỉ dùng tùy chọn này khi cập nhật OTA đã hoàn tất!\nTiếp tục?</string>
+    <string name="install_next">Kế tiếp</string>
+    <string name="install_select_partition">Chọn phân vùng</string>
+    <string name="install_upload_lkm_file">Sử dụng file LKM cục bộ</string>
+    <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
+    <string name="select_file_tip">Phân vùng image %1$s được khuyến nghị</string>
+    <string name="select_kmi">Chọn KMI</string>
     <string name="settings_uninstall">Gỡ cài đặt</string>
     <string name="settings_uninstall_temporary">Gỡ cài đặt tạm thời</string>
     <string name="settings_uninstall_permanent">Gỡ cài đặt vĩnh viễn</string>
     <string name="settings_restore_stock_image">Khôi phục image gốc</string>
+    <string name="settings_uninstall_temporary_message">Gỡ cài đặt tạm thời KernelSU, khôi phục lại trạng thái ban đầu sau lần khởi động lại tiếp theo.</string>
     <string name="settings_uninstall_permanent_message">Gỡ cài đặt KernelSU (root và tất cả các module) sạch hoàn toàn, trả về trạng thái ban đầu.</string>
     <string name="settings_restore_stock_image_message">Khôi phục lại image gốc (nếu có bản sao lưu), thường được sử dụng trước OTA; nếu bạn cần gỡ hẳn KernelSU, hãy sử dụng \"Gỡ cài đặt vĩnh viễn\".</string>
     <string name="flashing">Đang Flash...</string>
     <string name="flash_success">Flash thành công</string>
     <string name="flash_failed">Flash thất bại</string>
     <string name="selected_lkm">LKM đã chọn: %s</string>
-    <string name="select_file_tip">Phân vùng image %1$s được khuyến nghị</string>
     <string name="save_log">Lưu nhật ký</string>
-    <string name="module_sort_action_first">Khởi chạy trước</string>
-    <string name="module_install_prompt_with_name">Các module sau đây sẽ được cài đặt: %1$s</string>
-    <string name="confirm">Xác nhận</string>
-    <string name="module_sort_enabled_first">Bật trước</string>
-    <string name="su_not_allowed">Không thể cấp quyền Superuser cho %s</string>
-    <string name="action">Khởi chạy</string>
     <string name="log_saved">Đã lưu nhật ký</string>
-    <string name="settings_module_check_update">Kiểm tra cập nhật module</string>
-    <string name="install_upload_lkm_file">Sử dụng file LKM cục bộ</string>
-    <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
     <string name="settings_sucompat">Lệnh su truyền thống</string>
     <string name="settings_sucompat_summary">Cho phép truy cập root qua /system/bin/su, trong các quy trình mới.</string>
     <string name="settings_kernel_umount">Gỡ kết nối mô-đun</string>
     <string name="settings_kernel_umount_summary">Gỡ kết nối các mô-đun khỏi hạt nhân trong Hồ sơ ứng dụng</string>
+    <string name="feature_status_unsupported_summary">Kernel không hỗ trợ tính năng này.</string>
+    <string name="feature_status_managed_summary">Tính năng này được quản lý bởi một module.</string>
     <string name="processing">Đang xử lý…</string>
     <string name="refresh_pulling">Kéo xuống để làm mới</string>
     <string name="refresh_release">Thả để làm mới</string>
     <string name="refresh_refresh">Đang làm mới…</string>
     <string name="refresh_complete">Đã làm mới thành công</string>
-    <string name="install_select_partition">Chọn phân vùng</string>
-    <string name="app_profile_affects_following_apps">Ảnh hưởng đến các ứng dụng sau</string>
-    <string name="group_contains_apps">Chứa %d ứng dụng</string>
-    <string name="metamodule_uninstall_confirm">Bạn có chắc chắn muốn gỡ cài đặt module %s không? Thao tác này sẽ ảnh hưởng đến tất cả các module và một số tính năng do siêu module cung cấp (chẳng hạn như mount) sẽ không còn hoạt động nữa.</string>
     <string name="undo">Hoàn tác</string>
     <string name="module_undo_uninstall_success">Đã huỷ việc gỡ cài đặt %s thành công</string>
     <string name="module_undo_uninstall_failed">Hoàn tác gỡ cài đặt: %s thất bại</string>
+    <string name="group_contains_apps">Chứa %d ứng dụng</string>
     <string name="settings_theme">Chủ đề</string>
     <string name="settings_theme_summary">Chọn chủ đề ứng dụng.</string>
     <string name="settings_theme_mode_system">Mặc định theo hệ thống</string>
@@ -154,6 +150,7 @@
     <string name="settings_theme_mode_monet_system">Monet (Theo hệ thống)</string>
     <string name="settings_theme_mode_monet_light">Monet (Sáng)</string>
     <string name="settings_theme_mode_monet_dark">Monet (Tối)</string>
+    <string name="settings_key_color">Màu nhấn</string>
     <string name="settings_key_color_summary">Tùy chỉnh màu nhấn khi sử dụng Monet.</string>
     <string name="settings_key_color_default">Mặc định</string>
     <string name="color_blue">Dương</string>
@@ -164,16 +161,32 @@
     <string name="color_teal">Xanh mòng két</string>
     <string name="color_pink">Hồng</string>
     <string name="color_brown">Nâu</string>
-    <string name="settings_key_color">Màu nhấn</string>
-    <string name="feature_status_managed_summary">Tính năng này được quản lý bởi một module.</string>
-    <string name="feature_status_unsupported_summary">Kernel không hỗ trợ tính năng này.</string>
-    <string name="module_repos">Thư viện</string>
-    <string name="module_repos_sort_name">Tên (A → Z)</string>
-    <string name="module_repos_source_code">Mã nguồn</string>
     <string name="network_offline">Không có kết nối Internet</string>
     <string name="network_retry">Thử lại</string>
-    <string name="tab_readme">README</string>
-    <string name="tab_releases">Releases</string>
-    <string name="tab_info">Info</string>
-    <string name="safe_mode_module_disabled">Việc cài đặt module bị vô hiệu hoá ở chế độ an toàn</string>
+    <!-- Customize -->
+    <!-- Log Viewer -->
+    <!-- umount Manager -->
+    <!-- Personalization Settings -->
+    <!-- Kernel Flash Progress Related -->
+    <!-- kpm -->
+    <!-- Tools -->
+    <!-- Zip File Type Labels -->
+    <!-- Zip Install Prompts -->
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- SUS Map related strings -->
 </resources>
