@@ -659,7 +659,7 @@ static int list_try_umount(void __user *arg)
 		output_size = MAX_UMOUNT_LIST_SIZE;
 
 	pr_info("KernelSU: Allocating %zu bytes for %d mounts (user requested %zu)\n",
-	        output_size, mount_count, cmd.buf_size);
+	        output_size, mount_count, (size_t)cmd.buf_size);
 
 	// Try kzalloc first with NOWARN flag
 	output_buf = kzalloc(output_size, GFP_KERNEL | __GFP_NOWARN);
