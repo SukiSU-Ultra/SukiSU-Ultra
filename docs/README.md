@@ -14,11 +14,10 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 ## Features
 
 1. Kernel-based `su` and root access management
-2. Module system based on [Magic Mount](https://github.com/5ec1cff/KernelSU)
-3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock up the root power in a cage
-4. Support non-GKI and GKI 1.0
-5. KPM Support
-6. Tweaks to the manager theme and the built-in susfs management tool.
+2. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock up the root power in a cage
+3. Support non-GKI and GKI 1.0
+4. KPM Support
+5. Tweaks to the manager theme and the built-in susfs management tool.
 
 ## Compatibility Status
 
