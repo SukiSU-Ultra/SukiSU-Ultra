@@ -9,17 +9,19 @@
     <string name="home_unsupported_reason">現在､ KernelSU は GKI カーネルにのみ対応しています</string>
     <string name="home_kernel">カーネル</string>
     <string name="home_manager_version">アプリのバージョン</string>
-    <string name="home_fingerprint">Fingerprint</string>
     <string name="home_selinux_status">SELinux の状態</string>
-    <string name="selinux_status_disabled">Disabled</string>
-    <string name="selinux_status_enforcing">Enforcing</string>
-    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">不明</string>
-    <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">モジュールの有効化に失敗しました: %s</string>
     <string name="module_failed_to_disable">モジュールの無効化に失敗しました: %s</string>
     <string name="module_empty">モジュールがインストールされていません</string>
     <string name="module">モジュール</string>
+    <string name="module_install_prompt_with_name">次のモジュールがインストールされます: %1$s</string>
+    <string name="module_sort_action_first">並べ替え（アクション優先）</string>
+    <string name="module_sort_enabled_first">並べ替え（最初に有効）</string>
+    <string name="module_repos">レポ</string>
+    <string name="module_repos_sort_name">名前で並べ替え</string>
+    <string name="module_repos_source_code">ソースコード</string>
+    <string name="confirm">確認</string>
     <string name="uninstall">アンインストール</string>
     <string name="module_install">インストール</string>
     <string name="install">インストール</string>
@@ -32,6 +34,7 @@
     <string name="reboot_edl">EDL へ再起動</string>
     <string name="about">アプリについて</string>
     <string name="module_uninstall_confirm">モジュール %s をアンインストールしますか？</string>
+    <string name="metamodule_uninstall_confirm">"モジュール %s をアンインストールしてもよろしいですか? この操作はすべてのモジュールに影響し、メタモジュールによって提供される特定の機能 (マウントなど) は動作しなくなります。"</string>
     <string name="module_uninstall_success">%s はアンインストールされました</string>
     <string name="module_uninstall_failed">アンインストールに失敗しました: %s</string>
     <string name="module_version">バージョン</string>
@@ -47,7 +50,6 @@
     <string name="home_support_title">支援する</string>
     <string name="home_support_content">KernelSU はこれからもずっと無料でオープンソースです。寄付をして頂くことで、開発を支援していただけます。</string>
     <string name="about_source_code"><![CDATA[%1$s でソースコードを表示<br/>%2$s チャンネルに参加]]></string>
-    <string name="profile">アプリのプロファイル</string>
     <string name="profile_default">既定</string>
     <string name="profile_template">テンプレート</string>
     <string name="profile_custom">カスタム</string>
@@ -56,64 +58,70 @@
     <string name="profile_namespace_inherited">継承</string>
     <string name="profile_namespace_global">共通</string>
     <string name="profile_namespace_individual">分離</string>
-    <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="profile_groups">グループ</string>
+    <string name="profile_capabilities">ケーパビリティ</string>
     <string name="profile_selinux_context">SELinux コンテキスト</string>
+    <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
+    <string name="require_kernel_version">現在の KernelSU バージョン %1$d はマネージャーが適切に機能するには低すぎます。 バージョン %2$d 以降にアップグレードしてください！</string>
+    <string name="settings_umount_modules_default">既定でモジュールのマウントを解除</string>
+    <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通のデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
+    <string name="profile_umount_modules_summary">このオプションを有効にすると、KernelSU はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
     <string name="profile_selinux_domain">ドメイン</string>
     <string name="profile_selinux_rules">ルール</string>
-    <string name="new_version_available">新しいバージョン %s が利用可能です。タップしてダウンロード!</string>
     <string name="module_update">アップデート</string>
+    <string name="module_downloading">モジュールをダウンロード中: %s</string>
     <string name="module_start_downloading">ダウンロードを開始: %s</string>
+    <string name="new_version_available">新しいバージョン %s が利用可能です。タップしてダウンロード!</string>
     <string name="launch_app">起動</string>
     <string name="force_stop_app">強制停止</string>
     <string name="restart_app">再起動</string>
     <string name="failed_to_update_sepolicy">SELinux ルールの更新に失敗しました %s</string>
-    <string name="profile_capabilities">ケーパビリティ</string>
-    <string name="module_downloading">モジュールをダウンロード中: %s</string>
-    <string name="profile_umount_modules_summary">このオプションを有効にすると、KernelSU はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
-    <string name="settings_umount_modules_default">既定でモジュールのマウントを解除</string>
-    <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通のデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
-    <string name="require_kernel_version">現在の KernelSU バージョン %1$d はマネージャーが適切に機能するには低すぎます。 バージョン %2$d 以降にアップグレードしてください！</string>
+    <string name="su_not_allowed">%s に superuser アクセスを許可できませんでした</string>
     <string name="module_changelog">変更履歴</string>
-    <string name="app_profile_template_import_success">インポート成功</string>
-    <string name="app_profile_export_to_clipboard">クリップボードからエクスポート</string>
-    <string name="app_profile_template_export_empty">エクスポートするローカル テンプレートが見つかりません！</string>
-    <string name="app_profile_template_id_exist">テンプレート ID はすでに存在します！</string>
-    <string name="app_profile_import_from_clipboard">クリップボードからインポート</string>
-    <string name="app_profile_template_name">名前</string>
-    <string name="app_profile_template_id_invalid">無効なテンプレート ID</string>
-    <string name="app_profile_template_create">テンプレートの作成</string>
-    <string name="app_profile_import_export">インポート/エクスポート</string>
-    <string name="app_profile_template_save_failed">テンプレートの保存に失敗しました</string>
-    <string name="app_profile_template_edit">テンプレートの編集</string>
-    <string name="app_profile_template_id">ID</string>
     <string name="settings_profile_template">アプリプロファイルのテンプレート</string>
+    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理する。</string>
+    <string name="app_profile_template_create">テンプレートの作成</string>
+    <string name="app_profile_template_edit">テンプレートの編集</string>
+    <string name="app_profile_template_id_invalid">無効なテンプレート ID</string>
+    <string name="app_profile_template_name">名前</string>
     <string name="app_profile_template_description">説明</string>
     <string name="app_profile_template_save">保存</string>
-    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理する。</string>
     <string name="app_profile_template_delete">消去</string>
-    <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="app_profile_template_view">テンプレートを表示</string>
+    <string name="app_profile_template_id_exist">テンプレート ID はすでに存在します！</string>
+    <string name="app_profile_import_export">インポート/エクスポート</string>
+    <string name="app_profile_import_from_clipboard">クリップボードからインポート</string>
+    <string name="app_profile_export_to_clipboard">クリップボードからエクスポート</string>
+    <string name="app_profile_template_export_empty">エクスポートするローカル テンプレートが見つかりません！</string>
+    <string name="app_profile_template_import_success">インポート成功</string>
+    <string name="app_profile_template_save_failed">テンプレートの保存に失敗しました</string>
+    <string name="app_profile_template_import_empty">クリップボードが空です！</string>
+    <string name="app_profile_affects_following_apps">以下のアプリに影響します</string>
     <string name="settings_check_update">アップデートを確認</string>
     <string name="settings_check_update_summary">アプリを開いたときにアップデートを自動的に確認する。</string>
+    <string name="settings_module_check_update">モジュールの更新を確認する</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
+    <string name="action">アクション</string>
     <string name="open">開く</string>
     <string name="enable_web_debugging">WebView デバッグ</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合にのみ有効にしてください。</string>
-    <string name="select_file_tip">%1$s パーティション イメージが推奨されます</string>
-    <string name="select_kmi">KMI を選択してください</string>
-    <string name="install_next">次に</string>
+    <string name="direct_install">直接インストール (推奨)</string>
+    <string name="select_file">ファイルを選択してください</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
     <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在非アクティブなスロットから起動します。
 \nこのオプションは、OTA が完了した後にのみ使用してください。
 \n続く？</string>
-    <string name="direct_install">直接インストール (推奨)</string>
-    <string name="select_file">ファイルを選択してください</string>
+    <string name="install_next">次に</string>
+    <string name="install_select_partition">パーティションを選択</string>
+    <string name="install_upload_lkm_file">ローカルLKMファイルを使用する</string>
+    <string name="install_only_support_ko_file">.koファイルのみサポートされています</string>
+    <string name="select_file_tip">%1$s パーティション イメージが推奨されます</string>
+    <string name="select_kmi">KMI を選択してください</string>
+    <string name="settings_uninstall">アンインストール</string>
+    <string name="settings_uninstall_temporary">一時的にアンインストールする</string>
     <string name="settings_uninstall_permanent">完全にアンインストールする</string>
     <string name="settings_restore_stock_image">ストックイメージを復元</string>
-    <string name="settings_uninstall_temporary">一時的にアンインストールする</string>
-    <string name="settings_uninstall">アンインストール</string>
     <string name="settings_uninstall_temporary_message">KernelSU を一時的にアンインストールし、次回の再起動後に元の状態に戻します。</string>
     <string name="settings_uninstall_permanent_message">KernelSU (ルートおよびすべてのモジュール) を完全かつ永久にアンインストールします。</string>
     <string name="settings_restore_stock_image_message">バックアップが存在する場合、工場出荷時のイメージを復元できます (OTA の前に使用してください)。KernelSU をアンインストールする必要がある場合は、「完全にアンインストールする」を使用してください。</string>
@@ -122,30 +130,41 @@
     <string name="flash_failed">フラッシュ失敗</string>
     <string name="selected_lkm">選択された LKM: %s</string>
     <string name="save_log">ログを保存</string>
-    <string name="action">アクション</string>
     <string name="log_saved">保存されたログ</string>
-    <string name="module_sort_enabled_first">並べ替え（最初に有効）</string>
-    <string name="module_sort_action_first">並べ替え（アクション優先）</string>
-    <string name="su_not_allowed">%s に superuser アクセスを許可できませんでした</string>
-    <string name="module_install_prompt_with_name">次のモジュールがインストールされます: %1$s</string>
-    <string name="confirm">確認</string>
-    <string name="settings_module_check_update">モジュールの更新を確認する</string>
-    <string name="install_upload_lkm_file">ローカルLKMファイルを使用する</string>
-    <string name="install_only_support_ko_file">.koファイルのみサポートされています</string>
     <string name="settings_sucompat">古典 su 命令</string>
     <string name="settings_sucompat_summary">/system/bin/su 経由での 根源権限（特権）を 許可します（新規 手順/工程 のみ）</string>
     <string name="settings_kernel_umount">module の umount</string>
     <string name="settings_kernel_umount_summary">App Profile に基づき、kernel 側で module を umount します （あぷり ぷろふぁいる に もとづき、かーねる がわで もじゅーる を あんまうんと します）</string>
+    <string name="feature_status_unsupported_summary">カーネルはこの機能をサポートしていません。</string>
     <string name="processing">処理…</string>
     <string name="refresh_pulling">下に引いて更新</string>
     <string name="refresh_release">リリースしてリフレッシュ</string>
     <string name="refresh_refresh">爽やか…</string>
     <string name="refresh_complete">更新に成功しました</string>
-    <string name="module_repos">レポ</string>
-    <string name="module_repos_sort_name">名前で並べ替え</string>
-    <string name="module_repos_source_code">ソースコード</string>
-    <string name="metamodule_uninstall_confirm">モジュール %s をアンインストールしてもよろしいですか? この操作はすべてのモジュールに影響し、メタモジュールによって提供される特定の機能 (マウントなど) は動作しなくなります。</string>
-    <string name="app_profile_affects_following_apps">以下のアプリに影響します</string>
-    <string name="install_select_partition">パーティションを選択</string>
-    <string name="feature_status_unsupported_summary">カーネルはこの機能をサポートしていません。</string>
+    <!-- Customize -->
+    <!-- Log Viewer -->
+    <!-- umount Manager -->
+    <!-- Personalization Settings -->
+    <!-- Kernel Flash Progress Related -->
+    <!-- kpm -->
+    <!-- Tools -->
+    <!-- Zip File Type Labels -->
+    <!-- Zip Install Prompts -->
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- SUS Map related strings -->
 </resources>

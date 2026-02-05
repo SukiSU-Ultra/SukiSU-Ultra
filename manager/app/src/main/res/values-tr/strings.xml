@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">KernelSU</string>
     <string name="home">Ana Sayfa</string>
     <string name="home_not_installed">Kurulmadı</string>
     <string name="home_click_to_install">Kurmak için tıklayın</string>
@@ -21,6 +20,13 @@
     <string name="module_failed_to_disable">Modül devre dışı bırakılamadı: %s</string>
     <string name="module_empty">Kurulu modül yok</string>
     <string name="module">Modül</string>
+    <string name="module_install_prompt_with_name">Aşağıdaki modüller yüklenecek: %1$s</string>
+    <string name="module_sort_action_first">Sırala (Action önce)</string>
+    <string name="module_sort_enabled_first">Sırala (Etkin olanlar önce)</string>
+    <string name="module_repos">Depolar</string>
+    <string name="module_repos_sort_name">Ad (A → Z)</string>
+    <string name="module_repos_source_code">Kaynak kodu</string>
+    <string name="confirm">Onayla</string>
     <string name="uninstall">Kaldır</string>
     <string name="module_install">Kur</string>
     <string name="install">Kur</string>
@@ -33,6 +39,7 @@
     <string name="reboot_edl">EDL modunda yeniden başlat</string>
     <string name="about">Hakkında</string>
     <string name="module_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz?</string>
+    <string name="metamodule_uninstall_confirm">"%s modülünü kaldırmak istediğinizden emin misiniz? Bu eylem tüm modülleri etkileyecek ve metamodül (örneğin bağlama özelliği) tarafından sunulan belli özellikler artık çalışmayacaktır."</string>
     <string name="module_uninstall_success">%s kaldırıldı</string>
     <string name="module_uninstall_failed">Kaldırma başarısız: %s</string>
     <string name="module_version">Sürüm</string>
@@ -43,12 +50,10 @@
     <string name="reboot_to_apply">Değişikliklerin uygulanması için cihazı yeniden başlat</string>
     <string name="module_magisk_conflict">Magisk ile çakışma nedeniyle modüller kullanılamıyor!</string>
     <string name="home_learn_kernelsu">KernelSU\'yu öğrenin</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">KernelSU\'nun nasıl kurulacağını ve modüllerin nasıl kullanılacağını öğrenin</string>
     <string name="home_support_title">Bizi Destekleyin</string>
     <string name="home_support_content">KernelSU ücretsiz ve açık kaynaklı bir yazılımdır ve her zaman öyle kalacaktır. Ancak bağış yaparak bize destek olduğunuzu gösterebilirsiniz.</string>
     <string name="about_source_code"><![CDATA[%1$s adresinde kaynak kodunu görüntüleyin.<br/>%2$s kanalımıza katılın.]]></string>
-    <string name="profile" translatable="false">Uygulama profili</string>
     <string name="profile_default">Varsayılan</string>
     <string name="profile_template">Şablon</string>
     <string name="profile_custom">Özel</string>
@@ -76,6 +81,7 @@
     <string name="force_stop_app">Uygulamayı durmaya zorla</string>
     <string name="restart_app">Uygulamayı yeniden başlat</string>
     <string name="failed_to_update_sepolicy">%s için SELinux kuralları güncellenemedi</string>
+    <string name="su_not_allowed">%s için Superuser erişimi verilemedi</string>
     <string name="module_changelog">Değişiklik geçmişi</string>
     <string name="settings_profile_template">Uygulama profili şablonu</string>
     <string name="settings_profile_template_summary">Yerel ve çevrimiçi uygulama profili şablonlarını yönetin</string>
@@ -99,6 +105,7 @@
     <string name="settings_check_update">Güncellemeleri denetle</string>
     <string name="settings_check_update_summary">Uygulamayı açarken güncellemeleri otomatik denetle</string>
     <string name="grant_root_failed">Root izni verilemedi!</string>
+    <string name="action">Aksiyon</string>
     <string name="open">Aç</string>
     <string name="enable_web_debugging">Web görünümü hata ayıklamasını etkinleştir</string>
     <string name="enable_web_debugging_summary">Web kullanıcı arayüzünde hata ayıklamak için kullanılabilir, lütfen yalnızca gerektiğinde etkinleştirin</string>
@@ -109,33 +116,49 @@
 \nBu seçeneği yalnızca OTA tamamlandıktan sonra kullanın.
 \nDevam edilsin mi?</string>
     <string name="install_next">Sonraki</string>
-    <string name="select_kmi">KMI seçin</string>
     <string name="select_file_tip">%1$s bölüm imajı önerilir</string>
+    <string name="select_kmi">KMI seçin</string>
+    <string name="settings_uninstall">Kaldır</string>
     <string name="settings_uninstall_temporary">Geçici olarak kaldır</string>
     <string name="settings_uninstall_permanent">Kalıcı olarak kaldır</string>
     <string name="settings_restore_stock_image">Stok imajı geri yükle</string>
     <string name="settings_uninstall_temporary_message">KernelSU\'yu geçici olarak kaldır, bir sonraki yeniden başlatmadan sonra orijinal durumuna geri yükle</string>
-    <string name="settings_uninstall">Kaldır</string>
     <string name="settings_uninstall_permanent_message">KernelSU (Root ve tüm modüller) tamamen ve kalıcı olarak kaldırılıyor</string>
     <string name="settings_restore_stock_image_message">Stok fabrika imajını geri yükler (eğer yedek varsa), genellikle OTA\'dan önce kullanılır; KernelSU\'yu kaldırmanız gerekiyorsa, lütfen \"Kalıcı olarak kaldır\" seçeneğini kullanın</string>
-    <string name="flash_success">Flaşlama başarılı</string>
-    <string name="selected_lkm">Seçili LKM: %s</string>
     <string name="flashing">Flaşlanıyor</string>
+    <string name="flash_success">Flaşlama başarılı</string>
     <string name="flash_failed">Flaşlama başarısız</string>
+    <string name="selected_lkm">Seçili LKM: %s</string>
     <string name="save_log">Günlükleri Kaydet</string>
-    <string name="action">Aksiyon</string>
     <string name="log_saved">Günlükler kaydedildi</string>
-    <string name="confirm">Onayla</string>
-    <string name="su_not_allowed">%s için Superuser erişimi verilemedi</string>
-    <string name="module_install_prompt_with_name">Aşağıdaki modüller yüklenecek: %1$s</string>
-    <string name="module_sort_action_first">Sırala (Action önce)</string>
-    <string name="module_sort_enabled_first">Sırala (Etkin olanlar önce)</string>
-    <string name="module_repos">Depolar</string>
-    <string name="module_repos_sort_name">Ad (A → Z)</string>
-    <string name="module_repos_source_code">Kaynak kodu</string>
-    <string name="metamodule_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz? Bu eylem tüm modülleri etkileyecek ve metamodül (örneğin bağlama özelliği) tarafından sunulan belli özellikler artık çalışmayacaktır.</string>
     <string name="settings_sucompat">su ikili dosyasını yeniden yönlendir</string>
     <string name="settings_sucompat_summary">Uygulama Profilinde Süper Kullanıcı izni verilen uygulamaların /system/bin/su yürütülerek süper kullanıcı kabuğu almasına izin verir; yalnızca yeni işlemler için etkilidir.</string>
     <string name="settings_kernel_umount">Çekirdek bağlantısını kes</string>
     <string name="settings_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesinde bağlantı kesme davranışı</string>
+    <!-- Customize -->
+    <!-- Log Viewer -->
+    <!-- umount Manager -->
+    <!-- Personalization Settings -->
+    <!-- Kernel Flash Progress Related -->
+    <!-- kpm -->
+    <!-- Tools -->
+    <!-- Zip File Type Labels -->
+    <!-- Zip Install Prompts -->
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- SUS Map related strings -->
 </resources>

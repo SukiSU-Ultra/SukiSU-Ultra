@@ -5,7 +5,6 @@
     <string name="home_click_to_install">Нажмите, чтобы установить</string>
     <string name="home_working">Работает</string>
     <string name="home_working_version">Версия: %d</string>
-    <!--Don't translate this string!-->
     <string name="home_unsupported">Не поддерживается</string>
     <string name="home_unsupported_reason">KernelSU поддерживает только GKI ядра.</string>
     <string name="home_kernel">Версия ядра</string>
@@ -17,11 +16,17 @@
     <string name="selinux_status_permissive">Разрешающий</string>
     <string name="selinux_status_unknown">Неизвестно</string>
     <string name="superuser">Суперюзеры</string>
-    <!--Don't translate this string!-->
     <string name="module_failed_to_enable">Не удалось включить модуль %s</string>
     <string name="module_failed_to_disable">Не удалось отключить модуль %s</string>
     <string name="module_empty">Нет установленных модулей</string>
     <string name="module">Модули</string>
+    <string name="module_install_prompt_with_name">Будут установлены следующие модули: %1$s</string>
+    <string name="module_sort_action_first">Сначала с действием</string>
+    <string name="module_sort_enabled_first">Сначала включённые</string>
+    <string name="module_repos">Репозиторий</string>
+    <string name="module_repos_sort_name">Имя (А → Я)</string>
+    <string name="module_repos_source_code">Исходный код</string>
+    <string name="confirm">Подтвердить</string>
     <string name="uninstall">Удалить</string>
     <string name="module_install">Установить</string>
     <string name="install">Установка</string>
@@ -34,6 +39,7 @@
     <string name="reboot_edl">Перезагрузить в EDL</string>
     <string name="about">О приложении</string>
     <string name="module_uninstall_confirm">Вы уверены, что хотите удалить модуль %s?</string>
+    <string name="metamodule_uninstall_confirm">"Вы уверены, что хотите удалить модуль %s? Это действие повлияет на все модули, и некоторые функции метамодуля (например, монтирование) перестанут работать."</string>
     <string name="module_uninstall_success">%s удалён</string>
     <string name="module_uninstall_failed">Не удалось удалить %s</string>
     <string name="module_version">Версия</string>
@@ -41,6 +47,7 @@
     <string name="show_system_apps">Показать системные приложения</string>
     <string name="send_log">Отправить логи</string>
     <string name="safe_mode">Безопасный режим</string>
+    <string name="safe_mode_module_disabled">В безопасном режиме установка модулей отключена</string>
     <string name="reboot_to_apply">Перезагрузите, чтобы изменения вступили в силу</string>
     <string name="module_magisk_conflict">Модули недоступны из-за конфликта с Magisk!</string>
     <string name="home_learn_kernelsu">Узнайте о KernelSU</string>
@@ -49,8 +56,6 @@
     <string name="home_support_title">Поддержите нас</string>
     <string name="home_support_content">KernelSU был и всегда будет бесплатным и открытым проектом. Однако Вы всегда можете поддержать нас, отправив небольшое пожертвование.</string>
     <string name="about_source_code"><![CDATA[Посмотреть исходный код на %1$s<br/>Присоединяйтесь к нашему %2$s каналу]]></string>
-    <string name="profile" translatable="false">App Profile</string>
-    <!--Don't translate this string!-->
     <string name="profile_default">По умолчанию</string>
     <string name="profile_template">Шаблон</string>
     <string name="profile_custom">Пользовательский</string>
@@ -64,6 +69,7 @@
     <string name="profile_selinux_context">Контекст SELinux</string>
     <string name="profile_umount_modules">Размонтировать модули по умолчанию</string>
     <string name="failed_to_update_app_profile">Не удалось обновить App Profile для %s</string>
+    <string name="require_kernel_version">Текущая версия KernelSU %1$d слишком низкая для правильной работы менеджера. Пожалуйста, обновите до версии %2$d или выше!</string>
     <string name="settings_umount_modules_default">Размонтировать модули</string>
     <string name="settings_umount_modules_default_summary">Глобальное значение по умолчанию для \"Размонтировать модули\" в App Profile. При включении будут удалены все модификации модулей в системе для приложений, у которых не задан Profile.</string>
     <string name="profile_umount_modules_summary">Включение этой опции позволит KernelSU восстанавливать любые изменённые модулями файлы для данного приложения.</string>
@@ -73,89 +79,88 @@
     <string name="module_downloading">Скачивание модуля: %s</string>
     <string name="module_start_downloading">Начало скачивания: %s</string>
     <string name="new_version_available">Новая версия: %s доступна, нажмите чтобы скачать!</string>
-    <string name="force_stop_app">Остановить принудительно</string>
-    <string name="failed_to_update_sepolicy">Не удалось обновить правила SELinux для %s</string>
     <string name="launch_app">Запустить</string>
+    <string name="force_stop_app">Остановить принудительно</string>
     <string name="restart_app">Перезапустить</string>
-    <string name="require_kernel_version">Текущая версия KernelSU %1$d слишком низкая для правильной работы менеджера. Пожалуйста, обновите до версии %2$d или выше!</string>
+    <string name="failed_to_update_sepolicy">Не удалось обновить правила SELinux для %s</string>
+    <string name="su_not_allowed">Не удалось предоставить права Суперпользователя к %s</string>
     <string name="module_changelog">Список изменений</string>
-    <string name="app_profile_template_import_success">Успешный импорт</string>
-    <string name="app_profile_export_to_clipboard">Экспортировать в буфер обмена</string>
-    <string name="app_profile_template_export_empty">Нет локальных шаблонов для экспорта!</string>
-    <string name="app_profile_template_id_exist">Шаблон с таким ID уже существует!</string>
-    <string name="app_profile_import_from_clipboard">Импортировать из буфера обмена</string>
-    <string name="app_profile_template_name">Название</string>
-    <string name="app_profile_template_id_invalid">Неверный ID шаблона</string>
+    <string name="settings_profile_template">Шаблон профиля приложения</string>
+    <string name="settings_profile_template_summary">Управление локальным и онлайн-шаблоном профиля приложения.</string>
     <string name="app_profile_template_create">Создать шаблон</string>
-    <string name="app_profile_import_export">Импорт/Экспорт</string>
-    <string name="app_profile_template_save_failed">Не удалось сохранить шаблон</string>
     <string name="app_profile_template_edit">Редактирование шаблона</string>
     <string name="app_profile_template_id">Идентификационный номер</string>
-    <string name="settings_profile_template">Шаблон профиля приложения</string>
+    <string name="app_profile_template_id_invalid">Неверный ID шаблона</string>
+    <string name="app_profile_template_name">Название</string>
     <string name="app_profile_template_description">Описание</string>
     <string name="app_profile_template_save">Сохранить</string>
-    <string name="settings_profile_template_summary">Управление локальным и онлайн-шаблоном профиля приложения.</string>
     <string name="app_profile_template_delete">Удалить</string>
-    <string name="app_profile_template_import_empty">Буфер обмена пуст!</string>
     <string name="app_profile_template_view">Просмотр шаблона</string>
+    <string name="app_profile_template_id_exist">Шаблон с таким ID уже существует!</string>
+    <string name="app_profile_import_export">Импорт/Экспорт</string>
+    <string name="app_profile_import_from_clipboard">Импортировать из буфера обмена</string>
+    <string name="app_profile_export_to_clipboard">Экспортировать в буфер обмена</string>
+    <string name="app_profile_template_export_empty">Нет локальных шаблонов для экспорта!</string>
+    <string name="app_profile_template_import_success">Успешный импорт</string>
+    <string name="app_profile_template_save_failed">Не удалось сохранить шаблон</string>
+    <string name="app_profile_template_import_empty">Буфер обмена пуст!</string>
+    <string name="app_profile_affects_following_apps">Влияет на следующие приложения</string>
     <string name="settings_check_update">Проверять наличие обновлений</string>
     <string name="settings_check_update_summary">Автоматическая проверка обновлений при открытии приложения.</string>
+    <string name="settings_module_check_update">Проверять обновления модулей</string>
     <string name="grant_root_failed">Не удалось выдать root!</string>
+    <string name="action">Действие</string>
     <string name="open">Открыть</string>
     <string name="enable_web_debugging">Отладка WebView</string>
     <string name="enable_web_debugging_summary">Используется для отладки WebUI. Пожалуйста, включайте только при необходимости.</string>
     <string name="direct_install">Прямая установка (Рекомендуется)</string>
-    <string name="install_inactive_slot">Установка в неактивный слот (После OTA)</string>
-    <string name="install_next">Далее</string>
     <string name="select_file">Выбрать файл</string>
+    <string name="install_inactive_slot">Установка в неактивный слот (После OTA)</string>
     <string name="install_inactive_slot_warning">Ваше устройство будет **ПРИНУДИТЕЛЬНО** загружено в текущий неактивный слот после перезагрузки!
 \n Используйте эту опцию только после завершения OTA.
 \n Продолжить?</string>
-    <string name="select_kmi">Выбрать KMI</string>
+    <string name="install_next">Далее</string>
+    <string name="install_select_partition">Выбрать раздел</string>
+    <string name="install_upload_lkm_file">Использовать локальный LKM файл</string>
+    <string name="install_only_support_ko_file">Поддерживаются только .ko файлы</string>
     <string name="select_file_tip">%1$s образ раздела рекомендуется</string>
-    <string name="settings_uninstall_temporary">Удалить на время</string>
-    <string name="settings_uninstall_permanent_message">Удалить KernelSU (root и все модули) полностью.</string>
-    <string name="settings_uninstall_permanent">Удалить полностью</string>
-    <string name="settings_uninstall_temporary_message">Временно удалить KernelSU, восстановить исходное состояние после следующей перезагрузки.</string>
+    <string name="select_kmi">Выбрать KMI</string>
     <string name="settings_uninstall">Удалить</string>
+    <string name="settings_uninstall_temporary">Удалить на время</string>
+    <string name="settings_uninstall_permanent">Удалить полностью</string>
     <string name="settings_restore_stock_image">Восстановить сток образ</string>
+    <string name="settings_uninstall_temporary_message">Временно удалить KernelSU, восстановить исходное состояние после следующей перезагрузки.</string>
+    <string name="settings_uninstall_permanent_message">Удалить KernelSU (root и все модули) полностью.</string>
     <string name="settings_restore_stock_image_message">Восстановить исходный заводской образ (если существует резервная копия), обычно используется перед OTA; если вам нужно удалить KernelSU, используйте «Удалить полностью».</string>
-    <string name="flash_success">Установка выполнена</string>
     <string name="flashing">Установка</string>
+    <string name="flash_success">Установка выполнена</string>
     <string name="flash_failed">Установка не выполнена</string>
     <string name="selected_lkm">Выбран LKM: %s</string>
     <string name="save_log">Сохранить логи</string>
-    <string name="action">Действие</string>
     <string name="log_saved">Логи сохранены</string>
-    <string name="module_sort_action_first">Сначала с действием</string>
-    <string name="module_sort_enabled_first">Сначала включённые</string>
-    <string name="module_install_prompt_with_name">Будут установлены следующие модули: %1$s</string>
-    <string name="confirm">Подтвердить</string>
-    <string name="su_not_allowed">Не удалось предоставить права Суперпользователя к %s</string>
-    <string name="refresh_complete">Обновлено успешно</string>
-    <string name="refresh_refresh">Обновление…</string>
-    <string name="refresh_release">Отпустите чтобы обновить</string>
-    <string name="refresh_pulling">Потяните вниз чтобы обновить</string>
-    <string name="processing">Обработка…</string>
-    <string name="install_upload_lkm_file">Использовать локальный LKM файл</string>
-    <string name="install_only_support_ko_file">Поддерживаются только .ko файлы</string>
     <string name="settings_sucompat">Классическая команда su</string>
     <string name="settings_sucompat_summary">Разрешить root-доступ через /system/bin/su в новых процессах.</string>
     <string name="settings_kernel_umount">Размонтирование модулей</string>
     <string name="settings_kernel_umount_summary">Размонтировать модули в ядре для профиля приложения</string>
-    <string name="settings_module_check_update">Проверять обновления модулей</string>
-    <string name="install_select_partition">Выбрать раздел</string>
-    <string name="app_profile_affects_following_apps">Влияет на следующие приложения</string>
-    <string name="group_contains_apps">Содержит %d приложений</string>
-    <string name="metamodule_uninstall_confirm">Вы уверены, что хотите удалить модуль %s? Это действие повлияет на все модули, и некоторые функции метамодуля (например, монтирование) перестанут работать.</string>
+    <string name="feature_status_unsupported_summary">Ядро не поддерживает эту функцию.</string>
+    <string name="feature_status_managed_summary">Эта функция управляется модулем.</string>
+    <string name="processing">Обработка…</string>
+    <string name="refresh_pulling">Потяните вниз чтобы обновить</string>
+    <string name="refresh_release">Отпустите чтобы обновить</string>
+    <string name="refresh_refresh">Обновление…</string>
+    <string name="refresh_complete">Обновлено успешно</string>
     <string name="undo">Отменить</string>
-    <string name="module_undo_uninstall_failed">не удалось отменить удаление: %s</string>
     <string name="module_undo_uninstall_success">Удаление %s успешно отменено</string>
+    <string name="module_undo_uninstall_failed">не удалось отменить удаление: %s</string>
+    <string name="group_contains_apps">Содержит %d приложений</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_theme_summary">Выберите режим темы приложения.</string>
     <string name="settings_theme_mode_system">Как в системе</string>
-    <string name="feature_status_managed_summary">Эта функция управляется модулем.</string>
-    <string name="feature_status_unsupported_summary">Ядро не поддерживает эту функцию.</string>
+    <string name="settings_theme_mode_light">Светлая</string>
+    <string name="settings_theme_mode_dark">Тёмная</string>
+    <string name="settings_theme_mode_monet_system">Monet (Как в системе)</string>
+    <string name="settings_theme_mode_monet_light">Monet (Светлая)</string>
+    <string name="settings_theme_mode_monet_dark">Monet (Тёмная)</string>
     <string name="settings_key_color">Ключевой цвет</string>
     <string name="settings_key_color_summary">Настройте акцент при использовании Monet.</string>
     <string name="settings_key_color_default">По умолчанию</string>
@@ -167,18 +172,34 @@
     <string name="color_teal">Бирюзовый</string>
     <string name="color_pink">Розовый</string>
     <string name="color_brown">Коричневый</string>
-    <string name="settings_theme_mode_monet_system">Monet (Как в системе)</string>
-    <string name="settings_theme_mode_monet_light">Monet (Светлая)</string>
-    <string name="settings_theme_mode_monet_dark">Monet (Тёмная)</string>
-    <string name="settings_theme_mode_light">Светлая</string>
-    <string name="settings_theme_mode_dark">Тёмная</string>
-    <string name="module_repos">Репозиторий</string>
-    <string name="module_repos_sort_name">Имя (А → Я)</string>
-    <string name="module_repos_source_code">Исходный код</string>
     <string name="network_offline">Нет подключения к сети</string>
     <string name="network_retry">Повторить</string>
-    <string name="tab_readme">README</string>
     <string name="tab_releases">Релизы</string>
     <string name="tab_info">Информация</string>
-    <string name="safe_mode_module_disabled">В безопасном режиме установка модулей отключена</string>
+    <!-- Customize -->
+    <!-- Log Viewer -->
+    <!-- umount Manager -->
+    <!-- Personalization Settings -->
+    <!-- Kernel Flash Progress Related -->
+    <!-- kpm -->
+    <!-- Tools -->
+    <!-- Zip File Type Labels -->
+    <!-- Zip Install Prompts -->
+    <!-- SuSFS Configuration -->
+    <!-- SuSFS Reset Confirmation -->
+    <!-- SuSFS Toast Messages -->
+    <!-- 开机自启动相关 -->
+    <!-- SuSFS Tab Titles -->
+    <!-- SuSFS Path Management -->
+    <!-- SuSFS Reset Categories -->
+    <!-- SuSFS Path Settings -->
+    <!-- SuSFS Enabled Features -->
+    <!-- Feature Labels -->
+    <!-- 可切换状态 -->
+    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Mount Hiding Control Related Strings -->
+    <!-- 备份和还原相关字符串 -->
+    <!-- 循环路径相关 -->
+    <!-- 循环路径功能描述 -->
+    <!-- SUS Map related strings -->
 </resources>
