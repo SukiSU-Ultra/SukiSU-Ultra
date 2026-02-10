@@ -526,8 +526,8 @@ private fun GroupItem(
                 packageInfo = group.primary.packageInfo,
                 label = group.primary.label,
                 modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(46.dp)
+                    .padding(end = 14.dp)
+                    .size(48.dp)
             )
             Column(
                 modifier = Modifier
