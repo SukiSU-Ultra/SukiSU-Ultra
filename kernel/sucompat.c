@@ -350,6 +350,9 @@ int ksu_handle_devpts(struct inode *inode)
 	if (!__ksu_is_allow_uid_for_current(uid))
 		return 0;
 
+	if (!is_ksu_domain())
+		return 0;
+
 	if (ksu_file_sid) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) ||                           \
 	defined(KSU_OPTIONAL_SELINUX_INODE)
