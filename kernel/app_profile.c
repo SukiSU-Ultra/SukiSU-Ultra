@@ -197,7 +197,11 @@ void escape_with_root_profile(void)
 
 	setup_groups(profile, cred);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
+	setup_selinux(profile->selinux_domain, current->cred);
+#else
 	setup_selinux(profile->selinux_domain, cred);
+#endif
 
 	commit_creds(cred);
 
