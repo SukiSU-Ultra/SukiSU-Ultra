@@ -48,10 +48,6 @@ object Natives {
         return false
     }
 
-    fun getSimpleVersionFull(): String = getFullVersion().let { version ->
-        Regex("""v\d+(\.\d+)*""").find(version)?.value ?: version
-    }
-
     init {
         System.loadLibrary("kernelsu")
     }

@@ -43,7 +43,6 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.component.BottomBar
 import com.sukisu.ultra.ui.component.MainPagerState

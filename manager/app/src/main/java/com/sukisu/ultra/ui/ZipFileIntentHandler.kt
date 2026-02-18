@@ -52,7 +52,6 @@ fun HandleZipFileIntent(
     var processed by remember { mutableStateOf(false) }
     
     var dialogState by remember { mutableStateOf<DialogState>(DialogState.None) }
-    var selectedSlot by remember { mutableStateOf<String?>(null) }
     var kpmPatchOption by remember { mutableStateOf(KpmPatchOption.FOLLOW_KERNEL) }
     val isSafeMode = Natives.isSafeMode
 
@@ -205,17 +204,10 @@ fun HandleZipFileIntent(
         is DialogState.SlotSelection -> {
             SlotSelectionDialog(
                 show = true,
-                onDismiss = {
-                    dialogState = DialogState.None
-                    selectedSlot = null
-                    kpmPatchOption = KpmPatchOption.FOLLOW_KERNEL
-                },
-                onSlotSelected = { slot ->
-                    selectedSlot = slot
-                    dialogState = DialogState.None
+                onDismiss = { },
+                onSlotSelected = { _ ->
                     scope.launch {
                         delay(300)
-                        dialogState = DialogState.KpmSelection(state.kernelUri, slot)
                     }
                 }
             )
@@ -224,14 +216,8 @@ fun HandleZipFileIntent(
             KpmPatchSelectionDialog(
                 show = true,
                 currentOption = kpmPatchOption,
-                onDismiss = {
-                    dialogState = DialogState.None
-                    selectedSlot = null
-                    kpmPatchOption = KpmPatchOption.FOLLOW_KERNEL
-                },
+                onDismiss = { },
                 onOptionSelected = { option ->
-                    kpmPatchOption = option
-                    dialogState = DialogState.None
 
                     navigator.push(
                         Route.KernelFlash(
@@ -241,9 +227,6 @@ fun HandleZipFileIntent(
                             kpmUndoPatch = option == KpmPatchOption.UNDO_PATCH_KPM
                         )
                     )
-                    
-                    selectedSlot = null
-                    kpmPatchOption = KpmPatchOption.FOLLOW_KERNEL
                 }
             )
         }

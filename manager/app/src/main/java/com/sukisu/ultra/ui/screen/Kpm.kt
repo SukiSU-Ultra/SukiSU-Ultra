@@ -58,7 +58,6 @@ import android.app.Activity
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
-import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -82,7 +81,6 @@ fun KpmScreen(
     viewModel: KpmViewModel = viewModel(),
     bottomInnerPadding: Dp = 0.dp
 ) {
-    val navigator = LocalNavigator.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val confirmDialog = rememberConfirmDialog()
@@ -568,15 +566,20 @@ private fun KpmList(
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     var isNoticeClosed by remember { mutableStateOf(sharedPreferences.getBoolean("is_notice_closed", false)) }
+
+    val refreshPulling = stringResource(R.string.refresh_pulling)
+    val refreshRelease = stringResource(R.string.refresh_release)
+    val refreshRefresh = stringResource(R.string.refresh_refresh)
+    val refreshComplete = stringResource(R.string.refresh_complete)
     
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
     val pullToRefreshState = rememberPullToRefreshState()
     val refreshTexts = remember {
         listOf(
-            context.getString(R.string.refresh_pulling),
-            context.getString(R.string.refresh_release),
-            context.getString(R.string.refresh_refresh),
-            context.getString(R.string.refresh_complete),
+            refreshPulling,
+            refreshRelease,
+            refreshRefresh,
+            refreshComplete,
         )
     }
     

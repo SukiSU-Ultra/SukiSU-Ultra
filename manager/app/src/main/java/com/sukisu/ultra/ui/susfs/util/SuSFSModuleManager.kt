@@ -22,8 +22,6 @@ object SuSFSModuleManager {
         )
     }
 
-    fun getModulePath(): String = MODULE_PATH
-
     private fun getCurrentModuleConfig(context: Context): SuSFSManager.ModuleConfig {
         return SuSFSManager.getCurrentModuleConfig(context)
     }

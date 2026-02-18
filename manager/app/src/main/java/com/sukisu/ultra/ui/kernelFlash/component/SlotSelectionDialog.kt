@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,8 +38,7 @@ fun SlotSelectionDialog(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedSlot by remember { mutableStateOf<String?>(null) }
     val showDialog = remember { mutableStateOf(show) }
-
-    val context = LocalContext.current
+    val operationFailedString = stringResource(R.string.operation_failed)
     
     LaunchedEffect(show) {
         showDialog.value = show
@@ -54,8 +52,8 @@ fun SlotSelectionDialog(
                     else -> null
                 }
                 errorMessage = null
-            } catch (e: Exception) {
-                errorMessage = context.getString(R.string.operation_failed)
+            } catch (_: Exception) {
+                errorMessage = operationFailedString
                 currentSlot = null
             }
         }
@@ -92,7 +90,7 @@ fun SlotSelectionDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp, vertical = 8.dp),
-                        text = errorMessage ?: context.getString(R.string.operation_failed),
+                        text = errorMessage ?: stringResource(R.string.operation_failed),
                         fontSize = MiuixTheme.textStyles.body2.fontSize,
                         color = colorScheme.error,
                         textAlign = TextAlign.Center
@@ -104,7 +102,7 @@ fun SlotSelectionDialog(
                             .padding(horizontal = 24.dp, vertical = 8.dp),
                         text = stringResource(
                             id = R.string.current_slot,
-                            currentSlot?.uppercase() ?: context.getString(R.string.not_supported)
+                            currentSlot?.uppercase() ?: stringResource(R.string.not_supported)
                         ),
                         fontSize = MiuixTheme.textStyles.body2.fontSize,
                         color = colorScheme.onSurfaceVariantSummary,
@@ -201,7 +199,7 @@ data class SlotOption(
 )
 
 // Utility function to get current slot
-private suspend fun getCurrentSlot(): String? {
+private fun getCurrentSlot(): String? {
     return try {
         val shell = getRootShell()
         val result = ShellUtils.fastCmd(shell, "getprop ro.boot.slot_suffix").trim()
@@ -210,7 +208,7 @@ private suspend fun getCurrentSlot(): String? {
         } else {
             result
         }.takeIf { it.isNotEmpty() }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }

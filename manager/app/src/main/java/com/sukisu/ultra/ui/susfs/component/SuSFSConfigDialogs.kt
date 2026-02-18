@@ -397,7 +397,7 @@ fun AddPathDialog(
         ),
         confirmTextRes = if (initialValue.isNotEmpty()) R.string.susfs_save else R.string.add,
         isConfirmEnabled = newPath.isNotBlank() && !isLoading,
-        onReset = { newPath = "" }
+        onReset = { }
     )
 }
 
@@ -462,7 +462,6 @@ fun AddAppPathDialog(
             title = stringResource(R.string.susfs_add_app_path),
             onDismissRequest = {
                 onDismiss()
-                selectedApps = setOf()
                 searchText = ""
             },
             content = {
@@ -1229,7 +1228,6 @@ fun FeatureStatusCard(
             title = stringResource(R.string.susfs_log_config_title),
             onDismissRequest = {
                 // 恢复原始状态
-                logEnabled = SuSFSManager.getEnableLogState(context)
                 showLogConfigDialog = false
             },
             content = {

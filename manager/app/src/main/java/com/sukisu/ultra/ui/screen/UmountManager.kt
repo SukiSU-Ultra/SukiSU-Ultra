@@ -70,6 +70,14 @@ fun UmountManagerScreen() {
     var isLoading by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
 
+    val confirmActionText = stringResource(R.string.confirm_action)
+    val umountPathRemovedText = stringResource(R.string.umount_path_removed)
+    val confirmClearCustomPathsText = stringResource(R.string.confirm_clear_custom_paths)
+    val customPathsClearedText = stringResource(R.string.custom_paths_cleared)
+    val operationFailedText = stringResource(R.string.operation_failed)
+    val configAppliedText = stringResource(R.string.config_applied)
+    val umountPathAddedText = stringResource(R.string.umount_path_added)
+
     fun loadPaths() {
         scope.launch(Dispatchers.IO) {
             isLoading = true
@@ -116,7 +124,7 @@ fun UmountManagerScreen() {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true }
+                onClick = { }
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
@@ -178,14 +186,14 @@ fun UmountManagerScreen() {
                                         if (success) {
                                             Toast.makeText(
                                                 context,
-                                                context.getString(R.string.umount_path_removed),
+                                                umountPathRemovedText,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                             loadPaths()
                                         } else {
                                             Toast.makeText(
                                                 context,
-                                                context.getString(R.string.operation_failed),
+                                                operationFailedText,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -210,8 +218,8 @@ fun UmountManagerScreen() {
                                 onClick = {
                                     scope.launch {
                                         if (confirmDialog.awaitConfirm(
-                                                title = context.getString(R.string.confirm_action),
-                                                content = context.getString(R.string.confirm_clear_custom_paths)
+                                                title = confirmActionText,
+                                                content = confirmClearCustomPathsText
                                             ) == ConfirmResult.Confirmed) {
                                             withContext(Dispatchers.IO) {
                                                 val success = clearCustomUmountPaths()
@@ -219,14 +227,14 @@ fun UmountManagerScreen() {
                                                     if (success) {
                                                         Toast.makeText(
                                                             context,
-                                                            context.getString(R.string.custom_paths_cleared),
+                                                            customPathsClearedText,
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                         loadPaths()
                                                     } else {
                                                         Toast.makeText(
                                                             context,
-                                                            context.getString(R.string.operation_failed),
+                                                            operationFailedText,
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                     }
@@ -248,13 +256,13 @@ fun UmountManagerScreen() {
                                             if (success) {
                                                 Toast.makeText(
                                                     context,
-                                                    context.getString(R.string.config_applied),
+                                                    configAppliedText,
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             } else {
                                                 Toast.makeText(
                                                     context,
-                                                    context.getString(R.string.operation_failed),
+                                                    operationFailedText,
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
@@ -284,14 +292,14 @@ fun UmountManagerScreen() {
                                 saveUmountConfig()
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.umount_path_added),
+                                    umountPathAddedText,
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 loadPaths()
                             } else {
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.operation_failed),
+                                    operationFailedText,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -311,6 +319,9 @@ fun UmountPathCard(
     val confirmDialog = rememberConfirmDialog()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val confirmDeleteText = stringResource(R.string.confirm_delete)
+    val confirmDeleteUmountPathText = stringResource(R.string.confirm_delete_umount_path, entry.path)
 
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -337,7 +348,7 @@ fun UmountPathCard(
                 Spacer(modifier = Modifier.height(SPACING_SMALL))
                 Text(
                     text = buildString {
-                        append(context.getString(R.string.flags))
+                        append(stringResource(R.string.flags))
                         append(": ")
                         append(entry.flags.toUmountFlagName(context))
                     },
@@ -349,8 +360,8 @@ fun UmountPathCard(
                 onClick = {
                     scope.launch {
                         if (confirmDialog.awaitConfirm(
-                                title = context.getString(R.string.confirm_delete),
-                                content = context.getString(R.string.confirm_delete_umount_path, entry.path)
+                                title = confirmDeleteText,
+                                content = confirmDeleteUmountPathText
                             ) == ConfirmResult.Confirmed) {
                             onDelete()
                         }
