@@ -21,7 +21,7 @@ Prerequisites: open source bootable kernel.
    <!-- - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5 (v1.5 version is not available at the moment, if you want to use it, please use v1.4 version, or standard KernelSU hooks)-->
 
    - Requires `CONFIG_KSU_MANUAL_HOOK=y`
-   - Requires [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
+   - Requires [`guide/how-to-integrate.md`](guide/how-to-integrate.md#%E6%89%8B%E5%8A%A8%E4%BF%AE%E6%94%B9%E5%86%85%E6%A0%B8%E6%BA%90%E4%BB%A3%E7%A0%81)
    - Requires [https://github.com/~](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source)
 
 3. **Tracepoint Hook:**
@@ -78,13 +78,13 @@ Run command for the step that adds KernelSU(SukiSU) to your kernel source tree i
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
-### non-GKI kernel
+### Built-in kernel
 
 ```sh
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
 ```
 
-### GKI / non-GKI kernel with susfs (experiment)
+### GKI / Built-in kernel with susfs (experiment)
 
 ```sh
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-{{branch}}

@@ -69,7 +69,7 @@ This method is for advanced users who are building a kernel from source.
   ```
 - **Non-GKI Branch**:
   ```sh [bash]
-  curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+  curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
   ```
 - **SUSFS-Dev Branch (Recommended)**:
   ```sh [bash]
