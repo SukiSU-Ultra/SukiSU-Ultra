@@ -19,7 +19,7 @@ SukiSU 可以集成到 GKI 和 non-GKI 内核中，并且已反向移植到 4.14
 
    <!-- - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5 (v1.5 version is not available at the moment, if you want to use it, please use v1.4 version, or standard KernelSU hooks)-->
    - 需要 `CONFIG_KSU_MANUAL_HOOK=y`
-   - 需要 [`guide/how-to-integrate.md`](how-to-integrate.md)
+   - 需要 [`guide/how-to-integrate.md`](how-to-integrate#%E6%89%8B%E5%8A%A8%E4%BF%AE%E6%94%B9%E5%86%85%E6%A0%B8%E6%BA%90%E4%BB%A3%E7%A0%81)
    - 需要 [https://github.com/~](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source)
 
 3. **Tracepoint Hook:**
@@ -75,13 +75,13 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
-### non-GKI 内核
+### Built-in 内核
 
 ```sh [bash]
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
 ```
 
-### 带有 susfs 的 GKI / non-GKI 内核（实验）
+### 带有 susfs 的 GKI / Built-in 内核（实验）
 
 ```sh [bash]
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-{{branch}}
