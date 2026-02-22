@@ -334,7 +334,7 @@
     <string name="allowlist_backup_summary_picker">Choose a location to export the allowlist</string>
     <string name="allowlist_backup_success">Backup succeeded</string>
     <string name="allowlist_backup_failed">Backup failed</string>
-    <string name="allowlist_restore_title">Restoration successful. Changes will take effect after restart.</string>
+    <string name="allowlist_restore_title">Restore allowlist</string>
     <string name="allowlist_restore_summary_picker">Choose a backup file to import</string>
     <string name="allowlist_restore_success">Restore succeeded</string>
     <string name="allowlist_restore_failed">Restore failed</string>
