@@ -24,24 +24,12 @@ NativeBridgeNP(getFullVersion, jstring) {
 	return GetEnvironment()->NewStringUTF(env, buff);
 }
 
-NativeBridgeNP(getAllowList, jintArray) {
-	struct ksu_get_allow_list_cmd cmd = {};
+NativeBridgeNP(getSuperuserCount, jint) {
+	struct ksu_new_get_allow_list_cmd cmd = {
+		.count = 0
+	};
 	bool result = get_allow_list(&cmd);
-
-	if (result) {
-		jsize array_size = (jsize)cmd.count;
-		if (array_size < 0 || (unsigned int)array_size != cmd.count) {
-			LogDebug("Invalid array size: %u", cmd.count);
-			return GetEnvironment()->NewIntArray(env, 0);
-		}
-
-		jintArray array = GetEnvironment()->NewIntArray(env, array_size);
-		GetEnvironment()->SetIntArrayRegion(env, array, 0, array_size, (const jint *)(cmd.uids));
-
-		return array;
-	}
-
-	return GetEnvironment()->NewIntArray(env, 0);
+	return result ? cmd.total_count : 0;
 }
 
 NativeBridgeNP(isSafeMode, jboolean) {
