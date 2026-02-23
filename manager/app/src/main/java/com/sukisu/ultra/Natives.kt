@@ -18,8 +18,8 @@ object Natives {
     // 10977: change groups_count and groups to avoid overflow write
     // 11071: Fix the issue of failing to set a custom SELinux type.
     // 12143: breaking: new supercall impl
-    // 32243: new get_allow_list ioctl
-    const val MINIMAL_SUPPORTED_KERNEL = 32243
+    // 32310: new get_allow_list ioctl
+    const val MINIMAL_SUPPORTED_KERNEL = 32310
 
     // Get full version
     external fun getFullVersion(): String
