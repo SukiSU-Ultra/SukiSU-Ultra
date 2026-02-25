@@ -334,7 +334,6 @@
     <string name="allowlist_backup_summary_picker">Выберите место для экспорта списка</string>
     <string name="allowlist_backup_success">Резервное копирование выполнено успешно</string>
     <string name="allowlist_backup_failed">Ошибка резервного копирования</string>
-    <string name="allowlist_restore_title">Восстановление прошло успешно. Изменения вступят в силу после перезапуска.</string>
     <string name="allowlist_restore_summary_picker">Выберите файл резервной копии для импорта</string>
     <string name="allowlist_restore_success">Успешно восстановлено</string>
     <string name="allowlist_restore_failed">Ошибка восстановления</string>
