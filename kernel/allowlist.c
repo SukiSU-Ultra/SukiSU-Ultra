@@ -38,8 +38,6 @@ static DEFINE_MUTEX(cmdsu_mutex);
 static struct root_profile default_root_profile;
 static struct non_root_profile default_non_root_profile;
 
-void persistent_allow_list(void);
-
 static int allow_list_arr[PAGE_SIZE / sizeof(int)] __read_mostly
     __aligned(PAGE_SIZE);
 static int allow_list_pointer __read_mostly = 0;
@@ -658,7 +656,7 @@ void ksu_temp_revoke_root_once(uid_t uid)
            KSU_DEFAULT_SELINUX_DOMAIN);
 
     ksu_set_app_profile(&profile);
-    persistent_allow_list();
+    ksu_persistent_allow_list();
     pr_info("pending_root: UID=%d removed and persist updated\n", uid);
 }
 #endif
