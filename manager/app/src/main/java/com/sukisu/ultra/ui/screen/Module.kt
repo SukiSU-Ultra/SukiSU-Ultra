@@ -118,7 +118,6 @@ import com.sukisu.ultra.ui.component.rememberLoadingDialog
 import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.theme.isInDarkTheme
-import com.sukisu.ultra.ui.util.DownloadListener
 import com.sukisu.ultra.ui.util.download
 import com.sukisu.ultra.ui.util.getFileName
 import com.sukisu.ultra.ui.util.hasMagisk
@@ -637,12 +636,12 @@ fun ModulePager(
                 )
                 val selectZipLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.StartActivityForResult()
-                ) { result ->
+                ) { activityResult ->
                     val uris = mutableListOf<Uri>()
-                    if (result.resultCode != RESULT_OK) {
+                    if (activityResult.resultCode != RESULT_OK) {
                         return@rememberLauncherForActivityResult
                     }
-                    val data = result.data ?: return@rememberLauncherForActivityResult
+                    val data = activityResult.data ?: return@rememberLauncherForActivityResult
                     val clipData = data.clipData
 
                     if (clipData != null) {
@@ -836,7 +835,6 @@ fun ModulePager(
                             .hazeSource(state = hazeState),
                         scope = scope,
                         modules = modules,
-                        onInstallModule = { navigator.push(Route.Flash(FlashIt.FlashModules(listOf(it)))) },
                         onClickModule = { id, name, hasWebUi ->
                             onModuleClick(id, name, hasWebUi)
                         },
@@ -1031,7 +1029,6 @@ private fun ModuleList(
     modifier: Modifier = Modifier,
     scope: CoroutineScope,
     modules: List<ModuleViewModel.ModuleInfo>,
-    onInstallModule: (Uri) -> Unit,
     onClickModule: (id: String, name: String, hasWebUi: Boolean) -> Unit,
     onModuleUninstall: suspend (ModuleViewModel.ModuleInfo) -> Unit,
     onModuleUndoUninstall: suspend (ModuleViewModel.ModuleInfo) -> Unit,
@@ -1192,7 +1189,6 @@ private fun ModuleList(
             }
         }
     }
-    DownloadListener(context, onInstallModule)
 }
 
 @Composable

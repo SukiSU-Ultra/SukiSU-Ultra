@@ -95,7 +95,6 @@ import com.sukisu.ultra.ui.component.rememberConfirmDialog
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.theme.isInDarkTheme
-import com.sukisu.ultra.ui.util.DownloadListener
 import com.sukisu.ultra.ui.util.download
 import com.sukisu.ultra.ui.util.isNetworkAvailable
 import com.sukisu.ultra.ui.util.module.fetchModuleDetail
@@ -1218,6 +1217,5 @@ fun ModuleRepoDetailScreen(
                 }
             }
         }
-        DownloadListener(context, onInstallModule)
     }
 }
