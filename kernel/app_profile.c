@@ -200,7 +200,7 @@ void escape_with_root_profile(void)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
 	setup_selinux(profile->selinux_domain, current->cred);
 #else
-	setup_selinux(profile->selinux_domain, cred);
+	setup_selinux(profile.selinux_domain, cred);
 #endif
 
 	commit_creds(cred);
@@ -368,14 +368,14 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 
 	u64 cap_for_cmd_su = profile.capabilities.effective | CAP_DAC_READ_SEARCH |
 						 CAP_SETUID | CAP_SETGID;
-	memcpy(&newcreds.cap_effective, &cap_for_cmd_su,
-		   sizeof(newcreds.cap_effective));
+	memcpy(&newcreds->cap_effective, &cap_for_cmd_su,
+		sizeof(newcreds->cap_effective));
 	memcpy(&newcreds->cap_permitted, &profile.capabilities.effective,
-		   sizeof(newcreds.cap_permitted));
-	memcpy(&newcreds.cap_bset, &profile.capabilities.effective,
-		   sizeof(newcreds.cap_bset));
+		sizeof(newcreds->cap_permitted));
+	memcpy(&newcreds->cap_bset, &profile.capabilities.effective,
+		sizeof(newcreds->cap_bset));
 
-	setup_groups(&profile, cred);
+	setup_groups(&profile, newcreds);
 	setup_selinux(profile.selinux_domain, newcreds);
 	task_lock(target_task);
 
