@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -49,6 +50,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
 import kotlinx.coroutines.delay
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,6 +62,7 @@ import kotlinx.parcelize.Parcelize
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KeyEventBlocker
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.FlashResult
 import com.sukisu.ultra.ui.util.LkmSelection
 import com.sukisu.ultra.ui.util.flashModule
@@ -118,10 +125,20 @@ fun FlashScreen(
 
     val context = LocalContext.current
     val activity = LocalActivity.current
+    val enableBlur = LocalEnableBlur.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     var flashing by rememberSaveable {
         mutableStateOf(FlashingStatus.FLASHING)
+    }
+    val hazeState = remember { HazeState() }
+    val hazeStyle = if (enableBlur) {
+        HazeStyle(
+            backgroundColor = colorScheme.surface,
+            tint = HazeTint(colorScheme.surface.copy(0.8f))
+        )
+    } else {
+        HazeStyle.Unspecified
     }
 
     LaunchedEffect(Unit) {
@@ -186,6 +203,9 @@ fun FlashScreen(
                         Toast.makeText(context, "Log saved to ${file.absolutePath}", Toast.LENGTH_SHORT).show()
                     }
                 },
+                hazeState = hazeState,
+                hazeStyle = hazeStyle,
+                enableBlur = enableBlur,
             )
         },
         floatingActionButton = {
@@ -230,6 +250,7 @@ fun FlashScreen(
             modifier = Modifier
                 .fillMaxSize(1f)
                 .scrollEndHaptic()
+                .let { if (enableBlur) it.hazeSource(state = hazeState) else it }
                 .padding(
                     start = innerPadding.calculateStartPadding(layoutDirection),
                     end = innerPadding.calculateStartPadding(layoutDirection),
@@ -306,8 +327,20 @@ private fun TopBar(
     status: FlashingStatus,
     onBack: () -> Unit = {},
     onSave: () -> Unit = {},
+    hazeState: HazeState,
+    hazeStyle: HazeStyle,
+    enableBlur: Boolean
 ) {
     SmallTopAppBar(
+        modifier = if (enableBlur) {
+            Modifier.hazeEffect(hazeState) {
+                style = hazeStyle
+                blurRadius = 30.dp
+                noiseFactor = 0f
+            }
+        } else {
+            Modifier
+        },
         title = stringResource(
             when (status) {
                 FlashingStatus.FLASHING -> R.string.flashing
@@ -315,6 +348,7 @@ private fun TopBar(
                 FlashingStatus.FAILED -> R.string.flash_failed
             }
         ),
+        color = if (enableBlur) Color.Transparent else colorScheme.surface,
         navigationIcon = {
             IconButton(
                 modifier = Modifier.padding(start = 16.dp),

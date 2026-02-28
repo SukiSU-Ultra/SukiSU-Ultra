@@ -45,6 +45,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.EditText
 import com.sukisu.ultra.ui.component.profile.RootProfileConfig
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.deleteAppProfileTemplate
 import com.sukisu.ultra.ui.util.getAppProfileTemplate
 import com.sukisu.ultra.ui.util.setAppProfileTemplate
@@ -83,11 +84,16 @@ fun TemplateEditorScreen(
     }
 
     val scrollBehavior = MiuixScrollBehavior()
+    val enableBlur = LocalEnableBlur.current
     val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = colorScheme.surface,
-        tint = HazeTint(colorScheme.surface.copy(0.8f))
-    )
+    val hazeStyle = if (enableBlur) {
+        HazeStyle(
+            backgroundColor = colorScheme.surface,
+            tint = HazeTint(colorScheme.surface.copy(0.8f))
+        )
+    } else {
+        HazeStyle.Unspecified
+    }
 
     Scaffold(
         topBar = {
@@ -135,6 +141,7 @@ fun TemplateEditorScreen(
                 scrollBehavior = scrollBehavior,
                 hazeState = hazeState,
                 hazeStyle = hazeStyle,
+                enableBlur = enableBlur,
             )
         },
         popupHost = { },
@@ -146,7 +153,7 @@ fun TemplateEditorScreen(
                 .scrollEndHaptic()
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .hazeSource(state = hazeState)
+                .let { if (enableBlur) it.hazeSource(state = hazeState) else it }
                 .pointerInteropFilter {
                     // disable click and ripple if readOnly
                     readOnly
@@ -302,14 +309,19 @@ private fun TopBar(
     scrollBehavior: ScrollBehavior,
     hazeState: HazeState,
     hazeStyle: HazeStyle,
+    enableBlur: Boolean
 ) {
     TopAppBar(
-        modifier = Modifier.hazeEffect(hazeState) {
-            style = hazeStyle
-            blurRadius = 30.dp
-            noiseFactor = 0f
+        modifier = if (enableBlur) {
+            Modifier.hazeEffect(hazeState) {
+                style = hazeStyle
+                blurRadius = 30.dp
+                noiseFactor = 0f
+            }
+        } else {
+            Modifier
         },
-        color = Color.Transparent,
+        color = if (enableBlur) Color.Transparent else colorScheme.surface,
         title = title,
         navigationIcon = {
             IconButton(

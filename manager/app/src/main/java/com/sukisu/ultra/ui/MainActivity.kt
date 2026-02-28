@@ -10,6 +10,8 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +41,8 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -73,6 +78,10 @@ import com.sukisu.ultra.ui.screen.settings.Personalization
 import com.sukisu.ultra.ui.screen.settings.Tools
 import com.sukisu.ultra.ui.susfs.SuSFSConfigScreen
 import com.sukisu.ultra.ui.theme.KernelSUTheme
+import com.sukisu.ultra.ui.theme.LocalColorMode
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
+import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -95,6 +104,11 @@ class MainActivity : ComponentActivity() {
             var colorMode by remember { mutableIntStateOf(prefs.getInt("color_mode", 0)) }
             var keyColorInt by remember { mutableIntStateOf(prefs.getInt("key_color", 0)) }
             var pageScale by remember { mutableFloatStateOf(prefs.getFloat("page_scale", 1f)) }
+            var enableBlur by remember { mutableStateOf(prefs.getBoolean("enable_blur", true)) }
+            var enableFloatingBottomBar by remember { mutableStateOf(prefs.getBoolean("enable_floating_bottom_bar", false)) }
+            var enableFloatingBottomBarBlur by remember { mutableStateOf(prefs.getBoolean("enable_floating_bottom_bar_blur", true)) }
+
+
             val keyColor = remember(keyColorInt) { if (keyColorInt == 0) null else Color(keyColorInt) }
 
             val darkMode = when (colorMode) {
@@ -123,6 +137,9 @@ class MainActivity : ComponentActivity() {
                         "color_mode" -> colorMode = prefs.getInt("color_mode", 0)
                         "key_color" -> keyColorInt = prefs.getInt("key_color", 0)
                         "page_scale" -> pageScale = prefs.getFloat("page_scale", 1f)
+                        "enable_blur" -> enableBlur = prefs.getBoolean("enable_blur", true)
+                        "enable_floating_bottom_bar" -> enableFloatingBottomBar = prefs.getBoolean("enable_floating_bottom_bar", false)
+                        "enable_floating_bottom_bar_blur" -> enableFloatingBottomBarBlur = prefs.getBoolean("enable_floating_bottom_bar_blur", true)
                     }
                 }
                 prefs.registerOnSharedPreferenceChangeListener(listener)
@@ -136,7 +153,11 @@ class MainActivity : ComponentActivity() {
             }
             CompositionLocalProvider(
                 LocalNavigator provides navigator,
-                LocalDensity provides density
+                LocalDensity provides density,
+                LocalColorMode provides colorMode,
+                LocalEnableBlur provides enableBlur,
+                LocalEnableFloatingBottomBar provides enableFloatingBottomBar,
+                LocalEnableFloatingBottomBarBlur provides enableFloatingBottomBarBlur,
             ) {
                 KernelSUTheme(colorMode = colorMode, keyColor = keyColor) {
 
@@ -215,16 +236,29 @@ val LocalMainPagerState = staticCompositionLocalOf<MainPagerState> { error("Loca
 @Composable
 fun MainScreen() {
     val navController = LocalNavigator.current
+    val enableBlur = LocalEnableBlur.current
+    val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
+    val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
     val mainPagerState = rememberMainPagerState(pagerState)
     val isManager = Natives.isManager
     val isFullFeatured = isManager && !Natives.requireNewKernel()
     var userScrollEnabled by remember(isFullFeatured) { mutableStateOf(isFullFeatured) }
+    val surfaceColor = MiuixTheme.colorScheme.surface
     val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        tint = HazeTint(MiuixTheme.colorScheme.surface.copy(0.8f))
-    )
+    val hazeStyle = if (enableBlur) {
+        HazeStyle(
+            backgroundColor = surfaceColor,
+            tint = HazeTint(surfaceColor.copy(0.8f))
+        )
+    } else {
+        HazeStyle.Unspecified
+    }
+
+    val backdrop = rememberLayerBackdrop {
+        drawRect(surfaceColor)
+        drawContent()
+    }
 
     LaunchedEffect(mainPagerState.pagerState.currentPage) {
         mainPagerState.syncPage()
@@ -237,11 +271,22 @@ fun MainScreen() {
     ) {
         Scaffold(
             bottomBar = {
-                BottomBar(hazeState, hazeStyle)
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    BottomBar(
+                        hazeState = hazeState,
+                        hazeStyle = hazeStyle,
+                        backdrop = backdrop,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
             },
         ) { innerPadding ->
             HorizontalPager(
-                modifier = Modifier.hazeSource(state = hazeState),
+                modifier = Modifier
+                    .then(if (enableBlur) Modifier.hazeSource(state = hazeState) else Modifier)
+                    .then(if (enableFloatingBottomBar && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
                 state = mainPagerState.pagerState,
                 beyondViewportPageCount = 3,
                 userScrollEnabled = userScrollEnabled,

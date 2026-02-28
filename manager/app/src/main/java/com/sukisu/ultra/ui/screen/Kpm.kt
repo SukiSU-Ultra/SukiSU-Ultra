@@ -58,6 +58,7 @@ import android.app.Activity
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -82,6 +83,7 @@ fun KpmScreen(
     bottomInnerPadding: Dp = 0.dp
 ) {
     val context = LocalContext.current
+    val enableBlur = LocalEnableBlur.current
     val scope = rememberCoroutineScope()
     val confirmDialog = rememberConfirmDialog()
 
@@ -104,11 +106,16 @@ fun KpmScreen(
     val moduleConfirmContentMap = viewModel.moduleList.associate { module ->
         module.id to stringResource(R.string.confirm_uninstall_content, module.id)
     }
+
     val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = colorScheme.surface,
-        tint = HazeTint(colorScheme.surface.copy(0.8f))
-    )
+    val hazeStyle = if (enableBlur) {
+        HazeStyle(
+            backgroundColor = colorScheme.surface,
+            tint = HazeTint(colorScheme.surface.copy(0.8f))
+        )
+    } else {
+        HazeStyle.Unspecified
+    }
 
     LaunchedEffect(searchStatus.searchText) {
         viewModel.updateSearchText(searchStatus.searchText)
@@ -317,7 +324,7 @@ fun KpmScreen(
         topBar = {
             searchStatus.TopAppBarAnim(hazeState = hazeState, hazeStyle = hazeStyle) {
                 TopAppBar(
-                    color = Color.Transparent,
+                    color = if (enableBlur) Color.Transparent else colorScheme.surface,
                     title = stringResource(R.string.kpm_title),
                     actions = {
                         IconButton(
@@ -564,6 +571,7 @@ private fun KpmList(
     layoutDirection: LayoutDirection
 ) {
     val context = LocalContext.current
+    val enableBlur = LocalEnableBlur.current
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     var isNoticeClosed by remember { mutableStateOf(sharedPreferences.getBoolean("is_notice_closed", false)) }
 
@@ -609,7 +617,7 @@ private fun KpmList(
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .nestedScroll(nestedScrollConnection)
-                .hazeSource(state = hazeState),
+                .let { if (enableBlur) it.hazeSource(state = hazeState) else it },
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
                 start = innerPadding.calculateStartPadding(layoutDirection),

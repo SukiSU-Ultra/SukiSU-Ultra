@@ -48,6 +48,7 @@ import dev.chrisbanes.haze.hazeSource
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -66,11 +67,16 @@ fun AboutScreen() {
     val navigator = LocalNavigator.current
     val uriHandler = LocalUriHandler.current
     val scrollBehavior = MiuixScrollBehavior()
+    val enableBlur = LocalEnableBlur.current
     val hazeState = remember { HazeState() }
-    val hazeStyle = HazeStyle(
-        backgroundColor = colorScheme.surface,
-        tint = HazeTint(colorScheme.surface.copy(0.8f))
-    )
+    val hazeStyle = if (enableBlur) {
+        HazeStyle(
+            backgroundColor = colorScheme.surface,
+            tint = HazeTint(colorScheme.surface.copy(0.8f))
+        )
+    } else {
+        HazeStyle.Unspecified
+    }
 
     val htmlString = stringResource(
         id = R.string.about_source_code,
@@ -85,12 +91,16 @@ fun AboutScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.hazeEffect(hazeState) {
-                    style = hazeStyle
-                    blurRadius = 30.dp
-                    noiseFactor = 0f
+                modifier = if (enableBlur) {
+                    Modifier.hazeEffect(hazeState) {
+                        style = hazeStyle
+                        blurRadius = 30.dp
+                        noiseFactor = 0f
+                    }
+                } else {
+                    Modifier
                 },
-                color = Color.Transparent,
+                color = if (enableBlur) Color.Transparent else colorScheme.surface,
                 title = stringResource(R.string.about),
                 navigationIcon = {
                     IconButton(
@@ -119,7 +129,7 @@ fun AboutScreen() {
                 .fillMaxHeight()
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .hazeSource(state = hazeState)
+                .let { if (enableBlur) it.hazeSource(state = hazeState) else it }
                 .padding(horizontal = 12.dp),
             contentPadding = innerPadding,
             overscrollEffect = null,
