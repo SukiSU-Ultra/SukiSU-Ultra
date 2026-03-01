@@ -46,12 +46,6 @@ static inline bool is_zygote_normal_app_uid(uid_t uid)
 }
 
 extern u32 susfs_zygote_sid;
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-extern void susfs_run_sus_path_loop(uid_t uid);
-#endif // #ifdef CONFIG_KSU_SUSFS_SUS_PATH
-#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-extern void susfs_reorder_mnt_id(void);
-#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 #endif // #ifdef CONFIG_KSU_SUSFS
 
 static void ksu_install_manager_fd_tw_func(struct callback_head *cb)
@@ -178,15 +172,6 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 do_umount:
 	// Handle kernel umount
 	ksu_handle_umount(old_uid, new_uid);
-
-#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-	// We can reorder the mnt_id now after all sus mounts are umounted
-	susfs_reorder_mnt_id();
-#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-	susfs_run_sus_path_loop(new_uid);
-#endif // #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 
 	susfs_set_current_proc_umounted();
 

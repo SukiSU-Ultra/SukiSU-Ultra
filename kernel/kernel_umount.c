@@ -103,6 +103,10 @@ struct umount_tw {
 	struct callback_head cb;
 };
 
+#ifdef CONFIG_KSU_SUSFS_SUS_PATH
+extern void susfs_run_sus_path_loop(void);
+#endif // #ifdef CONFIG_KSU_SUSFS_SUS_PATH
+
 static void umount_tw_func(struct callback_head *cb)
 {
 	struct umount_tw *tw = container_of(cb, struct umount_tw, cb);
@@ -116,6 +120,11 @@ static void umount_tw_func(struct callback_head *cb)
 		try_umount(entry->umountable, entry->flags);
 	}
 	up_read(&mount_list_lock);
+
+#ifdef CONFIG_KSU_SUSFS_SUS_PATH
+    // susfs_run_sus_path_loop() runs here with ksu_cred so that it can reach all the paths
+    susfs_run_sus_path_loop();
+#endif // #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 
 	revert_creds(saved);
 	kfree(tw);
