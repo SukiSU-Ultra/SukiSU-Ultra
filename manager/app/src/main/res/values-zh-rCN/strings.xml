@@ -6,7 +6,7 @@
     <string name="home_working">工作中</string>
     <string name="home_working_version">版本：%d</string>
     <string name="home_unsupported">不支持</string>
-    <string name="home_unsupported_reason">内核上未检测到 KernelSU 驱动程序，内核错误？</string>
+    <string name="home_unsupported_reason">内核上未检测到 KernelSU 驱动程序，内核错误?</string>
     <string name="home_kernel">内核版本</string>
     <string name="home_manager_version">管理器版本</string>
     <string name="home_fingerprint">系统指纹</string>
@@ -39,7 +39,7 @@
     <string name="reboot_edl">重启到 EDL</string>
     <string name="about">关于</string>
     <string name="module_uninstall_confirm">确定要卸载模块 %s 吗？</string>
-    <string name="metamodule_uninstall_confirm">"您确定要卸载模块 %s 吗？此操作将影响所有模块，并且元模块提供的某些功能（如挂载）将不再工作。  "</string>
+    <string name="metamodule_uninstall_confirm">"您确定要卸载模块 %s 吗？此操作将影响所有模块，并且元模块提供的某些功能（如挂载）将不再工作"</string>
     <string name="module_uninstall_success">%s 已卸载</string>
     <string name="module_uninstall_failed">卸载失败：%s</string>
     <string name="module_version">版本</string>
@@ -54,7 +54,7 @@
     <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 KernelSU 以及如何开发模块</string>
     <string name="home_support_title">支持开发</string>
-    <string name="home_support_content">KernelSU 将保持免费开源，向开发者捐赠以表示支持。</string>
+    <string name="home_support_content">KernelSU 将保持免费开源，向开发者捐赠以表示支持</string>
     <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/><br/>有动漫人物图片表情包的图像版权为%3$s所有，图像中的知识产权由%4$s 所有。在使用这些文件之前，除了必须遵守 %5$s 以外，还需要遵守向前两者索要使用这些艺术内容的授权。]]></string>
     <string name="profile_default">默认</string>
     <string name="profile_template">模版</string>
@@ -71,8 +71,8 @@
     <string name="failed_to_update_app_profile">为 %s 更新 App Profile 失败</string>
     <string name="require_kernel_version">当前 KernelSU 版本 %1$d 过低，管理器无法正常工作，请将内核 KernelSU 版本升级至 %2$d 或以上！</string>
     <string name="settings_umount_modules_default">默认卸载模块</string>
-    <string name="settings_umount_modules_default_summary">App Profile 中「卸载模块」的全局默认值，如果启用，会将未自定义 Profile 的应用移除所有模块针对系统的修改。</string>
-    <string name="profile_umount_modules_summary">启用该选项后将允许 KernelSU 为本应用还原被模块修改过的文件。</string>
+    <string name="settings_umount_modules_default_summary">App Profile 中「卸载模块」的全局默认值，如果启用，会将未自定义 Profile 的应用移除所有模块针对系统的修改</string>
+    <string name="profile_umount_modules_summary">启用该选项后将允许 KernelSU 为本应用还原被模块修改过的文件</string>
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">规则</string>
     <string name="module_update">更新</string>
@@ -86,7 +86,7 @@
     <string name="su_not_allowed">无法授予 %s 超级用户权限</string>
     <string name="module_changelog">更新日志</string>
     <string name="settings_profile_template">App Profile 模版</string>
-    <string name="settings_profile_template_summary">管理本地和在线的 App Profile 模版。</string>
+    <string name="settings_profile_template_summary">管理本地和在线的 App Profile 模版</string>
     <string name="app_profile_template_create">创建模版</string>
     <string name="app_profile_template_edit">编辑模版</string>
     <string name="app_profile_template_id">模版 ID</string>
@@ -106,19 +106,19 @@
     <string name="app_profile_template_import_empty">剪切板为空！</string>
     <string name="app_profile_affects_following_apps">影响以下应用</string>
     <string name="settings_check_update">检查更新</string>
-    <string name="settings_check_update_summary">在应用启动后自动检查是否有最新版。</string>
+    <string name="settings_check_update_summary">在应用启动后自动检查是否有最新版</string>
     <string name="settings_enable_predictive_back">预测性返回手势</string>
-    <string name="settings_enable_predictive_back_summary">启用对预测性返回手势的支持。</string>
+    <string name="settings_enable_predictive_back_summary">启用对预测性返回手势的支持</string>
     <string name="settings_module_check_update">检查模块更新</string>
     <string name="grant_root_failed">获取 root 失败！</string>
     <string name="action">执行</string>
     <string name="open">打开</string>
     <string name="enable_web_debugging">WebView 调试</string>
-    <string name="enable_web_debugging_summary">可用于调试 WebUI，请仅在需要时启用。</string>
+    <string name="enable_web_debugging_summary">可用于调试 WebUI，请仅在需要时启用</string>
     <string name="direct_install">直接安装（推荐）</string>
     <string name="select_file">选择一个文件</string>
     <string name="install_inactive_slot">安装到未使用的槽位（OTA 后）</string>
-    <string name="install_inactive_slot_warning">将在重启后强制切换到另一个槽位！注意只能在 OTA 更新完成后的重启之前使用。</string>
+    <string name="install_inactive_slot_warning">将在重启后强制切换到另一个槽位！注意只能在 OTA 更新完成后的重启之前使用</string>
     <string name="install_next">下一步</string>
     <string name="install_select_partition">选择分区</string>
     <string name="install_upload_lkm_file">使用本地 LKM 文件</string>
@@ -129,9 +129,9 @@
     <string name="settings_uninstall_temporary">临时卸载</string>
     <string name="settings_uninstall_permanent">永久卸载</string>
     <string name="settings_restore_stock_image">恢复原厂镜像</string>
-    <string name="settings_uninstall_temporary_message">临时卸载 KernelSU，下次重启后恢复至原始状态。</string>
-    <string name="settings_uninstall_permanent_message">完全并永久卸载 KernelSU（Root 权限和所有模块）。</string>
-    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 KernelSU，请使用「永久卸载」。</string>
+    <string name="settings_uninstall_temporary_message">临时卸载 KernelSU，下次重启后恢复至原始状态</string>
+    <string name="settings_uninstall_permanent_message">完全并永久卸载 KernelSU（Root 权限和所有模块）</string>
+    <string name="settings_restore_stock_image_message">恢复原厂镜像（若存在备份），一般在 OTA 前使用；如果你需要卸载 KernelSU，请使用「永久卸载」</string>
     <string name="flashing">刷写中</string>
     <string name="flash_success">刷写完成</string>
     <string name="flash_failed">刷写失败</string>
@@ -155,7 +155,7 @@
     <string name="module_undo_uninstall_failed">撤销卸载 %s 失败</string>
     <string name="group_contains_apps">包含 %1$d 个应用</string>
     <string name="settings_theme">主题</string>
-    <string name="settings_theme_summary">选择应用的主题模式。</string>
+    <string name="settings_theme_summary">选择应用的主题模式</string>
     <string name="settings_theme_mode_system">跟随系统</string>
     <string name="settings_theme_mode_light">浅色</string>
     <string name="settings_theme_mode_dark">深色</string>
@@ -163,10 +163,10 @@
     <string name="settings_theme_mode_monet_light">Monet（浅色）</string>
     <string name="settings_theme_mode_monet_dark">Monet（深色）</string>
     <string name="settings_key_color">强调色</string>
-    <string name="settings_key_color_summary">在使用 Monet 时自定义种子色。</string>
+    <string name="settings_key_color_summary">在使用 Monet 时自定义种子色</string>
     <string name="settings_key_color_default">默认</string>
     <string name="settings_page_scale">界面缩放</string>
-    <string name="settings_page_scale_summary">调整全局显示比例。</string>
+    <string name="settings_page_scale_summary">调整全局显示比例</string>
     <string name="color_blue">蓝色</string>
     <string name="color_red">红色</string>
     <string name="color_green">绿色</string>
@@ -204,6 +204,12 @@
     <string name="select_file_tip_nogki">请选择要修补的 GKI 设备镜像文件</string>
     <string name="current_kmi">本设备 KMI 版本: %s</string>
     <string name="current_device_kmi">当前设备的 KMI</string>
+    <string name="settings_enable_blur">模糊</string>
+    <string name="settings_enable_blur_summary">启用顶栏和底栏的模糊效果</string>
+    <string name="settings_floating_bottom_bar">悬浮底栏</string>
+    <string name="settings_floating_bottom_bar_summary">使用 Apple 风格的悬浮底栏</string>
+    <string name="settings_enable_glass">液态玻璃</string>
+    <string name="settings_enable_glass_summary">启用悬浮底栏的液态玻璃效果</string>
     <!-- Customize -->
     <string name="hook_type">钩子类型</string>
     <string name="home_susfs_version">SuSFS 版本</string>
@@ -324,6 +330,7 @@
     <string name="allowlist_backup_summary_picker">选择位置导出允许列表</string>
     <string name="allowlist_backup_success">备份成功</string>
     <string name="allowlist_backup_failed">备份失败</string>
+    <string name="allowlist_restore_title">还原允许列表</string>
     <string name="allowlist_restore_summary_picker">选择备份文件进行导入</string>
     <string name="allowlist_restore_success">还原成功,重启生效</string>
     <string name="allowlist_restore_failed">还原失败</string>
