@@ -39,7 +39,7 @@
 #include <linux/stackprotector.h>
 #include <linux/random.h>
 unsigned long __stack_chk_guard __ro_after_init
-    __attribute__((visibility("hidden")));
+    __attribute__((weak, visibility("hidden")));
 #define NO_STACK_PROTECTOR_WORKAROUND __attribute__((no_stack_protector))
 #else
 #define NO_STACK_PROTECTOR_WORKAROUND
