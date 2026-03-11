@@ -18,9 +18,9 @@ There are several ways to install SukiSU-Ultra, depending on your device and pre
 
 ### Method 1: Using Pre-built GKI Packages
 
-This is the recommended method for devices with Generic Kernel Image (GKI) 2.0, such as many Xiaomi, Redmi, and Samsung models.[^1]
+This is the recommended method for devices with Generic Kernel Image (GKI) 2.0, such as many Xiaomi, Redmi models.[^1]
 
-[^1]: This method is not suitable for devices from manufacturers that heavily modify the kernel, like Meizu, OnePlus, Realme, and Oppo.
+[^1]: This method is not suitable for devices from manufacturers that heavily modify the kernel, like Samsung, Meizu, OnePlus, Realme, and Oppo.
 
 #### Steps:
 
