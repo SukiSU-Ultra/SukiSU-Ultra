@@ -25,7 +25,6 @@
     <string name="install">安裝</string>
     <string name="reboot">重新啟動</string>
     <string name="settings">設定</string>
-    <string name="reboot_userspace">軟啟動</string>
     <string name="reboot_recovery">重新啟動至 Recovery</string>
     <string name="reboot_bootloader">重新啟動至 Bootloader</string>
     <string name="reboot_download">重新啟動至 Download</string>
