@@ -32,7 +32,6 @@
     <string name="install">Kur</string>
     <string name="reboot">Cihazı yeniden başlat</string>
     <string name="settings">Ayarlar</string>
-    <string name="reboot_userspace">Hızlı yeniden başlat</string>
     <string name="reboot_recovery">Kurtarma modunda yeniden başlat</string>
     <string name="reboot_bootloader">Önyükleyici modunda yeniden başlat</string>
     <string name="reboot_download">İndirme modunda yeniden başlat</string>
