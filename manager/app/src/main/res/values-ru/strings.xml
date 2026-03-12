@@ -32,7 +32,6 @@
     <string name="install">Установка</string>
     <string name="reboot">Перезагрузить</string>
     <string name="settings">Настройки</string>
-    <string name="reboot_userspace">Мягкая перезагрузка</string>
     <string name="reboot_recovery">Перезагрузить в Recovery</string>
     <string name="reboot_bootloader">Перезагрузить в Bootloader</string>
     <string name="reboot_download">Перезагрузить в Download</string>
