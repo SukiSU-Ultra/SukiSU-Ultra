@@ -27,7 +27,6 @@
     <string name="install">Cài đặt</string>
     <string name="reboot">Khởi động lại</string>
     <string name="settings">Cài đặt</string>
-    <string name="reboot_userspace">Khởi động lại mềm</string>
     <string name="reboot_recovery">Khởi động lại vào Recovery</string>
     <string name="reboot_bootloader">Khởi động lại vào Bootloader</string>
     <string name="reboot_download">Khởi động lại vào Download</string>
