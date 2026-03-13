@@ -29,6 +29,7 @@
     <string name="module_install">Instal</string>
     <string name="install">Instal</string>
     <string name="settings">Setelan</string>
+    <string name="reboot_userspace">Reboot secara halus</string>
     <string name="reboot_recovery">Reboot ke Recovery</string>
     <string name="reboot_bootloader">Reboot ke Bootloader</string>
     <string name="reboot_download">Reboot ke Download</string>
