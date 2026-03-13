@@ -27,6 +27,7 @@
     <string name="install">インストール</string>
     <string name="reboot">再起動</string>
     <string name="settings">設定</string>
+    <string name="reboot_userspace">通常の再起動</string>
     <string name="reboot_recovery">リカバリーへ再起動</string>
     <string name="reboot_bootloader">ブートローダー へ再起動</string>
     <string name="reboot_download">ダウンロードモードへ再起動</string>
