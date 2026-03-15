@@ -96,25 +96,23 @@
     <string name="app_profile_template_import_empty">剪貼簿沒有內容！</string>
     <string name="app_profile_affects_following_apps">受影響程式如下</string>
     <string name="settings_check_update">檢查更新</string>
-    <string name="settings_check_update_summary">開啟應用程式時自動檢查更新</string>
+    <string name="settings_check_update_summary">開啟程式時自動檢查更新。</string>
     <string name="settings_module_check_update">檢查模組更新</string>
     <string name="grant_root_failed">授予root權限失敗！</string>
     <string name="action">執行</string>
-    <string name="open">打開</string>
-    <string name="enable_web_debugging">啟用 WebView 偵錯</string>
-    <string name="enable_web_debugging_summary">可用於偵錯WebUI，請僅在需要時啟用。</string>
+    <string name="open">開啟</string>
+    <string name="enable_web_debugging">WebView 除錯模式</string>
+    <string name="enable_web_debugging_summary">可用於 WebUI 除錯。請僅在需要時啟用。</string>
     <string name="direct_install">直接安裝（建議）</string>
-    <string name="select_file">選擇一個文件</string>
-    <string name="install_inactive_slot">安裝到非活動插槽（OTA 後）</string>
-    <string name="install_inactive_slot_warning">重新啟動後，您的裝置將強制啟動到目前非活動插槽！
-\n僅在 OTA 完成後使用此選項。
-\n繼續？</string>
+    <string name="select_file">選取檔案</string>
+    <string name="install_inactive_slot">安裝至非活動插槽（OTA 後）</string>
+    <string name="install_inactive_slot_warning">重新啟動後將強制由目前非活動插槽開機！請僅在 OTA 完成後才使用此選項。</string>
     <string name="install_next">下一個</string>
     <string name="install_select_partition">選取分割區</string>
     <string name="install_upload_lkm_file">使用本地 LKM 檔案</string>
     <string name="install_only_support_ko_file">僅支援 .ko 格式檔案</string>
     <string name="select_file_tip">建議使用 %1$s 分割區映像</string>
-    <string name="select_kmi">選擇KMI</string>
+    <string name="select_kmi">選取 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
     <string name="settings_uninstall_temporary">暫時解除安裝</string>
     <string name="settings_uninstall_permanent">永久解除安裝</string>
@@ -126,7 +124,7 @@
     <string name="flash_success">刷入成功</string>
     <string name="flash_failed">刷入失敗</string>
     <string name="selected_lkm">已選取 LKM：%s</string>
-    <string name="save_log">保存日志</string>
+    <string name="save_log">儲存日誌</string>
     <string name="log_saved">日誌已儲存</string>
     <string name="settings_sucompat">傳統 su 命令支援</string>
     <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅對新行程生效。</string>
@@ -161,12 +159,10 @@
     <string name="module_shortcut_title">建立捷徑</string>
     <string name="module_shortcut_name_label">捷徑名稱</string>
     <string name="module_shortcut_icon_pick">選擇自訂圖示</string>
-    <string name="module_shortcut_add">新增捷徑</string>
     <string name="module_shortcut_not_supported">啟動器不支援桌面捷徑。</string>
     <string name="module_shortcut_created">已在桌面建立捷徑。</string>
     <string name="module_shortcut_updated">捷徑已更新。</string>
     <string name="module_shortcut_delete">刪除捷徑</string>
-    <string name="module_shortcut_type_title">選擇類型</string>
     <string name="module_shortcut_permission_tip_xiaomi">請在 Xiaomi 設定中為此程式啟用「建立桌面捷徑」權限。</string>
     <string name="module_shortcut_permission_tip_oppo">請在 OPPO 設定中為此程式啟用「桌面捷徑」權限。</string>
     <string name="module_shortcut_permission_tip_default">如未能建立捷徑，請在系統設定中為此程式開啟桌面捷徑權限。</string>
