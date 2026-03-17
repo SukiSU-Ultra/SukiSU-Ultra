@@ -48,6 +48,8 @@ mod sepolicy;
 mod su;
 #[cfg(target_arch = "aarch64")]
 mod susfs;
+#[cfg(target_arch = "aarch64")]
+mod susfs_features;
 #[cfg(target_os = "android")]
 mod umount;
 #[cfg(target_os = "android")]

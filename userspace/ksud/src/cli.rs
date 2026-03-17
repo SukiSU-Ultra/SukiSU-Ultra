@@ -7,10 +7,9 @@ use log::{LevelFilter, error, info};
 
 use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
-use crate::susfs;
-use crate::{
-    apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, umount, utils,
-};
+use crate::{susfs, susfs_features};
+use crate::cli::Susfs;
+use crate::{apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, umount, utils};
 
 /// KernelSU userspace cli
 #[derive(Parser, Debug)]
@@ -508,6 +507,183 @@ enum Susfs {
     Version,
     /// Get SUSFS enable Features
     Features,
+    /// Show current configuration
+    Config,
+    /// Reset configuration to default
+    Reset,
+
+    // === 日志控制 ===
+    /// Enable or disable log
+    SetLog {
+        /// 1 to enable, 0 to disable
+        enabled: bool,
+    },
+
+    // === AVC日志欺骗 ===
+    /// Enable or disable AVC log spoofing
+    SetAvcLogSpoofing {
+        /// 1 to enable, 0 to disable
+        enabled: bool,
+    },
+
+    // === SUS挂载隐藏 ===
+    /// Set SUS mount hide for non-su processes
+    SetHideSusMounts {
+        /// 1 to hide for all, 0 to hide only for non-KSU
+        hide_all: bool,
+    },
+
+    // === uname/build_time ===
+    /// Set uname and build time
+    SetUname {
+        /// uname value
+        uname: String,
+        /// build time value
+        build_time: String,
+    },
+
+    // === SUS路径管理 ===
+    /// Add a SUS path
+    AddSusPath {
+        /// path to add
+        path: String,
+    },
+    /// Remove a SUS path
+    RemoveSusPath {
+        /// path to remove
+        path: String,
+    },
+    /// List all SUS paths
+    ListSusPaths,
+
+    // === SUS循环路径管理 ===
+    /// Add a SUS loop path
+    AddSusLoopPath {
+        /// path to add
+        path: String,
+    },
+    /// Remove a SUS loop path
+    RemoveSusLoopPath {
+        /// path to remove
+        path: String,
+    },
+    /// List all SUS loop paths
+    ListSusLoopPaths,
+
+    // === SUS Map管理 ===
+    /// Add a SUS map
+    AddSusMap {
+        /// map to add (format: source->target)
+        map: String,
+    },
+    /// Remove a SUS map
+    RemoveSusMap {
+        /// map to remove
+        map: String,
+    },
+    /// List all SUS maps
+    ListSusMaps,
+
+    // === Kstat管理 ===
+    /// Add a Kstat path
+    AddKstatPath {
+        /// path to add
+        path: String,
+    },
+    /// Remove a Kstat path
+    RemoveKstatPath {
+        /// path to remove
+        path: String,
+    },
+    /// List all Kstat paths
+    ListKstatPaths,
+
+    // === Kstat静态配置 ===
+    /// Add a Kstat static config
+    AddKstatStatic {
+        /// config string (path|ino|dev|nlink|size|atime|atimeNsec|mtime|mtimeNsec|ctime|ctimeNsec|blocks|blksize)
+        config: String,
+    },
+    /// Remove a Kstat static config
+    RemoveKstatStatic {
+        /// config to remove
+        config: String,
+    },
+    /// List all Kstat static configs
+    ListKstatStatic,
+
+    // === Kstat更新 ===
+    /// Update Kstat for a path
+    UpdateKstat {
+        /// path to update
+        path: String,
+    },
+    /// Update Kstat full clone for a path
+    UpdateKstatFullClone {
+        /// path to update
+        path: String,
+    },
+
+    // === 隐藏BL ===
+    /// Enable or disable hide boot loader
+    SetHideBl {
+        /// 1 to enable, 0 to disable
+        enabled: bool,
+    },
+
+    // === 清理残留 ===
+    /// Enable or disable cleanup residue
+    SetCleanupResidue {
+        /// 1 to enable, 0 to disable
+        enabled: bool,
+    },
+
+    // === 执行时机 ===
+    /// Set execute in post-fs-data
+    SetExecuteInPostFsData {
+        /// 1 for post-fs-data, 0 for service
+        enabled: bool,
+    },
+
+    // === Magisk模块 ===
+    /// Create/update Magisk module
+    CreateModule,
+    /// Remove Magisk module
+    RemoveModule,
+
+    // === 自启动 ===
+    /// Enable or disable auto start
+    SetAutoStart {
+        /// 1 to enable, 0 to disable
+        enabled: bool,
+    },
+
+    // === 备份/恢复 ===
+    /// Create a backup
+    Backup {
+        /// backup file path (optional)
+        path: Option<String>,
+    },
+    /// Restore from backup
+    Restore {
+        /// backup file path
+        path: String,
+    },
+    /// Validate a backup file
+    ValidateBackup {
+        /// backup file path
+        path: String,
+    },
+    /// List all backups
+    ListBackups,
+
+    // === 槽位信息 ===
+    /// Get slot info
+    SlotInfo,
+
+    // === 完全重置 ===
+    /// Reset to default
+    ResetAll,
 }
 
 pub fn run() -> Result<()> {
@@ -541,6 +717,207 @@ pub fn run() -> Result<()> {
                 Susfs::Status => println!("{}", susfs::get_susfs_status()),
 
                 Susfs::Features => println!("{}", susfs::get_susfs_features()),
+
+                // 配置管理
+                Susfs::Config => susfs_features::show_config(),
+
+                Susfs::Reset => {
+                    susfs_features::reset_to_default()?;
+                }
+
+                // 日志控制
+                Susfs::SetLog { enabled } => {
+                    susfs_features::susfs_enable_log(enabled)?;
+                    println!("Log enabled: {}", enabled);
+                }
+
+                // AVC日志欺骗
+                Susfs::SetAvcLogSpoofing { enabled } => {
+                    susfs_features::susfs_enable_avc_log_spoofing(enabled)?;
+                    println!("AVC log spoofing enabled: {}", enabled);
+                }
+
+                // SUS挂载隐藏
+                Susfs::SetHideSusMounts { hide_all } => {
+                    susfs_features::susfs_hide_sus_mnts_for_non_su_procs(hide_all)?;
+                    println!("Hide SUS mounts for all procs: {}", hide_all);
+                }
+
+                // uname/build_time
+                Susfs::SetUname { uname, build_time } => {
+                    susfs_features::susfs_set_uname(&uname, &build_time)?;
+                    println!("Set uname: {}, build_time: {}", uname, build_time);
+                }
+
+                // SUS路径管理
+                Susfs::AddSusPath { path } => {
+                    susfs_features::susfs_add_sus_path(&path)?;
+                    println!("Added SUS path: {}", path);
+                }
+                Susfs::RemoveSusPath { path } => {
+                    susfs_features::susfs_remove_sus_path(&path)?;
+                    println!("Removed SUS path: {}", path);
+                }
+                Susfs::ListSusPaths => {
+                    let paths = susfs_features::get_sus_paths()?;
+                    println!("SUS paths:");
+                    for p in paths {
+                        println!("  - {}", p);
+                    }
+                }
+
+                // SUS循环路径管理
+                Susfs::AddSusLoopPath { path } => {
+                    susfs_features::susfs_add_sus_path_loop(&path)?;
+                    println!("Added SUS loop path: {}", path);
+                }
+                Susfs::RemoveSusLoopPath { path } => {
+                    susfs_features::susfs_remove_sus_path_loop(&path)?;
+                    println!("Removed SUS loop path: {}", path);
+                }
+                Susfs::ListSusLoopPaths => {
+                    let paths = susfs_features::get_sus_loop_paths()?;
+                    println!("SUS loop paths:");
+                    for p in paths {
+                        println!("  - {}", p);
+                    }
+                }
+
+                // SUS Map管理
+                Susfs::AddSusMap { map } => {
+                    susfs_features::susfs_add_sus_map(&map)?;
+                    println!("Added SUS map: {}", map);
+                }
+                Susfs::RemoveSusMap { map } => {
+                    susfs_features::susfs_remove_sus_map(&map)?;
+                    println!("Removed SUS map: {}", map);
+                }
+                Susfs::ListSusMaps => {
+                    let maps = susfs_features::get_sus_maps()?;
+                    println!("SUS maps:");
+                    for m in maps {
+                        println!("  - {}", m);
+                    }
+                }
+
+                // Kstat路径管理
+                Susfs::AddKstatPath { path } => {
+                    susfs_features::susfs_add_sus_kstat(&path)?;
+                    println!("Added Kstat path: {}", path);
+                }
+                Susfs::RemoveKstatPath { path } => {
+                    susfs_features::susfs_remove_sus_kstat(&path)?;
+                    println!("Removed Kstat path: {}", path);
+                }
+                Susfs::ListKstatPaths => {
+                    let paths = susfs_features::get_add_kstat_paths()?;
+                    println!("Kstat paths:");
+                    for p in paths {
+                        println!("  - {}", p);
+                    }
+                }
+
+                // Kstat静态配置
+                Susfs::AddKstatStatic { config } => {
+                    susfs_features::susfs_add_sus_kstat_statically(&config)?;
+                    println!("Added Kstat static config");
+                }
+                Susfs::RemoveKstatStatic { config } => {
+                    susfs_features::susfs_remove_sus_kstat_config(&config)?;
+                    println!("Removed Kstat static config");
+                }
+                Susfs::ListKstatStatic => {
+                    let configs = susfs_features::get_kstat_configs()?;
+                    println!("Kstat static configs:");
+                    for c in configs {
+                        println!("  - {}", c);
+                    }
+                }
+
+                // Kstat更新
+                Susfs::UpdateKstat { path } => {
+                    susfs_features::susfs_update_sus_kstat(&path)?;
+                    println!("Updated Kstat for: {}", path);
+                }
+                Susfs::UpdateKstatFullClone { path } => {
+                    susfs_features::susfs_update_sus_kstat_full_clone(&path)?;
+                    println!("Updated Kstat full clone for: {}", path);
+                }
+
+                // 隐藏BL
+                Susfs::SetHideBl { enabled } => {
+                    susfs_features::set_enable_hide_bl(enabled)?;
+                    println!("Hide BL enabled: {}", enabled);
+                }
+
+                // 清理残留
+                Susfs::SetCleanupResidue { enabled } => {
+                    susfs_features::set_enable_cleanup_residue(enabled)?;
+                    println!("Cleanup residue enabled: {}", enabled);
+                }
+
+                // 执行时机
+                Susfs::SetExecuteInPostFsData { enabled } => {
+                    susfs_features::set_execute_in_post_fs_data(enabled)?;
+                    println!("Execute in post-fs-data: {}", enabled);
+                }
+
+                // Magisk模块
+                Susfs::CreateModule => {
+                    susfs_features::create_magisk_module()?;
+                    println!("Magisk module created");
+                }
+                Susfs::RemoveModule => {
+                    susfs_features::remove_magisk_module()?;
+                    println!("Magisk module removed");
+                }
+
+                // 自启动
+                Susfs::SetAutoStart { enabled } => {
+                    susfs_features::configure_auto_start(enabled)?;
+                    println!("Auto start enabled: {}", enabled);
+                }
+
+                // 备份/恢复
+                Susfs::Backup { path } => {
+                    let backup_path = susfs_features::create_backup(path)?;
+                    println!("Backup created: {}", backup_path);
+                }
+                Susfs::Restore { path } => {
+                    susfs_features::restore_from_backup(&path)?;
+                    println!("Restored from: {}", path);
+                }
+                Susfs::ValidateBackup { path } => {
+                    let backup = susfs_features::validate_backup(&path)?;
+                    println!("Backup valid:");
+                    println!("  Version: {}", backup.version);
+                    println!("  Timestamp: {}", backup.timestamp);
+                    println!("  Device: {}", backup.device_info);
+                }
+                Susfs::ListBackups => {
+                    let backups = susfs_features::list_backups()?;
+                    println!("Backups:");
+                    for b in backups {
+                        println!("  - {}", b);
+                    }
+                }
+
+                // 槽位信息
+                Susfs::SlotInfo => {
+                    let slots = susfs_features::get_slot_info()?;
+                    let current = susfs_features::get_current_active_slot()?;
+                    println!("Slot info:");
+                    for slot in slots {
+                        let marker = if slot.slot_name == current { " *" } else { "" };
+                        println!("  - {}: uname={}, build_time={}{}", slot.slot_name, slot.uname, slot.build_time, marker);
+                    }
+                }
+
+                // 完全重置
+                Susfs::ResetAll => {
+                    susfs_features::reset_to_default()?;
+                    println!("Reset to default");
+                }
             }
             Ok(())
         }
