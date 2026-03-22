@@ -8,11 +8,10 @@
 #include <linux/proc_ns.h>
 #include <linux/pid.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
-#include <linux/sched/signal.h> // signal_struct
+#include <linux/sched/user.h>
 #include <linux/sched/task.h>
 #endif
 #include <linux/sched.h>
-#include <linux/sched/user.h>
 #include <linux/seccomp.h>
 #include <linux/slab.h>
 #include <linux/thread_info.h>
