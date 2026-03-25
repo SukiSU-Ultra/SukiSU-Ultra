@@ -1,6 +1,9 @@
 #ifndef __KSU_H_KSUD
 #define __KSU_H_KSUD
 
+#include <linux/types.h>
+#include <asm/syscall.h>
+
 #define KSUD_PATH "/data/adb/ksud"
 
 void ksu_ksud_init();
@@ -17,5 +20,8 @@ int nuke_ext4_sysfs(const char *mnt);
 extern u32 ksu_file_sid;
 extern bool ksu_module_mounted;
 extern bool ksu_boot_completed;
+
+void ksu_execve_hook_ksud(const struct pt_regs *regs);
+void ksu_stop_ksud_execve_hook();
 
 #endif
