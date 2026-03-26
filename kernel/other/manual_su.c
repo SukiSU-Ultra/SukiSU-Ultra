@@ -11,9 +11,9 @@
 
 #include "manual_su.h"
 #include "ksu.h"
-#include "allowlist.h"
-#include "manager.h"
-#include "app_profile.h"
+#include "policy/allowlist.h"
+#include "manager/manager_observer.h"
+#include "policy/app_profile.h"
 
 static bool current_verified = false;
 static void ksu_cleanup_expired_tokens(void);

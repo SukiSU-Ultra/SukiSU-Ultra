@@ -6,7 +6,7 @@
 #include <linux/filter.h>
 #include <linux/seccomp.h>
 #include "klog.h" // IWYU pragma: keep
-#include "seccomp_cache.h"
+#include "infra/seccomp_cache.h"
 
 // Android backport this feature in 5.10.2
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2)

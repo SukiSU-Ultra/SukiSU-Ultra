@@ -3,7 +3,7 @@
 
 #include <linux/types.h>
 #include <linux/uidgid.h>
-#include "app_profile.h"
+#include "uapi/app_profile.h"
 
 #define PER_USER_RANGE 100000
 #define FIRST_APPLICATION_UID 10000
@@ -56,5 +56,3 @@ void ksu_temp_revoke_root_once(uid_t uid);
 #endif
 
 #endif
-
-extern bool allow_shell;
