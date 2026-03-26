@@ -9,7 +9,7 @@ endif
 .PHONY: all compdb clean format check-format
 
 all: check_symbol
-	make -C $(KDIR) M=$(MDIR) modules
+	make -C $(KDIR) M=$(MDIR) modules -j$(shell nproc)
 	./check_symbol kernelsu.ko $(KDIR)/vmlinux
 compdb:
 	python3 $(MDIR)/.vscode/generate_compdb.py -O $(KDIR) $(MDIR)
