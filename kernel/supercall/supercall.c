@@ -11,7 +11,9 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-#include "uapi/supercall_internal.h"
+#include "uapi/supercall.h"
+#include "kpm/kpm.h"
+#include "supercall/internal.h"
 #include "arch.h"
 #include "klog.h" // IWYU pragma: keep
 
