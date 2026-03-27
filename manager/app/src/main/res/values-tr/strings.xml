@@ -232,6 +232,15 @@
     <string name="enable_adb_summary">USB hata ayıklamasını zorla etkinleştir ve adb kimlik doğrulamasını devre dışı bırak. Kesinlikle gerekli olmadıkça bunu etkinleştirmeyin.</string>
     <string name="advanced_options">Gelişmiş Seçenekler</string>
     <string name="expand">Genişlet</string>
+    <string name="download_channel_name">Modül İndirmeleri</string>
+    <string name="download_progress_title">%s indiriliyor</string>
+    <string name="download_complete_title">İndirme tamamlandı</string>
+    <string name="download_complete_content">%s başarıyla indirildi</string>
+    <string name="download_failed_title">İndirme başarısız oldu</string>
+    <string name="download_failed_content">%s indirilemedi</string>
+    <string name="download">İndir</string>
+    <string name="download_cancel">İptal</string>
+    <string name="download_install">Kur</string>
     <!-- Customize -->
     <string name="hook_type">Kanca (Hook) Türü</string>
     <string name="manual_hook">Manuel Kanca</string>
