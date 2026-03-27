@@ -148,10 +148,10 @@
     <string name="settings_mode_enable_by_default">启用（默认）</string>
     <string name="settings_mode_disable_until_reboot">禁用直到下次重启</string>
     <string name="settings_mode_disable_always">始终禁用</string>
-    <string name="settings_sucompat">传统 su 命令支持</string>
+    <string name="settings_sucompat">传统 SU 命令支持</string>
     <string name="settings_sucompat_summary">允许通过 /system/bin/su 获取 Root 权限</string>
-    <string name="settings_kernel_umount">内核处理卸载模块</string>
-    <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块</string>
+    <string name="settings_kernel_umount">卸载模块（内核级）</string>
+    <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块。</string>
     <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
     <string name="confirm">确认</string>
     <string name="processing">处理中…</string>
