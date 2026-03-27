@@ -103,6 +103,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.rememberContentReady
 import java.text.Collator
 
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -184,7 +185,7 @@ fun ModuleRepoScreenMaterial(
     ) { innerPadding ->
         val isLoading = state.modules.isEmpty()
         val hadDataOnEntry = remember { state.modules.isNotEmpty() }
-        val contentReady = hadDataOnEntry || com.sukisu.ultra.ui.util.rememberContentReady()
+        val contentReady = hadDataOnEntry || rememberContentReady()
 
         if (!contentReady || isLoading) {
             Box(
@@ -480,7 +481,7 @@ private fun ReadmePage(
         ),
     ) {
         item {
-            val contentReady = com.sukisu.ultra.ui.util.rememberContentReady()
+            val contentReady = rememberContentReady()
             var isLoading by remember { mutableStateOf(true) }
             if (isLoading) {
                 Box(

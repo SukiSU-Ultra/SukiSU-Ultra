@@ -61,11 +61,12 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.BottomBar
 import com.sukisu.ultra.ui.component.bottombar.MainPagerState
 import com.sukisu.ultra.ui.component.bottombar.SideRail
 import com.sukisu.ultra.ui.component.bottombar.rememberMainPagerState
-import com.sukisu.ultra.ui.kernelFlash.KernelFlashScreen
+import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.navigation3.HandleDeepLink
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Navigator
@@ -75,28 +76,26 @@ import com.sukisu.ultra.ui.screen.about.AboutScreen
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
 import com.sukisu.ultra.ui.screen.executemoduleaction.ExecuteModuleActionScreen
+import com.sukisu.ultra.ui.screen.flash.FlashIt
 import com.sukisu.ultra.ui.screen.flash.FlashScreen
 import com.sukisu.ultra.ui.screen.home.HomePager
 import com.sukisu.ultra.ui.screen.install.InstallScreen
-import com.sukisu.ultra.ui.screen.kpm.KpmScreen
 import com.sukisu.ultra.ui.screen.module.ModulePager
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoDetailScreen
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoScreen
 import com.sukisu.ultra.ui.screen.settings.SettingPager
-import com.sukisu.ultra.ui.screen.settings.tools.ToolsScreen
-import com.sukisu.ultra.ui.screen.sulog.SulogScreen
 import com.sukisu.ultra.ui.screen.superuser.SuperUserPager
 import com.sukisu.ultra.ui.screen.template.AppProfileTemplateScreen
 import com.sukisu.ultra.ui.screen.templateeditor.TemplateEditorScreen
-import com.sukisu.ultra.ui.screen.umountmanager.UmountManagerScreen
-import com.sukisu.ultra.ui.screen.susfs.SuSFSScreen
 import com.sukisu.ultra.ui.theme.KernelSUTheme
 import com.sukisu.ultra.ui.theme.LocalColorMode
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
+import com.sukisu.ultra.ui.util.getFileName
 import com.sukisu.ultra.ui.util.install
+import com.sukisu.ultra.ui.util.rememberContentReady
 import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
 import com.sukisu.ultra.ui.webui.WebUIActivity
@@ -285,7 +284,7 @@ fun MainScreen() {
     CompositionLocalProvider(
         LocalMainPagerState provides mainPagerState
     ) {
-        val contentReady = com.sukisu.ultra.ui.util.rememberContentReady()
+        val contentReady = rememberContentReady()
         val pagerContent = @Composable { bottomInnerPadding: Dp ->
             HorizontalPager(
                 modifier = Modifier
@@ -295,11 +294,11 @@ fun MainScreen() {
                 beyondViewportPageCount = if (contentReady) 3 else 0,
                 userScrollEnabled = userScrollEnabled,
             ) { page ->
-                val isCurrentPage = page == mainPagerState.pagerState.currentPage
+                val isCurrentPage = page == mainPagerState.pagerState.settledPage
                 when (page) {
-                    0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding)
-                    1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding)
-                    2 -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding)
+                    0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding, isCurrentPage)
+                    1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
+                    2 -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
                     3 -> if (isCurrentPage || contentReady) SettingPager(navController, bottomInnerPadding)
                 }
             }

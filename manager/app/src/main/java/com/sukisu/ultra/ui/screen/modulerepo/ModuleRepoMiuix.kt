@@ -84,6 +84,7 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.defaultHazeEffect
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.rememberContentReady
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownImpl
@@ -318,7 +319,7 @@ fun ModuleRepoScreenMiuix(
         val layoutDirection = LocalLayoutDirection.current
         val isLoading = state.modules.isEmpty()
         val hadDataOnEntry = remember { state.modules.isNotEmpty() }
-        val contentReady = hadDataOnEntry || com.sukisu.ultra.ui.util.rememberContentReady()
+        val contentReady = hadDataOnEntry || rememberContentReady()
         val offline = state.offline
 
         searchStatus.SearchBox(
@@ -345,7 +346,11 @@ fun ModuleRepoScreenMiuix(
                 ) {
                     if (offline) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = stringResource(R.string.network_offline), color = colorScheme.onSurfaceVariantSummary, fontSize = 16.sp)
+                            Text(
+                                text = stringResource(R.string.network_offline),
+                                color = colorScheme.onSurfaceVariantSummary,
+                                fontSize = 16.sp
+                            )
                             Spacer(Modifier.height(12.dp))
                             TextButton(
                                 modifier = Modifier
@@ -538,7 +543,7 @@ private fun ReadmePage(
         overscrollEffect = null,
     ) {
         item {
-            val contentReady = com.sukisu.ultra.ui.util.rememberContentReady()
+            val contentReady = rememberContentReady()
             var isLoading by remember { mutableStateOf(true) }
             if (isLoading) {
                 Box(
