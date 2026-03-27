@@ -1,4 +1,4 @@
-name: Build ksud
+name: Build ksud with cross
 on:
   workflow_call:
     inputs:
@@ -12,29 +12,23 @@ on:
       pack_lkm:
         required: false
         type: boolean
-        default: true
+        default: false
       pack_ksuinit:
         required: false
         type: boolean
-        default: true
-      use_cache:
-        required: false
-        type: boolean
-        default: true
-env:
-  CARGO_TERM_COLOR: always
+        default: false
 jobs:
   build:
     runs-on: ${{ inputs.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
     - name: Download artifacts
       uses: actions/download-artifact@v8
     
-    - name: Prepare LKM fies
+    - name: Prepare LKM files
       if: ${{ inputs.pack_lkm }}
       run: |
         cp android*-lkm/*_kernelsu.ko ./userspace/ksud/bin/aarch64/
@@ -47,22 +41,23 @@ jobs:
     - name: Setup rustup
       run: |
         rustup update stable
-        rustup target add x86_64-apple-darwin
-        rustup target add aarch64-apple-darwin
+        if [[ ${{ inputs.target }} == *"-apple-darwin" ]]; then
+          rustup target add ${{ inputs.target }}
+        fi
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: userspace/ksud
+        cache-targets: false
 
     - name: Install cross
       run: |
         RUSTFLAGS="" cargo install cross --git https://github.com/cross-rs/cross --rev 66845c1
 
     - name: Build ksud
-      env:
-        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-      run: |
-        source .github/scripts/setup-rust-build.sh ${{ inputs.target }} 26
-        cargo build --target $TRIPLE --release --manifest-path ./userspace/ksud/Cargo.toml
+      run: CROSS_NO_WARNINGS=0 cross build --target ${{ inputs.target }} --release --manifest-path ./userspace/ksud/Cargo.toml
 
     - name: Upload ksud artifact
       uses: actions/upload-artifact@v7
       with:
         name: ksud-${{ inputs.target }}
-        path: target/${{ inputs.target }}/release/ksud
+        path: target/${{ inputs.target }}/release/ksud*

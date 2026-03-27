@@ -6,7 +6,7 @@
 
 #include "uapi/supercall.h"
 #include "supercall/internal.h"
-#include "arch.h"
+#include "arch.h" // IWYU pragma: keep
 #include "policy/allowlist.h"
 #include "policy/feature.h"
 #include "klog.h" // IWYU pragma: keep
@@ -18,6 +18,7 @@
 #include "infra/file_wrapper.h"
 #include "hook/tp_marker.h"
 #include "policy/app_profile.h"
+#include "supercall/supercall.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU
 #include "other/manual_su.h"
