@@ -148,9 +148,9 @@
     <string name="selected_lkm">已选择的 LKM：%s</string>
     <string name="save_log">保存日志</string>
     <string name="log_saved">日志已保存</string>
-    <string name="settings_sucompat">传统 su 命令支持</string>
+    <string name="settings_sucompat">传统 SU 命令支持</string>
     <string name="settings_sucompat_summary">允许通过 /system/bin/su 获取 Root 权限。</string>
-    <string name="settings_kernel_umount">内核处理卸载模块</string>
+    <string name="settings_kernel_umount">卸载模块（内核级）</string>
     <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块。</string>
     <string name="feature_status_unsupported_summary">内核不支持此特性</string>
     <string name="feature_status_managed_summary">此功能由一个模块管理</string>
