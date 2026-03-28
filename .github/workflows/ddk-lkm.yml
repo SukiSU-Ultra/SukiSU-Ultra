@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout source code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Build kernelsu.ko
       env:
@@ -60,8 +60,10 @@ jobs:
         CONFIG_KSU=m CONFIG_KSU_MANUAL_SU=y CC=clang make $EXTRA_ARGS
         
         echo "=== Build completed ==="
+
         # Create output directory in GitHub workspace
         mkdir -p /github/workspace/out
+
         # Copy with KMI-specific naming
         OUTPUT_NAME="${{ inputs.kmi }}_kernelsu.ko"
         cp kernelsu.ko "/github/workspace/out/$OUTPUT_NAME"
@@ -71,7 +73,7 @@ jobs:
         echo "Size: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
         llvm-strip -d "/github/workspace/out/$OUTPUT_NAME"
         echo "Size after stripping: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
-        
+
     - name: Upload kernelsu.ko artifact
       uses: actions/upload-artifact@v7
       with:

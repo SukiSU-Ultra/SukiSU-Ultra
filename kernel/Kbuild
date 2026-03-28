@@ -44,6 +44,8 @@ kernelsu-objs += supercall/supercall.o
 
 kernelsu-objs += other/tiny_sulog.o
 
+obj-$(CONFIG_KPM) += kpm/
+
 ifeq ($(CONFIG_KSU_MANUAL_SU), y)
 ccflags-y += -DCONFIG_KSU_MANUAL_SU
 kernelsu-objs += other/manual_su.o
@@ -54,9 +56,6 @@ ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-
 ccflags-y += -I$(src) -I$(src)/include
 
 obj-$(CONFIG_KSU) += kernelsu.o
-
-obj-$(CONFIG_KPM) += kpm/
-
 REPO_OWNER := SukiSU-Ultra
 REPO_NAME := SukiSU-Ultra
 REPO_BRANCH := main
@@ -64,9 +63,7 @@ KSU_VERSION_API := 4.1.2
 
 GIT_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git
 CURL_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin curl
-
-KDIR := $(KDIR)
-MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+MDIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 KSU_GITHUB_VERSION := $(shell $(CURL_BIN) -s "https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
 KSU_GITHUB_VERSION_COMMIT := $(shell $(CURL_BIN) -sI "https://api.github.com/repos/$(REPO_OWNER)/$(REPO_NAME)/commits?sha=$(REPO_BRANCH)&per_page=1" | grep -i "link:" | sed -n 's/.*page=\([0-9]*\)>; rel="last".*/\1/p')
@@ -96,7 +93,7 @@ ifeq ($(KSU_GITHUB_VERSION_COMMIT),)
   else
     KSU_VERSION := 13000
     $(warning -- Could not fetch version online or via local .git! Using fallback version: $(KSU_VERSION))
-  endif
+endif
 else
   KSU_VERSION := $(shell expr 40000 + $(KSU_GITHUB_VERSION_COMMIT) - 2815)
   $(info -- $(REPO_NAME) version (GitHub): $(KSU_VERSION))
@@ -121,23 +118,33 @@ endif
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 ccflags-y += -DKSU_VERSION_FULL=\"$(KSU_VERSION_FULL)\"
 
-KSU_NEW_DCACHE_FLUSH := $(shell grep -q __flush_dcache_area $(srctree)/arch/arm64/include/asm/cacheflush.h ; echo $$?)
-$(info -- KSU_NEW_DCACHE_FLUSH: $(KSU_NEW_DCACHE_FLUSH))
-
-# Custom Signs
-ifdef KSU_EXPECTED_SIZE
-ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
-$(info -- Custom KernelSU Manager signature size: $(KSU_EXPECTED_SIZE))
+ifndef KSU_EXPECTED_SIZE
+KSU_EXPECTED_SIZE := 0x35c
 endif
 
-ifdef KSU_EXPECTED_HASH
-ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
-$(info -- Custom KernelSU Manager signature hash: $(KSU_EXPECTED_HASH))
+ifndef KSU_EXPECTED_HASH
+KSU_EXPECTED_HASH := 947ae944f3de4ed4c21a7e4f7953ecf351bfa2b36239da37a34111ad29993eef
 endif
 
 ifdef KSU_MANAGER_PACKAGE
 ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
-$(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
+$(info -- KernelSU Manager package name: $(KSU_MANAGER_PACKAGE))
+endif
+
+$(info -- KernelSU Manager signature size: $(KSU_EXPECTED_SIZE))
+$(info -- KernelSU Manager signature hash: $(KSU_EXPECTED_HASH))
+
+ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
+ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
+
+ifdef KSU_EXPECTED_SIZE2
+ifndef KSU_EXPECTED_HASH2
+$(error KSU_EXPECTED_HASH2 must be set when KSU_EXPECTED_SIZE2 is set)
+endif
+ccflags-y += -DEXPECTED_SIZE2=$(KSU_EXPECTED_SIZE2)
+ccflags-y += -DEXPECTED_HASH2=\"$(KSU_EXPECTED_HASH2)\"
+$(info -- KernelSU Manager signature size2: $(KSU_EXPECTED_SIZE2))
+$(info -- KernelSU Manager signature hash2: $(KSU_EXPECTED_HASH2))
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
@@ -159,6 +166,9 @@ $(info -- KPM is enabled)
 else
 $(info -- KPM is disabled)
 endif
+
+KSU_NEW_DCACHE_FLUSH := $(shell grep -q __flush_dcache_area $(srctree)/arch/arm64/include/asm/cacheflush.h ; echo $$?)
+$(info -- KSU_NEW_DCACHE_FLUSH: $(KSU_NEW_DCACHE_FLUSH))
 
 # Check new vfs_getattr()
 ifeq ($(shell grep -A1 "^int vfs_getattr" $(srctree)/fs/stat.c | grep -q "query_flags" ; echo $$?),0)
@@ -183,4 +193,6 @@ endif
 ccflags-y += -DKSU_NEW_DCACHE_FLUSH=$(KSU_NEW_DCACHE_FLUSH)
 
 ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat -Wno-missing-prototypes
-ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-unused-variable
+ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
+
+# Keep a new line here!! Because someone may append config

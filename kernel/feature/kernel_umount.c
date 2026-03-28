@@ -51,7 +51,7 @@ static void ksu_umount_mnt(const char *mnt, struct path *path, int flags)
     }
 }
 
-void try_umount(const char *mnt, int flags)
+static void try_umount(const char *mnt, int flags)
 {
     struct path path;
     int err = kern_path(mnt, 0, &path);
@@ -110,7 +110,6 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
         pr_info("handle umount ignore non zygote child: %d\n", current->pid);
         return 0;
     }
-
     // umount the target mnt
     pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);
 

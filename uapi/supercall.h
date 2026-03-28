@@ -4,11 +4,13 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
-#include "uapi/app_profile.h"
+#include "app_profile.h"
 
 /* Magic numbers for reboot hook to install fd */
 static const __u32 KSU_INSTALL_MAGIC1 = 0xDEADBEEF;
 static const __u32 KSU_INSTALL_MAGIC2 = 0xCAFEBABE;
+
+#define KSU_FULL_VERSION_STRING 255
 
 struct ksu_become_daemon_cmd {
     __u8 token[65]; /* Input: daemon token (null-terminated) */
@@ -154,14 +156,12 @@ struct ksu_enable_kpm_cmd {
     __u8 enabled; // Output: true if KPM is enabled
 };
 
-#ifdef CONFIG_KSU_MANUAL_SU
 struct ksu_manual_su_cmd {
     __u32 option; // Input: operation type (MANUAL_SU_OP_GENERATE_TOKEN, MANUAL_SU_OP_ESCALATE, MANUAL_SU_OP_ADD_PENDING)
     __u32 target_uid; // Input: target UID
     __u32 target_pid; // Input: target PID
     char token_buffer[33]; // Input/Output: token buffer
 };
-#endif
 
 /* IOCTL command definitions */
 static const __u32 KSU_IOCTL_GRANT_ROOT = _IOC(_IOC_NONE, 'K', 1, 0);
@@ -188,14 +188,11 @@ static const __u32 KSU_IOCTL_NUKE_EXT4_SYSFS = _IOC(_IOC_WRITE, 'K', 17, 0);
 static const __u32 KSU_IOCTL_ADD_TRY_UMOUNT = _IOC(_IOC_WRITE, 'K', 18, 0);
 static const __u32 KSU_IOCTL_SET_INIT_PGRP = _IO('K', 19);
 // Other IOCTL command definitions
-#define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
-#define KSU_IOCTL_HOOK_TYPE _IOC(_IOC_READ, 'K', 101, 0)
-#define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
-#ifdef CONFIG_KSU_MANUAL_SU
-#define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)
-#endif
-#define KSU_IOCTL_LIST_TRY_UMOUNT _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0)
-
-#define KSU_IOCTL_GET_SULOG_DUMP _IOC(_IOC_READ | _IOC_WRITE, 'K', 201, 0)
+static const __u32 KSU_IOCTL_GET_FULL_VERSION = _IOC(_IOC_READ, 'K', 100, 0);
+static const __u32 KSU_IOCTL_HOOK_TYPE = _IOC(_IOC_READ, 'K', 101, 0);
+static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
+static const __u32 KSU_IOCTL_MANUAL_SU = _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0);
+static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
+static const __u32 KSU_IOCTL_GET_SULOG_DUMP = _IOC(_IOC_READ | _IOC_WRITE, 'K', 201, 0);
 
 #endif

@@ -4,7 +4,7 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-#include "uapi/supercall.h"
+#include "../../uapi/supercall.h"
 #include "supercall/internal.h"
 #include "arch.h" // IWYU pragma: keep
 #include "policy/allowlist.h"
@@ -42,6 +42,7 @@ static int do_get_info(void __user *arg)
 #ifdef MODULE
     cmd.flags |= KSU_GET_INFO_FLAG_LKM;
 #endif
+
     if (is_manager()) {
         cmd.flags |= KSU_GET_INFO_FLAG_MANAGER;
     }
@@ -984,6 +985,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)
 {
     int i;
+
 #ifdef CONFIG_KSU_DEBUG
     pr_info("ksu ioctl: cmd=0x%x from uid=%d\n", cmd, current_uid().val);
 #endif
@@ -1007,6 +1009,7 @@ long ksu_supercall_handle_ioctl(unsigned int cmd, void __user *argp)
 void ksu_supercall_dump_commands(void)
 {
     int i;
+
     pr_info("KernelSU IOCTL Commands:\n");
     for (i = 0; ksu_ioctl_handlers[i].handler; i++) {
         pr_info("  %-18s = 0x%08x\n", ksu_ioctl_handlers[i].name, ksu_ioctl_handlers[i].cmd);
@@ -1016,6 +1019,7 @@ void ksu_supercall_dump_commands(void)
 void ksu_supercall_cleanup_state(void)
 {
     struct mount_entry *entry, *tmp;
+
     down_write(&mount_list_lock);
     list_for_each_entry_safe (entry, tmp, &mount_list, list) {
         list_del(&entry->list);

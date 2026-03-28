@@ -24,7 +24,7 @@ static struct group_info root_groups = { .usage = REFCOUNT_INIT(2) };
 static struct group_info root_groups = { .usage = ATOMIC_INIT(2) };
 #endif
 
-static void setup_groups(struct root_profile *profile, struct cred *cred)
+void setup_groups(struct root_profile *profile, struct cred *cred)
 {
     if (profile->groups_count > KSU_MAX_GROUPS) {
         pr_warn("Failed to setgroups, too large group: %d!\n", profile->uid);
@@ -209,7 +209,7 @@ void escape_to_root_for_init(void)
 
 #ifdef CONFIG_KSU_MANUAL_SU
 
-#include "ksud.h"
+#include "runtime/ksud.h"
 
 #ifndef DEVPTS_SUPER_MAGIC
 #define DEVPTS_SUPER_MAGIC 0x1cd1

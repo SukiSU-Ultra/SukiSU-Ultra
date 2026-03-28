@@ -1,9 +1,8 @@
 name: Build Manager
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main", "dev", "ci", "miuix" ]
+    branches: [ "main", "dev", "ci" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
@@ -15,7 +14,7 @@ on:
       - 'kernel/**'
       - 'userspace/**'
   pull_request:
-    branches: [ "main", "dev", "miuix" ]
+    branches: [ "main", "dev" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
@@ -101,15 +100,34 @@ jobs:
       matrix:
         include:
           - target: aarch64-linux-android
-            os: ubuntu-latest
           - target: x86_64-linux-android
-            os: ubuntu-latest
-          - target: armv7-linux-androideabi
-            os: ubuntu-latest
     uses: ./.github/workflows/ksud.yml
     with:
       target: ${{ matrix.target }}
+      pack_lkm: true
+      pack_ksuinit: true
+  
+  build-ksud-extra:
+    needs: [build-lkm, build-ksuinit]
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnu # windows pc
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin # Intel mac
+            os: macos-latest
+          - target: aarch64-apple-darwin # M chip mac
+            os: macos-latest
+          - target: aarch64-unknown-linux-musl # arm64 Linux
+            os: ubuntu-latest
+          - target: x86_64-unknown-linux-musl # x86 Linux
+            os: ubuntu-latest
+    uses: ./.github/workflows/ksud-extra.yml
+    with:
+      target: ${{ matrix.target }}
       os: ${{ matrix.os }}
+      pack_lkm: true
+      pack_ksuinit: true
 
   build-manager:
     needs: [build-ksud, generate-key]
@@ -124,7 +142,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -164,7 +182,7 @@ jobs:
           ./randomizer
 
       - name: Write key
-        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/miuix' )) || github.ref_type == 'tag' }}
+        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             {
@@ -173,7 +191,7 @@ jobs:
               echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}'
               echo KEYSTORE_FILE='key.jks'
             } >> gradle.properties
-            echo "${{ secrets.KEYSTORE }}" | base64 -d > key.jks
+            echo ${{ secrets.KEYSTORE }} | base64 -d > key.jks
           fi
 
       - name: Write PR key
@@ -192,7 +210,7 @@ jobs:
           } >> gradle.properties
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -215,12 +233,6 @@ jobs:
           name: ksud-x86_64-linux-android
           path: artifacts/ksud-x86_64-linux-android
 
-      - name: Download arm ksud
-        uses: actions/download-artifact@v4
-        with:
-          name: ksud-armv7-linux-androideabi
-          path: .
-  
       - name: Copy ksud to app jniLibs
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
@@ -253,6 +265,14 @@ jobs:
         with:
           name: "${{ steps.determine.outputs.title }}-mappings"
           path: "manager/app/build/outputs/mapping/release/"
+
+      - name: Bot session cache
+        if: github.event_name != 'pull_request' && steps.need_upload.outputs.UPLOAD == 'true'
+        id: bot_session_cache
+        uses: actions/cache@v5
+        with:
+          path: scripts/ksubot.session
+          key: ${{ runner.os }}-bot-session
 
       - name: Upload to telegram
         if: github.event_name != 'pull_request' && steps.need_upload.outputs.UPLOAD == 'true' && steps.determine.outputs.SKIP != 'true'
