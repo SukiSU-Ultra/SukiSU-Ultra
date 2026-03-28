@@ -319,7 +319,7 @@ NativeBridge(getUserName, jstring, jint uid) {
     return NULL;
 }
 
-int fork_dont_care_and_exec_ksud(const char *path) {
+int fork_dont_care_and_exec_ksud(const char *path, const char *pkg) {
 	int pid = fork();
 	if (pid < 0) {
 		PLOGE("fork");
@@ -349,17 +349,19 @@ int fork_dont_care_and_exec_ksud(const char *path) {
 		_exit(0);
 	}
 
-	execl(path, "ksud", "late-load", "--magica", "5555", nullptr);
+	execl(path, "ksud", "late-load", "--magica", "5555", "--package-name", pkg, nullptr);
 	PLOGE("exec magica");
 	_exit(1);
 }
 
 JNIEXPORT void JNICALL
-Java_com_sukisu_ultra_magica_AppZygotePreload_forkDontCareAndExecKsud(JNIEnv *env, jclass clazz, jstring ksud_path) {
+Java_com_sukisu_ultra_magica_AppZygotePreload_forkDontCareAndExecKsud(JNIEnv *env, jclass clazz, jstring ksud_path, jstring pkg_name) {
 	const char *path = (*env)->GetStringUTFChars(env, ksud_path, nullptr);
-	LOGD("executing magica %s", path);
-    fork_dont_care_and_exec_ksud(path);
+	const char *pkg = (*env)->GetStringUTFChars(env, pkg_name, nullptr);
+	LOGD("executing magica %s (pkg %s)", path, pkg);
+    fork_dont_care_and_exec_ksud(path, pkg);
 	(*env)->ReleaseStringUTFChars(env, ksud_path, path);
+	(*env)->ReleaseStringUTFChars(env, pkg_name, path);
 }
 
 // Get HOOK type
