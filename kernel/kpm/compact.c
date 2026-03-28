@@ -26,8 +26,8 @@
 #include <linux/slab.h>
 #include "kpm.h"
 #include "compact.h"
-#include "../allowlist.h"
-#include "../manager.h"
+#include "policy/allowlist.h"
+#include "manager/manager_identity.h"
 
 static int sukisu_is_su_allow_uid(uid_t uid)
 {
