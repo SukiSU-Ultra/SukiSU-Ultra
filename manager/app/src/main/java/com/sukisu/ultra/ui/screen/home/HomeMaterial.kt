@@ -177,8 +177,11 @@ private fun StatusCard(
             } else {
                 MaterialTheme.colorScheme.errorContainer
             },
-            enabled = !state.isLateLoadMode,
-            onClick = actions.onInstallClick
+            onClick = {
+                if (!state.isLateLoadMode) {
+                    actions.onInstallClick()
+                }
+            }
         ) {
             Row(
                 modifier = Modifier
