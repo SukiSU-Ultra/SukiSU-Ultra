@@ -134,7 +134,7 @@
     <string name="log_saved">Log disimpan</string>
     <string name="settings_sucompat">Perintah SU klasik</string>
     <string name="settings_sucompat_summary">Mengizinkan akses root melalui /system/bin/su, pada proses baru yang dibuat.</string>
-    <string name="settings_kernel_umount">Unmount modul (tingkat kernel)</string>
+    <string name="settings_kernel_umount">Umount modul (tingkat kernel)</string>
     <string name="settings_kernel_umount_summary">Unmount modul dari kernel pada Profil Aplikasi.</string>
     <string name="feature_status_unsupported_summary">Kernel tidak mendukung fitur ini</string>
     <string name="feature_status_managed_summary">Fitur ini dikelola oleh modul</string>
@@ -165,6 +165,11 @@
     <string name="color_teal">Hijau kebiruan</string>
     <string name="color_pink">Merah muda</string>
     <string name="color_brown">Coklat</string>
+    <string name="color_deep_purple">Ungu gelap</string>
+    <string name="color_indigo">Biru keunguan</string>
+    <string name="color_cyan">Biru kehijauan</string>
+    <string name="color_yellow">Kuning</string>
+    <string name="color_blue_grey">Abu-abu kebiruan</string>
     <string name="network_offline">Tidak terhubung ke jaringan</string>
     <string name="network_retry">Coba lagi</string>
     <string name="tab_readme">Baca Aku</string>
