@@ -3,8 +3,8 @@
 #include <linux/kprobes.h>
 #include <linux/tracepoint.h>
 #include <asm/syscall.h>
-#include <linux/slab.h>
 #include <linux/ptrace.h>
+#include <linux/slab.h>
 #include <trace/events/syscalls.h>
 
 #include "arch.h"

@@ -125,10 +125,11 @@ long ksu_handle_execve_sucompat(const char __user **filename_user, int orig_nr, 
     if (unlikely(!filename_user))
         goto do_orig_execve;
 
-    if (!ksu_is_allow_uid_for_current(current_uid().val))
+    if (!ksu_is_allow_uid_for_current(current_uid().val)) {
         write_sulog('$');
         goto do_orig_execve;
-    
+    }
+
     addr = untagged_addr((unsigned long)*filename_user);
     fn = (const char __user *)addr;
     memset(path, 0, sizeof(path));

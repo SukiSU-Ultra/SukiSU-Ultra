@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-KERNEL_ROOT=$(pwd)
+GKI_ROOT=$(pwd)
 
 display_usage() {
     echo "Usage: $0 [--cleanup | <commit-or-tag>]"
@@ -12,10 +12,10 @@ display_usage() {
 }
 
 initialize_variables() {
-    if test -d "$KERNEL_ROOT/common/drivers"; then
-         DRIVER_DIR="$KERNEL_ROOT/common/drivers"
-    elif test -d "$KERNEL_ROOT/drivers"; then
-         DRIVER_DIR="$KERNEL_ROOT/drivers"
+    if test -d "$GKI_ROOT/common/drivers"; then
+         DRIVER_DIR="$GKI_ROOT/common/drivers"
+    elif test -d "$GKI_ROOT/drivers"; then
+         DRIVER_DIR="$GKI_ROOT/drivers"
     else
          echo '[ERROR] "drivers/" directory not found.'
          exit 127
@@ -30,21 +30,17 @@ perform_cleanup() {
     echo "[+] Cleaning up..."
     [ -L "$DRIVER_DIR/kernelsu" ] && rm "$DRIVER_DIR/kernelsu" && echo "[-] Symlink removed."
     grep -q "kernelsu" "$DRIVER_MAKEFILE" && sed -i '/kernelsu/d' "$DRIVER_MAKEFILE" && echo "[-] Makefile reverted."
-    grep -q "kernelsu" "$DRIVER_KCONFIG" && sed -i '/kernelsu/d' "$DRIVER_KCONFIG" && echo "[-] Kconfig reverted."
-    if [ -d "$KERNEL_ROOT/KernelSU" ]; then
-        rm -rf "$KERNEL_ROOT/KernelSU" && echo "[-] KernelSU directory deleted."
+    grep -q "drivers/kernelsu/Kconfig" "$DRIVER_KCONFIG" && sed -i '/drivers\/kernelsu\/Kconfig/d' "$DRIVER_KCONFIG" && echo "[-] Kconfig reverted."
+    if [ -d "$GKI_ROOT/KernelSU" ]; then
+        rm -rf "$GKI_ROOT/KernelSU" && echo "[-] KernelSU directory deleted."
     fi
 }
 
 # Sets up or update KernelSU environment
 setup_kernelsu() {
     echo "[+] Setting up KernelSU..."
-    # Clone the repository
-    if [ ! -d "$KERNEL_ROOT/KernelSU" ]; then
-        git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra KernelSU
-        echo "[+] Repository cloned."
-    fi
-    cd "$KERNEL_ROOT/KernelSU"
+    test -d "$GKI_ROOT/KernelSU" || git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra KernelSU && echo "[+] Repository cloned."
+    cd "$GKI_ROOT/KernelSU"
     git stash && echo "[-] Stashed current changes."
     if [ "$(git status | grep -Po 'v\d+(\.\d+)*' | head -n1)" ]; then
         git checkout main && echo "[-] Switched to main branch."
@@ -56,11 +52,11 @@ setup_kernelsu() {
         git checkout "$1" && echo "[-] Checked out $1." || echo "[-] Checkout default branch"
     fi
     cd "$DRIVER_DIR"
-    ln -sf "$(realpath --relative-to="$DRIVER_DIR" "$KERNEL_ROOT/KernelSU/kernel")" "kernelsu" && echo "[+] Symlink created."
+    ln -sf "$(realpath --relative-to="$DRIVER_DIR" "$GKI_ROOT/KernelSU/kernel")" "kernelsu" && echo "[+] Symlink created."
 
     # Add entries in Makefile and Kconfig if not already existing
-    grep -q "kernelsu" "$DRIVER_MAKEFILE" || echo 'obj-$(CONFIG_KSU) += kernelsu/' >> "$DRIVER_MAKEFILE" && echo "[+] Modified Makefile."
-    grep -q 'source "drivers/kernelsu/Kconfig"' "$DRIVER_KCONFIG" || sed -i '/endmenu/i\source "drivers/kernelsu/Kconfig"' "$DRIVER_KCONFIG" && echo "[+] Modified Kconfig."
+    grep -q "kernelsu" "$DRIVER_MAKEFILE" || printf "\nobj-\$(CONFIG_KSU) += kernelsu/\n" >> "$DRIVER_MAKEFILE" && echo "[+] Modified Makefile."
+    grep -q "source \"drivers/kernelsu/Kconfig\"" "$DRIVER_KCONFIG" || sed -i "/endmenu/i\source \"drivers/kernelsu/Kconfig\"" "$DRIVER_KCONFIG" && echo "[+] Modified Kconfig."
     echo '[+] Done.'
 }
 

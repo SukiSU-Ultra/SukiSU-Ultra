@@ -13,9 +13,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/version.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/compiler_types.h>
-#endif
 
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
@@ -32,8 +30,6 @@
 #define KSU_DEFAULT_SELINUX_DOMAIN "u:r:" KERNEL_SU_DOMAIN ":s0"
 
 static DEFINE_MUTEX(allowlist_mutex);
-
-static DEFINE_MUTEX(cmdsu_mutex);
 
 // default profiles, these may be used frequently, so we cache it
 static struct root_profile default_root_profile;
@@ -58,7 +54,7 @@ static void remove_uid_from_arr(uid_t uid)
     }
 }
 
-static void init_default_profiles(void)
+static void init_default_profiles()
 {
     kernel_cap_t full_cap = CAP_FULL_SET;
 

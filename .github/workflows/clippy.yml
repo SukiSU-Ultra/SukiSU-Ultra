@@ -18,23 +18,27 @@ on:
 
 env:
   RUSTFLAGS: '-Dwarnings'
-  CROSS_NO_WARNINGS: '0'
 
 jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
       - run: rustup update stable
+      
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: userspace/ksud
 
-      - name: Install cross
-        run: |
-          RUSTFLAGS="" cargo install cross --git https://github.com/cross-rs/cross --rev 66845c1
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r29
 
       - name: Run clippy
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           rustup target add aarch64-linux-android
           rustup target add x86_64-linux-android

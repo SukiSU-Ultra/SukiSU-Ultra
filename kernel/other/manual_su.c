@@ -9,10 +9,11 @@
 #include <linux/slab.h>
 #include <linux/binfmts.h>
 
-#include "manual_su.h"
+#include "other/manual_su.h"
 #include "ksu.h"
 #include "policy/allowlist.h"
 #include "manager/manager_observer.h"
+#include "manager/manager_identity.h"
 #include "policy/app_profile.h"
 
 static bool current_verified = false;

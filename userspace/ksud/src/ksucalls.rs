@@ -244,26 +244,13 @@ pub fn set_init_pgrp() -> std::io::Result<()> {
     Ok(())
 }
 
-const SULOG_ENTRY_MAX: usize = 250;
-const SULOG_ENTRY_SIZE: usize = 8;
-const SULOG_BUFSIZ: usize = SULOG_ENTRY_MAX * SULOG_ENTRY_SIZE;
-
-#[repr(C)]
-#[derive(Clone, Copy, Default)]
-struct ListTryUmountCmd {
-    arg: u64,
-    buf_size: u32,
-    _padding: u32,
-}
-
 /// List all mount points in umount list
 pub fn umount_list_list() -> anyhow::Result<String> {
     const BUF_SIZE: usize = 4096;
     let mut buffer = vec![0u8; BUF_SIZE];
-    let mut cmd = ListTryUmountCmd {
+    let mut cmd = ksu_uapi::ksu_list_try_umount_cmd {
         arg: buffer.as_mut_ptr() as u64,
         buf_size: BUF_SIZE as u32,
-        _padding: 0,
     };
     ksuctl(ksu_uapi::KSU_IOCTL_LIST_TRY_UMOUNT, &raw mut cmd)?;
 
@@ -272,6 +259,10 @@ pub fn umount_list_list() -> anyhow::Result<String> {
     let result = String::from_utf8_lossy(&buffer[..len]).to_string();
     Ok(result)
 }
+
+const SULOG_ENTRY_MAX: usize = 250;
+const SULOG_ENTRY_SIZE: usize = 8;
+const SULOG_BUFSIZ: usize = SULOG_ENTRY_MAX * SULOG_ENTRY_SIZE;
 
 #[repr(C)]
 struct SulogEntryRcvPtr {
