@@ -9,7 +9,8 @@ use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
 use crate::susfs;
 use crate::{
-    apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount, utils,
+    apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount,
+    utils,
 };
 
 /// KernelSU userspace cli

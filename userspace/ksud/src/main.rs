@@ -48,12 +48,12 @@ mod restorecon;
 mod sepolicy;
 #[cfg(target_os = "android")]
 mod su;
+#[cfg(target_os = "android")]
+mod sulog;
 #[cfg(target_arch = "aarch64")]
 mod susfs;
 #[cfg(target_os = "android")]
 mod umount;
-#[cfg(target_os = "android")]
-mod sulog;
 #[cfg(target_os = "android")]
 mod unload;
 #[cfg(target_os = "android")]
