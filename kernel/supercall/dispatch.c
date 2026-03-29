@@ -18,6 +18,8 @@
 #include "infra/file_wrapper.h"
 #include "hook/tp_marker.h"
 #include "policy/app_profile.h"
+#include "sulog/event.h"
+#include "sulog/fd.h"
 #include "supercall/supercall.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -30,11 +32,17 @@
 
 static int do_grant_root(void __user *arg)
 {
-    // we already check uid above on allowed_for_su()
-    pr_info("allow root for: %d\n", current_uid().val);
-    escape_with_root_profile();
+    int ret;
+    __u32 audit_uid = current_uid().val;
+    __u32 audit_euid = current_euid().val;
 
-    return 0;
+    // we already check uid above on allowed_for_su()
+
+    pr_info("allow root for: %d\n", audit_uid);
+    ret = escape_with_root_profile();
+    ksu_sulog_emit_grant_root(ret, audit_uid, audit_euid, GFP_KERNEL);
+
+    return ret;
 }
 
 static int do_get_info(void __user *arg)
@@ -631,6 +639,23 @@ out:
     return err;
 }
 
+static int do_get_sulog_fd(void __user *arg)
+{
+    struct ksu_get_sulog_fd_cmd cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        pr_err("get_sulog_fd: copy_from_user failed\n");
+        return -EFAULT;
+    }
+
+    if (cmd.flags) {
+        pr_err("get_sulog_fd: unsupported flags 0x%x\n", cmd.flags);
+        return -EINVAL;
+    }
+
+    return ksu_install_sulog_fd();
+}
+
 static int list_try_umount(void __user *arg)
 {
     struct ksu_list_try_umount_cmd cmd;
@@ -685,20 +710,6 @@ static int list_try_umount(void __user *arg)
 
     kfree(output_buf);
     return ret;
-}
-
-static int do_get_sulog_dump(void __user *arg)
-{
-    int ret;
-
-    if (current_uid().val != 0)
-        return -EFAULT;
-
-    ret = send_sulog_dump(arg);
-    if (ret)
-        return -EFAULT;
-
-    return 0;
 }
 
 // 100. GET_FULL_VERSION - Get full version string
@@ -929,6 +940,12 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .handler = do_set_init_pgrp,
         .perm_check = only_root
     },
+    {
+        .cmd = KSU_IOCTL_GET_SULOG_FD,
+        .name = "GET_SULOG_FD",
+        .handler = do_get_sulog_fd,
+        .perm_check = only_root
+    },
     { 
         .cmd = KSU_IOCTL_GET_FULL_VERSION,
         .name = "GET_FULL_VERSION",
@@ -968,12 +985,6 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .name = "LIST_TRY_UMOUNT",
         .handler = list_try_umount,
         .perm_check = manager_or_root
-    },
-    { 
-        .cmd = KSU_IOCTL_GET_SULOG_DUMP,
-        .name = "GET_SULOG_DUMP",
-        .handler = do_get_sulog_dump,
-        .perm_check = only_root
     },
     {
         .cmd = 0,

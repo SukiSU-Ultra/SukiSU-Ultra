@@ -9,7 +9,7 @@ use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
 use crate::susfs;
 use crate::{
-    apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, umount, utils,
+    apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount, utils,
 };
 
 /// KernelSU userspace cli
@@ -33,6 +33,9 @@ enum Commands {
 
     /// Trigger `service` event
     Services,
+
+    /// Run sulog reader daemon
+    Sulogd,
 
     /// Trigger `boot-complete` event
     BootCompleted,
@@ -123,9 +126,6 @@ enum Commands {
         #[arg(trailing_var_arg = true, allow_hyphen_values = true, num_args = 0..)]
         args: Vec<String>,
     },
-
-    /// Dump kernel sulog to file (/data/adb/ksu/log/sulog.log)
-    SulogDump,
 
     /// Manage kernel umount paths
     Umount {
@@ -322,6 +322,9 @@ enum Module {
 
     /// manage module configuration
     Config {
+        /// target internal module name (resolved as internal.<name>)
+        #[arg(long)]
+        internal: Option<String>,
         #[command(subcommand)]
         command: ModuleConfigCmd,
     },
@@ -584,11 +587,16 @@ pub fn run() -> Result<()> {
                     module::run_lua(&id, &function, false, true).map_err(|e| anyhow::anyhow!("{e}"))
                 }
                 Module::List => module::list_modules(),
-                Module::Config { command } => {
-                    // Get module ID from environment variable
-                    let module_id = std::env::var("KSU_MODULE").map_err(|_| {
-                        anyhow::anyhow!("This command must be run in the context of a module")
-                    })?;
+                Module::Config { internal, command } => {
+                    let module_id = match internal {
+                        Some(internal_name) => format!("internal.{internal_name}"),
+                        None => std::env::var("KSU_MODULE").map_err(|_| {
+                            anyhow::anyhow!(
+                                "This command must be run in the context of a module or passed --internal <name>"
+                            )
+                        })?,
+                    };
+                    crate::module::validate_module_id(&module_id)?;
 
                     match command {
                         ModuleConfigCmd::Get { key } => {
@@ -707,9 +715,13 @@ pub fn run() -> Result<()> {
                 info!("KernelSU not available, exiting services");
                 std::process::exit(0);
             }
+            if let Err(err) = sulog::ensure_sulogd_running() {
+                error!("failed to ensure sulogd is running: {err:#}");
+            }
             init_event::on_services();
             Ok(())
         }
+        Commands::Sulogd => sulog::run_sulogd(),
         Commands::Profile { command } => match command {
             Profile::GetSepolicy { package } => crate::profile::get_sepolicy(package),
             Profile::SetSepolicy { package, policy } => {
@@ -826,11 +838,6 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
         },
-        Commands::SulogDump => {
-            ksucalls::dump_sulog_to_file()?;
-            println!("sulog saved to /data/adb/ksu/log/sulog.log");
-            Ok(())
-        }
         Commands::Umount { command } => match command {
             Umount::Add { mnt, flags } => ksucalls::umount_list_add(&mnt, flags),
             Umount::Remove { mnt } => umount::remove_umount_entry_from_config(&mnt),

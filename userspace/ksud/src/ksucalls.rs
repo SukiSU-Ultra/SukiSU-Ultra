@@ -147,6 +147,12 @@ pub fn get_wrapped_fd(fd: RawFd) -> std::io::Result<RawFd> {
     Ok(result)
 }
 
+pub fn get_sulog_fd() -> std::io::Result<RawFd> {
+    let mut cmd = ksu_uapi::ksu_get_sulog_fd_cmd { flags: 0 };
+    let result = ksuctl(ksu_uapi::KSU_IOCTL_GET_SULOG_FD, &raw mut cmd)?;
+    Ok(result)
+}
+
 /// Get mark status for a process (pid=0 returns total marked count)
 pub fn mark_get(pid: i32) -> std::io::Result<u32> {
     let mut cmd = ksu_uapi::ksu_manage_mark_cmd {
@@ -258,87 +264,4 @@ pub fn umount_list_list() -> anyhow::Result<String> {
     let len = buffer.iter().position(|&b| b == 0).unwrap_or(BUF_SIZE);
     let result = String::from_utf8_lossy(&buffer[..len]).to_string();
     Ok(result)
-}
-
-const SULOG_ENTRY_MAX: usize = 250;
-const SULOG_ENTRY_SIZE: usize = 8;
-const SULOG_BUFSIZ: usize = SULOG_ENTRY_MAX * SULOG_ENTRY_SIZE;
-
-#[repr(C)]
-struct SulogEntryRcvPtr {
-    index: u64,
-    buf: u64,
-    uptime: u64,
-}
-
-/// Fetch sulog from kernel and save to `/data/adb/ksu/log/sulog.log`
-pub fn dump_sulog_to_file() -> anyhow::Result<()> {
-    use std::io::Write;
-
-    // Prepare buffers and pointers
-    let mut buffer = vec![0u8; SULOG_BUFSIZ];
-    let mut index: u8 = 0;
-    let mut uptime: u32 = 0;
-
-    // Allocate recv struct on heap so pointer is stable
-    let mut recv = SulogEntryRcvPtr {
-        index: 0,
-        buf: 0,
-        uptime: 0,
-    };
-    // pointer-to-pointer required by kernel handler
-    let recv_ptr: *mut SulogEntryRcvPtr = &raw mut recv;
-
-    unsafe {
-        (*recv_ptr).index = (&raw mut index) as u64;
-        (*recv_ptr).buf = buffer.as_mut_ptr() as u64;
-        (*recv_ptr).uptime = (&raw mut uptime) as u64;
-
-        // Use ioctl to request sulog dump from kernel
-        let res = ksuctl(ksu_uapi::KSU_IOCTL_GET_SULOG_DUMP, &raw mut recv);
-        if let Err(e) = res {
-            return Err(e.into());
-        }
-    }
-
-    // Parse buffer entries and format log
-    let mut lines: Vec<String> = Vec::new();
-    // index is the next write index; start from index and walk through SULOG_ENTRY_MAX entries
-    for i in 0..SULOG_ENTRY_MAX {
-        let idx = ((index as usize) + i) % SULOG_ENTRY_MAX;
-        let off = idx * SULOG_ENTRY_SIZE;
-        let s_time = u32::from_le_bytes(buffer[off..off + 4].try_into().unwrap_or([0u8; 4]));
-        let data = u32::from_le_bytes(buffer[off + 4..off + 8].try_into().unwrap_or([0u8; 4]));
-        if s_time == 0 && data == 0 {
-            // empty slot
-            continue;
-        }
-        let uid = data & 0x00FF_FFFF;
-        let sym = ((data >> 24) & 0xFF) as u8;
-        let sym_char = if sym.is_ascii_graphic() {
-            sym as char
-        } else {
-            '?'
-        };
-        lines.push(format!("uptime_s={s_time} uid={uid} sym={sym_char}\n"));
-    }
-
-    // Prepare directory
-    let log_dir = "/data/adb/ksu/log";
-    let log_path = format!("{log_dir}/sulog.log");
-
-    // Ensure log_dir is a directory (remove if it's a file)
-    if std::path::Path::new(log_dir).exists() && !std::path::Path::new(log_dir).is_dir() {
-        std::fs::remove_file(log_dir)?;
-    }
-    std::fs::create_dir_all(log_dir)?;
-
-    // Directly overwrite the log file
-    let mut file = std::fs::File::create(&log_path)?;
-    for line in lines {
-        file.write_all(line.as_bytes())?;
-    }
-    file.flush()?;
-
-    Ok(())
 }
