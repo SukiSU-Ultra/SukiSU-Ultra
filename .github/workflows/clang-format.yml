@@ -30,4 +30,8 @@ jobs:
 
       - name: check
         working-directory: kernel
+        run: make format
+
+      - name: check
+        working-directory: kernel
         run: make check-format
