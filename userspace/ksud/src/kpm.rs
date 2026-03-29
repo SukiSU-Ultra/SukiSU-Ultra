@@ -21,7 +21,7 @@ where
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_LOAD,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_LOAD),
         arg1: path.as_ptr() as u64,
         arg2: args.as_ptr() as u64,
         result_code: &raw mut ret as u64,
@@ -40,7 +40,7 @@ pub fn list() -> Result<()> {
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_LIST,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_LIST),
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &raw mut ret as u64,
@@ -66,7 +66,7 @@ pub fn unload_module(name: String) -> Result<()> {
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_UNLOAD,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_UNLOAD),
         arg1: name.as_ptr() as u64,
         arg2: 0,
         result_code: &raw mut ret as u64,
@@ -89,7 +89,7 @@ pub fn info(name: String) -> Result<()> {
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_INFO,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_INFO),
         arg1: name.as_ptr() as u64,
         arg2: buf.as_mut_ptr() as u64,
         result_code: &raw mut ret as u64,
@@ -114,7 +114,7 @@ pub fn control(name: String, args: String) -> Result<i32> {
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_CONTROL,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_CONTROL),
         arg1: name.as_ptr() as u64,
         arg2: args.as_ptr() as u64,
         result_code: &raw mut ret as u64,
@@ -135,7 +135,7 @@ pub fn control(name: String, args: String) -> Result<i32> {
 pub fn num() -> Result<i32> {
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_NUM,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_NUM),
         arg1: 0,
         arg2: 0,
         result_code: &raw mut ret as u64,
@@ -159,7 +159,7 @@ pub fn version() -> Result<()> {
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_VERSION,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_VERSION),
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &raw mut ret as u64,
@@ -187,7 +187,7 @@ pub fn check_version() -> Result<String> {
 
     let mut ret = -1;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: ksu_uapi::SUKISU_KPM_VERSION,
+        control_code: u64::from(ksu_uapi::SUKISU_KPM_VERSION),
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &raw mut ret as u64,
