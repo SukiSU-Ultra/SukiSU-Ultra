@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/prctl.h>
-#include <utility>
 #include <sys/syscall.h>
 
 #include "uapi/supercall.h"
@@ -32,31 +31,27 @@ bool is_manager();
 
 bool is_pr_build();
 
-void get_full_version(char* buff);
+typedef char p_key_t[KSU_MAX_PACKAGE_NAME];
 
-#define KSU_APP_PROFILE_VER 2
-#define KSU_MAX_PACKAGE_NAME 256
-// NGROUPS_MAX for Linux is 65535 generally, but we only supports 32 groups.
-#define KSU_MAX_GROUPS 32
-#define KSU_SELINUX_DOMAIN 64
+bool set_app_profile(const struct app_profile *profile);
 
-using p_key_t = char[KSU_MAX_PACKAGE_NAME];
-
-bool set_app_profile(const app_profile *profile);
-
-int get_app_profile(struct app_profile* profile);
+int get_app_profile(struct app_profile *profile);
 
 void get_hook_type(char* hook_type);
 
 // Su compat
 bool set_su_enabled(bool enabled);
+
 bool is_su_enabled();
 
 // Kernel umount
 bool set_kernel_umount_enabled(bool enabled);
+
 bool is_kernel_umount_enabled();
 
 bool get_allow_list(struct ksu_new_get_allow_list_cmd *);
+
+void get_full_version(char* buff);
 
 // Legacy Compatible
 struct ksu_version_info legacy_get_info();

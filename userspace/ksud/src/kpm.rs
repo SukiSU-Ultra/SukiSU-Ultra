@@ -7,27 +7,10 @@ use std::{
 
 use anyhow::{Result, bail};
 
+use crate::ksu_uapi;
 use crate::ksucalls::ksuctl;
 
 const KPM_DIR: &str = "/data/adb/kpm";
-const KPM_LOAD: u64 = 1;
-const KPM_UNLOAD: u64 = 2;
-const KPM_NUM: u64 = 3;
-const KPM_LIST: u64 = 4;
-const KPM_INFO: u64 = 5;
-const KPM_CONTROL: u64 = 6;
-const KPM_VERSION: u64 = 7;
-
-const K: u32 = b'K' as u32;
-const KSU_IOCTL_KPM: i32 = libc::_IOWR::<()>(K, 200);
-
-#[repr(C)]
-struct KsuKpmCmd {
-    pub control_code: u64,
-    pub arg1: u64,
-    pub arg2: u64,
-    pub result_code: u64,
-}
 
 pub fn load_module<P>(path: P, args: Option<&str>) -> Result<()>
 where
@@ -37,14 +20,14 @@ where
     let args = args.map_or_else(|| CString::new(String::new()), CString::new)?;
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_LOAD,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_LOAD,
         arg1: path.as_ptr() as u64,
         arg2: args.as_ptr() as u64,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!("Failed to load kpm: {}", io::Error::from_raw_os_error(ret));
@@ -56,14 +39,14 @@ pub fn list() -> Result<()> {
     let mut buf = vec![0u8; 1024];
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_LIST,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_LIST,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -82,14 +65,14 @@ pub fn unload_module(name: String) -> Result<()> {
     let name = CString::new(name)?;
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_UNLOAD,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_UNLOAD,
         arg1: name.as_ptr() as u64,
         arg2: 0,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -105,14 +88,14 @@ pub fn info(name: String) -> Result<()> {
     let mut buf = vec![0u8; 256];
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_INFO,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_INFO,
         arg1: name.as_ptr() as u64,
         arg2: buf.as_mut_ptr() as u64,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -130,14 +113,14 @@ pub fn control(name: String, args: String) -> Result<i32> {
     let args = CString::new(args)?;
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_CONTROL,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_CONTROL,
         arg1: name.as_ptr() as u64,
         arg2: args.as_ptr() as u64,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -151,14 +134,14 @@ pub fn control(name: String, args: String) -> Result<i32> {
 
 pub fn num() -> Result<i32> {
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_NUM,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_NUM,
         arg1: 0,
         arg2: 0,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -175,14 +158,14 @@ pub fn version() -> Result<()> {
     let mut buf = vec![0u8; 1024];
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_VERSION,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_VERSION,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
@@ -203,14 +186,14 @@ pub fn check_version() -> Result<String> {
     let mut buf = vec![0u8; 1024];
 
     let mut ret = -1;
-    let mut cmd = KsuKpmCmd {
-        control_code: KPM_VERSION,
+    let mut cmd = ksu_uapi::ksu_kpm_cmd {
+        control_code: ksu_uapi::SUKISU_KPM_VERSION,
         arg1: buf.as_mut_ptr() as u64,
         arg2: buf.len() as u64,
         result_code: &raw mut ret as u64,
     };
 
-    ksuctl(KSU_IOCTL_KPM, &raw mut cmd)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
         println!(
