@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Code
@@ -437,21 +436,6 @@ fun SettingPagerMiuix(
                         .padding(vertical = 12.dp)
                         .fillMaxWidth(),
                 ) {
-                    SuperArrow(
-                        title = stringResource(id = R.string.settings_view_sulog),
-                        summary = stringResource(id = R.string.settings_view_sulog_summary),
-                        startAction = {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.Article,
-                                modifier = Modifier.padding(end = 6.dp),
-                                contentDescription = stringResource(id = R.string.settings_view_sulog),
-                                tint = colorScheme.onBackground
-                            )
-                        },
-                        onClick = {
-                            actions.onOpenSulog()
-                        }
-                    )
                     SuperArrow(
                         title = stringResource(id = R.string.send_log),
                         startAction = {

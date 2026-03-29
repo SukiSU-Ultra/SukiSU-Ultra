@@ -338,24 +338,6 @@ fun SettingPagerMaterial(
 
             SegmentedColumn(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                content = listOf (
-                    {
-                        val sulogtext = stringResource(id = R.string.settings_view_sulog)
-                        SegmentedListItem(
-                            onClick = actions.onOpenSulog,
-                            headlineContent = { Text(sulogtext) },
-                            leadingContent = {
-                                Icon(Icons.Filled.Fence,
-                                    sulogtext
-                                )
-                            },
-                        )
-                    }
-                )
-            )
-
-            SegmentedColumn(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 content = listOf(
                     {
                         SegmentedListItem(

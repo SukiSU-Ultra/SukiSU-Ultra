@@ -59,5 +59,4 @@ data class SettingsScreenActions(
     val onOpenTools: () -> Unit,
     val onOpenKpm: () -> Unit,
     val onOpenSusfsConfig: () -> Unit,
-    val onOpenSulog: () -> Unit,
 )

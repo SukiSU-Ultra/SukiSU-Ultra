@@ -663,14 +663,6 @@ fun applyUmountConfigToKernel(): Boolean {
     return result
 }
 
-fun retrieveSulogLogs(): Boolean {
-    val shell = getRootShell()
-    val cmd = "${getKsuDaemonPath()} sulog-dump"
-    val result = ShellUtils.fastCmdResult(shell, cmd)
-    Log.i(TAG, "save umount config result: $result")
-    return result
-}
-
 // 检查 KPM 版本是否可用
 @Composable
 fun rememberKpmAvailable(): Boolean {

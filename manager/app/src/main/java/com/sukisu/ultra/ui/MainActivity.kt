@@ -87,7 +87,6 @@ import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoDetailScreen
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoScreen
 import com.sukisu.ultra.ui.screen.settings.SettingPager
 import com.sukisu.ultra.ui.screen.settings.tools.ToolsScreen
-import com.sukisu.ultra.ui.screen.sulog.SulogScreen
 import com.sukisu.ultra.ui.screen.superuser.SuperUserPager
 import com.sukisu.ultra.ui.screen.susfs.SuSFSScreen
 import com.sukisu.ultra.ui.screen.template.AppProfileTemplateScreen
@@ -216,7 +215,6 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.SuSFS> { SuSFSScreen() }
                                 entry<Route.Tool> { ToolsScreen() }
                                 entry<Route.UmountManager> { UmountManagerScreen() }
-                                entry<Route.Sulog> { SulogScreen() }
                             }
                         )
                     }
