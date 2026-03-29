@@ -125,10 +125,8 @@ long ksu_handle_execve_sucompat(const char __user **filename_user, int orig_nr, 
     if (unlikely(!filename_user))
         goto do_orig_execve;
 
-    if (!ksu_is_allow_uid_for_current(current_uid().val)) {
-        write_sulog('$');
+    if (!ksu_is_allow_uid_for_current(current_uid().val))
         goto do_orig_execve;
-    }
 
     addr = untagged_addr((unsigned long)*filename_user);
     fn = (const char __user *)addr;
@@ -144,7 +142,6 @@ long ksu_handle_execve_sucompat(const char __user **filename_user, int orig_nr, 
     if (likely(memcmp(path, su, sizeof(su))))
         goto do_orig_execve;
 
-    write_sulog('x');
     pr_info("sys_execve su found\n");
     *filename_user = ksud_user_path();
 

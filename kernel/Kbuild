@@ -42,8 +42,6 @@ kernelsu-objs += supercall/dispatch.o
 kernelsu-objs += supercall/perm.o
 kernelsu-objs += supercall/supercall.o
 
-kernelsu-objs += other/tiny_sulog.o
-
 obj-$(CONFIG_KPM) += kpm/
 
 ifeq ($(CONFIG_KSU_MANUAL_SU), y)
