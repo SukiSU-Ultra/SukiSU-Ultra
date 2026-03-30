@@ -52,7 +52,7 @@ enum Commands {
         post_magica: bool,
 
         /// manager package name
-        #[arg(long, default_value_t = String::from("me.weishu.kernelsu"))]
+        #[arg(long, default_value_t = String::from("com.sukisu.ultra"))]
         package_name: String,
     },
 
@@ -74,7 +74,7 @@ enum Commands {
         #[arg(long, default_value = None)]
         magiskboot: Option<PathBuf>,
 
-        #[arg(long, default_value_t = String::from("me.weishu.kernelsu"))]
+        #[arg(long, default_value_t = String::from("com.sukisu.ultra"))]
         package_name: String,
     },
 
