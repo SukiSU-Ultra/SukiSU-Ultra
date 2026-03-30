@@ -57,6 +57,7 @@ endif
 ifeq ($(CONFIG_KSU_DEBUG),y)
 ccflags-y += -DCONFIG_KSU_DEBUG=1
 endif
+endif
 
 obj-$(CONFIG_KPM) += kpm/
 
