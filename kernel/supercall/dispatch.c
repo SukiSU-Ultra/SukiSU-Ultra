@@ -717,12 +717,8 @@ static int do_get_full_version(void __user *arg)
 {
     struct ksu_get_full_version_cmd cmd = { 0 };
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
     strscpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
-#else
-    strlcpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
-#endif
-
+    
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {
         pr_err("get_full_version: copy_to_user failed\n");
         return -EFAULT;
@@ -737,11 +733,7 @@ static int do_get_hook_type(void __user *arg)
     struct ksu_hook_type_cmd cmd = { 0 };
     const char *type = "Tracepoint Syscall Redirect";
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
     strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
-#else
-    strlcpy(cmd.hook_type, type, sizeof(cmd.hook_type));
-#endif
 
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {
         pr_err("get_hook_type: copy_to_user failed\n");
