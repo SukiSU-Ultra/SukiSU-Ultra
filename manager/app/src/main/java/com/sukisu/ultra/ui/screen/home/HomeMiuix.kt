@@ -51,6 +51,7 @@ import dev.chrisbanes.haze.hazeSource
 import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
+import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopupMiuix
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
@@ -129,7 +130,8 @@ fun HomePagerMiuix(
                     }
                     if (state.showVersionMismatchWarning) {
                         WarningCard(
-                            stringResource(id = R.string.home_version_mismatch,
+                            stringResource(
+                                id = R.string.home_version_mismatch,
                                 state.currentManagerVersionCode,
                                 state.ksuVersion ?: 0
                             )
@@ -137,8 +139,10 @@ fun HomePagerMiuix(
                     }
                     if (state.showRequireKernelWarning) {
                         WarningCard(
-                            stringResource(id = R.string.require_kernel_version,
-                                state.ksuVersion ?: 0, com.sukisu.ultra.Natives.MINIMAL_SUPPORTED_KERNEL),
+                            stringResource(
+                                id = R.string.require_kernel_version,
+                                state.ksuVersion ?: 0, com.sukisu.ultra.Natives.MINIMAL_SUPPORTED_KERNEL
+                            ),
                         )
                     }
                     if (state.showRootWarning) {
@@ -427,38 +431,6 @@ private fun StatusCard(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun WarningCard(
-    message: String,
-    color: Color? = null,
-    onClick: (() -> Unit)? = null,
-) {
-    Card(
-        onClick = { onClick?.invoke() },
-        colors = CardDefaults.defaultColors(
-            color = color ?: when {
-                isDynamicColor -> colorScheme.errorContainer
-                isInDarkTheme() -> Color(0XFF310808)
-                else -> Color(0xFFF8E2E2)
-            }
-        ),
-        showIndication = onClick != null,
-        pressFeedbackType = PressFeedbackType.Tilt
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = message,
-                color = if (isDynamicColor) colorScheme.onErrorContainer else Color(0xFFF72727),
-                fontSize = 14.sp
-            )
         }
     }
 }
