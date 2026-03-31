@@ -134,7 +134,6 @@
     <string name="module_repos_sort_name">Ad (A → Z)</string>
     <string name="module_repos_source_code">Kaynak kodu</string>
     <string name="metamodule_uninstall_confirm">%s modülünü kaldırmak istediğinizden emin misiniz? Bu eylem tüm modülleri etkileyecek ve metamodül (örneğin bağlama özelliği) tarafından sunulan belli özellikler artık çalışmayacaktır.</string>
-    <string name="settings_sucompat">su ikili dosyasını yeniden yönlendir</string>
     <string name="settings_sucompat">Klasik SU komutu</string>
     <string name="settings_sucompat_summary">Uygulama Profilinde Süper Kullanıcı izni verilen uygulamaların /system/bin/su yürütülerek süper kullanıcı kabuğu almasına izin verir; yalnızca yeni işlemler için etkilidir.</string>
     <string name="settings_kernel_umount">Kernel bağlantısını kes</string>

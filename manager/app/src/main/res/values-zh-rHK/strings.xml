@@ -183,7 +183,6 @@
     <string name="color_amber">琥珀色</string>
     <string name="color_blue_grey">藍灰色</string>
     <string name="color_sakura">櫻花色</string>
-    <string name="module_action_success">模組執行成功。</string>
     <string name="module_action_success">模組執行成功</string>
     <string name="su_not_allowed">無法向 %s 授予超級使用者權限</string>
     <string name="module_install_prompt_with_name">將安裝以下模組：%1$s</string>
