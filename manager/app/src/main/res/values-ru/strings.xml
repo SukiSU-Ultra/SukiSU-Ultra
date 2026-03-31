@@ -143,8 +143,6 @@
     <string name="log_saved">Логи сохранены</string>
     <string name="settings_sucompat">Классическая команда SU</string>
     <string name="settings_sucompat_summary">Разрешить root-доступ через /system/bin/su в новых процессах.</string>
-    <string name="settings_kernel_umount">Размонтировать модули (на уровне ядра)</string>
-    <string name="settings_kernel_umount_summary">Размонтировать модули в ядре для профиля приложения.</string>
     <string name="feature_status_unsupported_summary">Ядро не поддерживает эту функцию.</string>
     <string name="feature_status_managed_summary">Эта функция управляется модулем.</string>
     <string name="settings_mode_enable_by_default">Включена (По умолчанию)</string>
@@ -191,16 +189,12 @@
     <string name="module_shortcut_title">Создать ярлык</string>
     <string name="module_shortcut_name_label">Название ярлыка</string>
     <string name="module_shortcut_icon_pick">Выбрать пользовательскую иконку</string>
-    <string name="module_shortcut_not_supported">Лаунчер не поддерживает ярлыки на рабочем столе.</string>
-    <string name="module_shortcut_created">Ярлык создан на рабочем столе.</string>
-    <string name="module_shortcut_updated">Ярлык обновлен.</string>
     <string name="module_shortcut_delete">Удалить ярлык</string>
     <string name="module_shortcut_permission_tip_xiaomi">Пожалуйста, включите разрешение «Ярлыки на рабочем столе» для этого приложения в настройках Xiaomi.</string>
     <string name="module_shortcut_permission_tip_oppo">Пожалуйста, включите разрешение «Ярлыки на рабочем столе» для этого приложения в настройках OPPO.</string>
     <string name="module_shortcut_permission_tip_default">Если создание ярлыка не удалось, пожалуйста, включите разрешение на создание ярлыков на рабочем столе для этого приложения в системных настройках.</string>
     <string name="no_such_module">Модуль %s не существует</string>
     <string name="module_unavailable">Модуль %s отключен, обновляется или ожидает удаления</string>
-    <string name="select_file_tip_nogki">Пожалуйста, выберите файл образа GKI устройства, который вы хотите пропатчить</string>
     <string name="current_kmi">Версия KMI этого устройства: %s</string>
     <string name="current_device_kmi">KMI этого устройства</string>
     <!-- Customize -->
