@@ -133,8 +133,6 @@
     <string name="log_saved">保存されたログ</string>
     <string name="settings_sucompat">従来の SU コマンド</string>
     <string name="settings_sucompat_summary">新規プロセスで /system/bin/su 経由での root アクセスを許可します。</string>
-    <string name="settings_kernel_umount">モジュールのアンマウント (カーネルレベル)</string>
-    <string name="settings_kernel_umount_summary">アプリプロファイルに基づいて、カーネルからモジュールをアンマウントします。</string>
     <string name="feature_status_unsupported_summary">カーネルはこの機能をサポートしていません</string>
     <string name="feature_status_managed_summary">この機能はモジュールによって管理されます</string>
     <string name="settings_mode_enable_by_default">有効 (デフォルト)</string>
@@ -178,16 +176,12 @@
     <string name="module_shortcut_title">ショートカットを作成</string>
     <string name="module_shortcut_name_label">ショートカット名</string>
     <string name="module_shortcut_icon_pick">カスタムアイコンを選択</string>
-    <string name="module_shortcut_not_supported">ランチャーはホーム画面ショートカットをサポートしていません。</string>
-    <string name="module_shortcut_created">ホーム画面にショートカットを作成しました。</string>
-    <string name="module_shortcut_updated">ショートカットが更新されました。</string>
     <string name="module_shortcut_delete">ショートカットを削除</string>
     <string name="module_shortcut_permission_tip_xiaomi">Xiaomi の設定で、このアプリに対して「ホーム画面ショートカット」権限を有効にしてください。</string>
     <string name="module_shortcut_permission_tip_oppo">OPPO の設定で、このアプリに対して「ホーム画面ショートカット」権限を有効にしてください。</string>
     <string name="module_shortcut_permission_tip_default">ショートカットの作成に失敗した場合は、システム設定でこのアプリに対してホーム画面ショートカットの権限を有効にしてください。</string>
     <string name="no_such_module">モジュール %s は存在しません</string>
     <string name="module_unavailable">モジュール %s は無効、更新中、または削除の待機状態にあります</string>
-    <string name="select_file_tip_nogki">パッチを適用する GKI デバイスのイメージファイルを選択してください</string>
     <string name="current_kmi">このデバイスの KMI バージョン: %s</string>
     <string name="current_device_kmi">このデバイスの KMI</string>
     <!-- Customize -->
