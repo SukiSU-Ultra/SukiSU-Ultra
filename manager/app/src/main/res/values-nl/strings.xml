@@ -146,7 +146,6 @@
     <string name="module_repos_source_code">Broncode</string>
     <string name="metamodule_uninstall_confirm">Weet je zeker dat je module %s wilt verwijderen? Deze actie heeft gevolgen voor alle modules en bepaalde functies van de metamodule (zoals mounten) zullen niet meer werken.</string>
     <string name="safe_mode_module_disabled">Module-installatie is uitgeschakeld in de veilige modus</string>
-    <string name="home_gki_warning">Vanaf versie 3.0.0 zal de GKI-werkmodus alleen nog in testomgevingen worden gebruikt. We raden het gebruik ervan voor dagelijks gebruik af en er zullen geen imagebestanden meer worden meegeleverd.</string>
     <string name="module_action_success">Moduleactie succesvol uitgevoerd.</string>
     <string name="app_profile_affects_following_apps">Dit heeft gevolgen voor de volgende apps</string>
     <string name="install_select_partition">Selecteer partitie</string>

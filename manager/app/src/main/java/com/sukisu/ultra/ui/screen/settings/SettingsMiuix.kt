@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.ContactPage
@@ -104,7 +105,7 @@ fun SettingPagerMiuix(
             )
         },
         popupHost = { },
-        contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
+        contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal),
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -357,6 +358,27 @@ fun SettingPagerMiuix(
                             onCheckedChange = actions.onSetKernelUmountEnabled
                         )
 
+                        val sulogSummary = when (uiState.sulogStatus) {
+                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                            else -> stringResource(id = R.string.settings_sulog_summary)
+                        }
+                        SuperSwitch(
+                            title = stringResource(id = R.string.settings_sulog),
+                            summary = sulogSummary,
+                            startAction = {
+                                Icon(
+                                    Icons.AutoMirrored.Rounded.Article,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_sulog),
+                                    tint = if (uiState.sulogStatus == "supported") colorScheme.onSurfaceVariantSummary else colorScheme.disabledOnSecondaryVariant
+                                )
+                            },
+                            enabled = uiState.sulogStatus == "supported",
+                            checked = uiState.isSulogEnabled,
+                            onCheckedChange = actions.onSetSulogEnabled
+                        )
+
                         SuperSwitch(
                             title = stringResource(id = R.string.settings_umount_modules_default),
                             summary = stringResource(id = R.string.settings_umount_modules_default_summary),
@@ -422,7 +444,7 @@ fun SettingPagerMiuix(
                                     tint = colorScheme.onBackground,
                                 )
                             },
-                            onClick = { showUninstallDialog.value = true }
+                            onClick = { showUninstallDialog.value = true },
                         )
                         UninstallDialog(
                             show = showUninstallDialog.value,
@@ -464,7 +486,7 @@ fun SettingPagerMiuix(
                                 tint = colorScheme.onBackground
                             )
                         },
-                        onClick = actions.onOpenAbout
+                        onClick = actions.onOpenAbout,
                     )
                 }
                 Spacer(Modifier.height(bottomInnerPadding))

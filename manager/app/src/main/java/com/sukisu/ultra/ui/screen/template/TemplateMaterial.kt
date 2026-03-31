@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -61,7 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.TemplateInfo
-import com.sukisu.ultra.ui.component.material.SegmentedLazyColumn
+import com.sukisu.ultra.ui.component.material.SegmentedItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 
@@ -177,25 +179,28 @@ fun AppProfileTemplateScreenMaterial(
             val navBars = WindowInsets.navigationBars.asPaddingValues()
             val captionBar = WindowInsets.captionBar.asPaddingValues()
             Box(Modifier.padding(innerPadding)) {
-                SegmentedLazyColumn(
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     state = listState,
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(2.dp),
                     contentPadding = PaddingValues(
                         start = 16.dp,
                         top = 8.dp,
                         end = 16.dp,
                         bottom = 16.dp + 56.dp + 16.dp + navBars.calculateBottomPadding() + captionBar.calculateBottomPadding()
                     ),
-                    items = templateList,
-                    itemContent = { template ->
-                        TemplateItem(
-                            template = template,
-                            onClick = { actions.onOpenTemplate(template) },
-                        )
+                ) {
+                    itemsIndexed(templateList) { index, template ->
+                        SegmentedItem(index = index, count = templateList.size) {
+                            TemplateItem(
+                                template = template,
+                                onClick = { actions.onOpenTemplate(template) },
+                            )
+                        }
                     }
-                )
+                }
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
