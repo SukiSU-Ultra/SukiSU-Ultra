@@ -3,7 +3,7 @@
 
 #include <linux/types.h>
 #include <linux/ioctl.h>
-#include "uapi/supercall.h"
+#include "include/uapi/supercall.h"
 
 int sukisu_handle_kpm(unsigned long control_code, unsigned long arg3,
                       unsigned long arg4, unsigned long result_code);
