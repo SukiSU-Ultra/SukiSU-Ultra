@@ -32,8 +32,6 @@
 #include <linux/netlink.h>
 #include <linux/sched.h>
 #include <../fs/mount.h>
-#include "kpm/kpm.h"
-#include "kpm/compact.h"
 
 struct DynamicStructMember {
     const char *name;

@@ -24,10 +24,6 @@
 #include <linux/version.h>
 #include <linux/export.h>
 #include <linux/slab.h>
-#include "kpm/kpm.h"
-#include "kpm/compact.h"
-#include "policy/allowlist.h"
-#include "manager/manager_identity.h"
 
 static int sukisu_is_su_allow_uid(uid_t uid)
 {
