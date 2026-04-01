@@ -126,6 +126,6 @@ int ksu_observer_init(void)
         return PTR_ERR(g);
 
     ret = watch_one_dir(&g_watch);
-    pr_info("Observer initialized.\n", __func__);
+    pr_info("Observer initialized.\n");
     return 0;
 }
