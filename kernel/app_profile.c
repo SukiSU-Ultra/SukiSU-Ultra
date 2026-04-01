@@ -158,15 +158,15 @@ void escape_with_root_profile(void)
 	struct task_struct *t;
 #endif
 
-	if (current_euid().val == 0) {
-		pr_warn("Already root, don't escape!\n");
-		goto out_abort_creds;
-	}
-
 	cred = prepare_creds();
 	if (!cred) {
 		pr_warn("prepare_creds failed!\n");
 		return;
+	}
+
+	if (current_euid().val == 0) {
+		pr_warn("Already root, don't escape!\n");
+		goto out_abort_creds;
 	}
 
 	ksu_get_root_profile(cred->uid.val, &profile);
