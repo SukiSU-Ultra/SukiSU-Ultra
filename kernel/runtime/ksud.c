@@ -29,6 +29,9 @@ static void stop_vfs_read_hook();
 static void stop_execve_hook();
 static void stop_input_hook();
 
+#ifdef CONFIG_KSU_SUSFS
+bool ksu_init_rc_hook __read_mostly = true;
+#endif
 bool ksu_vfs_read_hook __read_mostly = true;
 bool ksu_execveat_hook __read_mostly = true;
 bool ksu_input_hook __read_mostly = true;
@@ -491,6 +494,11 @@ __attribute__((cold)) static noinline void ksu_install_rc_hook(struct file *file
         return;
     }
     rc_hooked = true;
+
+#ifdef CONFIG_KSU_SUSFS
+    ksu_init_rc_hook = false;
+    pr_info("ksu_init_rc_hook: %d\n", ksu_init_rc_hook);
+#endif
 
     // now we can sure that the init process is reading
     // `/system/etc/init/init.rc`
