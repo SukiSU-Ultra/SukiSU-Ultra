@@ -248,8 +248,13 @@ static __u32 ksu_sulog_flatten_argv(const char __user *const __user *argv_user, 
 }
 #endif
 
+#ifdef CONFIG_KSU_SUSFS
+static struct ksu_sulog_pending_event *ksu_sulog_capture(__u16 event_type, const char *filename,
+                                                         struct user_arg_ptr *argv_user, gfp_t gfp)
+#else
 static struct ksu_sulog_pending_event *ksu_sulog_capture(__u16 event_type, const char __user *filename_user,
                                                          const char __user *const __user *argv_user, gfp_t gfp)
+#endif
 {
     struct ksu_sulog_pending_event *pending = NULL;
     struct ksu_sulog_event *event;
