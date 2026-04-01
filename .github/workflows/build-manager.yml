@@ -8,7 +8,6 @@ on:
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ddk-lkm.yml'
       - '.github/workflows/ksud.yml'
-      - '.github/workflows/ksud-extra.yml'
       - '.github/scripts/setup-rust-build.sh'
       - 'manager/**'
       - 'kernel/**'
@@ -20,7 +19,6 @@ on:
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ddk-lkm.yml'
       - '.github/workflows/ksud.yml'
-      - '.github/workflows/ksud-extra.yml'
       - '.github/scripts/setup-rust-build.sh'
       - 'manager/**'
       - 'kernel/**'
@@ -101,31 +99,10 @@ jobs:
         include:
           - target: aarch64-linux-android
           - target: x86_64-linux-android
+          - target: armv7-linux-androideabi
     uses: ./.github/workflows/ksud.yml
     with:
       target: ${{ matrix.target }}
-      pack_lkm: true
-      pack_ksuinit: true
-  
-  build-ksud-extra:
-    needs: [build-lkm, build-ksuinit]
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-pc-windows-gnu # windows pc
-            os: ubuntu-latest
-          - target: x86_64-apple-darwin # Intel mac
-            os: macos-latest
-          - target: aarch64-apple-darwin # M chip mac
-            os: macos-latest
-          - target: aarch64-unknown-linux-musl # arm64 Linux
-            os: ubuntu-latest
-          - target: x86_64-unknown-linux-musl # x86 Linux
-            os: ubuntu-latest
-    uses: ./.github/workflows/ksud-extra.yml
-    with:
-      target: ${{ matrix.target }}
-      os: ${{ matrix.os }}
       pack_lkm: true
       pack_ksuinit: true
 
@@ -227,6 +204,12 @@ jobs:
           name: ksud-aarch64-linux-android
           path: artifacts/ksud-aarch64-linux-android
 
+      - name: Download arm ksud
+        uses: actions/download-artifact@v8
+        with:
+          name: ksud-armv7-linux-androideabi
+          path: artifacts/ksud-armv7-linux-androideabi
+
       - name: Download x86_64 ksud
         uses: actions/download-artifact@v8
         with:
@@ -236,12 +219,16 @@ jobs:
       - name: Copy ksud to app jniLibs
         run: |
           mkdir -p app/src/main/jniLibs/arm64-v8a
+          mkdir -p app/src/main/jniLibs/armeabi-v7a
           mkdir -p app/src/main/jniLibs/x86_64
           ARM64_KSUD=$(find ../artifacts/ksud-aarch64-linux-android -type f -name ksud | head -n 1)
+          ARM_KSUD=$(find ../artifacts/ksud-armv7-linux-androideabi -type f -name ksud | head -n 1)
           X86_64_KSUD=$(find ../artifacts/ksud-x86_64-linux-android -type f -name ksud | head -n 1)
           test -n "$ARM64_KSUD"
+          test -n "$ARM_KSUD"
           test -n "$X86_64_KSUD"
           cp -f "$ARM64_KSUD" app/src/main/jniLibs/arm64-v8a/libksud.so
+          cp -f "$ARM_KSUD" app/src/main/jniLibs/armeabi-v7a/libksud.so
           cp -f "$X86_64_KSUD" app/src/main/jniLibs/x86_64/libksud.so
 
       - name: Build with Gradle
