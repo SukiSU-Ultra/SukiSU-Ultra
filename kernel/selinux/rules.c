@@ -6,6 +6,8 @@
 #include <linux/lockdep.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/vmalloc.h>
+#include <linux/rwlock.h>
 
 #include "../klog.h" // IWYU pragma: keep
 #include "selinux.h"
@@ -18,6 +20,59 @@
 #define SELINUX_POLICY_INSTEAD_SELINUX_SS
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0) && \
+    !defined(KSU_COMPAT_HAS_POLICY_MUTEX)
+
+static struct policydb *get_policydb(void)
+{
+    struct policydb *db;
+#ifdef KSU_COMPAT_USE_SELINUX_STATE
+#ifdef SELINUX_POLICY_INSTEAD_SELINUX_SS
+#error It should not happen!
+#else
+    struct selinux_ss *ss = selinux_state.ss;
+    db = &ss->policydb;
+#endif
+#else
+    db = &policydb;
+#endif
+    return db;
+}
+
+#ifndef KSU_COMPAT_USE_SELINUX_STATE
+#ifdef KSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK
+extern rwlock_t policy_rwlock;
+#else
+DEFINE_MUTEX(ksu_rules);
+#endif
+#endif
+
+static inline void ksu_lock_sepolicy_legacy(void)
+{
+#if defined(KSU_COMPAT_USE_SELINUX_STATE) && \
+    !defined(SELINUX_POLICY_INSTEAD_SELINUX_SS)
+    write_lock_irq(&selinux_state.ss->policy_rwlock);
+#elif defined(KSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK)
+    write_lock_irq(&policy_rwlock);
+#else
+    mutex_lock(&ksu_rules);
+#endif
+}
+
+static inline void ksu_unlock_sepolicy_legacy(void)
+{
+#if defined(KSU_COMPAT_USE_SELINUX_STATE) && \
+    !defined(SELINUX_POLICY_INSTEAD_SELINUX_SS)
+    write_unlock_irq(&selinux_state.ss->policy_rwlock);
+#elif defined(KSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK)
+    write_unlock_irq(&policy_rwlock);
+#else
+    mutex_unlock(&ksu_rules);
+#endif
+}
+
+#endif
+
 #define ALL NULL
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
@@ -28,50 +83,55 @@ extern int avc_ss_reset(struct selinux_avc *avc, u32 seqno);
 // reset avc cache table, otherwise the new rules will not take effect if already denied
 static void reset_avc_cache()
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
     avc_ss_reset(0);
     selnl_notify_policyload(0);
     selinux_status_update_policyload(0);
 #else
-    struct selinux_avc *avc = selinux_state.avc;
+    struct selinux_avc *avc = NULL;
     avc_ss_reset(avc, 0);
     selnl_notify_policyload(0);
-    selinux_status_update_policyload(&selinux_state, 0);
+    selinux_status_update_policyload(0);
 #endif
     selinux_xfrm_notify_policyload();
 }
 
-void apply_kernelsu_rules(void)
+void apply_kernelsu_rules()
 {
-	struct selinux_policy *pol, *old_pol = selinux_state.policy;
-	struct policydb *db;
+    struct policydb *db;
 
-	if (!getenforce()) {
-		pr_info("SELinux permissive or disabled, apply rules!\n");
-	}
+    if (!getenforce()) {
+        pr_info("SELinux permissive or disabled, apply rules!\n");
+    }
 
-	mutex_lock(&selinux_state.policy_mutex);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) || \
+    defined(KSU_COMPAT_HAS_POLICY_MUTEX)
+    struct selinux_policy *pol, *old_pol = selinux_state.policy;
+    mutex_lock(&selinux_state.policy_mutex);
     pol = ksu_dup_sepolicy(rcu_dereference_protected(
         old_pol, lockdep_is_held(&selinux_state.policy_mutex)));
     if (!pol) {
         pr_err("failed to dup selinux_policy\n");
         goto out_unlock;
     }
-
     db = &pol->policydb;
+#else
+    ksu_lock_sepolicy_legacy();
+    db = get_policydb();
+#endif
 
-	ksu_permissive(db, KERNEL_SU_DOMAIN);
-	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "mlstrustedsubject");
-	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "netdomain");
-	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "bluetoothdomain");
+    ksu_permissive(db, KERNEL_SU_DOMAIN);
+    ksu_typeattribute(db, KERNEL_SU_DOMAIN, "mlstrustedsubject");
+    ksu_typeattribute(db, KERNEL_SU_DOMAIN, "netdomain");
+    ksu_typeattribute(db, KERNEL_SU_DOMAIN, "bluetoothdomain");
 
-	// KernelSU file type - restricted access
-	ksu_type(db, KERNEL_SU_FILE, "file_type");
-	ksu_typeattribute(db, KERNEL_SU_FILE, "mlstrustedobject");
-	// Only allow trusted domains to access KernelSU files
-	ksu_allow(db, KERNEL_SU_DOMAIN, KERNEL_SU_FILE, ALL, ALL);
-	ksu_allow(db, "init", KERNEL_SU_FILE, ALL, ALL);
-	ksu_allow(db, "zygote", KERNEL_SU_FILE, ALL, ALL);
+    // KernelSU file type - restricted access
+    ksu_type(db, KERNEL_SU_FILE, "file_type");
+    ksu_typeattribute(db, KERNEL_SU_FILE, "mlstrustedobject");
+    // Only allow trusted domains to access KernelSU files
+    ksu_allow(db, KERNEL_SU_DOMAIN, KERNEL_SU_FILE, ALL, ALL);
+    ksu_allow(db, "init", KERNEL_SU_FILE, ALL, ALL);
+    ksu_allow(db, "zygote", KERNEL_SU_FILE, ALL, ALL);
 	
 	// Zygote permissions for Zygisk - using stock types only
 	ksu_allow(db, "zygote", "adb_data_file", "dir", "search");
@@ -183,13 +243,18 @@ void apply_kernelsu_rules(void)
 	susfs_set_zygote_sid();
 #endif // #ifdef CONFIG_KSU_SUSFS
 
-	rcu_assign_pointer(selinux_state.policy, pol);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) || \
+    defined(KSU_COMPAT_HAS_POLICY_MUTEX)
+    rcu_assign_pointer(selinux_state.policy, pol);
     synchronize_rcu();
     ksu_destroy_sepolicy(old_pol);
-
     reset_avc_cache();
 out_unlock:
     mutex_unlock(&selinux_state.policy_mutex);
+#else
+    ksu_unlock_sepolicy_legacy();
+    reset_avc_cache();
+#endif
 }
 
 #define KSU_SEPOLICY_MAX_BATCH_SIZE (8U * 1024U * 1024U)
@@ -501,26 +566,22 @@ static int apply_one_sepolicy_cmd(struct policydb *db,
 
 int handle_sepolicy(void __user *user_data, u64 data_len)
 {
-    struct selinux_policy *pol, *old_pol;
     struct policydb *db;
     struct sepol_batch_cursor cursor;
     u8 *payload;
-    int ret;
-    int success_cmd_count;
-    u32 cmd_index;
+    int ret = 0;
+    int success_cmd_count = 0;
+    u32 cmd_index = 0;
 
-    if (!user_data || !data_len) {
+    if (!user_data || !data_len)
         return -EINVAL;
-    }
 
-    if (data_len > KSU_SEPOLICY_MAX_BATCH_SIZE) {
+    if (data_len > KSU_SEPOLICY_MAX_BATCH_SIZE)
         return -E2BIG;
-    }
 
-    payload = kvmalloc((size_t)data_len, GFP_KERNEL);
-    if (!payload) {
+    payload = vmalloc((size_t)data_len);
+    if (!payload)
         return -ENOMEM;
-    }
 
     if (copy_from_user(payload, user_data, (size_t)data_len)) {
         ret = -EFAULT;
@@ -531,8 +592,10 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
         pr_info("SELinux permissive or disabled when handle policy!\n");
     }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) || \
+    defined(KSU_COMPAT_HAS_POLICY_MUTEX)
+    struct selinux_policy *pol, *old_pol;
     mutex_lock(&selinux_state.policy_mutex);
-
     old_pol = selinux_state.policy;
     pol = ksu_dup_sepolicy(rcu_dereference_protected(
         old_pol, lockdep_is_held(&selinux_state.policy_mutex)));
@@ -541,6 +604,10 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
         goto out_unlock;
     }
     db = &pol->policydb;
+#else
+    ksu_lock_sepolicy_legacy();
+    db = get_policydb();
+#endif
 
     cursor.cur = payload;
     cursor.end = payload + (size_t)data_len;
@@ -586,6 +653,8 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
         cmd_index++;
     }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) || \
+    defined(KSU_COMPAT_HAS_POLICY_MUTEX)
     rcu_assign_pointer(selinux_state.policy, pol);
     synchronize_rcu();
     ksu_destroy_sepolicy(old_pol);
@@ -597,8 +666,16 @@ out_drop_new_policy:
     ksu_destroy_sepolicy(pol);
 out_unlock:
     mutex_unlock(&selinux_state.policy_mutex);
-out_free:
-    kvfree(payload);
+#else
+    ksu_unlock_sepolicy_legacy();
+    reset_avc_cache();
+    ret = success_cmd_count;
+    goto out_free;
 
+out_drop_new_policy:
+    ksu_unlock_sepolicy_legacy();
+#endif
+out_free:
+    vfree(payload);
     return ret;
 }

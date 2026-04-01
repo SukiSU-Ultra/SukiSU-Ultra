@@ -380,7 +380,7 @@ static int do_set_app_profile(void __user *arg)
 	ret = ksu_set_app_profile(&cmd.profile);
 	if (!ret) {
 		ksu_persistent_allow_list();
-#ifndef CONFIG_KSU_SUSFS
+#ifdef KSU_TP_HOOK
 		ksu_mark_running_process();
 #endif
 	}
@@ -523,15 +523,13 @@ static int do_manage_mark(void __user *arg)
 #endif // #ifndef CONFIG_KSU_SUSFS
 		break;
 	}
-	case KSU_MARK_REFRESH: {
-#ifndef CONFIG_KSU_SUSFS
-		ksu_mark_running_process();
-		pr_info("manage_mark: refreshed running processes\n");
-#else
-		pr_info("susfs: cmd: KSU_MARK_REFRESH: do nothing\n");
-#endif // #ifndef CONFIG_KSU_SUSFS
-		break;
-	}
+case KSU_MARK_REFRESH: {
+#ifdef KSU_TP_HOOK
+    ksu_mark_running_process();
+#endif
+    pr_info("manage_mark: refreshed running processes\n");
+    break;
+}
 	default: {
 		pr_err("manage_mark: invalid operation %u\n", cmd.operation);
 		return -EINVAL;

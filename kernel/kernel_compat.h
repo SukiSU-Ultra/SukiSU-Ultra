@@ -67,4 +67,9 @@ extern void *ksu_compat_kvrealloc(const void *p, size_t oldsize, size_t newsize,
 #endif
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+#define kvmalloc(size, flags) vmalloc(size)
+#define kvfree(ptr) vfree(ptr)
+#endif
+
 #endif
