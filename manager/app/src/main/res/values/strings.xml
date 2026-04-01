@@ -384,7 +384,7 @@
     <string name="allowlist_backup_failed">Backup failed</string>
     <string name="allowlist_restore_title">Restore allowlist</string>
     <string name="allowlist_restore_summary_picker">Choose a backup file to import</string>
-    <string name="allowlist_restore_success">Restore succeeded</string>
+    <string name="allowlist_restore_success">Restoration successful. Changes will take effect after restart</string>
     <string name="allowlist_restore_failed">Restore failed</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (Module)</string>
