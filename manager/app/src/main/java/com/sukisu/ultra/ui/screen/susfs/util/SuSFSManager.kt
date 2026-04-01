@@ -53,7 +53,7 @@ object SuSFSManager {
     private const val DEFAULT_BUILD_TIME = "default"
     @SuppressLint("SdCardPath")
     private const val DEFAULT_ANDROID_DATA_PATH = "/sdcard/Android/data"
-    const val MAX_SUSFS_VERSION = "2.0.0"
+    const val MAX_SUSFS_VERSION = "2.1.0"
     private const val BACKUP_FILE_EXTENSION = ".susfs_backup"
     private const val MEDIA_DATA_PATH = "/data/media/0/Android/data"
     private const val CGROUP_BASE_PATH = "/sys/fs/cgroup"
