@@ -78,6 +78,26 @@ static int ksu_handle_fd_request(void __user *arg)
     return 0;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+int ksu_supercall_reboot_handler(void __user **arg)
+{
+    struct ksu_install_fd_tw *tw;
+
+    tw = kzalloc(sizeof(*tw), GFP_KERNEL);
+    if (!tw)
+        return 0;
+
+    tw->outp = (int __user *)(*arg);
+    tw->cb.func = ksu_install_fd_tw_func;
+
+    if (task_work_add(current, &tw->cb, TWA_RESUME)) {
+        kfree(tw);
+        pr_warn("install fd add task_work failed\n");
+    }
+
+    return 0;
+}
+#else
 int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg)
 {
     if (magic1 != KSU_INSTALL_MAGIC1)
@@ -105,6 +125,7 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user 
 
     return 0;
 }
+#endif
 
 void __init ksu_supercalls_init(void)
 {

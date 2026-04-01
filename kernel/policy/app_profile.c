@@ -194,11 +194,13 @@ void escape_to_root_for_init(void)
     struct cred *cred = prepare_creds();
     if (!cred) {
         pr_err("Failed to prepare init's creds!\n");
-        return;
+        return -EINVAL;
     }
 
     setup_selinux(KERNEL_SU_CONTEXT, cred);
     commit_creds(cred);
+
+    return 0;
 }
 
 #ifdef CONFIG_KSU_MANUAL_SU

@@ -34,6 +34,28 @@ static struct user_arg_ptr ksu_sulog_user_argv(const char __user *const __user *
     return argv;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
+{
+	const char __user *native;
+
+#ifdef CONFIG_COMPAT
+	if (unlikely(argv.is_compat)) {
+		compat_uptr_t compat;
+
+		if (get_user(compat, argv.ptr.compat + nr))
+			return ERR_PTR(-EFAULT);
+
+		return compat_ptr(compat);
+	}
+#endif
+
+	if (get_user(native, argv.ptr.native + nr))
+		return ERR_PTR(-EFAULT);
+
+	return native;
+}
+#else
 static const char __user *ksu_sulog_get_user_arg_ptr(struct user_arg_ptr argv, int nr)
 {
     const char __user *native;
@@ -54,6 +76,7 @@ static const char __user *ksu_sulog_get_user_arg_ptr(struct user_arg_ptr argv, i
 
     return native;
 }
+#endif
 
 static void ksu_sulog_fill_task_info(struct ksu_sulog_event *event, __u16 event_type, int retval)
 {
@@ -83,6 +106,30 @@ static __u32 ksu_sulog_copy_empty_string(char *dst)
     return 1;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+static __u32 ksu_sulog_copy_filename_kernel(const char *filename, char *dst, __u32 dst_len)
+{
+    long ret;
+
+    if (!dst_len)
+        return 0;
+
+    if (!filename)
+        return ksu_sulog_copy_empty_string(dst);
+
+    ret = strncpy(dst, filename, dst_len);
+    if (ret <= 0)
+        return ksu_sulog_copy_empty_string(dst);
+
+    if (ret >= dst_len) {
+        dst[dst_len - 1] = '\0';
+        return dst_len;
+    }
+
+    return ret + 1;
+}
+#endif
+
 static __u32 ksu_sulog_copy_filename(const char __user *filename_user, char *dst, __u32 dst_len)
 {
     long ret;
@@ -105,6 +152,63 @@ static __u32 ksu_sulog_copy_filename(const char __user *filename_user, char *dst
     return ret + 1;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+static __u32 ksu_sulog_flatten_argv(struct user_arg_ptr *argv_user, char *dst, __u32 dst_len)
+{
+    char arg[KSU_SULOG_MAX_ARG_CHUNK];
+    __u32 used = 0;
+    int i;
+
+    if (!dst_len)
+        return 0;
+
+    if (!argv_user)
+        return ksu_sulog_copy_empty_string(dst);
+
+    for (i = 0; i < KSU_SULOG_MAX_ARG_STRINGS; i++) {
+        const char __user *arg_user;
+        long copied;
+        size_t arg_len;
+
+        if (fatal_signal_pending(current))
+            break;
+
+        arg_user = get_user_arg_ptr(*argv_user, i);
+        if (!arg_user)
+            break;
+        if (IS_ERR(arg_user))
+            return ksu_sulog_copy_empty_string(dst);
+
+        copied =
+            strncpy_from_user_nofault(arg, (const void __user *)untagged_addr((unsigned long)arg_user), sizeof(arg));
+        if (copied <= 0)
+            return ksu_sulog_copy_empty_string(dst);
+
+        if (copied >= sizeof(arg))
+            arg[sizeof(arg) - 1] = '\0';
+
+        arg_len = strnlen(arg, sizeof(arg));
+        if (!arg_len)
+            continue;
+
+        if (used && used < dst_len - 1)
+            dst[used++] = ' ';
+
+        if (used >= dst_len - 1)
+            break;
+
+        arg_len = min_t(size_t, arg_len, dst_len - used - 1);
+        memcpy(dst + used, arg, arg_len);
+        used += arg_len;
+
+        if (used >= dst_len - 1)
+            break;
+    }
+
+    dst[used] = '\0';
+    return used + 1;
+}
+#else
 static __u32 ksu_sulog_flatten_argv(const char __user *const __user *argv_user, char *dst, __u32 dst_len)
 {
     struct user_arg_ptr argv = ksu_sulog_user_argv(argv_user);
@@ -161,6 +265,7 @@ static __u32 ksu_sulog_flatten_argv(const char __user *const __user *argv_user, 
     dst[used] = '\0';
     return used + 1;
 }
+#endif
 
 static struct ksu_sulog_pending_event *ksu_sulog_capture(__u16 event_type, const char __user *filename_user,
                                                          const char __user *const __user *argv_user, gfp_t gfp)
@@ -191,7 +296,11 @@ static struct ksu_sulog_pending_event *ksu_sulog_capture(__u16 event_type, const
 
     remaining = KSU_SULOG_MAX_PAYLOAD_LEN - sizeof(*event);
     filename_buf = (char *)payload + sizeof(*event);
+#ifdef CONFIG_KSU_SUSFS
+    filename_len = ksu_sulog_copy_filename_kernel(filename, filename_buf, min(remaining, KSU_SULOG_MAX_FILENAME_LEN));
+#else
     filename_len = ksu_sulog_copy_filename(filename_user, filename_buf, min(remaining, KSU_SULOG_MAX_FILENAME_LEN));
+#endif
     if (!filename_len)
         goto out_free_payload;
 
@@ -256,6 +365,13 @@ static void ksu_sulog_free_pending(struct ksu_sulog_pending_event *pending)
     kfree(pending);
 }
 
+#ifdef CONFIG_KSU_SUSFS
+struct ksu_sulog_pending_event *ksu_sulog_capture_sucompat(const char *filename,
+                                                           struct user_arg_ptr *argv_user, gfp_t gfp)
+{
+    return ksu_sulog_capture(KSU_SULOG_EVENT_SUCOMPAT, filename, argv_user, gfp);
+}
+#else
 struct ksu_sulog_pending_event *ksu_sulog_capture_root_execve(const char __user *filename_user,
                                                               const char __user *const __user *argv_user, gfp_t gfp)
 {
@@ -267,6 +383,7 @@ struct ksu_sulog_pending_event *ksu_sulog_capture_sucompat(const char __user *fi
 {
     return ksu_sulog_capture(KSU_SULOG_EVENT_SUCOMPAT, filename_user, argv_user, gfp);
 }
+#endif
 
 void ksu_sulog_emit_pending(struct ksu_sulog_pending_event *pending, int retval, gfp_t gfp)
 {

@@ -133,6 +133,10 @@ int __init kernelsu_init(void)
 
     ksu_file_wrapper_init();
 
+#ifdef CONFIG_KSU_SUSFS
+    susfs_init();
+#endif
+
     return 0;
 }
 device_initcall(kernelsu_init);
