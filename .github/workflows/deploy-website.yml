@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-      - Website
+      - website
     paths:
       - '.github/workflows/deploy-website.yml'
-      - 'Website/**'
+      - 'website/**'
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./Website
+        working-directory: ./website
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,18 +38,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: latest
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.17.1
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
       - name: Build with VitePress
         run: |
-          yarn docs:build
+          pnpm build
           touch docs/.vitepress/dist/.nojekyll
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: Website/docs/.vitepress/dist
+          path: website/docs/.vitepress/dist
 
   # Deployment job
   deploy:
