@@ -55,6 +55,7 @@ class SettingsViewModel(
             val isKernelUmountEnabled = repo.isKernelUmountEnabled()
             val sulogStatus = repo.getSulogStatus()
             val isSulogEnabled = repo.getSulogPersistValue() == 1L
+            val isAdbRootEnabled = repo.getAdbRootPersistValue() == 1L
             val isDefaultUmountModules = repo.isDefaultUmountModules()
             val uiMode = repo.uiMode
             val autoJailbreak = repo.autoJailbreak
@@ -80,6 +81,7 @@ class SettingsViewModel(
                     suCompatStatus = suCompatStatus,
                     suCompatMode = suCompatMode,
                     isSuEnabled = isSuEnabled,
+                    isAdbRootEnabled = isAdbRootEnabled,
                     kernelUmountStatus = kernelUmountStatus,
                     isKernelUmountEnabled = isKernelUmountEnabled,
                     sulogStatus = sulogStatus,
@@ -259,6 +261,15 @@ class SettingsViewModel(
             if (repo.setSulogEnabled(enabled)) {
                 repo.execKsudFeatureSave()
                 _uiState.update { it.copy(isSulogEnabled = enabled) }
+            }
+        }
+    }
+
+    fun setAdbRootEnabled(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (repo.setAdbRootEnabled(enabled)) {
+                repo.execKsudFeatureSave()
+                _uiState.update { it.copy(isAdbRootEnabled = enabled) }
             }
         }
     }

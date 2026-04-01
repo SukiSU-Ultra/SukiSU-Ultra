@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.content.edit
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
+import com.topjohnwu.superuser.ShellUtils
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.magica.BootCompletedReceiver
@@ -121,6 +122,16 @@ class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getSulogPersistValue(): Long? = getFeaturePersistValue("sulog")
 
     override fun setSulogEnabled(enabled: Boolean): Boolean = execKsud("feature set sulog ${if (enabled) 1 else 0}", true)
+
+    override suspend fun getAdbRootPersistValue(): Long? = getFeaturePersistValue("adb_root")
+
+    override fun setAdbRootEnabled(enabled: Boolean): Boolean =
+        if (execKsud("feature set adb_root ${if (enabled) 1 else 0}", true)) {
+            ShellUtils.fastCmd("setprop ctl.restart adbd")
+            true
+        } else {
+            false
+        }
 
     override fun isDefaultUmountModules(): Boolean = Natives.isDefaultUmountModules()
 
