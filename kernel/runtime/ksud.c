@@ -88,7 +88,7 @@ void on_boot_completed(void)
 
 #define MAX_ARG_STRINGS 0x7FFFFFFF
 
-static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
+const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
 {
     const char __user *native;
 
@@ -169,6 +169,63 @@ fail:
     return false;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+extern int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *argv_user);
+
+// IMPORTANT NOTE: the call from execve_handler_pre WON'T provided correct value for envp and flags in GKI version
+int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
+                             struct user_arg_ptr *argv,
+                             struct user_arg_ptr *envp, int *flags)
+{
+    struct filename *filename;
+    static const char app_process[] = "/system/bin/app_process";
+    static bool first_zygote = true;
+
+    /* This applies to versions Android 10+ */
+    static const char system_bin_init[] = "/system/bin/init";
+    static bool init_second_stage_executed = false;
+
+    if (!filename_ptr)
+        return 0;
+
+    filename = *filename_ptr;
+    if (IS_ERR(filename)) {
+        return 0;
+    }
+
+    // https://cs.android.com/android/platform/superproject/+/android-16.0.0_r2:system/core/init/main.cpp;l=77
+    if (unlikely(!memcmp(filename->name, system_bin_init, sizeof(system_bin_init) - 1) && argv))
+    {
+        char buf[16];
+        if (!init_second_stage_executed &&
+            check_argv(*argv, 1, "second_stage", buf, sizeof(buf)))
+        {
+            pr_info("/system/bin/init second_stage executed\n");
+            apply_kernelsu_rules();
+            cache_sid();
+            setup_ksu_cred();
+            init_second_stage_executed = true;
+        }
+    }
+
+    if (unlikely(first_zygote && !memcmp(filename->name, app_process, sizeof(app_process) - 1) && argv))
+    {
+        char buf[16];
+        if (check_argv(*argv, 1, "-Xzygote", buf, sizeof(buf))) {
+            pr_info("exec zygote, /data prepared, second_stage: %d\n", init_second_stage_executed);
+            on_post_fs_data();
+            first_zygote = false;
+            ksu_execveat_hook = false;
+            pr_info("ksu_execveat_hook: %d\n", ksu_execveat_hook);
+        }
+    }
+
+    // - We need to run ksu_handle_execveat_init() at the very end in case the above checks are skipped
+    (void)ksu_handle_execveat_init(filename, argv);
+
+    return 0;
+}
+#else
 int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct user_arg_ptr *argv,
                              struct user_arg_ptr *envp, int *flags)
 {
@@ -271,6 +328,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
     ksu_sulog_emit_pending(pending_root_execve, 0, GFP_KERNEL);
     return 0;
 }
+#endif
 
 static int ksu_execve_ksud_common(const char __user *filename_user, struct user_arg_ptr *argv)
 {

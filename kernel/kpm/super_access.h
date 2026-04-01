@@ -3,8 +3,8 @@
 
 #include <linux/types.h>
 #include <linux/stddef.h>
-#include "kpm.h"
-#include "compact.h"
+#include "kpm/kpm.h"
+#include "kpm/compact.h"
 
 extern int sukisu_super_find_struct(const char *struct_name, size_t *out_size,
                                     int *out_members);

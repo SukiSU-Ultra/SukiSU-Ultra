@@ -49,27 +49,7 @@ static char __user *ksud_user_path(void)
 
 
 #ifdef CONFIG_KSU_SUSFS
-static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
-{
-	const char __user *native;
-
-#ifdef CONFIG_COMPAT
-	if (unlikely(argv.is_compat)) {
-		compat_uptr_t compat;
-
-		if (get_user(compat, argv.ptr.compat + nr))
-			return ERR_PTR(-EFAULT);
-
-		return compat_ptr(compat);
-	}
-#endif
-
-	if (get_user(native, argv.ptr.native + nr))
-		return ERR_PTR(-EFAULT);
-
-	return native;
-}
-
+extern const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr);
 /*
  * return 0 -> No further checks should be required afterwards
  * return non-zero -> Further checks should be continued afterwards
@@ -80,10 +60,10 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
             char tmp_filename[SUSFS_MAX_LEN_PATHNAME] = {0};
             const char __user *argv_user_ptr = get_user_arg_ptr(*argv_user, 0);
             struct ksu_sulog_pending_event *pending_sucompat = NULL;
-            int ret;
+            int ret = 0;
 
             pr_info("hook_manager: escape to root for init executing ksud: %d\n", current->pid);
-            ret = escape_to_root_for_init();
+            escape_to_root_for_init();
             if (ret) {
                 pr_err("escape_to_root_for_init() failed: %d\n", ret);
                 return ret;

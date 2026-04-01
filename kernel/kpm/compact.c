@@ -24,8 +24,8 @@
 #include <linux/version.h>
 #include <linux/export.h>
 #include <linux/slab.h>
-#include "kpm.h"
-#include "compact.h"
+#include "kpm/kpm.h"
+#include "kpm/compact.h"
 #include "policy/allowlist.h"
 #include "manager/manager_identity.h"
 

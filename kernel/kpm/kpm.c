@@ -35,8 +35,8 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0) && defined(CONFIG_MODULES)
 #include <linux/moduleloader.h>
 #endif
-#include "kpm.h"
-#include "compact.h"
+#include "kpm/kpm.h"
+#include "kpm/compact.h"
 
 #define KPM_NAME_LEN 32
 #define KPM_ARGS_LEN 1024

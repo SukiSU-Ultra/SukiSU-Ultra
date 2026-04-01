@@ -194,13 +194,11 @@ void escape_to_root_for_init(void)
     struct cred *cred = prepare_creds();
     if (!cred) {
         pr_err("Failed to prepare init's creds!\n");
-        return -EINVAL;
+        return;
     }
 
     setup_selinux(KERNEL_SU_CONTEXT, cred);
     commit_creds(cred);
-
-    return 0;
 }
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -281,8 +279,6 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
 {
     struct cred *newcreds;
     struct task_struct *target_task;
-    struct task_struct *p = current;
-    struct task_struct *t;
     struct root_profile profile;
 
     pr_info("cmd_su: escape_to_root_for_cmd_su called for UID: %d, PID: %d\n",
@@ -359,9 +355,6 @@ void escape_to_root_for_cmd_su(uid_t target_uid, pid_t target_pid)
     }
 
     put_task_struct(target_task);
-    for_each_thread (p, t) {
-        ksu_set_task_tracepoint_flag(t);
-    }
     setup_mount_ns(profile.namespaces);
     pr_info("cmd_su: privilege escalation completed for UID: %d, PID: %d\n",
             target_uid, target_pid);
