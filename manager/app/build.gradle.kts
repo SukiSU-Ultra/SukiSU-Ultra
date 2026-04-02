@@ -72,9 +72,6 @@ android {
                 }
             }
         }
-        /**debug {
-            signingConfig = signingConfigs.named("Debug").get() as ApkSigningConfig
-        }**/
     }
 
     buildFeatures {
@@ -122,7 +119,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments += "-DANDROID_STL=c++_static"
+                arguments += "-DANDROID_STL=none"
                 cFlags += baseCFlags + "-std=c2x"
                 cppFlags += baseCppFlags + "-std=c++2b"
             }
@@ -157,7 +154,6 @@ base {
 }
 
 dependencies {
-    implementation(libs.gson)
     implementation(libs.androidx.activity.compose)
 
     implementation(platform(libs.androidx.compose.bom))

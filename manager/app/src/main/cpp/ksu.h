@@ -5,12 +5,10 @@
 #ifndef KERNELSU_KSU_H
 #define KERNELSU_KSU_H
 
-#include "prelude.h"
-#include <stdint.h>
-#include <sys/types.h>
+#include <cstdint>
 #include <sys/ioctl.h>
 #include <sys/prctl.h>
-#include <sys/syscall.h>
+#include <utility>
 
 #include "uapi/ksu.h"
 
@@ -28,13 +26,11 @@ bool is_manager();
 
 bool is_pr_build();
 
-typedef char p_key_t[KSU_MAX_PACKAGE_NAME];
+using p_key_t = char[KSU_MAX_PACKAGE_NAME];
 
-bool set_app_profile(const struct app_profile *profile);
+bool set_app_profile(const app_profile *profile);
 
-int get_app_profile(struct app_profile *profile);
-
-void get_hook_type(char* hook_type);
+int get_app_profile(app_profile *profile);
 
 // Su compat
 bool set_su_enabled(bool enabled);
@@ -48,24 +44,15 @@ bool is_kernel_umount_enabled();
 
 bool get_allow_list(struct ksu_new_get_allow_list_cmd *);
 
-void get_full_version(char* buff);
+bool get_full_version(char* buff);
+bool get_hook_type(char *buff);
 
-// Legacy Compatible
-struct ksu_version_info legacy_get_info();
-
-struct ksu_version_info {
-    int32_t version;
-    int32_t flags;
-};
-
-bool legacy_get_allow_list(int *uids, int *size);
-bool legacy_is_safe_mode();
-bool legacy_uid_should_umount(int uid);
-bool legacy_set_app_profile(const struct app_profile* profile);
-bool legacy_get_app_profile(char* key, struct app_profile* profile);
-bool legacy_set_su_enabled(bool enabled);
-bool legacy_is_su_enabled();
-bool legacy_get_hook_type(char* hook_type, size_t size);
-void legacy_get_full_version(char* buff);
+inline std::pair<int, int> legacy_get_info() {
+    int32_t version = -1;
+    int32_t flags = 0;
+    int32_t result = 0;
+    prctl(0xDEADBEEF, 2, &version, &flags, &result);
+    return {version, flags};
+}
 
 #endif //KERNELSU_KSU_H

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <android/log.h>
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
+#include <string>
 
 #ifndef LOG_TAG
 # define LOG_TAG "KernelSU"
