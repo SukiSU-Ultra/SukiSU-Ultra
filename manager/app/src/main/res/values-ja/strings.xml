@@ -9,8 +9,13 @@
     <string name="home_unsupported_reason">KernelSU は現在 GKI カーネルのみをサポートしています。ただし、GKI デバイス向けにイメージにパッチを適用することは可能です。</string>
     <string name="home_kernel">カーネル</string>
     <string name="home_manager_version">アプリのバージョン</string>
+    <string name="home_fingerprint">Fingerprint</string>
     <string name="home_selinux_status">SELinux の状態</string>
+    <string name="selinux_status_disabled">Disabled</string>
+    <string name="selinux_status_enforcing">Enforcing</string>
+    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">不明</string>
+    <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">モジュールの有効化に失敗しました: %s</string>
     <string name="module_failed_to_disable">モジュールの無効化に失敗しました: %s</string>
     <string name="module_empty">モジュールがインストールされていません</string>
@@ -85,6 +90,7 @@
     <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理する。</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
+    <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">無効なテンプレート ID</string>
     <string name="app_profile_template_name">名前</string>
     <string name="app_profile_template_description">説明</string>
@@ -133,6 +139,8 @@
     <string name="log_saved">保存されたログ</string>
     <string name="settings_sucompat">従来の SU コマンド</string>
     <string name="settings_sucompat_summary">新規プロセスで /system/bin/su 経由での root アクセスを許可します。</string>
+    <string name="settings_kernel_umount">モジュールのアンマウント (カーネルレベル)</string>
+    <string name="settings_kernel_umount_summary">アプリプロファイルに基づいて、カーネルからモジュールをアンマウントします。</string>
     <string name="feature_status_unsupported_summary">カーネルはこの機能をサポートしていません</string>
     <string name="feature_status_managed_summary">この機能はモジュールによって管理されます</string>
     <string name="settings_mode_enable_by_default">有効 (デフォルト)</string>
@@ -171,17 +179,22 @@
     <string name="color_sakura">桜</string>
     <string name="network_offline">ネットワークに接続されていません</string>
     <string name="network_retry">再試行</string>
+    <string name="tab_readme">README</string>
     <string name="tab_releases">リリース</string>
     <string name="tab_info">情報</string>
     <string name="module_shortcut_title">ショートカットを作成</string>
     <string name="module_shortcut_name_label">ショートカット名</string>
     <string name="module_shortcut_icon_pick">カスタムアイコンを選択</string>
+    <string name="module_shortcut_not_supported">ランチャーはホーム画面ショートカットをサポートしていません。</string>
+    <string name="module_shortcut_created">ホーム画面にショートカットを作成しました。</string>
+    <string name="module_shortcut_updated">ショートカットが更新されました。</string>
     <string name="module_shortcut_delete">ショートカットを削除</string>
     <string name="module_shortcut_permission_tip_xiaomi">Xiaomi の設定で、このアプリに対して「ホーム画面ショートカット」権限を有効にしてください。</string>
     <string name="module_shortcut_permission_tip_oppo">OPPO の設定で、このアプリに対して「ホーム画面ショートカット」権限を有効にしてください。</string>
     <string name="module_shortcut_permission_tip_default">ショートカットの作成に失敗した場合は、システム設定でこのアプリに対してホーム画面ショートカットの権限を有効にしてください。</string>
     <string name="no_such_module">モジュール %s は存在しません</string>
     <string name="module_unavailable">モジュール %s は無効、更新中、または削除の待機状態にあります</string>
+    <string name="select_file_tip_nogki">パッチを適用する GKI デバイスのイメージファイルを選択してください</string>
     <string name="current_kmi">このデバイスの KMI バージョン: %s</string>
     <string name="current_device_kmi">このデバイスの KMI</string>
     <!-- Customize -->
