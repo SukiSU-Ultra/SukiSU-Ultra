@@ -100,11 +100,11 @@ ccflags-y += -DKSU_HAS_NEW_VFS_GETATTR
 endif
 
 ifeq ($(shell grep -q " current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_COMPAT_HAS_CURRENT_SID
+ccflags-y += -DKSU_COMPAT_HAS_CURRENT_SID
 endif
 
 ifeq ($(shell grep -q "struct selinux_state " $(srctree)/security/selinux/include/security.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_COMPAT_HAS_SELINUX_STATE
+ccflags-y += -DKSU_COMPAT_HAS_SELINUX_STATE
 endif
 
 ifeq ($(shell grep -q "strncpy_from_user_nofault" $(srctree)/include/linux/uaccess.h; echo $$?),0)
@@ -123,28 +123,28 @@ endif
 endif
 
 ifeq ($(shell grep -q "^DEFINE_RWLOCK(policy_rwlock);" $(srctree)/security/selinux/ss/services.c; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK
+ccflags-y += -DKSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK
 endif
 
 ifeq ($(shell grep -q "cpus_ptr;" $(srctree)/include/linux/sched.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_COMPAT_HAS_BACKPORTED_CPUS_PTR
+ccflags-y += -DKSU_COMPAT_HAS_BACKPORTED_CPUS_PTR
 endif
 
 ifeq ($(shell grep -q "selinux_inode" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_HAS_SELINUX_INODE
+ccflags-y += -DKSU_HAS_SELINUX_INODE
 endif
 
 ifeq ($(shell grep -q "selinux_cred" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_HAS_SELINUX_CRED
+ccflags-y += -DKSU_HAS_SELINUX_CRED
 endif
 
 ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct;" $(srctree)/security/selinux/ss/policydb.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_TYPE_VAL_TO_STRUCT
+ccflags-y += -DKSU_TYPE_VAL_TO_STRUCT
 endif
 
 # half-assed-backport from 5.1
 ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct_array;" $(srctree)/security/selinux/ss/policydb.h; echo $$?),0)
-CFLAGS_ksu.o += -DKSU_TYPE_VAL_TO_STRUCT_ARRAY
+ccflags-y += -DKSU_TYPE_VAL_TO_STRUCT_ARRAY
 endif
 
 # Function proc_ops check
