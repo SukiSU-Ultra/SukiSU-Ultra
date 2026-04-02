@@ -13,8 +13,10 @@
     <string name="home_fingerprint">Identitas</string>
     <string name="home_selinux_status">Status SELinux</string>
     <string name="selinux_status_disabled">Dinonaktifkan</string>
-    <string name="selinux_status_permissive">Permisif</string>
+    <string name="selinux_status_enforcing">Enforcing</string>
+    <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Tidak diketahui</string>
+    <string name="superuser">Superuser</string>
     <string name="module_failed_to_enable">Gagal mengaktifkan modul: %s</string>
     <string name="module_failed_to_disable">Gagal menonaktifkan modul: %s</string>
     <string name="module_empty">Tidak ada modul yang terpasang</string>
@@ -48,6 +50,7 @@
     <string name="send_log">Kirim log</string>
     <string name="safe_mode">Mode aman</string>
     <string name="jailbreak_mode">Mode jailbreak</string>
+    <string name="home_jailbreak">Jailbreak</string>
     <string name="jailbreak_timeout">Proses jailbreak mungkin gagal, silakan periksa log</string>
     <string name="safe_mode_module_disabled">Pemasangan modul dinonaktifkan pada mode aman</string>
     <string name="reboot_to_apply">Mulai ulang untuk menerapkan</string>
@@ -58,13 +61,13 @@
     <string name="home_support_title">Dukung Kami</string>
     <string name="home_support_content">KernelSU akan selalu menjadi aplikasi gratis dan serta bersumber terbuka. Bagaimanapun juga, Anda dapat menunjukan kepedulian Anda kepada kami dengan memberikan sedikit donasi.</string>
     <string name="about_source_code"><![CDATA[Lihat kode sumber di %1$s<br/>Gabung saluran %2$s kami]]></string>
-    <string name="profile_default">Bawaan</string>
+    <string name="profile_default">Default</string>
     <string name="profile_template">Templat</string>
     <string name="profile_custom">Khusus</string>
     <string name="profile_name">Nama profil</string>
     <string name="profile_namespace">Ruang nama mount</string>
     <string name="profile_namespace_inherited">Diwariskan</string>
-    <string name="profile_namespace_global">Universal</string>
+    <string name="profile_namespace_global">Global</string>
     <string name="profile_namespace_individual">Individual</string>
     <string name="profile_groups">Grup</string>
     <string name="profile_capabilities">Kemampuan</string>
@@ -75,6 +78,7 @@
     <string name="settings_umount_modules_default">Umount modul secara default</string>
     <string name="settings_umount_modules_default_summary">Nilai default global untuk \"Umount modul\" pada Profil Aplikasi. Jika diaktifkan, ini akan menghapus semua modifikasi modul ke sistem untuk aplikasi yang tidak memiliki profil yang ditetapkan.</string>
     <string name="profile_umount_modules_summary">Mengaktifkan opsi ini akan memungkinkan KernelSU untuk memulihkan berkas apa pun yang telah dimodifikasi oleh modul untuk aplikasi ini.</string>
+    <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Aturan</string>
     <string name="module_update">Perbarui</string>
     <string name="module_downloading">Mengunduh modul: %s</string>
@@ -91,6 +95,7 @@
     <string name="settings_profile_template_summary">Kelola templat lokal dan online dari Profil Aplikasi.</string>
     <string name="app_profile_template_create">Buat templat</string>
     <string name="app_profile_template_edit">Edit templat</string>
+    <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">ID templat tidak valid</string>
     <string name="app_profile_template_name">Nama</string>
     <string name="app_profile_template_description">Deskripsi</string>
@@ -168,7 +173,7 @@
     <string name="settings_theme_mode_dark">Gelap</string>
     <string name="settings_monet">Aktifkan Monet</string>
     <string name="settings_key_color">Warna utama</string>
-    <string name="settings_key_color_default">Bawaan</string>
+    <string name="settings_key_color_default">Default</string>
     <string name="settings_ui_mode">Gaya Antarmuka</string>
     <string name="settings_ui_mode_summary">Pilih gaya antarmuka.</string>
     <string name="settings_page_scale">Skala Tampilan</string>
@@ -187,7 +192,9 @@
     <string name="color_indigo">Biru keunguan</string>
     <string name="color_cyan">Biru kehijauan</string>
     <string name="color_yellow">Kuning</string>
+    <string name="color_amber">Amber</string>
     <string name="color_blue_grey">Abu-abu kebiruan</string>
+    <string name="color_sakura">Sakura</string>
     <string name="network_offline">Tidak terhubung ke jaringan</string>
     <string name="network_retry">Coba lagi</string>
     <string name="tab_readme">Baca Aku</string>
@@ -208,6 +215,7 @@
     <string name="select_file_tip_nogki">Silakan pilih berkas image perangkat GKI yang ingin Anda tambal!</string>
     <string name="current_kmi">Versi KMI perangkat ini: %s</string>
     <string name="current_device_kmi">Ini perangkat KMI</string>
+    <string name="settings_enable_blur">Blur</string>
     <string name="settings_enable_blur_summary">Aktifkan efek blur untuk bilah atas dan bawah.</string>
     <string name="settings_floating_bottom_bar">Bilah bawah mengambang</string>
     <string name="settings_floating_bottom_bar_summary">Gunakan bilah bawah mengambang ala Apple.</string>
