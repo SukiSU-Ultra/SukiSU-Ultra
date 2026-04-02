@@ -16,6 +16,13 @@ config KSU_LSM_HOOKS
 	  Enable Linux Security Module (LSM) hooks support for
 	  KernelSU.
 
+config KSU_MANUAL_HOOK
+	bool "KernelSU manual hook (stub) (dummy)"
+	depends on KSU
+	default y
+	help
+	  Always Enabled now, do not disable.
+
 config KSU_DEBUG
 	bool "KernelSU debug mode"
 	depends on KSU
