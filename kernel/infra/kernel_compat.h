@@ -251,7 +251,7 @@ static inline __s64 ksu_sign_extend64(__u64 value, int index)
 #endif
 
 #ifndef in_compat_syscall
-#define in_compat_syscall() in_compat_task()
+#define in_compat_syscall() is_compat_task()
 #endif
 
 #endif
