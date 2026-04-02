@@ -1,7 +1,7 @@
 #ifdef CONFIG_KSU_LSM_HOOKS
 #define LSM_HOOK_TYPE static int
 #else
-#define LSM_HOOK_TYPE
+#define LSM_HOOK_TYPE int
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) || defined(CONFIG_IS_HW_HISI) ||                                     \

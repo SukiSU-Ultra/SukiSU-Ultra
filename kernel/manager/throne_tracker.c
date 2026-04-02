@@ -312,12 +312,12 @@ out:
     }
 }
 
-void __init ksu_throne_tracker_init()
+void __init ksu_throne_tracker_init(void)
 {
     // nothing to do
 }
 
-void __exit ksu_throne_tracker_exit()
+void __exit ksu_throne_tracker_exit(void)
 {
     // nothing to do
 }

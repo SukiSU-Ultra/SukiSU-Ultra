@@ -532,7 +532,7 @@ int __maybe_unused ksu_handle_input_handle_event(unsigned int *type, unsigned in
 static bool safe_mode_flag = false;
 #define VOLUME_PRESS_THRESHOLD_COUNT 3
 
-bool ksu_is_safe_mode()
+bool ksu_is_safe_mode(void)
 {
     // don't need to check again, userspace may call multiple times
     static bool already_checked = false;
@@ -656,26 +656,26 @@ static int vol_detector_init()
     return input_register_handler(&vol_detector_handler);
 }
 
-static int vol_detector_exit()
+static int vol_detector_exit(void)
 {
     pr_info("vol_detector: exit\n");
     input_unregister_handler(&vol_detector_handler);
     return 0;
 }
 
-static void stop_vfs_read_hook()
+static void stop_vfs_read_hook(void)
 {
     ksu_vfs_read_hook = false;
     pr_info("stop vfs_read_hook\n");
 }
 
-static void stop_execve_hook()
+static void stop_execve_hook(void)
 {
     ksu_execveat_hook = false;
     pr_info("stop execve_hook\n");
 }
 
-static void stop_input_hook()
+static void stop_input_hook(void)
 {
     if (!ksu_input_hook) {
         return;
@@ -686,11 +686,11 @@ static void stop_input_hook()
 }
 
 // ksud: module support
-void __init ksu_ksud_init()
+void __init ksu_ksud_init(void)
 {
     vol_detector_init();
 }
 
-void __exit ksu_ksud_exit()
+void __exit ksu_ksud_exit(void)
 {
 }

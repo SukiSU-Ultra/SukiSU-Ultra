@@ -23,17 +23,17 @@ void cache_sid(void);
 
 bool is_task_ksu_domain(const struct cred *cred);
 
-bool is_ksu_domain();
+bool is_ksu_domain(void);
 
 bool is_zygote(const struct cred *cred);
 
 bool is_init(const struct cred *cred);
 
-void apply_kernelsu_rules();
+void apply_kernelsu_rules(void);
 
 int handle_sepolicy(void __user *user_data, u64 data_len);
 
-void setup_ksu_cred();
+void setup_ksu_cred(void);
 
 #ifdef CONFIG_KSU_SUSFS
 bool susfs_is_sid_equal(const struct cred *cred, u32 sid2);

@@ -254,7 +254,7 @@ static noinline int ksu_sucompat_user_common(const char __user **filename_user, 
         return ret;
 
     // NOTE: we only check file existence, not exec success!
-    struct path kpath = { 0 };
+    struct path kpath = {};
     if (!!kern_path(ksud_path, 0, &kpath))
         goto no_ksud;
 
@@ -346,14 +346,14 @@ int __maybe_unused ksu_handle_devpts(struct inode *inode)
 }
 
 // sucompat: permitted process can execute 'su' to gain root access.
-void __init ksu_sucompat_init()
+void __init ksu_sucompat_init(void)
 {
     if (ksu_register_feature_handler(&su_compat_handler)) {
         pr_err("Failed to register su_compat feature handler\n");
     }
 }
 
-void __exit ksu_sucompat_exit()
+void __exit ksu_sucompat_exit(void)
 {
     ksu_unregister_feature_handler(KSU_FEATURE_SU_COMPAT);
 }
