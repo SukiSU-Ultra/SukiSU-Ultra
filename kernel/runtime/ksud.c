@@ -562,6 +562,12 @@ void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
     fput(file);
 }
 
+// dead code
+int __maybe_unused ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value)
+{
+    return 0;
+}
+
 static bool safe_mode_flag = false;
 #define VOLUME_PRESS_THRESHOLD_COUNT 3
 
