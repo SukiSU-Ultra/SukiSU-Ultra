@@ -69,8 +69,8 @@
     <string name="profile_namespace_inherited">繼承</string>
     <string name="profile_namespace_global">全域</string>
     <string name="profile_namespace_individual">獨立</string>
-    <string name="profile_groups">群組</string>
-    <string name="profile_capabilities">權限能力</string>
+    <string name="profile_groups">Groups</string>
+    <string name="profile_capabilities">Capabilities</string>
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸載模組（Umount）</string>
     <string name="failed_to_update_app_profile">無法為 %s 更新 App Profile</string>
@@ -78,8 +78,8 @@
     <string name="settings_umount_modules_default">預設卸載模組</string>
     <string name="settings_umount_modules_default_summary">控制 App Profile「卸載模組」的預設值，對未設定的 App 移除模組修改</string>
     <string name="profile_umount_modules_summary">啟用後 KernelSU 將為此 App 還原所有被模組修改過的檔案</string>
-    <string name="profile_selinux_domain">域（Domain）</string>
-    <string name="profile_selinux_rules">規則（Rules）</string>
+    <string name="profile_selinux_domain">Domain</string>
+    <string name="profile_selinux_rules">Rules</string>
     <string name="module_update">更新</string>
     <string name="module_downloading">正在下載模組：%s</string>
     <string name="module_start_downloading">開始下載：%s</string>
@@ -95,7 +95,7 @@
     <string name="settings_profile_template_summary">管理本地及線上 App Profile 模板</string>
     <string name="app_profile_template_create">建立模板</string>
     <string name="app_profile_template_edit">編輯模板</string>
-    <string name="app_profile_template_id">模板 ID</string>
+    <string name="app_profile_template_id">ID</string>
     <string name="app_profile_template_id_invalid">模板 ID 無效</string>
     <string name="app_profile_template_name">名稱</string>
     <string name="app_profile_template_description">描述</string>
@@ -119,7 +119,7 @@
     <string name="grant_root_failed">授予 Root 權限失敗！</string>
     <string name="home_pr_build_warning">此為 PR 除錯版本，切勿於正式環境使用！</string>
     <string name="home_pr_kernel_warning">此核心具 PR 簽名支援，並非正式版本核心！</string>
-    <string name="action">執行模組</string>
+    <string name="action">執行</string>
     <string name="open">開啟</string>
     <string name="enable_web_debugging">WebView 除錯模式</string>
     <string name="enable_web_debugging_summary">可用於 WebUI 除錯，請僅在需要時啟用</string>
