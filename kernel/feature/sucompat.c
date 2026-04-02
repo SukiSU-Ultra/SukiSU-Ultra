@@ -329,13 +329,13 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *
     return 0;
 }
 
+extern bool ksu_execveat_hook __read_mostly;
 int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags)
 {
-    if (unlikely(ksu_boot_completed)) {
-        return 0;
+    if (unlikely(ksu_execveat_hook)) {
+        return ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags);
     }
-
-    return ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags);
+    return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp, flags);
 }
 #endif
 
