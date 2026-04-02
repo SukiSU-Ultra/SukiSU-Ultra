@@ -61,7 +61,7 @@ static inline rwlock_t *ksu_get_policy_rwlock(void)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0) || defined(KSU_COMPAT_HAS_BACKPORTED_CPUS_PTR)
 static inline cpumask_t *ksu_get_current_cpumask_t(void)
 {
-    return current->cpus_ptr;
+    return (cpumask_t *)current->cpus_ptr;
 }
 #else
 static inline cpumask_t *ksu_get_current_cpumask_t(void)
