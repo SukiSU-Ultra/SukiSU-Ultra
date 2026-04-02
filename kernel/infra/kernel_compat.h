@@ -50,6 +50,18 @@ struct file *ksu_filp_open_compat(const char *filename, int flags, umode_t mode)
 #define ksu_access_ok(addr, size) access_ok(VERIFY_READ, addr, size)
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0) // caller is reponsible for sanity!
+static inline void ksu_zeroed_strncpy(char *dest, const char *src, size_t count)
+{
+	// this is actually faster due to dead store elimination
+	// count - 1 as implicit null termination
+	__builtin_memset(dest, 0, count);
+	__builtin_strncpy(dest, src, count - 1);
+}
+#define strscpy ksu_zeroed_strncpy
+#define strscpy_pad ksu_zeroed_strncpy
+#endif
+
 static inline long __strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr, long count)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0) || defined(KSU_HAS_STRNCPY_FROM_USER_NOFAULT)
@@ -186,5 +198,23 @@ __weak void groups_sort(struct group_info *group_info)
 {
 } // no-op
 #endif
+
+#ifndef U16_MAX
+#define	U16_MAX	((u16)(~0U))
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION (4, 12, 0) && !defined(EPOLLIN)
+#define EPOLLIN		0x00000001
+#define EPOLLPRI	0x00000002
+#define EPOLLOUT	0x00000004
+#define EPOLLERR	0x00000008
+#define EPOLLHUP	0x00000010
+#define EPOLLRDNORM	0x00000040
+#define EPOLLRDBAND	0x00000080
+#define EPOLLWRNORM	0x00000100
+#define EPOLLWRBAND	0x00000200
+#define EPOLLMSG	0x00000400
+#define EPOLLRDHUP	0x00002000
+#endif // < 4.12 && !EPOLLIN
 
 #endif
