@@ -239,6 +239,7 @@
     <string name="download">下载</string>
     <string name="download_cancel">取消</string>
     <string name="download_install">安装</string>
+    <string name="settings_adb_root_summary">以 root 权限运行 adbd 守护进程</string>
     <!-- Customize -->
     <string name="hook_type">钩子类型</string>
     <string name="home_susfs_version">SuSFS 版本</string>
@@ -358,6 +359,7 @@
     <string name="allowlist_backup_failed">备份失败</string>
     <string name="allowlist_restore_title">还原允许列表</string>
     <string name="allowlist_restore_summary_picker">选择备份文件进行导入</string>
+    <string name="allowlist_restore_success">还原成功,重启生效</string>
     <string name="allowlist_restore_failed">还原失败</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (模块)</string>
