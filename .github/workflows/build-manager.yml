@@ -112,9 +112,6 @@ jobs:
     needs: [generate-key]
     if: always() && needs.generate-key.result == 'success'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        spoofed: ["true","false"]
     defaults:
       run:
         working-directory: ./manager
@@ -124,31 +121,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Determine manager variant for telegram bot
-        id: determine
-        run: |
-          if [ "${{ github.ref_name }}" == "miuix" ] && [ "${{ matrix.spoofed }}" == "true" ]; then
-            echo "SKIP=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          if [ "${{ github.ref_name }}" == "miuix" ]; then
-            echo "title=Manager" >> $GITHUB_OUTPUT
-            echo "topicid=${{ vars.MESSAGE_MIUIX_THREAD_ID }}" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.spoofed }}" == "true" ]; then
-            echo "title=Spoofed-Manager" >> $GITHUB_OUTPUT
-            # maybe need a new var
-            echo "topicid=${{ vars.MESSAGE_SPOOFED_THREAD_ID }}" >> $GITHUB_OUTPUT
-          else
-            echo "title=Manager" >> $GITHUB_OUTPUT
-            echo "topicid=${{ vars.MESSAGE_THREAD_ID }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run randomizer
-        if: ${{ matrix.spoofed == 'true' && steps.determine.outputs.SKIP != 'true' }}
-        run: |
-          chmod +x randomizer
-          ./randomizer
 
       - name: Write key
         if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
@@ -202,14 +174,14 @@ jobs:
         if: ${{ github.event_name == 'pull_request' || (github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) || github.ref_type == 'tag' }}
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.determine.outputs.title }}
+          name: manager-gradle
           path: manager/app/build/outputs/apk/release/*.apk
 
       - name: Upload mappings
         uses: actions/upload-artifact@v7
         if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
         with:
-          name: "${{ steps.determine.outputs.title }}-mappings"
+          name: "mappings"
           path: "manager/app/build/outputs/mapping/release/"
 
   repack-manager:
@@ -336,15 +308,15 @@ jobs:
           key: ${{ runner.os }}-bot-session
 
       - name: Upload to telegram
-        if: github.event_name != 'pull_request' && steps.need_upload.outputs.UPLOAD == 'true' && steps.determine.outputs.SKIP != 'true'
+        if: github.event_name != 'pull_request' && steps.need_upload.outputs.UPLOAD == 'true'
         env:
-          CHAT_ID: ${{ vars.CHAT_ID }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          MESSAGE_THREAD_ID: ${{ steps.determine.outputs.topicid }}
+          MESSAGE_THREAD_ID: ${{ secrets.MESSAGE_THREAD_ID }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TITLE: ${{ steps.determine.outputs.title }}
+          TITLE: Manager
           BRANCH: ${{ github.ref_name }}
         run: |
           if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
