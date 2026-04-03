@@ -3,12 +3,18 @@ obj-$(CONFIG_KSU) := ksu.o
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
 
+ifeq ($(filter /%,$(src)),)
+KSU_KERNEL_DIR := $(srctree)/$(src)
+else
+KSU_KERNEL_DIR := $(src)
+endif
+
 ifeq ($(CONFIG_KSU_SUSFS), y)
 ## As we are building gki only, no KBUILD_EXTMOD is needed
 ## Since there is still a build error for 6.12 as $(src) returns absolute path, so here we just hardcode it
 ccflags-y += -I$(srctree)/drivers/kernelsu -I$(srctree)/drivers/kernelsu/include
 else
-ccflags-y += -I$(srctree)/$(src) -I$(srctree)/$(src)/include
+ccflags-y += -I$(KSU_KERNEL_DIR) -I$(KSU_KERNEL_DIR)/include
 endif
 
 MDIR    := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
