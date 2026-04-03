@@ -810,7 +810,7 @@ static bool system_uid_check(void)
 static int do_manual_su(void __user *arg)
 {
     struct ksu_manual_su_cmd cmd;
-    struct ksu_manual_su_request request;
+    struct manual_su_request request;
     int res;
 
     if (copy_from_user(&cmd, arg, sizeof(cmd))) {
