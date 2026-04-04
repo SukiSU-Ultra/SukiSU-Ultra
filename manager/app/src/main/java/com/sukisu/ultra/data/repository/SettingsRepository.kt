@@ -32,6 +32,8 @@ interface SettingsRepository {
     suspend fun getSulogStatus(): String
     suspend fun getSulogPersistValue(): Long?
     fun setSulogEnabled(enabled: Boolean): Boolean
+
+    suspend fun getAdbRootStatus(): String
     suspend fun getAdbRootPersistValue(): Long?
     fun setAdbRootEnabled(enabled: Boolean): Boolean
 

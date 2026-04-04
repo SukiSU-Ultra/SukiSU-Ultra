@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.automirrored.rounded.Article
+import androidx.compose.material.icons.rounded.Adb
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.ContactPage
@@ -379,6 +380,33 @@ fun SettingPagerMiuix(
                             onCheckedChange = actions.onSetSulogEnabled
                         )
 
+                        val adbRootSummary = when (uiState.adbRootStatus) {
+                            "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                            "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                            else -> stringResource(id = R.string.settings_adb_root_summary)
+                        }
+                        SuperSwitch(
+                            title = stringResource(id = R.string.settings_adb_root),
+                            summary = adbRootSummary,
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Adb,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_adb_root),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            enabled = uiState.adbRootStatus == "supported",
+                            checked = uiState.isAdbRootEnabled,
+                            onCheckedChange = actions.onSetAdbRootEnabled
+                        )
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                    ) {
                         SuperSwitch(
                             title = stringResource(id = R.string.settings_umount_modules_default),
                             summary = stringResource(id = R.string.settings_umount_modules_default_summary),
@@ -392,21 +420,6 @@ fun SettingPagerMiuix(
                             },
                             checked = uiState.isDefaultUmountModules,
                             onCheckedChange = actions.onSetDefaultUmountModules
-                        )
-
-                        SuperSwitch(
-                            title = stringResource(id = R.string.settings_adb_root),
-                            summary = stringResource(id = R.string.settings_adb_root_summary),
-                            startAction = {
-                                Icon(
-                                    Icons.Rounded.DeveloperMode,
-                                    modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.settings_adb_root),
-                                    tint = colorScheme.onBackground
-                                )
-                            },
-                            checked = uiState.isAdbRootEnabled,
-                            onCheckedChange = actions.onSetAdbRootEnabled
                         )
 
                         SuperSwitch(
