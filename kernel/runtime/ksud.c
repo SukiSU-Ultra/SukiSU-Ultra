@@ -235,7 +235,6 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
     struct filename *filename;
     static const char app_process[] = "/system/bin/app_process";
     static bool first_zygote = true;
-    struct ksu_sulog_pending_event *pending_root_execve = NULL;
 
     /* This applies to versions Android 10+ */
     static const char system_bin_init[] = "/system/bin/init";
@@ -249,11 +248,6 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
     filename = *filename_ptr;
     if (IS_ERR(filename)) {
         return 0;
-    }
-
-    if (current_euid().val == 0) {
-        pending_root_execve =
-            ksu_sulog_capture_root_execve(filename->name, (const char __user *const __user *)argv, GFP_KERNEL);
     }
 
     if (current->pid != 1 && is_init(get_current_cred())) {
@@ -328,7 +322,6 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
         }
     }
 
-    ksu_sulog_emit_pending(pending_root_execve, 0, GFP_KERNEL);
     return 0;
 }
 #endif
