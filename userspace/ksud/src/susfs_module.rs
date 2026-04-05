@@ -60,7 +60,7 @@ fn create_all_scripts(config: &SusfsConfig) -> Result<()> {
 fn write_script(filename: &str, content: &str) -> Result<()> {
     let path = Path::new(MODULE_PATH).join(filename);
     fs::write(&path, content).with_context(|| format!("Failed to write {}", filename))?;
-    
+
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -69,7 +69,7 @@ fn write_script(filename: &str, content: &str) -> Result<()> {
         permissions.set_mode(0o755);
         fs::set_permissions(&path, permissions).context("Failed to set permissions")?;
     }
-    
+
     Ok(())
 }
 
@@ -120,7 +120,10 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push_str("sleep 45\n");
             for path in &config.sus_paths {
                 content.push_str(&format!("\"$SUSFS_BIN\" add_sus_path '{}'\n", path));
-                content.push_str(&format!("echo \"$(get_current_time): Add SUS path: {}\" >> \"$LOG_FILE\"\n", path));
+                content.push_str(&format!(
+                    "echo \"$(get_current_time): Add SUS path: {}\" >> \"$LOG_FILE\"\n",
+                    path
+                ));
             }
             content.push('\n');
         }
@@ -129,13 +132,17 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push_str("# Add SUS loop paths\n");
             for path in &config.sus_loop_paths {
                 content.push_str(&format!("\"$SUSFS_BIN\" add_sus_path_loop '{}'\n", path));
-                content.push_str(&format!("echo \"$(get_current_time): Add SUS loop path: {}\" >> \"$LOG_FILE\"\n", path));
+                content.push_str(&format!(
+                    "echo \"$(get_current_time): Add SUS loop path: {}\" >> \"$LOG_FILE\"\n",
+                    path
+                ));
             }
             content.push('\n');
         }
 
-        if !config.execute_in_post_fs_data && 
-           (config.uname_value != "default" || config.build_time_value != "default") {
+        if !config.execute_in_post_fs_data
+            && (config.uname_value != "default" || config.build_time_value != "default")
+        {
             content.push_str("# Set uname and build time\n");
             content.push_str(&format!(
                 "\"{}\" set_uname '{}' '{}'\n",
@@ -152,7 +159,10 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push_str("# Add Kstat paths\n");
             for path in &config.add_kstat_paths {
                 content.push_str(&format!("\"$SUSFS_BIN\" add_sus_kstat '{}'\n", path));
-                content.push_str(&format!("echo \"$(get_current_time): Add Kstat path: {}\" >> \"$LOG_FILE\"\n", path));
+                content.push_str(&format!(
+                    "echo \"$(get_current_time): Add Kstat path: {}\" >> \"$LOG_FILE\"\n",
+                    path
+                ));
             }
             content.push('\n');
         }
@@ -164,10 +174,16 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
                 if parts.len() >= 13 {
                     let path = parts[0];
                     let params = parts[1..].join("' '");
-                    content.push_str(&format!("\"$SUSFS_BIN\" add_sus_kstat_statically '{}' '{}'\n", path, params));
+                    content.push_str(&format!(
+                        "\"$SUSFS_BIN\" add_sus_kstat_statically '{}' '{}'\n",
+                        path, params
+                    ));
                     content.push_str(&format!("echo \"$(get_current_time): Add Kstat static config: {}\" >> \"$LOG_FILE\"\n", path));
                     content.push_str(&format!("\"$SUSFS_BIN\" update_sus_kstat '{}'\n", path));
-                    content.push_str(&format!("echo \"$(get_current_time): Update Kstat config: {}\" >> \"$LOG_FILE\"\n", path));
+                    content.push_str(&format!(
+                        "echo \"$(get_current_time): Update Kstat config: {}\" >> \"$LOG_FILE\"\n",
+                        path
+                    ));
                 }
             }
             content.push('\n');
@@ -177,7 +193,8 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("# Enable log\n");
     content.push_str(&format!(
         "\"{}\" enable_log {}\n",
-        "$SUSFS_BIN", if config.enable_log { 1 } else { 0 }
+        "$SUSFS_BIN",
+        if config.enable_log { 1 } else { 0 }
     ));
     content.push_str(&format!(
         "echo \"$(get_current_time): Log enabled: {}\" >> \"$LOG_FILE\"\n",
@@ -207,10 +224,12 @@ fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("\n");
     content.push_str(&get_binary_check());
     content.push_str("\n");
-    content.push_str("echo \"$(get_current_time): Post-FS-Data script started\" >> \"$LOG_FILE\"\n\n");
+    content
+        .push_str("echo \"$(get_current_time): Post-FS-Data script started\" >> \"$LOG_FILE\"\n\n");
 
-    if config.execute_in_post_fs_data && 
-       (config.uname_value != "default" || config.build_time_value != "default") {
+    if config.execute_in_post_fs_data
+        && (config.uname_value != "default" || config.build_time_value != "default")
+    {
         content.push_str("# Set uname and build time\n");
         content.push_str(&format!(
             "\"{}\" set_uname '{}' '{}'\n",
@@ -226,7 +245,8 @@ fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("# Enable AVC log spoofing\n");
     content.push_str(&format!(
         "\"{}\" enable_avc_log_spoofing {}\n",
-        "$SUSFS_BIN", if config.enable_avc_log_spoofing { 1 } else { 0 }
+        "$SUSFS_BIN",
+        if config.enable_avc_log_spoofing { 1 } else { 0 }
     ));
     content.push_str(&format!(
         "echo \"$(get_current_time): AVC log spoofing: {}\" >> \"$LOG_FILE\"\n",
@@ -234,7 +254,8 @@ fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<()> {
     ));
     content.push('\n');
 
-    content.push_str("echo \"$(get_current_time): Post-FS-Data script completed\" >> \"$LOG_FILE\"\n");
+    content
+        .push_str("echo \"$(get_current_time): Post-FS-Data script completed\" >> \"$LOG_FILE\"\n");
 
     write_script("post-fs-data.sh", &content)
 }
@@ -247,10 +268,12 @@ fn create_post_mount_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("# Execute after all partitions are mounted\n\n");
     content.push_str(&get_log_setup());
     content.push_str("\n");
-    content.push_str("echo \"$(get_current_time): Post-Mount script started\" >> \"$LOG_FILE\"\n\n");
+    content
+        .push_str("echo \"$(get_current_time): Post-Mount script started\" >> \"$LOG_FILE\"\n\n");
     content.push_str(&get_binary_check());
     content.push_str("\n");
-    content.push_str("echo \"$(get_current_time): Post-Mount script completed\" >> \"$LOG_FILE\"\n");
+    content
+        .push_str("echo \"$(get_current_time): Post-Mount script completed\" >> \"$LOG_FILE\"\n");
 
     write_script("post-mount.sh", &content)
 }
@@ -262,18 +285,29 @@ fn create_boot_completed_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("# Execute after system fully starts\n\n");
     content.push_str(&get_log_setup());
     content.push_str("\n");
-    content.push_str("echo \"$(get_current_time): Boot-Completed script started\" >> \"$LOG_FILE\"\n\n");
+    content.push_str(
+        "echo \"$(get_current_time): Boot-Completed script started\" >> \"$LOG_FILE\"\n\n",
+    );
     content.push_str(&get_binary_check());
     content.push_str("\n");
 
     content.push_str("# Hide SUS mounts\n");
     content.push_str(&format!(
         "\"{}\" hide_sus_mnts_for_non_su_procs {}\n",
-        "$SUSFS_BIN", if config.hide_sus_mounts_for_all_procs { 1 } else { 0 }
+        "$SUSFS_BIN",
+        if config.hide_sus_mounts_for_all_procs {
+            1
+        } else {
+            0
+        }
     ));
     content.push_str(&format!(
         "echo \"$(get_current_time): Hide SUS mounts: {}\" >> \"$LOG_FILE\"\n",
-        if config.hide_sus_mounts_for_all_procs { "all processes" } else { "non-KSU processes only" }
+        if config.hide_sus_mounts_for_all_procs {
+            "all processes"
+        } else {
+            "non-KSU processes only"
+        }
     ));
     content.push('\n');
 
@@ -281,12 +315,17 @@ fn create_boot_completed_sh(config: &SusfsConfig) -> Result<()> {
         content.push_str("# Add SUS maps\n");
         for map in &config.sus_maps {
             content.push_str(&format!("\"$SUSFS_BIN\" add_sus_map '{}'\n", map));
-            content.push_str(&format!("echo \"$(get_current_time): Add SUS map: {}\" >> \"$LOG_FILE\"\n", map));
+            content.push_str(&format!(
+                "echo \"$(get_current_time): Add SUS map: {}\" >> \"$LOG_FILE\"\n",
+                map
+            ));
         }
         content.push('\n');
     }
 
-    content.push_str("echo \"$(get_current_time): Boot-Completed script completed\" >> \"$LOG_FILE\"\n");
+    content.push_str(
+        "echo \"$(get_current_time): Boot-Completed script completed\" >> \"$LOG_FILE\"\n",
+    );
 
     write_script("boot-completed.sh", &content)
 }

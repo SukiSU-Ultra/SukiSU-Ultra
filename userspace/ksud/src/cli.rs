@@ -6,12 +6,12 @@ use android_logger::Config;
 use log::{LevelFilter, error, info};
 
 use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
-#[cfg(target_arch = "aarch64")]
-use crate::{susfs, susfs_config, susfs_module};
 use crate::{
     apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount,
     utils,
 };
+#[cfg(target_arch = "aarch64")]
+use crate::{susfs, susfs_config, susfs_module};
 
 /// KernelSU userspace cli
 #[derive(Parser, Debug)]
@@ -1068,239 +1068,227 @@ pub fn run() -> Result<()> {
             }
         }
         #[cfg(target_arch = "aarch64")]
-        Commands::Susfs { command } => {
-            match command {
-                Susfs::Version => {
-                    println!("{}", susfs::get_susfs_version());
-                    Ok(())
-                }
-
-                Susfs::Status => {
-                    println!("{}", susfs::get_susfs_status());
-                    Ok(())
-                }
-
-                Susfs::Features => {
-                    println!("{}", susfs::get_susfs_features());
-                    Ok(())
-                }
-
-                Susfs::AddSusPath { path } => {
-                    susfs::add_sus_path(&path).map_err(Into::into)
-                }
-
-                Susfs::AddSusPathLoop { path } => {
-                    susfs::add_sus_path_loop(&path).map_err(Into::into)
-                }
-
-                Susfs::RemoveSusPath { path } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.remove_sus_path(&path);
-                    susfs_config::save_config(&config)?;
-                    println!("Removed SUS path: {}", path);
-                    Ok(())
-                }
-
-                Susfs::RemoveSusPathLoop { path } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.remove_sus_loop_path(&path);
-                    susfs_config::save_config(&config)?;
-                    println!("Removed SUS loop path: {}", path);
-                    Ok(())
-                }
-
-                Susfs::AddSusMap { path } => {
-                    susfs::add_sus_map(&path).map_err(Into::into)
-                }
-
-                Susfs::RemoveSusMap { path } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.remove_sus_map(&path);
-                    susfs_config::save_config(&config)?;
-                    println!("Removed SUS map: {}", path);
-                    Ok(())
-                }
-
-                Susfs::EnableLog { enabled } => {
-                    susfs::enable_log(enabled).map_err(Into::into)
-                }
-
-                Susfs::EnableAvcLogSpoofing { enabled } => {
-                    susfs::enable_avc_log_spoofing(enabled).map_err(Into::into)
-                }
-
-                Susfs::SetUname { uname, build_time } => {
-                    susfs::set_uname(&uname, &build_time).map_err(Into::into)
-                }
-
-                Susfs::HideSusMnts { enabled } => {
-                    susfs::hide_sus_mnts_for_non_su_procs(enabled).map_err(Into::into)
-                }
-
-                Susfs::AddKstat { path } => {
-                    susfs::add_sus_kstat(&path).map_err(Into::into)
-                }
-
-                Susfs::RemoveKstat { path } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.remove_kstat_path(&path);
-                    susfs_config::save_config(&config)?;
-                    println!("Removed Kstat path: {}", path);
-                    Ok(())
-                }
-
-                Susfs::AddKstatStatically {
-                    path,
-                    ino,
-                    dev,
-                    nlink,
-                    size,
-                    atime,
-                    atime_nsec,
-                    mtime,
-                    mtime_nsec,
-                    ctime,
-                    ctime_nsec,
-                    blocks,
-                    blksize,
-                } => {
-                    use std::str::FromStr;
-                    let parse_u64_opt = |s: &str| {
-                        if s == "default" {
-                            None
-                        } else {
-                            u64::from_str(s).ok()
-                        }
-                    };
-                    let parse_i64_opt_fn = |s: &str| {
-                        if s == "default" {
-                            None
-                        } else {
-                            i64::from_str(s).ok()
-                        }
-                    };
-                    let parse_u32_opt = |s: &str| {
-                        if s == "default" {
-                            None
-                        } else {
-                            u32::from_str(s).ok()
-                        }
-                    };
-
-                    susfs::add_sus_kstat_statically(
-                        &path,
-                        parse_u64_opt(&ino),
-                        parse_u64_opt(&dev),
-                        parse_u32_opt(&nlink),
-                        parse_i64_opt_fn(&size),
-                        parse_i64_opt_fn(&atime),
-                        parse_u64_opt(&atime_nsec),
-                        parse_i64_opt_fn(&mtime),
-                        parse_u64_opt(&mtime_nsec),
-                        parse_i64_opt_fn(&ctime),
-                        parse_u64_opt(&ctime_nsec),
-                        parse_i64_opt_fn(&blocks),
-                        parse_i64_opt_fn(&blksize),
-                    )
-                    .map_err(Into::into)
-                }
-
-                Susfs::RemoveKstatConfig { config: config_str } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.remove_kstat_config(&config_str);
-                    susfs_config::save_config(&config)?;
-                    println!("Removed Kstat config");
-                    Ok(())
-                }
-
-                Susfs::UpdateKstat { path } => {
-                    susfs::update_sus_kstat(&path).map_err(Into::into)
-                }
-
-                Susfs::UpdateKstatFullClone { path } => {
-                    susfs::update_sus_kstat_full_clone(&path).map_err(Into::into)
-                }
-
-                Susfs::ConfigGet => {
-                    let config = susfs_config::load_config()?;
-                    println!("{}", serde_json::to_string_pretty(&config).unwrap());
-                    Ok(())
-                }
-
-                Susfs::ConfigSetUname { value } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.uname_value = value;
-                    susfs_config::save_config(&config)?;
-                    println!("Uname value updated");
-                    Ok(())
-                }
-
-                Susfs::ConfigSetBuildTime { value } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.build_time_value = value;
-                    susfs_config::save_config(&config)?;
-                    println!("Build time value updated");
-                    Ok(())
-                }
-
-                Susfs::ConfigSetExecuteInPostFsData { enabled } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.execute_in_post_fs_data = enabled;
-                    susfs_config::save_config(&config)?;
-                    println!("Execute in post-fs-data: {}", enabled);
-                    Ok(())
-                }
-
-                Susfs::ConfigSetAutoStart { enabled } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.auto_start_enabled = enabled;
-                    susfs_config::save_config(&config)?;
-                    if enabled {
-                        susfs_module::create_magisk_module(&config)?;
-                        println!("Auto-start module created");
-                    } else {
-                        susfs_module::remove_magisk_module()?;
-                        println!("Auto-start module removed");
-                    }
-                    Ok(())
-                }
-
-                Susfs::ConfigSetHideBl { enabled } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.enable_hide_bl = enabled;
-                    susfs_config::save_config(&config)?;
-                    println!("Hide BL: {}", enabled);
-                    Ok(())
-                }
-
-                Susfs::ConfigSetCleanupResidue { enabled } => {
-                    let mut config = susfs_config::load_config()?;
-                    config.enable_cleanup_residue = enabled;
-                    susfs_config::save_config(&config)?;
-                    println!("Cleanup residue: {}", enabled);
-                    Ok(())
-                }
-
-                Susfs::ModuleCreate => {
-                    let config = susfs_config::load_config()?;
-                    susfs_module::create_magisk_module(&config)?;
-                    println!("Module created successfully");
-                    Ok(())
-                }
-
-                Susfs::ModuleRemove => {
-                    susfs_module::remove_magisk_module()?;
-                    println!("Module removed successfully");
-                    Ok(())
-                }
-
-                Susfs::ConfigReset => {
-                    susfs_config::reset_config()?;
-                    println!("Configuration reset to default");
-                    Ok(())
-                }
+        Commands::Susfs { command } => match command {
+            Susfs::Version => {
+                println!("{}", susfs::get_susfs_version());
+                Ok(())
             }
-        }
+
+            Susfs::Status => {
+                println!("{}", susfs::get_susfs_status());
+                Ok(())
+            }
+
+            Susfs::Features => {
+                println!("{}", susfs::get_susfs_features());
+                Ok(())
+            }
+
+            Susfs::AddSusPath { path } => susfs::add_sus_path(&path).map_err(Into::into),
+
+            Susfs::AddSusPathLoop { path } => {
+                susfs::add_sus_path_loop(&path).map_err(Into::into)
+            }
+
+            Susfs::RemoveSusPath { path } => {
+                let mut config = susfs_config::load_config()?;
+                config.remove_sus_path(&path);
+                susfs_config::save_config(&config)?;
+                println!("Removed SUS path: {}", path);
+                Ok(())
+            }
+
+            Susfs::RemoveSusPathLoop { path } => {
+                let mut config = susfs_config::load_config()?;
+                config.remove_sus_loop_path(&path);
+                susfs_config::save_config(&config)?;
+                println!("Removed SUS loop path: {}", path);
+                Ok(())
+            }
+
+            Susfs::AddSusMap { path } => susfs::add_sus_map(&path).map_err(Into::into),
+
+            Susfs::RemoveSusMap { path } => {
+                let mut config = susfs_config::load_config()?;
+                config.remove_sus_map(&path);
+                susfs_config::save_config(&config)?;
+                println!("Removed SUS map: {}", path);
+                Ok(())
+            }
+
+            Susfs::EnableLog { enabled } => susfs::enable_log(enabled).map_err(Into::into),
+
+            Susfs::EnableAvcLogSpoofing { enabled } => {
+                susfs::enable_avc_log_spoofing(enabled).map_err(Into::into)
+            }
+
+            Susfs::SetUname { uname, build_time } => {
+                susfs::set_uname(&uname, &build_time).map_err(Into::into)
+            }
+
+            Susfs::HideSusMnts { enabled } => {
+                susfs::hide_sus_mnts_for_non_su_procs(enabled).map_err(Into::into)
+            }
+
+            Susfs::AddKstat { path } => susfs::add_sus_kstat(&path).map_err(Into::into),
+
+            Susfs::RemoveKstat { path } => {
+                let mut config = susfs_config::load_config()?;
+                config.remove_kstat_path(&path);
+                susfs_config::save_config(&config)?;
+                println!("Removed Kstat path: {}", path);
+                Ok(())
+            }
+
+            Susfs::AddKstatStatically {
+                path,
+                ino,
+                dev,
+                nlink,
+                size,
+                atime,
+                atime_nsec,
+                mtime,
+                mtime_nsec,
+                ctime,
+                ctime_nsec,
+                blocks,
+                blksize,
+            } => {
+                use std::str::FromStr;
+                let parse_u64_opt = |s: &str| {
+                    if s == "default" {
+                        None
+                    } else {
+                        u64::from_str(s).ok()
+                    }
+                };
+                let parse_i64_opt_fn = |s: &str| {
+                    if s == "default" {
+                        None
+                    } else {
+                        i64::from_str(s).ok()
+                    }
+                };
+                let parse_u32_opt = |s: &str| {
+                    if s == "default" {
+                        None
+                    } else {
+                        u32::from_str(s).ok()
+                    }
+                };
+
+                susfs::add_sus_kstat_statically(
+                    &path,
+                    parse_u64_opt(&ino),
+                    parse_u64_opt(&dev),
+                    parse_u32_opt(&nlink),
+                    parse_i64_opt_fn(&size),
+                    parse_i64_opt_fn(&atime),
+                    parse_u64_opt(&atime_nsec),
+                    parse_i64_opt_fn(&mtime),
+                    parse_u64_opt(&mtime_nsec),
+                    parse_i64_opt_fn(&ctime),
+                    parse_u64_opt(&ctime_nsec),
+                    parse_i64_opt_fn(&blocks),
+                    parse_i64_opt_fn(&blksize),
+                )
+                .map_err(Into::into)
+            }
+
+            Susfs::RemoveKstatConfig { config: config_str } => {
+                let mut config = susfs_config::load_config()?;
+                config.remove_kstat_config(&config_str);
+                susfs_config::save_config(&config)?;
+                println!("Removed Kstat config");
+                Ok(())
+            }
+
+            Susfs::UpdateKstat { path } => susfs::update_sus_kstat(&path).map_err(Into::into),
+
+            Susfs::UpdateKstatFullClone { path } => {
+                susfs::update_sus_kstat_full_clone(&path).map_err(Into::into)
+            }
+
+            Susfs::ConfigGet => {
+                let config = susfs_config::load_config()?;
+                println!("{}", serde_json::to_string_pretty(&config).unwrap());
+                Ok(())
+            }
+
+            Susfs::ConfigSetUname { value } => {
+                let mut config = susfs_config::load_config()?;
+                config.uname_value = value;
+                susfs_config::save_config(&config)?;
+                println!("Uname value updated");
+                Ok(())
+            }
+
+            Susfs::ConfigSetBuildTime { value } => {
+                let mut config = susfs_config::load_config()?;
+                config.build_time_value = value;
+                susfs_config::save_config(&config)?;
+                println!("Build time value updated");
+                Ok(())
+            }
+
+            Susfs::ConfigSetExecuteInPostFsData { enabled } => {
+                let mut config = susfs_config::load_config()?;
+                config.execute_in_post_fs_data = enabled;
+                susfs_config::save_config(&config)?;
+                println!("Execute in post-fs-data: {}", enabled);
+                Ok(())
+            }
+
+            Susfs::ConfigSetAutoStart { enabled } => {
+                let mut config = susfs_config::load_config()?;
+                config.auto_start_enabled = enabled;
+                susfs_config::save_config(&config)?;
+                if enabled {
+                    susfs_module::create_magisk_module(&config)?;
+                    println!("Auto-start module created");
+                } else {
+                    susfs_module::remove_magisk_module()?;
+                    println!("Auto-start module removed");
+                }
+                Ok(())
+            }
+
+            Susfs::ConfigSetHideBl { enabled } => {
+                let mut config = susfs_config::load_config()?;
+                config.enable_hide_bl = enabled;
+                susfs_config::save_config(&config)?;
+                println!("Hide BL: {}", enabled);
+                Ok(())
+            }
+
+            Susfs::ConfigSetCleanupResidue { enabled } => {
+                let mut config = susfs_config::load_config()?;
+                config.enable_cleanup_residue = enabled;
+                susfs_config::save_config(&config)?;
+                println!("Cleanup residue: {}", enabled);
+                Ok(())
+            }
+
+            Susfs::ModuleCreate => {
+                let config = susfs_config::load_config()?;
+                susfs_module::create_magisk_module(&config)?;
+                println!("Module created successfully");
+                Ok(())
+            }
+
+            Susfs::ModuleRemove => {
+                susfs_module::remove_magisk_module()?;
+                println!("Module removed successfully");
+                Ok(())
+            }
+
+            Susfs::ConfigReset => {
+                susfs_config::reset_config()?;
+                println!("Configuration reset to default");
+                Ok(())
+            }
+        },
     };
 
     if let Err(e) = &result {

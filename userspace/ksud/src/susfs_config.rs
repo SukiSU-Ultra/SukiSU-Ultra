@@ -1,8 +1,8 @@
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
-use anyhow::{Context, Result};
 
 const SUSFS_CONFIG_FILE: &str = "/data/adb/ksu/susfs_config.json";
 
@@ -10,43 +10,43 @@ const SUSFS_CONFIG_FILE: &str = "/data/adb/ksu/susfs_config.json";
 pub struct SusfsConfig {
     #[serde(default)]
     pub uname_value: String,
-    
+
     #[serde(default)]
     pub build_time_value: String,
-    
+
     #[serde(default)]
     pub execute_in_post_fs_data: bool,
-    
+
     #[serde(default)]
     pub auto_start_enabled: bool,
-    
+
     #[serde(default)]
     pub sus_paths: HashSet<String>,
-    
+
     #[serde(default)]
     pub sus_loop_paths: HashSet<String>,
-    
+
     #[serde(default)]
     pub sus_maps: HashSet<String>,
-    
+
     #[serde(default)]
     pub enable_log: bool,
-    
+
     #[serde(default)]
     pub kstat_configs: HashSet<String>,
-    
+
     #[serde(default)]
     pub add_kstat_paths: HashSet<String>,
-    
+
     #[serde(default)]
     pub hide_sus_mounts_for_all_procs: bool,
-    
+
     #[serde(default)]
     pub enable_hide_bl: bool,
-    
+
     #[serde(default)]
     pub enable_cleanup_residue: bool,
-    
+
     #[serde(default)]
     pub enable_avc_log_spoofing: bool,
 }
@@ -133,19 +133,15 @@ pub fn load_config() -> Result<SusfsConfig> {
         return Ok(SusfsConfig::new());
     }
 
-    let content = fs::read_to_string(&config_path)
-        .context("Failed to read config")?;
+    let content = fs::read_to_string(&config_path).context("Failed to read config")?;
 
-    serde_json::from_str(&content)
-        .context("Failed to parse config")
+    serde_json::from_str(&content).context("Failed to parse config")
 }
 
 pub fn save_config(config: &SusfsConfig) -> Result<()> {
-    let content = serde_json::to_string_pretty(config)
-        .context("Failed to serialize config")?;
+    let content = serde_json::to_string_pretty(config).context("Failed to serialize config")?;
 
-    fs::write(SUSFS_CONFIG_FILE, content)
-        .context("Failed to write config")?;
+    fs::write(SUSFS_CONFIG_FILE, content).context("Failed to write config")?;
 
     Ok(())
 }

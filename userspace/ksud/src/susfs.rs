@@ -1,5 +1,5 @@
 #![allow(clippy::unreadable_literal)]
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use libc::SYS_reboot;
 #[cfg(target_os = "android")]
 use rustix::fs::MetadataExt;
@@ -120,8 +120,7 @@ const KSTAT_AUTO_SPOOF: i32 = KSTAT_SPOOF_INO
     | KSTAT_SPOOF_CTIME_TV_NSEC
     | KSTAT_SPOOF_BLKSIZE
     | KSTAT_SPOOF_BLOCKS;
-const KSTAT_AUTO_SPOOF_FULL_CLONE: i32 =
-    KSTAT_AUTO_SPOOF | KSTAT_SPOOF_NLINK | KSTAT_SPOOF_SIZE;
+const KSTAT_AUTO_SPOOF_FULL_CLONE: i32 = KSTAT_AUTO_SPOOF | KSTAT_SPOOF_NLINK | KSTAT_SPOOF_SIZE;
 
 pub fn get_susfs_version() -> String {
     let mut cmd = SusfsVersion {
@@ -139,11 +138,7 @@ pub fn get_susfs_version() -> String {
         )
     };
 
-    let ver = cmd
-        .susfs_version
-        .iter()
-        .position(|&b| b == 0)
-        .unwrap_or(16);
+    let ver = cmd.susfs_version.iter().position(|&b| b == 0).unwrap_or(16);
     let ver = String::from_utf8(cmd.susfs_version[..ver].to_vec())
         .unwrap_or_else(|_| "<invalid>".to_string());
 
@@ -540,11 +535,11 @@ pub fn add_sus_kstat_statically(
     let mut spoofed_nlink: u32 = stat_result.nlink() as u32;
     let mut spoofed_size = stat_result.size() as i64;
     let mut atime_secs = stat_result.atime();
-    let mut atime_nanosecs = stat_result.atime_nsec();
+    let mut atime_nanosecs: u64 = stat_result.atime_nsec();
     let mut mtime_secs = stat_result.mtime();
-    let mut mtime_nanosecs = stat_result.mtime_nsec();
+    let mut mtime_nanosecs: u64 = stat_result.mtime_nsec();
     let mut ctime_secs = stat_result.ctime();
-    let mut ctime_nanosecs = stat_result.ctime_nsec();
+    let mut ctime_nanosecs: u64 = stat_result.ctime_nsec();
     let mut spoofed_blocks: i64 = stat_result.blocks() as i64;
     let mut spoofed_blksize = stat_result.blksize() as i64;
 
