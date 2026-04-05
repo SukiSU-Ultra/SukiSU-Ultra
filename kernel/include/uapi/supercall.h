@@ -14,7 +14,7 @@
 
 /* Magic numbers for reboot hook to install fd */
 DECLARE(__u32, KSU_INSTALL_MAGIC1, 0xDEADBEEF);
-DECLARE(__u32, KSU_INSTALL_MAGIC1, 0xDEADBEEF);
+DECLARE(__u32, KSU_INSTALL_MAGIC2, 0xCAFEBABE);
 DECLARE(__u32, KSU_FULL_VERSION_STRING, 255);
 
 struct ksu_become_daemon_cmd {

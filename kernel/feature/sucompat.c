@@ -337,13 +337,14 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, voi
     }
     return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp, flags);
 }
-#endif
 
 // dead code
 int __maybe_unused ksu_handle_devpts(struct inode *inode)
 {
     return 0;
 }
+
+#endif
 
 // sucompat: permitted process can execute 'su' to gain root access.
 void __init ksu_sucompat_init(void)
