@@ -52,6 +52,10 @@ mod su;
 mod sulog;
 #[cfg(target_arch = "aarch64")]
 mod susfs;
+#[cfg(target_arch = "aarch64")]
+mod susfs_config;
+#[cfg(target_arch = "aarch64")]
+mod susfs_module;
 #[cfg(target_os = "android")]
 mod umount;
 #[cfg(target_os = "android")]

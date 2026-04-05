@@ -573,12 +573,12 @@ fun SuSFSMiuix() {
                             },
                             onUpdateKstat = { path ->
                                 coroutineScope.launch {
-                                    SuSFSManager.updateKstat(context, path)
+                                    SuSFSManager.updateKstat(path)
                                 }
                             },
                             onUpdateKstatFullClone = { path ->
                                 coroutineScope.launch {
-                                    SuSFSManager.updateKstatFullClone(context, path)
+                                    SuSFSManager.updateKstatFullClone(path)
                                 }
                             }
                         )

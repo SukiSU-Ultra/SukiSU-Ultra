@@ -1,0 +1,50 @@
+#!/system/bin/sh
+# SuSFS Service Script Template
+# Execute after system services start
+
+# Log setup
+LOG_DIR="/data/adb/ksu/log"
+LOG_FILE="$LOG_DIR/susfs_service.log"
+
+mkdir -p "$LOG_DIR"
+
+get_current_time() {
+    date '+%Y-%m-%d %H:%M:%S'
+}
+
+# Check SuSFS binary
+SUSFS_BIN="/data/adb/ksu/bin/ksu_susfs"
+if [ ! -f "$SUSFS_BIN" ]; then
+    SUSFS_BIN="/data/adb/ksud/ksu_susfs"
+fi
+if [ ! -f "$SUSFS_BIN" ]; then
+    echo "$(get_current_time): SuSFS binary not found" >> "$LOG_FILE"
+    exit 1
+fi
+
+echo "$(get_current_time): Service script started" >> "$LOG_FILE"
+
+# Add SUS paths
+# until [ -d "/sdcard/Android" ]; do sleep 1; done
+# sleep 45
+# "$SUSFS_BIN" add_sus_path '/path/to/app'
+
+# Set uname and build time
+# "$SUSFS_BIN" set_uname 'default' 'default'
+
+# Enable log (0=disable, 1=enable)
+# "$SUSFS_BIN" enable_log 0
+
+# Enable AVC log spoofing (0=disable, 1=enable)
+# "$SUSFS_BIN" enable_avc_log_spoofing 0
+
+# Add Kstat paths
+# "$SUSFS_BIN" add_sus_kstat '/path/to/file'
+
+# Add Kstat static configs
+# "$SUSFS_BIN" add_sus_kstat_statically '/path' 'ino' 'dev' 'nlink' 'size' 'atime' 'atime_nsec' 'mtime' 'mtime_nsec' 'ctime' 'ctime_nsec' 'blocks' 'blksize'
+
+# Hide SUS mounts for non-su processes (0=disable, 1=enable)
+# "$SUSFS_BIN" hide_sus_mnts_for_non_su_procs 1
+
+echo "$(get_current_time): Service script completed" >> "$LOG_FILE"

@@ -436,8 +436,10 @@ fun SuSFSMaterial() {
                                 }
                             },
                             onEditAddKstat = { viewModel.openAddKstatDialog(it) },
-                            onUpdateKstat = { path -> coroutineScope.launch { SuSFSManager.updateKstat(context, path) } },
-                            onUpdateKstatFullClone = { path -> coroutineScope.launch { SuSFSManager.updateKstatFullClone(context, path) } }
+                            onUpdateKstat = { path -> coroutineScope.launch { SuSFSManager.updateKstat(
+                                path) } },
+                            onUpdateKstatFullClone = { path -> coroutineScope.launch { SuSFSManager.updateKstatFullClone(
+                                path) } }
                         )
                     }
                     SuSFSTab.ENABLED_FEATURES -> {
