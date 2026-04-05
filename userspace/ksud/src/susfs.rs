@@ -388,7 +388,7 @@ pub fn add_sus_kstat(path: &str) -> anyhow::Result<()> {
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         spoofed_ino: stat_result.ino() as u64,
         spoofed_dev: stat_result.dev() as u64,
-        spoofed_nlink: stat_result.nlink(),
+        spoofed_nlink: stat_result.nlink() as u32,
         spoofed_size: stat_result.size() as i64,
         spoofed_atime_tv_sec: stat_result.atime(),
         spoofed_atime_tv_nsec: stat_result.atime_nsec() as u64,
@@ -396,7 +396,7 @@ pub fn add_sus_kstat(path: &str) -> anyhow::Result<()> {
         spoofed_mtime_tv_nsec: stat_result.mtime_nsec() as u64,
         spoofed_ctime_tv_sec: stat_result.ctime(),
         spoofed_ctime_tv_nsec: stat_result.ctime_nsec() as u64,
-        spoofed_blocks: stat_result.blocks(),
+        spoofed_blocks: stat_result.blocks() as i64,
         spoofed_blksize: stat_result.blksize() as i64,
         flags: KSTAT_AUTO_SPOOF,
         err: ERR_CMD_NOT_SUPPORTED,
@@ -434,7 +434,7 @@ pub fn update_sus_kstat(path: &str) -> anyhow::Result<()> {
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         spoofed_ino: stat_result.ino() as u64,
         spoofed_dev: stat_result.dev() as u64,
-        spoofed_nlink: stat_result.nlink(),
+        spoofed_nlink: stat_result.nlink() as u32,
         spoofed_size: stat_result.size() as i64,
         spoofed_atime_tv_sec: stat_result.atime(),
         spoofed_atime_tv_nsec: stat_result.atime_nsec() as u64,
@@ -442,7 +442,7 @@ pub fn update_sus_kstat(path: &str) -> anyhow::Result<()> {
         spoofed_mtime_tv_nsec: stat_result.mtime_nsec() as u64,
         spoofed_ctime_tv_sec: stat_result.ctime(),
         spoofed_ctime_tv_nsec: stat_result.ctime_nsec() as u64,
-        spoofed_blocks: stat_result.blocks(),
+        spoofed_blocks: stat_result.blocks() as i64,
         spoofed_blksize: stat_result.blksize() as i64,
         flags: KSTAT_AUTO_SPOOF,
         err: ERR_CMD_NOT_SUPPORTED,
@@ -480,7 +480,7 @@ pub fn update_sus_kstat_full_clone(path: &str) -> anyhow::Result<()> {
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         spoofed_ino: stat_result.ino() as u64,
         spoofed_dev: stat_result.dev() as u64,
-        spoofed_nlink: stat_result.nlink(),
+        spoofed_nlink: stat_result.nlink() as u32,
         spoofed_size: stat_result.size() as i64,
         spoofed_atime_tv_sec: stat_result.atime(),
         spoofed_atime_tv_nsec: stat_result.atime_nsec() as u64,
@@ -488,7 +488,7 @@ pub fn update_sus_kstat_full_clone(path: &str) -> anyhow::Result<()> {
         spoofed_mtime_tv_nsec: stat_result.mtime_nsec() as u64,
         spoofed_ctime_tv_sec: stat_result.ctime(),
         spoofed_ctime_tv_nsec: stat_result.ctime_nsec() as u64,
-        spoofed_blocks: stat_result.blocks(),
+        spoofed_blocks: stat_result.blocks() as i64,
         spoofed_blksize: stat_result.blksize() as i64,
         flags: KSTAT_AUTO_SPOOF_FULL_CLONE,
         err: ERR_CMD_NOT_SUPPORTED,
@@ -537,15 +537,15 @@ pub fn add_sus_kstat_statically(
     let mut flags: i32 = 0;
     let mut spoofed_ino = stat_result.ino() as u64;
     let mut spoofed_dev = stat_result.dev() as u64;
-    let mut spoofed_nlink = stat_result.nlink();
+    let mut spoofed_nlink: u32 = stat_result.nlink() as u32;
     let mut spoofed_size = stat_result.size() as i64;
-    let mut access_time_secs = stat_result.atime();
-    let mut access_time_nsecs = stat_result.atime_nsec() as u64;
-    let mut modify_time_secs = stat_result.mtime();
-    let mut modify_time_nsecs = stat_result.mtime_nsec() as u64;
-    let mut change_time_secs = stat_result.ctime();
-    let mut change_time_nsecs = stat_result.ctime_nsec() as u64;
-    let mut spoofed_blocks = stat_result.blocks();
+    let mut atime_secs = stat_result.atime();
+    let mut atime_nanosecs = stat_result.atime_nsec();
+    let mut mtime_secs = stat_result.mtime();
+    let mut mtime_nanosecs = stat_result.mtime_nsec();
+    let mut ctime_secs = stat_result.ctime();
+    let mut ctime_nanosecs = stat_result.ctime_nsec();
+    let mut spoofed_blocks: i64 = stat_result.blocks() as i64;
     let mut spoofed_blksize = stat_result.blksize() as i64;
 
     if let Some(v) = ino {
@@ -565,27 +565,27 @@ pub fn add_sus_kstat_statically(
         flags |= KSTAT_SPOOF_SIZE;
     }
     if let Some(v) = atime {
-        access_time_secs = v;
+        atime_secs = v;
         flags |= KSTAT_SPOOF_ATIME_TV_SEC;
     }
     if let Some(v) = atime_nsec {
-        access_time_nsecs = v;
+        atime_nanosecs = v;
         flags |= KSTAT_SPOOF_ATIME_TV_NSEC;
     }
     if let Some(v) = mtime {
-        modify_time_secs = v;
+        mtime_secs = v;
         flags |= KSTAT_SPOOF_MTIME_TV_SEC;
     }
     if let Some(v) = mtime_nsec {
-        modify_time_nsecs = v;
+        mtime_nanosecs = v;
         flags |= KSTAT_SPOOF_MTIME_TV_NSEC;
     }
     if let Some(v) = ctime {
-        change_time_secs = v;
+        ctime_secs = v;
         flags |= KSTAT_SPOOF_CTIME_TV_SEC;
     }
     if let Some(v) = ctime_nsec {
-        change_time_nsecs = v;
+        ctime_nanosecs = v;
         flags |= KSTAT_SPOOF_CTIME_TV_NSEC;
     }
     if let Some(v) = blocks {
@@ -605,12 +605,12 @@ pub fn add_sus_kstat_statically(
         spoofed_dev,
         spoofed_nlink,
         spoofed_size,
-        spoofed_atime_tv_sec: access_time_secs,
-        spoofed_atime_tv_nsec: access_time_nsecs,
-        spoofed_mtime_tv_sec: modify_time_secs,
-        spoofed_mtime_tv_nsec: modify_time_nsecs,
-        spoofed_ctime_tv_sec: change_time_secs,
-        spoofed_ctime_tv_nsec: change_time_nsecs,
+        spoofed_atime_tv_sec: atime_secs,
+        spoofed_atime_tv_nsec: atime_nanosecs,
+        spoofed_mtime_tv_sec: mtime_secs,
+        spoofed_mtime_tv_nsec: mtime_nanosecs,
+        spoofed_ctime_tv_sec: ctime_secs,
+        spoofed_ctime_tv_nsec: ctime_nanosecs,
         spoofed_blocks,
         spoofed_blksize,
         flags,
