@@ -37,14 +37,13 @@ fn create_module_dir() -> Result<()> {
 }
 
 fn create_module_prop() -> Result<()> {
-    let content = r"id=susfs_manager
-name=SuSFS Manager
-version=v4.0.0
-versionCode=40000
-author=ShirkNeko
-description=SuSFS Manager Auto Configuration Module (Automatically generated. Do not manually uninstall or delete this module!)
-updateJson=
-";
+    let content = "id=susfs_manager\n\
+name=SuSFS Manager\n\
+version=v4.0.0\n\
+versionCode=40000\n\
+author=ShirkNeko\n\
+description=SuSFS Manager Auto Configuration Module (Automatically generated. Do not manually uninstall or delete this module!)\n\
+updateJson=\n";
     let path = Path::new(MODULE_PATH).join("module.prop");
     fs::write(&path, content).context("Failed to write module.prop")?;
     Ok(())
@@ -62,7 +61,6 @@ fn write_script(filename: &str, content: &str) -> Result<()> {
     let path = Path::new(MODULE_PATH).join(filename);
     fs::write(&path, content).with_context(|| format!("Failed to write {}", filename))?;
     
-    // Set executable permission
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -76,29 +74,32 @@ fn write_script(filename: &str, content: &str) -> Result<()> {
 }
 
 fn get_log_setup() -> String {
-    format!(r"# Log setup
-LOG_DIR="{}"
-LOG_FILE="$LOG_DIR/susfs_service.log"
-
-mkdir -p "$LOG_DIR"
-
-get_current_time() {{
-    date '+%Y-%m-%d %H:%M:%S'
-}}
-", LOG_DIR)
+    format!(
+        "# Log setup\n\
+LOG_DIR=\"{}\"\n\
+LOG_FILE=\"$LOG_DIR/susfs_service.log\"\n\
+\n\
+mkdir -p \"$LOG_DIR\"\n\
+\n\
+get_current_time() {{\n\
+    date '+%Y-%m-%d %H:%M:%S'\n\
+}}\n",
+        LOG_DIR
+    )
 }
 
 fn get_binary_check() -> String {
-    r"# Check SuSFS binary
-SUSFS_BIN="/data/adb/ksu/bin/ksu_susfs"
-if [ ! -f "$SUSFS_BIN" ]; then
-    SUSFS_BIN="/data/adb/ksud/ksu_susfs"
-fi
-if [ ! -f "$SUSFS_BIN" ]; then
-    echo "$(get_current_time): SuSFS binary not found" >> "$LOG_FILE"
-    exit 1
-fi
-"#.to_string()
+    String::from(
+        "# Check SuSFS binary\n\
+SUSFS_BIN=\"/data/adb/ksu/bin/ksu_susfs\"\n\
+if [ ! -f \"$SUSFS_BIN\" ]; then\n\
+    SUSFS_BIN=\"/data/adb/ksud/ksu_susfs\"\n\
+fi\n\
+if [ ! -f \"$SUSFS_BIN\" ]; then\n\
+    echo \"$(get_current_time): SuSFS binary not found\" >> \"$LOG_FILE\"\n\
+    exit 1\n\
+fi\n",
+    )
 }
 
 fn create_service_sh(config: &SusfsConfig) -> Result<()> {
@@ -113,7 +114,6 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("echo \"$(get_current_time): Service script started\" >> \"$LOG_FILE\"\n\n");
 
     if config.has_auto_start_config() {
-        // Add SUS paths
         if !config.sus_paths.is_empty() {
             content.push_str("# Add SUS paths\n");
             content.push_str("until [ -d \"/sdcard/Android\" ]; do sleep 1; done\n");
@@ -125,7 +125,6 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push('\n');
         }
 
-        // Add SUS loop paths
         if !config.sus_loop_paths.is_empty() {
             content.push_str("# Add SUS loop paths\n");
             for path in &config.sus_loop_paths {
@@ -135,7 +134,6 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push('\n');
         }
 
-        // Set uname and build time
         if !config.execute_in_post_fs_data && 
            (config.uname_value != "default" || config.build_time_value != "default") {
             content.push_str("# Set uname and build time\n");
@@ -150,7 +148,6 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push('\n');
         }
 
-        // Add Kstat paths
         if !config.add_kstat_paths.is_empty() {
             content.push_str("# Add Kstat paths\n");
             for path in &config.add_kstat_paths {
@@ -160,7 +157,6 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
             content.push('\n');
         }
 
-        // Add Kstat static configs
         if !config.kstat_configs.is_empty() {
             content.push_str("# Add Kstat static configs\n");
             for config_str in &config.kstat_configs {
@@ -178,7 +174,6 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
         }
     }
 
-    // Enable log
     content.push_str("# Enable log\n");
     content.push_str(&format!(
         "\"{}\" enable_log {}\n",
@@ -190,12 +185,10 @@ fn create_service_sh(config: &SusfsConfig) -> Result<()> {
     ));
     content.push('\n');
 
-    // Hide BL
     if config.enable_hide_bl {
         content.push_str(&generate_hide_bl_section());
     }
 
-    // Cleanup residue
     if config.enable_cleanup_residue {
         content.push_str(&generate_cleanup_residue_section());
     }
@@ -216,7 +209,6 @@ fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str("\n");
     content.push_str("echo \"$(get_current_time): Post-FS-Data script started\" >> \"$LOG_FILE\"\n\n");
 
-    // Set uname in post-fs-data if configured
     if config.execute_in_post_fs_data && 
        (config.uname_value != "default" || config.build_time_value != "default") {
         content.push_str("# Set uname and build time\n");
@@ -231,7 +223,6 @@ fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<()> {
         content.push('\n');
     }
 
-    // Enable AVC log spoofing
     content.push_str("# Enable AVC log spoofing\n");
     content.push_str(&format!(
         "\"{}\" enable_avc_log_spoofing {}\n",
@@ -275,7 +266,6 @@ fn create_boot_completed_sh(config: &SusfsConfig) -> Result<()> {
     content.push_str(&get_binary_check());
     content.push_str("\n");
 
-    // Hide SUS mounts
     content.push_str("# Hide SUS mounts\n");
     content.push_str(&format!(
         "\"{}\" hide_sus_mnts_for_non_su_procs {}\n",
@@ -287,7 +277,6 @@ fn create_boot_completed_sh(config: &SusfsConfig) -> Result<()> {
     ));
     content.push('\n');
 
-    // Add SUS maps
     if !config.sus_maps.is_empty() {
         content.push_str("# Add SUS maps\n");
         for map in &config.sus_maps {
@@ -303,146 +292,140 @@ fn create_boot_completed_sh(config: &SusfsConfig) -> Result<()> {
 }
 
 fn generate_hide_bl_section() -> String {
-    let mut content = String::new();
-    content.push_str("# Hide bootloader from Shamiko script\n");
-    content.push_str(r#"
-RESETPROP_BIN="/data/adb/ksu/bin/resetprop"
-
-check_reset_prop() {
-    local NAME=$1
-    local EXPECTED=$2
-    local VALUE=$("$RESETPROP_BIN" $NAME)
-    [ -z "$VALUE" ] || [ "$VALUE" = "$EXPECTED" ] || "$RESETPROP_BIN" $NAME $EXPECTED
-}
-
-check_missing_prop() {
-    local NAME=$1
-    local EXPECTED=$2
-    local VALUE=$("$RESETPROP_BIN" $NAME)
-    [ -z "$VALUE" ] && "$RESETPROP_BIN" $NAME $EXPECTED
-}
-
-check_missing_match_prop() {
-    local NAME=$1
-    local EXPECTED=$2
-    local VALUE=$("$RESETPROP_BIN" $NAME)
-    [ -z "$VALUE" ] || [ "$VALUE" = "$EXPECTED" ] || "$RESETPROP_BIN" $NAME $EXPECTED
-    [ -z "$VALUE" ] && "$RESETPROP_BIN" $NAME $EXPECTED
-}
-
-contains_reset_prop() {
-    local NAME=$1
-    local CONTAINS=$2
-    local NEWVAL=$3
-    case "$("$RESETPROP_BIN" $NAME)" in
-        *"$CONTAINS"*) "$RESETPROP_BIN" $NAME $NEWVAL ;;
-    esac
-}
-
-sleep 30
-
-"$RESETPROP_BIN" -w sys.boot_completed 0
-
-check_missing_match_prop "ro.boot.vbmeta.invalidate_on_error" "yes"
-check_missing_match_prop "ro.boot.vbmeta.avb_version" "1.2"
-check_missing_match_prop "ro.boot.vbmeta.hash_alg" "sha256"
-check_missing_match_prop "ro.boot.vbmeta.size" "19968"
-check_missing_match_prop "ro.boot.vbmeta.device_state" "locked"
-check_reset_prop "ro.boot.verifiedbootstate" "green"
-check_reset_prop "ro.boot.flash.locked" "1"
-check_reset_prop "ro.boot.veritymode" "enforcing"
-check_reset_prop "ro.boot.warranty_bit" "0"
-check_reset_prop "ro.warranty_bit" "0"
-check_reset_prop "ro.debuggable" "0"
-check_reset_prop "ro.force.debuggable" "0"
-check_reset_prop "ro.secure" "1"
-check_reset_prop "ro.adb.secure" "1"
-check_reset_prop "ro.build.type" "user"
-check_reset_prop "ro.build.tags" "release-keys"
-check_reset_prop "ro.vendor.boot.warranty_bit" "0"
-check_reset_prop "ro.vendor.warranty_bit" "0"
-check_missing_match_prop "vendor.boot.vbmeta.device_state" "locked"
-check_missing_match_prop "vendor.boot.verifiedbootstate" "green"
-check_reset_prop "sys.oem_unlock_allowed" "0"
-check_reset_prop "ro.secureboot.lockstate" "locked"
-check_reset_prop "ro.boot.realmebootstate" "green"
-check_reset_prop "ro.boot.realme.lockstate" "1"
-check_reset_prop "ro.crypto.state" "encrypted"
-
-# Hide adb debugging traces
-resetprop "sys.usb.adb.disabled" " "
-
-# Hide recovery boot mode
-contains_reset_prop "ro.bootmode" "recovery" "unknown"
-contains_reset_prop "ro.boot.bootmode" "recovery" "unknown"
-contains_reset_prop "vendor.boot.bootmode" "recovery" "unknown"
-
-# Hide cloudphone detection
-[ -n "$(resetprop ro.kernel.qemu)" ] && resetprop ro.kernel.qemu ""
-
-"#);
-    content
+    String::from(
+        "# Hide bootloader from Shamiko script\n\
+RESETPROP_BIN=\"/data/adb/ksu/bin/resetprop\"\n\
+\n\
+check_reset_prop() {\n\
+    local NAME=$1\n\
+    local EXPECTED=$2\n\
+    local VALUE=$(\"$RESETPROP_BIN\" $NAME)\n\
+    [ -z \"$VALUE\" ] || [ \"$VALUE\" = \"$EXPECTED\" ] || \"$RESETPROP_BIN\" $NAME $EXPECTED\n\
+}\n\
+\n\
+check_missing_prop() {\n\
+    local NAME=$1\n\
+    local EXPECTED=$2\n\
+    local VALUE=$(\"$RESETPROP_BIN\" $NAME)\n\
+    [ -z \"$VALUE\" ] && \"$RESETPROP_BIN\" $NAME $EXPECTED\n\
+}\n\
+\n\
+check_missing_match_prop() {\n\
+    local NAME=$1\n\
+    local EXPECTED=$2\n\
+    local VALUE=$(\"$RESETPROP_BIN\" $NAME)\n\
+    [ -z \"$VALUE\" ] || [ \"$VALUE\" = \"$EXPECTED\" ] || \"$RESETPROP_BIN\" $NAME $EXPECTED\n\
+    [ -z \"$VALUE\" ] && \"$RESETPROP_BIN\" $NAME $EXPECTED\n\
+}\n\
+\n\
+contains_reset_prop() {\n\
+    local NAME=$1\n\
+    local CONTAINS=$2\n\
+    local NEWVAL=$3\n\
+    case \"$(\"$RESETPROP_BIN\" $NAME)\" in\n\
+        *\"$CONTAINS\"*) \"$RESETPROP_BIN\" $NAME $NEWVAL ;;\n\
+    esac\n\
+}\n\
+\n\
+sleep 30\n\
+\n\
+\"$RESETPROP_BIN\" -w sys.boot_completed 0\n\
+\n\
+check_missing_match_prop \"ro.boot.vbmeta.invalidate_on_error\" \"yes\"\n\
+check_missing_match_prop \"ro.boot.vbmeta.avb_version\" \"1.2\"\n\
+check_missing_match_prop \"ro.boot.vbmeta.hash_alg\" \"sha256\"\n\
+check_missing_match_prop \"ro.boot.vbmeta.size\" \"19968\"\n\
+check_missing_match_prop \"ro.boot.vbmeta.device_state\" \"locked\"\n\
+check_reset_prop \"ro.boot.verifiedbootstate\" \"green\"\n\
+check_reset_prop \"ro.boot.flash.locked\" \"1\"\n\
+check_reset_prop \"ro.boot.veritymode\" \"enforcing\"\n\
+check_reset_prop \"ro.boot.warranty_bit\" \"0\"\n\
+check_reset_prop \"ro.warranty_bit\" \"0\"\n\
+check_reset_prop \"ro.debuggable\" \"0\"\n\
+check_reset_prop \"ro.force.debuggable\" \"0\"\n\
+check_reset_prop \"ro.secure\" \"1\"\n\
+check_reset_prop \"ro.adb.secure\" \"1\"\n\
+check_reset_prop \"ro.build.type\" \"user\"\n\
+check_reset_prop \"ro.build.tags\" \"release-keys\"\n\
+check_reset_prop \"ro.vendor.boot.warranty_bit\" \"0\"\n\
+check_reset_prop \"ro.vendor.warranty_bit\" \"0\"\n\
+check_missing_match_prop \"vendor.boot.vbmeta.device_state\" \"locked\"\n\
+check_missing_match_prop \"vendor.boot.verifiedbootstate\" \"green\"\n\
+check_reset_prop \"sys.oem_unlock_allowed\" \"0\"\n\
+check_reset_prop \"ro.secureboot.lockstate\" \"locked\"\n\
+check_reset_prop \"ro.boot.realmebootstate\" \"green\"\n\
+check_reset_prop \"ro.boot.realme.lockstate\" \"1\"\n\
+check_reset_prop \"ro.crypto.state\" \"encrypted\"\n\
+\n\
+# Hide adb debugging traces\n\
+resetprop \"sys.usb.adb.disabled\" \" \"\n\
+\n\
+# Hide recovery boot mode\n\
+contains_reset_prop \"ro.bootmode\" \"recovery\" \"unknown\"\n\
+contains_reset_prop \"ro.boot.bootmode\" \"recovery\" \"unknown\"\n\
+contains_reset_prop \"vendor.boot.bootmode\" \"recovery\" \"unknown\"\n\
+\n\
+# Hide cloudphone detection\n\
+[ -n \"$(resetprop ro.kernel.qemu)\" ] && resetprop ro.kernel.qemu \"\"\n",
+    )
 }
 
 fn generate_cleanup_residue_section() -> String {
-    let mut content = String::new();
-    content.push_str("# Cleanup tool residue\n");
-    content.push_str(r#"
-cleanup_path() {
-    local path="$1"
-    local desc="$2"
-    
-    if [ -n "$desc" ]; then
-        echo "$(get_current_time): Cleanup: $path ($desc)" >> "$LOG_FILE"
-    else
-        echo "$(get_current_time): Cleanup: $path" >> "$LOG_FILE"
-    fi
-    
-    if rm -rf "$path" 2>/dev/null; then
-        echo "$(get_current_time): ✓ Cleaned: $path" >> "$LOG_FILE"
-    else
-        echo "$(get_current_time): ✗ Failed or not exists: $path" >> "$LOG_FILE"
-    fi
-}
-
-echo "$(get_current_time): Starting cleanup" >> "$LOG_FILE"
-
-cleanup_path "/data/local/stryker/" "Stryker residue"
-cleanup_path "/data/system/AppRetention" "AppRetention residue"
-cleanup_path "/data/local/tmp/luckys" "Lucky Tool residue"
-cleanup_path "/data/local/tmp/HyperCeiler" "HyperCeiler residue"
-cleanup_path "/data/local/tmp/simpleHook" "simple Hook residue"
-cleanup_path "/data/local/tmp/DisabledAllGoogleServices" "Google services module residue"
-cleanup_path "/data/local/MIO" "Unpack tool"
-cleanup_path "/data/DNA" "Unpack tool"
-cleanup_path "/data/local/tmp/cleaner_starter" "Texture cleanup residue"
-cleanup_path "/data/local/tmp/byyang" ""
-cleanup_path "/data/local/tmp/mount_mask" ""
-cleanup_path "/data/local/tmp/mount_mark" ""
-cleanup_path "/data/local/tmp/scriptTMP" ""
-cleanup_path "/data/local/luckys" ""
-cleanup_path "/data/local/tmp/horae_control.log" ""
-cleanup_path "/data/gpu_freq_table.conf" ""
-cleanup_path "/storage/emulated/0/Download/advanced/" ""
-cleanup_path "/storage/emulated/0/Documents/advanced/" "Advanced settings"
-cleanup_path "/storage/emulated/0/Android/naki/" "Old asoulopt"
-cleanup_path "/data/swap_config.conf" "Scene addon module 2"
-cleanup_path "/data/local/tmp/resetprop" ""
-cleanup_path "/dev/cpuset/AppOpt/" "AppOpt module"
-cleanup_path "/storage/emulated/0/Android/Clash/" "Clash for Magisk module"
-cleanup_path "/storage/emulated/0/Android/Yume-Yunyun/" "NetEase cloud background optimization"
-cleanup_path "/data/local/tmp/Surfing_update" "Surfing module cache"
-cleanup_path "/data/encore/custom_default_cpu_gov" "encore module"
-cleanup_path "/data/encore/default_cpu_gov" "encore module"
-cleanup_path "/data/local/tmp/yshell" ""
-cleanup_path "/data/local/tmp/encore_logo.png" ""
-cleanup_path "/storage/emulated/legacy/" ""
-cleanup_path "/storage/emulated/elgg/" ""
-cleanup_path "/data/system/junge/" ""
-cleanup_path "/data/local/tmp/mount_namespace" "Mount namespace residue"
-
-echo "$(get_current_time): Cleanup completed" >> "$LOG_FILE"
-
-"#);
-    content
+    String::from(
+        "# Cleanup tool residue\n\
+cleanup_path() {\n\
+    local path=\"$1\"\n\
+    local desc=\"$2\"\n\
+    \n\
+    if [ -n \"$desc\" ]; then\n\
+        echo \"$(get_current_time): Cleanup: $path ($desc)\" >> \"$LOG_FILE\"\n\
+    else\n\
+        echo \"$(get_current_time): Cleanup: $path\" >> \"$LOG_FILE\"\n\
+    fi\n\
+    \n\
+    if rm -rf \"$path\" 2>/dev/null; then\n\
+        echo \"$(get_current_time): Cleaned: $path\" >> \"$LOG_FILE\"\n\
+    else\n\
+        echo \"$(get_current_time): Failed or not exists: $path\" >> \"$LOG_FILE\"\n\
+    fi\n\
+}\n\
+\n\
+echo \"$(get_current_time): Starting cleanup\" >> \"$LOG_FILE\"\n\
+\n\
+cleanup_path \"/data/local/stryker/\" \"Stryker residue\"\n\
+cleanup_path \"/data/system/AppRetention\" \"AppRetention residue\"\n\
+cleanup_path \"/data/local/tmp/luckys\" \"Lucky Tool residue\"\n\
+cleanup_path \"/data/local/tmp/HyperCeiler\" \"HyperCeiler residue\"\n\
+cleanup_path \"/data/local/tmp/simpleHook\" \"simple Hook residue\"\n\
+cleanup_path \"/data/local/tmp/DisabledAllGoogleServices\" \"Google services module residue\"\n\
+cleanup_path \"/data/local/MIO\" \"Unpack tool\"\n\
+cleanup_path \"/data/DNA\" \"Unpack tool\"\n\
+cleanup_path \"/data/local/tmp/cleaner_starter\" \"Texture cleanup residue\"\n\
+cleanup_path \"/data/local/tmp/byyang\" \"\"\n\
+cleanup_path \"/data/local/tmp/mount_mask\" \"\"\n\
+cleanup_path \"/data/local/tmp/mount_mark\" \"\"\n\
+cleanup_path \"/data/local/tmp/scriptTMP\" \"\"\n\
+cleanup_path \"/data/local/luckys\" \"\"\n\
+cleanup_path \"/data/local/tmp/horae_control.log\" \"\"\n\
+cleanup_path \"/data/gpu_freq_table.conf\" \"\"\n\
+cleanup_path \"/storage/emulated/0/Download/advanced/\" \"\"\n\
+cleanup_path \"/storage/emulated/0/Documents/advanced/\" \"Advanced settings\"\n\
+cleanup_path \"/storage/emulated/0/Android/naki/\" \"Old asoulopt\"\n\
+cleanup_path \"/data/swap_config.conf\" \"Scene addon module 2\"\n\
+cleanup_path \"/data/local/tmp/resetprop\" \"\"\n\
+cleanup_path \"/dev/cpuset/AppOpt/\" \"AppOpt module\"\n\
+cleanup_path \"/storage/emulated/0/Android/Clash/\" \"Clash for Magisk module\"\n\
+cleanup_path \"/storage/emulated/0/Android/Yume-Yunyun/\" \"NetEase cloud background optimization\"\n\
+cleanup_path \"/data/local/tmp/Surfing_update\" \"Surfing module cache\"\n\
+cleanup_path \"/data/encore/custom_default_cpu_gov\" \"encore module\"\n\
+cleanup_path \"/data/encore/default_cpu_gov\" \"encore module\"\n\
+cleanup_path \"/data/local/tmp/yshell\" \"\"\n\
+cleanup_path \"/data/local/tmp/encore_logo.png\" \"\"\n\
+cleanup_path \"/storage/emulated/legacy/\" \"\"\n\
+cleanup_path \"/storage/emulated/elgg/\" \"\"\n\
+cleanup_path \"/data/system/junge/\" \"\"\n\
+cleanup_path \"/data/local/tmp/mount_namespace\" \"Mount namespace residue\"\n\
+\n\
+echo \"$(get_current_time): Cleanup completed\" >> \"$LOG_FILE\"\n",
+    )
 }

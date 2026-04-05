@@ -1,6 +1,9 @@
 #![allow(clippy::unreadable_literal)]
 use libc::SYS_reboot;
+#[cfg(target_os = "android")]
 use std::os::android::fs::MetadataExt;
+#[cfg(target_os = "linux")]
+use std::os::linux::fs::MetadataExt;
 
 const SUSFS_MAX_VERSION_BUFSIZE: usize = 16;
 const SUSFS_ENABLED_FEATURES_SIZE: usize = 8192;

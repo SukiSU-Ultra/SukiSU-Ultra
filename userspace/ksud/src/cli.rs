@@ -1172,7 +1172,7 @@ pub fn run() -> Result<()> {
                             u64::from_str(s).ok()
                         }
                     };
-                    let parse_i64_opt = |s: &str| {
+                    let parse_i64_opt_fn = |s: &str| {
                         if s == "default" {
                             None
                         } else {
@@ -1192,15 +1192,15 @@ pub fn run() -> Result<()> {
                         parse_u64_opt(&ino),
                         parse_u64_opt(&dev),
                         parse_u32_opt(&nlink),
-                        parse_i64_opt(&size),
-                        parse_i64_opt(&atime),
+                        parse_i64_opt_fn(&size),
+                        parse_i64_opt_fn(&atime),
                         parse_u64_opt(&atime_nsec),
-                        parse_i64_opt(&mtime),
+                        parse_i64_opt_fn(&mtime),
                         parse_u64_opt(&mtime_nsec),
-                        parse_i64_opt(&ctime),
+                        parse_i64_opt_fn(&ctime),
                         parse_u64_opt(&ctime_nsec),
-                        parse_i64_opt(&blocks),
-                        parse_i64_opt(&blksize),
+                        parse_i64_opt_fn(&blocks),
+                        parse_i64_opt_fn(&blksize),
                     )
                     .map_err(Into::into)
                 }
