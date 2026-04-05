@@ -535,11 +535,11 @@ pub fn add_sus_kstat_statically(
     let mut spoofed_nlink: u32 = stat_result.nlink() as u32;
     let mut spoofed_size = stat_result.size() as i64;
     let mut atime_secs = stat_result.atime();
-    let mut atime_nanosecs: u64 = stat_result.atime_nsec();
+    let mut atime_nanosecs: u64 = stat_result.atime_nsec() as u64;
     let mut mtime_secs = stat_result.mtime();
-    let mut mtime_nanosecs: u64 = stat_result.mtime_nsec();
+    let mut mtime_nanosecs: u64 = stat_result.mtime_nsec() as u64;
     let mut ctime_secs = stat_result.ctime();
-    let mut ctime_nanosecs: u64 = stat_result.ctime_nsec();
+    let mut ctime_nanosecs: u64 = stat_result.ctime_nsec() as u64;
     let mut spoofed_blocks: i64 = stat_result.blocks() as i64;
     let mut spoofed_blksize = stat_result.blksize() as i64;
 

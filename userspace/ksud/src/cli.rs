@@ -1086,9 +1086,7 @@ pub fn run() -> Result<()> {
 
             Susfs::AddSusPath { path } => susfs::add_sus_path(&path).map_err(Into::into),
 
-            Susfs::AddSusPathLoop { path } => {
-                susfs::add_sus_path_loop(&path).map_err(Into::into)
-            }
+            Susfs::AddSusPathLoop { path } => susfs::add_sus_path_loop(&path).map_err(Into::into),
 
             Susfs::RemoveSusPath { path } => {
                 let mut config = susfs_config::load_config()?;
