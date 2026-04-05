@@ -21,7 +21,6 @@ const CMD_SUSFS_ADD_SUS_PATH_LOOP: u32 = 0x55553;
 const CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS: u32 = 0x55561;
 const CMD_SUSFS_ADD_SUS_MAP: u32 = 0x60020;
 const CMD_SUSFS_ENABLE_LOG: u32 = 0x555a0;
-const CMD_SUSFS_SET_CMDLINE_OR_BOOTCONFIG: u32 = 0x555b0;
 const CMD_SUSFS_SET_UNAME: u32 = 0x555c0;
 const CMD_SUSFS_ENABLE_AVC_LOG_SPOOFING: u32 = 0x555d0;
 const CMD_SUSFS_ADD_SUS_KSTAT: u32 = 0x55570;
@@ -379,10 +378,10 @@ pub fn add_sus_kstat(path: &str) -> anyhow::Result<()> {
 
     let mut cmd = SusfsSusKstat {
         is_statically: false,
-        target_ino: stat_result.ino() as u64,
+        target_ino: stat_result.ino(),
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
-        spoofed_ino: stat_result.ino() as u64,
-        spoofed_dev: stat_result.dev() as u64,
+        spoofed_ino: stat_result.ino(),
+        spoofed_dev: stat_result.dev(),
         spoofed_nlink: stat_result.nlink() as u32,
         spoofed_size: stat_result.size() as i64,
         spoofed_atime_tv_sec: stat_result.atime(),
@@ -425,10 +424,10 @@ pub fn update_sus_kstat(path: &str) -> anyhow::Result<()> {
 
     let mut cmd = SusfsSusKstat {
         is_statically: false,
-        target_ino: stat_result.ino() as u64,
+        target_ino: stat_result.ino(),
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
-        spoofed_ino: stat_result.ino() as u64,
-        spoofed_dev: stat_result.dev() as u64,
+        spoofed_ino: stat_result.ino(),
+        spoofed_dev: stat_result.dev(),
         spoofed_nlink: stat_result.nlink() as u32,
         spoofed_size: stat_result.size() as i64,
         spoofed_atime_tv_sec: stat_result.atime(),
@@ -471,10 +470,10 @@ pub fn update_sus_kstat_full_clone(path: &str) -> anyhow::Result<()> {
 
     let mut cmd = SusfsSusKstat {
         is_statically: false,
-        target_ino: stat_result.ino() as u64,
+        target_ino: stat_result.ino(),
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
-        spoofed_ino: stat_result.ino() as u64,
-        spoofed_dev: stat_result.dev() as u64,
+        spoofed_ino: stat_result.ino(),
+        spoofed_dev: stat_result.dev(),
         spoofed_nlink: stat_result.nlink() as u32,
         spoofed_size: stat_result.size() as i64,
         spoofed_atime_tv_sec: stat_result.atime(),
@@ -512,6 +511,7 @@ pub fn update_sus_kstat_full_clone(path: &str) -> anyhow::Result<()> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn add_sus_kstat_statically(
     path: &str,
     ino: Option<u64>,
@@ -530,8 +530,8 @@ pub fn add_sus_kstat_statically(
     let stat_result = std::fs::metadata(path).context(format!("Failed to stat path: {path}"))?;
 
     let mut flags: i32 = 0;
-    let mut spoofed_ino = stat_result.ino() as u64;
-    let mut spoofed_dev = stat_result.dev() as u64;
+    let mut spoofed_ino = stat_result.ino();
+    let mut spoofed_dev = stat_result.dev();
     let mut spoofed_nlink: u32 = stat_result.nlink() as u32;
     let mut spoofed_size = stat_result.size() as i64;
     let mut atime_secs = stat_result.atime();
@@ -594,7 +594,7 @@ pub fn add_sus_kstat_statically(
 
     let mut cmd = SusfsSusKstat {
         is_statically: true,
-        target_ino: stat_result.ino() as u64,
+        target_ino: stat_result.ino(),
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         spoofed_ino,
         spoofed_dev,

@@ -7,6 +7,7 @@ use std::path::PathBuf;
 const SUSFS_CONFIG_FILE: &str = "/data/adb/ksu/susfs_config.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct SusfsConfig {
     #[serde(default)]
     pub uname_value: String,
@@ -52,6 +53,7 @@ pub struct SusfsConfig {
 }
 
 impl SusfsConfig {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
             uname_value: "default".to_string(),
@@ -81,6 +83,7 @@ impl SusfsConfig {
             || !self.add_kstat_paths.is_empty()
     }
 
+    #[allow(dead_code)]
     pub fn add_sus_path(&mut self, path: String) {
         self.sus_paths.insert(path);
     }
@@ -89,6 +92,7 @@ impl SusfsConfig {
         self.sus_paths.remove(path);
     }
 
+    #[allow(dead_code)]
     pub fn add_sus_loop_path(&mut self, path: String) {
         self.sus_loop_paths.insert(path);
     }
@@ -97,6 +101,7 @@ impl SusfsConfig {
         self.sus_loop_paths.remove(path);
     }
 
+    #[allow(dead_code)]
     pub fn add_sus_map(&mut self, map: String) {
         self.sus_maps.insert(map);
     }
@@ -105,6 +110,7 @@ impl SusfsConfig {
         self.sus_maps.remove(map);
     }
 
+    #[allow(dead_code)]
     pub fn add_kstat_config(&mut self, config: String) {
         self.kstat_configs.insert(config);
     }
@@ -113,6 +119,7 @@ impl SusfsConfig {
         self.kstat_configs.remove(config);
     }
 
+    #[allow(dead_code)]
     pub fn add_kstat_path(&mut self, path: String) {
         self.add_kstat_paths.insert(path);
     }
@@ -121,6 +128,7 @@ impl SusfsConfig {
         self.add_kstat_paths.remove(path);
     }
 
+    #[allow(dead_code)]
     pub fn reset_to_default(&mut self) {
         self.uname_value = "default".to_string();
         self.build_time_value = "default".to_string();

@@ -545,6 +545,7 @@ mod kpm_cmd {
 
 #[cfg(target_arch = "aarch64")]
 #[derive(clap::Subcommand, Debug)]
+#[allow(clippy::large_enum_variant)]
 enum Susfs {
     /// Get SUSFS Status
     Status,
@@ -1084,15 +1085,15 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
 
-            Susfs::AddSusPath { path } => susfs::add_sus_path(&path).map_err(Into::into),
+            Susfs::AddSusPath { path } => susfs::add_sus_path(&path),
 
-            Susfs::AddSusPathLoop { path } => susfs::add_sus_path_loop(&path).map_err(Into::into),
+            Susfs::AddSusPathLoop { path } => susfs::add_sus_path_loop(&path),
 
             Susfs::RemoveSusPath { path } => {
                 let mut config = susfs_config::load_config()?;
                 config.remove_sus_path(&path);
                 susfs_config::save_config(&config)?;
-                println!("Removed SUS path: {}", path);
+                println!("Removed SUS path: {path}");
                 Ok(())
             }
 
@@ -1100,41 +1101,41 @@ pub fn run() -> Result<()> {
                 let mut config = susfs_config::load_config()?;
                 config.remove_sus_loop_path(&path);
                 susfs_config::save_config(&config)?;
-                println!("Removed SUS loop path: {}", path);
+                println!("Removed SUS loop path: {path}");
                 Ok(())
             }
 
-            Susfs::AddSusMap { path } => susfs::add_sus_map(&path).map_err(Into::into),
+            Susfs::AddSusMap { path } => susfs::add_sus_map(&path),
 
             Susfs::RemoveSusMap { path } => {
                 let mut config = susfs_config::load_config()?;
                 config.remove_sus_map(&path);
                 susfs_config::save_config(&config)?;
-                println!("Removed SUS map: {}", path);
+                println!("Removed SUS map: {path}");
                 Ok(())
             }
 
-            Susfs::EnableLog { enabled } => susfs::enable_log(enabled).map_err(Into::into),
+            Susfs::EnableLog { enabled } => susfs::enable_log(enabled),
 
             Susfs::EnableAvcLogSpoofing { enabled } => {
-                susfs::enable_avc_log_spoofing(enabled).map_err(Into::into)
+                susfs::enable_avc_log_spoofing(enabled)
             }
 
             Susfs::SetUname { uname, build_time } => {
-                susfs::set_uname(&uname, &build_time).map_err(Into::into)
+                susfs::set_uname(&uname, &build_time)
             }
 
             Susfs::HideSusMnts { enabled } => {
-                susfs::hide_sus_mnts_for_non_su_procs(enabled).map_err(Into::into)
+                susfs::hide_sus_mnts_for_non_su_procs(enabled)
             }
 
-            Susfs::AddKstat { path } => susfs::add_sus_kstat(&path).map_err(Into::into),
+            Susfs::AddKstat { path } => susfs::add_sus_kstat(&path),
 
             Susfs::RemoveKstat { path } => {
                 let mut config = susfs_config::load_config()?;
                 config.remove_kstat_path(&path);
                 susfs_config::save_config(&config)?;
-                println!("Removed Kstat path: {}", path);
+                println!("Removed Kstat path: {path}");
                 Ok(())
             }
 
@@ -1191,7 +1192,6 @@ pub fn run() -> Result<()> {
                     parse_i64_opt_fn(&blocks),
                     parse_i64_opt_fn(&blksize),
                 )
-                .map_err(Into::into)
             }
 
             Susfs::RemoveKstatConfig { config: config_str } => {
@@ -1202,10 +1202,10 @@ pub fn run() -> Result<()> {
                 Ok(())
             }
 
-            Susfs::UpdateKstat { path } => susfs::update_sus_kstat(&path).map_err(Into::into),
+            Susfs::UpdateKstat { path } => susfs::update_sus_kstat(&path),
 
             Susfs::UpdateKstatFullClone { path } => {
-                susfs::update_sus_kstat_full_clone(&path).map_err(Into::into)
+                susfs::update_sus_kstat_full_clone(&path)
             }
 
             Susfs::ConfigGet => {
@@ -1234,7 +1234,7 @@ pub fn run() -> Result<()> {
                 let mut config = susfs_config::load_config()?;
                 config.execute_in_post_fs_data = enabled;
                 susfs_config::save_config(&config)?;
-                println!("Execute in post-fs-data: {}", enabled);
+                println!("Execute in post-fs-data: {enabled}");
                 Ok(())
             }
 
@@ -1256,7 +1256,7 @@ pub fn run() -> Result<()> {
                 let mut config = susfs_config::load_config()?;
                 config.enable_hide_bl = enabled;
                 susfs_config::save_config(&config)?;
-                println!("Hide BL: {}", enabled);
+                println!("Hide BL: {enabled}");
                 Ok(())
             }
 
@@ -1264,7 +1264,7 @@ pub fn run() -> Result<()> {
                 let mut config = susfs_config::load_config()?;
                 config.enable_cleanup_residue = enabled;
                 susfs_config::save_config(&config)?;
-                println!("Cleanup residue: {}", enabled);
+                println!("Cleanup residue: {enabled}");
                 Ok(())
             }
 
