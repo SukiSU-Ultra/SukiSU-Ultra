@@ -754,7 +754,11 @@ static int do_get_full_version(void __user *arg)
 static int do_get_hook_type(void __user *arg)
 {
     struct ksu_hook_type_cmd cmd = { 0 };
-    const char *type = "Tracepoint Syscall Redirect";
+#ifdef CONFIG_KSU_SUSFS
+    const char *type = "SUSFS Inline Hook";
+#else
+    const char *type = "Manual Hook";
+#endif
 
     strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
 

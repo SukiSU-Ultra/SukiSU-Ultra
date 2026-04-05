@@ -88,6 +88,14 @@ endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
+ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
+$(info -- $(REPO_NAME): using KSU_MANUAL_HOOK)
+else ifeq ($(CONFIG_KSU_SUSFS), y)
+$(info -- $(REPO_NAME): using SUSFS_INLINE_HOOK)
+else
+$(info -- $(REPO_NAME): using Unknown)
+endif
+
 ifeq ($(CONFIG_KPM), y)
 $(info -- KPM is enabled)
 else
@@ -145,11 +153,6 @@ endif
 # half-assed-backport from 5.1
 ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct_array;" $(srctree)/security/selinux/ss/policydb.h; echo $$?),0)
 ccflags-y += -DKSU_TYPE_VAL_TO_STRUCT_ARRAY
-endif
-
-# Function proc_ops check
-ifeq ($(shell grep -q "struct proc_ops " $(srctree)/include/linux/proc_fs.h; echo $$?),0)
-ccflags-y += -DKSU_COMPAT_HAS_PROC_OPS
 endif
 
 ifdef KSU_MANAGER_PACKAGE
