@@ -1,9 +1,10 @@
 #![allow(clippy::unreadable_literal)]
+use anyhow::{anyhow, Context};
 use libc::SYS_reboot;
 #[cfg(target_os = "android")]
-use std::os::android::fs::MetadataExt;
+use rustix::fs::MetadataExt;
 #[cfg(target_os = "linux")]
-use std::os::linux::fs::MetadataExt;
+use rustix::fs::MetadataExt;
 
 const SUSFS_MAX_VERSION_BUFSIZE: usize = 16;
 const SUSFS_ENABLED_FEATURES_SIZE: usize = 8192;
@@ -182,7 +183,7 @@ pub fn get_susfs_features() -> String {
         .unwrap_or_else(|_| "<invalid>".to_string())
 }
 
-pub fn add_sus_path(path: &str) -> Result<(), String> {
+pub fn add_sus_path(path: &str) -> anyhow::Result<()> {
     let mut cmd = SusfsSusPath {
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         err: ERR_CMD_NOT_SUPPORTED,
@@ -203,15 +204,15 @@ pub fn add_sus_path(path: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn add_sus_path_loop(path: &str) -> Result<(), String> {
+pub fn add_sus_path_loop(path: &str) -> anyhow::Result<()> {
     let mut cmd = SusfsSusPath {
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         err: ERR_CMD_NOT_SUPPORTED,
@@ -232,15 +233,15 @@ pub fn add_sus_path_loop(path: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn hide_sus_mnts_for_non_su_procs(enabled: bool) -> Result<(), String> {
+pub fn hide_sus_mnts_for_non_su_procs(enabled: bool) -> anyhow::Result<()> {
     let mut cmd = SusfsHideMounts {
         enabled,
         err: ERR_CMD_NOT_SUPPORTED,
@@ -257,15 +258,15 @@ pub fn hide_sus_mnts_for_non_su_procs(enabled: bool) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn add_sus_map(path: &str) -> Result<(), String> {
+pub fn add_sus_map(path: &str) -> anyhow::Result<()> {
     let mut cmd = SusfsSusMap {
         target_pathname: [0; SUSFS_MAX_LEN_PATHNAME],
         err: ERR_CMD_NOT_SUPPORTED,
@@ -286,15 +287,15 @@ pub fn add_sus_map(path: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn enable_log(enabled: bool) -> Result<(), String> {
+pub fn enable_log(enabled: bool) -> anyhow::Result<()> {
     let mut cmd = SusfsEnableLog {
         enabled,
         err: ERR_CMD_NOT_SUPPORTED,
@@ -311,15 +312,15 @@ pub fn enable_log(enabled: bool) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn enable_avc_log_spoofing(enabled: bool) -> Result<(), String> {
+pub fn enable_avc_log_spoofing(enabled: bool) -> anyhow::Result<()> {
     let mut cmd = SusfsEnableAvcLogSpoofing {
         enabled,
         err: ERR_CMD_NOT_SUPPORTED,
@@ -336,15 +337,15 @@ pub fn enable_avc_log_spoofing(enabled: bool) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn set_uname(uname: &str, build_time: &str) -> Result<(), String> {
+pub fn set_uname(uname: &str, build_time: &str) -> anyhow::Result<()> {
     let mut cmd = SusfsSetUname {
         uname: [0; 64],
         build_time: [0; 64],
@@ -370,17 +371,16 @@ pub fn set_uname(uname: &str, build_time: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn add_sus_kstat(path: &str) -> Result<(), String> {
-    // First get the stat of the file
-    let stat_result = std::fs::metadata(path).map_err(|e| format!("Failed to stat path: {}", e))?;
+pub fn add_sus_kstat(path: &str) -> anyhow::Result<()> {
+    let stat_result = std::fs::metadata(path).context(format!("Failed to stat path: {path}"))?;
 
     let mut cmd = SusfsSusKstat {
         is_statically: false,
@@ -417,16 +417,16 @@ pub fn add_sus_kstat(path: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn update_sus_kstat(path: &str) -> Result<(), String> {
-    let stat_result = std::fs::metadata(path).map_err(|e| format!("Failed to stat path: {}", e))?;
+pub fn update_sus_kstat(path: &str) -> anyhow::Result<()> {
+    let stat_result = std::fs::metadata(path).context(format!("Failed to stat path: {path}"))?;
 
     let mut cmd = SusfsSusKstat {
         is_statically: false,
@@ -463,16 +463,16 @@ pub fn update_sus_kstat(path: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
 }
 
-pub fn update_sus_kstat_full_clone(path: &str) -> Result<(), String> {
-    let stat_result = std::fs::metadata(path).map_err(|e| format!("Failed to stat path: {}", e))?;
+pub fn update_sus_kstat_full_clone(path: &str) -> anyhow::Result<()> {
+    let stat_result = std::fs::metadata(path).context(format!("Failed to stat path: {path}"))?;
 
     let mut cmd = SusfsSusKstat {
         is_statically: false,
@@ -509,9 +509,9 @@ pub fn update_sus_kstat_full_clone(path: &str) -> Result<(), String> {
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
@@ -531,20 +531,20 @@ pub fn add_sus_kstat_statically(
     ctime_nsec: Option<u64>,
     blocks: Option<i64>,
     blksize: Option<i64>,
-) -> Result<(), String> {
-    let stat_result = std::fs::metadata(path).map_err(|e| format!("Failed to stat path: {}", e))?;
+) -> anyhow::Result<()> {
+    let stat_result = std::fs::metadata(path).context(format!("Failed to stat path: {path}"))?;
 
     let mut flags: i32 = 0;
     let mut spoofed_ino = stat_result.ino() as u64;
     let mut spoofed_dev = stat_result.dev() as u64;
     let mut spoofed_nlink = stat_result.nlink();
     let mut spoofed_size = stat_result.size() as i64;
-    let mut atime_secs = stat_result.atime();
-    let mut atime_nsecs = stat_result.atime_nsec() as u64;
-    let mut mtime_secs = stat_result.mtime();
-    let mut mtime_nsecs = stat_result.mtime_nsec() as u64;
-    let mut ctime_secs = stat_result.ctime();
-    let mut ctime_nsecs = stat_result.ctime_nsec() as u64;
+    let mut access_time_secs = stat_result.atime();
+    let mut access_time_nsecs = stat_result.atime_nsec() as u64;
+    let mut modify_time_secs = stat_result.mtime();
+    let mut modify_time_nsecs = stat_result.mtime_nsec() as u64;
+    let mut change_time_secs = stat_result.ctime();
+    let mut change_time_nsecs = stat_result.ctime_nsec() as u64;
     let mut spoofed_blocks = stat_result.blocks();
     let mut spoofed_blksize = stat_result.blksize() as i64;
 
@@ -565,27 +565,27 @@ pub fn add_sus_kstat_statically(
         flags |= KSTAT_SPOOF_SIZE;
     }
     if let Some(v) = atime {
-        atime_secs = v;
+        access_time_secs = v;
         flags |= KSTAT_SPOOF_ATIME_TV_SEC;
     }
     if let Some(v) = atime_nsec {
-        atime_nsecs = v;
+        access_time_nsecs = v;
         flags |= KSTAT_SPOOF_ATIME_TV_NSEC;
     }
     if let Some(v) = mtime {
-        mtime_secs = v;
+        modify_time_secs = v;
         flags |= KSTAT_SPOOF_MTIME_TV_SEC;
     }
     if let Some(v) = mtime_nsec {
-        mtime_nsecs = v;
+        modify_time_nsecs = v;
         flags |= KSTAT_SPOOF_MTIME_TV_NSEC;
     }
     if let Some(v) = ctime {
-        ctime_secs = v;
+        change_time_secs = v;
         flags |= KSTAT_SPOOF_CTIME_TV_SEC;
     }
     if let Some(v) = ctime_nsec {
-        ctime_nsecs = v;
+        change_time_nsecs = v;
         flags |= KSTAT_SPOOF_CTIME_TV_NSEC;
     }
     if let Some(v) = blocks {
@@ -605,12 +605,12 @@ pub fn add_sus_kstat_statically(
         spoofed_dev,
         spoofed_nlink,
         spoofed_size,
-        spoofed_atime_tv_sec: atime_secs,
-        spoofed_atime_tv_nsec: atime_nsecs,
-        spoofed_mtime_tv_sec: mtime_secs,
-        spoofed_mtime_tv_nsec: mtime_nsecs,
-        spoofed_ctime_tv_sec: ctime_secs,
-        spoofed_ctime_tv_nsec: ctime_nsecs,
+        spoofed_atime_tv_sec: access_time_secs,
+        spoofed_atime_tv_nsec: access_time_nsecs,
+        spoofed_mtime_tv_sec: modify_time_secs,
+        spoofed_mtime_tv_nsec: modify_time_nsecs,
+        spoofed_ctime_tv_sec: change_time_secs,
+        spoofed_ctime_tv_nsec: change_time_nsecs,
         spoofed_blocks,
         spoofed_blksize,
         flags,
@@ -632,9 +632,9 @@ pub fn add_sus_kstat_statically(
     };
 
     if cmd.err == ERR_CMD_NOT_SUPPORTED {
-        Err("Command not supported".to_string())
+        Err(anyhow!("Command not supported"))
     } else if cmd.err != 0 {
-        Err(format!("Error: {}", cmd.err))
+        Err(anyhow!("Error: {}", cmd.err))
     } else {
         Ok(())
     }
