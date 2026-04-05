@@ -70,12 +70,6 @@
     <string name="profile_groups">組</string>
     <string name="profile_capabilities">權能</string>
     <string name="profile_selinux_context">SELinux</string>
-    <string name="profile_umount_modules">解除安裝模組</string>
-    <string name="failed_to_update_app_profile">為 %s 更新 App Profile 失敗</string>
-    <string name="require_kernel_version">當前 KernelSU 版本 %1$d 過低，管理器無法正常工作，請將核心 KernelSU 版本升級至 %2$d 或以上！</string>
-    <string name="settings_umount_modules_default">預設解除安裝模組</string>
-    <string name="settings_umount_modules_default_summary">App Profile 中「解除安裝模組」的全域性預設值，如果啟用，會將未自定義 Profile 的應用移除所有模組針對系統的修改</string>
-    <string name="profile_umount_modules_summary">啟用該選項後將允許 KernelSU 為本應用還原被模組修改過的檔案</string>
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">規則</string>
     <string name="module_update">更新</string>
