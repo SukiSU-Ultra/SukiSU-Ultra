@@ -97,7 +97,7 @@ if [ ! -f "$SUSFS_BIN" ]; then
     echo "$(get_current_time): SuSFS binary not found" >> "$LOG_FILE"
     exit 1
 fi
-"#
+"#.to_string()
 }
 
 fn create_service_sh(config: &SusfsConfig) -> Result<(), String> {

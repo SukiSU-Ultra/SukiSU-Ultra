@@ -1070,11 +1070,20 @@ pub fn run() -> Result<()> {
         #[cfg(target_arch = "aarch64")]
         Commands::Susfs { command } => {
             match command {
-                Susfs::Version => println!("{}", susfs::get_susfs_version()),
+                Susfs::Version => {
+                    println!("{}", susfs::get_susfs_version());
+                    Ok(())
+                }
 
-                Susfs::Status => println!("{}", susfs::get_susfs_status()),
+                Susfs::Status => {
+                    println!("{}", susfs::get_susfs_status());
+                    Ok(())
+                }
 
-                Susfs::Features => println!("{}", susfs::get_susfs_features()),
+                Susfs::Features => {
+                    println!("{}", susfs::get_susfs_features());
+                    Ok(())
+                }
 
                 Susfs::AddSusPath { path } => {
                     susfs::add_sus_path(&path).map_err(Into::into)
@@ -1196,7 +1205,7 @@ pub fn run() -> Result<()> {
                     .map_err(Into::into)
                 }
 
-                Susfs::RemoveKstatConfig { config_str } => {
+                Susfs::RemoveKstatConfig { config: config_str } => {
                     let mut config = susfs_config::load_config()?;
                     config.remove_kstat_config(&config_str);
                     susfs_config::save_config(&config)?;

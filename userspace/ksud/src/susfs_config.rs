@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
+use anyhow::{Context, Result};
 
 const SUSFS_CONFIG_FILE: &str = "/data/adb/ksu/susfs_config.json";
 
@@ -126,29 +127,29 @@ impl SusfsConfig {
     }
 }
 
-pub fn load_config() -> Result<SusfsConfig, String> {
+pub fn load_config() -> Result<SusfsConfig> {
     let config_path = PathBuf::from(SUSFS_CONFIG_FILE);
     if !config_path.exists() {
         return Ok(SusfsConfig::new());
     }
 
     let content = fs::read_to_string(&config_path)
-        .map_err(|e| format!("Failed to read config: {}", e))?;
+        .context("Failed to read config")?;
 
     serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse config: {}", e))
+        .context("Failed to parse config")
 }
 
-pub fn save_config(config: &SusfsConfig) -> Result<(), String> {
+pub fn save_config(config: &SusfsConfig) -> Result<()> {
     let content = serde_json::to_string_pretty(config)
-        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+        .context("Failed to serialize config")?;
 
     fs::write(SUSFS_CONFIG_FILE, content)
-        .map_err(|e| format!("Failed to write config: {}", e))?;
+        .context("Failed to write config")?;
 
     Ok(())
 }
 
-pub fn reset_config() -> Result<(), String> {
+pub fn reset_config() -> Result<()> {
     save_config(&SusfsConfig::new())
 }
