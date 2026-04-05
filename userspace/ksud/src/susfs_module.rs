@@ -1,4 +1,5 @@
 use crate::susfs_config::SusfsConfig;
+use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
@@ -6,50 +7,50 @@ const MODULE_ID: &str = "susfs_manager";
 const MODULE_PATH: &str = "/data/adb/modules/susfs_manager";
 const LOG_DIR: &str = "/data/adb/ksu/log";
 
-pub fn create_magisk_module(config: &SusfsConfig) -> Result<(), String> {
+pub fn create_magisk_module(config: &SusfsConfig) -> Result<()> {
     create_module_dir()?;
     create_module_prop()?;
     create_all_scripts(config)?;
     Ok(())
 }
 
-pub fn remove_magisk_module() -> Result<(), String> {
+pub fn remove_magisk_module() -> Result<()> {
     let path = Path::new(MODULE_PATH);
     if path.exists() {
-        fs::remove_dir_all(path).map_err(|e| format!("Failed to remove module: {}", e))?;
+        fs::remove_dir_all(path).context("Failed to remove module")?;
     }
     Ok(())
 }
 
-pub fn update_magisk_module(config: &SusfsConfig) -> Result<(), String> {
+pub fn update_magisk_module(config: &SusfsConfig) -> Result<()> {
     remove_magisk_module()?;
     create_magisk_module(config)?;
     Ok(())
 }
 
-fn create_module_dir() -> Result<(), String> {
+fn create_module_dir() -> Result<()> {
     let path = Path::new(MODULE_PATH);
     if !path.exists() {
-        fs::create_dir_all(path).map_err(|e| format!("Failed to create module dir: {}", e))?;
+        fs::create_dir_all(path).context("Failed to create module dir")?;
     }
     Ok(())
 }
 
-fn create_module_prop() -> Result<(), String> {
-    let content = r#"id=susfs_manager
+fn create_module_prop() -> Result<()> {
+    let content = r"id=susfs_manager
 name=SuSFS Manager
 version=v4.0.0
 versionCode=40000
 author=ShirkNeko
 description=SuSFS Manager Auto Configuration Module (Automatically generated. Do not manually uninstall or delete this module!)
 updateJson=
-"#;
+";
     let path = Path::new(MODULE_PATH).join("module.prop");
-    fs::write(&path, content).map_err(|e| format!("Failed to write module.prop: {}", e))?;
+    fs::write(&path, content).context("Failed to write module.prop")?;
     Ok(())
 }
 
-fn create_all_scripts(config: &SusfsConfig) -> Result<(), String> {
+fn create_all_scripts(config: &SusfsConfig) -> Result<()> {
     create_service_sh(config)?;
     create_post_fs_data_sh(config)?;
     create_post_mount_sh(config)?;
@@ -57,25 +58,25 @@ fn create_all_scripts(config: &SusfsConfig) -> Result<(), String> {
     Ok(())
 }
 
-fn write_script(filename: &str, content: &str) -> Result<(), String> {
+fn write_script(filename: &str, content: &str) -> Result<()> {
     let path = Path::new(MODULE_PATH).join(filename);
-    fs::write(&path, content).map_err(|e| format!("Failed to write {}: {}", filename, e))?;
+    fs::write(&path, content).with_context(|| format!("Failed to write {}", filename))?;
     
     // Set executable permission
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let metadata = fs::metadata(&path).map_err(|e| format!("Failed to get metadata: {}", e))?;
+        let metadata = fs::metadata(&path).context("Failed to get metadata")?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o755);
-        fs::set_permissions(&path, permissions).map_err(|e| format!("Failed to set permissions: {}", e))?;
+        fs::set_permissions(&path, permissions).context("Failed to set permissions")?;
     }
     
     Ok(())
 }
 
 fn get_log_setup() -> String {
-    format!(r#"# Log setup
+    format!(r"# Log setup
 LOG_DIR="{}"
 LOG_FILE="$LOG_DIR/susfs_service.log"
 
@@ -84,11 +85,11 @@ mkdir -p "$LOG_DIR"
 get_current_time() {{
     date '+%Y-%m-%d %H:%M:%S'
 }}
-"#, LOG_DIR)
+", LOG_DIR)
 }
 
 fn get_binary_check() -> String {
-    r#"# Check SuSFS binary
+    r"# Check SuSFS binary
 SUSFS_BIN="/data/adb/ksu/bin/ksu_susfs"
 if [ ! -f "$SUSFS_BIN" ]; then
     SUSFS_BIN="/data/adb/ksud/ksu_susfs"
@@ -100,7 +101,7 @@ fi
 "#.to_string()
 }
 
-fn create_service_sh(config: &SusfsConfig) -> Result<(), String> {
+fn create_service_sh(config: &SusfsConfig) -> Result<()> {
     let mut content = String::new();
     content.push_str("#!/system/bin/sh\n");
     content.push_str("# SuSFS Service Script\n");
@@ -204,7 +205,7 @@ fn create_service_sh(config: &SusfsConfig) -> Result<(), String> {
     write_script("service.sh", &content)
 }
 
-fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<(), String> {
+fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<()> {
     let mut content = String::new();
     content.push_str("#!/system/bin/sh\n");
     content.push_str("# SuSFS Post-FS-Data Script\n");
@@ -247,7 +248,8 @@ fn create_post_fs_data_sh(config: &SusfsConfig) -> Result<(), String> {
     write_script("post-fs-data.sh", &content)
 }
 
-fn create_post_mount_sh(config: &SusfsConfig) -> Result<(), String> {
+#[allow(unused_variables)]
+fn create_post_mount_sh(config: &SusfsConfig) -> Result<()> {
     let mut content = String::new();
     content.push_str("#!/system/bin/sh\n");
     content.push_str("# SuSFS Post-Mount Script\n");
@@ -262,7 +264,7 @@ fn create_post_mount_sh(config: &SusfsConfig) -> Result<(), String> {
     write_script("post-mount.sh", &content)
 }
 
-fn create_boot_completed_sh(config: &SusfsConfig) -> Result<(), String> {
+fn create_boot_completed_sh(config: &SusfsConfig) -> Result<()> {
     let mut content = String::new();
     content.push_str("#!/system/bin/sh\n");
     content.push_str("# SuSFS Boot-Completed Script\n");

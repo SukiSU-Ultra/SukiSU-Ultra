@@ -1165,21 +1165,21 @@ pub fn run() -> Result<()> {
                     blksize,
                 } => {
                     use std::str::FromStr;
-                    let parse_opt_u64 = |s: &str| {
+                    let parse_u64_opt = |s: &str| {
                         if s == "default" {
                             None
                         } else {
                             u64::from_str(s).ok()
                         }
                     };
-                    let parse_opt_i64 = |s: &str| {
+                    let parse_i64_opt = |s: &str| {
                         if s == "default" {
                             None
                         } else {
                             i64::from_str(s).ok()
                         }
                     };
-                    let parse_opt_u32 = |s: &str| {
+                    let parse_u32_opt = |s: &str| {
                         if s == "default" {
                             None
                         } else {
@@ -1189,18 +1189,18 @@ pub fn run() -> Result<()> {
 
                     susfs::add_sus_kstat_statically(
                         &path,
-                        parse_opt_u64(&ino),
-                        parse_opt_u64(&dev),
-                        parse_opt_u32(&nlink),
-                        parse_opt_i64(&size),
-                        parse_opt_i64(&atime),
-                        parse_opt_u64(&atime_nsec),
-                        parse_opt_i64(&mtime),
-                        parse_opt_u64(&mtime_nsec),
-                        parse_opt_i64(&ctime),
-                        parse_opt_u64(&ctime_nsec),
-                        parse_opt_i64(&blocks),
-                        parse_opt_i64(&blksize),
+                        parse_u64_opt(&ino),
+                        parse_u64_opt(&dev),
+                        parse_u32_opt(&nlink),
+                        parse_i64_opt(&size),
+                        parse_i64_opt(&atime),
+                        parse_u64_opt(&atime_nsec),
+                        parse_i64_opt(&mtime),
+                        parse_u64_opt(&mtime_nsec),
+                        parse_i64_opt(&ctime),
+                        parse_u64_opt(&ctime_nsec),
+                        parse_i64_opt(&blocks),
+                        parse_i64_opt(&blksize),
                     )
                     .map_err(Into::into)
                 }
