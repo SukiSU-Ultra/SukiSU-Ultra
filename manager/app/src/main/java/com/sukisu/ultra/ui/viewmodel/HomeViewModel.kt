@@ -49,6 +49,7 @@ class HomeViewModel : ViewModel() {
         val lkmMode = ksuVersion?.let { if (kernelVersion.isGKI()) Natives.isLkmMode else null }
         val isRootAvailable = rootAvailable()
         val managerVersion = getManagerVersion(ksuApp)
+        val kernelFullVersion = Natives.getFullVersion()
 
         return HomeUiState(
             kernelVersion = kernelVersion,
@@ -70,6 +71,7 @@ class HomeViewModel : ViewModel() {
             systemInfo = SystemInfo(
                 kernelVersion = Os.uname().release,
                 managerVersion = "${managerVersion.versionName} (${managerVersion.versionCode})",
+                kernelFullVersion = kernelFullVersion,
                 fingerprint = Build.FINGERPRINT,
                 selinuxStatus = getSELinuxStatusRaw(),
                 seccompStatus = runCatching {

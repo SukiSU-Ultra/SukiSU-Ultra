@@ -568,4 +568,5 @@
     <string name="icon_switch_title">Alternate icon</string>
     <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon</string>
     <string name="refresh">Refresh</string>
+    <string name="home_kernel_full_version">Kernel full version</string>
 </resources>

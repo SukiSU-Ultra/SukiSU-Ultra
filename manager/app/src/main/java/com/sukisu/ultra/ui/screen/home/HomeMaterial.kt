@@ -436,6 +436,8 @@ private fun InfoCard(systemInfo: SystemInfo) {
             Spacer(Modifier.height(16.dp))
             InfoCardItem(stringResource(R.string.home_manager_version), systemInfo.managerVersion)
             Spacer(Modifier.height(16.dp))
+            InfoCardItem(stringResource(R.string.home_kernel_full_version), systemInfo.kernelFullVersion)
+            Spacer(Modifier.height(16.dp))
             if (isSusfsSupported) {
                 InfoCardItem(
                     stringResource(R.string.home_susfs_version),
@@ -508,6 +510,7 @@ private fun StatusCardJailbreakPreview() {
 private val previewSystemInfo = SystemInfo(
     kernelVersion = "6.1.0-android14-0-g1234567",
     managerVersion = "1.0.0 (10000)",
+    kernelFullVersion = "v4.1.2-abc1234@main",
     fingerprint = "google/raven/raven:14/AP1A.240305.019:user/release-keys",
     selinuxStatus = "Enforcing",
     seccompStatus = 2
