@@ -232,6 +232,7 @@ __weak void groups_sort(struct group_info *group_info)
 #endif
 #endif
 
+#ifndef untagged_addr
 #if LINUX_VERSION_CODE < KERNEL_VERSION (4, 9, 0)
 static inline __s64 ksu_sign_extend64(__u64 value, int index)
 {
@@ -239,6 +240,7 @@ static inline __s64 ksu_sign_extend64(__u64 value, int index)
 	return (__s64)(value << shift) >> shift;
 }
 #define untagged_addr(addr) ksu_sign_extend64(addr, 55)
+#endif
 #endif
 
 #ifndef check_add_overflow
