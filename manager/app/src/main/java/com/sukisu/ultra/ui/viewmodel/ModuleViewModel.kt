@@ -40,6 +40,8 @@ import java.util.Locale
 import com.sukisu.ultra.ui.util.toggleModule as toggleModuleUtil
 import com.sukisu.ultra.ui.util.undoUninstallModule as undoUninstallModuleUtil
 import com.sukisu.ultra.ui.util.uninstallModule as uninstallModuleUtil
+import com.sukisu.ultra.ui.util.excludeModuleFromUmount as excludeModuleFromUmountUtil
+import com.sukisu.ultra.ui.util.unexcludeModuleFromUmount as unexcludeModuleFromUmountUtil
 
 class ModuleViewModel(
     private val repo: ModuleRepository = ModuleRepositoryImpl()
@@ -418,6 +420,37 @@ class ModuleViewModel(
                     effect = ModuleEffect.SnackBar(
                         res.getString(
                             if (success) R.string.module_undo_uninstall_success else R.string.module_undo_uninstall_failed
+                        ).format(module.name)
+                    )
+                )
+            }
+        }
+    }
+
+    fun toggleModuleExcludeUmount(module: Module) {
+        viewModelScope.launch {
+            val res = ksuApp.resources
+            val success = withContext(Dispatchers.IO) {
+                if (module.excludedFromUmount) {
+                    unexcludeModuleFromUmountUtil(module.id)
+                } else {
+                    excludeModuleFromUmountUtil(module.id)
+                }
+            }
+            if (success) {
+                fetchModuleList(checkUpdate = true)
+            }
+            _uiState.update {
+                it.copy(
+                    effect = ModuleEffect.SnackBar(
+                        res.getString(
+                            if (success) {
+                                if (module.excludedFromUmount) R.string.module_unexclude_umount_success
+                                else R.string.module_exclude_umount_success
+                            } else {
+                                if (module.excludedFromUmount) R.string.module_unexclude_umount_failed
+                                else R.string.module_exclude_umount_failed
+                            }
                         ).format(module.name)
                     )
                 )

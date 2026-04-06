@@ -554,4 +554,11 @@
     <string name="tracepoint_hook">Tracepoint Hook</string>
     <string name="mnt_detach">MNT_DETACH</string>
     <string name="kpm_title">KPM</string>
+    <!-- Module exclude from umount -->
+    <string name="exclude_from_umount">排除</string>
+    <string name="module_excluded_from_umount">已排除</string>
+    <string name="module_exclude_umount_success">已將 %s 排除卸載路徑</string>
+    <string name="module_exclude_umount_failed">排除 %s 卸載路徑失敗</string>
+    <string name="module_unexclude_umount_success">已取消排除 %s 的卸載路徑</string>
+    <string name="module_unexclude_umount_failed">取消排除 %s 卸載路徑失敗</string>
 </resources>

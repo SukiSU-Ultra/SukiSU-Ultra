@@ -19,4 +19,5 @@ data class Module(
     val metamodule: Boolean,
     val actionIconPath: String?,
     val webUiIconPath: String?,
+    val excludedFromUmount: Boolean = false,
 )

@@ -524,6 +524,22 @@ fun unloadKpmModule(name: String): Boolean {
     return ShellUtils.fastCmdResult(shell, cmd)
 }
 
+fun excludeModuleFromUmount(moduleId: String): Boolean {
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} module exclude $moduleId"
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "exclude module $moduleId from umount result: $result")
+    return result
+}
+
+fun unexcludeModuleFromUmount(moduleId: String): Boolean {
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} module unexclude $moduleId"
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "unexclude module $moduleId from umount result: $result")
+    return result
+}
+
 fun getKpmModuleCount(): Int {
     val shell = getRootShell()
     val cmd = "${getKsuDaemonPath()} kpm num"

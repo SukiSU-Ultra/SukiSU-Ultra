@@ -8,6 +8,41 @@ use std::path::Path;
 // Magic number for umount config file
 const UMOUNT_CONFIG_MAGIC: u32 = 0x4B53_554D; // KSUM
 
+/// Extract module_id from a mount path like /data/adb/modules/{module_id}/...
+fn extract_module_id_from_path(path: &str) -> Option<&str> {
+    const PREFIX: &str = "/data/adb/modules/";
+    let path = path.strip_prefix(PREFIX)?;
+    let end = path.find('/').unwrap_or(path.len());
+    if end == 0 {
+        return None;
+    }
+    Some(&path[..end])
+}
+
+/// Get all currently excluded module IDs
+fn get_excluded_module_ids() -> Vec<String> {
+    let mut excluded = Vec::new();
+    if let Ok(dir) = std::fs::read_dir(defs::MODULE_DIR) {
+        for entry in dir.flatten() {
+            let path = entry.path();
+            if path.is_dir() && path.join(defs::EXCLUDE_FILE_NAME).exists() {
+                if let Some(id) = path.file_name().and_then(|n| n.to_str()) {
+                    excluded.push(id.to_string());
+                }
+            }
+        }
+    }
+    excluded
+}
+
+/// Check if a mount path belongs to an excluded module
+fn is_path_excluded(path: &str, excluded_ids: &[String]) -> bool {
+    if let Some(module_id) = extract_module_id_from_path(path) {
+        return excluded_ids.iter().any(|id| id == module_id);
+    }
+    false
+}
+
 pub fn save_umount_config() -> Result<()> {
     let list_output =
         ksucalls::umount_list_list().context("Failed to get umount list from kernel")?;
@@ -72,7 +107,17 @@ pub fn load_umount_config() -> Result<()> {
     // Wipe existing list first
     ksucalls::umount_list_wipe().context("Failed to wipe existing umount list")?;
 
-    // Read entries
+    // Get excluded module IDs before loading entries
+    let excluded_ids = get_excluded_module_ids();
+    if !excluded_ids.is_empty() {
+        info!(
+            "Excluding {} modules from umount: {:?}",
+            excluded_ids.len(),
+            excluded_ids
+        );
+    }
+
+    // Read entries and filter
     let mut count = 0;
     loop {
         // Read path length
@@ -98,6 +143,12 @@ pub fn load_umount_config() -> Result<()> {
             .context("Failed to read flags")?;
         let flags = u32::from_le_bytes(flags_buf);
 
+        // Skip paths belonging to excluded modules (includes subdirs and files)
+        if is_path_excluded(&path, &excluded_ids) {
+            info!("Skipping excluded module path: {}", path);
+            continue;
+        }
+
         // Add to kernel list
         ksucalls::umount_list_add(&path, flags)
             .with_context(|| format!("Failed to add umount path: {path}"))?;
@@ -105,7 +156,7 @@ pub fn load_umount_config() -> Result<()> {
         count += 1;
     }
 
-    info!("Loaded {count} umount entries from config");
+    info!("Loaded {} umount entries from config", count);
     Ok(())
 }
 

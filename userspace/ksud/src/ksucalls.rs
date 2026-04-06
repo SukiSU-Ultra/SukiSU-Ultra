@@ -265,3 +265,32 @@ pub fn umount_list_list() -> anyhow::Result<String> {
     let result = String::from_utf8_lossy(&buffer[..len]).to_string();
     Ok(result)
 }
+
+/// Report excluded module IDs to the kernel
+pub fn set_excluded_modules(module_ids: &[&str]) -> anyhow::Result<()> {
+    if module_ids.len() > ksu_uapi::KSU_EXCLUDED_MODULES_MAX as usize {
+        anyhow::bail!(
+            "Too many excluded modules: {} > {}",
+            module_ids.len(),
+            ksu_uapi::KSU_EXCLUDED_MODULES_MAX
+        );
+    }
+
+    let mut strings_buf = Vec::new();
+    for id in module_ids {
+        strings_buf.extend_from_slice(id.as_bytes());
+        strings_buf.push(0);
+    }
+    if strings_buf.is_empty() {
+        strings_buf.push(0);
+    }
+
+    let mut cmd = ksu_uapi::ksu_set_excluded_modules_cmd {
+        count: module_ids.len() as u32,
+        strings_size: strings_buf.len() as u32,
+        strings: strings_buf.as_ptr() as u64,
+    };
+
+    ksuctl(ksu_uapi::KSU_IOCTL_SET_EXCLUDED_MODULES, &mut cmd)?;
+    Ok(())
+}

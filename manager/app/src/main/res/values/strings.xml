@@ -569,4 +569,11 @@
     <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon</string>
     <string name="refresh">Refresh</string>
     <string name="home_kernel_full_version">Kernel full version</string>
+    <!-- Module exclude from umount -->
+    <string name="exclude_from_umount">Exclude</string>
+    <string name="module_excluded_from_umount">Excluded</string>
+    <string name="module_exclude_umount_success">%s excluded from umount</string>
+    <string name="module_exclude_umount_failed">Failed to exclude %s from umount</string>
+    <string name="module_unexclude_umount_success">%s removed from umount exclusion</string>
+    <string name="module_unexclude_umount_failed">Failed to remove %s from umount exclusion</string>
 </resources>

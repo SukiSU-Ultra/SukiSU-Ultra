@@ -543,4 +543,11 @@
     <string name="icon_switch_summary">更换为 KernelSU 图标</string>
     <string name="refresh">刷新</string>
     <string name="home_kernel_full_version">内核完整版本</string>
+    <!-- Module exclude from umount -->
+    <string name="exclude_from_umount">排除</string>
+    <string name="module_excluded_from_umount">已排除</string>
+    <string name="module_exclude_umount_success">已将 %s 排除卸载路径</string>
+    <string name="module_exclude_umount_failed">排除 %s 卸载路径失败</string>
+    <string name="module_unexclude_umount_success">已取消排除 %s 的卸载路径</string>
+    <string name="module_unexclude_umount_failed">取消排除 %s 卸载路径失败</string>
 </resources>

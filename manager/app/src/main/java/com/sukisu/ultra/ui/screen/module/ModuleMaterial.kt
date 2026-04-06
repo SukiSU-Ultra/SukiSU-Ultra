@@ -505,7 +505,14 @@ private fun ModuleList(
                 onAddShortcut = { type -> onModuleAddShortcut(module, type) },
                 onClick = { onClickModule(module) },
                 onExecuteAction = { actions.onExecuteModuleAction(module) },
-                closeSearch = { closeSearch() }
+                closeSearch = { closeSearch() },
+                onToggleExcludeUmount = {
+                    scope.launch {
+                        loadingDialog.withLoading {
+                            actions.onToggleModuleExcludeUmount(module)
+                        }
+                    }
+                }
             )
         }
     }
@@ -644,7 +651,8 @@ private fun ModuleItem(
     onAddShortcut: (ShortcutType) -> Unit,
     onClick: () -> Unit,
     onExecuteAction: () -> Unit,
-    closeSearch: () -> Unit
+    closeSearch: () -> Unit,
+    onToggleExcludeUmount: () -> Unit = {}
 ) {
     TonalCard(
         modifier = Modifier.fillMaxWidth()
@@ -913,6 +921,44 @@ private fun ModuleItem(
                             fontSize = MaterialTheme.typography.labelMedium.fontSize,
                             text = stringResource(if (module.remove) R.string.undo else R.string.uninstall)
                         )
+                    }
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                AnimatedVisibility(
+                    visible = actionButtonsEnabled,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    FilledTonalButton(
+                        modifier = Modifier.defaultMinSize(52.dp, 32.dp),
+                        onClick = onToggleExcludeUmount,
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+                        colors = if (module.excludedFromUmount) {
+                            ButtonDefaults.filledTonalButtonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        } else {
+                            ButtonDefaults.filledTonalButtonColors()
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            imageVector = Icons.Outlined.Cloud,
+                            contentDescription = null,
+                        )
+                        if (!module.hasActionScript && !module.hasWebUi || !hasUpdate) {
+                            Text(
+                                modifier = Modifier.padding(start = 7.dp),
+                                fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
+                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                text = stringResource(
+                                    if (module.excludedFromUmount) R.string.module_excluded_from_umount else R.string.exclude_from_umount
+                                )
+                            )
+                        }
                     }
                 }
             }

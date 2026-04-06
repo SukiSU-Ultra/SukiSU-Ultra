@@ -801,6 +801,55 @@ static int do_enable_kpm(void __user *arg)
     return 0;
 }
 
+static int do_set_excluded_modules(void __user *arg)
+{
+    struct ksu_set_excluded_modules_cmd cmd;
+    char *strings = NULL;
+    const char *module_ids[KSU_EXCLUDED_MODULES_MAX];
+    int ret;
+    int i;
+    char *p;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        return -EFAULT;
+    }
+
+    if (cmd.count > KSU_EXCLUDED_MODULES_MAX) {
+        pr_err("set_excluded_modules: count %u exceeds max %d\n",
+               cmd.count, KSU_EXCLUDED_MODULES_MAX);
+        return -EINVAL;
+    }
+
+    if (cmd.count == 0) {
+        return ksu_set_excluded_modules(NULL, 0);
+    }
+
+    if (cmd.strings_size == 0 || cmd.strings_size > 4096) {
+        return -EINVAL;
+    }
+
+    strings = kzalloc(cmd.strings_size, GFP_KERNEL);
+    if (!strings)
+        return -ENOMEM;
+
+    if (copy_from_user(strings, (void __user *)(u64)cmd.strings, cmd.strings_size)) {
+        ret = -EFAULT;
+        goto out;
+    }
+
+    p = strings;
+    for (i = 0; i < (int)cmd.count; i++) {
+        module_ids[i] = p;
+        p += strlen(p) + 1;
+    }
+
+    ret = ksu_set_excluded_modules(module_ids, (int)cmd.count);
+
+out:
+    kfree(strings);
+    return ret;
+}
+
 #ifdef CONFIG_KSU_MANUAL_SU
 static bool system_uid_check(void)
 {
@@ -1015,10 +1064,16 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .perm_check = manager_or_root
     },
 #endif
-    { 
+    {
         .cmd = KSU_IOCTL_LIST_TRY_UMOUNT,
         .name = "LIST_TRY_UMOUNT",
         .handler = list_try_umount,
+        .perm_check = manager_or_root
+    },
+    {
+        .cmd = KSU_IOCTL_SET_EXCLUDED_MODULES,
+        .name = "SET_EXCLUDED_MODULES",
+        .handler = do_set_excluded_modules,
         .perm_check = manager_or_root
     },
     {

@@ -11,6 +11,9 @@ void ksu_kernel_umount_exit(void);
 // Handler function to be called from setresuid hook
 int ksu_handle_umount(uid_t old_uid, uid_t new_uid);
 
+// Set excluded module IDs from userspace (called by ksud)
+int ksu_set_excluded_modules(const char *const *module_ids, int count);
+
 // for the umount list
 struct mount_entry {
     char *umountable;

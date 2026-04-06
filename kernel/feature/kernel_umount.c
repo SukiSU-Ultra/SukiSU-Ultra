@@ -9,6 +9,8 @@
 #include <linux/path.h>
 #include <linux/printk.h>
 #include <linux/types.h>
+#include <linux/string.h>
+#include <linux/dcache.h>
 
 #include "feature/kernel_umount.h"
 #include "klog.h" // IWYU pragma: keep
@@ -19,6 +21,11 @@
 #include "ksu.h"
 
 static bool ksu_kernel_umount_enabled = true;
+
+#define KSU_EXCLUDED_MODULES_MAX 64
+#define KSU_EXCLUDED_MODULE_ID_LEN 128
+static char excluded_modules[KSU_EXCLUDED_MODULES_MAX][KSU_EXCLUDED_MODULE_ID_LEN];
+static int excluded_modules_count;
 
 static int kernel_umount_feature_get(u64 *value)
 {
@@ -72,6 +79,72 @@ struct umount_tw {
     struct callback_head cb;
 };
 
+static bool ksu_is_module_excluded(const char *module_id)
+{
+    int i;
+    if (!module_id || excluded_modules_count == 0)
+        return false;
+
+    for (i = 0; i < excluded_modules_count; i++) {
+        if (strcmp(excluded_modules[i], module_id) == 0)
+            return true;
+    }
+    return false;
+}
+
+static char g_module_id_buf[KSU_EXCLUDED_MODULE_ID_LEN];
+
+static const char *ksu_extract_module_id_from_mount_path(const char *mount_path)
+{
+    const char *prefix = "/data/adb/modules/";
+    size_t prefix_len = strlen(prefix);
+    const char *p;
+    const char *slash;
+    size_t id_len;
+
+    if (!mount_path || strncmp(mount_path, prefix, prefix_len) != 0)
+        return NULL;
+
+    p = mount_path + prefix_len;
+    if (*p == '\0')
+        return NULL;
+
+    slash = strchr(p, '/');
+    if (slash) {
+        id_len = slash - p;
+    } else {
+        id_len = strlen(p);
+    }
+
+    if (id_len == 0 || id_len >= sizeof(g_module_id_buf))
+        return NULL;
+
+    strncpy(g_module_id_buf, p, id_len);
+    g_module_id_buf[id_len] = '\0';
+    return g_module_id_buf;
+}
+
+int ksu_set_excluded_modules(const char *const *module_ids, int count)
+{
+    int i;
+    if (count < 0 || count > KSU_EXCLUDED_MODULES_MAX)
+        return -EINVAL;
+
+    excluded_modules_count = 0;
+
+    for (i = 0; i < count; i++) {
+        size_t len = strlen(module_ids[i]);
+        if (len >= sizeof(excluded_modules[0]))
+            len = sizeof(excluded_modules[0]) - 1;
+        strncpy(excluded_modules[i], module_ids[i], sizeof(excluded_modules[0]) - 1);
+        excluded_modules[i][sizeof(excluded_modules[0]) - 1] = '\0';
+    }
+    excluded_modules_count = count;
+
+    pr_info("kernel_umount: excluded modules updated, count=%d\n", count);
+    return 0;
+}
+
 int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 {
     // if there isn't any module mounted, just ignore it!
@@ -119,6 +192,13 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
     struct mount_entry *entry;
     down_read(&mount_list_lock);
     list_for_each_entry (entry, &mount_list, list) {
+        if (excluded_modules_count > 0) {
+            const char *module_id = ksu_extract_module_id_from_mount_path(entry->umountable);
+            if (module_id && ksu_is_module_excluded(module_id)) {
+                pr_info("ksu: skipping umount for excluded module: %s\n", module_id);
+                continue;
+            }
+        }
         pr_info("%s: unmounting: %s flags: 0x%x\n", __func__, entry->umountable, entry->flags);
         try_umount(entry->umountable, entry->flags);
     }

@@ -711,6 +711,13 @@ private fun ModuleList(
                         if (module.hasWebUi) {
                             actions.onOpenWebUi(module)
                         }
+                    },
+                    onToggleExcludeUmount = {
+                        scope.launch {
+                            loadingDialog.withLoading {
+                                actions.onToggleModuleExcludeUmount(module)
+                            }
+                        }
                     }
                 )
             }
@@ -731,7 +738,8 @@ fun ModuleItem(
     onUpdate: () -> Unit,
     onExecuteAction: () -> Unit,
     onAddActionShortcut: (ShortcutType) -> Unit,
-    onOpenWebUi: () -> Unit
+    onOpenWebUi: () -> Unit,
+    onToggleExcludeUmount: () -> Unit = {}
 ) {
     val secondaryContainer = colorScheme.secondaryContainer.copy(alpha = 0.8f)
     val actionIconTint = colorScheme.onSurface.copy(alpha = if (isInDarkTheme()) 0.7f else 0.9f)
@@ -1017,6 +1025,53 @@ fun ModuleItem(
                             fontWeight = FontWeight.Medium,
                             fontSize = 15.sp
                         )
+                    }
+                }
+            }
+            AnimatedVisibility(
+                visible = module.enabled && !module.remove && !module.update,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                IconButton(
+                    minHeight = 35.dp,
+                    minWidth = 35.dp,
+                    onClick = onToggleExcludeUmount,
+                    backgroundColor = if (module.excludedFromUmount) {
+                        updateBg
+                    } else {
+                        secondaryContainer
+                    },
+                ) {
+                    val animatedPadding by animateDpAsState(
+                        targetValue = if (!hasUpdate) 10.dp else 0.dp,
+                        animationSpec = tween(durationMillis = 300)
+                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = animatedPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            imageVector = MiuixIcons.UploadCloud,
+                            tint = if (module.excludedFromUmount) updateTint else actionIconTint,
+                            contentDescription = null
+                        )
+                        AnimatedVisibility(
+                            visible = !hasUpdate,
+                            enter = expandHorizontally(),
+                            exit = shrinkHorizontally()
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(start = 4.dp, end = 3.dp),
+                                text = stringResource(
+                                    if (module.excludedFromUmount) R.string.module_excluded_from_umount else R.string.exclude_from_umount
+                                ),
+                                color = if (module.excludedFromUmount) updateTint else actionIconTint,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp
+                            )
+                        }
                     }
                 }
             }

@@ -29,6 +29,7 @@ mod android {
     pub const DISABLE_FILE_NAME: &str = "disable";
     pub const UPDATE_FILE_NAME: &str = "update";
     pub const REMOVE_FILE_NAME: &str = "remove";
+    pub const EXCLUDE_FILE_NAME: &str = "exclude";
 
     // Module config system
     pub const MODULE_CONFIG_DIR: &str = concatcp!(WORKING_DIR, "module_configs/");

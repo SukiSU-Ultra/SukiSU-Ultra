@@ -340,6 +340,18 @@ enum Module {
         #[command(subcommand)]
         command: ModuleConfigCmd,
     },
+
+    /// Exclude module from umount paths
+    Exclude {
+        /// module id
+        id: String,
+    },
+
+    /// Remove module from umount exclusion
+    Unexclude {
+        /// module id
+        id: String,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -599,6 +611,8 @@ pub fn run() -> Result<()> {
                     module::run_lua(&id, &function, false, true).map_err(|e| anyhow::anyhow!("{e}"))
                 }
                 Module::List => module::list_modules(),
+                Module::Exclude { id } => module::exclude_module(&id),
+                Module::Unexclude { id } => module::unexclude_module(&id),
                 Module::Config { internal, command } => {
                     let module_id = match internal {
                         Some(internal_name) => format!("internal.{internal_name}"),

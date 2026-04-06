@@ -787,6 +787,121 @@ pub fn disable_module(id: &str) -> Result<()> {
     Ok(())
 }
 
+pub fn exclude_module(id: &str) -> Result<()> {
+    validate_module_id(id)?;
+
+    let module_path = Path::new(defs::MODULE_DIR).join(id);
+    ensure!(module_path.exists(), "Module {id} not found");
+
+    let exclude_path = module_path.join(defs::EXCLUDE_FILE_NAME);
+    ensure_file_exists(exclude_path)?;
+
+    info!("Module {id} excluded from umount");
+
+    // Remove its paths from the running umount list
+    remove_module_umount_paths(id);
+
+    // Report updated excluded list to kernel
+    sync_excluded_modules_to_kernel();
+
+    Ok(())
+}
+
+pub fn unexclude_module(id: &str) -> Result<()> {
+    validate_module_id(id)?;
+
+    let module_path = Path::new(defs::MODULE_DIR).join(id);
+    ensure!(module_path.exists(), "Module {id} not found");
+
+    let exclude_path = module_path.join(defs::EXCLUDE_FILE_NAME);
+    if exclude_path.exists() {
+        std::fs::remove_file(&exclude_path)
+            .with_context(|| format!("Failed to remove exclude file for module '{id}'"))?;
+    }
+
+    info!("Removed exclude mark for module {id}");
+
+    // Report updated excluded list to kernel
+    sync_excluded_modules_to_kernel();
+
+    Ok(())
+}
+
+/// Read all excluded module IDs and report to the kernel
+pub fn sync_excluded_modules_to_kernel() {
+    let excluded_ids = get_excluded_module_ids();
+    if let Err(e) = ksucalls::set_excluded_modules(&excluded_ids) {
+        warn!("Failed to sync excluded modules to kernel: {e}");
+    } else {
+        info!("Synced {} excluded modules to kernel", excluded_ids.len());
+    }
+}
+
+/// Get all currently excluded module IDs
+fn get_excluded_module_ids() -> Vec<&'static str> {
+    let mut excluded: Vec<&'static str> = Vec::new();
+    if let Ok(dir) = std::fs::read_dir(defs::MODULE_DIR) {
+        for entry in dir.flatten() {
+            let path = entry.path();
+            if path.is_dir() && path.join(defs::EXCLUDE_FILE_NAME).exists() {
+                if let Some(id) = path.file_name().and_then(|n| n.to_str()) {
+                    excluded.push(id);
+                }
+            }
+        }
+    }
+    excluded
+}
+
+/// Remove all umount paths belonging to a specific module from the kernel list
+pub fn remove_module_umount_paths(module_id: &str) {
+    let module_prefix = format!("/data/adb/modules/{}/", module_id);
+    let mut remaining: Vec<(String, u32)> = Vec::new();
+
+    let list_output = match ksucalls::umount_list_list() {
+        Ok(output) => output,
+        Err(e) => {
+            warn!("Failed to get umount list: {e}");
+            return;
+        }
+    };
+
+    for line in list_output.lines().skip(2) {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() >= 2 {
+            let path = parts[0];
+            let flags = parts[1].parse::<u32>().unwrap_or(0);
+            if path.starts_with(&module_prefix) {
+                info!("Removing excluded umount path: {}", path);
+            } else {
+                remaining.push((path.to_string(), flags));
+            }
+        } else if parts.len() == 1 {
+            let path = parts[0];
+            if path.starts_with(&module_prefix) {
+                info!("Removing excluded umount path: {}", path);
+            } else {
+                remaining.push((path.to_string(), 0));
+            }
+        }
+    }
+
+    if let Err(e) = ksucalls::umount_list_wipe() {
+        warn!("Failed to wipe umount list: {e}");
+        return;
+    }
+
+    for (path, flags) in &remaining {
+        if let Err(e) = ksucalls::umount_list_add(path, *flags) {
+            warn!("Failed to re-add umount path {}: {e}", path);
+        }
+    }
+
+    if let Err(e) = crate::umount::save_umount_config() {
+        warn!("Failed to save umount config: {e}");
+    }
+}
+
 pub fn disable_all_modules() -> Result<()> {
     mark_all_modules(defs::DISABLE_FILE_NAME)
 }
@@ -933,6 +1048,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         let web = path.join(defs::MODULE_WEB_DIR).exists();
         let action = path.join(defs::MODULE_ACTION_SH).exists();
         let need_mount = path.join("system").exists() && !path.join("skip_mount").exists();
+        let exclude = path.join(defs::EXCLUDE_FILE_NAME).exists();
 
         module_prop_map.insert("enabled".to_owned(), enabled.to_string());
         module_prop_map.insert("update".to_owned(), update.to_string());
@@ -940,6 +1056,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         module_prop_map.insert("web".to_owned(), web.to_string());
         module_prop_map.insert("action".to_owned(), action.to_string());
         module_prop_map.insert("mount".to_owned(), need_mount.to_string());
+        module_prop_map.insert("exclude".to_owned(), exclude.to_string());
 
         resolve_module_icon_path(&mut module_prop_map, "actionIcon", &path);
         resolve_module_icon_path(&mut module_prop_map, "webuiIcon", &path);

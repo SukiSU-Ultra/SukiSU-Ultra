@@ -180,6 +180,14 @@ struct ksu_kpm_cmd {
     __aligned_u64 __user result_code;
 };
 
+static const __u32 KSU_EXCLUDED_MODULES_MAX = 64;
+
+struct ksu_set_excluded_modules_cmd {
+    __u32 count; /* Input: number of module IDs */
+    __u32 strings_size; /* Input: size of strings buffer */
+    __aligned_u64 strings; /* Input: buffer with null-terminated module_id strings */
+};
+
 /* IOCTL command definitions */
 static const __u32 KSU_IOCTL_GRANT_ROOT = _IOC(_IOC_NONE, 'K', 1, 0);
 static const __u32 KSU_IOCTL_GET_INFO = _IOC(_IOC_READ, 'K', 2, 0);
@@ -211,6 +219,7 @@ static const __u32 KSU_IOCTL_HOOK_TYPE = _IOC(_IOC_READ, 'K', 101, 0);
 static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
 static const __u32 KSU_IOCTL_MANUAL_SU = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
 static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 104, 0);
+static const __u32 KSU_IOCTL_SET_EXCLUDED_MODULES = _IOC(_IOC_WRITE, 'K', 105, 0);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
 
 #endif

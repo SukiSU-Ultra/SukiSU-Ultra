@@ -143,6 +143,9 @@ fun ModulePager(
             navigator.push(Route.ExecuteModuleAction(module.id))
             viewModel.markNeedRefresh()
         },
+        onToggleModuleExcludeUmount = { module ->
+            viewModel.toggleModuleExcludeUmount(module)
+        },
     )
 
     when (uiMode) {

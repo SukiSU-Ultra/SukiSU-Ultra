@@ -239,4 +239,11 @@
     <string name="home_pr_build_warning">此為 PR 除錯版本，切勿於正式環境使用！</string>
     <string name="home_pr_kernel_warning">此核心具 PR 簽名支援，並非正式版本核心！</string>
     <string name="jailbreak_flash_warning">現正處於**越獄模式**。在 **Bootloader 鎖定**的裝置上刷入分割區會破壞 AVB 驗證，或導致**無法開機**。\n\n操作前請確保 Bootloader 已解鎖！</string>
+    <!-- Module exclude from umount -->
+    <string name="exclude_from_umount">排除</string>
+    <string name="module_excluded_from_umount">已排除</string>
+    <string name="module_exclude_umount_success">已將 %s 排除卸載路徑</string>
+    <string name="module_exclude_umount_failed">排除 %s 卸載路徑失敗</string>
+    <string name="module_unexclude_umount_success">已取消排除 %s 的卸載路徑</string>
+    <string name="module_unexclude_umount_failed">取消排除 %s 卸載路徑失敗</string>
 </resources>
