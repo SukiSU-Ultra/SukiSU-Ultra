@@ -19,8 +19,8 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.extra.SuperDialog
-import top.yukonga.miuix.kmp.extra.SuperSwitch
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
@@ -43,7 +43,7 @@ fun FeatureStatusCardMiuix(
     }
 
     if (showLogConfigDialogState.value) {
-        SuperDialog(
+        OverlayDialog(
             show = showLogConfigDialogState.value,
             title = stringResource(R.string.susfs_log_config_title),
             onDismissRequest = {
@@ -62,7 +62,7 @@ fun FeatureStatusCardMiuix(
                         color = colorScheme.onSurfaceVariantSummary
                     )
 
-                    SuperSwitch(
+                    SwitchPreference(
                         title = stringResource(R.string.susfs_enable_log_label),
                         summary = "",
                         checked = logEnabled,

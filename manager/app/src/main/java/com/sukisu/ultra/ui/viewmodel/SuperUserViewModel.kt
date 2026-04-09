@@ -25,9 +25,9 @@ import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.superuser.GroupedApps
 import com.sukisu.ultra.ui.screen.superuser.SuperUserUiState
 import com.sukisu.ultra.ui.util.HanziToPinyin
-import com.sukisu.ultra.ui.util.withCurrentUserUid
 import com.sukisu.ultra.ui.util.ownerNameForUid
 import com.sukisu.ultra.ui.util.pickPrimary
+import com.sukisu.ultra.ui.util.withCurrentUserUid
 import java.text.Collator
 import java.util.Locale
 

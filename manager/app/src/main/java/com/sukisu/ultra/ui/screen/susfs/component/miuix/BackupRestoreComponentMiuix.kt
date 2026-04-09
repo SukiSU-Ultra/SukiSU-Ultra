@@ -12,11 +12,12 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.*
-import top.yukonga.miuix.kmp.extra.SuperDialog
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun BackupRestoreComponentMiuix(
@@ -209,7 +210,7 @@ private fun BackupDialogMiuix(
     }
 
     if (showDialogState.value) {
-        SuperDialog(
+        OverlayDialog(
             show = showDialogState.value,
             title = stringResource(R.string.susfs_backup_title),
             onDismissRequest = onDismiss,
@@ -266,7 +267,7 @@ private fun RestoreDialogMiuix(
     }
 
     if (showDialogState.value) {
-        SuperDialog(
+        OverlayDialog(
             show = showDialogState.value,
             title = stringResource(R.string.susfs_restore_title),
             onDismissRequest = onDismiss,
@@ -324,7 +325,7 @@ private fun RestoreConfirmDialogMiuix(
     }
 
     if (showDialogState.value && backupInfo != null) {
-        SuperDialog(
+        OverlayDialog(
             show = showDialogState.value,
             title = stringResource(R.string.susfs_restore_confirm_title),
             onDismissRequest = onDismiss,
@@ -342,7 +343,7 @@ private fun RestoreConfirmDialogMiuix(
                             modifier = Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", LocalLocale.current.platformLocale)
                             Text(
                                 text = stringResource(
                                     R.string.susfs_backup_info_date,

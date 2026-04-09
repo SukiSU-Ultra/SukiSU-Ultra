@@ -19,8 +19,8 @@ import com.sukisu.ultra.ui.screen.susfs.component.miuix.ResetButtonMiuix
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.util.isAbDevice
 import top.yukonga.miuix.kmp.basic.*
-import top.yukonga.miuix.kmp.extra.SuperDropdown
-import top.yukonga.miuix.kmp.extra.SuperSwitch
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
@@ -95,7 +95,7 @@ fun BasicSettingsContentMiuix(
             .padding(top = 12.dp)
             .fillMaxWidth(),
     ) {
-        SuperDropdown(
+        OverlayDropdownPreference(
             title = stringResource(R.string.susfs_execution_location_label),
             summary = if (executeInPostFsData) {
                 stringResource(R.string.susfs_execution_location_post_fs_data)
@@ -175,7 +175,7 @@ fun BasicSettingsContentMiuix(
             .fillMaxWidth(),
     ) {
         // 开机自启动开关
-        SuperSwitch(
+        SwitchPreference(
             title = stringResource(R.string.susfs_autostart_title),
             summary = if (canEnableAutoStart) {
                 stringResource(R.string.susfs_autostart_description)
@@ -196,7 +196,7 @@ fun BasicSettingsContentMiuix(
         )
 
         // 隐藏BL脚本开关
-        SuperSwitch(
+        SwitchPreference(
             title = stringResource(R.string.hide_bl_script),
             summary = stringResource(R.string.hide_bl_script_description),
             startAction = {
@@ -213,7 +213,7 @@ fun BasicSettingsContentMiuix(
         )
 
         // 清理残留脚本开关
-        SuperSwitch(
+        SwitchPreference(
             title = stringResource(R.string.cleanup_residue),
             summary = stringResource(R.string.cleanup_residue_description),
             startAction = {
@@ -230,7 +230,7 @@ fun BasicSettingsContentMiuix(
         )
 
         // AVC日志欺骗开关
-        SuperSwitch(
+        SwitchPreference(
             title = stringResource(R.string.avc_log_spoofing),
             summary = stringResource(R.string.avc_log_spoofing_description),
             startAction = {
@@ -247,7 +247,7 @@ fun BasicSettingsContentMiuix(
         )
 
         // 对所有进程隐藏SuS挂载开关
-        SuperSwitch(
+        SwitchPreference(
             title = stringResource(R.string.susfs_hide_mounts_for_all_procs_label),
             summary = if (hideSusMountsForAllProcs) {
                 stringResource(R.string.susfs_hide_mounts_for_all_procs_enabled_description)

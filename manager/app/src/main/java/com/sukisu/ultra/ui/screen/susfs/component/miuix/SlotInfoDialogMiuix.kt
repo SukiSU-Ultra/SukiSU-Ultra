@@ -34,7 +34,7 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.extra.SuperDialog
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import kotlin.collections.forEach
@@ -61,7 +61,7 @@ fun SlotInfoDialogMiuix(
     }
 
     if (showDialogState.value) {
-        SuperDialog(
+        OverlayDialog(
             show = showDialogState.value,
             title = stringResource(R.string.susfs_slot_info_title),
             onDismissRequest = onDismiss,

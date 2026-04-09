@@ -55,16 +55,14 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.BottomBar
 import com.sukisu.ultra.ui.component.bottombar.MainPagerState
 import com.sukisu.ultra.ui.component.bottombar.SideRail
 import com.sukisu.ultra.ui.component.bottombar.rememberMainPagerState
+import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.kernelFlash.KernelFlashScreen
 import com.sukisu.ultra.ui.navigation3.HandleDeepLink
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
@@ -75,6 +73,7 @@ import com.sukisu.ultra.ui.screen.about.AboutScreen
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
 import com.sukisu.ultra.ui.screen.executemoduleaction.ExecuteModuleActionScreen
+import com.sukisu.ultra.ui.screen.flash.FlashIt
 import com.sukisu.ultra.ui.screen.flash.FlashScreen
 import com.sukisu.ultra.ui.screen.home.HomePager
 import com.sukisu.ultra.ui.screen.install.InstallScreen
@@ -96,13 +95,16 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
+import com.sukisu.ultra.ui.util.getFileName
 import com.sukisu.ultra.ui.util.install
+import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
 import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.blur.layerBackdrop as miuixLayerBackdrop
 
 private const val KEY_INTENT_STATE = "intent_state"
 
@@ -256,18 +258,10 @@ fun MainScreen() {
     var userScrollEnabled by remember(isFullFeatured) { mutableStateOf(isFullFeatured) }
     val uiMode = LocalUiMode.current
     val surfaceColor = when (uiMode) {
-        UiMode.Material -> MaterialTheme.colorScheme.surface // Haze is not used in Material, this is just a placeholder
+        UiMode.Material -> MaterialTheme.colorScheme.surface // Blur is not used in Material, this is just a placeholder
         UiMode.Miuix -> MiuixTheme.colorScheme.surface
     }
-    val hazeState = remember { HazeState() }
-    val hazeStyle = if (enableBlur) {
-        HazeStyle(
-            backgroundColor = surfaceColor,
-            tint = HazeTint(surfaceColor.copy(0.8f))
-        )
-    } else {
-        HazeStyle.Unspecified
-    }
+    val blurBackdrop = rememberBlurBackdrop(enableBlur)
 
     val backdrop = rememberLayerBackdrop {
         drawRect(surfaceColor)
@@ -288,20 +282,21 @@ fun MainScreen() {
     ) {
         val contentReady = rememberContentReady()
         val pagerContent = @Composable { bottomInnerPadding: Dp ->
-            HorizontalPager(
-                modifier = Modifier
-                    .then(if (enableBlur) Modifier.hazeSource(state = hazeState) else Modifier)
-                    .then(if (enableFloatingBottomBar && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
-                state = mainPagerState.pagerState,
-                beyondViewportPageCount = if (contentReady) 3 else 0,
-                userScrollEnabled = userScrollEnabled,
-            ) { page ->
-                val isCurrentPage = page == mainPagerState.pagerState.settledPage
-                when (page) {
-                    0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding, isCurrentPage)
-                    1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
-                    2 -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
-                    3 -> if (isCurrentPage || contentReady) SettingPager(navController, bottomInnerPadding)
+            Box(modifier = if (blurBackdrop != null) Modifier.miuixLayerBackdrop(blurBackdrop) else Modifier) {
+                HorizontalPager(
+                    modifier = Modifier
+                        .then(if (enableFloatingBottomBar && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
+                    state = mainPagerState.pagerState,
+                    beyondViewportPageCount = if (contentReady) 3 else 0,
+                    userScrollEnabled = userScrollEnabled,
+                ) { page ->
+                    val isCurrentPage = page == mainPagerState.pagerState.settledPage
+                    when (page) {
+                        0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding, isCurrentPage)
+                        1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)
+                        2 -> if (isCurrentPage || contentReady) ModulePager(bottomInnerPadding, isCurrentPage)
+                        3 -> if (isCurrentPage || contentReady) SettingPager(navController, bottomInnerPadding)
+                    }
                 }
             }
         }
@@ -315,8 +310,7 @@ fun MainScreen() {
                 UiMode.Material -> androidx.compose.material3.Scaffold {
                     Row {
                         SideRail(
-                            hazeState = hazeState,
-                            hazeStyle = hazeStyle,
+                            blurBackdrop = blurBackdrop,
                         )
                         Box(
                             modifier = Modifier
@@ -331,8 +325,7 @@ fun MainScreen() {
                 UiMode.Miuix -> Scaffold { _ ->
                     Row {
                         SideRail(
-                            hazeState = hazeState,
-                            hazeStyle = hazeStyle,
+                            blurBackdrop = blurBackdrop,
                         )
                         Box(
                             modifier = Modifier
@@ -350,8 +343,7 @@ fun MainScreen() {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     BottomBar(
-                        hazeState = hazeState,
-                        hazeStyle = hazeStyle,
+                        blurBackdrop = blurBackdrop,
                         backdrop = backdrop,
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )

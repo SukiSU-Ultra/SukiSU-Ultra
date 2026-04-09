@@ -11,15 +11,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KsuIsValid
+import com.sukisu.ultra.ui.component.ListPopupDefaults
 import com.sukisu.ultra.ui.util.reboot
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
-import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Close2
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 @Composable
@@ -40,9 +40,9 @@ fun RebootListPopupMiuix(
                 tint = colorScheme.onBackground
             )
         }
-        SuperListPopup(
+        OverlayListPopup(
             show = showTopPopup.value,
-            popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
+            popupPositionProvider = ListPopupDefaults.MenuPositionProvider,
             alignment = alignment,
             onDismissRequest = {
                 showTopPopup.value = false

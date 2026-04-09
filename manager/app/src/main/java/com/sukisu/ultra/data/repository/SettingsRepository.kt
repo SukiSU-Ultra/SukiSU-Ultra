@@ -16,6 +16,7 @@ interface SettingsRepository {
     var enableFloatingBottomBarBlur: Boolean
     var pageScale: Float
     var enableWebDebugging: Boolean
+    var enableSmoothCorner: Boolean
     var autoJailbreak: Boolean
 
     suspend fun getSuCompatStatus(): String

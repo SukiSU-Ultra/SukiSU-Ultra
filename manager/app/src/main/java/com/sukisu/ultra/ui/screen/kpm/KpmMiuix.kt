@@ -2,57 +2,47 @@ package com.sukisu.ultra.ui.screen.kpm
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.miuix.SearchBox
-import com.sukisu.ultra.ui.component.miuix.SearchPager
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.viewmodel.KpmViewModel
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.*
-import top.yukonga.miuix.kmp.extra.SuperDialog
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Refresh
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -66,29 +56,12 @@ fun KpmMiuix(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+    val scrollBehavior = MiuixScrollBehavior()
 
     val enableBlur = LocalEnableBlur.current
-
-    val showEmptyState by remember {
-        derivedStateOf {
-            state.moduleList.isEmpty() && state.searchStatus.searchText.isEmpty() && !state.isRefreshing
-        }
-    }
-
-    val scrollBehavior = MiuixScrollBehavior()
-    val dynamicTopPadding by remember {
-        derivedStateOf { 12.dp * (1f - scrollBehavior.state.collapsedFraction) }
-    }
-
-    val hazeState = remember { HazeState() }
-    val hazeStyle = if (enableBlur) {
-        HazeStyle(
-            backgroundColor = colorScheme.surface,
-            tint = HazeTint(colorScheme.surface.copy(0.8f))
-        )
-    } else {
-        HazeStyle.Unspecified
-    }
+    val backdrop = rememberBlurBackdrop(enableBlur)
+    val blurActive = backdrop != null
+    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
 
     val kpmInstallMode = stringResource(R.string.kpm_install_mode)
     val kpmInstallModeLoad = stringResource(R.string.kpm_install_mode_load)
@@ -121,13 +94,9 @@ fun KpmMiuix(
             }
         }
     }
-    val offsetHeight by animateDpAsState(
-        targetValue = if (fabVisible) 0.dp else 180.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
-        animationSpec = tween(durationMillis = 350)
-    )
 
     if (state.showInstallModeDialog) {
-        SuperDialog(
+        OverlayDialog(
             show = true,
             title = kpmInstallMode,
             onDismissRequest = {
@@ -187,107 +156,39 @@ fun KpmMiuix(
 
     Scaffold(
         topBar = {
-            state.searchStatus.TopAppBarAnim(hazeState = hazeState, hazeStyle = hazeStyle) {
+            BlurredBar(backdrop) {
                 TopAppBar(
-                    color = if (enableBlur) Color.Transparent else colorScheme.surface,
+                    color = barColor,
                     title = stringResource(R.string.kpm_title),
                     actions = {
-                        IconButton(
-                            onClick = actions.onRefresh
-                        ) {
-                            Icon(
-                                imageVector = MiuixIcons.Refresh,
-                                contentDescription = stringResource(R.string.refresh),
-                                tint = colorScheme.onBackground
-                            )
-                        }
-                    },
+                            IconButton(
+                                onClick = actions.onRefresh
+                            ) {
+                                Icon(
+                                    imageVector = MiuixIcons.Refresh,
+                                    contentDescription = stringResource(R.string.refresh),
+                                    tint = colorScheme.onBackground
+                                )
+                            }
+                        },
                     scrollBehavior = scrollBehavior
                 )
             }
         },
-        floatingActionButton = {
-            AnimatedVisibility(visible = fabVisible) {
-                FloatingActionButton(
-                    modifier = Modifier
-                        .offset { IntOffset(0, offsetHeight.roundToPx()) }
-                        .padding(bottom = bottomInnerPadding + 20.dp, end = 20.dp)
-                        .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
-                    shadowElevation = 0.dp,
-                    onClick = actions.onRequestInstall,
-                    content = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.package_import),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                )
-            }
-        },
-        popupHost = {
-            state.searchStatus.SearchPager(
-                onSearchStatusChange = actions.onSearchStatusChange,
-                defaultResult = {},
-                searchBarTopPadding = dynamicTopPadding,
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    item {
-                        Spacer(Modifier.height(6.dp))
-                    }
-                    items(state.moduleList) { module ->
-                        KpmModuleItem(
-                            module = module,
-                            state = state,
-                            actions = actions,
-                            onUninstall = { actions.onRequestUninstall(module.id) }
-                        )
-                    }
-                    item {
-                        val imeBottomPadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-                        Spacer(Modifier.height(maxOf(bottomInnerPadding, imeBottomPadding)))
-                    }
-                }
-            }
-        },
+        popupHost = { },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
 
-        if (showEmptyState) {
-            EmptyStateView(
-                innerPadding = innerPadding,
-                bottomInnerPadding = bottomInnerPadding,
-                layoutDirection = layoutDirection
-            )
-        } else {
-            state.searchStatus.SearchBox(
-                onSearchStatusChange = actions.onSearchStatusChange,
-                searchBarTopPadding = dynamicTopPadding,
-                contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
-                    start = innerPadding.calculateStartPadding(layoutDirection),
-                    end = innerPadding.calculateEndPadding(layoutDirection)
-                ),
-                hazeState = hazeState,
-                hazeStyle = hazeStyle
-            ) { boxHeight ->
-                KpmList(
-                    state = state,
-                    actions = actions,
-                    scrollBehavior = scrollBehavior,
-                    nestedScrollConnection = nestedScrollConnection,
-                    hazeState = hazeState,
-                    innerPadding = innerPadding,
-                    bottomInnerPadding = bottomInnerPadding,
-                    boxHeight = boxHeight,
-                    layoutDirection = layoutDirection
-                )
-            }
-        }
+        KpmList(
+            state = state,
+            actions = actions,
+            scrollBehavior = scrollBehavior,
+            nestedScrollConnection = nestedScrollConnection,
+            innerPadding = innerPadding,
+            bottomInnerPadding = bottomInnerPadding,
+            layoutDirection = layoutDirection
+        )
     }
 }
 
@@ -297,14 +198,13 @@ private fun KpmList(
     actions: KpmActions,
     scrollBehavior: ScrollBehavior,
     nestedScrollConnection: NestedScrollConnection,
-    hazeState: HazeState,
     innerPadding: PaddingValues,
     bottomInnerPadding: Dp,
-    boxHeight: MutableState<Dp>,
-    layoutDirection: LayoutDirection
+    layoutDirection: LayoutDirection,
 ) {
     val context = LocalContext.current
     val enableBlur = LocalEnableBlur.current
+    val backdrop = rememberBlurBackdrop(enableBlur)
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     var isNoticeClosed by remember { mutableStateOf(sharedPreferences.getBoolean("is_notice_closed", false)) }
 
@@ -336,21 +236,21 @@ private fun KpmList(
         onRefresh = { if (!isRefreshing) isRefreshing = true },
         refreshTexts = refreshTexts,
         contentPadding = PaddingValues(
-            top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
+            top = innerPadding.calculateTopPadding() + 6.dp,
             start = innerPadding.calculateStartPadding(layoutDirection),
             end = innerPadding.calculateEndPadding(layoutDirection),
         ),
     ) {
+        Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxHeight()
                 .scrollEndHaptic()
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .nestedScroll(nestedScrollConnection)
-                .let { if (enableBlur) it.hazeSource(state = hazeState) else it },
+                .nestedScroll(nestedScrollConnection),
             contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
+                top = innerPadding.calculateTopPadding() + 6.dp,
                 start = innerPadding.calculateStartPadding(layoutDirection),
                 end = innerPadding.calculateEndPadding(layoutDirection),
             ),
@@ -415,6 +315,7 @@ private fun KpmList(
                 Spacer(Modifier.height(bottomInnerPadding))
             }
         }
+            }
     }
 }
 
@@ -428,7 +329,7 @@ private fun KpmModuleItem(
     val showInputDialog = state.inputDialogState.visible && state.inputDialogState.moduleId == module.id
 
     if (showInputDialog) {
-        SuperDialog(
+        OverlayDialog(
             show = true,
             title = stringResource(R.string.kpm_control),
             onDismissRequest = {
@@ -603,44 +504,6 @@ private fun KpmModuleItem(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun EmptyStateView(
-    innerPadding: PaddingValues,
-    bottomInnerPadding: Dp,
-    layoutDirection: LayoutDirection
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(
-                top = innerPadding.calculateTopPadding(),
-                start = innerPadding.calculateStartPadding(layoutDirection),
-                end = innerPadding.calculateEndPadding(layoutDirection),
-                bottom = bottomInnerPadding
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Code,
-                contentDescription = null,
-                tint = colorScheme.primary.copy(alpha = 0.6f),
-                modifier = Modifier
-                    .size(96.dp)
-                    .padding(bottom = 16.dp)
-            )
-            Text(
-                stringResource(R.string.kpm_empty),
-                textAlign = TextAlign.Center,
-                color = colorScheme.onBackground
-            )
         }
     }
 }

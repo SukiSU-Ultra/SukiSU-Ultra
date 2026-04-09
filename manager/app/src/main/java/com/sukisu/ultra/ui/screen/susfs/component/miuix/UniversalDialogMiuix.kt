@@ -22,8 +22,8 @@ import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.extra.SuperDialog
-import top.yukonga.miuix.kmp.extra.SuperDropdown
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
@@ -71,7 +71,7 @@ fun UniversalDialogMiuix(
     }
 
     if (showDialogState.value) {
-        SuperDialog(
+        OverlayDialog(
             show = showDialogState.value,
             title = stringResource(titleRes),
             onDismissRequest = {
@@ -104,7 +104,7 @@ fun UniversalDialogMiuix(
                                 )
                             }
                             is DialogFieldMiuix.Dropdown -> {
-                                SuperDropdown(
+                                OverlayDropdownPreference(
                                     title = stringResource(field.titleRes),
                                     summary = field.summary,
                                     items = field.items,
