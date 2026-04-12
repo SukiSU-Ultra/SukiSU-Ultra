@@ -61,8 +61,8 @@ import com.kyant.backdrop.shadow.Shadow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.ui.animation.DampedDragAnimation
-import com.sukisu.ultra.ui.animation.InteractiveHighlight
+import com.sukisu.ultra.ui.component.miuix.animation.DampedDragAnimation
+import com.sukisu.ultra.ui.component.miuix.animation.InteractiveHighlight
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.abs

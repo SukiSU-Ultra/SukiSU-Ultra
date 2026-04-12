@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ui.modifier
+package com.sukisu.ultra.ui.component.miuix.modifier
 
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
