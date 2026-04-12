@@ -339,7 +339,9 @@ internal fun InstallScreenMiuix(
                                 }
                             )
                         }
-                        TextButton(
+                    }
+                    
+                    TextButton(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
@@ -348,15 +350,14 @@ internal fun InstallScreenMiuix(
                             colors = ButtonDefaults.textButtonColorsPrimary(),
                             onClick = actions.onNext
                         )
-                        Spacer(
-                            Modifier.height(
-                                WindowInsets.navigationBars.asPaddingValues()
-                                    .calculateBottomPadding() +
-                                        WindowInsets.captionBar.asPaddingValues()
-                                            .calculateBottomPadding()
-                            )
+                    Spacer(
+                        Modifier.height(
+                            WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding() +
+                                    WindowInsets.captionBar.asPaddingValues()
+                                        .calculateBottomPadding()
                         )
-                    }
+                    )
                 }
             }
         }
