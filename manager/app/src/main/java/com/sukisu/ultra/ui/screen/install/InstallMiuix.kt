@@ -189,7 +189,7 @@ internal fun InstallScreenMiuix(
                     }
 
                     // LKM 上传（仅 GKI）
-                    if (isGkiDevice) {
+                    if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()

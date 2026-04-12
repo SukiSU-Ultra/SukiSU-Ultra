@@ -140,7 +140,7 @@ internal fun InstallScreenMaterial(
                             icon = Icons.Filled.Edit
                         )
                     }
-                    if (isGkiDevice) add {
+                    if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) add {
                         SegmentedListItem(
                             leadingContent = {
                                 Icon(
