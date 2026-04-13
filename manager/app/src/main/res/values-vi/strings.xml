@@ -17,6 +17,7 @@
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
     <string name="superuser">Superuser</string>
+    <string name="sulog_filter_root_execve">Thực Thi root</string>
     <string name="module_failed_to_enable">Kích hoạt module %s thất bại</string>
     <string name="module_failed_to_disable">Vô hiệu hoá module %s thất bại</string>
     <string name="module_empty">Chưa có module nào được cài đặt</string>
@@ -243,6 +244,7 @@
     <!-- Log Viewer -->
     <!-- umount Manager -->
     <!-- Kernel Flash Progress Related -->
+    <string name="horizon_copying_files">Đang sao chép các file…</string>
     <!-- kpm -->
     <!-- Tools -->
     <!-- Zip File Type Labels -->
