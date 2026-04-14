@@ -476,7 +476,7 @@
     <string name="add_kstat_statically_title">Add Kstat Static Configuration</string>
     <string name="file_or_directory_path_label">File/Directory path</string>
     <string name="hint_use_default_value">Hint: You can use "default" to use the original value</string>
-    <string name="add_kstat_path_title">Add Kstat path</string>
+    <string name="add_kstat_path_title">Add Kstat Path</string>
     <string name="add">Add</string>
     <string name="reset_kstat_config_title">Reset Kstat Configuration</string>
     <string name="reset_kstat_config_message">Are you sure you want to clear all Kstat configurations? This action cannot be undone</string>
@@ -486,7 +486,7 @@
     <string name="kstat_config_description_update">• update_sus_kstat: Update target ino, keep size and blocks unchanged</string>
     <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: Update ino only, keep other original values</string>
     <string name="static_kstat_config">Static Kstat Configuration</string>
-    <string name="kstat_path_management">Kstat path Management</string>
+    <string name="kstat_path_management">Kstat Path Management</string>
     <string name="no_kstat_config_message">No Kstat configuration yet, click the button below to add</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
     <string name="susfs_hide_mounts_for_all_procs_label">Hide SUS mounts for all processes</string>
