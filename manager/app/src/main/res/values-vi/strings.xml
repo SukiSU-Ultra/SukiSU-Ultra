@@ -16,8 +16,29 @@
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Không xác định</string>
+    <string name="home_seccomp_status">Trạng Thái bảo mật</string>
+    <string name="seccomp_status_not_supported">Không được hỗ trợ</string>
+    <string name="seccomp_status_disabled">Đã Vô Hiệu Hoá</string>
+    <string name="seccomp_status_strict">Nghiêm Ngặt</string>
+    <string name="seccomp_status_filter">Bộ Lọc</string>
+    <string name="seccomp_status_unknown">Không Xác Định</string>
     <string name="superuser">Superuser</string>
+    <string name="sulog_log_files">File Log</string>
+    <string name="sulog_failed_to_load">Thất Bại Khi Load sulog</string>
+    <string name="sulog_disabled_title">SU Log Chưa Bật</string>
+    <string name="sulog_unsupported_title">SU Log Không Hỗ Trọ</string>
+    <string name="sulog_enable_action">Bật</string>
+    <string name="sulog_filter_title">Lọc Theo Loại</string>
+    <string name="sulog_clean_title">Xoá LOG</string>
     <string name="sulog_filter_root_execve">Thực Thi root</string>
+    <string name="sulog_filter_sucompat">SU Cổ Điển</string>
+    <string name="sulog_filter_ioctl_grant_root">Cấp quyền Root</string>
+    <string name="sulog_filter_daemon_restart">Khởi động lại Daemon</string>
+    <string name="sulog_entry_unknown_event">Sự kiện chưa định danh</string>
+    <string name="sulog_entry_title_root_grant_request">Yêu cầu cấp quyền</string>
+    <string name="sulog_entry_description_ioctl_grant_root">Đã cấp quyền thông qua KernelSU iotcl</string>
+    <string name="sulog_entry_title_daemon_restarted">Khởi động lại Daemon</string>
+    <string name="sulog_entry_title_dropped_events">Sự kiện bị bỏ qua</string>
     <string name="module_failed_to_enable">Kích hoạt module %s thất bại</string>
     <string name="module_failed_to_disable">Vô hiệu hoá module %s thất bại</string>
     <string name="module_empty">Chưa có module nào được cài đặt</string>
@@ -153,6 +174,8 @@
     <string name="settings_sucompat_summary">Cho phép truy cập root thông qua /system/bin/su, trong các tiến trình mới.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
     <string name="settings_kernel_umount_summary">Umount modules khỏi Kernel trong Hồ sơ ứng dụng.</string>
+    <string name="settings_sulog">SU Log</string>
+    <string name="settings_sulog_summary">Ghi lại các sự kiện liên quan đến root vào tệp sulog KernelSU.</string>
     <string name="feature_status_unsupported_summary">Kernel không hỗ trợ tính năng này</string>
     <string name="feature_status_managed_summary">Tính năng này được quản lý bởi một module</string>
     <string name="settings_mode_enable_by_default">Bật (Mặc định)</string>
@@ -240,16 +263,138 @@
     <string name="download">Tải xuống</string>
     <string name="download_cancel">Hủy bỏ</string>
     <string name="download_install">Cài đặt</string>
+    <string name="settings_adb_root_summary">Chạy daemon adbd với quyền root</string>
     <!-- Customize -->
+    <string name="hook_type">Chế độ Hook</string>
+    <string name="manual_hook">Hook thủ công</string>
+    <string name="inline_hook">Hook trực tiếp</string>
+    <string name="home_susfs_version">Phiên bản SuSFS </string>
     <!-- Log Viewer -->
+    <string name="log_viewer_title">Trình xem nhật ký</string>
+    <string name="settings_view_sulog">Xem nhật ký hiện tại</string>
+    <string name="settings_view_sulog_summary">Mở trình xem nhật ký</string>
+    <string name="log_viewer_back">Trở lại</string>
+    <string name="sulog_blocked_label">Bị chặn</string>
+    <string name="sulog_allowed_label">Cho phép</string>
+    <string name="sulog_other_label">Khác</string>
     <!-- umount Manager -->
+    <string name="umount_path_manager">Quản lý Đường dẫn Umount</string>
+    <string name="umount_path_restart_notice">Cần khởi động lại để các thay đổi có hiệu lực. Hệ thống sẽ áp dụng cấu hình mới vào lần khởi động tiếp theo</string>
+    <string name="add_umount_path">Thêm Đường dẫn Umount</string>
+    <string name="mount_path">Đường dẫn Mount</string>
+    <string name="umount_flags">Umount Flags</string>
+    <string name="umount_flags_hint">0=Normal unmount, 2=MNT_DETACH</string>
+    <string name="flags">Flags</string>
+    <string name="confirm_delete">Xác nhận Xoá?</string>
+    <string name="confirm_delete_umount_path">Bạn có chắc chắn muốn xóa đường dẫn %s không?</string>
+    <string name="umount_path_added">Đã thêm đường dẫn, sẽ có hiệu lực sau khi khởi động lại</string>
+    <string name="umount_path_removed">Đường dẫn đã bị xóa, sẽ có hiệu lực sau khi khởi động lại</string>
+    <string name="operation_failed">Thao tác thất bại</string>
+    <string name="confirm_action">Xác nhận Khởi chạy?</string>
+    <string name="confirm_clear_custom_paths">Bạn có chắc chắn muốn xóa tất cả các đường dẫn tùy chỉnh không? (Các đường dẫn mặc định sẽ được giữ nguyên)</string>
+    <string name="custom_paths_cleared">Đường dẫn tùy chỉnh đã được xóa</string>
+    <string name="clear_custom_paths">Xóa Đường dẫn Tùy chỉnh</string>
+    <string name="apply_config">Áp dụng Cấu hình</string>
+    <string name="config_applied">Cấu hình đã được áp dụng cho Kernel</string>
+    <string name="mnt_detach">MNT_DETACH</string>
     <!-- Kernel Flash Progress Related -->
+    <string name="horizon_flash_complete">Flash hoàn tất</string>
+    <string name="horizon_preparing">Đang chuẩn bị…</string>
+    <string name="horizon_cleaning_files">Đang dọn dẹp các file…</string>
     <string name="horizon_copying_files">Đang sao chép các file…</string>
+    <string name="horizon_extracting_tool">Đang giải nén công cụ Flash…</string>
+    <string name="horizon_patching_script">Đang vá tập lệnh Flash…</string>
+    <string name="horizon_flashing">Flashing Kernel…</string>
+    <string name="horizon_flash_complete_status">Flash hoàn tất</string>
+    <string name="select_slot_title">Chọn Slot Flash</string>
+    <string name="select_slot_description">Vui lòng chọn Slot để Flash Boot</string>
+    <string name="slot_a">Slot A</string>
+    <string name="slot_b">Slot B</string>
+    <string name="selected_slot">Slot đã chọn: %1$s</string>
+    <string name="horizon_getting_original_slot">Lấy Slot ban đầu</string>
+    <string name="horizon_setting_target_slot">Cài đặt Slot được chỉ định</string>
+    <string name="horizon_restoring_original_slot">Khôi phục Slot mặc định</string>
+    <string name="current_slot">Slot hiện tại: %1$s </string>
+    <string name="horizon_copy_failed">Sao chép thất bại</string>
+    <string name="horizon_unknown_error">Lỗi không xác định</string>
+    <string name="flash_failed_message">Flash thất bại</string>
+    <string name="kernel_version_log">Phiên bản Kernel: %1$s</string>
+    <string name="tool_version_log">Sử dụng công cụ vá lỗi: %1$s</string>
+    <string name="tools">Công cụ</string>
+    <string name="root_required">Yêu cầu quyền root</string>
+    <string name="kpm_patch_options">Vá KPM</string>
+    <string name="kpm_patch_description">Thêm tính năng KPM</string>
+    <string name="enable_kpm_patch">Vá KPM</string>
+    <string name="enable_kpm_undo_patch">Hoàn tác Vá KPM</string>
+    <string name="kpm_patch_enabled">Vá KPM đã bật</string>
+    <string name="kpm_undo_patch_enabled">Hoàn tác Vá KPM đã bật</string>
+    <string name="kpm_patch_mode">Chế độ Vá KPM</string>
+    <string name="kpm_undo_patch_mode">Chế độ hoàn tác Vá KPM</string>
+    <string name="kpm_preparing_tools">Chuẩn bị công cụ Vá KPM</string>
+    <string name="kpm_applying_patch">Áp dụng Vá KPM</string>
+    <string name="kpm_undoing_patch">Hoàn tác Vá KPM</string>
+    <string name="kpm_found_image_file">Đã tìm thấy file image: %s</string>
+    <string name="kpm_patch_success">Đã vá KPM thành công</string>
+    <string name="kpm_undo_patch_success">Hoàn tác vá KPM thành công</string>
+    <string name="kpm_file_repacked">Nén lại file thành công</string>
+    <string name="kpm_extract_zip_failed">Giải nén file thất bại</string>
+    <string name="kpm_image_file_not_found">Không tìm thấy file image</string>
+    <string name="kpm_patch_failed">Vá KPM thất bại</string>
+    <string name="kpm_follow_kernel_file">Mặc định theo file Kernel</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
+    <string name="horizon_kernel">AnyKernel3 Kernel</string>
+    <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
     <!-- kpm -->
+    <string name="settings_kpm_summary">Quản lý modules bằng KPM</string>
+    <string name="kpm_empty">Không có Kernel Module nào được cài đặt tại thời điểm này</string>
+    <string name="kpm_version">Phiên bản</string>
+    <string name="kpm_author">Tác giả</string>
+    <string name="kpm_uninstall">Gỡ cài đặt</string>
+    <string name="kpm_uninstall_success">Gỡ cài đặt thành công</string>
+    <string name="kpm_uninstall_failed">Gỡ cài đặt thất bại</string>
+    <string name="kpm_install_success">Load KPModule thành công</string>
+    <string name="kpm_install_failed">Load KPModule thất bại</string>
+    <string name="kpm_args">Thông số</string>
+    <string name="kpm_control">Tuỳ chỉnh</string>
+    <string name="close_notice">Đóng</string>
+    <string name="kernel_module_notice">Các chức năng Kernel Module sau đây được KernelPatch phát triển và sửa đổi để tương thích với các chức năng Kernel Module của SukiSU Ultra</string>
+    <string name="kpm_control_success">Thành công</string>
+    <string name="kpm_control_failed">Thất bại</string>
+    <string name="not_supported">Không được hỗ trợ</string>
+    <string name="kpm_install_mode">Cài đặt KPM</string>
+    <string name="kpm_install_mode_load">Load</string>
+    <string name="kpm_install_mode_embed">Nhúng</string>
+    <string name="kpm_install_mode_description">Vui lòng chọn: %1\$s Chế Độ Cài Đặt Module \n\nTải: Tải tạm thời module \nNhúng: Cài đặt vĩnh viễn vào hệ thống</string>
+    <string name="invalid_file_type">Loại file không đúng! Vui lòng chọn file .kpm</string>
+    <string name="confirm_uninstall_title_with_filename">Gỡ cài đặt</string>
+    <string name="confirm_uninstall_content">KPM sau đây sẽ được gỡ cài đặt: %s</string>
+    <string name="snackbar_failed_to_check_module_file">Không thể kiểm tra file module</string>
+    <string name="cancel">Thoát</string>
     <!-- Tools -->
+    <string name="settings_tools">Công cụ</string>
+    <string name="settings_tools_summary">Tính năng nâng cao hơn</string>
+    <string name="tools_selinux_toggle">Chế độ SELinux</string>
+    <string name="tools_selinux_summary">Hiện tại: %1$s</string>
+    <string name="tools_selinux_apply_success">Chuyển qua chế độ SELinux</string>
+    <string name="tools_selinux_apply_failed">Chuyển chế độ SELinux thất bại</string>
+    <string name="allowlist_backup_title">Sao lưu danh sách cho phép</string>
+    <string name="allowlist_backup_summary_picker">Chọn vị trí xuất DS cho phép</string>
+    <string name="allowlist_backup_success">Sao lưu thành công</string>
+    <string name="allowlist_backup_failed">Sao lưu thất bại</string>
+    <string name="allowlist_restore_title">Khôi phục AllowList</string>
+    <string name="allowlist_restore_summary_picker">Chọn tệp sao lưu để nhập</string>
+    <string name="allowlist_restore_success">Khôi phục thành công. Những thay đổi sẽ có hiệu lực sau khi khởi động lại</string>
+    <string name="allowlist_restore_failed">Khôi phục thất bại</string>
     <!-- Zip File Type Labels -->
+    <string name="zip_type_module"> (Module)</string>
+    <string name="zip_type_kernel"> (Kernel)</string>
+    <string name="zip_file_unknown">unknown.zip</string>
     <!-- Zip Install Prompts -->
+    <string name="kernel_install_prompt_with_name">Các module sau đây sẽ được cài đặt: %1$s</string>
+    <string name="mixed_install_prompt_with_name">Các module sau đây sẽ được cài đặt: %1$s</string>
     <!-- SuSFS Configuration -->
+    <string name="susfs_config_title">Cấu hình SuSFS</string>
+    <string name="susfs_config_summary">Định cấu hình cài đặt mô-đun SuSFS</string>
     <!-- SuSFS Reset Confirmation -->
     <!-- SuSFS Toast Messages -->
     <!-- 开机自启动相关 -->
@@ -260,10 +405,107 @@
     <!-- SuSFS Enabled Features -->
     <!-- Feature Labels -->
     <!-- 可切换状态 -->
+    <string name="susfs_slot_current_badge">Hiện tại</string>
+    <string name="susfs_slot_use_uname">Sử dụng Uname</string>
+    <string name="susfs_slot_use_build_time">Sử dụng Thời gian xây dựng</string>
+    <string name="susfs_slot_info_unavailable">Không thể lấy thông tin Slot</string>
     <!-- SuSFS Kstat相关字符串 -->
+    <string name="susfs_tab_kstat_config">Cấu hình Kstat</string>
+    <string name="add_kstat_statically_title">Thêm cấu hình Kstat tĩnh</string>
+    <string name="file_or_directory_path_label">Đường dẫn File/Folder</string>
+    <string name="hint_use_default_value">Gợi ý: Bạn có thể sử dụng \"default\" để thiết lập giá trị ban đầu</string>
+    <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
+    <string name="add">Thêm</string>
+    <string name="reset_kstat_config_title">Đặt lại Cấu hình Kstat</string>
+    <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này</string>
+    <string name="kstat_config_description_title">Mô tả cấu hình Kstat</string>
+    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Thông tin thống kê cấu hình tĩnh của các File/Folder</string>
+    <string name="kstat_config_description_add">• add_sus_kstat: Thêm đường dẫn trước khi mount để lưu trữ thông tin trạng thái ban đầu</string>
+    <string name="kstat_config_description_update">• update_sus_kstat: Cập nhật ino mục tiêu, giữ nguyên kích thước và khối</string>
+    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: ​​Chỉ cập nhật ino, giữ nguyên các giá trị gốc khác</string>
+    <string name="static_kstat_config">Cấu hình Kstat tĩnh</string>
+    <string name="kstat_path_management">Quản lý Đường dẫn Kstat</string>
+    <string name="no_kstat_config_message">Chưa có cấu hình Kstat, hãy nhấp vào nút bên dưới để thêm</string>
     <!-- SuSFS Mount Hiding Control Related Strings -->
+    <string name="susfs_hide_mounts_for_all_procs_label">Ẩn SuS Mount khỏi tất cả các tiến trình</string>
+    <string name="susfs_hide_mounts_for_all_procs_enabled_description">Khi kích hoạt, SuS Mount sẽ bị ẩn khỏi tất cả các tiến trình, bao gồm cả các tiến trình KSU</string>
+    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hoá, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
     <!-- 备份和还原相关字符串 -->
+    <string name="susfs_backup_title">Sao lưu</string>
+    <string name="susfs_backup_description">Tạo bản sao lưu cho tất cả các cấu hình SuSFS. File sao lưu sẽ bao gồm tất cả các thiết lập, đường dẫn và thông tin cấu hình</string>
+    <string name="susfs_backup_create">Tạo bản sao lưu</string>
+    <string name="susfs_backup_success">Đã tạo bản sao lưu thành công: %s</string>
+    <string name="susfs_backup_failed">Tạo bản sao lưu thất bại: %s</string>
+    <string name="susfs_backup_file_not_found">Không tìm thấy file sao lưu</string>
+    <string name="susfs_backup_invalid_format">Định dạng file sao lưu không hợp lệ</string>
+    <string name="susfs_backup_version_mismatch">Phiên bản sao lưu không khớp, nhưng sẽ cố gắng khôi phục</string>
+    <string name="susfs_restore_title">Khôi phục</string>
+    <string name="susfs_restore_description">Khôi phục cấu hình SuSFS từ file sao lưu. Thao tác này sẽ ghi đè lên tất cả các cài đặt hiện tại</string>
+    <string name="susfs_restore_select_file">Chọn file sao lưu</string>
+    <string name="susfs_restore_success" formatted="false">Cấu hình đã được khôi phục thành công từ bản sao lưu được tạo trên %s, từ thiết bị: %s</string>
+    <string name="susfs_restore_failed">Khôi phục thất bại: %s</string>
+    <string name="susfs_restore_confirm_title">Xác nhận khôi phục</string>
+    <string name="susfs_restore_confirm_description">Thao tác này sẽ ghi đè lên tất cả các cấu hình SuSFS hiện tại. Bạn có chắc chắn muốn tiếp tục không?</string>
+    <string name="susfs_restore_confirm">Khôi phục</string>
+    <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
+    <string name="susfs_backup_info_device">Thiết bị: %s</string>
+    <string name="susfs_backup_info_version">Phiên bản: %s</string>
+    <string name="hide_bl_script">Trạng thái Lock BL</string>
+    <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái lock bootloader ở chế độ dịch vụ late_start</string>
+    <string name="cleanup_residue">Dọn rác</string>
+    <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
+    <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>
+    <string name="edit_kstat_statically_title">Chỉnh sửa cấu hình Kstat tĩnh</string>
+    <string name="edit_kstat_path_title">Chỉnh sửa Đường dẫn Kstat</string>
+    <string name="susfs_save">Lưu</string>
+    <string name="update">Cập nhật</string>
+    <string name="susfs_update_full_clone">Cập nhật bản sao SuSFS đầy đủ</string>
+    <string name="app_paths_section">Đường dẫn ứng dụng</string>
+    <string name="other_paths_section">Đường dẫn khác</string>
+    <string name="add_custom_path">Khác</string>
+    <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
+    <string name="search_apps">Tìm kiếm ứng dụng</string>
+    <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
+    <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
+    <string name="all_apps_already_added">Tất cả các ứng dụng đã được thêm vào</string>
+    <string name="no_apps_found">không tìm thấy ứng dụng nào</string>
     <!-- 循环路径相关 -->
+    <string name="susfs_tab_sus_loop_paths">Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_add_sus_loop_path">Thêm Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_edit_sus_loop_path">Chỉnh sửa Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_no_loop_paths_configured">Không có Đường dẫn Vòng lặp SuS nào được cấu hình</string>
+    <string name="susfs_reset_loop_paths_title">Đặt lại Đường dẫn Vòng lặp SuS</string>
+    <string name="susfs_reset_loop_paths_message">Bạn có chắc chắn muốn xóa tất cả các Đường dẫn Vòng lặp SuS không? Thao tác này không thể hoàn tác</string>
+    <string name="susfs_loop_path_label">Đường dẫn Vòng lặp</string>
+    <string name="susfs_loop_path_restriction_warning">Lưu ý: Chỉ những đường dẫn KHÔNG nằm trong /storage/ và /sdcard/ mới có thể được thêm vào thông qua Đường dẫn Vòng lặp</string>
+    <string name="susfs_invalid_loop_path">Đường dẫn vòng lặp không hợp lệ</string>
+    <string name="susfs_add_loop_path_failed">Không thể thêm đường dẫn vòng lặp</string>
+    <string name="susfs_edit_loop_path_failed">Không thể chỉnh sửa đường dẫn vòng lặp</string>
+    <string name="loop_paths_section">Đường dẫn Vòng lặp</string>
+    <string name="add_loop_path">Thêm Đường dẫn Vòng lặp</string>
     <!-- 循环路径功能描述 -->
+    <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
+    <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
+    <string name="avc_log_spoofing">Giả mạo nhật ký AVC</string>
+    <string name="avc_log_spoofing_description">Tắt: Vô hiệu hoá tính năng giả mạo sus tcontext của \'su\' trong nhật ký AVC của kernel\n
+Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'kernel\' trong nhật ký AVC của kernel</string>
     <!-- SUS Map related strings -->
+    <string name="susfs_tab_sus_maps">SuS Maps</string>
+    <string name="susfs_sus_map_label">Đường dẫn thư viện</string>
+    <string name="susfs_add_sus_map">Thêm SuS Map</string>
+    <string name="susfs_edit_sus_map">Chỉnh sửa SuS Map</string>
+    <string name="susfs_no_sus_maps_configured">Không có SuS Map nào được cấu hình</string>
+    <string name="susfs_add_map_failed">Không thể thêm SUS map</string>
+    <string name="susfs_edit_map_failed">Edit SUS map thất bại</string>
+    <string name="susfs_reset_sus_maps_title">Đặt lại SuS Map</string>
+    <string name="susfs_reset_sus_maps_message">Thao tác này sẽ xóa tất cả các SuS Map đã cấu hình. Không thể hoàn tác thao tác này</string>
+    <string name="sus_maps_section">Ẩn Bộ nhớ Map</string>
+    <string name="sus_maps_description_title">Ẩn tệp mmapp khỏi các map khác nhau trong /proc/self/</string>
+    <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
+    <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
+    <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
+    <string name="icon_switch_title">Thay thế icon</string>
+    <string name="icon_switch_summary">Thay đổi icon SukiSU thành icon của KernelSU</string>
+    <string name="refresh">Làm mới</string>
+    <string name="home_kernel_full_version">Phiên bản Kernel</string>
 </resources>
