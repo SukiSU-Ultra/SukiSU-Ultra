@@ -29,6 +29,7 @@
 #include "feature/kernel_umount.h"
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
+#include "feature/adb_root.h"
 #include "runtime/ksud.h"
 #include "sulog/event.h"
 #include "sulog/fd.h"
@@ -79,6 +80,7 @@
 #include "feature/kernel_umount.c"
 #include "feature/sucompat.c"
 #include "feature/sulog.c"
+#include "feature/adb_root.c"
 #include "runtime/ksud.c"
 
 #include "sulog/event.c"
@@ -127,6 +129,8 @@ int __init kernelsu_init(void)
     ksu_sucompat_init();
 
     ksu_sulog_init();
+
+    ksu_adb_root_init();
 
     ksu_kernel_umount_init();
 
