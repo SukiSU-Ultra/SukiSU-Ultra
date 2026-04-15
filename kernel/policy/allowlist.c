@@ -274,8 +274,8 @@ bool ksu_uid_should_umount(uid_t uid)
         // we should not umount for webview zygote
         return false;
     }
-    rcu_read_lock();
 
+    rcu_read_lock();
     profile = ksu_get_app_profile(uid);
     if (!profile) {
         // no app profile found, it must be non root app

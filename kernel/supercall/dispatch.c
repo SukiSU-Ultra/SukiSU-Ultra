@@ -262,7 +262,6 @@ static int do_get_app_profile(void __user *arg)
 
     if (copy_from_user(&uid, (char __user *)arg + offsetof(struct ksu_get_app_profile_cmd, profile.curr_uid),
                        sizeof(uid_t))) {
-
         pr_err("get_app_profile: copy_from_user failed\n");
         return -EFAULT;
     }
