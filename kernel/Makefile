@@ -126,6 +126,12 @@ ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct_array;" $(srctre
 ccflags-y += -DKSU_TYPE_VAL_TO_STRUCT_ARRAY
 endif
 
+# https://github.com/torvalds/linux/commit/11276d5306b8e5b438a36bbff855fe792d7eaa61
+ifeq ($(shell grep -q "DEFINE_STATIC_KEY_TRUE" $(srctree)/include/linux/jump_label.h 2>/dev/null; echo $$?),0)
+$(info -- $(REPO_NAME)/compat: modern static_key_interface found)
+ccflags-y += -DKSU_HAS_MODERN_STATIC_KEY_INTERFACE
+endif
+
 ifdef KSU_MANAGER_PACKAGE
 ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
 $(info -- KernelSU Manager package name: $(KSU_MANAGER_PACKAGE))

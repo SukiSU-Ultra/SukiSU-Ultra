@@ -117,7 +117,11 @@ int escape_with_root_profile(void)
         return -ENOMEM;
     }
 
+#ifdef CONFIG_KSU_SUSFS
+    if (susfs_is_current_ksu_domain()) {
+#else
     if (cred->euid.val == 0) {
+#endif
         pr_warn("Already root, don't escape!\n");
         goto out_abort_creds;
     }

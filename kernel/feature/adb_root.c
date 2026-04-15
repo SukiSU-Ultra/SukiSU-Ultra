@@ -1,32 +1,35 @@
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
 DEFINE_STATIC_KEY_FALSE(ksu_adb_root);
+#else
+bool ksu_adb_root __read_mostly = false;
+#endif
 
-static long is_exec_adbd(struct pt_regs *regs)
+#ifdef CONFIG_KSU_SUSFS
+static inline long is_exec_adbd(const char *filename)
 {
-    static const char kAdbd[] = "/adbd";
-    static const size_t kAdbdLen = sizeof(kAdbd) - 1;
-    char __user *filename_user = (char __user *)PT_REGS_PARM1(regs);
-    // should be bigger than `/apex/com.android.adbd/bin/adbd`
-    char buf[40];
-    char __user *fn;
-    long ret;
-    fn = (char __user *)untagged_addr((unsigned long)filename_user);
-    memset(buf, 0, sizeof(buf));
+    if (strstr(filename, "adbd"))
+        pr_info("is_exec_adbd() => filename: %s\n", filename);
 
-    ret = strncpy_from_user(buf, fn, sizeof(buf));
-    if (ret < 0) {
-        pr_warn("Access filename when adb_root_handle_execve failed: %ld\n", ret);
-        return ret;
-    }
+    return (susfs_starts_with(filename, "/apex/") &&
+                susfs_ends_with(filename, "/adbd"));
+}
+#else
+static const char kAdbd[] = "/adbd";
+static const size_t kAdbdLen = sizeof(kAdbd) - 1;
 
-    // strncpy_from_user may copy `sizeof(buf)` bytes
-    if (ret < kAdbdLen || ret >= sizeof(buf) || memcmp(buf + ret - kAdbdLen, kAdbd, kAdbdLen + 1) != 0) {
+static inline long is_exec_adbd(const char *filename)
+{
+    size_t len = strlen(filename);
+
+    if (len < kAdbdLen || memcmp(filename + len - kAdbdLen, kAdbd, kAdbdLen) != 0) {
         return 0;
     }
 
     return 1;
 }
+#endif
 
-static long is_libadbroot_ok()
+static long is_libadbroot_ok(void)
 {
     static const char kLibAdbRoot[] = "/data/adb/ksu/lib/libadbroot.so";
     struct path path;
@@ -46,15 +49,16 @@ static long is_libadbroot_ok()
     return ret;
 }
 
-static long setup_ld_preload(struct pt_regs *regs)
+static long setup_ld_preload(void ***envp_user_ptr)
+//static long setup_ld_preload(struct pt_regs *regs)
 {
     static const char kLdPreload[] = "LD_PRELOAD=/data/adb/ksu/lib/libadbroot.so";
     static const char kLdLibraryPath[] = "LD_LIBRARY_PATH=/data/adb/ksu/lib";
     static const size_t kReadEnvBatch = 16;
     static const size_t kPtrSize = sizeof(unsigned long);
-    unsigned long stackp = user_stack_pointer(regs);
+    unsigned long stackp = current_user_stack_pointer();
     unsigned long envp, ld_preload_p, ld_library_path_p;
-    unsigned long *envp_p = (unsigned long *)&PT_REGS_PARM3(regs);
+    unsigned long *envp_p = (unsigned long)envp_user_ptr;
     unsigned long *tmp_env_p = NULL, *tmp_env_p2 = NULL;
     size_t env_count = 0, total_size;
     long ret;
@@ -140,9 +144,9 @@ out_release_env_p:
     return ret;
 }
 
-static long do_ksu_adb_root_handle_execve(struct pt_regs *regs)
+static long do_ksu_adb_root_handle_execve(const char *filename, void ***envp_user_ptr)
 {
-    if (likely(is_exec_adbd(regs) != 1)) {
+    if (likely(is_exec_adbd(filename) != 1)) {
         return 0;
     }
 
@@ -150,38 +154,57 @@ static long do_ksu_adb_root_handle_execve(struct pt_regs *regs)
         return 0;
     }
 
-    long ret = setup_ld_preload(regs);
+    long ret = setup_ld_preload(envp_user_ptr);
     if (ret) {
         return ret;
     }
 
     pr_info("escape to root for adb\n");
     escape_to_root_for_adb_root();
+
+    ret = escape_with_root_profile();
+    if (ret)
+        pr_err("escape_with_root_profile() failed: %d\n", (int)ret);
+
     return 0;
 }
 
-long ksu_adb_root_handle_execve(struct pt_regs *regs)
+long ksu_adb_root_handle_execve(const char *filename, void ***envp_user_ptr)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
     if (static_branch_unlikely(&ksu_adb_root)) {
-        return do_ksu_adb_root_handle_execve(regs);
+        return do_ksu_adb_root_handle_execve(filename, envp_user_ptr);
     }
+#else
+    if (unlikely(ksu_adb_root)) {
+        return do_ksu_adb_root_handle_execve(filename, envp_user_ptr);
+    }
+#endif
     return 0;
 }
 
 static int kernel_adb_root_feature_get(u64 *value)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
     *value = static_key_enabled(&ksu_adb_root) ? 1 : 0;
+#else
+    *value = ksu_adb_root ? 1 : 0;
+#endif
     return 0;
 }
 
 static int kernel_adb_root_feature_set(u64 value)
 {
     bool enable = value != 0;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
     if (enable) {
         static_key_enable(&ksu_adb_root.key);
     } else {
         static_key_disable(&ksu_adb_root.key);
     }
+#else
+    ksu_adb_root = enable;
+#endif
     pr_info("adb_root: set to %d\n", enable);
     return 0;
 }

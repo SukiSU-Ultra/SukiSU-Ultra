@@ -23,18 +23,6 @@ LSM_HOOK_TYPE ksu_key_permission(key_ref_t key_ref, const struct cred *cred, uns
 #endif
 
 #ifdef CONFIG_KSU_SUSFS
-static inline bool is_zygote_isolated_service_uid(uid_t uid)
-{
-    uid %= 100000;
-    return (uid >= 99000 && uid < 100000);
-}
-
-static inline bool is_zygote_normal_app_uid(uid_t uid)
-{
-    uid %= 100000;
-    return (uid >= 10000 && uid < 19999);
-}
-
 extern u32 susfs_zygote_sid;
 extern struct cred *ksu_cred;
 
@@ -64,23 +52,26 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
         return 0;
 
     // Check if spawned process is isolated service first, and force to do umount if so
-    if (is_zygote_isolated_service_uid(new_uid))
+    if (is_isolated_process(new_uid))
         goto do_umount;
 
     // - Since ksu maanger app uid is excluded in allow_list_arr, so ksu_uid_should_umount(manager_uid)
     //   will always return true, that's why we need to explicitly check if new_uid belongs to
     //   ksu manager
-    if (likely(ksu_is_manager_appid_valid()) &&
-        unlikely(ksu_get_manager_appid() == new_uid % PER_USER_RANGE))
-    {
+    if (is_uid_manager(new_uid)) {
         disable_seccomp();
         pr_info("install fd for manager: %d\n", new_uid);
         ksu_install_fd();
         return 0;
     }
 
+    if (unlikely(new_uid == WEBVIEW_ZYGOTE_UID)) {
+        // we should not umount for webview zygote
+        return 0;
+    }
+
     // Check if spawned process is normal user app and needs to be umounted
-    if (likely(is_zygote_normal_app_uid(new_uid) && ksu_uid_should_umount(new_uid)))
+    if (likely(is_appuid(new_uid) && ksu_uid_should_umount(new_uid)))
         goto do_umount;
 
     if (ksu_is_allow_uid_for_current(new_uid)) {

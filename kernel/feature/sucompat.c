@@ -54,13 +54,13 @@ extern const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr);
  * return 0 -> No further checks should be required afterwards
  * return non-zero -> Further checks should be continued afterwards
  */
-int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *argv_user) {
+int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *argv_user, struct user_arg_ptr *envp_user) {
     if (current->pid != 1 && is_init(get_current_cred())) {
+        int ret = 0;
         if (unlikely(strcmp(filename->name, KSUD_PATH) == 0)) {
             char tmp_filename[SUSFS_MAX_LEN_PATHNAME] = {0};
             const char __user *argv_user_ptr = get_user_arg_ptr(*argv_user, 0);
             struct ksu_sulog_pending_event *pending_sucompat = NULL;
-            int ret = 0;
 
             pr_info("hook_manager: escape to root for init executing ksud: %d\n", current->pid);
             escape_to_root_for_init();
@@ -84,14 +84,28 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
             susfs_set_current_proc_umounted();
             return 0;
         }
-        return -EINVAL;
+
+#ifdef CONFIG_COMPAT
+        if (unlikely(envp_user->is_compat))
+            ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.compat);
+        else
+            ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);    
+#else
+        ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);
+#endif
+
+        if (ret) {
+            pr_err("adb root failed: %d\n", ret);
+            return ret;
+        }
+        return ret;
     }
     return -EINVAL;
 }
 
 // the call from execve_handler_pre won't provided correct value for __never_use_argument, use them after fix execve_handler_pre, keeping them for consistence for manually patched code
 int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
-                 void *argv_user, void *__never_use_envp,
+                 void *argv_user, void *envp_user,
                  int *__never_use_flags)
 {
     struct filename *filename;
@@ -107,7 +121,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     if (IS_ERR(filename))
         return 0;
 
-    if (!ksu_handle_execveat_init(filename, (struct user_arg_ptr*)argv_user))
+    if (!ksu_handle_execveat_init(filename, (struct user_arg_ptr*)argv_user, (struct user_arg_ptr*)envp_user))
         return 0;
 
     if (likely(memcmp(filename->name, su_path, sizeof(su_path))))

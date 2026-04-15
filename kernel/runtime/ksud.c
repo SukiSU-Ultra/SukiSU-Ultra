@@ -173,7 +173,7 @@ fail:
 }
 
 #ifdef CONFIG_KSU_SUSFS
-extern int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *argv_user);
+extern int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *argv_user, struct user_arg_ptr *envp_user);
 
 // IMPORTANT NOTE: the call from execve_handler_pre WON'T provided correct value for envp and flags in GKI version
 int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
@@ -224,7 +224,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
     }
 
     // - We need to run ksu_handle_execveat_init() at the very end in case the above checks are skipped
-    (void)ksu_handle_execveat_init(filename, argv);
+    (void)ksu_handle_execveat_init(filename, argv, envp);
 
     return 0;
 }
@@ -320,6 +320,17 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
             first_zygote = false;
             stop_execve_hook();
         }
+    }
+
+    if (envp) {
+#ifdef CONFIG_COMPAT
+        if (unlikely(envp->is_compat))
+            (void)ksu_adb_root_handle_execve(filename->name, (void ***)&envp->ptr.compat);
+        else
+            (void)ksu_adb_root_handle_execve(filename->name, (void ***)&envp->ptr.native);
+#else
+        (void)ksu_adb_root_handle_execve(filename->name, (void ***)&envp->ptr.native);
+#endif
     }
 
     return 0;
