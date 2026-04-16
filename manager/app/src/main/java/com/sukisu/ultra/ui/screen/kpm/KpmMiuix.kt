@@ -2,31 +2,38 @@ package com.sukisu.ultra.ui.screen.kpm
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +46,6 @@ import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.viewmodel.KpmViewModel
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.*
-import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
@@ -54,19 +60,15 @@ fun KpmMiuix(
     actions: KpmActions,
     bottomInnerPadding: Dp = 0.dp
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    val scrollBehavior = MiuixScrollBehavior()
-
     val enableBlur = LocalEnableBlur.current
-    val backdrop = rememberBlurBackdrop(enableBlur)
-    val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
 
-    val kpmInstallMode = stringResource(R.string.kpm_install_mode)
-    val kpmInstallModeLoad = stringResource(R.string.kpm_install_mode_load)
-    val kpmInstallModeEmbed = stringResource(R.string.kpm_install_mode_embed)
-    val cancel = stringResource(R.string.cancel)
+    val showEmptyState by remember {
+        derivedStateOf {
+            uiState.moduleList.isEmpty() && !uiState.isRefreshing
+        }
+    }
 
     val scrollDistance = remember { mutableFloatStateOf(0f) }
     var fabVisible by remember { mutableStateOf(true) }
@@ -95,7 +97,17 @@ fun KpmMiuix(
         }
     }
 
-    if (state.showInstallModeDialog) {
+    val offsetHeight by animateDpAsState(
+        targetValue = if (fabVisible) 0.dp else 180.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
+        animationSpec = tween(durationMillis = 350)
+    )
+
+    val kpmInstallMode = stringResource(R.string.kpm_install_mode)
+    val kpmInstallModeLoad = stringResource(R.string.kpm_install_mode_load)
+    val kpmInstallModeEmbed = stringResource(R.string.kpm_install_mode_embed)
+    val cancel = stringResource(R.string.cancel)
+
+    if (uiState.showInstallModeDialog) {
         OverlayDialog(
             show = true,
             title = kpmInstallMode,
@@ -104,7 +116,7 @@ fun KpmMiuix(
             },
             content = {
                 Column {
-                    state.tempModuleName?.let {
+                    uiState.tempModuleName?.let {
                         Text(
                             text = stringResource(R.string.kpm_install_mode_description, it),
                             color = colorScheme.onBackground
@@ -154,41 +166,71 @@ fun KpmMiuix(
         )
     }
 
+    val scrollBehavior = MiuixScrollBehavior()
+    val backdrop = rememberBlurBackdrop(enableBlur)
+
     Scaffold(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
-                    color = barColor,
+                    color = if (enableBlur) Color.Transparent else colorScheme.surface,
                     title = stringResource(R.string.kpm_title),
                     actions = {
-                            IconButton(
-                                onClick = actions.onRefresh
-                            ) {
-                                Icon(
-                                    imageVector = MiuixIcons.Refresh,
-                                    contentDescription = stringResource(R.string.refresh),
-                                    tint = colorScheme.onBackground
-                                )
-                            }
-                        },
+                        IconButton(
+                            onClick = actions.onRefresh
+                        ) {
+                            Icon(
+                                imageVector = MiuixIcons.Refresh,
+                                contentDescription = stringResource(R.string.refresh),
+                                tint = colorScheme.onBackground
+                            )
+                        }
+                    },
                     scrollBehavior = scrollBehavior
                 )
             }
         },
-        popupHost = { },
+        floatingActionButton = {
+            AnimatedVisibility(visible = fabVisible) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .offset { IntOffset(0, offsetHeight.roundToPx()) }
+                        .padding(bottom = bottomInnerPadding + 20.dp, end = 20.dp)
+                        .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
+                    shadowElevation = 0.dp,
+                    onClick = actions.onRequestInstall,
+                    content = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.package_import),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                )
+            }
+        },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
 
-        KpmList(
-            state = state,
-            actions = actions,
-            scrollBehavior = scrollBehavior,
-            nestedScrollConnection = nestedScrollConnection,
-            innerPadding = innerPadding,
-            bottomInnerPadding = bottomInnerPadding,
-            layoutDirection = layoutDirection
-        )
+        if (showEmptyState) {
+            EmptyStateView(
+                innerPadding = innerPadding,
+                bottomInnerPadding = bottomInnerPadding,
+                layoutDirection = layoutDirection
+            )
+        } else {
+            KpmList(
+                state = uiState,
+                actions = actions,
+                scrollBehavior = scrollBehavior,
+                nestedScrollConnection = nestedScrollConnection,
+                innerPadding = innerPadding,
+                bottomInnerPadding = bottomInnerPadding,
+                layoutDirection = layoutDirection
+            )
+        }
     }
 }
 
@@ -200,11 +242,9 @@ private fun KpmList(
     nestedScrollConnection: NestedScrollConnection,
     innerPadding: PaddingValues,
     bottomInnerPadding: Dp,
-    layoutDirection: LayoutDirection,
+    layoutDirection: LayoutDirection
 ) {
     val context = LocalContext.current
-    val enableBlur = LocalEnableBlur.current
-    val backdrop = rememberBlurBackdrop(enableBlur)
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     var isNoticeClosed by remember { mutableStateOf(sharedPreferences.getBoolean("is_notice_closed", false)) }
 
@@ -241,7 +281,6 @@ private fun KpmList(
             end = innerPadding.calculateEndPadding(layoutDirection),
         ),
     ) {
-        Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxHeight()
@@ -315,7 +354,6 @@ private fun KpmList(
                 Spacer(Modifier.height(bottomInnerPadding))
             }
         }
-            }
     }
 }
 
@@ -504,6 +542,44 @@ private fun KpmModuleItem(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyStateView(
+    innerPadding: PaddingValues,
+    bottomInnerPadding: Dp,
+    layoutDirection: LayoutDirection
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                top = innerPadding.calculateTopPadding(),
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                end = innerPadding.calculateEndPadding(layoutDirection),
+                bottom = bottomInnerPadding
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Code,
+                contentDescription = null,
+                tint = colorScheme.primary.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .size(96.dp)
+                    .padding(bottom = 16.dp)
+            )
+            Text(
+                stringResource(R.string.kpm_empty),
+                textAlign = TextAlign.Center,
+                color = colorScheme.onBackground
+            )
         }
     }
 }
