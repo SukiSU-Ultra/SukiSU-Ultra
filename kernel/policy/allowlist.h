@@ -47,8 +47,4 @@ static inline bool is_isolated_process(uid_t uid)
     return appid >= FIRST_ISOLATED_UID && appid <= LAST_ISOLATED_UID;
 }
 
-#ifdef CONFIG_KSU_MANUAL_SU
-bool ksu_temp_grant_root_once(uid_t uid);
-void ksu_temp_revoke_root_once(uid_t uid);
-#endif
 #endif

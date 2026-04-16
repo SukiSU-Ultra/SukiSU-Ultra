@@ -121,18 +121,6 @@ LSM_HOOK_TYPE ksu_task_fix_setuid(struct cred *new, const struct cred *old, int 
 }
 #endif
 
-#ifdef CONFIG_KSU_MANUAL_SU
-static int ksu_task_alloc_hook(struct task_struct *task, 
-                               unsigned long clone_flags)
-{
-    const struct cred *cred = current_cred();
-    
-    ksu_try_escalate_for_uid(cred->uid.val);
-    
-    return 0;
-}
-#endif
-
 #ifdef CONFIG_KSU_LSM_HOOKS
 static struct security_hook_list ksu_hooks[] = {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) || defined(CONFIG_IS_HW_HISI) ||                                     \
@@ -141,9 +129,6 @@ static struct security_hook_list ksu_hooks[] = {
 #endif
 #ifndef CONFIG_KSU_SUSFS
     LSM_HOOK_INIT(task_fix_setuid, ksu_task_fix_setuid),
-#endif
-#ifdef CONFIG_KSU_MANUAL_SU
-    LSM_HOOK_INIT(task_alloc, ksu_task_alloc_hook)
 #endif
 };
 

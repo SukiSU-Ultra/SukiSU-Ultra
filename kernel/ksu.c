@@ -47,11 +47,6 @@
 #include "avc.h"
 #endif
 
-#ifdef CONFIG_KSU_MANUAL_SU
-#include "other/manual_su.h"
-#include "other/manual_su.c"
-#endif
-
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
 #include "kpm/compact.h"
