@@ -8,7 +8,7 @@
     <string name="home_working_version">Version: %d</string>
     <string name="home_unsupported">Unsupported</string>
     <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?</string>
-    <string name="home_version_mismatch">Manager version (%1$d) and KernelSU driver version (%2$d) mismatch.</string>
+    <string name="home_version_mismatch">Manager version (%1$d) and KernelSU driver version (%2$d) mismatch!</string>
     <string name="home_kernel">Kernel version</string>
     <string name="home_manager_version">Manager version</string>
     <string name="home_fingerprint">Fingerprint</string>
@@ -80,7 +80,7 @@
     <string name="reboot_to_apply">Reboot to take effect</string>
     <string name="module_magisk_conflict">Modules are unavailable due to a conflict with Magisk!</string>
     <string name="home_learn_kernelsu">Learn KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url" translatable="false">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">Learn how to install KernelSU and use modules.</string>
     <string name="home_support_title">Support Us</string>
     <string name="home_support_content">KernelSU is, and always will be, free, and open source. However, you can show us that you care by making a donation.</string>
@@ -99,7 +99,7 @@
     <string name="profile_selinux_context">SELinux context</string>
     <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Failed to update App Profile for %s</string>
-    <string name="require_kernel_version">The current KernelSU version %1$d is too low for the manager to work properly. Please upgrade to version %2$d or higher!</string>
+    <string name="require_kernel_version">The current KernelSU version %1$d is too low for the manager to work properly. Please update to version %2$d or higher!</string>
     <string name="settings_umount_modules_default">Umount modules</string>
     <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set.</string>
     <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app.</string>
@@ -109,7 +109,7 @@
     <string name="module_downloading">Downloading module: %s</string>
     <string name="module_start_downloading">Start downloading: %s</string>
     <string name="module_action_success">Module action executed successfully.</string>
-    <string name="new_version_available">New version %s is available, click to upgrade!</string>
+    <string name="new_version_available">New version %s is now available, click to update!</string>
     <string name="launch_app">Launch</string>
     <string name="force_stop_app">Force stop</string>
     <string name="restart_app">Restart</string>
@@ -117,7 +117,7 @@
     <string name="su_not_allowed">Couldn\'t grant Superuser access to %s</string>
     <string name="module_changelog">Changelog</string>
     <string name="settings_profile_template">App Profile template</string>
-    <string name="settings_profile_template_summary">Manage local and online template of App Profile.</string>
+    <string name="settings_profile_template_summary">Manage local and online template of App Profile</string>
     <string name="app_profile_template_create">Create template</string>
     <string name="app_profile_template_edit">Edit template</string>
     <string name="app_profile_template_id">ID</string>
@@ -137,9 +137,9 @@
     <string name="app_profile_template_import_empty">Clipboard is empty!</string>
     <string name="app_profile_affects_following_apps">Affects the following apps</string>
     <string name="settings_check_update">Check for updates</string>
-    <string name="settings_check_update_summary">Automatically check for updates when opening the app.</string>
+    <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
     <string name="settings_enable_predictive_back">Predictive back gesture</string>
-    <string name="settings_enable_predictive_back_summary">Enable predictive back gesture support.</string>
+    <string name="settings_enable_predictive_back_summary">Enable predictive back gesture support</string>
     <string name="settings_module_check_update">Check for module updates</string>
     <string name="grant_root_failed">Failed to grant root!</string>
     <string name="home_pr_build_warning">This is a PR debug build. Do NOT use it in production!</string>
@@ -157,7 +157,7 @@
     <string name="install_next">Next</string>
     <string name="install_select_partition">Select partition</string>
     <string name="install_upload_lkm_file">Use local LKM file</string>
-    <string name="install_only_support_ko_file">Only .ko files are supported</string>
+    <string name="install_only_support_ko_file">Only .ko format files are supported</string>
     <string name="select_file_tip">%1$s partition image is recommended</string>
     <string name="select_kmi">Select KMI</string>
     <string name="settings_uninstall">Uninstall</string>
@@ -174,15 +174,15 @@
     <string name="save_log">Save logs</string>
     <string name="log_saved">Logs saved</string>
     <string name="settings_sucompat">Classic su command</string>
-    <string name="settings_sucompat_summary">Allow root access via /system/bin/su, in new processes.</string>
+    <string name="settings_sucompat_summary">Allow root access via /system/bin/su, in new processes</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Unmount modules from kernel in App Profile.</string>
+    <string name="settings_kernel_umount_summary">Unmount modules from kernel in App Profile</string>
     <string name="settings_sulog">SU Log</string>
-    <string name="settings_sulog_summary">Record root-related events into KernelSU sulog files.</string>
-    <string name="feature_status_unsupported_summary">Kernel does not support this feature</string>
+    <string name="settings_sulog_summary">Record root-related events into KernelSU sulog files</string>
+    <string name="feature_status_unsupported_summary">Kernel does not support this feature!</string>
     <string name="feature_status_managed_summary">This feature is managed by a module</string>
     <string name="settings_mode_enable_by_default">Enable (Default)</string>
-    <string name="settings_mode_disable_until_reboot">Disable until Reboot</string>
+    <string name="settings_mode_disable_until_reboot">Disable until reboot</string>
     <string name="settings_mode_disable_always">Always disable</string>
     <string name="processing">Processing…</string>
     <string name="refresh_pulling">Pull down to refresh</string>
@@ -202,9 +202,9 @@
     <string name="settings_key_color">Key color</string>
     <string name="settings_key_color_default">Default</string>
     <string name="settings_ui_mode">UI Style</string>
-    <string name="settings_ui_mode_summary">Choose the interface style.</string>
+    <string name="settings_ui_mode_summary">Choose the interface style</string>
     <string name="settings_page_scale">Page Scale</string>
-    <string name="settings_page_scale_summary">Adjust the global display scale.</string>
+    <string name="settings_page_scale_summary">Adjust the global display scale</string>
     <string name="settings_color_spec">Color Spec</string>
     <string name="settings_color_style">Color Style</string>
     <string name="color_blue">Blue</string>
@@ -247,14 +247,14 @@
     <string name="settings_floating_bottom_bar">Floating bottom bar</string>
     <string name="settings_floating_bottom_bar_summary">Use Apple style floating bottom bar.</string>
     <string name="settings_enable_glass">Liquid glass</string>
-    <string name="settings_enable_glass_summary">Enable liquid glass effect for floating bottom bar.</string>
+    <string name="settings_enable_glass_summary">Enable liquid glass effect for floating bottom bar</string>
     <string name="settings_smooth_corner">Smooth corner</string>
-    <string name="settings_smooth_corner_summary">Enable global smooth rounded corners.</string>
+    <string name="settings_smooth_corner_summary">Enable global smooth rounded corners</string>
     <string name="show_only_primary_user_apps">Show only primary user apps</string>
     <string name="settings_auto_jailbreak">Auto jailbreak</string>
     <string name="settings_auto_jailbreak_summary">Automatically use Magica to escalate privileges when Permissive SELinux is detected at boot. Requires granting autostart permission to this app.</string>
     <string name="allow_shell">Always grant root to Shell</string>
-    <string name="allow_shell_summary">Always allow adb shell to call su. Do not enable this unless absolutely necessary.</string>
+    <string name="allow_shell_summary">Always allow adb shell to call SU. Do not enable this unless absolutely necessary!</string>
     <string name="enable_adb">Force enable adb on boot</string>
     <string name="enable_adb_summary">Force enable USB debugging and disable adb authentication. Do not enable this unless absolutely necessary.</string>
     <string name="advanced_options">Advanced Options</string>
@@ -269,7 +269,7 @@
     <string name="download_cancel">Cancel</string>
     <string name="download_install">Install</string>
     <string name="settings_adb_root" translatable="false">ADB Root</string>
-    <string name="settings_adb_root_summary">Run adbd daemon with root privileges</string>
+    <string name="settings_adb_root_summary">Run daemon (adbd) with root privileges</string>
     <!-- Customize -->
     <string name="hook_type">Hook Type</string>
     <string name="manual_hook">Manual Hook</string>
@@ -285,10 +285,10 @@
     <string name="sulog_allowed_label">Allowed</string>
     <string name="sulog_ioctl_label">Ioctl Escalation</string>
     <string name="sulog_other_label">Other</string>
-    <!-- umount Manager -->
-    <string name="umount_path_manager">Umount Path Management</string>
+    <!-- Umount Manager -->
+    <string name="umount_path_manager">Umount path management</string>
     <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot.</string>
-    <string name="add_umount_path">Add Umount Path</string>
+    <string name="add_umount_path">Add Umount path</string>
     <string name="mount_path">Mount Path</string>
     <string name="umount_flags">Unmount Flags</string>
     <string name="umount_flags_hint">0=Normal unmount, 2=MNT_DETACH</string>
@@ -304,9 +304,9 @@
     <string name="clear_custom_paths">Clear Custom Paths</string>
     <string name="apply_config">Apply Configuration</string>
     <string name="config_applied">Configuration applied to kernel</string>
-    <string name="mnt_detach">MNT_DETACH</string>
+    <string name="mnt_detach" translatable="false">MNT_DETACH</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_complete">Flash Complete</string>
+    <string name="horizon_flash_complete">Flash complete</string>
     <string name="horizon_preparing">Preparing…</string>
     <string name="horizon_cleaning_files">Cleaning files…</string>
     <string name="horizon_copying_files">Copying files…</string>
@@ -322,12 +322,12 @@
     <string name="horizon_getting_original_slot">Getting the original slot</string>
     <string name="horizon_setting_target_slot">Setting the specified slot</string>
     <string name="horizon_restoring_original_slot">Restore Default Slot</string>
-    <string name="current_slot">Current system default slot：%1$s </string>
+    <string name="current_slot">Current system default slot: %1$s </string>
     <string name="horizon_copy_failed">Copy failed</string>
     <string name="horizon_unknown_error">Unknown error</string>
     <string name="flash_failed_message">Flash failed</string>
-    <string name="kernel_version_log">Kernel version：%1$s</string>
-    <string name="tool_version_log">Using the patching tool：%1$s</string>
+    <string name="kernel_version_log">Kernel version: %1$s</string>
+    <string name="tool_version_log">Using the patching tool: %1$s</string>
     <string name="tools">Tools</string>
     <string name="root_required">Requires root privileges</string>
     <string name="kpm_patch_options">KPM Patch</string>
@@ -354,7 +354,7 @@
     <string name="kernel_flashing">Kernel Flashing</string>
     <string name="horizon_kernel">AnyKernel3 Kernel</string>
     <string name="horizon_kernel_summary">Flash AnyKernel3 format kernel zip</string>
-    <!-- kpm -->
+    <!-- KPM -->
     <string name="kpm_title">KPM</string>
     <string name="settings_kpm_summary">Manage kernel modules with KPM</string>
     <string name="kpm_empty">No installed kernel modules at this time</string>
@@ -363,8 +363,8 @@
     <string name="kpm_uninstall">Uninstall</string>
     <string name="kpm_uninstall_success">Uninstalled successfully</string>
     <string name="kpm_uninstall_failed">Failed to uninstall</string>
-    <string name="kpm_install_success">Load of kpm module successful</string>
-    <string name="kpm_install_failed">Load of kpm module failed</string>
+    <string name="kpm_install_success">Load of KPM module successful</string>
+    <string name="kpm_install_failed">Load of KPM module failed</string>
     <string name="kpm_args">Parameters</string>
     <string name="kpm_control">Execute</string>
     <string name="close_notice">Close</string>
@@ -399,7 +399,7 @@
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (Module)</string>
     <string name="zip_type_kernel"> (Kernel)</string>
-    <string name="zip_file_unknown">unknown.zip</string>
+    <string name="zip_file_unknown" translatable="false">unknown.zip</string>
     <!-- Zip Install Prompts -->
     <string name="kernel_install_prompt_with_name">The following kernels will be installed: %1$s</string>
     <string name="mixed_install_prompt_with_name">The following files will be installed: %1$s</string>
@@ -418,7 +418,7 @@
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">Cannot find ksu_susfs file</string>
     <string name="susfs_command_failed">SuSFS command execution failed</string>
-    <!-- 开机自启动相关 -->
+    <!-- Auto Start -->
     <string name="susfs_autostart_title">Auto Start</string>
     <string name="susfs_autostart_description">Automatically apply all non-default configurations on reboot</string>
     <string name="susfs_autostart_requirement">Configuration needs to be added to enable</string>
@@ -446,14 +446,14 @@
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">SUS Path Support</string>
     <string name="sus_mount_feature_label">SUS Mount Support</string>
-    <string name="spoof_uname_feature_label">Spoof uname Support</string>
+    <string name="spoof_uname_feature_label">Spoof Uname Support</string>
     <string name="spoof_cmdline_feature_label">Spoof Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">Open Redirect Support</string>
     <string name="enable_log_feature_label">Logging Support</string>
     <string name="hide_symbols_feature_label">Hide KSU SUSFS Symbols</string>
     <string name="sus_kstat_feature_label">SUS Kstat Support</string>
     <string name="sus_map_feature_label">SUS Map Support</string>
-    <!-- 可切换状态 -->
+    <!-- SuSFS Feature Configuration -->
     <string name="susfs_feature_configurable">Configurable SuSFS Features</string>
     <string name="susfs_enable_log_label">SuSFS Enable Log</string>
     <string name="susfs_log_config_description">Enable or disable logging for SuSFS</string>
@@ -471,10 +471,10 @@
     <string name="susfs_slot_use_uname">Use Uname</string>
     <string name="susfs_slot_use_build_time">Use Build Time</string>
     <string name="susfs_slot_info_unavailable">Unable to retrieve slot information</string>
-    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Kstat Related Strings -->
     <string name="susfs_tab_kstat_config">Kstat Configuration</string>
     <string name="add_kstat_statically_title">Add Kstat Static Configuration</string>
-    <string name="file_or_directory_path_label">File/Directory Path</string>
+    <string name="file_or_directory_path_label">File/Directory path</string>
     <string name="hint_use_default_value">Hint: You can use "default" to use the original value</string>
     <string name="add_kstat_path_title">Add Kstat Path</string>
     <string name="add">Add</string>
@@ -492,7 +492,7 @@
     <string name="susfs_hide_mounts_for_all_procs_label">Hide SUS mounts for all processes</string>
     <string name="susfs_hide_mounts_for_all_procs_enabled_description">When enabled, SUS mounts will be hidden from all processes, including KSU processes</string>
     <string name="susfs_hide_mounts_for_all_procs_disabled_description">When disabled, SUS mounts will only be hidden from non-KSU processes, KSU processes can see the mounts</string>
-    <!-- 备份和还原相关字符串 -->
+    <!-- SuSFS Backup and Restore Related Strings -->
     <string name="susfs_backup_title">Backup</string>
     <string name="susfs_backup_description">Create a backup of all SuSFS configurations. The backup file will include all settings, paths, and configurations</string>
     <string name="susfs_backup_create">Create Backup</string>
@@ -515,7 +515,7 @@
     <string name="hide_bl_script">Lock state</string>
     <string name="hide_bl_script_description">Overwrite bootloader locking status attribute in late_start service mode</string>
     <string name="cleanup_residue">Cleanup Residue</string>
-    <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (May be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
+    <string name="cleanup_residue_description">Clean up residual files and directories from various modules and tools. Use with caution: required files may be deleted by mistake, causing data loss or startup failures!</string>
     <string name="susfs_edit_sus_path">Edit SUS Path</string>
     <string name="edit_kstat_statically_title">Edit Kstat Static Configuration</string>
     <string name="edit_kstat_path_title">Edit Kstat Path</string>
@@ -533,11 +533,11 @@
     <string name="already_added_apps_count">%1$d apps already added</string>
     <string name="all_apps_already_added">All apps have been added</string>
     <string name="no_apps_found">No apps found</string>
-    <!-- 循环路径相关 -->
+    <!-- SuSFS Loop Path Related Strings -->
     <string name="susfs_tab_sus_loop_paths">SUS Loop Paths</string>
     <string name="susfs_add_sus_loop_path">Add SUS Loop Path</string>
     <string name="susfs_edit_sus_loop_path">Edit SUS Loop Path</string>
-    <string name="susfs_no_loop_paths_configured">No SUS loop paths configured</string>
+    <string name="susfs_no_loop_paths_configured">No SUS Loop Paths configured</string>
     <string name="susfs_reset_loop_paths_title">Reset Loop Paths</string>
     <string name="susfs_reset_loop_paths_message">Are you sure you want to clear all SUS loop paths? This action cannot be undone</string>
     <string name="susfs_loop_path_label">Loop Path</string>
@@ -547,23 +547,23 @@
     <string name="susfs_edit_loop_path_failed">Failed to edit loop path</string>
     <string name="loop_paths_section">Loop Paths</string>
     <string name="add_loop_path">Add Loop Path</string>
-    <!-- 循环路径功能描述 -->
+    <!-- SuSFS Loop Path Feature Description -->
     <string name="sus_loop_paths_description_title">Loop Path Configuration</string>
     <string name="sus_loop_paths_description_text">Loop paths are re-flagged as SUS_PATH on each non-root user app or isolated service startup. This helps address issues where added paths may have their inode status reset or inode re-created in the kernel</string>
     <string name="avc_log_spoofing">AVC Log Spoofing</string>
     <string name="avc_log_spoofing_description">Disabled: Disable spoofing the sus tcontext of \'su\' shown in avc log in kernel\nEnabled: Enable spoofing the sus tcontext of \'su\' with \'kernel\' shown in avc log in kernel</string>
-    <!-- SUS Map related strings -->
+    <!-- SUS Map Related Strings -->
     <string name="susfs_tab_sus_maps">SUS Maps</string>
     <string name="susfs_sus_map_label">Library Path</string>
     <string name="susfs_add_sus_map">Add SUS Map</string>
     <string name="susfs_edit_sus_map">Edit SUS Map</string>
-    <string name="susfs_no_sus_maps_configured">No SUS maps configured</string>
-    <string name="susfs_add_map_failed">Failed to add SUS map</string>
-    <string name="susfs_edit_map_failed">Failed to edit SUS map</string>
+    <string name="susfs_no_sus_maps_configured">No SUS Maps configured</string>
+    <string name="susfs_add_map_failed">Failed to add SUS Map</string>
+    <string name="susfs_edit_map_failed">Failed to edit SUS Map</string>
     <string name="susfs_reset_sus_maps_title">Reset SUS Maps</string>
-    <string name="susfs_reset_sus_maps_message">This will remove all configured SUS maps. This action cannot be undone.</string>
+    <string name="susfs_reset_sus_maps_message">This will remove all configured SUS maps. This action cannot be undone!</string>
     <string name="sus_maps_section">Memory Map Hiding</string>
-    <string name="sus_maps_description_title">Hide the mmapped real file from various maps in /proc/self/</string>
+    <string name="sus_maps_description_title">Hide the mapped real file from various maps in /proc/self/</string>
     <string name="sus_maps_description_text">Hide the real file paths of memory mappings from /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Please note: This feature does not support hiding anonymous memory mappings, nor can it hide inline hooks or PLT hooks caused by the injected library itself.</string>
     <string name="sus_maps_warning">Important Notice: For applications with well-implemented injection detection mechanisms, this feature may not effectively bypass detection.</string>
     <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly.</string>
