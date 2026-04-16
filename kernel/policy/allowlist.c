@@ -339,7 +339,7 @@ retry:
 
     rcu_read_unlock();
     return res;
-#endif
+// #endif
 }
 
 void ksu_put_root_profile(struct root_profile *profile)
