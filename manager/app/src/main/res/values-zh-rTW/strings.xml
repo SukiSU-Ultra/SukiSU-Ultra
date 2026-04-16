@@ -7,7 +7,6 @@
     <string name="home_working_version">版本：%d</string>
     <string name="home_unsupported">未受支援</string>
     <string name="home_unsupported_reason">KernelSU 目前僅支援 GKI 核心</string>
-    <string name="home_version_mismatch">管理器版本 (%1$d) 與 KernelSU 驅動版本 (%2$d) 不匹配。</string>
     <string name="home_kernel">核心版本</string>
     <string name="home_manager_version">管理工具</string>
     <string name="home_fingerprint">指紋資訊</string>
@@ -67,7 +66,6 @@
     <string name="reboot_to_apply">將在重新啟動時生效</string>
     <string name="module_magisk_conflict">與 Magisk 發生衝突，無法使用模組功能！</string>
     <string name="home_learn_kernelsu">深入瞭解 KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_TW/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">知曉安裝、使用 KernelSU 本體與其模組功能的方法</string>
     <string name="home_support_title">協助發展</string>
     <string name="home_support_content">KernelSU 一向以免費與開放原始碼自居，矢志不渝。若想協助我們，可以用小額捐款表達你對專案發展的大力支持。</string>
@@ -85,7 +83,6 @@
     <string name="profile_selinux_context">SELinux 上下文</string>
     <string name="profile_umount_modules">解除掛載模組功能</string>
     <string name="failed_to_update_app_profile">無法更新「%s」App Profile</string>
-    <string name="require_kernel_version">管理工具無法以老舊的 KernelSU %1$d 版本正常運作。請升級至 %2$d 以上的版本！</string>
     <string name="settings_umount_modules_default">預設解除掛載模組功能</string>
     <string name="settings_umount_modules_default_summary">將 App Profile 的全域預設行為設作「解除掛載模組功能」。啟用後，將向未指派 Profile 的應用程式移除模組功能。</string>
     <string name="profile_umount_modules_summary">啟用選項後，KernelSU 會將應用程式內遭模組修改的檔案恢復原狀。</string>
@@ -95,7 +92,6 @@
     <string name="module_downloading">正在下載模組：%s</string>
     <string name="module_start_downloading">準備下載模組：%s</string>
     <string name="module_action_success">模塊 action 執行成功。</string>
-    <string name="new_version_available">版本 %s 現已開放下載，點選開始更新。</string>
     <string name="launch_app">開始執行</string>
     <string name="force_stop_app">強制停止</string>
     <string name="restart_app">重新執行</string>
@@ -103,7 +99,6 @@
     <string name="su_not_allowed">無法授予「%s」超級使用者存取</string>
     <string name="module_changelog">更新說明</string>
     <string name="settings_profile_template">App Profile 範本</string>
-    <string name="settings_profile_template_summary">管理 App Profile 的本地、線上範本</string>
     <string name="app_profile_template_create">建立範本</string>
     <string name="app_profile_template_edit">編輯範本</string>
     <string name="app_profile_template_id">編號</string>
@@ -123,9 +118,7 @@
     <string name="app_profile_template_import_empty">查無剪貼簿內容！</string>
     <string name="app_profile_affects_following_apps">影響以下應用</string>
     <string name="settings_check_update">檢查更新</string>
-    <string name="settings_check_update_summary">開啟本應用程式時，自動檢查更新</string>
     <string name="settings_enable_predictive_back">預測性返回手勢</string>
-    <string name="settings_enable_predictive_back_summary">啟用對預測性返回手勢的支援</string>
     <string name="settings_module_check_update">檢查模組更新</string>
     <string name="grant_root_failed">無法獲取 Root 權限！</string>
     <string name="home_pr_build_warning">當前為 PR 除錯構建，請勿在生產環境中使用！</string>
@@ -143,7 +136,6 @@
     <string name="install_next">繼續</string>
     <string name="install_select_partition">選擇分割槽</string>
     <string name="install_upload_lkm_file">使用本地 LKM 檔案</string>
-    <string name="install_only_support_ko_file">僅支援選擇 .ko 檔案</string>
     <string name="select_file_tip">建議選擇 %1$s 分區的映像檔</string>
     <string name="select_kmi">選擇 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
@@ -160,15 +152,10 @@
     <string name="save_log">儲存日誌</string>
     <string name="log_saved">已儲存運作日誌</string>
     <string name="settings_sucompat">傳統 su 命令支援</string>
-    <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅對新行程生效。</string>
     <string name="settings_kernel_umount">核心處理解除掛載模組</string>
-    <string name="settings_kernel_umount_summary">在核心為需要的應用程式解除掛載模組</string>
     <string name="settings_sulog">SU 日誌</string>
-    <string name="settings_sulog_summary">將 root 相關事件記錄到 KernelSU sulog 檔案。</string>
-    <string name="feature_status_unsupported_summary">內核不支持此特性</string>
     <string name="feature_status_managed_summary">此功能由一個模塊管理</string>
     <string name="settings_mode_enable_by_default">啟用（預設）</string>
-    <string name="settings_mode_disable_until_reboot">停用直到下次重啟</string>
     <string name="settings_mode_disable_always">始終停用</string>
     <string name="processing">處理中…</string>
     <string name="refresh_pulling">下拉刷新</string>
@@ -185,9 +172,7 @@
     <string name="settings_key_color">強調色</string>
     <string name="settings_key_color_default">默認</string>
     <string name="settings_ui_mode">界面風格</string>
-    <string name="settings_ui_mode_summary">選擇應用的界面風格</string>
     <string name="settings_page_scale">界面縮放</string>
-    <string name="settings_page_scale_summary">調整全局顯示比例</string>
     <string name="settings_color_spec">色彩標準</string>
     <string name="settings_color_style">色彩風格</string>
     <string name="color_blue">藍色</string>
@@ -230,12 +215,10 @@
     <string name="settings_floating_bottom_bar">懸浮底欄</string>
     <string name="settings_floating_bottom_bar_summary">使用 Apple 風格的懸浮底欄</string>
     <string name="settings_enable_glass">液態玻璃</string>
-    <string name="settings_enable_glass_summary">啟用懸浮底欄的液態玻璃效果</string>
     <string name="show_only_primary_user_apps">只顯示主用戶應用</string>
     <string name="settings_auto_jailbreak">自動越獄</string>
     <string name="settings_auto_jailbreak_summary">開機檢測到 Permissive SELinux 時自動使用 Magica 提權。需要授予本應用自啟動權限。</string>
     <string name="allow_shell">總是給 shell 授予 root 權限</string>
-    <string name="allow_shell_summary">總是允許 adb shell 調用 su ，非必要請勿開啟。</string>
     <string name="enable_adb">啟動時強制啟用 ADB 調試</string>
     <string name="enable_adb_summary">強制允許 USB 調試並取消 adb 認證，非必要請勿開啟。</string>
     <string name="advanced_options">高級選項</string>
@@ -249,7 +232,6 @@
     <string name="download">下載</string>
     <string name="download_cancel">取消</string>
     <string name="download_install">安裝</string>
-    <string name="settings_adb_root_summary">以 root 權限運行 adbd 守護進程</string>
     <!-- Customize -->
     <string name="hook_type">鉤子類型</string>
     <string name="manual_hook">手動 Hook</string>
@@ -263,10 +245,8 @@
     <string name="sulog_allowed_label">允許</string>
     <string name="sulog_ioctl_label">ioctl 提權</string>
     <string name="sulog_other_label">其他</string>
-    <!-- umount Manager -->
-    <string name="umount_path_manager">Umount 路徑管理</string>
+    <!-- Umount Manager -->
     <string name="umount_path_restart_notice">添加或刪除路徑後需要重啟設備才能生效。系統會在下次啟動時應用新的配置。</string>
-    <string name="add_umount_path">添加 Umount 路徑</string>
     <string name="mount_path">掛載路徑</string>
     <string name="umount_flags">卸載標誌</string>
     <string name="umount_flags_hint">0=正常卸載, 2=MNT_DETACH</string>
@@ -283,7 +263,6 @@
     <string name="apply_config">應用配置</string>
     <string name="config_applied">配置已應用到內核</string>
     <!-- Kernel Flash Progress Related -->
-    <string name="horizon_flash_complete">刷入完成</string>
     <string name="horizon_preparing">準備中…</string>
     <string name="horizon_cleaning_files">清理文件…</string>
     <string name="horizon_copying_files">複製文件…</string>
@@ -299,12 +278,9 @@
     <string name="horizon_getting_original_slot">獲取原始槽位</string>
     <string name="horizon_setting_target_slot">設置指定槽位</string>
     <string name="horizon_restoring_original_slot">恢復默認槽位</string>
-    <string name="current_slot">當前系統默認槽位：%1$s </string>
     <string name="horizon_copy_failed">複製失敗</string>
     <string name="horizon_unknown_error">未知錯誤</string>
     <string name="flash_failed_message">刷入失敗</string>
-    <string name="kernel_version_log">內核版本：%1$s</string>
-    <string name="tool_version_log">使用的修補工具：%1$s</string>
     <string name="tools">工具</string>
     <string name="root_required">需要root權限</string>
     <string name="kpm_patch_options">KPM 補丁</string>
@@ -331,7 +307,7 @@
     <string name="kernel_flashing">內核刷入</string>
     <string name="horizon_kernel">AnyKernel3 內核</string>
     <string name="horizon_kernel_summary">刷入AnyKernel3格式的內核zip包</string>
-    <!-- kpm -->
+    <!-- KPM -->
     <string name="settings_kpm_summary">使用 KPM 管理內核模塊</string>
     <string name="kpm_empty">當前沒有安裝內核模塊</string>
     <string name="kpm_version">版本</string>
@@ -339,8 +315,6 @@
     <string name="kpm_uninstall">卸載</string>
     <string name="kpm_uninstall_success">卸載成功</string>
     <string name="kpm_uninstall_failed">卸載失敗</string>
-    <string name="kpm_install_success">kpm 模塊加載成功</string>
-    <string name="kpm_install_failed">kpm 模塊加載失敗</string>
     <string name="kpm_args">參數</string>
     <string name="kpm_control">執行</string>
     <string name="close_notice">關閉</string>
@@ -393,7 +367,7 @@
     <!-- SuSFS Toast Messages -->
     <string name="susfs_binary_not_found">無法找到 ksu_susfs 文件</string>
     <string name="susfs_command_failed">SuSFS 命令執行失敗</string>
-    <!-- 开机自启动相关 -->
+    <!-- Auto Start -->
     <string name="susfs_autostart_title">開機自啟動</string>
     <string name="susfs_autostart_description">重啟時自動應用所有非默認配置</string>
     <string name="susfs_autostart_requirement">需要添加配置後才能啟用</string>
@@ -421,14 +395,13 @@
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">SuS 路徑支持</string>
     <string name="sus_mount_feature_label">SuS 掛載支持</string>
-    <string name="spoof_uname_feature_label">欺騙 uname 支持</string>
     <string name="spoof_cmdline_feature_label">欺騙 Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">開放重定向支持</string>
     <string name="enable_log_feature_label">日誌記錄支持</string>
     <string name="hide_symbols_feature_label">隱藏 KSU SuSFS 符號</string>
     <string name="sus_kstat_feature_label">SuS Kstat 支持</string>
     <string name="sus_map_feature_label">SUS Map 支持</string>
-    <!-- 可切换状态 -->
+    <!-- SuSFS Feature Configuration -->
     <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
     <string name="susfs_enable_log_label">SuSFS 啟用日誌</string>
     <string name="susfs_log_config_description">啟用或者關閉 SuSFS 的日誌</string>
@@ -444,10 +417,9 @@
     <string name="susfs_slot_use_uname">使用 Uname</string>
     <string name="susfs_slot_use_build_time">使用構建時間</string>
     <string name="susfs_slot_info_unavailable">無法獲取槽位信息</string>
-    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Kstat Related Strings -->
     <string name="susfs_tab_kstat_config">Kstat 配置</string>
     <string name="add_kstat_statically_title">添加 Kstat 靜態配置</string>
-    <string name="file_or_directory_path_label">文件/目錄路徑</string>
     <string name="hint_use_default_value">提示：可以使用 \"default\" 來使用原始值</string>
     <string name="add_kstat_path_title">添加 Kstat 路徑</string>
     <string name="add">添加</string>
@@ -465,7 +437,7 @@
     <string name="susfs_hide_mounts_for_all_procs_label">對所有進程隱藏 SuS 掛載</string>
     <string name="susfs_hide_mounts_for_all_procs_enabled_description">啟用後，SuS 掛載將對所有進程隱藏，包括 KSU 進程</string>
     <string name="susfs_hide_mounts_for_all_procs_disabled_description">禁用後，SuS 掛載僅對非 KSU 進程隱藏，KSU 進程可以看到掛載</string>
-    <!-- 备份和还原相关字符串 -->
+    <!-- SuSFS Backup and Restore Related Strings -->
     <string name="susfs_backup_title">備份</string>
     <string name="susfs_backup_description">創建所有 SuSFS 配置的備份。備份文件將包含所有設置、路徑和配置信息。</string>
     <string name="susfs_backup_create">創建備份</string>
@@ -488,7 +460,6 @@
     <string name="hide_bl_script">上鎖狀態</string>
     <string name="hide_bl_script_description">覆蓋引導鎖狀態屬性於 late_start 服務模式</string>
     <string name="cleanup_residue">清理工具殘留</string>
-    <string name="cleanup_residue_description">清理各種模塊以及工具的殘留文件和目錄（可能會誤刪導致丟失以及無法啟動，謹慎使用）</string>
     <string name="susfs_edit_sus_path">編輯 SuS 路徑</string>
     <string name="edit_kstat_statically_title">編輯 Kstat 靜態配置</string>
     <string name="edit_kstat_path_title">編輯 Kstat 路徑</string>
@@ -506,11 +477,10 @@
     <string name="already_added_apps_count">%1$d 個已添加應用</string>
     <string name="all_apps_already_added">所有應用均已添加</string>
     <string name="no_apps_found">未找到應用</string>
-    <!-- 循环路径相关 -->
+    <!-- SuSFS Loop Path Related Strings -->
     <string name="susfs_tab_sus_loop_paths">SuS 循環路徑</string>
     <string name="susfs_add_sus_loop_path">添加 SuS 循環路徑</string>
     <string name="susfs_edit_sus_loop_path">編輯 SuS 循環路徑</string>
-    <string name="susfs_no_loop_paths_configured">未配置 SuS 循環路徑</string>
     <string name="susfs_reset_loop_paths_title">重置循環路徑</string>
     <string name="susfs_reset_loop_paths_message">確定要清空所有 SuS 循環路徑嗎？此操作無法撤銷。</string>
     <string name="susfs_loop_path_label">循環路徑</string>
@@ -520,23 +490,18 @@
     <string name="susfs_edit_loop_path_failed">編輯循環路徑失敗</string>
     <string name="loop_paths_section">循環路徑</string>
     <string name="add_loop_path">添加循環路徑</string>
-    <!-- 循环路径功能描述 -->
+    <!-- SuSFS Loop Path Feature Description -->
     <string name="sus_loop_paths_description_title">循環路徑配置</string>
     <string name="sus_loop_paths_description_text">循環路徑會在每次非 root 用戶應用或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決添加的路徑可能因 inode 狀態重置或內核中 inode 重新創建而失效的問題</string>
     <string name="avc_log_spoofing">AVC 日誌欺騙</string>
     <string name="avc_log_spoofing_description">禁用: 禁用在內核 AVC 日誌中欺騙 \'su\' 的 sus tcontext。\n啟用: 啟用在內核 AVC 日誌中將 \'su\' 的 sus tcontext 欺騙為 \'kernel\'</string>
-    <!-- SUS Map related strings -->
+    <!-- SUS Map Related Strings -->
     <string name="susfs_tab_sus_maps">SUS映射</string>
     <string name="susfs_sus_map_label">庫文件路徑</string>
     <string name="susfs_add_sus_map">添加SUS映射</string>
     <string name="susfs_edit_sus_map">編輯SUS映射</string>
-    <string name="susfs_no_sus_maps_configured">未配置SUS映射</string>
-    <string name="susfs_add_map_failed">添加SUS映射失敗</string>
-    <string name="susfs_edit_map_failed">編輯SUS映射失敗</string>
     <string name="susfs_reset_sus_maps_title">重置SUS映射</string>
-    <string name="susfs_reset_sus_maps_message">這將移除所有已配置的SUS映射。此操作無法撤銷。</string>
     <string name="sus_maps_section">內存映射隱藏</string>
-    <string name="sus_maps_description_title">隱藏/proc/self/中各種映射中的mmap真實文件</string>
     <string name="sus_maps_description_text">從 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隱藏內存映射的真實文件路徑。請注意：此功能不支持隱藏匿名內存映射，也無法隱藏由注入庫本身產生的內聯鉤子或 PLT 鉤子。</string>
     <string name="sus_maps_warning">重要提示：對於具備完善注入檢測機制的應用，此功能可能無法有效繞過檢測。</string>
     <string name="sus_maps_debug_info">首先通過 ps -enf 查找目標應用的 PID 和 UID，然後檢查 /proc/&lt;pid&gt;/maps 中的相關路徑，並與 /proc/1/mountinfo 中的設備號進行比對以確保一致性。只有當設備號一致時，隱藏映射才能正常工作。</string>
