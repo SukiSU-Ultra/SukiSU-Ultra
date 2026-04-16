@@ -51,7 +51,6 @@
     <string name="reboot_to_apply">再起動すると有効化されます</string>
     <string name="module_magisk_conflict">モジュールが Magisk との競合により利用できません!</string>
     <string name="home_learn_kernelsu">KernelSU について</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/ja_JP/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">KernelSU のインストール方法やモジュールの使い方はこちら</string>
     <string name="home_support_title">支援する</string>
     <string name="home_support_content">KernelSU はこれからもずっと無料でオープンソースです。寄付をして頂くことで、開発を支援していただけます。</string>
@@ -69,7 +68,6 @@
     <string name="profile_selinux_context">SELinux コンテキスト</string>
     <string name="profile_umount_modules">モジュールのアンマウント</string>
     <string name="failed_to_update_app_profile">%s のアプリのプロファイルの更新をできませでした</string>
-    <string name="require_kernel_version">現在の KernelSU バージョン %1$d はマネージャーが適切に機能するには低すぎます。 バージョン %2$d 以降にアップグレードしてください！</string>
     <string name="settings_umount_modules_default">デフォルトでモジュールをアンマウントする</string>
     <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通のデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="profile_umount_modules_summary">このオプションを有効にすると、KernelSU はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
@@ -79,7 +77,6 @@
     <string name="module_downloading">モジュールをダウンロード中: %s</string>
     <string name="module_start_downloading">ダウンロードを開始: %s</string>
     <string name="module_action_success">モジュールのアクションが正常に実行されました。</string>
-    <string name="new_version_available">新しいバージョン %s が利用可能です。タップしてダウンロード!</string>
     <string name="launch_app">起動</string>
     <string name="force_stop_app">強制停止</string>
     <string name="restart_app">再起動</string>
@@ -87,7 +84,6 @@
     <string name="su_not_allowed">%s に superuser アクセスを許可できませんでした</string>
     <string name="module_changelog">変更履歴</string>
     <string name="settings_profile_template">アプリプロファイルのテンプレート</string>
-    <string name="settings_profile_template_summary">アプリプロファイルのローカルおよびオンラインテンプレートを管理する。</string>
     <string name="app_profile_template_create">テンプレートの作成</string>
     <string name="app_profile_template_edit">テンプレートの編集</string>
     <string name="app_profile_template_id">ID</string>
@@ -107,7 +103,6 @@
     <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="app_profile_affects_following_apps">以下のアプリに影響します</string>
     <string name="settings_check_update">アップデートを確認</string>
-    <string name="settings_check_update_summary">アプリを開いたときにアップデートを自動的に確認する。</string>
     <string name="settings_module_check_update">モジュールの更新を確認する</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
@@ -121,7 +116,6 @@
     <string name="install_next">次へ</string>
     <string name="install_select_partition">パーティションを選択</string>
     <string name="install_upload_lkm_file">ローカル LKM ファイルを使用する</string>
-    <string name="install_only_support_ko_file">.ko ファイルのみサポートされています</string>
     <string name="select_file_tip">%1$s パーティション イメージが推奨されます</string>
     <string name="select_kmi">KMI を選択してください</string>
     <string name="settings_uninstall">アンインストール</string>
@@ -138,13 +132,9 @@
     <string name="save_log">ログを保存</string>
     <string name="log_saved">保存されたログ</string>
     <string name="settings_sucompat">従来の SU コマンド</string>
-    <string name="settings_sucompat_summary">新規プロセスで /system/bin/su 経由での root アクセスを許可します。</string>
     <string name="settings_kernel_umount">モジュールのアンマウント (カーネルレベル)</string>
-    <string name="settings_kernel_umount_summary">アプリプロファイルに基づいて、カーネルからモジュールをアンマウントします。</string>
-    <string name="feature_status_unsupported_summary">カーネルはこの機能をサポートしていません</string>
     <string name="feature_status_managed_summary">この機能はモジュールによって管理されます</string>
     <string name="settings_mode_enable_by_default">有効 (デフォルト)</string>
-    <string name="settings_mode_disable_until_reboot">再起動するまで無効</string>
     <string name="settings_mode_disable_always">常に無効</string>
     <string name="processing">処理中…</string>
     <string name="refresh_pulling">下に引いて更新</string>
@@ -199,27 +189,27 @@
     <string name="current_device_kmi">このデバイスの KMI</string>
     <!-- Customize -->
     <!-- Log Viewer -->
-    <!-- umount Manager -->
+    <!-- Umount Manager -->
     <!-- Kernel Flash Progress Related -->
-    <!-- kpm -->
+    <!-- KPM -->
     <!-- Tools -->
     <!-- Zip File Type Labels -->
     <!-- Zip Install Prompts -->
     <!-- SuSFS Configuration -->
     <!-- SuSFS Reset Confirmation -->
     <!-- SuSFS Toast Messages -->
-    <!-- 开机自启动相关 -->
+    <!-- Auto Start -->
     <!-- SuSFS Tab Titles -->
     <!-- SuSFS Path Management -->
     <!-- SuSFS Reset Categories -->
     <!-- SuSFS Path Settings -->
     <!-- SuSFS Enabled Features -->
     <!-- Feature Labels -->
-    <!-- 可切换状态 -->
-    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Feature Configuration -->
+    <!-- SuSFS Kstat Related Strings -->
     <!-- SuSFS Mount Hiding Control Related Strings -->
-    <!-- 备份和还原相关字符串 -->
-    <!-- 循环路径相关 -->
-    <!-- 循环路径功能描述 -->
-    <!-- SUS Map related strings -->
+    <!-- SuSFS Backup and Restore Related Strings -->
+    <!-- SuSFS Loop Path Related Strings -->
+    <!-- SuSFS Loop Path Feature Description -->
+    <!-- SUS Map Related Strings -->
 </resources>
