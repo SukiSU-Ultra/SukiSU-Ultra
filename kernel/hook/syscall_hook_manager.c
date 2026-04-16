@@ -136,10 +136,6 @@ void __init ksu_syscall_hook_manager_init(void)
     ksu_register_syscall_hook(__NR_execve, ksu_hook_execve);
     ksu_register_syscall_hook(__NR_newfstatat, ksu_hook_newfstatat);
     ksu_register_syscall_hook(__NR_faccessat, ksu_hook_faccessat);
-#ifdef CONFIG_KSU_MANUAL_SU
-    ksu_register_syscall_hook(__NR_clone, ksu_hook_clone);
-    ksu_register_syscall_hook(__NR_clone3, ksu_hook_clone);
-#endif
 
 #ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
     ret = register_trace_sys_enter(ksu_sys_enter_handler, NULL);
@@ -175,10 +171,6 @@ void __exit ksu_syscall_hook_manager_exit(void)
     ksu_unregister_syscall_hook(__NR_execve);
     ksu_unregister_syscall_hook(__NR_newfstatat);
     ksu_unregister_syscall_hook(__NR_faccessat);
-#ifdef CONFIG_KSU_MANUAL_SU
-    ksu_unregister_syscall_hook(__NR_clone);
-    ksu_unregister_syscall_hook(__NR_clone3);
-#endif
 
     ksu_syscall_hook_exit();
 

@@ -57,7 +57,7 @@ jobs:
         if [ -n "$EXPECTED_SIZE2" ]; then
           EXTRA_ARGS="KSU_EXPECTED_SIZE2=$EXPECTED_SIZE2 KSU_EXPECTED_HASH2=$EXPECTED_HASH2"
         fi
-        CONFIG_KSU=m CONFIG_KSU_MANUAL_SU=y CC=clang make $EXTRA_ARGS
+        CONFIG_KSU=m CC=clang make $EXTRA_ARGS
         
         echo "=== Build completed ==="
 

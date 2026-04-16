@@ -119,16 +119,6 @@ long __nocfi ksu_hook_execve(int orig_nr, const struct pt_regs *regs)
     return ret;
 }
 
-
-#ifdef CONFIG_KSU_MANUAL_SU
-#include "other/manual_su.h"
-long __nocfi ksu_hook_clone(int orig_nr, const struct pt_regs *regs)
-{
-    ksu_try_escalate_for_uid(current_uid().val);
-    return ksu_syscall_table[orig_nr](regs);
-}
-#endif
-
 long __nocfi ksu_hook_setresuid(int orig_nr, const struct pt_regs *regs)
 {
     uid_t old_uid = current_uid().val;

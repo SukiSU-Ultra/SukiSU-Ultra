@@ -61,12 +61,9 @@ ccflags-y += -DCONFIG_KSU_DEBUG=1
 endif
 endif
 
-obj-$(CONFIG_KPM) += kpm/
-
-ifeq ($(CONFIG_KSU_MANUAL_SU), y)
-ccflags-y += -DCONFIG_KSU_MANUAL_SU
-kernelsu-objs += other/manual_su.o
-endif
+obj-$(CONFIG_KPM) += kpm/compact.o
+obj-$(CONFIG_KPM) += kpm/kpm.o
+obj-$(CONFIG_KPM) += kpm/super_access.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h

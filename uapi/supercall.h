@@ -158,13 +158,6 @@ struct ksu_enable_kpm_cmd {
     __u8 enabled; // Output: true if KPM is enabled
 };
 
-struct ksu_manual_su_cmd {
-    __u32 option; // Input: operation type (MANUAL_SU_OP_GENERATE_TOKEN, MANUAL_SU_OP_ESCALATE, MANUAL_SU_OP_ADD_PENDING)
-    __u32 target_uid; // Input: target UID
-    __u32 target_pid; // Input: target PID
-    char token_buffer[33]; // Input/Output: token buffer
-};
-
 static const __u32 SUKISU_KPM_LOAD = 1;
 static const __u32 SUKISU_KPM_UNLOAD = 2;
 static const __u32 SUKISU_KPM_NUM = 3;
@@ -209,8 +202,7 @@ static const __u32 KSU_IOCTL_GET_SULOG_FD = _IOW('K', 20, struct ksu_get_sulog_f
 static const __u32 KSU_IOCTL_GET_FULL_VERSION = _IOC(_IOC_READ, 'K', 100, 0);
 static const __u32 KSU_IOCTL_HOOK_TYPE = _IOC(_IOC_READ, 'K', 101, 0);
 static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
-static const __u32 KSU_IOCTL_MANUAL_SU = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
-static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 104, 0);
+static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
 
 #endif
