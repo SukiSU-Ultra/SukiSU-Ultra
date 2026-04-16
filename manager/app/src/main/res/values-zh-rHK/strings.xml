@@ -7,7 +7,6 @@
     <string name="home_working_version">KernelSU 版本：%d</string>
     <string name="home_unsupported">不支援</string>
     <string name="home_unsupported_reason">KernelSU 現僅支援 GKI 核心，但仍可修補 GKI 裝置映像。</string>
-    <string name="home_version_mismatch">管理器版本 (%1$d) 與 KernelSU 版本 (%2$d) 不符</string>
     <string name="home_kernel">核心版本</string>
     <string name="home_manager_version">管理器版本</string>
     <string name="home_fingerprint">指紋</string>
@@ -56,7 +55,6 @@
     <string name="reboot_to_apply">重新啟動後生效</string>
     <string name="module_magisk_conflict">模組已停用，因與 Magisk 有衝突！</string>
     <string name="home_learn_kernelsu">深入了解 KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_TW/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安裝 KernelSU 及使用模組</string>
     <string name="home_support_title">支持開發</string>
     <string name="home_support_content">KernelSU 承諾永久免費且開源，歡迎捐款支持</string>
@@ -74,7 +72,6 @@
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸載模組（Umount）</string>
     <string name="failed_to_update_app_profile">無法為 %s 更新 App Profile</string>
-    <string name="require_kernel_version">目前 KernelSU 版本 %1$d 過低，管理器無法正常運作。請升級至 %2$d 或更高版本！</string>
     <string name="settings_umount_modules_default">預設卸載模組</string>
     <string name="settings_umount_modules_default_summary">控制 App Profile「卸載模組」的預設值，對未設定的 App 移除模組修改</string>
     <string name="profile_umount_modules_summary">啟用後 KernelSU 將為此 App 還原所有被模組修改過的檔案</string>
@@ -84,7 +81,6 @@
     <string name="module_downloading">正在下載模組：%s</string>
     <string name="module_start_downloading">開始下載：%s</string>
     <string name="module_action_success">模組執行成功</string>
-    <string name="new_version_available">現有新版本 %s，請即升級！</string>
     <string name="launch_app">啟動</string>
     <string name="force_stop_app">強制停止</string>
     <string name="restart_app">重新啟動</string>
@@ -92,7 +88,6 @@
     <string name="su_not_allowed">無法向 %s 授予超級使用者權限</string>
     <string name="module_changelog">變更紀錄</string>
     <string name="settings_profile_template">App Profile 模板</string>
-    <string name="settings_profile_template_summary">管理本地及線上 App Profile 模板</string>
     <string name="app_profile_template_create">建立模板</string>
     <string name="app_profile_template_edit">編輯模板</string>
     <string name="app_profile_template_id">ID</string>
@@ -112,9 +107,7 @@
     <string name="app_profile_template_import_empty">剪貼簿無內容！</string>
     <string name="app_profile_affects_following_apps">受影響 App 如下</string>
     <string name="settings_check_update">檢查更新</string>
-    <string name="settings_check_update_summary">開啟本程式時自動檢查更新</string>
     <string name="settings_enable_predictive_back">預測性返回手勢</string>
-    <string name="settings_enable_predictive_back_summary">啟用預測性返回手勢支援</string>
     <string name="settings_module_check_update">檢查模組更新</string>
     <string name="grant_root_failed">授予 Root 權限失敗！</string>
     <string name="home_pr_build_warning">此為 PR 除錯版本，切勿於正式環境使用！</string>
@@ -132,7 +125,6 @@
     <string name="install_next">下一步</string>
     <string name="install_select_partition">選取分割區</string>
     <string name="install_upload_lkm_file">使用本地 LKM 檔案</string>
-    <string name="install_only_support_ko_file">僅支援 .ko 格式檔案</string>
     <string name="select_file_tip">建議使用 %1$s 分割區映像</string>
     <string name="select_kmi">選取 KMI</string>
     <string name="settings_uninstall">解除安裝</string>
@@ -149,13 +141,9 @@
     <string name="save_log">儲存日誌</string>
     <string name="log_saved">日誌已儲存</string>
     <string name="settings_sucompat">傳統 SU 指令支援</string>
-    <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅限新的處理程序</string>
     <string name="settings_kernel_umount">核心層級 Umount</string>
-    <string name="settings_kernel_umount_summary">從核心層級（kernel-level）對選定的 App 移除模組修改</string>
-    <string name="feature_status_unsupported_summary">核心不支援此功能</string>
     <string name="feature_status_managed_summary">功能正由模組管理</string>
     <string name="settings_mode_enable_by_default">啟用（預設）</string>
-    <string name="settings_mode_disable_until_reboot">停用至重新啟動</string>
     <string name="settings_mode_disable_always">保持停用</string>
     <string name="processing">處理中…</string>
     <string name="refresh_pulling">拉動重新整理</string>
@@ -175,9 +163,7 @@
     <string name="settings_key_color">主題色</string>
     <string name="settings_key_color_default">預設</string>
     <string name="settings_ui_mode">介面風格</string>
-    <string name="settings_ui_mode_summary">選擇介面顯示風格</string>
     <string name="settings_page_scale">介面縮放</string>
-    <string name="settings_page_scale_summary">調整介面顯示比例</string>
     <string name="settings_color_spec">色彩規範</string>
     <string name="settings_color_style">色彩風格</string>
     <string name="color_blue">藍色</string>
@@ -220,14 +206,11 @@
     <string name="settings_floating_bottom_bar">懸浮底部欄</string>
     <string name="settings_floating_bottom_bar_summary">使用 Apple 風格懸浮底部欄</string>
     <string name="settings_enable_glass">液態玻璃</string>
-    <string name="settings_enable_glass_summary">為懸浮底部欄啟用液態玻璃效果</string>
     <string name="settings_smooth_corner">平滑圓角</string>
-    <string name="settings_smooth_corner_summary">啟用全局平滑圓角效果</string>
     <string name="show_only_primary_user_apps">僅顯示主要使用者 App</string>
     <string name="settings_auto_jailbreak">自動越獄</string>
     <string name="settings_auto_jailbreak_summary">開機時若偵測到寬容模式 SELinux，將自動使用 Magica 提升權限（需授予本程式背景啟動權限）</string>
     <string name="allow_shell">保持向 Shell 授予 Root 權限</string>
-    <string name="allow_shell_summary">保持允許 adb shell 調用 su，非必要請勿啟用</string>
     <string name="enable_adb">開機時強制開啟 ADB 調試</string>
     <string name="enable_adb_summary">強制開啟 USB 偵錯並停用 adb 驗證，非必要請勿啟用</string>
     <string name="advanced_options">進階選項</string>
@@ -243,27 +226,27 @@
     <string name="download_install">安裝</string>
     <!-- Customize -->
     <!-- Log Viewer -->
-    <!-- umount Manager -->
+    <!-- Umount Manager -->
     <!-- Kernel Flash Progress Related -->
-    <!-- kpm -->
+    <!-- KPM -->
     <!-- Tools -->
     <!-- Zip File Type Labels -->
     <!-- Zip Install Prompts -->
     <!-- SuSFS Configuration -->
     <!-- SuSFS Reset Confirmation -->
     <!-- SuSFS Toast Messages -->
-    <!-- 开机自启动相关 -->
+    <!-- Auto Start -->
     <!-- SuSFS Tab Titles -->
     <!-- SuSFS Path Management -->
     <!-- SuSFS Reset Categories -->
     <!-- SuSFS Path Settings -->
     <!-- SuSFS Enabled Features -->
     <!-- Feature Labels -->
-    <!-- 可切换状态 -->
-    <!-- SuSFS Kstat相关字符串 -->
+    <!-- SuSFS Feature Configuration -->
+    <!-- SuSFS Kstat Related Strings -->
     <!-- SuSFS Mount Hiding Control Related Strings -->
-    <!-- 备份和还原相关字符串 -->
-    <!-- 循环路径相关 -->
-    <!-- 循环路径功能描述 -->
-    <!-- SUS Map related strings -->
+    <!-- SuSFS Backup and Restore Related Strings -->
+    <!-- SuSFS Loop Path Related Strings -->
+    <!-- SuSFS Loop Path Feature Description -->
+    <!-- SUS Map Related Strings -->
 </resources>
