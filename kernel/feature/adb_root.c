@@ -1,4 +1,4 @@
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
+#ifdef KSU_COMPAT_USE_STATIC_KEY
 DEFINE_STATIC_KEY_FALSE(ksu_adb_root);
 #else
 bool ksu_adb_root __read_mostly = false;
@@ -171,7 +171,7 @@ static long do_ksu_adb_root_handle_execve(const char *filename, void ***envp_use
 
 long ksu_adb_root_handle_execve(const char *filename, void ***envp_user_ptr)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
+#ifdef KSU_COMPAT_USE_STATIC_KEY
     if (static_branch_unlikely(&ksu_adb_root)) {
         return do_ksu_adb_root_handle_execve(filename, envp_user_ptr);
     }
@@ -185,7 +185,7 @@ long ksu_adb_root_handle_execve(const char *filename, void ***envp_user_ptr)
 
 static int kernel_adb_root_feature_get(u64 *value)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
+#ifdef KSU_COMPAT_USE_STATIC_KEY
     *value = static_key_enabled(&ksu_adb_root) ? 1 : 0;
 #else
     *value = ksu_adb_root ? 1 : 0;
@@ -196,7 +196,7 @@ static int kernel_adb_root_feature_get(u64 *value)
 static int kernel_adb_root_feature_set(u64 value)
 {
     bool enable = value != 0;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
+#ifdef KSU_COMPAT_USE_STATIC_KEY
     if (enable) {
         static_key_enable(&ksu_adb_root.key);
     } else {

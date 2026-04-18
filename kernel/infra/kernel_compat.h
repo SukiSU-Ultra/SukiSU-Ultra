@@ -249,4 +249,7 @@ __weak void groups_sort(struct group_info *group_info)
 #define in_compat_syscall() is_compat_task()
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
+#define KSU_COMPAT_USE_STATIC_KEY
+
 #endif
