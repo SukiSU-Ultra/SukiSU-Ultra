@@ -29,7 +29,7 @@ static void stop_vfs_read_hook();
 static void stop_execve_hook();
 static void stop_input_hook();
 
-#ifdef CONFIG_KSU_SUSFS
+#if defined(CONFIG_KSU_SUSFS) && KSU_COMPAT_USE_STATIC_KEY
 extern struct static_key_false ksu_init_rc_hook_key_false;
 extern struct static_key_false ksu_input_hook_key_false;
 #else
@@ -674,7 +674,7 @@ static int vol_detector_exit(void)
 
 static void stop_vfs_read_hook(void)
 {
-#ifdef CONFIG_KSU_SUSFS
+#if defined(CONFIG_KSU_SUSFS) && KSU_COMPAT_USE_STATIC_KEY
     if (static_key_enabled(&ksu_init_rc_hook_key_false))
         static_branch_disable(&ksu_init_rc_hook_key_false);
     pr_info("disabling ksu_init_rc_hook_key_false\n");
@@ -692,7 +692,7 @@ static void stop_execve_hook(void)
 
 static void stop_input_hook(void)
 {
-#ifdef CONFIG_KSU_SUSFS    
+#if defined(CONFIG_KSU_SUSFS) && KSU_COMPAT_USE_STATIC_KEY 
     if (static_key_enabled(&ksu_input_hook_key_false)) {
         static_branch_disable(&ksu_input_hook_key_false);
         pr_info("disabling ksu_input_hook_key_false\n");
