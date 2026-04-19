@@ -30,11 +30,13 @@ static void stop_execve_hook();
 static void stop_input_hook();
 
 #ifdef CONFIG_KSU_SUSFS
-bool ksu_init_rc_hook __read_mostly = true;
-#endif
+extern struct static_key_false ksu_init_rc_hook_key_false;
+extern struct static_key_false ksu_input_hook_key_false;
+#else
 bool ksu_vfs_read_hook __read_mostly = true;
 bool ksu_execveat_hook __read_mostly = true;
 bool ksu_input_hook __read_mostly = true;
+#endif
 
 void on_post_fs_data(void)
 {
@@ -218,8 +220,6 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
             pr_info("exec zygote, /data prepared, second_stage: %d\n", init_second_stage_executed);
             on_post_fs_data();
             first_zygote = false;
-            ksu_execveat_hook = false;
-            pr_info("ksu_execveat_hook: %d\n", ksu_execveat_hook);
         }
     }
 
@@ -443,9 +443,11 @@ static bool is_init_rc(struct file *fp)
 
 __attribute__((cold)) static noinline void ksu_install_rc_hook(struct file *file)
 {
+#ifndef CONFIG_KSU_SUSFS
     if (!ksu_vfs_read_hook) {
         return;
     }
+#endif
 
     if (!is_init_rc(file)) {
         return;
@@ -455,14 +457,15 @@ __attribute__((cold)) static noinline void ksu_install_rc_hook(struct file *file
     static bool rc_hooked = false;
     if (rc_hooked) {
         // we don't need these hooks, unregister it!
+#ifndef CONFIG_KSU_SUSFS
         stop_vfs_read_hook();
+#endif
         return;
     }
     rc_hooked = true;
 
 #ifdef CONFIG_KSU_SUSFS
-    ksu_init_rc_hook = false;
-    pr_info("ksu_init_rc_hook: %d\n", ksu_init_rc_hook);
+    stop_vfs_read_hook();
 #endif
 
     // now we can sure that the init process is reading
@@ -511,8 +514,10 @@ void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
     loff_t new_size = *kstat_size_ptr + ksu_rc_len;
     struct file *file = { 0 };
 
+#ifndef CONFIG_KSU_SUSFS
     if (!ksu_vfs_read_hook)
         return;
+#endif
 
     file = fget(fd);
     if (!file)
@@ -669,8 +674,14 @@ static int vol_detector_exit(void)
 
 static void stop_vfs_read_hook(void)
 {
+#ifdef CONFIG_KSU_SUSFS
+    if (static_key_enabled(&ksu_init_rc_hook_key_false))
+        static_branch_disable(&ksu_init_rc_hook_key_false);
+    pr_info("disabling ksu_init_rc_hook_key_false\n");
+#else
     ksu_vfs_read_hook = false;
     pr_info("stop vfs_read_hook\n");
+#endif
 }
 
 static void stop_execve_hook(void)
@@ -681,11 +692,18 @@ static void stop_execve_hook(void)
 
 static void stop_input_hook(void)
 {
+#ifdef CONFIG_KSU_SUSFS    
+    if (static_key_enabled(&ksu_input_hook_key_false)) {
+        static_branch_disable(&ksu_input_hook_key_false);
+        pr_info("disabling ksu_input_hook_key_false\n");
+    }
+#else
     if (!ksu_input_hook) {
         return;
     }
     ksu_input_hook = false;
     pr_info("stop input_hook\n");
+#endif
     vol_detector_exit();
 }
 

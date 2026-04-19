@@ -106,6 +106,10 @@ int __init kernelsu_init(void)
     pr_alert("*************************************************************");
 #endif
 
+#ifdef CONFIG_KSU_SUSFS
+    susfs_init();
+#endif
+
     if (allow_shell) {
         pr_alert("shell is allowed at init!");
     }
@@ -136,10 +140,6 @@ int __init kernelsu_init(void)
     ksu_ksud_init();
 
     ksu_file_wrapper_init();
-
-#ifdef CONFIG_KSU_SUSFS
-    susfs_init();
-#endif
 
     return 0;
 }
