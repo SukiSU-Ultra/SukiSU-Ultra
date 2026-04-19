@@ -253,3 +253,5 @@ __weak void groups_sort(struct group_info *group_info)
 #define KSU_COMPAT_USE_STATIC_KEY
 
 #endif
+
+#endif
