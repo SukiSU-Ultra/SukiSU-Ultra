@@ -28,6 +28,7 @@
 #include <linux/fs.h>
 #include <linux/fs_struct.h>
 #include <linux/gfp.h>
+#include <linux/hashtable.h>
 #include <linux/init.h>
 #include <linux/init_task.h>
 #include <linux/input.h>
