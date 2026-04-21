@@ -203,38 +203,6 @@ bool is_kernel_umount_enabled() {
     return value != 0;
 }
 
-static char g_full_version[255] = {0};
-
-bool get_full_version(char* buff) {
-    if (g_full_version[0] == '\0') {
-        struct ksu_get_full_version_cmd cmd = {0};
-        if (ksuctl(KSU_IOCTL_GET_FULL_VERSION, &cmd) == 0) {
-            strncpy(g_full_version, cmd.version_full, sizeof(g_full_version) - 1);
-            g_full_version[sizeof(g_full_version) - 1] = '\0';
-        }
-    }
-    if (g_full_version[0] != '\0') {
-        strncpy(buff, g_full_version, sizeof(g_full_version) - 1);
-        buff[sizeof(g_full_version) - 1] = '\0';
-        return true;
-    }
-    return false;
-}
-
-static char g_hook_type[32] = {0};
-
-bool get_hook_type(char *buff) {
-    if (g_hook_type[0] == '\0') {
-        struct ksu_hook_type_cmd cmd = {0};
-        if (ksuctl(KSU_IOCTL_HOOK_TYPE, &cmd) == 0) {
-            strncpy(g_hook_type, cmd.hook_type, sizeof(g_hook_type) - 1);
-            g_hook_type[sizeof(g_hook_type) - 1] = '\0';
-        }
-    }
-    if (g_hook_type[0] != '\0') {
-        strncpy(buff, g_hook_type, sizeof(g_hook_type) - 1);
-        buff[sizeof(g_hook_type) - 1] = '\0';
-        return true;
-    }
-    return false;
-}
+// Custom
+DEFINE_CACHED_GETTER(full_version, KSU_IOCTL_GET_FULL_VERSION, ksu_get_full_version_cmd, version_full, 255)
+DEFINE_CACHED_GETTER(hook_type, KSU_IOCTL_HOOK_TYPE, ksu_hook_type_cmd, hook_type, 32)

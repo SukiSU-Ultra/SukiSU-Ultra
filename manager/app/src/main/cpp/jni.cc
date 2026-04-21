@@ -387,6 +387,7 @@ Java_com_sukisu_ultra_magica_AppZygotePreload_forkDontCareAndExecKsud(JNIEnv *en
     env->ReleaseStringUTFChars(pkg_name, pkg);
 }
 
+// Custom
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_sukisu_ultra_Natives_getFullVersion(JNIEnv *env, jobject) {

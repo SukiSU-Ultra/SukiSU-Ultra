@@ -55,4 +55,20 @@ inline std::pair<int, int> legacy_get_info() {
     return {version, flags};
 }
 
+#define DEFINE_CACHED_GETTER(name, ioctl, cmd_type, field, size) \
+    static char g_##name[size] = {0}; \
+    bool get_##name(char *buff) { \
+        if (g_##name[0] == '\0') { \
+            struct cmd_type cmd = {0}; \
+            if (ksuctl(ioctl, &cmd) == 0) { \
+                strlcpy(g_##name, cmd.field, sizeof(g_##name)); \
+            } \
+        } \
+        if (g_##name[0] != '\0') { \
+            strlcpy(buff, g_##name, sizeof(g_##name)); \
+            return true; \
+        } \
+        return false; \
+    }
+
 #endif //KERNELSU_KSU_H
