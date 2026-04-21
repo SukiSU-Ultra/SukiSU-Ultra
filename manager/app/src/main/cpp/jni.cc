@@ -15,12 +15,12 @@
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_sukisu_ultra_Natives_getVersion(JNIEnv *env, jobject) {
-    int version = get_version();
+    uint32_t version = get_version();
     if (version > 0) {
-        return version;
+        return static_cast<jint>(version);
     }
     // try legacy method as fallback
-    return legacy_get_info().first;
+    return static_cast<jint>(legacy_get_info().first);
 }
 
 extern "C"
@@ -189,7 +189,7 @@ Java_com_sukisu_ultra_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, j
         env->SetIntField(obj, gidField, profile.rp_config.profile.gid);
 
         jobject groupList = env->GetObjectField(obj, groupsField);
-        int groupCount = profile.rp_config.profile.groups_count;
+        int groupCount = static_cast<int>(profile.rp_config.profile.groups_count);
         if (groupCount > KSU_MAX_GROUPS) {
             LOGD("kernel group count too large: %d???", groupCount);
             groupCount = KSU_MAX_GROUPS;

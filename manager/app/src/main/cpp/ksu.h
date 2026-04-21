@@ -51,7 +51,7 @@ inline std::pair<int, int> legacy_get_info() {
     int32_t version = -1;
     int32_t flags = 0;
     int32_t result = 0;
-    prctl(0xDEADBEEF, 2, &version, &flags, &result);
+    prctl(static_cast<int>(0xDEADBEEF), 2, &version, &flags, &result);
     return {version, flags};
 }
 
@@ -61,11 +61,13 @@ inline std::pair<int, int> legacy_get_info() {
         if (g_##name[0] == '\0') { \
             struct cmd_type cmd = {0}; \
             if (ksuctl(ioctl, &cmd) == 0) { \
-                strlcpy(g_##name, cmd.field, sizeof(g_##name)); \
+                strncpy(g_##name, cmd.field, sizeof(g_##name) - 1); \
+                g_##name[sizeof(g_##name) - 1] = '\0'; \
             } \
         } \
         if (g_##name[0] != '\0') { \
-            strlcpy(buff, g_##name, sizeof(g_##name)); \
+            strncpy(buff, g_##name, size - 1); \
+            buff[size - 1] = '\0'; \
             return true; \
         } \
         return false; \

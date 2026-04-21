@@ -31,12 +31,12 @@ static inline int scan_driver_fd() {
     char path[64];
     char target[PATH_MAX];
 
-    while ((de = readdir(dir)) != NULL) {
+    while ((de = readdir(dir)) != nullptr) {
         if (de->d_name[0] == '.') {
             continue;
         }
 
-        char *endptr = NULL;
+        char *endptr = nullptr;
         long fd_long = strtol(de->d_name, &endptr, 10);
         if (!de->d_name[0] || *endptr != '\0' || fd_long < 0 || fd_long > INT_MAX) {
             continue;
