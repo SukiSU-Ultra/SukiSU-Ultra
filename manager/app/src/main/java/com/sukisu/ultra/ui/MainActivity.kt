@@ -132,6 +132,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel = viewModel<MainActivityViewModel>()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val selectedMainPage by viewModel.selectedMainPage.collectAsStateWithLifecycle()
             val appSettings = uiState.appSettings
             val uiMode = uiState.uiMode
             val darkMode = appSettings.colorMode.isDark || (appSettings.colorMode.isSystem && isSystemInDarkTheme())
@@ -172,6 +173,12 @@ class MainActivity : ComponentActivity() {
                     HandleDeepLink(intentState = intentState.collectAsStateWithLifecycle())
                     ShortcutIntentHandler(intentState = intentState)
                     HandleZipFileIntent(intentState = intentState)
+                    val mainScreenEntry = @Composable {
+                        MainScreen(
+                            initialPage = selectedMainPage,
+                            onPageChanged = viewModel::setSelectedMainPage,
+                        )
+                    }
 
                     val navDisplay = @Composable {
                         NavDisplay(
@@ -194,7 +201,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             entryProvider = entryProvider {
-                                entry<Route.Main> { MainScreen() }
+                                entry<Route.Main> { mainScreenEntry() }
                                 entry<Route.About> { AboutScreen() }
                                 entry<Route.Sulog> { SulogScreen() }
                                 entry<Route.ColorPalette> { ColorPaletteScreen() }
@@ -206,10 +213,10 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.Install> { key -> InstallScreen(preselectedKernelUri = key.preselectedKernelUri) }
                                 entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
                                 entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
-                                entry<Route.Home> { MainScreen() }
-                                entry<Route.SuperUser> { MainScreen() }
-                                entry<Route.Module> { MainScreen() }
-                                entry<Route.Settings> { MainScreen() }
+                                entry<Route.Home> { mainScreenEntry() }
+                                entry<Route.SuperUser> { mainScreenEntry() }
+                                entry<Route.Module> { mainScreenEntry() }
+                                entry<Route.Settings> { mainScreenEntry() }
                                 entry<Route.KernelFlash> { key -> KernelFlashScreen(key.kernelUri, key.selectedSlot, key.kpmPatchEnabled, key.kpmUndoPatch) }
                                 entry<Route.Kpm> { KpmScreen() }
                                 entry<Route.SuSFS> { SuSFSScreen() }
@@ -246,12 +253,15 @@ val LocalMainPagerState = staticCompositionLocalOf<MainPagerState> { error("Loca
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    initialPage: Int = 0,
+    onPageChanged: (Int) -> Unit = {},
+) {
     val navController = LocalNavigator.current
     val enableBlur = LocalEnableBlur.current
     val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
     val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
-    val pagerState = rememberPagerState(pageCount = { 4 })
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { MainPagerConfig.PAGE_COUNT })
     val mainPagerState = rememberMainPagerState(pagerState)
     val isManager = Natives.isManager
     val isFullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
@@ -268,8 +278,10 @@ fun MainScreen() {
         drawContent()
     }
 
-    LaunchedEffect(mainPagerState.pagerState.currentPage) {
+    val settledPage = mainPagerState.pagerState.settledPage
+    LaunchedEffect(settledPage) {
         mainPagerState.syncPage()
+        onPageChanged(settledPage)
     }
 
     MainScreenBackHandler(mainPagerState, navController)
