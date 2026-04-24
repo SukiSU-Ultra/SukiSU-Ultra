@@ -16,7 +16,30 @@
     <string name="selinux_status_enforcing">Принудительный</string>
     <string name="selinux_status_permissive">Разрешающий</string>
     <string name="selinux_status_unknown">Неизвестно</string>
+    <string name="home_seccomp_status">Статус Seccomp</string>
+    <string name="seccomp_status_not_supported">Не поддерживается</string>
+    <string name="seccomp_status_disabled">Отключено</string>
+    <string name="seccomp_status_strict">Строгий</string>
+    <string name="seccomp_status_filter">Фильтр</string>
+    <string name="seccomp_status_unknown">Неизвестный</string>
     <string name="superuser">Суперюзеры</string>
+    <string name="sulog_log_files">Файлы логов</string>
+    <string name="sulog_failed_to_load">Не удалось загрузить SU log</string>
+    <string name="sulog_disabled_title">SU log выключен</string>
+    <string name="sulog_unsupported_title">SU log не поддерживается</string>
+    <string name="sulog_enable_action">Включить</string>
+    <string name="sulog_filter_title">Фильтровать по типу</string>
+    <string name="sulog_clean_title">Очистить журнал</string>
+    <string name="sulog_filter_root_execve">Root execve</string>
+    <string name="sulog_filter_sucompat">Классический SU</string>
+    <string name="sulog_filter_ioctl_grant_root">Выдать Root</string>
+    <string name="sulog_filter_daemon_restart">Перезагрузить сервис</string>
+    <string name="sulog_entry_unknown_event">Неизвестное событие</string>
+    <string name="sulog_entry_description_sucompat">Запрос /system/bin/su перехвачен</string>
+    <string name="sulog_entry_title_root_grant_request">Запрос Root прав</string>
+    <string name="sulog_entry_description_ioctl_grant_root">Root права предоставлены через KernelSU ioctl</string>
+    <string name="sulog_entry_title_daemon_restarted">Сервис перезапущен</string>
+    <string name="sulog_entry_title_dropped_events">Отмененные события</string>
     <string name="module_failed_to_enable">Не удалось включить модуль %s</string>
     <string name="module_failed_to_disable">Не удалось отключить модуль %s</string>
     <string name="module_empty">Нет установленных модулей</string>
@@ -33,6 +56,7 @@
     <string name="install">Установка</string>
     <string name="reboot">Перезагрузить</string>
     <string name="settings">Настройки</string>
+    <string name="reboot_soft">Мягкая перезагрузка</string>
     <string name="reboot_userspace">Мягкая перезагрузка</string>
     <string name="reboot_recovery">Перезагрузить в Recovery</string>
     <string name="reboot_bootloader">Перезагрузить в Bootloader</string>
@@ -48,6 +72,9 @@
     <string name="show_system_apps">Показать системные приложения</string>
     <string name="send_log">Отправить логи</string>
     <string name="safe_mode">Безопасный режим</string>
+    <string name="jailbreak_mode">Режим Jailbreak</string>
+    <string name="home_jailbreak">Jailbreak</string>
+    <string name="jailbreak_timeout">Jailbreak мог не удастся, проверьте логи</string>
     <string name="safe_mode_module_disabled">В безопасном режиме установка модулей отключена</string>
     <string name="reboot_to_apply">Перезагрузите, чтобы изменения вступили в силу</string>
     <string name="module_magisk_conflict">Модули недоступны из-за конфликта с Magisk!</string>
@@ -109,8 +136,11 @@
     <string name="settings_check_update">Проверять наличие обновлений</string>
     <string name="settings_check_update_summary">Автоматическая проверка обновлений при открытии приложения.</string>
     <string name="settings_enable_predictive_back">Предиктивный жест назад</string>
+    <string name="settings_enable_predictive_back_summary">Включить </string>
     <string name="settings_module_check_update">Проверять обновления модулей</string>
     <string name="grant_root_failed">Не удалось выдать root!</string>
+    <string name="home_pr_build_warning">Это debug-сборка. НЕ используйте в продакшене</string>
+    <string name="home_pr_kernel_warning">Ядро собрано с поддержкой PR подписи. Это не продакшн ядро!</string>
     <string name="action">Действие</string>
     <string name="open">Открыть</string>
     <string name="enable_web_debugging">Отладка WebView</string>
@@ -121,6 +151,8 @@
     <string name="install_inactive_slot_warning">Ваше устройство будет **ПРИНУДИТЕЛЬНО** загружено в текущий неактивный слот после перезагрузки!
 \n Используйте эту опцию только после завершения OTA.
 \n Продолжить?</string>
+    <string name="jailbreak_flash_warning">Вы в режиме **Jailbreak**. Прошивка раздела на устройстве с **заблокированным загрузчиком** нарушит AVB (Android Verified Boot) и может привести к тому, что устройство **не загрузится**\n\nУбедитесь, что загрузчик разблокирован!</string>
+    <string name="jailbreak_flash_warning_countdown">Продолжить (%1$d)</string>
     <string name="install_next">Далее</string>
     <string name="install_select_partition">Выбрать раздел</string>
     <string name="install_upload_lkm_file">Использовать локальный LKM файл</string>
@@ -144,6 +176,8 @@
     <string name="settings_sucompat_summary">Разрешить root-доступ через /system/bin/su в новых процессах.</string>
     <string name="settings_kernel_umount">Размонтировать модули (на уровне ядра)</string>
     <string name="settings_kernel_umount_summary">Размонтировать модули в ядре для профиля приложения.</string>
+    <string name="settings_sulog">Лог SU</string>
+    <string name="settings_sulog_summary">Записывать действия, связанные с Root в SU log</string>
     <string name="feature_status_unsupported_summary">Ядро не поддерживает эту функцию.</string>
     <string name="feature_status_managed_summary">Эта функция управляется модулем.</string>
     <string name="settings_mode_enable_by_default">Включена (По умолчанию)</string>
@@ -163,10 +197,15 @@
     <string name="settings_theme_mode_system">Как в системе</string>
     <string name="settings_theme_mode_light">Светлая</string>
     <string name="settings_theme_mode_dark">Тёмная</string>
+    <string name="settings_monet">Включить Monet</string>
     <string name="settings_key_color">Ключевой цвет</string>
     <string name="settings_key_color_default">По умолчанию</string>
+    <string name="settings_ui_mode">Стиль UI</string>
+    <string name="settings_ui_mode_summary">Выберите стиль UI</string>
     <string name="settings_page_scale">Масштаб страницы</string>
+    <string name="settings_page_scale_summary">Задайте глобальный масштаб дисплея</string>
     <string name="settings_color_spec">Спецификация цвета</string>
+    <string name="settings_color_style">Цветовой стиль</string>
     <string name="color_blue">Синий</string>
     <string name="color_red">Красный</string>
     <string name="color_green">Зеленый</string>
@@ -202,8 +241,27 @@
     <string name="select_file_tip_nogki">Пожалуйста, выберите файл образа GKI устройства, который вы хотите пропатчить</string>
     <string name="current_kmi">Версия KMI этого устройства: %s</string>
     <string name="current_device_kmi">KMI этого устройства</string>
+    <string name="settings_enable_blur">Размытие</string>
+    <string name="settings_enable_blur_summary">Включить эффект размытия для верхних и нижних панелей.</string>
+    <string name="settings_floating_bottom_bar">Плавающая нижняя панель</string>
+    <string name="settings_floating_bottom_bar_summary">Использовать стиль Apple для нижней панели.</string>
+    <string name="settings_enable_glass">Liquid glass</string>
+    <string name="settings_enable_glass_summary">Включить эффект Liquid glass для нижней панели</string>
+    <string name="settings_smooth_corner">Скругленные углы</string>
+    <string name="settings_smooth_corner_summary">Включить глобальные скругленные углы</string>
+    <string name="show_only_primary_user_apps">Показывать только основные приложения пользователя</string>
+    <string name="settings_auto_jailbreak">Автоматический Jailbreak</string>
+    <string name="settings_auto_jailbreak_summary">Автоматически использовать Magica для повышения привилегий при обнаружении Permissive статуса SELinux при загрузке. Требуется выдача разрешения на автозапуск этого приложения.</string>
+    <string name="allow_shell">Всегда выдавать Root для Shell\'а</string>
+    <string name="allow_shell_summary">Всегда разрешать adb shell вызывать SU. Включайте только при необходимости!</string>
+    <string name="enable_adb">Принудительно включить adb при загрузке</string>
+    <string name="enable_adb_summary">Принудительно включить отладку по usb без аутентификации. Включайте только при необходимости.</string>
+    <string name="advanced_options">Расширенные настройки</string>
+    <string name="expand">Развернуть</string>
+    <string name="download_channel_name">Загрузки модуля</string>
+    <string name="download_progress_title">Загружено %s</string>
     <string name="download_complete_title">Загрузка завершена</string>
-    <string name="download_complete_content">%s успешно загружено</string>
+    <string name="download_complete_content">%s Успешно загружено</string>
     <string name="download_failed_title">Загрузка не удалась</string>
     <string name="download_failed_content">Не удалось загрузить %s</string>
     <string name="download">Загрузить</string>
@@ -228,6 +286,7 @@
     <!-- Umount Manager -->
     <string name="umount_path_manager">Управление путями размонтирования</string>
     <string name="umount_path_restart_notice">Для применения изменений необходима перезагрузка. Система применит новый конфиг при следующем запуске.</string>
+    <string name="add_umount_path">Добавить путь размонтирования</string>
     <string name="mount_path">Путь монтирования</string>
     <string name="umount_flags">Флаги размонтирования</string>
     <string name="umount_flags_hint">0=Обычное размонтирование, 2=MNT_DETACH</string>
@@ -244,10 +303,11 @@
     <string name="apply_config">Применить конфигурацию</string>
     <string name="config_applied">Конфигурация применена к ядру</string>
     <!-- Kernel Flash Progress Related -->
+    <string name="horizon_flash_complete">Прошивка завершена</string>
     <string name="horizon_preparing">Подготовка…</string>
     <string name="horizon_cleaning_files">Очистка файлов…</string>
     <string name="horizon_copying_files">Копирование файлов…</string>
-    <string name="horizon_extracting_tool">Извлечение флэш инструмента…</string>
+    <string name="horizon_extracting_tool">Извлечение флэш-инструмента…</string>
     <string name="horizon_patching_script">Изменение флэш-скрипта…</string>
     <string name="horizon_flashing">Прошивка ядра…</string>
     <string name="horizon_flash_complete_status">Прошивка завершена</string>
@@ -259,9 +319,12 @@
     <string name="horizon_getting_original_slot">Получение оригинального слота</string>
     <string name="horizon_setting_target_slot">Установка указанного слота</string>
     <string name="horizon_restoring_original_slot">Восстановить оригинальный слот</string>
+    <string name="current_slot">Текущий слот по умолчанию: %1$s</string>
     <string name="horizon_copy_failed">Копирование не удалось</string>
     <string name="horizon_unknown_error">Неизвестная ошибка</string>
     <string name="flash_failed_message">Установка не выполнена</string>
+    <string name="kernel_version_log">Версия ядра: %1$s</string>
+    <string name="tool_version_log">Используем версию инструмента патчинга: %1$s</string>
     <string name="tools">Инструменты</string>
     <string name="root_required">Требуются root-права</string>
     <string name="kpm_patch_options">Патч KPM</string>
@@ -297,6 +360,8 @@
     <string name="kpm_uninstall">Удалить</string>
     <string name="kpm_uninstall_success">Удаление завершено</string>
     <string name="kpm_uninstall_failed">Не удалось удалить</string>
+    <string name="kpm_install_success">Загрузка KPM модуля завершена</string>
+    <string name="kpm_install_failed">Загрузка KPM модуля не удалась</string>
     <string name="kpm_args">Параметры</string>
     <string name="kpm_control">Выполнить</string>
     <string name="close_notice">Закрыть</string>
@@ -324,7 +389,9 @@
     <string name="allowlist_backup_summary_picker">Выберите место для экспорта списка</string>
     <string name="allowlist_backup_success">Резервное копирование выполнено успешно</string>
     <string name="allowlist_backup_failed">Ошибка резервного копирования</string>
+    <string name="allowlist_restore_title">Восстановить белый список</string>
     <string name="allowlist_restore_summary_picker">Выберите файл резервной копии для импорта</string>
+    <string name="allowlist_restore_success">Восстановление прошло успешно. Изменения применятся после перезагрузки</string>
     <string name="allowlist_restore_failed">Ошибка восстановления</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (Модуль)</string>
@@ -375,6 +442,7 @@
     <!-- Feature Labels -->
     <string name="sus_path_feature_label">Поддержка SUS пути</string>
     <string name="sus_mount_feature_label">Поддержка SUS монтирования</string>
+    <string name="spoof_uname_feature_label">Поддержка спуффинга Uname</string>
     <string name="spoof_cmdline_feature_label">Подмена Cmdline/Bootconfig</string>
     <string name="open_redirect_feature_label">Поддержка Open Redirect</string>
     <string name="enable_log_feature_label">Поддержка логов</string>
@@ -402,6 +470,7 @@
     <!-- SuSFS Kstat Related Strings -->
     <string name="susfs_tab_kstat_config">Конфигурация Kstat</string>
     <string name="add_kstat_statically_title">Добавить статическую конфигурацию Kstat</string>
+    <string name="file_or_directory_path_label">Путь файла/директории</string>
     <string name="hint_use_default_value">Подсказка: Вы можете использовать «default» для использования оригинального значения</string>
     <string name="add_kstat_path_title">Добавить путь Kstat</string>
     <string name="add">Добавить</string>
@@ -442,6 +511,7 @@
     <string name="hide_bl_script">Состояние блокировки</string>
     <string name="hide_bl_script_description">Переопределить статус блокировки загрузчика в режиме службы late_start</string>
     <string name="cleanup_residue">Очистка</string>
+    <string name="cleanup_residue_description">Очистка остаточных файлов и директорий из модулей и инструментов. Используйте с осторожностью: требуемые файлы могут быть удалены по ошибке, что приведет к потере данных или сбоях при запуске</string>
     <string name="susfs_edit_sus_path">Редактировать путь SUS</string>
     <string name="edit_kstat_statically_title">Изменить статическую конфигурацию Kstat</string>
     <string name="edit_kstat_path_title">Редактировать путь Kstat</string>
@@ -463,6 +533,7 @@
     <string name="susfs_tab_sus_loop_paths">Пути цикла SUS</string>
     <string name="susfs_add_sus_loop_path">Добавить путь SUS Loop</string>
     <string name="susfs_edit_sus_loop_path">Редактировать путь SUS Loop</string>
+    <string name="susfs_no_loop_paths_configured">Пути SUS Loop не настроены</string>
     <string name="susfs_reset_loop_paths_title">Сбросить SUS Loop пути</string>
     <string name="susfs_reset_loop_paths_message">Вы уверены, что хотите очистить все пути SUS Loop? Это действие нельзя отменить.</string>
     <string name="susfs_loop_path_label">Loop путь</string>
@@ -482,12 +553,18 @@
     <string name="susfs_sus_map_label">Путь к библиотеке</string>
     <string name="susfs_add_sus_map">Добавить SUS Map</string>
     <string name="susfs_edit_sus_map">Изменить SUS Map</string>
+    <string name="susfs_no_sus_maps_configured">SUS Maps не настроены</string>
+    <string name="susfs_add_map_failed">Не удалось добавить SUS Map</string>
+    <string name="susfs_edit_map_failed">Не удалось изменить SUS Map</string>
     <string name="susfs_reset_sus_maps_title">Сбросить SUS Maps</string>
+    <string name="susfs_reset_sus_maps_message">Это действие удалит все настроенные SUS Maps. Действие не может быть отменено</string>
     <string name="sus_maps_section">Скрытие физической памяти</string>
+    <string name="sus_maps_description_title">Скрыть настоящий mapped файл из различных map в /proc/self/</string>
     <string name="sus_maps_description_text">Скрыть реальные пути к папкам памяти из /proc/self/[maps|smaps_rollup|map_files|mem|pagemap]. Обратите внимание: эта функция не поддерживает скрытие анонимных карт и может скрыть встроенные хуки или PLT хуки вызванные инъекцией самой библиотеки.</string>
     <string name="sus_maps_warning">Важное уведомление: для приложений с хорошо реализованными механизмами обнаружений эта функция может работать не эффективно.</string>
     <string name="sus_maps_debug_info">Сначала найдите PID и UID целевого приложения, используя ps -enf, затем проверьте соответствующие пути в /proc/&lt;pid&gt;/maps и сравните номера устройства с номерами в /proc/1/mountinfo. Функция скрытия  будет работать должным образом только если номера устройств совпадают.</string>
     <string name="icon_switch_title">Альт. иконка</string>
     <string name="icon_switch_summary">Поменять иконку приложения на иконку KernelSU</string>
     <string name="refresh">Обновить</string>
+    <string name="home_kernel_full_version">Полная версия ядра</string>
 </resources>
