@@ -75,7 +75,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.GithubMarkdown
+import com.sukisu.ultra.ui.component.markdown.GithubMarkdown
 import com.sukisu.ultra.ui.component.ListPopupDefaults
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.component.dialog.ConfirmDialogHandle

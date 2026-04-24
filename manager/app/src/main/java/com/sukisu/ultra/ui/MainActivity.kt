@@ -57,12 +57,10 @@ import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.BottomBar
 import com.sukisu.ultra.ui.component.bottombar.MainPagerState
 import com.sukisu.ultra.ui.component.bottombar.SideRail
 import com.sukisu.ultra.ui.component.bottombar.rememberMainPagerState
-import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.kernelFlash.KernelFlashScreen
 import com.sukisu.ultra.ui.navigation3.HandleDeepLink
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
@@ -73,7 +71,6 @@ import com.sukisu.ultra.ui.screen.about.AboutScreen
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
 import com.sukisu.ultra.ui.screen.executemoduleaction.ExecuteModuleActionScreen
-import com.sukisu.ultra.ui.screen.flash.FlashIt
 import com.sukisu.ultra.ui.screen.flash.FlashScreen
 import com.sukisu.ultra.ui.screen.home.HomePager
 import com.sukisu.ultra.ui.screen.install.InstallScreen
@@ -95,12 +92,12 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.util.LocalSnackbarHost
-import com.sukisu.ultra.ui.util.getFileName
 import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
 import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
+import com.sukisu.ultra.ui.viewmodel.MainPagerConfig
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.theme.MiuixTheme

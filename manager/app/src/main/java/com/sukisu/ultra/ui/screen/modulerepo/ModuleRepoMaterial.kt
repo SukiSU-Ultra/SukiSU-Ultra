@@ -94,7 +94,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.RepoModule
-import com.sukisu.ultra.ui.component.GithubMarkdown
+import com.sukisu.ultra.ui.component.markdown.GithubMarkdown
 import com.sukisu.ultra.ui.component.dialog.ConfirmDialogHandle
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.material.SearchAppBar
