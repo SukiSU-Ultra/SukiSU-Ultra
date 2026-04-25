@@ -25,6 +25,7 @@ LSM_HOOK_TYPE ksu_key_permission(key_ref_t key_ref, const struct cred *cred, uns
 #ifdef CONFIG_KSU_SUSFS
 extern u32 susfs_zygote_sid;
 extern struct cred *ksu_cred;
+extern void disable_seccomp(void);
 
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 extern void susfs_run_sus_path_loop(void);

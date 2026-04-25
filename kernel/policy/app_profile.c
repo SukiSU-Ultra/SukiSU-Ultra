@@ -52,7 +52,7 @@ void seccomp_filter_release(struct task_struct *tsk);
 #define KSU_HAS_SECCOMP_FILTER_RELEASE
 #endif
 
-static void disable_seccomp(void)
+void disable_seccomp(void)
 {
     if (!!!current->seccomp.mode) {
         return;
@@ -183,7 +183,12 @@ int escape_with_root_profile(void)
 
     commit_creds(cred);
 
+#ifdef CONFIG_KSU_SUSFS
+    if (current->seccomp.mode)
+        disable_seccomp();
+#else
     disable_seccomp();
+#endif
 
     setup_mount_ns(profile->namespaces);
     ksu_put_root_profile(profile);
