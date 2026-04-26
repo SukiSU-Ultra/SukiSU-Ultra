@@ -1,12 +1,6 @@
-#ifdef CONFIG_KSU_LSM_HOOKS
-#define LSM_HOOK_TYPE static int
-#else
-#define LSM_HOOK_TYPE int
-#endif
-
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) || defined(CONFIG_IS_HW_HISI) ||                                     \
     defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
-LSM_HOOK_TYPE ksu_key_permission(key_ref_t key_ref, const struct cred *cred, unsigned perm)
+static int ksu_key_permission(key_ref_t key_ref, const struct cred *cred, unsigned perm)
 {
     if (init_session_keyring != NULL) {
         return 0;
@@ -94,7 +88,7 @@ do_umount:
     return 0;
 }
 #else
-LSM_HOOK_TYPE ksu_task_fix_setuid(struct cred *new, const struct cred *old, int flags)
+static int ksu_task_fix_setuid(struct cred *new, const struct cred *old, int flags)
 {
     uid_t new_uid, old_uid = 0;
 
@@ -144,7 +138,7 @@ void __init ksu_lsm_hook_init(void)
     pr_info("LSM hooks initialized.\n");
 }
 #else
-void __init ksu_lsm_hook_init()
+void __init ksu_lsm_hook_init(void)
 {
 } /* no opt */
 #endif

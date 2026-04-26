@@ -8,20 +8,19 @@ config KSU
 	  To compile as a module, choose M here: the
 	  module will be called kernelsu.
 
-config KSU_LSM_HOOKS
-	bool "KernelSU LSM Hook"
-	depends on KSU
-	default y
-	help
-	  Enable Linux Security Module (LSM) hooks support for
-	  KernelSU.
-
 config KSU_MANUAL_HOOK
 	bool "KernelSU manual hook (stub) (dummy)"
 	depends on KSU
 	default y
 	help
 	  Always Enabled now, do not disable.
+
+config KSU_FEATURE_ADBROOT
+	bool "KernelSU ADB Root feature"
+	depends on KSU
+	default y
+	help
+	  Build KernelSU's adb root feature.
 
 config KSU_DEBUG
 	bool "KernelSU debug mode"
