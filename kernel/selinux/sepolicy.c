@@ -178,7 +178,7 @@ static bool remove_avtab_node(struct policydb *db, struct avtab_node *node)
             if (prev) {
                 prev->next = n->next;
             } else {
-                flex_array_put_ptr(db->te_avtab.htable, i, n->next, GFP_KERNEL | __GFP_ZERO);
+                flex_array_put_ptr(db->te_avtab.htable, i, n->next, GFP_ATOMIC | __GFP_ZERO);
             }
 
             if (db->te_avtab.nel > 0)
@@ -189,7 +189,7 @@ static bool remove_avtab_node(struct policydb *db, struct avtab_node *node)
             }
             n->next = NULL;
 
-            flex_array_put_ptr(removed.htable, 0, n, GFP_KERNEL | __GFP_ZERO);
+            flex_array_put_ptr(removed.htable, 0, n, GFP_ATOMIC | __GFP_ZERO);
 
             removed.nel = 1;
             avtab_destroy(&removed);
