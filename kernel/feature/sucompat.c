@@ -85,18 +85,12 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
             return 0;
         }
 
-#ifdef CONFIG_COMPAT
-        if (unlikely(envp_user->is_compat))
-            ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.compat);
-        else
-            ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);    
-#else
-        ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);
-#endif
-
-        if (ret) {
-            pr_err("adb root failed: %d\n", ret);
-            return ret;
+        if (current_uid().val != 1 && is_init(get_current_cred())) {
+            ret = ksu_adb_root_handle_execve(filename->name, envp_user);
+            if (ret) {
+                pr_err("adb root failed: %d\n", ret);
+                return ret;
+            }
         }
         return ret;
     }
@@ -312,7 +306,7 @@ int ksu_handle_execve_sucompat(int *fd, const char __user **filename_user, void 
         return 0;
 
     pending_root_execve =
-        ksu_sulog_capture_sucompat(*filename_user, (const char __user *const __user *)argv, GFP_KERNEL);
+        ksu_sulog_capture_sucompat(*filename_user, *((struct user_arg_ptr *)argv), GFP_KERNEL);
 
     ret = ksu_sucompat_user_common(filename_user, "sys_execve", true);
     ksu_sulog_emit_pending(pending_root_execve, ret, GFP_KERNEL);
@@ -334,7 +328,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *
     pr_info("do_execveat_common su found\n");
 
     pending_root_execve =
-        ksu_sulog_capture_sucompat((*filename_ptr)->name, (const char __user *const __user *)argv, GFP_KERNEL);
+        ksu_sulog_capture_sucompat((*filename_ptr)->name, *((struct user_arg_ptr *)argv), GFP_KERNEL);
 
     memcpy((void *)(*filename_ptr)->name, ksud_path, sizeof(ksud_path));
 
@@ -346,6 +340,15 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *
 extern bool ksu_execveat_hook __read_mostly;
 int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags)
 {
+#ifdef CONFIG_KSU_FEATURE_ADBROOT
+    int ret = 0;
+    if (current_uid().val != 1 && is_init(get_current_cred())) {
+        ret = ksu_adb_root_handle_execve(filename, (struct user_arg_ptr *)envp);
+        if (ret) {
+            pr_err("adb root failed: %d\n", (int)ret);
+        }
+    }
+#endif
     if (unlikely(ksu_execveat_hook)) {
         return ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags);
     }

@@ -237,12 +237,14 @@ __weak void groups_sort(struct group_info *group_info)
 #endif
 
 #ifndef check_add_overflow
-#define check_add_overflow(a, b, d) ({      \
-    typeof(a) _a = (a);                     \
-    typeof(b) _b = (b);                     \
-    *(d) = _a + _b;                         \
-    *(d) < _a;                              \
-})
+#define check_add_overflow(a, b, d)                                                                                    \
+	({                                                                                                                 \
+		typeof(a) _a = (a);                                                                                            \
+		typeof(b) _b = (b);                                                                                            \
+		typeof(*(d)) _res = _a + _b;                                                                                   \
+		*(d) = _res;                                                                                                   \
+		_res < _a;                                                                                                     \
+	})
 #endif
 
 #ifndef in_compat_syscall

@@ -322,17 +322,6 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
         }
     }
 
-    if (envp) {
-#ifdef CONFIG_COMPAT
-        if (unlikely(envp->is_compat))
-            (void)ksu_adb_root_handle_execve(filename->name, (void ***)&envp->ptr.compat);
-        else
-            (void)ksu_adb_root_handle_execve(filename->name, (void ***)&envp->ptr.native);
-#else
-        (void)ksu_adb_root_handle_execve(filename->name, (void ***)&envp->ptr.native);
-#endif
-    }
-
     return 0;
 }
 #endif
