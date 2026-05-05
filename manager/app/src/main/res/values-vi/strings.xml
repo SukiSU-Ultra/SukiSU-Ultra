@@ -310,6 +310,7 @@
     <string name="horizon_copy_failed">Sao chép thất bại</string>
     <string name="horizon_unknown_error">Lỗi không xác định</string>
     <string name="flash_failed_message">Flash thất bại</string>
+    <string name="kernel_version_log">Phiên bản kernel</string>
     <string name="tools">Công cụ</string>
     <string name="root_required">Yêu cầu quyền root</string>
     <string name="kpm_patch_options">Vá KPM</string>
@@ -382,6 +383,8 @@
     <!-- SuSFS Configuration -->
     <string name="susfs_config_title">Cấu hình SuSFS</string>
     <string name="susfs_config_summary">Định cấu hình cài đặt mô-đun SuSFS</string>
+    <string name="susfs_current_value">Giá trị hiện tại</string>
+    <string name="susfs_apply">Áp dụng</string>
     <!-- SuSFS Reset Confirmation -->
     <!-- SuSFS Toast Messages -->
     <!-- Auto Start -->
