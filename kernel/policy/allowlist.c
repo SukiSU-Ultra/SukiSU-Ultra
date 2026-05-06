@@ -9,7 +9,9 @@
 #include <linux/gfp.h>
 #include <linux/kernel.h>
 #include <linux/list.h>
+#include <linux/namei.h>
 #include <linux/printk.h>
+#include <linux/security.h>
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/version.h>
@@ -66,7 +68,43 @@ struct perm_data {
 static DEFINE_HASHTABLE(allow_list, ALLOW_LIST_BITS);
 static u16 allow_list_count = 0;
 
+#define KERNEL_SU_ALLOWLIST_DIR "/data/adb/ksu"
 #define KERNEL_SU_ALLOWLIST "/data/adb/ksu/.allowlist"
+
+static int ensure_allowlist_dir_exists(void)
+{
+    struct path path;
+    struct dentry *dentry;
+    umode_t mode = 0755;
+    int err;
+
+    err = kern_path(KERNEL_SU_ALLOWLIST_DIR, LOOKUP_DIRECTORY, &path);
+    if (!err) {
+        path_put(&path);
+        return 0;
+    }
+
+    if (err != -ENOENT) {
+        return err;
+    }
+
+    dentry = kern_path_create(AT_FDCWD, KERNEL_SU_ALLOWLIST_DIR, &path, LOOKUP_DIRECTORY);
+    if (IS_ERR(dentry)) {
+        return PTR_ERR(dentry);
+    }
+
+    if (!IS_POSIXACL(d_inode(path.dentry))) {
+        mode &= ~current_umask();
+    }
+
+    err = security_path_mkdir(&path, dentry, mode);
+    if (!err) {
+        err = vfs_mkdir(d_inode(path.dentry), dentry, mode);
+    }
+
+    done_path_create(&path, dentry);
+    return err == -EEXIST ? 0 : err;
+}
 
 void ksu_persistent_allow_list(void);
 
@@ -430,9 +468,16 @@ static void do_persistent_allow_list(struct callback_head *_cb)
     u32 version = FILE_FORMAT_VERSION;
     struct perm_data *p = NULL;
     loff_t off = 0;
+    int err;
     int i;
 
     const struct cred *saved = override_creds(ksu_cred);
+    err = ensure_allowlist_dir_exists();
+    if (err) {
+        pr_err("save_allow_list ensure dir failed: %d\n", err);
+        goto out;
+    }
+
     struct file *fp = filp_open(KERNEL_SU_ALLOWLIST, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (IS_ERR(fp)) {
         pr_err("save_allow_list create file failed: %ld\n", PTR_ERR(fp));
