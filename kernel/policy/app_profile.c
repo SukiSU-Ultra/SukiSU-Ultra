@@ -184,7 +184,7 @@ int escape_with_root_profile(void)
     commit_creds(cred);
 
 #ifdef CONFIG_KSU_SUSFS
-    if (current->seccomp.mode)
+    if (likely(test_thread_flag(TIF_SECCOMP)))
         disable_seccomp();
 #else
     disable_seccomp();

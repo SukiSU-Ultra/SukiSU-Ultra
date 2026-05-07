@@ -53,10 +53,10 @@ struct file *ksu_filp_open_compat(const char *filename, int flags, umode_t mode)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0) // caller is reponsible for sanity!
 static inline void ksu_zeroed_strncpy(char *dest, const char *src, size_t count)
 {
-	// this is actually faster due to dead store elimination
-	// count - 1 as implicit null termination
-	__builtin_memset(dest, 0, count);
-	__builtin_strncpy(dest, src, count - 1);
+    // this is actually faster due to dead store elimination
+    // count - 1 as implicit null termination
+    __builtin_memset(dest, 0, count);
+    __builtin_strncpy(dest, src, count - 1);
 }
 #define strscpy ksu_zeroed_strncpy
 #define strscpy_pad ksu_zeroed_strncpy
@@ -200,25 +200,25 @@ __weak void groups_sort(struct group_info *group_info)
 #endif
 
 #ifndef U16_MAX
-#define	U16_MAX	((u16)(~0U))
+#define U16_MAX ((u16)(~0U))
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION (4, 12, 0) && !defined(EPOLLIN)
-#define EPOLLIN		0x00000001
-#define EPOLLPRI	0x00000002
-#define EPOLLOUT	0x00000004
-#define EPOLLERR	0x00000008
-#define EPOLLHUP	0x00000010
-#define EPOLLRDNORM	0x00000040
-#define EPOLLRDBAND	0x00000080
-#define EPOLLWRNORM	0x00000100
-#define EPOLLWRBAND	0x00000200
-#define EPOLLMSG	0x00000400
-#define EPOLLRDHUP	0x00002000
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0) && !defined(EPOLLIN)
+#define EPOLLIN 0x00000001
+#define EPOLLPRI 0x00000002
+#define EPOLLOUT 0x00000004
+#define EPOLLERR 0x00000008
+#define EPOLLHUP 0x00000010
+#define EPOLLRDNORM 0x00000040
+#define EPOLLRDBAND 0x00000080
+#define EPOLLWRNORM 0x00000100
+#define EPOLLWRBAND 0x00000200
+#define EPOLLMSG 0x00000400
+#define EPOLLRDHUP 0x00002000
 #endif // < 4.12 && !EPOLLIN
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION (3, 15, 0)
-#define task_ppid_nr(a) (pid_t)sys_getppid()
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
+#define task_ppid_nr(a) (pid_t) sys_getppid()
 #endif
 
 // WARNING: no overflow safety!
@@ -226,7 +226,7 @@ __weak void groups_sort(struct group_info *group_info)
 #define struct_size(p, member, n) (sizeof(*(p)) + (n) * sizeof(*(p)->member))
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION (4, 12, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
 #ifndef ALIGN_DOWN
 #define ALIGN_DOWN(x, a) __ALIGN_KERNEL((x) - ((a) - 1), (a))
 #endif
@@ -238,13 +238,13 @@ __weak void groups_sort(struct group_info *group_info)
 
 #ifndef check_add_overflow
 #define check_add_overflow(a, b, d)                                                                                    \
-	({                                                                                                                 \
-		typeof(a) _a = (a);                                                                                            \
-		typeof(b) _b = (b);                                                                                            \
-		typeof(*(d)) _res = _a + _b;                                                                                   \
-		*(d) = _res;                                                                                                   \
-		_res < _a;                                                                                                     \
-	})
+    ({                                                                                                                 \
+        typeof(a) _a = (a);                                                                                            \
+        typeof(b) _b = (b);                                                                                            \
+        typeof(*(d)) _res = _a + _b;                                                                                   \
+        *(d) = _res;                                                                                                   \
+        _res < _a;                                                                                                     \
+    })
 #endif
 
 #ifndef in_compat_syscall

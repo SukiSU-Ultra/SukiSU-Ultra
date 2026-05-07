@@ -64,10 +64,6 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
 
             pr_info("hook_manager: escape to root for init executing ksud: %d\n", current->pid);
             escape_to_root_for_init();
-            if (ret) {
-                pr_err("escape_to_root_for_init() failed: %d\n", ret);
-                return ret;
-            }
             if (!argv_user_ptr || IS_ERR(argv_user_ptr)) {
                 pr_err("!argv_user_ptr || IS_ERR(argv_user_ptr)\n");
                 return -EFAULT;
@@ -85,15 +81,22 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
             return 0;
         }
 
-        if (current_uid().val != 1 && is_init(get_current_cred())) {
-            ret = ksu_adb_root_handle_execve(filename->name, envp_user);
-            if (ret) {
-                pr_err("adb root failed: %d\n", ret);
-                return ret;
-            }
+#ifdef CONFIG_COMPAT
+        if (unlikely(envp_user->is_compat))
+            ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.compat);
+        else
+            ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);    
+#else
+        ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);
+#endif
+
+        if (ret) {
+            pr_err("adb root failed: %d\n", ret);
+            return ret;
         }
         return ret;
     }
+
     return -EINVAL;
 }
 
@@ -196,27 +199,6 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 }
 #endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 
-int ksu_handle_devpts(struct inode *inode)
-{
-    if (!current->mm)
-        return 0;
-
-    uid_t uid = current_uid().val;
-    if (uid % 100000 < 10000)
-        // not untrusted_app, ignore it
-        return 0;
-
-    if (!__ksu_is_allow_uid_for_current(uid))
-        return 0;
-
-    if (ksu_file_sid) {
-        struct inode_security_struct *sec = selinux_inode(inode);
-        if (sec)
-            sec->sid = ksu_file_sid;
-    }
-
-    return 0;
-}
 #else
 __attribute__((hot)) static __always_inline bool __is_su_allowed(const void **ptr_to_check)
 {
@@ -262,7 +244,7 @@ static noinline int ksu_sucompat_user_common(const char __user **filename_user, 
         return ret;
 
     // NOTE: we only check file existence, not exec success!
-    struct path kpath = {};
+    struct path kpath;
     if (!!kern_path(ksud_path, 0, &kpath))
         goto no_ksud;
 
@@ -325,15 +307,27 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *
     if (likely(memcmp((void *)(*filename_ptr)->name, su_path, sizeof(su_path))))
         return 0;
 
-    pr_info("do_execveat_common su found\n");
-
     pending_root_execve =
         ksu_sulog_capture_sucompat((*filename_ptr)->name, *((struct user_arg_ptr *)argv), GFP_KERNEL);
 
-    memcpy((void *)(*filename_ptr)->name, ksud_path, sizeof(ksud_path));
-
     ret = escape_with_root_profile();
     ksu_sulog_emit_pending(pending_root_execve, ret, GFP_KERNEL);
+    if (!!ret)
+        return 0;
+
+    // NOTE: we only check file existence, not exec success!
+    struct path kpath;
+    if (!!kern_path("/data/adb/ksud", 0, &kpath))
+        goto no_ksud;
+
+    path_put(&kpath);
+    pr_info("do_execveat_common su->ksud!\n");
+    memcpy((void *)(*filename_ptr)->name, ksud_path, sizeof(ksud_path));
+    return 0;
+
+no_ksud:
+    pr_info("do_execveat_common su->sh!\n");
+    memcpy((void *)(*filename_ptr)->name, sh_path, sizeof(sh_path));
     return 0;
 }
 
@@ -343,15 +337,17 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, voi
 #ifdef CONFIG_KSU_FEATURE_ADBROOT
     int ret = 0;
     if (current_uid().val != 1 && is_init(get_current_cred())) {
-        ret = ksu_adb_root_handle_execve(filename, (struct user_arg_ptr *)envp);
+        ret = ksu_adb_root_handle_execve_manual((*filename_ptr)->name, (struct user_arg_ptr *)envp);
         if (ret) {
             pr_err("adb root failed: %d\n", (int)ret);
         }
     }
 #endif
+
     if (unlikely(ksu_execveat_hook)) {
         return ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp, flags);
     }
+
     return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp, flags);
 }
 
@@ -360,8 +356,6 @@ int __maybe_unused ksu_handle_devpts(struct inode *inode)
 {
     return 0;
 }
-
-#endif
 
 // sucompat: permitted process can execute 'su' to gain root access.
 void __init ksu_sucompat_init(void)

@@ -1,9 +1,8 @@
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 0)
-bool __maybe_unused
-is_ksu_transition(const struct task_security_struct *old_tsec,
-		  const struct task_security_struct *new_tsec)
+bool __maybe_unused is_ksu_transition(const struct task_security_struct *old_tsec,
+                                      const struct task_security_struct *new_tsec)
 {
-	return new_tsec->sid == old_tsec->sid;
+    return new_tsec->sid == old_tsec->sid;
 }
 #endif
 

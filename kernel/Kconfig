@@ -29,13 +29,6 @@ config KSU_DEBUG
 	help
 	  Enable KernelSU debug mode.
 
-config KSU_MANUAL_SU
-    bool "Use manual su"
-    depends on KSU
-    default y
-    help
-      Use manual su and authorize the corresponding command line and application via prctl
-
 config KPM
     bool "Enable SukiSU KPM"
     depends on KSU && 64BIT

@@ -10,7 +10,7 @@
 #define DECLARE(type, name, val) static const type name = val
 #else
 #define DECLARE(type, name, val) enum { name = val }
-#endif 
+#endif
 
 /* Magic numbers for reboot hook to install fd */
 DECLARE(__u32, KSU_INSTALL_MAGIC1, 0xDEADBEEF);

@@ -26,10 +26,10 @@
 #include "infra/su_mount_ns.h"
 #include "infra/file_wrapper.h"
 #include "infra/event_queue.h"
+#include "feature/adb_root.h"
 #include "feature/kernel_umount.h"
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
-#include "feature/adb_root.h"
 #include "runtime/ksud.h"
 #include "sulog/event.h"
 #include "sulog/fd.h"
@@ -72,10 +72,12 @@
 #include "infra/file_wrapper.c"
 #include "infra/event_queue.c"
 
+#ifdef CONFIG_KSU_FEATURE_ADBROOT
+#include "feature/adb_root.c"
+#endif
 #include "feature/kernel_umount.c"
 #include "feature/sucompat.c"
 #include "feature/sulog.c"
-#include "feature/adb_root.c"
 #include "runtime/ksud.c"
 
 #include "sulog/event.c"
@@ -106,10 +108,6 @@ int __init kernelsu_init(void)
     pr_alert("*************************************************************");
 #endif
 
-#ifdef CONFIG_KSU_SUSFS
-    susfs_init();
-#endif
-
     if (allow_shell) {
         pr_alert("shell is allowed at init!");
     }
@@ -118,6 +116,10 @@ int __init kernelsu_init(void)
     if (!ksu_cred) {
         pr_err("prepare cred failed!\n");
     }
+
+#ifdef CONFIG_KSU_SUSFS
+    susfs_init();
+#endif
 
     ksu_feature_init();
 

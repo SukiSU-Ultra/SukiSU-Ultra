@@ -2,12 +2,12 @@
 #define __KSU_UAPI_SELINUX_H
 
 #include <linux/types.h>
- 
+
 #ifdef __BINDGEN__
 #define DECLARE(type, name, val) static const type name = val
 #else
 #define DECLARE(type, name, val) enum { name = val }
-#endif 
+#endif
 
 DECLARE(__u32, KSU_SEPOLICY_CMD_NORMAL_PERM, 1);
 DECLARE(__u32, KSU_SEPOLICY_CMD_XPERM, 2);

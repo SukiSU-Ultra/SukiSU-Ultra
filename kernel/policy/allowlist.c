@@ -418,7 +418,7 @@ out:
     kfree(_cb);
 }
 
-void ksu_persistent_allow_list()
+void ksu_persistent_allow_list(void)
 {
     struct task_struct *tsk;
 
@@ -446,7 +446,7 @@ put_task:
     put_task_struct(tsk);
 }
 
-void ksu_load_allow_list()
+void ksu_load_allow_list(void)
 {
     loff_t off = 0;
     ssize_t ret = 0;
