@@ -81,6 +81,7 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
             return 0;
         }
 
+#ifdef CONFIG_KSU_FEATURE_ADBROOT
 #ifdef CONFIG_COMPAT
         if (unlikely(envp_user->is_compat))
             ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.compat);
@@ -88,6 +89,7 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
             ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);    
 #else
         ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);
+#endif
 #endif
 
         if (ret) {
@@ -356,6 +358,7 @@ int __maybe_unused ksu_handle_devpts(struct inode *inode)
 {
     return 0;
 }
+#endif
 
 // sucompat: permitted process can execute 'su' to gain root access.
 void __init ksu_sucompat_init(void)
