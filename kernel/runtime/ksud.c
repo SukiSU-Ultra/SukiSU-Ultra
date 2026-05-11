@@ -89,6 +89,9 @@ void on_boot_completed(void)
     ksu_boot_completed = true;
     pr_info("on_boot_completed!\n");
     track_throne(true);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+    ksu_selinux_hide_drop_backup_if_unused();
+#endif
 }
 
 #define MAX_ARG_STRINGS 0x7FFFFFFF
