@@ -150,7 +150,6 @@
     <string name="settings_sucompat">Perintah SU klasik</string>
     <string name="settings_sucompat_summary">Mengizinkan akses root melalui /system/bin/su, pada proses baru yang dibuat.</string>
     <string name="settings_kernel_umount">Umount kernel</string>
-    <string name="settings_kernel_umount_summary">Unmount modul dari kernel pada Profil Aplikasi.</string>
     <string name="feature_status_unsupported_summary">Kernel tidak mendukung fitur ini</string>
     <string name="feature_status_managed_summary">Fitur ini dikelola oleh modul</string>
     <string name="settings_mode_enable_by_default">Aktif (Default)</string>
