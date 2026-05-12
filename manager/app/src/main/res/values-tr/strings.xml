@@ -169,7 +169,6 @@
     <string name="settings_sucompat">Klasik SU komutu</string>
     <string name="settings_sucompat_summary">Uygulama Profilinde Süper Kullanıcı izni verilen uygulamaların /system/bin/su yürütülerek süper kullanıcı kabuğu almasına izin verir; yalnızca yeni işlemler için etkilidir.</string>
     <string name="settings_kernel_umount">Kernel bağlantısını kes</string>
-    <string name="settings_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesinde bağlantı kesme davranışı.</string>
     <string name="settings_sulog">SU Günlüğü (Log)</string>
     <string name="feature_status_unsupported_summary">Kernel bu özelliği desteklemiyor</string>
     <string name="feature_status_managed_summary">Bu özellik bir modül tarafından yönetilmektedir</string>
