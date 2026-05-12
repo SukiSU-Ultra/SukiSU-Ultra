@@ -162,7 +162,6 @@
     <string name="settings_sucompat">傳統 SU 命令支援</string>
     <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 許可權</string>
     <string name="settings_kernel_umount">解除安裝模組（核心級）</string>
-    <string name="settings_kernel_umount_summary">在核心給需要的應用解除安裝模組。</string>
     <string name="settings_sulog">SU 日誌</string>
     <string name="settings_sulog_summary">將 root 相關事件記錄到 KernelSU sulog 檔案。</string>
     <string name="feature_status_unsupported_summary">內核不支持此特性</string>
