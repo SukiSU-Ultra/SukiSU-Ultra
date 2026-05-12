@@ -172,7 +172,6 @@
     <string name="settings_sucompat">Lệnh SU cổ điển</string>
     <string name="settings_sucompat_summary">Cho phép truy cập root thông qua /system/bin/su, trong các tiến trình mới.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Umount modules khỏi Kernel trong Hồ sơ ứng dụng.</string>
     <string name="settings_sulog">SU Log</string>
     <string name="feature_status_unsupported_summary">Kernel không hỗ trợ tính năng này</string>
     <string name="feature_status_managed_summary">Tính năng này được quản lý bởi một module</string>
