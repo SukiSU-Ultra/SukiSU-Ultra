@@ -13,6 +13,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_observer.h"
 #include "manager/throne_tracker.h"
+#include "infra/symbol_resolver.h"
 #include "hook/syscall_hook_manager.h"
 #include "hook/lsm_hook.h"
 #include "runtime/ksud.h"
@@ -115,6 +116,8 @@ int __init kernelsu_init(void)
     if (allow_shell) {
         pr_alert("shell is allowed at init!");
     }
+
+    ksu_init_symbol_resolver();
 
     ksu_cred = prepare_creds();
     if (!ksu_cred) {
