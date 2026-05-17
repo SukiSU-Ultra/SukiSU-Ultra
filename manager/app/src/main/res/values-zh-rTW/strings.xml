@@ -229,7 +229,6 @@
     <string name="settings_floating_bottom_bar">懸浮底欄</string>
     <string name="settings_floating_bottom_bar_summary">使用 Apple 風格的懸浮底欄</string>
     <string name="settings_enable_glass">液態玻璃</string>
-    <string name="settings_enable_glass_summary">啟用懸浮底欄的液態玻璃效果</string>
     <string name="show_only_primary_user_apps">只顯示主用戶應用</string>
     <string name="settings_auto_jailbreak">自動越獄</string>
     <string name="settings_auto_jailbreak_summary">開機檢測到 Permissive SELinux 時自動使用 Magica 提權。需要授予本應用自啟動權限。</string>
