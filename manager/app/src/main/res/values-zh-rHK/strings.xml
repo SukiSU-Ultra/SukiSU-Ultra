@@ -150,6 +150,7 @@
     <string name="settings_sucompat">傳統 SU 指令支援</string>
     <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 權限，僅限新的處理程序</string>
     <string name="settings_kernel_umount">核心層級 Umount</string>
+    <string name="settings_kernel_umount_summary">從核心層級（kernel-level）對選定的 App 移除模組修改</string>
     <string name="feature_status_unsupported_summary">核心不支援此功能</string>
     <string name="feature_status_managed_summary">功能正由模組管理</string>
     <string name="settings_mode_enable_by_default">啟用（預設）</string>
@@ -219,8 +220,6 @@
     <string name="settings_floating_bottom_bar_summary">使用 Apple 風格懸浮底部欄</string>
     <string name="settings_enable_glass">液態玻璃</string>
     <string name="settings_enable_glass_summary">為懸浮底部欄啟用液態玻璃效果</string>
-    <string name="settings_smooth_corner">平滑圓角</string>
-    <string name="settings_smooth_corner_summary">啟用全局平滑圓角效果</string>
     <string name="show_only_primary_user_apps">僅顯示主要使用者 App</string>
     <string name="settings_auto_jailbreak">自動越獄</string>
     <string name="settings_auto_jailbreak_summary">開機時若偵測到寬容模式 SELinux，將自動使用 Magica 提升權限（需授予本程式背景啟動權限）</string>
