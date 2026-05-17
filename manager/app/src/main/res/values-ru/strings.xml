@@ -175,6 +175,7 @@
     <string name="settings_sucompat">Классическая команда SU</string>
     <string name="settings_sucompat_summary">Разрешить root-доступ через /system/bin/su в новых процессах.</string>
     <string name="settings_kernel_umount">Размонтировать модули (на уровне ядра)</string>
+    <string name="settings_kernel_umount_summary">Размонтировать модули в ядре для профиля приложения.</string>
     <string name="settings_sulog">Лог SU</string>
     <string name="settings_sulog_summary">Записывать действия, связанные с Root в SU log</string>
     <string name="feature_status_unsupported_summary">Ядро не поддерживает эту функцию.</string>
@@ -246,8 +247,6 @@
     <string name="settings_floating_bottom_bar_summary">Использовать стиль Apple для нижней панели.</string>
     <string name="settings_enable_glass">Liquid glass</string>
     <string name="settings_enable_glass_summary">Включить эффект Liquid glass для нижней панели</string>
-    <string name="settings_smooth_corner">Скругленные углы</string>
-    <string name="settings_smooth_corner_summary">Включить глобальные скругленные углы</string>
     <string name="show_only_primary_user_apps">Показывать только основные приложения пользователя</string>
     <string name="settings_auto_jailbreak">Автоматический Jailbreak</string>
     <string name="settings_auto_jailbreak_summary">Автоматически использовать Magica для повышения привилегий при обнаружении Permissive статуса SELinux при загрузке. Требуется выдача разрешения на автозапуск этого приложения.</string>
