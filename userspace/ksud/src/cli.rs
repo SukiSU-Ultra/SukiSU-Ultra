@@ -63,6 +63,14 @@ enum Commands {
         /// manager package name
         #[arg(long, default_value_t = String::from("com.sukisu.ultra"))]
         package_name: String,
+
+        /// kernel release string to spoof
+        #[arg(long)]
+        spoof_release: Option<String>,
+
+        /// kernel version string to spoof
+        #[arg(long)]
+        spoof_version: Option<String>,
     },
 
     /// Emulate system reboot
@@ -480,6 +488,15 @@ enum Kernel {
     },
     /// Notify that module is mounted
     NotifyModuleMounted,
+    /// Spoof kernel release and version strings
+    SpoofUname {
+        /// kernel release string (e.g. 5.10.117-android12-9)
+        #[arg(short, long)]
+        release: Option<String>,
+        /// kernel version string (e.g. #1 SMP PREEMPT Mon May 19 2026)
+        #[arg(short, long)]
+        version: Option<String>,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -720,6 +737,8 @@ pub fn run() -> Result<()> {
             post_magica,
             kmi,
             package_name,
+            spoof_release,
+            spoof_version,
         } => {
             if let Some(port) = magica {
                 return crate::magica::run(port, &package_name, allow_shell).map_err(|e| {
@@ -727,7 +746,7 @@ pub fn run() -> Result<()> {
                     e
                 });
             }
-            let result = crate::late_load::run(&package_name, kmi, allow_shell);
+            let result = crate::late_load::run(&package_name, kmi, allow_shell, spoof_release, spoof_version);
             if post_magica {
                 info!("Restoring adb properties (post-magica cleanup)...");
                 if let Err(e) = crate::magica::disable_adb_root() {
@@ -859,6 +878,11 @@ pub fn run() -> Result<()> {
             Kernel::NotifyModuleMounted => {
                 ksucalls::report_module_mounted();
                 Ok(())
+            }
+            Kernel::SpoofUname { release, version } => {
+                let r = release.unwrap_or_default();
+                let v = version.unwrap_or_default();
+                ksucalls::set_spoof_version(&r, &v)
             }
         },
         Commands::Umount { command } => match command {

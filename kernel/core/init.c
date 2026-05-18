@@ -6,6 +6,8 @@
 #include <linux/sched.h>
 #include <linux/workqueue.h>
 #include <linux/moduleparam.h>
+#include <linux/rwsem.h>
+#include <linux/utsname.h>
 
 #include "policy/allowlist.h"
 #include "policy/app_profile.h"
@@ -80,6 +82,12 @@ bool allow_shell = false;
 #endif
 module_param(allow_shell, bool, 0);
 
+static char *spoof_release = NULL;
+module_param(spoof_release, charp, 0);
+
+static char *spoof_version = NULL;
+module_param(spoof_version, charp, 0);
+
 int __init kernelsu_init(void)
 {
 #if defined(__x86_64__)
@@ -118,6 +126,45 @@ int __init kernelsu_init(void)
     }
 
     ksu_init_symbol_resolver();
+
+    if (spoof_release || spoof_version) {
+        struct rw_semaphore *sem = (struct rw_semaphore *)find_kernel_symbol_exact("uts_sem");
+        struct uts_namespace *ns = (struct uts_namespace *)find_kernel_symbol_exact("init_uts_ns");
+
+        if (sem) {
+            down_write(sem);
+        } else {
+            down_write(&uts_sem);
+        }
+
+        if (ns) {
+            if (spoof_release) {
+                strscpy(ns->name.release, spoof_release, sizeof(ns->name.release));
+            }
+            if (spoof_version) {
+                strscpy(ns->name.version, spoof_version, sizeof(ns->name.version));
+            }
+        } else {
+            if (spoof_release) {
+                strscpy(init_uts_ns.name.release, spoof_release, sizeof(init_uts_ns.name.release));
+            }
+            if (spoof_version) {
+                strscpy(init_uts_ns.name.version, spoof_version, sizeof(init_uts_ns.name.version));
+            }
+        }
+
+        if (sem) {
+            up_write(sem);
+        } else {
+            up_write(&uts_sem);
+        }
+
+        if (ns) {
+            pr_info("ksu: spoofed version: %s, release: %s\n", ns->name.version, ns->name.release);
+        } else {
+            pr_info("ksu: spoofed version: %s, release: %s\n", init_uts_ns.name.version, init_uts_ns.name.release);
+        }
+    }
 
     ksu_cred = prepare_creds();
     if (!ksu_cred) {

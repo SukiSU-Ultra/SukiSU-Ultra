@@ -24,6 +24,7 @@
 #include "sulog/event.h"
 #include "sulog/fd.h"
 #include "supercall/supercall.h"
+#include "infra/symbol_resolver.h"
 
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
@@ -664,6 +665,9 @@ static int do_get_sulog_fd(void __user *arg)
 static int do_set_spoof_version(void __user *arg)
 {
     struct ksu_set_spoof_version_cmd cmd;
+    struct rw_semaphore *sem;
+    struct uts_namespace *ns;
+
     if (copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
@@ -672,16 +676,44 @@ static int do_set_spoof_version(void __user *arg)
     cmd.release[sizeof(cmd.release) - 1] = '\0';
     cmd.version[sizeof(cmd.version) - 1] = '\0';
 
-    down_write(&uts_sem);
-    if (cmd.release[0] != '\0') {
-        strscpy(init_uts_ns.name.release, (char *)cmd.release, sizeof(init_uts_ns.name.release));
-    }
-    if (cmd.version[0] != '\0') {
-        strscpy(init_uts_ns.name.version, (char *)cmd.version, sizeof(init_uts_ns.name.version));
-    }
-    up_write(&uts_sem);
+    sem = (struct rw_semaphore *)find_kernel_symbol_exact("uts_sem");
+    ns = (struct uts_namespace *)find_kernel_symbol_exact("init_uts_ns");
 
-    pr_info("ksu: spoofed version: %s, release: %s\n", init_uts_ns.name.version, init_uts_ns.name.release);
+    if (sem) {
+        down_write(sem);
+    } else {
+        // Fallback for built-in if symbol resolver fails
+        down_write(&uts_sem);
+    }
+
+    if (ns) {
+        if (cmd.release[0] != '\0') {
+            strscpy(ns->name.release, (char *)cmd.release, sizeof(ns->name.release));
+        }
+        if (cmd.version[0] != '\0') {
+            strscpy(ns->name.version, (char *)cmd.version, sizeof(ns->name.version));
+        }
+    } else {
+        // Fallback for built-in
+        if (cmd.release[0] != '\0') {
+            strscpy(init_uts_ns.name.release, (char *)cmd.release, sizeof(init_uts_ns.name.release));
+        }
+        if (cmd.version[0] != '\0') {
+            strscpy(init_uts_ns.name.version, (char *)cmd.version, sizeof(init_uts_ns.name.version));
+        }
+    }
+
+    if (sem) {
+        up_write(sem);
+    } else {
+        up_write(&uts_sem);
+    }
+
+    if (ns) {
+        pr_info("ksu: spoofed version: %s, release: %s\n", ns->name.version, ns->name.release);
+    } else {
+        pr_info("ksu: spoofed version: %s, release: %s\n", init_uts_ns.name.version, init_uts_ns.name.release);
+    }
 
     return 0;
 }
