@@ -236,6 +236,8 @@
     <string name="settings_auto_jailbreak_summary">開機檢測到 Permissive SELinux 時自動使用 Magica 提權。需要授予本應用自啟動權限。</string>
     <string name="allow_shell">總是給 shell 授予 root 權限</string>
     <string name="allow_shell_summary">總是允許 adb shell 調用 su ，非必要請勿開啟。</string>
+    <string name="kernel_spoof_release">核心版本號</string>
+    <string name="kernel_spoof_version">核心編譯資訊</string>
     <string name="enable_adb">啟動時強制啟用 ADB 調試</string>
     <string name="enable_adb_summary">強制允許 USB 調試並取消 adb 認證，非必要請勿開啟。</string>
     <string name="advanced_options">高級選項</string>
@@ -386,10 +388,10 @@
     <string name="susfs_config_summary">配置SuSFS模塊設置</string>
     <string name="susfs_config_description">配置說明</string>
     <string name="susfs_config_description_text">此功能允許您自定義 SuSFS 的 uname 值和構建時間偽裝。輸入您想要設置的值，點擊應用即可生效</string>
-    <string name="susfs_uname_label">Uname 值</string>
-    <string name="susfs_build_time_label">構建時間偽裝</string>
-    <string name="susfs_current_value">當前值: %s</string>
-    <string name="susfs_current_build_time">當前構建時間: %s</string>
+    <string name="susfs_uname_label">Kernel Release</string>
+    <string name="susfs_build_time_label">Kernel Version</string>
+    <string name="susfs_current_value">目前 Release: %s</string>
+    <string name="susfs_current_build_time">目前 Version: %s</string>
     <string name="susfs_apply">應用</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">確認重置</string>

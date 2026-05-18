@@ -19,6 +19,7 @@ import androidx.core.content.edit
 import com.sukisu.ultra.ui.util.getRootShell
 import com.sukisu.ultra.ui.util.getSuSFSVersion
 import com.sukisu.ultra.ui.util.getSuSFSFeatures
+import com.sukisu.ultra.ui.util.spoofKernelUname
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -227,6 +228,12 @@ object SuSFSManager {
         return SuSFSModuleManager.CommandResult(result.isSuccess, result.out.joinToString("\n"), result.err.joinToString("\n"))
     }
 
+    private fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
+
+    private fun isDefaultSpoofValue(value: String): Boolean {
+        return value.isBlank() || value == DEFAULT_UNAME || value == DEFAULT_BUILD_TIME
+    }
+
     private suspend fun executeSusfsCommandDirect(context: Context, command: String): SuSFSModuleManager.CommandResult = withContext(Dispatchers.IO) {
         try {
             val binaryPath = copyBinaryFromAssets(context) ?: return@withContext SuSFSModuleManager.CommandResult(
@@ -281,6 +288,12 @@ object SuSFSManager {
 
     fun getBuildTimeValue(context: Context): String =
         getPrefs(context).getString(KEY_BUILD_TIME_VALUE, DEFAULT_BUILD_TIME) ?: DEFAULT_BUILD_TIME
+
+    fun getKernelSpoofRelease(context: Context): String =
+        getUnameValue(context).takeUnless(::isDefaultSpoofValue).orEmpty()
+
+    fun getKernelSpoofVersion(context: Context): String =
+        getBuildTimeValue(context).takeUnless(::isDefaultSpoofValue).orEmpty()
 
     fun setAutoStartEnabled(context: Context, enabled: Boolean) =
         getPrefs(context).edit { putBoolean(KEY_AUTO_START_ENABLED, enabled) }
@@ -816,7 +829,23 @@ object SuSFSManager {
     // uname和构建时间
     @SuppressLint("StringFormatMatches")
     suspend fun setUname(context: Context, unameValue: String, buildTimeValue: String): Boolean {
-        val success = executeSusfsCommand(context, "set_uname '$unameValue' '$buildTimeValue'")
+        val useSusfs = try {
+            com.sukisu.ultra.ui.util.getSuSFSStatus().equals("true", ignoreCase = true)
+        } catch (_: Exception) {
+            false
+        }
+        val success = if (useSusfs) {
+            val susfsResult = executeSusfsCommandWithOutput(
+                context,
+                "set_uname ${shellQuote(unameValue)} ${shellQuote(buildTimeValue)}"
+            )
+            susfsResult.isSuccess || spoofKernelUname(unameValue, buildTimeValue)
+        } else {
+            spoofKernelUname(unameValue, buildTimeValue)
+        }
+        if (!success) {
+            showToast(context, context.getString(R.string.susfs_command_failed))
+        }
         if (success) {
             saveUnameValue(context, unameValue)
             saveBuildTimeValue(context, buildTimeValue)

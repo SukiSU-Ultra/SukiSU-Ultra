@@ -29,6 +29,7 @@ import com.sukisu.ultra.ui.kernelFlash.rememberAnyKernel3State
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.screen.flash.FlashIt
+import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.util.LkmSelection
 import com.sukisu.ultra.ui.util.getAvailablePartitions
 import com.sukisu.ultra.ui.util.getCurrentKmi
@@ -53,6 +54,8 @@ fun InstallScreen(
     var advancedOptionsShown by rememberSaveable { mutableStateOf(false) }
     var allowShell by rememberSaveable { mutableStateOf(false) }
     var enableAdb by rememberSaveable { mutableStateOf(false) }
+    var spoofRelease by rememberSaveable { mutableStateOf(SuSFSManager.getKernelSpoofRelease(context)) }
+    var spoofVersion by rememberSaveable { mutableStateOf(SuSFSManager.getKernelSpoofVersion(context)) }
 
     val currentKmi by produceState(initialValue = "") { value = getCurrentKmi() }
     val partitions by produceState(initialValue = emptyList()) { value = getAvailablePartitions() }
@@ -162,6 +165,8 @@ fun InstallScreen(
                                 partition = partitions.getOrNull(partitionSelectionIndex),
                                 allowShell = allowShell,
                                 enableAdb = enableAdb,
+                                spoofRelease = spoofRelease.trim(),
+                                spoofVersion = spoofVersion.trim(),
                             )
                         )
                     )
@@ -228,6 +233,8 @@ fun InstallScreen(
         advancedOptionsShown = advancedOptionsShown,
         allowShell = allowShell,
         enableAdb = enableAdb,
+        spoofRelease = spoofRelease,
+        spoofVersion = spoofVersion,
         anyKernel3State = anyKernel3State,
         kpmPatchOption = kpmPatchOption,
         showSlotSelectionDialog = showSlotSelectionDialog,
@@ -276,6 +283,14 @@ fun InstallScreen(
         },
         onSelectEnableAdb = {
             enableAdb = it
+        },
+        onSpoofReleaseChange = {
+            spoofRelease = it
+            SuSFSManager.saveUnameValue(context, it.trim().ifBlank { "default" })
+        },
+        onSpoofVersionChange = {
+            spoofVersion = it
+            SuSFSManager.saveBuildTimeValue(context, it.trim().ifBlank { "default" })
         },
         onHorizonKernelSelected = { method ->
             anyKernel3State.onHorizonKernelSelected(method)

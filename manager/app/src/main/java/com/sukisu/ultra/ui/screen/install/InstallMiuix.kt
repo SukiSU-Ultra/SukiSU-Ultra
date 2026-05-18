@@ -63,6 +63,7 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
@@ -276,6 +277,26 @@ internal fun InstallScreenMiuix(
                                     checked = uiState.enableAdb,
                                     summary = stringResource(id = R.string.enable_adb_summary),
                                     onCheckedChange = actions.onSelectEnableAdb
+                                )
+                                TextField(
+                                    value = uiState.spoofRelease,
+                                    onValueChange = actions.onSpoofReleaseChange,
+                                    label = stringResource(R.string.kernel_spoof_release),
+                                    useLabelAsPlaceholder = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    singleLine = true
+                                )
+                                TextField(
+                                    value = uiState.spoofVersion,
+                                    onValueChange = actions.onSpoofVersionChange,
+                                    label = stringResource(R.string.kernel_spoof_version),
+                                    useLabelAsPlaceholder = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    singleLine = true
                                 )
                             }
                         }

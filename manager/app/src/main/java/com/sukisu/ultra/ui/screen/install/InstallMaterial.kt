@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -222,6 +223,40 @@ internal fun InstallScreenMaterial(
                                 summary = stringResource(id = R.string.enable_adb_summary),
                                 checked = uiState.enableAdb,
                                 onCheckedChange = actions.onSelectEnableAdb,
+                            )
+                        }
+                    }
+                    add {
+                        AnimatedVisibility(
+                            uiState.advancedOptionsShown,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            OutlinedTextField(
+                                value = uiState.spoofRelease,
+                                onValueChange = actions.onSpoofReleaseChange,
+                                label = { Text(stringResource(R.string.kernel_spoof_release)) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                singleLine = true
+                            )
+                        }
+                    }
+                    add {
+                        AnimatedVisibility(
+                            uiState.advancedOptionsShown,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            OutlinedTextField(
+                                value = uiState.spoofVersion,
+                                onValueChange = actions.onSpoofVersionChange,
+                                label = { Text(stringResource(R.string.kernel_spoof_version)) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                singleLine = true
                             )
                         }
                     }

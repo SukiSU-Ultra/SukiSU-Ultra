@@ -515,6 +515,14 @@ pub struct BootPatchArgs {
     #[arg(long, default_value = "false")]
     allow_shell: bool,
 
+    /// Kernel release string passed to kernelsu.ko as spoof_release
+    #[arg(long, default_value = None)]
+    spoof_release: Option<String>,
+
+    /// Kernel version string passed to kernelsu.ko as spoof_version
+    #[arg(long, default_value = None)]
+    spoof_version: Option<String>,
+
     /// Force enable adbd and disable adbd auth
     #[arg(long, default_value = "false")]
     enable_adbd: bool,
@@ -541,6 +549,8 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             out_name,
             cmdline,
             allow_shell,
+            spoof_release,
+            spoof_version,
             enable_adbd,
             adb_debug_prop,
             no_install,
@@ -728,6 +738,23 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             do_cpio_cmd(&magiskboot, workdir, ramdisk, "rm ksu_allow_shell").ok();
         }
 
+        write_optional_ramdisk_config(
+            &magiskboot,
+            workdir,
+            ramdisk,
+            "ksu_spoof_release",
+            "spoof release",
+            spoof_release.as_deref(),
+        )?;
+        write_optional_ramdisk_config(
+            &magiskboot,
+            workdir,
+            ramdisk,
+            "ksu_spoof_version",
+            "spoof version",
+            spoof_version.as_deref(),
+        )?;
+
         if enable_adbd || adb_debug_prop.is_some() {
             println!("- Adding adb_debug props");
             {
@@ -825,6 +852,32 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
         println!("- Patch Error: {e}");
     }
     result
+}
+
+fn write_optional_ramdisk_config(
+    magiskboot: &Path,
+    workdir: &Path,
+    ramdisk: &Path,
+    file_name: &str,
+    label: &str,
+    value: Option<&str>,
+) -> Result<()> {
+    if let Some(value) = value.map(str::trim).filter(|value| !value.is_empty()) {
+        println!("- Adding {label} config");
+        let config_file = workdir.join(file_name);
+        std::fs::write(&config_file, value).with_context(|| format!("write {file_name}"))?;
+        do_cpio_cmd(
+            magiskboot,
+            workdir,
+            ramdisk,
+            &format!("add 0644 {file_name} {file_name}"),
+        )?;
+    } else if do_cpio_cmd(magiskboot, workdir, ramdisk, &format!("exists {file_name}")).is_ok() {
+        println!("- Removing {label} config");
+        do_cpio_cmd(magiskboot, workdir, ramdisk, &format!("rm {file_name}")).ok();
+    }
+
+    Ok(())
 }
 
 #[derive(clap::Args, Debug)]

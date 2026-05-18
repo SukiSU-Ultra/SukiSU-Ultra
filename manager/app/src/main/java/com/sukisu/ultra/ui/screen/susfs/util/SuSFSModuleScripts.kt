@@ -12,6 +12,7 @@ object ScriptGenerator {
     private const val DEFAULT_UNAME = "default"
     private const val DEFAULT_BUILD_TIME = "default"
     private const val LOG_DIR = "/data/adb/ksu/log"
+    private const val KSUD_BIN = "/data/adb/ksud"
 
     /**
      * 生成所有脚本文件
@@ -185,11 +186,19 @@ object ScriptGenerator {
     private fun StringBuilder.generateUnameSection(config: SuSFSManager.ModuleConfig) {
         if (!config.executeInPostFsData && (config.unameValue != DEFAULT_UNAME || config.buildTimeValue != DEFAULT_BUILD_TIME)) {
             appendLine("# 设置uname和构建时间")
-            appendLine($$"\"$SUSFS_BIN\" set_uname '$${config.unameValue}' '$${config.buildTimeValue}'")
+            appendLine(generateUnameCommand(config))
             appendLine($$"echo \"$(get_current_time): 设置uname为: $${config.unameValue}, 构建时间为: $${config.buildTimeValue}\" >> \"$LOG_FILE\"")
             appendLine()
         }
     }
+
+    private fun generateUnameCommand(config: SuSFSManager.ModuleConfig): String {
+        val release = shellQuote(config.unameValue)
+        val version = shellQuote(config.buildTimeValue)
+        return $$"""if ! "$SUSFS_BIN" set_uname $$release $$version 2>> "$LOG_FILE"; then "$$KSUD_BIN" kernel spoof-uname --release $$release --version $$version >> "$LOG_FILE" 2>&1; fi"""
+    }
+
+    private fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
 
     private fun StringBuilder.generateHideBlSection() {
         appendLine("# 隐藏BL 来自 Shamiko 脚本")
@@ -388,7 +397,7 @@ object ScriptGenerator {
             // 设置uname和构建时间 - 只有在选择在post-fs-data中执行时才执行
             if (config.executeInPostFsData && (config.unameValue != DEFAULT_UNAME || config.buildTimeValue != DEFAULT_BUILD_TIME)) {
                 appendLine("# 设置uname和构建时间")
-                appendLine($$"\"$SUSFS_BIN\" set_uname '$${config.unameValue}' '$${config.buildTimeValue}'")
+                appendLine(generateUnameCommand(config))
                 appendLine($$"echo \"$(get_current_time): 设置uname为: $${config.unameValue}, 构建时间为: $${config.buildTimeValue}\" >> \"$LOG_FILE\"")
                 appendLine()
             }

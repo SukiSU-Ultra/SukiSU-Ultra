@@ -279,6 +279,8 @@ fun installBoot(
     partition: String?,
     allowShell: Boolean,
     enableAdb: Boolean,
+    spoofRelease: String,
+    spoofVersion: String,
     onStdout: (String) -> Unit,
     onStderr: (String) -> Unit,
 ): FlashResult {
@@ -311,6 +313,14 @@ fun installBoot(
 
     if (enableAdb) {
         cmd += " --enable-adbd"
+    }
+
+    if (spoofRelease.isNotBlank()) {
+        cmd += " --spoof-release ${spoofRelease.shellArg()}"
+    }
+
+    if (spoofVersion.isNotBlank()) {
+        cmd += " --spoof-version ${spoofVersion.shellArg()}"
     }
 
     if (ota) {
@@ -364,6 +374,8 @@ fun installBoot(
     }
     return FlashResult(result, showReboot)
 }
+
+private fun String.shellArg(): String = "'${replace("'", "'\\''")}'"
 
 fun reboot(reason: String = "") {
     if (reason == "soft_reboot") {
@@ -611,6 +623,16 @@ fun getSuSFSFeatures(): String {
     val shell = getRootShell()
     val cmd = "${getKsuDaemonPath()} susfs features"
     return runCmd(shell, cmd)
+}
+
+fun spoofKernelUname(release: String, version: String): Boolean {
+    fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
+
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} kernel spoof-uname --release ${shellQuote(release)} --version ${shellQuote(version)}"
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "kernel spoof-uname result: $result")
+    return result
 }
 
 fun addUmountPath(path: String, flags: Int): Boolean {

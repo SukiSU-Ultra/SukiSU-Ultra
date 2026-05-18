@@ -77,6 +77,8 @@ sealed class FlashIt : Parcelable {
         val partition: String? = null,
         val allowShell: Boolean = false,
         val enableAdb: Boolean = false,
+        val spoofRelease: String = "",
+        val spoofVersion: String = "",
     ) : FlashIt()
 
     @Parcelize
@@ -117,6 +119,8 @@ fun flashIt(
             flashIt.partition,
             flashIt.allowShell,
             flashIt.enableAdb,
+            flashIt.spoofRelease,
+            flashIt.spoofVersion,
             onStdout,
             onStderr
         )

@@ -18,6 +18,8 @@ internal data class InstallUiState(
     val advancedOptionsShown: Boolean,
     val allowShell: Boolean,
     val enableAdb: Boolean,
+    val spoofRelease: String,
+    val spoofVersion: String,
     // AnyKernel3 相关状态
     val anyKernel3State: AnyKernel3State?,
     val kpmPatchOption: KpmPatchOption,
@@ -37,6 +39,8 @@ internal data class InstallScreenActions(
     val onAdvancedOptionsClicked: () -> Unit,
     val onSelectAllowShell: (Boolean) -> Unit,
     val onSelectEnableAdb: (Boolean) -> Unit,
+    val onSpoofReleaseChange: (String) -> Unit,
+    val onSpoofVersionChange: (String) -> Unit,
     val onHorizonKernelSelected: (InstallMethod.HorizonKernel) -> Unit = {},
     val onReopenSlotDialog: (InstallMethod.HorizonKernel) -> Unit = {},
     val onReopenKpmDialog: (InstallMethod.HorizonKernel) -> Unit = {},
