@@ -15,10 +15,10 @@ struct Args {
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
     /// Patch boot or init_boot images to apply KernelSU
-    BootPatch(Box<BootPatchArgs>),
+    BootPatch(BootPatchArgs),
 
     /// Restore boot or init_boot images patched by KernelSU
-    BootRestore(Box<BootRestoreArgs>),
+    BootRestore(BootRestoreArgs),
 
     /// Get apk size and hash
     GetSign {
@@ -44,11 +44,9 @@ pub fn run() -> Result<()> {
             Ok(())
         }
 
-        Commands::BootPatch(ref boot_patch) => crate::boot_patch::patch(**boot_patch),
+        Commands::BootPatch(boot_patch) => crate::boot_patch::patch(boot_patch),
 
-        Commands::BootRestore(ref boot_restore) => {
-            crate::boot_patch::restore((**boot_restore).clone())
-        }
+        Commands::BootRestore(boot_restore) => crate::boot_patch::restore(boot_restore),
 
         Commands::SupportedKmis => {
             let kmi = crate::assets::list_supported_kmi();

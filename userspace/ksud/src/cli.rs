@@ -126,10 +126,10 @@ enum Commands {
     },
 
     /// Patch boot or init_boot images to apply KernelSU
-    BootPatch(Box<BootPatchArgs>),
+    BootPatch(BootPatchArgs),
 
     /// Restore boot or init_boot images patched by KernelSU
-    BootRestore(Box<BootRestoreArgs>),
+    BootRestore(BootRestoreArgs),
 
     /// Show boot information
     BootInfo {
@@ -825,7 +825,7 @@ pub fn run() -> Result<()> {
             Debug::Sulogd => sulog::ensure_sulogd_running(),
         },
 
-        Commands::BootPatch(ref boot_patch) => crate::boot_patch::patch(**boot_patch),
+        Commands::BootPatch(boot_patch) => crate::boot_patch::patch(boot_patch),
 
         Commands::BootInfo { command } => match command {
             BootInfo::CurrentKmi => {
@@ -867,9 +867,7 @@ pub fn run() -> Result<()> {
                 return Ok(());
             }
         },
-        Commands::BootRestore(ref boot_restore) => {
-            crate::boot_patch::restore((**boot_restore).clone())
-        }
+        Commands::BootRestore(boot_restore) => crate::boot_patch::restore(boot_restore),
         Commands::Resetprop { args } => {
             let mut full_args = vec!["resetprop".to_string()];
             full_args.extend(args);
