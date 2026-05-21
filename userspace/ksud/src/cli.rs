@@ -867,7 +867,9 @@ pub fn run() -> Result<()> {
                 return Ok(());
             }
         },
-        Commands::BootRestore(ref boot_restore) => crate::boot_patch::restore((**boot_restore).clone()),
+        Commands::BootRestore(ref boot_restore) => {
+            crate::boot_patch::restore((**boot_restore).clone())
+        }
         Commands::Resetprop { args } => {
             let mut full_args = vec!["resetprop".to_string()];
             full_args.extend(args);
