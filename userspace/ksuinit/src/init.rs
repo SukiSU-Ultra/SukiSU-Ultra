@@ -142,10 +142,16 @@ fn load_module_from_path(path: &str) -> Result<()> {
         params.push("allow_shell=1".to_string());
     }
     if let Some(release) = read_module_param("/ksu_spoof_release") {
-        params.push(format!("spoof_release=\"{}\"", escape_module_param(&release)));
+        params.push(format!(
+                        "spoof_release=\"{}\"",
+                        escape_module_param(&release)
+                    ));
     }
     if let Some(version) = read_module_param("/ksu_spoof_version") {
-        params.push(format!("spoof_version=\"{}\"", escape_module_param(&version)));
+        params.push(format!(
+                        "spoof_version=\"{}\"",
+                        escape_module_param(&version)
+                    ));
     }
     let params = if params.is_empty() {
         cstr!("").to_owned()
