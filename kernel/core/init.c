@@ -15,7 +15,6 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_observer.h"
 #include "manager/throne_tracker.h"
-#include "infra/symbol_resolver.h"
 #include "hook/syscall_hook_manager.h"
 #include "hook/lsm_hook.h"
 #include "runtime/ksud.h"
@@ -28,6 +27,7 @@
 #include "hook/syscall_hook.h"
 #include "feature/adb_root.h"
 #include "feature/selinux_hide.h"
+#include "infra/symbol_resolver.h"
 
 #if defined(__x86_64__)
 #include <asm/cpufeature.h>
@@ -125,8 +125,6 @@ int __init kernelsu_init(void)
         pr_alert("shell is allowed at init!");
     }
 
-    ksu_init_symbol_resolver();
-
     if (spoof_release || spoof_version) {
         struct rw_semaphore *sem = (struct rw_semaphore *)find_kernel_symbol_exact("uts_sem");
         struct uts_namespace *ns = (struct uts_namespace *)find_kernel_symbol_exact("init_uts_ns");
@@ -171,6 +169,7 @@ int __init kernelsu_init(void)
         pr_err("prepare cred failed!\n");
     }
 
+    ksu_init_symbol_resolver();
     ksu_syscall_hook_init();
 
     ksu_feature_init();

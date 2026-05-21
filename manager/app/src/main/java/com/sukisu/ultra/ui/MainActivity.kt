@@ -53,8 +53,6 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.component.bottombar.BottomBar
@@ -100,6 +98,8 @@ import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
 import com.sukisu.ultra.ui.viewmodel.MainPagerConfig
 import com.sukisu.ultra.ui.webui.WebUIActivity
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val KEY_INTENT_STATE = "intent_state"
@@ -276,8 +276,12 @@ fun MainScreen(
 
     val settledPage = mainPagerState.pagerState.settledPage
     LaunchedEffect(settledPage) {
-        mainPagerState.syncPage()
         onPageChanged(settledPage)
+    }
+
+    val currentPage = mainPagerState.pagerState.currentPage
+    LaunchedEffect(currentPage) {
+        mainPagerState.syncPage()
     }
 
     MainScreenBackHandler(mainPagerState, navController)
@@ -298,7 +302,7 @@ fun MainScreen(
                     beyondViewportPageCount = if (contentReady) 3 else 0,
                     userScrollEnabled = userScrollEnabled,
                 ) { page ->
-                    val isCurrentPage = page == mainPagerState.pagerState.settledPage
+                    val isCurrentPage = page == settledPage
                     when (page) {
                         0 -> if (isCurrentPage || contentReady) HomePager(navController, bottomInnerPadding, isCurrentPage)
                         1 -> if (isCurrentPage || contentReady) SuperUserPager(navController, bottomInnerPadding, isCurrentPage)

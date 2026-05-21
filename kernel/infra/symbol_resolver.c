@@ -41,7 +41,6 @@ static int (*kallsyms_on_each_symbol_fn)(int (*fn)(void *, const char *, struct 
 // https://github.com/torvalds/linux/commit/4dc533e0f2c04174e1ae4aa98e7cffc1c04b9998
 #if HAVE_ON_EACH_MATCH_SYMBOL
 static int (*kallsyms_on_each_match_symbol_fn)(int (*fn)(void *, unsigned long), const char *name, void *data) = NULL;
-
 static int find_kernel_symbol_exact_cb(void *data, unsigned long addr)
 {
     *(unsigned long *)data = addr;
@@ -58,25 +57,22 @@ struct ksu_lookup_symbol_ctx {
 unsigned long __nocfi find_kernel_symbol_exact(const char *symbol_name)
 {
     unsigned long addr = 0;
-
 #if HAVE_ON_EACH_MATCH_SYMBOL
     if (likely(kallsyms_on_each_match_symbol_fn)) {
         kallsyms_on_each_match_symbol_fn(find_kernel_symbol_exact_cb, symbol_name, &addr);
         return addr;
     }
 #endif
-
     char *module_name = NULL;
     char buf[KSYM_SYMBOL_LEN];
-    addr = kallsyms_lookup_name(symbol_name);
 
+    addr = kallsyms_lookup_name(symbol_name);
     // check if it is kernel symbol
     kallsyms_lookup(addr, NULL, NULL, &module_name, buf);
     if (unlikely(module_name)) {
         pr_warn("ignore symbol %s of module %s\n", symbol_name, module_name);
         return 0;
     }
-
     return addr;
 }
 
@@ -139,7 +135,6 @@ static __nocfi void *resolve_symbol_variant(const char *symbol_name, size_t symb
 #else
     kallsyms_on_each_symbol(lookup_symbol_variant_cb, &ctx);
 #endif
-
     return ctx.match;
 }
 
@@ -154,6 +149,7 @@ void *ksu_resolve_symbol_for_functable_hook(const char *symbol_name)
     symbol_len = strlen(symbol_name);
 
     // Prefer find_kernel_symbol_exact since it uses binary search in higher kernel version
+
 #if !USE_KCFI
     // Try .cfi_jt suffix first
     char cfi_name[KSYM_NAME_LEN];
@@ -161,26 +157,31 @@ void *ksu_resolve_symbol_for_functable_hook(const char *symbol_name)
     addr = (void *)find_kernel_symbol_exact(cfi_name);
     if (addr)
         return addr;
-#endif
 
+    addr = resolve_symbol_variant(symbol_name, symbol_len);
+    if (addr)
+        return addr;
+
+    return (void *)find_kernel_symbol_exact(symbol_name);
+#else
     addr = (void *)find_kernel_symbol_exact(symbol_name);
     if (addr)
         return addr;
 
     return resolve_symbol_variant(symbol_name, symbol_len);
+#endif
 }
 
 void __init ksu_init_symbol_resolver()
 {
 #if !ALWAYS_HAVE_ON_EACH_SYMBOL
-    kallsyms_on_each_symbol_fn = (void *)find_kernel_symbol_exact("kallsyms_on_each_symbol");
+    kallsyms_on_each_symbol_fn = find_kernel_symbol_exact("kallsyms_on_each_symbol");
     if (!kallsyms_on_each_symbol_fn) {
         pr_warn("kallsyms_on_each_symbol not found!\n");
     }
 #endif
-
 #if HAVE_ON_EACH_MATCH_SYMBOL
-    kallsyms_on_each_match_symbol_fn = (void *)find_kernel_symbol_exact("kallsyms_on_each_match_symbol");
+    kallsyms_on_each_match_symbol_fn = find_kernel_symbol_exact("kallsyms_on_each_match_symbol");
     if (!kallsyms_on_each_match_symbol_fn) {
         pr_warn("kallsyms_on_each_match_symbol not found!\n");
     }

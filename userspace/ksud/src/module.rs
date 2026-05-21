@@ -10,7 +10,7 @@ use anyhow::{Context, Result, anyhow, bail, ensure};
 use const_format::concatcp;
 use is_executable::is_executable;
 use java_properties::PropertiesIter;
-use log::{debug, info, warn};
+use log::{debug, error, info, warn};
 #[cfg(all(target_os = "android", target_arch = "aarch64"))]
 use mlua::{Function, Lua, Result as LuaResult, Table};
 use regex_lite::Regex;
@@ -63,7 +63,7 @@ pub fn validate_module_id(module_id: &str) -> Result<()> {
 }
 
 /// Get common environment variables for script execution
-pub fn get_common_script_envs() -> Vec<(&'static str, String)> {
+pub fn get_common_script_envs(module_id: Option<&str>) -> Vec<(&'static str, String)> {
     let mut envs = vec![
         ("ASH_STANDALONE", "1".to_string()),
         ("KSU", "true".to_string()),
@@ -81,6 +81,14 @@ pub fn get_common_script_envs() -> Vec<(&'static str, String)> {
         ),
     ];
 
+    if let Some(id) = module_id {
+        if validate_module_id(id).is_ok() {
+            envs.push(("KSU_MODULE", id.to_string()));
+        } else {
+            error!("Invalid module_id provided: {id}");
+        }
+    }
+
     if ksucalls::is_late_load() {
         envs.push(("KSU_LATE_LOAD", "1".to_string()));
     }
@@ -88,7 +96,7 @@ pub fn get_common_script_envs() -> Vec<(&'static str, String)> {
     envs
 }
 
-fn exec_install_script(module_file: &str, is_metamodule: bool) -> Result<()> {
+fn exec_install_script(module_file: &str, is_metamodule: bool, module_id: &str) -> Result<()> {
     let realpath = std::fs::canonicalize(module_file)
         .with_context(|| format!("realpath: {module_file} failed"))?;
 
@@ -98,7 +106,7 @@ fn exec_install_script(module_file: &str, is_metamodule: bool) -> Result<()> {
 
     let result = Command::new(assets::BUSYBOX_PATH)
         .args(["sh", "-c", &install_script])
-        .envs(get_common_script_envs())
+        .envs(get_common_script_envs(Some(module_id)))
         .env("OUTFD", "1")
         .env("ZIPFILE", realpath)
         .status()?;
@@ -231,12 +239,7 @@ pub fn exec_script<T: AsRef<Path>>(path: T, wait: bool, timeout: Duration) -> Re
         .current_dir(path.as_ref().parent().unwrap())
         .arg("sh")
         .arg(path.as_ref())
-        .envs(get_common_script_envs());
-
-    // Set KSU_MODULE environment variable if module_id was validated successfully
-    if let Some(id) = validated_module_id {
-        command = command.env("KSU_MODULE", id);
-    }
+        .envs(get_common_script_envs(validated_module_id));
 
     let result = {
         if wait {
@@ -668,7 +671,7 @@ fn install_module_to_system(zip: &str) -> Result<()> {
 
     // Execute install script
     println!("- Running module installer");
-    exec_install_script(zip, is_metamodule)?;
+    exec_install_script(zip, is_metamodule, module_id)?;
 
     let module_dir = Path::new(MODULE_DIR).join(module_id);
     ensure_dir_exists(&module_dir)?;
