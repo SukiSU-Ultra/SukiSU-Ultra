@@ -329,4 +329,13 @@ void susfs_set_priv_app_sid(void)
 {
     susfs_set_sid(KERNEL_PRIV_APP_DOMAIN, &susfs_priv_app_sid);
 }
+
+struct selinux_state fake_state;
+bool ksu_selinux_hide_running __read_mostly = false;
+
+DEFINE_STATIC_KEY_TRUE(ksu_is_init_rc_hook_enabled);
+DEFINE_STATIC_KEY_TRUE(ksu_is_input_hook_enabled);
+
+DEFINE_STATIC_KEY_FALSE(ksu_init_rc_hook_key_false);
+DEFINE_STATIC_KEY_FALSE(ksu_input_hook_key_false);
 #endif

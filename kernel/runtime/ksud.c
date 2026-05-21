@@ -488,14 +488,13 @@ int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr, size_t *c
     return 0;
 }
 
-int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr, size_t *count_ptr)
+void ksu_handle_sys_read(unsigned int fd)
 {
     struct file *file = fget(fd);
     if (file) {
         ksu_install_rc_hook(file);
         fput(file);
     }
-    return 0;
 }
 
 void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
