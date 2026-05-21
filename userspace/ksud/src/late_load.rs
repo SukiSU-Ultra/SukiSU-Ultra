@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use log::{info, warn};
-use rustix::cstr;
+use std::fmt::Write as FmtWrite;
 use std::process::Command;
 
 use crate::module::{handle_updated_modules, prune_modules};
@@ -36,11 +36,11 @@ fn dump_process_info(label: &str) {
 }
 
 pub fn run(
-    package_name: &String,
+    package_name: &str,
     kmi: Option<String>,
     allow_shell: bool,
-    spoof_release: Option<String>,
-    spoof_version: Option<String>,
+    spoof_release: Option<&String>,
+    spoof_version: Option<&String>,
 ) -> Result<()> {
     utils::daemonize(false)?;
     info!("late-load command triggered!");
@@ -64,20 +64,20 @@ pub fn run(
 
         // 4. Load kernelsu.ko from memory with manual relocation
         info!("Loading kernelsu.ko for KMI {kmi}...");
-        let mut params_str = if allow_shell {
+        let mut params = if allow_shell {
             "allow_shell=1 ".to_string()
         } else {
             String::new()
         };
 
-        if let Some(ref r) = spoof_release {
-            params_str.push_str(&format!("spoof_release=\"{r}\" "));
+        if let Some(r) = spoof_release {
+            let _ = write!(params, "spoof_release=\"{r}\" ");
         }
-        if let Some(ref v) = spoof_version {
-            params_str.push_str(&format!("spoof_version=\"{v}\" "));
+        if let Some(v) = spoof_version {
+            let _ = write!(params, "spoof_version=\"{v}\" ");
         }
 
-        let params_cstr = std::ffi::CString::new(params_str.trim())?;
+        let params_cstr = std::ffi::CString::new(params.trim())?;
         ksuinit::load_module(&ko_data, &params_cstr).context("Failed to load kernelsu.ko")?;
         info!("kernelsu.ko loaded successfully!");
         dump_process_info("after load_module");
@@ -86,8 +86,8 @@ pub fn run(
     // Apply spoofing via IOCTL if KernelSU was already loaded or for built-in
     // This ensures it works even if it wasn't loaded just now
     if spoof_release.is_some() || spoof_version.is_some() {
-        let r = spoof_release.as_deref().unwrap_or_default();
-        let v = spoof_version.as_deref().unwrap_or_default();
+        let r = spoof_release.map_or("", |s| s.as_str());
+        let v = spoof_version.map_or("", |s| s.as_str());
         if let Err(e) = crate::ksucalls::set_spoof_version(r, v) {
             warn!("Failed to set spoof version via IOCTL: {e}");
         } else {
