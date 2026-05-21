@@ -747,12 +747,12 @@ pub fn run() -> Result<()> {
                 });
             }
             let result = crate::late_load::run(
-                                &package_name,
-                                kmi,
-                                allow_shell,
-                                spoof_release.as_ref(),
-                                spoof_version.as_ref(),
-                            );
+                &package_name,
+                kmi,
+                allow_shell,
+                spoof_release.as_ref(),
+                spoof_version.as_ref(),
+            );
             if post_magica {
                 info!("Restoring adb properties (post-magica cleanup)...");
                 if let Err(e) = crate::magica::disable_adb_root() {
@@ -825,7 +825,7 @@ pub fn run() -> Result<()> {
             Debug::Sulogd => sulog::ensure_sulogd_running(),
         },
 
-        Commands::BootPatch(ref boot_patch) => crate::boot_patch::patch(*boot_patch),
+        Commands::BootPatch(ref boot_patch) => crate::boot_patch::patch(**boot_patch),
 
         Commands::BootInfo { command } => match command {
             BootInfo::CurrentKmi => {
@@ -867,7 +867,7 @@ pub fn run() -> Result<()> {
                 return Ok(());
             }
         },
-        Commands::BootRestore(ref boot_restore) => crate::boot_patch::restore(boot_restore.clone()),
+        Commands::BootRestore(ref boot_restore) => crate::boot_patch::restore((**boot_restore).clone()),
         Commands::Resetprop { args } => {
             let mut full_args = vec!["resetprop".to_string()];
             full_args.extend(args);

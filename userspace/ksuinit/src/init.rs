@@ -143,15 +143,15 @@ fn load_module_from_path(path: &str) -> Result<()> {
     }
     if let Some(release) = read_module_param("/ksu_spoof_release") {
         params.push(format!(
-                        "spoof_release=\"{}\"",
-                        escape_module_param(&release)
-                    ));
+            "spoof_release=\"{}\"",
+            escape_module_param(&release)
+        ));
     }
     if let Some(version) = read_module_param("/ksu_spoof_version") {
         params.push(format!(
-                        "spoof_version=\"{}\"",
-                        escape_module_param(&version)
-                    ));
+            "spoof_version=\"{}\"",
+            escape_module_param(&version)
+        ));
     }
     let params = if params.is_empty() {
         cstr!("").to_owned()

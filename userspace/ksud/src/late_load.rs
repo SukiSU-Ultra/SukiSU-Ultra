@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use log::{info, warn};
+use std::fmt::Write as FmtWrite;
 use std::process::Command;
-use std::{ffi::Write as FfiWrite, fmt::Write as FmtWrite};
 
 use crate::module::{handle_updated_modules, prune_modules};
 use crate::{assets, defs, init_event, metamodule, restorecon, utils};
