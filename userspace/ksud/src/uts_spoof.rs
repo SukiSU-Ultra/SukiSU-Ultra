@@ -1,6 +1,6 @@
 use crate::ksu_uapi;
 use anyhow::{Context, Result, ensure};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 #[derive(clap::Args, Debug, Clone, Default)]
@@ -15,6 +15,7 @@ pub struct UtsSpoofConfig {
 }
 
 #[derive(Debug, Clone, Default)]
+#[allow(unused_imports)]
 pub struct UtsSpoofParams {
     pub release: Option<String>,
     pub version: Option<String>,
