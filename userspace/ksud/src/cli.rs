@@ -22,6 +22,7 @@ struct Args {
 }
 
 #[derive(clap::Subcommand, Debug)]
+#[allow(clippy::large_enum_variant)]
 enum Commands {
     /// Manage KernelSU modules
     Module {

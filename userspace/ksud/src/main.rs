@@ -7,7 +7,8 @@
     clippy::cast_precision_loss,
     clippy::doc_markdown,
     clippy::too_many_lines,
-    clippy::cast_possible_wrap
+    clippy::cast_possible_wrap,
+    clippy::large_enum_variant
 )]
 
 mod apk_sign;

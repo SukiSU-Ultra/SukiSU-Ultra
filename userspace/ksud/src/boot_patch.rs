@@ -880,7 +880,7 @@ fn write_optional_ramdisk_config(
     Ok(())
 }
 
-#[derive(clap::Args, Debug, Clone)]
+#[derive(clap::Args, Debug)]
 pub struct BootRestoreArgs {
     /// boot image path, if not specified, will try to find the boot image automatically
     #[arg(short, long)]
