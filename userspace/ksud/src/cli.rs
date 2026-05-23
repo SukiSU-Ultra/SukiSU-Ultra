@@ -8,6 +8,7 @@ use log::{LevelFilter, error, info};
 use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
 use crate::susfs;
+use crate::uts_spoof::UtsSpoofConfig;
 use crate::{
     apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount,
     utils,
@@ -65,13 +66,9 @@ enum Commands {
         #[arg(long, default_value_t = String::from("com.sukisu.ultra"))]
         package_name: String,
 
-        /// kernel release string to spoof
-        #[arg(long)]
-        spoof_release: Option<String>,
-
-        /// kernel version string to spoof
-        #[arg(long)]
-        spoof_version: Option<String>,
+        /// Kernel release/version spoof configuration
+        #[command(flatten)]
+        uts_spoof: UtsSpoofConfig,
     },
 
     /// Emulate system reboot
@@ -738,8 +735,7 @@ pub fn run() -> Result<()> {
             post_magica,
             kmi,
             package_name,
-            spoof_release,
-            spoof_version,
+            uts_spoof,
         } => {
             if let Some(port) = magica {
                 return crate::magica::run(port, &package_name, allow_shell).map_err(|e| {
@@ -751,8 +747,8 @@ pub fn run() -> Result<()> {
                 &package_name,
                 kmi,
                 allow_shell,
-                spoof_release.as_ref(),
-                spoof_version.as_ref(),
+                uts_spoof.release.as_ref(),
+                uts_spoof.version.as_ref(),
             );
             if post_magica {
                 info!("Restoring adb properties (post-magica cleanup)...");
@@ -889,7 +885,7 @@ pub fn run() -> Result<()> {
             Kernel::SpoofUname { release, version } => {
                 let r = release.unwrap_or_default();
                 let v = version.unwrap_or_default();
-                ksucalls::set_spoof_version(&r, &v)
+                uts_spoof::set_spoof_version(&r, &v)
             }
         },
         Commands::Umount { command } => match command {

@@ -88,7 +88,7 @@ pub fn run(
     if spoof_release.is_some() || spoof_version.is_some() {
         let r = spoof_release.map_or("", |s| s.as_str());
         let v = spoof_version.map_or("", |s| s.as_str());
-        if let Err(e) = crate::ksucalls::set_spoof_version(r, v) {
+        if let Err(e) = crate::uts_spoof::set_spoof_version(r, v) {
             warn!("Failed to set spoof version via IOCTL: {e}");
         } else {
             info!("Successfully set spoofed version: release='{r}', version='{v}'");

@@ -1,4 +1,3 @@
-
 #include <linux/string.h>
 
 #include "uts_spoof.h"
