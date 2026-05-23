@@ -4,6 +4,7 @@ use std::fmt::Write as FmtWrite;
 use std::process::Command;
 
 use crate::module::{handle_updated_modules, prune_modules};
+use crate::uts_spoof::UtsSpoofParams;
 use crate::{assets, defs, init_event, metamodule, restorecon, utils};
 
 fn dump_process_info(label: &str) {
@@ -39,8 +40,7 @@ pub fn run(
     package_name: &str,
     kmi: Option<String>,
     allow_shell: bool,
-    spoof_release: Option<&String>,
-    spoof_version: Option<&String>,
+    uts_spoof: &UtsSpoofParams,
 ) -> Result<()> {
     utils::daemonize(false)?;
     info!("late-load command triggered!");
@@ -70,10 +70,10 @@ pub fn run(
             String::new()
         };
 
-        if let Some(r) = spoof_release {
+        if let Some(ref r) = uts_spoof.release {
             let _ = write!(params, "spoof_release=\"{r}\" ");
         }
-        if let Some(v) = spoof_version {
+        if let Some(ref v) = uts_spoof.version {
             let _ = write!(params, "spoof_version=\"{v}\" ");
         }
 
@@ -85,9 +85,9 @@ pub fn run(
 
     // Apply spoofing via IOCTL if KernelSU was already loaded or for built-in
     // This ensures it works even if it wasn't loaded just now
-    if spoof_release.is_some() || spoof_version.is_some() {
-        let r = spoof_release.map_or("", |s| s.as_str());
-        let v = spoof_version.map_or("", |s| s.as_str());
+    if uts_spoof.release.is_some() || uts_spoof.version.is_some() {
+        let r = uts_spoof.release.as_deref().unwrap_or("");
+        let v = uts_spoof.version.as_deref().unwrap_or("");
         if let Err(e) = crate::uts_spoof::set_spoof_version(r, v) {
             warn!("Failed to set spoof version via IOCTL: {e}");
         } else {

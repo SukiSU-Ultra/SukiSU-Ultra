@@ -15,7 +15,6 @@ pub struct UtsSpoofConfig {
 }
 
 #[derive(Debug, Clone, Default)]
-#[allow(unused_imports)]
 pub struct UtsSpoofParams {
     pub release: Option<String>,
     pub version: Option<String>,
