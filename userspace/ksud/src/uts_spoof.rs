@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::path::{Path, PathBuf};
 
 #[cfg(target_os = "android")]
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 
 #[derive(clap::Args, Debug, Clone, Default)]
 pub struct UtsSpoofConfig {

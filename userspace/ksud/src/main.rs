@@ -29,7 +29,6 @@ mod init_event;
 mod kpm;
 #[cfg(target_os = "android")]
 mod ksucalls;
-mod uts_spoof;
 #[cfg(target_os = "android")]
 mod late_load;
 #[cfg(target_os = "android")]
@@ -60,6 +59,7 @@ mod umount;
 mod unload;
 #[cfg(target_os = "android")]
 mod utils;
+mod uts_spoof;
 
 #[cfg(target_os = "android")]
 #[allow(nonstandard_style, unused, unsafe_op_in_unsafe_fn)]
