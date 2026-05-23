@@ -8,6 +8,7 @@ use log::{LevelFilter, error, info};
 use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
 use crate::susfs;
+use crate::uts_spoof;
 use crate::uts_spoof::UtsSpoofConfig;
 use crate::{
     apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount,
