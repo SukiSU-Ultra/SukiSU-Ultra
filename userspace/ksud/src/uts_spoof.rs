@@ -1,10 +1,7 @@
-#[cfg(target_os = "android")]
-use std::path::{Path, PathBuf};
-#[cfg(not(target_os = "android"))]
-use std::path::{Path, PathBuf};
-
-#[cfg(target_os = "android")]
+use crate::ksu_uapi;
 use anyhow::{Context, Result, ensure};
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 
 #[derive(clap::Args, Debug, Clone, Default)]
 pub struct UtsSpoofConfig {
@@ -32,12 +29,6 @@ impl From<&UtsSpoofConfig> for UtsSpoofParams {
     }
 }
 
-#[cfg(target_os = "android")]
-use std::process::Command;
-#[cfg(target_os = "android")]
-use std::process::Stdio;
-
-#[cfg(target_os = "android")]
 fn do_cpio_cmd(magiskboot: &Path, workdir: &Path, cpio_path: &Path, cmd: &str) -> Result<()> {
     let status = Command::new(magiskboot)
         .current_dir(workdir)
@@ -51,9 +42,8 @@ fn do_cpio_cmd(magiskboot: &Path, workdir: &Path, cpio_path: &Path, cmd: &str) -
     Ok(())
 }
 
-#[cfg(target_os = "android")]
 pub fn apply_spoof_to_ramdisk(
-    magiskboot: &PathBuf,
+    magiskboot: &Path,
     workdir: &Path,
     ramdisk: &Path,
     release: Option<&str>,
@@ -86,21 +76,7 @@ pub fn apply_spoof_to_ramdisk(
     Ok(())
 }
 
-#[cfg(not(target_os = "android"))]
-pub fn apply_spoof_to_ramdisk(
-    _magiskboot: &PathBuf,
-    _workdir: &Path,
-    _ramdisk: &Path,
-    _release: Option<&str>,
-    _version: Option<&str>,
-) -> anyhow::Result<()> {
-    Ok(())
-}
-
-#[cfg(target_os = "android")]
 pub fn set_spoof_version(release: &str, version: &str) -> anyhow::Result<()> {
-    use crate::ksu_uapi;
-
     let mut cmd = ksu_uapi::ksu_set_spoof_version_cmd {
         release: [0; 65],
         version: [0; 65],

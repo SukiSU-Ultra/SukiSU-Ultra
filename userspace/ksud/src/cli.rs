@@ -8,7 +8,6 @@ use log::{LevelFilter, error, info};
 use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
 use crate::susfs;
-use crate::uts_spoof;
 use crate::uts_spoof::UtsSpoofConfig;
 use crate::{
     apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount,
@@ -886,7 +885,7 @@ pub fn run() -> Result<()> {
             Kernel::SpoofUname { release, version } => {
                 let r = release.unwrap_or_default();
                 let v = version.unwrap_or_default();
-                uts_spoof::set_spoof_version(&r, &v)
+                crate::uts_spoof::set_spoof_version(&r, &v)
             }
         },
         Commands::Umount { command } => match command {
