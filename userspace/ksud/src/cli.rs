@@ -8,7 +8,6 @@ use log::{LevelFilter, error, info};
 use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
 #[cfg(target_arch = "aarch64")]
 use crate::susfs;
-
 use crate::{
     apk_sign, assets, debug, defs, init_event, ksucalls, module, module_config, sulog, umount,
     utils,
@@ -744,12 +743,7 @@ pub fn run() -> Result<()> {
                 });
             }
             let uts_spoof_params = crate::uts_spoof::UtsSpoofParams::from(&uts_spoof);
-            let result = crate::late_load::run(
-                &package_name,
-                kmi,
-                allow_shell,
-                &uts_spoof_params,
-            );
+            let result = crate::late_load::run(&package_name, kmi, allow_shell, &uts_spoof_params);
             if post_magica {
                 info!("Restoring adb properties (post-magica cleanup)...");
                 if let Err(e) = crate::magica::disable_adb_root() {
