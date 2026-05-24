@@ -383,10 +383,6 @@
     <string name="susfs_config_summary">SuSFS modül ayarlarını yapılandırın</string>
     <string name="susfs_config_description">Yapılandırma Açıklaması</string>
     <string name="susfs_config_description_text">Bu özellik, SuSFS uname değerini ve derleme zamanı yanıltmasını özelleştirmenize olanak tanır. Ayarlamak istediğiniz değerleri girin ve etkili olması için Uygula\'ya tıklayın</string>
-    <string name="susfs_uname_label">Uname Değeri</string>
-    <string name="susfs_build_time_label">Derleme Zamanı Yanıltması</string>
-    <string name="susfs_current_value">Mevcut değer: %s</string>
-    <string name="susfs_current_build_time">Mevcut derleme zamanı: %s</string>
     <string name="susfs_apply">Uygula</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Sıfırlamayı Onayla</string>
