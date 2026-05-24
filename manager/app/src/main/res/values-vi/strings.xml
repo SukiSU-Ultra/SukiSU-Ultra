@@ -381,7 +381,6 @@
     <!-- SuSFS Configuration -->
     <string name="susfs_config_title">Cấu hình SuSFS</string>
     <string name="susfs_config_summary">Định cấu hình cài đặt mô-đun SuSFS</string>
-    <string name="susfs_current_value">Giá trị hiện tại</string>
     <string name="susfs_apply">Áp dụng</string>
     <!-- SuSFS Reset Confirmation -->
     <!-- SuSFS Toast Messages -->
