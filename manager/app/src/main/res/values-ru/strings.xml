@@ -179,7 +179,7 @@
     <string name="settings_kernel_umount">Размонтировать модули (на уровне ядра)</string>
     <string name="settings_kernel_umount_summary">Размонтировать модули в ядре для профиля приложения.</string>
     <string name="settings_selinux_hide">Скрыть модификации SELinux</string>
-    <string name="settings_selinux_hide_summary">Предотвратить обнаружения модификаций SELinux приложениями</string>
+    <string name="settings_selinux_hide_summary">Предотвратить обнаружение модификаций SELinux приложениями</string>
     <string name="settings_selinux_hide_reboot_required">Перезагрузитесь для применения изменений</string>
     <string name="settings_selinux_hide_failed">Ошибка: %d</string>
     <string name="settings_sulog">Лог SU</string>
@@ -258,6 +258,8 @@
     <string name="settings_auto_jailbreak_summary">Автоматически использовать Magica для повышения привилегий при обнаружении Permissive статуса SELinux при загрузке. Требуется выдача разрешения на автозапуск этого приложения.</string>
     <string name="allow_shell">Всегда выдавать Root для Shell\'а</string>
     <string name="allow_shell_summary">Всегда разрешать adb shell вызывать SU. Включайте только при необходимости!</string>
+    <string name="kernel_spoof_release">Релиз ядра</string>
+    <string name="kernel_spoof_version">Версия ядра</string>
     <string name="enable_adb">Принудительно включить adb при загрузке</string>
     <string name="enable_adb_summary">Принудительно включить отладку по usb без аутентификации. Включайте только при необходимости.</string>
     <string name="advanced_options">Расширенные настройки</string>
@@ -408,10 +410,10 @@
     <string name="susfs_config_summary">Настроить модуль SuSFS</string>
     <string name="susfs_config_description">Описание конфигурации</string>
     <string name="susfs_config_description_text">Эта функция позволяет вам настраивать переменную uname и время сборки для SuSFS. Впишите значение и нажмите \"Применить\" для изменения.</string>
-    <string name="susfs_uname_label">Значение uname</string>
-    <string name="susfs_build_time_label">Подмена времени сборки</string>
-    <string name="susfs_current_value">Текущее значение: %s</string>
-    <string name="susfs_current_build_time">Текущее время сборки: %s</string>
+    <string name="susfs_uname_label">Релиз ядра</string>
+    <string name="susfs_build_time_label">Версия ядра</string>
+    <string name="susfs_current_value">Текущий релиз: %s</string>
+    <string name="susfs_current_build_time">Текущая версия: %s</string>
     <string name="susfs_apply">Применить</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Подтвердить сброс</string>
