@@ -162,7 +162,6 @@
     <string name="settings_sucompat">傳統 SU 命令支援</string>
     <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 許可權</string>
     <string name="settings_kernel_umount">解除安裝模組（核心級）</string>
-    <string name="settings_kernel_umount_summary">在核心給需要的應用解除安裝模組。</string>
     <string name="settings_sulog">SU 日誌</string>
     <string name="settings_sulog_summary">將 root 相關事件記錄到 KernelSU sulog 檔案。</string>
     <string name="feature_status_unsupported_summary">內核不支持此特性</string>
@@ -230,7 +229,6 @@
     <string name="settings_floating_bottom_bar">懸浮底欄</string>
     <string name="settings_floating_bottom_bar_summary">使用 Apple 風格的懸浮底欄</string>
     <string name="settings_enable_glass">液態玻璃</string>
-    <string name="settings_enable_glass_summary">啟用懸浮底欄的液態玻璃效果</string>
     <string name="show_only_primary_user_apps">只顯示主用戶應用</string>
     <string name="settings_auto_jailbreak">自動越獄</string>
     <string name="settings_auto_jailbreak_summary">開機檢測到 Permissive SELinux 時自動使用 Magica 提權。需要授予本應用自啟動權限。</string>

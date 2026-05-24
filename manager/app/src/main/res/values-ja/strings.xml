@@ -139,7 +139,6 @@
     <string name="settings_sucompat">従来の SU コマンド</string>
     <string name="settings_sucompat_summary">新規プロセスで /system/bin/su 経由での root アクセスを許可します。</string>
     <string name="settings_kernel_umount">モジュールのアンマウント (カーネルレベル)</string>
-    <string name="settings_kernel_umount_summary">アプリプロファイルに基づいて、カーネルからモジュールをアンマウントします。</string>
     <string name="feature_status_unsupported_summary">カーネルはこの機能をサポートしていません</string>
     <string name="feature_status_managed_summary">この機能はモジュールによって管理されます</string>
     <string name="settings_mode_enable_by_default">有効 (デフォルト)</string>

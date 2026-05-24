@@ -169,7 +169,6 @@
     <string name="settings_sucompat">Klasik SU komutu</string>
     <string name="settings_sucompat_summary">Uygulama Profilinde Süper Kullanıcı izni verilen uygulamaların /system/bin/su yürütülerek süper kullanıcı kabuğu almasına izin verir; yalnızca yeni işlemler için etkilidir.</string>
     <string name="settings_kernel_umount">Kernel bağlantısını kes</string>
-    <string name="settings_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesinde bağlantı kesme davranışı.</string>
     <string name="settings_sulog">SU Günlüğü (Log)</string>
     <string name="feature_status_unsupported_summary">Kernel bu özelliği desteklemiyor</string>
     <string name="feature_status_managed_summary">Bu özellik bir modül tarafından yönetilmektedir</string>
@@ -239,7 +238,6 @@
     <string name="settings_floating_bottom_bar">Yüzen alt çubuk</string>
     <string name="settings_floating_bottom_bar_summary">Apple tarzı kayan alt çubuğu kullan</string>
     <string name="settings_enable_glass">Liquid glass</string>
-    <string name="settings_enable_glass_summary">Yüzen alt çubuk için liquid glass efektini etkinleştir</string>
     <string name="show_only_primary_user_apps">Yalnızca birincil kullanıcı uygulamalarını göster</string>
     <string name="settings_auto_jailbreak">Otomatik jailbreak</string>
     <string name="settings_auto_jailbreak_summary">Önyükleme sırasında Permissive SELinux algılandığında, ayrıcalıkları yükseltmek için otomatik olarak Magica kullanılır. Bunun için bu uygulamaya otomatik başlatma izni verilmesi gerekir.</string>
@@ -385,10 +383,6 @@
     <string name="susfs_config_summary">SuSFS modül ayarlarını yapılandırın</string>
     <string name="susfs_config_description">Yapılandırma Açıklaması</string>
     <string name="susfs_config_description_text">Bu özellik, SuSFS uname değerini ve derleme zamanı yanıltmasını özelleştirmenize olanak tanır. Ayarlamak istediğiniz değerleri girin ve etkili olması için Uygula\'ya tıklayın</string>
-    <string name="susfs_uname_label">Uname Değeri</string>
-    <string name="susfs_build_time_label">Derleme Zamanı Yanıltması</string>
-    <string name="susfs_current_value">Mevcut değer: %s</string>
-    <string name="susfs_current_build_time">Mevcut derleme zamanı: %s</string>
     <string name="susfs_apply">Uygula</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Sıfırlamayı Onayla</string>

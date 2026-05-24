@@ -172,7 +172,6 @@
     <string name="settings_sucompat">Lệnh SU cổ điển</string>
     <string name="settings_sucompat_summary">Cho phép truy cập root thông qua /system/bin/su, trong các tiến trình mới.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Umount modules khỏi Kernel trong Hồ sơ ứng dụng.</string>
     <string name="settings_sulog">SU Log</string>
     <string name="feature_status_unsupported_summary">Kernel không hỗ trợ tính năng này</string>
     <string name="feature_status_managed_summary">Tính năng này được quản lý bởi một module</string>
@@ -242,7 +241,6 @@
     <string name="settings_floating_bottom_bar">Thanh điều hướng nổi</string>
     <string name="settings_floating_bottom_bar_summary">Sử dụng thanh điều hướng nổi kiểu Apple.</string>
     <string name="settings_enable_glass">Liquid Glass</string>
-    <string name="settings_enable_glass_summary">Kích hoạt hiệu ứng Liquid Glass cho thanh điều hướng nổi.</string>
     <string name="show_only_primary_user_apps">Không hiển thị các ứng dụng nhân bản</string>
     <string name="settings_auto_jailbreak">Tự động Jailbreak</string>
     <string name="settings_auto_jailbreak_summary">Tự động sử dụng Magica để nâng cao quyền hạn khi phát hiện SELinux ở chế độ Permissive lúc khởi động. Yêu cầu cấp quyền tự khởi động cho ứng dụng này.</string>
@@ -310,6 +308,7 @@
     <string name="horizon_copy_failed">Sao chép thất bại</string>
     <string name="horizon_unknown_error">Lỗi không xác định</string>
     <string name="flash_failed_message">Flash thất bại</string>
+    <string name="kernel_version_log">Phiên bản kernel</string>
     <string name="tools">Công cụ</string>
     <string name="root_required">Yêu cầu quyền root</string>
     <string name="kpm_patch_options">Vá KPM</string>
@@ -382,6 +381,7 @@
     <!-- SuSFS Configuration -->
     <string name="susfs_config_title">Cấu hình SuSFS</string>
     <string name="susfs_config_summary">Định cấu hình cài đặt mô-đun SuSFS</string>
+    <string name="susfs_apply">Áp dụng</string>
     <!-- SuSFS Reset Confirmation -->
     <!-- SuSFS Toast Messages -->
     <!-- Auto Start -->

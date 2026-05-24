@@ -159,6 +159,10 @@
     <string name="settings_sucompat_summary">允许通过 /system/bin/su 获取 Root 权限</string>
     <string name="settings_kernel_umount">卸载模块（内核级）</string>
     <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块。</string>
+    <string name="settings_selinux_hide">隐藏 SELinux 修改</string>
+    <string name="settings_selinux_hide_summary">阻止应用检测 SELinux 修改</string>
+    <string name="settings_selinux_hide_reboot_required">重启生效</string>
+    <string name="settings_selinux_hide_failed">错误： %d</string>
     <string name="feature_status_unsupported_summary">内核不支持此特性</string>
     <string name="feature_status_managed_summary">此功能由一个模块管理</string>
     <string name="settings_mode_enable_by_default">启用（默认）</string>
