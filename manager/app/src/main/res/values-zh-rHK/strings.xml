@@ -238,6 +238,12 @@
     <string name="download">下載</string>
     <string name="download_cancel">取消</string>
     <string name="download_install">安裝</string>
+    <string name="menu_sort">排序</string>
+    <string name="sort_by_name">應用名</string>
+    <string name="sort_by_package_name">套件名</string>
+    <string name="sort_by_install_time">安裝時間</string>
+    <string name="sort_by_update_time">更新時間</string>
+    <string name="sort_reverse">倒序</string>
     <!-- Customize -->
     <!-- Log Viewer -->
     <!-- Umount Manager -->
