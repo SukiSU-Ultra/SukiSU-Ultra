@@ -42,7 +42,6 @@
     <string name="module_sort_action_first">Önce Aksiyon</string>
     <string name="module_sort_enabled_first">Önce etkin olanlar</string>
     <string name="module_repos">Depolar</string>
-    <string name="module_repos_sort_name">Ad (A → Z)</string>
     <string name="module_repos_source_code">Kaynak kodu</string>
     <string name="confirm">Onayla</string>
     <string name="uninstall">Kaldır</string>
