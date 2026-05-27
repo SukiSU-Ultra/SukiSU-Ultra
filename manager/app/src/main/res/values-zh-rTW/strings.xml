@@ -42,7 +42,6 @@
     <string name="module_sort_action_first">可執行優先</string>
     <string name="module_sort_enabled_first">已啟用優先</string>
     <string name="module_repos">模組倉庫</string>
-    <string name="module_repos_sort_name">按名稱排序</string>
     <string name="module_repos_source_code">原始碼</string>
     <string name="confirm">確認</string>
     <string name="uninstall">解除安裝</string>
