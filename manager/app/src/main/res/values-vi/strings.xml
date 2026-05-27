@@ -47,7 +47,6 @@
     <string name="module_sort_action_first">Khởi chạy trước</string>
     <string name="module_sort_enabled_first">Bật trước</string>
     <string name="module_repos">Thư viện Module</string>
-    <string name="module_repos_sort_name">Tên (A → Z)</string>
     <string name="module_repos_source_code">Mã nguồn</string>
     <string name="confirm">Xác nhận</string>
     <string name="uninstall">Gỡ cài đặt</string>
