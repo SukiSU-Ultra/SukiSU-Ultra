@@ -179,7 +179,7 @@ void apply_kernelsu_rules(void)
                 ksu_destroy_sepolicy(backup_sepolicy);
                 backup_sepolicy = NULL;
             } else {
-                pr_info("backup sepolicy success!\n");
+                pr_info("backup sepolicy success! latest_granting=%d\n", backup_sepolicy->latest_granting);
             }
         }
     }
