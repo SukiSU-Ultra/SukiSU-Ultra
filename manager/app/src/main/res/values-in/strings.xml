@@ -25,7 +25,6 @@
     <string name="module_sort_action_first">Urutkan (Aksi dahulu)</string>
     <string name="module_sort_enabled_first">Urutkan (Diaktifkan dahulu)</string>
     <string name="module_repos">Repositori</string>
-    <string name="module_repos_sort_name">Nama (A → Z)</string>
     <string name="module_repos_source_code">Kode sumber</string>
     <string name="confirm">Oke</string>
     <string name="uninstall">Hapus</string>
