@@ -272,7 +272,6 @@
     <string name="download">Загрузить</string>
     <string name="download_cancel">Отменить</string>
     <string name="download_install">Установить</string>
-    <string name="settings_adb_root_summary">Запустить демон (adbd) с Root правами</string>
     <!-- Customize -->
     <string name="hook_type">Тип хуков</string>
     <string name="manual_hook">Самопис. хуки</string>
