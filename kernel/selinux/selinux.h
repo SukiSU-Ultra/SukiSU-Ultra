@@ -46,3 +46,5 @@ bool susfs_is_current_zygote_domain(void);
 bool susfs_is_current_ksu_domain(void);
 bool susfs_is_current_init_domain(void);
 #endif
+
+#endif

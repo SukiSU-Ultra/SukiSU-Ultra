@@ -35,8 +35,9 @@ extern void context_struct_compute_av_fn(struct policydb *policydb,
 #else
 struct selinux_state fake_state;
 #endif
-
+#ifdef KSU_COMPAT_USE_STATIC_KEY
 DEFINE_STATIC_KEY_FALSE(fake_status_initialize_key);
+#endif
 struct page *fake_status = NULL;
 
 void initialize_fake_status()
