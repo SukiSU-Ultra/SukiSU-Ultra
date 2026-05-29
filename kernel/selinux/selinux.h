@@ -41,13 +41,8 @@ void escape_to_root_for_adb_root();
 bool susfs_is_sid_equal(const struct cred *cred, u32 sid2);
 u32 susfs_get_sid_from_name(const char *secctx_name);
 u32 susfs_get_current_sid(void);
-void susfs_set_zygote_sid(void);
+void susfs_set_batch_sid(void);
 bool susfs_is_current_zygote_domain(void);
-void susfs_set_ksu_sid(void);
 bool susfs_is_current_ksu_domain(void);
-void susfs_set_init_sid(void);
 bool susfs_is_current_init_domain(void);
-void susfs_set_priv_app_sid(void);
-#endif
-
 #endif

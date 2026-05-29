@@ -21,8 +21,11 @@ extern u32 susfs_zygote_sid;
 extern void disable_seccomp(void);
 extern struct work_struct susfs_extra_works;
 
-static void ksu_handle_extra_susfs_work(void)
+static inline void ksu_handle_extra_susfs_work(void)
 {
+    if (work_pending(&susfs_extra_works))
+        return;
+
     schedule_work(&susfs_extra_works);
 }
 

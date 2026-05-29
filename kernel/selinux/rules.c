@@ -197,14 +197,11 @@ void apply_kernelsu_rules(void)
     ksu_destroy_sepolicy(old_pol);
 
     reset_avc_cache();
+#ifdef CONFIG_KSU_SUSFS
+    susfs_set_batch_sid();
+#endif
 out_unlock:
     mutex_unlock(&selinux_state.policy_mutex);
-#ifdef CONFIG_KSU_SUSFS
-    susfs_set_priv_app_sid();
-    susfs_set_init_sid();
-    susfs_set_ksu_sid();
-    susfs_set_zygote_sid();
-#endif
 #else
 
     cpumask_t old_mask;
