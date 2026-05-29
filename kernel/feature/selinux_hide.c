@@ -459,7 +459,7 @@ static void __nocfi type_attribute_bounds_av(struct policydb *policydb, struct c
     avd->allowed &= ~masked;
 
     /* audit masked permissions */
-    if (security_dump_masked_av_fn)
+    if ((void *)security_dump_masked_av_fn != NULL)
         security_dump_masked_av_fn(policydb, scontext, tcontext, tclass, masked, "bounds");
 }
 
@@ -776,7 +776,7 @@ void __nocfi security_compute_av_user_with_policy(struct selinux_policy *policy,
         goto out;
     }
 
-    if (context_struct_compute_av_fn) {
+    if ((void *)context_struct_compute_av_fn != NULL) {
         context_struct_compute_av_fn(policydb, scontext, tcontext, tclass, avd, NULL);
     } else {
         context_struct_compute_av(policydb, scontext, tcontext, tclass, avd, NULL);
