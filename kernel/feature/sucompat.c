@@ -204,12 +204,10 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 #else
 __attribute__((hot)) static __always_inline bool __is_su_allowed(const void **ptr_to_check)
 {
-    barrier();
     if (!ksu_su_compat_enabled)
         return false;
 
-    barrier();
-    if (likely(!!current->seccomp.mode))
+    if (likely(test_thread_flag(TIF_SECCOMP)))
         return false;
 
     if (!ksu_is_allow_uid_for_current(current_uid().val))
