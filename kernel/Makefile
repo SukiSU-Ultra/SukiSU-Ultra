@@ -65,9 +65,7 @@ endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
-ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
-$(info -- $(REPO_NAME): using KSU_MANUAL_HOOK)
-else ifeq ($(CONFIG_KSU_SUSFS), y)
+ifeq ($(CONFIG_KSU_SUSFS), y)
 $(info -- $(REPO_NAME): using SUSFS_INLINE_HOOK)
 else
 $(info -- $(REPO_NAME): using Unknown)
