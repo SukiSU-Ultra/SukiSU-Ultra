@@ -558,4 +558,6 @@
     <string name="icon_switch_summary">更换为 KernelSU 图标</string>
     <string name="refresh">刷新</string>
     <string name="home_kernel_full_version">内核完整版本</string>
+    <string name="settings_show_fullstatus">显示完整状态</string>
+    <string name="settings_show_fullstatus_summary">在首页信息卡中显示设备的完整状态</string>
 </resources>
