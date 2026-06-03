@@ -55,6 +55,15 @@
     <string name="module_repos_sort_name">Name</string>
     <string name="module_repos_sort_stars">Stars</string>
     <string name="module_repos_source_code">Source code</string>
+    <string name="module_repos_manage_urls">Manage Repo URLs</string>
+    <string name="module_repos_add_url">Add URL</string>
+    <string name="module_repos_edit_url">Edit URL</string>
+    <string name="module_repos_delete_url">Delete URL</string>
+    <string name="module_repos_url_hint">Enter module repo URL</string>
+    <string name="module_repos_url_empty">URL cannot be empty</string>
+    <string name="module_repos_url_invalid">Invalid URL format</string>
+    <string name="module_repos_default_url">Default repo</string>
+    <string name="module_repos_custom_url">Custom repo %d</string>
     <string name="confirm">Confirm</string>
     <string name="uninstall">Uninstall</string>
     <string name="module_install">Install</string>

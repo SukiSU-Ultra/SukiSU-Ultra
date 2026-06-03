@@ -37,9 +37,11 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -48,7 +50,9 @@ import androidx.compose.material.icons.automirrored.outlined.ChromeReaderMode
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.InstallMobile
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -61,12 +65,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -93,6 +100,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -179,6 +187,17 @@ fun ModuleRepoScreenMaterial(
                                     }
                                 )
                             }
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.module_repos_manage_urls)) },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Link, contentDescription = null)
+                                },
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                    actions.onShowManageRepoUrlsDialog()
+                                    showSortMenu = false
+                                }
+                            )
                         }
                     }
                 },
@@ -266,7 +285,130 @@ fun ModuleRepoScreenMaterial(
                 )
             }
         }
+        if (state.showManageRepoUrlsDialog) {
+            ManageRepoUrlsDialogMaterial(
+                repoUrls = state.repoUrls,
+                onDismiss = actions.onDismissManageRepoUrlsDialog,
+                onAdd = actions.onAddRepoUrl,
+                onEdit = actions.onEditRepoUrl,
+                onDelete = actions.onDeleteRepoUrl,
+            )
+        }
     }
+}
+
+@Composable
+fun ManageRepoUrlsDialogMaterial(
+    repoUrls: List<String>,
+    onDismiss: () -> Unit,
+    onAdd: (String) -> Unit,
+    onEdit: (Int, String) -> Unit,
+    onDelete: (Int) -> Unit,
+) {
+    var editingIndex by remember { mutableIntStateOf(-1) }
+    var editingUrl by remember { mutableStateOf("") }
+
+    LaunchedEffect(repoUrls, editingIndex) {
+        if (editingIndex >= 0 && editingIndex < repoUrls.size) {
+            editingUrl = repoUrls[editingIndex]
+        } else {
+            editingUrl = ""
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.module_repos_manage_urls)) },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(repoUrls) { index, url ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = url,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            IconButton(onClick = { editingIndex = index }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.module_repos_edit_url),
+                                    modifier = Modifier.graphicsLayer { rotationZ = -90f }
+                                )
+                            }
+                            if (repoUrls.size > 1) {
+                                IconButton(onClick = { onDelete(index) }) {
+                                    Icon(
+                                        Icons.Outlined.Delete,
+                                        contentDescription = stringResource(R.string.module_repos_delete_url),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = editingUrl,
+                    onValueChange = { editingUrl = it },
+                    label = {
+                        Text(
+                            if (editingIndex >= 0) {
+                                stringResource(R.string.module_repos_edit_url)
+                            } else {
+                                stringResource(R.string.module_repos_add_url)
+                            }
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Spacer(Modifier.weight(1f))
+                    OutlinedButton(
+                        onClick = {
+                            if (editingIndex >= 0) {
+                                onEdit(editingIndex, editingUrl)
+                                editingIndex = -1
+                            } else {
+                                onAdd(editingUrl)
+                                editingUrl = ""
+                            }
+                        }
+                    ) {
+                        Text(
+                            if (editingIndex >= 0) {
+                                stringResource(android.R.string.ok)
+                            } else {
+                                stringResource(R.string.module_repos_add_url)
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.confirm))
+            }
+        }
+    )
 }
 
 @Composable

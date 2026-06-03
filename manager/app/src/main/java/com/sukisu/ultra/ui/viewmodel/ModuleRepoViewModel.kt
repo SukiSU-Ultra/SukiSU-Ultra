@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.viewmodel
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import android.util.Patterns
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,6 +26,8 @@ import java.text.Collator
 import java.util.Locale
 
 private const val PREFS_REPO_SORT_ORDER = "module_repo_sort_order"
+private const val PREFS_REPO_URLS = "module_repo_urls"
+private const val DEFAULT_MODULES_URL = "https://modules.kernelsu.org/modules.json"
 
 class ModuleRepoViewModel(
     private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl()
@@ -45,10 +48,17 @@ class ModuleRepoViewModel(
     init {
         val ordinal = prefs.getInt(PREFS_REPO_SORT_ORDER, RepoSort.UPDATED.ordinal)
         val initial = RepoSort.entries.getOrElse(ordinal) { RepoSort.UPDATED }
+        val savedUrls = prefs.getStringSet(PREFS_REPO_URLS, null)
+        val repoUrls = if (savedUrls.isNullOrEmpty()) {
+            listOf(DEFAULT_MODULES_URL)
+        } else {
+            savedUrls.toList()
+        }
         _uiState.update {
             it.copy(
                 sortOrder = initial,
-                offline = !isNetworkAvailable(ksuApp)
+                offline = !isNetworkAvailable(ksuApp),
+                repoUrls = repoUrls
             )
         }
 
@@ -135,7 +145,7 @@ class ModuleRepoViewModel(
                     offline = !isNetworkAvailable(ksuApp)
                 )
             }
-            val result = repo.fetchModules()
+            val result = repo.fetchModules(_uiState.value.repoUrls)
 
             withContext(Dispatchers.Main) {
                 result.onSuccess { modules ->
@@ -195,5 +205,68 @@ class ModuleRepoViewModel(
 
     fun updateSearchText(text: String) {
         updateSearchStatus(_uiState.value.searchStatus.copy(searchText = text))
+    }
+
+    fun showManageRepoUrlsDialog() {
+        _uiState.update { it.copy(showManageRepoUrlsDialog = true, editingUrlIndex = -1) }
+    }
+
+    fun dismissManageRepoUrlsDialog() {
+        _uiState.update { it.copy(showManageRepoUrlsDialog = false, editingUrlIndex = -1) }
+    }
+
+    fun addRepoUrl(url: String) {
+        val trimmedUrl = url.trim()
+        if (trimmedUrl.isEmpty()) {
+            Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repos_url_empty), Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!Patterns.WEB_URL.matcher(trimmedUrl).matches()) {
+            Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repos_url_invalid), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val currentUrls = _uiState.value.repoUrls.toMutableList()
+        if (!currentUrls.contains(trimmedUrl)) {
+            currentUrls.add(trimmedUrl)
+            saveRepoUrls(currentUrls)
+            _uiState.update { it.copy(repoUrls = currentUrls, editingUrlIndex = -1) }
+        } else {
+            _uiState.update { it.copy(editingUrlIndex = -1) }
+        }
+    }
+
+    fun editRepoUrl(index: Int, newUrl: String) {
+        val trimmedUrl = newUrl.trim()
+        if (trimmedUrl.isEmpty()) {
+            Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repos_url_empty), Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (!Patterns.WEB_URL.matcher(trimmedUrl).matches()) {
+            Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repos_url_invalid), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val currentUrls = _uiState.value.repoUrls.toMutableList()
+        if (index in currentUrls.indices) {
+            currentUrls[index] = trimmedUrl
+            saveRepoUrls(currentUrls)
+            _uiState.update { it.copy(repoUrls = currentUrls, editingUrlIndex = -1) }
+        }
+    }
+
+    fun deleteRepoUrl(index: Int) {
+        val currentUrls = _uiState.value.repoUrls.toMutableList()
+        if (index in currentUrls.indices && currentUrls.size > 1) {
+            currentUrls.removeAt(index)
+            saveRepoUrls(currentUrls)
+            _uiState.update { it.copy(repoUrls = currentUrls, editingUrlIndex = -1) }
+        }
+    }
+
+    fun setEditingUrlIndex(index: Int) {
+        _uiState.update { it.copy(editingUrlIndex = index) }
+    }
+
+    private fun saveRepoUrls(urls: List<String>) {
+        prefs.edit { putStringSet(PREFS_REPO_URLS, urls.toSet()) }
     }
 }

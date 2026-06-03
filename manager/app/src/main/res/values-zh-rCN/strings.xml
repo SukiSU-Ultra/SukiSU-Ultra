@@ -37,6 +37,15 @@
     <string name="module_repos_sort_name">名称</string>
     <string name="module_repos_sort_stars">星标数</string>
     <string name="module_repos_source_code">源码</string>
+    <string name="module_repos_manage_urls">管理仓库地址</string>
+    <string name="module_repos_add_url">添加地址</string>
+    <string name="module_repos_edit_url">编辑地址</string>
+    <string name="module_repos_delete_url">删除地址</string>
+    <string name="module_repos_url_hint">输入模块仓库地址</string>
+    <string name="module_repos_url_empty">地址不能为空</string>
+    <string name="module_repos_url_invalid">地址格式无效</string>
+    <string name="module_repos_default_url">默认仓库</string>
+    <string name="module_repos_custom_url">自定义仓库 %d</string>
     <string name="confirm">确认</string>
     <string name="uninstall">卸载</string>
     <string name="module_install">安装</string>
