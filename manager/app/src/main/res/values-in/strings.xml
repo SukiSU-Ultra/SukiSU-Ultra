@@ -8,6 +8,7 @@
     <string name="home_unsupported">Tidak didukung</string>
     <string name="home_unsupported_reason">KernelSU sekarang hanya mendukung kernel GKI, tetapi Anda dapat menambal image untuk perangkat GKI.</string>
     <string name="home_version_mismatch">Versi manajer (%1$d) dan versi driver KernelSU (%2$d) tidak sesuai.</string>
+    <string name="home_device_model">Model Perangkat</string>
     <string name="home_kernel">Versi kernel</string>
     <string name="home_manager_version">Versi manajer</string>
     <string name="home_fingerprint">Identitas</string>
@@ -16,7 +17,30 @@
     <string name="selinux_status_enforcing">Enforcing</string>
     <string name="selinux_status_permissive">Permissive</string>
     <string name="selinux_status_unknown">Tidak diketahui</string>
+    <string name="home_seccomp_status">Status Seccomp</string>
+    <string name="seccomp_status_not_supported">Tidak didukung </string>
+    <string name="seccomp_status_disabled">Dinonaktifkan</string>
+    <string name="seccomp_status_strict">Ketat</string>
+    <string name="seccomp_status_filter">Menyaring</string>
+    <string name="seccomp_status_unknown">Tidak dikenal</string>
     <string name="superuser">Superuser</string>
+    <string name="sulog_log_files">File log</string>
+    <string name="sulog_failed_to_load">Gagal memuat sulog</string>
+    <string name="sulog_disabled_title">Log SU tidak diaktifkan</string>
+    <string name="sulog_unsupported_title">Log SU tidak didukung</string>
+    <string name="sulog_enable_action">Diaktifkan</string>
+    <string name="sulog_filter_title">Saring berdasarkan jenis</string>
+    <string name="sulog_clean_title">Bersihkan log</string>
+    <string name="sulog_filter_root_execve">Eksekutif root</string>
+    <string name="sulog_filter_sucompat">SU Klasik</string>
+    <string name="sulog_filter_ioctl_grant_root">Berikan Root</string>
+    <string name="sulog_filter_daemon_restart">Daemon akan dihidupkan ulang.</string>
+    <string name="sulog_entry_unknown_event">Event yang tidak diketahui</string>
+    <string name="sulog_entry_description_sucompat">Permintaan /system/bin/su dicegat.</string>
+    <string name="sulog_entry_title_root_grant_request">Permintaan pemberian hak akses root</string>
+    <string name="sulog_entry_description_ioctl_grant_root">Akses root diberikan melalui ioctl KernelSU</string>
+    <string name="sulog_entry_title_daemon_restarted">Daemon telah dimulai ulang</string>
+    <string name="sulog_entry_title_dropped_events">Events yang dibatalkan</string>
     <string name="module_failed_to_enable">Gagal mengaktifkan modul: %s</string>
     <string name="module_failed_to_disable">Gagal menonaktifkan modul: %s</string>
     <string name="module_empty">Tidak ada modul yang terpasang</string>
@@ -25,6 +49,10 @@
     <string name="module_sort_action_first">Urutkan (Aksi dahulu)</string>
     <string name="module_sort_enabled_first">Urutkan (Diaktifkan dahulu)</string>
     <string name="module_repos">Repositori</string>
+    <string name="module_repos_sort_updated">Waktu diperbarui</string>
+    <string name="module_repos_sort_created">Waktu tercipta</string>
+    <string name="module_repos_sort_name">Nama</string>
+    <string name="module_repos_sort_stars">Bintang</string>
     <string name="module_repos_source_code">Kode sumber</string>
     <string name="confirm">Oke</string>
     <string name="uninstall">Hapus</string>
@@ -78,6 +106,7 @@
     <string name="profile_umount_modules_summary">Mengaktifkan opsi ini akan memungkinkan KernelSU untuk memulihkan berkas apa pun yang telah dimodifikasi oleh modul untuk aplikasi ini.</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Aturan</string>
+    <string name="recently_installed">Baru saja dipasang</string>
     <string name="module_update">Perbarui</string>
     <string name="module_downloading">Mengunduh modul: %s</string>
     <string name="module_start_downloading">Mulai mengunduh: %s</string>
@@ -119,6 +148,7 @@
     <string name="home_pr_kernel_warning">Kernel ini dibangun dengan dukungan tanda tangan PR (Pull Requests). Ini bukan kernel produksi!</string>
     <string name="action">Aksi</string>
     <string name="open">Buka</string>
+    <string name="close">Menutup</string>
     <string name="enable_web_debugging">Debugging WebView</string>
     <string name="enable_web_debugging_summary">Dapat digunakan untuk mendebug WebUI. Harap aktifkan hanya saat diperlukan.</string>
     <string name="direct_install">Langsung pasang (Disarankan)</string>
@@ -149,6 +179,13 @@
     <string name="settings_sucompat">Perintah SU klasik</string>
     <string name="settings_sucompat_summary">Mengizinkan akses root melalui /system/bin/su, pada proses baru yang dibuat.</string>
     <string name="settings_kernel_umount">Umount kernel</string>
+    <string name="settings_kernel_umount_summary">Lepaskan modul dari kernel di Profil Aplikasi.</string>
+    <string name="settings_selinux_hide">Sembunyikan modifikasi SELinux</string>
+    <string name="settings_selinux_hide_summary">Mencegah aplikasi mendeteksi modifikasi SELinux</string>
+    <string name="settings_selinux_hide_reboot_required">Restart agar perubahan berlaku.</string>
+    <string name="settings_selinux_hide_failed">Kesalahan: %d</string>
+    <string name="settings_sulog">SU Log</string>
+    <string name="settings_sulog_summary">Rekam peristiwa terkait root ke dalam file sulog KernelSU.</string>
     <string name="feature_status_unsupported_summary">Kernel tidak mendukung fitur ini</string>
     <string name="feature_status_managed_summary">Fitur ini dikelola oleh modul</string>
     <string name="settings_mode_enable_by_default">Aktif (Default)</string>
@@ -217,11 +254,14 @@
     <string name="settings_floating_bottom_bar">Bilah bawah mengambang</string>
     <string name="settings_floating_bottom_bar_summary">Gunakan bilah bawah mengambang ala Apple.</string>
     <string name="settings_enable_glass">Kaca cair</string>
+    <string name="settings_enable_glass_summary">Aktifkan efek liquid glass untuk bilah bawah yang mengambang.</string>
     <string name="show_only_primary_user_apps">Hanya tampilkan apl pengguna utama</string>
     <string name="settings_auto_jailbreak">Jailbreak otomatis</string>
     <string name="settings_auto_jailbreak_summary">Secara otomatis menggunakan Magica untuk meningkatkan hak akses ketika SELinux Permissive terdeteksi saat boot. Membutuhkan pemberian izin mulai otomatis untuk aplikasi ini.</string>
     <string name="allow_shell">Selalu berikan izin akses root ke Shell.</string>
     <string name="allow_shell_summary">Selalu izinkan adb shell untuk memanggil su. Jangan aktifkan ini kecuali benar-benar diperlukan.</string>
+    <string name="kernel_spoof_release">Rilis Kernel</string>
+    <string name="kernel_spoof_version">Versi Kernel</string>
     <string name="enable_adb">Paksa pengaktifan adb saat boot</string>
     <string name="enable_adb_summary">Paksa pengaktifan debugging USB dan nonaktifkan otentikasi adb. Jangan aktifkan ini kecuali benar-benar diperlukan.</string>
     <string name="advanced_options">Opsi Lanjutan</string>
@@ -235,7 +275,16 @@
     <string name="download">Unduh</string>
     <string name="download_cancel">Batal</string>
     <string name="download_install">Pasang</string>
+    <string name="settings_adb_root_summary">Jalankan daemon adbd dengan hak akses root.</string>
+    <string name="menu_sort">Menyortir</string>
+    <string name="sort_by_package_name">Nama aplikasi</string>
+    <string name="sort_by_install_time">Waktu pemasangan</string>
+    <string name="sort_by_update_time">Waktu pembaruan</string>
+    <string name="sort_reverse">Balik</string>
     <!-- Customize -->
+    <string name="hook_type">Jenis Hook</string>
+    <string name="manual_hook">Manual Hook </string>
+    <string name="inline_hook">Inline Hook</string>
     <!-- Log Viewer -->
     <!-- Umount Manager -->
     <!-- Kernel Flash Progress Related -->
