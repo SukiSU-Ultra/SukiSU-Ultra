@@ -12,6 +12,8 @@
 #define DECLARE(type, name, val) enum { name = val }
 #endif
 
+DECLARE(__u32, KERNEL_SU_UAPI_VERSION, 1);
+
 /* Magic numbers for reboot hook to install fd */
 DECLARE(__u32, KSU_INSTALL_MAGIC1, 0xDEADBEEF);
 DECLARE(__u32, KSU_INSTALL_MAGIC2, 0xCAFEBABE);
@@ -31,6 +33,13 @@ DECLARE(__u32, KSU_GET_INFO_FLAG_LATE_LOAD, (1U << 2));
 DECLARE(__u32, KSU_GET_INFO_FLAG_PR_BUILD, (1U << 3));
 
 struct ksu_get_info_cmd {
+    __u32 version; /* Output: KERNEL_SU_VERSION */
+    __u32 flags; /* Output: KSU_GET_INFO_FLAG_* bits */
+    __u32 features; /* Output: max feature ID supported */
+    __u32 uapi_version; /* Output: KERNEL_SU_UAPI_VERSION */
+};
+
+struct ksu_get_info_legacy_cmd {
     __u32 version; /* Output: KERNEL_SU_VERSION */
     __u32 flags; /* Output: KSU_GET_INFO_FLAG_* bits */
     __u32 features; /* Output: max feature ID supported */
@@ -181,7 +190,9 @@ struct ksu_kpm_cmd {
 
 /* IOCTL command definitions */
 DECLARE(__u32, KSU_IOCTL_GRANT_ROOT, _IOC(_IOC_NONE, 'K', 1, 0));
-DECLARE(__u32, KSU_IOCTL_GET_INFO, _IOC(_IOC_READ, 'K', 2, 0));
+DECLARE(__u32, KSU_IOCTL_GET_INFO, _IOR('K', 2, struct ksu_get_info_cmd));
+/* deprecated */
+DECLARE(__u32, KSU_IOCTL_GET_INFO_LEGACY, _IOC(_IOC_READ, 'K', 2, 0));
 DECLARE(__u32, KSU_IOCTL_REPORT_EVENT, _IOC(_IOC_WRITE, 'K', 3, 0));
 DECLARE(__u32, KSU_IOCTL_SET_SEPOLICY, _IOC(_IOC_READ | _IOC_WRITE, 'K', 4, 0));
 DECLARE(__u32, KSU_IOCTL_CHECK_SAFEMODE, _IOC(_IOC_READ, 'K', 5, 0));
