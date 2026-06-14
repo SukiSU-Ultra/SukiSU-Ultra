@@ -44,6 +44,11 @@ class DownloadService : Service() {
         private const val COMPLETION_NOTIFICATION_ID_BASE = 100000
     }
 
+    private fun sanitizeFileName(raw: String): String {
+        val base = raw.substringAfterLast('/').substringAfterLast('\\')
+        return base.replace(Regex("[\\x00-\\x1F]"), "_").trim().ifBlank { "download.bin" }
+    }
+
     private val activeJobs = ConcurrentHashMap<Int, Job>()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var notificationManager: NotificationManager
@@ -175,18 +180,23 @@ class DownloadService : Service() {
         directory: File,
         fileName: String
     ): File {
-        val dotIndex = fileName.lastIndexOf('.')
-        val baseName = if (dotIndex > 0) fileName.substring(0, dotIndex) else fileName
-        val extension = if (dotIndex > 0) fileName.substring(dotIndex) else ""
+        val safeFileName = sanitizeFileName(fileName)
+        val dotIndex = safeFileName.lastIndexOf('.')
+        val baseName = if (dotIndex > 0) safeFileName.substring(0, dotIndex) else safeFileName
+        val extension = if (dotIndex > 0) safeFileName.substring(dotIndex) else ""
+        val baseDir = directory.canonicalFile
 
         var index = 0
         while (true) {
             val candidateName = if (index == 0) {
-                fileName
+                safeFileName
             } else {
                 "$baseName ($index)$extension"
             }
-            val candidate = File(directory, candidateName)
+            val candidate = File(baseDir, candidateName).canonicalFile
+            if (!candidate.path.startsWith(baseDir.path + File.separator)) {
+                throw IOException("Refusing to write outside downloads directory")
+            }
             if (!candidate.exists()) {
                 return candidate
             }
