@@ -4,7 +4,7 @@
     <string name="home_not_installed">尚未安裝</string>
     <string name="home_click_to_install">點選開始安裝</string>
     <string name="home_working">已開始運作</string>
-    <string name="home_working_version">版本：%d</string>
+    <string name="home_working_version">版本：%s</string>
     <string name="home_unsupported">未受支援</string>
     <string name="home_unsupported_reason">未檢測到 KernelSU 驅動程序，核心錯誤?</string>
     <string name="home_version_mismatch">管理器版本 (%1$d) 與 KernelSU 驅動版本 (%2$d) 不匹配。</string>
@@ -17,6 +17,12 @@
     <string name="selinux_status_enforcing">強制執行</string>
     <string name="selinux_status_permissive">容許執行</string>
     <string name="selinux_status_unknown">不明</string>
+    <string name="home_seccomp_status">Secomp 狀態</string>
+    <string name="seccomp_status_not_supported">不支援</string>
+    <string name="seccomp_status_disabled">已停用</string>
+    <string name="seccomp_status_strict">嚴格模式</string>
+    <string name="seccomp_status_filter">過濾模式</string>
+    <string name="seccomp_status_unknown">不明</string>
     <string name="superuser">授權</string>
     <string name="sulog_log_files">日誌檔案</string>
     <string name="sulog_failed_to_load">載入 sulog 失敗</string>
@@ -43,7 +49,10 @@
     <string name="module_sort_action_first">可執行優先</string>
     <string name="module_sort_enabled_first">已啟用優先</string>
     <string name="module_repos">模組倉庫</string>
+    <string name="module_repos_sort_updated">已更新時間</string>
+    <string name="module_repos_sort_created">已建立時間</string>
     <string name="module_repos_sort_name">按名稱排序</string>
+    <string name="module_repos_sort_stars">星標數</string>
     <string name="module_repos_source_code">原始碼</string>
     <string name="confirm">確認</string>
     <string name="uninstall">解除安裝</string>
@@ -51,6 +60,7 @@
     <string name="install">安裝</string>
     <string name="reboot">重新啟動</string>
     <string name="settings">設定</string>
+    <string name="reboot_soft">軟重新啟動</string>
     <string name="reboot_userspace">軟重啟</string>
     <string name="reboot_recovery">重新啟動至 Recovery</string>
     <string name="reboot_bootloader">重新啟動至 Bootloader</string>
@@ -58,6 +68,7 @@
     <string name="reboot_edl">重新啟動至 EDL</string>
     <string name="about">關於</string>
     <string name="module_uninstall_confirm">你是否要解除安裝「%s」模組？</string>
+    <string name="metamodule_uninstall_confirm">"您確定要解除安裝 %s 模組？這個動作將會將影響所有模組，元模組提供的某些功能（例如掛載）將不再有效。  "</string>
     <string name="module_uninstall_success">「%s」已解除安裝</string>
     <string name="module_uninstall_failed">無法解除安裝：%s</string>
     <string name="module_version">版本</string>
@@ -65,6 +76,9 @@
     <string name="show_system_apps">顯示系統程式</string>
     <string name="send_log">傳送日誌</string>
     <string name="safe_mode">安全模式</string>
+    <string name="jailbreak_mode">越獄模式</string>
+    <string name="home_jailbreak">越獄</string>
+    <string name="jailbreak_timeout">越獄可能失敗，請檢視日誌</string>
     <string name="safe_mode_module_disabled">處於安全模式下，禁止安裝模組</string>
     <string name="reboot_to_apply">將在重新啟動時生效</string>
     <string name="module_magisk_conflict">與 Magisk 發生衝突，無法使用模組功能！</string>
@@ -92,6 +106,7 @@
     <string name="profile_umount_modules_summary">啟用選項後，KernelSU 會將應用程式內遭模組修改的檔案恢復原狀。</string>
     <string name="profile_selinux_domain">域</string>
     <string name="profile_selinux_rules">規則</string>
+    <string name="recently_installed">最近已安裝</string>
     <string name="module_update">更新</string>
     <string name="module_downloading">正在下載模組：%s</string>
     <string name="module_start_downloading">開始下載：%s</string>
@@ -133,6 +148,7 @@
     <string name="home_pr_kernel_warning">當前核心包含 PR 簽名支援，這不是一個生產核心！</string>
     <string name="action">執行</string>
     <string name="open">開啟</string>
+    <string name="close">關閉</string>
     <string name="enable_web_debugging">WebView 除錯</string>
     <string name="enable_web_debugging_summary">可用於除錯 WebUI，請僅在需要時啟用</string>
     <string name="direct_install">直接安裝（推薦）</string>
@@ -164,6 +180,10 @@
     <string name="settings_sucompat_summary">允許透過 /system/bin/su 獲取 Root 許可權</string>
     <string name="settings_kernel_umount">解除安裝模組（核心級）</string>
     <string name="settings_kernel_umount_summary">在核心給需要的應用解除安裝模組。</string>
+    <string name="settings_selinux_hide">隱藏 SELinux 修改</string>
+    <string name="settings_selinux_hide_summary">阻止應用程式檢測 SELinux 修改</string>
+    <string name="settings_selinux_hide_reboot_required">重新啟動以生效</string>
+    <string name="settings_selinux_hide_failed">錯誤：%d</string>
     <string name="settings_sulog">SU 日誌</string>
     <string name="settings_sulog_summary">將 root 相關事件記錄到 KernelSU sulog 檔案。</string>
     <string name="feature_status_unsupported_summary">內核不支持此特性</string>
@@ -177,6 +197,9 @@
     <string name="refresh_refresh">正在重新整理…</string>
     <string name="refresh_complete">重新整理成功</string>
     <string name="undo">撤銷</string>
+    <string name="module_undo_uninstall_success">成功取消解除安裝 %s</string>
+    <string name="module_undo_uninstall_failed">無法還原解除安裝：%s</string>
+    <string name="group_contains_apps">包含 %d 個應用程式</string>
     <string name="settings_theme">主題設置</string>
     <string name="settings_theme_summary">自定義更多主題選項</string>
     <string name="settings_theme_mode_system">跟隨系統</string>
@@ -253,6 +276,13 @@
     <string name="download_cancel">取消</string>
     <string name="download_install">安裝</string>
     <string name="settings_adb_root_summary">以 root 權限運行 adbd 守護進程</string>
+    <string name="menu_sort">排序</string>
+    <string name="sort_by_name">應用程式名稱</string>
+    <string name="sort_by_package_name">套件名稱</string>
+    <string name="sort_by_install_time">安裝時間</string>
+    <string name="sort_by_update_time">更新時間</string>
+    <string name="sort_reverse">倒序</string>
+    <string name="profile_flags_desc_no_new_privs">防止在此 Root Profile 的上下文中透過 KernelSU 進一步提升權限</string>
     <!-- Customize -->
     <string name="hook_type">鉤子類型</string>
     <string name="manual_hook">手動 Hook</string>
@@ -389,6 +419,8 @@
     <string name="susfs_config_summary">配置SuSFS模塊設置</string>
     <string name="susfs_config_description">配置說明</string>
     <string name="susfs_config_description_text">此功能允許您自定義 SuSFS 的 uname 值和構建時間偽裝。輸入您想要設置的值，點擊應用即可生效</string>
+    <string name="susfs_uname_label">內核發布</string>
+    <string name="susfs_build_time_label">內核版本</string>
     <string name="susfs_current_value">目前 Release: %s</string>
     <string name="susfs_current_build_time">目前 Version: %s</string>
     <string name="susfs_apply">應用</string>
@@ -549,4 +581,7 @@
     <string name="icon_switch_title">備選圖標</string>
     <string name="icon_switch_summary">更換為 KernelSU 圖標</string>
     <string name="refresh">刷新</string>
+    <string name="home_kernel_full_version">內核完整版本</string>
+    <string name="settings_show_fullstatus">顯示完整狀態</string>
+    <string name="settings_show_fullstatus_summary">在首頁資訊卡片顯示裝置完整狀態</string>
 </resources>
