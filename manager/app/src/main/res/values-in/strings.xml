@@ -4,7 +4,7 @@
     <string name="home_not_installed">Tidak terpasang</string>
     <string name="home_click_to_install">Ketuk untuk memasang</string>
     <string name="home_working">Berfungsi</string>
-    <string name="home_working_version">Versi: %d</string>
+    <string name="home_working_version">Versi: %s</string>
     <string name="home_unsupported">Tidak didukung</string>
     <string name="home_unsupported_reason">KernelSU sekarang hanya mendukung kernel GKI, tetapi Anda dapat menambal image untuk perangkat GKI.</string>
     <string name="home_version_mismatch">Versi manajer (%1$d) dan versi driver KernelSU (%2$d) tidak sesuai.</string>
@@ -51,7 +51,7 @@
     <string name="module_repos">Repositori</string>
     <string name="module_repos_sort_updated">Waktu diperbarui</string>
     <string name="module_repos_sort_created">Waktu tercipta</string>
-    <string name="module_repos_sort_name">Nama</string>
+    <string name="module_repos_sort_name">Nama (A → Z)</string>
     <string name="module_repos_sort_stars">Bintang</string>
     <string name="module_repos_source_code">Kode sumber</string>
     <string name="confirm">Oke</string>
@@ -179,7 +179,7 @@
     <string name="settings_sucompat">Perintah SU klasik</string>
     <string name="settings_sucompat_summary">Mengizinkan akses root melalui /system/bin/su, pada proses baru yang dibuat.</string>
     <string name="settings_kernel_umount">Umount kernel</string>
-    <string name="settings_kernel_umount_summary">Lepaskan modul dari kernel di Profil Aplikasi.</string>
+    <string name="settings_kernel_umount_summary">Unmount modul dari kernel pada Profil Aplikasi.</string>
     <string name="settings_selinux_hide">Sembunyikan modifikasi SELinux</string>
     <string name="settings_selinux_hide_summary">Mencegah aplikasi mendeteksi modifikasi SELinux</string>
     <string name="settings_selinux_hide_reboot_required">Restart agar perubahan berlaku.</string>
@@ -254,7 +254,7 @@
     <string name="settings_floating_bottom_bar">Bilah bawah mengambang</string>
     <string name="settings_floating_bottom_bar_summary">Gunakan bilah bawah mengambang ala Apple.</string>
     <string name="settings_enable_glass">Kaca cair</string>
-    <string name="settings_enable_glass_summary">Aktifkan efek liquid glass untuk bilah bawah yang mengambang.</string>
+    <string name="settings_enable_glass_summary">Aktifkan efek kaca cair (liquid glass) untuk bilah bawah mengambang.</string>
     <string name="show_only_primary_user_apps">Hanya tampilkan apl pengguna utama</string>
     <string name="settings_auto_jailbreak">Jailbreak otomatis</string>
     <string name="settings_auto_jailbreak_summary">Secara otomatis menggunakan Magica untuk meningkatkan hak akses ketika SELinux Permissive terdeteksi saat boot. Membutuhkan pemberian izin mulai otomatis untuk aplikasi ini.</string>
@@ -281,6 +281,7 @@
     <string name="sort_by_install_time">Waktu pemasangan</string>
     <string name="sort_by_update_time">Waktu pembaruan</string>
     <string name="sort_reverse">Balik</string>
+    <string name="profile_flags_desc_no_new_privs">Mencegah eskalasi hak akses lebih lanjut melalui KernelSU dalam konteks profil root ini.</string>
     <!-- Customize -->
     <string name="hook_type">Jenis Hook</string>
     <string name="manual_hook">Manual Hook </string>
