@@ -4,7 +4,7 @@
     <string name="home_not_installed">Kurulmadı</string>
     <string name="home_click_to_install">Yüklemek için dokunun</string>
     <string name="home_working">Çalışıyor</string>
-    <string name="home_working_version">Sürüm: %d</string>
+    <string name="home_working_version">Sürüm: %s</string>
     <string name="home_unsupported">Desteklenmiyor</string>
     <string name="home_unsupported_reason">KernelSU şimdilik sadece GKI çekirdeklerini destekliyor</string>
     <string name="home_version_mismatch">Yönetici sürümü (%1$d) ile KernelSU sürücüsü sürümü (%2$d) uyuşmuyor.</string>
@@ -42,6 +42,7 @@
     <string name="module_sort_action_first">Önce Aksiyon</string>
     <string name="module_sort_enabled_first">Önce etkin olanlar</string>
     <string name="module_repos">Depolar</string>
+    <string name="module_repos_sort_name">Ad (A → Z)</string>
     <string name="module_repos_source_code">Kaynak kodu</string>
     <string name="confirm">Onayla</string>
     <string name="uninstall">Kaldır</string>
@@ -168,6 +169,7 @@
     <string name="settings_sucompat">Klasik SU komutu</string>
     <string name="settings_sucompat_summary">Uygulama Profilinde Süper Kullanıcı izni verilen uygulamaların /system/bin/su yürütülerek süper kullanıcı kabuğu almasına izin verir; yalnızca yeni işlemler için etkilidir.</string>
     <string name="settings_kernel_umount">Kernel bağlantısını kes</string>
+    <string name="settings_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesinde bağlantı kesme davranışı.</string>
     <string name="settings_sulog">SU Günlüğü (Log)</string>
     <string name="feature_status_unsupported_summary">Kernel bu özelliği desteklemiyor</string>
     <string name="feature_status_managed_summary">Bu özellik bir modül tarafından yönetilmektedir</string>
@@ -237,6 +239,7 @@
     <string name="settings_floating_bottom_bar">Yüzen alt çubuk</string>
     <string name="settings_floating_bottom_bar_summary">Apple tarzı kayan alt çubuğu kullan</string>
     <string name="settings_enable_glass">Liquid glass</string>
+    <string name="settings_enable_glass_summary">Yüzen alt çubuk için liquid glass efektini etkinleştir</string>
     <string name="show_only_primary_user_apps">Yalnızca birincil kullanıcı uygulamalarını göster</string>
     <string name="settings_auto_jailbreak">Otomatik jailbreak</string>
     <string name="settings_auto_jailbreak_summary">Önyükleme sırasında Permissive SELinux algılandığında, ayrıcalıkları yükseltmek için otomatik olarak Magica kullanılır. Bunun için bu uygulamaya otomatik başlatma izni verilmesi gerekir.</string>
@@ -255,6 +258,7 @@
     <string name="download">İndir</string>
     <string name="download_cancel">İptal</string>
     <string name="download_install">Yükle</string>
+    <string name="profile_flags_desc_no_new_privs">Bu root profili bağlamında KernelSU aracılığıyla daha fazla ayrıcalık yükseltmesini engeller.</string>
     <!-- Customize -->
     <string name="hook_type">Hook Türü</string>
     <string name="manual_hook">Manuel Hook</string>
@@ -382,6 +386,10 @@
     <string name="susfs_config_summary">SuSFS modül ayarlarını yapılandırın</string>
     <string name="susfs_config_description">Yapılandırma Açıklaması</string>
     <string name="susfs_config_description_text">Bu özellik, SuSFS uname değerini ve derleme zamanı yanıltmasını özelleştirmenize olanak tanır. Ayarlamak istediğiniz değerleri girin ve etkili olması için Uygula\'ya tıklayın</string>
+    <string name="susfs_uname_label">Uname Değeri</string>
+    <string name="susfs_build_time_label">Derleme Zamanı Yanıltması</string>
+    <string name="susfs_current_value">Mevcut değer: %s</string>
+    <string name="susfs_current_build_time">Mevcut derleme zamanı: %s</string>
     <string name="susfs_apply">Uygula</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Sıfırlamayı Onayla</string>
