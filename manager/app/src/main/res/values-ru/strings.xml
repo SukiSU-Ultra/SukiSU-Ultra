@@ -4,7 +4,7 @@
     <string name="home_not_installed">Не установлен</string>
     <string name="home_click_to_install">Нажмите, чтобы установить</string>
     <string name="home_working">Работает</string>
-    <string name="home_working_version">Версия: %d</string>
+    <string name="home_working_version">Версия: %s</string>
     <string name="home_unsupported">Не поддерживается</string>
     <string name="home_unsupported_reason">Теперь KernelSU поддерживает только ядра GKI, однако вы всё ещё можете пропатчить образ для GKI-устройств.</string>
     <string name="home_version_mismatch">Версия менеджера (%1$d) и драйвера KernelSU (%2$d) отличаются!</string>
@@ -48,6 +48,7 @@
     <string name="module_sort_action_first">Сначала с действием</string>
     <string name="module_sort_enabled_first">Сначала включённые</string>
     <string name="module_repos">Репозиторий</string>
+    <string name="module_repos_sort_name">Имя (А → Я)</string>
     <string name="module_repos_source_code">Исходный код</string>
     <string name="confirm">Подтвердить</string>
     <string name="uninstall">Удалить</string>
@@ -272,6 +273,8 @@
     <string name="download">Загрузить</string>
     <string name="download_cancel">Отменить</string>
     <string name="download_install">Установить</string>
+    <string name="settings_adb_root_summary">Запустить демон (adbd) с Root правами</string>
+    <string name="profile_flags_desc_no_new_privs">Предотвращает дальнейшее повышение привилегий через KernelSU в контексте этого root-профиля.</string>
     <!-- Customize -->
     <string name="hook_type">Тип хуков</string>
     <string name="manual_hook">Самопис. хуки</string>
@@ -408,10 +411,10 @@
     <string name="susfs_config_summary">Настроить модуль SuSFS</string>
     <string name="susfs_config_description">Описание конфигурации</string>
     <string name="susfs_config_description_text">Эта функция позволяет вам настраивать переменную uname и время сборки для SuSFS. Впишите значение и нажмите \"Применить\" для изменения.</string>
-    <string name="susfs_uname_label">Релиз ядра</string>
-    <string name="susfs_build_time_label">Версия ядра</string>
-    <string name="susfs_current_value">Текущий релиз: %s</string>
-    <string name="susfs_current_build_time">Текущая версия: %s</string>
+    <string name="susfs_uname_label">Значение uname</string>
+    <string name="susfs_build_time_label">Подмена времени сборки</string>
+    <string name="susfs_current_value">Текущее значение: %s</string>
+    <string name="susfs_current_build_time">Текущее время сборки: %s</string>
     <string name="susfs_apply">Применить</string>
     <!-- SuSFS Reset Confirmation -->
     <string name="susfs_reset_confirm_title">Подтвердить сброс</string>
