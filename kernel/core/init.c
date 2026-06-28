@@ -130,6 +130,7 @@ int __init kernelsu_init(void)
     ksu_cred = prepare_creds();
     if (!ksu_cred) {
         pr_err("prepare cred failed!\n");
+        return -ENOSYS;
     }
 
     ksu_init_symbol_resolver();
@@ -223,9 +224,7 @@ void __exit kernelsu_exit(void)
     ksu_sulog_exit();
     ksu_feature_exit();
 
-    if (ksu_cred) {
-        put_cred(ksu_cred);
-    }
+    put_cred(ksu_cred);
 }
 
 #if NEED_OWN_STACKPROTECTOR
