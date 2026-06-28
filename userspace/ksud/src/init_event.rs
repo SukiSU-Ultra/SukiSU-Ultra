@@ -208,6 +208,7 @@ const fn resetprop() -> ResetProp {
         persist_only: false,
         verbose: false,
         show_context: false,
+        rebuild: false,
     }
 }
 
