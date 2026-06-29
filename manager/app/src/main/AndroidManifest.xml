@@ -55,6 +55,24 @@
                 <data android:mimeType="application/zip" />
                 <data android:mimeType="application/vnd.android.package-archive" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="action"
+                    android:scheme="ksu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="webui"
+                    android:scheme="ksu" />
+            </intent-filter>
         </activity>
         <!-- 切换图标 -->
         <activity-alias

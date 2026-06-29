@@ -133,7 +133,7 @@ internal fun InstallScreenMaterial(
             SegmentedColumn(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 content = buildList {
-                    if (uiState.displayPartitions.isNotEmpty() && isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) add {
+                    if (uiState.displayPartitions.isNotEmpty()) add {
                         SegmentedDropdownItem(
                             enabled = uiState.canSelectPartition,
                             items = uiState.displayPartitions,

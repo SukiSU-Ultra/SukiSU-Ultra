@@ -17,16 +17,33 @@ import androidx.core.net.toUri
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ui.MainActivity
+import com.sukisu.ultra.ui.screen.module.ShortcutType
 import com.sukisu.ultra.ui.util.getRootShell
 import com.sukisu.ultra.ui.util.isColorOS
 import com.sukisu.ultra.ui.util.isHyperOS
 import com.sukisu.ultra.ui.util.isMiui
-import com.sukisu.ultra.ui.webui.WebUIActivity
 
 object Shortcut {
 
     private const val TAG = "ModuleShortcut"
+    const val SCHEME_KSU = "ksu"
+    const val HOST_ACTION = "action"
+    const val HOST_WEBUI = "webui"
+
+    fun buildShortcutUri(moduleId: String, type: ShortcutType): Uri {
+        val host = when (type) {
+            ShortcutType.Action -> HOST_ACTION
+            ShortcutType.WebUI -> HOST_WEBUI
+        }
+        return Uri.Builder()
+            .scheme(SCHEME_KSU)
+            .authority(host)
+            .appendQueryParameter("id", moduleId)
+            .appendQueryParameter("token", SettingsRepositoryImpl().intentToken)
+            .build()
+    }
 
     fun createModuleActionShortcut(
         context: Context,
@@ -37,8 +54,7 @@ object Shortcut {
         val shortcutId = "module_action_$moduleId"
         val shortcutIntent = Intent(context, MainActivity::class.java).apply {
             action = Intent.ACTION_VIEW
-            putExtra("shortcut_type", "module_action")
-            putExtra("module_id", moduleId)
+            data = buildShortcutUri(moduleId, ShortcutType.Action)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         createModuleShortcut(
@@ -59,11 +75,9 @@ object Shortcut {
         iconUri: String?
     ) {
         val shortcutId = "module_webui_$moduleId"
-        val shortcutIntent = Intent(context, WebUIActivity::class.java).apply {
+        val shortcutIntent = Intent(context, MainActivity::class.java).apply {
             action = Intent.ACTION_VIEW
-            data = "kernelsu://webui/$moduleId".toUri()
-            putExtra("id", moduleId)
-            putExtra("from_webui_shortcut", true)
+            data = buildShortcutUri(moduleId, ShortcutType.WebUI)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
         createModuleShortcut(

@@ -18,6 +18,7 @@ interface SettingsRepository {
     var enableWebDebugging: Boolean
     var showFullStatus: Boolean
     var autoJailbreak: Boolean
+    val intentToken: String
 
     suspend fun getSuCompatStatus(): String
     suspend fun getSuCompatPersistValue(): Long?

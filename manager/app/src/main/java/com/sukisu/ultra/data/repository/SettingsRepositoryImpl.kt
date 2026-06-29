@@ -15,8 +15,14 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
 import com.sukisu.ultra.ui.util.getFeatureStatus
+import java.security.SecureRandom
 
 class SettingsRepositoryImpl : SettingsRepository {
+
+    private companion object {
+        private const val INTENT_TOKEN_KEY = "intent_token"
+        private val secureRandom = SecureRandom()
+    }
 
     private val prefs by lazy {
         ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -102,6 +108,16 @@ class SettingsRepositoryImpl : SettingsRepository {
                 putBoolean("auto_jailbreak", value)
             }
         }
+
+    override val intentToken: String
+        get() {
+        val existing = prefs.getString(INTENT_TOKEN_KEY, null)
+        if (!existing.isNullOrBlank()) return existing
+        val token = ByteArray(32).also(secureRandom::nextBytes)
+            .joinToString(separator = "") { "%02x".format(it) }
+        prefs.edit { putString(INTENT_TOKEN_KEY, token) }
+        return token
+    }
 
     override suspend fun getSuCompatStatus(): String = getFeatureStatus("su_compat")
 
