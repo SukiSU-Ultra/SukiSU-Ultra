@@ -3,7 +3,6 @@ package com.sukisu.ultra.ui
 import androidx.compose.runtime.mutableIntStateOf
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -39,9 +38,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.core.net.toUri
@@ -222,7 +222,10 @@ class MainActivity : ComponentActivity() {
                     }
 
                     when (uiMode) {
-                        UiMode.Material -> androidx.compose.material3.Scaffold { navDisplay() }
+                        UiMode.Material -> androidx.compose.material3.Scaffold(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ) { navDisplay() }
+
                         UiMode.Miuix -> Scaffold { navDisplay() }
                     }
                 }
@@ -285,8 +288,13 @@ fun MainScreen(
 
     MainScreenBackHandler(mainPagerState, navController)
 
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val useNavigationRail = isLandscape && !(uiMode == UiMode.Miuix && enableFloatingBottomBar)
+    val windowInfo = LocalWindowInfo.current
+    val deviceDensity = LocalResources.current.displayMetrics.density
+    val widthDp = windowInfo.containerSize.width / deviceDensity
+    val heightDp = windowInfo.containerSize.height / deviceDensity
+    val showSplitPane = widthDp >= 840f ||
+            (widthDp >= 600f && heightDp / widthDp < 1.2f)
+    val useNavigationRail = showSplitPane && !(uiMode == UiMode.Miuix && enableFloatingBottomBar)
 
     CompositionLocalProvider(
         LocalMainPagerState provides mainPagerState
@@ -318,7 +326,9 @@ fun MainScreen(
             val navBarBottomPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
 
             when (uiMode) {
-                UiMode.Material -> androidx.compose.material3.Scaffold {
+                UiMode.Material -> androidx.compose.material3.Scaffold(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ) {
                     Row {
                         SideRail(
                             blurBackdrop = blurBackdrop,
@@ -362,7 +372,10 @@ fun MainScreen(
             }
 
             when (uiMode) {
-                UiMode.Material -> androidx.compose.material3.Scaffold(bottomBar = bottomBar) { innerPadding ->
+                UiMode.Material -> androidx.compose.material3.Scaffold(
+                    bottomBar = bottomBar,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ) { innerPadding ->
                     pagerContent(innerPadding.calculateBottomPadding())
                 }
 

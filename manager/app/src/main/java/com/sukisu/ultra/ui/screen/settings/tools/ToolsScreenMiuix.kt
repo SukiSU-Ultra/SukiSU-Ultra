@@ -63,7 +63,7 @@ fun ToolsMiuix(
                     title = stringResource(R.string.tools),
                     scrollBehavior = scrollBehavior,
                     navigationIcon = {
-                        IconButton(onClick = { /* handled in navigator */ }) {
+                        IconButton(onClick = actions.onBack) {
                             val layoutDirection = LocalLayoutDirection.current
                             Icon(
                                 modifier = Modifier.graphicsLayer {

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
@@ -32,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -51,12 +49,15 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
+import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.SegmentedCheckboxItem
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.SegmentedRadioItem
 import com.sukisu.ultra.ui.component.material.SnackBarHost
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
+import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.kernelFlash.KpmPatchOption
 import com.sukisu.ultra.ui.kernelFlash.KpmPatchSelectionDialog
 import com.sukisu.ultra.ui.kernelFlash.component.SlotSelectionDialog
@@ -109,7 +110,7 @@ internal fun InstallScreenMaterial(
         scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
     }
 
-    Scaffold(
+    ExpressiveScaffold(
         topBar = {
             TopBar(
                 onBack = actions.onBack,
@@ -133,7 +134,7 @@ internal fun InstallScreenMaterial(
             )
 
             SegmentedColumn(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                 content = buildList {
                     if (uiState.displayPartitions.isNotEmpty()) add {
                         SegmentedDropdownItem(
@@ -182,7 +183,7 @@ internal fun InstallScreenMaterial(
                 }
             )
             SegmentedColumn(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                 visibleLen = if (uiState.advancedOptionsShown) 0 else 1,
                 content = buildList {
                     val rotationState by animateFloatAsState(
@@ -269,7 +270,7 @@ internal fun InstallScreenMaterial(
             // AnyKernel3 刷写
             (uiState.installMethod as? InstallMethod.HorizonKernel)?.let { method ->
                 SegmentedColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = buildList {
                         if (isAbDevice && method.slot != null) {
                             add {
@@ -365,7 +366,7 @@ private fun SelectInstallMethod(
 
     key(state.installMethodOptions.size) {
         SegmentedColumn(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
             content = state.installMethodOptions.map { option ->
                 {
                     SegmentedRadioItem(
@@ -388,14 +389,9 @@ private fun TopBar(
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.install)) },
         navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-            }
+            TopBarBackButton(onClick = onBack)
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = expressiveTopAppBarColors(),
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
