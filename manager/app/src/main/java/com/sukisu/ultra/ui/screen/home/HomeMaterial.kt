@@ -325,7 +325,7 @@ private fun StatusCard(
                         Text(
                             text = state.superuserCount.toString(),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -348,7 +348,7 @@ private fun StatusCard(
                         Text(
                             text = state.moduleCount.toString(),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -399,7 +399,7 @@ private fun LearnMoreCard(onOpenUrl: (String) -> Unit) {
                 Text(
                     text = stringResource(R.string.home_click_to_learn_kernelsu),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -421,7 +421,7 @@ private fun DonateCard(onOpenUrl: (String) -> Unit) {
                 Text(
                     text = stringResource(R.string.home_support_content),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -449,7 +449,7 @@ private fun InfoCard(systemInfo: SystemInfo, showFullStatus: Boolean = true) {
                 Text(
                     text = content,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
