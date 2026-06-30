@@ -1,11 +1,7 @@
 package com.sukisu.ultra.ui.screen.install
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -30,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -55,6 +50,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.SegmentedRadioItem
+import com.sukisu.ultra.ui.component.material.SegmentedTextField
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
@@ -125,7 +121,8 @@ internal fun InstallScreenMaterial(
                 .padding(innerPadding)
                 .fillMaxHeight()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(13.dp)
         ) {
             SelectInstallMethod(
                 state = uiState,
@@ -134,9 +131,9 @@ internal fun InstallScreenMaterial(
             )
 
             SegmentedColumn(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 content = buildList {
-                    if (uiState.displayPartitions.isNotEmpty()) add {
+                    if (uiState.displayPartitions.isNotEmpty() && isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) add {
                         SegmentedDropdownItem(
                             enabled = uiState.canSelectPartition,
                             items = uiState.displayPartitions,
@@ -183,142 +180,81 @@ internal fun InstallScreenMaterial(
                 }
             )
             SegmentedColumn(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
-                visibleLen = if (uiState.advancedOptionsShown) 0 else 1,
-                content = buildList {
+                modifier = Modifier.padding(horizontal = 16.dp),
+            ) {
+                item {
                     val rotationState by animateFloatAsState(
                         targetValue = if (uiState.advancedOptionsShown) 180f else 0f,
                         label = "RotationAnimation"
                     )
-                    add {
-                        SegmentedListItem(
-                            headlineContent = { Text(stringResource(R.string.advanced_options)) },
-                            trailingContent = {
-                                Icon(
-                                    imageVector = Icons.Filled.ExpandMore,
-                                    contentDescription = stringResource(R.string.expand),
-                                    modifier = Modifier.graphicsLayer { rotationZ = rotationState }
-                                )
-                            },
-                            onClick = actions.onAdvancedOptionsClicked
-                        )
-                    }
-                    add {
-                        AnimatedVisibility(
-                            uiState.advancedOptionsShown,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            SegmentedCheckboxItem(
-                                title = stringResource(id = R.string.allow_shell),
-                                summary = stringResource(id = R.string.allow_shell_summary),
-                                checked = uiState.allowShell,
-                                onCheckedChange = actions.onSelectAllowShell,
+                    SegmentedListItem(
+                        headlineContent = { Text(stringResource(R.string.advanced_options)) },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Filled.ExpandMore,
+                                contentDescription = stringResource(R.string.expand),
+                                modifier = Modifier.graphicsLayer { rotationZ = rotationState }
                             )
-                        }
-                    }
-                    add {
-                        AnimatedVisibility(
-                            uiState.advancedOptionsShown,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            SegmentedCheckboxItem(
-                                title = stringResource(id = R.string.enable_adb),
-                                summary = stringResource(id = R.string.enable_adb_summary),
-                                checked = uiState.enableAdb,
-                                onCheckedChange = actions.onSelectEnableAdb,
-                            )
-                        }
-                    }
-                    add {
-                        AnimatedVisibility(
-                            uiState.advancedOptionsShown,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            OutlinedTextField(
-                                value = uiState.spoofRelease,
-                                onValueChange = actions.onSpoofReleaseChange,
-                                label = { Text(stringResource(R.string.kernel_spoof_release)) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                singleLine = true
-                            )
-                        }
-                    }
-                    add {
-                        AnimatedVisibility(
-                            uiState.advancedOptionsShown,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            OutlinedTextField(
-                                value = uiState.spoofVersion,
-                                onValueChange = actions.onSpoofVersionChange,
-                                label = { Text(stringResource(R.string.kernel_spoof_version)) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                singleLine = true
-                            )
-                        }
-                    }
+                        },
+                        onClick = actions.onAdvancedOptionsClicked
+                    )
                 }
-            )
+                item(visible = uiState.advancedOptionsShown) {
+                    SegmentedCheckboxItem(
+                        title = stringResource(id = R.string.allow_shell),
+                        summary = stringResource(id = R.string.allow_shell_summary),
+                        checked = uiState.allowShell,
+                        onCheckedChange = actions.onSelectAllowShell,
+                    )
+                }
+                item(visible = uiState.advancedOptionsShown) {
+                    SegmentedCheckboxItem(
+                        title = stringResource(id = R.string.enable_adb),
+                        summary = stringResource(id = R.string.enable_adb_summary),
+                        checked = uiState.enableAdb,
+                        onCheckedChange = actions.onSelectEnableAdb,
+                    )
+                }
+                item(visible = uiState.advancedOptionsShown) {
+                    SegmentedTextField(
+                        value = uiState.spoofRelease,
+                        onValueChange = actions.onSpoofReleaseChange,
+                        label = stringResource(R.string.kernel_spoof_release),
+                        singleLine = true
+                    )
+                }
+                item(visible = uiState.advancedOptionsShown) {
+                    SegmentedTextField(
+                        value = uiState.spoofVersion,
+                        onValueChange = actions.onSpoofVersionChange,
+                        label = stringResource(R.string.kernel_spoof_version),
+                        singleLine = true
+                    )
+                }
+            }
             // AnyKernel3 刷写
             (uiState.installMethod as? InstallMethod.HorizonKernel)?.let { method ->
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
-                    content = buildList {
-                        if (isAbDevice && method.slot != null) {
-                            add {
-                                SegmentedListItem(
-                                    onClick = { actions.onReopenSlotDialog(method) },
-                                    leadingContent = {
-                                        Icon(
-                                            Icons.Filled.SdStorage,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    headlineContent = {
-                                        Text(
-                                            stringResource(
-                                                id = R.string.selected_slot,
-                                                if (method.slot == "a") stringResource(id = R.string.slot_a)
-                                                else stringResource(id = R.string.slot_b)
-                                            )
-                                        )
-                                    },
-                                    trailingContent = {
-                                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
-                                    }
-                                )
-                            }
-                        }
-                        add {
+                ) {
+                    if (isAbDevice && method.slot != null) {
+                        item {
                             SegmentedListItem(
-                                onClick = { actions.onReopenKpmDialog(method) },
+                                onClick = { actions.onReopenSlotDialog(method) },
                                 leadingContent = {
                                     Icon(
-                                        Icons.Filled.Security,
-                                        tint = when (uiState.kpmPatchOption) {
-                                            KpmPatchOption.PATCH_KPM -> MaterialTheme.colorScheme.primary
-                                            KpmPatchOption.UNDO_PATCH_KPM -> MaterialTheme.colorScheme.secondary
-                                            KpmPatchOption.FOLLOW_KERNEL -> MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
+                                        Icons.Filled.SdStorage,
+                                        tint = MaterialTheme.colorScheme.primary,
                                         contentDescription = null
                                     )
                                 },
                                 headlineContent = {
                                     Text(
-                                        when (uiState.kpmPatchOption) {
-                                            KpmPatchOption.PATCH_KPM -> stringResource(R.string.kpm_patch_enabled)
-                                            KpmPatchOption.UNDO_PATCH_KPM -> stringResource(R.string.kpm_undo_patch_enabled)
-                                            KpmPatchOption.FOLLOW_KERNEL -> stringResource(R.string.kpm_follow_kernel_file)
-                                        }
+                                        stringResource(
+                                            id = R.string.selected_slot,
+                                            if (method.slot == "a") stringResource(id = R.string.slot_a)
+                                            else stringResource(id = R.string.slot_b)
+                                        )
                                     )
                                 },
                                 trailingContent = {
@@ -327,12 +263,40 @@ internal fun InstallScreenMaterial(
                             )
                         }
                     }
-                )
+                    item {
+                        SegmentedListItem(
+                            onClick = { actions.onReopenKpmDialog(method) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Security,
+                                    tint = when (uiState.kpmPatchOption) {
+                                        KpmPatchOption.PATCH_KPM -> MaterialTheme.colorScheme.primary
+                                        KpmPatchOption.UNDO_PATCH_KPM -> MaterialTheme.colorScheme.secondary
+                                        KpmPatchOption.FOLLOW_KERNEL -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                    contentDescription = null
+                                )
+                            },
+                            headlineContent = {
+                                Text(
+                                    when (uiState.kpmPatchOption) {
+                                        KpmPatchOption.PATCH_KPM -> stringResource(R.string.kpm_patch_enabled)
+                                        KpmPatchOption.UNDO_PATCH_KPM -> stringResource(R.string.kpm_undo_patch_enabled)
+                                        KpmPatchOption.FOLLOW_KERNEL -> stringResource(R.string.kpm_follow_kernel_file)
+                                    }
+                                )
+                            },
+                            trailingContent = {
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
+                            }
+                        )
+                    }
+                }
             }
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp),
                 enabled = uiState.installMethod != null,
                 onClick = actions.onNext
             ) { Text(stringResource(R.string.install_next)) }
@@ -366,7 +330,7 @@ private fun SelectInstallMethod(
 
     key(state.installMethodOptions.size) {
         SegmentedColumn(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
             content = state.installMethodOptions.map { option ->
                 {
                     SegmentedRadioItem(

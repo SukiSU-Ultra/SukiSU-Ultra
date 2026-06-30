@@ -172,20 +172,22 @@ internal fun InstallScreenMiuix(
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
                         ) {
-                            OverlayDropdownPreference(
-                                items = uiState.displayPartitions,
-                                selectedIndex = uiState.partitionSelectionIndex,
-                                title = "${stringResource(R.string.install_select_partition)} (${uiState.slotSuffix})",
-                                onSelectedIndexChange = actions.onSelectPartition,
-                                startAction = {
-                                    Icon(
-                                        MiuixIcons.ConvertFile,
-                                        tint = colorScheme.onSurface,
-                                        modifier = Modifier.padding(end = 12.dp),
-                                        contentDescription = null
-                                    )
-                                }
-                            )
+                            if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) {
+                                OverlayDropdownPreference(
+                                    items = uiState.displayPartitions,
+                                    selectedIndex = uiState.partitionSelectionIndex,
+                                    title = "${stringResource(R.string.install_select_partition)} (${uiState.slotSuffix})",
+                                    onSelectedIndexChange = actions.onSelectPartition,
+                                    startAction = {
+                                        Icon(
+                                            MiuixIcons.ConvertFile,
+                                            tint = colorScheme.onSurface,
+                                            modifier = Modifier.padding(end = 12.dp),
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
 
