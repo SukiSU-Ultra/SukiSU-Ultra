@@ -21,7 +21,6 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -50,8 +49,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -570,11 +571,12 @@ private fun ModuleShortcutSheet(
         sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded))
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = stringResource(R.string.module_shortcut_title),
@@ -583,7 +585,7 @@ private fun ModuleShortcutSheet(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .padding(vertical = 16.dp)
+                    .padding(vertical = 13.dp)
                     .size(100.dp)
                     .clip(RoundedCornerShape(25.dp))
             ) {
@@ -612,8 +614,16 @@ private fun ModuleShortcutSheet(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onPickShortcutIcon) {
-                    Text(stringResource(id = R.string.module_shortcut_icon_pick))
+                TextButton(
+                    onClick = onPickShortcutIcon,
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        text = stringResource(id = R.string.module_shortcut_icon_pick)
+                    )
                 }
                 AnimatedVisibility(
                     visible = shortcutState.iconUri != shortcutState.defaultShortcutIconUri,
@@ -636,13 +646,18 @@ private fun ModuleShortcutSheet(
                 value = shortcutState.name,
                 onValueChange = shortcutState::updateName,
                 label = { Text(stringResource(id = R.string.module_shortcut_name_label)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 3.dp)
             )
             if (shortcutState.hasExistingShortcut) {
                 TextButton(
                     onClick = onDeleteShortcut,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.error,
+                    )
                 ) {
                     Text(stringResource(id = R.string.module_shortcut_delete))
                 }
@@ -650,11 +665,14 @@ private fun ModuleShortcutSheet(
             TextButton(
                 onClick = ::copyShortcutUrl,
                 modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                )
             ) {
                 Text(stringResource(id = R.string.module_shortcut_copy_scheme))
             }
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(13.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedButton(
@@ -676,12 +694,10 @@ private fun ModuleShortcutSheet(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ModuleItem(
     module: Module,
