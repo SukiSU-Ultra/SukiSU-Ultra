@@ -1,9 +1,7 @@
 package com.sukisu.ultra.ui.viewmodel
 
-import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +14,8 @@ import kotlinx.coroutines.withContext
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.ModuleRepoRepository
 import com.sukisu.ultra.data.repository.ModuleRepoRepositoryImpl
+import com.sukisu.ultra.data.repository.SettingsRepository
+import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoUiState
@@ -24,10 +24,9 @@ import com.sukisu.ultra.ui.util.isNetworkAvailable
 import java.text.Collator
 import java.util.Locale
 
-private const val PREFS_REPO_SORT_ORDER = "module_repo_sort_order"
-
 class ModuleRepoViewModel(
-    private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl()
+    private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
+    private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
     companion object {
@@ -39,11 +38,10 @@ class ModuleRepoViewModel(
     private val _uiState = MutableStateFlow(ModuleRepoUiState())
     val uiState: StateFlow<ModuleRepoUiState> = _uiState.asStateFlow()
 
-    private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val searchQuery = MutableStateFlow("")
 
     init {
-        val ordinal = prefs.getInt(PREFS_REPO_SORT_ORDER, RepoSort.UPDATED.ordinal)
+        val ordinal = settingsRepo.moduleRepoSortOrder
         val initial = RepoSort.entries.getOrElse(ordinal) { RepoSort.UPDATED }
         _uiState.update {
             it.copy(
@@ -169,7 +167,7 @@ class ModuleRepoViewModel(
 
     fun setSortOrder(order: RepoSort) {
         if (_uiState.value.sortOrder == order) return
-        prefs.edit { putInt(PREFS_REPO_SORT_ORDER, order.ordinal) }
+        settingsRepo.moduleRepoSortOrder = order.ordinal
         viewModelScope.launch {
             val state = _uiState.value
             val (sortedModules, sortedSearch) = withContext(Dispatchers.Default) {

@@ -81,12 +81,8 @@ class ModuleRepoRepositoryImpl : ModuleRepoRepository {
                 }
                 s
             }
-            val vcAny = lr.opt("versionCode")
-            latestVersionCode = when (vcAny) {
-                is Number -> vcAny.toLong()
-                is String -> vcAny.toLongOrNull() ?: 0L
-                else -> 0L
-            }
+
+            latestVersionCode = lr.optInt("versionCode", 0).toLong()
             latestRelease = lrName
             latestReleaseTime = lrTime
             if (lrUrl.isNotEmpty()) {

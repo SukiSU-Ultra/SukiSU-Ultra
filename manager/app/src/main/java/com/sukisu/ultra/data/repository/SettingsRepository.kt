@@ -16,6 +16,13 @@ interface SettingsRepository {
     var enableFloatingBottomBarBlur: Boolean
     var pageScale: Float
     var enableWebDebugging: Boolean
+    var moduleSortEnabledFirst: Boolean
+    var moduleSortActionFirst: Boolean
+    var moduleRepoSortOrder: Int
+    var superuserShowSystemApps: Boolean
+    var superuserShowOnlyPrimaryUserApps: Boolean
+    var superuserSortOption: Int
+    var suLogFilters: Set<String>?
     var showFullStatus: Boolean
     var autoJailbreak: Boolean
     val intentToken: String
