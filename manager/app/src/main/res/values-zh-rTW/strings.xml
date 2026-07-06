@@ -183,6 +183,8 @@
     <string name="settings_theme_mode_light">淺色</string>
     <string name="settings_theme_mode_dark">深色</string>
     <string name="profile_flags_desc_no_new_privs">防止在此 Root Profile 的上下文中透過 KernelSU 進一步提升權限</string>
+    <string name="install_force_backup">備份為原廠映像</string>
+    <string name="install_force_backup_summary">請確保你選擇的 boot 映像是原廠映像</string>
     <string name="settings_monet">啟用 Monet 顏色</string>
     <string name="settings_key_color">強調色</string>
     <string name="settings_key_color_default">默認</string>

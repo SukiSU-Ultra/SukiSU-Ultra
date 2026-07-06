@@ -143,6 +143,14 @@ internal fun InstallScreenMaterial(
                             icon = Icons.Filled.Edit
                         )
                     }
+                    if (uiState.canForceBackup && uiState.installMethod !is InstallMethod.HorizonKernel) add {
+                        SegmentedCheckboxItem(
+                            title = stringResource(R.string.install_force_backup),
+                            summary = stringResource(R.string.install_force_backup_summary),
+                            onCheckedChange = actions.onSelectForceBackup,
+                            checked = uiState.forceBackup,
+                        )
+                    }
                     if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) add {
                         SegmentedListItem(
                             leadingContent = {
