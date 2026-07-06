@@ -63,7 +63,7 @@ enum Commands {
         kmi: Option<String>,
 
         /// manager package name
-        #[arg(long, default_value_t = String::from(defs::DEFAULT_PACKAGE_NAME))])
+        #[arg(long, default_value_t = String::from(defs::DEFAULT_PACKAGE_NAME))]
         package_name: String,
 
         /// kernel release string to spoof
