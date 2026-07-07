@@ -120,6 +120,8 @@
     <string name="install_next">次へ</string>
     <string name="install_select_partition">パーティションを選択</string>
     <string name="install_upload_lkm_file">ローカル LKM ファイルを使用する</string>
+    <string name="install_force_backup">純正イメージとしてバックアップ</string>
+    <string name="install_force_backup_summary">選択した boot イメージが純正イメージであることを確認してください</string>
     <string name="install_only_support_ko_file">.ko ファイルのみサポートされています</string>
     <string name="select_file_tip">%1$s パーティション イメージが推奨されます</string>
     <string name="select_kmi">KMI を選択してください</string>
