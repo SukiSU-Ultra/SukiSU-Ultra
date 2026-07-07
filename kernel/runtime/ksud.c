@@ -32,6 +32,8 @@ static void stop_input_hook();
 #if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
 DEFINE_STATIC_KEY_TRUE(ksu_is_init_rc_hook_enabled);
 DEFINE_STATIC_KEY_TRUE(ksu_is_input_hook_enabled);
+DEFINE_STATIC_KEY_TRUE(is_init_second_stage_not_executed);
+DEFINE_STATIC_KEY_TRUE(is_first_zygote);
 #else
 bool ksu_vfs_read_hook __read_mostly = true;
 bool ksu_execveat_hook __read_mostly = true;
@@ -50,11 +52,16 @@ void on_post_fs_data(void)
 
     ksu_load_allow_list();
     ksu_observer_init();
-
-    ksu_selinux_hide_handle_post_fs_data();
-
     // sanity check, this may influence the performance
+#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
+    if (static_key_enabled(&ksu_is_input_hook_enabled)) {
+        static_branch_disable(&ksu_is_input_hook_enabled);
+        pr_info("ksu_input_hook is disabled\n");
+    }
+#else
     stop_input_hook();
+#endif
+    ksu_selinux_hide_handle_post_fs_data();
 }
 
 extern void ext4_unregister_sysfs(struct super_block *sb);
@@ -189,11 +196,14 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 {
     struct filename *filename;
     static const char app_process[] = "/system/bin/app_process";
+#ifndef KSU_COMPAT_USE_STATIC_KEY
     static bool first_zygote = true;
-
+#endif
     /* This applies to versions Android 10+ */
     static const char system_bin_init[] = "/system/bin/init";
+#ifndef KSU_COMPAT_USE_STATIC_KEY
     static bool init_second_stage_executed = false;
+#endif
 
     if (!filename_ptr)
         return 0;
@@ -203,34 +213,51 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
         return 0;
     }
 
-    // https://cs.android.com/android/platform/superproject/+/android-16.0.0_r2:system/core/init/main.cpp;l=77
-    if (unlikely(!memcmp(filename->name, system_bin_init, sizeof(system_bin_init) - 1) && argv))
-    {
-        char buf[16];
-        if (!init_second_stage_executed &&
-            check_argv(*argv, 1, "second_stage", buf, sizeof(buf)))
-        {
-            pr_info("/system/bin/init second_stage executed\n");
-            ksu_selinux_hide_handle_second_stage();
-            apply_kernelsu_rules();
-            cache_sid();
-            setup_ksu_cred();
-            init_second_stage_executed = true;
+#ifdef KSU_COMPAT_USE_STATIC_KEY
+    if (static_branch_unlikely(&is_init_second_stage_not_executed)) {
+#else
+    if (!init_second_stage_executed) {
+#endif
+        // https://cs.android.com/android/platform/superproject/+/android-16.0.0_r2:system/core/init/main.cpp;l=77
+        if (unlikely(!memcmp(filename->name, system_bin_init, sizeof(system_bin_init) - 1) && argv)) {
+            char buf[16];
+            if (check_argv(*argv, 1, "second_stage", buf, sizeof(buf))) {
+                pr_info("/system/bin/init second_stage executed\n");
+                ksu_selinux_hide_handle_second_stage();
+                apply_kernelsu_rules();
+                cache_sid();
+                setup_ksu_cred();
+#ifdef KSU_COMPAT_USE_STATIC_KEY
+                static_branch_disable(&is_init_second_stage_not_executed);
+#else
+                init_second_stage_executed = true;
+#endif
+            }
         }
     }
 
-    if (unlikely(first_zygote && !memcmp(filename->name, app_process, sizeof(app_process) - 1) && argv))
-    {
-        char buf[16];
-        if (check_argv(*argv, 1, "-Xzygote", buf, sizeof(buf))) {
-            pr_info("exec zygote, /data prepared, second_stage: %d\n", init_second_stage_executed);
-            on_post_fs_data();
-            first_zygote = false;
+#ifdef KSU_COMPAT_USE_STATIC_KEY
+    if (static_branch_unlikely(&is_first_zygote)) {
+#else
+    if (unlikely(first_zygote)) {
+#endif
+        if (unlikely(!memcmp(filename->name, app_process, sizeof(app_process) - 1) && argv)) {
+            char buf[16];
+            if (check_argv(*argv, 1, "-Xzygote", buf, sizeof(buf))) {
+#ifdef KSU_COMPAT_USE_STATIC_KEY                
+                pr_info("exec zygote, /data prepared, second_stage: %d\n", !static_key_enabled(&is_init_second_stage_not_executed));
+#else
+                pr_info("exec zygote, /data prepared, second_stage: %d\n", init_second_stage_executed);
+#endif
+                on_post_fs_data();
+#ifdef KSU_COMPAT_USE_STATIC_KEY
+                static_branch_disable(&is_first_zygote);
+#else
+                first_zygote = false;
+#endif
+            }
         }
     }
-
-    // - We need to run ksu_handle_execveat_init() at the very end in case the above checks are skipped
-    (void)ksu_handle_execveat_init(filename, argv, envp);
 
     return 0;
 }
@@ -460,8 +487,11 @@ __attribute__((cold)) static noinline void ksu_install_rc_hook(struct file *file
     }
     rc_hooked = true;
 
-#ifdef CONFIG_KSU_SUSFS
-    stop_vfs_read_hook();
+#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
+    if (static_key_enabled(&ksu_is_init_rc_hook_enabled)) {
+        static_branch_disable(&ksu_is_init_rc_hook_enabled);
+        pr_info("ksu_init_rc_hook is disabled\n");
+    }
 #endif
 
     // now we can sure that the init process is reading
@@ -545,7 +575,14 @@ bool ksu_is_safe_mode(void)
         return true;
 
     // stop hook first!
+#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
+    if (static_key_enabled(&ksu_is_input_hook_enabled)) {
+        static_branch_disable(&ksu_is_input_hook_enabled);
+        pr_info("ksu_input_hook is disabled\n");
+    }
+#else
     stop_input_hook();
+#endif
 
     if (!safe_mode_flag)
         return false;
@@ -670,15 +707,8 @@ static int vol_detector_exit(void)
 
 static void stop_vfs_read_hook(void)
 {
-#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
-    if (static_key_enabled(&ksu_is_init_rc_hook_enabled)) {
-        static_branch_disable(&ksu_is_init_rc_hook_enabled);
-        pr_info("ksu_init_rc_hook is disabled\n");
-    }
-#else
     ksu_vfs_read_hook = false;
     pr_info("stop vfs_read_hook\n");
-#endif
 }
 
 static void stop_execve_hook(void)
@@ -689,18 +719,11 @@ static void stop_execve_hook(void)
 
 static void stop_input_hook(void)
 {
-#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
-    if (static_key_enabled(&ksu_is_input_hook_enabled)) {
-        static_branch_disable(&ksu_is_input_hook_enabled);
-        pr_info("ksu_input_hook is disabled\n");
-    }
-#else
     if (!ksu_input_hook) {
         return;
     }
     ksu_input_hook = false;
     pr_info("stop input_hook\n");
-#endif
     vol_detector_exit();
 }
 
