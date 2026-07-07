@@ -50,14 +50,14 @@ fi
 }
 
 fn module_prop() -> String {
-    r#"id=susfs_manager
+    r"id=susfs_manager
 name=SuSFS Manager
 version=v4.0.0
 versionCode=40000
 author=ShirkNeko
 description=SuSFS Manager Auto Configuration Module (自动生成请不要手动卸载或删除该模块! / Automatically generated Please do not manually uninstall or delete the module!)
 updateJson=
-"#
+"
     .to_string()
 }
 
@@ -256,7 +256,7 @@ fn should_configure_in_service(
 fn generate_service_script(
     sus_paths: &[String],
     sus_loop_paths: &[String],
-    sus_maps: &[String],
+    _sus_maps: &[String],
     kstat_configs: &[String],
     add_kstat_paths: &[String],
     uname_value: &str,
@@ -514,7 +514,7 @@ fn generate_boot_completed_script(
     hide_sus_mounts_for_all_procs: bool,
     sus_paths: &[String],
     sus_loop_paths: &[String],
-    sus_maps: &[String],
+    _sus_maps: &[String],
 ) -> String {
     let mut s = String::new();
 

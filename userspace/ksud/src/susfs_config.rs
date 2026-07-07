@@ -5,18 +5,17 @@
 //! key/value format.
 
 use anyhow::{Context, Result, bail};
+use const_format::concatcp;
 use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::path::Path;
-
-use crate::defs::WORKING_DIR;
 
 // ── binary format constants ────────────────────────────────────────────────────
 
-const SUSFS_CONFIG_MAGIC: u32 = 0x53555346; // "SUSF"
+const SUSFS_CONFIG_MAGIC: u32 = 0x5355_5346; // "SUSF"
 const SUSFS_CONFIG_VERSION: u32 = 1;
-const SUSFS_CONFIG_FILE: &str = concat!(WORKING_DIR, "susfs_config");
+const SUSFS_CONFIG_FILE: &str = concatcp!(crate::defs::WORKING_DIR, "susfs_config");
 
 // ── config keys (mirror Kotlin KEY_* constants without the prefix) ─────────────
 

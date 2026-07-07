@@ -1114,11 +1114,23 @@ pub fn run() -> Result<()> {
         }
         #[cfg(target_arch = "aarch64")]
         Commands::Susfs { command } => {
-            match command {
-                Susfs::Status => println!("{}", susfs::get_susfs_status()),
-                Susfs::Version => println!("{}", susfs::get_susfs_version()),
-                Susfs::Variant => println!("{}", susfs::get_susfs_variant()),
-                Susfs::Features => println!("{}", susfs::get_susfs_features()),
+            let _ = match command {
+                Susfs::Status => {
+                    println!("{}", susfs::get_susfs_status());
+                    Ok(())
+                }
+                Susfs::Version => {
+                    println!("{}", susfs::get_susfs_version());
+                    Ok(())
+                }
+                Susfs::Variant => {
+                    println!("{}", susfs::get_susfs_variant());
+                    Ok(())
+                }
+                Susfs::Features => {
+                    println!("{}", susfs::get_susfs_features());
+                    Ok(())
+                }
                 Susfs::SetUname { release, version } => susfs::set_uname(&release, &version),
                 Susfs::EnableLog { enabled } => susfs::enable_log(enabled != 0),
                 Susfs::EnableAvcLogSpoofing { enabled } => {
@@ -1147,16 +1159,27 @@ pub fn run() -> Result<()> {
                     nlink,
                     size,
                     atime_sec,
-                    atime_nsec,
+                    atime_nsec_val,
                     mtime_sec,
-                    mtime_nsec,
+                    mtime_nsec_val,
                     ctime_sec,
-                    ctime_nsec,
+                    ctime_nsec_val,
                     blocks,
                     blksize,
                 } => susfs::add_sus_kstat_statically(
-                    &path, ino, dev, nlink, size, atime_sec, atime_nsec, mtime_sec, mtime_nsec,
-                    ctime_sec, ctime_nsec, blocks, blksize,
+                    &path,
+                    ino,
+                    dev,
+                    nlink,
+                    size,
+                    atime_sec,
+                    atime_nsec_val,
+                    mtime_sec,
+                    mtime_nsec_val,
+                    ctime_sec,
+                    ctime_nsec_val,
+                    blocks,
+                    blksize,
                 ),
                 Susfs::Module { command } => {
                     use crate::susfs_module;
@@ -1164,10 +1187,12 @@ pub fn run() -> Result<()> {
                         SusfsModuleCmd::Install => {
                             susfs_module::install_module()?;
                             println!("SuSFS module installed successfully");
+                            Ok(())
                         }
                         SusfsModuleCmd::Remove => {
                             susfs_module::remove_module()?;
                             println!("SuSFS module removed successfully");
+                            Ok(())
                         }
                         SusfsModuleCmd::Status => {
                             if susfs_module::is_module_installed() {
@@ -1175,6 +1200,7 @@ pub fn run() -> Result<()> {
                             } else {
                                 println!("not installed");
                             }
+                            Ok(())
                         }
                     }
                 }
@@ -1183,29 +1209,35 @@ pub fn run() -> Result<()> {
                     match command {
                         SusfsConfigCmd::Get { key } => {
                             println!("{}", susfs_config::get(&key)?);
+                            Ok(())
                         }
                         SusfsConfigCmd::Set { key, value } => {
                             susfs_config::set(&key, &value)?;
                             println!("ok");
+                            Ok(())
                         }
                         SusfsConfigCmd::Remove { key } => {
                             susfs_config::remove(&key)?;
                             println!("ok");
+                            Ok(())
                         }
                         SusfsConfigCmd::Clear => {
                             susfs_config::clear()?;
                             println!("ok");
+                            Ok(())
                         }
                         SusfsConfigCmd::Reset => {
                             susfs_config::reset_to_defaults()?;
                             println!("ok");
+                            Ok(())
                         }
                         SusfsConfigCmd::List => {
                             println!("{}", susfs_config::export_json()?);
+                            Ok(())
                         }
                     }
                 }
-            }
+            };
             Ok(())
         }
     };
