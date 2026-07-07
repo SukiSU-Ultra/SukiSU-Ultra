@@ -158,6 +158,8 @@
     <string name="install_next">Далее</string>
     <string name="install_select_partition">Выбрать раздел</string>
     <string name="install_upload_lkm_file">Использовать локальный LKM файл</string>
+    <string name="install_force_backup">Сохранить резервную копию как оригинальный образ</string>
+    <string name="install_force_backup_summary">Пожалуйста, убедитесь, что выбранный образ boot является оригинальным образом</string>
     <string name="install_only_support_ko_file">Поддерживаются только .ko файлы</string>
     <string name="select_file_tip">%1$s образ раздела рекомендуется</string>
     <string name="select_kmi">Выбрать KMI</string>
