@@ -19,6 +19,7 @@ import java.util.*
 import androidx.compose.ui.platform.LocalLocale
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun BackupRestoreComponentMaterial(
@@ -211,7 +212,7 @@ fun BackupRestoreComponentMaterial(
                                     internalLoading = false
                                     onLoadingChange(false)
                                     showRestoreConfirmDialog = false
-                                    delay(100)
+                                    delay(100.milliseconds)
                                     selectedBackupFile = null
                                     backupInfo = null
                                 }
