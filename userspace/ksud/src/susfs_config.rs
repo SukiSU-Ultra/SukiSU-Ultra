@@ -252,7 +252,7 @@ pub fn export_json() -> Result<String> {
 
 // ── config-to-module helper ──────────────────────────────────────────────────
 
-use crate::susfs_module::ModuleConfig as SModuleConfig;
+use crate::susfs_config::ModuleConfig;
 
 fn split_paths(raw: &str) -> Vec<String> {
     if raw.is_empty() {

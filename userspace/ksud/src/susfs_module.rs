@@ -514,7 +514,7 @@ fn generate_boot_completed_script(
     hide_sus_mounts_for_all_procs: bool,
     sus_paths: &[String],
     sus_loop_paths: &[String],
-    _sus_maps: &[String],
+    sus_maps: &[String],
 ) -> String {
     let mut s = String::new();
 
