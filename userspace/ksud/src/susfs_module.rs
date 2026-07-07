@@ -1,11 +1,13 @@
 use std::fmt::Write as FmtWrite;
 
+#[allow(dead_code)]
 const MODULE_ID: &str = "susfs_manager";
 const MODULE_PATH: &str = "/data/adb/modules/susfs_manager";
 const LOG_DIR: &str = "/data/adb/ksu/log";
 const DEFAULT_UNAME: &str = "default";
 const DEFAULT_BUILD_TIME: &str = "default";
 
+#[allow(dead_code)]
 fn get_current_time() -> String {
     use std::process::Command;
     let output = Command::new("date")
@@ -14,8 +16,7 @@ fn get_current_time() -> String {
         .ok();
     output
         .and_then(|o| String::from_utf8(o.stdout).ok())
-        .map(|s| s.trim().to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+        .map_or_else(|| "unknown".to_string(), |s| s.trim().to_string())
 }
 
 fn shell_quote(s: &str) -> String {
@@ -26,8 +27,8 @@ fn shell_quote(s: &str) -> String {
 
 fn log_setup(log_file_name: &str) -> String {
     format!(
-        r#"LOG_DIR="{}"
-LOG_FILE="$LOG_DIR/{}"
+        r#"LOG_DIR="{LOG_DIR}"
+LOG_FILE="$LOG_DIR/{log_file_name}"
 
 mkdir -p "$LOG_DIR"
 
@@ -35,7 +36,6 @@ get_current_time() {{
     date '+%Y-%m-%d %H:%M:%S'
 }}
 "#,
-        LOG_DIR, log_file_name
     )
 }
 
@@ -208,9 +208,8 @@ cleanup_path() {{
     fi
 }}
 
-TOTAL={}
+TOTAL={total}
 "#,
-        total
     )
     .ok();
 
@@ -253,6 +252,7 @@ fn should_configure_in_service(
 
 // ── generate ─────────────────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
 fn generate_service_script(
     sus_paths: &[String],
     sus_loop_paths: &[String],
@@ -382,11 +382,10 @@ fn generate_service_script(
     }
 
     // enable log
-    let log_val: u32 = if enable_log { 1 } else { 0 };
+    let log_val: u32 = u32::from(enable_log);
     writeln!(
         s,
-        "# 设置日志启用状态\n/data/adb/ksud susfs enable-log {}\n",
-        log_val
+        "# 设置日志启用状态\n/data/adb/ksud susfs enable-log {log_val}\n",
     )
     .ok();
     writeln!(
@@ -461,11 +460,10 @@ fn generate_post_fs_data_script(
         s.push('\n');
     }
 
-    let avc_val: u32 = if enable_avc_log_spoofing { 1 } else { 0 };
+    let avc_val: u32 = u32::from(enable_avc_log_spoofing);
     writeln!(
         s,
-        "# 设置AVC日志欺骗状态\n/data/adb/ksud susfs enable-avc-log-spoofing {}\n",
-        avc_val
+        "# 设置AVC日志欺骗状态\n/data/adb/ksud susfs enable-avc-log-spoofing {avc_val}\n",
     )
     .ok();
     writeln!(
@@ -531,11 +529,10 @@ fn generate_boot_completed_script(
     s.push_str(&binary_check());
     s.push('\n');
 
-    let hide_val: u32 = if hide_sus_mounts_for_all_procs { 1 } else { 0 };
+    let hide_val: u32 = u32::from(hide_sus_mounts_for_all_procs);
     writeln!(
         s,
-        "# 设置SUS挂载隐藏控制\n/data/adb/ksud susfs hide-sus-mnts-for-non-su-procs {}\n",
-        hide_val
+        "# 设置SUS挂载隐藏控制\n/data/adb/ksud susfs hide-sus-mnts-for-non-su-procs {hide_val}\n",
     )
     .ok();
     writeln!(
@@ -677,7 +674,7 @@ fn install_module_with_config(config: &ModuleConfig) -> anyhow::Result<()> {
     ];
 
     for (name, content) in &scripts {
-        let script_path = format!("{}/{}", module_path, name);
+        let script_path = format!("{module_path}/{name}");
         let out = Command::new("sh")
             .args([
                 "-c",
@@ -721,6 +718,5 @@ pub fn is_module_installed() -> bool {
             &format!("test -f {MODULE_PATH}/module.prop && echo yes || echo no"),
         ])
         .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).contains("yes"))
-        .unwrap_or(false)
+        .is_ok_and(|o| String::from_utf8_lossy(&o.stdout).contains("yes"))
 }

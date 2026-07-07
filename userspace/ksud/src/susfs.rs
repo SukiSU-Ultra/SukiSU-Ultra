@@ -9,8 +9,6 @@ const KSU_INSTALL_MAGIC1: u32 = 0xDEADBEEF;
 const CMD_SUSFS_SHOW_VERSION: u32 = 0x555e1;
 const CMD_SUSFS_SHOW_ENABLED_FEATURES: u32 = 0x555e2;
 const CMD_SUSFS_SHOW_VARIANT: u32 = 0x555e3;
-const CMD_SUSFS_ADD_SUS_KSTAT: u32 = 0x55570;
-const CMD_SUSFS_UPDATE_SUS_KSTAT: u32 = 0x55571;
 const CMD_SUSFS_ADD_SUS_KSTAT_STATICALLY: u32 = 0x55572;
 const CMD_SUSFS_ADD_SUS_MAP: u32 = 0x60020;
 const CMD_SUSFS_SET_UNAME: u32 = 0x55590;
@@ -214,7 +212,7 @@ pub fn set_uname(release: &str, version: &str) -> anyhow::Result<()> {
 
 pub fn enable_log(enabled: bool) -> anyhow::Result<()> {
     let mut cmd = SusfsLog {
-        enabled: if enabled { 1 } else { 0 },
+        enabled: u32::from(enabled),
         err: ERR_CMD_NOT_SUPPORTED,
     };
 
@@ -236,7 +234,7 @@ pub fn enable_log(enabled: bool) -> anyhow::Result<()> {
 
 pub fn enable_avc_log_spoofing(enabled: bool) -> anyhow::Result<()> {
     let mut cmd = SusfsAvcLogSpoofing {
-        enabled: if enabled { 1 } else { 0 },
+        enabled: u32::from(enabled),
         err: ERR_CMD_NOT_SUPPORTED,
     };
 
@@ -258,7 +256,7 @@ pub fn enable_avc_log_spoofing(enabled: bool) -> anyhow::Result<()> {
 
 pub fn hide_sus_mnts_for_non_su_procs(enabled: bool) -> anyhow::Result<()> {
     let mut cmd = SusfsHideSusMnts {
-        enabled: if enabled { 1 } else { 0 },
+        enabled: u32::from(enabled),
         err: ERR_CMD_NOT_SUPPORTED,
     };
 
@@ -281,6 +279,7 @@ pub fn hide_sus_mnts_for_non_su_procs(enabled: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::missing_const_for_fn)]
 pub fn add_sus_path(path: &str) -> anyhow::Result<()> {
     // SusFS SUS path is managed via Magisk module scripts on the manager side.
     // The kernel path list is populated by the generated post-fs-data script,
@@ -289,6 +288,7 @@ pub fn add_sus_path(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::missing_const_for_fn)]
 pub fn add_sus_path_loop(path: &str) -> anyhow::Result<()> {
     let _ = path;
     Ok(())
@@ -359,6 +359,7 @@ pub fn add_sus_map(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::missing_const_for_fn)]
 pub fn add_sus_kstat(path: &str) -> anyhow::Result<()> {
     // The kstat spoof list is replayed from the manager's persisted config
     // by the generated SusFS scripts, so we treat this as accepted here.
@@ -366,16 +367,19 @@ pub fn add_sus_kstat(path: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::missing_const_for_fn)]
 pub fn update_sus_kstat(path: &str) -> anyhow::Result<()> {
     let _ = path;
     Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps, clippy::missing_const_for_fn)]
 pub fn update_sus_kstat_full_clone(path: &str) -> anyhow::Result<()> {
     let _ = path;
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn add_sus_kstat_statically(
     path: &str,
     ino: u64,

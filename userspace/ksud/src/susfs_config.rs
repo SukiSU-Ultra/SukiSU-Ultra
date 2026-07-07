@@ -39,6 +39,7 @@ pub const DEFAULT_UNAME: &str = "default";
 pub const DEFAULT_BUILD_TIME: &str = "default";
 
 /// All known config keys in load order
+#[allow(dead_code)]
 pub const ALL_KEYS: &[&str] = &[
     KEY_UNAME_VALUE,
     KEY_BUILD_TIME_VALUE,
@@ -64,7 +65,7 @@ fn config_path() -> &'static Path {
 
 // ── binary read/write ────────────────────────────────────────────────────────
 
-fn write_binary(config: &HashMap<String, String>) -> Result<Vec<u8>> {
+fn write_binary(config: &HashMap<String, String>) -> Vec<u8> {
     let mut buf = Vec::new();
 
     // Header: magic (4) + version (4) + count (4)
@@ -72,7 +73,7 @@ fn write_binary(config: &HashMap<String, String>) -> Result<Vec<u8>> {
     buf.extend_from_slice(&SUSFS_CONFIG_VERSION.to_le_bytes());
     buf.extend_from_slice(&(config.len() as u32).to_le_bytes());
 
-    for (key, value) in config.iter() {
+    for (key, value) in config {
         // key length + data
         buf.extend_from_slice(&(key.len() as u32).to_le_bytes());
         buf.extend_from_slice(key.as_bytes());
@@ -82,7 +83,7 @@ fn write_binary(config: &HashMap<String, String>) -> Result<Vec<u8>> {
         buf.extend_from_slice(value.as_bytes());
     }
 
-    Ok(buf)
+    buf
 }
 
 fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
@@ -96,11 +97,7 @@ fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
     let magic = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
     r = &r[4..];
     if magic != SUSFS_CONFIG_MAGIC {
-        bail!(
-            "Invalid magic: expected 0x{:08x}, got 0x{:08x}",
-            SUSFS_CONFIG_MAGIC,
-            magic
-        );
+        bail!("Invalid magic: expected 0x{SUSFS_CONFIG_MAGIC:08x}, got 0x{magic:08x}",);
     }
 
     // Version
@@ -110,11 +107,7 @@ fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
     let version = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
     r = &r[4..];
     if version != SUSFS_CONFIG_VERSION {
-        bail!(
-            "Unsupported version: expected {}, got {}",
-            SUSFS_CONFIG_VERSION,
-            version
-        );
+        bail!("Unsupported version: expected {SUSFS_CONFIG_VERSION}, got {version}",);
     }
 
     // Count
@@ -177,7 +170,7 @@ pub fn save_config(config: &HashMap<String, String>) -> Result<()> {
         std::fs::create_dir_all(parent).context("Failed to create config dir")?;
     }
 
-    let data = write_binary(config)?;
+    let data = write_binary(config);
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -262,6 +255,7 @@ fn split_paths(raw: &str) -> Vec<String> {
     }
 }
 
+#[allow(dead_code)]
 fn join_paths(paths: &[String]) -> String {
     paths.join(";")
 }
@@ -277,6 +271,7 @@ fn split_kstat_configs(raw: &str) -> Vec<String> {
     }
 }
 
+#[allow(dead_code)]
 fn join_kstat_configs(configs: &[String]) -> String {
     configs.join(";;")
 }
@@ -311,6 +306,7 @@ pub fn load_module_config() -> Result<ModuleConfig> {
 
 /// SuSFS module installation config — mirrors the fields stored in the binary config file.
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct ModuleConfig {
     pub uname_value: String,
     pub build_time_value: String,
