@@ -29,15 +29,15 @@ static void stop_vfs_read_hook();
 static void stop_execve_hook();
 static void stop_input_hook();
 
+bool ksu_vfs_read_hook __read_mostly = true;
+bool ksu_execveat_hook __read_mostly = true;
+bool ksu_input_hook __read_mostly = true;
+
 #if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
 DEFINE_STATIC_KEY_TRUE(ksu_is_init_rc_hook_enabled);
 DEFINE_STATIC_KEY_TRUE(ksu_is_input_hook_enabled);
 DEFINE_STATIC_KEY_TRUE(is_init_second_stage_not_executed);
 DEFINE_STATIC_KEY_TRUE(is_first_zygote);
-#else
-bool ksu_vfs_read_hook __read_mostly = true;
-bool ksu_execveat_hook __read_mostly = true;
-bool ksu_input_hook __read_mostly = true;
 #endif
 
 void on_post_fs_data(void)
