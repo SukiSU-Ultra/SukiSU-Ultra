@@ -16,7 +16,6 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.BackupRestoreComponentMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.DescriptionCardMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.ResetButtonMiuix
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.util.isAbDevice
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
@@ -130,17 +129,17 @@ fun BasicSettingsContentMiuix(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                text = stringResource(R.string.susfs_current_value, SuSFSManager.getUnameValue(context)),
+                text = stringResource(R.string.susfs_current_value, unameValue),
                 style = MiuixTheme.textStyles.body2.copy(fontSize = 13.sp),
                 color = colorScheme.onSurfaceVariantSummary
             )
             Text(
-                text = stringResource(R.string.susfs_current_build_time, SuSFSManager.getBuildTimeValue(context)),
+                text = stringResource(R.string.susfs_current_build_time, buildTimeValue),
                 style = MiuixTheme.textStyles.body2.copy(fontSize = 13.sp),
                 color = colorScheme.onSurfaceVariantSummary
             )
             Text(
-                text = stringResource(R.string.susfs_current_execution_location, if (SuSFSManager.getExecuteInPostFsData(context)) "Post-FS-Data" else "Service"),
+                text = stringResource(R.string.susfs_current_execution_location, if (executeInPostFsData) "Post-FS-Data" else "Service"),
                 style = MiuixTheme.textStyles.body2.copy(fontSize = 13.sp),
                 color = colorScheme.onSurfaceVariantSummary
             )

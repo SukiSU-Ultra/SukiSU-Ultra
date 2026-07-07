@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Card
@@ -26,7 +27,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 @Composable
 fun FeatureStatusCardMiuix(
-    feature: SuSFSManager.EnabledFeature,
+    feature: EnabledFeature,
     onRefresh: (() -> Unit)? = null,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
@@ -34,7 +35,10 @@ fun FeatureStatusCardMiuix(
     val coroutineScope = rememberCoroutineScope()
 
     var showLogConfigDialog by remember { mutableStateOf(false) }
-    var logEnabled by remember { mutableStateOf(SuSFSManager.getEnableLogState(context)) }
+    var logEnabled by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        logEnabled = SuSFSManager.getEnableLogState()
+    }
 
     val showLogConfigDialogState = remember { mutableStateOf(showLogConfigDialog) }
 
@@ -47,7 +51,7 @@ fun FeatureStatusCardMiuix(
             show = showLogConfigDialogState.value,
             title = stringResource(R.string.susfs_log_config_title),
             onDismissRequest = {
-                logEnabled = SuSFSManager.getEnableLogState(context)
+                coroutineScope.launch { logEnabled = SuSFSManager.getEnableLogState() }
                 showLogConfigDialog = false
             },
             content = {
@@ -75,7 +79,7 @@ fun FeatureStatusCardMiuix(
                     ) {
                         Button(
                             onClick = {
-                                logEnabled = SuSFSManager.getEnableLogState(context)
+                                coroutineScope.launch { logEnabled = SuSFSManager.getEnableLogState() }
                                 showLogConfigDialog = false
                             },
                             modifier = Modifier
@@ -120,7 +124,7 @@ fun FeatureStatusCardMiuix(
             .then(
                 if (feature.canConfigure) {
                     Modifier.clickable {
-                        logEnabled = SuSFSManager.getEnableLogState(context)
+                        coroutineScope.launch { logEnabled = SuSFSManager.getEnableLogState() }
                         showLogConfigDialog = true
                     }
                 } else {

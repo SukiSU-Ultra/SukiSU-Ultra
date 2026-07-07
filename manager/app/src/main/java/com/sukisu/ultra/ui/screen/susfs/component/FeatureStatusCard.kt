@@ -6,11 +6,11 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.FeatureStatusCardMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.material.FeatureStatusCardMaterial
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
 
 @Composable
 fun FeatureStatusCard(
-    feature: SuSFSManager.EnabledFeature,
+    feature: EnabledFeature,
     onRefresh: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {

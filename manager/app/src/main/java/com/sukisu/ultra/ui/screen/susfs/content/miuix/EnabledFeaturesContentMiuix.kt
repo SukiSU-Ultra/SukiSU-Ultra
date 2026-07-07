@@ -13,7 +13,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.BottomActionButtonsMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.EmptyStateCardMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.FeatureStatusCardMiuix
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -21,7 +21,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 @Composable
 fun EnabledFeaturesContentMiuix(
-    enabledFeatures: List<SuSFSManager.EnabledFeature>,
+    enabledFeatures: List<EnabledFeature>,
     onRefresh: () -> Unit
 ) {
     Column(

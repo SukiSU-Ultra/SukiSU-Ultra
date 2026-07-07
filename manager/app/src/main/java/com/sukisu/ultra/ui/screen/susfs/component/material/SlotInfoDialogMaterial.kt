@@ -11,14 +11,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 import com.sukisu.ultra.ui.util.isAbDevice
 
 @Composable
 fun SlotInfoDialogMaterial(
     showDialog: Boolean,
     onDismiss: () -> Unit,
-    slotInfoList: List<SuSFSManager.SlotInfo>,
+    slotInfoList: List<SlotInfo>,
     currentActiveSlot: String,
     isLoadingSlotInfo: Boolean,
     onRefresh: () -> Unit,

@@ -15,12 +15,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import kotlinx.coroutines.launch
 
 @Composable
 fun FeatureStatusCardMaterial(
-    feature: SuSFSManager.EnabledFeature,
+    feature: EnabledFeature,
     onRefresh: (() -> Unit)? = null,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
@@ -28,7 +29,10 @@ fun FeatureStatusCardMaterial(
     val coroutineScope = rememberCoroutineScope()
 
     var showLogConfigDialog by remember { mutableStateOf(false) }
-    var logEnabled by remember { mutableStateOf(SuSFSManager.getEnableLogState(context)) }
+    var logEnabled by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        logEnabled = SuSFSManager.getEnableLogState()
+    }
 
     val showLogConfigDialogState = remember { mutableStateOf(showLogConfigDialog) }
 
@@ -39,7 +43,7 @@ fun FeatureStatusCardMaterial(
     if (showLogConfigDialogState.value) {
         AlertDialog(
             onDismissRequest = {
-                logEnabled = SuSFSManager.getEnableLogState(context)
+                coroutineScope.launch { logEnabled = SuSFSManager.getEnableLogState() }
                 showLogConfigDialog = false
             },
             title = {
@@ -88,7 +92,7 @@ fun FeatureStatusCardMaterial(
             dismissButton = {
                 TextButton(
                     onClick = {
-                        logEnabled = SuSFSManager.getEnableLogState(context)
+                        coroutineScope.launch { logEnabled = SuSFSManager.getEnableLogState() }
                         showLogConfigDialog = false
                     }
                 ) {
@@ -105,7 +109,7 @@ fun FeatureStatusCardMaterial(
             .then(
                 if (feature.canConfigure) {
                     Modifier.clickable {
-                        logEnabled = SuSFSManager.getEnableLogState(context)
+                        coroutineScope.launch { logEnabled = SuSFSManager.getEnableLogState() }
                         showLogConfigDialog = true
                     }
                 } else {

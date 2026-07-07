@@ -5,13 +5,13 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.SlotInfoDialogMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.material.SlotInfoDialogMaterial
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 
 @Composable
 fun SlotInfoDialog(
     showDialog: Boolean,
     onDismiss: () -> Unit,
-    slotInfoList: List<SuSFSManager.SlotInfo>,
+    slotInfoList: List<SlotInfo>,
     currentActiveSlot: String,
     isLoadingSlotInfo: Boolean,
     onRefresh: () -> Unit,

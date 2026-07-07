@@ -66,8 +66,8 @@ fun InstallScreen(
 
     // Read the configuration from the boot image ksu_config
     val bootConfig by produceState(initialValue = BootConfig()) { value = getBootConfig() }
-    var spoofRelease by rememberSaveable { mutableStateOf(SuSFSManager.getKernelSpoofRelease(context)) }
-    var spoofVersion by rememberSaveable { mutableStateOf(SuSFSManager.getKernelSpoofVersion(context)) }
+    var spoofRelease by rememberSaveable { mutableStateOf(SuSFSManager.getKernelSpoofRelease()) }
+    var spoofVersion by rememberSaveable { mutableStateOf(SuSFSManager.getKernelSpoofVersion()) }
 
     LaunchedEffect(bootConfig) {
         spoofRelease = bootConfig.spoofRelease.ifEmpty { spoofRelease }
@@ -319,11 +319,15 @@ fun InstallScreen(
         },
         onSpoofReleaseChange = {
             spoofRelease = it
-            SuSFSManager.saveUnameValue(context, it.trim().ifBlank { "default" })
+            scope.launch {
+                SuSFSManager.saveUnameValue(it.trim().ifBlank { "default" })
+            }
         },
         onSpoofVersionChange = {
             spoofVersion = it
-            SuSFSManager.saveBuildTimeValue(context, it.trim().ifBlank { "default" })
+            scope.launch {
+                SuSFSManager.saveBuildTimeValue(it.trim().ifBlank { "default" })
+            }
         },
         onHorizonKernelSelected = { method ->
             anyKernel3State.onHorizonKernelSelected(method)

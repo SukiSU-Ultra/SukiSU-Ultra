@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.component.material.EmptyStateCardMaterial
 import com.sukisu.ultra.ui.screen.susfs.component.material.FeatureStatusCardMaterial
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
 
 @Composable
 fun EnabledFeaturesContentMaterial(
-    enabledFeatures: List<SuSFSManager.EnabledFeature>,
+    enabledFeatures: List<EnabledFeature>,
     onRefresh: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {

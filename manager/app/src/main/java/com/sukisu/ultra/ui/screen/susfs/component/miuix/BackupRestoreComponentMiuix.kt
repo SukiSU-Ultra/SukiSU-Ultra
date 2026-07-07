@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.screen.susfs.util.BackupData
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.*
@@ -36,7 +37,7 @@ fun BackupRestoreComponentMiuix(
     var showRestoreDialog by remember { mutableStateOf(false) }
     var showRestoreConfirmDialog by remember { mutableStateOf(false) }
     var selectedBackupFile by remember { mutableStateOf<String?>(null) }
-    var backupInfo by remember { mutableStateOf<SuSFSManager.BackupData?>(null) }
+    var backupInfo by remember { mutableStateOf<BackupData?>(null) }
 
     val backupFileLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -315,7 +316,7 @@ private fun RestoreDialogMiuix(
 private fun RestoreConfirmDialogMiuix(
     showDialog: Boolean,
     onDismiss: () -> Unit,
-    backupInfo: SuSFSManager.BackupData?,
+    backupInfo: BackupData?,
     isLoading: Boolean,
     onConfirm: () -> Unit
 ) {

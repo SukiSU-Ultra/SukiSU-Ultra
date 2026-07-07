@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.util.isAbDevice
 import top.yukonga.miuix.kmp.basic.Button
@@ -43,7 +44,7 @@ import kotlin.collections.forEach
 fun SlotInfoDialogMiuix(
     showDialog: Boolean,
     onDismiss: () -> Unit,
-    slotInfoList: List<SuSFSManager.SlotInfo>,
+    slotInfoList: List<SlotInfo>,
     currentActiveSlot: String,
     isLoadingSlotInfo: Boolean,
     onRefresh: () -> Unit,

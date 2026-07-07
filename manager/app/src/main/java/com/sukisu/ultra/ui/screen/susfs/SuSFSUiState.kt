@@ -2,7 +2,10 @@ package com.sukisu.ultra.ui.screen.susfs
 
 import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.AppInfo
+import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
+import com.sukisu.ultra.ui.screen.susfs.util.ModuleConfig
+import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 
 @Immutable
 data class SuSFSUiState(
@@ -23,7 +26,7 @@ data class SuSFSUiState(
     val hideSusMountsForAllProcs: Boolean = true,
 
     // 槽位信息
-    val slotInfoList: List<SuSFSManager.SlotInfo> = emptyList(),
+    val slotInfoList: List<SlotInfo> = emptyList(),
     val currentActiveSlot: String = "",
     val isLoadingSlotInfo: Boolean = false,
     val showSlotInfoDialog: Boolean = false,
@@ -38,11 +41,11 @@ data class SuSFSUiState(
     val addKstatPaths: Set<String> = emptySet(),
 
     // 已启用功能
-    val enabledFeatures: List<SuSFSManager.EnabledFeature> = emptyList(),
+    val enabledFeatures: List<EnabledFeature> = emptyList(),
     val isLoadingFeatures: Boolean = false,
 
     // 应用列表（用于添加路径）
-    val installedApps: List<SuSFSManager.AppInfo> = emptyList(),
+    val installedApps: List<AppInfo> = emptyList(),
 
     // 对话框状态
     val showConfirmReset: Boolean = false,

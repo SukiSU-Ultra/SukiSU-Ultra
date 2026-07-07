@@ -64,7 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.util.AppInfoCache
-import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
+import com.sukisu.ultra.ui.screen.susfs.util.AppInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -137,12 +137,12 @@ fun AddAppPathDialogMaterial(
     onDismiss: () -> Unit,
     onConfirm: (List<String>) -> Unit,
     isLoading: Boolean,
-    apps: List<SuSFSManager.AppInfo> = emptyList(),
+    apps: List<AppInfo> = emptyList(),
     onLoadApps: () -> Unit,
     existingSusPaths: Set<String> = emptySet()
 ) {
     var searchText by remember { mutableStateOf("") }
-    var selectedApps by remember { mutableStateOf(setOf<SuSFSManager.AppInfo>()) }
+    var selectedApps by remember { mutableStateOf(setOf<AppInfo>()) }
 
     val addedPackageNames = remember(existingSusPaths) {
         existingSusPaths.mapNotNull { path ->
