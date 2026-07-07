@@ -244,15 +244,12 @@ pub fn reset_to_defaults() -> Result<()> {
 /// Export all config as JSON for backup / UI consumption.
 pub fn export_json() -> Result<String> {
     let config = load_config()?;
-    // Emit each key=value on its own line for easy shell parsing
     let mut lines: Vec<String> = config.iter().map(|(k, v)| format!("{k}={v}")).collect();
     lines.sort();
     Ok(lines.join("\n"))
 }
 
 // ── config-to-module helper ──────────────────────────────────────────────────
-
-use crate::susfs_config::ModuleConfig;
 
 fn split_paths(raw: &str) -> Vec<String> {
     if raw.is_empty() {
