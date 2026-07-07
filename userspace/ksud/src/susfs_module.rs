@@ -146,7 +146,10 @@ fn cleanup_residue_section() -> String {
         ("/data/local/tmp/luckys", "Luck Tool残留"),
         ("/data/local/tmp/HyperCeiler", "西米露残留"),
         ("/data/local/tmp/simpleHook", "simple Hook残留"),
-        ("/data/local/tmp/DisabledAllGoogleServices", "谷歌省电模块残留"),
+        (
+            "/data/local/tmp/DisabledAllGoogleServices",
+            "谷歌省电模块残留",
+        ),
         ("/data/local/MIO", "解包软件"),
         ("/data/DNA", "解包软件"),
         ("/data/local/tmp/cleaner_starter", "质感清理残留"),
@@ -164,7 +167,10 @@ fn cleanup_residue_section() -> String {
         ("/data/local/tmp/resetprop", ""),
         ("/dev/cpuset/AppOpt/", "AppOpt模块"),
         ("/storage/emulated/0/Android/Clash/", "Clash for Magisk模块"),
-        ("/storage/emulated/0/Android/Yume-Yunyun/", "网易云后台优化模块"),
+        (
+            "/storage/emulated/0/Android/Yume-Yunyun/",
+            "网易云后台优化模块",
+        ),
         ("/data/local/tmp/Surfing_update", "Surfing模块缓存"),
         ("/data/encore/custom_default_cpu_gov", "encore模块"),
         ("/data/encore/default_cpu_gov", "encore模块"),
@@ -284,12 +290,7 @@ fn generate_service_script(
             s.push_str("until [ -d \"/sdcard/Android\" ]; do sleep 1; done\n");
             s.push_str("sleep 45\n");
             for path in sus_paths {
-                writeln!(
-                    s,
-                    "/data/adb/ksud susfs add-sus-path {}",
-                    shell_quote(path)
-                )
-                .ok();
+                writeln!(s, "/data/adb/ksud susfs add-sus-path {}", shell_quote(path)).ok();
                 writeln!(
                     s,
                     "echo \"$(get_current_time): 添加SUS路径: {}\" >> \"$LOG_FILE\"",
@@ -326,7 +327,12 @@ fn generate_service_script(
         if !add_kstat_paths.is_empty() {
             s.push_str("# 添加Kstat路径\n");
             for path in add_kstat_paths {
-                writeln!(s, "/data/adb/ksud susfs add-sus-kstat {}", shell_quote(path)).ok();
+                writeln!(
+                    s,
+                    "/data/adb/ksud susfs add-sus-kstat {}",
+                    shell_quote(path)
+                )
+                .ok();
                 writeln!(
                     s,
                     "echo \"$(get_current_time): 添加Kstat路径: {}\" >> \"$LOG_FILE\"",
@@ -357,8 +363,12 @@ fn generate_service_script(
                         path.replace('\'', "'\\''")
                     )
                     .ok();
-                    writeln!(s, "/data/adb/ksud susfs update-sus-kstat {}", shell_quote(path))
-                        .ok();
+                    writeln!(
+                        s,
+                        "/data/adb/ksud susfs update-sus-kstat {}",
+                        shell_quote(path)
+                    )
+                    .ok();
                     writeln!(
                         s,
                         "echo \"$(get_current_time): 更新Kstat配置: {}\" >> \"$LOG_FILE\"",
@@ -373,7 +383,12 @@ fn generate_service_script(
 
     // enable log
     let log_val: u32 = if enable_log { 1 } else { 0 };
-    writeln!(s, "# 设置日志启用状态\n/data/adb/ksud susfs enable-log {}\n", log_val).ok();
+    writeln!(
+        s,
+        "# 设置日志启用状态\n/data/adb/ksud susfs enable-log {}\n",
+        log_val
+    )
+    .ok();
     writeln!(
         s,
         "echo \"$(get_current_time): 日志功能设置为: {}\" >> \"$LOG_FILE\"\n",
@@ -447,8 +462,12 @@ fn generate_post_fs_data_script(
     }
 
     let avc_val: u32 = if enable_avc_log_spoofing { 1 } else { 0 };
-    writeln!(s, "# 设置AVC日志欺骗状态\n/data/adb/ksud susfs enable-avc-log-spoofing {}\n", avc_val)
-        .ok();
+    writeln!(
+        s,
+        "# 设置AVC日志欺骗状态\n/data/adb/ksud susfs enable-avc-log-spoofing {}\n",
+        avc_val
+    )
+    .ok();
     writeln!(
         s,
         "echo \"$(get_current_time): AVC日志欺骗功能设置为: {}\" >> \"$LOG_FILE\"\n",
@@ -513,8 +532,12 @@ fn generate_boot_completed_script(
     s.push('\n');
 
     let hide_val: u32 = if hide_sus_mounts_for_all_procs { 1 } else { 0 };
-    writeln!(s, "# 设置SUS挂载隐藏控制\n/data/adb/ksud susfs hide-sus-mnts-for-non-su-procs {}\n", hide_val)
-        .ok();
+    writeln!(
+        s,
+        "# 设置SUS挂载隐藏控制\n/data/adb/ksud susfs hide-sus-mnts-for-non-su-procs {}\n",
+        hide_val
+    )
+    .ok();
     writeln!(
         s,
         "echo \"$(get_current_time): SUS挂载隐藏控制设置为: {}\" >> \"$LOG_FILE\"\n",
@@ -543,8 +566,12 @@ fn generate_boot_completed_script(
     if !sus_loop_paths.is_empty() {
         s.push_str("# 添加SUS循环路径\n");
         for path in sus_loop_paths {
-            writeln!(s, "/data/adb/ksud susfs add-sus-path-loop {}", shell_quote(path))
-                .ok();
+            writeln!(
+                s,
+                "/data/adb/ksud susfs add-sus-path-loop {}",
+                shell_quote(path)
+            )
+            .ok();
             writeln!(
                 s,
                 "echo \"$(get_current_time): 添加SUS循环路径: {}\" >> \"$LOG_FILE\"",
@@ -612,10 +639,41 @@ fn install_module_with_config(config: &ModuleConfig) -> anyhow::Result<()> {
     }
 
     let scripts = [
-        ("service.sh", generate_service_script(&config.sus_paths, &config.sus_loop_paths, &config.sus_maps, &config.kstat_configs, &config.add_kstat_paths, &config.uname_value, &config.build_time_value, config.execute_in_post_fs_data, config.enable_log, config.enable_hide_bl, config.enable_cleanup_residue)),
-        ("post-fs-data.sh", generate_post_fs_data_script(&config.uname_value, &config.build_time_value, config.execute_in_post_fs_data, config.enable_avc_log_spoofing)),
+        (
+            "service.sh",
+            generate_service_script(
+                &config.sus_paths,
+                &config.sus_loop_paths,
+                &config.sus_maps,
+                &config.kstat_configs,
+                &config.add_kstat_paths,
+                &config.uname_value,
+                &config.build_time_value,
+                config.execute_in_post_fs_data,
+                config.enable_log,
+                config.enable_hide_bl,
+                config.enable_cleanup_residue,
+            ),
+        ),
+        (
+            "post-fs-data.sh",
+            generate_post_fs_data_script(
+                &config.uname_value,
+                &config.build_time_value,
+                config.execute_in_post_fs_data,
+                config.enable_avc_log_spoofing,
+            ),
+        ),
         ("post-mount.sh", generate_post_mount_script()),
-        ("boot-completed.sh", generate_boot_completed_script(config.hide_sus_mounts_for_all_procs, &config.sus_paths, &config.sus_loop_paths, &config.sus_maps)),
+        (
+            "boot-completed.sh",
+            generate_boot_completed_script(
+                config.hide_sus_mounts_for_all_procs,
+                &config.sus_paths,
+                &config.sus_loop_paths,
+                &config.sus_maps,
+            ),
+        ),
     ];
 
     for (name, content) in &scripts {
@@ -629,7 +687,11 @@ fn install_module_with_config(config: &ModuleConfig) -> anyhow::Result<()> {
             ])
             .output()?;
         if !out.status.success() {
-            anyhow::bail!("Failed to write {}: {}", name, String::from_utf8_lossy(&out.stderr));
+            anyhow::bail!(
+                "Failed to write {}: {}",
+                name,
+                String::from_utf8_lossy(&out.stderr)
+            );
         }
     }
 
@@ -643,7 +705,10 @@ pub fn remove_module() -> anyhow::Result<()> {
         .args(["-c", &format!("rm -rf {MODULE_PATH}")])
         .output()?;
     if !out.status.success() {
-        anyhow::bail!("Failed to remove module: {}", String::from_utf8_lossy(&out.stderr));
+        anyhow::bail!(
+            "Failed to remove module: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
     }
     Ok(())
 }
@@ -651,7 +716,10 @@ pub fn remove_module() -> anyhow::Result<()> {
 pub fn is_module_installed() -> bool {
     use std::process::Command;
     Command::new("sh")
-        .args(["-c", &format!("test -f {MODULE_PATH}/module.prop && echo yes || echo no")])
+        .args([
+            "-c",
+            &format!("test -f {MODULE_PATH}/module.prop && echo yes || echo no"),
+        ])
         .output()
         .map(|o| String::from_utf8_lossy(&o.stdout).contains("yes"))
         .unwrap_or(false)

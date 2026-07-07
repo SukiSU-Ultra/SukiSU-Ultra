@@ -1155,19 +1155,8 @@ pub fn run() -> Result<()> {
                     blocks,
                     blksize,
                 } => susfs::add_sus_kstat_statically(
-                    &path,
-                    ino,
-                    dev,
-                    nlink,
-                    size,
-                    atime_sec,
-                    atime_nsec,
-                    mtime_sec,
-                    mtime_nsec,
-                    ctime_sec,
-                    ctime_nsec,
-                    blocks,
-                    blksize,
+                    &path, ino, dev, nlink, size, atime_sec, atime_nsec, mtime_sec, mtime_nsec,
+                    ctime_sec, ctime_nsec, blocks, blksize,
                 ),
                 Susfs::Module { command } => {
                     use crate::susfs_module;

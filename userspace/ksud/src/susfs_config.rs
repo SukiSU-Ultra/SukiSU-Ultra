@@ -135,22 +135,19 @@ fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
         if r.len() < key_len {
             bail!("Truncated key data");
         }
-        let key = String::from_utf8(r[..key_len].to_vec())
-            .context("Invalid UTF-8 in key")?;
+        let key = String::from_utf8(r[..key_len].to_vec()).context("Invalid UTF-8 in key")?;
         r = &r[key_len..];
 
         // value
         if r.len() < 4 {
             bail!("Truncated value length");
         }
-        let value_len =
-            u32::from_le_bytes([r[0], r[1], r[2], r[3]]) as usize;
+        let value_len = u32::from_le_bytes([r[0], r[1], r[2], r[3]]) as usize;
         r = &r[4..];
         if r.len() < value_len {
             bail!("Truncated value data");
         }
-        let value = String::from_utf8(r[..value_len].to_vec())
-            .context("Invalid UTF-8 in value")?;
+        let value = String::from_utf8(r[..value_len].to_vec()).context("Invalid UTF-8 in value")?;
         r = &r[value_len..];
 
         config.insert(key, value);
@@ -223,7 +220,10 @@ pub fn clear() -> Result<()> {
 pub fn reset_to_defaults() -> Result<()> {
     let mut config = HashMap::new();
     config.insert(KEY_UNAME_VALUE.to_string(), DEFAULT_UNAME.to_string());
-    config.insert(KEY_BUILD_TIME_VALUE.to_string(), DEFAULT_BUILD_TIME.to_string());
+    config.insert(
+        KEY_BUILD_TIME_VALUE.to_string(),
+        DEFAULT_BUILD_TIME.to_string(),
+    );
     config.insert(KEY_AUTO_START_ENABLED.to_string(), "false".to_string());
     config.insert(KEY_SUS_PATHS.to_string(), String::new());
     config.insert(KEY_SUS_LOOP_PATHS.to_string(), String::new());
@@ -259,7 +259,10 @@ fn split_paths(raw: &str) -> Vec<String> {
     if raw.is_empty() {
         Vec::new()
     } else {
-        raw.split(';').map(String::from).filter(|s| !s.is_empty()).collect()
+        raw.split(';')
+            .map(String::from)
+            .filter(|s| !s.is_empty())
+            .collect()
     }
 }
 
