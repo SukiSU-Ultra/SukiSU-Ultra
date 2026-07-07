@@ -111,11 +111,12 @@ object SuSFSManager {
     suspend fun resetToDefault(context: Context): Boolean {
         val success = setUname(context, SuSFSConfig.DEFAULT_UNAME, SuSFSConfig.DEFAULT_BUILD_TIME)
         if (success) {
-            saveEnableHideBl(true)
+            saveEnableHideBl(false)
             saveEnableCleanupResidue(false)
             saveEnableAvcLogSpoofing(false)
             saveHideSusMountsForAllProcs(false)
             saveEnableLogState(false)
+            saveExecuteInPostFsData(false)
             if (isAutoStartEnabled()) {
                 configureAutoStart(context, false)
             }

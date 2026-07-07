@@ -220,16 +220,15 @@ class SuSFSViewModel(
                 }
             }
             _uiState.update { it.copy(isLoading = false) }
-            reloadConfig(context)
+            reloadConfig()
         }
     }
 
-    fun resetAll(context: Context) {
+    fun resetAll() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val success = SuSFSManager.resetToDefault(context)
             _uiState.update { it.copy(isLoading = false, showConfirmReset = false) }
-            reloadConfig(context)
+            reloadConfig()
         }
     }
 
@@ -298,7 +297,7 @@ class SuSFSViewModel(
         }
     }
 
-    fun reloadConfig(context: Context) {
+    fun reloadConfig() {
         viewModelScope.launch {
             val config = SuSFSManager.getCurrentModuleConfig()
             _uiState.update {

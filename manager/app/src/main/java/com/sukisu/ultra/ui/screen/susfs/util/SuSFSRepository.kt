@@ -57,15 +57,11 @@ object SuSFSRepository {
     suspend fun getExecuteInPostFsData(): Boolean =
         SuSFSConfig.get(SuSFSConfig.KEY_EXECUTE_IN_POST_FS_DATA) == "true"
 
-    suspend fun getHideSusMountsForAllProcs(): Boolean {
-        val v = SuSFSConfig.get(SuSFSConfig.KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS)
-        return v.isBlank() || v == "true" // default true
-    }
+    suspend fun getHideSusMountsForAllProcs(): Boolean =
+        SuSFSConfig.get(SuSFSConfig.KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS) == "true"
 
-    suspend fun getEnableHideBl(): Boolean {
-        val v = SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_HIDE_BL)
-        return v.isBlank() || v == "true" // default true
-    }
+    suspend fun getEnableHideBl(): Boolean =
+        SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_HIDE_BL)  == "true"
 
     suspend fun getEnableCleanupResidue(): Boolean =
         SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_CLEANUP_RESIDUE) == "true"

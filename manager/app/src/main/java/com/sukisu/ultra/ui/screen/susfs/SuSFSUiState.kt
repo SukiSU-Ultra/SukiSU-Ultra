@@ -20,10 +20,10 @@ data class SuSFSUiState(
     val autoStartEnabled: Boolean = false,
     val canEnableAutoStart: Boolean = false,
     val executeInPostFsData: Boolean = false,
-    val enableHideBl: Boolean = true,
+    val enableHideBl: Boolean = false,
     val enableCleanupResidue: Boolean = false,
     val enableAvcLogSpoofing: Boolean = false,
-    val hideSusMountsForAllProcs: Boolean = true,
+    val hideSusMountsForAllProcs: Boolean = false,
 
     // 槽位信息
     val slotInfoList: List<SlotInfo> = emptyList(),
