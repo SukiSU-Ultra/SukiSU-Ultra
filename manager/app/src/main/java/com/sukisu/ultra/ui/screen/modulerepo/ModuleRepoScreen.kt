@@ -56,6 +56,11 @@ fun ModuleRepoScreen() {
             )
             navigator.push(Route.ModuleRepoDetail(args))
         },
+        onShowManageRepoUrlsDialog = viewModel::showManageRepoUrlsDialog,
+        onDismissManageRepoUrlsDialog = viewModel::dismissManageRepoUrlsDialog,
+        onAddRepoUrl = viewModel::addRepoUrl,
+        onEditRepoUrl = viewModel::editRepoUrl,
+        onDeleteRepoUrl = viewModel::deleteRepoUrl,
     )
 
     when (LocalUiMode.current) {

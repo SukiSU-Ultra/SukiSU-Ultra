@@ -13,29 +13,41 @@ import org.json.JSONObject
 
 class ModuleRepoRepositoryImpl : ModuleRepoRepository {
 
-    companion object {
-        private const val MODULES_URL = "https://modules.kernelsu.org/modules.json"
-    }
-
-    override suspend fun fetchModules(): Result<List<RepoModule>> = withContext(Dispatchers.IO) {
+    override suspend fun fetchModules(repoUrls: List<String>): Result<List<RepoModule>> = withContext(Dispatchers.IO) {
         runCatching {
             if (!isNetworkAvailable(ksuApp)) {
                 throw Exception("Network unavailable")
             }
 
-            val request = Request.Builder().url(MODULES_URL).build()
-            ksuApp.okhttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw Exception("Fetch failed: ${response.code}")
-                }
+            if (repoUrls.isEmpty()) {
+                emptyList<RepoModule>()
+            }
 
-                val body = response.body.string()
-                val json = JSONArray(body)
-                (0 until json.length()).mapNotNull { idx ->
-                    val item = json.optJSONObject(idx) ?: return@mapNotNull null
-                    parseRepoModule(item)
+            val allModules = mutableListOf<RepoModule>()
+            for (url in repoUrls) {
+                val request = Request.Builder().url(url.trim()).build()
+                ksuApp.okhttpClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        throw Exception("Fetch failed from $url: ${response.code}")
+                    }
+
+                    val body = response.body.string()
+                    val json = JSONArray(body)
+                    (0 until json.length()).mapNotNull { idx ->
+                        val item = json.optJSONObject(idx) ?: return@mapNotNull null
+                        parseRepoModule(item)
+                    }.forEach { module ->
+                        val existingIndex = allModules.indexOfFirst { it.moduleId == module.moduleId }
+                        if (existingIndex >= 0) {
+                            val existing = allModules[existingIndex]
+                            allModules[existingIndex] = existing.copy(authors = module.authors.ifEmpty { existing.authors })
+                        } else {
+                            allModules.add(module)
+                        }
+                    }
                 }
             }
+            allModules
         }
     }
 

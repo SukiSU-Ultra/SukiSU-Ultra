@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen.modulerepo
 
 import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.data.model.RepoModule
+import com.sukisu.ultra.data.repository.ModuleRepoRepository.Companion.DEFAULT_MODULES_URL
 import com.sukisu.ultra.ui.component.SearchStatus
 
 enum class RepoSort {
@@ -18,7 +19,10 @@ data class ModuleRepoUiState(
     val modules: List<RepoModule> = emptyList(),
     val searchStatus: SearchStatus = SearchStatus(""),
     val searchResults: List<RepoModule> = emptyList(),
-    val error: Throwable? = null
+    val error: Throwable? = null,
+    val repoUrls: List<String> = listOf(DEFAULT_MODULES_URL),
+    val showManageRepoUrlsDialog: Boolean = false,
+    val editingUrlIndex: Int = -1,
 )
 
 @Immutable
@@ -30,6 +34,11 @@ data class ModuleRepoActions(
     val onSearchStatusChange: (SearchStatus) -> Unit,
     val onSetSortOrder: (RepoSort) -> Unit,
     val onOpenRepoDetail: (RepoModule) -> Unit,
+    val onShowManageRepoUrlsDialog: () -> Unit,
+    val onDismissManageRepoUrlsDialog: () -> Unit,
+    val onAddRepoUrl: (String) -> Unit,
+    val onEditRepoUrl: (Int, String) -> Unit,
+    val onDeleteRepoUrl: (Int) -> Unit,
 )
 
 @Immutable

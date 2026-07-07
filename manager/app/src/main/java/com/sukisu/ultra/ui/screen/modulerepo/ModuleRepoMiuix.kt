@@ -31,12 +31,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -110,12 +113,15 @@ import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.FileDownloads
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Link
@@ -126,6 +132,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
+import java.text.Collator
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
@@ -196,6 +204,15 @@ fun ModuleRepoScreenMiuix(
                                     imageVector = MiuixIcons.Sort,
                                     tint = colorScheme.onSurface,
                                     contentDescription = stringResource(R.string.menu_sort),
+                                )
+                            }
+                            IconButton(
+                                onClick = actions.onShowManageRepoUrlsDialog
+                            ) {
+                                Icon(
+                                    imageVector = MiuixIcons.Link,
+                                    tint = colorScheme.onSurface,
+                                    contentDescription = stringResource(R.string.module_repos_manage_urls),
                                 )
                             }
                         },
@@ -538,7 +555,140 @@ fun ModuleRepoScreenMiuix(
                 }
             }
         }
+        if (state.showManageRepoUrlsDialog) {
+            ManageRepoUrlsDialogMiuix(
+                repoUrls = state.repoUrls,
+                onDismiss = actions.onDismissManageRepoUrlsDialog,
+                onAdd = actions.onAddRepoUrl,
+                onEdit = actions.onEditRepoUrl,
+                onDelete = actions.onDeleteRepoUrl,
+            )
+        }
     }
+}
+
+@Composable
+fun ManageRepoUrlsDialogMiuix(
+    repoUrls: List<String>,
+    onDismiss: () -> Unit,
+    onAdd: (String) -> Unit,
+    onEdit: (Int, String) -> Unit,
+    onDelete: (Int) -> Unit,
+) {
+    var editingIndex by remember { mutableIntStateOf(-1) }
+    var editingUrl by remember { mutableStateOf("") }
+
+    LaunchedEffect(repoUrls, editingIndex) {
+        editingUrl = if (editingIndex >= 0 && editingIndex < repoUrls.size) {
+            repoUrls[editingIndex]
+        } else {
+            ""
+        }
+    }
+
+    WindowDialog(
+        show = true,
+        modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top)),
+        title = stringResource(R.string.module_repos_manage_urls),
+        onDismissRequest = onDismiss,
+        content = {
+            Column(modifier = Modifier.padding(top = 12.dp)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(repoUrls) { index, url ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            insideMargin = PaddingValues(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = url,
+                                    modifier = Modifier.weight(1f),
+                                    fontSize = 14.sp,
+                                    color = colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                IconButton(
+                                    minHeight = 32.dp,
+                                    minWidth = 32.dp,
+                                    onClick = { editingIndex = index }
+                                ) {
+                                    Icon(
+                                        imageVector = MiuixIcons.Edit,
+                                        contentDescription = stringResource(R.string.module_repos_edit_url),
+                                        modifier = Modifier.size(18.dp),
+                                        tint = colorScheme.onSurface
+                                    )
+                                }
+                                if (repoUrls.size > 1) {
+                                    IconButton(
+                                        minHeight = 32.dp,
+                                        minWidth = 32.dp,
+                                        onClick = { onDelete(index) }
+                                    ) {
+                                        Icon(
+                                            imageVector = MiuixIcons.Delete,
+                                            contentDescription = stringResource(R.string.module_repos_delete_url),
+                                            modifier = Modifier.size(18.dp),
+                                            tint = colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextField(
+                        value = editingUrl,
+                        onValueChange = { editingUrl = it },
+                        label = if (editingIndex >= 0) {
+                            stringResource(R.string.module_repos_edit_url)
+                        } else {
+                            stringResource(R.string.module_repos_add_url)
+                        },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                    )
+                    TextButton(
+                        text = if (editingIndex >= 0) {
+                            stringResource(android.R.string.ok)
+                        } else {
+                            stringResource(R.string.module_repos_add_url)
+                        },
+                        onClick = {
+                            if (editingIndex >= 0) {
+                                onEdit(editingIndex, editingUrl)
+                                editingIndex = -1
+                            } else {
+                                onAdd(editingUrl)
+                                editingUrl = ""
+                            }
+                        },
+                    )
+                }
+                if (editingIndex < 0) {
+                    TextButton(
+                        text = stringResource(R.string.confirm),
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Composable
