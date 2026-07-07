@@ -97,7 +97,7 @@ fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
     let magic = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
     r = &r[4..];
     if magic != SUSFS_CONFIG_MAGIC {
-        bail!("Invalid magic: expected 0x{SUSFS_CONFIG_MAGIC:08x}, got 0x{magic:08x}",);
+        bail!("Invalid magic: expected 0x{SUSFS_CONFIG_MAGIC:08x}, got 0x{magic:08x}");
     }
 
     // Version
@@ -107,7 +107,7 @@ fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
     let version = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
     r = &r[4..];
     if version != SUSFS_CONFIG_VERSION {
-        bail!("Unsupported version: expected {SUSFS_CONFIG_VERSION}, got {version}",);
+        bail!("Unsupported version: expected {SUSFS_CONFIG_VERSION}, got {version}");
     }
 
     // Count
