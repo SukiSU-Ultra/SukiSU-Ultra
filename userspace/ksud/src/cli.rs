@@ -593,8 +593,153 @@ enum Susfs {
     Status,
     /// Get SUSFS Version
     Version,
-    /// Get SUSFS enable Features
+    /// Get SUSFS Variant
+    Variant,
+    /// Get SUSFS enabled Features
     Features,
+    /// Spoof kernel uname
+    SetUname {
+        /// kernel release string
+        release: String,
+        /// kernel version string
+        version: String,
+    },
+    /// Enable or disable SUSFS kernel log
+    EnableLog {
+        /// 0 to disable, 1 to enable
+        enabled: u32,
+    },
+    /// Enable or disable AVC log spoofing
+    EnableAvcLogSpoofing {
+        /// 0 to disable, 1 to enable
+        enabled: u32,
+    },
+    /// Hide SUS mounts for non-su processes
+    HideSusMntsForNonSuProcs {
+        /// 0 to disable, 1 to enable
+        enabled: u32,
+    },
+    /// Add open redirect
+    AddOpenRedirect {
+        /// target path
+        target: String,
+        /// redirected path
+        redirected: String,
+        /// uid scheme
+        uid_scheme: u32,
+    },
+    /// Add SUS map
+    AddSusMap {
+        /// library path
+        path: String,
+    },
+    /// Add SUS path
+    AddSusPath {
+        /// path to add
+        path: String,
+    },
+    /// Add SUS loop path
+    AddSusPathLoop {
+        /// path to add
+        path: String,
+    },
+    /// Add SUS kstat
+    AddSusKstat {
+        /// path to add
+        path: String,
+    },
+    /// Update SUS kstat
+    UpdateSusKstat {
+        /// path to update
+        path: String,
+    },
+    /// Update SUS kstat full clone
+    UpdateSusKstatFullClone {
+        /// path to update
+        path: String,
+    },
+    /// Add SUS kstat statically
+    AddSusKstatStatically {
+        /// path
+        path: String,
+        /// ino
+        ino: u64,
+        /// dev
+        dev: u64,
+        /// nlink
+        nlink: u32,
+        /// size
+        size: u64,
+        /// atime sec
+        atime_sec: i64,
+        /// atime nsec
+        atime_nsec: u64,
+        /// mtime sec
+        mtime_sec: i64,
+        /// mtime nsec
+        mtime_nsec: u64,
+        /// ctime sec
+        ctime_sec: i64,
+        /// ctime nsec
+        ctime_nsec: u64,
+        /// blocks
+        blocks: u64,
+        /// blksize
+        blksize: i64,
+    },
+    /// Manage the SuSFS Magisk auto-start module
+    Module {
+        #[cfg(target_arch = "aarch64")]
+        #[clap(subcommand)]
+        command: SusfsModuleCmd,
+    },
+    /// Manage SuSFS persistent configuration
+    Config {
+        #[cfg(target_arch = "aarch64")]
+        #[clap(subcommand)]
+        command: SusfsConfigCmd,
+    },
+}
+
+/// susfs module subcommands
+#[cfg(target_arch = "aarch64")]
+#[derive(clap::Subcommand, Debug)]
+pub enum SusfsModuleCmd {
+    /// Install (or reinstall) the SuSFS auto-start module from saved config
+    Install,
+    /// Remove the SuSFS auto-start module
+    Remove,
+    /// Check if the module is installed
+    Status,
+}
+
+/// susfs config subcommands
+#[cfg(target_arch = "aarch64")]
+#[derive(clap::Subcommand, Debug)]
+pub enum SusfsConfigCmd {
+    /// Get a config value by key
+    Get {
+        /// Config key (e.g. sus_paths, enable_log)
+        key: String,
+    },
+    /// Set a config value
+    Set {
+        /// Config key
+        key: String,
+        /// Config value (use empty string to clear a multi-value key)
+        value: String,
+    },
+    /// Remove a config key
+    Remove {
+        /// Config key
+        key: String,
+    },
+    /// Clear all config values
+    Clear,
+    /// Reset all config keys to defaults
+    Reset,
+    /// List all config key=value pairs (one per line)
+    List,
 }
 
 pub fn run() -> Result<()> {
@@ -969,13 +1114,119 @@ pub fn run() -> Result<()> {
         }
         #[cfg(target_arch = "aarch64")]
         Commands::Susfs { command } => {
-            match command {
-                Susfs::Version => println!("{}", susfs::get_susfs_version()),
-
-                Susfs::Status => println!("{}", susfs::get_susfs_status()),
-
-                Susfs::Features => println!("{}", susfs::get_susfs_features()),
-            }
+            let _ = match command {
+                Susfs::Status => {
+                    println!("{}", susfs::get_susfs_status());
+                    Ok(())
+                }
+                Susfs::Version => {
+                    println!("{}", susfs::get_susfs_version());
+                    Ok(())
+                }
+                Susfs::Variant => {
+                    println!("{}", susfs::get_susfs_variant());
+                    Ok(())
+                }
+                Susfs::Features => {
+                    println!("{}", susfs::get_susfs_features());
+                    Ok(())
+                }
+                Susfs::SetUname { release, version } => susfs::set_uname(&release, &version),
+                Susfs::EnableLog { enabled } => susfs::enable_log(enabled != 0),
+                Susfs::EnableAvcLogSpoofing { enabled } => {
+                    susfs::enable_avc_log_spoofing(enabled != 0)
+                }
+                Susfs::HideSusMntsForNonSuProcs { enabled } => {
+                    susfs::hide_sus_mnts_for_non_su_procs(enabled != 0)
+                }
+                Susfs::AddOpenRedirect {
+                    target,
+                    redirected,
+                    uid_scheme,
+                } => susfs::add_open_redirect(&target, &redirected, uid_scheme),
+                Susfs::AddSusMap { path } => susfs::add_sus_map(&path),
+                Susfs::AddSusPath { path } => susfs::add_sus_path(&path),
+                Susfs::AddSusPathLoop { path } => susfs::add_sus_path_loop(&path),
+                Susfs::AddSusKstat { path } => susfs::add_sus_kstat(&path),
+                Susfs::UpdateSusKstat { path } => susfs::update_sus_kstat(&path),
+                Susfs::UpdateSusKstatFullClone { path } => {
+                    susfs::update_sus_kstat_full_clone(&path)
+                }
+                Susfs::AddSusKstatStatically {
+                    path,
+                    ino,
+                    dev,
+                    nlink,
+                    size,
+                    atime_sec,
+                    atime_nsec,
+                    mtime_sec,
+                    mtime_nsec,
+                    ctime_sec,
+                    ctime_nsec,
+                    blocks,
+                    blksize,
+                } => susfs::add_sus_kstat_statically(
+                    &path, ino, dev, nlink, size, atime_sec, atime_nsec, mtime_sec, mtime_nsec,
+                    ctime_sec, ctime_nsec, blocks, blksize,
+                ),
+                Susfs::Module { command } => {
+                    use crate::susfs_module;
+                    match command {
+                        SusfsModuleCmd::Install => {
+                            susfs_module::install_module()?;
+                            println!("SuSFS module installed successfully");
+                            Ok(())
+                        }
+                        SusfsModuleCmd::Remove => {
+                            susfs_module::remove_module()?;
+                            println!("SuSFS module removed successfully");
+                            Ok(())
+                        }
+                        SusfsModuleCmd::Status => {
+                            if susfs_module::is_module_installed() {
+                                println!("installed");
+                            } else {
+                                println!("not installed");
+                            }
+                            Ok(())
+                        }
+                    }
+                }
+                Susfs::Config { command } => {
+                    use crate::susfs_config;
+                    match command {
+                        SusfsConfigCmd::Get { key } => {
+                            println!("{}", susfs_config::get(&key)?);
+                            Ok(())
+                        }
+                        SusfsConfigCmd::Set { key, value } => {
+                            susfs_config::set(&key, &value)?;
+                            println!("ok");
+                            Ok(())
+                        }
+                        SusfsConfigCmd::Remove { key } => {
+                            susfs_config::remove(&key)?;
+                            println!("ok");
+                            Ok(())
+                        }
+                        SusfsConfigCmd::Clear => {
+                            susfs_config::clear()?;
+                            println!("ok");
+                            Ok(())
+                        }
+                        SusfsConfigCmd::Reset => {
+                            susfs_config::reset_to_defaults()?;
+                            println!("ok");
+                            Ok(())
+                        }
+                        SusfsConfigCmd::List => {
+                            println!("{}", susfs_config::export_json()?);
+                            Ok(())
+                        }
+                    }
+                }
+            };
             Ok(())
         }
     };

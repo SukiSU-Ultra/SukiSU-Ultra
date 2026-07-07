@@ -18,6 +18,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.platform.LocalLocale
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun BackupRestoreComponentMiuix(
@@ -148,7 +149,7 @@ fun BackupRestoreComponentMiuix(
                         internalLoading = false
                         onLoadingChange(false)
                         showRestoreConfirmDialog = false
-                        kotlinx.coroutines.delay(100)
+                        kotlinx.coroutines.delay(100.milliseconds)
                         selectedBackupFile = null
                         backupInfo = null
                     }

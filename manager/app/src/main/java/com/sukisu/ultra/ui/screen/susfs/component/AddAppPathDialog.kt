@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen.susfs.component
 
-import android.content.pm.PackageInfo
 import androidx.compose.runtime.Composable
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
