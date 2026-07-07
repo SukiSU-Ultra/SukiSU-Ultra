@@ -8,16 +8,22 @@ plugins {
     id("kotlin-parcelize")
 }
 
-val androidCompileSdkVersion: Int by rootProject.extra
-val androidCompileSdkVersionMinor: Int by rootProject.extra
-val androidCompileNdkVersion: String by rootProject.extra
-val androidBuildToolsVersion: String by rootProject.extra
-val androidMinSdkVersion: Int by rootProject.extra
-val androidTargetSdkVersion: Int by rootProject.extra
-val androidSourceCompatibility: JavaVersion by rootProject.extra
-val androidTargetCompatibility: JavaVersion by rootProject.extra
-val managerVersionCode: Int by rootProject.extra
-val managerVersionName: String by rootProject.extra
+val androidCompileSdkVersion = rootProject.extra["androidCompileSdkVersion"] as Int
+val androidCompileSdkVersionMinor = rootProject.extra["androidCompileSdkVersionMinor"] as Int
+val androidCompileNdkVersion = rootProject.extra["androidCompileNdkVersion"] as String
+val androidBuildToolsVersion = rootProject.extra["androidBuildToolsVersion"] as String
+val androidMinSdkVersion = rootProject.extra["androidMinSdkVersion"] as Int
+val androidTargetSdkVersion = rootProject.extra["androidTargetSdkVersion"] as Int
+val androidSourceCompatibility = rootProject.extra["androidSourceCompatibility"] as JavaVersion
+val androidTargetCompatibility = rootProject.extra["androidTargetCompatibility"] as JavaVersion
+val managerVersionCode = rootProject.extra["managerVersionCode"] as Int
+val managerVersionName = rootProject.extra["managerVersionName"] as String
+
+val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
+val defaultManagerPackageName = if (isPrBuild) "com.sukisu.ultra.pr" else "com.sukisu.ultra"
+val defaultManagerName = if (isPrBuild) "SukiSU PR" else "SukiSU"
+val managerPackageName = project.findProperty("KSU_PACKAGE_NAME")?.toString() ?: defaultManagerPackageName
+val managerName = project.findProperty("KSU_NAME")?.toString() ?: defaultManagerName
 
 apksign {
     storeFileProperty = "KEYSTORE_FILE"
@@ -35,7 +41,6 @@ val baseCppFlags = baseCFlags + "-fno-rtti"
 
 android {
     namespace = "com.sukisu.ultra"
-    val isPrBuild = project.findProperty("IS_PR_BUILD")?.toString()?.toBoolean() ?: false
 
     buildTypes {
         debug {
@@ -49,7 +54,6 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             vcsInfo.include = false
-            if (isPrBuild) applicationIdSuffix = ".dev"
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             externalNativeBuild {
                 cmake {
@@ -78,6 +82,7 @@ android {
     buildFeatures {
         aidl = true
         buildConfig = true
+        resValues = true
         compose = true
         prefab = true
     }
@@ -120,8 +125,10 @@ android {
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
         versionName = managerVersionName
+        applicationId = managerPackageName
 
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
+        resValue("string", "app_name", managerName)
 
         externalNativeBuild {
             cmake {
@@ -155,7 +162,7 @@ androidComponents {
 
 base {
     archivesName.set(
-        "SukiSU_${managerVersionName}_${managerVersionCode}"
+        "${managerName.replace(" ", "_")}_${managerVersionName}_${managerVersionCode}"
     )
 }
 

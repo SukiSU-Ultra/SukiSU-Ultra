@@ -10,6 +10,7 @@ data class ToolsUiState(
 
 @Immutable
 data class ToolsActions(
+    val onBack: () -> Unit,
     val onSelinuxToggle: (Boolean) -> Unit = {},
     val onBackupAllowlist: () -> Unit = {},
     val onRestoreAllowlist: () -> Unit = {},

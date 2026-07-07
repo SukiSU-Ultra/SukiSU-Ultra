@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.settings.tools
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,12 +16,12 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
-import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@SuppressLint("LocalContextGetResourceValueCall", "StringFormatInvalid")
 @Composable
 fun ToolsScreen() {
     val navigator = LocalNavigator.current
@@ -69,6 +70,7 @@ fun ToolsScreen() {
     }
 
     val actions = ToolsActions(
+        onBack = { navigator.pop() },
         onSelinuxToggle = { target ->
             selinuxLoading = true
             scope.launch(Dispatchers.IO) {

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
     <string name="home">Home</string>
     <string name="home_not_installed">Not installed</string>
     <string name="home_click_to_install">Click to install</string>
@@ -175,6 +174,8 @@
     <string name="install_next">Next</string>
     <string name="install_select_partition">Select partition</string>
     <string name="install_upload_lkm_file">Use local LKM file</string>
+    <string name="install_force_backup">Backup as stock image</string>
+    <string name="install_force_backup_summary">Please make sure your selected boot image is a stock image</string>
     <string name="install_only_support_ko_file">Only .ko format files are supported</string>
     <string name="select_file_tip">%1$s partition image is recommended</string>
     <string name="select_kmi">Select KMI</string>
@@ -299,6 +300,8 @@
     <string name="sort_by_update_time">Update time</string>
     <string name="sort_reverse">Reverse</string>
     <string name="profile_flags_desc_no_new_privs">Prevent further privilege escalation via KernelSU from within the context of this root profile.</string>
+    <string name="module_shortcut_copy_scheme">Copy URL scheme</string>
+    <string name="module_shortcut_scheme_copied">URL scheme copied</string>
     <!-- Customize -->
     <string name="hook_type">Hook Type</string>
     <string name="manual_hook">Manual Hook</string>

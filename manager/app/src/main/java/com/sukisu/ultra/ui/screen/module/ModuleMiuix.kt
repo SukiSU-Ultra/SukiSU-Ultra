@@ -2,6 +2,9 @@ package com.sukisu.ultra.ui.screen.module
 
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -52,8 +55,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Code
@@ -63,6 +68,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,6 +92,7 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
@@ -252,7 +259,7 @@ fun ModulePagerMiuix(
     }
 
     val listState = rememberLazyListState()
-    val refreshTick = remember { mutableStateOf(0) }
+    val refreshTick = remember { mutableIntStateOf(0) }
     val nestedScrollConnection = remember(uiState.installButtonVisible) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -528,7 +535,7 @@ fun ModulePagerMiuix(
                     pullToRefreshState = pullToRefreshState,
                     onRefresh = {
                         actions.onRefresh()
-                        refreshTick.value++
+                        refreshTick.intValue++
                     },
                     refreshTexts = refreshTexts,
                     contentPadding = contentPadding,
@@ -558,7 +565,7 @@ fun ModulePagerMiuix(
                             listState,
                             uiState.sortEnabledFirst,
                             uiState.sortActionFirst,
-                            refreshTick.value,
+                            refreshTick.intValue,
                             isBusy = { latestRefreshing.value },
                         ) { latestModules.value }
                         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
@@ -609,12 +616,23 @@ private fun ModuleShortcutDialog(
     onDeleteShortcut: () -> Unit,
     onConfirmShortcut: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+
+    fun copyShortcutUrl() {
+        val url = shortcutState.buildShortcutUrl() ?: return
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("KernelSU deep link", url))
+        Toast.makeText(context, resources.getString(R.string.module_shortcut_scheme_copied), Toast.LENGTH_SHORT).show()
+    }
+
     OverlayDialog(
         show = show,
         title = stringResource(R.string.module_shortcut_title),
         onDismissRequest = onDismissRequest,
         content = {
             Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -682,6 +700,11 @@ private fun ModuleShortcutDialog(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+                TextButton(
+                    text = stringResource(id = R.string.module_shortcut_copy_scheme),
+                    onClick = ::copyShortcutUrl,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {

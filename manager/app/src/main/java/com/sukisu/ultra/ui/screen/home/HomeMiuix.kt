@@ -115,6 +115,9 @@ fun HomePagerMiuix(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
+                        if (state.checkUpdateEnabled) {
+                            UpdateCard(state = state, actions = actions)
+                        }
                         if (state.showManagerPrBuildWarning && state.showFullStatus) {
                             WarningCard(stringResource(id = R.string.home_pr_build_warning))
                         } else if (state.showKernelPrBuildWarning && state.showFullStatus) {
@@ -164,9 +167,6 @@ fun HomePagerMiuix(
                             state = state,
                             actions = actions,
                         )
-                        if (state.checkUpdateEnabled) {
-                            UpdateCard(state = state, actions = actions)
-                        }
                         InfoCard(systemInfo = state.systemInfo, showFullStatus = state.showFullStatus)
                         DonateCard(onOpenUrl = actions.onOpenUrl)
                         LearnMoreCard(onOpenUrl = actions.onOpenUrl)

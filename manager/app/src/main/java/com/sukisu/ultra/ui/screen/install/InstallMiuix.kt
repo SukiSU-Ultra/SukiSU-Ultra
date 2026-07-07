@@ -188,6 +188,24 @@ internal fun InstallScreenMiuix(
                             )
                         }
                     }
+                    AnimatedVisibility(
+                        visible = uiState.canForceBackup,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                        ) {
+                            CheckboxPreference(
+                                title = stringResource(id = R.string.install_force_backup),
+                                checked = uiState.forceBackup,
+                                summary = stringResource(id = R.string.install_force_backup_summary),
+                                onCheckedChange = actions.onSelectForceBackup
+                            )
+                        }
+                    }
 
                     // LKM 上传（仅 GKI）
                     if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) {

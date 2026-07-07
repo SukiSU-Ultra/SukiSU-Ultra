@@ -62,6 +62,7 @@ fun InstallScreen(
     var advancedOptionsShown by rememberSaveable { mutableStateOf(false) }
     var allowShell by rememberSaveable { mutableStateOf(false) }
     var enableAdb by rememberSaveable { mutableStateOf(false) }
+    var forceBackup by rememberSaveable { mutableStateOf(false) }
 
     // Read the configuration from the boot image ksu_config
     val bootConfig by produceState(initialValue = BootConfig()) { value = getBootConfig() }
@@ -191,6 +192,7 @@ fun InstallScreen(
                                 partition = partitions.getOrNull(partitionSelectionIndex),
                                 allowShell = allowShell,
                                 enableAdb = enableAdb,
+                                backup = method is InstallMethod.SelectFile && forceBackup,
                                 spoofRelease = spoofRelease.trim(),
                                 spoofVersion = spoofVersion.trim(),
                             )
@@ -259,6 +261,8 @@ fun InstallScreen(
         advancedOptionsShown = advancedOptionsShown,
         allowShell = allowShell,
         enableAdb = enableAdb,
+        forceBackup = forceBackup,
+        canForceBackup = installMethod is InstallMethod.SelectFile,
         spoofRelease = spoofRelease,
         spoofVersion = spoofVersion,
         anyKernel3State = anyKernel3State,
@@ -310,6 +314,9 @@ fun InstallScreen(
         onSelectEnableAdb = {
             enableAdb = it
         },
+        onSelectForceBackup = {
+            forceBackup = it
+        },
         onSpoofReleaseChange = {
             spoofRelease = it
             SuSFSManager.saveUnameValue(context, it.trim().ifBlank { "default" })
@@ -326,7 +333,7 @@ fun InstallScreen(
         },
         onReopenKpmDialog = { method ->
             anyKernel3State.onReopenKpmDialog(method)
-        },
+        }
     )
 
     when (LocalUiMode.current) {

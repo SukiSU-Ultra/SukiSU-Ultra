@@ -26,7 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.FilterList
@@ -41,7 +40,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -68,12 +66,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ScrollToTopOnChange
+import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.SearchAppBar
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.TonalCard
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.SulogEntry
 import com.sukisu.ultra.ui.util.SulogEventFilter
@@ -106,7 +106,7 @@ fun SulogScreenMaterial(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
+    ExpressiveScaffold(
         topBar = {
             SearchAppBar(
                 snackbarHostState = snackbarHostState,
@@ -121,9 +121,7 @@ fun SulogScreenMaterial(
                     actions.onSearchTextChange("")
                 },
                 navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                    }
+                    TopBarBackButton(onClick = actions.onBack)
                 },
                 actions = {
                     IconButton(onClick = actions.onCleanFile) {
@@ -180,7 +178,6 @@ fun SulogScreenMaterial(
                         contentPadding = PaddingValues(
                             start = 16.dp,
                             end = 16.dp,
-                            top = 8.dp,
                             bottom = 16.dp + bottomPadding,
                         ),
                     ) {
@@ -224,7 +221,7 @@ fun SulogScreenMaterial(
                 modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 8.dp),
             ) {
                 item {
                     SulogStatusSection(state, actions)
@@ -381,11 +378,11 @@ private fun SulogMessageCard(
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, color = colorScheme.outline)
+            Text(title, color = colorScheme.onSurfaceVariant)
             if (summary != null) {
                 Text(
                     summary,
-                    color = colorScheme.outline,
+                    color = colorScheme.onSurfaceVariant,
                     fontSize = typography.bodySmall.fontSize,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,

@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.data.repository.SettingsRepository
+import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.home.HomeUiState
@@ -21,13 +23,15 @@ import com.sukisu.ultra.ui.screen.home.SystemInfo
 import com.sukisu.ultra.ui.screen.home.getManagerVersion
 import com.sukisu.ultra.ui.util.checkNewVersion
 import com.sukisu.ultra.ui.util.getModuleCount
-import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.getSELinuxStatusRaw
+import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.resolveDeviceName
 import com.sukisu.ultra.ui.util.rootAvailable
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(
+    private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(buildState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -68,8 +72,7 @@ class HomeViewModel : ViewModel() {
             isRootAvailable = isRootAvailable,
             isSafeMode = Natives.isSafeMode,
             isLateLoadMode = Natives.isLateLoadMode,
-            checkUpdateEnabled = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                .getBoolean("check_update", true),
+            checkUpdateEnabled = settingsRepo.checkUpdate,
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             latestVersionInfo = LatestVersionInfo(),

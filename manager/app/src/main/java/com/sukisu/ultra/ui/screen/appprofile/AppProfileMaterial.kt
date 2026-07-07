@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.MoreVert
@@ -36,15 +35,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,10 +60,14 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.AppIconImage
+import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
+import com.sukisu.ultra.ui.component.material.ExpressiveToggleButton
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.SnackBarHost
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
+import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.profile.AppProfileConfig
 import com.sukisu.ultra.ui.component.profile.RootProfileConfig
 import com.sukisu.ultra.ui.component.profile.TemplateConfig
@@ -87,11 +87,7 @@ fun AppProfileScreenMaterial(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
-    LaunchedEffect(Unit) {
-        scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
-    }
-
-    Scaffold(
+    ExpressiveScaffold(
         topBar = {
             TopBar(
                 onBack = actions.onBack,
@@ -185,15 +181,15 @@ private fun AppProfileInner(
                         supportingContent = {
                             Column {
                                 if (!isUidGroup) {
-                                    Text("$appVersionName ($appVersionCode)", color = MaterialTheme.colorScheme.outline)
-                                    Text(packageName, color = MaterialTheme.colorScheme.outline)
+                                    Text("$appVersionName ($appVersionCode)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(packageName, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 } else {
                                     if (sharedUserId.isNotEmpty()) {
-                                        Text(text = sharedUserId, color = MaterialTheme.colorScheme.outline)
+                                        Text(text = sharedUserId, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Text(
                                         text = stringResource(R.string.group_contains_apps, affectedApps.size),
-                                        color = MaterialTheme.colorScheme.outline
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -204,19 +200,19 @@ private fun AppProfileInner(
                                 if (userId != 0) {
                                     StatusTag(
                                         label = "USER $userId",
-                                        contentColor = MaterialTheme.colorScheme.onTertiary,
-                                        backgroundColor = MaterialTheme.colorScheme.tertiary
+                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
                                     )
                                     StatusTag(
                                         label = "UID $appId",
-                                        contentColor = MaterialTheme.colorScheme.onTertiary,
-                                        backgroundColor = MaterialTheme.colorScheme.tertiary
+                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
                                     )
                                 } else {
                                     StatusTag(
                                         label = "UID $appUid",
-                                        contentColor = MaterialTheme.colorScheme.onTertiary,
-                                        backgroundColor = MaterialTheme.colorScheme.tertiary
+                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
                                     )
                                 }
                             }
@@ -234,7 +230,7 @@ private fun AppProfileInner(
                 {
                     SegmentedListItem(
                         headlineContent = { Text(stringResource(R.string.profile)) },
-                        supportingContent = { Text(mode.text, color = MaterialTheme.colorScheme.outline) },
+                        supportingContent = { Text(mode.text, color = MaterialTheme.colorScheme.onSurfaceVariant) },
                         leadingContent = { Icon(Icons.Filled.AccountCircle, null) },
                     )
                 }
@@ -341,9 +337,7 @@ private fun TopBar(
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.profile)) },
         navigationIcon = {
-            IconButton(
-                onClick = onBack
-            ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
+            TopBarBackButton(onClick = onBack)
         },
         actions = {
             if (!isUidGroup) {
@@ -360,40 +354,30 @@ private fun TopBar(
                         expanded = showDropdown,
                         onDismissRequest = { showDropdown = false }
                     ) {
+                        val menuItems = listOf(
+                            R.string.launch_app to onLaunchApp,
+                            R.string.force_stop_app to onForceStopApp,
+                            R.string.restart_app to onRestartApp,
+                        )
                         DropdownMenuGroup(shapes = MenuDefaults.groupShapes()) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(id = R.string.launch_app)) },
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                    showDropdown = false
-                                    onLaunchApp(packageName, userId)
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(id = R.string.force_stop_app)) },
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                    showDropdown = false
-                                    onForceStopApp(packageName, userId)
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(id = R.string.restart_app)) },
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                    showDropdown = false
-                                    onRestartApp(packageName, userId)
-                                },
-                            )
+                            menuItems.forEachIndexed { index, (resId, action) ->
+                                DropdownMenuItem(
+                                    selected = false,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                        showDropdown = false
+                                        action(packageName, userId)
+                                    },
+                                    text = { Text(stringResource(id = resId)) },
+                                    shapes = MenuDefaults.itemShape(index = index, count = menuItems.size),
+                                )
+                            }
                         }
                     }
                 }
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = expressiveTopAppBarColors(),
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
@@ -419,11 +403,11 @@ private fun ProfileBox(
         )
 
         options.forEachIndexed { index, (m, label) ->
-            ToggleButton(
+            ExpressiveToggleButton(
                 checked = mode == m,
                 onCheckedChange = { checked ->
                     if (checked && (m != Mode.Template || hasTemplate)) {
-                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onModeChange(m)
                     }
                 },
