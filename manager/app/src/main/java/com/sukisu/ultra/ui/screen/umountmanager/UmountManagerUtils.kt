@@ -13,6 +13,11 @@ data class UmountPathEntry(
     val flags: Int
 )
 
+// Exclusion entry: stores a path prefix to skip during umount
+data class UmountExclusionEntry(
+    val pathPrefix: String  // Path prefix to match (e.g., "/data/adb/modules/my_module/")
+)
+
 fun parseUmountPaths(output: String): List<UmountPathEntry> {
     val lines = output.lines().filter { it.isNotBlank() }
     if (lines.size < 2) return emptyList()
@@ -25,6 +30,15 @@ fun parseUmountPaths(output: String): List<UmountPathEntry> {
                 flags = parts[1].toIntOrNull() ?: 0
             )
         } else null
+    }
+}
+
+fun parseUmountExclusions(output: String): List<UmountExclusionEntry> {
+    val lines = output.lines().filter { it.isNotBlank() }
+    return lines.mapNotNull { line ->
+        val trimmed = line.trim()
+        if (trimmed.isEmpty()) null
+        else UmountExclusionEntry(pathPrefix = trimmed)
     }
 }
 

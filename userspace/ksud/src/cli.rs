@@ -560,6 +560,29 @@ enum Umount {
     Apply,
     /// Clear custom umount paths (wipe kernel list)
     ClearCustom,
+    /// Manage umount exclusion for specific paths
+    Exclusion {
+        #[command(subcommand)]
+        command: UmountExclusion,
+    },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum UmountExclusion {
+    /// Add a path prefix to exclusion list (mounts starting with this prefix will be skipped)
+    Add {
+        /// Path prefix to exclude (e.g., "/data/adb/modules/my_module")
+        path: String,
+    },
+    /// Remove a path prefix from exclusion list
+    Remove {
+        /// Path prefix to remove
+        path: String,
+    },
+    /// List all exclusion entries
+    List,
+    /// Clear all exclusion entries
+    Clear,
 }
 
 #[cfg(target_arch = "aarch64")]
@@ -1092,6 +1115,32 @@ pub fn run() -> Result<()> {
             Umount::Save => umount::save_umount_config(),
             Umount::Apply => umount::apply_umount_config(),
             Umount::ClearCustom => umount::clear_umount_config(),
+            Umount::Exclusion { command } => match command {
+                UmountExclusion::Add { path } => {
+                    ksucalls::umount_exclusion_add(&path)?;
+                    println!("Path prefix '{}' added to umount exclusion", path);
+                    Ok(())
+                }
+                UmountExclusion::Remove { path } => {
+                    ksucalls::umount_exclusion_remove(&path)?;
+                    println!("Path prefix '{}' removed from umount exclusion", path);
+                    Ok(())
+                }
+                UmountExclusion::List => {
+                    let list = ksucalls::umount_exclusion_list()?;
+                    if list.is_empty() {
+                        println!("No umount exclusion entries");
+                    } else {
+                        print!("{list}");
+                    }
+                    Ok(())
+                }
+                UmountExclusion::Clear => {
+                    ksucalls::umount_exclusion_clear()?;
+                    println!("All umount exclusion entries cleared");
+                    Ok(())
+                }
+            },
         },
         #[cfg(target_arch = "aarch64")]
         Commands::Kpm { command } => {

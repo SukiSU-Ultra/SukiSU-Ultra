@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
@@ -60,9 +61,22 @@ fun UmountManagerMaterial(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.umount_path_manager)) },
+                title = {
+                    Text(
+                        text = if (state.showExclusionList)
+                            stringResource(R.string.umount_exclusion_manager)
+                        else
+                            stringResource(R.string.umount_path_manager)
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
+                    IconButton(onClick = {
+                        if (state.showExclusionList) {
+                            actions.onBackToPathList()
+                        } else {
+                            actions.onBack()
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null
@@ -70,6 +84,14 @@ fun UmountManagerMaterial(
                     }
                 },
                 actions = {
+                    if (state.showExclusionList) {
+                        IconButton(onClick = actions.onClearAllExclusions) {
+                            Icon(
+                                imageVector = Icons.Outlined.Block,
+                                contentDescription = stringResource(R.string.clear_all_exclusions)
+                            )
+                        }
+                    }
                     IconButton(onClick = actions.onRefresh) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
@@ -84,14 +106,26 @@ fun UmountManagerMaterial(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = actions.onAddClick
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = null,
-                    tint = Color.White
-                )
+            if (state.showExclusionList) {
+                FloatingActionButton(
+                    onClick = actions.onAddExclusionClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            } else {
+                FloatingActionButton(
+                    onClick = actions.onAddPathClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -116,10 +150,49 @@ fun UmountManagerMaterial(
                     )
                     Spacer(modifier = Modifier.width(SPACING_MEDIUM))
                     Text(
-                        text = stringResource(R.string.umount_path_restart_notice)
+                        text = if (state.showExclusionList)
+                            stringResource(R.string.umount_exclusion_manager_summary)
+                        else
+                            stringResource(R.string.umount_path_restart_notice)
                     )
                 }
             }
+
+            // Toggle button between path list and exclusion list
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = SPACING_LARGE),
+                horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+            ) {
+                Button(
+                    onClick = { if (!state.showExclusionList) actions.onShowExclusionList() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Block,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(SPACING_SMALL))
+                    Text(stringResource(R.string.umount_exclusion_manager))
+                }
+
+                Button(
+                    onClick = { if (state.showExclusionList) actions.onBackToPathList() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(SPACING_SMALL))
+                    Text(stringResource(R.string.umount_path_manager))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(SPACING_MEDIUM))
 
             if (state.isLoading) {
                 Box(
@@ -129,43 +202,76 @@ fun UmountManagerMaterial(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
-                    verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
-                ) {
-                    items(state.pathList, key = { it.path }) { entry ->
-                        UmountPathCardMaterial(
-                            entry = entry,
-                            onDelete = {
-                                actions.onDeletePath(entry)
-                            }
-                        )
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(SPACING_LARGE))
-                    }
-
-                    item {
-                        Row(
+                if (state.showExclusionList) {
+                    // Exclusion list
+                    if (state.exclusionList.isEmpty()) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = SPACING_LARGE),
-                            horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Button(
-                                onClick = actions.onClearCustomPaths,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(text = stringResource(R.string.clear_custom_paths))
+                            Text(
+                                text = stringResource(R.string.no_umount_exclusions),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
+                            verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+                        ) {
+                            items(state.exclusionList, key = { it.pathPrefix }) { entry ->
+                                UmountExclusionCardMaterial(
+                                    entry = entry,
+                                    onDelete = { actions.onDeleteExclusion(entry) }
+                                )
                             }
 
-                            Button(
-                                onClick = actions.onApplyConfig,
-                                modifier = Modifier.weight(1f)
+                            item {
+                                Spacer(modifier = Modifier.height(SPACING_LARGE))
+                            }
+                        }
+                    }
+                } else {
+                    // Path list
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = SPACING_LARGE, vertical = SPACING_MEDIUM),
+                        verticalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
+                    ) {
+                        items(state.pathList, key = { it.path }) { entry ->
+                            UmountPathCardMaterial(
+                                entry = entry,
+                                onDelete = { actions.onDeletePath(entry) }
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(SPACING_LARGE))
+                        }
+
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = SPACING_LARGE),
+                                horizontalArrangement = Arrangement.spacedBy(SPACING_MEDIUM)
                             ) {
-                                Text(text = stringResource(R.string.apply_config))
+                                Button(
+                                    onClick = actions.onClearCustomPaths,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(text = stringResource(R.string.clear_custom_paths))
+                                }
+
+                                Button(
+                                    onClick = actions.onApplyConfig,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(text = stringResource(R.string.apply_config))
+                                }
                             }
                         }
                     }
@@ -173,10 +279,17 @@ fun UmountManagerMaterial(
             }
         }
 
-        if (state.showAddDialog) {
+        if (state.showAddPathDialog) {
             AddUmountPathDialogMaterial(
-                onDismiss = actions.onDismissAddDialog,
+                onDismiss = actions.onDismissAddPathDialog,
                 onConfirm = actions.onAddPath
+            )
+        }
+
+        if (state.showAddExclusionDialog) {
+            AddUmountExclusionDialogMaterial(
+                onDismiss = actions.onDismissAddExclusionDialog,
+                onConfirm = actions.onAddExclusion
             )
         }
     }
@@ -219,6 +332,46 @@ fun UmountPathCardMaterial(
                         append(entry.flags.toUmountFlagName(context))
                     },
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun UmountExclusionCardMaterial(
+    entry: UmountExclusionEntry,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(SPACING_LARGE),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Block,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+
+            Spacer(modifier = Modifier.width(SPACING_LARGE))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.pathPrefix
                 )
             }
 
@@ -280,6 +433,46 @@ fun AddUmountPathDialogMaterial(
                     onConfirm(path, flagsInt)
                 },
                 enabled = path.isNotBlank()
+            ) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+fun AddUmountExclusionDialogMaterial(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var pathPrefix by rememberSaveable { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.add_umount_exclusion)) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = pathPrefix,
+                    onValueChange = { pathPrefix = it },
+                    label = { Text(stringResource(R.string.umount_exclusion_path_prefix)) },
+                    placeholder = { Text(stringResource(R.string.umount_exclusion_path_hint)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirm(pathPrefix)
+                },
+                enabled = pathPrefix.isNotBlank()
             ) {
                 Text(stringResource(android.R.string.ok))
             }

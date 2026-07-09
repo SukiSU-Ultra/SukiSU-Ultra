@@ -160,6 +160,24 @@ static const __u8 KSU_UMOUNT_WIPE = 0; /* ignore everything and wipe list */
 static const __u8 KSU_UMOUNT_ADD = 1; /* add entry (path + flags) */
 static const __u8 KSU_UMOUNT_DEL = 2; /* delete entry, strcmp */
 
+// Umount exclusion commands
+// Format: path prefix to exclude during umount
+// Example: "/data/adb/modules/my_module" will exclude all mounts under that path
+struct ksu_umount_exclusion_cmd {
+    __aligned_u64 path_prefix;  // Path prefix string pointer
+    __u32 mode;              // Operation mode: 1=add, 2=remove, 3=clear
+    __u32 padding;           // Padding for alignment
+};
+
+static const __u8 KSU_UMOUNT_EXCLUSION_ADD = 1;
+static const __u8 KSU_UMOUNT_EXCLUSION_REMOVE = 2;
+static const __u8 KSU_UMOUNT_EXCLUSION_CLEAR = 3;
+
+struct ksu_umount_exclusion_list_cmd {
+    __aligned_u64 arg;     // User buffer for list output
+    __u32 buf_size;        // Buffer size provided by userspace
+};
+
 // Other command structures
 struct ksu_get_full_version_cmd {
     char version_full[255]; // Output: full version string
@@ -222,6 +240,7 @@ static const __u32 KSU_IOCTL_HOOK_TYPE = _IOC(_IOC_READ, 'K', 101, 0);
 static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
 static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
 static const __u32 KSU_IOCTL_SET_SPOOF_VERSION = _IOC(_IOC_WRITE, 'K', 104, 0);
+static const __u32 KSU_IOCTL_UMOUNT_EXCLUSION = _IOC(_IOC_READ | _IOC_WRITE, 'K', 105, 0);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
 
 #endif

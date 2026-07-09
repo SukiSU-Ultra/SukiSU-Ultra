@@ -57,6 +57,11 @@ pub fn on_post_data_fs() -> Result<()> {
 
     assets::ensure_binaries(true).with_context(|| "Failed to extract bin assets")?;
 
+    // Load umount exclusion config on post-fs-data
+    if let Err(e) = crate::umount::load_umount_exclusion_config() {
+        warn!("load umount exclusion config failed: {e}");
+    }
+
     // if we are in safe mode, we should disable all modules
     if safe_mode {
         warn!("safe mode, skip post-fs-data scripts and disable all modules!");

@@ -743,3 +743,38 @@ private fun parseQuotedValue(value: String): String {
         trimmed
     }
 }
+
+fun addUmountExclusion(pathPrefix: String): Boolean {
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} umount exclusion add $pathPrefix"
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "add umount exclusion path=$pathPrefix result: $result")
+    return result
+}
+
+fun removeUmountExclusion(pathPrefix: String): Boolean {
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} umount exclusion remove $pathPrefix"
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "remove umount exclusion path=$pathPrefix result: $result")
+    return result
+}
+
+fun listUmountExclusions(): String {
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} umount exclusion list"
+    return try {
+        runCmd(shell, cmd).trim()
+    } catch (e: Exception) {
+        Log.e(TAG, "Failed to list umount exclusions", e)
+        ""
+    }
+}
+
+fun clearUmountExclusions(): Boolean {
+    val shell = getRootShell()
+    val cmd = "${getKsuDaemonPath()} umount exclusion clear"
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "clear umount exclusions result: $result")
+    return result
+}

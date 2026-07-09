@@ -20,4 +20,17 @@ struct mount_entry {
 extern struct list_head mount_list;
 extern struct rw_semaphore mount_list_lock;
 
+// for umount exclusion list
+struct umount_exclusion_entry {
+	char *path_prefix;  // Path prefix to skip during umount
+	struct list_head list;
+};
+extern struct list_head umount_exclusion_list;
+extern struct rw_semaphore umount_exclusion_lock;
+
+int ksu_umount_exclusion_add(const char *path_prefix);
+int ksu_umount_exclusion_remove(const char *path_prefix);
+int ksu_umount_exclusion_clear(void);
+ssize_t ksu_umount_exclusion_list(char __user *buf, size_t buf_size);
+
 #endif

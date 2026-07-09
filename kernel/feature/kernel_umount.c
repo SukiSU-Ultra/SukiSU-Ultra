@@ -9,6 +9,9 @@
 #include <linux/path.h>
 #include <linux/printk.h>
 #include <linux/types.h>
+#include <linux/uaccess.h>
+#include <linux/string.h>
+#include <linux/vmalloc.h>
 
 #include "feature/kernel_umount.h"
 #include "klog.h" // IWYU pragma: keep
@@ -19,6 +22,9 @@
 #include "ksu.h"
 
 static bool ksu_kernel_umount_enabled = true;
+
+LIST_HEAD(umount_exclusion_list);
+DECLARE_RWSEM(umount_exclusion_lock);
 
 static int kernel_umount_feature_get(u64 *value)
 {
@@ -68,6 +74,28 @@ static void try_umount(const char *mnt, int flags)
     ksu_umount_mnt(mnt, &path, flags);
 }
 
+// Check if mount point should be skipped due to exclusion prefix
+// Returns true if mnt starts with any exclusion prefix
+static bool should_skip_mount_for_exclusion(const char *mnt)
+{
+	struct umount_exclusion_entry *entry;
+	bool skip = false;
+	size_t prefix_len;
+
+	down_read(&umount_exclusion_lock);
+	list_for_each_entry (entry, &umount_exclusion_list, list) {
+		prefix_len = strlen(entry->path_prefix);
+		// Check if mount path starts with the exclusion prefix
+		if (prefix_len > 0 && strncmp(mnt, entry->path_prefix, prefix_len) == 0) {
+			skip = true;
+			break;
+		}
+	}
+	up_read(&umount_exclusion_lock);
+
+	return skip;
+}
+
 struct umount_tw {
     struct callback_head cb;
 };
@@ -115,14 +143,171 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
     struct mount_entry *entry;
     down_read(&mount_list_lock);
     list_for_each_entry (entry, &mount_list, list) {
-        pr_info("%s: unmounting: %s flags: 0x%x\n", __func__, entry->umountable, entry->flags);
-        try_umount(entry->umountable, entry->flags);
+        if (should_skip_mount_for_exclusion(entry->umountable)) {
+            pr_info("%s: skipping excluded mount: %s\n", __func__, entry->umountable);
+        } else {
+            pr_info("%s: unmounting: %s flags: 0x%x\n", __func__, entry->umountable, entry->flags);
+            try_umount(entry->umountable, entry->flags);
+        }
     }
     up_read(&mount_list_lock);
 
     revert_creds(saved);
 
     return 0;
+}
+
+static struct umount_exclusion_entry *alloc_exclusion_entry(const char *path_prefix)
+{
+	struct umount_exclusion_entry *entry;
+	size_t prefix_len;
+	size_t alloc_len;
+	char *normalized_prefix;
+
+	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+	if (!entry)
+		return NULL;
+
+	prefix_len = strlen(path_prefix);
+	// Allocate extra space for optional '/' and null terminator
+	alloc_len = prefix_len + 3;
+	normalized_prefix = kzalloc(alloc_len, GFP_KERNEL);
+	if (!normalized_prefix) {
+		kfree(entry);
+		return NULL;
+	}
+
+	strlcpy(normalized_prefix, path_prefix, alloc_len);
+	// Ensure path ends with '/'
+	if (prefix_len == 0 || normalized_prefix[prefix_len - 1] != '/') {
+		normalized_prefix[prefix_len] = '/';
+		normalized_prefix[prefix_len + 1] = '\0';
+	}
+
+	entry->path_prefix = normalized_prefix;
+	return entry;
+}
+
+static void free_exclusion_entry(struct umount_exclusion_entry *entry)
+{
+	if (entry) {
+		kfree(entry->path_prefix);
+		kfree(entry);
+	}
+}
+
+int ksu_umount_exclusion_add(const char *path_prefix)
+{
+	struct umount_exclusion_entry *entry, *new_entry;
+
+	if (!path_prefix || strlen(path_prefix) == 0)
+		return -EINVAL;
+
+	new_entry = alloc_exclusion_entry(path_prefix);
+	if (!new_entry)
+		return -ENOMEM;
+
+	down_write(&umount_exclusion_lock);
+	// Check for duplicates
+	list_for_each_entry (entry, &umount_exclusion_list, list) {
+		if (strcmp(entry->path_prefix, new_entry->path_prefix) == 0) {
+			up_write(&umount_exclusion_lock);
+			free_exclusion_entry(new_entry);
+			return 0;
+		}
+	}
+	list_add_tail(&new_entry->list, &umount_exclusion_list);
+	up_write(&umount_exclusion_lock);
+
+	pr_info("umount exclusion added: prefix=%s\n", new_entry->path_prefix);
+	return 0;
+}
+
+int ksu_umount_exclusion_remove(const char *path_prefix)
+{
+	struct umount_exclusion_entry *entry, *tmp;
+	int removed = 0;
+	size_t prefix_len;
+
+	if (!path_prefix)
+		return -EINVAL;
+
+	prefix_len = strlen(path_prefix);
+	down_write(&umount_exclusion_lock);
+	list_for_each_entry_safe (entry, tmp, &umount_exclusion_list, list) {
+		// Match by exact path or if input is a prefix of stored path
+		if (strcmp(entry->path_prefix, path_prefix) == 0 ||
+		    (prefix_len > 0 && strncmp(entry->path_prefix, path_prefix, prefix_len) == 0 &&
+		     entry->path_prefix[prefix_len] == '/')) {
+			list_del(&entry->list);
+			free_exclusion_entry(entry);
+			removed++;
+		}
+	}
+	up_write(&umount_exclusion_lock);
+
+	pr_info("umount exclusion removed: prefix=%s, count=%d\n", path_prefix, removed);
+	return removed;
+}
+
+int ksu_umount_exclusion_clear(void)
+{
+	struct umount_exclusion_entry *entry, *tmp;
+
+	down_write(&umount_exclusion_lock);
+	list_for_each_entry_safe (entry, tmp, &umount_exclusion_list, list) {
+		list_del(&entry->list);
+		free_exclusion_entry(entry);
+	}
+	up_write(&umount_exclusion_lock);
+
+	pr_info("umount exclusion list cleared\n");
+	return 0;
+}
+
+static int exclusion_list_copy_to_user(char __user *buf, size_t buf_size, size_t *out_len)
+{
+	struct umount_exclusion_entry *entry;
+	size_t total_len = 0;
+	char line_buffer[512];
+	int len;
+
+	down_read(&umount_exclusion_lock);
+	list_for_each_entry (entry, &umount_exclusion_list, list) {
+		len = snprintf(line_buffer, sizeof(line_buffer), "%s\n", entry->path_prefix);
+		if (total_len + len < buf_size) {
+			if (copy_to_user(buf + total_len, line_buffer, len)) {
+				up_read(&umount_exclusion_lock);
+				return -EFAULT;
+			}
+			total_len += len;
+		} else {
+			break;
+		}
+	}
+	up_read(&umount_exclusion_lock);
+
+	*out_len = total_len;
+	return 0;
+}
+
+ssize_t ksu_umount_exclusion_list(char __user *buf, size_t buf_size)
+{
+	size_t len;
+	int ret;
+
+	ret = exclusion_list_copy_to_user(buf, buf_size, &len);
+	if (ret)
+		return ret;
+
+	if (len < buf_size) {
+		char term = '\0';
+		if (copy_to_user(buf + len, &term, 1))
+			return -EFAULT;
+		len++;
+	}
+
+	return len;
 }
 
 void __init ksu_kernel_umount_init(void)
@@ -135,4 +320,5 @@ void __init ksu_kernel_umount_init(void)
 void __exit ksu_kernel_umount_exit(void)
 {
     ksu_unregister_feature_handler(KSU_FEATURE_KERNEL_UMOUNT);
+    ksu_umount_exclusion_clear();
 }

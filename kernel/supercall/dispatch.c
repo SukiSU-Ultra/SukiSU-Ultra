@@ -853,6 +853,51 @@ static int do_enable_kpm(void __user *arg)
     return 0;
 }
 
+// 105. UMOUNT_EXCLUSION - Manage umount exclusion list
+// Simple interface: just pass a path prefix directly
+static int do_umount_exclusion(void __user *arg)
+{
+    struct ksu_umount_exclusion_cmd cmd;
+    struct ksu_umount_exclusion_list_cmd list_cmd;
+    char path_buf[512] = {0};
+    long path_len;
+
+    if (arg == 0) {
+        return -EINVAL;
+    }
+
+    // Try to copy as list command first
+    if (copy_from_user(&list_cmd, arg, sizeof(list_cmd)) == 0) {
+        if (list_cmd.arg != 0 && list_cmd.buf_size > 0) {
+            return ksu_umount_exclusion_list((char __user *)list_cmd.arg, list_cmd.buf_size);
+        }
+        return -EINVAL;
+    }
+
+    // Exclusion add/remove command
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+
+    // module_id now stores the path prefix directly
+    if (!cmd.module_id)
+        return -EINVAL;
+
+    path_len = strncpy_from_user(path_buf, (const char __user *)cmd.module_id, sizeof(path_buf) - 1);
+    if (path_len <= 0)
+        return -EFAULT;
+    path_buf[sizeof(path_buf) - 1] = '\0';
+
+    // Based on mode, add, remove, or clear
+    if (cmd.mode == KSU_UMOUNT_EXCLUSION_REMOVE) {
+        return ksu_umount_exclusion_remove(path_buf);
+    } else if (cmd.mode == KSU_UMOUNT_EXCLUSION_CLEAR) {
+        return ksu_umount_exclusion_clear();
+    }
+
+    // Default to ADD
+    return ksu_umount_exclusion_add(path_buf);
+}
+
 // IOCTL handlers mapping table
 // clang-format off
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
@@ -1005,6 +1050,12 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .name = "SET_SPOOF_VERSION",
         .handler = do_set_spoof_version,
         .perm_check = only_root
+    },
+    {
+        .cmd = KSU_IOCTL_UMOUNT_EXCLUSION,
+        .name = "UMOUNT_EXCLUSION",
+        .handler = do_umount_exclusion,
+        .perm_check = manager_or_root
     },
     { 
         .cmd = KSU_IOCTL_GET_FULL_VERSION,

@@ -328,6 +328,18 @@
     <string name="apply_config">Apply Configuration</string>
     <string name="config_applied">Configuration applied to kernel</string>
     <string name="mnt_detach" translatable="false">MNT_DETACH</string>
+    <!-- Umount Exclusion Manager -->
+    <string name="umount_exclusion_manager">Umount Exclusion</string>
+    <string name="umount_exclusion_manager_summary">Manage paths to exclude from umount</string>
+    <string name="add_umount_exclusion">Add Umount Exclusion</string>
+    <string name="umount_exclusion_path_prefix">Path Prefix</string>
+    <string name="umount_exclusion_path_hint">e.g., /data/adb/modules/my_module</string>
+    <string name="umount_exclusion_added">Umount exclusion added</string>
+    <string name="umount_exclusion_removed">Umount exclusion removed</string>
+    <string name="umount_exclusion_cleared">All umount exclusions cleared</string>
+    <string name="no_umount_exclusions">No umount exclusions configured</string>
+    <string name="confirm_clear_exclusions">Are you sure you want to clear all umount exclusions?</string>
+    <string name="clear_all_exclusions">Clear All Exclusions</string>
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_complete">Flash complete</string>
     <string name="horizon_preparing">Preparing…</string>

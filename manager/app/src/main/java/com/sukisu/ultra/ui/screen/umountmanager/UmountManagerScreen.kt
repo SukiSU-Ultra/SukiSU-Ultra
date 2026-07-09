@@ -17,12 +17,7 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.dialog.ConfirmResult
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
-import com.sukisu.ultra.ui.util.addUmountPath
-import com.sukisu.ultra.ui.util.applyUmountConfigToKernel
-import com.sukisu.ultra.ui.util.clearCustomUmountPaths
-import com.sukisu.ultra.ui.util.listUmountPaths
-import com.sukisu.ultra.ui.util.removeUmountPath
-import com.sukisu.ultra.ui.util.saveUmountConfig
+import com.sukisu.ultra.ui.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,8 +31,11 @@ fun UmountManagerScreen() {
     val confirmDialog = rememberConfirmDialog()
 
     var pathList by remember { mutableStateOf<List<UmountPathEntry>>(emptyList()) }
+    var exclusionList by remember { mutableStateOf<List<UmountExclusionEntry>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddPathDialog by remember { mutableStateOf(false) }
+    var showAddExclusionDialog by remember { mutableStateOf(false) }
+    var showExclusionList by remember { mutableStateOf(false) }
 
     val confirmActionText = stringResource(R.string.confirm_action)
     val umountPathRemovedText = stringResource(R.string.umount_path_removed)
@@ -47,6 +45,10 @@ fun UmountManagerScreen() {
     val configAppliedText = stringResource(R.string.config_applied)
     val umountPathAddedText = stringResource(R.string.umount_path_added)
     val confirmDelete = stringResource(R.string.confirm_delete)
+    val umountExclusionAddedText = stringResource(R.string.umount_exclusion_added)
+    val umountExclusionRemovedText = stringResource(R.string.umount_exclusion_removed)
+    val confirmClearExclusionsText = stringResource(R.string.confirm_clear_exclusions)
+    val exclusionsClearedText = stringResource(R.string.umount_exclusion_cleared)
 
     fun loadPaths() {
         scope.launch(Dispatchers.IO) {
@@ -60,15 +62,35 @@ fun UmountManagerScreen() {
         }
     }
 
+    fun loadExclusions() {
+        scope.launch(Dispatchers.IO) {
+            isLoading = true
+            val result = listUmountExclusions()
+            val entries = parseUmountExclusions(result)
+            withContext(Dispatchers.Main) {
+                exclusionList = entries
+                isLoading = false
+            }
+        }
+    }
+
+    fun loadData() {
+        if (showExclusionList) {
+            loadExclusions()
+        } else {
+            loadPaths()
+        }
+    }
+
     LaunchedEffect(Unit) {
-        loadPaths()
+        loadData()
     }
 
     val actions = UmountManagerActions(
-        onRefresh = { loadPaths() },
-        onAddClick = { showAddDialog = true },
+        onRefresh = { loadData() },
+        onAddPathClick = { showAddPathDialog = true },
         onAddPath = { path, flags ->
-            showAddDialog = false
+            showAddPathDialog = false
 
             scope.launch(Dispatchers.IO) {
                 val success = addUmountPath(path, flags)
@@ -83,7 +105,7 @@ fun UmountManagerScreen() {
                 }
             }
         },
-        onDismissAddDialog = { showAddDialog = false },
+        onDismissAddPathDialog = { showAddPathDialog = false },
         onDeletePath = { pathEntry ->
             scope.launch {
                 if (confirmDialog.awaitConfirm(
@@ -136,13 +158,76 @@ fun UmountManagerScreen() {
                 }
             }
         },
-        onBack = { navigator.pop() }
+        onBack = { navigator.pop() },
+        // Exclusion actions
+        onShowExclusionList = { showExclusionList = true },
+        onAddExclusionClick = { showAddExclusionDialog = true },
+        onAddExclusion = { pathPrefix ->
+            showAddExclusionDialog = false
+
+            scope.launch(Dispatchers.IO) {
+                val success = addUmountExclusion(pathPrefix)
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        Toast.makeText(context, umountExclusionAddedText, Toast.LENGTH_SHORT).show()
+                        loadExclusions()
+                    } else {
+                        Toast.makeText(context, operationFailedText, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        },
+        onDismissAddExclusionDialog = { showAddExclusionDialog = false },
+        onDeleteExclusion = { exclusionEntry ->
+            scope.launch {
+                if (confirmDialog.awaitConfirm(
+                        title = confirmDelete,
+                        content = "Delete exclusion: ${exclusionEntry.pathPrefix}?"
+                    ) == ConfirmResult.Confirmed) {
+                    scope.launch(Dispatchers.IO) {
+                        val success = removeUmountExclusion(exclusionEntry.pathPrefix)
+                        withContext(Dispatchers.Main) {
+                            if (success) {
+                                Toast.makeText(context, umountExclusionRemovedText, Toast.LENGTH_SHORT).show()
+                                loadExclusions()
+                            } else {
+                                Toast.makeText(context, operationFailedText, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        onClearAllExclusions = {
+            scope.launch {
+                if (confirmDialog.awaitConfirm(
+                        title = confirmActionText,
+                        content = confirmClearExclusionsText
+                    ) == ConfirmResult.Confirmed) {
+                    withContext(Dispatchers.IO) {
+                        val success = clearUmountExclusions()
+                        withContext(Dispatchers.Main) {
+                            if (success) {
+                                Toast.makeText(context, exclusionsClearedText, Toast.LENGTH_SHORT).show()
+                                loadExclusions()
+                            } else {
+                                Toast.makeText(context, operationFailedText, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        onBackToPathList = { showExclusionList = false },
     )
 
     val state = UmountManagerUiState(
         pathList = pathList,
+        exclusionList = exclusionList,
         isLoading = isLoading,
-        showAddDialog = showAddDialog
+        showAddPathDialog = showAddPathDialog,
+        showAddExclusionDialog = showAddExclusionDialog,
+        showExclusionList = showExclusionList,
     )
 
     when (LocalUiMode.current) {

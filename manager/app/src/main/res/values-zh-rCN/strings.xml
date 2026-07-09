@@ -302,6 +302,18 @@
     <string name="clear_custom_paths">清除自定义</string>
     <string name="apply_config">应用配置</string>
     <string name="config_applied">配置已应用到内核</string>
+    <!-- 卸载排除管理器 -->
+    <string name="umount_exclusion_manager">卸载排除</string>
+    <string name="umount_exclusion_manager_summary">管理要从卸载中排除的路径</string>
+    <string name="add_umount_exclusion">添加卸载排除项</string>
+    <string name="umount_exclusion_path_prefix">路径前缀</string>
+    <string name="umount_exclusion_path_hint">例如：/data/adb/modules/my_module</string>
+    <string name="umount_exclusion_added">已添加卸载排除项</string>
+    <string name="umount_exclusion_removed">已移除卸载排除项</string>
+    <string name="umount_exclusion_cleared">已清除所有卸载排除项</string>
+    <string name="no_umount_exclusions">未配置卸载排除项</string>
+    <string name="confirm_clear_exclusions">您确定要清除所有卸载排除项吗？</string>
+    <string name="clear_all_exclusions">清除所有排除项</string>
     <!-- Kernel Flash Progress Related -->
     <string name="horizon_flash_complete">刷入完成</string>
     <string name="horizon_preparing">准备中…</string>

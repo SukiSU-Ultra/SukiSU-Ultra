@@ -54,6 +54,7 @@ mod android {
     pub const DEFAULT_PACKAGE_NAME: &str = env!("KSU_PACKAGE_NAME");
 
     pub const UMOUNT_CONFIG_PATH: &str = concatcp!(WORKING_DIR, ".umount");
+
     pub const EXEC_STAGE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 }
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
@@ -51,9 +52,18 @@ fun UmountManagerMiuix(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = stringResource(R.string.umount_path_manager),
+                title = if (state.showExclusionList)
+                    stringResource(R.string.umount_exclusion_manager)
+                else
+                    stringResource(R.string.umount_path_manager),
                 navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
+                    IconButton(onClick = {
+                        if (state.showExclusionList) {
+                            actions.onBackToPathList()
+                        } else {
+                            actions.onBack()
+                        }
+                    }) {
                         val layoutDirection = LocalLayoutDirection.current
                         Icon(
                             modifier = Modifier.graphicsLayer {
@@ -66,6 +76,15 @@ fun UmountManagerMiuix(
                     }
                 },
                 actions = {
+                    if (state.showExclusionList) {
+                        IconButton(onClick = actions.onClearAllExclusions) {
+                            Icon(
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = stringResource(R.string.clear_all_exclusions),
+                                tint = colorScheme.onBackground
+                            )
+                        }
+                    }
                     IconButton(onClick = actions.onRefresh) {
                         Icon(
                             imageVector = MiuixIcons.Refresh,
@@ -78,7 +97,15 @@ fun UmountManagerMiuix(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = actions.onAddClick) {
+            FloatingActionButton(
+                onClick = {
+                    if (state.showExclusionList) {
+                        actions.onAddExclusionClick()
+                    } else {
+                        actions.onAddPathClick()
+                    }
+                }
+            ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
                     contentDescription = null,
@@ -111,11 +138,50 @@ fun UmountManagerMiuix(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.umount_path_restart_notice),
+                        text = if (state.showExclusionList)
+                            stringResource(R.string.umount_exclusion_manager_summary)
+                        else
+                            stringResource(R.string.umount_path_restart_notice),
                         color = colorScheme.onSurface
                     )
                 }
             }
+
+            // Toggle buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { if (!state.showExclusionList) actions.onShowExclusionList() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Block,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.umount_exclusion_manager))
+                }
+
+                Button(
+                    onClick = { if (state.showExclusionList) actions.onBackToPathList() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.umount_path_manager))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (state.isLoading) {
                 Box(
@@ -125,43 +191,76 @@ fun UmountManagerMiuix(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.pathList, key = { it.path }) { entry ->
-                        UmountPathCardMiuix(
-                            entry = entry,
-                            onDelete = {
-                                actions.onDeletePath(entry)
-                            }
-                        )
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    item {
-                        Row(
+                if (state.showExclusionList) {
+                    // Exclusion list
+                    if (state.exclusionList.isEmpty()) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Button(
-                                onClick = actions.onClearCustomPaths,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(text = stringResource(R.string.clear_custom_paths))
+                            Text(
+                                text = stringResource(R.string.no_umount_exclusions),
+                                color = colorScheme.onSurfaceVariantSummary
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.exclusionList, key = { it.pathPrefix }) { entry ->
+                                UmountExclusionCardMiuix(
+                                    entry = entry,
+                                    onDelete = { actions.onDeleteExclusion(entry) }
+                                )
                             }
 
-                            Button(
-                                onClick = actions.onApplyConfig,
-                                modifier = Modifier.weight(1f)
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                    }
+                } else {
+                    // Path list
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.pathList, key = { it.path }) { entry ->
+                            UmountPathCardMiuix(
+                                entry = entry,
+                                onDelete = { actions.onDeletePath(entry) }
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text(text = stringResource(R.string.apply_config))
+                                Button(
+                                    onClick = actions.onClearCustomPaths,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(text = stringResource(R.string.clear_custom_paths))
+                                }
+
+                                Button(
+                                    onClick = actions.onApplyConfig,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(text = stringResource(R.string.apply_config))
+                                }
                             }
                         }
                     }
@@ -169,10 +268,17 @@ fun UmountManagerMiuix(
             }
         }
 
-        if (state.showAddDialog) {
+        if (state.showAddPathDialog) {
             AddUmountPathDialogMiuix(
-                onDismiss = actions.onDismissAddDialog,
+                onDismiss = actions.onDismissAddPathDialog,
                 onConfirm = actions.onAddPath
+            )
+        }
+
+        if (state.showAddExclusionDialog) {
+            AddUmountExclusionDialogMiuix(
+                onDismiss = actions.onDismissAddExclusionDialog,
+                onConfirm = actions.onAddExclusion
             )
         }
     }
@@ -216,6 +322,47 @@ private fun UmountPathCardMiuix(
                         append(entry.flags.toUmountFlagName(context))
                     },
                     color = colorScheme.onSurfaceVariantSummary
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = MiuixIcons.Delete,
+                    contentDescription = null,
+                    tint = colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UmountExclusionCardMiuix(
+    entry: UmountExclusionEntry,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Block,
+                contentDescription = null,
+                tint = colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.pathPrefix,
+                    color = colorScheme.onSurface
                 )
             }
 
@@ -296,6 +443,68 @@ private fun AddUmountPathDialogMiuix(
                             onConfirm(path, flagsInt)
                         },
                         enabled = path.isNotBlank(),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun AddUmountExclusionDialogMiuix(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var pathPrefix by rememberSaveable { mutableStateOf("") }
+    val showDialog = remember { mutableStateOf(true) }
+
+    OverlayDialog(
+        show = showDialog.value,
+        title = stringResource(R.string.add_umount_exclusion),
+        onDismissRequest = {
+            showDialog.value = false
+            onDismiss()
+        },
+        content = {
+            Column {
+                TextField(
+                    value = pathPrefix,
+                    onValueChange = { pathPrefix = it },
+                    label = stringResource(R.string.umount_exclusion_path_prefix),
+                    modifier = Modifier.fillMaxWidth(),
+                    useLabelAsPlaceholder = true
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = stringResource(R.string.umount_exclusion_path_hint),
+                    color = colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TextButton(
+                        text = stringResource(android.R.string.cancel),
+                        onClick = {
+                            showDialog.value = false
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(
+                        text = stringResource(android.R.string.ok),
+                        onClick = {
+                            showDialog.value = false
+                            onConfirm(pathPrefix)
+                        },
+                        enabled = pathPrefix.isNotBlank(),
                         modifier = Modifier.weight(1f)
                     )
                 }

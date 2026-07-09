@@ -328,3 +328,56 @@ pub fn set_spoof_version(release: &str, version: &str) -> anyhow::Result<()> {
     ksuctl(ksu_uapi::KSU_IOCTL_SET_SPOOF_VERSION, &raw mut cmd)?;
     Ok(())
 }
+
+/// Add a path prefix to the umount exclusion list
+pub fn umount_exclusion_add(path_prefix: &str) -> anyhow::Result<()> {
+    let c_path_prefix = std::ffi::CString::new(path_prefix)?;
+
+    let mut cmd = ksu_uapi::ksu_umount_exclusion_cmd {
+        path_prefix: c_path_prefix.as_ptr() as u64,
+        mode: ksu_uapi::KSU_UMOUNT_EXCLUSION_ADD,
+        padding: 0,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_UMOUNT_EXCLUSION, &raw mut cmd)?;
+    Ok(())
+}
+
+/// Remove a path prefix from the umount exclusion list
+pub fn umount_exclusion_remove(path_prefix: &str) -> anyhow::Result<()> {
+    let c_path_prefix = std::ffi::CString::new(path_prefix)?;
+
+    let mut cmd = ksu_uapi::ksu_umount_exclusion_cmd {
+        path_prefix: c_path_prefix.as_ptr() as u64,
+        mode: ksu_uapi::KSU_UMOUNT_EXCLUSION_REMOVE,
+        padding: 0,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_UMOUNT_EXCLUSION, &raw mut cmd)?;
+    Ok(())
+}
+
+/// Clear all entries from the umount exclusion list
+pub fn umount_exclusion_clear() -> anyhow::Result<()> {
+    let mut cmd = ksu_uapi::ksu_umount_exclusion_cmd {
+        path_prefix: 0,
+        mode: ksu_uapi::KSU_UMOUNT_EXCLUSION_CLEAR,
+        padding: 0,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_UMOUNT_EXCLUSION, &raw mut cmd)?;
+    Ok(())
+}
+
+/// List all entries in the umount exclusion list
+pub fn umount_exclusion_list() -> anyhow::Result<String> {
+    const BUF_SIZE: usize = 4096;
+    let mut buffer = vec![0u8; BUF_SIZE];
+    let mut cmd = ksu_uapi::ksu_umount_exclusion_list_cmd {
+        arg: buffer.as_mut_ptr() as u64,
+        buf_size: BUF_SIZE as u32,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_UMOUNT_EXCLUSION, &raw mut cmd)?;
+
+    // Find null terminator or end of buffer
+    let len = buffer.iter().position(|&b| b == 0).unwrap_or(BUF_SIZE);
+    let result = String::from_utf8_lossy(&buffer[..len]).to_string();
+    Ok(result)
+}
