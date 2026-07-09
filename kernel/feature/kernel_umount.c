@@ -177,7 +177,7 @@ static struct umount_exclusion_entry *alloc_exclusion_entry(const char *path_pre
 		return NULL;
 	}
 
-	strlcpy(normalized_prefix, path_prefix, alloc_len);
+	strscpy(normalized_prefix, path_prefix, alloc_len);
 	// Ensure path ends with '/'
 	if (prefix_len == 0 || normalized_prefix[prefix_len - 1] != '/') {
 		normalized_prefix[prefix_len] = '/';

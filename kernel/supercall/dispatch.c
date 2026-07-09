@@ -878,11 +878,11 @@ static int do_umount_exclusion(void __user *arg)
     if (copy_from_user(&cmd, arg, sizeof(cmd)))
         return -EFAULT;
 
-    // module_id now stores the path prefix directly
-    if (!cmd.module_id)
+    // path_prefix stores the path prefix directly
+    if (!cmd.path_prefix)
         return -EINVAL;
 
-    path_len = strncpy_from_user(path_buf, (const char __user *)cmd.module_id, sizeof(path_buf) - 1);
+    path_len = strncpy_from_user(path_buf, (const char __user *)cmd.path_prefix, sizeof(path_buf) - 1);
     if (path_len <= 0)
         return -EFAULT;
     path_buf[sizeof(path_buf) - 1] = '\0';
