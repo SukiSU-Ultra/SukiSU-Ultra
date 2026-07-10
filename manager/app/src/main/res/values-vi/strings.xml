@@ -8,6 +8,7 @@
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">KernelSU hiện tại chỉ hỗ trợ Kernel GKI, nhưng bạn có thể patch file .img của thiết bị GKI mà bạn cần.</string>
     <string name="home_version_mismatch">Phiên bản Trình quản lý (%1$d) và phiên bản driver của KernelSU (%2$d) không khớp.</string>
+    <string name="home_device_model">Mẫu thiết bị</string>
     <string name="home_kernel">Phiên bản Kernel</string>
     <string name="home_manager_version">Phiên bản Trình quản lý</string>
     <string name="home_fingerprint">Fingerprint</string>
@@ -47,6 +48,8 @@
     <string name="module_sort_action_first">Khởi chạy trước</string>
     <string name="module_sort_enabled_first">Bật trước</string>
     <string name="module_repos">Thư viện Module</string>
+    <string name="module_repos_sort_updated">Thời gian cập nhật</string>
+    <string name="module_repos_sort_created">Thời gian tạo</string>
     <string name="module_repos_sort_name">Tên (A → Z)</string>
     <string name="module_repos_source_code">Mã nguồn</string>
     <string name="confirm">Xác nhận</string>
