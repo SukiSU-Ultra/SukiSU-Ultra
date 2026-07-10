@@ -54,6 +54,7 @@ import kotlinx.coroutines.channels.Channel
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.component.bottombar.BottomBar
 import com.sukisu.ultra.ui.component.bottombar.MainPagerState
+import com.sukisu.ultra.ui.component.bottombar.ModuleBadgeState
 import com.sukisu.ultra.ui.component.bottombar.SideRail
 import com.sukisu.ultra.ui.component.bottombar.rememberMainPagerState
 import com.sukisu.ultra.ui.kernelFlash.KernelFlashScreen
@@ -87,12 +88,14 @@ import com.sukisu.ultra.ui.theme.LocalColorMode
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
+import com.sukisu.ultra.ui.theme.LocalEnableNavigationBadge
 import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
 import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
 import com.sukisu.ultra.ui.viewmodel.MainPagerConfig
+import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
@@ -151,6 +154,7 @@ class MainActivity : ComponentActivity() {
                 LocalEnableBlur provides uiState.enableBlur,
                 LocalEnableFloatingBottomBar provides uiState.enableFloatingBottomBar,
                 LocalEnableFloatingBottomBarBlur provides uiState.enableFloatingBottomBarBlur,
+                LocalEnableNavigationBadge provides uiState.enableNavigationBadge,
                 LocalUiMode provides uiMode,
             ) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -247,6 +251,27 @@ fun MainScreen(
     val isManager = Natives.isManager
     val isFullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
     var userScrollEnabled by remember(isFullFeatured) { mutableStateOf(isFullFeatured) }
+
+    val enableNavigationBadge = LocalEnableNavigationBadge.current
+    val moduleViewModel = viewModel<ModuleViewModel>()
+    val moduleUiState by moduleViewModel.uiState.collectAsStateWithLifecycle()
+    val moduleBadge = if (enableNavigationBadge && isFullFeatured) {
+        ModuleBadgeState(
+            enabledCount = moduleUiState.modules.count { it.enabled },
+            updatableCount = moduleUiState.updateInfo.count { it.value.downloadUrl.isNotBlank() },
+        )
+    } else {
+        ModuleBadgeState()
+    }
+    LaunchedEffect(enableNavigationBadge, isFullFeatured) {
+        // The module list normally loads when the module pager is first visited; load it eagerly
+        // so the badge is populated while the user is still on another tab.
+        if (enableNavigationBadge && isFullFeatured && moduleViewModel.uiState.value.modules.isEmpty()) {
+            moduleViewModel.initializePreferences()
+            moduleViewModel.loadModuleList()
+            moduleViewModel.syncModuleUpdateInfo(moduleViewModel.uiState.value.modules)
+        }
+    }
     val uiMode = LocalUiMode.current
     val surfaceColor = when (uiMode) {
         UiMode.Material -> MaterialTheme.colorScheme.surface // Blur is not used in Material, this is just a placeholder
@@ -313,9 +338,7 @@ fun MainScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ) {
                     Row {
-                        SideRail(
-                            blurBackdrop = blurBackdrop,
-                        )
+                        SideRail(moduleBadge)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -328,9 +351,7 @@ fun MainScreen(
 
                 UiMode.Miuix -> Scaffold { _ ->
                     Row {
-                        SideRail(
-                            blurBackdrop = blurBackdrop,
-                        )
+                        SideRail(moduleBadge)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -349,6 +370,7 @@ fun MainScreen(
                     BottomBar(
                         blurBackdrop = blurBackdrop,
                         backdrop = backdrop,
+                        moduleBadge = moduleBadge,
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
