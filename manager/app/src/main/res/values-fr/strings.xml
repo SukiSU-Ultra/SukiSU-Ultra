@@ -211,6 +211,9 @@
     <string name="settings_monet">Activer Monet</string>
     <string name="settings_ui_mode">Style de l\'interface</string>
     <string name="settings_ui_mode_summary">Choisissez un style d\'interface.</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_summary">Choisissez la langue d\'affichage de l\'application</string>
+    <string name="settings_language_system">Suivre le système</string>
     <string name="settings_page_scale">Échelle de page</string>
     <string name="settings_page_scale_summary">Ajustez l\'échelle d\'affichage globale.</string>
     <string name="settings_color_spec">Spécification couleurs</string>

@@ -33,6 +33,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getString("ui_mode", UiMode.DEFAULT_VALUE) ?: UiMode.DEFAULT_VALUE
         set(value) = prefs.edit { putString("ui_mode", value) }
 
+    override var appLanguage: String
+        get() = prefs.getString("app_language", "") ?: ""
+        set(value) = prefs.edit { putString("app_language", value) }
+
     override var checkUpdate: Boolean
         get() = prefs.getBoolean("check_update", true)
         set(value) = prefs.edit { putBoolean("check_update", value) }

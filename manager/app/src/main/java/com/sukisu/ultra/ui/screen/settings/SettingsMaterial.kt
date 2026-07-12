@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -58,6 +59,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.SendLogBottomSheet
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 
 /**
@@ -132,6 +134,21 @@ fun SettingPagerMaterial(
                             items = UiMode.entries.map { it.name },
                             selectedIndex = if (uiState.uiMode == UiMode.Material.value) 1 else 0,
                             onItemSelected = actions.onSetUiModeIndex
+                        )
+                    }
+                    add {
+                        val languageSystemLabel = stringResource(id = R.string.settings_language_system)
+                        val languageTags = remember { listOf(LocaleHelper.SYSTEM) + LocaleHelper.SUPPORTED_TAGS }
+                        val languageNames = remember(languageSystemLabel) {
+                            languageTags.map { if (it.isEmpty()) languageSystemLabel else LocaleHelper.displayName(it) }
+                        }
+                        SegmentedDropdownItem(
+                            icon = Icons.Rounded.Language,
+                            title = stringResource(id = R.string.settings_language),
+                            summary = stringResource(id = R.string.settings_language_summary),
+                            items = languageNames,
+                            selectedIndex = languageTags.indexOf(uiState.appLanguage).coerceAtLeast(0),
+                            onItemSelected = { index -> actions.onSetLanguage(languageTags[index]) }
                         )
                     }
                     add {

@@ -175,6 +175,9 @@
     <string name="settings_key_color_default">Default</string>
     <string name="settings_ui_mode">Gaya Antarmuka</string>
     <string name="settings_ui_mode_summary">Pilih gaya antarmuka.</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_language_summary">Pilih bahasa tampilan aplikasi</string>
+    <string name="settings_language_system">Ikuti sistem</string>
     <string name="settings_page_scale">Skala Tampilan</string>
     <string name="settings_page_scale_summary">Sesuaikan skala tampilan.</string>
     <string name="settings_color_spec">Spesifikasi Warna</string>

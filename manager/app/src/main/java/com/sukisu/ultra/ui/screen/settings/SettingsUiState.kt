@@ -8,6 +8,7 @@ import com.sukisu.ultra.ui.UiMode
 @Immutable
 data class SettingsUiState(
     val uiMode: String = UiMode.DEFAULT_VALUE,
+    val appLanguage: String = "",
     val checkUpdate: Boolean = true,
     val checkModuleUpdate: Boolean = true,
     val alternativeIcon : Boolean = false,
@@ -62,6 +63,7 @@ data class SettingsScreenActions(
     val onOpenTheme: () -> Unit,
     val onSetUiModeIndex: (Int) -> Unit,
     val onOpenProfileTemplate: () -> Unit,
+    val onSetLanguage: (String) -> Unit,
     val onSetSuCompatMode: (Int) -> Unit,
     val onSetKernelUmountEnabled: (Boolean) -> Unit,
     val onSetSelinuxHideEnabled: (Boolean) -> Unit,
