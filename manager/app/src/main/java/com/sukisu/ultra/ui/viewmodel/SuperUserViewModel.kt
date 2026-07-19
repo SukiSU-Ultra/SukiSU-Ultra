@@ -23,7 +23,7 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.superuser.GroupedApps
 import com.sukisu.ultra.ui.screen.superuser.SuperUserUiState
-import com.sukisu.ultra.ui.util.HanziToPinyin
+import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.ownerNameForUid
 import com.sukisu.ultra.ui.util.pickPrimary
 import java.text.Collator
@@ -189,7 +189,7 @@ class SuperUserViewModel(
             val matchedPackageNames = group.apps.filter {
                 it.label.contains(text, true) ||
                         it.packageName.contains(text, true) ||
-                        HanziToPinyin.getInstance().toPinyinString(it.label).contains(text, true)
+                        PinyinUtil.toPinyin(it.label).contains(text, true)
             }.mapTo(linkedSetOf()) { it.packageName }
 
             if (matchedPackageNames.isEmpty()) {

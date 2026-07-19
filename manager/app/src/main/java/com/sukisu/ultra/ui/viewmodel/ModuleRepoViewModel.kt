@@ -20,6 +20,7 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoUiState
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
+import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.isNetworkAvailable
 import java.text.Collator
 import java.util.Locale
@@ -75,8 +76,7 @@ class ModuleRepoViewModel(
                     it.moduleName.contains(text, true) ||
                     it.authors.contains(text, true) ||
                     it.summary.contains(text, true) ||
-                    com.sukisu.ultra.ui.util.HanziToPinyin.getInstance().toPinyinString(it.moduleName)
-                        .contains(text, true)
+                    PinyinUtil.toPinyin(it.moduleName).contains(text, true)
         }
     }
 

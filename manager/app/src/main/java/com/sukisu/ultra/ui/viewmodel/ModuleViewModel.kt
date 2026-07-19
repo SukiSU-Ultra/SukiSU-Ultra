@@ -35,6 +35,7 @@ import com.sukisu.ultra.ui.screen.module.ModuleConfirmDialogState
 import com.sukisu.ultra.ui.screen.module.ModuleConfirmRequest
 import com.sukisu.ultra.ui.screen.module.ModuleEffect
 import com.sukisu.ultra.ui.screen.module.ModuleUiState
+import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.hasMagisk
 import com.sukisu.ultra.ui.util.module.fetchModuleDetail
 import com.sukisu.ultra.ui.util.module.fetchReleaseDescriptionHtml
@@ -149,8 +150,7 @@ class ModuleViewModel(
         return modules.filter {
             it.id.contains(text, true) || it.name.contains(text, true) ||
                     it.description.contains(text, true) || it.author.contains(text, true) ||
-                    com.sukisu.ultra.ui.util.HanziToPinyin.getInstance().toPinyinString(it.name)
-                        .contains(text, true)
+                    PinyinUtil.toPinyin(it.name).contains(text, true)
         }
     }
 
