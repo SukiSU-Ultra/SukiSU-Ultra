@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import androidx.core.content.edit
@@ -28,19 +29,53 @@ object LocaleHelper {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_LANGUAGE, SYSTEM) ?: SYSTEM
 
-    fun setLanguage(context: Context, tag: String) {
+    private fun persistLanguage(context: Context, tag: String) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit { putString(KEY_LANGUAGE, tag) }
+    }
+
+    private fun getSystemLocale(): Locale = Resources.getSystem().configuration.locales[0]
+
+    private fun getAppLocaleManager(context: Context): android.app.LocaleManager? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.getSystemService(android.app.LocaleManager::class.java)
+        } else {
+            null
+        }
+
+    private fun syncPersistedLanguageWithSystem(context: Context): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return getPersistedLanguage(context)
+        }
+
+        val locales = getAppLocaleManager(context)?.applicationLocales ?: LocaleList.getEmptyLocaleList()
+        val tag = if (locales.isEmpty) SYSTEM else locales[0].toLanguageTag()
+        persistLanguage(context, tag)
+        return tag
+    }
+
+    fun getCurrentLanguage(context: Context): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            syncPersistedLanguageWithSystem(context)
+        } else {
+            getPersistedLanguage(context)
+        }
+
+    fun setLanguage(context: Context, tag: String) {
+        persistLanguage(context, tag)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Keep the system per-app language in sync on Android 13+.
-            context.getSystemService(android.app.LocaleManager::class.java)
-                ?.applicationLocales = if (tag.isEmpty()) {
+            // Android 13+ treats applicationLocales as the source of truth.
+            getAppLocaleManager(context)?.applicationLocales = if (tag.isEmpty()) {
                 LocaleList.getEmptyLocaleList()
             } else {
                 LocaleList.forLanguageTags(tag)
             }
+            return
         }
+
+        val locale = if (tag.isEmpty()) getSystemLocale() else Locale.forLanguageTag(tag)
+        Locale.setDefault(locale)
     }
 
     fun displayName(tag: String): String {
@@ -50,8 +85,17 @@ object LocaleHelper {
     }
 
     fun wrap(base: Context): Context {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            syncPersistedLanguageWithSystem(base)
+            Locale.setDefault(base.resources.configuration.locales[0])
+            return base
+        }
+
         val tag = getPersistedLanguage(base)
-        if (tag.isEmpty()) return base
+        if (tag.isEmpty()) {
+            Locale.setDefault(getSystemLocale())
+            return base
+        }
 
         val locale = Locale.forLanguageTag(tag)
         Locale.setDefault(locale)

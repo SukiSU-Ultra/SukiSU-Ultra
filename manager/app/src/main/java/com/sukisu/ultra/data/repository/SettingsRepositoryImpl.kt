@@ -16,6 +16,7 @@ import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
 import com.sukisu.ultra.ui.util.getFeatureStatus
+import com.sukisu.ultra.ui.util.LocaleHelper
 import java.security.SecureRandom
 
 class SettingsRepositoryImpl : SettingsRepository {
@@ -34,8 +35,8 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) = prefs.edit { putString("ui_mode", value) }
 
     override var appLanguage: String
-        get() = prefs.getString("app_language", "") ?: ""
-        set(value) = prefs.edit { putString("app_language", value) }
+        get() = LocaleHelper.getCurrentLanguage(ksuApp)
+        set(value) = LocaleHelper.setLanguage(ksuApp, value)
 
     override var checkUpdate: Boolean
         get() = prefs.getBoolean("check_update", true)

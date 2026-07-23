@@ -19,7 +19,6 @@ import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.theme.ColorMode
-import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.findActivity
 
 class SettingsViewModel(
@@ -151,7 +150,6 @@ class SettingsViewModel(
         if (repo.appLanguage == tag) return
         repo.appLanguage = tag
         _uiState.update { it.copy(appLanguage = tag) }
-        LocaleHelper.setLanguage(context, tag)
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
             context.findActivity()?.recreate()
         }
