@@ -217,6 +217,9 @@
     <string name="settings_key_color_default">Default</string>
     <string name="settings_ui_mode">UI Style</string>
     <string name="settings_ui_mode_summary">Choose the interface style</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_summary">Choose the app display language</string>
+    <string name="settings_language_system">Follow system</string>
     <string name="settings_page_scale">Page Scale</string>
     <string name="settings_page_scale_summary">Adjust the global display scale</string>
     <string name="settings_color_spec">Color Spec</string>

@@ -101,6 +101,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(newBase))
+    }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {

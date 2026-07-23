@@ -34,6 +34,10 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
     lateinit var okhttpClient: OkHttpClient
     private val appViewModelStore by lazy { ViewModelStore() }
 
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(base))
+    }
+
     private fun isUserUnlocked(): Boolean =
         getSystemService(UserManager::class.java)?.isUserUnlocked == true
 
