@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.util.rootAvailable
 import top.yukonga.miuix.kmp.basic.NavigationRail
