@@ -22,9 +22,7 @@ import com.sukisu.ultra.ui.screen.home.HomeUiState
 import com.sukisu.ultra.ui.screen.home.SystemInfo
 import com.sukisu.ultra.ui.screen.home.getManagerVersion
 import com.sukisu.ultra.ui.util.checkNewVersion
-import com.sukisu.ultra.ui.util.getModuleCount
 import com.sukisu.ultra.ui.util.getSELinuxStatusRaw
-import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.resolveDeviceName
 import com.sukisu.ultra.ui.util.rootAvailable
@@ -77,8 +75,6 @@ class HomeViewModel(
                 .getBoolean("show_fingerprint", true),
             latestVersionInfo = LatestVersionInfo(),
             currentManagerVersionCode = managerVersion.versionCode,
-            superuserCount = getSuperuserCount(),
-            moduleCount = getModuleCount(),
             systemInfo = SystemInfo(
                 kernelVersion = Os.uname().release,
                 managerVersion = "${managerVersion.versionName} (${managerVersion.versionCode}-${managerUAPIVersion})",
