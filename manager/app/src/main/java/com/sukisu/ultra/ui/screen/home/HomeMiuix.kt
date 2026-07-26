@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.WarningLevel
+import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopupMiuix
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
