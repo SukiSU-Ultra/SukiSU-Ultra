@@ -9,7 +9,6 @@ import androidx.compose.ui.res.stringResource
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.component.ListPopupDefaults
-import com.sukisu.ultra.ui.util.reboot
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -27,6 +26,7 @@ fun RebootListPopupMiuix(
 ) {
     val showTopPopup = remember { mutableStateOf(false) }
     KsuIsValid {
+        val onReboot = rememberRebootAction()
         IconButton(
             modifier = modifier,
             onClick = { showTopPopup.value = true },
@@ -54,7 +54,8 @@ fun RebootListPopupMiuix(
                             option = option,
                             showTopPopup = showTopPopup,
                             optionSize = rebootOptions.size,
-                            index = idx
+                            index = idx,
+                            onReboot = onReboot
                         )
                     }
                 }
@@ -69,13 +70,14 @@ fun RebootDropdownItem(
     showTopPopup: MutableState<Boolean>,
     optionSize: Int,
     index: Int,
+    onReboot: (String) -> Unit,
 ) {
     DropdownItem(
         text = stringResource(option.labelRes),
         optionSize = optionSize,
         onSelectedIndexChange = {
-            reboot(option.reason)
             showTopPopup.value = false
+            onReboot(option.reason)
         },
         index = index
     )
