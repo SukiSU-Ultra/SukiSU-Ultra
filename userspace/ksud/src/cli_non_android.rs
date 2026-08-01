@@ -1,11 +1,11 @@
 use anyhow::Result;
 use clap::Parser;
 
-use crate::boot_patch::{BootPatchArgs, BootRestoreArgs};
+use crate::boot_patch::{BootPatchArgs, BootRestoreArgs, VendorBootRmvrArgs};
 use crate::lkm_image::BootPatchV2Args;
 use crate::{apk_sign, defs};
 
-/// KernelSU cli for non-android
+/// SukiSU CLI for non-Android hosts
 #[derive(Parser, Debug)]
 #[command(author, version = defs::VERSION_NAME, about, long_about = None)]
 struct Args {
@@ -15,10 +15,13 @@ struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
-    /// Patch boot or init_boot images to apply KernelSU
+    /// Patch boot or init_boot images to apply SakiSU
     BootPatch(BootPatchArgs),
 
-    /// Restore boot or init_boot images patched by KernelSU
+    /// Remove conflicting prebuilt modules from vendor_boot
+    BootPatchRmvr(VendorBootRmvrArgs),
+
+    /// Restore boot or init_boot images patched by SakiSU
     BootRestore(BootRestoreArgs),
 
     /// Patch KernelSU into a boot image
@@ -51,6 +54,8 @@ pub fn run() -> Result<()> {
         }
 
         Commands::BootPatch(boot_patch) => crate::boot_patch::patch(boot_patch),
+
+        Commands::BootPatchRmvr(rmvr) => crate::boot_patch::patch_rmvr(rmvr),
 
         Commands::BootRestore(boot_restore) => crate::boot_patch::restore(boot_restore),
 

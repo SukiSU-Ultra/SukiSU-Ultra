@@ -1,9 +1,13 @@
 #![allow(clippy::ref_option, clippy::needless_pass_by_value)]
 
-use std::fs::File;
-use std::io::{Cursor, Seek, SeekFrom};
-use std::path::Path;
-use std::path::PathBuf;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+use std::{
+    collections::BTreeSet,
+    fs::File,
+    io::{BufReader, Cursor, Read, Seek, SeekFrom},
+    path::{Path, PathBuf},
+};
 
 use android_bootimg::cpio::{Cpio, CpioEntry};
 use android_bootimg::parser::{BootImage, BootImageVersion, RamdiskImage};
@@ -197,6 +201,60 @@ mod android {
             }
         }
         Ok(())
+    }
+
+    pub(super) fn backup_vendor_boot(image: &Path) -> Result<PathBuf> {
+        const PREFIX: &str = "sakisu_vendor_boot_backup_";
+        let sha1 = calculate_sha1(image)?;
+        let target = PathBuf::from(KSU_BACKUP_DIR).join(format!("{PREFIX}{sha1}.img"));
+        if target.is_file() {
+            if calculate_sha1(&target)? == sha1 {
+                println!("- Existing vendor_boot backup: {}", target.display());
+                return Ok(target);
+            }
+            println!(
+                "- Existing vendor_boot backup is incomplete; replacing it atomically: {}",
+                target.display()
+            );
+        }
+
+        utils::ensure_dir_exists(Path::new(KSU_BACKUP_DIR))?;
+        println!("- Backing up vendor_boot before rmvr");
+        let temporary = target.with_extension(format!("img.tmp.{}", std::process::id()));
+        if temporary.exists() {
+            std::fs::remove_file(&temporary)
+                .with_context(|| format!("remove stale backup {}", temporary.display()))?;
+        }
+        let backup_result = (|| -> Result<()> {
+            let mut target_file = OpenOptions::new()
+                .create_new(true)
+                .write(true)
+                .open(&temporary)?;
+            let mut source = OpenOptions::new().read(true).open(image)?;
+            let copied = std::io::copy(&mut source, &mut target_file)
+                .with_context(|| format!("backup vendor_boot to {}", temporary.display()))?;
+            target_file.sync_all()?;
+            ensure!(
+                target_file.metadata()?.len() == copied,
+                "vendor_boot backup length changed while writing"
+            );
+            drop(target_file);
+            ensure!(
+                calculate_sha1(&temporary)? == sha1,
+                "vendor_boot backup verification failed"
+            );
+            std::fs::rename(&temporary, &target).with_context(|| {
+                format!("atomically install vendor_boot backup {}", target.display())
+            })?;
+            File::open(KSU_BACKUP_DIR)?.sync_all()?;
+            Ok(())
+        })();
+        if backup_result.is_err() {
+            let _ = std::fs::remove_file(&temporary);
+        }
+        backup_result?;
+        println!("- Vendor_boot backup: {}", target.display());
+        Ok(target)
     }
 
     pub(super) fn flash_partition(partition: &str, data: &[u8]) -> Result<()> {
@@ -413,6 +471,457 @@ fn enforce_bootimage_version(boot: &BootImage<'_>) -> Result<()> {
         bail!("bootimage version {ver} is not supported!")
     }
     Ok(())
+}
+
+const DEFAULT_VENDOR_RMVR_MODULES: [&str; 2] = ["vr", "vklp"];
+
+#[derive(Debug, Default, Eq, PartialEq)]
+struct VendorModuleCleanupReport {
+    removed_modules: usize,
+    updated_indexes: usize,
+}
+
+impl VendorModuleCleanupReport {
+    fn changed(&self) -> bool {
+        self.removed_modules > 0 || self.updated_indexes > 0
+    }
+
+    fn merge(&mut self, other: Self) {
+        self.removed_modules += other.removed_modules;
+        self.updated_indexes += other.updated_indexes;
+    }
+}
+
+fn is_vendor_boot_version(version: BootImageVersion) -> bool {
+    matches!(version, BootImageVersion::Vendor(_))
+}
+
+fn strip_module_compression_suffix(name: &str) -> &str {
+    [".gz", ".xz", ".zst", ".lz4"]
+        .into_iter()
+        .find_map(|suffix| name.strip_suffix(suffix))
+        .unwrap_or(name)
+}
+
+fn normalize_module_stem(value: &str, require_ko_suffix: bool) -> Option<String> {
+    let value = value.trim().trim_matches(|c| matches!(c, ':' | ','));
+    let basename = value.rsplit('/').next().unwrap_or(value);
+    let basename = strip_module_compression_suffix(basename);
+    let stem = if let Some(stem) = basename.strip_suffix(".ko") {
+        stem
+    } else if require_ko_suffix {
+        return None;
+    } else {
+        basename
+    };
+
+    (!stem.is_empty()).then(|| stem.replace('-', "_").to_ascii_lowercase())
+}
+
+fn is_target_module_reference(value: &str, targets: &BTreeSet<String>) -> bool {
+    normalize_module_stem(value, false).is_some_and(|stem| targets.contains(&stem))
+}
+
+fn normalized_cpio_path(path: &str) -> &str {
+    let mut normalized = path.trim_start_matches('/');
+    while let Some(stripped) = normalized.strip_prefix("./") {
+        normalized = stripped;
+    }
+    normalized
+}
+
+fn is_target_module_path(path: &str, targets: &BTreeSet<String>) -> bool {
+    let path = normalized_cpio_path(path);
+    path.starts_with("lib/modules/")
+        && normalize_module_stem(path, true).is_some_and(|stem| targets.contains(&stem))
+}
+
+fn rewrite_module_index_line(
+    index_name: &str,
+    line: &str,
+    targets: &BTreeSet<String>,
+) -> Option<String> {
+    let trimmed = line.trim();
+    if trimmed.is_empty() || trimmed.starts_with('#') {
+        return Some(line.to_string());
+    }
+
+    let (content, comment) = line
+        .split_once('#')
+        .map_or((line, None), |(content, comment)| (content, Some(comment)));
+    let tokens = content.split_whitespace().collect::<Vec<_>>();
+
+    let attach_comment = |mut rebuilt: String| {
+        if let Some(comment) = comment {
+            if !rebuilt.is_empty() && !rebuilt.ends_with(' ') {
+                rebuilt.push(' ');
+            }
+            rebuilt.push('#');
+            rebuilt.push_str(comment);
+        }
+        rebuilt
+    };
+
+    match index_name {
+        "modules.dep" => {
+            let Some((module, dependencies)) = content.split_once(':') else {
+                return Some(line.to_string());
+            };
+            if is_target_module_reference(module, targets) {
+                return None;
+            }
+
+            let kept = dependencies
+                .split_whitespace()
+                .filter(|dependency| !is_target_module_reference(dependency, targets))
+                .collect::<Vec<_>>();
+            let rebuilt = if kept.is_empty() {
+                format!("{}:", module.trim_end())
+            } else {
+                format!("{}: {}", module.trim_end(), kept.join(" "))
+            };
+            Some(attach_comment(rebuilt))
+        }
+        "modules.softdep" => {
+            if tokens.len() >= 2 && is_target_module_reference(tokens[1], targets) {
+                return None;
+            }
+            let rebuilt = tokens
+                .into_iter()
+                .filter(|token| {
+                    matches!(*token, "softdep" | "pre:" | "post:")
+                        || !is_target_module_reference(token, targets)
+                })
+                .collect::<Vec<_>>()
+                .join(" ");
+            Some(attach_comment(rebuilt))
+        }
+        "modules.alias" => {
+            if tokens.first() == Some(&"alias")
+                && tokens
+                    .last()
+                    .is_some_and(|module| is_target_module_reference(module, targets))
+            {
+                None
+            } else {
+                Some(line.to_string())
+            }
+        }
+        "modules.options" | "modules.blocklist" => {
+            if tokens.len() >= 2 && is_target_module_reference(tokens[1], targets) {
+                None
+            } else {
+                Some(line.to_string())
+            }
+        }
+        name if name == "modules.load"
+            || name.starts_with("modules.load.")
+            || name == "modules.order" =>
+        {
+            if tokens
+                .first()
+                .is_some_and(|module| is_target_module_reference(module, targets))
+            {
+                None
+            } else {
+                Some(line.to_string())
+            }
+        }
+        _ => Some(line.to_string()),
+    }
+}
+
+fn rewrite_module_index(
+    index_path: &str,
+    data: &[u8],
+    targets: &BTreeSet<String>,
+) -> Result<Option<Vec<u8>>> {
+    let index_name = index_path.rsplit('/').next().unwrap_or(index_path);
+    let text = std::str::from_utf8(data)
+        .with_context(|| format!("{index_path} is not a UTF-8 module index"))?;
+    let trailing_newline = text.ends_with('\n');
+    let mut changed = false;
+    let mut output = Vec::new();
+
+    for line in text.lines() {
+        match rewrite_module_index_line(index_name, line.trim_end_matches('\r'), targets) {
+            Some(rebuilt) => {
+                changed |= rebuilt != line;
+                output.push(rebuilt);
+            }
+            None => changed = true,
+        }
+    }
+
+    if !changed {
+        return Ok(None);
+    }
+
+    let mut rebuilt = output.join("\n");
+    if trailing_newline && !rebuilt.is_empty() {
+        rebuilt.push('\n');
+    }
+    Ok(Some(rebuilt.into_bytes()))
+}
+
+fn is_supported_module_index(path: &str) -> bool {
+    let path = normalized_cpio_path(path);
+    if !path.starts_with("lib/modules/") {
+        return false;
+    }
+    let name = path.rsplit('/').next().unwrap_or(path);
+    matches!(
+        name,
+        "modules.dep"
+            | "modules.softdep"
+            | "modules.alias"
+            | "modules.options"
+            | "modules.blocklist"
+            | "modules.load"
+            | "modules.order"
+    ) || name.starts_with("modules.load.")
+}
+
+fn remove_vendor_modules(cpio: &mut Cpio) -> Result<VendorModuleCleanupReport> {
+    let targets = DEFAULT_VENDOR_RMVR_MODULES
+        .into_iter()
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
+    let paths = cpio.entries().keys().cloned().collect::<Vec<_>>();
+    let mut report = VendorModuleCleanupReport::default();
+
+    for path in paths
+        .iter()
+        .filter(|path| is_target_module_path(path, &targets))
+    {
+        ensure!(
+            path.as_str() == normalized_cpio_path(path),
+            "unsupported non-canonical CPIO path: {path}"
+        );
+        println!("- Removing vendor module {path}");
+        cpio.rm(path, false);
+        report.removed_modules += 1;
+    }
+
+    for index_path in paths.iter().filter(|path| is_supported_module_index(path)) {
+        ensure!(
+            index_path.as_str() == normalized_cpio_path(index_path),
+            "unsupported non-canonical CPIO path: {index_path}"
+        );
+        let data = cpio
+            .entry_by_name(index_path)
+            .and_then(CpioEntry::data)
+            .unwrap_or_default()
+            .to_vec();
+        let Some(rebuilt) = rewrite_module_index(index_path, &data, &targets)? else {
+            continue;
+        };
+
+        println!("- Cleaning vendor module references in {index_path}");
+        cpio.rm(index_path, false);
+        cpio.add(index_path, CpioEntry::regular(0o644, Box::new(rebuilt)))?;
+        report.updated_indexes += 1;
+    }
+
+    Ok(report)
+}
+
+fn remove_modules_from_vendor_boot(boot_image: &BootImage<'_>) -> Result<Option<Vec<u8>>> {
+    ensure!(
+        is_vendor_boot_version(boot_image.get_header().get_version()),
+        "rmvr only accepts a vendor_boot image"
+    );
+    let ramdisk = boot_image
+        .get_blocks()
+        .get_ramdisk()
+        .context("vendor_boot image has no ramdisk")?;
+    let mut patcher = BootImagePatchOption::new(boot_image);
+    let mut total = VendorModuleCleanupReport::default();
+
+    if ramdisk.is_vendor_ramdisk() {
+        for (index, fragment) in ramdisk.iter_vendor_ramdisk().enumerate() {
+            let name = fragment.get_name().unwrap_or("<invalid-name>");
+            let mut data = Vec::new();
+            fragment
+                .dump(&mut data, false)
+                .with_context(|| format!("unpack vendor ramdisk fragment {index} ({name})"))?;
+            let mut cpio = Cpio::load_from_data(&data)
+                .with_context(|| format!("parse vendor ramdisk fragment {index} ({name})"))?;
+            let report = remove_vendor_modules(&mut cpio)?;
+            if report.changed() {
+                let mut rebuilt = Vec::new();
+                cpio.dump(&mut rebuilt)?;
+                patcher.replace_vendor_ramdisk(index, Box::new(Cursor::new(rebuilt)), false);
+            }
+            total.merge(report);
+        }
+    } else {
+        let mut data = Vec::new();
+        ramdisk.dump(&mut data, false)?;
+        let mut cpio = Cpio::load_from_data(&data).context("parse vendor_boot ramdisk")?;
+        let report = remove_vendor_modules(&mut cpio)?;
+        if report.changed() {
+            let mut rebuilt = Vec::new();
+            cpio.dump(&mut rebuilt)?;
+            patcher.replace_ramdisk(Box::new(Cursor::new(rebuilt)), false);
+        }
+        total.merge(report);
+    }
+
+    if !total.changed() {
+        println!("- No vr/vklp modules or index references found; image is unchanged");
+        return Ok(None);
+    }
+
+    println!(
+        "- Removed {} module file(s) and updated {} module index file(s)",
+        total.removed_modules, total.updated_indexes
+    );
+    let mut output = Cursor::new(Vec::new());
+    patcher.patch(&mut output)?;
+    Ok(Some(output.into_inner()))
+}
+
+#[cfg_attr(not(target_os = "android"), allow(dead_code))]
+pub fn classify_boot_image(image: &PathBuf) -> Result<&'static str> {
+    let image_data = map_file(image)?;
+    let boot_image = BootImage::parse(&image_data)?;
+    Ok(match boot_image.get_header().get_version() {
+        BootImageVersion::Vendor(_) => "vendor_boot",
+        BootImageVersion::Android(_) if boot_image.get_blocks().get_kernel().is_some() => "boot",
+        BootImageVersion::Android(_) => "init_boot",
+    })
+}
+
+#[derive(clap::Args, Debug)]
+pub struct VendorBootRmvrArgs {
+    /// vendor_boot image path; when omitted on Android, use the current slot vendor_boot
+    #[arg(short, long)]
+    pub boot: Option<PathBuf>,
+
+    /// use the other slot when the image path is omitted
+    #[cfg(target_os = "android")]
+    #[arg(short = 'u', long, default_value = "false")]
+    pub ota: bool,
+
+    /// flash the cleaned image back to vendor_boot
+    #[cfg(target_os = "android")]
+    #[arg(short, long, default_value = "false")]
+    pub flash: bool,
+
+    /// output directory
+    #[arg(short, long, default_value = None)]
+    pub out: Option<PathBuf>,
+
+    /// output file name
+    #[arg(long, default_value = None)]
+    pub out_name: Option<String>,
+
+    /// accepted for Manager partition routing; only vendor_boot is valid
+    #[cfg(target_os = "android")]
+    #[arg(long, default_value = None)]
+    pub partition: Option<String>,
+}
+
+pub fn patch_rmvr(args: VendorBootRmvrArgs) -> Result<()> {
+    let inner = move || {
+        let VendorBootRmvrArgs {
+            boot: image,
+            out,
+            out_name,
+            #[cfg(target_os = "android")]
+            ota,
+            #[cfg(target_os = "android")]
+            flash,
+            #[cfg(target_os = "android")]
+            partition,
+        } = args;
+
+        println!(include_str!("./android/banner"));
+        println!("- Mode: vendor_boot rmvr (vr.ko and vklp.ko)");
+
+        #[cfg(target_os = "android")]
+        let image_supplied = image.is_some();
+        let boot_image_file = if let Some(image) = image {
+            ensure!(image.exists(), "vendor_boot image not found");
+            std::fs::canonicalize(image)?
+        } else {
+            #[cfg(target_os = "android")]
+            {
+                if let Some(partition) = partition {
+                    ensure!(
+                        partition == "vendor_boot",
+                        "rmvr can only target the vendor_boot partition"
+                    );
+                }
+                let slot_suffix = get_slot_suffix(ota);
+                PathBuf::from(format!("/dev/block/by-name/vendor_boot{slot_suffix}"))
+            }
+            #[cfg(not(target_os = "android"))]
+            {
+                bail!("Please specify a vendor_boot image");
+            }
+        };
+
+        #[cfg(target_os = "android")]
+        println!("- Bootdevice: {}", boot_image_file.display());
+        println!("- Parsing vendor_boot image");
+
+        let boot_image_data = map_file(&boot_image_file)?;
+        let boot_image = BootImage::parse(&boot_image_data)?;
+        ensure!(
+            is_vendor_boot_version(boot_image.get_header().get_version()),
+            "rmvr rejected a non-vendor_boot image"
+        );
+
+        let patched = remove_modules_from_vendor_boot(&boot_image)?;
+        let changed = patched.is_some();
+        let new_boot_bytes = patched.unwrap_or_else(|| boot_image_data.to_vec());
+
+        println!("- SAKISU_RMVR_CHANGED={}", u8::from(changed));
+
+        drop(boot_image);
+        drop(boot_image_data);
+
+        #[cfg(target_os = "android")]
+        if flash {
+            if changed {
+                let backup = backup_vendor_boot(&boot_image_file)?;
+                println!("- Restore source if needed: {}", backup.display());
+                println!("- Flashing cleaned vendor_boot image");
+                flash_partition(&boot_image_file.display().to_string(), &new_boot_bytes)?;
+            } else {
+                println!("- Skipping flash because vendor_boot did not need cleanup");
+            }
+        }
+
+        #[cfg(target_os = "android")]
+        let should_write_output = image_supplied || !flash || out_name.is_some() || out.is_some();
+        #[cfg(not(target_os = "android"))]
+        let should_write_output = true;
+
+        if should_write_output {
+            let output_dir = out.unwrap_or(std::env::current_dir()?);
+            let name = out_name.unwrap_or_else(|| {
+                let now = chrono::Utc::now();
+                format!("sukisu_rmvr_{}.img", now.format("%Y%m%d_%H%M%S"))
+            });
+            let output_image = output_dir.join(name);
+            std::fs::write(&output_image, &new_boot_bytes)
+                .context("write cleaned vendor_boot image")?;
+            println!("- Output file is written to");
+            println!("- {}", output_image.display().to_string().trim_matches('"'));
+        }
+
+        println!("- Done!");
+        Ok(())
+    };
+
+    let result = inner();
+    if let Err(ref error) = result {
+        println!("- rmvr Error: {error}");
+    }
+    result
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -657,6 +1166,10 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             BootImage::parse(&boot_image_data)?
         };
         enforce_bootimage_version(&boot_image)?;
+        ensure!(
+            !is_vendor_boot_version(boot_image.get_header().get_version()),
+            "vendor_boot must be handled by boot-patch-rmvr"
+        );
 
         let mut patcher = BootImagePatchOption::new(&boot_image);
 
@@ -1115,5 +1628,123 @@ pub fn read_ksu_config() -> Result<Vec<String>> {
     #[cfg(not(target_os = "android"))]
     {
         Ok(Vec::new())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn add_file(cpio: &mut Cpio, path: &str, data: &[u8]) {
+        cpio.add(path, CpioEntry::regular(0o644, Box::new(data.to_vec())))
+            .unwrap();
+    }
+
+    fn read_text<'a>(cpio: &'a Cpio, path: &str) -> &'a str {
+        std::str::from_utf8(
+            cpio.entry_by_name(path)
+                .and_then(CpioEntry::data)
+                .unwrap_or_default(),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn removes_vr_and_vklp_without_touching_similar_modules() {
+        let mut cpio = Cpio::new();
+        add_file(&mut cpio, "lib/modules/vr.ko", b"vr");
+        add_file(&mut cpio, "lib/modules/6.6-gki/vendor/vklp.ko.zst", b"vklp");
+        add_file(&mut cpio, "lib/modules/myvr.ko", b"keep");
+        add_file(&mut cpio, "lib/modules/vklpx.ko", b"keep");
+        add_file(
+            &mut cpio,
+            "lib/modules/modules.load",
+            b"vr.ko\nmyvr.ko\nvklpx.ko\n",
+        );
+        add_file(
+            &mut cpio,
+            "lib/modules/modules.dep",
+            b"lib/modules/vr.ko:\nlib/modules/foo.ko: lib/modules/vr.ko lib/modules/bar.ko\nlib/modules/myvr.ko:\n",
+        );
+        add_file(
+            &mut cpio,
+            "lib/modules/modules.softdep",
+            b"softdep vr pre: helper\nsoftdep foo pre: vklp vklpx post: bar\n",
+        );
+        add_file(
+            &mut cpio,
+            "lib/modules/6.6-gki/modules.load.recovery",
+            b"vendor/vklp.ko.zst\nmyvr.ko\n",
+        );
+        add_file(
+            &mut cpio,
+            "lib/modules/modules.alias",
+            b"alias test vr\nalias test2 myvr\n",
+        );
+        add_file(
+            &mut cpio,
+            "lib/modules/modules.options",
+            b"options vklp enabled=1\noptions vklpx enabled=1\n",
+        );
+
+        let report = remove_vendor_modules(&mut cpio).unwrap();
+
+        assert_eq!(report.removed_modules, 2);
+        assert_eq!(report.updated_indexes, 6);
+        assert!(!cpio.exists("lib/modules/vr.ko"));
+        assert!(!cpio.exists("lib/modules/6.6-gki/vendor/vklp.ko.zst"));
+        assert!(cpio.exists("lib/modules/myvr.ko"));
+        assert!(cpio.exists("lib/modules/vklpx.ko"));
+        assert_eq!(
+            read_text(&cpio, "lib/modules/modules.load"),
+            "myvr.ko\nvklpx.ko\n"
+        );
+        assert_eq!(
+            read_text(&cpio, "lib/modules/modules.dep"),
+            "lib/modules/foo.ko: lib/modules/bar.ko\nlib/modules/myvr.ko:\n"
+        );
+        assert_eq!(
+            read_text(&cpio, "lib/modules/modules.softdep"),
+            "softdep foo pre: vklpx post: bar\n"
+        );
+        assert_eq!(
+            read_text(&cpio, "lib/modules/6.6-gki/modules.load.recovery"),
+            "myvr.ko\n"
+        );
+        assert_eq!(
+            read_text(&cpio, "lib/modules/modules.alias"),
+            "alias test2 myvr\n"
+        );
+        assert_eq!(
+            read_text(&cpio, "lib/modules/modules.options"),
+            "options vklpx enabled=1\n"
+        );
+    }
+
+    #[test]
+    fn cleanup_without_matches_is_byte_stable() {
+        let mut cpio = Cpio::new();
+        add_file(&mut cpio, "lib/modules/myvr.ko", b"keep");
+        add_file(
+            &mut cpio,
+            "lib/modules/modules.load",
+            b"# keep this comment\n\nmyvr.ko\n",
+        );
+        let mut before = Vec::new();
+        cpio.dump(&mut before).unwrap();
+
+        let report = remove_vendor_modules(&mut cpio).unwrap();
+        let mut after = Vec::new();
+        cpio.dump(&mut after).unwrap();
+
+        assert_eq!(report, VendorModuleCleanupReport::default());
+        assert_eq!(before, after);
+    }
+
+    #[test]
+    fn vendor_boot_gate_uses_header_version_only() {
+        assert!(is_vendor_boot_version(BootImageVersion::Vendor(3)));
+        assert!(is_vendor_boot_version(BootImageVersion::Vendor(4)));
+        assert!(!is_vendor_boot_version(BootImageVersion::Android(4)));
     }
 }
