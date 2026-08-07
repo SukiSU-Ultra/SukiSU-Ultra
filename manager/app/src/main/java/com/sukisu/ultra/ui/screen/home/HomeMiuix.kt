@@ -112,7 +112,7 @@ fun HomePagerMiuix(
             ) {
                 item {
                     Column(
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier.padding(top = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
@@ -171,8 +171,8 @@ fun HomePagerMiuix(
                         InfoCard(systemInfo = state.systemInfo, showFullStatus = state.showFullStatus)
                         DonateCard(onOpenUrl = actions.onOpenUrl)
                         LearnMoreCard(onOpenUrl = actions.onOpenUrl)
+                        Spacer(Modifier.height(bottomInnerPadding))
                     }
-                    Spacer(Modifier.height(bottomInnerPadding))
                 }
             }
         }
@@ -323,7 +323,10 @@ private fun StatusCard(
                                     )
                                     Spacer(Modifier.height(1.dp))
                                     Text(
-                                        text = stringResource(R.string.home_working_version, "${state.ksuVersion}-${state.kernelUAPIVersion}"),
+                                        text = stringResource(
+                                            R.string.home_working_version,
+                                            "${state.ksuVersion}-${state.kernelUAPIVersion}"
+                                        ),
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Medium,
                                     )
