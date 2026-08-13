@@ -94,6 +94,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.RepoModule
+import com.sukisu.ultra.ui.component.PagerNavigationSpringSpec
 import com.sukisu.ultra.ui.component.ScrollToTopOnChange
 import com.sukisu.ultra.ui.component.dialog.ConfirmDialogHandle
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
@@ -431,6 +432,7 @@ fun ModuleRepoDetailScreenMaterial(
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
+                overscrollEffect = null,
             ) { page ->
                 val paddedInnerPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding() + 56.dp + 8.dp,
@@ -473,7 +475,12 @@ fun ModuleRepoDetailScreenMaterial(
             ExpressiveTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 tabs = tabs,
-                onTabClick = { scope.launch { pagerState.animateScrollToPage(it) } },
+                onTabClick = { scope.launch {
+                    pagerState.animateScrollToPage(
+                        page = it,
+                        animationSpec = PagerNavigationSpringSpec,
+                    )
+                } },
                 modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
             )
         }
