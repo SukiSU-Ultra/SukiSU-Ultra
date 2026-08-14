@@ -53,14 +53,7 @@ void on_post_fs_data(void)
     ksu_load_allow_list();
     ksu_observer_init();
     // sanity check, this may influence the performance
-#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
-    if (static_key_enabled(&ksu_is_input_hook_enabled)) {
-        static_branch_disable(&ksu_is_input_hook_enabled);
-        pr_info("ksu_input_hook is disabled\n");
-    }
-#else
     stop_input_hook();
-#endif
     ksu_selinux_hide_handle_post_fs_data();
 }
 
@@ -575,14 +568,7 @@ bool ksu_is_safe_mode(void)
         return true;
 
     // stop hook first!
-#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
-    if (static_key_enabled(&ksu_is_input_hook_enabled)) {
-        static_branch_disable(&ksu_is_input_hook_enabled);
-        pr_info("ksu_input_hook is disabled\n");
-    }
-#else
     stop_input_hook();
-#endif
 
     if (!safe_mode_flag)
         return false;
@@ -692,14 +678,30 @@ static struct input_handler vol_detector_handler = {
     .id_table = vol_detector_ids,
 };
 
+static bool vol_detector_registered = false;
+
 static int vol_detector_init()
 {
+    int ret;
+
     pr_info("vol_detector: init\n");
-    return input_register_handler(&vol_detector_handler);
+    ret = input_register_handler(&vol_detector_handler);
+    if (ret) {
+        pr_err("vol_detector: register failed: %d\n", ret);
+        return ret;
+    }
+
+    vol_detector_registered = true;
+    return 0;
 }
 
 static int vol_detector_exit(void)
 {
+    if (!vol_detector_registered) {
+        return 0;
+    }
+    vol_detector_registered = false;
+
     pr_info("vol_detector: exit\n");
     input_unregister_handler(&vol_detector_handler);
     return 0;
@@ -723,6 +725,14 @@ static void stop_input_hook(void)
         return;
     }
     ksu_input_hook = false;
+
+#if defined(CONFIG_KSU_SUSFS) && defined(KSU_COMPAT_USE_STATIC_KEY)
+    if (static_key_enabled(&ksu_is_input_hook_enabled)) {
+        static_branch_disable(&ksu_is_input_hook_enabled);
+        pr_info("ksu_input_hook is disabled\n");
+    }
+#endif
+
     pr_info("stop input_hook\n");
     vol_detector_exit();
 }
