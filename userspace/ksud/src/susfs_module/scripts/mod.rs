@@ -12,8 +12,8 @@
 //! - [`cleanup`] — tool-residue cleanup list
 //! - [`generate`]— the four full scripts assembled from the above
 
-pub(crate) mod cleanup;
-pub(crate) mod generate;
-pub(crate) mod hide_bl;
-pub(crate) mod prelude;
-pub(crate) mod prop;
+pub mod cleanup;
+pub mod generate;
+pub mod hide_bl;
+pub mod prelude;
+pub mod prop;

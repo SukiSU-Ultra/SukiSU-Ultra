@@ -4,7 +4,7 @@ use crate::susfs::abi::consts::{
     CMD_SUSFS_ADD_OPEN_REDIRECT, CMD_SUSFS_ADD_SUS_MAP, CMD_SUSFS_ADD_SUS_PATH,
     CMD_SUSFS_ADD_SUS_PATH_LOOP, ERR_CMD_NOT_SUPPORTED, SUSFS_MAX_PATHNAME,
 };
-use crate::susfs::abi::{send, SusfsMap, SusfsOpenRedirect, SusfsSusPath};
+use crate::susfs::abi::{SusfsMap, SusfsOpenRedirect, SusfsSusPath, send};
 use crate::susfs::util::copy_path_into;
 
 /// Mark `path` as a SuSFS hidden path.
@@ -29,11 +29,7 @@ pub fn add_sus_path_loop(path: &str) -> anyhow::Result<()> {
 
 /// Add an `open()`-time redirect: `target` paths will be silently opened
 /// as `redirected` for processes selected by `uid_scheme`.
-pub fn add_open_redirect(
-    target: &str,
-    redirected: &str,
-    uid_scheme: u32,
-) -> anyhow::Result<()> {
+pub fn add_open_redirect(target: &str, redirected: &str, uid_scheme: u32) -> anyhow::Result<()> {
     let mut cmd = SusfsOpenRedirect {
         target_pathname: [0; SUSFS_MAX_PATHNAME],
         redirected_pathname: [0; SUSFS_MAX_PATHNAME],

@@ -21,8 +21,8 @@
 //!     └── generate.rs  ← the four full script generators
 //! ```
 
-mod consts;
-mod install;
-mod scripts;
+pub mod consts;
+pub mod install;
+pub mod scripts;
 
 pub use install::{install_module, is_module_installed, remove_module};

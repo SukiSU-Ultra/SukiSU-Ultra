@@ -8,7 +8,7 @@
 //! - [`paths`]  — `sus_path` / `sus_map` / `open_redirect` operations
 //! - [`kstat`]  — `sus_kstat` operations
 
-pub(crate) mod kstat;
-pub(crate) mod paths;
-pub(crate) mod spoof;
-pub(crate) mod status;
+pub mod kstat;
+pub mod paths;
+pub mod spoof;
+pub mod status;

@@ -22,7 +22,7 @@ pub const KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS: &str = "hide_sus_mounts_for_all_pro
 pub const KEY_ENABLE_CLEANUP_RESIDUE: &str = "enable_cleanup_residue";
 pub const KEY_ENABLE_HIDE_BL: &str = "enable_hide_bl";
 pub const KEY_ENABLE_AVC_LOG_SPOOFING: &str = "enable_avc_log_spoofing";
-pub(crate) const KEY_CMDLINE_OR_BOOTCONFIG_PATH: &str = "cmdline_or_bootconfig_path";
+pub const KEY_CMDLINE_OR_BOOTCONFIG_PATH: &str = "cmdline_or_bootconfig_path";
 
 /// All known config keys, in load order.
 ///

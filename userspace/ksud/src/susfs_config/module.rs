@@ -14,7 +14,7 @@ use super::keys::{
 };
 use super::store::load_config;
 
-pub(crate) fn split_paths(raw: &str) -> Vec<String> {
+pub fn split_paths(raw: &str) -> Vec<String> {
     if raw.is_empty() {
         Vec::new()
     } else {
@@ -26,11 +26,11 @@ pub(crate) fn split_paths(raw: &str) -> Vec<String> {
 }
 
 #[allow(dead_code)]
-pub(crate) fn join_paths(paths: &[String]) -> String {
+pub fn join_paths(paths: &[String]) -> String {
     paths.join(";")
 }
 
-pub(crate) fn split_kstat_configs(raw: &str) -> Vec<String> {
+pub fn split_kstat_configs(raw: &str) -> Vec<String> {
     if raw.is_empty() {
         Vec::new()
     } else {
@@ -42,7 +42,7 @@ pub(crate) fn split_kstat_configs(raw: &str) -> Vec<String> {
 }
 
 #[allow(dead_code)]
-pub(crate) fn join_kstat_configs(configs: &[String]) -> String {
+pub fn join_kstat_configs(configs: &[String]) -> String {
     configs.join(";;")
 }
 

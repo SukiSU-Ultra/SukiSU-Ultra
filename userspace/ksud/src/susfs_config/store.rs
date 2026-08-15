@@ -87,7 +87,10 @@ pub fn reset_to_defaults() -> Result<()> {
     config.insert(KEY_EXECUTE_IN_POST_FS_DATA.to_string(), "false".to_string());
     config.insert(KEY_KSTAT_CONFIGS.to_string(), String::new());
     config.insert(KEY_ADD_KSTAT_PATHS.to_string(), String::new());
-    config.insert(KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS.to_string(), "true".to_string());
+    config.insert(
+        KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS.to_string(),
+        "true".to_string(),
+    );
     config.insert(KEY_ENABLE_CLEANUP_RESIDUE.to_string(), "false".to_string());
     config.insert(KEY_ENABLE_HIDE_BL.to_string(), "true".to_string());
     config.insert(KEY_ENABLE_AVC_LOG_SPOOFING.to_string(), "false".to_string());

@@ -18,13 +18,13 @@ use std::path::Path;
 
 const SUSFS_CONFIG_MAGIC: u32 = 0x5355_5346; // "SUSF"
 const SUSFS_CONFIG_VERSION: u32 = 1;
-pub(crate) const SUSFS_CONFIG_FILE: &str = concatcp!(crate::defs::WORKING_DIR, "susfs_config");
+pub const SUSFS_CONFIG_FILE: &str = concatcp!(crate::defs::WORKING_DIR, "susfs_config");
 
-pub(crate) fn config_path() -> &'static Path {
+pub fn config_path() -> &'static Path {
     Path::new(SUSFS_CONFIG_FILE)
 }
 
-pub(crate) fn write_binary(config: &HashMap<String, String>) -> Vec<u8> {
+pub fn write_binary(config: &HashMap<String, String>) -> Vec<u8> {
     let mut buf = Vec::new();
 
     // Header: magic (4) + version (4) + count (4)
@@ -45,7 +45,7 @@ pub(crate) fn write_binary(config: &HashMap<String, String>) -> Vec<u8> {
     buf
 }
 
-pub(crate) fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
+pub fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
     let mut r = data;
     let mut config = HashMap::new();
 
@@ -98,8 +98,7 @@ pub(crate) fn read_binary(data: &[u8]) -> Result<HashMap<String, String>> {
         if r.len() < value_len {
             bail!("Truncated value data");
         }
-        let value =
-            String::from_utf8(r[..value_len].to_vec()).context("Invalid UTF-8 in value")?;
+        let value = String::from_utf8(r[..value_len].to_vec()).context("Invalid UTF-8 in value")?;
         r = &r[value_len..];
 
         config.insert(key, value);

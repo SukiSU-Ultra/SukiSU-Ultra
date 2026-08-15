@@ -4,7 +4,7 @@
 ///
 /// `updateJson=` is intentionally left blank — the module is generated
 /// on-device, not distributed through Magisk's update channel.
-pub(crate) fn module_prop() -> String {
+pub fn module_prop() -> String {
     r"id=susfs_manager
 name=SuSFS Manager
 version=v4.0.0

@@ -1148,9 +1148,7 @@ pub fn run() -> Result<()> {
                 Susfs::EnableAvcLogSpoofing { enabled } => {
                     susfs::enable_avc_log_spoofing(enabled != 0)
                 }
-                Susfs::SetCmdlineOrBootconfig { path } => {
-                    susfs::set_cmdline_or_bootconfig(&path)
-                }
+                Susfs::SetCmdlineOrBootconfig { path } => susfs::set_cmdline_or_bootconfig(&path),
                 Susfs::HideSusMntsForNonSuProcs { enabled } => {
                     susfs::hide_sus_mnts_for_non_su_procs(enabled != 0)
                 }

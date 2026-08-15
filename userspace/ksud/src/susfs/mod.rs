@@ -18,9 +18,9 @@
 //! non-Android hosts the crate root guards the whole module under
 //! `#[cfg(target_arch = "aarch64")]`, matching the kernel ABI.
 
-mod abi;
-mod cmd;
-mod util;
+pub mod abi;
+pub mod cmd;
+pub mod util;
 
 pub use cmd::kstat::*;
 pub use cmd::paths::*;

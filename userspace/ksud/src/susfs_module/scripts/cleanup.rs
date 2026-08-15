@@ -51,7 +51,7 @@ const RESIDUE_PATHS: &[(&str, &str)] = &[
 
 /// Render the cleanup section: a shell `cleanup_path()` helper followed
 /// by one `cleanup_path ...` line per entry.
-pub(crate) fn cleanup_residue_section() -> String {
+pub fn cleanup_residue_section() -> String {
     let total = RESIDUE_PATHS.len();
     let mut lines = String::new();
     let _ = writeln!(

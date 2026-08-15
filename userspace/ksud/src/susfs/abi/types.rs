@@ -9,91 +9,91 @@ use super::consts::{
 };
 
 #[repr(C)]
-pub(crate) struct SusfsVersion {
-    pub(crate) susfs_version: [u8; SUSFS_MAX_VERSION_BUFSIZE],
-    pub(crate) err: i32,
+pub struct SusfsVersion {
+    pub susfs_version: [u8; SUSFS_MAX_VERSION_BUFSIZE],
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsFeatures {
-    pub(crate) enabled_features: [u8; SUSFS_ENABLED_FEATURES_SIZE],
-    pub(crate) err: i32,
+pub struct SusfsFeatures {
+    pub enabled_features: [u8; SUSFS_ENABLED_FEATURES_SIZE],
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsVariant {
-    pub(crate) susfs_variant: [u8; SUSFS_MAX_VARIANT_BUFSIZE],
-    pub(crate) err: i32,
+pub struct SusfsVariant {
+    pub susfs_variant: [u8; SUSFS_MAX_VARIANT_BUFSIZE],
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsUname {
-    pub(crate) release: [u8; NEW_UTS_LEN + 1],
-    pub(crate) version: [u8; NEW_UTS_LEN + 1],
-    pub(crate) err: i32,
+pub struct SusfsUname {
+    pub release: [u8; NEW_UTS_LEN + 1],
+    pub version: [u8; NEW_UTS_LEN + 1],
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsLog {
-    pub(crate) enabled: u32,
-    pub(crate) err: i32,
+pub struct SusfsLog {
+    pub enabled: u32,
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsAvcLogSpoofing {
-    pub(crate) enabled: u32,
-    pub(crate) err: i32,
+pub struct SusfsAvcLogSpoofing {
+    pub enabled: u32,
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsHideSusMnts {
-    pub(crate) enabled: u32,
-    pub(crate) err: i32,
+pub struct SusfsHideSusMnts {
+    pub enabled: u32,
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsOpenRedirect {
-    pub(crate) target_pathname: [u8; SUSFS_MAX_PATHNAME],
-    pub(crate) redirected_pathname: [u8; SUSFS_MAX_PATHNAME],
-    pub(crate) uid_scheme: u32,
-    pub(crate) err: i32,
+pub struct SusfsOpenRedirect {
+    pub target_pathname: [u8; SUSFS_MAX_PATHNAME],
+    pub redirected_pathname: [u8; SUSFS_MAX_PATHNAME],
+    pub uid_scheme: u32,
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsKstat {
-    pub(crate) is_statically: u32,
-    pub(crate) target_ino: u64,
-    pub(crate) target_pathname: [u8; SUSFS_MAX_PATHNAME],
-    pub(crate) spoofed_ino: u64,
-    pub(crate) spoofed_dev: u64,
-    pub(crate) spoofed_nlink: u32,
-    pub(crate) spoofed_size: u64,
-    pub(crate) spoofed_atime_tv_sec: i64,
-    pub(crate) spoofed_atime_tv_nsec: u64,
-    pub(crate) spoofed_mtime_tv_sec: i64,
-    pub(crate) spoofed_mtime_tv_nsec: u64,
-    pub(crate) spoofed_ctime_tv_sec: i64,
-    pub(crate) spoofed_ctime_tv_nsec: u64,
-    pub(crate) spoofed_blocks: u64,
-    pub(crate) spoofed_blksize: i64,
-    pub(crate) flags: u32,
-    pub(crate) err: i32,
+pub struct SusfsKstat {
+    pub is_statically: u32,
+    pub target_ino: u64,
+    pub target_pathname: [u8; SUSFS_MAX_PATHNAME],
+    pub spoofed_ino: u64,
+    pub spoofed_dev: u64,
+    pub spoofed_nlink: u32,
+    pub spoofed_size: u64,
+    pub spoofed_atime_tv_sec: i64,
+    pub spoofed_atime_tv_nsec: u64,
+    pub spoofed_mtime_tv_sec: i64,
+    pub spoofed_mtime_tv_nsec: u64,
+    pub spoofed_ctime_tv_sec: i64,
+    pub spoofed_ctime_tv_nsec: u64,
+    pub spoofed_blocks: u64,
+    pub spoofed_blksize: i64,
+    pub flags: u32,
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsMap {
-    pub(crate) target_pathname: [u8; SUSFS_MAX_PATHNAME],
-    pub(crate) err: i32,
+pub struct SusfsMap {
+    pub target_pathname: [u8; SUSFS_MAX_PATHNAME],
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsSusPath {
-    pub(crate) target_pathname: [u8; SUSFS_MAX_PATHNAME],
-    pub(crate) err: i32,
+pub struct SusfsSusPath {
+    pub target_pathname: [u8; SUSFS_MAX_PATHNAME],
+    pub err: i32,
 }
 
 #[repr(C)]
-pub(crate) struct SusfsCmdlineOrBootconfig {
-    pub(crate) fake_cmdline_or_bootconfig: [u8; SUSFS_FAKE_CMDLINE_OR_BOOTCONFIG_SIZE],
-    pub(crate) err: i32,
+pub struct SusfsCmdlineOrBootconfig {
+    pub fake_cmdline_or_bootconfig: [u8; SUSFS_FAKE_CMDLINE_OR_BOOTCONFIG_SIZE],
+    pub err: i32,
 }

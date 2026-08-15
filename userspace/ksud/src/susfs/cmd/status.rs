@@ -8,7 +8,7 @@ use crate::susfs::abi::consts::{
     ERR_CMD_NOT_SUPPORTED, SUSFS_ENABLED_FEATURES_SIZE, SUSFS_MAX_VARIANT_BUFSIZE,
     SUSFS_MAX_VERSION_BUFSIZE,
 };
-use crate::susfs::abi::{send, SusfsFeatures, SusfsVariant, SusfsVersion};
+use crate::susfs::abi::{SusfsFeatures, SusfsVariant, SusfsVersion, send};
 use crate::susfs::util::cstr_buf_to_string;
 
 /// Return the SuSFS version reported by the kernel, or the literal string
@@ -39,7 +39,11 @@ pub fn get_susfs_features() -> String {
         enabled_features: [0; SUSFS_ENABLED_FEATURES_SIZE],
         err: ERR_CMD_NOT_SUPPORTED,
     };
-    let _ = send(CMD_SUSFS_SHOW_ENABLED_FEATURES, &mut cmd, "show_enabled_features");
+    let _ = send(
+        CMD_SUSFS_SHOW_ENABLED_FEATURES,
+        &mut cmd,
+        "show_enabled_features",
+    );
     cstr_buf_to_string(&cmd.enabled_features)
 }
 

@@ -13,7 +13,7 @@ use crate::susfs::abi::consts::{
     CMD_SUSFS_ADD_SUS_KSTAT, CMD_SUSFS_ADD_SUS_KSTAT_STATICALLY, CMD_SUSFS_UPDATE_SUS_KSTAT,
     ERR_CMD_NOT_SUPPORTED, KSTAT_AUTO_SPOOF, KSTAT_AUTO_SPOOF_FULL_CLONE, SUSFS_MAX_PATHNAME,
 };
-use crate::susfs::abi::{send, SusfsKstat};
+use crate::susfs::abi::{SusfsKstat, send};
 use crate::susfs::util::{canonicalize, copy_metadata_into_kstat, copy_path_into};
 
 /// Resolve `path`, `stat(2)` it, and fill a [`SusfsKstat`] in place.
@@ -67,7 +67,12 @@ fn fill_and_send_kstat(path: &str, cmd: u32, flags: u32, op_name: &str) -> Resul
 /// the path is bind-mounted or overlayed so the kernel can capture the
 /// original stat info.
 pub fn add_sus_kstat(path: &str) -> Result<()> {
-    fill_and_send_kstat(path, CMD_SUSFS_ADD_SUS_KSTAT, KSTAT_AUTO_SPOOF, "add_sus_kstat")
+    fill_and_send_kstat(
+        path,
+        CMD_SUSFS_ADD_SUS_KSTAT,
+        KSTAT_AUTO_SPOOF,
+        "add_sus_kstat",
+    )
 }
 
 /// Complete the spoofing started by [`add_sus_kstat`]. Updates `target_ino`
@@ -100,7 +105,7 @@ pub fn update_sus_kstat_full_clone(path: &str) -> Result<()> {
 /// caller-supplied values rather than `stat(2)`-ing the file. `target_ino`
 /// is still resolved from the path so the kernel can match the request
 /// against the previously-captured entry.
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::similar_names, clippy::too_many_arguments)]
 pub fn add_sus_kstat_statically(
     path: &str,
     ino: u64,

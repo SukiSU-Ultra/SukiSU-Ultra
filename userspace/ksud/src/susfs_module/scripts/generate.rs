@@ -15,6 +15,7 @@ use crate::susfs_module::scripts::{cleanup, hide_bl, prelude};
 ///
 /// `execute_in_post_fs_data` is honored here so the same condition can be
 /// used for the "uname / build_time" branch.
+#[allow(clippy::too_many_arguments)]
 fn should_configure_in_service(
     sus_paths: &[String],
     sus_loop_paths: &[String],
@@ -40,7 +41,7 @@ fn should_configure_in_service(
 /// non-system partitions aren't mounted early enough for the post-fs-data
 /// phase to be useful.
 #[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
-pub(crate) fn service(
+pub fn service(
     sus_paths: &[String],
     sus_loop_paths: &[String],
     _sus_maps: &[String],
@@ -79,11 +80,7 @@ pub(crate) fn service(
             s.push_str("until [ -d \"/sdcard/Android\" ]; do sleep 1; done\n");
             s.push_str("sleep 45\n");
             for path in sus_paths {
-                let _ = writeln!(
-                    s,
-                    "/data/adb/ksud susfs add-sus-path {}",
-                    shell_quote(path)
-                );
+                let _ = writeln!(s, "/data/adb/ksud susfs add-sus-path {}", shell_quote(path));
                 let _ = writeln!(
                     s,
                     "echo \"$(get_current_time): 添加SUS路径: {}\" >> \"$LOG_FILE\"",
@@ -220,7 +217,7 @@ pub(crate) fn service(
 
 /// `post-fs-data.sh` — runs after `/data` is mounted but before services
 /// start; the only thing SuSFS actually wants this early is `uname`.
-pub(crate) fn post_fs_data(
+pub fn post_fs_data(
     uname_value: &str,
     build_time_value: &str,
     execute_in_post_fs_data: bool,
@@ -283,7 +280,7 @@ pub(crate) fn post_fs_data(
 }
 
 /// `post-mount.sh` — currently a stub that just records that it ran.
-pub(crate) fn post_mount() -> String {
+pub fn post_mount() -> String {
     let mut s = String::new();
     s.push_str("#!/system/bin/sh\n");
     s.push_str("# SuSFS Post-Mount Script\n");
@@ -307,7 +304,7 @@ pub(crate) fn post_mount() -> String {
 ///
 /// All per-path `add-sus-path*` / `add-sus-map` calls land here because
 /// the underlying filesystems aren't available until much later.
-pub(crate) fn boot_completed(
+pub fn boot_completed(
     hide_sus_mounts_for_all_procs: bool,
     sus_paths: &[String],
     sus_loop_paths: &[String],
@@ -345,11 +342,7 @@ pub(crate) fn boot_completed(
     if !sus_paths.is_empty() {
         s.push_str("# 添加SUS路径\n");
         for path in sus_paths {
-            let _ = writeln!(
-                s,
-                "/data/adb/ksud susfs add-sus-path {}",
-                shell_quote(path)
-            );
+            let _ = writeln!(s, "/data/adb/ksud susfs add-sus-path {}", shell_quote(path));
             let _ = writeln!(
                 s,
                 "echo \"$(get_current_time): 添加SUS路径: {}\" >> \"$LOG_FILE\"",

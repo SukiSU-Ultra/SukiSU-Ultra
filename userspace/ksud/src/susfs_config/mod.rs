@@ -17,10 +17,10 @@
 //! └── module.rs   ← ModuleConfig + load_module_config (for susfs_module)
 //! ```
 
-mod binary;
-mod keys;
-mod module;
-mod store;
+pub mod binary;
+pub mod keys;
+pub mod module;
+pub mod store;
 
 pub use module::{ModuleConfig, load_module_config};
 pub use store::{clear, export_json, get, remove, reset_to_defaults, set};

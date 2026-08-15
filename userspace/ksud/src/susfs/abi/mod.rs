@@ -7,10 +7,10 @@
 //! None of these items are part of the public API; the crate-root
 //! `susfs` module re-exports only the high-level command functions.
 
-pub(crate) mod consts;
-pub(crate) mod syscall;
-pub(crate) mod types;
+pub mod consts;
+pub mod syscall;
+pub mod types;
 
-pub(crate) use consts::*;
-pub(crate) use syscall::send;
-pub(crate) use types::*;
+pub use consts::*;
+pub use syscall::send;
+pub use types::*;

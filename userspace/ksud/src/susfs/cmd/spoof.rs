@@ -8,11 +8,11 @@ use anyhow::{Context, Result};
 
 use crate::susfs::abi::consts::{
     CMD_SUSFS_ENABLE_AVC_LOG_SPOOFING, CMD_SUSFS_ENABLE_LOG,
-    CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS, CMD_SUSFS_SET_CMDLINE_OR_BOOTCONFIG,
+    CMD_SUSFS_HIDE_SUS_MOUNTS_FOR_NON_SU_PROCS, CMD_SUSFS_SET_CMDLINE_OR_BOOTCONFIG,
     CMD_SUSFS_SET_UNAME, ERR_CMD_NOT_SUPPORTED, NEW_UTS_LEN, SUSFS_FAKE_CMDLINE_OR_BOOTCONFIG_SIZE,
 };
 use crate::susfs::abi::{
-    send, SusfsAvcLogSpoofing, SusfsCmdlineOrBootconfig, SusfsHideSusMnts, SusfsLog, SusfsUname,
+    SusfsAvcLogSpoofing, SusfsCmdlineOrBootconfig, SusfsHideSusMnts, SusfsLog, SusfsUname, send,
 };
 use crate::susfs::util::{canonicalize, read_file};
 
@@ -68,7 +68,7 @@ pub fn hide_sus_mnts_for_non_su_procs(enabled: bool) -> Result<()> {
         err: ERR_CMD_NOT_SUPPORTED,
     };
     send(
-        CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS,
+        CMD_SUSFS_HIDE_SUS_MOUNTS_FOR_NON_SU_PROCS,
         &mut cmd,
         "hide_sus_mnts_for_non_su_procs",
     )

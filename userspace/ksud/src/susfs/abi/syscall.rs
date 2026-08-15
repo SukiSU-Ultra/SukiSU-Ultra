@@ -18,9 +18,8 @@ use libc::SYS_reboot;
 
 use super::consts::{ERR_CMD_NOT_SUPPORTED, KSU_INSTALL_MAGIC1, SUSFS_MAGIC};
 use super::types::{
-    SusfsAvcLogSpoofing, SusfsCmdlineOrBootconfig, SusfsFeatures, SusfsHideSusMnts,
-    SusfsKstat, SusfsLog, SusfsMap, SusfsOpenRedirect, SusfsSusPath, SusfsUname, SusfsVariant,
-    SusfsVersion,
+    SusfsAvcLogSpoofing, SusfsCmdlineOrBootconfig, SusfsFeatures, SusfsHideSusMnts, SusfsKstat,
+    SusfsLog, SusfsMap, SusfsOpenRedirect, SusfsSusPath, SusfsUname, SusfsVariant, SusfsVersion,
 };
 
 /// Dispatch a SuSFS command and return `Ok(())` when the kernel reports no
@@ -31,7 +30,7 @@ use super::types::{
 /// success / errno-style value), so this is the single chokepoint where
 /// `cmd != ERR_CMD_NOT_SUPPORTED && cmd != 0` is converted into an
 /// `anyhow::Error`.
-pub(crate) fn send<T: HasErr>(cmd: u32, payload: &mut T, op_name: &str) -> anyhow::Result<()> {
+pub fn send<T: HasErr>(cmd: u32, payload: &mut T, op_name: &str) -> anyhow::Result<()> {
     // Pass the payload as a raw `*mut c_void` so the `&mut T` reference
     // isn't moved into the syscall (the FFI signature expects a raw
     // pointer, and the kernel writes back into our buffer, but we still
@@ -42,7 +41,7 @@ pub(crate) fn send<T: HasErr>(cmd: u32, payload: &mut T, op_name: &str) -> anyho
             KSU_INSTALL_MAGIC1,
             SUSFS_MAGIC,
             cmd,
-            payload as *mut T as *mut libc::c_void,
+            std::ptr::from_mut::<T>(payload).cast::<libc::c_void>(),
         )
     };
 
@@ -58,7 +57,7 @@ pub(crate) fn send<T: HasErr>(cmd: u32, payload: &mut T, op_name: &str) -> anyho
 /// Kept as a trait (instead of free-standing `field` access) so the
 /// implementation lives next to the struct definitions and new payload
 /// types automatically get the right implementation.
-pub(crate) trait HasErr {
+pub trait HasErr {
     fn err(&self) -> i32;
 }
 

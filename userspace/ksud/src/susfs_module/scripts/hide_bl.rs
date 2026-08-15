@@ -6,7 +6,7 @@
 //! `resetprop` key/value pairs.
 
 /// Helper-function definitions, prefixed once before any property tweaks.
-pub(crate) fn hide_bl_section() -> String {
+pub fn hide_bl_section() -> String {
     r#"# 隐藏BL 来自 Shamiko 脚本
 RESETPROP_BIN="/data/adb/ksu/bin/resetprop"
 
@@ -46,7 +46,7 @@ contains_reset_prop() {
 
 /// Concrete `resetprop` calls run 30 s after boot to override the BL
 /// surface (`ro.boot.verifiedbootstate`, `ro.boot.vbmeta.*`, …).
-pub(crate) fn hide_bl_props() -> String {
+pub fn hide_bl_props() -> String {
     r#"sleep 30
 "$RESETPROP_BIN" -w sys.boot_completed 0
 check_missing_prop "ro.boot.vbmeta.invalidate_on_error" "yes"
