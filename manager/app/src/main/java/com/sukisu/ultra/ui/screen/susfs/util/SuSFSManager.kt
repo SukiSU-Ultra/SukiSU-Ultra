@@ -41,6 +41,12 @@ object SuSFSManager {
     suspend fun setHideSusMountsForAllProcs(context: Context, hideForAll: Boolean): Boolean = SuSFSRepository.setHideSusMountsForAllProcs(context, hideForAll)
     suspend fun setUname(context: Context, unameValue: String, buildTimeValue: String): Boolean = SuSFSRepository.setUname(context, unameValue, buildTimeValue)
 
+    suspend fun setCmdlineOrBootconfigFile(context: Context, sourceUri: String): Boolean =
+        SuSFSRepository.setCmdlineOrBootconfigFile(context, sourceUri)
+
+    suspend fun getCmdlineOrBootconfigPath(): String =
+        SuSFSRepository.getCmdlineOrBootconfigPath()
+
     suspend fun addSusPath(context: Context, path: String): Boolean = SuSFSPathManager.addSusPath(context, path)
     suspend fun removeSusPath(path: String): Boolean = SuSFSPathManager.removeSusPath(path)
     suspend fun editSusPath(context: Context, oldPath: String, newPath: String): Boolean = SuSFSPathManager.editSusPath(context, oldPath, newPath)

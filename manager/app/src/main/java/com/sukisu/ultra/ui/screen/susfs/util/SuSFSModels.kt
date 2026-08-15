@@ -73,7 +73,8 @@ data class ModuleConfig(
     val hideSusMountsForAllProcs: Boolean,
     val enableHideBl: Boolean,
     val enableCleanupResidue: Boolean,
-    val enableAvcLogSpoofing: Boolean
+    val enableAvcLogSpoofing: Boolean,
+    val cmdlineOrBootconfigPath: String = "",
 ) {
     fun hasAutoStartConfig(): Boolean {
         return unameValue != SuSFSConfig.DEFAULT_UNAME ||
@@ -82,6 +83,7 @@ data class ModuleConfig(
                 susLoopPaths.isNotEmpty() ||
                 susMaps.isNotEmpty() ||
                 kstatConfigs.isNotEmpty() ||
-                addKstatPaths.isNotEmpty()
+                addKstatPaths.isNotEmpty() ||
+                cmdlineOrBootconfigPath.isNotBlank()
     }
 }

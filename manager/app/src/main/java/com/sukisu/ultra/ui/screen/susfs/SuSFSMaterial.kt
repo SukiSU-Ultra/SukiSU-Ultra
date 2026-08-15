@@ -365,6 +365,8 @@ fun SuSFSMaterial() {
                             onEnableAvcLogSpoofingChange = { viewModel.setEnableAvcLogSpoofing(context, it) },
                             hideSusMountsForAllProcs = uiState.hideSusMountsForAllProcs,
                             onHideSusMountsForAllProcsChange = { viewModel.setHideSusMountsForAllProcs(context, it) },
+                            cmdlineOrBootconfigPath = uiState.cmdlineOrBootconfigPath,
+                            onCmdlineOrBootconfigApply = { uri -> viewModel.applyCmdlineOrBootconfig(context, uri) },
                             onReset = { viewModel.toggleConfirmReset(true) },
                             onApply = { viewModel.applyBasicSettings(context) },
                             onConfigReload = { viewModel.reloadConfig() }

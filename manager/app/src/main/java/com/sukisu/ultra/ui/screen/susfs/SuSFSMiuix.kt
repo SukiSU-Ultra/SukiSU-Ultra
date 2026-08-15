@@ -465,6 +465,10 @@ fun SuSFSMiuix() {
                             onHideSusMountsForAllProcsChange = { hideForAll: Boolean ->
                                 viewModel.setHideSusMountsForAllProcs(context, hideForAll)
                             },
+                            cmdlineOrBootconfigPath = uiState.cmdlineOrBootconfigPath,
+                            onCmdlineOrBootconfigApply = { uri: String ->
+                                viewModel.applyCmdlineOrBootconfig(context, uri)
+                            },
                             onReset = { viewModel.toggleConfirmReset(true) },
                             onApply = { viewModel.applyBasicSettings(context) },
                             onConfigReload = {

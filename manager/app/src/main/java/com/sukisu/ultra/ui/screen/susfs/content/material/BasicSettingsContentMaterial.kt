@@ -1,7 +1,11 @@
 package com.sukisu.ultra.ui.screen.susfs.content.material
 
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -38,11 +42,21 @@ fun BasicSettingsContentMaterial(
     onEnableAvcLogSpoofingChange: (Boolean) -> Unit,
     hideSusMountsForAllProcs: Boolean,
     onHideSusMountsForAllProcsChange: (Boolean) -> Unit,
+    cmdlineOrBootconfigPath: String = "",
+    onCmdlineOrBootconfigApply: (String) -> Unit = {},
     onReset: (() -> Unit)? = null,
     onApply: (() -> Unit)? = null,
     onConfigReload: () -> Unit
 ) {
     val isAbDevice = produceState(initialValue = false) { value = isAbDevice() }.value
+
+    // SAF file picker for `/proc/cmdline` (non-GKI) or `/proc/bootconfig`
+    // (GKI) replacement. Empty MIME array lets the user choose any plain
+    // text file.
+    val cmdlineFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { onCmdlineOrBootconfigApply(it.toString()) } }
+
 
     // 说明卡片
     DescriptionCardMaterial(
@@ -129,6 +143,66 @@ fun BasicSettingsContentMaterial(
             modifier = Modifier.padding(top = 12.dp).fillMaxWidth()
         ) {
             Text(stringResource(R.string.susfs_apply))
+        }
+    }
+
+    // Cmdline / Bootconfig 卡片
+    Card(modifier = Modifier.padding(top = 12.dp).fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Code,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.susfs_cmdline_or_bootconfig_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Text(
+                text = stringResource(R.string.susfs_cmdline_or_bootconfig_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(
+                            R.string.susfs_cmdline_or_bootconfig_current,
+                            cmdlineOrBootconfigPath.ifBlank {
+                                stringResource(R.string.susfs_cmdline_or_bootconfig_none)
+                            }
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    cmdlineFileLauncher.launch(arrayOf("text/plain", "application/octet-stream", "*/*"))
+                },
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.FolderOpen, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.susfs_cmdline_or_bootconfig_pick_file))
+            }
         }
     }
 

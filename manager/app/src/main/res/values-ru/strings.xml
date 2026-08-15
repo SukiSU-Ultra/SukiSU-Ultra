@@ -510,6 +510,11 @@
     <string name="susfs_backup_info_date">Дата резервного копирования: %s</string>
     <string name="susfs_backup_info_device">Устройство: %s</string>
     <string name="susfs_backup_info_version">Версия: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_title">Подмена Cmdline / Bootconfig</string>
+    <string name="susfs_cmdline_or_bootconfig_description">Выберите текстовый файл, содержимое которого будет передано в ядро через SuSFS вместо /proc/cmdline (не GKI) или /proc/bootconfig (GKI). При включённом автозапуске применяется после каждой перезагрузки.</string>
+    <string name="susfs_cmdline_or_bootconfig_current">Текущий путь: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_none">(не выбрано)</string>
+    <string name="susfs_cmdline_or_bootconfig_pick_file">Выбрать файл Cmdline / Bootconfig</string>
     <string name="hide_bl_script">Состояние блокировки</string>
     <string name="hide_bl_script_description">Переопределить статус блокировки загрузчика в режиме службы late_start</string>
     <string name="cleanup_residue">Очистка</string>

@@ -22,10 +22,12 @@ object SuSFSConfig {
     const val KEY_ENABLE_CLEANUP_RESIDUE = "enable_cleanup_residue"
     const val KEY_ENABLE_HIDE_BL = "enable_hide_bl"
     const val KEY_ENABLE_AVC_LOG_SPOOFING = "enable_avc_log_spoofing"
+    const val KEY_CMDLINE_OR_BOOTCONFIG_PATH = "cmdline_or_bootconfig_path"
 
     // Defaults
     const val DEFAULT_UNAME = "default"
     const val DEFAULT_BUILD_TIME = "default"
+    const val CMDLINE_OR_BOOTCONFIG_FILE = "/data/adb/ksu/cmdline_or_bootconfig.txt"
 
     @SuppressLint("SdCardPath")
     const val DEFAULT_ANDROID_DATA_PATH = "/sdcard/Android/data"

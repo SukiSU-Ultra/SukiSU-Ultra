@@ -24,6 +24,8 @@ data class SuSFSUiState(
     val enableCleanupResidue: Boolean = false,
     val enableAvcLogSpoofing: Boolean = false,
     val hideSusMountsForAllProcs: Boolean = false,
+    val cmdlineOrBootconfigPath: String = "",
+    val cmdlineOrBootconfigError: String? = null,
 
     // 槽位信息
     val slotInfoList: List<SlotInfo> = emptyList(),

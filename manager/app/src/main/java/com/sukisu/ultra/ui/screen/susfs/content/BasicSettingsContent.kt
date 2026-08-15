@@ -29,6 +29,8 @@ fun BasicSettingsContent(
     onEnableAvcLogSpoofingChange: (Boolean) -> Unit,
     hideSusMountsForAllProcs: Boolean,
     onHideSusMountsForAllProcsChange: (Boolean) -> Unit,
+    cmdlineOrBootconfigPath: String = "",
+    onCmdlineOrBootconfigApply: (String) -> Unit = {},
     onReset: (() -> Unit)? = null,
     onApply: (() -> Unit)? = null,
     onConfigReload: () -> Unit
@@ -55,6 +57,8 @@ fun BasicSettingsContent(
             onEnableAvcLogSpoofingChange = onEnableAvcLogSpoofingChange,
             hideSusMountsForAllProcs = hideSusMountsForAllProcs,
             onHideSusMountsForAllProcsChange = onHideSusMountsForAllProcsChange,
+            cmdlineOrBootconfigPath = cmdlineOrBootconfigPath,
+            onCmdlineOrBootconfigApply = onCmdlineOrBootconfigApply,
             onReset = onReset,
             onApply = onApply,
             onConfigReload = onConfigReload
@@ -80,6 +84,8 @@ fun BasicSettingsContent(
             onEnableAvcLogSpoofingChange = onEnableAvcLogSpoofingChange,
             hideSusMountsForAllProcs = hideSusMountsForAllProcs,
             onHideSusMountsForAllProcsChange = onHideSusMountsForAllProcsChange,
+            cmdlineOrBootconfigPath = cmdlineOrBootconfigPath,
+            onCmdlineOrBootconfigApply = onCmdlineOrBootconfigApply,
             onReset = onReset,
             onApply = onApply,
             onConfigReload = onConfigReload

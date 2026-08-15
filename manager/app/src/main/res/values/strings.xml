@@ -543,6 +543,11 @@
     <string name="susfs_backup_info_date">Backup Date: %s</string>
     <string name="susfs_backup_info_device">Device: %s</string>
     <string name="susfs_backup_info_version">Version: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_title">Spoof Cmdline / Bootconfig</string>
+    <string name="susfs_cmdline_or_bootconfig_description">Select a text file whose contents will be handed to the kernel via SuSFS as a replacement for /proc/cmdline (non-GKI) or /proc/bootconfig (GKI). Persisted across reboots when Auto Start is enabled.</string>
+    <string name="susfs_cmdline_or_bootconfig_current">Current path: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_none">(none selected)</string>
+    <string name="susfs_cmdline_or_bootconfig_pick_file">Select Cmdline / Bootconfig File</string>
     <string name="hide_bl_script">Lock state</string>
     <string name="hide_bl_script_description">Overwrite bootloader locking status attribute in late_start service mode</string>
     <string name="cleanup_residue">Cleanup Residue</string>

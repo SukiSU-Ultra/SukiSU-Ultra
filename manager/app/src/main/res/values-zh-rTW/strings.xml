@@ -538,6 +538,11 @@
     <string name="sus_loop_paths_description_title">循環路徑配置</string>
     <string name="sus_loop_paths_description_text">循環路徑會在每次非 root 用戶應用或隔離服務啟動時重新標記為 SUS_PATH。這有助於解決添加的路徑可能因 inode 狀態重置或內核中 inode 重新創建而失效的問題</string>
     <string name="avc_log_spoofing">AVC 日誌欺騙</string>
+    <string name="susfs_cmdline_or_bootconfig_title">欺騙 Cmdline / Bootconfig</string>
+    <string name="susfs_cmdline_or_bootconfig_description">選擇一個文字檔，其內容將透過 SuSFS 推送到內核，作為 /proc/cmdline（非 GKI）或 /proc/bootconfig（GKI）的替代。開啟自動啟動後將持久化並在每次開機時套用。</string>
+    <string name="susfs_cmdline_or_bootconfig_current">當前路徑: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_none">（尚未選擇）</string>
+    <string name="susfs_cmdline_or_bootconfig_pick_file">選擇 Cmdline / Bootconfig 檔案</string>
     <string name="avc_log_spoofing_description">禁用: 禁用在內核 AVC 日誌中欺騙 \'su\' 的 sus tcontext。\n啟用: 啟用在內核 AVC 日誌中將 \'su\' 的 sus tcontext 欺騙為 \'kernel\'</string>
     <!-- SUS Map Related Strings -->
     <string name="susfs_tab_sus_maps">SUS映射</string>

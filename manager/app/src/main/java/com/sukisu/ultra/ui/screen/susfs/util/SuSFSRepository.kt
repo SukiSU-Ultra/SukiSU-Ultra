@@ -2,10 +2,13 @@ package com.sukisu.ultra.ui.screen.susfs.util
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.util.getSuSFSStatus
 import com.sukisu.ultra.ui.util.spoofKernelUname
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -25,7 +28,8 @@ object SuSFSRepository {
             hideSusMountsForAllProcs = getHideSusMountsForAllProcs(),
             enableHideBl = getEnableHideBl(),
             enableCleanupResidue = getEnableCleanupResidue(),
-            enableAvcLogSpoofing = getEnableAvcLogSpoofing()
+            enableAvcLogSpoofing = getEnableAvcLogSpoofing(),
+            cmdlineOrBootconfigPath = getCmdlineOrBootconfigPath()
         )
     }
 
@@ -68,6 +72,9 @@ object SuSFSRepository {
 
     suspend fun getEnableAvcLogSpoofing(): Boolean =
         SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_AVC_LOG_SPOOFING) == "true"
+
+    suspend fun getCmdlineOrBootconfigPath(): String =
+        SuSFSConfig.get(SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH)
 
     suspend fun getSusPaths(): Set<String> =
         SuSFSConfig.getMulti(SuSFSConfig.KEY_SUS_PATHS)
@@ -189,5 +196,62 @@ object SuSFSRepository {
             if (isAutoStartEnabled()) SuSFSCommands.updateMagiskModule()
         }
         return success
+    }
+
+    @SuppressLint("SdCardPath")
+    suspend fun setCmdlineOrBootconfigFile(context: Context, sourceUri: String): Boolean {
+        val shell = Shell.getShell()
+        val targetPath = SuSFSConfig.CMDLINE_OR_BOOTCONFIG_FILE
+        val targetDir = targetPath.substringBeforeLast('/')
+
+        // Pull the file bytes out via ContentResolver. We can't bypass this
+        // by directly using the URI in `sh` because content:// URIs aren't
+        // visible to the kernel-side SuFile reader.
+        val bytes: ByteArray = try {
+            context.contentResolver.openInputStream(Uri.parse(sourceUri)).use { input ->
+                input?.readBytes() ?: return false
+            }
+        } catch (e: Exception) {
+            Log.e("SuSFSRepository", "Failed to read cmdline source uri", e)
+            return false
+        }
+
+        // Make sure /data/adb/ksu exists and the perms are sane.
+        shell.newJob()
+            .add("mkdir -p '$targetDir' && chmod 755 '$targetDir'")
+            .exec()
+
+        // Single-quote the payload + pipe through base64 → avoid any
+        // shell-quoting edge cases (cmdline files can contain spaces,
+        // quotes, NUL bytes, etc.).
+        val b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+        val writeOk = shell.newJob()
+            .add("echo '$b64' | base64 -d > '$targetPath' && chmod 644 '$targetPath'")
+            .exec()
+            .isSuccess
+        if (!writeOk) {
+            Log.e("SuSFSRepository", "Failed to write cmdline file to '$targetPath'")
+            return false
+        }
+
+        // Hand the file off to the kernel.
+        val result = SuSFSCommands.executeSusfsCommandDirect(
+            "set-cmdline-or-bootconfig '${SuSFSConfig.shellQuote(targetPath)}'"
+        )
+        if (!result.isSuccess) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.susfs_command_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            return false
+        }
+
+        // Persist the chosen path so AutoStart can re-apply it at boot.
+        SuSFSConfig.set(SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH, targetPath)
+        if (isAutoStartEnabled()) SuSFSCommands.updateMagiskModule()
+        return true
     }
 }

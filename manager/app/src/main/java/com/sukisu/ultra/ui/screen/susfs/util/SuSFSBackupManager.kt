@@ -29,7 +29,8 @@ object SuSFSBackupManager {
             SuSFSConfig.KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS to getHideSusMountsForAllProcsInternal(),
             SuSFSConfig.KEY_ENABLE_HIDE_BL to getEnableHideBlInternal(),
             SuSFSConfig.KEY_ENABLE_CLEANUP_RESIDUE to getEnableCleanupResidueInternal(),
-            SuSFSConfig.KEY_ENABLE_AVC_LOG_SPOOFING to getEnableAvcLogSpoofingInternal()
+            SuSFSConfig.KEY_ENABLE_AVC_LOG_SPOOFING to getEnableAvcLogSpoofingInternal(),
+            SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH to getCmdlineOrBootconfigPathInternal()
         )
     }
 
@@ -82,6 +83,9 @@ object SuSFSBackupManager {
 
     private suspend fun getEnableAvcLogSpoofingInternal(): Boolean =
         SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_AVC_LOG_SPOOFING) == "true"
+
+    private suspend fun getCmdlineOrBootconfigPathInternal(): String =
+        SuSFSConfig.get(SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH)
 
     private fun generateBackupFileName(): String {
         val df = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())

@@ -490,6 +490,11 @@
     <string name="susfs_backup_info_date">Yedekleme Tarihi: %s</string>
     <string name="susfs_backup_info_device">Cihaz: %s</string>
     <string name="susfs_backup_info_version">Sürüm: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_title">Cmdline / Bootconfig Taklidi</string>
+    <string name="susfs_cmdline_or_bootconfig_description">/proc/cmdline (GKI olmayan) veya /proc/bootconfig (GKI) yerine kullanılacak bir metin dosyası seçin. İçerik SuSFS üzerinden kernel\'a gönderilir. Otomatik Başlatma açıksa her açılışta yeniden uygulanır.</string>
+    <string name="susfs_cmdline_or_bootconfig_current">Mevcut yol: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_none">(henüz seçilmedi)</string>
+    <string name="susfs_cmdline_or_bootconfig_pick_file">Cmdline / Bootconfig Dosyası Seç</string>
     <string name="hide_bl_script">Kilit durumu</string>
     <string name="hide_bl_script_description">Late_start servis modunda bootloader kilit durumu özniteliğinin (attribute) üzerine yazar</string>
     <string name="cleanup_residue">Kalıntıları Temizle</string>

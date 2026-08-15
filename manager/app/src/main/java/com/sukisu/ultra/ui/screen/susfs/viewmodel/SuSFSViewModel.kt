@@ -52,6 +52,7 @@ class SuSFSViewModel(
                         enableHideBl = config.enableHideBl,
                         enableCleanupResidue = config.enableCleanupResidue,
                         enableAvcLogSpoofing = config.enableAvcLogSpoofing,
+                        cmdlineOrBootconfigPath = config.cmdlineOrBootconfigPath,
                         canEnableAutoStart = canEnableAutoStart
                     )
                 }
@@ -314,8 +315,30 @@ class SuSFSViewModel(
                     hideSusMountsForAllProcs = config.hideSusMountsForAllProcs,
                     enableHideBl = config.enableHideBl,
                     enableCleanupResidue = config.enableCleanupResidue,
-                    enableAvcLogSpoofing = config.enableAvcLogSpoofing
+                    enableAvcLogSpoofing = config.enableAvcLogSpoofing,
+                    cmdlineOrBootconfigPath = config.cmdlineOrBootconfigPath
                 )
+            }
+        }
+    }
+
+    fun applyCmdlineOrBootconfig(context: Context, sourceUri: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, cmdlineOrBootconfigError = null) }
+            val success = withContext(Dispatchers.IO) {
+                SuSFSManager.setCmdlineOrBootconfigFile(context, sourceUri)
+            }
+            if (success) {
+                val path = withContext(Dispatchers.IO) { SuSFSManager.getCmdlineOrBootconfigPath() }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        cmdlineOrBootconfigPath = path,
+                        cmdlineOrBootconfigError = null
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

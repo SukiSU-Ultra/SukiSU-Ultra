@@ -620,6 +620,11 @@ enum Susfs {
         /// 0 to disable, 1 to enable
         enabled: u32,
     },
+    /// Spoof /proc/cmdline (non-gki) or /proc/bootconfig (gki) from a text file
+    SetCmdlineOrBootconfig {
+        /// path to the fake cmdline/bootconfig file
+        path: String,
+    },
     /// Hide SUS mounts for non-su processes
     HideSusMntsForNonSuProcs {
         /// 0 to disable, 1 to enable
@@ -1142,6 +1147,9 @@ pub fn run() -> Result<()> {
                 Susfs::EnableLog { enabled } => susfs::enable_log(enabled != 0),
                 Susfs::EnableAvcLogSpoofing { enabled } => {
                     susfs::enable_avc_log_spoofing(enabled != 0)
+                }
+                Susfs::SetCmdlineOrBootconfig { path } => {
+                    susfs::set_cmdline_or_bootconfig(&path)
                 }
                 Susfs::HideSusMntsForNonSuProcs { enabled } => {
                     susfs::hide_sus_mnts_for_non_su_procs(enabled != 0)

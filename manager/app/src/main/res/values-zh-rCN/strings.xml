@@ -531,6 +531,11 @@
     <string name="susfs_backup_info_date">备份日期：%s</string>
     <string name="susfs_backup_info_device">设备：%s</string>
     <string name="susfs_backup_info_version">版本：%s</string>
+    <string name="susfs_cmdline_or_bootconfig_title">欺骗 Cmdline / Bootconfig</string>
+    <string name="susfs_cmdline_or_bootconfig_description">选择一个文本文件，其内容将通过 SuSFS 推送到内核，作为 /proc/cmdline（非 GKI）或 /proc/bootconfig（GKI）的替换。开启自动启动后将持久化并在每次开机时应用。</string>
+    <string name="susfs_cmdline_or_bootconfig_current">当前路径: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_none">（尚未选择）</string>
+    <string name="susfs_cmdline_or_bootconfig_pick_file">选择 Cmdline / Bootconfig 文件</string>
     <string name="hide_bl_script">上锁状态</string>
     <string name="hide_bl_script_description">覆盖引导锁状态属性于 late_start 服务模式</string>
     <string name="cleanup_residue">清理工具残留</string>

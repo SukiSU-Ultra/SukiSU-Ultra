@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.susfs.content.miuix
 
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -45,6 +47,8 @@ fun BasicSettingsContentMiuix(
     onEnableAvcLogSpoofingChange: (Boolean) -> Unit,
     hideSusMountsForAllProcs: Boolean,
     onHideSusMountsForAllProcsChange: (Boolean) -> Unit,
+    cmdlineOrBootconfigPath: String = "",
+    onCmdlineOrBootconfigApply: (String) -> Unit = {},
     onReset: (() -> Unit)? = null,
     onApply: (() -> Unit)? = null,
     onConfigReload: () -> Unit
@@ -52,6 +56,13 @@ fun BasicSettingsContentMiuix(
     val isAbDevice = produceState(initialValue = false) {
         value = isAbDevice()
     }.value
+
+    // SAF file picker for `/proc/cmdline` (non-GKI) or `/proc/bootconfig`
+    // (GKI) replacement. Empty MIME array lets the user choose any plain
+    // text file.
+    val cmdlineFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { onCmdlineOrBootconfigApply(it.toString()) } }
 
     // 执行位置选择
     val locationItems = listOf(
@@ -164,6 +175,73 @@ fun BasicSettingsContentMiuix(
                 Text(
                     text = stringResource(R.string.susfs_apply)
                 )
+            }
+        }
+    }
+
+    // Cmdline / Bootconfig 卡片。
+    Card(
+        modifier = Modifier
+            .padding(top = 12.dp)
+            .fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Code,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.susfs_cmdline_or_bootconfig_title),
+                    style = MiuixTheme.textStyles.title3,
+                    fontWeight = FontWeight.Medium,
+                    color = colorScheme.primary
+                )
+            }
+            Text(
+                text = stringResource(R.string.susfs_cmdline_or_bootconfig_description),
+                fontSize = 13.sp,
+                color = colorScheme.onSurfaceVariantSummary,
+                lineHeight = 16.sp
+            )
+            Card(
+                colors = CardDefaults.defaultColors(
+                    color = colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(
+                            R.string.susfs_cmdline_or_bootconfig_current,
+                            cmdlineOrBootconfigPath.ifBlank {
+                                stringResource(R.string.susfs_cmdline_or_bootconfig_none)
+                            }
+                        ),
+                        fontSize = 13.sp,
+                        color = colorScheme.onSurfaceVariantSummary
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    cmdlineFileLauncher.launch(arrayOf("text/plain", "application/octet-stream", "*/*"))
+                },
+                enabled = !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .padding(vertical = 4.dp),
+                cornerRadius = 8.dp
+            ) {
+                Text(stringResource(R.string.susfs_cmdline_or_bootconfig_pick_file))
             }
         }
     }

@@ -439,6 +439,11 @@
     <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
     <string name="susfs_backup_info_device">Thiết bị: %s</string>
     <string name="susfs_backup_info_version">Phiên bản: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_title">Giả mạo Cmdline / Bootconfig</string>
+    <string name="susfs_cmdline_or_bootconfig_description">Chọn một tệp văn bản có nội dung sẽ được đẩy vào kernel qua SuSFS thay thế cho /proc/cmdline (không GKI) hoặc /proc/bootconfig (GKI). Sẽ được lưu và áp dụng mỗi lần khởi động khi bật Auto Start.</string>
+    <string name="susfs_cmdline_or_bootconfig_current">Đường dẫn hiện tại: %s</string>
+    <string name="susfs_cmdline_or_bootconfig_none">(chưa chọn)</string>
+    <string name="susfs_cmdline_or_bootconfig_pick_file">Chọn tệp Cmdline / Bootconfig</string>
     <string name="hide_bl_script">Trạng thái Lock BL</string>
     <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái lock bootloader ở chế độ dịch vụ late_start</string>
     <string name="cleanup_residue">Dọn rác</string>
