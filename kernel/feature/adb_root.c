@@ -65,34 +65,93 @@ static long is_libadbroot_ok()
     return ret;
 }
 
+/*
+ * Reads a NUL-terminated user-space string into a fresh kernel buffer.
+ * Returns NULL if it's missing, unreadable, or longer than the cap.
+ */
+static char *dup_user_env_string(unsigned long uptr)
+{
+    static const size_t kMaxEnvValueLen = 4096;
+    char *buf;
+    long len;
+
+    buf = kmalloc(kMaxEnvValueLen, GFP_KERNEL);
+    if (!buf)
+        return NULL;
+
+    len = strncpy_from_user(buf, (const char __user *)uptr, kMaxEnvValueLen);
+    if (len < 0 || (size_t)len >= kMaxEnvValueLen) {
+        kfree(buf);
+        return NULL;
+    }
+
+    return buf;
+}
+
+static bool env_entry_matches(const char *entry, const char *name)
+{
+    size_t name_len = strlen(name);
+
+    return strncmp(entry, name, name_len) == 0 && entry[name_len] == '=';
+}
+
+static char *build_env_string(const char *name, const char *value)
+{
+    size_t name_len = strlen(name);
+    size_t value_len = strlen(value);
+    size_t total_len = name_len + 1 + value_len + 1; /* NAME=VALUE\0 */
+    char *out = kmalloc(total_len, GFP_KERNEL);
+
+    if (!out)
+        return NULL;
+
+    memcpy(out, name, name_len);
+    out[name_len] = '=';
+    memcpy(out + name_len + 1, value, value_len);
+    out[total_len - 1] = '\0';
+    return out;
+}
+
+/* "NAME=<existing's value>:<extra_value>", reusing an already-present entry */
+static char *merge_env_value(const char *existing_entry, const char *name, const char *extra_value)
+{
+    size_t name_len = strlen(name);
+    const char *existing_value = existing_entry + name_len + 1;
+    size_t existing_len = strlen(existing_value);
+    size_t extra_len = strlen(extra_value);
+    size_t total_len = name_len + 1 + existing_len + 1 + extra_len + 1; /* NAME=existing:extra\0 */
+    char *out = kmalloc(total_len, GFP_KERNEL);
+
+    if (!out)
+        return NULL;
+
+    memcpy(out, name, name_len);
+    out[name_len] = '=';
+    memcpy(out + name_len + 1, existing_value, existing_len);
+    out[name_len + 1 + existing_len] = ':';
+    memcpy(out + name_len + 1 + existing_len + 1, extra_value, extra_len);
+    out[total_len - 1] = '\0';
+    return out;
+}
+
 static long setup_ld_preload(struct pt_regs *regs)
 {
-    static const char kLdPreload[] = "LD_PRELOAD=/data/adb/ksu/lib/libadbroot.so";
-    static const char kLdLibraryPath[] = "LD_LIBRARY_PATH=/data/adb/ksu/lib";
+    static const char kLdPreloadName[] = "LD_PRELOAD";
+    static const char kLdPreloadValue[] = "/data/adb/ksu/lib/libadbroot.so";
+    static const char kLdLibraryPathName[] = "LD_LIBRARY_PATH";
+    static const char kLdLibraryPathValue[] = "/data/adb/ksu/lib";
     static const size_t kReadEnvBatch = 16;
     static const size_t kPtrSize = sizeof(unsigned long);
     unsigned long stackp = user_stack_pointer(regs);
     unsigned long envp, ld_preload_p, ld_library_path_p;
     unsigned long *envp_p = (unsigned long *)&PT_REGS_PARM3(regs);
     unsigned long *tmp_env_p = NULL, *tmp_env_p2 = NULL;
-    size_t env_count = 0, total_size;
+    char *ld_preload_str = NULL, *ld_library_path_str = NULL, *merged;
+    long ld_preload_idx = -1, ld_library_path_idx = -1;
+    size_t env_count = 0, total_size, i;
     long ret;
 
     envp = (char __user **)untagged_addr((unsigned long)*envp_p);
-
-    ld_preload_p = stackp = ALIGN_DOWN(stackp - sizeof(kLdPreload), 8);
-    ret = copy_to_user(ld_preload_p, kLdPreload, sizeof(kLdPreload));
-    if (ret != 0) {
-        pr_warn("write ld_preload when adb_root_handle_execve failed: %ld\n", ret);
-        return -EFAULT;
-    }
-
-    ld_library_path_p = stackp = ALIGN_DOWN(stackp - sizeof(kLdLibraryPath), 8);
-    ret = copy_to_user(ld_library_path_p, kLdLibraryPath, sizeof(kLdLibraryPath));
-    if (ret != 0) {
-        pr_warn("write ld_library_path when adb_root_handle_execve failed: %ld\n", ret);
-        return -EFAULT;
-    }
 
     for (;;) {
         tmp_env_p2 = krealloc(tmp_env_p, (env_count + kReadEnvBatch + 2) * kPtrSize, GFP_KERNEL);
@@ -133,10 +192,83 @@ static long setup_ld_preload(struct pt_regs *regs)
             break;
     }
 
-    // We should have allocated enough memory
-    // TODO: handle existing LD_PRELOAD
-    tmp_env_p[env_count++] = ld_preload_p;
-    tmp_env_p[env_count++] = ld_library_path_p;
+    /*
+     * Reuse an existing LD_PRELOAD / LD_LIBRARY_PATH if adbd's environment
+     * already set one, instead of appending a second, conflicting entry.
+     */
+    for (i = 0; i < env_count; i++) {
+        char *val;
+
+        if (ld_preload_idx >= 0 && ld_library_path_idx >= 0)
+            break;
+
+        val = dup_user_env_string(tmp_env_p[i]);
+        if (!val)
+            continue;
+
+        if (ld_preload_idx < 0 && env_entry_matches(val, kLdPreloadName)) {
+            ld_preload_str = val;
+            ld_preload_idx = (long)i;
+            continue;
+        }
+        if (ld_library_path_idx < 0 && env_entry_matches(val, kLdLibraryPathName)) {
+            ld_library_path_str = val;
+            ld_library_path_idx = (long)i;
+            continue;
+        }
+        kfree(val);
+    }
+
+    if (ld_preload_str) {
+        merged = merge_env_value(ld_preload_str, kLdPreloadName, kLdPreloadValue);
+        kfree(ld_preload_str);
+        ld_preload_str = merged;
+    } else {
+        ld_preload_str = build_env_string(kLdPreloadName, kLdPreloadValue);
+    }
+    if (!ld_preload_str) {
+        ret = -ENOMEM;
+        goto out_release_env_p;
+    }
+
+    if (ld_library_path_str) {
+        merged = merge_env_value(ld_library_path_str, kLdLibraryPathName, kLdLibraryPathValue);
+        kfree(ld_library_path_str);
+        ld_library_path_str = merged;
+    } else {
+        ld_library_path_str = build_env_string(kLdLibraryPathName, kLdLibraryPathValue);
+    }
+    if (!ld_library_path_str) {
+        ret = -ENOMEM;
+        goto out_release_ld_preload_str;
+    }
+
+    ld_preload_p = stackp = ALIGN_DOWN(stackp - (strlen(ld_preload_str) + 1), 8);
+    ret = copy_to_user(ld_preload_p, ld_preload_str, strlen(ld_preload_str) + 1);
+    if (ret != 0) {
+        pr_warn("write ld_preload when adb_root_handle_execve failed: %ld\n", ret);
+        ret = -EFAULT;
+        goto out_release_ld_library_path_str;
+    }
+
+    ld_library_path_p = stackp = ALIGN_DOWN(stackp - (strlen(ld_library_path_str) + 1), 8);
+    ret = copy_to_user(ld_library_path_p, ld_library_path_str, strlen(ld_library_path_str) + 1);
+    if (ret != 0) {
+        pr_warn("write ld_library_path when adb_root_handle_execve failed: %ld\n", ret);
+        ret = -EFAULT;
+        goto out_release_ld_library_path_str;
+    }
+
+    if (ld_preload_idx >= 0)
+        tmp_env_p[ld_preload_idx] = ld_preload_p;
+    else
+        tmp_env_p[env_count++] = ld_preload_p;
+
+    if (ld_library_path_idx >= 0)
+        tmp_env_p[ld_library_path_idx] = ld_library_path_p;
+    else
+        tmp_env_p[env_count++] = ld_library_path_p;
+
     tmp_env_p[env_count++] = 0;
     total_size = env_count * kPtrSize;
 
@@ -145,12 +277,16 @@ static long setup_ld_preload(struct pt_regs *regs)
     if (ret != 0) {
         pr_err("copy new env failed: %ld\n", ret);
         ret = -EFAULT;
-        goto out_release_env_p;
+        goto out_release_ld_library_path_str;
     }
 
     *envp_p = stackp;
     ret = 0;
 
+out_release_ld_library_path_str:
+    kfree(ld_library_path_str);
+out_release_ld_preload_str:
+    kfree(ld_preload_str);
 out_release_env_p:
     if (tmp_env_p) {
         kfree(tmp_env_p);
