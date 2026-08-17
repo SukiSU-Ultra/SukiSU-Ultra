@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen.susfs.content
 
-import android.content.Context
 import androidx.compose.runtime.Composable
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
@@ -20,7 +19,6 @@ fun BasicSettingsContent(
     isLoading: Boolean,
     onAutoStartToggle: (Boolean) -> Unit,
     onShowSlotInfo: () -> Unit,
-    context: Context,
     enableHideBl: Boolean,
     onEnableHideBlChange: (Boolean) -> Unit,
     enableCleanupResidue: Boolean,
@@ -48,7 +46,6 @@ fun BasicSettingsContent(
             isLoading = isLoading,
             onAutoStartToggle = onAutoStartToggle,
             onShowSlotInfo = onShowSlotInfo,
-            context = context,
             enableHideBl = enableHideBl,
             onEnableHideBlChange = onEnableHideBlChange,
             enableCleanupResidue = enableCleanupResidue,
@@ -75,7 +72,6 @@ fun BasicSettingsContent(
             isLoading = isLoading,
             onAutoStartToggle = onAutoStartToggle,
             onShowSlotInfo = onShowSlotInfo,
-            context = context,
             enableHideBl = enableHideBl,
             onEnableHideBlChange = onEnableHideBlChange,
             enableCleanupResidue = enableCleanupResidue,

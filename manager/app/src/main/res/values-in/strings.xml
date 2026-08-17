@@ -123,7 +123,12 @@
     <string name="enable_web_debugging">Debugging WebView</string>
     <string name="enable_web_debugging_summary">Dapat digunakan untuk mendebug WebUI. Harap aktifkan hanya saat diperlukan.</string>
     <string name="direct_install">Langsung pasang (Disarankan)</string>
-    <string name="select_file">Pilih berkas</string>
+    <string name="select_file">Pilih dan tambal berkas</string>
+    <string name="download_file">Unduh dan tambal berkas</string>
+    <string name="download_dialog_title">Masukkan URL image</string>
+    <string name="download_dialog_msg">Image OTA penuh atau image pabrik</string>
+    <string name="download_no_boot_partition">Tidak ada partisi boot, init_boot, atau vendor_boot yang ditemukan di image</string>
+    <string name="download_probe_failed">Gagal memeriksa image: %1$s</string>
     <string name="install_inactive_slot">Pasang ke slot nonaktif (setelah OTA)</string>
     <string name="install_inactive_slot_warning">Perangkat Anda akan **DIPAKSA** untuk boot ke slot nonaktif saat ini setelah mulai ulang! \nGunakan hanya setelah proses OTA selesai. \nLanjutkan?</string>
     <string name="jailbreak_flash_warning">Anda sedang dalam **Mode jailbreak**. Memasang partisi pada perangkat dengan **bootloader terkunci** akan merusak AVB (Android Verified Boot). dan dapat menyebabkan perangkat **gagal boot**.\n\nPastikan bootloader Anda tidak terkunci sebelum melanjutkan!</string>

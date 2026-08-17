@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen.susfs.content.miuix
 
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -38,7 +37,6 @@ fun BasicSettingsContentMiuix(
     isLoading: Boolean,
     onAutoStartToggle: (Boolean) -> Unit,
     onShowSlotInfo: () -> Unit,
-    context: Context,
     enableHideBl: Boolean,
     onEnableHideBlChange: (Boolean) -> Unit,
     enableCleanupResidue: Boolean,

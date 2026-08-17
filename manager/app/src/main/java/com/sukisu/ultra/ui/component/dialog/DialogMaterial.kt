@@ -19,11 +19,17 @@ import com.sukisu.ultra.ui.component.markdown.MarkdownContent
 import com.sukisu.ultra.ui.component.material.ExpressiveDialog
 
 @Composable
-fun LoadingDialogMaterial(showDialog: MutableState<Boolean>) {
+fun LoadingDialogMaterial(
+    showDialog: MutableState<Boolean>,
+) {
     if (showDialog.value) {
         Dialog(
-            onDismissRequest = {},
-            properties = DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = false)
+            onDismissRequest = { },
+            // Keep the dialog non-dismissible
+            properties = DialogProperties(
+                dismissOnClickOutside = false,
+                dismissOnBackPress = false,
+            )
         ) {
             Surface(
                 modifier = Modifier.size(100.dp), shape = MaterialTheme.shapes.extraLarge

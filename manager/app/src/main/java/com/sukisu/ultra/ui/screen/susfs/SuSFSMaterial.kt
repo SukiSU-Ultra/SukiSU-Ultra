@@ -356,7 +356,6 @@ fun SuSFSMaterial() {
                                 viewModel.showSlotInfoDialog(true)
                                 viewModel.loadSlotInfo(context)
                             },
-                            context = context,
                             enableHideBl = uiState.enableHideBl,
                             onEnableHideBlChange = { viewModel.setEnableHideBl(context, it) },
                             enableCleanupResidue = uiState.enableCleanupResidue,

@@ -2,7 +2,6 @@ package com.sukisu.ultra.ui.screen.install
 
 import android.app.Activity
 import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -17,6 +16,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.dropUnlessResumed
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ui.LocalUiMode
@@ -25,6 +27,7 @@ import com.sukisu.ultra.ui.component.choosekmidialog.ChooseKmiDialog
 import com.sukisu.ultra.ui.kernelFlash.KpmPatchOption
 import com.sukisu.ultra.ui.kernelFlash.KpmPatchSelectionDialog
 import com.sukisu.ultra.ui.kernelFlash.component.SlotSelectionDialog
+import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
 import com.sukisu.ultra.ui.kernelFlash.rememberAnyKernel3State
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
@@ -40,8 +43,9 @@ import android.net.Uri
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalResources
+import com.sukisu.ultra.ui.component.dialog.DownloadDialog
 import com.sukisu.ultra.ui.util.*
-import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.SnackbarHostState as MiuixSnackbarHostState
 
 @Composable
 fun InstallScreen(
@@ -50,11 +54,17 @@ fun InstallScreen(
     val navigator = LocalNavigator.current
     val context = LocalContext.current
     val snackbarHost = remember { SnackbarHostState() }
+    val miuixSnackbarHost = remember { MiuixSnackbarHostState() }
     val uiMode = LocalUiMode.current
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
+    var probeJob by remember { mutableStateOf<Job?>(null) }
+    val loadingDialog = rememberLoadingDialog()
 
     var installMethod by rememberSaveable { mutableStateOf<InstallMethod?>(null) }
+    var downloadDialogShown by rememberSaveable { mutableStateOf(false) }
+    var remotePartitions by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var remotePartitionSelectionIndex by rememberSaveable { mutableIntStateOf(0) }
     var lkmSelection by rememberSaveable { mutableStateOf<LkmSelection>(LkmSelection.KmiNone) }
     var partitionSelectionIndex by rememberSaveable { mutableIntStateOf(0) }
     var hasCustomSelected by rememberSaveable { mutableStateOf(false) }
@@ -83,10 +93,14 @@ fun InstallScreen(
 
     val selectFileTip = stringResource(id = R.string.select_file_tip, defaultPartition)
     val selectFileTipNoGki = stringResource(id = R.string.select_file_tip_nogki)
+
+    val downloadFileMsg = stringResource(id = R.string.download_dialog_msg)
+
     val horizonKernelSummary = stringResource(R.string.horizon_kernel_summary)
-    val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, selectFileTipNoGki, horizonKernelSummary) {
+    val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, selectFileTipNoGki, downloadFileMsg, horizonKernelSummary) {
         buildList {
             add(InstallMethod.SelectFile(summary = if (isGkiDevice) selectFileTip else selectFileTipNoGki))
+            add(InstallMethod.DownloadFile(summary = downloadFileMsg))
             if (rootAvailable && isGkiDevice) {
                 add(InstallMethod.DirectInstall)
                 if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
@@ -155,13 +169,16 @@ fun InstallScreen(
     val displayPartitions = remember(partitions, defaultPartition) {
         partitions.map { name -> if (defaultPartition == name) "$name (default)" else name }
     }
+    val remoteDisplayPartitions = remember(remotePartitions, defaultPartition) {
+        remotePartitions.map { name -> if (defaultPartition == name) "$name (default)" else name }
+    }
 
     fun showMessage(message: String) {
         scope.launch {
             if (uiMode == UiMode.Material) {
                 snackbarHost.showSnackbar(message)
             } else {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                miuixSnackbarHost.showSnackbar(message)
             }
         }
     }
@@ -185,17 +202,29 @@ fun InstallScreen(
                     val isOta = method is InstallMethod.DirectInstallToInactiveSlot
                     navigator.push(
                         Route.Flash(
-                            FlashIt.FlashBoot(
-                                boot = if (method is InstallMethod.SelectFile) method.uri else null,
-                                lkm = lkmSelection,
-                                ota = isOta,
-                                partition = partitions.getOrNull(partitionSelectionIndex),
-                                allowShell = allowShell,
-                                enableAdb = enableAdb,
-                                backup = method is InstallMethod.SelectFile && forceBackup,
-                                spoofRelease = spoofRelease.trim(),
-                                spoofVersion = spoofVersion.trim(),
-                            )
+                            when (method) {
+                                is InstallMethod.DownloadFile -> FlashIt.DownloadBoot(
+                                    url = method.url ?: return@let,
+                                    partition = method.partition ?: return@let,
+                                    lkm = lkmSelection,
+                                    allowShell = allowShell,
+                                    enableAdb = enableAdb,
+                                    backup = forceBackup,
+                                    spoofRelease = spoofRelease.trim(),
+                                    spoofVersion = spoofVersion.trim(),
+                                )
+                                else -> FlashIt.FlashBoot(
+                                    boot = if (method is InstallMethod.SelectFile) method.uri else null,
+                                    lkm = lkmSelection,
+                                    ota = isOta,
+                                    partition = partitions.getOrNull(partitionSelectionIndex),
+                                    allowShell = allowShell,
+                                    enableAdb = enableAdb,
+                                    backup = method is InstallMethod.SelectFile && forceBackup,
+                                    spoofRelease = spoofRelease.trim(),
+                                    spoofVersion = spoofVersion.trim(),
+                                )
+                            }
                         )
                     )
                 }
@@ -212,6 +241,41 @@ fun InstallScreen(
                 onInstall()
             }
         }
+    )
+
+    DownloadDialog(
+        show = downloadDialogShown,
+        onConfirm = { url ->
+            downloadDialogShown = false
+            probeJob?.cancel()
+            probeJob = scope.launch {
+                try {
+                    loadingDialog.showLoading()
+                    val result = probeRemoteBootPartitions(url)
+                    if (result.partitions.isEmpty()) {
+                        showMessage(resources.getString(R.string.download_no_boot_partition))
+                    } else {
+                        val defaultIdx = result.partitions.indexOf(defaultPartition).coerceAtLeast(0)
+                        remotePartitions = result.partitions
+                        remotePartitionSelectionIndex = defaultIdx
+                        installMethod = InstallMethod.DownloadFile(
+                            url = url,
+                            partition = result.partitions[defaultIdx],
+                            summary = downloadFileMsg,
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    showMessage(
+                        resources.getString(R.string.download_probe_failed, e.message ?: "")
+                    )
+                } finally {
+                    loadingDialog.hide()
+                }
+            }
+        },
+        onDismiss = { downloadDialogShown = false }
     )
 
     val selectLkmLauncher = rememberLauncherForActivityResult(
@@ -254,10 +318,14 @@ fun InstallScreen(
         lkmSelection = lkmSelection,
         partitionSelectionIndex = partitionSelectionIndex,
         displayPartitions = displayPartitions,
+        remoteDisplayPartitions = remoteDisplayPartitions,
+        remotePartitionSelectionIndex = remotePartitionSelectionIndex,
         currentKmi = currentKmi,
         slotSuffix = slotSuffix,
         installMethodOptions = installMethodOptions,
-        canSelectPartition = installMethod is InstallMethod.DirectInstall || installMethod is InstallMethod.DirectInstallToInactiveSlot,
+        canSelectPartition = installMethod is InstallMethod.DirectInstall ||
+            installMethod is InstallMethod.DirectInstallToInactiveSlot ||
+            installMethod is InstallMethod.DownloadFile,
         advancedOptionsShown = advancedOptionsShown,
         allowShell = allowShell,
         enableAdb = enableAdb,
@@ -279,6 +347,7 @@ fun InstallScreen(
                 installMethod = method
             }
         },
+        onDownloadFile = { downloadDialogShown = true },
         onSelectBootImage = { method ->
             // 在打开文件选择器之前，先设置 installMethod
             installMethod = method
@@ -293,13 +362,25 @@ fun InstallScreen(
         onClearLkm = { lkmSelection = LkmSelection.KmiNone },
         onSelectPartition = { index ->
             hasCustomSelected = true
-            partitionSelectionIndex = index
+            val method = installMethod
+            if (method is InstallMethod.DownloadFile) {
+                remotePartitionSelectionIndex = index
+                installMethod = method.copy(partition = remotePartitions.getOrNull(index))
+            } else {
+                partitionSelectionIndex = index
+            }
         },
         onNext = {
             val isLkmSelected = lkmSelection != LkmSelection.KmiNone
             val isKmiUnknown = currentKmi.isBlank()
-            val isSelectFileMode = installMethod is InstallMethod.SelectFile
-            if (isGkiDevice && !isLkmSelected && (isKmiUnknown || isSelectFileMode) && installMethod !is InstallMethod.HorizonKernel) {
+            val isKmiUnresolved = when (installMethod) {
+                // The download flow extracts the KMI itself; no manual
+                // selection needed.
+                is InstallMethod.DownloadFile -> false
+                is InstallMethod.SelectFile -> true
+                else -> isKmiUnknown
+            }
+            if (isGkiDevice && !isLkmSelected && isKmiUnresolved && installMethod !is InstallMethod.HorizonKernel) {
                 showChooseKmiDialog.value = true
             } else {
                 onInstall()
@@ -341,7 +422,7 @@ fun InstallScreen(
     )
 
     when (LocalUiMode.current) {
-        UiMode.Miuix -> InstallScreenMiuix(state, actions)
+        UiMode.Miuix -> InstallScreenMiuix(state, actions, miuixSnackbarHost)
         UiMode.Material -> InstallScreenMaterial(state, actions, snackbarHost)
     }
 }

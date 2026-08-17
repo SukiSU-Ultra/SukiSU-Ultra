@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen.susfs.content.material
 
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -33,7 +32,6 @@ fun BasicSettingsContentMaterial(
     isLoading: Boolean,
     onAutoStartToggle: (Boolean) -> Unit,
     onShowSlotInfo: () -> Unit,
-    context: Context,
     enableHideBl: Boolean,
     onEnableHideBlChange: (Boolean) -> Unit,
     enableCleanupResidue: Boolean,
@@ -210,39 +208,44 @@ fun BasicSettingsContentMaterial(
     Card(modifier = Modifier.padding(top = 12.dp).fillMaxWidth()) {
         Column {
             ListItem(
-                headlineContent = { Text(stringResource(R.string.susfs_autostart_title)) },
                 supportingContent = { Text(if (canEnableAutoStart) stringResource(R.string.susfs_autostart_description) else stringResource(R.string.susfs_autostart_requirement)) },
                 leadingContent = { Icon(Icons.Default.AutoMode, contentDescription = null) },
                 trailingContent = { Switch(checked = autoStartEnabled, onCheckedChange = onAutoStartToggle, enabled = !isLoading && canEnableAutoStart) }
-            )
+            ) {
+                Text(stringResource(R.string.susfs_autostart_title))
+            }
             HorizontalDivider()
             ListItem(
-                headlineContent = { Text(stringResource(R.string.hide_bl_script)) },
                 supportingContent = { Text(stringResource(R.string.hide_bl_script_description)) },
                 leadingContent = { Icon(Icons.Default.Security, contentDescription = null) },
                 trailingContent = { Switch(checked = enableHideBl, onCheckedChange = onEnableHideBlChange, enabled = !isLoading) }
-            )
+            ) {
+                Text(stringResource(R.string.hide_bl_script))
+            }
             HorizontalDivider()
             ListItem(
-                headlineContent = { Text(stringResource(R.string.cleanup_residue)) },
                 supportingContent = { Text(stringResource(R.string.cleanup_residue_description)) },
                 leadingContent = { Icon(Icons.Default.CleaningServices, contentDescription = null) },
                 trailingContent = { Switch(checked = enableCleanupResidue, onCheckedChange = onEnableCleanupResidueChange, enabled = !isLoading) }
-            )
+            ) {
+                Text(stringResource(R.string.cleanup_residue))
+            }
             HorizontalDivider()
             ListItem(
-                headlineContent = { Text(stringResource(R.string.avc_log_spoofing)) },
                 supportingContent = { Text(stringResource(R.string.avc_log_spoofing_description)) },
                 leadingContent = { Icon(Icons.Default.VisibilityOff, contentDescription = null) },
                 trailingContent = { Switch(checked = enableAvcLogSpoofing, onCheckedChange = onEnableAvcLogSpoofingChange, enabled = !isLoading) }
-            )
+            ) {
+                Text(stringResource(R.string.avc_log_spoofing))
+            }
             HorizontalDivider()
             ListItem(
-                headlineContent = { Text(stringResource(R.string.susfs_hide_mounts_for_all_procs_label)) },
                 supportingContent = { Text(if (hideSusMountsForAllProcs) stringResource(R.string.susfs_hide_mounts_for_all_procs_enabled_description) else stringResource(R.string.susfs_hide_mounts_for_all_procs_disabled_description)) },
                 leadingContent = { Icon(if (hideSusMountsForAllProcs) Icons.Default.VisibilityOff else Icons.Default.Visibility, contentDescription = null) },
                 trailingContent = { Switch(checked = hideSusMountsForAllProcs, onCheckedChange = onHideSusMountsForAllProcsChange, enabled = !isLoading) }
-            )
+            ) {
+                Text(stringResource(R.string.susfs_hide_mounts_for_all_procs_label))
+            }
         }
     }
 

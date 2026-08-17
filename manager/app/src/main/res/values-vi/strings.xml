@@ -156,6 +156,11 @@
     <string name="install_only_support_ko_file">Chỉ hỗ trợ các file .ko</string>
     <string name="select_file_tip">Phân vùng image %1$s được khuyến nghị</string>
     <string name="select_kmi">Chọn KMI</string>
+    <string name="download_file">Tải xuống và vá tệp</string>
+    <string name="download_dialog_title">Nhập URL hình ảnh</string>
+    <string name="download_dialog_msg">Hình ảnh OTA đầy đủ hoặc hình ảnh nhà máy</string>
+    <string name="download_no_boot_partition">Không tìm thấy phân vùng boot, init_boot hoặc vendor_boot trong hình ảnh</string>
+    <string name="download_probe_failed">Không thể kiểm tra hình ảnh: %1$s</string>
     <string name="settings_uninstall">Gỡ cài đặt</string>
     <string name="settings_uninstall_temporary">Gỡ cài đặt tạm thời</string>
     <string name="settings_uninstall_permanent">Gỡ cài đặt vĩnh viễn</string>

@@ -31,6 +31,7 @@ import kotlinx.parcelize.Parcelize
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.util.FlashResult
 import com.sukisu.ultra.ui.util.LkmSelection
+import com.sukisu.ultra.ui.util.downloadBoot
 import com.sukisu.ultra.ui.util.flashModule
 import com.sukisu.ultra.ui.util.installBoot
 import com.sukisu.ultra.ui.util.restoreBoot
@@ -82,6 +83,18 @@ sealed class FlashIt : Parcelable {
     ) : FlashIt()
 
     @Parcelize
+    data class DownloadBoot(
+        val url: String,
+        val partition: String,
+        val lkm: LkmSelection,
+        val allowShell: Boolean = false,
+        val enableAdb: Boolean = false,
+        val backup: Boolean = false,
+        val spoofRelease: String = "",
+        val spoofVersion: String = "",
+    ) : FlashIt()
+
+    @Parcelize
     data class FlashModules(val uris: List<Uri>) : FlashIt()
 
     @Parcelize
@@ -117,6 +130,19 @@ fun flashIt(
             flashIt.lkm,
             flashIt.ota,
             flashIt.partition,
+            flashIt.allowShell,
+            flashIt.enableAdb,
+            flashIt.backup,
+            flashIt.spoofRelease,
+            flashIt.spoofVersion,
+            onStdout,
+            onStderr
+        )
+
+        is FlashIt.DownloadBoot -> downloadBoot(
+            flashIt.url,
+            flashIt.partition,
+            flashIt.lkm,
             flashIt.allowShell,
             flashIt.enableAdb,
             flashIt.backup,

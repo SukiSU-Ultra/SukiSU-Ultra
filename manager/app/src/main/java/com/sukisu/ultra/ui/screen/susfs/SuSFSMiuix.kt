@@ -448,7 +448,6 @@ fun SuSFSMiuix() {
                                 viewModel.showSlotInfoDialog(true)
                                 viewModel.loadSlotInfo(context)
                             },
-                            context = context,
                             enableHideBl = uiState.enableHideBl,
                             onEnableHideBlChange = { enabled: Boolean ->
                                 viewModel.setEnableHideBl(context, enabled)
