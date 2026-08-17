@@ -131,10 +131,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.Module
 import com.sukisu.ultra.data.model.ModuleUpdateInfo
+import com.sukisu.ultra.data.repository.isSoftRebootPreferred
 import com.sukisu.ultra.ui.component.ObserveAsEvents
 import com.sukisu.ultra.ui.component.ScrollToTopOnChange
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
@@ -257,8 +257,8 @@ fun ModulePagerMaterial(
                 // Cancel the previous reboot snackbar so a new one replaces it instead of queueing
                 snackbarJob.value?.cancel()
                 snackBarHost.currentSnackbarData?.dismiss()
-                // A full reboot drops the jailbreak, a soft reboot still applies module changes
-                val softReboot = Natives.isLateLoadMode
+                // Soft reboot keeps the jailbreak and still applies module changes
+                val softReboot = isSoftRebootPreferred()
                 snackbarJob.value = scope.launch {
                     val result = snackBarHost.showSnackbar(
                         message = event.message,

@@ -54,7 +54,10 @@ data class SettingsUiState(
     val isLateLoadMode: Boolean = false,
 
     // Auto Jailbreak
-    val autoJailbreak: Boolean = false
+    val autoJailbreak: Boolean = false,
+
+    // Soft Reboot
+    val useSoftReboot: Boolean = false
 )
 
 @Immutable
@@ -73,6 +76,7 @@ data class SettingsScreenActions(
     val onSetDefaultUmountModules: (Boolean) -> Unit,
     val onSetEnableWebDebugging: (Boolean) -> Unit,
     val onSetAutoJailbreak: (Boolean) -> Unit,
+    val onSetUseSoftReboot: (Boolean) -> Unit,
     val onOpenAbout: () -> Unit,
     val onSetAlternativeIcon: (Boolean) -> Unit,
     val onOpenTools: () -> Unit,

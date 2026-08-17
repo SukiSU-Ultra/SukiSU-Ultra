@@ -27,6 +27,7 @@ interface SettingsRepository {
     var suLogFilters: Set<String>?
     var showFullStatus: Boolean
     var autoJailbreak: Boolean
+    var useSoftReboot: Boolean
     val intentToken: String
 
     suspend fun getSuCompatStatus(): String
