@@ -9,6 +9,7 @@ enum ksu_feature_id {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
     KSU_FEATURE_SELINUX_HIDE = 4,
 #endif
+    KSU_FEATURE_WEBVIEW_ZYGOTE_UMOUNT = 5,
 
     KSU_FEATURE_MAX
 };
