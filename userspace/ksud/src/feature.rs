@@ -22,6 +22,7 @@ pub enum FeatureId {
     AdbRoot = 3,
     SelinuxHide = 4,
     WebviewZygoteUmount = 5,
+    MountHide = 6,
 }
 
 impl FeatureId {
@@ -33,6 +34,7 @@ impl FeatureId {
             3 => Some(Self::AdbRoot),
             4 => Some(Self::SelinuxHide),
             5 => Some(Self::WebviewZygoteUmount),
+            6 => Some(Self::MountHide),
             _ => None,
         }
     }
@@ -45,6 +47,7 @@ impl FeatureId {
             Self::AdbRoot => "adb_root",
             Self::SelinuxHide => "selinux_hide",
             Self::WebviewZygoteUmount => "webview_zygote_umount",
+            Self::MountHide => "mount_hide",
         }
     }
 
@@ -66,6 +69,9 @@ impl FeatureId {
             Self::WebviewZygoteUmount => {
                 "WebView Zygote Umount - unmount modules from WebView zygote and its isolated children"
             }
+            Self::MountHide => {
+                "Mount Hide - filter module mounts from /proc mount views of isolated and app processes"
+            }
         }
     }
 }
@@ -78,6 +84,7 @@ fn parse_feature_id(name: &str) -> Result<FeatureId> {
         "adb_root" | "3" => Ok(FeatureId::AdbRoot),
         "selinux_hide" | "4" => Ok(FeatureId::SelinuxHide),
         "webview_zygote_umount" | "5" => Ok(FeatureId::WebviewZygoteUmount),
+        "mount_hide" | "6" => Ok(FeatureId::MountHide),
         _ => bail!("Unknown feature: {name}"),
     }
 }

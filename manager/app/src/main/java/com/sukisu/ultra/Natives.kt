@@ -116,6 +116,15 @@ object Natives {
     external fun setSelinuxHideEnabled(enabled: Boolean): Int
 
     /**
+     * Mount hide can be disabled temporarily.
+     *  0: disabled
+     *  1: enabled
+     *  negative : error
+     */
+    external fun isMountHideEnabled(): Boolean
+    external fun setMountHideEnabled(enabled: Boolean): Int
+
+    /**
      * Get the user name for the uid.
      */
     external fun getUserName(uid: Int): String?
