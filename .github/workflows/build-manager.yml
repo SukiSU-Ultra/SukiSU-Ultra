@@ -436,20 +436,6 @@ jobs:
 
 
       # --------------------------------------------------------
-      # Determine whether Telegram upload is configured
-      # --------------------------------------------------------
-
-      - name: Setup need_upload
-        id: need_upload
-        run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
-            echo "UPLOAD=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "UPLOAD=false" >> "$GITHUB_OUTPUT"
-          fi
-
-
-      # --------------------------------------------------------
       # Android SDK
       # --------------------------------------------------------
 
@@ -651,18 +637,62 @@ jobs:
           path: dist/*.apk
 
 
+
+  # ------------------------------------------------------------
+  # Telegram upload (combined)
+  # ------------------------------------------------------------
+
+  upload-telegram:
+    needs: repack-manager
+
+    if: github.event_name != 'pull_request' &&
+        needs.repack-manager.result == 'success'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+
+      # --------------------------------------------------------
+      # Determine whether Telegram upload is configured
+      # --------------------------------------------------------
+
+      - name: Setup need_upload
+        id: need_upload
+        run: |
+          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+            echo "UPLOAD=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "UPLOAD=false" >> "$GITHUB_OUTPUT"
+          fi
+
+
+      # --------------------------------------------------------
+      # Download APK artifacts
+      # --------------------------------------------------------
+
+      - name: Download manager artifacts
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "*Manager"
+          path: apks
+          merge-multiple: true
+
+
       # --------------------------------------------------------
       # Telegram session cache
       # --------------------------------------------------------
 
       - name: Bot session cache
-        if: github.event_name != 'pull_request' &&
-            steps.need_upload.outputs.UPLOAD == 'true'
-
+        if: steps.need_upload.outputs.UPLOAD == 'true'
         id: bot_session_cache
-
         uses: actions/cache@v5
-
         with:
           path: scripts/ksubot.session
           key: ${{ runner.os }}-bot-session
@@ -673,9 +703,7 @@ jobs:
       # --------------------------------------------------------
 
       - name: Upload to telegram
-        if: github.event_name != 'pull_request' &&
-            steps.need_upload.outputs.UPLOAD == 'true'
-
+        if: steps.need_upload.outputs.UPLOAD == 'true'
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -685,7 +713,7 @@ jobs:
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          TITLE: ${{ steps.determine.outputs.title }}
+          TITLE: Manager
           BRANCH: ${{ github.ref_name }}
 
         run: |
@@ -693,10 +721,10 @@ jobs:
 
             export VERSION=$(git rev-list --count HEAD)
 
-            APK=$(find ./dist -name "*.apk")
+            APKS=$(find ./apks -type f -name "*.apk" | sort)
 
             pip3 install telethon
 
-            python3 $GITHUB_WORKSPACE/scripts/ksubot.py "$APK"
+            python3 scripts/ksubot.py $APKS
 
           fi
