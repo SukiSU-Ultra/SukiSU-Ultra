@@ -49,8 +49,13 @@ static int handle_zygote_setresuid(uid_t ruid) {
         return 0;
     }
 
-    // we should not umount for webview zygote
+    // Check if webview zygote should be umounted
     if (unlikely(ruid == WEBVIEW_ZYGOTE_UID)) {
+        if (ksu_webview_zygote_umount_enabled) {
+            susfs_set_current_proc_no_su();
+            susfs_set_current_proc_umounted();
+            goto do_umount;
+        }
         susfs_set_current_proc_no_su();
         return 0;
     }
@@ -62,12 +67,13 @@ static int handle_zygote_setresuid(uid_t ruid) {
         goto do_umount;
     }
 
-    // - Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
+    // Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
     if (ksu_is_allow_uid_for_current(ruid)) {
         disable_seccomp();
         return 0;
     }
 
+    // Process not umounted but also root not allowed
     susfs_set_current_proc_no_su();
     return 0;
 
@@ -103,8 +109,14 @@ static int handle_zygote_next_setresuid(uid_t ruid) {
         return 0;
     }
 
-    // we should not umount for webview zygote
+    // Check if webview zygote should be umounted
     if (unlikely(ruid == WEBVIEW_ZYGOTE_UID)) {
+        if (ksu_webview_zygote_umount_enabled) {
+            susfs_set_current_proc_no_su();
+            susfs_set_current_proc_umounted();
+            susfs_set_current_proc_umounted_for_zygote_next();
+            goto do_susfs_work;
+        }
         susfs_set_current_proc_no_su();
         return 0;
     }
@@ -117,12 +129,13 @@ static int handle_zygote_next_setresuid(uid_t ruid) {
         goto do_susfs_work;
     }
 
-    // - Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
+    // Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
     if (ksu_is_allow_uid_for_current(ruid)) {
         disable_seccomp();
         return 0;
     }
 
+    // Process not umounted but also root not allowed
     susfs_set_current_proc_no_su();
     return 0;
 
