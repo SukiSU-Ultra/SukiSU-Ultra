@@ -177,27 +177,25 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
                         flags);
 }
 
-int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
+int ksu_handle_faccessat(int *dfd, struct filename **filename, int *mode,
              int *__unused_flags)
 {
-    char path[sizeof(su_path) + 1] = {0};
+    if (unlikely(IS_ERR(*filename) || (*filename)->name == NULL))
+        return 0;
 
-    strncpy_from_user(path, *filename_user, sizeof(path));
+    if (likely(memcmp((*filename)->name, su_path, sizeof(su_path))))
+        return 0;
 
-    if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
-        if (current_chrooted())
-        {
-            pr_err("ksu_handle_faccessat: su found but NOT allowed! Because current process is running in chrooted environment\n");
-            return 0;
-        }
-        pr_info("ksu_handle_faccessat: su->sh!\n");
-        *filename_user = sh_user_path();
+    if (current_chrooted())
+    {
+        pr_err("ksu_handle_faccessat: su found but NOT allowed! Because current process is running in chrooted environment\n");
+        return 0;
     }
-
+    pr_info("ksu_handle_faccessat: su->sh!\n");
+    memcpy((void *)((*filename)->name), sh_path, sizeof(sh_path));
     return 0;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 int ksu_handle_stat(int *dfd, struct filename **filename, int *flags) {
     if (unlikely(IS_ERR(*filename) || (*filename)->name == NULL))
         return 0;
@@ -214,29 +212,6 @@ int ksu_handle_stat(int *dfd, struct filename **filename, int *flags) {
     memcpy((void *)((*filename)->name), sh_path, sizeof(sh_path));
     return 0;
 }
-#else
-int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
-{
-    if (unlikely(!filename_user))
-        return 0;
-
-    char path[sizeof(su_path) + 1] = {0};
-
-    strncpy_from_user(path, *filename_user, sizeof(path));
-
-    if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
-        if (current_chrooted())
-        {
-            pr_err("ksu_handle_stat: su found but NOT allowed! Because current process is running in chrooted environment\n");
-            return 0;
-        }
-        pr_info("ksu_handle_stat: su->sh!\n");
-        *filename_user = sh_user_path();
-    }
-
-    return 0;
-}
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 
 #else
 __attribute__((hot)) static __always_inline bool __is_su_allowed(const void **ptr_to_check)
