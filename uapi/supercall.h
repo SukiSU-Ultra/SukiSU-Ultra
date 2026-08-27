@@ -150,6 +150,14 @@ struct ksu_set_spoof_version_cmd {
     __u8 version[65]; /* Input: e.g., "#1 SMP PREEMPT Thu Jan 1 00:00:00 UTC 2026" */
 };
 
+struct ksu_set_spoof_cpu_cmd {
+    __u32 cpu_index;  /* Target processor core index */
+    __u32 midr;       /* Main ID Register payload */
+    __u32 bogomips;   /* BogoMIPS performance timing metric */
+    __u64 hwcap;      /* Main ELF Hardware Capabilities mask */
+    __u64 hwcap2;     /* Auxiliary ELF Hardware Capabilities mask */
+};
+
 // List current umount entries
 struct ksu_list_try_umount_cmd {
     __aligned_u64 arg; // User buffer
@@ -222,6 +230,7 @@ static const __u32 KSU_IOCTL_HOOK_TYPE = _IOC(_IOC_READ, 'K', 101, 0);
 static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
 static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
 static const __u32 KSU_IOCTL_SET_SPOOF_VERSION = _IOC(_IOC_WRITE, 'K', 104, 0);
+static const __u32 KSU_IOCTL_SET_SPOOF_CPU = _IOC(_IOC_WRITE, 'K', 105, 0);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
 
 #endif
