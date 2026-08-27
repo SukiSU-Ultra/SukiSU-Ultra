@@ -772,6 +772,28 @@ fun spoofKernelUname(release: String, version: String): Boolean {
     return result
 }
 
+fun spoofCpu(
+    cpu: Int,
+    midr: String,
+    bogomips: Int,
+    hwcap: String,
+    hwcap2: String,
+): Boolean {
+    val shell = getRootShell()
+    fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
+    val cmd = buildString {
+        append("${getKsuDaemonPath()} kernel spoof-cpu")
+        append(" --cpu $cpu")
+        append(" --midr ${shellQuote(midr)}")
+        if (bogomips > 0) append(" --bogomips $bogomips")
+        if (hwcap.isNotBlank()) append(" --hwcap ${shellQuote(hwcap)}")
+        if (hwcap2.isNotBlank()) append(" --hwcap2 ${shellQuote(hwcap2)}")
+    }
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "kernel spoof-cpu result: $result")
+    return result
+}
+
 fun addUmountPath(path: String, flags: Int): Boolean {
     val shell = getRootShell()
     val flagsArg = if (flags >= 0) "--flags $flags" else ""

@@ -516,6 +516,24 @@ enum Kernel {
         #[arg(short, long)]
         version: Option<String>,
     },
+    /// Spoof CPU identity (MIDR/HWCAP/vvar) at runtime
+    SpoofCpu {
+        /// Target CPU index (0..=num_possible_cpus-1)
+        #[arg(short, long)]
+        cpu: u32,
+        /// MIDR value (hex, e.g. 0x413fd0c1)
+        #[arg(short, long, value_parser = parse_hex_u32)]
+        midr: u32,
+        /// BogoMIPS value (decimal, e.g. 2400)
+        #[arg(short, long, default_value_t = 0)]
+        bogomips: u32,
+        /// Primary ELF hwcap mask (hex)
+        #[arg(long, value_parser = parse_hex_u64, default_value_t = 0)]
+        hwcap: u64,
+        /// Secondary ELF hwcap2 mask (hex)
+        #[arg(long, value_parser = parse_hex_u64, default_value_t = 0)]
+        hwcap2: u64,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1089,6 +1107,9 @@ pub fn run() -> Result<()> {
                 let v = version.unwrap_or_default();
                 ksucalls::set_spoof_version(&r, &v)
             }
+            Kernel::SpoofCpu { cpu, midr, bogomips, hwcap, hwcap2 } => {
+                ksucalls::set_spoof_cpu(cpu, midr, bogomips, hwcap, hwcap2)
+            }
         },
         Commands::Initrc { command } => match command {
             Initrc::Refresh => regenerate_preinit_rc(),
@@ -1248,4 +1269,22 @@ pub fn run() -> Result<()> {
         log::error!("Error: {e:?}");
     }
     result
+}
+
+fn parse_hex_u32(s: &str) -> Result<u32, String> {
+    let s = s.trim();
+    if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+        u32::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex u32: {e}"))
+    } else {
+        s.parse::<u32>().map_err(|e| format!("Invalid u32: {e}"))
+    }
+}
+
+fn parse_hex_u64(s: &str) -> Result<u64, String> {
+    let s = s.trim();
+    if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+        u64::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex u64: {e}"))
+    } else {
+        s.parse::<u64>().map_err(|e| format!("Invalid u64: {e}"))
+    }
 }

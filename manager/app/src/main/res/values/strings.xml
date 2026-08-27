@@ -436,6 +436,25 @@
     <string name="allowlist_restore_summary_picker">Choose a backup file to import</string>
     <string name="allowlist_restore_success">Restoration successful. Changes will take effect after restart</string>
     <string name="allowlist_restore_failed">Restore failed</string>
+    <!-- CPU Spoof -->
+    <string name="tools_spoof_cpu_title">CPU identity spoofing</string>
+    <string name="tools_spoof_cpu_summary">Mask real CPU MIDR, HWCAP and vvar</string>
+    <string name="spoof_cpu_dialog_title">CPU Identity Spoofing</string>
+    <string name="spoof_cpu_apply">Apply</string>
+    <string name="spoof_cpu_cancel">Cancel</string>
+    <string name="spoof_cpu_field_midr">MIDR (hex)</string>
+    <string name="spoof_cpu_field_bogomips">BogoMIPS</string>
+    <string name="spoof_cpu_field_hwcap">HWCAP (hex)</string>
+    <string name="spoof_cpu_field_hwcap2">HWCAP2 (hex)</string>
+    <string name="spoof_cpu_field_cores">Target CPU cores</string>
+    <string name="spoof_cpu_midr_preset_label">Preset SoC</string>
+    <string name="spoof_cpu_midr_custom">Custom</string>
+    <string name="spoof_cpu_cores_all">All cores</string>
+    <string name="spoof_cpu_cores_format">CPU %d</string>
+    <string name="spoof_cpu_apply_success">CPU spoofing applied successfully</string>
+    <string name="spoof_cpu_apply_failed">Failed to apply CPU spoofing</string>
+    <string name="spoof_cpu_apply_partial_failure">Partial success: %1$d succeeded, %2$d failed</string>
+    <string name="spoof_cpu_warning">Will affect CPU identification for all subsequent processes. Proceed with caution.</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (Module)</string>
     <string name="zip_type_kernel"> (Kernel)</string>

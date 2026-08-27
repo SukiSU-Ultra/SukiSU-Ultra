@@ -389,6 +389,25 @@
     <string name="allowlist_restore_summary_picker">選擇備份文件進行導入</string>
     <string name="allowlist_restore_success">還原成功,重啟生效</string>
     <string name="allowlist_restore_failed">還原失敗</string>
+    <!-- CPU Spoof -->
+    <string name="tools_spoof_cpu_title">CPU 身份偽裝</string>
+    <string name="tools_spoof_cpu_summary">偽裝 CPU MIDR、HWCAP 和 vvar</string>
+    <string name="spoof_cpu_dialog_title">CPU 身份偽裝</string>
+    <string name="spoof_cpu_apply">應用</string>
+    <string name="spoof_cpu_cancel">取消</string>
+    <string name="spoof_cpu_field_midr">MIDR (十六進制)</string>
+    <string name="spoof_cpu_field_bogomips">BogoMIPS</string>
+    <string name="spoof_cpu_field_hwcap">HWCAP (十六進制)</string>
+    <string name="spoof_cpu_field_hwcap2">HWCAP2 (十六進制)</string>
+    <string name="spoof_cpu_field_cores">目標 CPU 核心</string>
+    <string name="spoof_cpu_midr_preset_label">預設 SoC</string>
+    <string name="spoof_cpu_midr_custom">自訂</string>
+    <string name="spoof_cpu_cores_all">所有核心</string>
+    <string name="spoof_cpu_cores_format">CPU %d</string>
+    <string name="spoof_cpu_apply_success">CPU 偽裝應用成功</string>
+    <string name="spoof_cpu_apply_failed">CPU 偽裝應用失敗</string>
+    <string name="spoof_cpu_apply_partial_failure">部分成功：%1$d 成功，%2$d 失敗</string>
+    <string name="spoof_cpu_warning">將影響所有後續進程的 CPU 識別。請謹慎操作。</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (模塊)</string>
     <string name="zip_type_kernel"> (內核)</string>

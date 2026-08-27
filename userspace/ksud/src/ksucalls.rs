@@ -328,3 +328,21 @@ pub fn set_spoof_version(release: &str, version: &str) -> anyhow::Result<()> {
     ksuctl(ksu_uapi::KSU_IOCTL_SET_SPOOF_VERSION, &raw mut cmd)?;
     Ok(())
 }
+
+pub fn set_spoof_cpu(
+    cpu_index: u32,
+    midr: u32,
+    bogomips: u32,
+    hwcap: u64,
+    hwcap2: u64,
+) -> anyhow::Result<()> {
+    let mut cmd = ksu_uapi::ksu_set_spoof_cpu_cmd {
+        cpu_index,
+        midr,
+        bogomips,
+        hwcap,
+        hwcap2,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_SET_SPOOF_CPU, &raw mut cmd)?;
+    Ok(())
+}

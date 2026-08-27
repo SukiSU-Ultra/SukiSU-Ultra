@@ -17,6 +17,7 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
+import com.sukisu.ultra.ui.util.spoofCpu
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +31,9 @@ fun ToolsScreen() {
 
     var selinuxEnforcing by remember { mutableStateOf(true) }
     var selinuxLoading by remember { mutableStateOf(true) }
+    var spoofCpuDialogVisible by remember { mutableStateOf(false) }
+    var currentCpuInfo by remember { mutableStateOf<CpuInfo?>(null) }
+    var spoofCpuLoading by remember { mutableStateOf(false) }
 
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/octet-stream")
@@ -67,6 +71,8 @@ fun ToolsScreen() {
         val current = withContext(Dispatchers.IO) { !isSelinuxPermissive() }
         selinuxEnforcing = current
         selinuxLoading = false
+        
+        currentCpuInfo = withContext(Dispatchers.IO) { readCurrentCpuIdentity() }
     }
 
     val actions = ToolsActions(
@@ -102,12 +108,52 @@ fun ToolsScreen() {
         },
         onNavigateToUmountManager = {
             navigator.push(Route.UmountManager)
+        },
+        onOpenSpoofCpuDialog = {
+            spoofCpuDialogVisible = true
+        },
+        onDismissSpoofCpuDialog = {
+            spoofCpuDialogVisible = false
+        },
+        onApplySpoofCpu = { params ->
+            spoofCpuLoading = true
+            scope.launch(Dispatchers.IO) {
+                var successCount = 0
+                var failCount = 0
+                
+                for (cpuIndex in params.cpuIndices) {
+                    val success = spoofCpu(
+                        cpu = cpuIndex,
+                        midr = params.midrHex,
+                        bogomips = params.bogomips,
+                        hwcap = params.hwcapHex,
+                        hwcap2 = params.hwcap2Hex
+                    )
+                    if (success) successCount++ else failCount++
+                }
+                
+                withContext(Dispatchers.Main) {
+                    spoofCpuLoading = false
+                    spoofCpuDialogVisible = false
+                    
+                    val message = when {
+                        failCount == 0 -> context.getString(R.string.spoof_cpu_apply_success)
+                        successCount == 0 -> context.getString(R.string.spoof_cpu_apply_failed)
+                        else -> context.getString(R.string.spoof_cpu_apply_partial_failure, successCount, failCount)
+                    }
+                    
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     )
 
     val state = ToolsUiState(
         selinuxEnforcing = selinuxEnforcing,
-        selinuxLoading = selinuxLoading
+        selinuxLoading = selinuxLoading,
+        spoofCpuDialogVisible = spoofCpuDialogVisible,
+        currentCpuInfo = currentCpuInfo,
+        spoofCpuLoading = spoofCpuLoading
     )
 
     when (LocalUiMode.current) {
@@ -119,5 +165,20 @@ fun ToolsScreen() {
             state = state,
             actions = actions
         )
+    }
+
+    if (spoofCpuDialogVisible) {
+        when (LocalUiMode.current) {
+            UiMode.Miuix -> SpoofCpuDialogMiuix(
+                currentCpuInfo = currentCpuInfo,
+                onDismiss = actions.onDismissSpoofCpuDialog,
+                onApply = actions.onApplySpoofCpu
+            )
+            UiMode.Material -> SpoofCpuDialogMaterial(
+                currentCpuInfo = currentCpuInfo,
+                onDismiss = actions.onDismissSpoofCpuDialog,
+                onApply = actions.onApplySpoofCpu
+            )
+        }
     }
 }
