@@ -91,11 +91,11 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
 #ifdef CONFIG_KSU_FEATURE_ADBROOT
 #ifdef CONFIG_COMPAT
     if (unlikely(envp_user->is_compat))
-        ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.compat);
+        ret = ksu_adb_root_handle_execveat(filename->name, (void ***)&envp_user->ptr.compat);
     else
-        ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);
+        ret = ksu_adb_root_handle_execveat(filename->name, (void ***)&envp_user->ptr.native);
 #else
-        ret = ksu_adb_root_handle_execve(filename->name, (void ***)&envp_user->ptr.native);
+        ret = ksu_adb_root_handle_execveat(filename->name, (void ***)&envp_user->ptr.native);
 #endif
 #endif
 
