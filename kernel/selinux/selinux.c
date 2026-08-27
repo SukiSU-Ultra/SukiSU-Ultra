@@ -238,11 +238,13 @@ void escape_to_root_for_adb_root(void)
 #ifdef CONFIG_KSU_SUSFS
 #define KERNEL_INIT_DOMAIN "u:r:init:s0"
 #define KERNEL_ZYGOTE_DOMAIN "u:r:zygote:s0"
+#define KERNEL_ZYGOTE_NEXT_DOMAIN "u:r:zygote_next:s0"
 #define KERNEL_PRIV_APP_DOMAIN "u:r:priv_app:s0:c512,c768"
 
 u32 susfs_ksu_sid __read_mostly = 0;
 u32 susfs_init_sid __read_mostly = 0;
 u32 susfs_zygote_sid __read_mostly = 0;
+u32 susfs_zygote_next_sid __read_mostly = 0;
 u32 susfs_priv_app_sid __read_mostly = 0;
 
 static inline void susfs_set_sid(const char *secctx_name, u32 *out_sid)
@@ -302,6 +304,10 @@ bool susfs_is_current_zygote_domain(void) {
     return unlikely(current_sid() == susfs_zygote_sid);
 }
 
+bool susfs_is_current_zygote_next_domain(void) {
+    return unlikely(current_sid() == susfs_zygote_next_sid);
+}
+
 bool susfs_is_current_ksu_domain(void) {
     return unlikely(current_sid() == susfs_ksu_sid);
 }
@@ -313,6 +319,7 @@ bool susfs_is_current_init_domain(void) {
 void susfs_set_batch_sid(void)
 {
     susfs_set_sid(KERNEL_ZYGOTE_DOMAIN, &susfs_zygote_sid);
+    susfs_set_sid(KERNEL_ZYGOTE_NEXT_DOMAIN, &susfs_zygote_next_sid);
     susfs_set_sid(KERNEL_SU_CONTEXT, &susfs_ksu_sid);
     susfs_set_sid(KERNEL_INIT_DOMAIN, &susfs_init_sid);
     susfs_set_sid(KERNEL_PRIV_APP_DOMAIN, &susfs_priv_app_sid);
