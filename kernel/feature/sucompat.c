@@ -82,7 +82,7 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
         return 0;
     }
 
-    if (likely(!strstr(filename->name, "/app_process") && !strstr(filename->name, "/adbd"))) {
+    if (likely(!strstr(filename->name, "/app_process") && !strstr(filename->name, "/adbd") && !strstr(filename->name, "/stub_zygote"))) {
         pr_info("susfs: mark no sucompat checks for pid: '%d', exec: '%s'\n", current->pid, filename->name);
         susfs_set_current_proc_umounted();
         return 0;
