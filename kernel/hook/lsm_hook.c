@@ -87,6 +87,7 @@ static int handle_zygote_next_setresuid(uid_t ruid) {
     // Check if spawned process is isolated service first, and force to do umount if so
     if (is_isolated_process(ruid)) {
         susfs_set_current_proc_no_su();
+        susfs_set_current_proc_umounted();
         susfs_set_current_proc_umounted_for_zygote_next();
         goto do_susfs_work;
     }
@@ -111,6 +112,7 @@ static int handle_zygote_next_setresuid(uid_t ruid) {
     // Check if spawned process is normal user app and needs to be umounted
     if (likely(is_appuid(ruid) && ksu_uid_should_umount(ruid))) {
         susfs_set_current_proc_no_su();
+        susfs_set_current_proc_umounted();
         susfs_set_current_proc_umounted_for_zygote_next();
         goto do_susfs_work;
     }
@@ -137,7 +139,9 @@ do_susfs_work:
 
 int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {
-    if (current_uid().val != 0)
+    uid_t cur_uid = current_uid().val;
+
+    if (cur_uid != 0)
         return 0;
 
     // We only interest in process spwaned by zygote or zygote_next
