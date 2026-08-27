@@ -37,8 +37,11 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
         return 0;
 
     // Check if spawned process is isolated service first, and force to do umount if so
-    if (is_isolated_process(ruid))
+    if (is_isolated_process(ruid)) {
+        susfs_set_current_proc_no_su();
+        susfs_set_current_proc_umounted();
         goto do_umount;
+    }
 
     // - Since ksu maanger app uid is excluded in allow_list_arr, so ksu_uid_should_umount(manager_uid)
     //   will always return true, that's why we need to explicitly check if new_uid belongs to
@@ -52,17 +55,25 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
     }
 
     // we should not umount for webview zygote
-    if (unlikely(ruid == WEBVIEW_ZYGOTE_UID))
+    if (unlikely(ruid == WEBVIEW_ZYGOTE_UID)) {
+        susfs_set_current_proc_no_su();
         return 0;
+    }
 
     // Check if spawned process is normal user app and needs to be umounted
-    if (likely(is_appuid(ruid) && ksu_uid_should_umount(ruid)))
+    if (likely(is_appuid(ruid) && ksu_uid_should_umount(ruid))) {
+        susfs_set_current_proc_no_su();
+        susfs_set_current_proc_umounted();
         goto do_umount;
+    }
 
     // - Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
-    if (ksu_is_allow_uid_for_current(ruid))
+    if (ksu_is_allow_uid_for_current(ruid)) {
         disable_seccomp();
+        return 0;
+    }
 
+    susfs_set_current_proc_no_su();
     return 0;
 
 do_umount:
@@ -73,9 +84,6 @@ do_umount:
         // Handle extra susfs work
         ksu_handle_extra_susfs_work();
     }
-
-    // Mark current proc as umounted
-    susfs_set_current_proc_umounted();
 
     return 0;
 }

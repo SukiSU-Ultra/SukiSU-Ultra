@@ -84,7 +84,10 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
 
     if (likely(!strstr(filename->name, "/app_process") && !strstr(filename->name, "/adbd") && !strstr(filename->name, "/stub_zygote"))) {
         pr_info("susfs: mark no sucompat checks for pid: '%d', exec: '%s'\n", current->pid, filename->name);
-        susfs_set_current_proc_umounted();
+        susfs_set_current_proc_no_su();
+        // - marking proc umounted here is useless because only zygote spawned processes will umount
+        //   the sus mounts, tho other susfs features still rely on proc_umounted check, but
+        //   it is fine to not spoof for init spawned processes.
         return 0;
     }
 
