@@ -1107,9 +1107,13 @@ pub fn run() -> Result<()> {
                 let v = version.unwrap_or_default();
                 ksucalls::set_spoof_version(&r, &v)
             }
-            Kernel::SpoofCpu { cpu, midr, bogomips, hwcap, hwcap2 } => {
-                ksucalls::set_spoof_cpu(cpu, midr, bogomips, hwcap, hwcap2)
-            }
+            Kernel::SpoofCpu {
+                cpu,
+                midr,
+                bogomips,
+                hwcap,
+                hwcap2,
+            } => ksucalls::set_spoof_cpu(cpu, midr, bogomips, hwcap, hwcap2),
         },
         Commands::Initrc { command } => match command {
             Initrc::Refresh => regenerate_preinit_rc(),
@@ -1273,18 +1277,20 @@ pub fn run() -> Result<()> {
 
 fn parse_hex_u32(s: &str) -> Result<u32, String> {
     let s = s.trim();
-    if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
-        u32::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex u32: {e}"))
-    } else {
-        s.parse::<u32>().map_err(|e| format!("Invalid u32: {e}"))
-    }
+    s.strip_prefix("0x")
+        .or_else(|| s.strip_prefix("0X"))
+        .map_or_else(
+            || s.parse::<u32>().map_err(|e| format!("Invalid u32: {e}")),
+            |hex| u32::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex u32: {e}")),
+        )
 }
 
 fn parse_hex_u64(s: &str) -> Result<u64, String> {
     let s = s.trim();
-    if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
-        u64::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex u64: {e}"))
-    } else {
-        s.parse::<u64>().map_err(|e| format!("Invalid u64: {e}"))
-    }
+    s.strip_prefix("0x")
+        .or_else(|| s.strip_prefix("0X"))
+        .map_or_else(
+            || s.parse::<u64>().map_err(|e| format!("Invalid u64: {e}")),
+            |hex| u64::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex u64: {e}")),
+        )
 }
