@@ -335,13 +335,25 @@ private fun RepoModuleList(
                         )
                     }
 
-                    Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                        if (module.metamodule) {
-                            StatusTag(
-                                "META",
-                                contentColor = MaterialTheme.colorScheme.onPrimary,
-                                backgroundColor = MaterialTheme.colorScheme.primary
-                            )
+                    if (module.metamodule || module.zygisk) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            if (module.metamodule) {
+                                StatusTag(
+                                    "META",
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                    backgroundColor = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            if (module.zygisk) {
+                                StatusTag(
+                                    "ZYGISK",
+                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            }
                         }
                     }
                     HorizontalDivider(thickness = Dp.Hairline)

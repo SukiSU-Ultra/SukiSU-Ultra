@@ -294,6 +294,20 @@ fun ModuleRepoScreenMiuix(
                                                 maxLines = 1
                                             )
                                         }
+                                        if (module.zygisk) {
+                                            Text(
+                                                text = "ZYGISK",
+                                                fontSize = 12.sp,
+                                                color = metaTint,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(metaBg)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                fontWeight = FontWeight(750),
+                                                maxLines = 1
+                                            )
+                                        }
                                         Spacer(Modifier.weight(1f))
                                         if (module.stargazerCount > 0) {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -453,6 +467,20 @@ fun ModuleRepoScreenMiuix(
                                                 if (module.metamodule) {
                                                     Text(
                                                         text = "META",
+                                                        fontSize = 12.sp,
+                                                        color = metaTint,
+                                                        modifier = Modifier
+                                                            .padding(start = 6.dp)
+                                                            .clip(RoundedCornerShape(6.dp))
+                                                            .background(metaBg)
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        fontWeight = FontWeight(750),
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                                if (module.zygisk) {
+                                                    Text(
+                                                        text = "ZYGISK",
                                                         fontSize = 12.sp,
                                                         color = metaTint,
                                                         modifier = Modifier

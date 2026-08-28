@@ -623,4 +623,8 @@
     <string name="sort_by_update_time">更新時間</string>
     <string name="sort_reverse">倒序</string>
     <string name="uapi_mismatch">管理器 uapi 版本 (%1$d) 與 KernelSU 驅動 uapi 版本 (%2$d) 不匹配。</string>
+    <string name="home_zygisk_implementation">Zygisk 實作</string>
+    <string name="home_zygisk_not_installed">未安裝</string>
+    <string name="home_zygisk_disabled">已停用</string>
+    <string name="home_zygisk_reboot_required">需要重啟</string>
 </resources>

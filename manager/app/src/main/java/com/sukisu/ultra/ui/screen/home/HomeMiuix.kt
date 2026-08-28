@@ -495,6 +495,12 @@ private fun InfoCard(systemInfo: SystemInfo, showFullStatus: Boolean = true) {
                 } else if (!hookTypeLabel.isNullOrBlank()) {
                     InfoText(title = stringResource(R.string.hook_type), content = hookTypeLabel)
                 }
+                if (!systemInfo.zygiskImplementation.isNullOrBlank()) {
+                    InfoText(
+                        title = stringResource(R.string.home_zygisk_implementation),
+                        content = systemInfo.zygiskImplementation
+                    )
+                }
 
             }
 
