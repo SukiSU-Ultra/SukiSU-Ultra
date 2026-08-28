@@ -1056,11 +1056,17 @@ pub fn has_zygisk_library(path: &Path) -> bool {
 /// Determine whether the provided module is a Zygisk implementation / provider
 pub fn is_zygisk_provider(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
-    matches!(id_lower.as_str(), "zygisksu" | "rezygisk")
+    matches!(
+        id_lower.as_str(),
+        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk"
+    )
 }
 
-/// Check whether a process with the given name is running in /proc
-pub fn is_process_running(proc_name: &str) -> bool {
+/// Check whether a process whose name satisfies the predicate is running in /proc
+pub fn is_process_running_matching<F>(predicate: F) -> bool
+where
+    F: Fn(&str) -> bool,
+{
     let Ok(entries) = std::fs::read_dir("/proc") else {
         return false;
     };
@@ -1069,23 +1075,40 @@ pub fn is_process_running(proc_name: &str) -> bool {
         let file_str = file_name.to_string_lossy();
         if file_str.chars().all(|c| c.is_ascii_digit()) {
             let comm_path = entry.path().join("comm");
-            if let Ok(comm) = std::fs::read_to_string(&comm_path)
-                && comm.trim() == proc_name
-            {
-                return true;
+            if let Ok(comm) = std::fs::read_to_string(&comm_path) {
+                let name = comm.trim();
+                if predicate(name) {
+                    return true;
+                }
             }
         }
     }
     false
 }
 
+/// Check whether a process with the given name is running in /proc
+pub fn is_process_running(proc_name: &str) -> bool {
+    is_process_running_matching(|name| name == proc_name)
+}
+
 /// Determine whether the Zygisk provider's daemon is actually running
 pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
     match id_lower.as_str() {
-        "rezygisk" => is_process_running("rezygisk") || is_process_running("rezygiskd"),
-        "zygisksu" => is_process_running("zygiskd") || is_process_running("zygisk-companion"),
-        _ => false,
+        "rezygisk" => is_process_running_matching(|name| name.starts_with("rezygisk")),
+        "zygisksu" | "nyazygisk" | "neozygisk" => is_process_running_matching(|name| {
+            name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.starts_with("zygisk-comp")
+                || name.starts_with("zygisk_comp")
+                || name.starts_with("nyazygisk")
+                || name.starts_with("neozygisk")
+        }),
+        _ => is_process_running_matching(|name| {
+            name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.starts_with("rezygisk")
+        }),
     }
 }
 
