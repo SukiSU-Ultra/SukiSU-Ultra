@@ -1036,6 +1036,59 @@ fn resolve_module_icon_path(
     }
 }
 
+/// Check if module has a zygisk shared library (client module) matching NeoZygisk load_modules behavior
+pub fn has_zygisk_library(path: &Path) -> bool {
+    let zygisk_dir = path.join(defs::MODULE_ZYGISK_DIR);
+    if zygisk_dir.is_dir() {
+        if let Ok(entries) = std::fs::read_dir(&zygisk_dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().is_some_and(|ext| ext == "so") {
+                    return true;
+                }
+            }
+        }
+        return true;
+    }
+    false
+}
+
+/// Determine whether the provided module is a Zygisk implementation / provider
+pub fn is_zygisk_provider(module_id: &str) -> bool {
+    let id_lower = module_id.to_ascii_lowercase();
+    matches!(id_lower.as_str(), "zygisksu" | "rezygisk")
+}
+
+/// Check whether a process with the given name is running in /proc
+pub fn is_process_running(proc_name: &str) -> bool {
+    let Ok(entries) = std::fs::read_dir("/proc") else {
+        return false;
+    };
+    for entry in entries.flatten() {
+        let file_name = entry.file_name();
+        let file_str = file_name.to_string_lossy();
+        if file_str.chars().all(|c| c.is_ascii_digit()) {
+            let comm_path = entry.path().join("comm");
+            if let Ok(comm) = std::fs::read_to_string(&comm_path)
+                && comm.trim() == proc_name
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Determine whether the Zygisk provider's daemon is actually running
+pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
+    let id_lower = module_id.to_ascii_lowercase();
+    match id_lower.as_str() {
+        "rezygisk" => is_process_running("rezygisk") || is_process_running("rezygiskd"),
+        "zygisksu" => is_process_running("zygiskd") || is_process_running("zygisk-companion"),
+        _ => false,
+    }
+}
+
 fn list_module(path: &str) -> Vec<HashMap<String, String>> {
     // Load all module configs once to minimize I/O overhead
     let all_configs = match crate::module_config::get_all_module_configs() {
@@ -1081,12 +1134,23 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
             }
         }
 
-        // Add enabled, update, remove, web, action flags
+        // Add enabled, update, remove, web, action, zygisk flags
         let enabled = !path.join(defs::DISABLE_FILE_NAME).exists();
         let update = path.join(defs::UPDATE_FILE_NAME).exists();
         let remove = path.join(defs::REMOVE_FILE_NAME).exists();
         let web = path.join(defs::MODULE_WEB_DIR).exists();
         let action = path.join(defs::MODULE_ACTION_SH).exists();
+        let is_provider = module_prop_map
+            .get("id")
+            .is_some_and(|id| is_zygisk_provider(id));
+        let zygisk_module = is_provider || has_zygisk_library(&path);
+        let zygisk_running = if is_provider {
+            module_prop_map
+                .get("id")
+                .is_some_and(|id| is_zygisk_daemon_running(id))
+        } else {
+            false
+        };
         let need_mount = path.join("system").exists() && !path.join("skip_mount").exists();
 
         module_prop_map.insert("enabled".to_owned(), enabled.to_string());
@@ -1094,6 +1158,9 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         module_prop_map.insert("remove".to_owned(), remove.to_string());
         module_prop_map.insert("web".to_owned(), web.to_string());
         module_prop_map.insert("action".to_owned(), action.to_string());
+        module_prop_map.insert("zygisk".to_owned(), zygisk_module.to_string());
+        module_prop_map.insert("zygisk_provider".to_owned(), is_provider.to_string());
+        module_prop_map.insert("zygisk_running".to_owned(), zygisk_running.to_string());
         module_prop_map.insert("mount".to_owned(), need_mount.to_string());
 
         resolve_module_icon_path(&mut module_prop_map, "actionIcon", &path);
