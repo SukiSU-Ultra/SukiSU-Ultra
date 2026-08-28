@@ -851,24 +851,45 @@ fun ModuleItem(
                 SubcomposeLayout { constraints ->
                     val spacingPx = 6.dp.roundToPx()
                     var nameTextLayout: TextLayoutResult? = null
-                    val metaPlaceable = if (module.metamodule) {
-                        subcompose("meta") {
-                            Text(
-                                text = "META",
-                                fontSize = 12.sp,
-                                color = updateTint,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(updateBg)
-                                    .padding(horizontal = 6.dp, vertical = 2.dp),
-                                fontWeight = FontWeight(750),
-                                maxLines = 1,
-                                softWrap = false
-                            )
+                    val tagsPlaceable = if (module.metamodule || module.zygisk) {
+                        subcompose("tags") {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (module.metamodule) {
+                                    Text(
+                                        text = "META",
+                                        fontSize = 12.sp,
+                                        color = updateTint,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(updateBg)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontWeight = FontWeight(750),
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                }
+                                if (module.zygisk) {
+                                    Text(
+                                        text = "ZYGISK",
+                                        fontSize = 12.sp,
+                                        color = updateTint,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(updateBg)
+                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontWeight = FontWeight(750),
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                }
+                            }
                         }.first().measure(Constraints(0, constraints.maxWidth, 0, constraints.maxHeight))
                     } else null
 
-                    val reserved = (metaPlaceable?.width ?: 0) + if (metaPlaceable != null) spacingPx else 0
+                    val reserved = (tagsPlaceable?.width ?: 0) + if (tagsPlaceable != null) spacingPx else 0
                     val nameMax = (constraints.maxWidth - reserved).coerceAtLeast(0)
                     val namePlaceable = subcompose("name") {
                         Text(
@@ -882,7 +903,7 @@ fun ModuleItem(
                     }.first().measure(Constraints(constraints.minWidth, nameMax, constraints.minHeight, constraints.maxHeight))
 
                     val width = (namePlaceable.width + reserved).coerceIn(constraints.minWidth, constraints.maxWidth)
-                    val height = maxOf(namePlaceable.height, metaPlaceable?.height ?: 0)
+                    val height = maxOf(namePlaceable.height, tagsPlaceable?.height ?: 0)
 
                     layout(width, height) {
                         namePlaceable.placeRelative(0, 0)
@@ -890,7 +911,7 @@ fun ModuleItem(
                             val last = (layoutRes.lineCount - 1).coerceAtLeast(0)
                             layoutRes.getLineRight(last).toInt()
                         } ?: namePlaceable.width
-                        metaPlaceable?.placeRelative(endX + spacingPx, (height - (metaPlaceable.height)) / 2)
+                        tagsPlaceable?.placeRelative(endX + spacingPx, (height - (tagsPlaceable.height)) / 2)
                     }
                 }
                 Text(
