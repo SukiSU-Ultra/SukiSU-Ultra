@@ -433,6 +433,13 @@ private fun InfoCard(systemInfo: SystemInfo, showFullStatus: Boolean = true) {
                         hookTypeLabel
                     )
                 }
+                if (!systemInfo.zygiskImplementation.isNullOrBlank()) {
+                    Spacer(Modifier.height(16.dp))
+                    InfoCardItem(
+                        stringResource(R.string.home_zygisk_implementation),
+                        systemInfo.zygiskImplementation
+                    )
+                }
 
             }
             Spacer(Modifier.height(16.dp))

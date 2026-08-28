@@ -637,4 +637,8 @@
     <string name="home_kernel_full_version">Kernel full version</string>
     <string name="settings_show_fullstatus">Show FullStatus</string>
     <string name="settings_show_fullstatus_summary">Display device FullStatus in home page info card</string>
+    <string name="home_zygisk_implementation">Zygisk implementation</string>
+    <string name="home_zygisk_not_installed">Not installed</string>
+    <string name="home_zygisk_disabled">Disabled</string>
+    <string name="home_zygisk_reboot_required">Reboot required</string>
 </resources>
