@@ -42,7 +42,6 @@ fun SettingPager(
         onSetLanguage = { tag -> viewModel.setLanguage(context, tag) },
         onSetSuCompatMode = viewModel::setSuCompatMode,
         onSetKernelUmountEnabled = viewModel::setKernelUmountEnabled,
-        onSetWebViewZygoteUmountEnabled = viewModel::setWebViewZygoteUmountEnabled,
         onSetSelinuxHideEnabled = viewModel::setSelinuxHideEnabled,
         onSetSulogEnabled = viewModel::setSulogEnabled,
         onSetAdbRootEnabled = viewModel::setAdbRootEnabled,
