@@ -23,30 +23,15 @@ All other parts (except mentioned below) are under GPL-3.0 or later license
 ### Launcher Icons & Character Art
 
 ::: warning Copyright Notice
-Special licensing requirements for anime character artwork
+The launcher icons are licensed under a special arrangement
 :::
 
-The images of the files `ic_launcher(?!.*alt.*).*` with anime character emoticons have specific copyright terms:
-
-**Copyright Holders:**
-
-- **Anime Character Art:** [五十根大虾仁](https://space.bilibili.com/370927)
-- **Brand Intellectual Property:** [明风OuO](https://space.bilibili.com/274939213)
-- **Vectorization:** @MiRinChan
+The images of the files `ic_launcher(?!.*alt.*).*` with anime character artwork are licensed under a special arrangement: drawn by [怡子曰曰](https://space.bilibili.com/10545509), the copyright is held by [明风 OuO](https://space.bilibili.com/274939213), and the vectorized icons are provided by this project.
 
 **License Requirements:**
 
-1. **Creative Commons License:** [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)
-2. **Author Authorization:** Required from both copyright holders
-3. **Attribution:** Must credit all contributors listed above
-
-::: details Usage Requirements
-Before using these artistic assets, you must:
-
-- Comply with Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license
-- Obtain authorization from both original authors for use of artistic content
-- Provide proper attribution to all contributors
-  :::
+1. See [`LICENSE_icon_English`](../../../../LICENSE_icon_English) for the full English license.
+2. See [`LICENSE_icon_SC`](../../../../LICENSE_icon_SC) for the full Simplified Chinese license.
 
 ## 📋 License Summary
 
@@ -54,14 +39,15 @@ Before using these artistic assets, you must:
 | -------------------- | ------------------------------------------------------------------------- | ------------------------------------- |
 | **Kernel Files**     | [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) | Files in `/kernel/` directory         |
 | **Application Code** | [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html)                     | Main application components           |
-| **Character Art**    | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)     | + Author authorization required       |
+| **Character Art**    | [Icon Limited Use License](./#launcher-icons--character-art)              | See `LICENSE_icon_English` / `LICENSE_icon_SC` |
 | **Brand Assets**     | Mixed Licensing                                                           | See specific attribution requirements |
 
 ## 🔗 License Links
 
 - **GPL-2.0:** [Full License Text](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 - **GPL-3.0:** [Full License Text](https://www.gnu.org/licenses/gpl-3.0.html)
-- **CC BY-NC-SA 4.0:** [Full License Text](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt)
+- **Icon License (English):** [`LICENSE_icon_English`](../../../../LICENSE_icon_English)
+- **Icon License (简体中文):** [`LICENSE_icon_SC`](../../../../LICENSE_icon_SC)
 
 ## 📞 Licensing Questions
 
@@ -69,7 +55,7 @@ For questions about licensing or usage permissions:
 
 1. **Code Licensing:** Refer to respective GPL license terms
 2. **Artwork Usage:** Contact original authors for authorization
-3. **Commercial Use:** Review CC BY-NC-SA 4.0 restrictions
+3. **Commercial Use:** Review the icon limited use license terms
 4. **Distribution:** Ensure compliance with all applicable licenses
 
 ::: tip Compliance Note
