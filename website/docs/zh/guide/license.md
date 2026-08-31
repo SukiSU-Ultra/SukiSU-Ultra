@@ -31,7 +31,7 @@
 **许可要求：**
 
 1. 完整英文许可证请参见 [`LICENSE_icon_English`](../../../../LICENSE_icon_English)。
-2. 完整简体中文许可证请参见 [`LICENSE_icon_简体中文`](../../../../LICENSE_icon_简体中文)。
+2. 完整简体中文许可证请参见 [`LICENSE_icon_SC`](../../../../LICENSE_icon_SC)。
 
 ## 摘要
 
@@ -39,7 +39,7 @@
 | ---------------- | ------------------------------------------------------------------------- | ----------------------- |
 | **内核文件**     | [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) | `/kernel/` 目录中的文件 |
 | **应用程序代码** | [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html)                     | 主要应用程序组件        |
-| **角色艺术**     | [图标有限使用许可证](./#启动器图标与角色艺术)                              | 详见 `LICENSE_icon_English` / `LICENSE_icon_简体中文` |
+| **角色艺术**     | [图标有限使用许可证](./#启动器图标与角色艺术)                              | 详见 `LICENSE_icon_English` / `LICENSE_icon_SC` |
 | **品牌资产**     | 混合许可                                                                  | 查看具体署名要求        |
 
 ## 链接
@@ -47,7 +47,7 @@
 - **GPL-2.0：** [完整许可证文本](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 - **GPL-3.0：** [完整许可证文本](https://www.gnu.org/licenses/gpl-3.0.html)
 - **图标许可证（英文）：** [`LICENSE_icon_English`](../../../../LICENSE_icon_English)
-- **图标许可证（简体中文）：** [`LICENSE_icon_简体中文`](../../../../LICENSE_icon_简体中文)
+- **图标许可证（简体中文）：** [`LICENSE_icon_SC`](../../../../LICENSE_icon_SC)
 
 ## 问题
 

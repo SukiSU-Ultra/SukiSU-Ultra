@@ -31,7 +31,7 @@ The images of the files `ic_launcher(?!.*alt.*).*` with anime character artwork 
 **License Requirements:**
 
 1. See [`LICENSE_icon_English`](../../../../LICENSE_icon_English) for the full English license.
-2. See [`LICENSE_icon_简体中文`](../../../../LICENSE_icon_简体中文) for the full Simplified Chinese license.
+2. See [`LICENSE_icon_SC`](../../../../LICENSE_icon_SC) for the full Simplified Chinese license.
 
 ## 📋 License Summary
 
@@ -39,7 +39,7 @@ The images of the files `ic_launcher(?!.*alt.*).*` with anime character artwork 
 | -------------------- | ------------------------------------------------------------------------- | ------------------------------------- |
 | **Kernel Files**     | [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) | Files in `/kernel/` directory         |
 | **Application Code** | [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html)                     | Main application components           |
-| **Character Art**    | [Icon Limited Use License](./#launcher-icons--character-art)              | See `LICENSE_icon_English` / `LICENSE_icon_简体中文` |
+| **Character Art**    | [Icon Limited Use License](./#launcher-icons--character-art)              | See `LICENSE_icon_English` / `LICENSE_icon_SC` |
 | **Brand Assets**     | Mixed Licensing                                                           | See specific attribution requirements |
 
 ## 🔗 License Links
@@ -47,7 +47,7 @@ The images of the files `ic_launcher(?!.*alt.*).*` with anime character artwork 
 - **GPL-2.0:** [Full License Text](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 - **GPL-3.0:** [Full License Text](https://www.gnu.org/licenses/gpl-3.0.html)
 - **Icon License (English):** [`LICENSE_icon_English`](../../../../LICENSE_icon_English)
-- **Icon License (简体中文):** [`LICENSE_icon_简体中文`](../../../../LICENSE_icon_简体中文)
+- **Icon License (简体中文):** [`LICENSE_icon_SC`](../../../../LICENSE_icon_SC)
 
 ## 📞 Licensing Questions
 
