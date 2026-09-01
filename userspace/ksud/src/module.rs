@@ -1069,11 +1069,6 @@ where
     false
 }
 
-/// Check whether a process with the given name is running in /proc
-pub fn is_process_running(proc_name: &str) -> bool {
-    is_process_running_matching(|name| name == proc_name)
-}
-
 /// Determine whether the Zygisk provider's daemon is actually running
 pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();

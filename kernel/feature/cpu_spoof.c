@@ -7,6 +7,7 @@
 #include <linux/delay.h>
 #include <linux/clocksource.h>
 #include <linux/errno.h>
+#include <linux/version.h>
 
 #include "cpu_spoof.h"
 #include "infra/symbol_resolver.h"
@@ -116,6 +117,27 @@ int ksu_set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd)
             unsigned int part = MIDR_PARTNUM(cmd->midr);
             if (part != ARM_CPU_PART_NEOVERSE_N1 && part != ARM_CPU_PART_CORTEX_A76 &&
                 part != QCOM_CPU_PART_KRYO_4XX_GOLD) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
+                /* Resolve 'vdso_time_data' or 'vdso_data' double pointer and align clock mode */
+                struct vdso_time_data **vdso_time_data_ptr = (struct vdso_time_data **)find_kernel_symbol_exact("vdso_time_data");
+                if (!vdso_time_data_ptr) {
+                    vdso_time_data_ptr = (struct vdso_time_data **)find_kernel_symbol_exact("_vdso_time_data");
+                }
+                if (!vdso_time_data_ptr) {
+                    vdso_time_data_ptr = (struct vdso_time_data **)find_kernel_symbol_exact("vdso_data");
+                }
+                if (vdso_time_data_ptr && *vdso_time_data_ptr) {
+                    struct vdso_time_data *vdso = *vdso_time_data_ptr;
+                    pr_info("ksu: set_spoof_cpu found 'vdso_time_data' (current CS_HRES_COARSE clock_mode: %d)\n",
+                            vdso->clock_data[CS_HRES_COARSE].clock_mode);
+                    vdso->clock_data[CS_HRES_COARSE].clock_mode = VDSO_CLOCKMODE_ARCHTIMER;
+                    vdso->clock_data[CS_RAW].clock_mode = VDSO_CLOCKMODE_ARCHTIMER;
+                    pr_info("ksu: set_spoof_cpu updated 'vdso_time_data' clock_mode to %d\n",
+                            vdso->clock_data[CS_HRES_COARSE].clock_mode);
+                } else {
+                    pr_warn("ksu: set_spoof_cpu failed to resolve 'vdso_time_data'\n");
+                }
+#else
                 /* Resolve 'vdso_data' double pointer and align clock mode */
                 struct vdso_data **vdso_data_ptr = (struct vdso_data **)find_kernel_symbol_exact("vdso_data");
                 if (vdso_data_ptr && *vdso_data_ptr) {
@@ -129,6 +151,7 @@ int ksu_set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd)
                 } else {
                     pr_warn("ksu: set_spoof_cpu failed to resolve 'vdso_data'\n");
                 }
+#endif
 
                 /* Resolve 'curr_clocksource' double pointer and overwrite active clock mode */
                 {
