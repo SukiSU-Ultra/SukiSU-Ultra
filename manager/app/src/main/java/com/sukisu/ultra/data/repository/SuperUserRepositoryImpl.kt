@@ -15,7 +15,7 @@ import com.topjohnwu.superuser.ipc.RootService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import com.sukisu.ultra.IKsuInterface
+import com.sukisu.zako.IKsuInterface
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.data.model.AppInfo
 import com.sukisu.ultra.data.model.WEBVIEW_ZYGOTE_PROFILE_KEY
