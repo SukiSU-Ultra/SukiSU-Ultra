@@ -1053,6 +1053,7 @@ where
     let Ok(entries) = std::fs::read_dir("/proc") else {
         return false;
     };
+    let mut process_names = Vec::new();
     for entry in entries.flatten() {
         let file_name = entry.file_name();
         let file_str = file_name.to_string_lossy();
@@ -1060,6 +1061,9 @@ where
             let comm_path = entry.path().join("comm");
             if let Ok(comm) = std::fs::read_to_string(&comm_path) {
                 let name = comm.trim();
+                if name.to_lowercase().contains("zygisk") || name.contains("zygisk") {
+                    process_names.push(name.to_string());
+                }
                 if predicate(name) {
                     return true;
                 }
@@ -1072,22 +1076,41 @@ where
 /// Determine whether the Zygisk provider's daemon is actually running
 pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
-    match id_lower.as_str() {
-        "rezygisk" => is_process_running_matching(|name| name.starts_with("rezygisk")),
-        "zygisksu" | "nyazygisk" | "neozygisk" => is_process_running_matching(|name| {
+    let result = match id_lower.as_str() {
+        "rezygisk" => is_process_running_matching(|name| {
+            name.starts_with("rezygisk") || name.contains("rezygisk")
+        }),
+        "zygisksu" => is_process_running_matching(|name| {
             name.starts_with("zygiskd")
                 || name.starts_with("zygisk-ptrace")
                 || name.starts_with("zygisk-comp")
                 || name.starts_with("zygisk_comp")
-                || name.starts_with("nyazygisk")
-                || name.starts_with("neozygisk")
+                || name.contains("zygiskd")
+                || name.contains("zygisk")
+        }),
+        "nyazygisk" => is_process_running_matching(|name| {
+            name.starts_with("nyazygisk")
+                || name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.contains("nyazygisk")
+                || name.contains("zygisk")
+        }),
+        "neozygisk" => is_process_running_matching(|name| {
+            name.starts_with("neozygisk")
+                || name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.contains("neozygisk")
+                || name.contains("zygisk")
         }),
         _ => is_process_running_matching(|name| {
             name.starts_with("zygiskd")
                 || name.starts_with("zygisk-ptrace")
                 || name.starts_with("rezygisk")
+                || name.contains("zygisk")
         }),
-    }
+    };
+    info!("Zygisk daemon check for '{module_id}': {result}");
+    result
 }
 
 fn list_module(path: &str) -> Vec<HashMap<String, String>> {
