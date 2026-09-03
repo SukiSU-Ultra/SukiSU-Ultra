@@ -29,8 +29,8 @@ import com.sukisu.ultra.core.tasks.ExtractImage
 import com.sukisu.ultra.core.tasks.ProbeResult
 import com.sukisu.ultra.core.utils.DataSourceChannel
 import com.sukisu.ultra.ksuApp
-import org.json.JSONArray
 import okhttp3.OkHttpClient
+import org.json.JSONArray
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
