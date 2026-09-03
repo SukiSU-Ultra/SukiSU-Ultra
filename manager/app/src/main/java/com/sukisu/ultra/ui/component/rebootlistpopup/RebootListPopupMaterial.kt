@@ -3,7 +3,7 @@ package com.sukisu.ultra.ui.component.rebootlistpopup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,7 +22,7 @@ import com.sukisu.ultra.ui.component.KsuIsValid
 fun RebootDropdownItems(onItemClick: (String) -> Unit) {
     val options = getRebootListOption()
     options.forEachIndexed { index, option ->
-        DropdownMenuItem(
+        SelectableDropdownMenuItem(
             selected = false,
             onClick = { onItemClick(option.reason) },
             text = { Text("  " + stringResource(option.labelRes)) },
