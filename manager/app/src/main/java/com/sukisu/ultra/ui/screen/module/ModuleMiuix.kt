@@ -115,7 +115,6 @@ import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
 import com.sukisu.ultra.ui.component.miuix.SearchBarFake
 import com.sukisu.ultra.ui.component.miuix.SearchBox
 import com.sukisu.ultra.ui.component.miuix.SearchPager
-import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopupMiuix
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
@@ -314,9 +313,6 @@ fun ModulePagerMiuix(
                                     }
                                 )
                             }
-                            RebootListPopupMiuix(
-                                alignment = PopupPositionProvider.Align.TopEnd,
-                            )
                         },
                         navigationIcon = {
                             IconButton(

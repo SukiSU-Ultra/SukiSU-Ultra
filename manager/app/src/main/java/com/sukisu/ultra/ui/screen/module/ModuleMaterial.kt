@@ -144,7 +144,6 @@ import com.sukisu.ultra.ui.component.material.ExpressiveSwitch
 import com.sukisu.ultra.ui.component.material.SearchAppBar
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.TonalCard
-import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopup
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.reboot
 
@@ -292,8 +291,6 @@ fun ModulePagerMaterial(
                     }
                 },
                 actions = {
-                    RebootListPopup()
-
                     var showDropdown by remember { mutableStateOf(false) }
                     IconButton(
                         onClick = { showDropdown = true }
