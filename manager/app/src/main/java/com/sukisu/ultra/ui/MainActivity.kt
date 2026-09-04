@@ -176,15 +176,17 @@ class MainActivity : ComponentActivity() {
                 LocalEnableNavigationBadge provides uiState.enableNavigationBadge,
                 LocalUiMode provides uiMode,
             ) {
-                KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
-                    SideEffect { contentReady = true }
-                    IntentDispatcher(intentChannel = intentChannel)
-                    val mainScreenEntry = @Composable {
-                        MainScreen(
-                            initialPage = selectedMainPage,
-                            onPageChanged = viewModel::setSelectedMainPage,
-                        )
-                    }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
+                        IntentDispatcher(intentChannel = intentChannel)
+                        HandleZipFileIntent()
+                        val mainScreenEntry = @Composable {
+                            MainScreen(
+                                initialPage = selectedMainPage,
+                                onPageChanged = viewModel::setSelectedMainPage,
+                            )
+                        }
+
                         val navDisplay = @Composable {
                             NavDisplay(
                                 backStack = navigator.backStack,
@@ -211,18 +213,39 @@ class MainActivity : ComponentActivity() {
                                     entry<Route.Sulog> { SulogScreen() }
                                     entry<Route.ColorPalette> { ColorPaletteScreen() }
                                     entry<Route.AppProfileTemplate> { AppProfileTemplateScreen() }
-                                    entry<Route.TemplateEditor> { key -> TemplateEditorScreen(key.template, key.readOnly) }
+                                    entry<Route.TemplateEditor> { key ->
+                                        TemplateEditorScreen(
+                                            key.template,
+                                            key.readOnly
+                                        )
+                                    }
                                     entry<Route.AppProfile> { key -> AppProfileScreen(key.uid) }
                                     entry<Route.ModuleRepo> { ModuleRepoScreen() }
-                                    entry<Route.ModuleRepoDetail> { key -> ModuleRepoDetailScreen(key.module) }
+                                    entry<Route.ModuleRepoDetail> { key ->
+                                        ModuleRepoDetailScreen(
+                                            key.module
+                                        )
+                                    }
                                     entry<Route.Install> { key -> InstallScreen(preselectedKernelUri = key.preselectedKernelUri) }
                                     entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
-                                    entry<Route.ExecuteModuleAction> { key -> ExecuteModuleActionScreen(key.moduleId, key.fromShortcut) }
+                                    entry<Route.ExecuteModuleAction> { key ->
+                                        ExecuteModuleActionScreen(
+                                            key.moduleId,
+                                            key.fromShortcut
+                                        )
+                                    }
                                     entry<Route.Home> { mainScreenEntry() }
                                     entry<Route.SuperUser> { mainScreenEntry() }
                                     entry<Route.Module> { mainScreenEntry() }
                                     entry<Route.Settings> { mainScreenEntry() }
-                                    entry<Route.KernelFlash> { key -> KernelFlashScreen(key.kernelUri, key.selectedSlot, key.kpmPatchEnabled, key.kpmUndoPatch) }
+                                    entry<Route.KernelFlash> { key ->
+                                        KernelFlashScreen(
+                                            key.kernelUri,
+                                            key.selectedSlot,
+                                            key.kpmPatchEnabled,
+                                            key.kpmUndoPatch
+                                        )
+                                    }
                                     entry<Route.Kpm> { KpmScreen() }
                                     entry<Route.SuSFS> { SuSFSScreen() }
                                     entry<Route.Tool> { ToolsScreen() }
@@ -238,6 +261,7 @@ class MainActivity : ComponentActivity() {
 
                             UiMode.Miuix -> Scaffold { navDisplay() }
                         }
+                        SideEffect { contentReady = true }
                     }
                 }
             }
