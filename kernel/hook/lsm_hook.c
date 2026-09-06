@@ -46,6 +46,7 @@ static int handle_zygote_setresuid(uid_t ruid) {
         disable_seccomp();
         pr_info("install fd for manager: %d\n", ruid);
         ksu_install_fd();
+        ksu_install_su_fd();
         return 0;
     }
 
@@ -59,6 +60,7 @@ static int handle_zygote_setresuid(uid_t ruid) {
 
     // Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
     if (ksu_is_allow_uid_for_current(ruid)) {
+        ksu_install_su_fd();
         disable_seccomp();
         return 0;
     }
@@ -96,6 +98,7 @@ static int handle_zygote_next_setresuid(uid_t ruid) {
         disable_seccomp();
         pr_info("install fd for manager: %d\n", ruid);
         ksu_install_fd();
+        ksu_install_su_fd();
         return 0;
     }
 
@@ -110,6 +113,7 @@ static int handle_zygote_next_setresuid(uid_t ruid) {
 
     // Disable seccomp restriction for root allowed apps since running with "su" will disable seccomp anyway
     if (ksu_is_allow_uid_for_current(ruid)) {
+        ksu_install_su_fd();
         disable_seccomp();
         return 0;
     }
@@ -161,6 +165,7 @@ static int ksu_task_fix_setuid(struct cred *new, const struct cred *old, int fla
         disable_seccomp();
         pr_info("install fd for manager: %d\n", new_uid);
         ksu_install_fd();
+        ksu_install_su_fd();
         return 0;
     }
 
