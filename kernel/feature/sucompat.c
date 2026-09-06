@@ -23,6 +23,7 @@
 #include "feature/sucompat.h"
 #include "policy/app_profile.h"
 #include "hook/syscall_hook.h"
+#include "supercall/supercall.h"
 #include "sulog/event.h"
 #include "ksu.h"
 #include "util.h"
@@ -166,6 +167,7 @@ static long ksu_handle_execve_sucompat_common(const char __user **filename_user,
     char path[sizeof(su_path) + 1];
     long ret, orig_regs[5];
     unsigned long addr;
+    int su_fd = -1;
     int tmp_fd;
     struct file *ksud_file;
     const struct cred *old_cred;
@@ -240,6 +242,13 @@ static long ksu_handle_execve_sucompat_common(const char __user **filename_user,
         regs->__PT_PARM3_REG = orig_regs[2];
         regs->__PT_SYSCALL_PARM4_REG = orig_regs[3];
         regs->__PT_PARM5_REG = orig_regs[4];
+    } else {
+        // Only grant the scoped driver capability after the selected root
+        // profile has been applied successfully.
+        su_fd = ksu_install_su_fd();
+        if (su_fd < 0) {
+            pr_warn("install su session fd failed: %d\n", su_fd);
+        }
     }
     return ret;
 
