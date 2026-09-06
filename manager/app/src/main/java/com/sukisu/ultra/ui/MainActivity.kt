@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
     private var splashStartedAt = 0L
 
     private companion object {
-        const val SplashAnimationDurationMs = 200L
+        const val SplashAnimationDurationMs = 250L
     }
 
     override fun attachBaseContext(newBase: android.content.Context) {
