@@ -3,6 +3,11 @@ package com.sukisu.ultra.ui.screen.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -18,16 +23,28 @@ import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 @Composable
 fun SettingPager(
     navigator: Navigator,
-    bottomInnerPadding: Dp
+    bottomInnerPadding: Dp,
+    isCurrentPage: Boolean = true,
 ) {
     val context = LocalContext.current
     val viewModel = viewModel<SettingsViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isKpmAvailable = rememberKpmAvailable()
     val isSusfsSupported = getSuSFSStatus().equals("true", ignoreCase = true)
+    val latestIsCurrentPage by rememberUpdatedState(isCurrentPage)
+    val initialResumeHandled = rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(isCurrentPage) {
+        if (isCurrentPage) {
+            viewModel.refresh()
+        }
+    }
 
     LifecycleResumeEffect(Unit) {
-        viewModel.refresh()
+        if (initialResumeHandled.value && latestIsCurrentPage) {
+            viewModel.refresh()
+        }
+        initialResumeHandled.value = true
         onPauseOrDispose { }
     }
 

@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,23 +21,37 @@ import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 fun SuperUserPager(
     navigator: Navigator,
     bottomInnerPadding: Dp,
-    isCurrentPage: Boolean = true
+    isCurrentPage: Boolean = true,
 ) {
     val viewModel = viewModel<SuperUserViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val latestIsCurrentPage by rememberUpdatedState(isCurrentPage)
+    val initialResumeHandled = rememberSaveable { mutableStateOf(false) }
 
-    var hasActivated by remember { mutableStateOf(false) }
-    if (isCurrentPage) hasActivated = true
-
-    if (hasActivated) {
-        LaunchedEffect(Unit) {
-            if (uiState.groupedApps.isEmpty()) {
+    LaunchedEffect(isCurrentPage) {
+        if (isCurrentPage) {
+            val state = viewModel.uiState.value
+            if (!state.hasLoaded && !state.isRefreshing) {
                 viewModel.initializePreferences()
-                viewModel.loadAppList().join()
-            } else if (viewModel.isNeedRefresh) {
-                viewModel.loadAppList(resort = false).join()
+                viewModel.loadAppList()
             }
         }
+    }
+
+    LifecycleResumeEffect(Unit) {
+        if (initialResumeHandled.value && latestIsCurrentPage) {
+            val state = viewModel.uiState.value
+            if (!state.isRefreshing) {
+                if (!state.hasLoaded) {
+                    viewModel.initializePreferences()
+                    viewModel.loadAppList()
+                } else if (viewModel.isNeedRefresh) {
+                    viewModel.loadAppList(resort = false)
+                }
+            }
+        }
+        initialResumeHandled.value = true
+        onPauseOrDispose {}
     }
 
     val onSearchTextChange: (String) -> Unit = viewModel::updateSearchText
