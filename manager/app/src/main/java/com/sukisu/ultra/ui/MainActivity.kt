@@ -114,10 +114,8 @@ class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
     private var contentReady = false
     private var splashStartedAt = 0L
+    private val splashAnimationDurationMs = 500L
 
-    private companion object {
-        const val SplashAnimationDurationMs = 250L
-    }
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(newBase))
@@ -130,7 +128,7 @@ class MainActivity : ComponentActivity() {
         splashStartedAt = SystemClock.uptimeMillis()
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition {
-            !contentReady || SystemClock.uptimeMillis() - splashStartedAt < SplashAnimationDurationMs
+            !contentReady || SystemClock.uptimeMillis() - splashStartedAt < splashAnimationDurationMs
         }
 
         if (Natives.isManager && !Natives.requireNewKernel()) install()
@@ -263,6 +261,7 @@ class MainActivity : ComponentActivity() {
                         }
                         SideEffect { contentReady = true }
                     }
+                    SideEffect { contentReady = true }
                 }
             }
         }
