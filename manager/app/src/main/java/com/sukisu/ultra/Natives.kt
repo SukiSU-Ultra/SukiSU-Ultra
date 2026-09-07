@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import com.sukisu.ultra.Natives.Profile.RootProfileFlag
+import com.sukisu.ultra.ui.util.rootAvailable
 
 /**
  * @author weishu
@@ -64,6 +65,9 @@ object Natives {
         external get
 
     val isLkmMode: Boolean
+        external get
+
+    val isLkmBundled: Boolean
         external get
 
     val isLateLoadMode: Boolean
@@ -147,13 +151,8 @@ object Natives {
     val managerUAPIVersion: Int
         external get
 
-    fun checkUAPIMismatch(): Boolean {
-        return kernelUAPIVersion != managerUAPIVersion
-    }
-
-    fun requireNewKernel(): Boolean {
-        if (version != -1 && version < MINIMAL_SUPPORTED_KERNEL) return true
-        return (isVersionLessThan(getFullVersion(), MINIMAL_SUPPORTED_KERNEL_FULL)) || checkUAPIMismatch()
+    fun isFullFeatured(): Boolean {
+        return (isVersionLessThan(getFullVersion(), MINIMAL_SUPPORTED_KERNEL_FULL)) || isManager && kernelUAPIVersion == managerUAPIVersion && rootAvailable()
     }
 
     @Keep

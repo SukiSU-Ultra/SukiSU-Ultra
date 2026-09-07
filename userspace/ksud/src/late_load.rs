@@ -64,6 +64,7 @@ pub fn run(
 
         // 4. Load kernelsu.ko from memory with manual relocation
         info!("Loading kernelsu.ko for KMI {kmi}...");
+        // bundled flag is meaningless in jailbreak mode since we can't flash boot to update it.
         let mut params = if allow_shell {
             "allow_shell=1 ".to_string()
         } else {

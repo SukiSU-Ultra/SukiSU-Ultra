@@ -59,6 +59,12 @@ Java_com_sukisu_ultra_Natives_isLkmMode(JNIEnv *env, jclass clazz) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
+Java_com_sukisu_ultra_Natives_isLkmBundled(JNIEnv *env, jclass clazz) {
+    return is_lkm_bundled();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
 Java_com_sukisu_ultra_Natives_isLateLoadMode(JNIEnv *env, jclass clazz) {
     return is_late_load_mode();
 }

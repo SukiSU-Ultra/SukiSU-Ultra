@@ -84,6 +84,11 @@ module_param(allow_shell, bool, 0);
 bool ksu_no_custom_rc = false;
 module_param_named(norc, ksu_no_custom_rc, bool, 0);
 
+#ifdef MODULE
+bool ksu_bundled = false;
+module_param_named(bundled, ksu_bundled, bool, 0);
+#endif
+
 static char *spoof_release = NULL;
 module_param(spoof_release, charp, 0);
 

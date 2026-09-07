@@ -102,7 +102,6 @@ import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
-import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
 import com.sukisu.ultra.ui.viewmodel.MainPagerConfig
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
@@ -133,7 +132,8 @@ class MainActivity : ComponentActivity() {
             !contentReady || SystemClock.uptimeMillis() - splashStartedAt < splashAnimationDurationMs
         }
 
-        if (Natives.isManager && !Natives.requireNewKernel()) install()
+        val isManager = Natives.isManager
+        if (isManager && Natives.kernelUAPIVersion == Natives.managerUAPIVersion) install()
 
         if (savedInstanceState == null) intent?.let { intentChannel.trySend(it) }
 
@@ -226,7 +226,11 @@ class MainActivity : ComponentActivity() {
                                             key.module
                                         )
                                     }
-                                    entry<Route.Install> { key -> InstallScreen(preselectedKernelUri = key.preselectedKernelUri) }
+                                    entry<Route.Install> { key ->
+                                        InstallScreen(
+                                            preselectedKernelUri = key.preselectedKernelUri
+                                        )
+                                    }
                                     entry<Route.Flash> { key -> FlashScreen(key.flashIt) }
                                     entry<Route.ExecuteModuleAction> { key ->
                                         ExecuteModuleActionScreen(
@@ -294,8 +298,7 @@ fun MainScreen(
         pagerState = pagerState,
         animatePageChanges = !useNavigationRail,
     )
-    val isManager = Natives.isManager
-    val isFullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
+    val isFullFeatured = Natives.isFullFeatured()
     var userScrollEnabled by remember(isFullFeatured) { mutableStateOf(isFullFeatured) }
 
     val enableNavigationBadge = LocalEnableNavigationBadge.current

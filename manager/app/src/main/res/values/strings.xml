@@ -2,12 +2,13 @@
 <resources>
     <string name="home">Home</string>
     <string name="home_not_installed">Not installed</string>
-    <string name="home_click_to_install">Click to install</string>
+    <string name="home_click_to_install">Tap to install</string>
     <string name="home_working">Working</string>
     <string name="home_working_version">Version: %s</string>
+    <string name="home_lkm_update_available">A newer bundled LKM is available. Tap to update.</string>
+    <string name="home_lkm_custom">Custom</string>
     <string name="home_unsupported">Unsupported</string>
     <string name="home_unsupported_reason">No KernelSU driver detected on your kernel, wrong kernel?</string>
-    <string name="home_version_mismatch">Manager version (%1$d) and KernelSU driver version (%2$d) mismatch!</string>
     <string name="home_device_model">Device model</string>
     <string name="home_kernel">Kernel version</string>
     <string name="home_manager_version">Manager version</string>
@@ -35,12 +36,6 @@
     <string name="sulog_filter_sucompat">Classic SU</string>
     <string name="sulog_filter_ioctl_grant_root">Grant Root</string>
     <string name="sulog_filter_daemon_restart">Daemon restart</string>
-    <string name="sulog_entry_unknown_event">Unknown event</string>
-    <string name="sulog_entry_description_sucompat">Intercepted /system/bin/su request</string>
-    <string name="sulog_entry_title_root_grant_request">Root grant request</string>
-    <string name="sulog_entry_description_ioctl_grant_root">Granted Root access via KernelSU ioctl</string>
-    <string name="sulog_entry_title_daemon_restarted">Daemon restarted</string>
-    <string name="sulog_entry_title_dropped_events">Dropped events</string>
     <string name="module_failed_to_enable">Failed to enable module: %s</string>
     <string name="module_failed_to_disable">Failed to disable module: %s</string>
     <string name="module_empty">No module installed</string>
@@ -68,7 +63,7 @@
     <string name="reboot_edl">Reboot to EDL</string>
     <string name="about">About</string>
     <string name="module_uninstall_confirm">Are you sure you want to uninstall module %s?</string>
-    <string name="metamodule_uninstall_confirm">"Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work.  "</string>
+    <string name="metamodule_uninstall_confirm">Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work.</string>
     <string name="module_uninstall_success">%s uninstalled</string>
     <string name="module_uninstall_failed">Failed to uninstall: %s</string>
     <string name="module_version">Version</string>
@@ -84,29 +79,30 @@
     <string name="reboot_to_apply">Reboot to take effect</string>
     <string name="module_magisk_conflict">Modules are unavailable due to a conflict with Magisk!</string>
     <string name="home_learn_kernelsu">Learn KernelSU</string>
-    <string name="home_learn_kernelsu_url" translatable="false">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">Learn how to install KernelSU and use modules.</string>
     <string name="home_support_title">Support Us</string>
     <string name="home_support_content">KernelSU is, and always will be, free, and open source. However, you can show us that you care by making a donation.</string>
+    <string name="home_gki_warning">Starting from v3.0.0, the GKI work mode will be used only in testing environments. We do not recommend it for daily use, and image files will no longer be provided.</string>
     <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel<br/><br/>The icons are licensed under a special arrangement: drawn by 怡子曰曰, the copyright is held by 明风 OuO, and the vectorized icons are provided by this project.]]></string>
     <string name="profile" translatable="false">App Profile</string>
     <string name="profile_default">Default</string>
     <string name="profile_template">Template</string>
     <string name="profile_custom">Custom</string>
     <string name="profile_name">Profile name</string>
-    <string name="profile_namespace">Mount Namespace</string>
-    <string name="profile_namespace_inherited">Inheritance</string>
+    <string name="profile_namespace">Mount namespace</string>
+    <string name="profile_namespace_inherited">Inherited</string>
     <string name="profile_namespace_global">Global</string>
-    <string name="profile_namespace_individual">Private</string>
+    <string name="profile_namespace_individual">Individual</string>
     <string name="profile_groups">Groups</string>
     <string name="profile_capabilities">Capabilities</string>
     <string name="profile_flags">Flags</string>
     <string name="profile_selinux_context">SELinux context</string>
     <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Failed to update App Profile for %s</string>
-    <string name="uapi_mismatch">Manager uapi version (%1$d) and KernelSU driver uapi version (%2$d) mismatch.</string>
-    <string name="require_manager_version">The current KernelSU manager version %1$d is too low for KernelSU to work properly. Please upgrade manager to version %2$d or higher!</string>
-    <string name="require_kernel_version">The current KernelSU version %1$d is too low for the manager to work properly. Please upgrade to version %2$d or higher!</string>
+    <string name="require_manager_version">Manager update required</string>
+    <string name="require_kernel_version">Kernel update required. Tap to install.</string>
+    <string name="require_kernel_version_gki">Kernel update required</string>
     <string name="settings_umount_modules_default">Umount modules by default</string>
     <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set.</string>
     <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app.</string>
@@ -117,7 +113,7 @@
     <string name="module_downloading">Downloading module: %s</string>
     <string name="module_start_downloading">Start downloading: %s</string>
     <string name="module_action_success">Module action executed successfully.</string>
-    <string name="new_version_available">New version %s is now available, click to update!</string>
+    <string name="new_version_available">New version %s is available, click to upgrade!</string>
     <string name="launch_app">Launch</string>
     <string name="force_stop_app">Force stop</string>
     <string name="restart_app">Restart</string>
@@ -125,7 +121,7 @@
     <string name="su_not_allowed">Couldn\'t grant Superuser access to %s</string>
     <string name="module_changelog">Changelog</string>
     <string name="settings_profile_template">App Profile template</string>
-    <string name="settings_profile_template_summary">Manage local and online template of App Profile</string>
+    <string name="settings_profile_template_summary">Manage local and online template of App Profile.</string>
     <string name="app_profile_template_create">Create template</string>
     <string name="app_profile_template_edit">Edit template</string>
     <string name="app_profile_template_id">ID</string>
@@ -145,9 +141,9 @@
     <string name="app_profile_template_import_empty">Clipboard is empty!</string>
     <string name="app_profile_affects_following_apps">Affects the following apps</string>
     <string name="settings_check_update">Check for updates</string>
-    <string name="settings_check_update_summary">Automatically check for updates when opening the app</string>
+    <string name="settings_check_update_summary">Automatically check for updates when opening the app.</string>
     <string name="settings_enable_predictive_back">Predictive back gesture</string>
-    <string name="settings_enable_predictive_back_summary">Enable predictive back gesture support</string>
+    <string name="settings_enable_predictive_back_summary">Enable predictive back gesture support.</string>
     <string name="settings_module_check_update">Check for module updates</string>
     <string name="grant_root_failed">Failed to grant Root!</string>
     <string name="home_pr_build_warning">This is a PR debug build. Do NOT use it in production!</string>
@@ -173,7 +169,7 @@
     <string name="install_upload_lkm_file">Use local LKM file</string>
     <string name="install_force_backup">Backup as stock image</string>
     <string name="install_force_backup_summary">Please make sure your selected boot image is a stock image</string>
-    <string name="install_only_support_ko_file">Only .ko format files are supported</string>
+    <string name="install_only_support_ko_file">Only .ko files are supported</string>
     <string name="select_file_tip">%1$s partition image is recommended</string>
     <string name="select_kmi">Select KMI</string>
     <string name="settings_uninstall">Uninstall</string>
@@ -202,7 +198,7 @@
     <string name="feature_status_unsupported_summary">Kernel does not support this feature</string>
     <string name="feature_status_managed_summary">This feature is managed by a module</string>
     <string name="settings_mode_enable_by_default">Enable (Default)</string>
-    <string name="settings_mode_disable_until_reboot">Disable until reboot</string>
+    <string name="settings_mode_disable_until_reboot">Disable until Reboot</string>
     <string name="settings_mode_disable_always">Always disable</string>
     <string name="processing">Processing…</string>
     <string name="refresh_pulling">Pull down to refresh</string>
@@ -222,12 +218,9 @@
     <string name="settings_key_color">Key color</string>
     <string name="settings_key_color_default">Default</string>
     <string name="settings_ui_mode">UI Style</string>
-    <string name="settings_ui_mode_summary">Choose the interface style</string>
-    <string name="settings_language">Language</string>
-    <string name="settings_language_summary">Choose the app display language</string>
-    <string name="settings_language_system">Follow system</string>
+    <string name="settings_ui_mode_summary">Choose the interface style.</string>
     <string name="settings_page_scale">Page Scale</string>
-    <string name="settings_page_scale_summary">Adjust the global display scale</string>
+    <string name="settings_page_scale_summary">Adjust the global display scale.</string>
     <string name="settings_color_spec">Color Spec</string>
     <string name="settings_color_style">Color Style</string>
     <string name="color_blue">Blue</string>
@@ -278,8 +271,6 @@
     <string name="settings_soft_reboot_summary">Use soft restart instead of a full reboot when installing, updating, or toggling modules.</string>
     <string name="allow_shell">Always grant Root to Shell</string>
     <string name="allow_shell_summary">Always allow adb shell to call SU command. Do not enable this unless absolutely necessary.</string>
-    <string name="kernel_spoof_release">Kernel Release</string>
-    <string name="kernel_spoof_version">Kernel Version</string>
     <string name="enable_adb">Force enable adb on boot</string>
     <string name="enable_adb_summary">Force enable USB debugging and disable adb authentication. Do not enable this unless absolutely necessary.</string>
     <string name="advanced_options">Advanced Options</string>
@@ -314,6 +305,11 @@
     <string name="inline_hook">Inline Hook</string>
     <string name="tracepoint_hook">Tracepoint Hook</string>
     <string name="home_susfs_version">SuSFS Version</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_summary">Choose the app display language</string>
+    <string name="settings_language_system">Follow system</string>
+    <string name="kernel_spoof_release">Kernel Release</string>
+    <string name="kernel_spoof_version">Kernel Version</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">Log Viewer</string>
     <string name="settings_view_sulog">View sulog logs</string>

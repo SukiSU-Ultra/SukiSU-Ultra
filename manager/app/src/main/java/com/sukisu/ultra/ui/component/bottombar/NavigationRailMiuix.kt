@@ -9,7 +9,6 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ui.LocalMainPagerState
-import com.sukisu.ultra.ui.util.rootAvailable
 import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailValue
@@ -21,8 +20,7 @@ fun NavigationRailMiuix(
     navigationBadge: NavigationBadgeState,
     modifier: Modifier = Modifier,
 ) {
-    val isManager = Natives.isManager
-    val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
+    val fullFeatured = Natives.isFullFeatured()
     if (!fullFeatured) return
 
     val mainState = LocalMainPagerState.current

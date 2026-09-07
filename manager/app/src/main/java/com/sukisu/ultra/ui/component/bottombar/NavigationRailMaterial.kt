@@ -41,18 +41,16 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ui.LocalMainPagerState
-import com.sukisu.ultra.ui.util.rootAvailable
 
 @Composable
 fun NavigationRailMaterial(
     navigationBadge: NavigationBadgeState,
     modifier: Modifier = Modifier,
 ) {
-    val isManager = Natives.isManager
-    val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
-    val mainPagerState = LocalMainPagerState.current
-
+    val fullFeatured = Natives.isFullFeatured()
     if (!fullFeatured) return
+
+    val mainPagerState = LocalMainPagerState.current
 
     val items = listOf(
         Triple(R.string.home, Icons.Filled.Home, Icons.Outlined.Home),

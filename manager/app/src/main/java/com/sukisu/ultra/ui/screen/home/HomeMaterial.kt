@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -102,42 +104,27 @@ fun HomePagerMaterial(
             } else if (state.showKernelPrBuildWarning && state.showFullStatus) {
                 WarningCard(stringResource(id = R.string.home_pr_kernel_warning), level = WarningLevel.Notice)
             }
-            if (state.showVersionMismatchWarning && state.showFullStatus) {
+            if (state.requiresNewKernel && state.showFullStatus) {
                 WarningCard(
                     stringResource(
-                        id = R.string.home_version_mismatch,
-                        state.currentManagerVersionCode,
-                        state.ksuVersion ?: 0
+                        id = if (state.lkmMode == true) R.string.require_kernel_version else R.string.require_kernel_version_gki
+                    ),
+                    onClick = if (state.lkmMode == true) actions.onInstallClick else null
+                )
+            }
+            if (state.requiresNewManager) {
+                WarningCard(
+                    stringResource(
+                        id = R.string.require_manager_version
                     )
                 )
             }
-            if (state.showUAPIMisMatchWarning && state.showFullStatus) {
+            if (state.showLkmUpdate && state.showFullStatus) {
                 WarningCard(
-                    stringResource(
-                        id = R.string.uapi_mismatch,
-                        state.managerUAPIVersion,
-                        state.kernelUAPIVersion ?: 0,
-                    )
+                    message = stringResource(R.string.home_lkm_update_available),
+                    level = WarningLevel.Notice,
+                    onClick = actions.onInstallClick,
                 )
-            }
-            if (state.showRequireKernelWarning && state.showFullStatus) {
-                if (state.currentManagerVersionCode < (state.ksuVersion ?: 0)) {
-                    WarningCard(
-                        stringResource(
-                            id = R.string.require_manager_version,
-                            state.currentManagerVersionCode,
-                            state.ksuVersion ?: 0,
-                        )
-                    )
-                } else {
-                    WarningCard(
-                        stringResource(
-                            id = R.string.require_kernel_version,
-                            state.ksuVersion ?: 0,
-                            Natives.MINIMAL_SUPPORTED_KERNEL
-                        )
-                    )
-                }
             }
             if (state.showRootWarning) {
                 WarningCard(stringResource(id = R.string.grant_root_failed))
@@ -148,7 +135,12 @@ fun HomePagerMaterial(
             )
             InfoCard(systemInfo = state.systemInfo, showFullStatus = state.showFullStatus)
             SupportLinks(onOpenUrl = actions.onOpenUrl)
-            Spacer(Modifier.height(bottomInnerPadding))
+            Spacer(
+                Modifier.height(
+                    bottomInnerPadding + if (!Natives.isFullFeatured())
+                        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() else 0.dp
+                )
+            )
         }
     }
 }
@@ -279,11 +271,23 @@ private fun StatusCard(
                 trailingContent = statusTrailing,
                 overlineContent = null,
                 supportingContent = {
-                    Text(
-                        text = statusSummary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = statusSummary,
+                            modifier = Modifier.weight(1f, fill = false),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (state.showCustomLkmBadge) {
+                            Spacer(Modifier.width(8.dp))
+                            StatusTag(
+                                label = stringResource(R.string.home_lkm_custom),
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            )
+                        }
+                    }
                 },
+                verticalAlignment = Alignment.CenterVertically,
                 colors = ListItemDefaults.colors(
                     containerColor = Color.Transparent,
                     contentColor = contentColor,
@@ -634,10 +638,12 @@ private fun previewHomeScreenState(
     kernelVersion = KernelVersion(6, 1, 0),
     ksuVersion = ksuVersion,
     lkmMode = lkmMode,
+    isLkmBundled = lkmMode == true,
     isManager = true,
     isManagerPrBuild = false,
     isKernelPrBuild = false,
     requiresNewKernel = false,
+    requiresNewManager = false,
     isRootAvailable = ksuVersion != null,
     isSafeMode = isSafeMode,
     isLateLoadMode = isLateLoadMode,
@@ -648,5 +654,4 @@ private fun previewHomeScreenState(
     systemInfo = previewSystemInfo.copy(selinuxStatus = selinuxStatus),
     kernelUAPIVersion = 1,
     managerUAPIVersion = 1,
-    uapiMismatch = false
 )

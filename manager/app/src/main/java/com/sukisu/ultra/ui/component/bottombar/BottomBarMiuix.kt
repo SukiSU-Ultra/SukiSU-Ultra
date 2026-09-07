@@ -29,7 +29,6 @@ import com.sukisu.ultra.ui.component.FloatingBottomBarItem
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.util.BlurredBar
-import com.sukisu.ultra.ui.util.rootAvailable
 import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.BadgedBox
 import top.yukonga.miuix.kmp.basic.Icon
@@ -48,8 +47,7 @@ fun BottomBarMiuix(
     navigationBadge: NavigationBadgeState,
     modifier: Modifier,
 ) {
-    val isManager = Natives.isManager
-    val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
+    val fullFeatured = Natives.isFullFeatured()
     if (!fullFeatured) return
 
     val mainState = LocalMainPagerState.current

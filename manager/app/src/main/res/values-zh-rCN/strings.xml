@@ -5,9 +5,10 @@
     <string name="home_click_to_install">点击安装</string>
     <string name="home_working">工作中</string>
     <string name="home_working_version">版本：%s</string>
+    <string name="home_lkm_update_available">内嵌 LKM 有可用更新，点击更新</string>
+    <string name="home_lkm_custom">自定义</string>
     <string name="home_unsupported">不支持</string>
     <string name="home_unsupported_reason">内核上未检测到 KernelSU 驱动程序，内核错误?</string>
-    <string name="home_version_mismatch">管理器版本 (%1$d) 与 KernelSU 驱动版本 (%2$d) 不匹配！</string>
     <string name="home_device_model">设备型号</string>
     <string name="home_kernel">内核版本</string>
     <string name="home_manager_version">管理器版本</string>
@@ -65,9 +66,11 @@
     <string name="reboot_to_apply">重启生效</string>
     <string name="module_magisk_conflict">因与 Magisk 有冲突，所有模块不可用！</string>
     <string name="home_learn_kernelsu">了解 KernelSU</string>
+    <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 KernelSU 以及如何开发模块</string>
     <string name="home_support_title">支持开发</string>
     <string name="home_support_content">KernelSU 将保持免费开源，向开发者捐赠以表示支持</string>
+    <string name="home_gki_warning">自 v3.0.0 起 GKI 工作模式将仅用于测试环境，我们不建议用于日常使用，也不再提供镜像文件</string>
     <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/><br/>图标以特别的形式授权，怡子曰曰绘制，版权明风OuO所有。矢量化图标由本项目提供。]]></string>
     <string name="profile_default">默认</string>
     <string name="profile_template">模板</string>
@@ -83,9 +86,9 @@
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸载模块</string>
     <string name="failed_to_update_app_profile">为 %s 更新 App Profile 失败！</string>
-    <string name="uapi_mismatch">管理器 uapi 版本 (%1$d) 与 KernelSU 驱动 uapi 版本 (%2$d) 不匹配！</string>
-    <string name="require_manager_version">当前 KernelSU 管理器版本 %1$d 过低，KernelSU 无法正常工作，请将 KernelSU 管理器版本升级至 %2$d 或以上！</string>
-    <string name="require_kernel_version">当前 KernelSU 版本 %1$d 过低，管理器无法正常工作，请将内核 KernelSU 版本升级至 %2$d 或以上！</string>
+    <string name="require_manager_version">需要更新管理器</string>
+    <string name="require_kernel_version">需要更新内核，点击此处安装</string>
+    <string name="require_kernel_version_gki">需要更新内核</string>
     <string name="settings_umount_modules_default">默认卸载模块</string>
     <string name="settings_umount_modules_default_summary">App Profile 中「卸载模块」的全局默认值，如果启用，会将未自定义 Profile 的应用移除所有模块针对系统的修改</string>
     <string name="profile_umount_modules_summary">启用该选项后将允许 KernelSU 为本应用还原被模块修改过的文件</string>
@@ -286,25 +289,15 @@
     <string name="sulog_enable_action">启用</string>
     <string name="sulog_filter_title">按类型筛选</string>
     <string name="sulog_clean_title">清空日志</string>
-    <string name="sulog_filter_root_execve">Root execve</string>
-    <string name="sulog_filter_sucompat">传统 su</string>
-    <string name="sulog_filter_ioctl_grant_root">Root 授权</string>
-    <string name="sulog_filter_daemon_restart">守护进程重启</string>
-    <string name="sulog_entry_unknown_event">未知事件</string>
-    <string name="sulog_entry_description_sucompat">拦截到 /system/bin/su 请求</string>
-    <string name="sulog_entry_title_root_grant_request">Root 授权请求</string>
-    <string name="sulog_entry_description_ioctl_grant_root">已通过 KernelSU ioctl 授予 Root 权限</string>
-    <string name="sulog_entry_title_daemon_restarted">守护进程已重启</string>
-    <string name="sulog_entry_title_dropped_events">丢弃的事件</string>
     <string name="nav_rail_expand">展开导航栏</string>
     <string name="nav_rail_collapse">收起导航栏</string>
     <string name="settings_navigation_badge">导航栏角标</string>
     <string name="settings_navigation_badge_summary">在导航栏显示已授权应用和已启用模块数量</string>
-    <string name="kernel_spoof_release">内核版本号</string>
-    <string name="kernel_spoof_version">内核编译信息</string>
     <!-- Customize -->
     <string name="hook_type">钩子类型</string>
     <string name="home_susfs_version">SuSFS 版本</string>
+    <string name="kernel_spoof_release">内核版本号</string>
+    <string name="kernel_spoof_version">内核编译信息</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">日志查看器</string>
     <string name="settings_view_sulog">查看 sulog 日志</string>
