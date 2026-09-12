@@ -6,6 +6,14 @@ static int kernel_umount_feature_get(u64 *value)
     return 0;
 }
 
+static int kernel_umount_feature_set(u64 value)
+{
+    bool enable = value != 0;
+    ksu_kernel_umount_enabled = enable;
+    pr_info("kernel_umount: set to %d\n", enable);
+    return 0;
+}
+
 static const struct ksu_feature_handler kernel_umount_handler = {
     .feature_id = KSU_FEATURE_KERNEL_UMOUNT,
     .name = "kernel_umount",
