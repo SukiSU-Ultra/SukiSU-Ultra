@@ -268,7 +268,7 @@ jobs:
 
 
       # --------------------------------------------------------
-      # Java / Gradle / Android SDK
+      # Java / Gradle
       # --------------------------------------------------------
 
       - name: Setup Java
@@ -280,11 +280,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
-
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
 
       # --------------------------------------------------------
       # Download ksud artifacts
@@ -433,15 +428,6 @@ jobs:
           else
             echo "title=Manager" >> "$GITHUB_OUTPUT"
           fi
-
-
-      # --------------------------------------------------------
-      # Android SDK
-      # --------------------------------------------------------
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
 
       # --------------------------------------------------------
       # Download correct Manager variant
