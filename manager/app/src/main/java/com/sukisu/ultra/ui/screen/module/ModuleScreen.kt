@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.screen.flash.FlashIt
@@ -61,17 +62,21 @@ fun ModulePager(
 
     var hasActivated by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(isCurrentPage) {
-        if (isCurrentPage && !hasActivated) {
-            hasActivated = true
-            viewModel.refreshEnvironmentState()
-            viewModel.initializePreferences()
-            val state = viewModel.uiState.value
-            if (!state.hasLoaded && !state.isRefreshing) {
-                viewModel.fetchModuleList()
+        if (isCurrentPage) {
+            if (!hasActivated) {
+                hasActivated = true
+                viewModel.refreshEnvironmentState()
+                viewModel.initializePreferences()
+                val state = viewModel.uiState.value
+                if (!state.hasLoaded && !state.isRefreshing) {
+                    viewModel.fetchModuleList()
+                }
+                if (Build.VERSION.SDK_INT >= 33) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
             }
-            if (Build.VERSION.SDK_INT >= 33) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
+        } else if (!rawUiState.searchStatus.isCollapsed()) {
+            viewModel.updateSearchStatus(rawUiState.searchStatus.copy(searchText = "", current = SearchStatus.Status.COLLAPSED))
         }
     }
 
