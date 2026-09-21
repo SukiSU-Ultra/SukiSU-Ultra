@@ -1053,7 +1053,6 @@ where
     let Ok(entries) = std::fs::read_dir("/proc") else {
         return false;
     };
-    let mut process_names = Vec::new();
     for entry in entries.flatten() {
         let file_name = entry.file_name();
         let file_str = file_name.to_string_lossy();
@@ -1061,9 +1060,6 @@ where
             let comm_path = entry.path().join("comm");
             if let Ok(comm) = std::fs::read_to_string(&comm_path) {
                 let name = comm.trim();
-                if name.to_lowercase().contains("zygisk") || name.contains("zygisk") {
-                    process_names.push(name.to_string());
-                }
                 if predicate(name) {
                     return true;
                 }
