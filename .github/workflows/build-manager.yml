@@ -165,7 +165,7 @@ jobs:
         id: determine
         run: |
           if [ "${{ matrix.spoofed }}" = "true" ]; then
-            echo "title=Spoofed-Manager" >> "$GITHUB_OUTPUT"
+            echo "title=Manager-spoofed" >> "$GITHUB_OUTPUT"
           else
             echo "title=Manager" >> "$GITHUB_OUTPUT"
           fi
@@ -424,7 +424,7 @@ jobs:
         id: determine
         run: |
           if [ "${{ matrix.spoofed }}" = "true" ]; then
-            echo "title=Spoofed-Manager" >> "$GITHUB_OUTPUT"
+            echo "title=Manager-spoofed" >> "$GITHUB_OUTPUT"
           else
             echo "title=Manager" >> "$GITHUB_OUTPUT"
           fi
@@ -602,7 +602,14 @@ jobs:
 
           test -n "$APK"
 
-          mv "$APK" "./dist/${{ steps.determine.outputs.title }}.apk"
+          SUFFIX=""
+          if [ "${{ matrix.spoofed }}" = "true" ]; then
+            SUFFIX="-spoofed"
+          fi
+
+          NEW_NAME="$(basename "$APK" .apk)${SUFFIX}.apk"
+
+          mv "$APK" "./dist/$NEW_NAME"
 
 
       # --------------------------------------------------------
@@ -666,7 +673,9 @@ jobs:
         if: steps.need_upload.outputs.UPLOAD == 'true'
         uses: actions/download-artifact@v8
         with:
-          pattern: "*Manager"
+          pattern: |
+            Manager
+            Manager-spoofed
           path: apks
           merge-multiple: true
 
