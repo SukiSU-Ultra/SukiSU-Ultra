@@ -470,6 +470,7 @@ jobs:
       # --------------------------------------------------------
 
       - name: Place manager apk and ksud artifacts
+        id: place_artifacts
         run: |
           set -e
 
@@ -479,6 +480,8 @@ jobs:
             -type f -name "*.apk" | head -n 1)
 
           test -n "$APK"
+
+          echo "APK_STEM=$(basename "$APK" .apk)" >> "$GITHUB_OUTPUT"
 
           cp -f "$APK" \
             manager/app/build/outputs/apk/release/
@@ -571,6 +574,13 @@ jobs:
           github.ref_type == 'tag' }}
 
         run: |
+          SUFFIX=""
+          if [ "${{ matrix.spoofed }}" = "true" ]; then
+            SUFFIX="-spoofed"
+          fi
+
+          OUTPUT_NAME="${{ steps.place_artifacts.outputs.APK_STEM }}${SUFFIX}"
+
           python3 repack_apk.py repack \
             -b release \
             -t release \
@@ -581,35 +591,8 @@ jobs:
             -A "$SIGN_KEY_ALIAS" \
             -P "$SIGN_KEYSTORE_PASSWORD" \
             -S "$SIGN_KEY_PASSWORD" \
-            --strip
-
-
-      # --------------------------------------------------------
-      # Rename final APK so variant is obvious
-      # --------------------------------------------------------
-
-      - name: Rename final APK
-        if: ${{ github.event_name == 'pull_request' ||
-          (github.event_name != 'pull_request' &&
-          (github.ref == 'refs/heads/main' ||
-           github.ref == 'refs/heads/dev')) ||
-          github.ref_type == 'tag' }}
-
-        run: |
-          set -e
-
-          APK=$(find ./dist -type f -name "*.apk" | head -n 1)
-
-          test -n "$APK"
-
-          SUFFIX=""
-          if [ "${{ matrix.spoofed }}" = "true" ]; then
-            SUFFIX="-spoofed"
-          fi
-
-          NEW_NAME="$(basename "$APK" .apk)${SUFFIX}.apk"
-
-          mv "$APK" "./dist/$NEW_NAME"
+            --strip \
+            --output-name "$OUTPUT_NAME"
 
 
       # --------------------------------------------------------
