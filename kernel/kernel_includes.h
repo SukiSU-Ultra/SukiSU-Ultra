@@ -73,6 +73,7 @@
 #include <linux/vmalloc.h>
 #include <linux/tty.h>
 #include <linux/kref.h>
+#include "arch.h"
 #ifdef CONFIG_KSU_SUSFS
 #include <linux/susfs.h>
 #include <linux/susfs_def.h>

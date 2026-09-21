@@ -1,50 +1,6 @@
 extern int path_mount(const char *dev_name, struct path *path, const char *type_page, unsigned long flags,
                       void *data_page);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
-
-#ifndef __PT_REGS_CAST
-#define __PT_REGS_CAST(x) (x)
-#endif
-
-#if defined(__aarch64__)
-#define PT_PARM1(x) (__PT_REGS_CAST(x)->regs[0])
-#define PT_PARM2(x) (__PT_REGS_CAST(x)->regs[1])
-extern long __arm64_sys_setns(const struct pt_regs *regs);
-#define do_sys_setns(regs) (__arm64_sys_setns(regs))
-#elif defined(__x86_64__)
-#define PT_PARM1(x) (__PT_REGS_CAST(x)->di)
-#define PT_PARM2(x) (__PT_REGS_CAST(x)->si)
-extern long __x64_sys_setns(const struct pt_regs *regs);
-#define do_sys_setns(regs) (__x64_sys_setns(regs))
-#elif defined(__arm__) // https://syscalls.mebeim.net/?table=arm/32/eabi/latest
-// taken from:
-// https://github.com/backslashxx/KernelSU/blob/8b71e8bce199e8ac44538648e298092a9b3ef42b/kernel/arch.h#L29
-#define PT_PARM1(x) (__PT_REGS_CAST(x)->uregs[0])
-#define PT_PARM2(x) (__PT_REGS_CAST(x)->uregs[1])
-extern long sys_setns(const struct pt_regs *regs);
-#define do_sys_setns(regs) (sys_setns(regs))
-#endif
-
-static long ksu_sys_setns(int fd, int flags)
-{
-#ifdef PT_PARM1
-    struct pt_regs regs;
-    memset(&regs, 0, sizeof(regs));
-
-    PT_PARM1(&regs) = fd;
-    PT_PARM2(&regs) = flags;
-
-    return do_sys_setns(&regs);
-#else
-    return -ENOSYS;
-#endif
-}
-#else
-#define ksu_sys_setns sys_setns
-#define ksys_unshare sys_unshare
-#endif
-
 // global mode , need CAP_SYS_ADMIN and CAP_SYS_CHROOT to perform setns
 static void ksu_mnt_ns_global(void)
 {
