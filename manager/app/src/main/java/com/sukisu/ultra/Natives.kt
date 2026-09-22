@@ -27,7 +27,8 @@ object Natives {
     const val MINIMAL_SUPPORTED_KERNEL = 32513
 
     // Get full version
-    external fun getFullVersion(): String
+    // The kernel returns null when the GET_FULL_VERSION supercall is unavailable.
+    external fun getFullVersion(): String?
     const val MINIMAL_SUPPORTED_KERNEL_FULL = "v4.0.0"
 
     // 12040: Support disable sucompat mode
@@ -152,7 +153,9 @@ object Natives {
         external get
 
     fun isFullFeatured(): Boolean {
-        return (isVersionLessThan(getFullVersion(), MINIMAL_SUPPORTED_KERNEL_FULL)) || isManager && kernelUAPIVersion == managerUAPIVersion && rootAvailable()
+        val kernelFullVersion = getFullVersion()
+        return (kernelFullVersion != null && isVersionLessThan(kernelFullVersion, MINIMAL_SUPPORTED_KERNEL_FULL)) ||
+                isManager && kernelUAPIVersion == managerUAPIVersion && rootAvailable()
     }
 
     @Keep
