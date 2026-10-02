@@ -17,7 +17,7 @@ data class ReleaseArg(
     val name: String,
     val publishedAt: String,
     val assets: List<ReleaseAssetArg>,
-    val descriptionHTML: String,
+    val descriptionHTML: String = "",
     val changelogUrl: String? = null
 ) : Parcelable
 

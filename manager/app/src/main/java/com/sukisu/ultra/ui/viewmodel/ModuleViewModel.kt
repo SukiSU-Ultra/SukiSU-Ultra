@@ -37,7 +37,7 @@ import com.sukisu.ultra.ui.screen.module.ModuleEffect
 import com.sukisu.ultra.ui.screen.module.ModuleUiState
 import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.hasMagisk
-import com.sukisu.ultra.ui.util.module.fetchModuleDetail
+import com.sukisu.ultra.ui.util.module.fetchModuleDetailById
 import com.sukisu.ultra.ui.util.module.fetchReleaseDescriptionHtml
 import okhttp3.Request
 import java.text.Collator
@@ -464,7 +464,7 @@ class ModuleViewModel(
         if (changelog.isBlank()) {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    val latestTag = fetchModuleDetail(module.id)?.latestTag.orEmpty()
+                    val latestTag = fetchModuleDetailById(module.id)?.latestTag.orEmpty()
                     if (latestTag.isNotBlank()) {
                         fetchReleaseDescriptionHtml(module.id, latestTag)?.let {
                             changelog = it

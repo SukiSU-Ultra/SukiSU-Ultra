@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
@@ -84,7 +85,7 @@ suspend fun fetchModuleDetail(module: RepoModuleArg): ModuleDetail? {
     return if (module.isMmrl) {
         fetchMmrlModuleDetail(module)
     } else {
-        fetchKsuModuleDetail(module.moduleId)
+        fetchModuleDetailById(module.moduleId)
     }
 }
 
@@ -121,7 +122,8 @@ private suspend fun fetchMmrlModuleDetail(module: RepoModuleArg): ModuleDetail? 
     )
 }
 
-private fun fetchKsuModuleDetail(moduleId: String): ModuleDetail? {
+/** Legacy KernelSU repository detail endpoint, keyed by module id. */
+suspend fun fetchModuleDetailById(moduleId: String): ModuleDetail? {
     if (!isNetworkAvailable(ksuApp)) return null
     val url = "https://modules.kernelsu.org/module/$moduleId.json"
     return runCatching {
