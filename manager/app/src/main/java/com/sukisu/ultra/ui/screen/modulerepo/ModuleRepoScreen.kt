@@ -52,10 +52,33 @@ fun ModuleRepoScreen() {
                 authorsList = module.authorList.map { AuthorArg(it.name, it.link) },
                 latestRelease = module.latestRelease,
                 latestReleaseTime = module.latestReleaseTime,
-                releases = emptyList()
+                releases = module.mmrl?.versions?.map { version ->
+                    ReleaseArg(
+                        tagName = version.version,
+                        name = version.version,
+                        publishedAt = version.time,
+                        assets = listOf(
+                            ReleaseAssetArg(
+                                name = version.zipUrl.substringAfterLast('/'),
+                                downloadUrl = version.zipUrl,
+                                size = version.size,
+                                downloadCount = 0,
+                            )
+                        ),
+                        changelogUrl = version.changelogUrl,
+                    )
+                } ?: emptyList(),
+                sourceId = module.sourceId,
+                sourceName = module.sourceName,
+                readmeUrl = module.mmrl?.readmeUrl,
+                webUrl = module.mmrl?.supportUrl,
             )
             navigator.push(Route.ModuleRepoDetail(args))
         },
+        onAddSource = viewModel::addSource,
+        onRemoveSource = viewModel::removeSource,
+        onSetSourceEnabled = viewModel::setSourceEnabled,
+        onRenameSource = viewModel::renameSource,
     )
 
     when (LocalUiMode.current) {
@@ -71,14 +94,18 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
     var readmeHtml by remember(module.moduleId) { mutableStateOf<String?>(null) }
     var readmeLoaded by remember(module.moduleId) { mutableStateOf(false) }
     var detailReleases by remember(module.moduleId) { mutableStateOf<List<ReleaseArg>>(emptyList()) }
-    var webUrl by remember(module.moduleId) { mutableStateOf("https://modules.kernelsu.org/module/${module.moduleId}") }
-    var sourceUrl by remember(module.moduleId) { mutableStateOf("https://github.com/KernelSU-Modules-Repo/${module.moduleId}") }
+    var webUrl by remember(module.moduleId) {
+        mutableStateOf(module.webUrl ?: if (module.isMmrl) "" else "https://modules.kernelsu.org/module/${module.moduleId}")
+    }
+    var sourceUrl by remember(module.moduleId) {
+        mutableStateOf(module.webUrl ?: if (module.isMmrl) "" else "https://github.com/KernelSU-Modules-Repo/${module.moduleId}")
+    }
 
     LaunchedEffect(module.moduleId) {
         if (module.moduleId.isNotEmpty()) {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    val detail = fetchModuleDetail(module.moduleId)
+                    val detail = fetchModuleDetail(module)
                     if (detail != null) {
                         readmeHtml = detail.readmeHtml
                         if (detail.url.isNotEmpty() && detail.url != "null") {

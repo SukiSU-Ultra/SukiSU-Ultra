@@ -14,6 +14,8 @@ import kotlinx.coroutines.withContext
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.ModuleRepoRepository
 import com.sukisu.ultra.data.repository.ModuleRepoRepositoryImpl
+import com.sukisu.ultra.data.repository.RepoSourceRepository
+import com.sukisu.ultra.data.repository.RepoSourceRepositoryImpl
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
@@ -21,12 +23,13 @@ import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoUiState
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.PinyinUtil
-import com.sukisu.ultra.ui.util.isNetworkAvailable
+import com.sukisu.ultra.ui.util.hasAnyNetwork
 import java.text.Collator
 import java.util.Locale
 
 class ModuleRepoViewModel(
     private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
+    private val sourceRepo: RepoSourceRepository = RepoSourceRepositoryImpl(),
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
@@ -35,7 +38,7 @@ class ModuleRepoViewModel(
     }
 
     typealias RepoModule = com.sukisu.ultra.data.model.RepoModule
-    
+
     private val _uiState = MutableStateFlow(ModuleRepoUiState())
     val uiState: StateFlow<ModuleRepoUiState> = _uiState.asStateFlow()
 
@@ -47,7 +50,8 @@ class ModuleRepoViewModel(
         _uiState.update {
             it.copy(
                 sortOrder = initial,
-                offline = !isNetworkAvailable(ksuApp)
+                offline = !hasAnyNetwork(ksuApp),
+                sources = sourceRepo.loadSources()
             )
         }
 
@@ -76,6 +80,7 @@ class ModuleRepoViewModel(
                     it.moduleName.contains(text, true) ||
                     it.authors.contains(text, true) ||
                     it.summary.contains(text, true) ||
+                    it.sourceName.contains(text, true) ||
                     PinyinUtil.toPinyin(it.moduleName).contains(text, true)
         }
     }
@@ -130,22 +135,30 @@ class ModuleRepoViewModel(
                 it.copy(
                     isRefreshing = true,
                     error = null,
-                    offline = !isNetworkAvailable(ksuApp)
+                    offline = !hasAnyNetwork(ksuApp)
                 )
             }
             val result = repo.fetchModules()
 
             withContext(Dispatchers.Main) {
-                result.onSuccess { modules ->
+                result.onSuccess { outcome ->
                     val order = _uiState.value.sortOrder
-                    val sorted = withContext(Dispatchers.Default) { sortModules(modules, order) }
+                    val sorted = withContext(Dispatchers.Default) { sortModules(outcome.modules, order) }
                     _uiState.update {
                         it.copy(
                             modules = sorted,
-                            offline = !isNetworkAvailable(ksuApp)
+                            sourceErrors = outcome.sourceErrors,
+                            offline = !hasAnyNetwork(ksuApp)
                         )
                     }
                     refreshSearchResults()
+                    if (outcome.modules.isEmpty() && outcome.sourceErrors.isNotEmpty()) {
+                        Toast.makeText(
+                            ksuApp,
+                            ksuApp.getString(R.string.module_repo_fetch_failed, outcome.sourceErrors.values.first()),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     _uiState.update { it.copy(isRefreshing = false) }
                 }.onFailure { e ->
                     Log.e(TAG, "fetch modules failed", e)
@@ -157,7 +170,7 @@ class ModuleRepoViewModel(
                         it.copy(
                             isRefreshing = false,
                             error = e,
-                            offline = !isNetworkAvailable(ksuApp)
+                            offline = !hasAnyNetwork(ksuApp)
                         )
                     }
                 }
@@ -193,5 +206,40 @@ class ModuleRepoViewModel(
 
     fun updateSearchText(text: String) {
         updateSearchStatus(_uiState.value.searchStatus.copy(searchText = text))
+    }
+
+    fun addSource(rawUrl: String) {
+        if (_uiState.value.isAddingSource) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAddingSource = true) }
+            val result = sourceRepo.addSource(rawUrl)
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(isAddingSource = false, sources = sourceRepo.loadSources()) }
+                result.onSuccess {
+                    Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repo_source_added), Toast.LENGTH_SHORT).show()
+                    refresh()
+                }.onFailure { e ->
+                    Toast.makeText(ksuApp, e.message ?: e.javaClass.simpleName, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun removeSource(id: String) {
+        sourceRepo.removeSource(id)
+        _uiState.update { it.copy(sources = sourceRepo.loadSources()) }
+        refresh()
+    }
+
+    fun setSourceEnabled(id: String, enabled: Boolean) {
+        sourceRepo.setSourceEnabled(id, enabled)
+        _uiState.update { it.copy(sources = sourceRepo.loadSources()) }
+        refresh()
+    }
+
+    fun renameSource(id: String, name: String) {
+        if (name.isBlank()) return
+        sourceRepo.renameSource(id, name.trim())
+        _uiState.update { it.copy(sources = sourceRepo.loadSources()) }
     }
 }

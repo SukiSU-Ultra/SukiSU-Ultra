@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen.modulerepo
 
 import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.data.model.RepoModule
+import com.sukisu.ultra.data.repository.RepoSource
 import com.sukisu.ultra.ui.component.SearchStatus
 
 enum class RepoSort {
@@ -18,7 +19,10 @@ data class ModuleRepoUiState(
     val modules: List<RepoModule> = emptyList(),
     val searchStatus: SearchStatus = SearchStatus(""),
     val searchResults: List<RepoModule> = emptyList(),
-    val error: Throwable? = null
+    val error: Throwable? = null,
+    val sources: List<RepoSource> = emptyList(),
+    val sourceErrors: Map<String, String> = emptyMap(),
+    val isAddingSource: Boolean = false,
 )
 
 @Immutable
@@ -30,6 +34,10 @@ data class ModuleRepoActions(
     val onSearchStatusChange: (SearchStatus) -> Unit,
     val onSetSortOrder: (RepoSort) -> Unit,
     val onOpenRepoDetail: (RepoModule) -> Unit,
+    val onAddSource: (String) -> Unit,
+    val onRemoveSource: (String) -> Unit,
+    val onSetSourceEnabled: (String, Boolean) -> Unit,
+    val onRenameSource: (String, String) -> Unit,
 )
 
 @Immutable

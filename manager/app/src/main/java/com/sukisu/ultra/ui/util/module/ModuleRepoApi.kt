@@ -1,7 +1,13 @@
 package com.sukisu.ultra.ui.util.module
 
 import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.ui.screen.modulerepo.RepoModuleArg
 import com.sukisu.ultra.ui.util.isNetworkAvailable
+import com.sukisu.ultra.ui.util.hasAnyNetwork
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,6 +39,8 @@ data class ReleaseAssetInfo(
     val size: Long,
     val downloadCount: Int
 )
+
+private const val MAX_CHANGELOG_FETCHES = 30
 
 fun sanitizeVersionString(version: String): String {
     return version.replace(Regex("[^a-zA-Z0-9.\\-_]"), "_")
@@ -71,7 +79,49 @@ fun fetchReleaseDescriptionHtml(moduleId: String, latestTag: String): String? {
 }
 
 
-fun fetchModuleDetail(moduleId: String): ModuleDetail? {
+suspend fun fetchModuleDetail(module: RepoModuleArg): ModuleDetail? {
+    if (!hasAnyNetwork(ksuApp)) return null
+    return if (module.isMmrl) {
+        fetchMmrlModuleDetail(module)
+    } else {
+        fetchKsuModuleDetail(module.moduleId)
+    }
+}
+
+/** MMRL modules carry all metadata in the repository index; only the markdown files are fetched here. */
+private suspend fun fetchMmrlModuleDetail(module: RepoModuleArg): ModuleDetail? {
+    val readme = module.readmeUrl?.let { fetchText(it) } ?: ""
+    val releases = coroutineScope {
+        module.releases.take(MAX_CHANGELOG_FETCHES).map { rel ->
+            async {
+                val changelog = rel.changelogUrl?.let { fetchText(it) } ?: ""
+                ReleaseInfo(
+                    name = rel.name,
+                    tagName = rel.tagName,
+                    publishedAt = rel.publishedAt,
+                    descriptionHTML = changelog,
+                    assets = rel.assets.map { a ->
+                        ReleaseAssetInfo(a.name, a.downloadUrl, a.size, a.downloadCount)
+                    }
+                )
+            }
+        }.awaitAll()
+    }
+    return ModuleDetail(
+        readme = readme,
+        readmeHtml = readme,
+        latestTag = module.latestRelease,
+        latestTime = module.latestReleaseTime,
+        latestAssetName = null,
+        latestAssetUrl = null,
+        releases = releases,
+        homepageUrl = "",
+        sourceUrl = module.webUrl ?: "",
+        url = module.webUrl ?: "",
+    )
+}
+
+private fun fetchKsuModuleDetail(moduleId: String): ModuleDetail? {
     if (!isNetworkAvailable(ksuApp)) return null
     val url = "https://modules.kernelsu.org/module/$moduleId.json"
     return runCatching {
@@ -144,3 +194,16 @@ fun fetchModuleDetail(moduleId: String): ModuleDetail? {
         }
     }.getOrNull()
 }
+
+private suspend fun fetchText(url: String): String? = withContext(Dispatchers.IO) {
+    runCatching {
+        ksuApp.okhttpClient.newCall(Request.Builder().url(url).build()).execute().use { resp ->
+            if (!resp.isSuccessful) null else {
+                val body = resp.body.string()
+                if (body.length > MAX_TEXT_BYTES) body.take(MAX_TEXT_BYTES) else body
+            }
+        }
+    }.getOrNull()
+}
+
+private const val MAX_TEXT_BYTES = 512 * 1024

@@ -1,112 +1,55 @@
 package com.sukisu.ultra.data.repository
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import com.sukisu.ultra.data.model.Author
-import com.sukisu.ultra.data.model.ReleaseAsset
 import com.sukisu.ultra.data.model.RepoModule
 import com.sukisu.ultra.ksuApp
-import com.sukisu.ultra.ui.util.isNetworkAvailable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import okhttp3.Request
-import org.json.JSONArray
-import org.json.JSONObject
 
-class ModuleRepoRepositoryImpl : ModuleRepoRepository {
+class ModuleRepoRepositoryImpl(
+    private val sourceRepo: RepoSourceRepository = RepoSourceRepositoryImpl(),
+) : ModuleRepoRepository {
 
-    companion object {
-        private const val MODULES_URL = "https://modules.kernelsu.org/modules.json"
-    }
-
-    override suspend fun fetchModules(): Result<List<RepoModule>> = withContext(Dispatchers.IO) {
+    override suspend fun fetchModules(): Result<ModuleRepoFetchResult> = withContext(Dispatchers.IO) {
         runCatching {
-            if (!isNetworkAvailable(ksuApp)) {
-                throw Exception("Network unavailable")
+            val sources = sourceRepo.loadSources().filter { it.enabled }
+            if (sources.isEmpty()) {
+                return@runCatching ModuleRepoFetchResult(emptyList(), emptyMap())
             }
 
-            val request = Request.Builder().url(MODULES_URL).build()
+            coroutineScope {
+                val outcomes = sources.map { source ->
+                    async { fetchSource(source) }
+                }.awaitAll()
+
+                // First source wins on module id conflicts.
+                val modules = LinkedHashMap<String, RepoModule>()
+                val errors = LinkedHashMap<String, String>()
+                sources.forEachIndexed { index, source ->
+                    outcomes[index].fold(
+                        onSuccess = { list -> list.forEach { module -> modules.putIfAbsent(module.moduleId, module) } },
+                        onFailure = { e -> errors[source.name] = e.message ?: e.javaClass.simpleName },
+                    )
+                }
+
+                ModuleRepoFetchResult(modules.values.toList(), errors)
+            }
+        }
+    }
+
+    private suspend fun fetchSource(source: RepoSource): Result<List<RepoModule>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val request = Request.Builder().url(source.url).build()
             ksuApp.okhttpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    throw Exception("Fetch failed: ${response.code}")
+                    throw Exception("HTTP ${response.code}")
                 }
-
                 val body = response.body.string()
-                val json = JSONArray(body)
-                (0 until json.length()).mapNotNull { idx ->
-                    val item = json.optJSONObject(idx) ?: return@mapNotNull null
-                    parseRepoModule(item)
-                }
+                RepoModuleParser.parse(body, source.id, source.name)
             }
         }
-    }
-
-    private fun parseRepoModule(item: JSONObject): RepoModule? {
-        val moduleId = item.optString("moduleId", "")
-        if (moduleId.isEmpty()) return null
-        val moduleName = item.optString("moduleName", "")
-        val authorsArray = item.optJSONArray("authors")
-        val authorList = if (authorsArray != null) {
-            (0 until authorsArray.length())
-                .mapNotNull { idx ->
-                    val authorObj = authorsArray.optJSONObject(idx) ?: return@mapNotNull null
-                    val name = authorObj.optString("name", "").trim()
-                    var link = authorObj.optString("link", "").trim()
-                    if (link.startsWith("`") && link.endsWith("`") && link.length >= 2) {
-                        link = link.substring(1, link.length - 1)
-                    }
-                    if (name.isEmpty()) null else Author(name = name, link = link)
-                }
-        } else {
-            emptyList()
-        }
-        val authors = if (authorList.isNotEmpty()) authorList.joinToString(", ") { it.name } else item.optString("authors", "")
-        val summary = item.optString("summary", "")
-        val metamodule = item.optBoolean("metamodule", false)
-        val zygisk = item.optBoolean("zygisk", false)
-        val stargazerCount = item.optInt("stargazerCount", 0)
-        val updatedAt = item.optString("updatedAt", "")
-        val createdAt = item.optString("createdAt", "")
-
-        var latestRelease = ""
-        var latestReleaseTime = ""
-        var latestVersionCode = 0L
-        var latestAsset: ReleaseAsset? = null
-        val lr = item.optJSONObject("latestRelease")
-        if (lr != null) {
-            val lrName = lr.optString("name", lr.optString("version", ""))
-            val lrTime = lr.optString("time", "")
-            var lrUrl = lr.optString("downloadUrl", "")
-            lrUrl = lrUrl.trim().let {
-                var s = it
-                if (s.startsWith("`") && s.endsWith("`") && s.length >= 2) {
-                    s = s.substring(1, s.length - 1)
-                }
-                s
-            }
-
-            latestVersionCode = lr.optInt("versionCode", 0).toLong()
-            latestRelease = lrName
-            latestReleaseTime = lrTime
-            if (lrUrl.isNotEmpty()) {
-                val fileName = lrUrl.substringAfterLast('/')
-                latestAsset = ReleaseAsset(name = fileName, downloadUrl = lrUrl, size = 0L)
-            }
-        }
-
-        return RepoModule(
-            moduleId = moduleId,
-            moduleName = moduleName,
-            authors = authors,
-            authorList = authorList,
-            summary = summary,
-            metamodule = metamodule,
-            zygisk = zygisk,
-            stargazerCount = stargazerCount,
-            updatedAt = updatedAt,
-            createdAt = createdAt,
-            latestRelease = latestRelease,
-            latestReleaseTime = latestReleaseTime,
-            latestVersionCode = latestVersionCode,
-            latestAsset = latestAsset,
-        )
     }
 }

@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.InstallMobile
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -124,6 +125,7 @@ fun ModuleRepoScreenMaterial(
     val searchListState = rememberLazyListState()
     val refreshTick = remember { mutableIntStateOf(0) }
     val pullToRefreshState = rememberPullToRefreshState()
+    var showSourcesDialog by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
@@ -142,6 +144,15 @@ fun ModuleRepoScreenMaterial(
                 },
                 actions = {
                     var showSortMenu by remember { mutableStateOf(false) }
+
+                    IconButton(
+                        onClick = { showSourcesDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Tune,
+                            contentDescription = stringResource(R.string.module_repo_manage_sources)
+                        )
+                    }
 
                     IconButton(
                         onClick = { showSortMenu = true }
@@ -267,11 +278,19 @@ fun ModuleRepoScreenMaterial(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    sourceErrors = state.sourceErrors,
                     onModuleClick = actions.onOpenRepoDetail
                 )
             }
         }
     }
+
+    ManageSourcesDialogMaterial(
+        show = showSourcesDialog,
+        onDismissRequest = { showSourcesDialog = false },
+        state = state,
+        actions = actions,
+    )
 }
 
 @Composable
@@ -280,6 +299,7 @@ private fun RepoModuleList(
     listState: LazyListState,
     modifier: Modifier = Modifier,
     bottomPadding: Dp = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+    sourceErrors: Map<String, String> = emptyMap(),
     onModuleClick: (RepoModule) -> Unit,
 ) {
     LazyColumn(
@@ -292,7 +312,23 @@ private fun RepoModuleList(
             bottom = 16.dp + bottomPadding
         ),
     ) {
-        items(modules, key = { it.moduleId }, contentType = { "module" }) { module ->
+        if (sourceErrors.isNotEmpty()) {
+            item(key = "source_errors_banner") {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    sourceErrors.forEach { (sourceName, error) ->
+                        TonalCard(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = stringResource(R.string.module_repo_source_fetch_error, sourceName, error),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        items(modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
             val latestReleaseTime = remember(module.latestReleaseTime) { module.latestReleaseTime }
             val moduleAuthor = stringResource(id = R.string.module_author)
 
@@ -336,7 +372,7 @@ private fun RepoModuleList(
                         )
                     }
 
-                    if (module.metamodule || module.zygisk) {
+                    if (module.metamodule || module.zygisk || module.sourceName.isNotEmpty()) {
                         Row(
                             modifier = Modifier.padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -353,6 +389,13 @@ private fun RepoModuleList(
                                     "ZYGISK",
                                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                                     backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            }
+                            if (module.sourceName.isNotEmpty()) {
+                                StatusTag(
+                                    module.sourceName,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer
                                 )
                             }
                         }

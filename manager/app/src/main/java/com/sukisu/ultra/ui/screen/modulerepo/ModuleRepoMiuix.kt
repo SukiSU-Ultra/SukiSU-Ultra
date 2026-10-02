@@ -121,6 +121,7 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.FileDownloads
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Link
+import top.yukonga.miuix.kmp.icon.extended.MoreCircle
 import top.yukonga.miuix.kmp.icon.extended.Sort
 import top.yukonga.miuix.kmp.icon.extended.TopDownloads
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
@@ -139,6 +140,9 @@ fun ModuleRepoScreenMiuix(
     val density = LocalDensity.current
     val metaBg = colorScheme.tertiaryContainer.copy(alpha = 0.6f)
     val metaTint = colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+    val sourceBg = colorScheme.secondaryContainer.copy(alpha = 0.6f)
+    val sourceTint = colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+    val showSourcesDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(searchStatus.searchText) {
         actions.onSearchTextChange(searchStatus.searchText)
@@ -163,6 +167,15 @@ fun ModuleRepoScreenMiuix(
                         title = stringResource(R.string.module_repos),
                         actions = {
                             val showSortPopup = remember { mutableStateOf(false) }
+                            IconButton(
+                                onClick = { showSourcesDialog.value = true }
+                            ) {
+                                Icon(
+                                    imageVector = MiuixIcons.MoreCircle,
+                                    tint = colorScheme.onSurface,
+                                    contentDescription = stringResource(R.string.module_repo_manage_sources),
+                                )
+                            }
                             OverlayListPopup(
                                 show = showSortPopup.value,
                                 popupPositionProvider = ListPopupDefaults.MenuPositionProvider,
@@ -259,7 +272,7 @@ fun ModuleRepoScreenMiuix(
                     item {
                         Spacer(Modifier.height(6.dp))
                     }
-                    items(state.searchResults, key = { it.moduleId }, contentType = { "module" }) { module ->
+                    items(state.searchResults, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -304,6 +317,20 @@ fun ModuleRepoScreenMiuix(
                                                     .padding(start = 6.dp)
                                                     .clip(RoundedCornerShape(6.dp))
                                                     .background(metaBg)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                fontWeight = FontWeight(750),
+                                                maxLines = 1
+                                            )
+                                        }
+                                        if (module.sourceName.isNotEmpty()) {
+                                            Text(
+                                                text = module.sourceName,
+                                                fontSize = 12.sp,
+                                                color = sourceTint,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(sourceBg)
                                                     .padding(horizontal = 6.dp, vertical = 2.dp),
                                                 fontWeight = FontWeight(750),
                                                 maxLines = 1
@@ -445,7 +472,25 @@ fun ModuleRepoScreenMiuix(
                             ),
                             overscrollEffect = null,
                         ) {
-                            items(items = state.modules, key = { it.moduleId }, contentType = { "module" }) { module ->
+                            if (state.sourceErrors.isNotEmpty()) {
+                                item(key = "source_errors_banner") {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        state.sourceErrors.forEach { (sourceName, error) ->
+                                            Card(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                insideMargin = PaddingValues(12.dp),
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.module_repo_source_fetch_error, sourceName, error),
+                                                    fontSize = 12.sp,
+                                                    color = colorScheme.onSurfaceVariantSummary,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            items(items = state.modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
                                 val moduleAuthor = stringResource(id = R.string.module_author)
 
                                 Card(
@@ -488,6 +533,20 @@ fun ModuleRepoScreenMiuix(
                                                             .padding(start = 6.dp)
                                                             .clip(RoundedCornerShape(6.dp))
                                                             .background(metaBg)
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        fontWeight = FontWeight(750),
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                                if (module.sourceName.isNotEmpty()) {
+                                                    Text(
+                                                        text = module.sourceName,
+                                                        fontSize = 12.sp,
+                                                        color = sourceTint,
+                                                        modifier = Modifier
+                                                            .padding(start = 6.dp)
+                                                            .clip(RoundedCornerShape(6.dp))
+                                                            .background(sourceBg)
                                                             .padding(horizontal = 6.dp, vertical = 2.dp),
                                                         fontWeight = FontWeight(750),
                                                         maxLines = 1
@@ -569,6 +628,13 @@ fun ModuleRepoScreenMiuix(
             }
         }
     }
+
+    ManageSourcesDialogMiuix(
+        show = showSourcesDialog.value,
+        onDismissRequest = { showSourcesDialog.value = false },
+        state = state,
+        actions = actions,
+    )
 }
 
 @Composable

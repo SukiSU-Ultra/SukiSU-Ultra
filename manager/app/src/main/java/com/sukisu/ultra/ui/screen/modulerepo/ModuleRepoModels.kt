@@ -17,7 +17,8 @@ data class ReleaseArg(
     val name: String,
     val publishedAt: String,
     val assets: List<ReleaseAssetArg>,
-    val descriptionHTML: String
+    val descriptionHTML: String,
+    val changelogUrl: String? = null
 ) : Parcelable
 
 @Parcelize
@@ -34,5 +35,11 @@ data class RepoModuleArg(
     val authorsList: List<AuthorArg>,
     val latestRelease: String,
     val latestReleaseTime: String,
-    val releases: List<ReleaseArg>
-) : Parcelable
+    val releases: List<ReleaseArg>,
+    val sourceId: String = "",
+    val sourceName: String = "",
+    val readmeUrl: String? = null,
+    val webUrl: String? = null
+) : Parcelable {
+    val isMmrl: Boolean get() = sourceId.isNotEmpty()
+}
