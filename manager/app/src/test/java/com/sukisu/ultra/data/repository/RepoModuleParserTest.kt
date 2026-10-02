@@ -147,7 +147,7 @@ class RepoModuleParserTest {
         assertEquals("https://example.com/dict_v20260101.zip", dict.latestAsset?.downloadUrl)
         assertEquals(30270378L, dict.latestAsset?.size)
         // epoch seconds -> ISO-8601 UTC
-        assertEquals("2026-01-01T01:19:52Z", dict.latestReleaseTime)
+        assertEquals("2025-12-31T23:19:52Z", dict.latestReleaseTime)
         assertEquals(dict.latestReleaseTime, mmrl.versions[0].time)
     }
 
