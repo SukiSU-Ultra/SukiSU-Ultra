@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -239,6 +240,11 @@ fun ModuleRepoScreenMaterial(
                             Text(stringResource(R.string.network_retry))
                         }
                     }
+                } else if (state.sources.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.module_repo_sources_empty),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 } else {
                     LoadingIndicator()
                 }
@@ -501,6 +507,7 @@ fun ModuleRepoDetailScreenMaterial(
                     0 -> ReadmePage(
                         readmeHtml = state.readmeHtml,
                         readmeLoaded = state.readmeLoaded,
+                        isMarkdown = module.isMmrl,
                         innerPadding = paddedInnerPadding,
                         scrollBehavior = scrollBehavior
                     )
@@ -547,6 +554,7 @@ fun ModuleRepoDetailScreenMaterial(
 private fun ReadmePage(
     readmeHtml: String?,
     readmeLoaded: Boolean,
+    isMarkdown: Boolean,
     innerPadding: PaddingValues,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
@@ -577,6 +585,7 @@ private fun ReadmePage(
                         Box(modifier = Modifier.graphicsLayer { this.alpha = alpha }) {
                             GithubMarkdown(
                                 content = readmeHtml,
+                                isMarkdown = isMarkdown,
                                 onLoadingChange = { loaded = !it },
                                 containerColor = MaterialTheme.colorScheme.surface,
                             )
@@ -634,11 +643,11 @@ fun ReleasesPage(
         verticalArrangement = Arrangement.spacedBy(13.dp),
     ) {
         if (detailReleases.isNotEmpty()) {
-            items(
+            itemsIndexed(
                 items = detailReleases,
-                key = { it.tagName },
-                contentType = { "release" }
-            ) { rel ->
+                key = { index, _ -> "release_$index" },
+                contentType = { _, _ -> "release" }
+            ) { _, rel ->
                 val title = remember(rel.name, rel.tagName) { rel.name.ifBlank { rel.tagName } }
                 SegmentedColumn(
                     modifier = Modifier.fillMaxWidth(),
@@ -681,6 +690,7 @@ fun ReleasesPage(
                                             Box(modifier = Modifier.graphicsLayer { this.alpha = descAlpha }) {
                                                 GithubMarkdown(
                                                     content = rel.descriptionHTML,
+                                                    isMarkdown = rel.changelogUrl != null,
                                                     onLoadingChange = { descLoaded = !it },
                                                 )
                                             }
@@ -848,6 +858,23 @@ fun InfoPage(
             bottom = innerPadding.calculateBottomPadding(),
         ),
     ) {
+        if (module.sourceName.isNotEmpty()) {
+            item {
+                SegmentedColumn(
+                    title = stringResource(R.string.module_repo_source_label),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                headlineContent = { Text(text = module.sourceName) },
+                            )
+                        }
+                    )
+                )
+            }
+        }
         if (module.authorsList.isNotEmpty()) {
             item {
                 SegmentedColumn(

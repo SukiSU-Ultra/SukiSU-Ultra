@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -452,6 +453,12 @@ fun ModuleRepoScreenMiuix(
                                     onClick = actions.onRefresh,
                                 )
                             }
+                        } else if (state.sources.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.module_repo_sources_empty),
+                                color = colorScheme.onSurfaceVariantSummary,
+                                fontSize = 16.sp
+                            )
                         } else if (pullToRefreshState.refreshState == RefreshState.Idle) {
                             InfiniteProgressIndicator()
                         }
@@ -641,6 +648,7 @@ fun ModuleRepoScreenMiuix(
 private fun ReadmePage(
     readmeHtml: String?,
     readmeLoaded: Boolean,
+    isMarkdown: Boolean,
     innerPadding: PaddingValues, scrollBehavior: ScrollBehavior, backdrop: LayerBackdrop?
 ) {
     val layoutDirection = LocalLayoutDirection.current
@@ -679,6 +687,7 @@ private fun ReadmePage(
                                 Column {
                                     GithubMarkdown(
                                         content = readmeHtml,
+                                        isMarkdown = isMarkdown,
                                         onLoadingChange = { loaded = !it },
                                     )
                                 }
@@ -745,7 +754,7 @@ fun ReleasesPage(
                 item {
                     Spacer(Modifier.height(6.dp))
                 }
-                items(items = detailReleases, key = { it.tagName }, contentType = { "release" }) { rel ->
+                itemsIndexed(items = detailReleases, key = { index, _ -> "release_$index" }, contentType = { _, _ -> "release" }) { _, rel ->
                     val title = remember(rel.name, rel.tagName) { rel.name.ifBlank { rel.tagName } }
                     Card(
                         modifier = Modifier
@@ -820,6 +829,7 @@ fun ReleasesPage(
                                                     Box(modifier = Modifier.graphicsLayer { this.alpha = descAlpha }) {
                                                         GithubMarkdown(
                                                             content = rel.descriptionHTML,
+                                                            isMarkdown = rel.changelogUrl != null,
                                                             onLoadingChange = { descLoaded = !it },
                                                         )
                                                     }
@@ -1020,6 +1030,26 @@ fun InfoPage(
             ),
             overscrollEffect = null,
         ) {
+            if (module.sourceName.isNotEmpty()) {
+                item {
+                    SmallTitle(
+                        text = stringResource(R.string.module_repo_source_label),
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        insideMargin = PaddingValues(16.dp)
+                    ) {
+                        Text(
+                            text = module.sourceName,
+                            fontSize = 14.sp,
+                            color = colorScheme.onSurface
+                        )
+                    }
+                }
+            }
             if (module.authorsList.isNotEmpty()) {
                 item {
                     SmallTitle(
@@ -1222,6 +1252,7 @@ fun ModuleRepoDetailScreenMiuix(
                 0 -> ReadmePage(
                     readmeHtml = state.readmeHtml,
                     readmeLoaded = state.readmeLoaded,
+                    isMarkdown = module.isMmrl,
                     innerPadding = innerPadding,
                     scrollBehavior = scrollBehavior,
                     backdrop = backdrop

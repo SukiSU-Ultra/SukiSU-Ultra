@@ -126,7 +126,7 @@ private suspend fun fetchMmrlModuleDetail(module: RepoModuleArg): ModuleDetail? 
 suspend fun fetchModuleDetailById(moduleId: String): ModuleDetail? {
     if (!isNetworkAvailable(ksuApp)) return null
     val url = "https://modules.kernelsu.org/module/$moduleId.json"
-    return runCatching {
+    return try {
         ksuApp.okhttpClient.newCall(Request.Builder().url(url).build()).execute().use { resp ->
             if (!resp.isSuccessful) return@use null
             val body = resp.body.string()
@@ -194,18 +194,26 @@ suspend fun fetchModuleDetailById(moduleId: String): ModuleDetail? {
                 url = url
             )
         }
-    }.getOrNull()
+    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
+    }
 }
 
 private suspend fun fetchText(url: String): String? = withContext(Dispatchers.IO) {
-    runCatching {
+    try {
         ksuApp.okhttpClient.newCall(Request.Builder().url(url).build()).execute().use { resp ->
             if (!resp.isSuccessful) null else {
                 val body = resp.body.string()
                 if (body.length > MAX_TEXT_BYTES) body.take(MAX_TEXT_BYTES) else body
             }
         }
-    }.getOrNull()
+    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
+    }
 }
 
 private const val MAX_TEXT_BYTES = 512 * 1024

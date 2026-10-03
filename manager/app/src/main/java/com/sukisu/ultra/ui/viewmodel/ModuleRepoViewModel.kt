@@ -128,8 +128,13 @@ class ModuleRepoViewModel(
         }
     }
 
+    private var pendingRefresh = false
+
     fun refresh() {
-        if (_uiState.value.isRefreshing) return
+        if (_uiState.value.isRefreshing) {
+            pendingRefresh = true
+            return
+        }
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -142,8 +147,15 @@ class ModuleRepoViewModel(
 
             withContext(Dispatchers.Main) {
                 result.onSuccess { outcome ->
-                    val order = _uiState.value.sortOrder
-                    val sorted = withContext(Dispatchers.Default) { sortModules(outcome.modules, order) }
+                    val current = _uiState.value
+                    // When every source fails, keep the previous list instead of blanking the page.
+                    val keepOld = outcome.modules.isEmpty() && outcome.sourceErrors.isNotEmpty() && current.modules.isNotEmpty()
+                    val order = current.sortOrder
+                    val sorted = if (keepOld) {
+                        current.modules
+                    } else {
+                        withContext(Dispatchers.Default) { sortModules(outcome.modules, order) }
+                    }
                     _uiState.update {
                         it.copy(
                             modules = sorted,
@@ -160,6 +172,7 @@ class ModuleRepoViewModel(
                         ).show()
                     }
                     _uiState.update { it.copy(isRefreshing = false) }
+                    runPendingRefresh()
                 }.onFailure { e ->
                     Log.e(TAG, "fetch modules failed", e)
                     Toast.makeText(
@@ -173,6 +186,7 @@ class ModuleRepoViewModel(
                             offline = !hasAnyNetwork(ksuApp)
                         )
                     }
+                    runPendingRefresh()
                 }
             }
         }
@@ -239,7 +253,27 @@ class ModuleRepoViewModel(
 
     fun renameSource(id: String, name: String) {
         if (name.isBlank()) return
-        sourceRepo.renameSource(id, name.trim())
-        _uiState.update { it.copy(sources = sourceRepo.loadSources()) }
+        val trimmed = name.trim()
+        val previousName = _uiState.value.sources.firstOrNull { it.id == id }?.name ?: return
+        sourceRepo.renameSource(id, trimmed)
+        _uiState.update { st ->
+            st.copy(
+                sources = sourceRepo.loadSources(),
+                modules = st.modules.map { m -> if (m.sourceId == id) m.copy(sourceName = trimmed) else m },
+                searchResults = st.searchResults.map { m -> if (m.sourceId == id) m.copy(sourceName = trimmed) else m },
+                sourceErrors = if (previousName == trimmed) {
+                    st.sourceErrors
+                } else {
+                    st.sourceErrors.mapKeys { (key, value) -> if (key == previousName) trimmed else key }
+                },
+            )
+        }
+    }
+
+    private fun runPendingRefresh() {
+        if (pendingRefresh) {
+            pendingRefresh = false
+            refresh()
+        }
     }
 }

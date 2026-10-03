@@ -49,6 +49,7 @@
     <string name="module_repo_source_delete_confirm">确定移除此源？</string>
     <string name="module_repo_rename_source">重命名源</string>
     <string name="module_repo_sources_empty">尚未配置任何源</string>
+    <string name="module_repo_source_label">来源仓库</string>
     <string name="module_repo_source_fetch_error">%1$s 拉取失败：%2$s</string>
     <string name="module_repo_fetch_failed">拉取失败：%1$s</string>
     <string name="uninstall">卸载</string>

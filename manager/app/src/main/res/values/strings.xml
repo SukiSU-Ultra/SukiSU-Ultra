@@ -61,6 +61,7 @@
     <string name="module_repo_source_delete_confirm">Remove this source?</string>
     <string name="module_repo_rename_source">Rename source</string>
     <string name="module_repo_sources_empty">No sources configured</string>
+    <string name="module_repo_source_label">Repository</string>
     <string name="module_repo_source_fetch_error">%1$s fetch failed: %2$s</string>
     <string name="module_repo_fetch_failed">Failed to fetch: %1$s</string>
     <string name="confirm">Confirm</string>

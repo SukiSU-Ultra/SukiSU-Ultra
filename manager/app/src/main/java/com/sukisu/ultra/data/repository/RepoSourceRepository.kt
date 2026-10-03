@@ -63,8 +63,13 @@ class RepoSourceRepositoryImpl(
             require(candidates.isNotEmpty()) { ksuApp.getString(com.sukisu.ultra.R.string.module_repo_source_bad_url) }
 
             val existing = loadSources()
-            val normalized = trimmed.trimEnd('/').lowercase()
-            require(existing.none { it.url.trimEnd('/').lowercase() == normalized || candidateSourceUrls(it.url).any { c -> c.trimEnd('/').lowercase() == normalized } }) {
+            val inputCandidates = (candidateSourceUrls(trimmed) + trimmed)
+                .map { it.trimEnd('/').lowercase() }.toSet()
+            require(existing.none { source ->
+                val candidates = (candidateSourceUrls(source.url) + source.url)
+                    .map { it.trimEnd('/').lowercase() }
+                candidates.any { it in inputCandidates }
+            }) {
                 ksuApp.getString(com.sukisu.ultra.R.string.module_repo_source_duplicate)
             }
 
@@ -90,6 +95,8 @@ class RepoSourceRepositoryImpl(
                             lastError = "HTTP ${response.code}"
                         }
                     }
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     lastError = e.message ?: e.javaClass.simpleName
                 }
@@ -172,9 +179,8 @@ class RepoSourceRepositoryImpl(
  */
 fun candidateSourceUrls(raw: String): List<String> {
     val trimmed = raw.trim().trimEnd('/')
-    if (trimmed.isEmpty()) return emptyList()
-    if (trimmed.endsWith(".json")) return listOf(trimmed)
     if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return emptyList()
+    if (trimmed.endsWith(".json")) return listOf(trimmed)
     return listOf("$trimmed/json/modules.json", "$trimmed/modules.json")
 }
 

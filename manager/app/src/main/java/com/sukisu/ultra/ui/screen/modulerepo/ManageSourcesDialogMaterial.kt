@@ -21,6 +21,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,10 @@ fun ManageSourcesDialogMaterial(
     var urlInput by rememberSaveable { mutableStateOf("") }
     var pendingDelete by remember { mutableStateOf<RepoSource?>(null) }
     var editingSource by remember { mutableStateOf<RepoSource?>(null) }
+    // Clear the add-field once a source actually landed (success), keep it on failure.
+    LaunchedEffect(state.sources.size) {
+        urlInput = ""
+    }
     val deleteConfirmTitle = stringResource(R.string.module_repo_source_delete_confirm)
     val deleteDialog = rememberConfirmDialog(onConfirm = {
         pendingDelete?.let { actions.onRemoveSource(it.id) }
