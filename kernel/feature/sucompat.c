@@ -139,24 +139,35 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
         return -EINVAL;
     }
 
-    pr_info("ksu_handle_execveat_sucompat: su found\n");
+    ret = escape_with_root_profile();
 
+    pr_info("ksu_handle_execveat_sucompat: su->ksud!\n");
     memcpy((void *)filename->name, ksud_path, sizeof(ksud_path));
 
     pending_sucompat = ksu_sulog_capture_sucompat(filename->name, (struct user_arg_ptr*)argv_user, GFP_KERNEL);
 
-    ret = escape_with_root_profile();
-    if (ret)
-        pr_err("escape_with_root_profile() failed: %d\n", ret);
-        return -EINVAL;
-
     const char __user *argv_user_ptr = get_user_arg_ptr(*((struct user_arg_ptr*)argv_user), 0);
     if (!argv_user_ptr || IS_ERR(argv_user_ptr)) {
         pr_err("!argv_user_ptr || IS_ERR(argv_user_ptr)\n");
-        return 0;
+        return -EINVAL;
     }
 
     ksu_sulog_emit_pending(pending_sucompat, ret, GFP_KERNEL);
+
+    if (ret) {
+        pr_err("escape_with_root_profile() failed: %d\n", ret);
+        return -EINVAL;
+    }
+    return 0;
+}
+
+int ksu_handle_post_execveat_sucompat(int *fd, struct filename **filename_ptr,
+                 void *argv_user, void *envp_user,
+                 int *__never_use_flags, int *retval)
+{
+    if (*retval >= 0) {
+        (void)ksu_install_su_fd();
+    }
     return 0;
 }
 
@@ -192,6 +203,7 @@ int ksu_handle_faccessat(int *dfd, struct filename **filename, int *mode,
         pr_err("ksu_handle_faccessat: su found but NOT allowed! Because current process is running in chrooted environment\n");
         return 0;
     }
+
     pr_info("ksu_handle_faccessat: su->sh!\n");
     memcpy((void *)((*filename)->name), sh_path, sizeof(sh_path));
     return 0;
@@ -209,6 +221,7 @@ int ksu_handle_stat(int *dfd, struct filename **filename, int *flags) {
         pr_err("ksu_handle_stat: su found but NOT allowed! Because current process is running in chrooted environment\n");
         return 0;
     }
+
     pr_info("ksu_handle_stat: su->sh!\n");
     memcpy((void *)((*filename)->name), sh_path, sizeof(sh_path));
     return 0;
