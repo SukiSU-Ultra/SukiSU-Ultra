@@ -51,15 +51,17 @@ config KSU_SUSFS_SUS_PATH
 	  - Use "add_sus_path_loop" instead of "add_sus_path" if the user-defined path is frequently modified.
 	  - Use with cautious as it may cause performance loss and will be vulnerable to side channel attacks,
 	  	just disable this feature if it doesn't work for you or you don't need it at all.
-	  - Effective only on zygote spawned user app process with uid >= 10000.
+	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED.
 
 config KSU_SUSFS_SUS_MOUNT
 	bool "Enable to hide suspicious mounts"
 	depends on KSU_SUSFS
 	default y
 	help
-	  - Automatically assign fake mnt_id and fake mnt_group_id for mounts mounted by ksu process until /sdcard is  decrypted, this is to evade from mnt_id/mnt_group_id gap detections.
+	  - Automatically assign fake mnt_id and fake mnt_group_id for mounts mounted by ksu process until
+	    /sdcard is  decrypted, this is to evade from mnt_id/mnt_group_id gap detections.
 	  - Allow hiding all sus mounts from /proc/self/[mounts|mountinfo|mountstat] for non-su processes.
+	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED.
 
 config KSU_SUSFS_SUS_KSTAT
 	bool "Enable to spoof suspicious kstat"
@@ -67,7 +69,7 @@ config KSU_SUSFS_SUS_KSTAT
 	default y
 	help
 	  - Allow spoofing the kstat of user-defined file/directory.
-	  - Effective only on zygote spawned user app process with uid >= 10000.
+	  - Effective on all processes with (uid % 100000) >= 10000.
 
 config KSU_SUSFS_SPOOF_UNAME
 	bool "Enable to spoof uname"
@@ -108,7 +110,7 @@ config KSU_SUSFS_OPEN_REDIRECT
 	  - Allow redirecting a target path to be opened with another user-defined path.
 	  - Both target path and redirected path must be existed before they can be added to the kernel.
 	  - Users have to take care of the selinux permission of both target path and redirected path by themselves.
-	  - OPEN_REDIRECT does not bypass detections, but users may try other feature like SUS_KSTAT to bypass some of them.
+	  - OPEN_REDIRECT does not bypass some detections by default, but users can work with SUS_KSTAT to bypass them.
 	  - Effective only on processes with pre-defined uid scheme.
 
 config KSU_SUSFS_SUS_MAP
@@ -120,7 +122,7 @@ config KSU_SUSFS_SUS_MAP
 	  - It does NOT support hiding for anon memory.
 	  - It does NOT hide any inline hooks or plt hooks cause by the injected library itself.
 	  - It may not be able to evade detections by apps that implement a good injection detection.
-	  - Effective only on zygote spawned umounted user app process >= 10000.
+	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED
 
 endmenu
 

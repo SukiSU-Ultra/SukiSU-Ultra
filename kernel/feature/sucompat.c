@@ -118,25 +118,25 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     int ret;
 
     if (unlikely(!filename_ptr))
-        return 0;
+        return -EINVAL;
 
     filename = *filename_ptr;
     if (IS_ERR(filename))
-        return 0;
+        return -EINVAL;
 
     if (!ksu_handle_execveat_init(filename, (struct user_arg_ptr*)argv_user, (struct user_arg_ptr*)envp_user))
-        return 0;
+        return -EINVAL;
 
     if (!(__ksu_is_allow_uid_for_current(current_uid().val)))
-        return 0;
+        return -EINVAL;
 
     if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
-        return 0;
+        return -EINVAL;
 
     if (current_chrooted())
     {
         pr_err("ksu_handle_execveat_sucompat: su found but NOT allowed! Because current process is running in chrooted environment\n");
-        return 0;
+        return -EINVAL;
     }
 
     pr_info("ksu_handle_execveat_sucompat: su found\n");
@@ -148,6 +148,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     ret = escape_with_root_profile();
     if (ret)
         pr_err("escape_with_root_profile() failed: %d\n", ret);
+        return -EINVAL;
 
     const char __user *argv_user_ptr = get_user_arg_ptr(*((struct user_arg_ptr*)argv_user), 0);
     if (!argv_user_ptr || IS_ERR(argv_user_ptr)) {
