@@ -298,13 +298,23 @@
     <string name="sulog_enable_action">启用</string>
     <string name="sulog_filter_title">按类型筛选</string>
     <string name="sulog_clean_title">清空日志</string>
+    <string name="sulog_filter_root_execve">执行 Root 进程</string>
+    <string name="sulog_filter_sucompat">传统 su 命令</string>
+    <string name="sulog_filter_ioctl_grant_root">授予 root 权限</string>
+    <string name="sulog_filter_daemon_restart">守护进程重启</string>
     <string name="nav_rail_expand">展开导航栏</string>
     <string name="nav_rail_collapse">收起导航栏</string>
     <string name="settings_navigation_badge">导航栏角标</string>
     <string name="settings_navigation_badge_summary">在导航栏显示已授权应用和已启用模块数量</string>
     <!-- Customize -->
     <string name="hook_type">钩子类型</string>
+    <string name="manual_hook">手动钩子</string>
+    <string name="inline_hook">内联钩子</string>
+    <string name="tracepoint_hook">跟踪点钩子</string>
     <string name="home_susfs_version">SuSFS 版本</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_language_summary">选择应用显示语言</string>
+    <string name="settings_language_system">跟随系统</string>
     <string name="kernel_spoof_release">内核版本号</string>
     <string name="kernel_spoof_version">内核编译信息</string>
     <!-- Log Viewer -->
@@ -384,6 +394,7 @@
     <string name="kernel_flashing">内核刷入</string>
     <string name="horizon_kernel">AnyKernel3 内核</string>
     <string name="horizon_kernel_summary">刷入AnyKernel3格式的内核zip包</string>
+    <string name="kpm_title">KPM</string>
     <!-- KPM -->
     <string name="settings_kpm_summary">使用 KPM 管理内核模块</string>
     <string name="kpm_empty">当前没有安装内核模块</string>
