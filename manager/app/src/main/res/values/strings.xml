@@ -248,6 +248,7 @@
     <string name="color_blue_grey">Blue Grey</string>
     <string name="color_sakura">Sakura</string>
     <string name="network_offline">Not connected to network</string>
+    <string name="module_repo_unavailable">Module repository is currently unavailable. Please try again later.</string>
     <string name="network_retry">Retry</string>
     <string name="tab_readme">README</string>
     <string name="tab_releases">Releases</string>

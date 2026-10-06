@@ -409,10 +409,13 @@ fun ModuleRepoScreenMiuix(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (offline) {
+                        if (offline || state.error != null) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    text = stringResource(R.string.network_offline),
+                                    text = stringResource(
+                                        if (offline) R.string.network_offline
+                                        else R.string.module_repo_unavailable
+                                    ),
                                     color = colorScheme.onSurfaceVariantSummary,
                                     fontSize = 16.sp
                                 )
