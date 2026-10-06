@@ -1181,6 +1181,10 @@ pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
                 || name.starts_with("zygisk-ptrace")
                 || name.starts_with("zygisk-comp")
                 || name.starts_with("zygisk_comp")
+                // Zygisk Next >= 1.5.0 renames its daemon to "zn-daemon"/
+                // "zn-daemon64"/"zn-daemon32" for stealth, so the legacy
+                // "zygisk*" patterns no longer match it.
+                || name.starts_with("zn-daemon")
                 || name.contains("zygiskd")
                 || name.contains("zygisk")
         }),
@@ -1202,6 +1206,7 @@ pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
             name.starts_with("zygiskd")
                 || name.starts_with("zygisk-ptrace")
                 || name.starts_with("rezygisk")
+                || name.starts_with("zn-daemon")
                 || name.contains("zygisk")
         }),
     };
