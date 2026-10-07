@@ -159,7 +159,6 @@ void apply_kernelsu_rules(void)
     }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
-    struct selinux_policy *pol, *old_pol = selinux_state.policy;
     mutex_lock(&selinux_state.policy_mutex);
 
     old_pol = rcu_dereference_protected(selinux_state.policy, lockdep_is_held(&selinux_state.policy_mutex));
