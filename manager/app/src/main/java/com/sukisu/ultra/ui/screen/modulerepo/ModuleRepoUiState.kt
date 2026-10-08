@@ -25,6 +25,21 @@ data class ModuleRepoUiState(
     val sources: List<RepoSource> = emptyList(),
     val sourceErrors: Map<String, String> = emptyMap(),
     val isAddingSource: Boolean = false,
+    /** Known repositories offered for one-tap adding, most modules first. */
+    val candidates: List<RepoCandidateUi> = emptyList(),
+)
+
+/**
+ * A candidate repository as the dialog shows it: [moduleCount] is a snapshot taken when the list
+ * was last reviewed, and [isAdded] hides the add action for a repository that is already
+ * configured, under any of the addresses that reach it.
+ */
+@Immutable
+data class RepoCandidateUi(
+    val name: String,
+    val url: String,
+    val moduleCount: Int,
+    val isAdded: Boolean,
 )
 
 @Immutable
@@ -36,7 +51,8 @@ data class ModuleRepoActions(
     val onSearchStatusChange: (SearchStatus) -> Unit,
     val onSetSortOrder: (RepoSort) -> Unit,
     val onOpenRepoDetail: (RepoModule) -> Unit,
-    val onAddSource: (String) -> Unit,
+    /** [name] is the display name to store, or null to derive one from the address. */
+    val onAddSource: (url: String, name: String?) -> Unit,
     val onRemoveSource: (String) -> Unit,
     val onSetSourceEnabled: (String, Boolean) -> Unit,
     val onRenameSource: (String, String) -> Unit,

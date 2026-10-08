@@ -112,6 +112,7 @@ import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.formatRepoTime
 import com.sukisu.ultra.ui.util.isDownloadAvailable
 import com.sukisu.ultra.ui.util.rememberContentReady
 
@@ -243,10 +244,18 @@ fun ModuleRepoScreenMaterial(
                         }
                     }
                 } else if (state.sources.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.module_repo_sources_empty),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    // Nothing is configured out of the box, so this is the first thing a new user
+                    // sees; it has to lead somewhere instead of just stating the fact.
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.module_repo_sources_empty),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = { showSourcesDialog = true }) {
+                            Text(stringResource(R.string.module_repo_add_source))
+                        }
+                    }
                 } else {
                     LoadingIndicator()
                 }
@@ -337,7 +346,7 @@ private fun RepoModuleList(
             }
         }
         items(modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
-            val latestReleaseTime = remember(module.latestReleaseTime) { module.latestReleaseTime }
+            val latestReleaseTime = remember(module.latestReleaseTime) { formatRepoTime(module.latestReleaseTime) }
             val moduleAuthor = stringResource(id = R.string.module_author)
 
             TonalCard(
@@ -875,6 +884,19 @@ fun InfoPage(
                             )
                         }
                     )
+                )
+            }
+        }
+        if (module.alternateSourceNames.isNotEmpty()) {
+            item {
+                SegmentedColumn(
+                    title = stringResource(R.string.module_repo_source_also_in),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp),
+                    content = module.alternateSourceNames.map { name ->
+                        { SegmentedListItem(headlineContent = { Text(text = name) }) }
+                    }
                 )
             }
         }

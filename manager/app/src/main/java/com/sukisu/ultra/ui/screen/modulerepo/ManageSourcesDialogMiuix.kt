@@ -81,44 +81,103 @@ fun ManageSourcesDialogMiuix(
                     )
                 }
                 state.sources.forEach { source ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { editingSource = source },
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { editingSource = source },
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = source.name,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight(550),
                                 color = colorScheme.onSurface,
-                            )
-                            Text(
-                                text = source.url,
-                                fontSize = 12.sp,
-                                color = colorScheme.onSurfaceVariantSummary,
-                                maxLines = 1,
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
                             )
+                            Switch(
+                                checked = source.enabled,
+                                onCheckedChange = { actions.onSetSourceEnabled(source.id, it) },
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                            IconButton(
+                                onClick = {
+                                    pendingDelete = source
+                                    deleteDialog.showConfirm(title = deleteConfirmTitle, content = source.name)
+                                },
+                                modifier = Modifier.padding(start = 4.dp),
+                            ) {
+                                Icon(
+                                    imageVector = MiuixIcons.Delete,
+                                    contentDescription = stringResource(R.string.delete),
+                                    tint = colorScheme.onSurface,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
                         }
-                        Switch(
-                            checked = source.enabled,
-                            onCheckedChange = { actions.onSetSourceEnabled(source.id, it) },
-                            modifier = Modifier.padding(start = 8.dp),
+                        // The address takes the full width below the name and may wrap, so a long
+                        // index path stays readable instead of being cut off right after the host.
+                        Text(
+                            text = source.url,
+                            fontSize = 12.sp,
+                            color = colorScheme.onSurfaceVariantSummary,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 8.dp),
                         )
-                        IconButton(
-                            onClick = {
-                                pendingDelete = source
-                                deleteDialog.showConfirm(title = deleteConfirmTitle, content = source.name)
-                            },
-                            modifier = Modifier.padding(start = 4.dp),
+                    }
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        thickness = 0.5.dp,
+                        color = colorScheme.outline.copy(alpha = 0.5f),
+                    )
+                }
+
+                if (state.candidates.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.module_repo_candidates),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight(550),
+                        color = colorScheme.onSurface,
+                    )
+                    state.candidates.forEach { candidate ->
+                        val addable = !candidate.isAdded && !state.isAddingSource
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(enabled = addable) {
+                                    actions.onAddSource(candidate.url, candidate.name)
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(
-                                imageVector = MiuixIcons.Delete,
-                                contentDescription = stringResource(R.string.delete),
-                                tint = colorScheme.onSurface,
-                                modifier = Modifier.size(20.dp),
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = candidate.name,
+                                    fontSize = 15.sp,
+                                    color = colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.module_repo_candidate_modules,
+                                        candidate.moduleCount,
+                                    ),
+                                    fontSize = 12.sp,
+                                    color = colorScheme.onSurfaceVariantSummary,
+                                )
+                            }
+                            Text(
+                                text = if (candidate.isAdded) {
+                                    stringResource(R.string.module_repo_candidate_added)
+                                } else {
+                                    stringResource(R.string.module_repo_candidate_add)
+                                },
+                                fontSize = 14.sp,
+                                color = if (addable) colorScheme.primary else colorScheme.onSurfaceVariantSummary,
                             )
                         }
                     }
@@ -141,7 +200,7 @@ fun ManageSourcesDialogMiuix(
                         stringResource(R.string.module_repo_add_source)
                     },
                     onClick = {
-                        actions.onAddSource(urlInput)
+                        actions.onAddSource(urlInput, null)
                         urlInput = ""
                     },
                     enabled = urlInput.isNotBlank() && !state.isAddingSource,

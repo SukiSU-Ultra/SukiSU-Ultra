@@ -78,36 +78,93 @@ fun ManageSourcesDialogMaterial(
                     )
                 }
                 state.sources.forEach { source ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { editingSource = source },
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { editingSource = source },
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = source.name,
                                 style = MaterialTheme.typography.titleSmall,
-                            )
-                            Text(
-                                text = source.url,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
                             )
+                            Switch(
+                                checked = source.enabled,
+                                onCheckedChange = { actions.onSetSourceEnabled(source.id, it) },
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                            IconButton(onClick = {
+                                pendingDelete = source
+                                deleteDialog.showConfirm(title = deleteConfirmTitle, content = source.name)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = stringResource(R.string.delete),
+                                )
+                            }
                         }
-                        Switch(
-                            checked = source.enabled,
-                            onCheckedChange = { actions.onSetSourceEnabled(source.id, it) },
-                            modifier = Modifier.padding(start = 8.dp),
+                        // The address takes the full width below the name and may wrap, so a long
+                        // index path stays readable instead of being cut off right after the host.
+                        Text(
+                            text = source.url,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 8.dp),
                         )
-                        IconButton(onClick = {
-                            pendingDelete = source
-                            deleteDialog.showConfirm(title = deleteConfirmTitle, content = source.name)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = stringResource(R.string.delete),
+                    }
+                    HorizontalDivider(thickness = 0.5.dp)
+                }
+
+                if (state.candidates.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.module_repo_candidates),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    state.candidates.forEach { candidate ->
+                        val addable = !candidate.isAdded && !state.isAddingSource
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(enabled = addable) {
+                                    actions.onAddSource(candidate.url, candidate.name)
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = candidate.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.module_repo_candidate_modules,
+                                        candidate.moduleCount,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Text(
+                                text = if (candidate.isAdded) {
+                                    stringResource(R.string.module_repo_candidate_added)
+                                } else {
+                                    stringResource(R.string.module_repo_candidate_add)
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (addable) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                             )
                         }
                     }
@@ -126,7 +183,7 @@ fun ManageSourcesDialogMaterial(
         confirmButton = {
             TextButton(
                 onClick = {
-                    actions.onAddSource(urlInput)
+                    actions.onAddSource(urlInput, null)
                     urlInput = ""
                 },
                 enabled = urlInput.isNotBlank() && !state.isAddingSource,

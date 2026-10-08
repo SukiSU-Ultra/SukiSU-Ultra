@@ -55,5 +55,10 @@ data class RepoModule(
     val latestAsset: ReleaseAsset?,
     val sourceId: String = "",
     val sourceName: String = "",
+    /**
+     * Names of the other repositories that publish this same module and lost the merge, so a
+     * deduplicated list can still say where else the module is available.
+     */
+    val alternateSourceNames: List<String> = emptyList(),
     val mmrl: MmrlModuleInfo? = null,
 )

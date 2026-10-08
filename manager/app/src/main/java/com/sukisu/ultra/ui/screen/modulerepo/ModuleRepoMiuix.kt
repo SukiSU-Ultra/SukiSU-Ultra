@@ -91,6 +91,7 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.formatRepoTime
 import com.sukisu.ultra.ui.util.isDownloadAvailable
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
@@ -456,11 +457,23 @@ fun ModuleRepoScreenMiuix(
                                 )
                             }
                         } else if (state.sources.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.module_repo_sources_empty),
-                                color = colorScheme.onSurfaceVariantSummary,
-                                fontSize = 16.sp
-                            )
+                            // Nothing is configured out of the box, so this is the first thing a
+                            // new user sees; it has to lead somewhere instead of just stating it.
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = stringResource(R.string.module_repo_sources_empty),
+                                    color = colorScheme.onSurfaceVariantSummary,
+                                    fontSize = 16.sp
+                                )
+                                Spacer(Modifier.height(12.dp))
+                                TextButton(
+                                    modifier = Modifier
+                                        .padding(horizontal = 24.dp)
+                                        .fillMaxWidth(),
+                                    text = stringResource(R.string.module_repo_add_source),
+                                    onClick = { showSourcesDialog.value = true },
+                                )
+                            }
                         } else if (pullToRefreshState.refreshState == RefreshState.Idle) {
                             InfiniteProgressIndicator()
                         }
@@ -501,6 +514,9 @@ fun ModuleRepoScreenMiuix(
                             }
                             items(items = state.modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
                                 val moduleAuthor = stringResource(id = R.string.module_author)
+                                val latestReleaseTime = remember(module.latestReleaseTime) {
+                                    formatRepoTime(module.latestReleaseTime)
+                                }
 
                                 Card(
                                     modifier = Modifier
@@ -615,9 +631,9 @@ fun ModuleRepoScreenMiuix(
                                                     }
                                                 }
                                                 Spacer(Modifier.weight(1f))
-                                                if (module.latestReleaseTime.isNotEmpty()) {
+                                                if (latestReleaseTime.isNotEmpty()) {
                                                     Text(
-                                                        text = module.latestReleaseTime,
+                                                        text = latestReleaseTime,
                                                         fontSize = 12.sp,
                                                         color = colorScheme.onSurfaceVariantSummary,
                                                         textAlign = TextAlign.End
@@ -1050,6 +1066,30 @@ fun InfoPage(
                             fontSize = 14.sp,
                             color = colorScheme.onSurface
                         )
+                    }
+                }
+            }
+            if (module.alternateSourceNames.isNotEmpty()) {
+                item {
+                    SmallTitle(
+                        text = stringResource(R.string.module_repo_source_also_in),
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        insideMargin = PaddingValues(16.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            module.alternateSourceNames.forEach { name ->
+                                Text(
+                                    text = name,
+                                    fontSize = 14.sp,
+                                    color = colorScheme.onSurface
+                                )
+                            }
+                        }
                     }
                 }
             }
