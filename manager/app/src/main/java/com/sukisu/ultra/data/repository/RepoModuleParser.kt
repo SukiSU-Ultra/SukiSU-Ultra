@@ -34,10 +34,15 @@ object RepoModuleParser {
         }
     }
 
-    fun parse(body: String, sourceId: String, sourceName: String): List<RepoModule> {
+    fun parse(
+        body: String,
+        sourceId: String,
+        sourceName: String,
+        indexUrl: String = "",
+    ): List<RepoModule> {
         return when (sniffFormat(body)) {
             RepoFormat.KERNELSU -> parseKsu(body, sourceId, sourceName)
-            RepoFormat.MMRL -> parseMmrl(body, sourceId, sourceName)
+            RepoFormat.MMRL -> parseMmrl(body, sourceId, sourceName, indexUrl)
             null -> throw IllegalArgumentException("Unrecognized repository format")
         }
     }
@@ -50,12 +55,17 @@ object RepoModuleParser {
         }
     }
 
-    fun parseMmrl(body: String, sourceId: String, sourceName: String): List<RepoModule> {
+    fun parseMmrl(
+        body: String,
+        sourceId: String,
+        sourceName: String,
+        indexUrl: String = "",
+    ): List<RepoModule> {
         val root = JSONObject(body)
         val modules = root.optJSONArray("modules") ?: return emptyList()
         return (0 until modules.length()).mapNotNull { idx ->
             val item = modules.optJSONObject(idx) ?: return@mapNotNull null
-            parseMmrlModule(item, sourceId, sourceName)
+            parseMmrlModule(item, sourceId, sourceName, indexUrl)
         }
     }
 
@@ -125,7 +135,12 @@ object RepoModuleParser {
         )
     }
 
-    private fun parseMmrlModule(item: JSONObject, sourceId: String, sourceName: String): RepoModule? {
+    private fun parseMmrlModule(
+        item: JSONObject,
+        sourceId: String,
+        sourceName: String,
+        indexUrl: String,
+    ): RepoModule? {
         val moduleId = item.optString("id", "").trim()
         if (moduleId.isEmpty()) return null
         val moduleName = item.optString("name", "")
@@ -144,6 +159,7 @@ object RepoModuleParser {
                 timestamp = timestamp,
                 time = epochToIso(timestamp),
                 zipUrl = zipUrl,
+                zipUrlFallback = sameOriginAssetFallback(zipUrl, indexUrl),
                 changelogUrl = stripTicks(v.optString("changelog", "")).trim().ifEmpty { null },
                 size = optLongValue(v, "size"),
             )

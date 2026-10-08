@@ -219,7 +219,9 @@ fun ModuleRepoScreenMaterial(
         },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
-        val isLoading = state.modules.isEmpty()
+        // An empty list means "loading" only until the first fetch settles; after that it
+        // means every source failed and the error banner below is the thing to show.
+        val isLoading = !state.hasLoadedOnce
         val hadDataOnEntry = remember { state.modules.isNotEmpty() }
         val contentReady = hadDataOnEntry || rememberContentReady()
 
@@ -766,6 +768,7 @@ private fun ReleaseAssetSegmentedItem(
                     download(
                         asset.downloadUrl,
                         fileName,
+                        altUrl = asset.downloadUrlFallback,
                         onDownloaded = { uri ->
                             isDownloading = false
                             downloadedUri = uri

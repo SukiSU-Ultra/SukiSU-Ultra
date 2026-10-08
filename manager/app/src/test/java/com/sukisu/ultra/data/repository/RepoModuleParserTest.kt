@@ -197,4 +197,31 @@ class RepoModuleParserTest {
         assertEquals("CustomPinyinDictionary", RepoModuleParser.parse(mmrlJson, "s", "S").first().moduleId)
         assertFalse(RepoModuleParser.parse(mmrlJson, "s", "S").first().zygisk)
     }
+
+    @Test
+    fun `parseMmrl leaves assets already on the index host without a fallback`() {
+        val module = RepoModuleParser.parseMmrl(
+            mmrlJson, "s", "S", "https://example.com/json/modules.json",
+        ).first()
+
+        assertTrue(module.mmrl!!.versions.all { it.zipUrlFallback == null })
+    }
+
+    @Test
+    fun `parseMmrl falls back to the index host when the asset host differs`() {
+        val json = """
+            {"modules": [{"id": "copg", "versions": [
+              {"version": "1.0", "zipUrl": "https://old.example.com/repo/modules/copg/1.0.zip"}
+            ]}]}
+        """.trimIndent()
+
+        val module = RepoModuleParser.parseMmrl(
+            json, "s", "S", "https://new.example.com/repo/json/modules.json",
+        ).single()
+
+        assertEquals(
+            "https://new.example.com/repo/modules/copg/1.0.zip",
+            module.mmrl!!.versions.single().zipUrlFallback,
+        )
+    }
 }

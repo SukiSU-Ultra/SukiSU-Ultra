@@ -41,7 +41,7 @@ class ModuleRepoRepositoryImpl(
                     throw Exception("HTTP ${response.code}")
                 }
                 val body = response.body.string()
-                Result.success(RepoModuleParser.parse(body, source.id, source.name))
+                Result.success(RepoModuleParser.parse(body, source.id, source.name, source.url))
             }
         } catch (e: kotlin.coroutines.cancellation.CancellationException) {
             throw e

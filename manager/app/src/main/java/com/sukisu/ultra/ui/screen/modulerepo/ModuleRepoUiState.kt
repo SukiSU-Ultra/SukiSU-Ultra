@@ -14,6 +14,8 @@ enum class RepoSort {
 
 data class ModuleRepoUiState(
     val isRefreshing: Boolean = false,
+    /** True once a fetch has settled, so an empty list stops reading as "still loading". */
+    val hasLoadedOnce: Boolean = false,
     val sortOrder: RepoSort = RepoSort.UPDATED,
     val offline: Boolean = false,
     val modules: List<RepoModule> = emptyList(),

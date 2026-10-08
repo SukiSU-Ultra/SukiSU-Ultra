@@ -63,6 +63,7 @@ fun ModuleRepoScreen() {
                                 downloadUrl = version.zipUrl,
                                 size = version.size,
                                 downloadCount = 0,
+                                downloadUrlFallback = version.zipUrlFallback,
                             )
                         ),
                         changelogUrl = version.changelogUrl,
@@ -119,7 +120,15 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
                                 tagName = r.tagName,
                                 name = r.name,
                                 publishedAt = r.publishedAt,
-                                assets = r.assets.map { a -> ReleaseAssetArg(a.name, a.downloadUrl, a.size, a.downloadCount) },
+                                assets = r.assets.map { a ->
+                                    ReleaseAssetArg(
+                                        a.name,
+                                        a.downloadUrl,
+                                        a.size,
+                                        a.downloadCount,
+                                        a.downloadUrlFallback,
+                                    )
+                                },
                                 descriptionHTML = r.descriptionHTML
                             )
                         }

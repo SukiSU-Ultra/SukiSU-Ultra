@@ -8,7 +8,9 @@ data class ReleaseAssetArg(
     val name: String,
     val downloadUrl: String,
     val size: Long,
-    val downloadCount: Int
+    val downloadCount: Int,
+    /** Retried when [downloadUrl] fails; see sameOriginAssetFallback. */
+    val downloadUrlFallback: String? = null
 ) : Parcelable
 
 @Parcelize

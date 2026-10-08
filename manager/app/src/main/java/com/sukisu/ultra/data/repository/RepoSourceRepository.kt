@@ -176,12 +176,35 @@ class RepoSourceRepositoryImpl(
  *  - a URL already pointing at a .json file is used as-is
  *  - otherwise the MMRL convention (<base>/json/modules.json) is tried first,
  *    then the KernelSU convention (<base>/modules.json)
+ *  - a GitHub repository address also gets its GitHub Pages site tried last, because
+ *    <https://github.com/owner/repo> is what people paste while the index is published
+ *    at <https://owner.github.io/repo>
  */
 fun candidateSourceUrls(raw: String): List<String> {
     val trimmed = raw.trim().trimEnd('/')
     if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return emptyList()
     if (trimmed.endsWith(".json")) return listOf(trimmed)
-    return listOf("$trimmed/json/modules.json", "$trimmed/modules.json")
+    val candidates = mutableListOf("$trimmed/json/modules.json", "$trimmed/modules.json")
+    githubPagesBase(trimmed)?.let { pages ->
+        candidates += "$pages/json/modules.json"
+        candidates += "$pages/modules.json"
+    }
+    return candidates
+}
+
+/** The GitHub Pages base for a bare GitHub repository address, or null for anything else. */
+private fun githubPagesBase(url: String): String? {
+    val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return null
+    if (uri.host?.lowercase() != "github.com") return null
+    if (!uri.query.isNullOrEmpty() || !uri.fragment.isNullOrEmpty()) return null
+
+    val segments = uri.path.orEmpty().trim('/').split('/').filter { it.isNotEmpty() }
+    if (segments.size != 2) return null
+    val owner = segments[0]
+    val repo = segments[1].removeSuffix(".git")
+    if (owner.isEmpty() || repo.isEmpty()) return null
+
+    return "https://${owner.lowercase()}.github.io/$repo"
 }
 
 private fun hostOf(url: String): String {

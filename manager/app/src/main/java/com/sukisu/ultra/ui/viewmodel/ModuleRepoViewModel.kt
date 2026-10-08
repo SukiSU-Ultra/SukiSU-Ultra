@@ -171,7 +171,7 @@ class ModuleRepoViewModel(
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    _uiState.update { it.copy(isRefreshing = false) }
+                    _uiState.update { it.copy(isRefreshing = false, hasLoadedOnce = true) }
                     runPendingRefresh()
                 }.onFailure { e ->
                     Log.e(TAG, "fetch modules failed", e)
@@ -182,6 +182,7 @@ class ModuleRepoViewModel(
                     _uiState.update {
                         it.copy(
                             isRefreshing = false,
+                            hasLoadedOnce = true,
                             error = e,
                             offline = !hasAnyNetwork(ksuApp)
                         )

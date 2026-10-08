@@ -23,6 +23,8 @@ data class MmrlVersion(
     /** ISO-8601 UTC rendering of [timestamp], empty when unknown. */
     val time: String,
     val zipUrl: String,
+    /** Same path on the repository's own host, for indexes whose asset host has moved. */
+    val zipUrlFallback: String?,
     val changelogUrl: String?,
     val size: Long,
 )

@@ -38,7 +38,8 @@ data class ReleaseAssetInfo(
     val name: String,
     val downloadUrl: String,
     val size: Long,
-    val downloadCount: Int
+    val downloadCount: Int,
+    val downloadUrlFallback: String? = null
 )
 
 private const val MAX_CHANGELOG_FETCHES = 30
@@ -102,7 +103,7 @@ private suspend fun fetchMmrlModuleDetail(module: RepoModuleArg): ModuleDetail? 
                     publishedAt = rel.publishedAt,
                     descriptionHTML = changelog,
                     assets = rel.assets.map { a ->
-                        ReleaseAssetInfo(a.name, a.downloadUrl, a.size, a.downloadCount)
+                        ReleaseAssetInfo(a.name, a.downloadUrl, a.size, a.downloadCount, a.downloadUrlFallback)
                     }
                 )
             }
