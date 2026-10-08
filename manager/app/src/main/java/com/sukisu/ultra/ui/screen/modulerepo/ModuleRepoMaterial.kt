@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.InstallMobile
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -246,16 +247,10 @@ fun ModuleRepoScreenMaterial(
                 } else if (state.sources.isEmpty()) {
                     // Nothing is configured out of the box, so this is the first thing a new user
                     // sees; it has to lead somewhere instead of just stating the fact.
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = stringResource(R.string.module_repo_sources_empty),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Button(onClick = { showSourcesDialog = true }) {
-                            Text(stringResource(R.string.module_repo_add_source))
-                        }
-                    }
+                    RepoEmptyPrompt(
+                        hint = stringResource(R.string.module_repo_sources_empty),
+                        onAddSource = { showSourcesDialog = true },
+                    )
                 } else {
                     LoadingIndicator()
                 }
@@ -296,6 +291,8 @@ fun ModuleRepoScreenMaterial(
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     sourceErrors = state.sourceErrors,
+                    sourcesEmpty = state.sources.isEmpty(),
+                    onAddSource = { showSourcesDialog = true },
                     onModuleClick = actions.onOpenRepoDetail
                 )
             }
@@ -317,6 +314,8 @@ private fun RepoModuleList(
     modifier: Modifier = Modifier,
     bottomPadding: Dp = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
     sourceErrors: Map<String, String> = emptyMap(),
+    sourcesEmpty: Boolean = false,
+    onAddSource: () -> Unit = {},
     onModuleClick: (RepoModule) -> Unit,
 ) {
     LazyColumn(
@@ -331,18 +330,20 @@ private fun RepoModuleList(
     ) {
         if (sourceErrors.isNotEmpty()) {
             item(key = "source_errors_banner") {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    sourceErrors.forEach { (sourceName, error) ->
-                        TonalCard(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = stringResource(R.string.module_repo_source_fetch_error, sourceName, error),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(12.dp),
-                            )
-                        }
+                val groups = remember(sourceErrors) { groupSourceErrors(sourceErrors) }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    groups.forEach { group ->
+                        SourceErrorBanner(names = group.names, message = group.message)
                     }
                 }
+            }
+        }
+        if (modules.isEmpty()) {
+            item(key = "repo_empty_prompt") {
+                RepoEmptyPrompt(
+                    hint = if (sourcesEmpty) stringResource(R.string.module_repo_sources_empty) else null,
+                    onAddSource = onAddSource,
+                )
             }
         }
         items(modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
@@ -453,6 +454,73 @@ private fun RepoModuleList(
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+/**
+ * Shown whenever there is nothing to list: no source is configured yet, or every configured source
+ * failed. Adding a repository is the way out of both, so the prompt leads straight to the dialog
+ * instead of only stating that the list is empty.
+ */
+@Composable
+private fun RepoEmptyPrompt(hint: String?, onAddSource: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (hint != null) {
+            Text(text = hint, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(12.dp))
+        }
+        Button(onClick = onAddSource) {
+            Text(stringResource(R.string.module_repo_add_repo))
+        }
+    }
+}
+
+/**
+ * A source that could not be fetched is reported as an error notice rather than in a module-shaped
+ * card, which would read as a module whose content failed to load. Sources that failed the same way
+ * share one notice — the title names them, the message is stated once.
+ */
+@Composable
+private fun SourceErrorBanner(names: List<String>, message: String) {
+    val contentColor = MaterialTheme.colorScheme.onErrorContainer
+    TonalCard(containerColor = MaterialTheme.colorScheme.errorContainer) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.ErrorOutline,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier
+                    .padding(top = 2.dp)
+                    .size(20.dp),
+            )
+            Column(modifier = Modifier.padding(start = 12.dp)) {
+                Text(
+                    text = sourceErrorTitle(names),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = stringResource(R.string.module_repo_fetch_failed, message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 

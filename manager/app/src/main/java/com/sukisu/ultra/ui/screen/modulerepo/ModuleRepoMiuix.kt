@@ -41,6 +41,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -86,6 +88,7 @@ import com.sukisu.ultra.ui.component.markdown.GithubMarkdown
 import com.sukisu.ultra.ui.component.miuix.SearchBarFake
 import com.sukisu.ultra.ui.component.miuix.SearchBox
 import com.sukisu.ultra.ui.component.miuix.SearchPager
+import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.miuix.deferredTopPadding
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
@@ -459,21 +462,10 @@ fun ModuleRepoScreenMiuix(
                         } else if (state.sources.isEmpty()) {
                             // Nothing is configured out of the box, so this is the first thing a
                             // new user sees; it has to lead somewhere instead of just stating it.
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = stringResource(R.string.module_repo_sources_empty),
-                                    color = colorScheme.onSurfaceVariantSummary,
-                                    fontSize = 16.sp
-                                )
-                                Spacer(Modifier.height(12.dp))
-                                TextButton(
-                                    modifier = Modifier
-                                        .padding(horizontal = 24.dp)
-                                        .fillMaxWidth(),
-                                    text = stringResource(R.string.module_repo_add_source),
-                                    onClick = { showSourcesDialog.value = true },
-                                )
-                            }
+                            RepoEmptyPrompt(
+                                hint = stringResource(R.string.module_repo_sources_empty),
+                                onAddSource = { showSourcesDialog.value = true },
+                            )
                         } else if (pullToRefreshState.refreshState == RefreshState.Idle) {
                             InfiniteProgressIndicator()
                         }
@@ -496,20 +488,39 @@ fun ModuleRepoScreenMiuix(
                         ) {
                             if (state.sourceErrors.isNotEmpty()) {
                                 item(key = "source_errors_banner") {
-                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        state.sourceErrors.forEach { (sourceName, error) ->
-                                            Card(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                insideMargin = PaddingValues(12.dp),
-                                            ) {
-                                                Text(
-                                                    text = stringResource(R.string.module_repo_source_fetch_error, sourceName, error),
-                                                    fontSize = 12.sp,
-                                                    color = colorScheme.onSurfaceVariantSummary,
-                                                )
-                                            }
+                                    val groups = remember(state.sourceErrors) {
+                                        groupSourceErrors(state.sourceErrors)
+                                    }
+                                    Column(
+                                        modifier = Modifier.padding(bottom = 12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        groups.forEach { group ->
+                                            WarningCard(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 12.dp),
+                                                title = sourceErrorTitle(group.names),
+                                                message = stringResource(
+                                                    R.string.module_repo_fetch_failed,
+                                                    group.message,
+                                                ),
+                                                icon = Icons.Rounded.ErrorOutline,
+                                            )
                                         }
                                     }
+                                }
+                            }
+                            if (state.modules.isEmpty()) {
+                                item(key = "repo_empty_prompt") {
+                                    RepoEmptyPrompt(
+                                        hint = if (state.sources.isEmpty()) {
+                                            stringResource(R.string.module_repo_sources_empty)
+                                        } else {
+                                            null
+                                        },
+                                        onAddSource = { showSourcesDialog.value = true },
+                                    )
                                 }
                             }
                             items(items = state.modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
@@ -660,6 +671,35 @@ fun ModuleRepoScreenMiuix(
         state = state,
         actions = actions,
     )
+}
+
+/**
+ * Shown whenever there is nothing to list: no source is configured yet, or every configured source
+ * failed. Adding a repository is the way out of both, so the prompt leads straight to the dialog
+ * instead of only stating that the list is empty.
+ */
+@Composable
+private fun RepoEmptyPrompt(hint: String?, onAddSource: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (hint != null) {
+            Text(
+                text = hint,
+                color = colorScheme.onSurfaceVariantSummary,
+                fontSize = 16.sp,
+            )
+            Spacer(Modifier.height(12.dp))
+        }
+        TextButton(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            text = stringResource(R.string.module_repo_add_repo),
+            onClick = onAddSource,
+        )
+    }
 }
 
 @Composable
