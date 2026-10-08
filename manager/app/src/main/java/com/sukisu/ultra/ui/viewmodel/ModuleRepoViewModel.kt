@@ -252,10 +252,10 @@ class ModuleRepoViewModel(
     fun addSource(rawUrl: String, name: String? = null) {
         if (_uiState.value.isAddingSource) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isAddingSource = true) }
+            _uiState.update { it.copy(isAddingSource = true, addingSourceUrl = rawUrl) }
             val result = sourceRepo.addSource(rawUrl, name)
             withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(isAddingSource = false) }
+                _uiState.update { it.copy(isAddingSource = false, addingSourceUrl = null) }
                 reloadSources()
                 result.onSuccess {
                     Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repo_source_added), Toast.LENGTH_SHORT).show()

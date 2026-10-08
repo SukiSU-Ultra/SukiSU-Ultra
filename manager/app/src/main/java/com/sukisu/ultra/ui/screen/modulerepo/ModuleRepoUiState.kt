@@ -25,6 +25,8 @@ data class ModuleRepoUiState(
     val sources: List<RepoSource> = emptyList(),
     val sourceErrors: Map<String, String> = emptyMap(),
     val isAddingSource: Boolean = false,
+    /** The address being added, so the candidate row it came from can show that it is in flight. */
+    val addingSourceUrl: String? = null,
     /** Known repositories offered for one-tap adding, most modules first. */
     val candidates: List<RepoCandidateUi> = emptyList(),
 )

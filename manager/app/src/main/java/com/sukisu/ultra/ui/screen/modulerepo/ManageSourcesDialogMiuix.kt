@@ -144,6 +144,7 @@ fun ManageSourcesDialogMiuix(
                         color = colorScheme.onSurface,
                     )
                     state.candidates.forEach { candidate ->
+                        val adding = candidate.url == state.addingSourceUrl
                         val addable = !candidate.isAdded && !state.isAddingSource
                         Row(
                             modifier = Modifier
@@ -171,10 +172,12 @@ fun ManageSourcesDialogMiuix(
                                 )
                             }
                             Text(
-                                text = if (candidate.isAdded) {
-                                    stringResource(R.string.module_repo_candidate_added)
-                                } else {
-                                    stringResource(R.string.module_repo_candidate_add)
+                                text = when {
+                                    candidate.isAdded ->
+                                        stringResource(R.string.module_repo_candidate_added)
+
+                                    adding -> stringResource(R.string.module_repo_source_adding)
+                                    else -> stringResource(R.string.module_repo_candidate_add)
                                 },
                                 fontSize = 14.sp,
                                 color = if (addable) colorScheme.primary else colorScheme.onSurfaceVariantSummary,
