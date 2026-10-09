@@ -1,97 +1,63 @@
 # Integrate
 
-SukiSU can be integrated into both _GKI_ and _non-GKI_ kernels and has been backported to _4.14_.
+SukiSU-Ultra can be integrated into both GKI and non-GKI kernels. The prerequisite is an open-source, bootable kernel.
 
-<!-- It should be 3.4, but backslashxx's syscall manual hook cannot use in SukiSU-->
+> [!TIP]
+> **Just want to use it on a GKI device?** You do not need to build a kernel. Install it as a Loadable Kernel Module with the Manager: see [LKM installation](https://sukisu.org/guide/installation#method-1-lkm-via-the-manager-recommended).
 
-Some OEMs' customization could result in as much as 50% of kernel code being out-of-tree code and not from upstream Linux kernels or ACKs. Due to this, the custom nature of _non-GKI_ kernels resulted in significant kernel fragmentation, and we lacked a universal method for building them. Therefore, we cannot provide boot images of _non-GKI_ kernels.
+Some OEM customizations can result in a large share of the kernel code being out-of-tree, not coming from upstream Linux or the ACK. Because of this, non-GKI kernels are heavily fragmented and there is no general way to build them, so boot images for non-GKI kernels cannot be provided.
 
-Prerequisites: open source bootable kernel.
+## Pick a branch
 
-### Hook method
+| Branch | How it hooks the kernel | Typical use |
+|--------|-------------------------|-------------|
+| `main` | Kprobes / kretprobes and the `sys_enter` syscall tracepoint, registered at runtime. No hook calls have to be added to the kernel source. | GKI kernels, and building as a module (LKM) or built in |
+| `builtin` | No kprobes. The kernel source calls SukiSU-Ultra's hook entry points (manual hooks). | Kernels you patch by hand |
 
-1. **KPROBES hook:**
+> [!WARNING]
+> `CONFIG_KSU_MANUAL_HOOK` and `CONFIG_KSU_TRACEPOINT_HOOK` no longer exist in either branch, and the `ksu_trace.h` header used by the old *Tracepoint Hook* guide is gone. Guides that tell you to enable them are out of date.
 
-   - Default hook method on GKI kernels.
-   - Requires `# CONFIG_KSU_MANUAL_HOOK is not set` & `CONFIG_KPROBES=y`
-   - Used for Loadable Kernel Module (LKM).
+## The `main` branch
 
-2. **Manual hook:**
+### Requirements
 
-   <!-- - backslashxx's syscall manual hook: https://github.com/backslashxx/KernelSU/issues/5 (v1.5 version is not available at the moment, if you want to use it, please use v1.4 version, or standard KernelSU hooks)-->
+- `CONFIG_KPROBES=y` and `CONFIG_EXT4_FS=y`. `CONFIG_KSU` depends on both.
+- The hook manager uses kretprobes (`CONFIG_KRETPROBES`) and the `sys_enter` syscall tracepoint (`CONFIG_HAVE_SYSCALL_TRACEPOINTS`) when your kernel provides them.
+- `CONFIG_KSU` is tristate: use `y` to build it in, or `m` to build the `kernelsu` module.
 
-   - Requires `CONFIG_KSU_MANUAL_HOOK=y`
-   - Requires [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
-   - Requires [https://github.com/~](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source)
+### Add it to your kernel source
 
-3. **Tracepoint Hook:**
-
-   - Hook method introduced since SukiSU commit [49b01aad](https://github.com/SukiSU-Ultra/SukiSU-Ultra/commit/49b01aad74bcca6dba5a8a2e053bb54b648eb124)
-   - Requires `CONFIG_KSU_TRACEPOINT_HOOK=y`
-   - Requires [`guide/tracepoint-hook.md`](tracepoint-hook.md)
-
-<!-- This part refer to [rsuntk/KernelSU](https://github.com/rsuntk/KernelSU). -->
-
-If you're able to build a bootable kernel, there are two ways to integrate KernelSU into the kernel source code:
-
-1. Automatically with `kprobe`
-2. Manually
-
-## Integrate with kprobe
-
-Applicable:
-
-- _GKI_ kernel
-
-Not applicable:
-
-- _non-GKI_ kernel
-
-KernelSU uses kprobe to do kernel hooks. If kprobe runs well in your kernel, it's recommended to use it this way.
-
-Please refer to this document [https://github.com/~](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#integrate-with-kprobe). Although it is titled “for _non-GKI_,” it only applies to _GKI_.
-
-The execution command for the step that adds KernelSU to your kernel source tree is replaced with:
+Run this in the root of your kernel source tree:
 
 ```sh
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
-## Manually modify the kernel source
+The script clones the repository, links it into `drivers/kernelsu` and adds the entries to `drivers/Makefile` and `drivers/Kconfig`. Use `--cleanup` to undo it.
 
-Applicable:
+### Optional configs
 
-- GKI kernel
-- non-GKI kernel
+| Option | Meaning |
+|--------|---------|
+| `CONFIG_KSU_MANUAL_SU` (default `y`) | Use manual su: authorize the command line and application via `prctl`. |
+| `CONFIG_KPM` | Enable SukiSU KPM. Requires a 64-bit kernel and selects `CONFIG_KALLSYMS` and `CONFIG_KALLSYMS_ALL`. May affect system stability. |
+| `CONFIG_KSU_DISABLE_MANAGER` | Disable manager APK detection and manager-specific handling. |
+| `CONFIG_KSU_DISABLE_POLICY` | Disable per-app profiles. Escalation always uses the default full root profile. |
+| `CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER` | x86_64 only. Dynamically patches the hardened syscall dispatcher so syscall hooks work, replacing a kernel source patch. Useful for x86_64 LKM mode. |
+| `CONFIG_KSU_DEBUG` | Debug mode. |
 
-Please refer to this document [https://github.com/~ (Integrate for non-GKI)](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source) and [https://github.com/~ (Build for GKI)](https://kernelsu.org/zh_CN/guide/how-to-build.html) to integrate manually, although first link is titled “for non-GKI,” it also applies to GKI. It can work on them both.
+## The `builtin` branch
 
-There is another way to integrate but still work in the process.
+This branch does not register kprobes. You add calls to its hook entry points in your kernel source (manual hooks), for example for `execveat`, `faccessat`, `stat`, `read`, `reboot`, `setresuid` and umount handling. The entry points are declared in the branch's headers (`kernel/feature/sucompat.h`, `kernel/feature/kernel_umount.h`, `kernel/runtime/ksud.h`, among others); check their exact signatures against the branch you build.
 
-<!-- It is backslashxx's syscall manual hook, but it cannot be used now. -->
+For where manual hooks are placed, the upstream KernelSU guide is a useful reference: [Manually modify the kernel source](https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md#manually-modify-the-kernel-source). It is written for upstream KernelSU, so do not copy it blindly.
 
-Run command for the step that adds KernelSU(SukiSU) to your kernel source tree is replaced with:
-
-### GKI kernel
-
-```sh
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
-```
-
-### Built-in kernel
+Then add the branch to your source tree:
 
 ```sh
 curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
 ```
 
-### GKI / Built-in kernel with susfs (experiment)
+This branch also carries the SUSFS options (`CONFIG_KSU_SUSFS` and its sub-options) and `CONFIG_KPM`, which needs a 64-bit kernel.
 
-```sh
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-{{branch}}
-```
-
-Branch:
-
-- `main` (susfs-main)
-- `test` (susfs-test)
-- version (for example: susfs-1.5.7, you should check the [branches](https://github.com/SukiSU-Ultra/SukiSU-Ultra/branches))
+The same guide is available on the website: [sukisu.org - Integration](https://sukisu.org/guide/how-to-integrate).

@@ -115,7 +115,7 @@ Lütfen **tümünü** https://kernelsu.org/zh_CN/guide/installation.html adresin
 
 1. Çekirdek tabanlı `su` ve root erişim yönetimi
 2. 5ec1cff\'nin [Magic Mount](https://github.com/5ec1cff/KernelSU) tabanlı modül sistemi
-3. [App Profile](https://kernelsu.org/guide/app-profile.html): root yetkilerini kafeste kilitleyin
+3. [App Profile](https://sukisu.org/guide/app-profile): root yetkilerini kafeste kilitleyin
 4. GKI 2.0 olmayan çekirdekler için desteğin geri getirilmesi
 5. Daha fazla özelleştirme özelliği
 6. KPM çekirdek modülleri için destek
