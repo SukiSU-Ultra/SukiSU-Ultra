@@ -11,6 +11,11 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager/throne_tracker.h"
 
+// Older kernels use a boolean task_work notification argument.
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0) && !defined(TWA_RESUME)
+#define TWA_RESUME true
+#endif
+
 #define MASK_SYSTEM (FS_CREATE | FS_MOVE | FS_EVENT_ON_CHILD)
 
 struct watch_dir {
@@ -41,17 +46,20 @@ static void ksu_defer_track_throne(void)
 {
     struct callback_head *cb;
 
-    if (!(current->flags & PF_KTHREAD)) {
-        cb = kzalloc(sizeof(*cb), GFP_KERNEL);
-        if (cb) {
-            cb->func = ksu_track_throne_tw_func;
-            if (!task_work_add(current, cb, TWA_RESUME))
-                return;
-            kfree(cb);
-        }
-    }
-    pr_warn("defer track_throne failed, run it inline\n");
-    track_throne(false);
+    if (current->flags & PF_KTHREAD)
+        goto skipped;
+
+    cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+    if (!cb)
+        goto skipped;
+
+    cb->func = ksu_track_throne_tw_func;
+    if (!task_work_add(current, cb, TWA_RESUME))
+        return;
+
+    kfree(cb);
+skipped:
+    pr_warn("defer track_throne failed, skipping scan\n");
 }
 
 static int ksu_handle_inode_event(struct fsnotify_mark *mark, u32 mask, struct inode *inode, struct inode *dir,
