@@ -1,4 +1,5 @@
 #include "feature/selinux_hide.h"
+#include "feature/mount_propagation.h"
 #include <linux/err.h>
 #include <linux/fs.h>
 #include <linux/namei.h>
@@ -26,6 +27,7 @@ void on_post_fs_data(void)
     done = true;
     pr_info("on_post_fs_data!\n");
 
+    ksu_set_zygote_started();
     ksu_load_allow_list();
     ksu_observer_init();
     // Sanity check for safe mode only needs early-boot input samples.
@@ -68,4 +70,5 @@ void on_boot_completed(void)
     pr_info("on_boot_completed!\n");
     track_throne(true);
     ksu_selinux_hide_drop_backup_if_unused();
+    ksu_mount_propagation_exit();
 }
