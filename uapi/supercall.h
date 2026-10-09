@@ -7,7 +7,10 @@
 #include "uapi/app_profile.h"
 
 // 2: allowlist v4 root profile flags
-static const __u32 KERNEL_SU_UAPI_VERSION = 2;
+// 3: scoped su-session driver fd
+// 4: add KSU_GET_INFO_FLAG_BUNDLED
+// 5: add EVENT_SERVICES with a start/skip result
+static const __u32 KERNEL_SU_UAPI_VERSION = 5;
 
 /* Magic numbers for reboot hook to install fd */
 static const __u32 KSU_INSTALL_MAGIC1 = 0xDEADBEEF;
@@ -21,11 +24,13 @@ struct ksu_become_daemon_cmd {
 static const __u32 EVENT_POST_FS_DATA = 1;
 static const __u32 EVENT_BOOT_COMPLETED = 2;
 static const __u32 EVENT_MODULE_MOUNTED = 3;
+static const __u32 EVENT_SERVICES = 4;
 
 static const __u32 KSU_GET_INFO_FLAG_LKM = (1U << 0);
 static const __u32 KSU_GET_INFO_FLAG_MANAGER = (1U << 1);
 static const __u32 KSU_GET_INFO_FLAG_LATE_LOAD = (1U << 2);
 static const __u32 KSU_GET_INFO_FLAG_PR_BUILD = (1U << 3);
+static const __u32 KSU_GET_INFO_FLAG_BUNDLED = (1U << 4);
 
 struct ksu_get_info_cmd {
     __u32 version; /* Output: KERNEL_SU_VERSION */
@@ -150,6 +155,14 @@ struct ksu_set_spoof_version_cmd {
     __u8 version[65]; /* Input: e.g., "#1 SMP PREEMPT Thu Jan 1 00:00:00 UTC 2026" */
 };
 
+struct ksu_set_spoof_cpu_cmd {
+    __u32 cpu_index;  /* Target processor core index */
+    __u32 midr;       /* Main ID Register payload */
+    __u32 bogomips;   /* BogoMIPS performance timing metric */
+    __u64 hwcap;      /* Main ELF Hardware Capabilities mask */
+    __u64 hwcap2;     /* Auxiliary ELF Hardware Capabilities mask */
+};
+
 // List current umount entries
 struct ksu_list_try_umount_cmd {
     __aligned_u64 arg; // User buffer
@@ -222,6 +235,7 @@ static const __u32 KSU_IOCTL_HOOK_TYPE = _IOC(_IOC_READ, 'K', 101, 0);
 static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
 static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
 static const __u32 KSU_IOCTL_SET_SPOOF_VERSION = _IOC(_IOC_WRITE, 'K', 104, 0);
+static const __u32 KSU_IOCTL_SET_SPOOF_CPU = _IOC(_IOC_WRITE, 'K', 105, 0);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
 
 /* ---------------------------------------------------------------------------

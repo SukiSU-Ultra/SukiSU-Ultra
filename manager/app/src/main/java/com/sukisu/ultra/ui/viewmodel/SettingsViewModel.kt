@@ -41,11 +41,14 @@ class SettingsViewModel(
             val miuixMonet = repo.miuixMonet
             val keyColor = repo.keyColor
             val enablePredictiveBack = repo.enablePredictiveBack
+            val enableSwipeDismiss = repo.enableSwipeDismiss
+            val pagerInterceptionMode = repo.pagerInterceptionMode
             val enableBlur = repo.enableBlur
             val enableFloatingBottomBar = repo.enableFloatingBottomBar
             val enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur
             val enableNavigationBadge = repo.enableNavigationBadge
             val pageScale = repo.pageScale
+            val moduleDescriptionMaxLines = repo.moduleDescriptionMaxLines
             val enableWebDebugging = repo.enableWebDebugging
             val showFullStatus = repo.showFullStatus
             val colorStyle = repo.colorStyle
@@ -61,8 +64,6 @@ class SettingsViewModel(
 
             val kernelUmountStatus = repo.getKernelUmountStatus()
             val isKernelUmountEnabled = repo.isKernelUmountEnabled()
-            val webViewZygoteUmountStatus = repo.getWebViewZygoteUmountStatus()
-            val isWebViewZygoteUmountEnabled = repo.isWebViewZygoteUmountEnabled()
             val selinuxHideStatus = repo.getSelinuxHideStatus()
             val isSelinuxHideEnabled = repo.isSelinuxHideEnabled()
             val sulogStatus = repo.getSulogStatus()
@@ -87,11 +88,14 @@ class SettingsViewModel(
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
                     enablePredictiveBack = enablePredictiveBack,
+                    enableSwipeDismiss = enableSwipeDismiss,
+                    pagerInterceptionMode = pagerInterceptionMode,
                     enableBlur = enableBlur,
                     enableFloatingBottomBar = enableFloatingBottomBar,
                     enableFloatingBottomBarBlur = enableFloatingBottomBarBlur,
                     enableNavigationBadge = enableNavigationBadge,
                     pageScale = pageScale,
+                    moduleDescriptionMaxLines = moduleDescriptionMaxLines,
                     enableWebDebugging = enableWebDebugging,
                     showFullStatus = showFullStatus,
                     colorStyle = colorStyle,
@@ -103,8 +107,6 @@ class SettingsViewModel(
                     isAdbRootEnabled = isAdbRootEnabled,
                     kernelUmountStatus = kernelUmountStatus,
                     isKernelUmountEnabled = isKernelUmountEnabled,
-                    webViewZygoteUmountStatus = webViewZygoteUmountStatus,
-                    isWebViewZygoteUmountEnabled = isWebViewZygoteUmountEnabled,
                     selinuxHideStatus = selinuxHideStatus,
                     isSelinuxHideEnabled = isSelinuxHideEnabled,
                     sulogStatus = sulogStatus,
@@ -222,6 +224,16 @@ class SettingsViewModel(
         _uiState.update { it.copy(enablePredictiveBack = enabled) }
     }
 
+    fun setEnableSwipeDismiss(enabled: Boolean) {
+        repo.enableSwipeDismiss = enabled
+        _uiState.update { it.copy(enableSwipeDismiss = enabled) }
+    }
+
+    fun setPagerInterceptionMode(mode: Int) {
+        repo.pagerInterceptionMode = mode
+        _uiState.update { it.copy(pagerInterceptionMode = mode.coerceIn(0, 2)) }
+    }
+
     fun setEnableBlur(enabled: Boolean) {
         repo.enableBlur = enabled
         _uiState.update { it.copy(enableBlur = enabled) }
@@ -245,6 +257,11 @@ class SettingsViewModel(
     fun setPageScale(scale: Float) {
         repo.pageScale = scale
         _uiState.update { it.copy(pageScale = scale) }
+    }
+
+    fun setModuleDescriptionMaxLines(lines: Int) {
+        repo.moduleDescriptionMaxLines = lines
+        _uiState.update { it.copy(moduleDescriptionMaxLines = lines) }
     }
 
     fun setEnableWebDebugging(enabled: Boolean) {
@@ -290,15 +307,6 @@ class SettingsViewModel(
             if (repo.setKernelUmountEnabled(enabled)) {
                 repo.execKsudFeatureSave()
                 _uiState.update { it.copy(isKernelUmountEnabled = enabled) }
-            }
-        }
-    }
-
-    fun setWebViewZygoteUmountEnabled(enabled: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (repo.setWebViewZygoteUmountEnabled(enabled)) {
-                repo.execKsudFeatureSave()
-                _uiState.update { it.copy(isWebViewZygoteUmountEnabled = enabled) }
             }
         }
     }

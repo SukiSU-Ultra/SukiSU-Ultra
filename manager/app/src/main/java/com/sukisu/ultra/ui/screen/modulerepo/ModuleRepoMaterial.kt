@@ -49,7 +49,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -94,7 +94,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.RepoModule
-import com.sukisu.ultra.ui.component.PagerNavigationSpringSpec
+import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import com.sukisu.ultra.ui.component.ScrollToTopOnChange
 import com.sukisu.ultra.ui.component.dialog.ConfirmDialogHandle
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
@@ -110,6 +110,7 @@ import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.isDownloadAvailable
 import com.sukisu.ultra.ui.util.rememberContentReady
 
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -161,7 +162,7 @@ fun ModuleRepoScreenMaterial(
                             )
                             DropdownMenuGroup(shapes = MenuDefaults.groupShapes()) {
                                 sortOptions.forEachIndexed { index, (order, resId) ->
-                                    DropdownMenuItem(
+                                    SelectableDropdownMenuItem(
                                         text = { Text(stringResource(resId)) },
                                         selected = state.sortOrder == order,
                                         onClick = {
@@ -335,13 +336,25 @@ private fun RepoModuleList(
                         )
                     }
 
-                    Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                        if (module.metamodule) {
-                            StatusTag(
-                                "META",
-                                contentColor = MaterialTheme.colorScheme.onPrimary,
-                                backgroundColor = MaterialTheme.colorScheme.primary
-                            )
+                    if (module.metamodule || module.zygisk) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            if (module.metamodule) {
+                                StatusTag(
+                                    "META",
+                                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                                    backgroundColor = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            if (module.zygisk) {
+                                StatusTag(
+                                    "ZYGISK",
+                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            }
                         }
                     }
                     HorizontalDivider(thickness = Dp.Hairline)
@@ -707,6 +720,7 @@ private fun ReleaseAssetSegmentedItem(
                         onDownloading = { isDownloading = true },
                         onProgress = { p -> scope.launch(Dispatchers.Main) { progress = p } }
                     )
+                    isDownloading = false
                 }
             }
             confirmDialog.showConfirm(title = confirmTitle, content = startText)
@@ -721,11 +735,12 @@ private fun ReleaseAssetSegmentedItem(
                 FilledTonalButton(
                     onClick = {
                         val uri = downloadedUri ?: return@FilledTonalButton
-                        val file = uri.path?.let { java.io.File(it) }
-                        if (file != null && file.exists()) {
-                            onInstallModule(uri)
-                        } else {
-                            downloadedUri = null
+                        scope.launch {
+                            if (isDownloadAvailable(uri)) {
+                                onInstallModule(uri)
+                            } else {
+                                downloadedUri = null
+                            }
                         }
                     },
                     contentPadding = ButtonDefaults.TextButtonContentPadding

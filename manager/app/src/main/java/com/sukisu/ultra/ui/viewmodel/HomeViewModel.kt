@@ -56,15 +56,24 @@ class HomeViewModel(
         val managerVersion = getManagerVersion(ksuApp)
         val kernelFullVersion = if (isManager) Natives.getFullVersion() else null
 
+        val zygiskImplementation = if (isManager && isRootAvailable) {
+            com.sukisu.ultra.ui.screen.home.getZygiskImplementation(
+                notInstalledText = ksuApp.getString(com.sukisu.ultra.R.string.home_zygisk_not_installed),
+                disabledText = ksuApp.getString(com.sukisu.ultra.R.string.home_zygisk_disabled),
+                rebootRequiredText = ksuApp.getString(com.sukisu.ultra.R.string.home_zygisk_reboot_required),
+            )
+        } else null
+
         return HomeUiState(
             kernelVersion = kernelVersion,
             ksuVersion = ksuVersion,
             lkmMode = lkmMode,
+            isLkmBundled = lkmMode == true && Natives.isLkmBundled,
             isManager = isManager,
             isManagerPrBuild = BuildConfig.IS_PR_BUILD,
             isKernelPrBuild = Natives.isPrBuild,
-            requiresNewKernel = isManager && Natives.requireNewKernel(),
-            uapiMismatch = isManager && Natives.checkUAPIMismatch(),
+            requiresNewKernel = isManager && Natives.managerUAPIVersion > Natives.kernelUAPIVersion,
+            requiresNewManager = isManager && Natives.managerUAPIVersion < Natives.kernelUAPIVersion,
             kernelUAPIVersion = kernelUAPIVersion,
             managerUAPIVersion = managerUAPIVersion,
             isRootAvailable = isRootAvailable,
@@ -85,6 +94,7 @@ class HomeViewModel(
                 seccompStatus = runCatching {
                     Os.prctl(21 /* PR_GET_SECCOMP */, 0, 0, 0, 0)
                 }.getOrDefault(-1),
+                zygiskImplementation = zygiskImplementation,
             ),
         )
     }

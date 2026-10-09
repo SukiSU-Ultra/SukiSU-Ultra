@@ -82,6 +82,14 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("enable_predictive_back", false)
         set(value) = prefs.edit { putBoolean("enable_predictive_back", value) }
 
+    override var enableSwipeDismiss: Boolean
+        get() = prefs.getBoolean("enable_swipe_dismiss", true)
+        set(value) = prefs.edit { putBoolean("enable_swipe_dismiss", value) }
+
+    override var pagerInterceptionMode: Int
+        get() = prefs.getInt("pager_interception_mode", 1)
+        set(value) = prefs.edit { putInt("pager_interception_mode", value.coerceIn(0, 2)) }
+
     override var enableBlur: Boolean
         get() = prefs.getBoolean("enable_blur", false)
         set(value) = prefs.edit { putBoolean("enable_blur", value) }
@@ -98,9 +106,17 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("enable_navigation_badge", true)
         set(value) = prefs.edit { putBoolean("enable_navigation_badge", value) }
 
+    override var navigationRailExpanded: Boolean
+        get() = prefs.getBoolean("nav_rail_expanded", false)
+        set(value) = prefs.edit { putBoolean("nav_rail_expanded", value) }
+
     override var pageScale: Float
         get() = prefs.getFloat("page_scale", 1.0f)
         set(value) = prefs.edit { putFloat("page_scale", value) }
+
+    override var moduleDescriptionMaxLines: Int
+        get() = prefs.getInt("module_description_max_lines", 4)
+        set(value) = prefs.edit { putInt("module_description_max_lines", value) }
 
     override var enableWebDebugging: Boolean
         get() = prefs.getBoolean("enable_web_debugging", false)
@@ -186,13 +202,6 @@ class SettingsRepositoryImpl : SettingsRepository {
     override fun isKernelUmountEnabled(): Boolean = Natives.isKernelUmountEnabled()
 
     override fun setKernelUmountEnabled(enabled: Boolean): Boolean = Natives.setKernelUmountEnabled(enabled)
-
-    override suspend fun getWebViewZygoteUmountStatus(): String = getFeatureStatus("webview_zygote_umount")
-
-    override fun isWebViewZygoteUmountEnabled(): Boolean = Natives.isWebViewZygoteUmountEnabled()
-
-    override fun setWebViewZygoteUmountEnabled(enabled: Boolean): Boolean =
-        Natives.setWebViewZygoteUmountEnabled(enabled)
 
     override suspend fun getSelinuxHideStatus(): String = getFeatureStatus("selinux_hide")
 

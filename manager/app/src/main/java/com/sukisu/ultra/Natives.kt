@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import com.sukisu.ultra.Natives.Profile.RootProfileFlag
+import com.sukisu.ultra.ui.util.rootAvailable
 
 /**
  * @author weishu
@@ -26,7 +27,8 @@ object Natives {
     const val MINIMAL_SUPPORTED_KERNEL = 32513
 
     // Get full version
-    external fun getFullVersion(): String
+    // The kernel returns null when the GET_FULL_VERSION supercall is unavailable.
+    external fun getFullVersion(): String?
     const val MINIMAL_SUPPORTED_KERNEL_FULL = "v4.0.0"
 
     // 12040: Support disable sucompat mode
@@ -66,6 +68,9 @@ object Natives {
     val isLkmMode: Boolean
         external get
 
+    val isLkmBundled: Boolean
+        external get
+
     val isLateLoadMode: Boolean
         external get
 
@@ -102,9 +107,6 @@ object Natives {
      */
     external fun isKernelUmountEnabled(): Boolean
     external fun setKernelUmountEnabled(enabled: Boolean): Boolean
-
-    external fun isWebViewZygoteUmountEnabled(): Boolean
-    external fun setWebViewZygoteUmountEnabled(enabled: Boolean): Boolean
 
     /**
      * SELinux hide can be disabled temporarily.
@@ -150,13 +152,10 @@ object Natives {
     val managerUAPIVersion: Int
         external get
 
-    fun checkUAPIMismatch(): Boolean {
-        return kernelUAPIVersion != managerUAPIVersion
-    }
-
-    fun requireNewKernel(): Boolean {
-        if (version != -1 && version < MINIMAL_SUPPORTED_KERNEL) return true
-        return (isVersionLessThan(getFullVersion(), MINIMAL_SUPPORTED_KERNEL_FULL)) || checkUAPIMismatch()
+    fun isFullFeatured(): Boolean {
+        val kernelFullVersion = getFullVersion()
+        return (kernelFullVersion != null && isVersionLessThan(kernelFullVersion, MINIMAL_SUPPORTED_KERNEL_FULL)) ||
+                isManager && kernelUAPIVersion == managerUAPIVersion && rootAvailable()
     }
 
     @Keep

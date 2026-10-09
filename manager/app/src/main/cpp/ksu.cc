@@ -119,6 +119,12 @@ bool is_lkm_mode() {
     return (legacy_get_info().second & KSU_GET_INFO_FLAG_LKM) != 0;
 }
 
+bool is_lkm_bundled() {
+    auto info = get_info();
+    return (info.flags & KSU_GET_INFO_FLAG_LKM) != 0 &&
+           (info.flags & KSU_GET_INFO_FLAG_BUNDLED) != 0;
+}
+
 bool is_late_load_mode() {
     auto info = get_info();
     if (info.version > 0) {
@@ -208,22 +214,6 @@ bool is_kernel_umount_enabled() {
     uint64_t value = 0;
     bool supported = false;
     if (!get_feature(KSU_FEATURE_KERNEL_UMOUNT, &value, &supported)) {
-        return false;
-    }
-    if (!supported) {
-        return false;
-    }
-    return value != 0;
-}
-
-bool set_webview_zygote_umount_enabled(bool enabled) {
-    return set_feature(KSU_FEATURE_WEBVIEW_ZYGOTE_UMOUNT, enabled ? 1 : 0);
-}
-
-bool is_webview_zygote_umount_enabled() {
-    uint64_t value = 0;
-    bool supported = false;
-    if (!get_feature(KSU_FEATURE_WEBVIEW_ZYGOTE_UMOUNT, &value, &supported)) {
         return false;
     }
     if (!supported) {

@@ -40,6 +40,7 @@ class ModuleRepositoryImpl : ModuleRepository {
                         hasWebUi = obj.optBoolean("web"),
                         hasActionScript = obj.optBoolean("action"),
                         metamodule = (obj.optInt("metamodule") != 0) || obj.optBoolean("metamodule"),
+                        zygisk = (obj.optInt("zygisk") != 0) || obj.optBoolean("zygisk"),
                         actionIconPath = obj.optString("actionIcon").takeIf { it.isNotBlank() },
                         webUiIconPath = obj.optString("webuiIcon").takeIf { it.isNotBlank() }
                     )

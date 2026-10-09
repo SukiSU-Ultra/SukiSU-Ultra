@@ -59,6 +59,12 @@ Java_com_sukisu_ultra_Natives_isLkmMode(JNIEnv *env, jclass clazz) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
+Java_com_sukisu_ultra_Natives_isLkmBundled(JNIEnv *env, jclass clazz) {
+    return is_lkm_bundled();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
 Java_com_sukisu_ultra_Natives_isLateLoadMode(JNIEnv *env, jclass clazz) {
     return is_late_load_mode();
 }
@@ -345,18 +351,6 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_sukisu_ultra_Natives_setKernelUmountEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_kernel_umount_enabled(enabled);
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isWebViewZygoteUmountEnabled(JNIEnv *env, jobject thiz) {
-    return is_webview_zygote_umount_enabled();
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_setWebViewZygoteUmountEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
-    return set_webview_zygote_umount_enabled(enabled);
 }
 
 extern "C"

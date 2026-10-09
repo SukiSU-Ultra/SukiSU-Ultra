@@ -2,7 +2,6 @@ package com.sukisu.ultra.ui.navigation3
 
 import android.net.Uri
 import android.os.Parcelable
-import androidx.navigation3.runtime.NavKey
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import com.sukisu.ultra.ui.screen.flash.FlashIt
@@ -12,11 +11,13 @@ import com.sukisu.ultra.ui.util.RepoModuleArgSerializer
 import com.sukisu.ultra.ui.util.TemplateInfoSerializer
 import com.sukisu.ultra.ui.util.UriSerializer
 import com.sukisu.ultra.ui.viewmodel.TemplateViewModel
+import top.yukonga.miuix.kmp.nav.core.NavKey
 
 /**
- * Type-safe navigation keys for Navigation3.
+ * Type-safe navigation keys for miuix-nav.
  * Each destination is a NavKey (data object/data class) and can be saved/restored in the back stack.
  */
+@Serializable
 sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable

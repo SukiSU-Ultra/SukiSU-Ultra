@@ -75,3 +75,87 @@ private suspend fun copyFileToAllowlist(sourceFile: File): Boolean = withContext
         result.isSuccess
     }.getOrDefault(false)
 }
+
+data class CpuInfo(
+    val midrHex: String,
+    val bogomips: Int,
+    val coreCount: Int,
+    val hwcap: String,
+    val hwcap2: String
+)
+
+suspend fun readCurrentCpuIdentity(): CpuInfo? = withContext(Dispatchers.IO) {
+    runCatching {
+        val cpuInfoResult = Shell.cmd("cat /proc/cpuinfo").exec()
+        if (!cpuInfoResult.isSuccess) return@runCatching null
+
+        val lines = cpuInfoResult.out
+        var implementer = ""
+        var variant = ""
+        var part = ""
+        var revision = ""
+        var bogomips = 0
+
+        for (line in lines) {
+            val trimmed = line.trim()
+            when {
+                trimmed.startsWith("CPU implementer") -> {
+                    implementer = trimmed.substringAfter(":").trim()
+                }
+                trimmed.startsWith("CPU variant") -> {
+                    variant = trimmed.substringAfter(":").trim()
+                }
+                trimmed.startsWith("CPU part") -> {
+                    part = trimmed.substringAfter(":").trim()
+                }
+                trimmed.startsWith("CPU revision") -> {
+                    revision = trimmed.substringAfter(":").trim()
+                }
+                trimmed.startsWith("BogoMIPS") -> {
+                    val bogoStr = trimmed.substringAfter(":").trim()
+                    bogomips = bogoStr.toFloatOrNull()?.toInt() ?: 0
+                }
+            }
+            if (implementer.isNotEmpty() && part.isNotEmpty() && variant.isNotEmpty() && revision.isNotEmpty()) {
+                break
+            }
+        }
+
+        if (implementer.isEmpty() || part.isEmpty()) {
+            return@runCatching null
+        }
+
+        val midr = buildString {
+            append(implementer.removePrefix("0x"))
+            append(variant.removePrefix("0x").padStart(1, '0'))
+            append("0")
+            append(part.removePrefix("0x").padStart(3, '0'))
+            append(revision.removePrefix("0x").padStart(1, '0'))
+        }
+        val midrHex = "0x$midr"
+
+        val coreCount = Runtime.getRuntime().availableProcessors()
+
+        val hwcapResult = Shell.cmd("getprop ro.hwcap").exec()
+        val hwcap = if (hwcapResult.isSuccess && hwcapResult.out.isNotEmpty()) {
+            hwcapResult.out.first().trim()
+        } else {
+            "0x0"
+        }
+
+        val hwcap2Result = Shell.cmd("getprop ro.hwcap2").exec()
+        val hwcap2 = if (hwcap2Result.isSuccess && hwcap2Result.out.isNotEmpty()) {
+            hwcap2Result.out.first().trim()
+        } else {
+            "0x0"
+        }
+
+        CpuInfo(
+            midrHex = midrHex,
+            bogomips = bogomips,
+            coreCount = coreCount,
+            hwcap = hwcap,
+            hwcap2 = hwcap2
+        )
+    }.getOrNull()
+}

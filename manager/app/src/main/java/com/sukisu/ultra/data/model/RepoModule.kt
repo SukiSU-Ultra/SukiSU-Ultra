@@ -23,6 +23,7 @@ data class RepoModule(
     val authorList: List<Author>,
     val summary: String,
     val metamodule: Boolean,
+    val zygisk: Boolean = false,
     val stargazerCount: Int,
     val updatedAt: String,
     val createdAt: String,

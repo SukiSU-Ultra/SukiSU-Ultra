@@ -29,8 +29,8 @@ import com.sukisu.ultra.core.tasks.ExtractImage
 import com.sukisu.ultra.core.tasks.ProbeResult
 import com.sukisu.ultra.core.utils.DataSourceChannel
 import com.sukisu.ultra.ksuApp
-import org.json.JSONArray
 import okhttp3.OkHttpClient
+import org.json.JSONArray
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -769,6 +769,28 @@ fun spoofKernelUname(release: String, version: String): Boolean {
     val cmd = "${getKsuDaemonPath()} kernel spoof-uname --release ${shellQuote(release)} --version ${shellQuote(version)}"
     val result = ShellUtils.fastCmdResult(shell, cmd)
     Log.i(TAG, "kernel spoof-uname result: $result")
+    return result
+}
+
+fun spoofCpu(
+    cpu: Int,
+    midr: String,
+    bogomips: Int,
+    hwcap: String,
+    hwcap2: String,
+): Boolean {
+    val shell = getRootShell()
+    fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
+    val cmd = buildString {
+        append("${getKsuDaemonPath()} kernel spoof-cpu")
+        append(" --cpu $cpu")
+        append(" --midr ${shellQuote(midr)}")
+        if (bogomips > 0) append(" --bogomips $bogomips")
+        if (hwcap.isNotBlank()) append(" --hwcap ${shellQuote(hwcap)}")
+        if (hwcap2.isNotBlank()) append(" --hwcap2 ${shellQuote(hwcap2)}")
+    }
+    val result = ShellUtils.fastCmdResult(shell, cmd)
+    Log.i(TAG, "kernel spoof-cpu result: $result")
     return result
 }
 

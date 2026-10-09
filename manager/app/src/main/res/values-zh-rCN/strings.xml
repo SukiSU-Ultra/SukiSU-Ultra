@@ -5,9 +5,10 @@
     <string name="home_click_to_install">点击安装</string>
     <string name="home_working">工作中</string>
     <string name="home_working_version">版本：%s</string>
+    <string name="home_lkm_update_available">内嵌 LKM 有可用更新，点击更新</string>
+    <string name="home_lkm_custom">自定义</string>
     <string name="home_unsupported">不支持</string>
     <string name="home_unsupported_reason">内核上未检测到 KernelSU 驱动程序，内核错误?</string>
-    <string name="home_version_mismatch">管理器版本 (%1$d) 与 KernelSU 驱动版本 (%2$d) 不匹配！</string>
     <string name="home_device_model">设备型号</string>
     <string name="home_kernel">内核版本</string>
     <string name="home_manager_version">管理器版本</string>
@@ -65,10 +66,12 @@
     <string name="reboot_to_apply">重启生效</string>
     <string name="module_magisk_conflict">因与 Magisk 有冲突，所有模块不可用！</string>
     <string name="home_learn_kernelsu">了解 KernelSU</string>
+    <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 KernelSU 以及如何开发模块</string>
     <string name="home_support_title">支持开发</string>
     <string name="home_support_content">KernelSU 将保持免费开源，向开发者捐赠以表示支持</string>
-    <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/><br/>有动漫人物图片表情包的图像版权为%3$s所有，图像中的知识产权由%4$s 所有。在使用这些文件之前，除了必须遵守 %5$s 以外，还需要遵守向前两者索要使用这些艺术内容的授权。]]></string>
+    <string name="home_gki_warning">自 v3.0.0 起 GKI 工作模式将仅用于测试环境，我们不建议用于日常使用，也不再提供镜像文件</string>
+    <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/><br/>图标以特别的形式授权，怡子曰曰绘制，版权明风OuO所有。矢量化图标由本项目提供。]]></string>
     <string name="profile_default">默认</string>
     <string name="profile_template">模板</string>
     <string name="profile_custom">自定义</string>
@@ -83,9 +86,9 @@
     <string name="profile_selinux_context">SELinux</string>
     <string name="profile_umount_modules">卸载模块</string>
     <string name="failed_to_update_app_profile">为 %s 更新 App Profile 失败！</string>
-    <string name="uapi_mismatch">管理器 uapi 版本 (%1$d) 与 KernelSU 驱动 uapi 版本 (%2$d) 不匹配！</string>
-    <string name="require_manager_version">当前 KernelSU 管理器版本 %1$d 过低，KernelSU 无法正常工作，请将 KernelSU 管理器版本升级至 %2$d 或以上！</string>
-    <string name="require_kernel_version">当前 KernelSU 版本 %1$d 过低，管理器无法正常工作，请将内核 KernelSU 版本升级至 %2$d 或以上！</string>
+    <string name="require_manager_version">需要更新管理器</string>
+    <string name="require_kernel_version">需要更新内核，点击此处安装</string>
+    <string name="require_kernel_version_gki">需要更新内核</string>
     <string name="settings_umount_modules_default">默认卸载模块</string>
     <string name="settings_umount_modules_default_summary">App Profile 中「卸载模块」的全局默认值，如果启用，会将未自定义 Profile 的应用移除所有模块针对系统的修改</string>
     <string name="profile_umount_modules_summary">启用该选项后将允许 KernelSU 为本应用还原被模块修改过的文件</string>
@@ -126,6 +129,12 @@
     <string name="settings_check_update_summary">在应用启动后自动检查是否有最新版</string>
     <string name="settings_enable_predictive_back">预测性返回手势</string>
     <string name="settings_enable_predictive_back_summary">启用对预测性返回手势的支持</string>
+    <string name="settings_enable_swipe_dismiss">横移返回手势</string>
+    <string name="settings_enable_swipe_dismiss_summary">从屏幕边缘横移返回上一页</string>
+    <string name="settings_pager_gesture_mode">页面切换手势</string>
+    <string name="settings_pager_gesture_native">默认</string>
+    <string name="settings_pager_gesture_cross_axis">跨轴拦截</string>
+    <string name="settings_pager_gesture_ios_like">iOS 风格</string>
     <string name="settings_module_check_update">检查模块更新</string>
     <string name="grant_root_failed">获取 Root 失败！</string>
     <string name="home_pr_build_warning">当前为 PR 调试构建，请勿在生产环境中使用！</string>
@@ -172,8 +181,6 @@
     <string name="settings_sucompat_summary">允许通过 /system/bin/su 获取 Root 权限</string>
     <string name="settings_kernel_umount">卸载模块（内核级）</string>
     <string name="settings_kernel_umount_summary">在内核给需要的应用卸载模块</string>
-    <string name="settings_webview_zygote_umount">为 WebView 卸载模块</string>
-    <string name="settings_webview_zygote_umount_summary">防止 WebView 进程泄露信息，但可能会导致模块失效。重启后生效</string>
     <string name="module_install_prompt_with_name">将安装以下模块：%1$s</string>
     <string name="confirm">确认</string>
     <string name="processing">处理中…</string>
@@ -197,6 +204,9 @@
     <string name="settings_ui_mode_summary">选择应用的界面风格</string>
     <string name="settings_page_scale">界面缩放</string>
     <string name="settings_page_scale_summary">调整全局显示比例</string>
+    <string name="settings_module_description_max_lines">模块描述最大行数</string>
+    <string name="settings_module_description_max_lines_summary">超过此行数的模块介绍将自动折叠，点击卡片可展开全文</string>
+    <string name="unit_lines">行</string>
     <string name="settings_color_spec">色彩标准</string>
     <string name="settings_color_style">色彩风格</string>
     <string name="color_blue">蓝色</string>
@@ -288,25 +298,15 @@
     <string name="sulog_enable_action">启用</string>
     <string name="sulog_filter_title">按类型筛选</string>
     <string name="sulog_clean_title">清空日志</string>
-    <string name="sulog_filter_root_execve">Root execve</string>
-    <string name="sulog_filter_sucompat">传统 su</string>
-    <string name="sulog_filter_ioctl_grant_root">Root 授权</string>
-    <string name="sulog_filter_daemon_restart">守护进程重启</string>
-    <string name="sulog_entry_unknown_event">未知事件</string>
-    <string name="sulog_entry_description_sucompat">拦截到 /system/bin/su 请求</string>
-    <string name="sulog_entry_title_root_grant_request">Root 授权请求</string>
-    <string name="sulog_entry_description_ioctl_grant_root">已通过 KernelSU ioctl 授予 Root 权限</string>
-    <string name="sulog_entry_title_daemon_restarted">守护进程已重启</string>
-    <string name="sulog_entry_title_dropped_events">丢弃的事件</string>
     <string name="nav_rail_expand">展开导航栏</string>
     <string name="nav_rail_collapse">收起导航栏</string>
     <string name="settings_navigation_badge">导航栏角标</string>
     <string name="settings_navigation_badge_summary">在导航栏显示已授权应用和已启用模块数量</string>
-    <string name="kernel_spoof_release">内核版本号</string>
-    <string name="kernel_spoof_version">内核编译信息</string>
     <!-- Customize -->
     <string name="hook_type">钩子类型</string>
     <string name="home_susfs_version">SuSFS 版本</string>
+    <string name="kernel_spoof_release">内核版本号</string>
+    <string name="kernel_spoof_version">内核编译信息</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">日志查看器</string>
     <string name="settings_view_sulog">查看 sulog 日志</string>
@@ -425,6 +425,25 @@
     <string name="allowlist_restore_summary_picker">选择备份文件进行导入</string>
     <string name="allowlist_restore_success">还原成功,重启生效</string>
     <string name="allowlist_restore_failed">还原失败</string>
+    <!-- CPU Spoof -->
+    <string name="tools_spoof_cpu_title">CPU 身份伪装</string>
+    <string name="tools_spoof_cpu_summary">伪装 CPU MIDR、HWCAP 和 vvar</string>
+    <string name="spoof_cpu_dialog_title">CPU 身份伪装</string>
+    <string name="spoof_cpu_apply">应用</string>
+    <string name="spoof_cpu_cancel">取消</string>
+    <string name="spoof_cpu_field_midr">MIDR (十六进制)</string>
+    <string name="spoof_cpu_field_bogomips">BogoMIPS</string>
+    <string name="spoof_cpu_field_hwcap">HWCAP (十六进制)</string>
+    <string name="spoof_cpu_field_hwcap2">HWCAP2 (十六进制)</string>
+    <string name="spoof_cpu_field_cores">目标 CPU 核心</string>
+    <string name="spoof_cpu_midr_preset_label">预设 SoC</string>
+    <string name="spoof_cpu_midr_custom">自定义</string>
+    <string name="spoof_cpu_cores_all">所有核心</string>
+    <string name="spoof_cpu_cores_format">CPU %d</string>
+    <string name="spoof_cpu_apply_success">CPU 伪装应用成功</string>
+    <string name="spoof_cpu_apply_failed">CPU 伪装应用失败</string>
+    <string name="spoof_cpu_apply_partial_failure">部分成功：%1$d 成功，%2$d 失败</string>
+    <string name="spoof_cpu_warning">将影响所有后续进程的 CPU 识别。请谨慎操作。</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (模块)</string>
     <string name="zip_type_kernel"> (内核)</string>
@@ -606,4 +625,8 @@
     <string name="home_kernel_full_version">内核完整版本</string>
     <string name="settings_show_fullstatus">显示完整状态</string>
     <string name="settings_show_fullstatus_summary">在首页信息卡中显示设备的完整状态</string>
+    <string name="home_zygisk_implementation">Zygisk 实现</string>
+    <string name="home_zygisk_not_installed">未安装</string>
+    <string name="home_zygisk_disabled">已禁用</string>
+    <string name="home_zygisk_reboot_required">需要重启</string>
 </resources>

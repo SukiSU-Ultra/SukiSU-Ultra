@@ -1,8 +1,7 @@
 package com.sukisu.ultra.ui.component.bottombar
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
@@ -14,10 +13,10 @@ import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -30,7 +29,6 @@ import com.sukisu.ultra.ui.component.FloatingBottomBarItem
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.util.BlurredBar
-import com.sukisu.ultra.ui.util.rootAvailable
 import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.BadgedBox
 import top.yukonga.miuix.kmp.basic.Icon
@@ -49,8 +47,7 @@ fun BottomBarMiuix(
     navigationBadge: NavigationBadgeState,
     modifier: Modifier,
 ) {
-    val isManager = Natives.isManager
-    val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
+    val fullFeatured = Natives.isFullFeatured()
     if (!fullFeatured) return
 
     val mainState = LocalMainPagerState.current
@@ -85,24 +82,25 @@ fun BottomBarMiuix(
             )
         }
     } else {
+        val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            .let { inset -> if (inset != 0.dp) 8.dp + inset else 28.dp }
         FloatingBottomBar(
             modifier = modifier
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {},
-                )
-                .padding(bottom = 12.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
-            selectedIndex = { mainState.selectedPage },
+                .pointerInput(Unit) {
+                    detectTapGestures { }
+                }
+                .padding(start = 28.dp, end = 28.dp, bottom = bottomPadding),
+            selectedIndex = mainState.selectedPage,
             onSelected = { mainState.animateToPage(it) },
             backdrop = backdrop,
             tabsCount = items.size,
             isBlurEnabled = enableFloatingBottomBarBlur,
-        ) {
+        ) { activateTab ->
             items.forEachIndexed { index, item ->
                 FloatingBottomBarItem(
+                    selected = mainState.selectedPage == index,
                     onClick = {
-                        mainState.animateToPage(index)
+                        activateTab(index)
                     },
                     modifier = Modifier.defaultMinSize(minWidth = 76.dp)
                 ) {

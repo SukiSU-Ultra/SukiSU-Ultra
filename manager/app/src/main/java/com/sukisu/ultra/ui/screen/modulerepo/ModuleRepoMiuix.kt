@@ -76,7 +76,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ListPopupDefaults
-import com.sukisu.ultra.ui.component.PagerNavigationSpringSpec
+import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import com.sukisu.ultra.ui.component.ScrollToTopOnChange
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.component.dialog.ConfirmDialogHandle
@@ -90,6 +90,7 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.isDownloadAvailable
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
 import top.yukonga.miuix.kmp.basic.Card
@@ -294,6 +295,20 @@ fun ModuleRepoScreenMiuix(
                                                 maxLines = 1
                                             )
                                         }
+                                        if (module.zygisk) {
+                                            Text(
+                                                text = "ZYGISK",
+                                                fontSize = 12.sp,
+                                                color = metaTint,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(metaBg)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                fontWeight = FontWeight(750),
+                                                maxLines = 1
+                                            )
+                                        }
                                         Spacer(Modifier.weight(1f))
                                         if (module.stargazerCount > 0) {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -453,6 +468,20 @@ fun ModuleRepoScreenMiuix(
                                                 if (module.metamodule) {
                                                     Text(
                                                         text = "META",
+                                                        fontSize = 12.sp,
+                                                        color = metaTint,
+                                                        modifier = Modifier
+                                                            .padding(start = 6.dp)
+                                                            .clip(RoundedCornerShape(6.dp))
+                                                            .background(metaBg)
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        fontWeight = FontWeight(750),
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                                if (module.zygisk) {
+                                                    Text(
+                                                        text = "ZYGISK",
                                                         fontSize = 12.sp,
                                                         color = metaTint,
                                                         modifier = Modifier
@@ -781,6 +810,7 @@ fun ReleasesPage(
                                                             },
                                                             onDownloading = { isDownloading = true },
                                                             onProgress = { p -> scope.launch(Dispatchers.Main) { progress = p } })
+                                                        isDownloading = false
                                                     }
                                                 }
                                                 confirmDialog.showConfirm(title = confirmTitle, content = startText)
@@ -815,11 +845,12 @@ fun ReleasesPage(
                                                     minWidth = 35.dp,
                                                     onClick = {
                                                         val uri = downloadedUri ?: return@IconButton
-                                                        val file = uri.path?.let { java.io.File(it) }
-                                                        if (file != null && file.exists()) {
-                                                            onInstallModule(uri)
-                                                        } else {
-                                                            downloadedUri = null
+                                                        scope.launch {
+                                                            if (isDownloadAvailable(uri)) {
+                                                                onInstallModule(uri)
+                                                            } else {
+                                                                downloadedUri = null
+                                                            }
                                                         }
                                                     },
                                                 ) {

@@ -9,7 +9,10 @@ on:
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ddk-lkm.yml'
       - '.github/workflows/ksud.yml'
+      - '.github/workflows/ksud-extra.yml'
+      - '.github/workflows/ksuinit.yml'
       - '.github/scripts/setup-rust-build.sh'
+      - '.github/riscv64-cargo.toml'
       - 'repack_apk.py'
       - 'manager/**'
       - 'kernel/**'
@@ -24,7 +27,10 @@ on:
       - '.github/workflows/build-lkm.yml'
       - '.github/workflows/ddk-lkm.yml'
       - '.github/workflows/ksud.yml'
+      - '.github/workflows/ksud-extra.yml'
+      - '.github/workflows/ksuinit.yml'
       - '.github/scripts/setup-rust-build.sh'
+      - '.github/riscv64-cargo.toml'
       - 'repack_apk.py'
       - 'manager/**'
       - 'kernel/**'
@@ -118,7 +124,7 @@ jobs:
           - target: aarch64-linux-android
           - target: x86_64-linux-android
           - target: armv7-linux-androideabi
-
+          - target: riscv64-linux-android
     uses: ./.github/workflows/ksud.yml
 
     with:
@@ -165,7 +171,7 @@ jobs:
         id: determine
         run: |
           if [ "${{ matrix.spoofed }}" = "true" ]; then
-            echo "title=Spoofed-Manager" >> "$GITHUB_OUTPUT"
+            echo "title=Manager-spoofed" >> "$GITHUB_OUTPUT"
           else
             echo "title=Manager" >> "$GITHUB_OUTPUT"
           fi
@@ -268,11 +274,11 @@ jobs:
 
 
       # --------------------------------------------------------
-      # Java / Gradle / Android SDK
+      # Java / Gradle
       # --------------------------------------------------------
 
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -280,11 +286,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
-
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
 
       # --------------------------------------------------------
       # Download ksud artifacts
@@ -429,33 +430,10 @@ jobs:
         id: determine
         run: |
           if [ "${{ matrix.spoofed }}" = "true" ]; then
-            echo "title=Spoofed-Manager" >> "$GITHUB_OUTPUT"
+            echo "title=Manager-spoofed" >> "$GITHUB_OUTPUT"
           else
             echo "title=Manager" >> "$GITHUB_OUTPUT"
           fi
-
-
-      # --------------------------------------------------------
-      # Determine whether Telegram upload is configured
-      # --------------------------------------------------------
-
-      - name: Setup need_upload
-        id: need_upload
-        run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
-            echo "UPLOAD=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "UPLOAD=false" >> "$GITHUB_OUTPUT"
-          fi
-
-
-      # --------------------------------------------------------
-      # Android SDK
-      # --------------------------------------------------------
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
 
       # --------------------------------------------------------
       # Download correct Manager variant
@@ -491,13 +469,19 @@ jobs:
         with:
           name: ksud-x86_64-linux-android
           path: artifacts/ksud-x86_64-linux-android
-
+      
+      - name: Download RISC-V ksud
+        uses: actions/download-artifact@v8
+        with:
+          name: ksud-riscv64-linux-android
+          path: artifacts/ksud-riscv64-linux-android
 
       # --------------------------------------------------------
       # Place Manager APK and ksud artifacts
       # --------------------------------------------------------
 
       - name: Place manager apk and ksud artifacts
+        id: place_artifacts
         run: |
           set -e
 
@@ -508,14 +492,15 @@ jobs:
 
           test -n "$APK"
 
+          echo "APK_STEM=$(basename "$APK" .apk)" >> "$GITHUB_OUTPUT"
+
           cp -f "$APK" \
             manager/app/build/outputs/apk/release/
-
 
           mkdir -p target/aarch64-linux-android/release
           mkdir -p target/armv7-linux-androideabi/release
           mkdir -p target/x86_64-linux-android/release
-
+          mkdir -p target/riscv64-linux-android/release
 
           ARM64_KSUD=$(find artifacts/ksud-aarch64-linux-android \
             -type f -name ksud | head -n 1)
@@ -526,11 +511,13 @@ jobs:
           X86_64_KSUD=$(find artifacts/ksud-x86_64-linux-android \
             -type f -name ksud | head -n 1)
 
+          RISCV64_KSUD=$(find artifacts/ksud-riscv64-linux-android \
+            -type f -name ksud | head -n 1)
 
           test -n "$ARM64_KSUD"
           test -n "$ARM_KSUD"
           test -n "$X86_64_KSUD"
-
+          test -n "$RISCV64_KSUD"
 
           cp -f "$ARM64_KSUD" \
             target/aarch64-linux-android/release/ksud
@@ -540,6 +527,9 @@ jobs:
 
           cp -f "$X86_64_KSUD" \
             target/x86_64-linux-android/release/ksud
+
+          cp -f "$RISCV64_KSUD" \
+            target/riscv64-linux-android/release/ksud
 
 
       # --------------------------------------------------------
@@ -599,38 +589,26 @@ jobs:
           github.ref_type == 'tag' }}
 
         run: |
+          SUFFIX=""
+          if [ "${{ matrix.spoofed }}" = "true" ]; then
+            SUFFIX="-spoofed"
+          fi
+
+          OUTPUT_NAME="${{ steps.place_artifacts.outputs.APK_STEM }}${SUFFIX}"
+
           python3 repack_apk.py repack \
             -b release \
             -t release \
             -a arm64-v8a \
             -a armeabi-v7a \
             -a x86_64 \
+            -a riscv64 \
             -K "$SIGN_KEYSTORE_FILE" \
             -A "$SIGN_KEY_ALIAS" \
             -P "$SIGN_KEYSTORE_PASSWORD" \
             -S "$SIGN_KEY_PASSWORD" \
-            --strip
-
-
-      # --------------------------------------------------------
-      # Rename final APK so variant is obvious
-      # --------------------------------------------------------
-
-      - name: Rename final APK
-        if: ${{ github.event_name == 'pull_request' ||
-          (github.event_name != 'pull_request' &&
-          (github.ref == 'refs/heads/main' ||
-           github.ref == 'refs/heads/dev')) ||
-          github.ref_type == 'tag' }}
-
-        run: |
-          set -e
-
-          APK=$(find ./dist -type f -name "*.apk" | head -n 1)
-
-          test -n "$APK"
-
-          mv "$APK" "./dist/${{ steps.determine.outputs.title }}.apk"
+            --strip \
+            --output-name "$OUTPUT_NAME"
 
 
       # --------------------------------------------------------
@@ -651,18 +629,68 @@ jobs:
           path: dist/*.apk
 
 
+
+  # ------------------------------------------------------------
+  # Telegram upload (combined)
+  # ------------------------------------------------------------
+
+  upload-telegram:
+    needs: repack-manager
+
+    if: github.event_name != 'pull_request' &&
+        needs.repack-manager.result == 'success'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+
+      # --------------------------------------------------------
+      # Determine whether Telegram upload is configured
+      # --------------------------------------------------------
+
+      - name: Setup need_upload
+        id: need_upload
+        run: |
+          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+            echo "UPLOAD=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "UPLOAD=false" >> "$GITHUB_OUTPUT"
+          fi
+
+
+      # --------------------------------------------------------
+      # Download APK artifacts
+      # --------------------------------------------------------
+
+      - name: Download manager apk
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: Manager
+          path: apks
+
+      - name: Download manager-spoofed apk
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: Manager-spoofed
+          path: apks
+
+
       # --------------------------------------------------------
       # Telegram session cache
       # --------------------------------------------------------
 
       - name: Bot session cache
-        if: github.event_name != 'pull_request' &&
-            steps.need_upload.outputs.UPLOAD == 'true'
-
+        if: steps.need_upload.outputs.UPLOAD == 'true'
         id: bot_session_cache
-
         uses: actions/cache@v5
-
         with:
           path: scripts/ksubot.session
           key: ${{ runner.os }}-bot-session
@@ -673,9 +701,7 @@ jobs:
       # --------------------------------------------------------
 
       - name: Upload to telegram
-        if: github.event_name != 'pull_request' &&
-            steps.need_upload.outputs.UPLOAD == 'true'
-
+        if: steps.need_upload.outputs.UPLOAD == 'true'
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -685,7 +711,7 @@ jobs:
           COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          TITLE: ${{ steps.determine.outputs.title }}
+          TITLE: Manager
           BRANCH: ${{ github.ref_name }}
 
         run: |
@@ -693,10 +719,10 @@ jobs:
 
             export VERSION=$(git rev-list --count HEAD)
 
-            APK=$(find ./dist -name "*.apk")
+            APKS=$(find ./apks -type f -name "*.apk" | sort)
 
             pip3 install telethon
 
-            python3 $GITHUB_WORKSPACE/scripts/ksubot.py "$APK"
+            python3 scripts/ksubot.py $APKS
 
           fi

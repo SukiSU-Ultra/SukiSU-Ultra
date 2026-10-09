@@ -18,11 +18,14 @@ data class SettingsUiState(
     val colorStyle: String = PaletteStyle.TonalSpot.name,
     val colorSpec: String = ColorSpec.SpecVersion.SPEC_2025.name,
     val enablePredictiveBack: Boolean = false,
+    val enableSwipeDismiss: Boolean = true,
+    val pagerInterceptionMode: Int = 1,
     val enableBlur: Boolean = true,
     val enableFloatingBottomBar: Boolean = false,
     val enableFloatingBottomBarBlur: Boolean = false,
     val enableNavigationBadge: Boolean = true,
     val pageScale: Float = 1.0f,
+    val moduleDescriptionMaxLines: Int = 4,
     val enableWebDebugging: Boolean = false,
     val showFullStatus: Boolean = true,
 
@@ -34,10 +37,6 @@ data class SettingsUiState(
     // Kernel Umount
     val kernelUmountStatus: String = "",
     val isKernelUmountEnabled: Boolean = false,
-
-    // WebView Zygote Umount
-    val webViewZygoteUmountStatus: String = "",
-    val isWebViewZygoteUmountEnabled: Boolean = false,
 
     // SELinux Hide
     val selinuxHideStatus: String = "",
@@ -74,7 +73,6 @@ data class SettingsScreenActions(
     val onSetLanguage: (String) -> Unit,
     val onSetSuCompatMode: (Int) -> Unit,
     val onSetKernelUmountEnabled: (Boolean) -> Unit,
-    val onSetWebViewZygoteUmountEnabled: (Boolean) -> Unit,
     val onSetSelinuxHideEnabled: (Boolean) -> Unit,
     val onSetSulogEnabled: (Boolean) -> Unit,
     val onSetAdbRootEnabled: (Boolean) -> Unit,
