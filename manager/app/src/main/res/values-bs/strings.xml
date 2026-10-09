@@ -16,7 +16,7 @@
     <string name="require_kernel_version_gki">Potrebno je ažurirati kernel.</string>
     <string name="settings_umount_modules_default">Umount module po zadanom</string>
     <string name="settings_umount_modules_default_summary">Globalna zadana vrijednost za \"Umount module\" u Profilima Aplikacije. Ako je omogućeno, uklonit će sve izmjene modula na sistemu za aplikacije koje nemaju postavljen Profil.</string>
-    <string name="profile_umount_modules_summary">Uključivanjem ove opcije omogućit će KernelSU-u da vrati sve izmjenute datoteke od strane modula za ovu aplikaciju.</string>
+    <string name="profile_umount_modules_summary">Uključivanjem ove opcije omogućit će SukiSU-Ultra-u da vrati sve izmjenute datoteke od strane modula za ovu aplikaciju.</string>
     <string name="module_update">Ažuriranje</string>
     <string name="module_downloading">Skidanje module: %s</string>
     <string name="module_start_downloading">Započnite sa skidanjem: %s</string>
@@ -29,7 +29,7 @@
     <string name="home_not_installed">Nije instalirano</string>
     <string name="home_click_to_install">Kliknite da instalirate</string>
     <string name="home_unsupported">Nepodržano</string>
-    <string name="home_unsupported_reason">KernelSU samo podržava GKI kernele sad</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra samo podržava GKI kernele sad</string>
     <string name="home_manager_version">Verzija Upravitelja</string>
     <string name="home_fingerprint">Otisak prsta</string>
     <string name="home_selinux_status">SELinux stanje</string>
@@ -43,11 +43,11 @@
     <string name="safe_mode">Sigurnosni mod</string>
     <string name="reboot_to_apply">Ponovo pokrenite da bi proradilo</string>
     <string name="module_magisk_conflict">"Moduli su nedostupni  jer su u sukobu sa Magisk-om!"</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Naučite kako da instalirate KernelSU i da koristite module</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Naučite kako da instalirate SukiSU-Ultra i da koristite module</string>
     <string name="home_support_title">Podržite Nas</string>
     <string name="send_log">Pošaljite Izvještaj</string>
-    <string name="home_learn_kernelsu">Naučite KernelSU</string>
+    <string name="home_learn_kernelsu">Naučite SukiSU-Ultra</string>
     <string name="about_source_code">Pogledajte izvornu kodu na %1$s<br/>Pridružite nam se na %2$s kanalu</string>
     <string name="profile_selinux_domain">Domena</string>
     <string name="profile_selinux_rules">Pravila</string>
@@ -85,8 +85,8 @@
     <string name="settings_sucompat">Preusmjeri su binarnu datoteku</string>
     <string name="settings_sucompat_summary">Preusmjeri /system/bin/su na ksud za aplikacije kojima je dodijeljeno dopuštenje Superuser u Profilu aplikacije; učinkovito samo za nove procese.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Ponašanje umount na razini kernela kontrolira KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">Sprječava daljnju eskalaciju privilegija putem KernelSU-a unutar konteksta ovog root profila.</string>
+    <string name="settings_kernel_umount_summary">Ponašanje umount na razini kernela kontrolira SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">Sprječava daljnju eskalaciju privilegija putem SukiSU-Ultra-a unutar konteksta ovog root profila.</string>
     <string name="install_force_backup">Napravi sigurnosnu kopiju kao fabričku sliku</string>
     <string name="install_force_backup_summary">Uvjerite se da je odabrana boot slika fabrička slika</string>
 </resources>

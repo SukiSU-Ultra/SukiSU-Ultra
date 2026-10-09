@@ -6,7 +6,7 @@
     <string name="home_working">작동 중</string>
     <string name="home_working_version">버전: %s</string>
     <string name="home_unsupported">지원되지 않음</string>
-    <string name="home_unsupported_reason">KernelSU는 현재 GKI 커널만 지원합니다.</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra는 현재 GKI 커널만 지원합니다.</string>
     <string name="home_kernel">커널 버전</string>
     <string name="home_manager_version">매니저 버전</string>
     <string name="home_fingerprint">핑거프린트</string>
@@ -41,12 +41,12 @@
     <string name="safe_mode">안전 모드</string>
     <string name="reboot_to_apply">다시 시작하여 변경 사항 적용</string>
     <string name="module_magisk_conflict">Magisk와 충돌로 모듈을 사용할 수 없습니다!</string>
-    <string name="home_learn_kernelsu">KernelSU 알아보기</string>
-    <string name="home_click_to_learn_kernelsu">KernelSU 설치 및 모듈 사용 방법을 확인합니다.</string>
+    <string name="home_learn_kernelsu">SukiSU-Ultra 알아보기</string>
+    <string name="home_click_to_learn_kernelsu">SukiSU-Ultra 설치 및 모듈 사용 방법을 확인합니다.</string>
     <string name="home_support_title">지원하기</string>
     <string name="home_support_content">KernelSU는 현재와 미래에도 항상 무료이며 오픈 소스입니다. 기부를 통해 여러분의 관심과 지원을 표현해 주세요.</string>
     <string name="about_source_code"><![CDATA[%1$s에서 소스 코드 보기<br/>%2$s 채널 참가하기]]></string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="settings_umount_modules_default_summary">앱 프로필 메뉴의 \"모듈 마운트 해제\" 설정에 대한 전역 기본값을 지정합니다. 활성화하면 개별 프로필이 설정되지 않은 앱에는 시스템에 대한 모듈의 모든 수정 사항이 제외됩니다.</string>
     <string name="restart_app">다시 시작</string>
     <string name="profile_selinux_rules">규칙</string>
@@ -67,7 +67,7 @@
     <string name="profile_capabilities">권한</string>
     <string name="failed_to_update_app_profile">%s에 대한 앱 프로필 업데이트 실패</string>
     <string name="settings_umount_modules_default">모듈 마운트 해제를 기본값으로</string>
-    <string name="profile_umount_modules_summary">이 옵션이 활성화되면 KernelSU는 이 앱에 대한 모듈의 모든 수정 사항을 복구합니다.</string>
+    <string name="profile_umount_modules_summary">이 옵션이 활성화되면 SukiSU-Ultra는 이 앱에 대한 모듈의 모든 수정 사항을 복구합니다.</string>
     <string name="module_update">업데이트</string>
     <string name="module_downloading">모듈 다운로드 중: %s</string>
     <string name="profile_selinux_domain">도메인</string>
@@ -81,7 +81,7 @@
     <string name="select_file_tip">%1$s 파티션 이미지가 권장됩니다</string>
     <string name="select_kmi">KMI 선택</string>
     <string name="install_next">다음</string>
-    <string name="settings_uninstall_permanent_message">완전하고 영구적으로 KernelSU(루트 권한 및 모든 모듈)를 제거합니다.</string>
+    <string name="settings_uninstall_permanent_message">완전하고 영구적으로 SukiSU-Ultra(루트 권한 및 모든 모듈)를 제거합니다.</string>
     <string name="enable_web_debugging">WebView 디버깅</string>
     <string name="home_lkm_update_available">내장 LKM의 새 버전을 사용할 수 있습니다. 탭하여 업데이트하세요.</string>
     <string name="home_lkm_custom">사용자 지정</string>
@@ -96,7 +96,7 @@
     <string name="flash_failed">플래싱 실패</string>
     <string name="settings_uninstall">제거</string>
     <string name="settings_uninstall_permanent">영구 제거</string>
-    <string name="settings_uninstall_temporary_message">임시적으로 KernelSU를 제거하고, 다음 재부팅 이후 기존 상태로 복구합니다.</string>
+    <string name="settings_uninstall_temporary_message">임시적으로 SukiSU-Ultra를 제거하고, 다음 재부팅 이후 기존 상태로 복구합니다.</string>
     <string name="settings_profile_template">앱 프로필 템플릿</string>
     <string name="settings_profile_template_summary">로컬 및 온라인의 앱 프로필 템플릿을 관리합니다.</string>
     <string name="app_profile_template_id">ID</string>
@@ -126,7 +126,7 @@
     <string name="direct_install">직접 설치 (권장)</string>
     <string name="install_inactive_slot">비활성 슬롯에 설치 (OTA 이후)</string>
     <string name="settings_restore_stock_image">제조사 이미지로 복구</string>
-    <string name="settings_restore_stock_image_message">제조사 이미지로 복구 (백업 존재 시), OTA 이전에 사용합니다. KernelSU를 제거해야 하는 경우, \"영구 삭제\"를 사용하세요.</string>
+    <string name="settings_restore_stock_image_message">제조사 이미지로 복구 (백업 존재 시), OTA 이전에 사용합니다. SukiSU-Ultra를 제거해야 하는 경우, \"영구 삭제\"를 사용하세요.</string>
     <string name="settings_check_update">업데이트 확인</string>
     <string name="settings_check_update_summary">앱 실행 시 자동으로 업데이트를 확인합니다.</string>
     <string name="log_saved">로그 저장됨</string>
@@ -180,7 +180,7 @@
     <string name="settings_sucompat_summary">/system/bin/su를 통한 루트 권한 획득 허용 (새 프로세스 전용)</string>
     <string name="settings_kernel_umount">모듈 언마운트</string>
     <string name="settings_kernel_umount_summary">앱 프로필에 따라 커널에서 모듈을 언마운트합니다</string>
-    <string name="profile_flags_desc_no_new_privs">이 루트 프로필의 컨텍스트 내에서 KernelSU를 통한 추가 권한 상승을 방지합니다.</string>
+    <string name="profile_flags_desc_no_new_privs">이 루트 프로필의 컨텍스트 내에서 SukiSU-Ultra를 통한 추가 권한 상승을 방지합니다.</string>
     <string name="install_force_backup">순정 이미지로 백업</string>
     <string name="install_force_backup_summary">선택한 boot 이미지가 순정 이미지인지 확인하세요</string>
 </resources>

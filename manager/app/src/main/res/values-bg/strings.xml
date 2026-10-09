@@ -6,7 +6,7 @@
     <string name="home_working">Работи</string>
     <string name="home_working_version">Версия: %s</string>
     <string name="home_unsupported">Неподдържано</string>
-    <string name="home_unsupported_reason">KernelSU само поддържа GKI кернели за сега.</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra само поддържа GKI кернели за сега.</string>
     <string name="home_kernel">Версия на кернела</string>
     <string name="home_manager_version">Версия на мениджъра</string>
     <string name="home_fingerprint">Пръстов отпечатък</string>
@@ -46,9 +46,9 @@
     <string name="safe_mode">Безопасен режим</string>
     <string name="reboot_to_apply">Рестартирай за да приеме ефект</string>
     <string name="module_magisk_conflict">Модулите не са налични поради конфликт с Magisk!</string>
-    <string name="home_learn_kernelsu">Научи KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Научи как да изтеглите KernelSU и да използвате модули.</string>
+    <string name="home_learn_kernelsu">Научи SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Научи как да изтеглите SukiSU-Ultra и да използвате модули.</string>
     <string name="home_support_title">Помогнете Ни</string>
     <string name="home_support_content">KernelSU си е, и винаги ще е безплатен, и с отворен код. Обаче, можете да ни покажете че се интересувате като ни направите дарение.</string>
     <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Присъединете се към нашия%2$s канал]]></string>
@@ -72,7 +72,7 @@
     <string name="require_kernel_version_gki">Необходимо е актуализиране на кернела.</string>
     <string name="settings_umount_modules_default">Разкачи модули</string>
     <string name="settings_umount_modules_default_summary">Глобалната стойност по подразбиране за „Разкачи модули“ в профила на приложението. Ако е активирана, ще премахне всички модификации на модулите в системата за приложения, които нямат зададен профил.</string>
-    <string name="profile_umount_modules_summary">Активирането на тази опция ще позволи на KernelSU да възстанови всички модифицирани файлове от модулите за това приложение.</string>
+    <string name="profile_umount_modules_summary">Активирането на тази опция ще позволи на SukiSU-Ultra да възстанови всички модифицирани файлове от модулите за това приложение.</string>
     <string name="profile_selinux_domain">Домейн</string>
     <string name="profile_selinux_rules">Правила</string>
     <string name="module_update">Актуализиране</string>
@@ -132,9 +132,9 @@
     <string name="settings_uninstall_temporary">Премахнете временно</string>
     <string name="settings_uninstall_permanent">Премахнете завинаги</string>
     <string name="settings_restore_stock_image">Възстановяване на стоков .img фаил</string>
-    <string name="settings_uninstall_temporary_message">Временно премахнете KernelSU, ще се върне в нормално състояние след следващото рестартиране.</string>
-    <string name="settings_uninstall_permanent_message">Премахване на KernelSU (root и всички модули) напълно, завинаги.</string>
-    <string name="settings_restore_stock_image_message">Възстановете фабричното копие (ако съществува резервно копие), обикновено използвано преди софтуерна актуализация; ако трябва да премахнете KernelSU, моля, използвайте „Премахване завинаги“.</string>
+    <string name="settings_uninstall_temporary_message">Временно премахнете SukiSU-Ultra, ще се върне в нормално състояние след следващото рестартиране.</string>
+    <string name="settings_uninstall_permanent_message">Премахване на SukiSU-Ultra (root и всички модули) напълно, завинаги.</string>
+    <string name="settings_restore_stock_image_message">Възстановете фабричното копие (ако съществува резервно копие), обикновено използвано преди софтуерна актуализация; ако трябва да премахнете SukiSU-Ultra, моля, използвайте „Премахване завинаги“.</string>
     <string name="flashing">Флашване</string>
     <string name="flash_success">Флашване успешно</string>
     <string name="flash_failed">Флашване не бе успешно</string>
@@ -146,7 +146,7 @@
     <string name="settings_sucompat">Пренасочване на su бинарния файл</string>
     <string name="settings_sucompat_summary">Позволяет приложениям с предоставени права на Superuser в профила на приложението да получат superuser shell чрез изпълнение на /system/bin/su; в сила само за нови процеси.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Поведение за umount на ниво ядро, контролирано от KernelSU</string>
+    <string name="settings_kernel_umount_summary">Поведение за umount на ниво ядро, контролирано от SukiSU-Ultra</string>
     <string name="processing">Обработва се…</string>
     <string name="refresh_pulling">Опънете надолу за да обновите</string>
     <string name="refresh_release">Пуснете за да обновите</string>
@@ -179,7 +179,7 @@
     <string name="tab_readme">ПРОЧЕТИ МЕ</string>
     <string name="tab_releases">Версии</string>
     <string name="tab_info">Информация</string>
-    <string name="profile_flags_desc_no_new_privs">Предотвратява по-нататъшно повишаване на привилегиите чрез KernelSU в контекста на този root профил.</string>
+    <string name="profile_flags_desc_no_new_privs">Предотвратява по-нататъшно повишаване на привилегиите чрез SukiSU-Ultra в контекста на този root профил.</string>
     <string name="install_force_backup">Архивирай като оригинален образ</string>
     <string name="install_force_backup_summary">Моля, уверете се, че избраният от вас boot образ е оригиналният образ</string>
 </resources>

@@ -8,7 +8,7 @@
     <string name="home_kernel">Kernel</string>
     <string name="install">Instalar</string>
     <string name="home_unsupported">Sem suporte</string>
-    <string name="home_unsupported_reason">KernelSU suporta apenas kernels GKI agora</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra suporta apenas kernels GKI agora</string>
     <string name="home_selinux_status">Status do SELinux</string>
     <string name="home_manager_version">Versão do aplicativo</string>
     <string name="module_failed_to_disable">Falha ao desativar o módulo: %s</string>
@@ -38,7 +38,7 @@
     <string name="send_log">Enviar log</string>
     <string name="module_uninstall_success">%s desinstalado</string>
     <string name="show_system_apps">Mostrar aplicativos do sistema</string>
-    <string name="home_click_to_learn_kernelsu">Aprenda a instalar o KernelSU e usar os módulos</string>
+    <string name="home_click_to_learn_kernelsu">Aprenda a instalar o SukiSU-Ultra e usar os módulos</string>
     <string name="home_support_content">O KernelSU é, e sempre será, gratuito e de código aberto. No entanto, você pode nos mostrar que se importa fazendo uma doação.</string>
     <string name="about_source_code">Veja o código-fonte em %1$s<br/>
 Junte-se ao nosso canal %2$s</string>
@@ -52,7 +52,7 @@ Junte-se ao nosso canal %2$s</string>
     <string name="profile_namespace">Montar namespace</string>
     <string name="safe_mode">Modo de segurança</string>
     <string name="reboot_to_apply">Reinicie para entrar em vigor</string>
-    <string name="home_learn_kernelsu">Aprender KernelSU</string>
+    <string name="home_learn_kernelsu">Aprender SukiSU-Ultra</string>
     <string name="module_magisk_conflict">Os módulos estão desativados porque estão em conflito com os do Magisk!</string>
     <string name="home_support_title">Apoie-nos</string>
     <string name="profile_groups">Grupos</string>
@@ -65,11 +65,11 @@ Junte-se ao nosso canal %2$s</string>
     <string name="settings_umount_modules_default">Módulos desativados por padrão</string>
     <string name="settings_umount_modules_default_summary">O valor padrão global para \"Módulos Umount\" em Perfis de Aplicativos. Se ativado, removerá todas as modificações de módulo do sistema para aplicativos que não possuem um Perfil definido.</string>
     <string name="profile_selinux_rules">Regras</string>
-    <string name="profile_umount_modules_summary">Ativar esta opção permitirá que o KernelSU restaure quaisquer arquivos modificados pelos módulos para este aplicativo.</string>
+    <string name="profile_umount_modules_summary">Ativar esta opção permitirá que o SukiSU-Ultra restaure quaisquer arquivos modificados pelos módulos para este aplicativo.</string>
     <string name="module_start_downloading">Iniciar o download: %s</string>
     <string name="module_downloading">Baixando módulo: %s</string>
     <string name="failed_to_update_sepolicy">Falha ao atualizar as regras do SELinux para: %s</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="restart_app">Reiniciar</string>
     <string name="launch_app">Lançar</string>
     <string name="force_stop_app">Forçar parada</string>
@@ -83,8 +83,8 @@ Junte-se ao nosso canal %2$s</string>
     <string name="settings_sucompat">Redirecionar binário su</string>
     <string name="settings_sucompat_summary">Permite que apps com permissão de Superutilizador no Perfil da App obtenham um shell de superutilizador executando /system/bin/su; eficaz apenas para novos processos.</string>
     <string name="settings_kernel_umount">Desmontar kernel</string>
-    <string name="settings_kernel_umount_summary">Comportamento de desmontagem ao nível do kernel controlado pelo KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">Impede uma escalada adicional de privilégios via KernelSU dentro do contexto deste perfil root.</string>
+    <string name="settings_kernel_umount_summary">Comportamento de desmontagem ao nível do kernel controlado pelo SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">Impede uma escalada adicional de privilégios via SukiSU-Ultra dentro do contexto deste perfil root.</string>
     <string name="install_force_backup">Fazer backup como imagem original</string>
     <string name="install_force_backup_summary">Certifique-se de que a imagem de boot selecionada seja a imagem original</string>
 </resources>

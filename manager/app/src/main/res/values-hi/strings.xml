@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reboot_to_apply">प्रभाव में होने के लिए रीबूट करें</string>
-    <string name="home_click_to_learn_kernelsu">जानें कि KernelSU कैसे स्थापित करें और मॉड्यूल का उपयोग कैसे करें</string>
+    <string name="home_click_to_learn_kernelsu">जानें कि SukiSU-Ultra कैसे स्थापित करें और मॉड्यूल का उपयोग कैसे करें</string>
     <string name="selinux_status_unknown">अज्ञात</string>
     <string name="show_system_apps">सिस्टम एप्प दिखाए</string>
     <string name="module_uninstall_success">%s अनइंस्टॉल सफल हुआ</string>
@@ -15,7 +15,7 @@
     <string name="selinux_status_permissive">पर्मिसिव</string>
     <string name="reboot_download">डाउनलोड में रिबूट करें</string>
     <string name="settings_umount_modules_default">डिफ़ॉल्ट रूप से मॉड्यूल अनमाउन्ट करें</string>
-    <string name="profile_umount_modules_summary">इस विकल्प को चालू करने से KernelSU को इस एप्लिकेशन के लिए मॉड्यूल द्वारा किसी भी मोडिफाइड फ़ाइल को रिस्टोर करें।</string>
+    <string name="profile_umount_modules_summary">इस विकल्प को चालू करने से SukiSU-Ultra को इस एप्लिकेशन के लिए मॉड्यूल द्वारा किसी भी मोडिफाइड फ़ाइल को रिस्टोर करें।</string>
     <string name="profile_namespace_individual">Individual</string>
     <string name="module_failed_to_enable">%s मॉड्यूल चालू करने में विफल</string>
     <string name="force_stop_app">जबर्दस्ती बंद करें</string>
@@ -51,7 +51,7 @@
     <string name="about">हमारे बारे में</string>
     <string name="home_working_version">वर्जन: %s</string>
     <string name="reboot">रीबूट करें</string>
-    <string name="home_unsupported_reason">KernelSU अभी केवल GKI कर्नल्स को सपोर्ट करता है</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra अभी केवल GKI कर्नल्स को सपोर्ट करता है</string>
     <string name="home_selinux_status">SELinux स्थिति</string>
     <string name="module_version">वर्जन</string>
     <string name="home_unsupported">सपोर्ट नहीं करता है</string>
@@ -61,7 +61,7 @@
     <string name="profile_template">टेम्पलेट</string>
     <string name="module_downloading">%s मॉड्यूल डाउनलोड हो रहा है</string>
     <string name="module_update">अपडेट</string>
-    <string name="home_learn_kernelsu">KernelSU सीखें</string>
+    <string name="home_learn_kernelsu">SukiSU-Ultra सीखें</string>
     <string name="module_uninstall_confirm">क्या आप सच में मॉड्यूल %s को अनइंस्टॉल करना चाहते हैं\?</string>
     <string name="module_uninstall_failed">%s अनइंस्टल करने में असफल</string>
     <string name="superuser">सुपरयूजर</string>
@@ -73,7 +73,7 @@
     <string name="home_kernel">कर्नल</string>
     <string name="home_not_installed">इंस्टाल नहीं हुआ</string>
     <string name="failed_to_update_app_profile">%s के लिए ऐप प्रोफ़ाइल अपडेट करने में विफल</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="failed_to_update_sepolicy">%s के लिए SELinux नियमों को अपटेड करने में विफल</string>
     <string name="reboot_bootloader">बुटलोडर में रिबूट करें</string>
     <string name="about_source_code">%1$s पर स्रोत कोड देखें<br/>
@@ -84,8 +84,8 @@
     <string name="settings_sucompat">su बाइनरी को फिर से रूट करें</string>
     <string name="settings_sucompat_summary">ऐप प्रोफ़ाइल में सुपरयूज़र अनुमति दिए गए ऐप्स को /system/bin/su को निष्पादित करके सुपरयूज़र शेल प्राप्त करने की अनुमति देता है; केवल नई प्रक्रियाओं के लिए प्रभावी।</string>
     <string name="settings_kernel_umount">कर्नेल अनमाउंट</string>
-    <string name="settings_kernel_umount_summary">KernelSU द्वारा नियंत्रित कर्नेल-स्तरीय अनमाउंट व्यवहार</string>
-    <string name="profile_flags_desc_no_new_privs">इस रूट प्रोफाइल के संदर्भ में KernelSU के माध्यम से आगे विशेषाधिकार बढ़ाने से रोकता है।</string>
+    <string name="settings_kernel_umount_summary">SukiSU-Ultra द्वारा नियंत्रित कर्नेल-स्तरीय अनमाउंट व्यवहार</string>
+    <string name="profile_flags_desc_no_new_privs">इस रूट प्रोफाइल के संदर्भ में SukiSU-Ultra के माध्यम से आगे विशेषाधिकार बढ़ाने से रोकता है।</string>
     <string name="install_force_backup">स्टॉक इमेज के रूप में बैकअप करें</string>
     <string name="install_force_backup_summary">कृपया सुनिश्चित करें कि आपने जो boot इमेज चुनी है वह स्टॉक इमेज है</string>
 </resources>

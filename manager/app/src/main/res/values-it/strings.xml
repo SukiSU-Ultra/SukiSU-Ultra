@@ -6,7 +6,7 @@
     <string name="home_working">In esecuzione</string>
     <string name="home_working_version">Versione: %s</string>
     <string name="home_unsupported">Non supportato</string>
-    <string name="home_unsupported_reason">KernelSU ora supporta solo i kernel GKI</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra ora supporta solo i kernel GKI</string>
     <string name="home_kernel">Kernel</string>
     <string name="home_manager_version">Versione del manager</string>
     <string name="home_fingerprint">Impronta della build di Android</string>
@@ -41,9 +41,9 @@
     <string name="safe_mode">Modalità provvisoria</string>
     <string name="reboot_to_apply">Riavvia per applicare la modifica</string>
     <string name="module_magisk_conflict">I moduli sono disabilitati perché in conflitto con Magisk!</string>
-    <string name="home_learn_kernelsu">Scopri KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Scopri come installare KernelSU e utilizzare i moduli</string>
+    <string name="home_learn_kernelsu">Scopri SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Scopri come installare SukiSU-Ultra e utilizzare i moduli</string>
     <string name="home_support_title">Supportaci</string>
     <string name="home_support_content">KernelSU è, e sempre sarà, gratuito e open source. Puoi comunque mostrarci il tuo apprezzamento facendo una donazione.</string>
     <string name="about_source_code"><![CDATA[Visualizza il codice sorgente su %1$s<br/>Unisciti al nostro canale %2$s]]></string>
@@ -70,7 +70,7 @@
     <string name="force_stop_app">Arresto forzato</string>
     <string name="restart_app">Riavvia</string>
     <string name="failed_to_update_sepolicy">Aggiornamento regole SELinux per %s fallito</string>
-    <string name="profile_umount_modules_summary">Attivando questa opzione permetterai a KernelSU di ripristinare ogni file modificato dai moduli per questa app.</string>
+    <string name="profile_umount_modules_summary">Attivando questa opzione permetterai a SukiSU-Ultra di ripristinare ogni file modificato dai moduli per questa app.</string>
     <string name="profile_selinux_domain">Dominio</string>
     <string name="settings_umount_modules_default_summary">Il valore predefinito per \"Scollega moduli\" in App Profile. Se attivato, rimuoverà tutte le modifiche al sistema da parte dei moduli per le applicazioni che non hanno un profilo impostato.</string>
     <string name="home_lkm_update_available">È disponibile una versione più recente dell\'LKM integrato. Tocca per aggiornare.</string>
@@ -122,19 +122,19 @@
     <string name="settings_uninstall_temporary">Disinstalla temporaneamente</string>
     <string name="settings_uninstall_permanent">Disinstalla permanentemente</string>
     <string name="settings_restore_stock_image">Ripristina immagine originale del produttore</string>
-    <string name="settings_uninstall_temporary_message">Disinstalla temporaneamente KernelSU, ripristina lo stato originale dopo il prossimo riavvio.</string>
-    <string name="settings_uninstall_permanent_message">Disinstalla KernelSU (root e tutti i moduli) completamente e permanentemente.</string>
+    <string name="settings_uninstall_temporary_message">Disinstalla temporaneamente SukiSU-Ultra, ripristina lo stato originale dopo il prossimo riavvio.</string>
+    <string name="settings_uninstall_permanent_message">Disinstalla SukiSU-Ultra (root e tutti i moduli) completamente e permanentemente.</string>
     <string name="flashing">Installazione</string>
     <string name="flash_success">Installazione completata</string>
     <string name="flash_failed">Installazione fallita</string>
     <string name="selected_lkm">LKM selezionato: %s</string>
-    <string name="settings_restore_stock_image_message">Ripristina l\'immagine di fabbrica del produttore (se il backup è presente), solitamente usato prima di applicare l\'OTA; se devi disinstallare KernelSU, utilizza invece \"Disinstalla permanentemente\".</string>
+    <string name="settings_restore_stock_image_message">Ripristina l\'immagine di fabbrica del produttore (se il backup è presente), solitamente usato prima di applicare l\'OTA; se devi disinstallare SukiSU-Ultra, utilizza invece \"Disinstalla permanentemente\".</string>
     <string name="save_log">Salva Registri</string>
     <string name="settings_sucompat">Reindirizza binario su</string>
     <string name="settings_sucompat_summary">Consente alle app con autorizzazione Superuser nel profilo app di ottenere una shell superuser eseguendo /system/bin/su; efficace solo per i nuovi processi.</string>
     <string name="settings_kernel_umount">Umount del kernel</string>
-    <string name="settings_kernel_umount_summary">Comportamento di umount a livello di kernel controllato da KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">Impedisce un\'ulteriore escalation dei privilegi tramite KernelSU nel contesto di questo profilo root.</string>
+    <string name="settings_kernel_umount_summary">Comportamento di umount a livello di kernel controllato da SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">Impedisce un\'ulteriore escalation dei privilegi tramite SukiSU-Ultra nel contesto di questo profilo root.</string>
     <string name="install_force_backup">Esegui backup come immagine originale</string>
     <string name="install_force_backup_summary">Assicurati che l\'immagine di boot selezionata sia l\'immagine originale</string>
 </resources>

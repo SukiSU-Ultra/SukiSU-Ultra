@@ -8,7 +8,7 @@
     <string name="home_lkm_update_available">有可用的內建 LKM 更新，點選更新</string>
     <string name="home_lkm_custom">自訂</string>
     <string name="home_unsupported">未受支援</string>
-    <string name="home_unsupported_reason">未檢測到 KernelSU 驅動程序，核心錯誤?</string>
+    <string name="home_unsupported_reason">未檢測到 SukiSU-Ultra 驅動程序，核心錯誤?</string>
     <string name="home_device_model">裝置型號</string>
     <string name="home_kernel">核心版本</string>
     <string name="home_manager_version">管理工具</string>
@@ -55,9 +55,9 @@
     <string name="safe_mode">安全模式</string>
     <string name="reboot_to_apply">將在重新啟動時生效</string>
     <string name="module_magisk_conflict">與 Magisk 發生衝突，無法使用模組功能！</string>
-    <string name="home_learn_kernelsu">深入瞭解 KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_TW/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">知曉安裝、使用 KernelSU 本體與其模組功能的方法</string>
+    <string name="home_learn_kernelsu">深入瞭解 SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/zh/guide/</string>
+    <string name="home_click_to_learn_kernelsu">知曉安裝、使用 SukiSU-Ultra 本體與其模組功能的方法</string>
     <string name="home_support_title">協助發展</string>
     <string name="home_support_content">KernelSU 一向以免費與開放原始碼自居，矢志不渝。若想協助我們，可以用小額捐款表達你對專案發展的大力支持。</string>
     <string name="home_gki_warning">自 v3.0.0 起，GKI 工作模式僅供測試環境使用，不建議日常使用，且不再提供映像檔</string>
@@ -69,7 +69,7 @@
     <string name="require_kernel_version_gki">需要更新核心</string>
     <string name="settings_umount_modules_default">預設解除掛載模組功能</string>
     <string name="settings_umount_modules_default_summary">將 App Profile 的全域預設行為設作「解除掛載模組功能」。啟用後，將向未指派 Profile 的應用程式移除模組功能。</string>
-    <string name="profile_umount_modules_summary">啟用選項後，KernelSU 會將應用程式內遭模組修改的檔案恢復原狀。</string>
+    <string name="profile_umount_modules_summary">啟用選項後，SukiSU-Ultra 會將應用程式內遭模組修改的檔案恢復原狀。</string>
     <string name="profile_default">預設</string>
     <string name="profile_custom">自訂</string>
     <string name="profile_capabilities">權限</string>
@@ -148,12 +148,12 @@
     <string name="settings_uninstall">解除安裝</string>
     <string name="settings_uninstall_temporary">暫時性解除安裝</string>
     <string name="settings_restore_stock_image">恢復原廠映像檔</string>
-    <string name="settings_uninstall_temporary_message">暫時解除安裝 KernelSU。會在下次重新啟動時恢復原狀。</string>
+    <string name="settings_uninstall_temporary_message">暫時解除安裝 SukiSU-Ultra。會在下次重新啟動時恢復原狀。</string>
     <string name="settings_uninstall_permanent">永久性解除安裝</string>
-    <string name="settings_uninstall_permanent_message">徹底解除安裝 KernelSU（含 Root 授權與所有的模組）。</string>
+    <string name="settings_uninstall_permanent_message">徹底解除安裝 SukiSU-Ultra（含 Root 授權與所有的模組）。</string>
     <string name="flashing">正在閃刷</string>
     <string name="flash_success">閃刷成功</string>
-    <string name="settings_restore_stock_image_message">若裝置內含有備份檔案，遂以 OTA 更新前的原廠系統映像檔進行復原。若需要解除安裝 KernelSU，請選擇「永久性解除安裝」。</string>
+    <string name="settings_restore_stock_image_message">若裝置內含有備份檔案，遂以 OTA 更新前的原廠系統映像檔進行復原。若需要解除安裝 SukiSU-Ultra，請選擇「永久性解除安裝」。</string>
     <string name="flash_failed">閃刷失敗</string>
     <string name="selected_lkm">已選定 LKM：%s</string>
     <string name="save_log">儲存日誌</string>
@@ -267,7 +267,7 @@
     <string name="sort_by_install_time">安裝時間</string>
     <string name="sort_by_update_time">更新時間</string>
     <string name="sort_reverse">倒序</string>
-    <string name="profile_flags_desc_no_new_privs">防止在此 Root Profile 的上下文中透過 KernelSU 進一步提升權限</string>
+    <string name="profile_flags_desc_no_new_privs">防止在此 Root Profile 的上下文中透過 SukiSU-Ultra 進一步提升權限</string>
     <string name="install_force_backup">備份為原廠映像</string>
     <string name="install_force_backup_summary">請確保你選擇的 boot 映像是原廠映像</string>
     <string name="install_only_support_ko_file">僅支援選擇 .ko 檔案</string>
@@ -626,7 +626,7 @@
     <string name="settings_selinux_hide">隱藏 SELinux 修改</string>
     <string name="settings_selinux_hide_failed">錯誤： %d</string>
     <string name="settings_sulog">SU 日誌</string>
-    <string name="settings_sulog_summary">將 Root 相關事件記錄至 KernelSU 的 SU 日誌檔</string>
+    <string name="settings_sulog_summary">將 Root 相關事件記錄至 SukiSU-Ultra 的 SU 日誌檔</string>
     <string name="feature_status_unsupported_summary">核心不支援此功能</string>
     <string name="feature_status_managed_summary">此功能由模組管理</string>
     <string name="settings_mode_enable_by_default">啟用（預設）</string>

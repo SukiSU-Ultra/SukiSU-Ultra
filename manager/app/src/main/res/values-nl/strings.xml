@@ -6,7 +6,7 @@
     <string name="home_working">Werkend</string>
     <string name="home_working_version">Versie: %s</string>
     <string name="home_unsupported">Niet ondersteund</string>
-    <string name="home_unsupported_reason">KernelSU ondersteunt momenteel alleen GKI-kernels, maar je kunt de image patchen voor GKI-apparaten.</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra ondersteunt momenteel alleen GKI-kernels, maar je kunt de image patchen voor GKI-apparaten.</string>
     <string name="home_kernel">Kernel version</string>
     <string name="home_manager_version">Manager versie</string>
     <string name="home_fingerprint">Fingerprint</string>
@@ -41,9 +41,9 @@
     <string name="safe_mode">Safe mode</string>
     <string name="reboot_to_apply">Herstart om effect te hebben</string>
     <string name="module_magisk_conflict">Modules zijn niet beschikbaar vanwege een conflict met Magisk!</string>
-    <string name="home_learn_kernelsu">Leer KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Leer hoe KernelSU te installeren en modules te gebruiken.</string>
+    <string name="home_learn_kernelsu">Leer SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Leer hoe SukiSU-Ultra te installeren en modules te gebruiken.</string>
     <string name="home_support_title">Ondersteun ons</string>
     <string name="home_support_content">KernelSU is en blijft gratis en open source. U kunt ons echter laten zien dat u ons steunt door een donatie te doen.</string>
     <string name="about_source_code"><![CDATA[Bekijk source code op %1$s<br/>Vervoeg ons %2$s kanaal]]></string>
@@ -63,7 +63,7 @@
     <string name="failed_to_update_app_profile">Mislukt om App Profiel te updaten voor %s</string>
     <string name="settings_umount_modules_default">Ontkoppel standaard de modules</string>
     <string name="settings_umount_modules_default_summary">De globale standaardwaarde voor \"Umount modules\" in App Profile. Als dit is ingeschakeld, worden alle modulewijzigingen in het systeem verwijderd voor apps waarvoor geen profiel is ingesteld.</string>
-    <string name="profile_umount_modules_summary">Met deze optie ingeschakeld zal KernelSU toelaten om alle gewijzigde bestanden door de modules voor deze app te herstellen.</string>
+    <string name="profile_umount_modules_summary">Met deze optie ingeschakeld zal SukiSU-Ultra toelaten om alle gewijzigde bestanden door de modules voor deze app te herstellen.</string>
     <string name="profile_selinux_domain">Domein</string>
     <string name="profile_selinux_rules">Regels</string>
     <string name="module_update">Update</string>
@@ -123,9 +123,9 @@
     <string name="settings_uninstall_temporary">Tijdelijk verwijderen</string>
     <string name="settings_uninstall_permanent">Permanent verwijderen</string>
     <string name="settings_restore_stock_image">Herstel stockafbeelding</string>
-    <string name="settings_uninstall_temporary_message">Verwijder KernelSU tijdelijk en herstel het naar de oorspronkelijke staat na de volgende herstart.</string>
-    <string name="settings_uninstall_permanent_message">Het verwijderen van KernelSU (root en alle modules) volledig en permanent.</string>
-    <string name="settings_restore_stock_image_message">Herstel de standaard fabrieksimage (als er een back-up bestaat), die normaal gesproken vóór OTA wordt gebruikt. Als u KernelSU moet verwijderen, gebruikt u permanent verwijderen.</string>
+    <string name="settings_uninstall_temporary_message">Verwijder SukiSU-Ultra tijdelijk en herstel het naar de oorspronkelijke staat na de volgende herstart.</string>
+    <string name="settings_uninstall_permanent_message">Het verwijderen van SukiSU-Ultra (root en alle modules) volledig en permanent.</string>
+    <string name="settings_restore_stock_image_message">Herstel de standaard fabrieksimage (als er een back-up bestaat), die normaal gesproken vóór OTA wordt gebruikt. Als u SukiSU-Ultra moet verwijderen, gebruikt u permanent verwijderen.</string>
     <string name="flashing">Knipperen</string>
     <string name="save_log">Logboeken Opslaan</string>
     <string name="flash_success">Flash-succes</string>
@@ -144,7 +144,7 @@
     <string name="settings_sucompat">SU binary omleiden</string>
     <string name="settings_sucompat_summary">Stelt apps met Superuser-toestemming in App Profiel in staat om een superuser-shell te verkrijgen door /system/bin/su uit te voeren; alleen effectief voor nieuwe processen.</string>
     <string name="settings_kernel_umount">Modules ontkoppelen (op kernelniveau)</string>
-    <string name="settings_kernel_umount_summary">Kernel-niveau ontkoppelgedrag beheerd door KernelSU.</string>
+    <string name="settings_kernel_umount_summary">Kernel-niveau ontkoppelgedrag beheerd door SukiSU-Ultra.</string>
     <string name="processing">Verwerken…</string>
     <string name="refresh_pulling">Trek omlaag om te vernieuwen</string>
     <string name="refresh_release">Vrijgeven om te vernieuwen</string>
@@ -161,7 +161,7 @@
     <string name="feature_status_unsupported_summary">De kernel ondersteunt deze functie niet</string>
     <string name="feature_status_managed_summary">Deze functie wordt beheerd door een module</string>
     <string name="settings_mode_enable_by_default">Inschakelen (Standaard)</string>
-    <string name="profile_flags_desc_no_new_privs">Voorkomt verdere bevoegdheidsescalatie via KernelSU binnen de context van dit root-profiel.</string>
+    <string name="profile_flags_desc_no_new_privs">Voorkomt verdere bevoegdheidsescalatie via SukiSU-Ultra binnen de context van dit root-profiel.</string>
     <string name="install_force_backup">Back-up maken als origineel image</string>
     <string name="install_force_backup_summary">Zorg ervoor dat de geselecteerde boot-image het originele image is</string>
 </resources>

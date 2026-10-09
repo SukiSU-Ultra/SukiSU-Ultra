@@ -4,11 +4,11 @@
     <string name="home_not_installed">未安裝</string>
     <string name="home_click_to_install">按一下開始安裝</string>
     <string name="home_working">運作中</string>
-    <string name="home_working_version">KernelSU 版本：%s</string>
+    <string name="home_working_version">SukiSU-Ultra 版本：%s</string>
     <string name="home_lkm_update_available">有可用的內嵌 LKM 更新，按一下更新</string>
     <string name="home_lkm_custom">自訂</string>
     <string name="home_unsupported">不支援</string>
-    <string name="home_unsupported_reason">KernelSU 現僅支援 GKI 核心，但仍可修補 GKI 裝置映像</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra 現僅支援 GKI 核心，但仍可修補 GKI 裝置映像</string>
     <string name="home_device_model">裝置型號</string>
     <string name="home_kernel">核心版本</string>
     <string name="home_manager_version">管理器版本</string>
@@ -74,9 +74,9 @@
     <string name="safe_mode_module_disabled">安全模式下禁止安裝模組</string>
     <string name="reboot_to_apply">重新啟動後生效</string>
     <string name="module_magisk_conflict">模組已停用，因與 Magisk 有衝突！</string>
-    <string name="home_learn_kernelsu">深入了解 KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_TW/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">了解如何安裝 KernelSU 及使用模組</string>
+    <string name="home_learn_kernelsu">深入了解 SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/zh/guide/</string>
+    <string name="home_click_to_learn_kernelsu">了解如何安裝 SukiSU-Ultra 及使用模組</string>
     <string name="home_support_title">支持開發</string>
     <string name="home_support_content">KernelSU 承諾永久免費且開源，歡迎捐款支持</string>
     <string name="home_gki_warning">由 v3.0.0 起 GKI 模式僅限測試環境使用，不建議日常長期使用且不再提供鏡像檔</string>
@@ -99,7 +99,7 @@
     <string name="require_kernel_version_gki">需要更新核心</string>
     <string name="settings_umount_modules_default">預設卸載模組</string>
     <string name="settings_umount_modules_default_summary">控制 App Profile「卸載模組」的預設值，對未設定的 App 移除模組修改</string>
-    <string name="profile_umount_modules_summary">啟用後 KernelSU 將為此 App 還原所有被模組修改過的檔案</string>
+    <string name="profile_umount_modules_summary">啟用後 SukiSU-Ultra 將為此 App 還原所有被模組修改過的檔案</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Rules</string>
     <string name="recently_installed">近期安裝</string>
@@ -176,9 +176,9 @@
     <string name="settings_uninstall_temporary">暫時解除安裝</string>
     <string name="settings_uninstall_permanent">永久解除安裝</string>
     <string name="settings_restore_stock_image">恢復原廠映像</string>
-    <string name="settings_uninstall_temporary_message">暫時解除安裝 KernelSU，下次重新啟動後恢復原狀</string>
-    <string name="settings_uninstall_permanent_message">徹底永久解除安裝 KernelSU（Root 權限及所有模組）</string>
-    <string name="settings_restore_stock_image_message">恢復原廠映像（如有備份），通常用於 OTA 前；如需解除安裝 KernelSU，請使用「永久解除安裝」</string>
+    <string name="settings_uninstall_temporary_message">暫時解除安裝 SukiSU-Ultra，下次重新啟動後恢復原狀</string>
+    <string name="settings_uninstall_permanent_message">徹底永久解除安裝 SukiSU-Ultra（Root 權限及所有模組）</string>
+    <string name="settings_restore_stock_image_message">恢復原廠映像（如有備份），通常用於 OTA 前；如需解除安裝 SukiSU-Ultra，請使用「永久解除安裝」</string>
     <string name="flashing">正在刷入</string>
     <string name="flash_success">刷入成功</string>
     <string name="flash_failed">刷入失敗</string>
@@ -194,7 +194,7 @@
     <string name="settings_selinux_hide_reboot_required">重新啟動後生效</string>
     <string name="settings_selinux_hide_failed">錯誤：%d</string>
     <string name="settings_sulog">SU Log</string>
-    <string name="settings_sulog_summary">將 Root 相關活動記錄至 KernelSU sulog 檔案</string>
+    <string name="settings_sulog_summary">將 Root 相關活動記錄至 SukiSU-Ultra sulog 檔案</string>
     <string name="feature_status_unsupported_summary">核心不支援此功能</string>
     <string name="feature_status_managed_summary">功能正由模組管理</string>
     <string name="settings_mode_enable_by_default">啟用（預設）</string>
@@ -294,7 +294,7 @@
     <string name="sort_by_install_time">安裝時間</string>
     <string name="sort_by_update_time">更新時間</string>
     <string name="sort_reverse">倒序</string>
-    <string name="profile_flags_desc_no_new_privs">防止在此 Root Profile 的上下文中透過 KernelSU 進一步提升權限</string>
+    <string name="profile_flags_desc_no_new_privs">防止在此 Root Profile 的上下文中透過 SukiSU-Ultra 進一步提升權限</string>
     <string name="module_shortcut_copy_scheme">複製 URL scheme</string>
     <string name="module_shortcut_scheme_copied">已複製 URL scheme</string>
     <string name="settings_navigation_badge">底部欄標記</string>

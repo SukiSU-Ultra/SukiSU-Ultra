@@ -6,7 +6,7 @@
     <string name="home_working">動作中</string>
     <string name="home_working_version">バージョン: %s</string>
     <string name="home_unsupported">非対応</string>
-    <string name="home_unsupported_reason">KernelSU は現在 GKI カーネルのみをサポートしています。ただし、GKI デバイス向けにイメージにパッチを適用することは可能です。</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra は現在 GKI カーネルのみをサポートしています。ただし、GKI デバイス向けにイメージにパッチを適用することは可能です。</string>
     <string name="home_kernel">カーネル</string>
     <string name="home_manager_version">アプリのバージョン</string>
     <string name="home_fingerprint">Fingerprint</string>
@@ -41,9 +41,9 @@
     <string name="safe_mode">セーフモード</string>
     <string name="reboot_to_apply">再起動すると有効化されます</string>
     <string name="module_magisk_conflict">モジュールが Magisk との競合により利用できません!</string>
-    <string name="home_learn_kernelsu">KernelSU について</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/ja_JP/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">KernelSU のインストール方法やモジュールの使い方はこちら</string>
+    <string name="home_learn_kernelsu">SukiSU-Ultra について</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">SukiSU-Ultra のインストール方法やモジュールの使い方はこちら</string>
     <string name="home_support_title">支援する</string>
     <string name="home_support_content">KernelSU はこれからもずっと無料でオープンソースです。寄付をして頂くことで、開発を支援していただけます。</string>
     <string name="about_source_code"><![CDATA[%1$s でソースコードを表示<br/>%2$s チャンネルに参加]]></string>
@@ -71,7 +71,7 @@
     <string name="failed_to_update_sepolicy">SELinux ルールの更新に失敗しました %s</string>
     <string name="profile_capabilities">ケーパビリティ</string>
     <string name="module_downloading">モジュールをダウンロード中: %s</string>
-    <string name="profile_umount_modules_summary">このオプションを有効にすると、KernelSU はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
+    <string name="profile_umount_modules_summary">このオプションを有効にすると、SukiSU-Ultra はこのアプリのモジュールによって変更されたファイルを復元できるようになります。</string>
     <string name="settings_umount_modules_default">デフォルトでモジュールをアンマウントする</string>
     <string name="settings_umount_modules_default_summary">アプリプロファイルの「モジュールのアンマウント」の共通のデフォルト値です。 有効にすると、プロファイルセットを持たないアプリのシステムに対するすべてのモジュールの変更が削除されます。</string>
     <string name="home_lkm_update_available">内蔵 LKM の新しいバージョンが利用可能です。タップして更新します。</string>
@@ -121,9 +121,9 @@
     <string name="settings_restore_stock_image">ストックイメージを復元</string>
     <string name="settings_uninstall_temporary">一時的にアンインストールする</string>
     <string name="settings_uninstall">アンインストール</string>
-    <string name="settings_uninstall_temporary_message">KernelSU を一時的にアンインストールし、次回の再起動後に元の状態に戻します。</string>
-    <string name="settings_uninstall_permanent_message">KernelSU (ルートおよびすべてのモジュール) を完全かつ永久にアンインストールします。</string>
-    <string name="settings_restore_stock_image_message">バックアップが存在する場合、工場出荷時のイメージを復元できます (OTA の前に使用してください)。KernelSU をアンインストールする必要がある場合は、「完全にアンインストールする」を使用してください。</string>
+    <string name="settings_uninstall_temporary_message">SukiSU-Ultra を一時的にアンインストールし、次回の再起動後に元の状態に戻します。</string>
+    <string name="settings_uninstall_permanent_message">SukiSU-Ultra (ルートおよびすべてのモジュール) を完全かつ永久にアンインストールします。</string>
+    <string name="settings_restore_stock_image_message">バックアップが存在する場合、工場出荷時のイメージを復元できます (OTA の前に使用してください)。SukiSU-Ultra をアンインストールする必要がある場合は、「完全にアンインストールする」を使用してください。</string>
     <string name="flashing">フラッシュ</string>
     <string name="flash_success">フラッシュ成功</string>
     <string name="flash_failed">フラッシュ失敗</string>
@@ -208,7 +208,7 @@
     <string name="color_amber">アンバー</string>
     <string name="color_blue_grey">ブルーグレー</string>
     <string name="color_sakura">桜</string>
-    <string name="profile_flags_desc_no_new_privs">この root プロファイルのコンテキスト内で、KernelSU を介したさらなる権限昇格を防止します。</string>
+    <string name="profile_flags_desc_no_new_privs">この root プロファイルのコンテキスト内で、SukiSU-Ultra を介したさらなる権限昇格を防止します。</string>
     <string name="install_force_backup">純正イメージとしてバックアップ</string>
     <string name="install_force_backup_summary">選択した boot イメージが純正イメージであることを確認してください</string>
 </resources>

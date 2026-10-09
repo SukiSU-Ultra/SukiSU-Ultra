@@ -2,7 +2,7 @@
 <resources>
     <string name="home_working">Működik</string>
     <string name="home_working_version">Verzió: %s</string>
-    <string name="home_unsupported_reason">A KernelSU jelenleg csak GKI kerneleket támogat</string>
+    <string name="home_unsupported_reason">A SukiSU-Ultra jelenleg csak GKI kerneleket támogat</string>
     <string name="home_kernel">Kernel</string>
     <string name="home_manager_version">Alkalmazás verziója</string>
     <string name="home_fingerprint">Ujjlenyomat</string>
@@ -16,8 +16,8 @@
     <string name="show_system_apps">Rendszeralkalmazások megjelenítése</string>
     <string name="safe_mode">Biztonságos mód</string>
     <string name="module_magisk_conflict">A modulok nem érhetők el a Magiskkel való ütközés miatt!</string>
-    <string name="home_learn_kernelsu">Tudjon meg többet a KernelSU-ról</string>
-    <string name="home_click_to_learn_kernelsu">Ismerje meg a KernelSU telepítését és a modulok használatát</string>
+    <string name="home_learn_kernelsu">Tudjon meg többet a SukiSU-Ultra-ról</string>
+    <string name="home_click_to_learn_kernelsu">Ismerje meg a SukiSU-Ultra telepítését és a modulok használatát</string>
     <string name="home_support_title">Támogasson minket</string>
     <string name="about_source_code">Tekintse meg a forráskódot a %1$s-on<br/>
 Csatlakozzon a %2$s csatornánkhoz</string>
@@ -27,13 +27,13 @@ Csatlakozzon a %2$s csatornánkhoz</string>
     <string name="profile_name">Profil neve</string>
     <string name="profile_namespace">Névtér csatlakoztatása</string>
     <string name="profile_namespace_inherited">Örökölt</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="profile_namespace_individual">Különálló</string>
     <string name="profile_groups">Csoportok</string>
     <string name="profile_capabilities">Jogosultságok</string>
     <string name="profile_selinux_context">SELinux kontextus</string>
     <string name="settings_umount_modules_default">Modulok leválasztása alapértelmezetten</string>
-    <string name="profile_umount_modules_summary">Ha engedélyezi ezt az opciót, a KernelSU visszaállíthatja az alkalmazás moduljai által módosított fájlokat.</string>
+    <string name="profile_umount_modules_summary">Ha engedélyezi ezt az opciót, a SukiSU-Ultra visszaállíthatja az alkalmazás moduljai által módosított fájlokat.</string>
     <string name="profile_selinux_domain">Tartomány</string>
     <string name="profile_selinux_rules">Szabályok</string>
     <string name="module_update">Frissítés</string>
@@ -108,7 +108,7 @@ Csatlakozzon a %2$s csatornánkhoz</string>
     <string name="select_kmi">KMI kiválasztása</string>
     <string name="install_next">Következő</string>
     <string name="settings_uninstall_temporary">Ideiglenes eltávolítás</string>
-    <string name="settings_uninstall_temporary_message">A KernelSU ideiglenes eltávolítása, az eredeti állapot visszaállítása a következő újraindítás után.</string>
+    <string name="settings_uninstall_temporary_message">A SukiSU-Ultra ideiglenes eltávolítása, az eredeti állapot visszaállítása a következő újraindítás után.</string>
     <string name="settings_uninstall">Eltávolítás</string>
     <string name="flashing">Telepítés</string>
     <string name="flash_success">Sikeres telepítés</string>
@@ -122,20 +122,20 @@ Csatlakozzon a %2$s csatornánkhoz</string>
     <string name="download_dialog_msg">Teljes OTA-kép vagy gyári kép</string>
     <string name="download_no_boot_partition">A képen nem található boot, init_boot vagy vendor_boot partíció</string>
     <string name="download_probe_failed">A kép vizsgálata sikertelen: %1$s</string>
-    <string name="settings_uninstall_permanent_message">A KernelSU eltávolítása (root és az összes modul) teljesen és véglegesen.</string>
+    <string name="settings_uninstall_permanent_message">A SukiSU-Ultra eltávolítása (root és az összes modul) teljesen és véglegesen.</string>
     <string name="settings_restore_stock_image">Eredeti képfájl visszaállítása</string>
     <string name="action">Művelet</string>
     <string name="direct_install">Közvetlen telepítés (Ajánlott)</string>
     <string name="install_inactive_slot_warning">Az eszköze **KÉNYSZERÍTETTEN** a jelenleg inaktív helyről fog indulni újraindítás után!\nCsak az OTA befejezése után használja.\nFolytatja?</string>
-    <string name="settings_restore_stock_image_message">Állítsa vissza a gyári képfájlt (ha létezik biztonsági mentés). Általában OTA előtt használják. Ha a KernelSU-t szeretné eltávolítani, használja a végleges eltávolítás opciót.</string>
+    <string name="settings_restore_stock_image_message">Állítsa vissza a gyári képfájlt (ha létezik biztonsági mentés). Általában OTA előtt használják. Ha a SukiSU-Ultra-t szeretné eltávolítani, használja a végleges eltávolítás opciót.</string>
     <string name="settings_check_update">Frissítés ellenőrzése</string>
     <string name="settings_check_update_summary">Automatikusan keressen frissítéseket az alkalmazás megnyitásakor</string>
     <string name="log_saved">Mentett naplók</string>
     <string name="settings_sucompat">su bináris átirányítása</string>
     <string name="settings_sucompat_summary">Lehetővé teszi az App Profile-ban Superuser engedéllyel rendelkező alkalmazások számára, hogy superuser shell-t kapjanak a /system/bin/su végrehajtásával; csak új folyamatoknál hatékony.</string>
     <string name="settings_kernel_umount">Kernel leválasztása</string>
-    <string name="settings_kernel_umount_summary">KernelSU által vezérelt kernel szintű leválasztási viselkedés</string>
-    <string name="profile_flags_desc_no_new_privs">Megakadályozza a jogosultságok további kiterjesztését a KernelSU-n keresztül ezen root profil kontextusán belül.</string>
+    <string name="settings_kernel_umount_summary">SukiSU-Ultra által vezérelt kernel szintű leválasztási viselkedés</string>
+    <string name="profile_flags_desc_no_new_privs">Megakadályozza a jogosultságok további kiterjesztését a SukiSU-Ultra-n keresztül ezen root profil kontextusán belül.</string>
     <string name="install_force_backup">Biztonsági mentés gyári képként</string>
     <string name="install_force_backup_summary">Kérjük, győződj meg róla, hogy a kiválasztott boot lemezkép a gyári lemezkép</string>
 </resources>

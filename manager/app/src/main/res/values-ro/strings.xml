@@ -6,7 +6,7 @@
     <string name="home_working">Funcționează</string>
     <string name="home_working_version">Versiune: %s</string>
     <string name="home_unsupported">Necompatibil</string>
-    <string name="home_unsupported_reason">KernelSU suportă doar nuclee GKI acum</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra suportă doar nuclee GKI acum</string>
     <string name="home_kernel">Nucleu</string>
     <string name="home_manager_version">Versiune Manager</string>
     <string name="home_fingerprint">Amprentă</string>
@@ -41,9 +41,9 @@
     <string name="safe_mode">Mod sigur</string>
     <string name="reboot_to_apply">Repornește pentru ca modificările să intre în vigoare</string>
     <string name="module_magisk_conflict">Modulele sunt dezactivate deoarece sunt în conflict cu cele ale Magisk-ului!</string>
-    <string name="home_learn_kernelsu">Află mai multe despre KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Află cum să instalezi KernelSU și să utilizezi module</string>
+    <string name="home_learn_kernelsu">Află mai multe despre SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Află cum să instalezi SukiSU-Ultra și să utilizezi module</string>
     <string name="home_support_title">Suport</string>
     <string name="home_support_content">KernelSU este, și va fi întotdeauna, gratuit și cu codul sursă deschis. Cu toate acestea, ne poți arăta că îți pasă făcând o donație.</string>
     <string name="about_source_code"><![CDATA[Vezi codul sursă la %1$s<br/>Alătură-te canalului nostru %2$s]]></string>
@@ -62,7 +62,7 @@
     <string name="failed_to_update_app_profile">Nu s-a putut actualiza profilul aplicației pentru %s</string>
     <string name="settings_umount_modules_default">U-montează modulele în mod implicit</string>
     <string name="settings_umount_modules_default_summary">Valoarea implicită globală pentru „Module u-montate” în Profilurile aplicațiilor. Dacă este activat, va elimina toate modificările modulelor aduse sistemului pentru aplicațiile care nu au un profil setat.</string>
-    <string name="profile_umount_modules_summary">Activarea acestei opțiuni va permite KernelSU să restaureze orice fișiere modificate de către modulele pentru această aplicație.</string>
+    <string name="profile_umount_modules_summary">Activarea acestei opțiuni va permite SukiSU-Ultra să restaureze orice fișiere modificate de către modulele pentru această aplicație.</string>
     <string name="profile_selinux_domain">Domeniu</string>
     <string name="profile_selinux_rules">Reguli</string>
     <string name="module_update">Actualizează</string>
@@ -120,12 +120,12 @@
     <string name="install_inactive_slot">Instalează într-un slot inactiv (după OTA)</string>
     <string name="settings_uninstall">Dezinstalează</string>
     <string name="settings_restore_stock_image">Restaurare imagine stoc</string>
-    <string name="settings_uninstall_temporary_message">Dezinstalează temporar KernelSU, se revine la starea inițială după următoarea repornire.</string>
+    <string name="settings_uninstall_temporary_message">Dezinstalează temporar SukiSU-Ultra, se revine la starea inițială după următoarea repornire.</string>
     <string name="selected_lkm">Lkm selectat: %s</string>
     <string name="settings_uninstall_temporary">Dezinstalează temporar</string>
     <string name="settings_uninstall_permanent">Dezinstalează definitiv</string>
-    <string name="settings_uninstall_permanent_message">Dezinstalare KernelSU (Root și toate modulele) complet și permanent.</string>
-    <string name="settings_restore_stock_image_message">Restaurează imaginea stoc din fabrică (dacă există o copie de rezervă), utilizată de obicei înainte de OTA; dacă trebuie să dezinstalezi KernelSU, utilizează „Dezinstalare permanentă”.</string>
+    <string name="settings_uninstall_permanent_message">Dezinstalare SukiSU-Ultra (Root și toate modulele) complet și permanent.</string>
+    <string name="settings_restore_stock_image_message">Restaurează imaginea stoc din fabrică (dacă există o copie de rezervă), utilizată de obicei înainte de OTA; dacă trebuie să dezinstalezi SukiSU-Ultra, utilizează „Dezinstalare permanentă”.</string>
     <string name="flashing">Instalare</string>
     <string name="flash_success">Instalare reușită</string>
     <string name="flash_failed">Instalarea a eșuat</string>
@@ -133,8 +133,8 @@
     <string name="settings_sucompat">Redirecționare binar su</string>
     <string name="settings_sucompat_summary">Permite aplicațiilor cu permisiune de Superutilizator în Profilul Aplicației să obțină un shell de superutilizator executând /system/bin/su; eficient doar pentru procesele noi.</string>
     <string name="settings_kernel_umount">Demontare kernel</string>
-    <string name="settings_kernel_umount_summary">Comportament de demontare la nivel de kernel controlat de KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">Împiedică escaladarea suplimentară a privilegiilor prin KernelSU în contextul acestui profil root.</string>
+    <string name="settings_kernel_umount_summary">Comportament de demontare la nivel de kernel controlat de SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">Împiedică escaladarea suplimentară a privilegiilor prin SukiSU-Ultra în contextul acestui profil root.</string>
     <string name="install_force_backup">Salvează ca imagine originală</string>
     <string name="install_force_backup_summary">Asigură-te că imaginea boot selectată este imaginea originală</string>
 </resources>

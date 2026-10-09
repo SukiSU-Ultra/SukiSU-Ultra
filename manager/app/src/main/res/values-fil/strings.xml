@@ -11,7 +11,7 @@
     <string name="home_working_version">Bersyon: %s</string>
     <string name="selinux_status_unknown">Hindi matukoy</string>
     <string name="home_unsupported">Hindi Suportado</string>
-    <string name="home_unsupported_reason">Sinusuportahan lamang ng KernelSU ang mga GKI na kernel.</string>
+    <string name="home_unsupported_reason">Sinusuportahan lamang ng SukiSU-Ultra ang mga GKI na kernel.</string>
     <string name="module_failed_to_enable">Nabigong paganahin ang module: %s</string>
     <string name="module_failed_to_disable">Nabigong i-disable ang module: %s</string>
     <string name="module_empty">Walang naka-install na modyul</string>
@@ -31,8 +31,8 @@
     <string name="send_log">Ipadala ang mga log</string>
     <string name="reboot_to_apply">I-reboot para umepekto</string>
     <string name="module_magisk_conflict">Hindi magagamit ang mga module dahil sa isang salungatan sa Magisk!</string>
-    <string name="home_learn_kernelsu">Alamin ang KernelSU</string>
-    <string name="home_click_to_learn_kernelsu">Matuto kung paano i-install ang KernelSU at gumamit ng mga module</string>
+    <string name="home_learn_kernelsu">Alamin ang SukiSU-Ultra</string>
+    <string name="home_click_to_learn_kernelsu">Matuto kung paano i-install ang SukiSU-Ultra at gumamit ng mga module</string>
     <string name="home_support_title">Suportahan Kami</string>
     <string name="home_support_content">Ang KernelSU ay, at palaging magiging, libre, at open source. Gayunpaman, maaari mong ipakita sa amin na nagmamalasakit ka sa pamamagitan ng pagbibigay ng donasyon.</string>
     <string name="about_source_code"><![CDATA[Tignan ang source code sa %1$s<br/>Sumali sa aming %2$s channel]]></string>
@@ -48,7 +48,7 @@
     <string name="require_manager_version">Kailangang i-update ang manager.</string>
     <string name="require_kernel_version">Kailangang i-update ang kernel. I-tap para i-install.</string>
     <string name="require_kernel_version_gki">Kailangang i-update ang kernel.</string>
-    <string name="profile_umount_modules_summary">Ang pag-enable sa opsyong ito ay magbibigay-daan sa KernelSU na ibalik ang anumang binagong file ng mga module para sa app na ito.</string>
+    <string name="profile_umount_modules_summary">Ang pag-enable sa opsyong ito ay magbibigay-daan sa SukiSU-Ultra na ibalik ang anumang binagong file ng mga module para sa app na ito.</string>
     <string name="profile_selinux_rules">Mga Tuntunin</string>
     <string name="module_downloading">Nagda-download ng modyul: %s</string>
     <string name="module_start_downloading">Simulan ang pag-download: %s</string>
@@ -75,7 +75,7 @@
     <string name="module_sort_enabled_first">Pinagana muna</string>
     <string name="confirm">Kumpirmahin</string>
     <string name="safe_mode">Safe mode</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="profile_default">Default</string>
     <string name="profile_template">Template</string>
     <string name="profile_custom">Pasadya</string>
@@ -127,9 +127,9 @@
     <string name="settings_uninstall_temporary">Pansamantalang i-uninstall</string>
     <string name="settings_uninstall_permanent">Permanenteng i-uninstall</string>
     <string name="settings_restore_stock_image">Ibalik ang stock image</string>
-    <string name="settings_uninstall_temporary_message">Pansamantalang i-uninstall ang KernelSU, ibabalik sa orihinal na kalagayan pagkatapos ng susunod na reboot.</string>
-    <string name="settings_uninstall_permanent_message">Ina-uninstall ang KernelSU (root at lahat ng mga module) nang tuluyan at permanente.</string>
-    <string name="settings_restore_stock_image_message">Ibalik ang stock factory image (kung may umiiral na backup), kadalasan na ginagamit bago ng OTA; kung kailangan mong i-uninstall ang KernelSU, mangyaring gamitin ang \"Permanenteng i-uninstall\".</string>
+    <string name="settings_uninstall_temporary_message">Pansamantalang i-uninstall ang SukiSU-Ultra, ibabalik sa orihinal na kalagayan pagkatapos ng susunod na reboot.</string>
+    <string name="settings_uninstall_permanent_message">Ina-uninstall ang SukiSU-Ultra (root at lahat ng mga module) nang tuluyan at permanente.</string>
+    <string name="settings_restore_stock_image_message">Ibalik ang stock factory image (kung may umiiral na backup), kadalasan na ginagamit bago ng OTA; kung kailangan mong i-uninstall ang SukiSU-Ultra, mangyaring gamitin ang \"Permanenteng i-uninstall\".</string>
     <string name="flashing">Nagfa-flash</string>
     <string name="flash_success">Matagumpay ang pag-flash</string>
     <string name="flash_failed">Nabigo ang pag-flash</string>
@@ -142,7 +142,7 @@
     <string name="module_repos_source_code">Source code</string>
     <string name="metamodule_uninstall_confirm">Sigurado ka ba gusto mong i-uninstall ang module na %s? Aapektuhan ng aksyon na ito ang lahat ng mga module, at hindi na gagana ang mga feature na ibinigay ng metamodule (tulad ng pag-mount).</string>
     <string name="safe_mode_module_disabled">Naka-disable sa safe mode ang pag-install ng mga module</string>
-    <string name="profile_flags_desc_no_new_privs">Pinipigilan ang karagdagang pagtaas ng pribilehiyo sa pamamagitan ng KernelSU mula sa loob ng konteksto ng root profile na ito.</string>
+    <string name="profile_flags_desc_no_new_privs">Pinipigilan ang karagdagang pagtaas ng pribilehiyo sa pamamagitan ng SukiSU-Ultra mula sa loob ng konteksto ng root profile na ito.</string>
     <string name="install_force_backup">I-backup bilang stock image</string>
     <string name="install_force_backup_summary">Pakisigurado na stock image ang napili mong boot image</string>
 </resources>

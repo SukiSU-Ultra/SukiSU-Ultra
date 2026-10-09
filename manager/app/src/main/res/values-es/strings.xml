@@ -6,7 +6,7 @@
     <string name="home_working">Funcionando</string>
     <string name="home_working_version">Versión: %s</string>
     <string name="home_unsupported">Sin soporte</string>
-    <string name="home_unsupported_reason">KernelSU solo admite kernels GKI por ahora</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra solo admite kernels GKI por ahora</string>
     <string name="home_kernel">Versión del kernel</string>
     <string name="home_manager_version">Versión del gestor</string>
     <string name="home_fingerprint">Huella del dispositivo</string>
@@ -42,9 +42,9 @@
     <string name="safe_mode">Modo seguro</string>
     <string name="reboot_to_apply">Reinicia para aplicar cambios</string>
     <string name="module_magisk_conflict">¡Los módulos no están disponibles debido a un conflicto con Magisk!</string>
-    <string name="home_learn_kernelsu">Aprende KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Aprende a instalar KernelSU y a utilizar módulos</string>
+    <string name="home_learn_kernelsu">Aprende SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Aprende a instalar SukiSU-Ultra y a utilizar módulos</string>
     <string name="home_support_title">Apóyanos</string>
     <string name="home_support_content">KernelSU es, y siempre será, gratuito y de código abierto. Sin embargo, puedes demostrarnos que te importamos haciendo una donación.</string>
     <string name="about_source_code">Ver código fuente en %1$s<br/>
@@ -64,7 +64,7 @@
     <string name="failed_to_update_app_profile">Error al actualizar el perfil de la aplicación para %s</string>
     <string name="settings_umount_modules_default">Desmontar módulos por defecto</string>
     <string name="settings_umount_modules_default_summary">El valor global predeterminado para \"Umount modules\" en App Profile. Si está activado, eliminará todas las modificaciones de módulos del sistema para las apps que no tengan un perfil establecido.</string>
-    <string name="profile_umount_modules_summary">Activar esta opción permitirá a KernelSU restaurar cualquier archivo modificado por los módulos para esta aplicación.</string>
+    <string name="profile_umount_modules_summary">Activar esta opción permitirá a SukiSU-Ultra restaurar cualquier archivo modificado por los módulos para esta aplicación.</string>
     <string name="profile_selinux_domain">Dominio</string>
     <string name="profile_selinux_rules">Reglas</string>
     <string name="module_update">Actualizar</string>
@@ -109,7 +109,7 @@
     <string name="install_inactive_slot_warning">¡Su dispositivo será **FORZADO** a arrancar en la ranura inactiva actual después de un reinicio!\nUtilice esta opción sólo después de que la OTA se haya realizado.\n¿Continuar?</string>
     <string name="settings_uninstall">Desinstalar</string>
     <string name="settings_restore_stock_image">Restaurar imagen de archivo</string>
-    <string name="settings_uninstall_temporary_message">Desinstalar temporalmente KernelSU, restaurar al estado original tras el siguiente reinicio.</string>
+    <string name="settings_uninstall_temporary_message">Desinstalar temporalmente SukiSU-Ultra, restaurar al estado original tras el siguiente reinicio.</string>
     <string name="selected_lkm">LKM seleccionado: %s</string>
     <string name="flash_failed">Flash falló</string>
     <string name="flash_success">Éxito de Flash</string>
@@ -124,16 +124,16 @@
     <string name="install_inactive_slot">Instalar en ranura inactiva (Después de OTA)</string>
     <string name="settings_uninstall_temporary">Desinstalar temporalmente</string>
     <string name="settings_uninstall_permanent">Desinstalar permanentemente</string>
-    <string name="settings_uninstall_permanent_message">Desinstalar KernelSU (Root y todos los módulos) completa y permanentemente.</string>
+    <string name="settings_uninstall_permanent_message">Desinstalar SukiSU-Ultra (Root y todos los módulos) completa y permanentemente.</string>
     <string name="settings_check_update">Comprobar actualización</string>
     <string name="settings_check_update_summary">Comprobación automática de actualizaciones al abrir la aplicación</string>
     <string name="enable_web_debugging_summary">Puede ser usado para depurar WebUI, por favor habilítalo sólo cuando sea necesario.</string>
-    <string name="settings_restore_stock_image_message">Restaurar la imagen de fábrica stock (Si existe una copia de seguridad), por lo general se utiliza antes de OTA; si necesita desinstalar KernelSU, por favor, utilice \"Desinstalar permanentemente\".</string>
+    <string name="settings_restore_stock_image_message">Restaurar la imagen de fábrica stock (Si existe una copia de seguridad), por lo general se utiliza antes de OTA; si necesita desinstalar SukiSU-Ultra, por favor, utilice \"Desinstalar permanentemente\".</string>
     <string name="settings_sucompat">Redirigir binario su</string>
     <string name="settings_sucompat_summary">Permite que las aplicaciones con permiso de Superusuario en el perfil de la aplicación obtengan un shell de superusuario ejecutando /system/bin/su; efectivo solo para nuevos procesos.</string>
     <string name="settings_kernel_umount">Desmontaje del kernel</string>
-    <string name="settings_kernel_umount_summary">Comportamiento de desmontaje a nivel de kernel controlado por KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">Impide una mayor escalada de privilegios mediante KernelSU dentro del contexto de este perfil root.</string>
+    <string name="settings_kernel_umount_summary">Comportamiento de desmontaje a nivel de kernel controlado por SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">Impide una mayor escalada de privilegios mediante SukiSU-Ultra dentro del contexto de este perfil root.</string>
     <string name="install_force_backup">Respaldar como imagen original</string>
     <string name="install_force_backup_summary">Asegúrate de que la imagen de arranque seleccionada sea la imagen original</string>
 </resources>

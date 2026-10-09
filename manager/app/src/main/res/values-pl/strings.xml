@@ -6,7 +6,7 @@
     <string name="home_working">Działa</string>
     <string name="home_working_version">Wersja: %s</string>
     <string name="home_unsupported">Nieobsługiwany</string>
-    <string name="home_unsupported_reason">KernelSU obsługuje obecnie tylko jądra GKI.</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra obsługuje obecnie tylko jądra GKI.</string>
     <string name="home_kernel">Wersja jądra</string>
     <string name="home_manager_version">Wersja menedżera</string>
     <string name="home_fingerprint">Odcisk</string>
@@ -41,9 +41,9 @@
     <string name="safe_mode">Tryb bezpieczny</string>
     <string name="reboot_to_apply">Uruchom ponownie, aby zastosować zmiany</string>
     <string name="module_magisk_conflict">Moduły są niedostępne z powodu konfliktu z Magiskiem!</string>
-    <string name="home_learn_kernelsu">Poznaj KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Dowiedz się jak zainstalować KernelSU i jak korzystać z modułów.</string>
+    <string name="home_learn_kernelsu">Poznaj SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Dowiedz się jak zainstalować SukiSU-Ultra i jak korzystać z modułów.</string>
     <string name="home_support_title">Wesprzyj nas</string>
     <string name="home_support_content">KernelSU jest i zawsze będzie darmowy oraz otwarty. Niemniej jednak możesz nam pokazać, że Ci zależy, wysyłając darowiznę.</string>
     <string name="about_source_code"><![CDATA[Przejrzyj kod źródłowy na %1$s<br/>Dołącz do kanału %2$s]]></string>
@@ -63,7 +63,7 @@
     <string name="failed_to_update_app_profile">Nie udało się zaktualizować profilu aplikacji dla %s</string>
     <string name="settings_umount_modules_default">Domyślnie odmontowuj moduły</string>
     <string name="settings_umount_modules_default_summary">Globalna wartość domyślna opcji \"Odmontuj moduły\" w profilu aplikacji. Jeśli jest włączona, wycofuje wszystkie modyfikacje dokonane przez moduły dla aplikacji, które nie mają ustawionego profilu.</string>
-    <string name="profile_umount_modules_summary">Włączenie tej opcji umożliwi KernelSU przywrócenie wszelkich zmodyfikowanych plików przez moduły dla tej aplikacji.</string>
+    <string name="profile_umount_modules_summary">Włączenie tej opcji umożliwi SukiSU-Ultra przywrócenie wszelkich zmodyfikowanych plików przez moduły dla tej aplikacji.</string>
     <string name="profile_selinux_domain">Domena</string>
     <string name="profile_selinux_rules">Reguły</string>
     <string name="module_update">Zaktualizuj</string>
@@ -123,9 +123,9 @@
     <string name="settings_restore_stock_image">Przywróć obraz fabryczny</string>
     <string name="settings_uninstall_temporary">Odinstaluj tymczasowo</string>
     <string name="settings_uninstall">Odinstaluj</string>
-    <string name="settings_uninstall_temporary_message">Tymczasowo odinstaluj KernelSU, przywróć do oryginalnego stanu po następnym ponownym uruchomieniu.</string>
-    <string name="settings_uninstall_permanent_message">Całkowite i trwałe odinstalowanie KernelSU (root i wszystkich modułów).</string>
-    <string name="settings_restore_stock_image_message">Przywróć obraz fabryczny (jeśli istnieje kopia zapasowa), zwykle używany przed OTA; jeśli chcesz odinstalować KernelSU, użyj opcji \"Odinstaluj całkowicie\".</string>
+    <string name="settings_uninstall_temporary_message">Tymczasowo odinstaluj SukiSU-Ultra, przywróć do oryginalnego stanu po następnym ponownym uruchomieniu.</string>
+    <string name="settings_uninstall_permanent_message">Całkowite i trwałe odinstalowanie SukiSU-Ultra (root i wszystkich modułów).</string>
+    <string name="settings_restore_stock_image_message">Przywróć obraz fabryczny (jeśli istnieje kopia zapasowa), zwykle używany przed OTA; jeśli chcesz odinstalować SukiSU-Ultra, użyj opcji \"Odinstaluj całkowicie\".</string>
     <string name="flashing">Flashowanie</string>
     <string name="flash_success">Flashowanie ukończone pomyślnie</string>
     <string name="flash_failed">Flashowanie nieudane</string>
@@ -149,7 +149,7 @@
     <string name="settings_sucompat">Przekieruj binarkę su</string>
     <string name="settings_sucompat_summary">Pozwala aplikacjom z uprawnieniami Superużytkownika w profilu aplikacji uzyskać shell superużytkownika przez wykonanie /system/bin/su; skuteczne tylko dla nowych procesów.</string>
     <string name="settings_kernel_umount">Odmontowanie jądra</string>
-    <string name="settings_kernel_umount_summary">Zachowanie odmontowania na poziomie jądra kontrolowane przez KernelSU</string>
+    <string name="settings_kernel_umount_summary">Zachowanie odmontowania na poziomie jądra kontrolowane przez SukiSU-Ultra</string>
     <string name="app_profile_affects_following_apps">Wpływa na następujące aplikacje</string>
     <string name="install_select_partition">Wybierz partycję</string>
     <string name="group_contains_apps">Zawiera %d aplikacji</string>
@@ -183,7 +183,7 @@
     <string name="tab_releases">Wydania</string>
     <string name="tab_info">Informacje</string>
     <string name="safe_mode_module_disabled">Instalacja modułów jest wyłączona w trybie awaryjnym</string>
-    <string name="profile_flags_desc_no_new_privs">Zapobiega dalszemu podnoszeniu uprawnień przez KernelSU w kontekście tego profilu root.</string>
+    <string name="profile_flags_desc_no_new_privs">Zapobiega dalszemu podnoszeniu uprawnień przez SukiSU-Ultra w kontekście tego profilu root.</string>
     <string name="install_force_backup">Utwórz kopię zapasową jako obraz fabryczny</string>
     <string name="install_force_backup_summary">Upewnij się, że wybrany obraz boot to obraz fabryczny</string>
 </resources>
