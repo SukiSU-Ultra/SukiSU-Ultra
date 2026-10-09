@@ -1206,7 +1206,6 @@ pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
             name.starts_with("zygiskd")
                 || name.starts_with("zygisk-ptrace")
                 || name.starts_with("rezygisk")
-                || name.starts_with("zn-daemon")
                 || name.contains("zygisk")
         }),
     };
