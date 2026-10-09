@@ -8,17 +8,13 @@
  * target: no ptrace, no injected code, no modified instruction bytes. This is
  * the persistent/automatic counterpart to the interactive HWBP-hold in ptctl.
  *
- * A hook = where (entry or uretprobe return) + when (condition) + what (action),
- * with an optional register capture drained via KSU_UHOOK_READ.
+ * A hook = where (entry or uretprobe return) + when (condition), with the
+ * register state captured into a ring buffer drained via KSU_UHOOK_READ.
  *
- * Reliable verbs on arm64: OBSERVE, POKE, and SETREG. SETREG at a RETURN site
- * forges the function's return value (x0) -- the canonical "make a check report
- * success" bypass. The control-flow verbs (FORCE_RET/JUMP/SKIP) rewrite pc, but
- * arm64's uprobe single-steps a non-simulated probed instruction after the
- * handler and thereby overwrites a handler-set pc (see handle_swbp() and
- * arch_uprobe_skip_sstep()); they are only honoured at simulated branch sites.
- * To fully skip a void method, patch its first instruction to `ret` via a ptctl
- * poke instead.
+ * Observe-only build: this records register state and never modifies the
+ * target. The register/memory/control-flow write actions are intentionally
+ * not implemented, so a hook cannot corrupt a probed process -- the worst a
+ * misconfigured hook can do is capture nothing.
  *
  * Portability. Register access is implemented for arm64 and x86_64 (the module
  * is built for both); other arches fall back to no-ops so it still links. The
@@ -59,7 +55,6 @@
 
 #define UHOOK_MAX 32 /* max simultaneous hooks */
 #define UHOOK_RING 512 /* capture ring depth (records) */
-#define UHOOK_POKE_MAX 256 /* max POKE payload bytes */
 #define UHOOK_NREG 34 /* x0..x30, sp, pc, pstate */
 
 /* --- resolved kernel symbols (the uprobe ABI differs across versions) --- */
@@ -97,8 +92,6 @@ struct uhook {
     u32 action, act_reg;
     s64 act_off;
     u64 act_val;
-    void *poke_data;
-    u32 poke_len;
     /* capture */
     u32 cap_regs;
     u64 hits;
@@ -115,9 +108,8 @@ static u32 ring_count;
 static DEFINE_SPINLOCK(ring_lock);
 
 /* --- register access by index. arm64: 0..30 = x0..x30, 31 = sp, 32 = pc,
- * 33 = pstate. x86_64: 0 = ax (return value, so SETREG index 0 forges a return
- * on both arches), 1..14 = bx,cx,dx,si,di,bp,r8..r15, 31 = sp, 32 = ip,
- * 33 = flags. Other arches return 0 so the module still links. --- */
+ * 33 = pstate. x86_64: 0 = ax, 1..14 = bx,cx,dx,si,di,bp,r8..r15, 31 = sp,
+ * 32 = ip, 33 = flags. Other arches return 0 so the module still links. --- */
 static u64 uh_get_reg(struct pt_regs *regs, u32 i)
 {
 #if defined(CONFIG_ARM64) || defined(__aarch64__)
@@ -173,83 +165,6 @@ static u64 uh_get_reg(struct pt_regs *regs, u32 i)
     (void)regs;
     (void)i;
     return 0;
-#endif
-}
-
-static void uh_set_reg(struct pt_regs *regs, u32 i, u64 v)
-{
-#if defined(CONFIG_ARM64) || defined(__aarch64__)
-    if (i < 31)
-        regs->regs[i] = v;
-    else if (i == 31)
-        regs->sp = v;
-    else if (i == 32)
-        regs->pc = v;
-    else
-        regs->pstate = v;
-#elif defined(CONFIG_X86_64) || defined(__x86_64__)
-    switch (i) {
-    case 0:
-        regs->ax = v;
-        break;
-    case 1:
-        regs->bx = v;
-        break;
-    case 2:
-        regs->cx = v;
-        break;
-    case 3:
-        regs->dx = v;
-        break;
-    case 4:
-        regs->si = v;
-        break;
-    case 5:
-        regs->di = v;
-        break;
-    case 6:
-        regs->bp = v;
-        break;
-    case 7:
-        regs->r8 = v;
-        break;
-    case 8:
-        regs->r9 = v;
-        break;
-    case 9:
-        regs->r10 = v;
-        break;
-    case 10:
-        regs->r11 = v;
-        break;
-    case 11:
-        regs->r12 = v;
-        break;
-    case 12:
-        regs->r13 = v;
-        break;
-    case 13:
-        regs->r14 = v;
-        break;
-    case 14:
-        regs->r15 = v;
-        break;
-    case 31:
-        regs->sp = v;
-        break;
-    case 32:
-        regs->ip = v;
-        break;
-    case 33:
-        regs->flags = v;
-        break;
-    default:
-        break;
-    }
-#else
-    (void)regs;
-    (void)i;
-    (void)v;
 #endif
 }
 
@@ -334,38 +249,8 @@ static void uh_apply(struct uhook *h, struct pt_regs *regs)
     case KSU_UHOOK_OBSERVE:
         uh_capture(h, regs);
         break;
-    case KSU_UHOOK_SETREG:
-        if (h->act_reg < UHOOK_NREG)
-            uh_set_reg(regs, h->act_reg, h->act_val);
-        break;
-    case KSU_UHOOK_FORCE_RET:
-#if defined(CONFIG_ARM64) || defined(__aarch64__)
-        /* pc = lr (x30); see file header re: the single-step overwrite */
-        instruction_pointer_set(regs, regs->regs[30]);
-#elif defined(CONFIG_X86_64) || defined(__x86_64__)
-    {
-        /* at entry the return address sits at *rsp; pop it into rip */
-        unsigned long ret_addr = 0;
-
-        if (!copy_from_user(&ret_addr, (void __user *)regs->sp, sizeof(ret_addr))) {
-            instruction_pointer_set(regs, ret_addr);
-            regs->sp += sizeof(ret_addr);
-        }
-    }
-#endif
-        break;
-    case KSU_UHOOK_JUMP:
-        instruction_pointer_set(regs, h->act_val);
-        break;
-    case KSU_UHOOK_SKIP:
-        instruction_pointer_set(regs, instruction_pointer(regs) + h->act_val);
-        break;
-    case KSU_UHOOK_POKE:
-        if (h->poke_data && h->act_reg < UHOOK_NREG) {
-            unsigned long addr = (unsigned long)(uh_get_reg(regs, h->act_reg) + h->act_off);
-
-            (void)copy_to_user((void __user *)addr, h->poke_data, h->poke_len);
-        }
+    default:
+        /* observe-only build: register/memory/control-flow writes removed */
         break;
     }
 }
@@ -432,7 +317,6 @@ static void uh_free(struct uhook *h)
         uh_uprobe_unregister(h);
         iput(h->inode);
     }
-    kfree(h->poke_data);
     memset(h, 0, sizeof(*h));
 }
 
@@ -486,24 +370,6 @@ static int uh_add(struct ksu_uhook_cmd *cmd)
     h->act_val = cmd->act_val;
     h->cap_regs = cmd->cap_regs;
 
-    if (h->action == KSU_UHOOK_POKE && cmd->len) {
-        u32 n = min_t(u32, (u32)cmd->len, (u32)UHOOK_POKE_MAX);
-
-        h->poke_data = kmalloc(n, GFP_KERNEL);
-        if (!h->poke_data) {
-            iput(h->inode);
-            h->inode = NULL;
-            return -ENOMEM;
-        }
-        if (copy_from_user(h->poke_data, (void __user *)(uintptr_t)cmd->uptr, n)) {
-            kfree(h->poke_data);
-            iput(h->inode);
-            h->inode = NULL;
-            return -EFAULT;
-        }
-        h->poke_len = n;
-    }
-
     if (h->site == KSU_UHOOK_ON_RET)
         h->uc.ret_handler = uh_ret_handler;
     else
@@ -511,7 +377,6 @@ static int uh_add(struct ksu_uhook_cmd *cmd)
 
     ret = uh_uprobe_register(h);
     if (ret) {
-        kfree(h->poke_data);
         iput(h->inode);
         memset(h, 0, sizeof(*h));
         return ret;

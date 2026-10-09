@@ -256,11 +256,11 @@ enum ksu_uhook_site {
 
 enum ksu_uhook_action {
     KSU_UHOOK_OBSERVE   = 0, /* record registers into the capture ring (no side effect) */
-    KSU_UHOOK_SETREG    = 1, /* regs[act_reg] = act_val (e.g. x0 at a return = forged result) */
-    KSU_UHOOK_FORCE_RET = 2, /* return immediately from the function: pc = lr (entry site) */
-    KSU_UHOOK_JUMP      = 3, /* pc = act_val (detour) */
-    KSU_UHOOK_SKIP      = 4, /* pc += act_val (step over act_val bytes) */
-    KSU_UHOOK_POKE      = 5, /* write the ADD-supplied bytes to *(regs[act_reg]) + act_off */
+    /*
+     * Observe-only build. The register/memory/control-flow write actions
+     * (SETREG/FORCE_RET/JUMP/SKIP/POKE) are intentionally not implemented:
+     * this feature only reads register state into the capture ring.
+     */
 };
 
 enum ksu_uhook_cond {
@@ -292,12 +292,12 @@ struct ksu_uhook_cmd {
     __s64 cond_off;       /* Input(ADD): mem condition byte offset from *cond_reg */
     __u64 cond_val;       /* Input(ADD): value to compare against */
     /* --- what --- */
-    __u32 action;         /* Input(ADD): enum ksu_uhook_action */
-    __u32 act_reg;        /* Input(ADD): SETREG/POKE register index */
-    __s64 act_off;        /* Input(ADD): POKE byte offset from *act_reg */
-    __u64 act_val;        /* Input(ADD): SETREG value / JUMP addr / SKIP byte count */
+    __u32 action;         /* Input(ADD): enum ksu_uhook_action (observe-only) */
+    __u32 act_reg;        /* reserved (unused in observe-only build) */
+    __s64 act_off;        /* reserved (unused in observe-only build) */
+    __u64 act_val;        /* reserved (unused in observe-only build) */
     /* --- capture / IO --- */
-    __aligned_u64 uptr;   /* Input(ADD POKE): bytes to write; Output(READ): packed records */
+    __aligned_u64 uptr;   /* Output(READ): packed capture records */
     __u64 len;            /* Input: uptr byte length */
     __u32 cap_regs;       /* Input(ADD OBSERVE): number of leading registers to record (0..34) */
     __s64 ret;            /* Output: op result (ADD: hook id; READ: bytes; LIST: count) */
