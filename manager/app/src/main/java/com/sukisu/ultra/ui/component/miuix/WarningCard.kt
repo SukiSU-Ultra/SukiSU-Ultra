@@ -1,19 +1,24 @@
 package com.sukisu.ultra.ui.component.miuix
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.ui.component.WarningLevel
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.isDynamicColor
@@ -23,6 +28,8 @@ import top.yukonga.miuix.kmp.utils.PressFeedbackType
 fun WarningCard(
     message: String,
     modifier: Modifier = Modifier,
+    title: String? = null,
+    icon: ImageVector? = null,
     level: WarningLevel = WarningLevel.Error,
     onClick: (() -> Unit)? = null,
     action: (@Composable () -> Unit)? = null,
@@ -44,10 +51,35 @@ fun WarningCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = message,
-                fontSize = 14.sp
-            )
+            Row(
+                modifier = Modifier.weight(1f, fill = false),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = level.contentColor(),
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(20.dp),
+                    )
+                }
+                Column {
+                    if (title != null) {
+                        Text(
+                            text = title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight(550)
+                        )
+                    }
+                    Text(
+                        text = message,
+                        fontSize = 14.sp,
+                        color = level.contentColor()
+                    )
+                }
+            }
             action?.invoke()
         }
     }

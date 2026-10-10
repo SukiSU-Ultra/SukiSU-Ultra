@@ -36,10 +36,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -85,11 +88,13 @@ import com.sukisu.ultra.ui.component.markdown.GithubMarkdown
 import com.sukisu.ultra.ui.component.miuix.SearchBarFake
 import com.sukisu.ultra.ui.component.miuix.SearchBox
 import com.sukisu.ultra.ui.component.miuix.SearchPager
+import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.miuix.deferredTopPadding
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.formatRepoTime
 import com.sukisu.ultra.ui.util.isDownloadAvailable
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberContentReady
@@ -121,6 +126,7 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.FileDownloads
 import top.yukonga.miuix.kmp.icon.extended.HorizontalSplit
 import top.yukonga.miuix.kmp.icon.extended.Link
+import top.yukonga.miuix.kmp.icon.extended.MoreCircle
 import top.yukonga.miuix.kmp.icon.extended.Sort
 import top.yukonga.miuix.kmp.icon.extended.TopDownloads
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
@@ -139,6 +145,9 @@ fun ModuleRepoScreenMiuix(
     val density = LocalDensity.current
     val metaBg = colorScheme.tertiaryContainer.copy(alpha = 0.6f)
     val metaTint = colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+    val sourceBg = colorScheme.secondaryContainer.copy(alpha = 0.6f)
+    val sourceTint = colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+    val showSourcesDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(searchStatus.searchText) {
         actions.onSearchTextChange(searchStatus.searchText)
@@ -163,6 +172,15 @@ fun ModuleRepoScreenMiuix(
                         title = stringResource(R.string.module_repos),
                         actions = {
                             val showSortPopup = remember { mutableStateOf(false) }
+                            IconButton(
+                                onClick = { showSourcesDialog.value = true }
+                            ) {
+                                Icon(
+                                    imageVector = MiuixIcons.MoreCircle,
+                                    tint = colorScheme.onSurface,
+                                    contentDescription = stringResource(R.string.module_repo_manage_sources),
+                                )
+                            }
                             OverlayListPopup(
                                 show = showSortPopup.value,
                                 popupPositionProvider = ListPopupDefaults.MenuPositionProvider,
@@ -259,7 +277,7 @@ fun ModuleRepoScreenMiuix(
                     item {
                         Spacer(Modifier.height(6.dp))
                     }
-                    items(state.searchResults, key = { it.moduleId }, contentType = { "module" }) { module ->
+                    items(state.searchResults, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -304,6 +322,20 @@ fun ModuleRepoScreenMiuix(
                                                     .padding(start = 6.dp)
                                                     .clip(RoundedCornerShape(6.dp))
                                                     .background(metaBg)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                fontWeight = FontWeight(750),
+                                                maxLines = 1
+                                            )
+                                        }
+                                        if (module.sourceName.isNotEmpty()) {
+                                            Text(
+                                                text = module.sourceName,
+                                                fontSize = 12.sp,
+                                                color = sourceTint,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(sourceBg)
                                                     .padding(horizontal = 6.dp, vertical = 2.dp),
                                                 fontWeight = FontWeight(750),
                                                 maxLines = 1
@@ -361,7 +393,9 @@ fun ModuleRepoScreenMiuix(
         },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        val isLoading = state.modules.isEmpty()
+        // An empty list means "loading" only until the first fetch settles; after that it
+        // means every source failed and the error banner below is the thing to show.
+        val isLoading = !state.hasLoadedOnce
         val hadDataOnEntry = remember { state.modules.isNotEmpty() }
         val contentReady = hadDataOnEntry || rememberContentReady()
         val offline = state.offline
@@ -425,6 +459,13 @@ fun ModuleRepoScreenMiuix(
                                     onClick = actions.onRefresh,
                                 )
                             }
+                        } else if (state.sources.isEmpty()) {
+                            // Nothing is configured out of the box, so this is the first thing a
+                            // new user sees; it has to lead somewhere instead of just stating it.
+                            RepoEmptyPrompt(
+                                hint = stringResource(R.string.module_repo_sources_empty),
+                                onAddSource = { showSourcesDialog.value = true },
+                            )
                         } else if (pullToRefreshState.refreshState == RefreshState.Idle) {
                             InfiniteProgressIndicator()
                         }
@@ -445,8 +486,48 @@ fun ModuleRepoScreenMiuix(
                             ),
                             overscrollEffect = null,
                         ) {
-                            items(items = state.modules, key = { it.moduleId }, contentType = { "module" }) { module ->
+                            if (state.sourceErrors.isNotEmpty()) {
+                                item(key = "source_errors_banner") {
+                                    val groups = remember(state.sourceErrors) {
+                                        groupSourceErrors(state.sourceErrors)
+                                    }
+                                    Column(
+                                        modifier = Modifier.padding(bottom = 12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        groups.forEach { group ->
+                                            WarningCard(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 12.dp),
+                                                title = sourceErrorTitle(group.names),
+                                                message = stringResource(
+                                                    R.string.module_repo_fetch_failed,
+                                                    group.message,
+                                                ),
+                                                icon = Icons.Rounded.ErrorOutline,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            if (state.modules.isEmpty()) {
+                                item(key = "repo_empty_prompt") {
+                                    RepoEmptyPrompt(
+                                        hint = if (state.sources.isEmpty()) {
+                                            stringResource(R.string.module_repo_sources_empty)
+                                        } else {
+                                            null
+                                        },
+                                        onAddSource = { showSourcesDialog.value = true },
+                                    )
+                                }
+                            }
+                            items(items = state.modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
                                 val moduleAuthor = stringResource(id = R.string.module_author)
+                                val latestReleaseTime = remember(module.latestReleaseTime) {
+                                    formatRepoTime(module.latestReleaseTime)
+                                }
 
                                 Card(
                                     modifier = Modifier
@@ -488,6 +569,20 @@ fun ModuleRepoScreenMiuix(
                                                             .padding(start = 6.dp)
                                                             .clip(RoundedCornerShape(6.dp))
                                                             .background(metaBg)
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        fontWeight = FontWeight(750),
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                                if (module.sourceName.isNotEmpty()) {
+                                                    Text(
+                                                        text = module.sourceName,
+                                                        fontSize = 12.sp,
+                                                        color = sourceTint,
+                                                        modifier = Modifier
+                                                            .padding(start = 6.dp)
+                                                            .clip(RoundedCornerShape(6.dp))
+                                                            .background(sourceBg)
                                                             .padding(horizontal = 6.dp, vertical = 2.dp),
                                                         fontWeight = FontWeight(750),
                                                         maxLines = 1
@@ -547,9 +642,9 @@ fun ModuleRepoScreenMiuix(
                                                     }
                                                 }
                                                 Spacer(Modifier.weight(1f))
-                                                if (module.latestReleaseTime.isNotEmpty()) {
+                                                if (latestReleaseTime.isNotEmpty()) {
                                                     Text(
-                                                        text = module.latestReleaseTime,
+                                                        text = latestReleaseTime,
                                                         fontSize = 12.sp,
                                                         color = colorScheme.onSurfaceVariantSummary,
                                                         textAlign = TextAlign.End
@@ -569,12 +664,49 @@ fun ModuleRepoScreenMiuix(
             }
         }
     }
+
+    ManageSourcesDialogMiuix(
+        show = showSourcesDialog.value,
+        onDismissRequest = { showSourcesDialog.value = false },
+        state = state,
+        actions = actions,
+    )
+}
+
+/**
+ * Shown whenever there is nothing to list: no source is configured yet, or every configured source
+ * failed. Adding a repository is the way out of both, so the prompt leads straight to the dialog
+ * instead of only stating that the list is empty.
+ */
+@Composable
+private fun RepoEmptyPrompt(hint: String?, onAddSource: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (hint != null) {
+            Text(
+                text = hint,
+                color = colorScheme.onSurfaceVariantSummary,
+                fontSize = 16.sp,
+            )
+            Spacer(Modifier.height(12.dp))
+        }
+        TextButton(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            text = stringResource(R.string.module_repo_add_repo),
+            onClick = onAddSource,
+        )
+    }
 }
 
 @Composable
 private fun ReadmePage(
     readmeHtml: String?,
     readmeLoaded: Boolean,
+    isMarkdown: Boolean,
     innerPadding: PaddingValues, scrollBehavior: ScrollBehavior, backdrop: LayerBackdrop?
 ) {
     val layoutDirection = LocalLayoutDirection.current
@@ -613,6 +745,7 @@ private fun ReadmePage(
                                 Column {
                                     GithubMarkdown(
                                         content = readmeHtml,
+                                        isMarkdown = isMarkdown,
                                         onLoadingChange = { loaded = !it },
                                     )
                                 }
@@ -679,7 +812,7 @@ fun ReleasesPage(
                 item {
                     Spacer(Modifier.height(6.dp))
                 }
-                items(items = detailReleases, key = { it.tagName }, contentType = { "release" }) { rel ->
+                itemsIndexed(items = detailReleases, key = { index, _ -> "release_$index" }, contentType = { _, _ -> "release" }) { _, rel ->
                     val title = remember(rel.name, rel.tagName) { rel.name.ifBlank { rel.tagName } }
                     Card(
                         modifier = Modifier
@@ -754,6 +887,7 @@ fun ReleasesPage(
                                                     Box(modifier = Modifier.graphicsLayer { this.alpha = descAlpha }) {
                                                         GithubMarkdown(
                                                             content = rel.descriptionHTML,
+                                                            isMarkdown = rel.changelogUrl != null,
                                                             onLoadingChange = { descLoaded = !it },
                                                         )
                                                     }
@@ -804,6 +938,7 @@ fun ReleasesPage(
                                                         download(
                                                             asset.downloadUrl,
                                                             fileName,
+                                                            altUrl = asset.downloadUrlFallback,
                                                             onDownloaded = { uri ->
                                                                 isDownloading = false
                                                                 downloadedUri = uri
@@ -954,6 +1089,50 @@ fun InfoPage(
             ),
             overscrollEffect = null,
         ) {
+            if (module.sourceName.isNotEmpty()) {
+                item {
+                    SmallTitle(
+                        text = stringResource(R.string.module_repo_source_label),
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        insideMargin = PaddingValues(16.dp)
+                    ) {
+                        Text(
+                            text = module.sourceName,
+                            fontSize = 14.sp,
+                            color = colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+            if (module.alternateSourceNames.isNotEmpty()) {
+                item {
+                    SmallTitle(
+                        text = stringResource(R.string.module_repo_source_also_in),
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        insideMargin = PaddingValues(16.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            module.alternateSourceNames.forEach { name ->
+                                Text(
+                                    text = name,
+                                    fontSize = 14.sp,
+                                    color = colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             if (module.authorsList.isNotEmpty()) {
                 item {
                     SmallTitle(
@@ -1156,6 +1335,7 @@ fun ModuleRepoDetailScreenMiuix(
                 0 -> ReadmePage(
                     readmeHtml = state.readmeHtml,
                     readmeLoaded = state.readmeLoaded,
+                    isMarkdown = module.isMmrl,
                     innerPadding = innerPadding,
                     scrollBehavior = scrollBehavior,
                     backdrop = backdrop

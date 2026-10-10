@@ -11,11 +11,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.sukisu.ultra.data.repository.releasePageUrl
+import com.sukisu.ultra.data.repository.repositoryUrl
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.screen.flash.FlashIt
+import com.sukisu.ultra.ui.util.formatRepoTime
 import com.sukisu.ultra.ui.util.module.fetchModuleDetail
 import com.sukisu.ultra.ui.viewmodel.ModuleRepoViewModel
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
@@ -52,10 +55,19 @@ fun ModuleRepoScreen() {
                 authorsList = module.authorList.map { AuthorArg(it.name, it.link) },
                 latestRelease = module.latestRelease,
                 latestReleaseTime = module.latestReleaseTime,
-                releases = emptyList()
+                releases = repoModuleReleases(module),
+                sourceId = module.sourceId,
+                sourceName = module.sourceName,
+                alternateSourceNames = module.alternateSourceNames,
+                readmeUrl = module.mmrl?.readmeUrl,
+                webUrl = module.mmrl?.supportUrl,
             )
             navigator.push(Route.ModuleRepoDetail(args))
         },
+        onAddSource = viewModel::addSource,
+        onRemoveSource = viewModel::removeSource,
+        onSetSourceEnabled = viewModel::setSourceEnabled,
+        onRenameSource = viewModel::renameSource,
     )
 
     when (LocalUiMode.current) {
@@ -71,14 +83,20 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
     var readmeHtml by remember(module.moduleId) { mutableStateOf<String?>(null) }
     var readmeLoaded by remember(module.moduleId) { mutableStateOf(false) }
     var detailReleases by remember(module.moduleId) { mutableStateOf<List<ReleaseArg>>(emptyList()) }
-    var webUrl by remember(module.moduleId) { mutableStateOf("https://modules.kernelsu.org/module/${module.moduleId}") }
-    var sourceUrl by remember(module.moduleId) { mutableStateOf("https://github.com/KernelSU-Modules-Repo/${module.moduleId}") }
+    // Indexes without a page of their own still get a usable link: it is derived from the module's
+    // own download address, so it cannot point at a host that has since disappeared.
+    var webUrl by remember(module.moduleId) {
+        mutableStateOf(module.webUrl ?: module.latestDownloadUrl()?.let(::releasePageUrl).orEmpty())
+    }
+    var sourceUrl by remember(module.moduleId) {
+        mutableStateOf(module.webUrl ?: module.latestDownloadUrl()?.let(::repositoryUrl).orEmpty())
+    }
 
     LaunchedEffect(module.moduleId) {
         if (module.moduleId.isNotEmpty()) {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    val detail = fetchModuleDetail(module.moduleId)
+                    val detail = fetchModuleDetail(module)
                     if (detail != null) {
                         readmeHtml = detail.readmeHtml
                         if (detail.url.isNotEmpty() && detail.url != "null") {
@@ -91,8 +109,16 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
                             ReleaseArg(
                                 tagName = r.tagName,
                                 name = r.name,
-                                publishedAt = r.publishedAt,
-                                assets = r.assets.map { a -> ReleaseAssetArg(a.name, a.downloadUrl, a.size, a.downloadCount) },
+                                publishedAt = formatRepoTime(r.publishedAt),
+                                assets = r.assets.map { a ->
+                                    ReleaseAssetArg(
+                                        a.name,
+                                        a.downloadUrl,
+                                        a.size,
+                                        a.downloadCount,
+                                        a.downloadUrlFallback,
+                                    )
+                                },
                                 descriptionHTML = r.descriptionHTML
                             )
                         }
@@ -131,3 +157,7 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
         UiMode.Material -> ModuleRepoDetailScreenMaterial(state, actions)
     }
 }
+
+/** The newest asset's address, or null when the module's index offered none. */
+private fun RepoModuleArg.latestDownloadUrl(): String? =
+    releases.firstOrNull()?.assets?.firstOrNull()?.downloadUrl

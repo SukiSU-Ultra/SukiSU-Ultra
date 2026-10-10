@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -44,6 +45,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.InstallMobile
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -110,6 +113,7 @@ import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.download
+import com.sukisu.ultra.ui.util.formatRepoTime
 import com.sukisu.ultra.ui.util.isDownloadAvailable
 import com.sukisu.ultra.ui.util.rememberContentReady
 
@@ -124,6 +128,7 @@ fun ModuleRepoScreenMaterial(
     val searchListState = rememberLazyListState()
     val refreshTick = remember { mutableIntStateOf(0) }
     val pullToRefreshState = rememberPullToRefreshState()
+    var showSourcesDialog by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackbarHostState = remember { SnackbarHostState() }
@@ -142,6 +147,15 @@ fun ModuleRepoScreenMaterial(
                 },
                 actions = {
                     var showSortMenu by remember { mutableStateOf(false) }
+
+                    IconButton(
+                        onClick = { showSourcesDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Tune,
+                            contentDescription = stringResource(R.string.module_repo_manage_sources)
+                        )
+                    }
 
                     IconButton(
                         onClick = { showSortMenu = true }
@@ -207,7 +221,9 @@ fun ModuleRepoScreenMaterial(
         },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
-        val isLoading = state.modules.isEmpty()
+        // An empty list means "loading" only until the first fetch settles; after that it
+        // means every source failed and the error banner below is the thing to show.
+        val isLoading = !state.hasLoadedOnce
         val hadDataOnEntry = remember { state.modules.isNotEmpty() }
         val contentReady = hadDataOnEntry || rememberContentReady()
 
@@ -228,6 +244,13 @@ fun ModuleRepoScreenMaterial(
                             Text(stringResource(R.string.network_retry))
                         }
                     }
+                } else if (state.sources.isEmpty()) {
+                    // Nothing is configured out of the box, so this is the first thing a new user
+                    // sees; it has to lead somewhere instead of just stating the fact.
+                    RepoEmptyPrompt(
+                        hint = stringResource(R.string.module_repo_sources_empty),
+                        onAddSource = { showSourcesDialog = true },
+                    )
                 } else {
                     LoadingIndicator()
                 }
@@ -267,11 +290,21 @@ fun ModuleRepoScreenMaterial(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    sourceErrors = state.sourceErrors,
+                    sourcesEmpty = state.sources.isEmpty(),
+                    onAddSource = { showSourcesDialog = true },
                     onModuleClick = actions.onOpenRepoDetail
                 )
             }
         }
     }
+
+    ManageSourcesDialogMaterial(
+        show = showSourcesDialog,
+        onDismissRequest = { showSourcesDialog = false },
+        state = state,
+        actions = actions,
+    )
 }
 
 @Composable
@@ -280,6 +313,9 @@ private fun RepoModuleList(
     listState: LazyListState,
     modifier: Modifier = Modifier,
     bottomPadding: Dp = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding(),
+    sourceErrors: Map<String, String> = emptyMap(),
+    sourcesEmpty: Boolean = false,
+    onAddSource: () -> Unit = {},
     onModuleClick: (RepoModule) -> Unit,
 ) {
     LazyColumn(
@@ -292,8 +328,26 @@ private fun RepoModuleList(
             bottom = 16.dp + bottomPadding
         ),
     ) {
-        items(modules, key = { it.moduleId }, contentType = { "module" }) { module ->
-            val latestReleaseTime = remember(module.latestReleaseTime) { module.latestReleaseTime }
+        if (sourceErrors.isNotEmpty()) {
+            item(key = "source_errors_banner") {
+                val groups = remember(sourceErrors) { groupSourceErrors(sourceErrors) }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    groups.forEach { group ->
+                        SourceErrorBanner(names = group.names, message = group.message)
+                    }
+                }
+            }
+        }
+        if (modules.isEmpty()) {
+            item(key = "repo_empty_prompt") {
+                RepoEmptyPrompt(
+                    hint = if (sourcesEmpty) stringResource(R.string.module_repo_sources_empty) else null,
+                    onAddSource = onAddSource,
+                )
+            }
+        }
+        items(modules, key = { "${it.sourceId}|${it.moduleId}" }, contentType = { "module" }) { module ->
+            val latestReleaseTime = remember(module.latestReleaseTime) { formatRepoTime(module.latestReleaseTime) }
             val moduleAuthor = stringResource(id = R.string.module_author)
 
             TonalCard(
@@ -336,7 +390,7 @@ private fun RepoModuleList(
                         )
                     }
 
-                    if (module.metamodule || module.zygisk) {
+                    if (module.metamodule || module.zygisk || module.sourceName.isNotEmpty()) {
                         Row(
                             modifier = Modifier.padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -353,6 +407,13 @@ private fun RepoModuleList(
                                     "ZYGISK",
                                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                                     backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            }
+                            if (module.sourceName.isNotEmpty()) {
+                                StatusTag(
+                                    module.sourceName,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer
                                 )
                             }
                         }
@@ -393,6 +454,73 @@ private fun RepoModuleList(
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
+    }
+}
+
+/**
+ * Shown whenever there is nothing to list: no source is configured yet, or every configured source
+ * failed. Adding a repository is the way out of both, so the prompt leads straight to the dialog
+ * instead of only stating that the list is empty.
+ */
+@Composable
+private fun RepoEmptyPrompt(hint: String?, onAddSource: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (hint != null) {
+            Text(text = hint, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(12.dp))
+        }
+        Button(onClick = onAddSource) {
+            Text(stringResource(R.string.module_repo_add_repo))
+        }
+    }
+}
+
+/**
+ * A source that could not be fetched is reported as an error notice rather than in a module-shaped
+ * card, which would read as a module whose content failed to load. Sources that failed the same way
+ * share one notice — the title names them, the message is stated once.
+ */
+@Composable
+private fun SourceErrorBanner(names: List<String>, message: String) {
+    val contentColor = MaterialTheme.colorScheme.onErrorContainer
+    TonalCard(containerColor = MaterialTheme.colorScheme.errorContainer) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.ErrorOutline,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier
+                    .padding(top = 2.dp)
+                    .size(20.dp),
+            )
+            Column(modifier = Modifier.padding(start = 12.dp)) {
+                Text(
+                    text = sourceErrorTitle(names),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = stringResource(R.string.module_repo_fetch_failed, message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 
@@ -458,6 +586,7 @@ fun ModuleRepoDetailScreenMaterial(
                     0 -> ReadmePage(
                         readmeHtml = state.readmeHtml,
                         readmeLoaded = state.readmeLoaded,
+                        isMarkdown = module.isMmrl,
                         innerPadding = paddedInnerPadding,
                         scrollBehavior = scrollBehavior
                     )
@@ -504,6 +633,7 @@ fun ModuleRepoDetailScreenMaterial(
 private fun ReadmePage(
     readmeHtml: String?,
     readmeLoaded: Boolean,
+    isMarkdown: Boolean,
     innerPadding: PaddingValues,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
@@ -534,6 +664,7 @@ private fun ReadmePage(
                         Box(modifier = Modifier.graphicsLayer { this.alpha = alpha }) {
                             GithubMarkdown(
                                 content = readmeHtml,
+                                isMarkdown = isMarkdown,
                                 onLoadingChange = { loaded = !it },
                                 containerColor = MaterialTheme.colorScheme.surface,
                             )
@@ -591,11 +722,11 @@ fun ReleasesPage(
         verticalArrangement = Arrangement.spacedBy(13.dp),
     ) {
         if (detailReleases.isNotEmpty()) {
-            items(
+            itemsIndexed(
                 items = detailReleases,
-                key = { it.tagName },
-                contentType = { "release" }
-            ) { rel ->
+                key = { index, _ -> "release_$index" },
+                contentType = { _, _ -> "release" }
+            ) { _, rel ->
                 val title = remember(rel.name, rel.tagName) { rel.name.ifBlank { rel.tagName } }
                 SegmentedColumn(
                     modifier = Modifier.fillMaxWidth(),
@@ -638,6 +769,7 @@ fun ReleasesPage(
                                             Box(modifier = Modifier.graphicsLayer { this.alpha = descAlpha }) {
                                                 GithubMarkdown(
                                                     content = rel.descriptionHTML,
+                                                    isMarkdown = rel.changelogUrl != null,
                                                     onLoadingChange = { descLoaded = !it },
                                                 )
                                             }
@@ -713,6 +845,7 @@ private fun ReleaseAssetSegmentedItem(
                     download(
                         asset.downloadUrl,
                         fileName,
+                        altUrl = asset.downloadUrlFallback,
                         onDownloaded = { uri ->
                             isDownloading = false
                             downloadedUri = uri
@@ -805,6 +938,36 @@ fun InfoPage(
             bottom = innerPadding.calculateBottomPadding(),
         ),
     ) {
+        if (module.sourceName.isNotEmpty()) {
+            item {
+                SegmentedColumn(
+                    title = stringResource(R.string.module_repo_source_label),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                headlineContent = { Text(text = module.sourceName) },
+                            )
+                        }
+                    )
+                )
+            }
+        }
+        if (module.alternateSourceNames.isNotEmpty()) {
+            item {
+                SegmentedColumn(
+                    title = stringResource(R.string.module_repo_source_also_in),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp),
+                    content = module.alternateSourceNames.map { name ->
+                        { SegmentedListItem(headlineContent = { Text(text = name) }) }
+                    }
+                )
+            }
+        }
         if (module.authorsList.isNotEmpty()) {
             item {
                 SegmentedColumn(

@@ -16,6 +16,28 @@ data class ReleaseAsset(
 )
 
 @Immutable
+data class MmrlVersion(
+    val version: String,
+    val versionCode: Long,
+    val timestamp: Long,
+    /** ISO-8601 UTC rendering of [timestamp], empty when unknown. */
+    val time: String,
+    val zipUrl: String,
+    /** Same path on the repository's own host, for indexes whose asset host has moved. */
+    val zipUrlFallback: String?,
+    val changelogUrl: String?,
+    val size: Long,
+)
+
+/** Extra data carried by modules from MMRL-format repositories. */
+@Immutable
+data class MmrlModuleInfo(
+    val readmeUrl: String?,
+    val supportUrl: String?,
+    val versions: List<MmrlVersion>,
+)
+
+@Immutable
 data class RepoModule(
     val moduleId: String,
     val moduleName: String,
@@ -31,4 +53,12 @@ data class RepoModule(
     val latestReleaseTime: String,
     val latestVersionCode: Long,
     val latestAsset: ReleaseAsset?,
+    val sourceId: String = "",
+    val sourceName: String = "",
+    /**
+     * Names of the other repositories that publish this same module and lost the merge, so a
+     * deduplicated list can still say where else the module is available.
+     */
+    val alternateSourceNames: List<String> = emptyList(),
+    val mmrl: MmrlModuleInfo? = null,
 )

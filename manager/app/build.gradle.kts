@@ -242,6 +242,9 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.xz)
     implementation(libs.protobuf.kotlin.lite)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.org.json)
 }
 
 kotlin {

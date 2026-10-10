@@ -14,19 +14,26 @@ import kotlinx.coroutines.withContext
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.ModuleRepoRepository
 import com.sukisu.ultra.data.repository.ModuleRepoRepositoryImpl
+import com.sukisu.ultra.data.repository.RepoSource
+import com.sukisu.ultra.data.repository.RepoSourceRepository
+import com.sukisu.ultra.data.repository.RepoSourceRepositoryImpl
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
+import com.sukisu.ultra.data.repository.defaultRepoCandidates
+import com.sukisu.ultra.data.repository.isSameSource
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.modulerepo.ModuleRepoUiState
+import com.sukisu.ultra.ui.screen.modulerepo.RepoCandidateUi
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.PinyinUtil
-import com.sukisu.ultra.ui.util.isNetworkAvailable
+import com.sukisu.ultra.ui.util.hasAnyNetwork
 import java.text.Collator
 import java.util.Locale
 
 class ModuleRepoViewModel(
     private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
+    private val sourceRepo: RepoSourceRepository = RepoSourceRepositoryImpl(),
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
@@ -35,7 +42,7 @@ class ModuleRepoViewModel(
     }
 
     typealias RepoModule = com.sukisu.ultra.data.model.RepoModule
-    
+
     private val _uiState = MutableStateFlow(ModuleRepoUiState())
     val uiState: StateFlow<ModuleRepoUiState> = _uiState.asStateFlow()
 
@@ -44,14 +51,37 @@ class ModuleRepoViewModel(
     init {
         val ordinal = settingsRepo.moduleRepoSortOrder
         val initial = RepoSort.entries.getOrElse(ordinal) { RepoSort.UPDATED }
+        val sources = sourceRepo.loadSources()
         _uiState.update {
             it.copy(
                 sortOrder = initial,
-                offline = !isNetworkAvailable(ksuApp)
+                offline = !hasAnyNetwork(ksuApp),
+                sources = sources,
+                candidates = candidatesFor(sources),
             )
         }
 
         viewModelScope.launchSearchQueryCollector(searchQuery, ::applySearchText)
+    }
+
+    /**
+     * The known repositories, with the ones already configured marked so the dialog can stop
+     * offering to add them again.
+     */
+    private fun candidatesFor(sources: List<RepoSource>): List<RepoCandidateUi> =
+        defaultRepoCandidates.map { candidate ->
+            RepoCandidateUi(
+                name = candidate.name,
+                url = candidate.url,
+                moduleCount = candidate.moduleCount,
+                isAdded = sources.any { source -> isSameSource(source.url, candidate.url) },
+            )
+        }
+
+    /** Re-reads the configured sources and refreshes which candidates are already added. */
+    private fun reloadSources() {
+        val sources = sourceRepo.loadSources()
+        _uiState.update { it.copy(sources = sources, candidates = candidatesFor(sources)) }
     }
 
     private fun sortModules(list: List<RepoModule>, order: RepoSort): List<RepoModule> {
@@ -76,6 +106,7 @@ class ModuleRepoViewModel(
                     it.moduleName.contains(text, true) ||
                     it.authors.contains(text, true) ||
                     it.summary.contains(text, true) ||
+                    it.sourceName.contains(text, true) ||
                     PinyinUtil.toPinyin(it.moduleName).contains(text, true)
         }
     }
@@ -123,30 +154,51 @@ class ModuleRepoViewModel(
         }
     }
 
+    private var pendingRefresh = false
+
     fun refresh() {
-        if (_uiState.value.isRefreshing) return
+        if (_uiState.value.isRefreshing) {
+            pendingRefresh = true
+            return
+        }
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isRefreshing = true,
                     error = null,
-                    offline = !isNetworkAvailable(ksuApp)
+                    offline = !hasAnyNetwork(ksuApp)
                 )
             }
             val result = repo.fetchModules()
 
             withContext(Dispatchers.Main) {
-                result.onSuccess { modules ->
-                    val order = _uiState.value.sortOrder
-                    val sorted = withContext(Dispatchers.Default) { sortModules(modules, order) }
+                result.onSuccess { outcome ->
+                    val current = _uiState.value
+                    // When every source fails, keep the previous list instead of blanking the page.
+                    val keepOld = outcome.modules.isEmpty() && outcome.sourceErrors.isNotEmpty() && current.modules.isNotEmpty()
+                    val order = current.sortOrder
+                    val sorted = if (keepOld) {
+                        current.modules
+                    } else {
+                        withContext(Dispatchers.Default) { sortModules(outcome.modules, order) }
+                    }
                     _uiState.update {
                         it.copy(
                             modules = sorted,
-                            offline = !isNetworkAvailable(ksuApp)
+                            sourceErrors = outcome.sourceErrors,
+                            offline = !hasAnyNetwork(ksuApp)
                         )
                     }
                     refreshSearchResults()
-                    _uiState.update { it.copy(isRefreshing = false) }
+                    if (outcome.modules.isEmpty() && outcome.sourceErrors.isNotEmpty()) {
+                        Toast.makeText(
+                            ksuApp,
+                            ksuApp.getString(R.string.module_repo_fetch_failed, outcome.sourceErrors.values.first()),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    _uiState.update { it.copy(isRefreshing = false, hasLoadedOnce = true) }
+                    runPendingRefresh()
                 }.onFailure { e ->
                     Log.e(TAG, "fetch modules failed", e)
                     Toast.makeText(
@@ -156,10 +208,12 @@ class ModuleRepoViewModel(
                     _uiState.update {
                         it.copy(
                             isRefreshing = false,
+                            hasLoadedOnce = true,
                             error = e,
-                            offline = !isNetworkAvailable(ksuApp)
+                            offline = !hasAnyNetwork(ksuApp)
                         )
                     }
+                    runPendingRefresh()
                 }
             }
         }
@@ -193,5 +247,73 @@ class ModuleRepoViewModel(
 
     fun updateSearchText(text: String) {
         updateSearchStatus(_uiState.value.searchStatus.copy(searchText = text))
+    }
+
+    fun addSource(rawUrl: String, name: String? = null) {
+        if (_uiState.value.isAddingSource) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAddingSource = true, addingSourceUrl = rawUrl) }
+            val result = sourceRepo.addSource(rawUrl, name)
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(isAddingSource = false, addingSourceUrl = null) }
+                reloadSources()
+                result.onSuccess {
+                    Toast.makeText(ksuApp, ksuApp.getString(R.string.module_repo_source_added), Toast.LENGTH_SHORT).show()
+                    refresh()
+                }.onFailure { e ->
+                    Toast.makeText(ksuApp, e.message ?: e.javaClass.simpleName, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun removeSource(id: String) {
+        sourceRepo.removeSource(id)
+        reloadSources()
+        refresh()
+    }
+
+    fun setSourceEnabled(id: String, enabled: Boolean) {
+        sourceRepo.setSourceEnabled(id, enabled)
+        reloadSources()
+        refresh()
+    }
+
+    fun renameSource(id: String, name: String) {
+        if (name.isBlank()) return
+        val trimmed = name.trim()
+        val previousName = _uiState.value.sources.firstOrNull { it.id == id }?.name ?: return
+        sourceRepo.renameSource(id, trimmed)
+        // A renamed source also appears as the alternate of every module another source won,
+        // so the rename has to reach those entries too.
+        fun renamed(m: RepoModule): RepoModule {
+            val alternates = m.alternateSourceNames.map { if (it == previousName) trimmed else it }
+            return when {
+                m.sourceId == id -> m.copy(sourceName = trimmed, alternateSourceNames = alternates)
+                alternates != m.alternateSourceNames -> m.copy(alternateSourceNames = alternates)
+                else -> m
+            }
+        }
+        val sources = sourceRepo.loadSources()
+        _uiState.update { st ->
+            st.copy(
+                sources = sources,
+                candidates = candidatesFor(sources),
+                modules = st.modules.map(::renamed),
+                searchResults = st.searchResults.map(::renamed),
+                sourceErrors = if (previousName == trimmed) {
+                    st.sourceErrors
+                } else {
+                    st.sourceErrors.mapKeys { (key, value) -> if (key == previousName) trimmed else key }
+                },
+            )
+        }
+    }
+
+    private fun runPendingRefresh() {
+        if (pendingRefresh) {
+            pendingRefresh = false
+            refresh()
+        }
     }
 }
