@@ -14,7 +14,7 @@
 ## Особенности
 
 1. Управление доступом `su` и root на уровне ядра.
-2. [App Profile](https://kernelsu.org/guide/app-profile.html): закройте root-права для конкретных приложений.
+2. [App Profile](https://sukisu.org/guide/app-profile): закройте root-права для конкретных приложений.
 3. Поддержка non-GKI и GKI 1.0.
 4. Поддержка KPM.
 5. Изменения в теме менеджера и встроенный susfs.

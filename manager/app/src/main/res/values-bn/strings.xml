@@ -6,7 +6,7 @@
     <string name="home_working"> ওয়ার্কিং</string>
     <string name="home_working_version">ওয়ার্কিং সংস্করণ: %s</string>
     <string name="home_unsupported">অসমর্থিত</string>
-    <string name="home_unsupported_reason">KernelSU শুধুমাত্র GKI কার্নেল সমর্থন করে</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra শুধুমাত্র GKI কার্নেল সমর্থন করে</string>
     <string name="home_kernel">কার্নেল সংস্করণ</string>
     <string name="home_manager_version">ম্যানেজার সংস্করণ</string>
     <string name="home_fingerprint">ফিঙ্গারপ্রিন্ট</string>
@@ -42,7 +42,7 @@
     <string name="reboot_to_apply">রিবুট এপ্লাই</string>
     <string name="module_magisk_conflict">মডিউলগুলি অক্ষম কারণ তারা ম্যাজিস্কের সাথে বিরোধিতা করে!</string>
     <string name="home_learn_kernelsu">লার্ন কার্নেলএসইউ</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="home_click_to_learn_kernelsu">কিভাবে কার্নেলএসইউ ইনস্টল করতে হয় এবং মডিউল ব্যবহার করতে হয় তা শিখুন।</string>
     <string name="home_support_title">সাপোর্ট টাইটেল</string>
     <string name="home_support_content">কার্নেলএসইউ ফ্রি ও ওপেন সোর্স, এবং সবসময় এমনই থাকবে। তবে, আপনি অনুদান দিয়ে আপনার কৃতজ্ঞতা প্রদর্শন করতে পারেন।</string>
@@ -73,8 +73,8 @@
     <string name="settings_sucompat">su বাইনারি রি-রুট করুন</string>
     <string name="settings_sucompat_summary">অ্যাপ প্রোফাইলে সুপার ইউজার অনুমতি প্রাপ্ত অ্যাপগুলির জন্য /system/bin/su কে ksud এ রিডাইরেক্ট করুন; শুধুমাত্র নতুন প্রসেসের জন্য কার্যকর।</string>
     <string name="settings_kernel_umount">কার্নেল আনমাউন্ট</string>
-    <string name="settings_kernel_umount_summary">KernelSU দ্বারা নিয়ন্ত্রিত কার্নেল-লেভেল আনমাউন্ট আচরণ</string>
-    <string name="profile_flags_desc_no_new_privs">এই রুট প্রোফাইলের প্রেক্ষাপট থেকে KernelSU-এর মাধ্যমে আরও বিশেষাধিকার বৃদ্ধি রোধ করে।</string>
+    <string name="settings_kernel_umount_summary">SukiSU-Ultra দ্বারা নিয়ন্ত্রিত কার্নেল-লেভেল আনমাউন্ট আচরণ</string>
+    <string name="profile_flags_desc_no_new_privs">এই রুট প্রোফাইলের প্রেক্ষাপট থেকে SukiSU-Ultra-এর মাধ্যমে আরও বিশেষাধিকার বৃদ্ধি রোধ করে।</string>
     <string name="install_force_backup">স্টক ইমেজ হিসেবে ব্যাকআপ করুন</string>
     <string name="install_force_backup_summary">অনুগ্রহ করে নিশ্চিত করুন যে আপনি যে boot ইমেজটি বেছে নিয়েছেন সেটি স্টক ইমেজ</string>
 </resources>

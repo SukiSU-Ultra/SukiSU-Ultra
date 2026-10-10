@@ -6,7 +6,7 @@
     <string name="home_working">Berfungsi</string>
     <string name="home_working_version">Versi: %s</string>
     <string name="home_unsupported">Tidak didukung</string>
-    <string name="home_unsupported_reason">KernelSU sekarang hanya mendukung kernel GKI, tetapi Anda dapat menambal image untuk perangkat GKI</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra sekarang hanya mendukung kernel GKI, tetapi Anda dapat menambal image untuk perangkat GKI</string>
     <string name="home_device_model">Model perangkat</string>
     <string name="home_kernel">Versi kernel</string>
     <string name="home_manager_version">Versi manajer</string>
@@ -76,9 +76,9 @@
     <string name="safe_mode_module_disabled">Pemasangan modul dinonaktifkan pada mode aman</string>
     <string name="reboot_to_apply">Mulai ulang untuk menerapkan</string>
     <string name="module_magisk_conflict">Modul tidak tersedia karena konflik dengan Magisk!</string>
-    <string name="home_learn_kernelsu">Pelajari KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/id_ID/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Pelajari cara memasang KernelSU dan menggunakan modul</string>
+    <string name="home_learn_kernelsu">Pelajari SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Pelajari cara memasang SukiSU-Ultra dan menggunakan modul</string>
     <string name="home_support_title">Dukung Kami</string>
     <string name="home_support_content">KernelSU gratis dan sumber terbuka, sekarang dan selamanya. Namun, Anda dapat menunjukkan kepedulian Anda kepada kami dengan memberikan donasi.</string>
     <string name="home_gki_warning">Mulai dari v3.0.0, fungsi mode GKI dibatasi untuk lingkungan pengujian. Kami tidak menyarankan untuk penggunaan harian, dan berkas image tidak akan lagi disediakan.</string>
@@ -105,7 +105,7 @@
     <string name="require_kernel_version_gki">Kernel perlu diperbarui.</string>
     <string name="settings_umount_modules_default">Umount modul secara bawaan</string>
     <string name="settings_umount_modules_default_summary">Nilai bawaan global untuk \"Umount modul\" di Profil Aplikasi. Jika diaktifkan, fitur ini akan menghapus semua modifikasi modul pada sistem untuk aplikasi yang tidak memiliki profil yang ditetapkan.</string>
-    <string name="profile_umount_modules_summary">Mengaktifkan opsi ini akan memungkinkan KernelSU untuk memulihkan berkas apa pun yang telah dimodifikasi oleh modul untuk aplikasi ini</string>
+    <string name="profile_umount_modules_summary">Mengaktifkan opsi ini akan memungkinkan SukiSU-Ultra untuk memulihkan berkas apa pun yang telah dimodifikasi oleh modul untuk aplikasi ini</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Aturan</string>
     <string name="recently_installed">Baru saja dipasang</string>
@@ -176,9 +176,9 @@
     <string name="settings_uninstall_temporary">Copot sementara</string>
     <string name="settings_uninstall_permanent">Copot permanen</string>
     <string name="settings_restore_stock_image">Pulihkan image bawaan</string>
-    <string name="settings_uninstall_temporary_message">Copot sementara KernelSU, dipulihkan ke keadaan semula setelah mulai ulang berikutnya.</string>
-    <string name="settings_uninstall_permanent_message">Copot KernelSU (Root dan semua modul) sepenuhnya dan secara permanen.</string>
-    <string name="settings_restore_stock_image_message">Pulihkan image bawaan (jika cadangan ada), biasanya digunakan sebelum OTA; jika Anda perlu mencopot KernelSU, harap gunakan \"Copot permanen\".</string>
+    <string name="settings_uninstall_temporary_message">Copot sementara SukiSU-Ultra, dipulihkan ke keadaan semula setelah mulai ulang berikutnya.</string>
+    <string name="settings_uninstall_permanent_message">Copot SukiSU-Ultra (Root dan semua modul) sepenuhnya dan secara permanen.</string>
+    <string name="settings_restore_stock_image_message">Pulihkan image bawaan (jika cadangan ada), biasanya digunakan sebelum OTA; jika Anda perlu mencopot SukiSU-Ultra, harap gunakan \"Copot permanen\".</string>
     <string name="flashing">Memasang</string>
     <string name="flash_success">Pemasangan berhasil</string>
     <string name="flash_failed">Pemasangan gagal</string>
@@ -194,7 +194,7 @@
     <string name="settings_selinux_hide_reboot_required">Mulai ulang untuk menerapkan</string>
     <string name="settings_selinux_hide_failed">Kesalahan: %d</string>
     <string name="settings_sulog">SU Log</string>
-    <string name="settings_sulog_summary">Rekam peristiwa terkait Root ke dalam berkas SU log KernelSU</string>
+    <string name="settings_sulog_summary">Rekam peristiwa terkait Root ke dalam berkas SU log SukiSU-Ultra</string>
     <string name="feature_status_unsupported_summary">Kernel tidak mendukung fitur ini</string>
     <string name="feature_status_managed_summary">Fitur ini dikelola oleh modul</string>
     <string name="settings_mode_enable_by_default">Aktif (Bawaan)</string>
@@ -292,7 +292,7 @@
     <string name="sort_by_install_time">Waktu pemasangan</string>
     <string name="sort_by_update_time">Waktu pembaruan</string>
     <string name="sort_reverse">Terbalik</string>
-    <string name="profile_flags_desc_no_new_privs">Mencegah peningkatan hak akses lebih lanjut melalui KernelSU dalam konteks profil Root ini</string>
+    <string name="profile_flags_desc_no_new_privs">Mencegah peningkatan hak akses lebih lanjut melalui SukiSU-Ultra dalam konteks profil Root ini</string>
     <string name="module_shortcut_copy_scheme">Salin skema URL</string>
     <string name="module_shortcut_scheme_copied">Skema URL disalin</string>
     <string name="nav_rail_expand">Perluas bilah navigasi</string>

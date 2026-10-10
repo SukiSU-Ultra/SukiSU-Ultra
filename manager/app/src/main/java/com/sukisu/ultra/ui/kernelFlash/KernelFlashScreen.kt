@@ -148,7 +148,7 @@ fun KernelFlashScreen(
                 val date = format.format(Date())
                 val file = File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    "KernelSU_kernel_flash_log_${date}.log"
+                    "SukiSU_kernel_flash_log_${date}.log"
                 )
                 file.writeText(logContentValue)
             }

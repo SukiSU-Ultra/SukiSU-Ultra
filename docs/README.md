@@ -14,7 +14,7 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 ## Features
 
 1. Kernel-based `su` and root access management
-2. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock up the root power in a cage
+2. [App Profile](https://sukisu.org/guide/app-profile): Lock up the root power in a cage
 3. Support non-GKI and GKI 1.0
 4. KPM Support
 5. Tweaks to the manager theme and the built-in susfs management tool.

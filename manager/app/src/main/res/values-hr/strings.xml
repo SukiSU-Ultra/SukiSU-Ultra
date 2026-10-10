@@ -11,7 +11,7 @@
     <string name="home_click_to_install">Kliknite da instalirate</string>
     <string name="home_working">Radi</string>
     <string name="home_unsupported">Nepodržano</string>
-    <string name="home_unsupported_reason">KernelSU sada samo podržava GKI kernele.</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra sada samo podržava GKI kernele.</string>
     <string name="home_kernel">Verzija kernela</string>
     <string name="home_manager_version">Verzija voditelja</string>
     <string name="home_fingerprint">Otisak prsta</string>
@@ -42,9 +42,9 @@
     <string name="module_version">Verzija</string>
     <string name="module_author">Autor</string>
     <string name="module_magisk_conflict">Module su isključene jer je u sukobu sa Magisk-om!</string>
-    <string name="home_learn_kernelsu">Naučite KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Naučite kako da instalirate KernelSU i da koristite module.</string>
+    <string name="home_learn_kernelsu">Naučite SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Naučite kako da instalirate SukiSU-Ultra i da koristite module.</string>
     <string name="home_support_title">Podržite Nas</string>
     <string name="home_support_content">KernelSU je i uvijek će biti besplatan i otvorenog koda. Međutim, možete nam pokazati da vam je stalo donacijom.</string>
     <string name="about_source_code"><![CDATA[Pogledajte izvor na %1$s<br/>Pridružite se našem %2$s kanalu]]></string>
@@ -69,7 +69,7 @@
     <string name="settings_umount_modules_default">Umontiraj module prema zadanim postavkama</string>
     <string name="settings_umount_modules_default_summary">Globalna zadana vrijednost za \"Umontiraj module\" u profilu aplikacije. Ako je omogućeno, uklonit će sve modifikacije modula sustava za aplikacije koje nemaju postavljen profil.</string>
     <string name="profile_selinux_domain">Domena</string>
-    <string name="profile_umount_modules_summary">Omogućavanje ove opcije omogućit će KernelSU-u da vrati sve izmijenjene datoteke od strane modula za ovu aplikaciju.</string>
+    <string name="profile_umount_modules_summary">Omogućavanje ove opcije omogućit će SukiSU-Ultra-u da vrati sve izmijenjene datoteke od strane modula za ovu aplikaciju.</string>
     <string name="profile_selinux_rules">Pravila</string>
     <string name="module_update">Ažuriranje</string>
     <string name="module_downloading">Preuzimanje module: %s</string>
@@ -127,9 +127,9 @@
     <string name="settings_uninstall_temporary">Privremeno deinstaliraj</string>
     <string name="settings_uninstall_permanent">Trajno deinstaliraj</string>
     <string name="settings_restore_stock_image">Vrati stock image</string>
-    <string name="settings_uninstall_temporary_message">Privremeno deinstaliraj KernelSU, vrati u izvorno stanje nakon sljedećeg ponovnog pokretanja.</string>
-    <string name="settings_uninstall_permanent_message">Potpuno i trajno deinstaliranje KernelSU-a (root i svi moduli).</string>
-    <string name="settings_restore_stock_image_message">Vrati stock factory image (ako postoji sigurnosna kopija), obično se koristi prije OTA-e; ako trebate deinstalirati KernelSU, koristite \"Trajno deinstaliraj\".</string>
+    <string name="settings_uninstall_temporary_message">Privremeno deinstaliraj SukiSU-Ultra, vrati u izvorno stanje nakon sljedećeg ponovnog pokretanja.</string>
+    <string name="settings_uninstall_permanent_message">Potpuno i trajno deinstaliranje SukiSU-Ultra-a (root i svi moduli).</string>
+    <string name="settings_restore_stock_image_message">Vrati stock factory image (ako postoji sigurnosna kopija), obično se koristi prije OTA-e; ako trebate deinstalirati SukiSU-Ultra, koristite \"Trajno deinstaliraj\".</string>
     <string name="flashing">Flešanje</string>
     <string name="flash_success">Uspješno flešano</string>
     <string name="flash_failed">Neuspješno flešanje</string>
@@ -151,7 +151,7 @@
     <string name="settings_sucompat">Preusmjeri su binarnu datoteku</string>
     <string name="settings_sucompat_summary">Omogućava aplikacijama kojima je dodijeljeno dopuštenje Superuser u Profilu aplikacije da dobiju superuser shell izvršavanjem /system/bin/su; učinkovito samo za nove procese.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Ponašanje umount na razini kernela koje kontrolira KernelSU</string>
+    <string name="settings_kernel_umount_summary">Ponašanje umount na razini kernela koje kontrolira SukiSU-Ultra</string>
     <string name="undo">Poništi</string>
     <string name="module_undo_uninstall_success">Deinstalacija %s uspješno otkazana</string>
     <string name="module_undo_uninstall_failed">Poništavanje deinstalacije nije uspjelo: %s</string>
@@ -180,7 +180,7 @@
     <string name="tab_readme">PROČITAJ ME</string>
     <string name="tab_releases">Izdanja</string>
     <string name="tab_info">Info</string>
-    <string name="profile_flags_desc_no_new_privs">Sprječava daljnju eskalaciju privilegija putem KernelSU-a unutar konteksta ovog root profila.</string>
+    <string name="profile_flags_desc_no_new_privs">Sprječava daljnju eskalaciju privilegija putem SukiSU-Ultra-a unutar konteksta ovog root profila.</string>
     <string name="install_force_backup">Sigurnosno kopiraj kao izvornu sliku</string>
     <string name="install_force_backup_summary">Provjerite je li odabrana boot slika izvorna slika</string>
 </resources>

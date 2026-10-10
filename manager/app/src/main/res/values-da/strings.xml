@@ -3,7 +3,7 @@
     <string name="home_working">Arbejder</string>
     <string name="home_unsupported">Ikke understøttet</string>
     <string name="home_kernel">Kernel-version</string>
-    <string name="home_unsupported_reason">KernelSU understøtter nu kun GKI-kerner.</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra understøtter nu kun GKI-kerner.</string>
     <string name="home_manager_version">Manager version</string>
     <string name="home_selinux_status">SELinux-status</string>
     <string name="selinux_status_disabled">Deaktiveret</string>
@@ -27,9 +27,9 @@
     <string name="send_log">Send logfiler</string>
     <string name="safe_mode">Sikker tilstand</string>
     <string name="reboot_to_apply">Genstart for at tage effekt</string>
-    <string name="home_learn_kernelsu">Lær KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Lær hvordan man installerer KernelSU og moduler.</string>
+    <string name="home_learn_kernelsu">Lær SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Lær hvordan man installerer SukiSU-Ultra og moduler.</string>
     <string name="about_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel]]></string>
     <string name="profile_default">Standard</string>
     <string name="profile_template">Skabelon</string>
@@ -41,7 +41,7 @@
     <string name="profile_selinux_context">SELinux-kontext</string>
     <string name="profile_umount_modules">Afmonteret moduler</string>
     <string name="settings_umount_modules_default">Afmontere moduler</string>
-    <string name="profile_umount_modules_summary">Hvis denne indstilling aktiveres, kan KernelSU gendanne alle ændrede filer af modulerne til denne app.</string>
+    <string name="profile_umount_modules_summary">Hvis denne indstilling aktiveres, kan SukiSU-Ultra gendanne alle ændrede filer af modulerne til denne app.</string>
     <string name="module_update">Opdatering</string>
     <string name="module_downloading">Downloader modulet: %s</string>
     <string name="new_version_available">Ny version %s er tilgængelig, klik for at opgradere!</string>
@@ -127,9 +127,9 @@
     <string name="settings_uninstall_temporary">Afinstaller midlertidigt</string>
     <string name="settings_uninstall_permanent">Afinstaller permanent</string>
     <string name="settings_restore_stock_image">Gendan systemets standardbillede</string>
-    <string name="settings_uninstall_temporary_message">Afinstaller KernelSU midlertidigt, og gendan til den oprindelige tilstand efter næste genstart.</string>
-    <string name="settings_uninstall_permanent_message">Afinstallation af KernelSU (root og alle moduler) fuldstændigt og permanent.</string>
-    <string name="settings_restore_stock_image_message">Gendan det originale fabriksbillede (hvis en sikkerhedskopi eksisterer), hvilket normalt bruges før en OTA-opdatering; hvis du skal afinstallere KernelSU, skal du bruge \"Afinstaller permanent\".</string>
+    <string name="settings_uninstall_temporary_message">Afinstaller SukiSU-Ultra midlertidigt, og gendan til den oprindelige tilstand efter næste genstart.</string>
+    <string name="settings_uninstall_permanent_message">Afinstallation af SukiSU-Ultra (root og alle moduler) fuldstændigt og permanent.</string>
+    <string name="settings_restore_stock_image_message">Gendan det originale fabriksbillede (hvis en sikkerhedskopi eksisterer), hvilket normalt bruges før en OTA-opdatering; hvis du skal afinstallere SukiSU-Ultra, skal du bruge \"Afinstaller permanent\".</string>
     <string name="flashing">Flashing</string>
     <string name="flash_success">Flash-succes</string>
     <string name="flash_failed">Flash mislykkedes</string>
@@ -141,13 +141,13 @@
     <string name="settings_sucompat">Omdiriger su binary</string>
     <string name="settings_sucompat_summary">Tillader apps med Superuser-tilladelse i App Profile at få superuser shell ved at udføre /system/bin/su; gælder kun for nye processer.</string>
     <string name="settings_kernel_umount">Kernel umount</string>
-    <string name="settings_kernel_umount_summary">Kernel-niveau umount adfærd kontrolleret af KernelSU</string>
+    <string name="settings_kernel_umount_summary">Kernel-niveau umount adfærd kontrolleret af SukiSU-Ultra</string>
     <string name="processing">Behandler…</string>
     <string name="refresh_pulling">Træk ned for at opdatere</string>
     <string name="refresh_release">Slip for at opdatere</string>
     <string name="refresh_refresh">Opdaterer…</string>
     <string name="refresh_complete">Opdateret</string>
-    <string name="profile_flags_desc_no_new_privs">Forhindrer yderligere priviligeringseskalering via KernelSU inden for konteksten af denne root-profil.</string>
+    <string name="profile_flags_desc_no_new_privs">Forhindrer yderligere priviligeringseskalering via SukiSU-Ultra inden for konteksten af denne root-profil.</string>
     <string name="install_force_backup">Sikkerhedskopiér som originalt image</string>
     <string name="install_force_backup_summary">Sørg for, at det valgte boot-image er det originale image</string>
 </resources>

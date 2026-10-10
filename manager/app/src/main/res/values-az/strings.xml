@@ -6,7 +6,7 @@
     <string name="home_click_to_install">Yükləmək üçün toxunun</string>
     <string name="home_working">İşləyir</string>
     <string name="home_working_version">Versiya: %s</string>
-    <string name="home_unsupported_reason">Hal-hazırda KernelSU yalnız GKI nüvələrini dəstəkləyir</string>
+    <string name="home_unsupported_reason">Hal-hazırda SukiSU-Ultra yalnız GKI nüvələrini dəstəkləyir</string>
     <string name="home_unsupported">Dəstəklənmir</string>
     <string name="module_install">Yüklə</string>
     <string name="install">Yüklə</string>
@@ -41,10 +41,10 @@
     <string name="safe_mode">Təhlükəsiz rejimi</string>
     <string name="reboot_to_apply">Qüvvəyə minməsi üçün yenidən başlat</string>
     <string name="module_magisk_conflict">Modular deaktiv edilir,çünki o Magisk-in modulları ilə toqquşur!</string>
-    <string name="home_learn_kernelsu">KernelSU-yu öyrən</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu">SukiSU-Ultra-yu öyrən</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="home_support_title">Bizi dəstəkləyin</string>
-    <string name="home_click_to_learn_kernelsu">KernelSU-yu necə quraşdırılacağını və modulların necə istifadə ediləcəyini öyrən</string>
+    <string name="home_click_to_learn_kernelsu">SukiSU-Ultra-yu necə quraşdırılacağını və modulların necə istifadə ediləcəyini öyrən</string>
     <string name="profile_template">Şablon</string>
     <string name="profile_default">Defolt</string>
     <string name="profile_custom">Özəl</string>
@@ -69,7 +69,7 @@ Kanalımıza %2$s qoşulun</string>
     <string name="module_start_downloading">Endirməni başlat: %s</string>
     <string name="new_version_available">Yeni versiya: %s əlçatandır, endirmək üçün toxunun</string>
     <string name="module_downloading">Modul yüklənir: %s</string>
-    <string name="profile_umount_modules_summary">Bu seçimi aktivləşdirmək KernelSU-ya bu proqram üçün modullar tərəfindən hər hansı dəyişdirilmiş faylları bərpa etməyə imkan verəcək.</string>
+    <string name="profile_umount_modules_summary">Bu seçimi aktivləşdirmək SukiSU-Ultra-ya bu proqram üçün modullar tərəfindən hər hansı dəyişdirilmiş faylları bərpa etməyə imkan verəcək.</string>
     <string name="launch_app">Aç</string>
     <string name="force_stop_app">Məcburi dayandır</string>
     <string name="restart_app">Təkrar başlat</string>
@@ -101,8 +101,8 @@ Kanalımıza %2$s qoşulun</string>
     <string name="settings_sucompat">su binary yönləndirmə</string>
     <string name="settings_sucompat_summary">Tətbiq Profilinə Superuser icazəsi verilmiş proqramları /system/bin/su vasitəsilə superuser shell əldə etməyə icazə verir; yalnız yeni proseslər üçün effektivdir.</string>
     <string name="settings_kernel_umount">Nüvə umount</string>
-    <string name="settings_kernel_umount_summary">KernelSU tərəfindən idarə olunan nüvə səviyyəsində umount davranışı</string>
-    <string name="profile_flags_desc_no_new_privs">Bu root profili kontekstində KernelSU vasitəsilə əlavə səlahiyyət yüksəltməsinin qarşısını alır.</string>
+    <string name="settings_kernel_umount_summary">SukiSU-Ultra tərəfindən idarə olunan nüvə səviyyəsində umount davranışı</string>
+    <string name="profile_flags_desc_no_new_privs">Bu root profili kontekstində SukiSU-Ultra vasitəsilə əlavə səlahiyyət yüksəltməsinin qarşısını alır.</string>
     <string name="install_force_backup">Orijinal imic kimi yedəklə</string>
     <string name="install_force_backup_summary">Zəhmət olmasa seçdiyiniz boot imicinin orijinal imic olduğuna əmin olun</string>
 </resources>

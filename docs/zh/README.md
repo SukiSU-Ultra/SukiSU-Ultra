@@ -14,7 +14,7 @@
 ## 特性
 
 1. 基于内核的 `su` 和权限管理。
-2. [App Profile](https://kernelsu.org/zh_CN/guide/app-profile.html): 把 Root 权限关进笼子里。
+2. [App Profile](https://sukisu.org/zh/guide/app-profile): 把 Root 权限关进笼子里。
 3. 支持 non-GKI 与 GKI 1.0。
 4. KPM 支持
 5. 可调整管理器外观，可自定义 susfs 配置。

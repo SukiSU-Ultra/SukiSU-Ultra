@@ -1,16 +1,16 @@
 # 安装指导
 
-您可以前往 [KernelSU 文档 - 安装](https://kernelsu.org/guide/installation.html) 获取有关如何安装的参考，这里只是额外的说明。
+完整的安装指南见网站：[sukisu.org - 安装](https://sukisu.org/zh/guide/installation)。本页仅概述各种方式。
 
-## 通过加载可加载内核模块 (LKM) 进行安装
+## 通过加载可加载内核模块 (LKM) 进行安装（推荐）
 
-请参阅 [KernelSU 文档 - LKM 安装](https://kernelsu.org/guide/installation.html#lkm-installation)
+安装管理器，由它使用与设备 KMI 匹配的预构建模块修补 boot 镜像。步骤和预构建 KMI 列表见 [LKM 安装](https://sukisu.org/zh/guide/installation#lkm-安装)。
 
 从 **Android™**（商标，意为获得 Google 移动服务的许可）12 开始，搭载内核版本 5.10 或更高版本的设备必须搭载 GKI 内核。因此你或许可以使用 LKM 模式。
 
 ## 通过安装内核进行安装
 
-请参阅 [KernelSU 文档 - GKI 模式安装](https://kernelsu.org/guide/installation.html#gki-mode-installation)
+请参阅 [通用 GKI](https://sukisu.org/zh/guide/installation#通用-gki)
 
 我们提供预编译的内核供您使用：
 

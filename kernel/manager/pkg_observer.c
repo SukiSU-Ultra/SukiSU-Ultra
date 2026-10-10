@@ -3,11 +3,18 @@
 #include <linux/fs.h>
 #include <linux/namei.h>
 #include <linux/fsnotify_backend.h>
+#include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/rculist.h>
+#include <linux/task_work.h>
 #include <linux/version.h>
 #include "klog.h" // IWYU pragma: keep
 #include "manager/throne_tracker.h"
+
+// Older kernels use a boolean task_work notification argument.
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0) && !defined(TWA_RESUME)
+#define TWA_RESUME true
+#endif
 
 #define MASK_SYSTEM (FS_CREATE | FS_MOVE | FS_EVENT_ON_CHILD)
 
@@ -21,6 +28,40 @@ struct watch_dir {
 
 static struct fsnotify_group *g;
 
+static void ksu_track_throne_tw_func(struct callback_head *cb)
+{
+    kfree(cb);
+    // Runs after exit_fs() if the task is exiting; path lookups would oops
+    if (current->flags & PF_EXITING)
+        return;
+    track_throne(false);
+}
+
+// Never scan from the fsnotify handler: fsnotify_mark_srcu and the rename's dir
+// locks would be held for the whole scan. Defer with task_work, not a kthread
+// or kworker: the scan must finish before the rename returns, or the manager
+// can be opened before it is crowned, and it must run in the renamer's
+// (Android's) namespaces, which differ from init_task's on WSA/Waydroid.
+static void ksu_defer_track_throne(void)
+{
+    struct callback_head *cb;
+
+    if (current->flags & PF_KTHREAD)
+        goto skipped;
+
+    cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+    if (!cb)
+        goto skipped;
+
+    cb->func = ksu_track_throne_tw_func;
+    if (!task_work_add(current, cb, TWA_RESUME))
+        return;
+
+    kfree(cb);
+skipped:
+    pr_warn("defer track_throne failed, skipping scan\n");
+}
+
 static int ksu_handle_inode_event(struct fsnotify_mark *mark, u32 mask, struct inode *inode, struct inode *dir,
                                   const struct qstr *file_name, u32 cookie)
 {
@@ -30,7 +71,7 @@ static int ksu_handle_inode_event(struct fsnotify_mark *mark, u32 mask, struct i
         return 0;
     if (file_name->len == 13 && !memcmp(file_name->name, "packages.list", 13)) {
         pr_info("packages.list detected: %d\n", mask);
-        track_throne(false);
+        ksu_defer_track_throne();
     }
     return 0;
 }

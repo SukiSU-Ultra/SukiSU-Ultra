@@ -6,7 +6,7 @@
     <string name="home_working">Çalışıyor</string>
     <string name="home_working_version">Sürüm: %s</string>
     <string name="home_unsupported">Desteklenmiyor</string>
-    <string name="home_unsupported_reason">KernelSU şimdilik sadece GKI çekirdeklerini destekliyor</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra şimdilik sadece GKI çekirdeklerini destekliyor</string>
     <string name="home_kernel">Çekirdek Versiyonu</string>
     <string name="home_manager_version">Yönetici sürümü</string>
     <string name="home_fingerprint">Parmak izi</string>
@@ -41,9 +41,9 @@
     <string name="safe_mode">Güvenli mod</string>
     <string name="reboot_to_apply">Değişikliklerin uygulanması için cihazı yeniden başlat</string>
     <string name="module_magisk_conflict">Magisk ile çakışma nedeniyle modüller kullanılamıyor!</string>
-    <string name="home_learn_kernelsu">KernelSU\'yu öğrenin</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">KernelSU\'nun nasıl kurulacağını ve modüllerin nasıl kullanılacağını öğrenin.</string>
+    <string name="home_learn_kernelsu">SukiSU-Ultra\'yu öğrenin</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">SukiSU-Ultra\'nun nasıl kurulacağını ve modüllerin nasıl kullanılacağını öğrenin.</string>
     <string name="home_support_title">Bizi Destekleyin</string>
     <string name="home_support_content">KernelSU ücretsiz ve açık kaynaklı bir yazılımdır ve her zaman öyle kalacaktır. Ancak bağış yaparak bize destek olduğunuzu gösterebilirsiniz.</string>
     <string name="about_source_code"><![CDATA[%1$s adresinde kaynak kodunu görüntüleyin.<br/>%2$s kanalımıza katılın.]]></string>
@@ -68,7 +68,7 @@
     <string name="require_kernel_version_gki">Çekirdek güncellemesi gerekli.</string>
     <string name="settings_umount_modules_default">Varsayılan olarak modüllerin bağlantısını kes</string>
     <string name="settings_umount_modules_default_summary">Uygulama profilindeki \"Modüllerin bağlantısını kes\" seçeneği için varsayılan değer. Etkinleştirilirse, profil ayarı yapılmamış uygulamalar için modüllerin sistemde yaptığı tüm değişiklikler kaldırılacaktır.</string>
-    <string name="profile_umount_modules_summary">Bu seçeneği etkinleştirmek, KernelSU\'nun bu uygulama için modüller tarafından değiştirilen dosyaları geri yüklemesine izin verir.</string>
+    <string name="profile_umount_modules_summary">Bu seçeneği etkinleştirmek, SukiSU-Ultra\'nun bu uygulama için modüller tarafından değiştirilen dosyaları geri yüklemesine izin verir.</string>
     <string name="profile_selinux_domain">İsim alanı</string>
     <string name="profile_selinux_rules">Kurallar</string>
     <string name="module_update">Güncelle</string>
@@ -122,10 +122,10 @@
     <string name="settings_uninstall_temporary">Geçici olarak kaldır</string>
     <string name="settings_uninstall_permanent">Kalıcı olarak kaldır</string>
     <string name="settings_restore_stock_image">Stok imajı geri yükle</string>
-    <string name="settings_uninstall_temporary_message">KernelSU\'yu geçici olarak kaldır, bir sonraki yeniden başlatmadan sonra orijinal durumuna geri yükle.</string>
+    <string name="settings_uninstall_temporary_message">SukiSU-Ultra\'yu geçici olarak kaldır, bir sonraki yeniden başlatmadan sonra orijinal durumuna geri yükle.</string>
     <string name="settings_uninstall">Kaldır</string>
-    <string name="settings_uninstall_permanent_message">KernelSU\'yu (root ve tüm modülleri) tamamen ve kalıcı olarak kaldırır</string>
-    <string name="settings_restore_stock_image_message">Stok fabrika imajını geri yükler (eğer yedek varsa), bu işlem genellikle OTA güncellemesinden önce yapılır; KernelSU\'yu kaldırmanız gerekiyorsa lütfen \"Kalıcı olarak kaldır\" seçeneğini kullanın.</string>
+    <string name="settings_uninstall_permanent_message">SukiSU-Ultra\'yu (root ve tüm modülleri) tamamen ve kalıcı olarak kaldırır</string>
+    <string name="settings_restore_stock_image_message">Stok fabrika imajını geri yükler (eğer yedek varsa), bu işlem genellikle OTA güncellemesinden önce yapılır; SukiSU-Ultra\'yu kaldırmanız gerekiyorsa lütfen \"Kalıcı olarak kaldır\" seçeneğini kullanın.</string>
     <string name="flash_success">Flaşlama başarılı</string>
     <string name="selected_lkm">Seçili LKM: %s</string>
     <string name="flashing">Flaşlanıyor</string>
@@ -146,7 +146,7 @@
     <string name="settings_sucompat">Klasik SU komutu</string>
     <string name="settings_sucompat_summary">Uygulama Profilinde Süper Kullanıcı izni verilen uygulamaların /system/bin/su yürütülerek süper kullanıcı kabuğu almasına izin verir; yalnızca yeni işlemler için etkilidir.</string>
     <string name="settings_kernel_umount">Kernel bağlantısını kes</string>
-    <string name="settings_kernel_umount_summary">KernelSU tarafından kontrol edilen çekirdek seviyesinde bağlantı kesme davranışı.</string>
+    <string name="settings_kernel_umount_summary">SukiSU-Ultra tarafından kontrol edilen çekirdek seviyesinde bağlantı kesme davranışı.</string>
     <string name="reboot_soft">Soft restart</string>
     <string name="jailbreak_mode">Jailbreak modu</string>
     <string name="home_jailbreak">Jailbreak</string>
@@ -251,7 +251,7 @@
     <string name="download">İndir</string>
     <string name="download_cancel">İptal</string>
     <string name="download_install">Yükle</string>
-    <string name="profile_flags_desc_no_new_privs">Bu root profili bağlamında KernelSU aracılığıyla daha fazla ayrıcalık yükseltmesini engeller.</string>
+    <string name="profile_flags_desc_no_new_privs">Bu root profili bağlamında SukiSU-Ultra aracılığıyla daha fazla ayrıcalık yükseltmesini engeller.</string>
     <string name="install_force_backup">Stok imaj olarak yedekle</string>
     <string name="install_force_backup_summary">Lütfen seçtiğiniz boot imajının stok imaj olduğundan emin olun</string>
 </resources>

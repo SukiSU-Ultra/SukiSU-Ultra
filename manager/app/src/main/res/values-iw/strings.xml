@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reboot_to_apply">הפעל מחדש כדי להכניס לתוקף</string>
-    <string name="home_click_to_learn_kernelsu">למד כיצד להתקין את KernelSU ולהשתמש במודולים</string>
+    <string name="home_click_to_learn_kernelsu">למד כיצד להתקין את SukiSU-Ultra ולהשתמש במודולים</string>
     <string name="selinux_status_unknown">לא ידוע</string>
     <string name="show_system_apps">הצג אפליקציות מערכת</string>
     <string name="module_uninstall_success">%s הוסר</string>
@@ -15,7 +15,7 @@
     <string name="selinux_status_permissive">התרים</string>
     <string name="reboot_download">הפעלה מחדש למצב הורדה</string>
     <string name="settings_umount_modules_default">טעינת מודולים כברירת מחדל</string>
-    <string name="profile_umount_modules_summary">הפעלת אפשרות זו תאפשר ל-KernelSU לשחזר קבצים שהשתנו על ידי המודולים עבור יישום זה.</string>
+    <string name="profile_umount_modules_summary">הפעלת אפשרות זו תאפשר ל-SukiSU-Ultra לשחזר קבצים שהשתנו על ידי המודולים עבור יישום זה.</string>
     <string name="profile_namespace_individual">אישי</string>
     <string name="module_failed_to_enable">הפעלת המודל נכשלה: %s</string>
     <string name="force_stop_app">עצירה בכח</string>
@@ -51,7 +51,7 @@
     <string name="about">אודות</string>
     <string name="home_working_version">גרסה: %s</string>
     <string name="reboot">הפעלה מחדש</string>
-    <string name="home_unsupported_reason">KernelSU תומך רק בליבת GKI כעת</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra תומך רק בליבת GKI כעת</string>
     <string name="home_selinux_status">סטטוס SELinux</string>
     <string name="module_version">גרסה</string>
     <string name="home_unsupported">אינו נתמך</string>
@@ -61,7 +61,7 @@
     <string name="profile_template">תבנית</string>
     <string name="module_downloading">מוריד מודל: %s</string>
     <string name="module_update">עדכון</string>
-    <string name="home_learn_kernelsu">למד אודות KernelSU</string>
+    <string name="home_learn_kernelsu">למד אודות SukiSU-Ultra</string>
     <string name="module_uninstall_confirm">האם אתה בטוח שברצונך להסיר את התקנת המודל %s\?</string>
     <string name="module_uninstall_failed">הסרת התקנת %s נכשלה:</string>
     <string name="superuser">משתמש על</string>
@@ -73,7 +73,7 @@
     <string name="home_kernel">Kernel</string>
     <string name="home_not_installed">לא מותקן</string>
     <string name="failed_to_update_app_profile">נכשל עדכון פרופיל האפליקציה עבור %s</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="failed_to_update_sepolicy">נכשל עדכון כללי SELinux עבור: %s</string>
     <string name="reboot_bootloader">הפעלה מחדש לבוטלאודר</string>
     <string name="about_source_code">ראה את קוד המקור ב%1$s<br/>הצטרף אלינו %2$s בערוץ</string>
@@ -83,8 +83,8 @@
     <string name="settings_sucompat">ניתוב מחדש של su binary</string>
     <string name="settings_sucompat_summary">הפנה מחדש את /system/bin/su ל-ksud עבור אפליקציות שקיבלו הרשאת Superuser בפרופיל האפליקציה; יעיל לתהליכים חדשים בלבד.</string>
     <string name="settings_kernel_umount">ביטול טעינת קרנל</string>
-    <string name="settings_kernel_umount_summary">התנהגות ביטול טעינה ברמת הקרנל הנשלטת על ידי KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">מונע הסלמת הרשאות נוספת דרך KernelSU מתוך ההקשר של פרופיל root זה.</string>
+    <string name="settings_kernel_umount_summary">התנהגות ביטול טעינה ברמת הקרנל הנשלטת על ידי SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">מונע הסלמת הרשאות נוספת דרך SukiSU-Ultra מתוך ההקשר של פרופיל root זה.</string>
     <string name="install_force_backup">גבה כתמונת מקור</string>
     <string name="install_force_backup_summary">אנא ודא שתמונת האתחול שבחרת היא תמונת המקור</string>
 </resources>

@@ -3,7 +3,7 @@
     <string name="home_click_to_install">Klikni za namestitev</string>
     <string name="home_working">V obdelavi</string>
     <string name="home_working_version">Verzija: %s</string>
-    <string name="home_unsupported_reason">KernelSU podpira samo GKI kernele</string>
+    <string name="home_unsupported_reason">SukiSU-Ultra podpira samo GKI kernele</string>
     <string name="home_kernel">Kernel</string>
     <string name="home_manager_version">Verzija upravitelja</string>
     <string name="home_fingerprint">Prstni odtis</string>
@@ -24,9 +24,9 @@
     <string name="module_uninstall_success">%s je odmeščen</string>
     <string name="module_author">Avtor</string>
     <string name="send_log">Prijavite dnevnik</string>
-    <string name="home_learn_kernelsu">Naučite se KernelSU</string>
-    <string name="home_learn_kernelsu_url">https://kernelsu.org/guide/what-is-kernelsu.html</string>
-    <string name="home_click_to_learn_kernelsu">Naučite se, kako namestiti KernelSU in uporabiti module</string>
+    <string name="home_learn_kernelsu">Naučite se SukiSU-Ultra</string>
+    <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
+    <string name="home_click_to_learn_kernelsu">Naučite se, kako namestiti SukiSU-Ultra in uporabiti module</string>
     <string name="about_source_code">Glej odprto kodo na %1$s<br/>Pridružite se našem %2$s kanalu</string>
     <string name="profile_default">Privzeto</string>
     <string name="profile_template">Predloga</string>
@@ -71,7 +71,7 @@
     <string name="require_kernel_version">Potrebna je posodobitev jedra. Tapnite za namestitev.</string>
     <string name="require_kernel_version_gki">Potrebna je posodobitev jedra.</string>
     <string name="settings_umount_modules_default_summary">Globalno privzeta vrednost za \"Izvrzi module\" v aplikacijskih profilih. Če je omogočena, bo to odstranilo vse sistemske modifikacije modulov za aplikacije, ki nimajo nastavljenega profila.</string>
-    <string name="profile_umount_modules_summary">Omogočanje te opcije bo dovolilo KernelSU, da obnovi vse zaradi modulov spremenjene datoteke za to aplikacijo.</string>
+    <string name="profile_umount_modules_summary">Omogočanje te opcije bo dovolilo SukiSU-Ultra, da obnovi vse zaradi modulov spremenjene datoteke za to aplikacijo.</string>
     <string name="force_stop_app">Prisilna ustavitev</string>
     <string name="profile_selinux_rules">Pravila</string>
     <string name="module_start_downloading">Začni z nalaganjem: %s</string>
@@ -102,8 +102,8 @@
     <string name="settings_sucompat">Preusmeri su binarno datoteko</string>
     <string name="settings_sucompat_summary">Preusmeri /system/bin/su na ksud za aplikacije z dovoljenjem Superuporabnika v profilu aplikacije; velja samo za nove procese.</string>
     <string name="settings_kernel_umount">Jedrno odklapljanje</string>
-    <string name="settings_kernel_umount_summary">Vedenje odklapljanja na ravni jedra, ki ga nadzoruje KernelSU</string>
-    <string name="profile_flags_desc_no_new_privs">Prepreči nadaljnje stopnjevanje privilegijev prek KernelSU znotraj konteksta tega root profila.</string>
+    <string name="settings_kernel_umount_summary">Vedenje odklapljanja na ravni jedra, ki ga nadzoruje SukiSU-Ultra</string>
+    <string name="profile_flags_desc_no_new_privs">Prepreči nadaljnje stopnjevanje privilegijev prek SukiSU-Ultra znotraj konteksta tega root profila.</string>
     <string name="install_force_backup">Varnostno kopiraj kot izvorno sliko</string>
     <string name="install_force_backup_summary">Prepričajte se, da je izbrana boot slika izvorna slika</string>
 </resources>
