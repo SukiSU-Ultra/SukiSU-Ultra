@@ -225,6 +225,7 @@
     <string name="color_amber">琥珀</string>
     <string name="color_blue_grey">灰蓝</string>
     <string name="network_offline">未连接到网络</string>
+    <string name="module_repo_unavailable">模块仓库暂时无法访问，请稍后重试。</string>
     <string name="network_retry">重试</string>
     <string name="tab_readme">自述</string>
     <string name="tab_releases">版本</string>

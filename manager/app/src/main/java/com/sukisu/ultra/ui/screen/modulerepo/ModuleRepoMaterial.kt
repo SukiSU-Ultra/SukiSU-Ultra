@@ -218,9 +218,15 @@ fun ModuleRepoScreenMaterial(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                if (state.offline) {
+                if (state.offline || state.error != null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = stringResource(R.string.network_offline), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = stringResource(
+                                if (state.offline) R.string.network_offline
+                                else R.string.module_repo_unavailable
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = actions.onRefresh,
