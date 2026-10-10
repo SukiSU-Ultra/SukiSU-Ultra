@@ -3,6 +3,9 @@ package com.sukisu.ultra.ui.theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 
+// Used instead of the system's dynamic color (Android 12+) on older releases.
+val FallbackSeedColor = Color(0xFFFF9CA8)
+
 val keyColorOptions = listOf(
     Color(0xFFF44336).toArgb(),
     Color(0xFFE91E63).toArgb(),

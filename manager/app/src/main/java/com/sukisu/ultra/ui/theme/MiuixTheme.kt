@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -44,9 +45,12 @@ fun MiuixKernelSUTheme(
 
     val resolvedKeyColor: Color? = when {
         appSettings.keyColor != 0 -> Color(appSettings.keyColor)
-        appSettings.colorMode.isMonet ->
+        appSettings.colorMode.isMonet && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
             if (darkTheme) dynamicDarkColorScheme(context).primary
             else dynamicLightColorScheme(context).primary
+
+        // No system dynamic colors before Android 12.
+        appSettings.colorMode.isMonet -> FallbackSeedColor
 
         else -> null
     }

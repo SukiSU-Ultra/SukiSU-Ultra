@@ -9,7 +9,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -130,7 +129,6 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(newBase))
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -164,7 +162,9 @@ class MainActivity : ComponentActivity() {
                         android.graphics.Color.TRANSPARENT
                     ) { darkMode },
                 )
-                window.isNavigationBarContrastEnforced = false
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    window.isNavigationBarContrastEnforced = false
+                }
                 onDispose { }
             }
 
@@ -185,91 +185,89 @@ class MainActivity : ComponentActivity() {
                 LocalModuleDescriptionMaxLines provides uiState.moduleDescriptionMaxLines,
                 LocalUiMode provides uiMode,
             ) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
-                        IntentDispatcher(intentChannel = intentChannel)
-                        HandleZipFileIntent()
-                        val swipeDismiss = if (uiState.enableSwipeDismiss) {
-                            if (LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
-                                NavSwipeDirection.RightToLeft
-                            } else {
-                                NavSwipeDirection.LeftToRight
-                            }
+                KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
+                    IntentDispatcher(intentChannel = intentChannel)
+                    HandleZipFileIntent()
+                    val swipeDismiss = if (uiState.enableSwipeDismiss) {
+                        if (LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
+                            NavSwipeDirection.RightToLeft
                         } else {
-                            NavSwipeDirection.None
+                            NavSwipeDirection.LeftToRight
                         }
-                        val mainScreenEntry = @Composable {
-                            MainScreen(
-                                initialPage = selectedMainPage,
-                                pagerInterceptionMode = uiState.pagerInterceptionMode,
-                                onPageChanged = viewModel::setSelectedMainPage,
-                            )
-                        }
+                    } else {
+                        NavSwipeDirection.None
+                    }
+                    val mainScreenEntry = @Composable {
+                        MainScreen(
+                            initialPage = selectedMainPage,
+                            pagerInterceptionMode = uiState.pagerInterceptionMode,
+                            onPageChanged = viewModel::setSelectedMainPage,
+                        )
+                    }
 
-                        val navDisplay = @Composable {
-                            NavDisplay(
-                                backStack = navigator.backStack,
-                                effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
-                                onBack = {
-                                    when (val top = navigator.current()) {
-                                        is Route.TemplateEditor -> {
-                                            if (!top.readOnly) {
-                                                navigator.setResult("template_edit", true)
-                                            } else {
-                                                navigator.pop()
-                                            }
+                    val navDisplay = @Composable {
+                        NavDisplay(
+                            backStack = navigator.backStack,
+                            effects = NavDisplayEffects(cornerClipRadius = rememberNavSystemCornerRadius()),
+                            onBack = {
+                                when (val top = navigator.current()) {
+                                    is Route.TemplateEditor -> {
+                                        if (!top.readOnly) {
+                                            navigator.setResult("template_edit", true)
+                                        } else {
+                                            navigator.pop()
                                         }
-
-                                        else -> navigator.pop()
                                     }
-                                }) {
-                                entry<Route.Main>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
-                                entry<Route.About>(swipeDismiss = swipeDismiss) { AboutScreen() }
-                                entry<Route.Sulog>(swipeDismiss = swipeDismiss) { SulogScreen() }
-                                entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) { ColorPaletteScreen() }
-                                entry<Route.AppProfileTemplate>(swipeDismiss = swipeDismiss) { AppProfileTemplateScreen() }
-                                entry<Route.TemplateEditor>(swipeDismiss = swipeDismiss) { key -> TemplateEditorScreen(key.template, key.readOnly) }
-                                entry<Route.AppProfile>(swipeDismiss = swipeDismiss) { key -> AppProfileScreen(key.uid) }
-                                entry<Route.ModuleRepo>(swipeDismiss = swipeDismiss) { ModuleRepoScreen() }
-                                entry<Route.ModuleRepoDetail>(swipeDismiss = swipeDismiss) { key -> ModuleRepoDetailScreen(key.module) }
-                                entry<Route.Install>(swipeDismiss = swipeDismiss) { key -> InstallScreen(preselectedKernelUri = key.preselectedKernelUri) }
-                                entry<Route.Flash>(swipeDismiss = swipeDismiss) { key -> FlashScreen(key.flashIt) }
-                                entry<Route.ExecuteModuleAction>(swipeDismiss = swipeDismiss) { key ->
-                                    ExecuteModuleActionScreen(
-                                        key.moduleId,
-                                        key.fromShortcut
+
+                                    else -> navigator.pop()
+                                }
+                            }) {
+                            entry<Route.Main>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
+                            entry<Route.About>(swipeDismiss = swipeDismiss) { AboutScreen() }
+                            entry<Route.Sulog>(swipeDismiss = swipeDismiss) { SulogScreen() }
+                            entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) { ColorPaletteScreen() }
+                            entry<Route.AppProfileTemplate>(swipeDismiss = swipeDismiss) { AppProfileTemplateScreen() }
+                            entry<Route.TemplateEditor>(swipeDismiss = swipeDismiss) { key -> TemplateEditorScreen(key.template, key.readOnly) }
+                            entry<Route.AppProfile>(swipeDismiss = swipeDismiss) { key -> AppProfileScreen(key.uid) }
+                            entry<Route.ModuleRepo>(swipeDismiss = swipeDismiss) { ModuleRepoScreen() }
+                            entry<Route.ModuleRepoDetail>(swipeDismiss = swipeDismiss) { key -> ModuleRepoDetailScreen(key.module) }
+                            entry<Route.Install>(swipeDismiss = swipeDismiss) { key -> InstallScreen(preselectedKernelUri = key.preselectedKernelUri) }
+                            entry<Route.Flash>(swipeDismiss = swipeDismiss) { key -> FlashScreen(key.flashIt) }
+                            entry<Route.ExecuteModuleAction>(swipeDismiss = swipeDismiss) { key ->
+                                ExecuteModuleActionScreen(
+                                    key.moduleId,
+                                    key.fromShortcut
+                                )
+                            }
+                            entry<Route.Home>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
+                            entry<Route.SuperUser>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
+                            entry<Route.Module>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
+                            entry<Route.Settings>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
+                            entry<Route.KernelFlash>(swipeDismiss = swipeDismiss)  { key ->
+                                    KernelFlashScreen(
+                                        key.kernelUri,
+                                        key.selectedSlot,
+                                        key.kpmPatchEnabled,
+                                        key.kpmUndoPatch
                                     )
                                 }
-                                entry<Route.Home>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
-                                entry<Route.SuperUser>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
-                                entry<Route.Module>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
-                                entry<Route.Settings>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
-                                entry<Route.KernelFlash>(swipeDismiss = swipeDismiss)  { key ->
-                                        KernelFlashScreen(
-                                            key.kernelUri,
-                                            key.selectedSlot,
-                                            key.kpmPatchEnabled,
-                                            key.kpmUndoPatch
-                                        )
-                                    }
-                                    entry<Route.Kpm>(swipeDismiss = swipeDismiss)  { KpmScreen() }
-                                    entry<Route.SuSFS>(swipeDismiss = swipeDismiss)  { SuSFSScreen() }
-                                    entry<Route.Tool>(swipeDismiss = swipeDismiss)  { ToolsScreen() }
-                                    entry<Route.UmountManager>(swipeDismiss = swipeDismiss)  { UmountManagerScreen() }
-                            }
+                                entry<Route.Kpm>(swipeDismiss = swipeDismiss)  { KpmScreen() }
+                                entry<Route.SuSFS>(swipeDismiss = swipeDismiss)  { SuSFSScreen() }
+                                entry<Route.Tool>(swipeDismiss = swipeDismiss)  { ToolsScreen() }
+                                entry<Route.UmountManager>(swipeDismiss = swipeDismiss)  { UmountManagerScreen() }
                         }
+                    }
 
-                        when (uiMode) {
-                            UiMode.Material -> androidx.compose.material3.Scaffold(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer
-                            ) { navDisplay() }
+                    when (uiMode) {
+                        UiMode.Material -> androidx.compose.material3.Scaffold(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ) { navDisplay() }
 
-                            UiMode.Miuix -> Scaffold { navDisplay() }
-                        }
-                        SideEffect { contentReady = true }
+                        UiMode.Miuix -> Scaffold { navDisplay() }
                     }
                     SideEffect { contentReady = true }
                 }
+                SideEffect { contentReady = true }
             }
         }
     }
