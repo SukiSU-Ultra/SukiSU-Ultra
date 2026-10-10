@@ -52,12 +52,15 @@ interface SettingsRepository {
 
     suspend fun getSulogStatus(): String
     suspend fun getSulogPersistValue(): Long?
+    suspend fun getSulogValue(): Long?
     fun setSulogEnabled(enabled: Boolean): Boolean
 
     suspend fun getAdbRootStatus(): String
     suspend fun getAdbRootPersistValue(): Long?
+    suspend fun getAdbRootValue(): Long?
     fun setAdbRootEnabled(enabled: Boolean): Boolean
     suspend fun getShellSuAdbOnlyStatus(): String
+    suspend fun getShellSuAdbOnlyValue(): Long?
     suspend fun getShellSuAdbOnlyPersistValue(): Long?
     fun setShellSuAdbOnlyEnabled(enabled: Boolean): Boolean
 
