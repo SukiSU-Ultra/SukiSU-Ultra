@@ -24,6 +24,7 @@
 #include "supercall/supercall.h"
 #include "feature/uts_spoof.h"
 #include "feature/cpu_spoof.h"
+#include "feature/uhook.h"
 
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
@@ -740,6 +741,19 @@ static int do_set_spoof_cpu(void __user *arg)
     return ksu_set_spoof_cpu(&cmd);
 }
 
+static int do_uhook(void __user *arg)
+{
+    struct ksu_uhook_cmd cmd;
+    int ret;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+    ret = ksu_uhook(&cmd);
+    if (copy_to_user(arg, &cmd, sizeof(cmd)))
+        return -EFAULT;
+    return ret;
+}
+
 static int list_try_umount(void __user *arg)
 {
     struct ksu_list_try_umount_cmd cmd;
@@ -1043,6 +1057,12 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .cmd = KSU_IOCTL_SET_SPOOF_CPU,
         .name = "SET_SPOOF_CPU",
         .handler = do_set_spoof_cpu,
+        .perm_check = only_root
+    },
+    {
+        .cmd = KSU_IOCTL_UHOOK,
+        .name = "UHOOK",
+        .handler = do_uhook,
         .perm_check = only_root
     },
     { 
