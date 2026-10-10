@@ -208,6 +208,7 @@
     <string name="color_blue_grey">灰藍色</string>
     <string name="color_sakura">櫻花粉</string>
     <string name="network_offline">未連線至網路</string>
+    <string name="module_repo_unavailable">模組倉庫目前無法使用，請稍後再試。</string>
     <string name="network_retry">重試</string>
     <string name="tab_readme">自述檔</string>
     <string name="tab_releases">發行版本</string>
