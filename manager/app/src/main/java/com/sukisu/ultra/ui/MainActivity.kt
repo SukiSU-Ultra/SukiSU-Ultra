@@ -265,7 +265,6 @@ class MainActivity : ComponentActivity() {
 
                         UiMode.Miuix -> Scaffold { navDisplay() }
                     }
-                    SideEffect { contentReady = true }
                 }
                 SideEffect { contentReady = true }
             }
