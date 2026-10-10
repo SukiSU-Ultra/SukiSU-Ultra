@@ -71,6 +71,11 @@ fun UmountManagerScreen() {
             showAddDialog = false
 
             scope.launch(Dispatchers.IO) {
+                // If path already exists, remove it first to avoid duplicate or race condition
+                val existing = pathList.find { it.path == path }
+                if (existing != null) {
+                    removeUmountPath(existing.path)
+                }
                 val success = addUmountPath(path, flags)
                 withContext(Dispatchers.Main) {
                     if (success) {
