@@ -55,6 +55,8 @@ void on_post_fs_data(void)
     // sanity check, this may influence the performance
     stop_input_hook();
     ksu_selinux_hide_handle_post_fs_data();
+    // retry forced features which failed at second stage
+    ksu_feature_apply_forced();
 }
 
 extern void ext4_unregister_sysfs(struct super_block *sb);
@@ -332,6 +334,8 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
                         apply_kernelsu_rules();
                         cache_sid();
                         setup_ksu_cred();
+                        // after apply_kernelsu_rules, so that selinux_hide has its sepolicy backup
+                        ksu_feature_apply_forced();
                         init_second_stage_executed = true;
                     }
                 }

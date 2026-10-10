@@ -157,6 +157,8 @@ int __init kernelsu_init(void)
 
     ksu_file_wrapper_init();
 
+    ksu_feature_apply_forced();
+
     return 0;
 }
 device_initcall(kernelsu_init);
