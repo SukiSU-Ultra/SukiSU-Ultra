@@ -33,6 +33,7 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #include "feature/selinux_hide.h"
 #endif
+#include "feature/shell_su_adb_only.h"
 #include "runtime/ksud.h"
 #include "sulog/event.h"
 #include "sulog/fd.h"
@@ -84,6 +85,7 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #include "feature/selinux_hide.c"
 #endif
+#include "feature/shell_su_adb_only.c"
 #include "runtime/ksud.c"
 
 #include "sulog/event.c"
@@ -142,6 +144,8 @@ int __init kernelsu_init(void)
     ksu_sulog_init();
 
     ksu_adb_root_init();
+
+    ksu_shell_su_adb_only_init();
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
     ksu_selinux_hide_init();
