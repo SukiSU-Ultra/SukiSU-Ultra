@@ -30,6 +30,7 @@ import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.screen.flash.FlashIt
+import com.sukisu.ultra.ui.screen.modulerepo.downloadFailureMessage
 import com.sukisu.ultra.ui.util.download
 import com.sukisu.ultra.ui.util.module.Shortcut
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
@@ -121,6 +122,14 @@ fun ModulePager(
                 download(
                     url = request.downloadUrl,
                     fileName = request.fileName,
+                    // Registry releases are size + SHA-256 checked, kept app-private and
+                    // re-verified by the flash step; other updateJson sources are unchanged.
+                    expected = request.expected,
+                    onFailed = { failed ->
+                        viewModel.emitEffect(
+                            ModuleEffect.Toast(downloadFailureMessage(context, failed, request.fileName))
+                        )
+                    },
                     onDownloaded = { uri ->
                         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                             navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri))))

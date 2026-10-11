@@ -82,7 +82,7 @@ class ModuleRepositoryImpl : ModuleRepository {
             if (versionCode <= module.versionCode || zipUrl.isEmpty()) {
                 ModuleUpdateInfo.Empty
             } else {
-                ModuleUpdateInfo(zipUrl, version, changelog)
+                ModuleUpdateInfo(zipUrl, version, changelog, versionCode)
             }
         }
     }

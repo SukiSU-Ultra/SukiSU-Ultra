@@ -24,7 +24,8 @@ interface SettingsRepository {
     var enableWebDebugging: Boolean
     var moduleSortEnabledFirst: Boolean
     var moduleSortActionFirst: Boolean
-    var moduleRepoSortOrder: Int
+    /** Name of the [com.sukisu.ultra.ui.screen.modulerepo.RepoSort] entry. */
+    var moduleRepoSortOrder: String
     var superuserShowSystemApps: Boolean
     var superuserShowOnlyPrimaryUserApps: Boolean
     var superuserSortOption: Int
