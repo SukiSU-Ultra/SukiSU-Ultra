@@ -53,6 +53,7 @@ kernelsu-objs += supercall/supercall.o
 kernelsu-objs += feature/adb_root.o
 
 kernelsu-objs += feature/selinux_hide.o
+kernelsu-objs += feature/shell_su_adb_only.o
 
 kernelsu-objs += feature/uts_spoof.o
 

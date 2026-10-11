@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.SnackbarHostState
@@ -346,6 +347,22 @@ fun SettingPagerMaterial(
                                 enabled = uiState.adbRootStatus == "supported",
                                 checked = uiState.isAdbRootEnabled,
                                 onCheckedChange = actions.onSetAdbRootEnabled
+                            )
+                        },
+                        {
+                            val shellSuAdbOnlySummary = when (uiState.shellSuAdbOnlyStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                "forced" -> stringResource(id = R.string.feature_status_forced_summary)
+                                else -> stringResource(id = R.string.settings_shell_su_adb_only_summary)
+                            }
+                            SegmentedSwitchItem(
+                                icon = Icons.Filled.VerifiedUser,
+                                title = stringResource(id = R.string.settings_shell_su_adb_only),
+                                summary = shellSuAdbOnlySummary,
+                                enabled = uiState.shellSuAdbOnlyStatus == "supported",
+                                checked = uiState.isShellSuAdbOnlyEnabled,
+                                onCheckedChange = actions.onSetShellSuAdbOnlyEnabled
                             )
                         },
                         {
