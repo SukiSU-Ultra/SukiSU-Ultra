@@ -29,6 +29,9 @@ internal data class InstallUiState(
     val kpmPatchOption: KpmPatchOption,
     val showSlotSelectionDialog: Boolean,
     val showKpmPatchDialog: Boolean,
+    val blockModulesEnabled: Boolean,
+    val blockModules: String,
+    val blockModulesValid: Boolean,
 )
 
 @Immutable
@@ -50,4 +53,6 @@ internal data class InstallScreenActions(
     val onHorizonKernelSelected: (InstallMethod.HorizonKernel) -> Unit = {},
     val onReopenSlotDialog: (InstallMethod.HorizonKernel) -> Unit = {},
     val onReopenKpmDialog: (InstallMethod.HorizonKernel) -> Unit = {},
+    val onSelectBlockModules: (Boolean) -> Unit,
+    val onBlockModulesChange: (String) -> Unit,
 )

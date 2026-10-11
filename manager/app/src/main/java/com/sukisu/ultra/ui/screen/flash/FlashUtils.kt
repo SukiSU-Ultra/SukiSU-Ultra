@@ -80,6 +80,7 @@ sealed class FlashIt : Parcelable {
         val backup: Boolean = false,
         val spoofRelease: String = "",
         val spoofVersion: String = "",
+        val blockModules: String = "",
     ) : FlashIt()
 
     @Parcelize
@@ -92,6 +93,7 @@ sealed class FlashIt : Parcelable {
         val backup: Boolean = false,
         val spoofRelease: String = "",
         val spoofVersion: String = "",
+        val blockModules: String = "",
     ) : FlashIt()
 
     @Parcelize
@@ -135,6 +137,7 @@ fun flashIt(
             flashIt.backup,
             flashIt.spoofRelease,
             flashIt.spoofVersion,
+            flashIt.blockModules,
             onStdout,
             onStderr
         )
@@ -148,6 +151,7 @@ fun flashIt(
             flashIt.backup,
             flashIt.spoofRelease,
             flashIt.spoofVersion,
+            flashIt.blockModules,
             onStdout,
             onStderr
         )
