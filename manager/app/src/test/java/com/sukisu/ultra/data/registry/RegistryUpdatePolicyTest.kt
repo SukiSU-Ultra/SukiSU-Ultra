@@ -33,7 +33,7 @@ class RegistryUpdatePolicyTest {
     private fun decide(
         updateJson: String = registryUpdateJson,
         zipUrl: String = zip("v2"),
-        versionCode: Int = 200,
+        versionCode: Long = 200,
         inIndex: Boolean? = true,
         d: ApiModuleDetail? = detail,
     ) = RegistryUpdatePolicy.decide(base, updateJson, zipUrl, versionCode, inIndex, d)

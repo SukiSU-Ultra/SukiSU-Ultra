@@ -21,7 +21,7 @@ interface ModuleRepoRepository {
      * How an `updateJson` update of an installed module must be verified: against the matching
      * registry release, rejected, or legacy (not a registry update).
      */
-    suspend fun resolveUpdate(moduleId: String, updateJsonUrl: String, zipUrl: String, versionCode: Int): UpdateVerification
+    suspend fun resolveUpdate(moduleId: String, updateJsonUrl: String, zipUrl: String, versionCode: Long): UpdateVerification
 
     /** Raw Markdown of a registry-hosted document (e.g. `changelog.md`), or null if not registry-hosted. */
     suspend fun fetchRegistryText(url: String): String?

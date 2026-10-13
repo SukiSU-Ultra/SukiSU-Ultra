@@ -326,7 +326,7 @@ private fun RepoBadges(
 @Composable
 private fun RepoModuleList(
     modules: List<RepoModule>,
-    installedVersions: Map<String, Int>,
+    installedVersions: Map<String, Long>,
     listState: LazyListState,
     modifier: Modifier = Modifier,
     stale: Boolean = false,

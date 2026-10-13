@@ -60,7 +60,7 @@ data class ModuleRepoUiState(
     /** The list shown is the last good cached copy (network or parsing failed). */
     val stale: Boolean = false,
     /** Installed module id -> versionCode, for "installed" / "update" badges. */
-    val installedVersions: Map<String, Int> = emptyMap(),
+    val installedVersions: Map<String, Long> = emptyMap(),
 ) {
     /** Message to show instead of the list when it is empty or could not be loaded, or null while loading. */
     val emptyStateMessage: Int?
@@ -98,7 +98,7 @@ fun starsUrl(starsRepository: String?): String? =
 /** Installed state of a registry module; updates are detected by versionCode only. */
 enum class RepoInstallState { NONE, INSTALLED, UPDATABLE }
 
-fun repoInstallState(installedVersionCode: Int?, latestVersionCode: Int): RepoInstallState = when {
+fun repoInstallState(installedVersionCode: Long?, latestVersionCode: Int): RepoInstallState = when {
     installedVersionCode == null -> RepoInstallState.NONE
     latestVersionCode > installedVersionCode -> RepoInstallState.UPDATABLE
     else -> RepoInstallState.INSTALLED
@@ -123,7 +123,7 @@ data class ModuleRepoDetailUiState(
     /** The module is not in the current index (e.g. suspended): no install entry is offered. */
     val notInIndex: Boolean,
     val loadFailed: Boolean,
-    val installedVersionCode: Int?,
+    val installedVersionCode: Long?,
 ) {
     val webUrl: String get() = detail?.webUrl.orEmpty()
     val canInstall: Boolean get() = detail != null && !notInIndex

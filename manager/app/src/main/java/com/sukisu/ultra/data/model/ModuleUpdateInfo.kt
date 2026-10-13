@@ -7,7 +7,7 @@ data class ModuleUpdateInfo(
     val downloadUrl: String,
     val version: String,
     val changelog: String,
-    val versionCode: Int = 0,
+    val versionCode: Long = 0L,
 ) {
     companion object {
         val Empty = ModuleUpdateInfo("", "", "")

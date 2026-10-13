@@ -117,7 +117,7 @@ class ModuleRepoRepositoryImpl : ModuleRepoRepository {
         moduleId: String,
         updateJsonUrl: String,
         zipUrl: String,
-        versionCode: Int,
+        versionCode: Long,
     ): UpdateVerification = withContext(Dispatchers.IO) {
         if (RegistryUpdatePolicy.isUnrelatedToRegistry(client.baseUrl, updateJsonUrl, zipUrl)) {
             return@withContext UpdateVerification.Legacy

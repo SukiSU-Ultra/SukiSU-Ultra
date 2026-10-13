@@ -38,7 +38,7 @@ object RegistryUpdatePolicy {
         registryBaseUrl: String,
         updateJsonUrl: String,
         zipUrl: String,
-        versionCode: Int,
+        versionCode: Long,
         /** null when the index could not be loaded at all. */
         inIndex: Boolean?,
         detail: ApiModuleDetail?,
@@ -52,7 +52,7 @@ object RegistryUpdatePolicy {
         val candidates = detail?.releases.orEmpty()
             .filter { sameUrl(it.zip.url, zipUrl) && RegistryUrls.isAllowedReleaseDownloadUrl(it.zip.url) }
         if (candidates.isNotEmpty()) {
-            val release = candidates.firstOrNull { it.versionCode == versionCode }
+            val release = candidates.firstOrNull { it.versionCode.toLong() == versionCode }
                 ?: return UpdateVerification.Rejected("versionCode does not match the registry release")
             return UpdateVerification.Registry(
                 zipUrl = release.zip.url,
