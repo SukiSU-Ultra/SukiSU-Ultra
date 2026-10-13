@@ -171,7 +171,11 @@ fn apply_to_dir(dir: &Path, names: &BTreeSet<String>) -> Result<()> {
         .open(&blocklist_path)
         .and_then(|mut f| f.write_all(lines.as_bytes()))
         .with_context(|| format!("Cannot write {}", blocklist_path.display()))?;
-    log::info!("Blocklisted modules in {}: {}", dir.display(), plan.block.join(", "));
+    log::info!(
+        "Blocklisted modules in {}: {}",
+        dir.display(),
+        plan.block.join(", ")
+    );
     Ok(())
 }
 
@@ -233,10 +237,17 @@ kernel/guard.ko: kernel/vr.ko
     #[test]
     fn blocks_leaf_and_skips_needed() {
         let deps = parse_modules_dep(DEP);
-        let plan = plan(&deps, &BTreeSet::new(), &names(&["mkp", "vr", "guard", "absent"]));
+        let plan = plan(
+            &deps,
+            &BTreeSet::new(),
+            &names(&["mkp", "vr", "guard", "absent"]),
+        );
         // guard depends on vr, but guard is blocked too; display_drv needs mkp.
         assert_eq!(plan.block, vec!["guard".to_owned(), "vr".to_owned()]);
-        assert_eq!(plan.skipped, vec![("mkp".to_owned(), vec!["display_drv".to_owned()])]);
+        assert_eq!(
+            plan.skipped,
+            vec![("mkp".to_owned(), vec!["display_drv".to_owned()])]
+        );
     }
 
     #[test]
@@ -245,7 +256,10 @@ kernel/guard.ko: kernel/vr.ko
         // vr is only safe while guard is blocked; guard is fine on its own.
         let plan = plan(&deps, &BTreeSet::new(), &names(&["vr"]));
         assert!(plan.block.is_empty());
-        assert_eq!(plan.skipped, vec![("vr".to_owned(), vec!["guard".to_owned()])]);
+        assert_eq!(
+            plan.skipped,
+            vec![("vr".to_owned(), vec!["guard".to_owned()])]
+        );
     }
 
     #[test]
@@ -268,6 +282,9 @@ kernel/guard.ko: kernel/vr.ko
         let content = fs::read_to_string(dir.join("modules.blocklist")).unwrap();
         fs::remove_dir_all(&dir).unwrap();
         // display_drv also needs the blocklisted a, so it is skipped anyway and mkp can go.
-        assert_eq!(content, "blocklist a\nblocklist guard\nblocklist mkp\nblocklist vr\n");
+        assert_eq!(
+            content,
+            "blocklist a\nblocklist guard\nblocklist mkp\nblocklist vr\n"
+        );
     }
 }
