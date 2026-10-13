@@ -247,6 +247,11 @@
     <string name="allow_shell_summary">一律允許 adb shell 呼叫 su 指令，非必要請勿開啟！</string>
     <string name="enable_adb">開機時強制啟用 ADB 偵錯</string>
     <string name="enable_adb_summary">強制允許 USB 偵錯並略過 adb 驗證，非必要請勿開啟！</string>
+    <string name="install_block_modules">封鎖核心模組（有風險）</string>
+    <string name="install_block_modules_warning">開機時阻止所列核心模組載入。被其他開機模組依賴的模組會保留載入，但封鎖系統需要的模組仍可能導致功能異常或卡在開機畫面。請僅在確認這些模組在你的裝置上可以安全封鎖時啟用。如無法開機，可透過 fastboot 刷回原廠 boot / init_boot 映像檔救回。</string>
+    <string name="install_block_modules_list">要封鎖的模組</string>
+    <string name="install_block_modules_summary">以逗號分隔的模組名稱，開機時阻止其載入，例如 oplus_secure_guard。留空則不封鎖任何模組。</string>
+    <string name="install_block_modules_invalid">模組名稱只能包含英文字母、數字和底線，且每個不超過 64 個字元。</string>
     <string name="advanced_options">進階選項</string>
     <string name="expand">展開</string>
     <string name="download_channel_name">模組下載</string>
