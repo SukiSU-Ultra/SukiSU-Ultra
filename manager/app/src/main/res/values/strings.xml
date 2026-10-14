@@ -678,4 +678,8 @@
     <string name="home_zygisk_not_installed">Not installed</string>
     <string name="home_zygisk_disabled">Disabled</string>
     <string name="home_zygisk_reboot_required">Reboot required</string>
+    <string name="superuser_filter_all">All</string>
+    <string name="superuser_filter_system">System</string>
+    <string name="superuser_granted_summary">%1$d of %2$d apps granted</string>
+    <string name="module_summary">%1$d enabled · %2$d updatable</string>
 </resources>

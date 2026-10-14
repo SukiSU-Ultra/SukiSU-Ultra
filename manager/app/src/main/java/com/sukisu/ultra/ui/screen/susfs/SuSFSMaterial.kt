@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen.susfs
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
@@ -311,7 +312,7 @@ fun SuSFSMaterial() {
             modifier = Modifier
                 .fillMaxHeight()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 16.dp),
             contentPadding = innerPadding
         ) {
             item {
@@ -327,9 +328,10 @@ fun SuSFSMaterial() {
                             selected = isSelected,
                             onClick = { viewModel.setSelectedTab(tab) },
                             label = { Text(stringResource(tab.displayNameRes)) },
+                            shape = CircleShape,
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                selectedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+                                selectedLabelColor = MaterialTheme.colorScheme.inverseOnSurface
                             )
                         )
                     }

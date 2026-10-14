@@ -1,5 +1,8 @@
 package com.sukisu.ultra.ui.screen.template
 
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -216,44 +219,36 @@ private fun TemplateItem(
 ) {
     SegmentedListItem(
         onClick = onClick,
-        headlineContent = { Text(template.name) },
+        headlineContent = { Text(template.name, fontWeight = FontWeight.Bold) },
         supportingContent = {
-            Column {
+            Column(
+                modifier = Modifier.padding(top = 2.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Text(
-                    text = "${template.id}${if (template.author.isEmpty()) "" else "@${template.author}"}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    text = "${template.id}${if (template.author.isEmpty()) "" else " · ${template.author}"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = FontFamily.Monospace,
                 )
-                Text(template.description, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                FlowRow(modifier = Modifier.padding(top = 4.dp)) {
-                    StatusTag(
-                        label = "UID: ${template.uid}",
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        backgroundColor = MaterialTheme.colorScheme.primary
-                    )
-                    StatusTag(
-                        label = "GID: ${template.gid}",
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        backgroundColor = MaterialTheme.colorScheme.primary
-                    )
-                    StatusTag(
-                        label = template.context,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        backgroundColor = MaterialTheme.colorScheme.primary
-                    )
-                    if (template.local) {
+                if (template.description.isNotBlank()) {
+                    Text(template.description, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listOf("UID ${template.uid}", "GID ${template.gid}", template.context).forEach {
                         StatusTag(
-                            label = "local",
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            backgroundColor = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        StatusTag(
-                            label = "remote",
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            backgroundColor = MaterialTheme.colorScheme.primary
+                            label = it,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            backgroundColor = MaterialTheme.colorScheme.secondaryContainer
                         )
                     }
+                    StatusTag(
+                        label = if (template.local) "local" else "remote",
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+                    )
                 }
             }
         },

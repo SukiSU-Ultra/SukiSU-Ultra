@@ -50,7 +50,17 @@ import com.sukisu.ultra.ui.component.material.SegmentedCheckboxItem
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
-import com.sukisu.ultra.ui.component.material.SegmentedRadioItem
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import com.sukisu.ultra.ui.component.material.SegmentedTextField
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
@@ -394,20 +404,69 @@ private fun SelectInstallMethod(
         }
     }
 
+    val haptic = LocalHapticFeedback.current
     key(state.installMethodOptions.size) {
-        SegmentedColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            content = state.installMethodOptions.map { option ->
-                {
-                    SegmentedRadioItem(
-                        title = stringResource(option.label),
-                        summary = option.summary,
-                        selected = state.installMethod?.let { option::class == it::class } ?: false,
-                        onClick = { onClick(option) }
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .selectableGroup(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            state.installMethodOptions.forEach { option ->
+                InstallMethodCard(
+                    title = stringResource(option.label),
+                    summary = option.summary,
+                    selected = state.installMethod?.let { option::class == it::class } ?: false,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        onClick(option)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InstallMethodCard(
+    title: String,
+    summary: String?,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val borderColor by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        label = "install_method_border"
+    )
+    Surface(
+        selected = selected,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceBright,
+        border = BorderStroke(2.dp, borderColor),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RadioButton(selected = selected, onClick = null)
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (!summary.isNullOrBlank()) {
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-        )
+        }
     }
 }
 

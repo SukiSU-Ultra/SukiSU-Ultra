@@ -55,6 +55,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
+import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
@@ -159,7 +160,7 @@ fun SettingPagerMaterial(
                             onClick = actions.onOpenTheme,
                             headlineContent = { Text(stringResource(id = R.string.settings_theme)) },
                             supportingContent = { Text(stringResource(id = R.string.settings_theme_summary)) },
-                            leadingContent = { Icon(Icons.Filled.Palette, stringResource(id = R.string.settings_theme)) },
+                            leadingContent = { IconTile(Icons.Filled.Palette, stringResource(id = R.string.settings_theme)) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -189,7 +190,7 @@ fun SettingPagerMaterial(
                             onClick = actions.onOpenProfileTemplate,
                             headlineContent = { Text(profileTemplate) },
                             supportingContent = { Text(stringResource(id = R.string.settings_profile_template_summary)) },
-                            leadingContent = { Icon(Icons.Filled.Description, profileTemplate) },
+                            leadingContent = { IconTile(Icons.Filled.Description, profileTemplate) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -207,7 +208,7 @@ fun SettingPagerMaterial(
                             onClick = actions.onOpenTools,
                             headlineContent = { Text(toolsTitle) },
                             supportingContent = { Text(stringResource(id = R.string.settings_tools_summary)) },
-                            leadingContent = { Icon(Icons.Filled.Fence, toolsTitle) },
+                            leadingContent = { IconTile(Icons.Filled.Fence, toolsTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -228,7 +229,7 @@ fun SettingPagerMaterial(
                             onClick = actions.onOpenKpm,
                             headlineContent = { Text(kpmTitle) },
                             supportingContent = { Text(stringResource(id = R.string.settings_kpm_summary)) },
-                            leadingContent = { Icon(Icons.Filled.Fence, kpmTitle) },
+                            leadingContent = { IconTile(Icons.Filled.Fence, kpmTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -250,7 +251,7 @@ fun SettingPagerMaterial(
                                 onClick = actions.onOpenSusfsConfig,
                                 headlineContent = { Text(susfsTitle) },
                                 supportingContent = { Text(stringResource(id = R.string.settings_kpm_summary)) },
-                                leadingContent = { Icon(Icons.Filled.Fence, susfsTitle) },
+                                leadingContent = { IconTile(Icons.Filled.Fence, susfsTitle) },
                                 trailingContent = {
                                     Icon(
                                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -428,7 +429,7 @@ fun SettingPagerMaterial(
                                 onClick = { showUninstallDialog.value = true },
                                 enabled = !uiState.isLateLoadMode,
                                 headlineContent = { Text(uninstall) },
-                                leadingContent = { Icon(Icons.Filled.Delete, uninstall) }
+                                leadingContent = { IconTile(Icons.Filled.Delete, uninstall) }
                             )
                         }
                     )
@@ -443,7 +444,7 @@ fun SettingPagerMaterial(
                             onClick = { showBottomSheet = true },
                             headlineContent = { Text(stringResource(id = R.string.send_log)) },
                             leadingContent = {
-                                Icon(
+                                IconTile(
                                     Icons.Filled.BugReport,
                                     stringResource(id = R.string.send_log)
                                 )
@@ -455,7 +456,7 @@ fun SettingPagerMaterial(
                             onClick = actions.onOpenAbout,
                             headlineContent = { Text(stringResource(id = R.string.about)) },
                             leadingContent = {
-                                Icon(
+                                IconTile(
                                     Icons.Filled.Info,
                                     stringResource(id = R.string.about)
                                 )

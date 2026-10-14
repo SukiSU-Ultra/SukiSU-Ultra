@@ -529,11 +529,11 @@ private fun ThemePreviewCard(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         TonalCard(
-                            containerColor = colorScheme.secondaryContainer,
+                            containerColor = colorScheme.primary,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(40.dp),
-                            shape = RoundedCornerShape(8.dp),
+                                .height(52.dp),
+                            shape = RoundedCornerShape(12.dp),
                             content = { }
                         )
                         if (showInfoCard) {
@@ -542,7 +542,7 @@ private fun ThemePreviewCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f),
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(12.dp),
                                 content = { }
                             )
                         }
@@ -572,20 +572,32 @@ private fun ThemePreviewCard(
                 Column {
                     content()
 
-                    // bottom bar
+                    // floating bottom bar
                     Surface(
-                        color = colorScheme.surfaceContainer,
-                        modifier = Modifier.fillMaxWidth()
+                        color = colorScheme.surfaceContainerHighest,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 8.dp)
                     ) {
                         Row(
                             modifier = Modifier
-                                .height(40.dp)
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
+                                .height(28.dp)
+                                .padding(horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.Home, null, tint = colorScheme.primary)
+                            Box(
+                                modifier = Modifier
+                                    .size(width = 30.dp, height = 20.dp)
+                                    .background(colorScheme.primary, CircleShape)
+                            )
+                            repeat(3) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(colorScheme.onSurfaceVariant, CircleShape)
+                                )
                             }
                         }
                     }

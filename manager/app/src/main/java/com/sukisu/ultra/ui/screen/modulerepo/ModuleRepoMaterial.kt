@@ -55,7 +55,6 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -354,7 +353,6 @@ private fun RepoModuleList(
             }
         }
         items(modules, key = { it.moduleId }, contentType = { "module" }) { module ->
-            val moduleAuthor = stringResource(id = R.string.module_author)
             val installState = repoInstallState(installedVersions[module.moduleId], module.latestVersionCode)
             val maxLinesLimit = LocalModuleDescriptionMaxLines.current
             var summaryExpanded by rememberSaveable(module.moduleId) { mutableStateOf(false) }
@@ -367,7 +365,7 @@ private fun RepoModuleList(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp, 14.dp, 16.dp, 10.dp)
+                        .padding(18.dp, 16.dp, 16.dp, 12.dp)
                 ) {
                     if (module.moduleName.isNotEmpty()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -375,23 +373,17 @@ private fun RepoModuleList(
                             Text(
                                 text = module.moduleName,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
                     Text(
-                        text = "ID: ${module.moduleId}",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = if (module.authors.isNotEmpty()) "${module.moduleId} · ${module.authors}" else module.moduleId,
+                        modifier = Modifier.padding(top = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (module.authors.isNotEmpty()) {
-                        Text(
-                            text = "$moduleAuthor: ${module.authors}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                     if (module.summary.isNotEmpty()) {
                         ExpandableDescriptionText(
                             text = module.summary,
@@ -417,8 +409,6 @@ private fun RepoModuleList(
                     }
 
                     RepoBadges(module.metamodule, installState)
-                    HorizontalDivider(thickness = Dp.Hairline)
-                    Spacer(modifier = Modifier.height(4.dp))
 
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -426,7 +416,8 @@ private fun RepoModuleList(
                     ) {
                         Text(
                             text = module.latestVersion,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontFamily = FontFamily.Monospace,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,

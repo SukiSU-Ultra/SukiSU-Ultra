@@ -1,5 +1,10 @@
 package com.sukisu.ultra.ui.screen.kpm
 
+import com.sukisu.ultra.ui.component.material.TonalCard
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.material3.Surface
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.OutlinedButton
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -381,96 +386,83 @@ private fun KpmModuleItemMaterial(
         )
     }
 
-    Card(
+    TonalCard(
         modifier = Modifier
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = 16.dp)
             .padding(bottom = 12.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(18.dp, 16.dp, 16.dp, 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = module.name,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight(550),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "${stringResource(R.string.kpm_version)}: ${module.version}",
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 2.dp),
-                        fontWeight = FontWeight(550),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${stringResource(R.string.kpm_author)}: ${module.author}",
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(bottom = 1.dp),
-                        fontWeight = FontWeight(550),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (module.args.isNotEmpty()) {
-                        Text(
-                            text = "${stringResource(R.string.kpm_args)}: ${module.args}",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight(550),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = module.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "${module.version} · ${module.author}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             if (module.description.isNotBlank()) {
                 Text(
                     text = module.description,
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp),
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 4
                 )
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                thickness = 0.5.dp,
-            )
+            if (module.args.isNotEmpty()) {
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ) {
+                    Text(
+                        text = "${stringResource(R.string.kpm_args)}: ${module.args}",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedVisibility(
                     visible = module.hasAction,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    IconButton(
-                        onClick = { actions.onShowInputDialog(module.id) },
-                    ) {
+                    OutlinedButton(onClick = { actions.onShowInputDialog(module.id) }) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
-                            contentDescription = stringResource(R.string.kpm_control),
-                            tint = MaterialTheme.colorScheme.onSurface
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
                         )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(stringResource(R.string.kpm_control))
                     }
                 }
 
                 Spacer(Modifier.weight(1f))
 
-                Button(
-                    onClick = onUninstall,
-                ) {
+                FilledTonalButton(onClick = onUninstall) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(stringResource(R.string.kpm_uninstall))
                 }
             }

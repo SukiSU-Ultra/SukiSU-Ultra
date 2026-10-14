@@ -647,4 +647,8 @@
     <string name="home_zygisk_not_installed">未安裝</string>
     <string name="home_zygisk_disabled">已停用</string>
     <string name="home_zygisk_reboot_required">需要重啟</string>
+    <string name="superuser_filter_all">全部</string>
+    <string name="superuser_filter_system">系統</string>
+    <string name="superuser_granted_summary">已授權 %1$d / %2$d 個應用程式</string>
+    <string name="module_summary">%1$d 個啟用 · %2$d 個可更新</string>
 </resources>

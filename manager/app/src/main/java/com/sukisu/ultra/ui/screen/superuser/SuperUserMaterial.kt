@@ -6,7 +6,14 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SelectableDropdownMenuItem
@@ -58,6 +66,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -73,6 +84,64 @@ import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.ownerNameForUid
 import com.sukisu.ultra.ui.viewmodel.AppSortType
+
+private val AppIconShape = RoundedCornerShape(14.dp)
+
+private enum class AppFilter { All, Root, Custom }
+
+@Composable
+private fun SuperUserHeader(
+    grantedCount: Int,
+    totalCount: Int,
+    filter: AppFilter,
+    onFilterChange: (AppFilter) -> Unit,
+    showSystemApps: Boolean,
+    onToggleShowSystemApps: () -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+
+    @Composable
+    fun Chip(selected: Boolean, label: String, onClick: () -> Unit) {
+        FilterChip(
+            selected = selected,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                onClick()
+            },
+            label = { Text(label) },
+            shape = CircleShape,
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = colorScheme.inverseSurface,
+                selectedLabelColor = colorScheme.inverseOnSurface,
+            ),
+        )
+    }
+
+    Column(
+        modifier = Modifier.padding(bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.superuser_granted_summary, grantedCount, totalCount),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Chip(filter == AppFilter.All, stringResource(R.string.superuser_filter_all)) {
+                onFilterChange(AppFilter.All)
+            }
+            Chip(filter == AppFilter.Root, "ROOT") { onFilterChange(AppFilter.Root) }
+            Chip(filter == AppFilter.Custom, stringResource(R.string.profile_custom)) {
+                onFilterChange(AppFilter.Custom)
+            }
+            Chip(showSystemApps, stringResource(R.string.superuser_filter_system), onToggleShowSystemApps)
+        }
+    }
+}
 
 @Composable
 fun SuperUserPagerMaterial(
@@ -330,14 +399,23 @@ fun SuperUserPagerMaterial(
             },
         ) {
             val expandedSearchUids = remember { mutableStateOf(setOf<Int>()) }
+            var filter by rememberSaveable { mutableStateOf(AppFilter.All) }
+            val visibleApps = remember(uiState.groupedApps, filter) {
+                when (filter) {
+                    AppFilter.All -> uiState.groupedApps
+                    AppFilter.Root -> uiState.groupedApps.filter { it.anyAllowSu }
+                    AppFilter.Custom -> uiState.groupedApps.filter { it.anyCustom }
+                }
+            }
 
-            val latestGroupedApps = rememberUpdatedState(uiState.groupedApps)
+            val latestGroupedApps = rememberUpdatedState(visibleApps)
             val latestRefreshing = rememberUpdatedState(uiState.isRefreshing)
             ScrollToTopOnChange(
                 listState,
                 uiState.sortConfig,
                 uiState.showSystemApps,
                 uiState.showOnlyPrimaryUserApps,
+                filter,
                 refreshTick.intValue,
                 isBusy = { latestRefreshing.value },
             ) { latestGroupedApps.value }
@@ -355,7 +433,17 @@ fun SuperUserPagerMaterial(
                     bottom = 16.dp + bottomInnerPadding
                 ),
             ) {
-                itemsIndexed(uiState.groupedApps, key = { _, item -> item.uid }) { index, group ->
+                item(key = "header", contentType = "header") {
+                    SuperUserHeader(
+                        grantedCount = uiState.groupedApps.count { it.anyAllowSu },
+                        totalCount = uiState.groupedApps.size,
+                        filter = filter,
+                        onFilterChange = { filter = it },
+                        showSystemApps = uiState.showSystemApps,
+                        onToggleShowSystemApps = actions.onToggleShowSystemApps,
+                    )
+                }
+                itemsIndexed(visibleApps, key = { _, item -> item.uid }) { index, group ->
                     val expanded = expandedSearchUids.value.contains(group.uid)
                     val onToggleExpand = {
                         if (group.apps.size > 1) {
@@ -366,7 +454,7 @@ fun SuperUserPagerMaterial(
                             }
                         }
                     }
-                    SegmentedItem(index = index, count = uiState.groupedApps.size) {
+                    SegmentedItem(index = index, count = visibleApps.size) {
                         Column {
                             GroupItem(
                                 group = group,
@@ -448,14 +536,23 @@ private fun SimpleAppItem(
             }
         ),
         content = { Text(app.label, overflow = TextOverflow.Ellipsis, maxLines = 1) },
-        supportingContent = { Text(app.displayIdentifier, overflow = TextOverflow.Ellipsis, maxLines = 1) },
+        supportingContent = {
+            Text(
+                app.displayIdentifier,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+        },
         leadingContent = {
             AppIconImage(
                 packageInfo = app.packageInfo,
                 label = app.label,
                 modifier = Modifier
-                    .size(40.dp)
                     .padding(start = 4.dp)
+                    .size(36.dp)
+                    .clip(AppIconShape)
             )
         },
         trailingContent = {
@@ -513,6 +610,8 @@ private fun GroupItem(
             Text(
                 text = summaryText,
                 color = colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = if (group.apps.size > 1) null else FontFamily.Monospace,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
@@ -537,7 +636,9 @@ private fun GroupItem(
             AppIconImage(
                 packageInfo = group.primary.packageInfo,
                 label = group.primary.label,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(AppIconShape)
             )
         },
     )

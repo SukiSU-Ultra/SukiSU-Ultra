@@ -298,6 +298,7 @@ private fun LazyListScope.sulogEntriesSection(
                                     Text(
                                         it,
                                         style = typography.bodySmall,
+                                        fontFamily = FontFamily.Monospace,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )
