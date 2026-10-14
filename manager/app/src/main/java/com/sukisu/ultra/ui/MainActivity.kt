@@ -369,7 +369,7 @@ fun MainScreen(
     }
     val uiMode = LocalUiMode.current
     val surfaceColor = when (uiMode) {
-        UiMode.Material -> MaterialTheme.colorScheme.surface // Blur is not used in Material, this is just a placeholder
+        UiMode.Material -> MaterialTheme.colorScheme.surfaceContainer // Matches the Material page background behind the glass bar
         UiMode.Miuix -> MiuixTheme.colorScheme.surface
     }
     val blurBackdrop = rememberBlurBackdrop(enableBlur)
@@ -404,7 +404,8 @@ fun MainScreen(
                             mode = pagerMode,
                             enabled = userScrollEnabled,
                         )
-                        .then(if (enableFloatingBottomBar && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
+                        // Material always floats its bar, so only the glass toggle matters there.
+                        .then(if ((uiMode == UiMode.Material || enableFloatingBottomBar) && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
                     state = mainPagerState.pagerState,
                     beyondViewportPageCount = if (contentReady) 3 else 0,
                     overscrollEffect = null,

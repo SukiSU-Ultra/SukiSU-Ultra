@@ -53,6 +53,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Pin
+import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material.icons.rounded.Swipe
@@ -274,8 +275,18 @@ fun ColorPaletteScreenMaterial(
             item {
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
-                        {
+                    content = buildList<@Composable () -> Unit> {
+                        // The liquid glass bar relies on RenderEffect blur, same gate as the Miuix toggle.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.WaterDrop,
+                                title = stringResource(id = R.string.settings_enable_glass),
+                                summary = stringResource(id = R.string.settings_enable_glass_summary),
+                                checked = uiState.enableFloatingBottomBarBlur,
+                                onCheckedChange = actions.onSetEnableFloatingBottomBarBlur
+                            )
+                        }
+                        add {
                             SegmentedSwitchItem(
                                 icon = Icons.Rounded.Pin,
                                 title = stringResource(id = R.string.settings_navigation_badge),
@@ -284,7 +295,7 @@ fun ColorPaletteScreenMaterial(
                                 onCheckedChange = actions.onSetEnableNavigationBadge
                             )
                         }
-                    )
+                    }
                 )
             }
 

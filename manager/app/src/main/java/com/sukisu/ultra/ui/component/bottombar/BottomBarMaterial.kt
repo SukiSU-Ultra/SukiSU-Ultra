@@ -1,5 +1,17 @@
 package com.sukisu.ultra.ui.component.bottombar
 
+import top.yukonga.miuix.kmp.theme.LocalContentColor as MiuixLocalContentColor
+import top.yukonga.miuix.kmp.blur.Backdrop
+import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
+import com.sukisu.ultra.ui.component.FloatingBottomBarItem
+import com.sukisu.ultra.ui.component.FloatingBottomBar
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.gestures.detectTapGestures
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -58,7 +70,11 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalMainPagerState
 
 @Composable
-fun BottomBarMaterial(navigationBadge: NavigationBadgeState) {
+fun BottomBarMaterial(
+    backdrop: Backdrop,
+    navigationBadge: NavigationBadgeState,
+    modifier: Modifier = Modifier,
+) {
     val fullFeatured = Natives.isFullFeatured()
     if (!fullFeatured) return
 
@@ -71,9 +87,19 @@ fun BottomBarMaterial(navigationBadge: NavigationBadgeState) {
         Triple(R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings)
     )
 
+    if (LocalEnableFloatingBottomBarBlur.current && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        LiquidBottomBarMaterial(
+            backdrop = backdrop,
+            items = items,
+            navigationBadge = navigationBadge,
+            modifier = modifier,
+        )
+        return
+    }
+
     // Pages already reserve bottomInnerPadding, so the pill floats over scrolled content.
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .windowInsetsPadding(
                 WindowInsets.systemBars.union(WindowInsets.displayCutout).only(
@@ -110,6 +136,62 @@ fun BottomBarMaterial(navigationBadge: NavigationBadgeState) {
                                 mainPagerState.animateToPage(index)
                             }
                         },
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Liquid glass variant: reuses the Miuix FloatingBottomBar (lens, highlight, draggable indicator)
+// with Material colors.
+@Composable
+private fun LiquidBottomBarMaterial(
+    backdrop: Backdrop,
+    items: List<Triple<Int, ImageVector, ImageVector>>,
+    navigationBadge: NavigationBadgeState,
+    modifier: Modifier,
+) {
+    val mainPagerState = LocalMainPagerState.current
+    val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        .let { inset -> if (inset != 0.dp) 8.dp + inset else 28.dp }
+
+    FloatingBottomBar(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTapGestures { }
+            }
+            .padding(start = 28.dp, end = 28.dp, bottom = bottomPadding),
+        selectedIndex = mainPagerState.selectedPage,
+        onSelected = { mainPagerState.animateToPage(it) },
+        backdrop = backdrop,
+        tabsCount = items.size,
+        isBlurEnabled = true,
+        accentColor = MaterialTheme.colorScheme.primary,
+        tabContentColor = MaterialTheme.colorScheme.onSurface,
+        surfaceContainer = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) { activateTab ->
+        items.forEachIndexed { index, (label, selectedIcon, unselectedIcon) ->
+            val selected = mainPagerState.selectedPage == index
+            FloatingBottomBarItem(
+                selected = selected,
+                onClick = { activateTab(index) },
+                modifier = Modifier.defaultMinSize(minWidth = 76.dp)
+            ) {
+                // The bar recolors its indicator copy through the Miuix content color; forward it to Material.
+                CompositionLocalProvider(LocalContentColor provides MiuixLocalContentColor.current) {
+                    NavigationIconWithBadge(
+                        icon = if (selected) selectedIcon else unselectedIcon,
+                        contentDescription = stringResource(label),
+                        badge = badgeFor(index, navigationBadge),
+                    )
+                    Text(
+                        text = stringResource(label),
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Visible
                     )
                 }
             }
