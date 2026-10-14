@@ -22,6 +22,10 @@ import com.sukisu.ultra.ui.screen.home.HomeUiState
 import com.sukisu.ultra.ui.screen.home.SystemInfo
 import com.sukisu.ultra.ui.screen.home.getManagerVersion
 import com.sukisu.ultra.ui.util.checkNewVersion
+import com.sukisu.ultra.ui.util.getKpmModuleCount
+import com.sukisu.ultra.ui.util.getKpmVersion
+import com.sukisu.ultra.ui.util.getModuleCount
+import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.getSELinuxStatusRaw
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.resolveDeviceName
@@ -37,12 +41,35 @@ class HomeViewModel(
     fun refresh() {
         viewModelScope.launch {
             val baseState = withContext(Dispatchers.IO) { buildState() }
-            _uiState.update { baseState }
+            _uiState.update { current ->
+                baseState.copy(
+                    superuserCount = current.superuserCount,
+                    moduleCount = current.moduleCount,
+                    kpmCount = current.kpmCount,
+                )
+            }
+            if (baseState.isManager && baseState.isRootAvailable) {
+                val counts = withContext(Dispatchers.IO) { loadCounts(baseState.lkmMode) }
+                _uiState.update {
+                    it.copy(superuserCount = counts.first, moduleCount = counts.second, kpmCount = counts.third)
+                }
+            }
             if (baseState.checkUpdateEnabled) {
                 val latestVersionInfo = withContext(Dispatchers.IO) { checkNewVersion() }
                 _uiState.update { it.copy(latestVersionInfo = latestVersionInfo) }
             }
         }
+    }
+
+    private fun loadCounts(lkmMode: Boolean?): Triple<Int?, Int?, Int?> {
+        val superuserCount = runCatching { getSuperuserCount() }.getOrNull()
+        val moduleCount = runCatching { getModuleCount() }.getOrNull()
+        // KPM only exists on built-in kernels.
+        val kpmCount = if (lkmMode == true) null else runCatching {
+            val version = getKpmVersion()
+            if (version.isEmpty() || version.contains("Error", ignoreCase = true)) null else getKpmModuleCount()
+        }.getOrNull()
+        return Triple(superuserCount, moduleCount, kpmCount)
     }
 
     private fun buildState(): HomeUiState {

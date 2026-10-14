@@ -22,8 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.sukisu.ultra.R
 import com.sukisu.ultra.magica.MagicaService
+import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.component.bottombar.BottomBarDestination
 import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
 import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
@@ -61,8 +63,11 @@ fun HomePager(
         onPauseOrDispose { }
     }
 
+    val mainPagerState = LocalMainPagerState.current
     val actions = HomeActions(
         onInstallClick = { navigator.push(Route.Install()) },
+        onSuperuserClick = { mainPagerState.animateToPage(BottomBarDestination.SuperUser.ordinal) },
+        onModuleClick = { mainPagerState.animateToPage(BottomBarDestination.Module.ordinal) },
         onOpenUrl = uriHandler::openUri,
         onJailbreakClick = {
             loadingDialog.showLoading()

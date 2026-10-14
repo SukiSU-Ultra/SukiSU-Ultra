@@ -6,7 +6,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,36 +17,27 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.DeveloperBoard
-import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Smartphone
-import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.rounded.Block
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -54,12 +48,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -75,6 +77,9 @@ import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopup
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+
+private val HeroShape = RoundedCornerShape(28.dp)
+private val TileShape = RoundedCornerShape(22.dp)
 
 @Composable
 fun HomePagerMaterial(
@@ -94,8 +99,12 @@ fun HomePagerMaterial(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            StatusCard(
+                state = state,
+                actions = actions,
+            )
             if (state.checkUpdateEnabled) {
                 UpdateCard(state = state, actions = actions)
             }
@@ -129,10 +138,7 @@ fun HomePagerMaterial(
             if (state.showRootWarning) {
                 WarningCard(stringResource(id = R.string.grant_root_failed))
             }
-            StatusCard(
-                state = state,
-                actions = actions,
-            )
+            StatsRow(state = state, actions = actions)
             InfoCard(systemInfo = state.systemInfo, showFullStatus = state.showFullStatus)
             SupportLinks(onOpenUrl = actions.onOpenUrl)
             Spacer(
@@ -196,132 +202,261 @@ private fun StatusCard(
     state: HomeUiState,
     actions: HomeActions,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
-        val ksuActive = state.ksuVersion != null
-        val notInstalled = !ksuActive && state.kernelVersion.isGKI()
+    val ksuActive = state.ksuVersion != null
+    val onClick = {
+        if (!state.isLateLoadMode) {
+            actions.onInstallClick()
+        }
+    }
+    if (ksuActive) {
+        ActiveStatusCard(state = state, onClick = onClick)
+    } else {
+        InactiveStatusCard(
+            state = state,
+            actions = actions,
+            notInstalled = state.kernelVersion.isGKI(),
+            onClick = onClick,
+        )
+    }
+}
 
-        val containerColor = if (ksuActive) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.errorContainer
-        }
-        val contentColor = MaterialTheme.colorScheme.contentColorFor(containerColor)
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ActiveStatusCard(
+    state: HomeUiState,
+    onClick: () -> Unit,
+) {
+    val containerColor = MaterialTheme.colorScheme.primary
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+    val workingMode = when (state.lkmMode) {
+        null -> ""
+        true -> "LKM"
+        else -> "Built-in"
+    }
 
-        val statusIcon = when {
-            ksuActive -> Icons.Rounded.CheckCircle
-            notInstalled -> Icons.Rounded.Warning
-            else -> Icons.Rounded.Block
-        }
-        val statusTitle = when {
-            ksuActive -> stringResource(R.string.home_working)
-            notInstalled -> stringResource(R.string.home_not_installed)
-            else -> stringResource(R.string.home_unsupported)
-        }
-        val statusSummary = when {
-            ksuActive -> stringResource(R.string.home_working_version, "${state.ksuVersion}-${state.kernelUAPIVersion}")
-            notInstalled -> stringResource(R.string.home_click_to_install)
-            else -> stringResource(R.string.home_unsupported_reason)
-        }
-        val workingMode = if (ksuActive) {
-            when (state.lkmMode) {
-                null -> ""
-                true -> "LKM"
-                else -> "Built-in"
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = containerColor,
+        contentColor = contentColor,
+        shape = HeroShape,
+        onClick = onClick,
+    ) {
+        Box(modifier = Modifier.drawBehind { drawStatusRings(contentColor.copy(alpha = 0.18f)) }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 188.dp)
+                    .padding(22.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (workingMode.isNotEmpty()) {
+                        StatusTag(
+                            label = workingMode,
+                            contentColor = containerColor,
+                            backgroundColor = contentColor,
+                        )
+                    }
+                    if (state.showCustomLkmBadge) {
+                        StatusTag(
+                            label = stringResource(R.string.home_lkm_custom),
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        )
+                    }
+                    if (state.isSafeMode) {
+                        StatusTag(
+                            label = stringResource(id = R.string.safe_mode),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            backgroundColor = MaterialTheme.colorScheme.errorContainer,
+                        )
+                    }
+                    if (state.isLateLoadMode) {
+                        StatusTag(
+                            label = stringResource(id = R.string.jailbreak_mode),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            backgroundColor = MaterialTheme.colorScheme.errorContainer,
+                        )
+                    }
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = stringResource(R.string.home_working),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Text(
+                        text = stringResource(R.string.home_working_version, "${state.ksuVersion}-${state.kernelUAPIVersion}"),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
             }
-        } else ""
+        }
+    }
+}
 
-        val statusTrailing: (@Composable () -> Unit)? = if (ksuActive && workingMode.isNotEmpty()) {
-            {
-                StatusTag(
-                    label = workingMode,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    backgroundColor = MaterialTheme.colorScheme.primary
+@Composable
+private fun InactiveStatusCard(
+    state: HomeUiState,
+    actions: HomeActions,
+    notInstalled: Boolean,
+    onClick: () -> Unit,
+) {
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val accentColor = MaterialTheme.colorScheme.error
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceBright,
+        shape = HeroShape,
+        onClick = onClick,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind { drawDashedBorder(outlineColor) }
+                .heightIn(min = 188.dp)
+                .padding(22.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    imageVector = if (notInstalled) Icons.Rounded.Warning else Icons.Rounded.Block,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = stringResource(
+                        if (notInstalled) R.string.home_click_to_install else R.string.home_unsupported_reason
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = accentColor,
                 )
             }
-        } else if (notInstalled && state.isSELinuxPermissive) {
-            {
-                Button(
-                    onClick = actions.onJailbreakClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text(stringResource(R.string.home_jailbreak))
+            Text(
+                text = stringResource(if (notInstalled) R.string.home_not_installed else R.string.home_unsupported),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Black,
+            )
+            if (notInstalled) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = actions.onInstallClick) {
+                        Text(stringResource(R.string.install))
+                    }
+                    if (state.isSELinuxPermissive) {
+                        OutlinedButton(onClick = actions.onJailbreakClick) {
+                            Text(stringResource(R.string.home_jailbreak))
+                        }
+                    }
                 }
             }
-        } else null
+        }
+    }
+}
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = containerColor,
-            contentColor = contentColor,
-            shape = MaterialTheme.shapes.large,
-            onClick = {
-                if (!state.isLateLoadMode) {
-                    actions.onInstallClick()
-                }
-            }
-        ) {
-            ListItem(
-                modifier = Modifier,
-                leadingContent = {
-                    Icon(statusIcon, contentDescription = statusTitle)
-                },
-                trailingContent = statusTrailing,
-                overlineContent = null,
-                supportingContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = statusSummary,
-                            modifier = Modifier.weight(1f, fill = false),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        if (state.showCustomLkmBadge) {
-                            Spacer(Modifier.width(8.dp))
-                            StatusTag(
-                                label = stringResource(R.string.home_lkm_custom),
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            )
-                        }
-                    }
-                },
-                verticalAlignment = Alignment.CenterVertically,
-                colors = ListItemDefaults.colors(
-                    containerColor = Color.Transparent,
-                    contentColor = contentColor,
-                    leadingContentColor = contentColor,
-                    trailingContentColor = contentColor,
-                    supportingContentColor = contentColor.copy(alpha = 0.7f)
-                ),
-                elevation = ListItemDefaults.elevation(),
-                content = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = statusTitle,
-                            style = MaterialTheme.typography.titleMediumEmphasized
-                        )
-                        if (ksuActive && state.isSafeMode) {
-                            Spacer(Modifier.width(8.dp))
-                            StatusTag(
-                                label = stringResource(id = R.string.safe_mode),
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                backgroundColor = MaterialTheme.colorScheme.errorContainer
-                            )
-                        }
-                        if (ksuActive && state.isLateLoadMode) {
-                            Spacer(Modifier.width(8.dp))
-                            StatusTag(
-                                label = stringResource(id = R.string.jailbreak_mode),
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                backgroundColor = MaterialTheme.colorScheme.errorContainer
-                            )
-                        }
-                    }
-                },
+private fun DrawScope.drawStatusRings(color: Color) {
+    val center = Offset(size.width - 36.dp.toPx(), 32.dp.toPx())
+    val stroke = 2.dp.toPx()
+    drawCircle(color = color, radius = 112.dp.toPx(), center = center, style = Stroke(stroke))
+    drawCircle(
+        color = color,
+        radius = 84.dp.toPx(),
+        center = center,
+        style = Stroke(stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 8.dp.toPx()))),
+    )
+    drawCircle(color = color, radius = 56.dp.toPx(), center = center, style = Stroke(stroke))
+    drawCircle(color = color, radius = 18.dp.toPx(), center = center)
+}
+
+private fun DrawScope.drawDashedBorder(color: Color) {
+    val stroke = 2.dp.toPx()
+    val radius = 28.dp.toPx() - stroke / 2
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(stroke / 2, stroke / 2),
+        size = size.copy(width = size.width - stroke, height = size.height - stroke),
+        cornerRadius = CornerRadius(radius, radius),
+        style = Stroke(stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))),
+    )
+}
+
+@Composable
+private fun StatsRow(
+    state: HomeUiState,
+    actions: HomeActions,
+) {
+    val tiles = buildList<Triple<Int, Int, (() -> Unit)?>> {
+        state.superuserCount?.let { add(Triple(it, R.string.superuser, actions.onSuperuserClick)) }
+        state.moduleCount?.let { add(Triple(it, R.string.module, actions.onModuleClick)) }
+        state.kpmCount?.let { add(Triple(it, R.string.kpm_title, null)) }
+    }
+    if (tiles.isEmpty()) return
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        tiles.forEach { (count, label, onClick) ->
+            StatTile(
+                count = count,
+                label = stringResource(label),
+                onClick = onClick,
+                modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+@Composable
+private fun StatTile(
+    count: Int,
+    label: String,
+    onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val content = @Composable {
+        Column(
+            modifier = Modifier
+                .height(88.dp)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+        }
+    }
+    if (onClick != null) {
+        Surface(
+            onClick = onClick,
+            modifier = modifier,
+            shape = TileShape,
+            color = MaterialTheme.colorScheme.surfaceBright,
+            content = content,
+        )
+    } else {
+        Surface(
+            modifier = modifier,
+            shape = TileShape,
+            color = MaterialTheme.colorScheme.surfaceBright,
+            content = content,
+        )
     }
 }
 
@@ -389,32 +524,52 @@ private fun SupportLinks(
 }
 
 @Composable
+private fun SpecSheet(
+    rows: List<Pair<String, String>>,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = TileShape,
+        color = MaterialTheme.colorScheme.surfaceBright,
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            rows.forEachIndexed { index, (label, value) ->
+                if (index > 0) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 46.dp)
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = value,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.End,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun InfoCard(
     systemInfo: SystemInfo,
     modifier: Modifier = Modifier,
     showFullStatus: Boolean = true,
 ) {
-    @Composable
-    fun InfoCardItem(
-        icon: ImageVector,
-        label: String,
-        content: String,
-        modifier: Modifier = Modifier,
-    ) {
-        SegmentedListItem(
-            modifier = modifier,
-            headlineContent = { Text(text = label, style = MaterialTheme.typography.bodyLarge) },
-            leadingContent = { Icon(imageVector = icon, contentDescription = label) },
-            supportingContent = {
-                Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-        )
-    }
-
     val selinuxDisplay = when (systemInfo.selinuxStatus) {
         "Enforcing" -> stringResource(R.string.selinux_status_enforcing)
         "Permissive" -> stringResource(R.string.selinux_status_permissive)
@@ -437,93 +592,36 @@ private fun InfoCard(
     val isSusfsSupported = susfsInfo.status == SusfsStatus.Supported
     val hookTypeLabel = rememberHookTypeLabel(manualHookText, inlineHookText, tracepointHookText, unknownHookText)
 
+    val systemRows = buildList {
+        add(stringResource(R.string.home_manager_version) to systemInfo.managerVersion)
+        add(stringResource(R.string.home_kernel) to systemInfo.kernelVersion)
+        if (showFullStatus) {
+            if (!systemInfo.kernelFullVersion.isNullOrBlank()) {
+                add(stringResource(R.string.home_kernel_full_version) to systemInfo.kernelFullVersion)
+            }
+            if (isSusfsSupported) {
+                add(stringResource(R.string.home_susfs_version) to susfsInfo.detail)
+            } else if (!hookTypeLabel.isNullOrBlank()) {
+                add(stringResource(R.string.hook_type) to hookTypeLabel)
+            }
+            if (!systemInfo.zygiskImplementation.isNullOrBlank()) {
+                add(stringResource(R.string.home_zygisk_implementation) to systemInfo.zygiskImplementation)
+            }
+        }
+        add(stringResource(R.string.home_device_model) to systemInfo.deviceModel)
+        add(stringResource(R.string.home_fingerprint) to systemInfo.fingerprint)
+    }
+    val securityRows = listOf(
+        stringResource(R.string.home_selinux_status) to selinuxDisplay,
+        stringResource(R.string.home_seccomp_status) to seccompDisplay,
+    )
+
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(13.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        SegmentedColumn(modifier = Modifier.fillMaxWidth()) {
-            item {
-                InfoCardItem(
-                    icon = Icons.Filled.Tag,
-                    label = stringResource(R.string.home_manager_version),
-                    content = systemInfo.managerVersion,
-                )
-            }
-            item {
-                InfoCardItem(
-                    icon = Icons.Filled.DeveloperBoard,
-                    label = stringResource(R.string.home_kernel),
-                    content = systemInfo.kernelVersion,
-                )
-            }
-            if (showFullStatus) {
-                if (!systemInfo.kernelFullVersion.isNullOrBlank()) {
-                    item {
-                        InfoCardItem(
-                            icon = Icons.Filled.Info,
-                            label = stringResource(R.string.home_kernel_full_version),
-                            content = systemInfo.kernelFullVersion,
-                        )
-                    }
-                }
-                if (isSusfsSupported) {
-                    item {
-                        InfoCardItem(
-                            icon = Icons.Filled.Build,
-                            label = stringResource(R.string.home_susfs_version),
-                            content = susfsInfo.detail,
-                        )
-                    }
-                } else if (!hookTypeLabel.isNullOrBlank()) {
-                    item {
-                        InfoCardItem(
-                            icon = Icons.Filled.Build,
-                            label = stringResource(R.string.hook_type),
-                            content = hookTypeLabel,
-                        )
-                    }
-                }
-                if (!systemInfo.zygiskImplementation.isNullOrBlank()) {
-                    item {
-                        InfoCardItem(
-                            icon = Icons.Filled.Extension,
-                            label = stringResource(R.string.home_zygisk_implementation),
-                            content = systemInfo.zygiskImplementation,
-                        )
-                    }
-                }
-            }
-            item {
-                InfoCardItem(
-                    icon = Icons.Filled.Smartphone,
-                    label = stringResource(R.string.home_device_model),
-                    content = systemInfo.deviceModel,
-                )
-            }
-            item {
-                InfoCardItem(
-                    icon = Icons.Filled.Fingerprint,
-                    label = stringResource(R.string.home_fingerprint),
-                    content = systemInfo.fingerprint,
-                )
-            }
-        }
-        SegmentedColumn(modifier = Modifier.fillMaxWidth()) {
-            item {
-                InfoCardItem(
-                    icon = Icons.Filled.Security,
-                    label = stringResource(R.string.home_selinux_status),
-                    content = selinuxDisplay,
-                )
-            }
-            item {
-                InfoCardItem(
-                    icon = Icons.Filled.FilterList,
-                    label = stringResource(R.string.home_seccomp_status),
-                    content = seccompDisplay,
-                )
-            }
-        }
+        SpecSheet(rows = systemRows)
+        SpecSheet(rows = securityRows)
     }
 }
 
