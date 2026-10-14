@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.kpm
 
+import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TonalCard
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material3.Surface
@@ -157,7 +159,7 @@ fun KpmMaterial(
         )
     }
 
-    Scaffold(
+    ExpressiveScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.kpm_title)) },
@@ -173,9 +175,7 @@ fun KpmMaterial(
                     }
                 },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = expressiveTopAppBarColors()
             )
         },
         floatingActionButton = {

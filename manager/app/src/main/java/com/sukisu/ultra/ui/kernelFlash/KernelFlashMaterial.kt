@@ -1,5 +1,14 @@
 package com.sukisu.ultra.ui.kernelFlash
 
+import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
+import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
+import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.Surface
+import androidx.compose.material3.SmallExtendedFloatingActionButton
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.foundation.BorderStroke
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -15,21 +24,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -71,7 +73,7 @@ fun KernelFlashMaterial(
         }
     }
 
-    Scaffold(
+    ExpressiveScaffold(
         topBar = {
             TopAppBar(
                 title = {
@@ -86,41 +88,28 @@ fun KernelFlashMaterial(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
+                    TopBarBackButton(onClick = actions.onBack)
                 },
                 actions = {
                     IconButton(
                         onClick = { actions.onSaveLog(logText) }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
+                            imageVector = Icons.Filled.Save,
                             contentDescription = stringResource(id = R.string.save_log)
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = expressiveTopAppBarColors()
             )
         },
         floatingActionButton = {
             if (state.isCompleted) {
-                FloatingActionButton(
+                SmallExtendedFloatingActionButton(
                     onClick = actions.onReboot,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.padding(bottom = 20.dp, end = 20.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Refresh,
-                        contentDescription = stringResource(id = R.string.reboot),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+                    icon = { Icon(Icons.Filled.Refresh, null) },
+                    text = { Text(stringResource(id = R.string.reboot)) },
+                )
             }
         }
     ) { innerPadding ->
@@ -130,21 +119,27 @@ fun KernelFlashMaterial(
                 .padding(innerPadding)
         ) {
             FlashProgressIndicatorMaterial(state, kpmPatchEnabled, kpmUndoPatch)
-            Box(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .verticalScroll(scrollState)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
-                LaunchedEffect(logText) {
-                    scrollState.animateScrollTo(scrollState.maxValue)
+                Box(modifier = Modifier.verticalScroll(scrollState)) {
+                    LaunchedEffect(logText) {
+                        scrollState.animateScrollTo(scrollState.maxValue)
+                    }
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = logText,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = logText,
-                    fontFamily = FontFamily.Monospace,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
             }
         }
     }
@@ -156,29 +151,31 @@ private fun FlashProgressIndicatorMaterial(
     kpmPatchEnabled: Boolean,
     kpmUndoPatch: Boolean
 ) {
-    val statusColor = when {
-        flashState.error.isNotEmpty() -> MaterialTheme.colorScheme.error
+    val failed = flashState.error.isNotEmpty()
+    val containerColor = when {
+        failed -> MaterialTheme.colorScheme.errorContainer
         flashState.isCompleted -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.surfaceBright
     }
+    val contentColor = MaterialTheme.colorScheme.contentColorFor(containerColor)
 
     val progress = animateFloatAsState(
         targetValue = flashState.progress.coerceIn(0f, 1f),
         label = "FlashProgress"
     )
 
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        shape = MaterialTheme.shapes.large,
+        color = containerColor,
+        contentColor = contentColor,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -187,30 +184,17 @@ private fun FlashProgressIndicatorMaterial(
             ) {
                 Text(
                     text = when {
-                        flashState.error.isNotEmpty() -> stringResource(R.string.flash_failed)
+                        failed -> stringResource(R.string.flash_failed)
                         flashState.isCompleted -> stringResource(R.string.flash_success)
                         else -> stringResource(R.string.flashing)
                     },
-                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                    fontWeight = FontWeight.Medium,
-                    color = statusColor
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
                 )
 
                 when {
-                    flashState.error.isNotEmpty() -> {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                    flashState.isCompleted -> {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    failed -> Icon(imageVector = Icons.Default.Error, contentDescription = null)
+                    flashState.isCompleted -> Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null)
                 }
             }
 
@@ -219,39 +203,41 @@ private fun FlashProgressIndicatorMaterial(
                 Text(
                     text = if (kpmUndoPatch) stringResource(R.string.kpm_undo_patch_mode)
                     else stringResource(R.string.kpm_patch_mode),
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor.copy(alpha = 0.75f)
                 )
             }
 
             if (flashState.currentStep.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = flashState.currentStep,
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = contentColor.copy(alpha = 0.75f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            LinearProgressIndicator(
+            LinearWavyProgressIndicator(
                 progress = { progress.value },
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                color = if (flashState.isCompleted) contentColor else MaterialTheme.colorScheme.primary,
+                trackColor = contentColor.copy(alpha = 0.2f)
             )
 
             if (flashState.error.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = flashState.error,
-                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onError,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            MaterialTheme.colorScheme.errorContainer,
+                            MaterialTheme.colorScheme.error,
                             MaterialTheme.shapes.small
                         )
                         .padding(12.dp)

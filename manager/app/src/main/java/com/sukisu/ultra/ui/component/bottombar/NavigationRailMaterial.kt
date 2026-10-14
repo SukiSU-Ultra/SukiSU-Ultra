@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.WideNavigationRail
 import androidx.compose.material3.WideNavigationRailDefaults
 import androidx.compose.material3.WideNavigationRailItem
+import androidx.compose.material3.WideNavigationRailItemDefaults
 import androidx.compose.material3.WideNavigationRailValue
 import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
@@ -120,7 +121,14 @@ fun NavigationRailMaterial(
                         badge = badgeFor(index, navigationBadge),
                     )
                 },
-                label = { Text(stringResource(label)) }
+                label = { Text(stringResource(label)) },
+                colors = WideNavigationRailItemDefaults.colors().copy(
+                    selectedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                    // Collapsed rails draw the label below the indicator, expanded ones inside it.
+                    selectedTextColorTopIconPosition = MaterialTheme.colorScheme.primary,
+                    selectedTextColorStartIconPosition = MaterialTheme.colorScheme.onPrimary,
+                ),
             )
         }
     }

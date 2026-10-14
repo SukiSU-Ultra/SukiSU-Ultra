@@ -71,6 +71,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.WarningLevel
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
+import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.TonalCard
@@ -504,7 +505,7 @@ private fun SupportLinks(
                 headlineContent = { Text(stringResource(R.string.home_support_title)) },
                 supportingContent = { Text(stringResource(R.string.home_support_content)) },
                 leadingContent = {
-                    Icon(Icons.Filled.VolunteerActivism, stringResource(R.string.home_support_title))
+                    IconTile(Icons.Filled.VolunteerActivism, stringResource(R.string.home_support_title))
                 },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
             )
@@ -515,7 +516,7 @@ private fun SupportLinks(
                 headlineContent = { Text(stringResource(R.string.home_learn_kernelsu)) },
                 supportingContent = { Text(stringResource(R.string.home_click_to_learn_kernelsu)) },
                 leadingContent = {
-                    Icon(Icons.AutoMirrored.Filled.MenuBook, stringResource(R.string.home_learn_kernelsu))
+                    IconTile(Icons.AutoMirrored.Filled.MenuBook, stringResource(R.string.home_learn_kernelsu))
                 },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
             )

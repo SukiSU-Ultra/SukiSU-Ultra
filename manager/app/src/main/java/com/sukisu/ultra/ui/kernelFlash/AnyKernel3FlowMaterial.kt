@@ -165,27 +165,36 @@ fun KpmPatchSelectionDialogMaterial(
                         KpmPatchOption.UNDO_PATCH_KPM to stringResource(R.string.enable_kpm_undo_patch)
                     )
 
-                    options.forEach { (option, title) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = selectedOption == option,
-                                    onClick = { selectedOption = option },
-                                    role = Role.RadioButton
-                                )
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = selectedOption == option,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = title,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        options.forEach { (option, title) ->
+                            val selected = selectedOption == option
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .selectable(
+                                        selected = selected,
+                                        onClick = { selectedOption = option },
+                                        role = Role.RadioButton
+                                    ),
+                                shape = MaterialTheme.shapes.medium,
+                                color = if (selected) MaterialTheme.colorScheme.secondaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = selected,
+                                        onClick = null
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = title,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                    )
+                                }
+                            }
                         }
                     }
                 }

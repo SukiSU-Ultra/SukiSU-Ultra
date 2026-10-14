@@ -832,7 +832,7 @@ fun AppIconMaterial(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
-                if (iconBitmap == null) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                if (iconBitmap == null) MaterialTheme.colorScheme.surfaceBright
                 else Color.Transparent
             ),
         contentAlignment = Alignment.Center
@@ -901,7 +901,7 @@ fun AppPathGroupCardMaterial(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.surfaceBright,
                             RoundedCornerShape(6.dp)
                         )
                         .padding(8.dp)

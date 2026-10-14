@@ -47,6 +47,7 @@ import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.SegmentedCheckboxItem
+import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
@@ -181,10 +182,7 @@ internal fun InstallScreenMaterial(
                     if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) add {
                         SegmentedListItem(
                             leadingContent = {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.DriveFileMove,
-                                    null
-                                )
+                                IconTile(Icons.AutoMirrored.Filled.DriveFileMove, null)
                             },
                             headlineContent = { Text(stringResource(R.string.install_upload_lkm_file)) },
                             supportingContent = {
@@ -316,11 +314,7 @@ internal fun InstallScreenMaterial(
                             SegmentedListItem(
                                 onClick = { actions.onReopenSlotDialog(method) },
                                 leadingContent = {
-                                    Icon(
-                                        Icons.Filled.SdStorage,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = null
-                                    )
+                                    IconTile(Icons.Filled.SdStorage, null)
                                 },
                                 headlineContent = {
                                     Text(

@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.component.uninstalldialog
 
+import com.sukisu.ultra.ui.component.material.IconTile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -59,10 +60,7 @@ fun UninstallDialogMaterial(
                                 headlineContent = { Text(stringResource(type.title)) },
                                 supportingContent = { Text(stringResource(type.message)) },
                                 leadingContent = {
-                                    Icon(
-                                        imageVector = type.icon,
-                                        contentDescription = null
-                                    )
+                                    IconTile(type.icon, null)
                                 }
                             )
                         }

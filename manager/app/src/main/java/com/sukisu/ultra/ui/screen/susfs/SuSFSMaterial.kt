@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.susfs
 
+import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -283,7 +285,7 @@ fun SuSFSMaterial() {
         isLoading = uiState.isLoading
     )
 
-    Scaffold(
+    ExpressiveScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.susfs_config_title)) },
@@ -301,9 +303,7 @@ fun SuSFSMaterial() {
                     }
                 },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = expressiveTopAppBarColors()
             )
         },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
