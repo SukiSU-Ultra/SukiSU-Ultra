@@ -461,3 +461,54 @@ pub fn set_spoof_cpu(
     ksuctl(ksu_uapi::KSU_IOCTL_SET_SPOOF_CPU, &raw mut cmd)?;
     Ok(())
 }
+
+pub fn manager_get() -> Result<ksu_uapi::ksu_manager_cmd> {
+    let mut cmd: ksu_uapi::ksu_manager_cmd = unsafe { std::mem::zeroed() };
+    cmd.operation = ksu_uapi::KSU_MANAGER_GET;
+    ksuctl(ksu_uapi::KSU_IOCTL_MANAGER, &raw mut cmd)?;
+    Ok(cmd)
+}
+
+pub fn manager_add(package: &str, cert_size: u32, hash: &str) -> Result<()> {
+    let mut cmd: ksu_uapi::ksu_manager_cmd = unsafe { std::mem::zeroed() };
+    cmd.operation = ksu_uapi::KSU_MANAGER_ADD;
+    cmd.cert_size = cert_size;
+    copy_manager_string(&mut cmd.package, package)?;
+    copy_manager_string(&mut cmd.hash, hash)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_MANAGER, &raw mut cmd)?;
+    Ok(())
+}
+
+pub fn manager_remove(package: &str) -> Result<()> {
+    let mut cmd: ksu_uapi::ksu_manager_cmd = unsafe { std::mem::zeroed() };
+    cmd.operation = ksu_uapi::KSU_MANAGER_REMOVE;
+    copy_manager_string(&mut cmd.package, package)?;
+    ksuctl(ksu_uapi::KSU_IOCTL_MANAGER, &raw mut cmd)?;
+    Ok(())
+}
+
+pub fn manager_set_enabled(enabled: bool) -> Result<()> {
+    let mut cmd: ksu_uapi::ksu_manager_cmd = unsafe { std::mem::zeroed() };
+    cmd.operation = ksu_uapi::KSU_MANAGER_SET_ENABLED;
+    cmd.enabled = u32::from(enabled);
+    ksuctl(ksu_uapi::KSU_IOCTL_MANAGER, &raw mut cmd)?;
+    Ok(())
+}
+
+pub fn manager_clear() -> Result<()> {
+    let mut cmd: ksu_uapi::ksu_manager_cmd = unsafe { std::mem::zeroed() };
+    cmd.operation = ksu_uapi::KSU_MANAGER_CLEAR;
+    ksuctl(ksu_uapi::KSU_IOCTL_MANAGER, &raw mut cmd)?;
+    Ok(())
+}
+
+fn copy_manager_string<const N: usize>(target: &mut [i8; N], value: &str) -> Result<()> {
+    anyhow::ensure!(
+        value.len() < N && !value.as_bytes().contains(&0),
+        "value is too long or contains NUL"
+    );
+    for (slot, byte) in target.iter_mut().zip(value.bytes()) {
+        *slot = byte as i8;
+    }
+    Ok(())
+}

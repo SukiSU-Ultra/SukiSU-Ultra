@@ -242,6 +242,19 @@ fun SettingPagerMiuix(
                                 onClick = actions.onOpenProfileTemplate
                             )
                         }
+                        Card(
+                            modifier = Modifier.padding(top = 12.dp).fillMaxWidth()
+                        ) {
+                            val title = stringResource(R.string.dynamic_manager_title)
+                            ArrowPreference(
+                                title = title,
+                                summary = stringResource(R.string.dynamic_manager_summary),
+                                startAction = {
+                                    Icon(Icons.Rounded.AdminPanelSettings, modifier = Modifier.padding(end = 6.dp), contentDescription = title, tint = colorScheme.onBackground)
+                                },
+                                onClick = actions.onOpenDynamicManagers
+                            )
+                        }
                         val toolsTitle = stringResource(id = R.string.settings_tools)
                         Card(
                             modifier = Modifier

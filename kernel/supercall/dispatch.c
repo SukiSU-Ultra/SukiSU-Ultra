@@ -15,6 +15,7 @@
 #include "runtime/ksud_boot.h"
 #include "feature/kernel_umount.h"
 #include "manager/manager_identity.h"
+#include "manager/dynamic_manager.h"
 #include "selinux/selinux.h"
 #include "infra/file_wrapper.h"
 #include "hook/tp_marker.h"
@@ -890,6 +891,23 @@ static int do_enable_kpm(void __user *arg)
     return 0;
 }
 
+static int do_manager(void __user *arg)
+{
+    struct ksu_manager_cmd cmd;
+    int ret;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+    if (cmd.operation == KSU_MANAGER_GET) {
+        ret = ksu_dynamic_manager_get(&cmd);
+        if (ret)
+            return ret;
+        return copy_to_user(arg, &cmd, sizeof(cmd)) ? -EFAULT : 0;
+    }
+    ret = ksu_dynamic_manager_set(&cmd);
+    return ret;
+}
+
 // IOCTL handlers mapping table
 // clang-format off
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
@@ -1082,6 +1100,12 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .name = "LIST_TRY_UMOUNT",
         .handler = list_try_umount,
         .perm_check = manager_or_root
+    },
+    {
+        .cmd = KSU_IOCTL_MANAGER,
+        .name = "MANAGER",
+        .handler = do_manager,
+        .perm_check = only_manager
     },
     {
         .cmd = 0,

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Home</string>
     <string name="home_not_installed">Not installed</string>
@@ -678,4 +678,11 @@
     <string name="home_zygisk_not_installed">Not installed</string>
     <string name="home_zygisk_disabled">Disabled</string>
     <string name="home_zygisk_reboot_required">Reboot required</string>
+    <string name="dynamic_manager_title">Dynamic managers</string>
+    <string name="dynamic_manager_summary">Manage additional trusted KernelSU managers</string>
+    <string name="dynamic_manager_enabled">Dynamic managers enabled</string>
+    <string name="dynamic_manager_add">Add manager</string>
+    <string name="dynamic_manager_remove">Remove manager</string>
+    <string name="dynamic_manager_select_app">Installed apps</string>
+    <string name="dynamic_manager_authorize">Authorize %1$s</string>
 </resources>

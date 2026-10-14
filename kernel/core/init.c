@@ -12,6 +12,7 @@
 #include "policy/feature.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_observer.h"
+#include "manager/dynamic_manager.h"
 #include "manager/throne_tracker.h"
 #include "hook/syscall_hook_manager.h"
 #include "hook/lsm_hook.h"
@@ -173,6 +174,7 @@ int __init kernelsu_init(void)
 
         ksu_allowlist_init();
         ksu_load_allow_list();
+        ksu_dynamic_manager_load();
 
         ksu_syscall_hook_manager_init();
 

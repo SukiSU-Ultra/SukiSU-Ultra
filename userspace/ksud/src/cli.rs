@@ -186,6 +186,12 @@ enum Commands {
         #[command(subcommand)]
         command: Susfs,
     },
+
+    /// Manage dynamic userspace managers
+    Manager {
+        #[command(subcommand)]
+        command: Manager,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -730,6 +736,24 @@ enum Susfs {
     },
 }
 
+#[derive(clap::Subcommand, Debug)]
+enum Manager {
+    /// List dynamic managers and global state
+    List,
+    /// Authorize a manager using its package, certificate size and SHA-256
+    Add {
+        package: String,
+        cert_size: u32,
+        hash: String,
+    },
+    /// Remove a manager by package name
+    Remove { package: String },
+    /// Enable or disable dynamic managers
+    SetEnabled { enabled: bool },
+    /// Remove all dynamic managers
+    Clear,
+}
+
 /// susfs module subcommands
 #[cfg(target_arch = "aarch64")]
 #[derive(clap::Subcommand, Debug)]
@@ -973,6 +997,30 @@ pub fn run() -> Result<()> {
             Profile::ListTemplates => crate::profile::list_templates(),
         },
 
+        Commands::Manager { command } => match command {
+            Manager::List => {
+                let state = ksucalls::manager_get()?;
+                println!("enabled: {}", state.enabled != 0);
+                for entry in state.entries.iter().take(state.count as usize) {
+                    let package = String::from_utf8_lossy(&entry.package)
+                        .trim_end_matches('\0')
+                        .to_string();
+                    let hash = String::from_utf8_lossy(&entry.hash)
+                        .trim_end_matches('\0')
+                        .to_string();
+                    println!("{package}\t{}\t{hash}\t{}", entry.cert_size, entry.uid);
+                }
+                Ok(())
+            }
+            Manager::Add {
+                package,
+                cert_size,
+                hash,
+            } => ksucalls::manager_add(&package, cert_size, &hash),
+            Manager::Remove { package } => ksucalls::manager_remove(&package),
+            Manager::SetEnabled { enabled } => ksucalls::manager_set_enabled(enabled),
+            Manager::Clear => ksucalls::manager_clear(),
+        },
         Commands::Feature { command } => match command {
             Feature::Get { id, config } => {
                 if config {
@@ -995,7 +1043,7 @@ pub fn run() -> Result<()> {
             Debug::SetManager { apk } => debug::set_manager(&apk),
             Debug::GetSign { apk } => {
                 let sign = apk_sign::get_apk_signature(&apk)?;
-                println!("size: {:#x}, hash: {}", sign.0, sign.1);
+                println!("size: {}, hash: {}", sign.0, sign.1);
                 Ok(())
             }
             Debug::Version => {

@@ -15,6 +15,7 @@
 #include "manager/apk_sign.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_identity.h"
+#include "manager/dynamic_manager.h"
 #include "manager/throne_tracker.h"
 
 static DEFINE_MUTEX(throne_tracker_mutex);
@@ -35,14 +36,16 @@ struct uid_data {
 
 static void crown_manager(const char *apk, struct list_head *uid_data)
 {
+    (void)apk;
     struct list_head *list = (struct list_head *)uid_data;
     struct uid_data *np;
 
     list_for_each_entry (np, list, list) {
-        if (strncmp(np->package, KSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0) {
+        ksu_dynamic_manager_sync_uid(np->package, np->uid);
+        if (strncmp(np->package, KSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0 &&
+            is_manager_apk_identity((char *)apk, KSU_PACKAGE_NAME, np->uid)) {
             pr_info("Crowning manager: uid=%d\n", np->uid);
             ksu_set_manager_appid(np->uid);
-            break;
         }
     }
 }
@@ -82,7 +85,17 @@ static bool maybe_manager_apk_dir(const char *path)
     }
 
     // pkg is `<real package>`
-    return strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0;
+    if (strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0)
+        return true;
+
+    struct ksu_manager_cmd cmd = {};
+    if (ksu_dynamic_manager_get(&cmd))
+        return false;
+    for (int i = 0; i < cmd.count; ++i) {
+        if (strncmp(pkg, cmd.entries[i].package, sizeof(pkg)) == 0)
+            return true;
+    }
+    return false;
 }
 
 static FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,
@@ -197,8 +210,11 @@ static void search_manager(const char *path, int depth, struct list_head *uid_da
             // As soon as we get the manager apk path, we can stop
             stop = 1;
 
-            bool is_manager = is_manager_apk(candidate_path);
-            pr_info("Found manager base.apk at path: %s, is_manager: %d\n", candidate_path, is_manager);
+            char package[KSU_MAX_PACKAGE_NAME];
+            bool is_manager = get_pkg_from_apk_dir_path(package, pos->dirpath) == 0 &&
+                              is_manager_apk_identity(candidate_path, package, 0);
+            pr_info("Found manager base.apk at path: %s, package=%s, is_manager: %d\n", candidate_path, package,
+                    is_manager);
 
             // Only crown if signature verification pass
             if (unlikely(!is_manager))
@@ -283,6 +299,7 @@ void track_throne(bool prune_only)
         }
         data->uid = res;
         strscpy(data->package, package, sizeof(data->package));
+        ksu_dynamic_manager_sync_uid(data->package, data->uid);
         list_add_tail(&data->list, &uid_list);
         // reset line start
         line_start = pos;
@@ -326,6 +343,8 @@ void track_throne(bool prune_only)
             // uid unchanged, skip
             pr_info("manager uid unchanged, skip search!\n");
         }
+        if (ksu_manager_enabled())
+            need_rescan = true;
     }
 
     if (need_rescan) {
