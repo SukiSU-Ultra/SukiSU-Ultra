@@ -893,18 +893,27 @@ static int do_enable_kpm(void __user *arg)
 
 static int do_manager(void __user *arg)
 {
-    struct ksu_manager_cmd cmd;
+    struct ksu_manager_cmd *cmd;
     int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-    if (cmd.operation == KSU_MANAGER_GET) {
-        ret = ksu_dynamic_manager_get(&cmd);
-        if (ret)
-            return ret;
-        return copy_to_user(arg, &cmd, sizeof(cmd)) ? -EFAULT : 0;
+    cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+    if (!cmd)
+        return -ENOMEM;
+
+    if (copy_from_user(cmd, arg, sizeof(*cmd))) {
+        ret = -EFAULT;
+        goto out;
     }
-    ret = ksu_dynamic_manager_set(&cmd);
+    if (cmd->operation == KSU_MANAGER_GET) {
+        ret = ksu_dynamic_manager_get(cmd);
+        if (!ret && copy_to_user(arg, cmd, sizeof(*cmd)))
+            ret = -EFAULT;
+        goto out;
+    }
+    ret = ksu_dynamic_manager_set(cmd);
+
+out:
+    kfree(cmd);
     return ret;
 }
 
