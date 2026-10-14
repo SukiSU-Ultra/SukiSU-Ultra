@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.AppIconImage
+import com.sukisu.ultra.ui.util.DynamicManagerState
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
@@ -72,7 +75,12 @@ internal fun DynamicManagersMiuix(
                     item { Text(stringResource(R.string.dynamic_manager_select_app), Modifier.padding(16.dp)) }
                     items(apps.filterNot { app -> state?.entries?.any { it.packageName == app.packageName } == true }, key = { it.packageName }) { app ->
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column(Modifier.weight(1f)) {
+                            AppIconImage(
+                                modifier = Modifier.size(40.dp),
+                                packageInfo = app.packageInfo,
+                                label = app.label,
+                            )
+                            Column(Modifier.weight(1f).padding(start = 12.dp)) {
                                 Text(app.label)
                                 Text(app.packageName)
                             }

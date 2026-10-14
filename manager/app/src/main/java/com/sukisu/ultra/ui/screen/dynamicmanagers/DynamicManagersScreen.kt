@@ -1,23 +1,23 @@
 package com.sukisu.ultra.ui.screen.dynamicmanagers
 
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
+import com.sukisu.ultra.data.model.AppInfo
+import com.sukisu.ultra.data.repository.SuperUserRepositoryImpl
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
-import com.sukisu.ultra.ui.util.getKsuDaemonPath
-import com.sukisu.ultra.ui.util.getRootShell
-import kotlinx.coroutines.Dispatchers
+import com.sukisu.ultra.ui.util.DynamicManagerState
+import com.sukisu.ultra.ui.util.addDynamicManager
+import com.sukisu.ultra.ui.util.getDynamicManagerSignature
+import com.sukisu.ultra.ui.util.getDynamicManagers
+import com.sukisu.ultra.ui.util.removeDynamicManager
+import com.sukisu.ultra.ui.util.setDynamicManagersEnabled
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-internal data class DynamicManagerEntry(val packageName: String, val certSize: Int, val hash: String, val uid: Int)
-internal data class DynamicManagerState(val enabled: Boolean, val entries: List<DynamicManagerEntry>)
-internal data class InstalledApp(val label: String, val packageName: String, val apkPath: String)
+internal typealias InstalledApp = AppInfo
 internal data class DynamicManagersActions(
     val onBack: () -> Unit,
     val onRefresh: () -> Unit,
@@ -29,7 +29,6 @@ internal data class DynamicManagersActions(
 
 @Composable
 fun DynamicManagersScreen() {
-    val context = LocalContext.current
     val navigator = LocalNavigator.current
     val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf<DynamicManagerState?>(null) }
@@ -37,25 +36,11 @@ fun DynamicManagersScreen() {
     var error by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
 
-    suspend fun runCommand(vararg args: String): String = withContext(Dispatchers.IO) {
-        val shell = getRootShell()
-        val escaped = args.joinToString(" ") { "'${it.replace("'", "'\\''")}'" }
-        val out = shell.newJob().add("${getKsuDaemonPath()} $escaped").to(ArrayList<String>(), null).exec()
-        check(out.code == 0) { out.err.joinToString("\n").ifBlank { "ksud command failed" } }
-        out.out.joinToString("\n")
-    }
-
     suspend fun refresh() {
         busy = true
         error = null
         try {
-            val lines = runCommand("manager", "list").lines()
-            val enabled = lines.firstOrNull { it.startsWith("enabled:") }?.substringAfter(':')?.trim().toBoolean()
-            val entries = lines.drop(1).filter { it.isNotBlank() }.mapNotNull { line ->
-                val fields = line.split('\t')
-                if (fields.size < 4) null else DynamicManagerEntry(fields[0], fields[1].toIntOrNull() ?: 0, fields[2], fields[3].toIntOrNull() ?: 0)
-            }
-            state = DynamicManagerState(enabled, entries)
+            state = getDynamicManagers()
         } catch (t: Throwable) {
             error = t.message
         } finally {
@@ -65,24 +50,14 @@ fun DynamicManagersScreen() {
 
     LaunchedEffect(Unit) { refresh() }
 
-    @RequiresApi(Build.VERSION_CODES.P)
     suspend fun loadApps() {
         busy = true
         error = null
         try {
             apps = withContext(Dispatchers.IO) {
-                val pm = context.packageManager
-                val packages = if (Build.VERSION.SDK_INT >= 33) {
-                    pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
-                } else {
-                    @Suppress("DEPRECATION")
-                    pm.getInstalledPackages(PackageManager.GET_SIGNING_CERTIFICATES)
-                }
-                packages.mapNotNull { info ->
-                    if (info.packageName == context.packageName) return@mapNotNull null
-                    val appInfo = info.applicationInfo ?: return@mapNotNull null
-                    InstalledApp(pm.getApplicationLabel(appInfo).toString(), info.packageName, appInfo.sourceDir)
-                }.sortedBy { it.label.lowercase() }
+                SuperUserRepositoryImpl().getAppList().getOrThrow().first
+                    .filter { it.packageName != com.sukisu.ultra.ksuApp.packageName }
+                    .sortedBy { it.label.lowercase() }
             }
         } catch (t: Throwable) {
             error = t.message
@@ -96,13 +71,8 @@ fun DynamicManagersScreen() {
             busy = true
             error = null
             try {
-                val signOutput = runCommand("debug", "get-sign", app.apkPath)
-                val size = Regex("size:\\s*(0x[0-9a-fA-F]+|[0-9]+)").find(signOutput)?.groupValues?.get(1)
-                    ?: error("Could not parse signature size")
-                val certSize = if (size.startsWith("0x")) size.substring(2).toLong(16).toInt() else size.toInt()
-                val hash = Regex("hash:\\s*([0-9a-fA-F]{64})").find(signOutput)?.groupValues?.get(1)
-                    ?: error("Could not parse signature hash")
-                runCommand("manager", "add", app.packageName, certSize.toString(), hash)
+                val signature = getDynamicManagerSignature(app.packageInfo.applicationInfo?.sourceDir ?: error("APK path unavailable"))
+                addDynamicManager(app.packageName, signature)
                 apps = emptyList()
                 refresh()
             } catch (t: Throwable) {
@@ -116,9 +86,9 @@ fun DynamicManagersScreen() {
     val actions = DynamicManagersActions(
         onBack = navigator::pop,
         onRefresh = { scope.launch { refresh() } },
-        onSetEnabled = { enabled -> scope.launch { runCatching { runCommand("manager", "set-enabled", enabled.toString()); refresh() }.onFailure { error = it.message } } },
+        onSetEnabled = { enabled -> scope.launch { runCatching { setDynamicManagersEnabled(enabled); refresh() }.onFailure { error = it.message } } },
         onLoadApps = { scope.launch { loadApps() } },
-        onRemove = { packageName -> scope.launch { runCatching { runCommand("manager", "remove", packageName); refresh() }.onFailure { error = it.message } } },
+        onRemove = { packageName -> scope.launch { runCatching { removeDynamicManager(packageName); refresh() }.onFailure { error = it.message } } },
         onAdd = ::addApp,
     )
     when (LocalUiMode.current) {
