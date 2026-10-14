@@ -40,8 +40,19 @@ class SettingsRepositoryImpl : SettingsRepository {
     }
 
     override var uiMode: String
-        get() = prefs.getString("ui_mode", UiMode.DEFAULT_VALUE) ?: UiMode.DEFAULT_VALUE
+        get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->
+            prefs.edit { putString("ui_mode", mode) }
+        }
         set(value) = prefs.edit { putString("ui_mode", value) }
+
+    // Fresh installs default to Material; upgrades that never picked a mode keep the previous Miuix default.
+    private fun initialUiMode(): String {
+        val freshInstall = runCatching {
+            val info = ksuApp.packageManager.getPackageInfo(ksuApp.packageName, 0)
+            info.firstInstallTime == info.lastUpdateTime
+        }.getOrDefault(false)
+        return if (freshInstall) UiMode.DEFAULT_VALUE else UiMode.Miuix.value
+    }
 
     override var appLanguage: String
         get() = LocaleHelper.getCurrentLanguage(ksuApp)
