@@ -79,6 +79,10 @@ static bool maybe_manager_apk_dir(const char *path)
 {
     _Static_assert(sizeof(KSU_PACKAGE_NAME) < KSU_MAX_PACKAGE_NAME, "KSU_PACKAGE_NAME too long!");
     char pkg[KSU_MAX_PACKAGE_NAME];
+    struct ksu_manager_cmd *cmd;
+    bool found = false;
+    int i;
+
     if (get_pkg_from_apk_dir_path(pkg, path) < 0) {
         pr_err("Failed to get package name from apk dir path: %s\n", path);
         return false;
@@ -88,14 +92,19 @@ static bool maybe_manager_apk_dir(const char *path)
     if (strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0)
         return true;
 
-    struct ksu_manager_cmd cmd = {};
-    if (ksu_dynamic_manager_get(&cmd))
+    cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+    if (!cmd)
         return false;
-    for (int i = 0; i < cmd.count; ++i) {
-        if (strncmp(pkg, cmd.entries[i].package, sizeof(pkg)) == 0)
-            return true;
+    if (!ksu_dynamic_manager_get(cmd)) {
+        for (i = 0; i < cmd->count; ++i) {
+            if (strncmp(pkg, cmd->entries[i].package, sizeof(pkg)) == 0) {
+                found = true;
+                break;
+            }
+        }
     }
-    return false;
+    kfree(cmd);
+    return found;
 }
 
 static FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,

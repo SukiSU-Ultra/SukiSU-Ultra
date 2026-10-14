@@ -284,30 +284,42 @@ int ksu_dynamic_manager_get(struct ksu_manager_cmd *cmd)
 bool ksu_dynamic_manager_match(const char *package, unsigned int size, const char *hash)
 {
     unsigned int i;
-    struct ksu_manager_cmd cmd = {};
+    bool found = false;
 
-    if (!ksu_manager_enabled() || ksu_dynamic_manager_get(&cmd))
+    if (!ksu_manager_enabled())
         return false;
-    for (i = 0; i < cmd.count; ++i) {
-        if (cmd.entries[i].cert_size == size && !strcmp(cmd.entries[i].package, package) &&
-            !strncasecmp(cmd.entries[i].hash, hash, KSU_MANAGER_HASH_LENGTH))
-            return true;
+
+    mutex_lock(&dynamic_manager_lock);
+    for (i = 0; i < dynamic_manager_count; ++i) {
+        if (dynamic_managers[i].cert_size == size && !strcmp(dynamic_managers[i].package, package) &&
+            !strncasecmp(dynamic_managers[i].hash, hash, KSU_MANAGER_HASH_LENGTH)) {
+            found = true;
+            break;
+        }
     }
-    return false;
+    mutex_unlock(&dynamic_manager_lock);
+    return found;
 }
 
 bool ksu_dynamic_manager_check_apk(char *path, const char *package, uid_t uid)
 {
+    struct ksu_manager_entry entry = {};
     unsigned int i;
-    struct ksu_manager_cmd cmd = {};
     unsigned int appid = uid % KSU_PER_USER_RANGE;
+    bool found = false;
 
-    if (!ksu_manager_enabled() || ksu_dynamic_manager_get(&cmd))
+    if (!ksu_manager_enabled())
         return false;
-    for (i = 0; i < cmd.count; ++i) {
-        if (strcmp(cmd.entries[i].package, package) == 0 && cmd.entries[i].uid == appid &&
-            ksu_check_apk_signature(path, cmd.entries[i].cert_size, cmd.entries[i].hash))
-            return true;
+
+    mutex_lock(&dynamic_manager_lock);
+    for (i = 0; i < dynamic_manager_count; ++i) {
+        if (!strcmp(dynamic_managers[i].package, package) && dynamic_managers[i].uid == appid) {
+            entry = dynamic_managers[i];
+            found = true;
+            break;
+        }
     }
-    return false;
+    mutex_unlock(&dynamic_manager_lock);
+
+    return found && ksu_check_apk_signature(path, entry.cert_size, entry.hash);
 }
