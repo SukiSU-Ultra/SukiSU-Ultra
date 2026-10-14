@@ -778,295 +778,303 @@ fun ModuleItem(
     val hasDescription = module.description.isNotBlank()
     val maxLinesLimit = LocalModuleDescriptionMaxLines.current
     var expanded by rememberSaveable(module.id) { mutableStateOf(false) }
+    val banner = rememberModuleBanner(module.bannerPath)
 
     Card(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .padding(bottom = 12.dp),
-        insideMargin = PaddingValues(16.dp),
+        insideMargin = PaddingValues(0.dp),
         onClick = if (hasDescription) {
             { expanded = !expanded }
         } else null
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .moduleBanner(banner, colorScheme.surfaceContainer)
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 4.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val moduleVersion = stringResource(id = R.string.module_version)
-                val moduleAuthor = stringResource(id = R.string.module_author)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 4.dp)
+                ) {
+                    val moduleVersion = stringResource(id = R.string.module_version)
+                    val moduleAuthor = stringResource(id = R.string.module_author)
 
-                SubcomposeLayout { constraints ->
-                    val spacingPx = 6.dp.roundToPx()
-                    var nameTextLayout: TextLayoutResult? = null
-                    val tagsPlaceable = if (module.metamodule || module.zygisk) {
-                        subcompose("tags") {
+                    SubcomposeLayout { constraints ->
+                        val spacingPx = 6.dp.roundToPx()
+                        var nameTextLayout: TextLayoutResult? = null
+                        val tagsPlaceable = if (module.metamodule || module.zygisk) {
+                            subcompose("tags") {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (module.metamodule) {
+                                        Text(
+                                            text = "META",
+                                            fontSize = 12.sp,
+                                            color = updateTint,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(updateBg)
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontWeight = FontWeight(750),
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
+                                    if (module.zygisk) {
+                                        Text(
+                                            text = "ZYGISK",
+                                            fontSize = 12.sp,
+                                            color = updateTint,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(updateBg)
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontWeight = FontWeight(750),
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
+                                }
+                            }.first().measure(Constraints(0, constraints.maxWidth, 0, constraints.maxHeight))
+                        } else null
+
+                        val reserved = (tagsPlaceable?.width ?: 0) + if (tagsPlaceable != null) spacingPx else 0
+                        val nameMax = (constraints.maxWidth - reserved).coerceAtLeast(0)
+                        val namePlaceable = subcompose("name") {
+                            Text(
+                                text = module.name,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight(550),
+                                color = colorScheme.onSurface,
+                                textDecoration = textDecoration,
+                                onTextLayout = { nameTextLayout = it }
+                            )
+                        }.first().measure(Constraints(constraints.minWidth, nameMax, constraints.minHeight, constraints.maxHeight))
+
+                        val width = (namePlaceable.width + reserved).coerceIn(constraints.minWidth, constraints.maxWidth)
+                        val height = maxOf(namePlaceable.height, tagsPlaceable?.height ?: 0)
+
+                        layout(width, height) {
+                            namePlaceable.placeRelative(0, 0)
+                            val endX = nameTextLayout?.let { layoutRes ->
+                                val last = (layoutRes.lineCount - 1).coerceAtLeast(0)
+                                layoutRes.getLineRight(last).toInt()
+                            } ?: namePlaceable.width
+                            tagsPlaceable?.placeRelative(endX + spacingPx, (height - (tagsPlaceable.height)) / 2)
+                        }
+                    }
+                    Text(
+                        text = "$moduleVersion: ${module.version}",
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                        fontWeight = FontWeight(550),
+                        color = colorScheme.onSurfaceVariantSummary,
+                        textDecoration = textDecoration
+                    )
+                    Text(
+                        text = "$moduleAuthor: ${module.author}",
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(bottom = 1.dp),
+                        fontWeight = FontWeight(550),
+                        color = colorScheme.onSurfaceVariantSummary,
+                        textDecoration = textDecoration
+                    )
+                }
+                Switch(
+                    enabled = !module.update,
+                    checked = module.enabled,
+                    onCheckedChange = {
+                        if (it != module.enabled) onCheckChanged(it)
+                    }
+                )
+            }
+
+            if (hasDescription) {
+                ExpandableDescriptionText(
+                    text = module.description,
+                    expanded = expanded,
+                    maxLinesLimit = maxLinesLimit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    fontSize = 14.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                    textDecoration = textDecoration
+                )
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = 0.5.dp,
+                color = colorScheme.outline.copy(alpha = 0.5f)
+            )
+
+            Row {
+                AnimatedVisibility(
+                    visible = module.enabled && !module.remove && !module.update,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (module.hasActionScript) {
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier
+                                    .heightIn(min = 35.dp)
+                                    .widthIn(min = 35.dp)
+                                    .clip(CircleShape)
+                                    .background(secondaryContainer)
+                                    .combinedClickable(
+                                        onClick = onExecuteAction,
+                                        onLongClick = { onAddActionShortcut(ShortcutType.Action) }
+                                    )
+                                    .padding(
+                                        start = if (!module.hasWebUi && !hasUpdate) 6.dp else 0.dp,
+                                        end = if (!module.hasWebUi && !hasUpdate) 8.dp else 0.dp,
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                if (module.metamodule) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    imageVector = Icons.Rounded.PlayArrow,
+                                    tint = actionIconTint,
+                                    contentDescription = stringResource(R.string.action)
+                                )
+                                if (!module.hasWebUi && !hasUpdate) {
                                     Text(
-                                        text = "META",
-                                        fontSize = 12.sp,
-                                        color = updateTint,
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(updateBg)
-                                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                                        fontWeight = FontWeight(750),
-                                        maxLines = 1,
-                                        softWrap = false
+                                        modifier = Modifier.padding(start = 3.dp, end = 4.dp),
+                                        text = stringResource(R.string.action),
+                                        color = actionIconTint,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 15.sp,
                                     )
                                 }
-                                if (module.zygisk) {
-                                    Text(
-                                        text = "ZYGISK",
-                                        fontSize = 12.sp,
-                                        color = updateTint,
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(updateBg)
-                                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                                        fontWeight = FontWeight(750),
-                                        maxLines = 1,
-                                        softWrap = false
-                                    )
-                                }
-                            }
-                        }.first().measure(Constraints(0, constraints.maxWidth, 0, constraints.maxHeight))
-                    } else null
-
-                    val reserved = (tagsPlaceable?.width ?: 0) + if (tagsPlaceable != null) spacingPx else 0
-                    val nameMax = (constraints.maxWidth - reserved).coerceAtLeast(0)
-                    val namePlaceable = subcompose("name") {
-                        Text(
-                            text = module.name,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight(550),
-                            color = colorScheme.onSurface,
-                            textDecoration = textDecoration,
-                            onTextLayout = { nameTextLayout = it }
-                        )
-                    }.first().measure(Constraints(constraints.minWidth, nameMax, constraints.minHeight, constraints.maxHeight))
-
-                    val width = (namePlaceable.width + reserved).coerceIn(constraints.minWidth, constraints.maxWidth)
-                    val height = maxOf(namePlaceable.height, tagsPlaceable?.height ?: 0)
-
-                    layout(width, height) {
-                        namePlaceable.placeRelative(0, 0)
-                        val endX = nameTextLayout?.let { layoutRes ->
-                            val last = (layoutRes.lineCount - 1).coerceAtLeast(0)
-                            layoutRes.getLineRight(last).toInt()
-                        } ?: namePlaceable.width
-                        tagsPlaceable?.placeRelative(endX + spacingPx, (height - (tagsPlaceable.height)) / 2)
-                    }
-                }
-                Text(
-                    text = "$moduleVersion: ${module.version}",
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp),
-                    fontWeight = FontWeight(550),
-                    color = colorScheme.onSurfaceVariantSummary,
-                    textDecoration = textDecoration
-                )
-                Text(
-                    text = "$moduleAuthor: ${module.author}",
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(bottom = 1.dp),
-                    fontWeight = FontWeight(550),
-                    color = colorScheme.onSurfaceVariantSummary,
-                    textDecoration = textDecoration
-                )
-            }
-            Switch(
-                enabled = !module.update,
-                checked = module.enabled,
-                onCheckedChange = {
-                    if (it != module.enabled) onCheckChanged(it)
-                }
-            )
-        }
-
-        if (hasDescription) {
-            ExpandableDescriptionText(
-                text = module.description,
-                expanded = expanded,
-                maxLinesLimit = maxLinesLimit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp),
-                fontSize = 14.sp,
-                color = colorScheme.onSurfaceVariantSummary,
-                textDecoration = textDecoration
-            )
-        }
-
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 8.dp),
-            thickness = 0.5.dp,
-            color = colorScheme.outline.copy(alpha = 0.5f)
-        )
-
-        Row {
-            AnimatedVisibility(
-                visible = module.enabled && !module.remove && !module.update,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (module.hasActionScript) {
-                        Row(
-                            modifier = Modifier
-                                .heightIn(min = 35.dp)
-                                .widthIn(min = 35.dp)
-                                .clip(CircleShape)
-                                .background(secondaryContainer)
-                                .combinedClickable(
-                                    onClick = onExecuteAction,
-                                    onLongClick = { onAddActionShortcut(ShortcutType.Action) }
-                                )
-                                .padding(
-                                    start = if (!module.hasWebUi && !hasUpdate) 6.dp else 0.dp,
-                                    end = if (!module.hasWebUi && !hasUpdate) 8.dp else 0.dp,
-                                ),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                imageVector = Icons.Rounded.PlayArrow,
-                                tint = actionIconTint,
-                                contentDescription = stringResource(R.string.action)
-                            )
-                            if (!module.hasWebUi && !hasUpdate) {
-                                Text(
-                                    modifier = Modifier.padding(start = 3.dp, end = 4.dp),
-                                    text = stringResource(R.string.action),
-                                    color = actionIconTint,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 15.sp,
-                                )
                             }
                         }
-                    }
-                    if (module.hasWebUi) {
-                        Row(
-                            modifier = Modifier
-                                .heightIn(min = 35.dp)
-                                .widthIn(min = 35.dp)
-                                .clip(CircleShape)
-                                .background(secondaryContainer)
-                                .combinedClickable(
-                                    onClick = onOpenWebUi,
-                                    onLongClick = { onAddActionShortcut(ShortcutType.WebUI) }
+                        if (module.hasWebUi) {
+                            Row(
+                                modifier = Modifier
+                                    .heightIn(min = 35.dp)
+                                    .widthIn(min = 35.dp)
+                                    .clip(CircleShape)
+                                    .background(secondaryContainer)
+                                    .combinedClickable(
+                                        onClick = onOpenWebUi,
+                                        onLongClick = { onAddActionShortcut(ShortcutType.WebUI) }
+                                    )
+                                    .padding(horizontal = if (!module.hasActionScript && !hasUpdate) 10.dp else 0.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(22.dp),
+                                    imageVector = Icons.Rounded.Code,
+                                    tint = actionIconTint,
+                                    contentDescription = stringResource(R.string.open)
                                 )
-                                .padding(horizontal = if (!module.hasActionScript && !hasUpdate) 10.dp else 0.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(22.dp),
-                                imageVector = Icons.Rounded.Code,
-                                tint = actionIconTint,
-                                contentDescription = stringResource(R.string.open)
-                            )
-                            if (!module.hasActionScript && !hasUpdate) {
-                                Text(
-                                    modifier = Modifier.padding(start = 4.dp, end = 2.dp),
-                                    text = stringResource(R.string.open),
-                                    color = actionIconTint,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 15.sp,
-                                )
+                                if (!module.hasActionScript && !hasUpdate) {
+                                    Text(
+                                        modifier = Modifier.padding(start = 4.dp, end = 2.dp),
+                                        text = stringResource(R.string.open),
+                                        color = actionIconTint,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 15.sp,
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
-            AnimatedVisibility(
-                visible = hasUpdate,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+                AnimatedVisibility(
+                    visible = hasUpdate,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    IconButton(
+                        modifier = Modifier.padding(end = 8.dp),
+                        backgroundColor = updateBg,
+                        enabled = !module.remove,
+                        minHeight = 35.dp,
+                        minWidth = 35.dp,
+                        onClick = onUpdate,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = MiuixIcons.UploadCloud,
+                                tint = updateTint,
+                                contentDescription = stringResource(R.string.module_update),
+                            )
+                            Text(
+                                modifier = Modifier.padding(start = 4.dp, end = 3.dp),
+                                text = stringResource(R.string.module_update),
+                                color = updateTint,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp
+                            )
+                        }
+                    }
+                }
                 IconButton(
-                    modifier = Modifier.padding(end = 8.dp),
-                    backgroundColor = updateBg,
-                    enabled = !module.remove,
                     minHeight = 35.dp,
                     minWidth = 35.dp,
-                    onClick = onUpdate,
+                    onClick = if (module.remove) onUndoUninstall else onUninstall,
+                    backgroundColor = if (module.remove) {
+                        secondaryContainer.copy(alpha = 0.8f)
+                    } else {
+                        secondaryContainer
+                    },
                 ) {
+                    val animatedPadding by animateDpAsState(
+                        targetValue = if (!hasUpdate) 10.dp else 0.dp,
+                        animationSpec = tween(durationMillis = 300)
+                    )
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp),
+                        modifier = Modifier.padding(horizontal = animatedPadding),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = MiuixIcons.UploadCloud,
-                            tint = updateTint,
-                            contentDescription = stringResource(R.string.module_update),
+                            imageVector = if (module.remove) {
+                                MiuixIcons.Undo
+                            } else {
+                                MiuixIcons.Delete
+                            },
+                            tint = actionIconTint,
+                            contentDescription = null
                         )
-                        Text(
-                            modifier = Modifier.padding(start = 4.dp, end = 3.dp),
-                            text = stringResource(R.string.module_update),
-                            color = updateTint,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
-                    }
-                }
-            }
-            IconButton(
-                minHeight = 35.dp,
-                minWidth = 35.dp,
-                onClick = if (module.remove) onUndoUninstall else onUninstall,
-                backgroundColor = if (module.remove) {
-                    secondaryContainer.copy(alpha = 0.8f)
-                } else {
-                    secondaryContainer
-                },
-            ) {
-                val animatedPadding by animateDpAsState(
-                    targetValue = if (!hasUpdate) 10.dp else 0.dp,
-                    animationSpec = tween(durationMillis = 300)
-                )
-                Row(
-                    modifier = Modifier.padding(horizontal = animatedPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        modifier = Modifier.size(20.dp),
-                        imageVector = if (module.remove) {
-                            MiuixIcons.Undo
-                        } else {
-                            MiuixIcons.Delete
-                        },
-                        tint = actionIconTint,
-                        contentDescription = null
-                    )
-                    AnimatedVisibility(
-                        visible = !hasUpdate,
-                        enter = expandHorizontally(),
-                        exit = shrinkHorizontally()
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(start = 4.dp, end = 3.dp),
-                            text = stringResource(
-                                if (module.remove) R.string.undo else R.string.uninstall
-                            ),
-                            color = actionIconTint,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
+                        AnimatedVisibility(
+                            visible = !hasUpdate,
+                            enter = expandHorizontally(),
+                            exit = shrinkHorizontally()
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(start = 4.dp, end = 3.dp),
+                                text = stringResource(
+                                    if (module.remove) R.string.undo else R.string.uninstall
+                                ),
+                                color = actionIconTint,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp
+                            )
+                        }
                     }
                 }
             }

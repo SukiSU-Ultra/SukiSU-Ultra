@@ -1288,6 +1288,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
 
         resolve_module_icon_path(&mut module_prop_map, "actionIcon", &path);
         resolve_module_icon_path(&mut module_prop_map, "webuiIcon", &path);
+        resolve_module_icon_path(&mut module_prop_map, "banner", &path);
 
         // Apply module config overrides and extract managed features
         if let Some(module_id) = module_prop_map.get("id")

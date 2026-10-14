@@ -20,4 +20,5 @@ data class Module(
     val zygisk: Boolean = false,
     val actionIconPath: String?,
     val webUiIconPath: String?,
+    val bannerPath: String? = null,
 )
