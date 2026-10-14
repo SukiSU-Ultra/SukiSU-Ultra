@@ -219,11 +219,23 @@ static void search_manager(const char *path, int depth, struct list_head *uid_da
             // As soon as we get the manager apk path, we can stop
             stop = 1;
 
-            char package[KSU_MAX_PACKAGE_NAME];
-            bool is_manager = get_pkg_from_apk_dir_path(package, pos->dirpath) == 0 &&
-                              is_manager_apk_identity(candidate_path, package, 0);
-            pr_info("Found manager base.apk at path: %s, package=%s, is_manager: %d\n", candidate_path, package,
-                    is_manager);
+            char package[KSU_MAX_PACKAGE_NAME] = {};
+            uid_t package_uid = KSU_INVALID_APPID;
+            struct uid_data *uid_entry;
+            bool is_manager = false;
+
+            if (get_pkg_from_apk_dir_path(package, pos->dirpath) == 0) {
+                list_for_each_entry (uid_entry, (struct list_head *)uid_data, list) {
+                    if (!strcmp(uid_entry->package, package)) {
+                        package_uid = uid_entry->uid;
+                        break;
+                    }
+                }
+                if (package_uid != KSU_INVALID_APPID)
+                    is_manager = is_manager_apk_identity(candidate_path, package, package_uid);
+            }
+            pr_info("Found manager base.apk at path: %s, package=%s, uid=%u, is_manager: %d\n", candidate_path,
+                    package, package_uid, is_manager);
 
             // Only crown if signature verification pass
             if (unlikely(!is_manager))
