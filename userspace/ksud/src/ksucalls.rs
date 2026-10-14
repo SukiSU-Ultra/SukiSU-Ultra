@@ -462,13 +462,13 @@ pub fn set_spoof_cpu(
     Ok(())
 }
 
-fn copy_manager_string<const N: usize>(target: &mut [u8; N], value: &str) -> Result<()> {
+fn copy_manager_string<const N: usize>(target: &mut [libc::c_char; N], value: &str) -> Result<()> {
     anyhow::ensure!(
         value.len() < N && !value.as_bytes().contains(&0),
         "value is too long or contains NUL"
     );
     for (slot, byte) in target.iter_mut().zip(value.bytes()) {
-        *slot = byte;
+        *slot = byte as libc::c_char;
     }
     Ok(())
 }

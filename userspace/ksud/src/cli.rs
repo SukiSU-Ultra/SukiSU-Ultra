@@ -1002,12 +1002,22 @@ pub fn run() -> Result<()> {
                 let state = ksucalls::manager_get()?;
                 println!("enabled: {}", state.enabled != 0);
                 for entry in state.entries.iter().take(state.count as usize) {
-                    let package = String::from_utf8_lossy(&entry.package)
-                        .trim_end_matches('\0')
-                        .to_string();
-                    let hash = String::from_utf8_lossy(&entry.hash)
-                        .trim_end_matches('\0')
-                        .to_string();
+                    let package = String::from_utf8_lossy(unsafe {
+                        std::slice::from_raw_parts(
+                            entry.package.as_ptr().cast::<u8>(),
+                            entry.package.len(),
+                        )
+                    })
+                    .trim_end_matches('\0')
+                    .to_string();
+                    let hash = String::from_utf8_lossy(unsafe {
+                        std::slice::from_raw_parts(
+                            entry.hash.as_ptr().cast::<u8>(),
+                            entry.hash.len(),
+                        )
+                    })
+                    .trim_end_matches('\0')
+                    .to_string();
                     println!("{package}\t{}\t{hash}\t{}", entry.cert_size, entry.uid);
                 }
                 Ok(())
