@@ -482,27 +482,3 @@ bool ksu_dynamic_manager_verify_apk(char *path, const char *package, uid_t uid)
     write_unlock(&dynamic_manager_lock);
     return true;
 }
-
-bool ksu_dynamic_manager_check_apk(char *path, const char *package, uid_t uid)
-{
-    struct ksu_manager_entry entry = {};
-    unsigned int i;
-    unsigned int appid = uid % KSU_PER_USER_RANGE;
-    bool found = false;
-
-    if (!ksu_manager_enabled())
-        return false;
-
-    read_lock(&dynamic_manager_lock);
-    for (i = 0; i < dynamic_manager_count; ++i) {
-        if (dynamic_manager_verified[i] && !strcmp(dynamic_managers[i].package, package) &&
-            dynamic_managers[i].uid == appid) {
-            entry = dynamic_managers[i];
-            found = true;
-            break;
-        }
-    }
-    read_unlock(&dynamic_manager_lock);
-
-    return found && ksu_check_apk_signature(path, entry.cert_size, entry.hash);
-}

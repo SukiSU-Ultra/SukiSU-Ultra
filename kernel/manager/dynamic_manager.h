@@ -14,13 +14,6 @@ static inline bool ksu_dynamic_manager_match(const char *package, unsigned int s
     (void)hash;
     return false;
 }
-static inline bool ksu_dynamic_manager_check_apk(char *path, const char *package, uid_t uid)
-{
-    (void)path;
-    (void)package;
-    (void)uid;
-    return false;
-}
 static inline bool ksu_dynamic_manager_package_registered(const char *package)
 {
     (void)package;
@@ -53,7 +46,6 @@ static inline int ksu_dynamic_manager_get(struct ksu_manager_cmd *cmd)
 }
 #else
 bool ksu_dynamic_manager_match(const char *package, unsigned int size, const char *hash);
-bool ksu_dynamic_manager_check_apk(char *path, const char *package, uid_t uid);
 bool ksu_dynamic_manager_package_registered(const char *package);
 bool ksu_dynamic_manager_verify_apk(char *path, const char *package, uid_t uid);
 int ksu_dynamic_manager_uid_for_package(const char *package, uid_t *uid);
