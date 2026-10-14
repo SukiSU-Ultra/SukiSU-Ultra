@@ -202,21 +202,24 @@ restore:
 void ksu_dynamic_manager_load(void)
 {
     struct dynamic_manager_state *state;
+    struct ksu_manager_entry *kept_entries;
     struct file *fp;
     loff_t pos = 0;
     ssize_t read;
     unsigned int i, kept = 0;
     bool enabled = false;
-    struct ksu_manager_entry kept_entries[KSU_MAX_DYNAMIC_MANAGERS];
 
     state = kzalloc(sizeof(*state), GFP_KERNEL);
     if (!state)
         return;
-    fp = filp_open(DYNAMIC_MANAGER_FILE, O_RDONLY, 0);
-    if (IS_ERR(fp)) {
+    kept_entries = kzalloc(sizeof(*kept_entries) * KSU_MAX_DYNAMIC_MANAGERS, GFP_KERNEL);
+    if (!kept_entries) {
         kfree(state);
         return;
     }
+    fp = filp_open(DYNAMIC_MANAGER_FILE, O_RDONLY, 0);
+    if (IS_ERR(fp))
+        goto out;
     read = kernel_read(fp, state, sizeof(*state), &pos);
     filp_close(fp, NULL);
     if (read == sizeof(*state) && state->magic == DYNAMIC_MANAGER_MAGIC &&
@@ -240,20 +243,22 @@ void ksu_dynamic_manager_load(void)
                 continue;
             if (current_uid != entry->uid % KSU_PER_USER_RANGE)
                 continue;
-            kept_entries[kept++] = *entry;
+            if (kept < KSU_MAX_DYNAMIC_MANAGERS)
+                kept_entries[kept++] = *entry;
         }
     }
-    kfree(state);
-
+out:
     write_lock(&dynamic_manager_lock);
     WRITE_ONCE(dynamic_manager_enabled, kept ? enabled : false);
     dynamic_manager_count = kept;
     if (kept)
-        memcpy(dynamic_managers, kept_entries, sizeof(kept_entries));
+        memcpy(dynamic_managers, kept_entries, sizeof(*kept_entries) * kept);
     else
         memset(dynamic_managers, 0, sizeof(dynamic_managers));
     memset(dynamic_manager_verified, 0, sizeof(dynamic_manager_verified));
     write_unlock(&dynamic_manager_lock);
+    kfree(kept_entries);
+    kfree(state);
 }
 
 int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
