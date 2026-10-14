@@ -203,7 +203,7 @@ void ksu_dynamic_manager_load(void)
 int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
 {
     struct ksu_manager_entry entry = {};
-    struct ksu_manager_entry previous_managers[KSU_MAX_DYNAMIC_MANAGERS];
+    struct ksu_manager_entry *previous_managers;
     __u32 previous_count;
     bool previous_enabled;
     unsigned int i;
@@ -212,10 +212,14 @@ int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
     if (!cmd || cmd->count > KSU_MAX_DYNAMIC_MANAGERS || cmd->enabled > 1)
         return -EINVAL;
 
+    previous_managers = kzalloc(sizeof(dynamic_managers), GFP_KERNEL);
+    if (!previous_managers)
+        return -ENOMEM;
+
     mutex_lock(&dynamic_manager_lock);
     previous_enabled = READ_ONCE(dynamic_manager_enabled);
     previous_count = dynamic_manager_count;
-    memcpy(previous_managers, dynamic_managers, sizeof(previous_managers));
+    memcpy(previous_managers, dynamic_managers, sizeof(dynamic_managers));
     switch (cmd->operation) {
     case KSU_MANAGER_SET_ENABLED:
         WRITE_ONCE(dynamic_manager_enabled, !!cmd->enabled);
@@ -280,6 +284,7 @@ save:
         memcpy(dynamic_managers, previous_managers, sizeof(dynamic_managers));
     }
     mutex_unlock(&dynamic_manager_lock);
+    kfree(previous_managers);
     if (!ret)
         track_throne(false);
     return ret;

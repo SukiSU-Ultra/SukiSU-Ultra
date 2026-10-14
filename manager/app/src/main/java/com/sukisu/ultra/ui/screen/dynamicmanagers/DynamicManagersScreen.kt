@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.dynamicmanagers
 
+import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import com.sukisu.ultra.data.model.AppInfo
@@ -23,7 +24,6 @@ internal data class DynamicManagersActions(
     val onBack: () -> Unit,
     val onRefresh: () -> Unit,
     val onSetEnabled: (Boolean) -> Unit,
-    val onSearchTextChange: (String) -> Unit,
     val onLoadApps: () -> Unit,
     val onRemove: (String) -> Unit,
     val onAdd: (InstalledApp) -> Unit,
@@ -37,8 +37,6 @@ fun DynamicManagersScreen() {
     var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
-    var searchText by remember { mutableStateOf("") }
-
     suspend fun refresh() {
         busy = true
         error = null
@@ -59,8 +57,13 @@ fun DynamicManagersScreen() {
         try {
             apps = withContext(Dispatchers.IO) {
                 SuperUserRepositoryImpl().getAppList().getOrThrow().first
-                    .filter { it.packageName != com.sukisu.ultra.ksuApp.packageName }
-                    .sortedBy { it.label.lowercase() }
+                    .filter { app ->
+                        app.packageName != ksuApp.packageName &&
+                            app.packageInfo.applicationInfo?.let { info ->
+                                info.flags and ApplicationInfo.FLAG_SYSTEM == 0
+                            } == true
+                    }
+                    .sortedByDescending { it.packageInfo.firstInstallTime }
             }
         } catch (t: Throwable) {
             error = t.message
@@ -97,13 +100,12 @@ fun DynamicManagersScreen() {
         onBack = navigator::pop,
         onRefresh = { scope.launch { refresh() } },
         onSetEnabled = { enabled -> scope.launch { runCatching { setDynamicManagersEnabled(enabled); refresh() }.onFailure { error = it.message } } },
-        onSearchTextChange = { searchText = it },
         onLoadApps = { scope.launch { loadApps() } },
         onRemove = { packageName -> scope.launch { runCatching { removeDynamicManager(packageName); refresh() }.onFailure { error = it.message } } },
         onAdd = ::addApp,
     )
     when (LocalUiMode.current) {
-        UiMode.Material -> DynamicManagersMaterial(state, currentManager, apps, searchText, busy, error, actions)
-        UiMode.Miuix -> DynamicManagersMiuix(state, currentManager, apps, searchText, busy, error, actions)
+        UiMode.Material -> DynamicManagersMaterial(state, currentManager, apps, busy, error, actions)
+        UiMode.Miuix -> DynamicManagersMiuix(state, currentManager, apps, busy, error, actions)
     }
 }

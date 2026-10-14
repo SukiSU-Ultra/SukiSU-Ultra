@@ -14,18 +14,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.AppIconImage
-import com.sukisu.ultra.ui.component.SearchStatus
-import com.sukisu.ultra.ui.component.miuix.SearchPager
-import com.sukisu.ultra.ui.util.DynamicManagerEntry
 import com.sukisu.ultra.ui.util.DynamicManagerState
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -42,23 +37,18 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Refresh
-import com.sukisu.ultra.ui.component.miuix.SearchBar
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @Composable
 internal fun DynamicManagersMiuix(
     state: DynamicManagerState?,
     currentManager: InstalledApp?,
     apps: List<InstalledApp>,
-    searchText: String,
     busy: Boolean,
     error: String?,
     actions: DynamicManagersActions,
 ) {
-    val searchLabel = stringResource(R.string.dynamic_manager_title)
-    var searchStatus by remember(searchLabel) { mutableStateOf(SearchStatus(searchLabel, searchText)) }
-    androidx.compose.runtime.LaunchedEffect(searchText) {
-        if (searchStatus.searchText != searchText) searchStatus = searchStatus.copy(searchText = searchText)
-    }
     Scaffold(topBar = {
         TopAppBar(
             title = stringResource(R.string.dynamic_manager_title),
@@ -66,22 +56,7 @@ internal fun DynamicManagersMiuix(
             actions = { IconButton(onClick = actions.onRefresh) { Icon(Icons.Rounded.Refresh, null) } },
         )
     }) { padding ->
-        searchStatus.SearchPager(
-            onSearchStatusChange = { next ->
-                searchStatus = next
-                actions.onSearchTextChange(next.searchText)
-            },
-            searchBarTopPadding = padding.calculateTopPadding(),
-            defaultResult = {
-                DynamicManagerContent(state, currentManager, apps, busy, error, actions, padding)
-            },
-            expandBar = { status, onStatusChange, topPadding ->
-                SearchBar(status, onStatusChange, topPadding)
-            },
-            result = {
-                ManagerEntries(state?.entries.orEmpty(), currentManager, apps, searchStatus.searchText, actions)
-            },
-        )
+        DynamicManagerContent(state, currentManager, apps, busy, error, actions, padding)
     }
 }
 
@@ -139,28 +114,6 @@ private fun DynamicManagerContent(
                     }
                     IconButton(onClick = { actions.onAdd(app) }) { Icon(Icons.Rounded.Add, stringResource(R.string.dynamic_manager_authorize, app.label)) }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ManagerEntries(
-    entries: List<DynamicManagerEntry>,
-    currentManager: InstalledApp?,
-    apps: List<InstalledApp>,
-    queryText: String,
-    actions: DynamicManagersActions,
-) {
-    val query = queryText.trim()
-    val appByPackage = (listOfNotNull(currentManager) + apps).associateBy { it.packageName }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-        items(entries.filter { entry ->
-            val app = appByPackage[entry.packageName]
-            query.isEmpty() || entry.packageName.contains(query, true) || app?.label?.contains(query, true) == true
-        }, key = { it.packageName }) { entry ->
-            ManagerItem(appByPackage[entry.packageName], entry.packageName, entry.uid, "${entry.certSize} bytes · ${entry.hash}", false) {
-                actions.onRemove(entry.packageName)
             }
         }
     }

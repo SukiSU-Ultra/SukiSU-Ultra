@@ -25,7 +25,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -41,8 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.AppIconImage
-import com.sukisu.ultra.ui.component.material.SearchAppBar
-import com.sukisu.ultra.ui.util.DynamicManagerEntry
 import com.sukisu.ultra.ui.util.DynamicManagerState
 
 @Composable
@@ -50,25 +47,16 @@ internal fun DynamicManagersMaterial(
     state: DynamicManagerState?,
     currentManager: InstalledApp?,
     apps: List<InstalledApp>,
-    searchText: String,
     busy: Boolean,
     error: String?,
     actions: DynamicManagersActions,
 ) {
     Scaffold(
         topBar = {
-            SearchAppBar(
-                snackbarHostState = remember { SnackbarHostState() },
+            androidx.compose.material3.TopAppBar(
                 title = { Text(stringResource(R.string.dynamic_manager_title)) },
-                searchText = searchText,
-                onSearchTextChange = actions.onSearchTextChange,
-                onClearClick = { actions.onSearchTextChange("") },
                 navigationIcon = { IconButton(onClick = actions.onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                 actions = { IconButton(onClick = actions.onRefresh) { Icon(Icons.Filled.Refresh, null) } },
-                defaultContent = { _, _ -> },
-                searchContent = { _, _ ->
-                    ManagerEntries(state?.entries.orEmpty(), currentManager, apps, searchText, actions)
-                },
             )
         },
     ) { padding ->
@@ -127,28 +115,6 @@ internal fun DynamicManagersMaterial(
                         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)),
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ManagerEntries(
-    entries: List<DynamicManagerEntry>,
-    currentManager: InstalledApp?,
-    apps: List<InstalledApp>,
-    searchText: String,
-    actions: DynamicManagersActions,
-) {
-    val query = searchText.trim()
-    val appByPackage = (listOfNotNull(currentManager) + apps).associateBy { it.packageName }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-        items(entries.filter { entry ->
-            val app = appByPackage[entry.packageName]
-            query.isEmpty() || entry.packageName.contains(query, true) || app?.label?.contains(query, true) == true
-        }, key = { it.packageName }) { entry ->
-            ManagerItem(appByPackage[entry.packageName], entry.packageName, entry.uid, "${entry.certSize} bytes · ${entry.hash}", false) {
-                actions.onRemove(entry.packageName)
             }
         }
     }
