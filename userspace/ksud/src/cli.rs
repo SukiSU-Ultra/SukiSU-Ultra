@@ -748,8 +748,8 @@ enum Manager {
     },
     /// Remove a manager by package name
     Remove { package: String },
-    /// Enable or disable dynamic managers
-    SetEnabled { enabled: bool },
+    /// Enable or disable dynamic managers (true/false or 1/0)
+    SetEnabled { enabled: String },
     /// Remove all dynamic managers
     Clear,
 }
@@ -1028,7 +1028,14 @@ pub fn run() -> Result<()> {
                 hash,
             } => ksucalls::manager_add(&package, cert_size, &hash),
             Manager::Remove { package } => ksucalls::manager_remove(&package),
-            Manager::SetEnabled { enabled } => ksucalls::manager_set_enabled(enabled),
+            Manager::SetEnabled { enabled } => {
+                let enabled = match enabled.as_str() {
+                    "1" | "true" => true,
+                    "0" | "false" => false,
+                    _ => anyhow::bail!("enabled must be true, false, 1, or 0"),
+                };
+                ksucalls::manager_set_enabled(enabled)
+            }
             Manager::Clear => ksucalls::manager_clear(),
         },
         Commands::Feature { command } => match command {

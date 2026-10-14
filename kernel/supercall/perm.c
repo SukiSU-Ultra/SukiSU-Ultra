@@ -2,6 +2,7 @@
 
 #include "supercall/internal.h"
 #include "manager/manager_identity.h"
+#include "manager/dynamic_manager.h"
 #include "policy/allowlist.h"
 
 bool only_manager(void)
@@ -17,6 +18,13 @@ bool only_root(void)
 bool manager_or_root(void)
 {
     return current_uid().val == 0 || is_manager();
+}
+
+bool manager_config_or_root(void)
+{
+    uid_t uid = current_uid().val;
+
+    return uid == 0 || is_manager() || ksu_dynamic_manager_uid_registered(uid);
 }
 
 bool always_allow(void)

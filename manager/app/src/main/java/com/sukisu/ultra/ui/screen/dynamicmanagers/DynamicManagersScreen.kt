@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.screen.dynamicmanagers
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import com.sukisu.ultra.data.model.AppInfo
+import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.data.repository.SuperUserRepositoryImpl
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
@@ -22,6 +23,7 @@ internal data class DynamicManagersActions(
     val onBack: () -> Unit,
     val onRefresh: () -> Unit,
     val onSetEnabled: (Boolean) -> Unit,
+    val onSearchTextChange: (String) -> Unit,
     val onLoadApps: () -> Unit,
     val onRemove: (String) -> Unit,
     val onAdd: (InstalledApp) -> Unit,
@@ -35,6 +37,7 @@ fun DynamicManagersScreen() {
     var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
 
     suspend fun refresh() {
         busy = true
@@ -83,16 +86,24 @@ fun DynamicManagersScreen() {
         }
     }
 
+    val currentManager = remember {
+        runCatching {
+            val packageInfo = ksuApp.packageManager.getPackageInfo(ksuApp.packageName, 0)
+            InstalledApp(ksuApp.applicationInfo.loadLabel(ksuApp.packageManager).toString(), packageInfo, null)
+        }.getOrNull()
+    }
+
     val actions = DynamicManagersActions(
         onBack = navigator::pop,
         onRefresh = { scope.launch { refresh() } },
         onSetEnabled = { enabled -> scope.launch { runCatching { setDynamicManagersEnabled(enabled); refresh() }.onFailure { error = it.message } } },
+        onSearchTextChange = { searchText = it },
         onLoadApps = { scope.launch { loadApps() } },
         onRemove = { packageName -> scope.launch { runCatching { removeDynamicManager(packageName); refresh() }.onFailure { error = it.message } } },
         onAdd = ::addApp,
     )
     when (LocalUiMode.current) {
-        UiMode.Material -> DynamicManagersMaterial(state, apps, busy, error, actions)
-        UiMode.Miuix -> DynamicManagersMiuix(state, apps, busy, error, actions)
+        UiMode.Material -> DynamicManagersMaterial(state, currentManager, apps, searchText, busy, error, actions)
+        UiMode.Miuix -> DynamicManagersMiuix(state, currentManager, apps, searchText, busy, error, actions)
     }
 }

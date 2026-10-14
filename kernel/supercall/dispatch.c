@@ -1114,7 +1114,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .cmd = KSU_IOCTL_MANAGER,
         .name = "MANAGER",
         .handler = do_manager,
-        .perm_check = manager_or_root
+        .perm_check = manager_config_or_root
     },
     {
         .cmd = 0,

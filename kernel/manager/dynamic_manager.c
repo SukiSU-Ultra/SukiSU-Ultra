@@ -26,7 +26,7 @@ struct dynamic_manager_state {
 };
 
 static DEFINE_MUTEX(dynamic_manager_lock);
-static bool dynamic_manager_enabled = true;
+bool dynamic_manager_enabled = false;
 static struct ksu_manager_entry dynamic_managers[KSU_MAX_DYNAMIC_MANAGERS];
 static __u32 dynamic_manager_count;
 
@@ -69,10 +69,11 @@ bool ksu_manager_package_authorized(const char *package, uid_t uid)
 
     if (ksu_manager_appid != KSU_INVALID_APPID && ksu_manager_appid == uid % KSU_PER_USER_RANGE)
         return true;
-    if (!ksu_manager_enabled())
-        return false;
-
     mutex_lock(&dynamic_manager_lock);
+    if (!READ_ONCE(dynamic_manager_enabled)) {
+        mutex_unlock(&dynamic_manager_lock);
+        return false;
+    }
     for (i = 0; i < dynamic_manager_count; ++i) {
         if (dynamic_managers[i].uid == uid % KSU_PER_USER_RANGE &&
             !strcmp(dynamic_managers[i].package, package)) {
@@ -84,16 +85,11 @@ bool ksu_manager_package_authorized(const char *package, uid_t uid)
     return found;
 }
 
-bool ksu_manager_uid_authorized(uid_t uid)
+bool ksu_dynamic_manager_uid_registered(uid_t uid)
 {
     unsigned int i;
     bool found = false;
     uid_t appid = uid % KSU_PER_USER_RANGE;
-
-    if (ksu_manager_appid != KSU_INVALID_APPID && ksu_manager_appid == appid)
-        return true;
-    if (!ksu_manager_enabled())
-        return false;
 
     mutex_lock(&dynamic_manager_lock);
     for (i = 0; i < dynamic_manager_count; ++i) {
@@ -104,6 +100,15 @@ bool ksu_manager_uid_authorized(uid_t uid)
     }
     mutex_unlock(&dynamic_manager_lock);
     return found;
+}
+
+bool ksu_manager_uid_authorized(uid_t uid)
+{
+    uid_t appid = uid % KSU_PER_USER_RANGE;
+
+    if (ksu_manager_appid != KSU_INVALID_APPID && ksu_manager_appid == appid)
+        return true;
+    return ksu_manager_enabled() && ksu_dynamic_manager_uid_registered(uid);
 }
 
 static int save_state_locked(void)
@@ -119,7 +124,7 @@ static int save_state_locked(void)
         return -ENOMEM;
     state->magic = DYNAMIC_MANAGER_MAGIC;
     state->version = DYNAMIC_MANAGER_VERSION;
-    state->enabled = dynamic_manager_enabled;
+    state->enabled = READ_ONCE(dynamic_manager_enabled);
     state->count = dynamic_manager_count;
     memcpy(state->entries, dynamic_managers, sizeof(dynamic_managers));
 
@@ -186,7 +191,7 @@ void ksu_dynamic_manager_load(void)
         }
         if (valid) {
             mutex_lock(&dynamic_manager_lock);
-            dynamic_manager_enabled = !!state->enabled;
+            WRITE_ONCE(dynamic_manager_enabled, !!state->enabled);
             dynamic_manager_count = state->count;
             memcpy(dynamic_managers, state->entries, sizeof(dynamic_managers));
             mutex_unlock(&dynamic_manager_lock);
@@ -198,6 +203,9 @@ void ksu_dynamic_manager_load(void)
 int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
 {
     struct ksu_manager_entry entry = {};
+    struct ksu_manager_entry previous_managers[KSU_MAX_DYNAMIC_MANAGERS];
+    __u32 previous_count;
+    bool previous_enabled;
     unsigned int i;
     int ret = 0;
 
@@ -205,9 +213,12 @@ int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
         return -EINVAL;
 
     mutex_lock(&dynamic_manager_lock);
+    previous_enabled = READ_ONCE(dynamic_manager_enabled);
+    previous_count = dynamic_manager_count;
+    memcpy(previous_managers, dynamic_managers, sizeof(previous_managers));
     switch (cmd->operation) {
     case KSU_MANAGER_SET_ENABLED:
-        dynamic_manager_enabled = !!cmd->enabled;
+        WRITE_ONCE(dynamic_manager_enabled, !!cmd->enabled);
         break;
     case KSU_MANAGER_ADD:
         if (!cmd->cert_size || cmd->cert_size > DYNAMIC_MANAGER_MAX_CERT_SIZE ||
@@ -262,6 +273,11 @@ int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
     if (!ret) {
 save:
         ret = save_state_locked();
+    }
+    if (ret) {
+        WRITE_ONCE(dynamic_manager_enabled, previous_enabled);
+        dynamic_manager_count = previous_count;
+        memcpy(dynamic_managers, previous_managers, sizeof(dynamic_managers));
     }
     mutex_unlock(&dynamic_manager_lock);
     if (!ret)

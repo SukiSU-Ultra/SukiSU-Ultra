@@ -685,4 +685,7 @@
     <string name="dynamic_manager_remove">Remove manager</string>
     <string name="dynamic_manager_select_app">Installed apps</string>
     <string name="dynamic_manager_authorize">Authorize %1$s</string>
+    <string name="dynamic_manager_current">Current manager</string>
+    <string name="dynamic_manager_default">Default manager</string>
+    <string name="dynamic_manager_authorized">Authorized managers</string>
 </resources>

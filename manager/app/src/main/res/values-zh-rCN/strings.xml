@@ -681,4 +681,7 @@
     <string name="dynamic_manager_remove">移除管理器</string>
     <string name="dynamic_manager_select_app">已安装应用</string>
     <string name="dynamic_manager_authorize">授权 %1$s</string>
+    <string name="dynamic_manager_current">当前管理器</string>
+    <string name="dynamic_manager_default">默认管理器</string>
+    <string name="dynamic_manager_authorized">已授权管理器</string>
 </resources>
