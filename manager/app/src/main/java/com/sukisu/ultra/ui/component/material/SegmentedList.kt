@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.component.material
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -75,8 +77,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 val LocalListItemShapes = compositionLocalOf<ListItemShapes?> { null }
-private val SegmentedOuterRadius = 16.dp
-private val SegmentedInnerRadius = 4.dp
+private val SegmentedOuterRadius = 24.dp
+private val SegmentedInnerRadius = 6.dp
 private const val SegmentedSpringStiffness = 800f
 private const val SegmentedSpringDamping = 0.9f
 
@@ -93,11 +95,11 @@ private fun defaultSegmentedColors(): ListItemColors = ListItemDefaults.segmente
 @Composable
 private fun defaultSingleSegmentedShape(index: Int, count: Int): ListItemShapes {
     val base = ListItemDefaults.segmentedShapes(index, count)
-    return if (count == 1) {
-        base.copy(shape = MaterialTheme.shapes.large)
-    } else {
-        base
-    }
+    val top = if (index == 0) SegmentedOuterRadius else SegmentedInnerRadius
+    val bottom = if (index == count - 1) SegmentedOuterRadius else SegmentedInnerRadius
+    return base.copy(
+        shape = RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
+    )
 }
 
 @Composable
@@ -384,6 +386,27 @@ fun SegmentedListItem(
 }
 
 @Composable
+fun IconTile(
+    icon: ImageVector,
+    contentDescription: String?,
+) {
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(20.dp),
+            tint = colorScheme.onSecondaryContainer,
+        )
+    }
+}
+
+@Composable
 fun SegmentedSwitchItem(
     icon: ImageVector? = null,
     title: String,
@@ -405,7 +428,7 @@ fun SegmentedSwitchItem(
         interactionSource = interactionSource,
         colors = colors,
         headlineContent = { Text(title) },
-        leadingContent = icon?.let { { Icon(it, title) } },
+        leadingContent = icon?.let { { IconTile(it, title) } },
         trailingContent = {
             ExpressiveSwitch(
                 checked = checked,
@@ -452,7 +475,7 @@ fun SegmentedDropdownItem(
             } else null,
             enabled = enabled,
             colors = colors,
-            leadingContent = icon?.let { { Icon(it, title) } },
+            leadingContent = icon?.let { { IconTile(it, title) } },
             headlineContent = { Text(text = title) },
             supportingContent = summary?.let { { Text(it) } },
             trailingContent = {
