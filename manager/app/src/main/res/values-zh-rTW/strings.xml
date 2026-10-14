@@ -645,4 +645,11 @@
     <string name="home_zygisk_not_installed">未安裝</string>
     <string name="home_zygisk_disabled">已停用</string>
     <string name="home_zygisk_reboot_required">需要重啟</string>
+    <string name="dynamic_manager_title">動態管理器</string>
+    <string name="dynamic_manager_summary">管理額外受信任的 KernelSU 管理器</string>
+    <string name="dynamic_manager_enabled">啟用動態管理器</string>
+    <string name="dynamic_manager_add">新增管理器</string>
+    <string name="dynamic_manager_remove">移除管理器</string>
+    <string name="dynamic_manager_select_app">已安裝的應用程式</string>
+    <string name="dynamic_manager_authorize">授權 %1$s</string>
 </resources>
