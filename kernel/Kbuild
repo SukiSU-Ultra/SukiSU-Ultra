@@ -76,8 +76,8 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
-obj-$(CONFIG_KPM) += kpm/compact.o
 obj-$(CONFIG_KPM) += kpm/kpm.o
+obj-$(CONFIG_KPM) += kpm/kpm_reloc.o
 obj-$(CONFIG_KPM) += kpm/super_access.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include

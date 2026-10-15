@@ -64,7 +64,7 @@ jobs:
         if [ "${{ github.event_name }}" = "pull_request" ]; then
           EXTRA_ARGS="$EXTRA_ARGS KSU_IS_PR_BUILD=1"
         fi
-        CONFIG_KSU=m CC=clang make $EXTRA_ARGS
+        CONFIG_KSU=m CONFIG_KPM=m CC=clang make $EXTRA_ARGS
         
         echo "=== Build completed ==="
 

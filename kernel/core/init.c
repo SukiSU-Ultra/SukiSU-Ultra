@@ -30,6 +30,10 @@
 #include "feature/shell_su_adb_only.h"
 #include "feature/module_blacklist.h"
 #include "infra/symbol_resolver.h"
+#ifdef CONFIG_KPM
+#include "kpm/kpm.h"
+#include "kpm/module.h"
+#endif
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
@@ -143,6 +147,9 @@ int __init kernelsu_init(void)
     }
 
     ksu_init_symbol_resolver();
+#ifdef CONFIG_KPM
+    kpm_init();
+#endif
 
     if (spoof_release || spoof_version) {
         ksu_spoof_version(spoof_release, spoof_version);
