@@ -30,7 +30,7 @@ where
     ksuctl(ksu_uapi::KSU_IOCTL_KPM, &raw mut cmd)?;
 
     if ret < 0 {
-        println!("Failed to load kpm: {}", io::Error::from_raw_os_error(ret));
+        bail!("failed to load kpm: {}", io::Error::from_raw_os_error(-ret));
     }
     Ok(())
 }

@@ -230,12 +230,8 @@ static void kpm_copy_sections(struct kpm_module *module, struct kpm_load_info *i
         if (section->sh_type != SHT_NOBITS)
             memcpy(destination, (void *)(uintptr_t)section->sh_addr, section->sh_size);
         section->sh_addr = (Elf64_Addr)(uintptr_t)destination;
-            if (!module->init && !strcmp(name, ".kpm.init")) module->init = destination;
-        if (!module->ctl0 && !strcmp(name, ".kpm.ctl0")) module->ctl0 = destination;
-        if (!module->ctl1 && !strcmp(name, ".kpm.ctl1")) module->ctl1 = destination;
-        if (!module->exit && !strcmp(name, ".kpm.exit")) module->exit = destination;
-        if (!module->event && !strcmp(name, ".kpm.event")) module->event = destination;
-        if (!module->info.base && !strcmp(name, ".kpm.info")) module->info.base = destination;
+        if (!module->info.base && !strcmp(name, ".kpm.info"))
+            module->info.base = destination;
     }
     module->info.name = module->info.base + (info->info.name - info->info.base);
     module->info.version = module->info.base + (info->info.version - info->info.base);
@@ -298,6 +294,27 @@ long kpm_load_image(const void *data, size_t len, const char *args, const char *
                 info.sections[i].sh_info < info.hdr->e_shnum &&
                 (info.sections[info.sections[i].sh_info].sh_flags & SHF_ALLOC))
                 rc = kpm_apply_relocations(info.sections, info.sym_index, i, module);
+    }
+    if (!rc) {
+        for (unsigned int i = 1; i < info.hdr->e_shnum; ++i) {
+            Elf64_Shdr *section = &info.sections[i];
+            const char *name;
+
+            if (!(section->sh_flags & SHF_ALLOC) ||
+                section->sh_name >= info.sections[info.hdr->e_shstrndx].sh_size)
+                continue;
+            name = info.section_names + section->sh_name;
+            if (!strcmp(name, ".kpm.init"))
+                module->init = *(kpm_init_fn *)(uintptr_t)section->sh_addr;
+            else if (!strcmp(name, ".kpm.ctl0"))
+                module->ctl0 = *(kpm_ctl0_fn *)(uintptr_t)section->sh_addr;
+            else if (!strcmp(name, ".kpm.ctl1"))
+                module->ctl1 = *(kpm_ctl1_fn *)(uintptr_t)section->sh_addr;
+            else if (!strcmp(name, ".kpm.exit"))
+                module->exit = *(kpm_exit_fn *)(uintptr_t)section->sh_addr;
+            else if (!strcmp(name, ".kpm.event"))
+                module->event = *(kpm_event_fn *)(uintptr_t)section->sh_addr;
+        }
     }
     if (!rc)
         rc = kpm_set_executable(module->start, module->size);
