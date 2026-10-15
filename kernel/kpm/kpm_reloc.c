@@ -3,6 +3,7 @@
 #include <asm/elf.h>
 #endif
 #include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/types.h>
 
 #include "kpm_reloc.h"
@@ -131,3 +132,5 @@ int kpm_apply_relocations(Elf64_Shdr *sections, unsigned int sym_index,
     return 0;
 }
 #endif
+
+MODULE_LICENSE("GPL");

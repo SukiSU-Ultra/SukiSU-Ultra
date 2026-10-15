@@ -2,7 +2,9 @@
 #define __SUKISU_KPM_MODULE_H
 
 #include <linux/elf.h>
+#include <linux/completion.h>
 #include <linux/list.h>
+#include <linux/refcount.h>
 #include <linux/types.h>
 
 #define KPM_NAME_LEN 32
@@ -63,6 +65,9 @@ struct kpm_module {
     kpm_ctl1_fn ctl1;
     kpm_exit_fn exit;
     kpm_event_fn event;
+    struct completion callbacks_done;
+    refcount_t callbacks;
+    bool unloading;
     unsigned int size;
     void *start;
 };
@@ -78,5 +83,7 @@ int kpm_list(char __user *out, int out_len);
 int kpm_info(const char *name, char __user *out, int out_len);
 long kpm_notify(const char *event, const char *args, void *reserved);
 void kpm_init(void);
+unsigned long kpm_resolve_runtime_symbol(const char *name);
+void kpm_kstorage_init(void);
 
 #endif

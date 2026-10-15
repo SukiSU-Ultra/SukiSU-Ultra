@@ -77,6 +77,9 @@ endif
 endif
 
 obj-$(CONFIG_KPM) += kpm/kpm.o
+obj-$(CONFIG_KPM) += kpm/auto_patch.o
+obj-$(CONFIG_KPM) += kpm/kstorage.o
+obj-$(CONFIG_KPM) += kpm/syscall_api.o
 obj-$(CONFIG_KPM) += kpm/kpm_reloc.o
 obj-$(CONFIG_KPM) += kpm/super_access.o
 
@@ -168,7 +171,7 @@ endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
-ifeq ($(CONFIG_KPM), y)
+ifeq ($(CONFIG_KPM), m)
 $(info -- KPM is enabled)
 else
 $(info -- KPM is disabled)
