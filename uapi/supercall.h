@@ -206,6 +206,20 @@ struct ksu_kpm_cmd {
     __aligned_u64 __user result_code;
 };
 
+/* sukisu-fs control ioctls. */
+struct ksu_sukisu_fs_mount_cmd {
+    char source[256]; /* existing on-disk source directory */
+    char target[256]; /* mount point path */
+};
+
+struct ksu_sukisu_fs_rule_cmd {
+    __u32 operation; /* SUKISU_FS_RULE_* */
+    __u32 view;      /* SUKISU_FS_VIEW_* */
+    __u32 uid_min;
+    __u32 uid_max;
+    char path[256];
+};
+
 /* IOCTL command definitions */
 static const __u32 KSU_IOCTL_GRANT_ROOT = _IOC(_IOC_NONE, 'K', 1, 0);
 static const __u32 KSU_IOCTL_GET_INFO = _IOR('K', 2, struct ksu_get_info_cmd);
@@ -243,5 +257,9 @@ static const __u32 KSU_IOCTL_SET_SPOOF_VERSION = _IOC(_IOC_WRITE, 'K', 104, 0);
 static const __u32 KSU_IOCTL_SET_SPOOF_CPU = _IOC(_IOC_WRITE, 'K', 105, 0);
 static const __u32 KSU_IOCTL_MANAGER = _IOWR('K', 106, struct ksu_manager_cmd);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
+static const __u32 KSU_IOCTL_SUKISU_FS_MOUNT = _IOWR('K', 210, struct ksu_sukisu_fs_mount_cmd);
+static const __u32 KSU_IOCTL_SUKISU_FS_UMOUNT = _IOWR('K', 211, struct ksu_sukisu_fs_mount_cmd);
+static const __u32 KSU_IOCTL_SUKISU_FS_RULE = _IOWR('K', 212, struct ksu_sukisu_fs_rule_cmd);
+static const __u32 KSU_IOCTL_SUKISU_FS_LIST = _IOC(_IOC_READ | _IOC_WRITE, 'K', 213, 0);
 
 #endif

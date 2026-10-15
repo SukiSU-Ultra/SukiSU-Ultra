@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.DisplaySettings
 import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
@@ -253,6 +254,14 @@ fun SettingPagerMiuix(
                                     Icon(Icons.Rounded.AdminPanelSettings, modifier = Modifier.padding(end = 6.dp), contentDescription = title, tint = colorScheme.onBackground)
                                 },
                                 onClick = actions.onOpenDynamicManagers
+                            )
+                            ArrowPreference(
+                                title = stringResource(R.string.sukisufs_title),
+                                summary = stringResource(R.string.sukisufs_rules_section),
+                                startAction = {
+                                    Icon(Icons.Rounded.Layers, modifier = Modifier.padding(end = 6.dp), contentDescription = null, tint = colorScheme.onBackground)
+                                },
+                                onClick = actions.onOpenSukisuFs
                             )
                         }
                         val toolsTitle = stringResource(id = R.string.settings_tools)

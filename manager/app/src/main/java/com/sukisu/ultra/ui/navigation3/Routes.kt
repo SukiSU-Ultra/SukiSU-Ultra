@@ -109,4 +109,8 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data object DynamicManagers : Route
+
+    @Parcelize
+    @Serializable
+    data object SukisuFs : Route
 }

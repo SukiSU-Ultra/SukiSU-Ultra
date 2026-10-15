@@ -692,4 +692,21 @@
     <string name="dynamic_manager_current">Current manager</string>
     <string name="dynamic_manager_default">Default manager</string>
     <string name="dynamic_manager_authorized">Authorized managers</string>
+
+    <!-- sukisu-fs -->
+    <string name="sukisufs_title">sukisu-fs</string>
+    <string name="sukisufs_mounted">Mounted</string>
+    <string name="sukisufs_not_mounted">Not mounted</string>
+    <string name="sukisufs_mount">Mount</string>
+    <string name="sukisufs_umount">Unmount</string>
+    <string name="sukisufs_source">Source directory</string>
+    <string name="sukisufs_target">Mount point</string>
+    <string name="sukisufs_view">View</string>
+    <string name="sukisufs_uid_min">UID min</string>
+    <string name="sukisufs_uid_max">UID max</string>
+    <string name="sukisufs_path">Path</string>
+    <string name="sukisufs_remove">Remove</string>
+    <string name="sukisufs_rules_section">Visibility rules</string>
+    <string name="sukisufs_rules_add">Add rule</string>
+    <string name="sukisufs_rules_clear">Clear all</string>
 </resources>

@@ -688,4 +688,21 @@
     <string name="dynamic_manager_current">当前管理器</string>
     <string name="dynamic_manager_default">默认管理器</string>
     <string name="dynamic_manager_authorized">已授权管理器</string>
+
+    <!-- sukisu-fs -->
+    <string name="sukisufs_title">sukisu-fs</string>
+    <string name="sukisufs_mounted">已挂载</string>
+    <string name="sukisufs_not_mounted">未挂载</string>
+    <string name="sukisufs_mount">挂载</string>
+    <string name="sukisufs_umount">卸载</string>
+    <string name="sukisufs_source">源目录</string>
+    <string name="sukisufs_target">挂载点</string>
+    <string name="sukisufs_view">可见性</string>
+    <string name="sukisufs_uid_min">UID 最小值</string>
+    <string name="sukisufs_uid_max">UID 最大值</string>
+    <string name="sukisufs_path">路径</string>
+    <string name="sukisufs_remove">删除</string>
+    <string name="sukisufs_rules_section">可见性规则</string>
+    <string name="sukisufs_rules_add">添加规则</string>
+    <string name="sukisufs_rules_clear">清空全部</string>
 </resources>

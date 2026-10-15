@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
@@ -209,6 +210,19 @@ fun SettingPagerMaterial(
                             headlineContent = { Text(title) },
                             supportingContent = { Text(stringResource(R.string.dynamic_manager_summary)) },
                             leadingContent = { IconTile(Icons.Filled.AdminPanelSettings, title) },
+                            trailingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    null
+                                )
+                            }
+                        )
+                        val fsTitle = stringResource(R.string.sukisufs_title)
+                        SegmentedListItem(
+                            onClick = actions.onOpenSukisuFs,
+                            headlineContent = { Text(fsTitle) },
+                            supportingContent = { Text(stringResource(R.string.sukisufs_rules_section)) },
+                            leadingContent = { IconTile(Icons.Filled.Layers, fsTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,

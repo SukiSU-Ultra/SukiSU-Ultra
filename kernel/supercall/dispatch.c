@@ -25,6 +25,7 @@
 #include "supercall/supercall.h"
 #include "feature/uts_spoof.h"
 #include "feature/cpu_spoof.h"
+#include "sukisu_fs/sukisu_fs.h"
 
 #ifdef CONFIG_KPM
 #include "kpm/kpm.h"
@@ -917,6 +918,39 @@ out:
     return ret;
 }
 
+/* sukisu-fs ioctls. */
+static int do_sukisu_fs_mount(void __user *arg)
+{
+    return sukisu_fs_handle_mount((struct ksu_sukisu_fs_mount_cmd __user *)arg);
+}
+
+static int do_sukisu_fs_umount(void __user *arg)
+{
+    return sukisu_fs_handle_umount((struct ksu_sukisu_fs_mount_cmd __user *)arg);
+}
+
+static int do_sukisu_fs_rule(void __user *arg)
+{
+    return sukisu_fs_handle_rule((struct ksu_sukisu_fs_rule_cmd __user *)arg);
+}
+
+static int do_sukisu_fs_list(void __user *arg)
+{
+    struct ksu_sukisu_fs_rule_cmd tmp;
+    u32 total = 0;
+    int ret;
+
+    ret = sukisu_fs_handle_list((struct ksu_sukisu_fs_rule_cmd __user *)arg, &total);
+    if (ret == 0 && !copy_from_user(&tmp, arg, sizeof(tmp))) {
+        /* Surface the total in a reserved field so userspace can
+         * know how many rules are present. */
+        tmp.uid_min = total;
+        if (copy_to_user(arg, &tmp, sizeof(tmp)))
+            return -EFAULT;
+    }
+    return ret;
+}
+
 // IOCTL handlers mapping table
 // clang-format off
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
@@ -1114,6 +1148,30 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .cmd = KSU_IOCTL_MANAGER,
         .name = "MANAGER",
         .handler = do_manager,
+        .perm_check = manager_or_root
+    },
+    {
+        .cmd = KSU_IOCTL_SUKISU_FS_MOUNT,
+        .name = "SUKISU_FS_MOUNT",
+        .handler = do_sukisu_fs_mount,
+        .perm_check = manager_or_root
+    },
+    {
+        .cmd = KSU_IOCTL_SUKISU_FS_UMOUNT,
+        .name = "SUKISU_FS_UMOUNT",
+        .handler = do_sukisu_fs_umount,
+        .perm_check = manager_or_root
+    },
+    {
+        .cmd = KSU_IOCTL_SUKISU_FS_RULE,
+        .name = "SUKISU_FS_RULE",
+        .handler = do_sukisu_fs_rule,
+        .perm_check = manager_or_root
+    },
+    {
+        .cmd = KSU_IOCTL_SUKISU_FS_LIST,
+        .name = "SUKISU_FS_LIST",
+        .handler = do_sukisu_fs_list,
         .perm_check = manager_or_root
     },
     {

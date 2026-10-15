@@ -59,6 +59,8 @@ mod soft_reboot;
 mod su;
 #[cfg(target_os = "android")]
 mod sulog;
+#[cfg(target_os = "android")]
+mod sukisu_fs;
 #[cfg(target_arch = "aarch64")]
 mod susfs;
 #[cfg(target_arch = "aarch64")]

@@ -192,6 +192,12 @@ enum Commands {
         #[command(subcommand)]
         command: Manager,
     },
+
+    /// sukisu-fs: per-uid view of a directory tree
+    SukisuFs {
+        #[command(subcommand)]
+        command: SukisuFs,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -754,6 +760,40 @@ enum Manager {
     Clear,
 }
 
+#[derive(clap::Subcommand, Debug)]
+enum SukisuFs {
+    /// Layer sukisu-fs on an existing directory.
+    Mount {
+        /// Existing on-disk source directory (e.g. /data/adb)
+        source: String,
+        /// Mount point (e.g. /data/adb/sukisu)
+        target: String,
+    },
+    /// Remove a sukisu-fs layer.
+    Umount { target: String },
+    /// Add a visibility rule. With `show`, only the listed uids see
+    /// the path; with `hide`, those uids cannot see it.
+    RuleAdd {
+        /// HIDE (default) or SHOW
+        #[arg(long, default_value = "HIDE")]
+        view: String,
+        /// Inclusive lower bound of the matching uid range
+        #[arg(long)]
+        uid_min: u32,
+        /// Inclusive upper bound of the matching uid range
+        #[arg(long)]
+        uid_max: u32,
+        /// Path (or path prefix) the rule applies to
+        path: String,
+    },
+    /// Remove a previously added rule (matched by path).
+    RuleRm { path: String },
+    /// Clear all rules.
+    RuleClear,
+    /// List all rules.
+    RuleList,
+}
+
 /// susfs module subcommands
 #[cfg(target_arch = "aarch64")]
 #[derive(clap::Subcommand, Debug)]
@@ -1037,6 +1077,36 @@ pub fn run() -> Result<()> {
                 crate::dynamic_manager::manager_set_enabled(enabled)
             }
             Manager::Clear => crate::dynamic_manager::manager_clear(),
+        },
+        Commands::SukisuFs { command } => match command {
+            SukisuFs::Mount { source, target } => {
+                crate::sukisu_fs::mount(&source, &target)
+            }
+            SukisuFs::Umount { target } => crate::sukisu_fs::umount(&target),
+            SukisuFs::RuleAdd {
+                view,
+                uid_min,
+                uid_max,
+                path,
+            } => {
+                let view_id = match view.to_ascii_uppercase().as_str() {
+                    "HIDE" => 0,
+                    "SHOW" => 1,
+                    other => anyhow::bail!("invalid view '{other}', expected HIDE or SHOW"),
+                };
+                crate::sukisu_fs::rule_add(view_id, uid_min, uid_max, &path)
+            }
+            SukisuFs::RuleRm { path } => crate::sukisu_fs::rule_remove(&path),
+            SukisuFs::RuleClear => crate::sukisu_fs::rule_clear(),
+            SukisuFs::RuleList => {
+                let rules = crate::sukisu_fs::rule_list()?;
+                println!("view\tuid_min\tuid_max\tpath");
+                for (view, uid_min, uid_max, path) in rules {
+                    let view_name = if view == 0 { "HIDE" } else { "SHOW" };
+                    println!("{view_name}\t{uid_min}\t{uid_max}\t{path}");
+                }
+                Ok(())
+            }
         },
         Commands::Feature { command } => match command {
             Feature::Get { id, config } => {

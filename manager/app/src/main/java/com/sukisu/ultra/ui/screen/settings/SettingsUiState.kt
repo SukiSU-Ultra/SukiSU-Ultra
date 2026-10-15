@@ -91,4 +91,5 @@ data class SettingsScreenActions(
     val onOpenKpm: () -> Unit,
     val onOpenSusfsConfig: () -> Unit,
     val onOpenDynamicManagers: () -> Unit,
+    val onOpenSukisuFs: () -> Unit,
 )

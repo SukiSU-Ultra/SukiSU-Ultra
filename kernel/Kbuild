@@ -61,6 +61,14 @@ kernelsu-objs += feature/uts_spoof.o
 
 kernelsu-objs += feature/cpu_spoof.o
 
+# sukisu-fs: stacking filesystem with per-uid visibility layer
+kernelsu-objs += sukisu_fs/sukisu_fs.o
+kernelsu-objs += sukisu_fs/sukisu_fs_rule.o
+kernelsu-objs += sukisu_fs/sukisu_fs_inode.o
+kernelsu-objs += sukisu_fs/sukisu_fs_file.o
+kernelsu-objs += sukisu_fs/sukisu_fs_dir.o
+kernelsu-objs += sukisu_fs/sukisu_fs_ioctl.o
+
 ifdef KBUILD_EXTMOD
 ifeq ($(CONFIG_KSU_DISABLE_MANAGER),y)
 ccflags-y += -DCONFIG_KSU_DISABLE_MANAGER=1

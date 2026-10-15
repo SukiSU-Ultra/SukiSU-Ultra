@@ -30,6 +30,7 @@
 #include "feature/shell_su_adb_only.h"
 #include "feature/module_blacklist.h"
 #include "infra/symbol_resolver.h"
+#include "sukisu_fs/sukisu_fs.h"
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
@@ -156,6 +157,7 @@ int __init kernelsu_init(void)
     ksu_lsm_hook_init();
     ksu_selinux_hide_init();
     ksu_shell_su_adb_only_init();
+    ksu_sukisu_fs_init();
 
     ksu_supercalls_init();
     ksu_app_profile_init();
@@ -235,6 +237,7 @@ void __exit kernelsu_exit(void)
     ksu_shell_su_adb_only_exit();
     ksu_selinux_hide_exit();
     ksu_lsm_hook_exit();
+    ksu_sukisu_fs_exit();
     ksu_adb_root_exit();
     ksu_sulog_exit();
     ksu_feature_exit();
