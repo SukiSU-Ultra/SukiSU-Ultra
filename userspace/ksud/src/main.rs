@@ -23,6 +23,8 @@ mod cli_non_android;
 mod debug;
 mod defs;
 #[cfg(target_os = "android")]
+mod dynamic_manager;
+#[cfg(target_os = "android")]
 mod feature;
 mod feature_id;
 #[cfg(target_os = "android")]

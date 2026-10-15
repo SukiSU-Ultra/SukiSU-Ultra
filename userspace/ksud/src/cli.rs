@@ -186,6 +186,12 @@ enum Commands {
         #[command(subcommand)]
         command: Susfs,
     },
+
+    /// Manage dynamic userspace managers
+    Manager {
+        #[command(subcommand)]
+        command: Manager,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -730,6 +736,24 @@ enum Susfs {
     },
 }
 
+#[derive(clap::Subcommand, Debug)]
+enum Manager {
+    /// List dynamic managers and global state
+    List,
+    /// Authorize a manager using its package, certificate size and SHA-256
+    Add {
+        package: String,
+        cert_size: u32,
+        hash: String,
+    },
+    /// Remove a manager by package name
+    Remove { package: String },
+    /// Enable or disable dynamic managers (true/false or 1/0)
+    SetEnabled { enabled: String },
+    /// Remove all dynamic managers
+    Clear,
+}
+
 /// susfs module subcommands
 #[cfg(target_arch = "aarch64")]
 #[derive(clap::Subcommand, Debug)]
@@ -973,6 +997,47 @@ pub fn run() -> Result<()> {
             Profile::ListTemplates => crate::profile::list_templates(),
         },
 
+        Commands::Manager { command } => match command {
+            Manager::List => {
+                let state = crate::dynamic_manager::manager_get()?;
+                println!("enabled: {}", state.enabled != 0);
+                for entry in state.entries.iter().take(state.count as usize) {
+                    let package = String::from_utf8_lossy(unsafe {
+                        std::slice::from_raw_parts(
+                            entry.package.as_ptr().cast::<u8>(),
+                            entry.package.len(),
+                        )
+                    })
+                    .trim_end_matches('\0')
+                    .to_string();
+                    let hash = String::from_utf8_lossy(unsafe {
+                        std::slice::from_raw_parts(
+                            entry.hash.as_ptr().cast::<u8>(),
+                            entry.hash.len(),
+                        )
+                    })
+                    .trim_end_matches('\0')
+                    .to_string();
+                    println!("{package}\t{}\t{hash}\t{}", entry.cert_size, entry.uid);
+                }
+                Ok(())
+            }
+            Manager::Add {
+                package,
+                cert_size,
+                hash,
+            } => crate::dynamic_manager::manager_add(&package, cert_size, &hash),
+            Manager::Remove { package } => crate::dynamic_manager::manager_remove(&package),
+            Manager::SetEnabled { enabled } => {
+                let enabled = match enabled.as_str() {
+                    "1" | "true" => true,
+                    "0" | "false" => false,
+                    _ => anyhow::bail!("enabled must be true, false, 1, or 0"),
+                };
+                crate::dynamic_manager::manager_set_enabled(enabled)
+            }
+            Manager::Clear => crate::dynamic_manager::manager_clear(),
+        },
         Commands::Feature { command } => match command {
             Feature::Get { id, config } => {
                 if config {
@@ -995,7 +1060,7 @@ pub fn run() -> Result<()> {
             Debug::SetManager { apk } => debug::set_manager(&apk),
             Debug::GetSign { apk } => {
                 let sign = apk_sign::get_apk_signature(&apk)?;
-                println!("size: {:#x}, hash: {}", sign.0, sign.1);
+                println!("size: {}, hash: {}", sign.0, sign.1);
                 Ok(())
             }
             Debug::Version => {

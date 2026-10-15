@@ -29,6 +29,7 @@ kernelsu-objs += infra/symbol_resolver.o
 
 ifneq ($(CONFIG_KSU_DISABLE_MANAGER),y)
 kernelsu-objs += manager/apk_sign.o
+kernelsu-objs += manager/dynamic_manager.o
 kernelsu-objs += manager/pkg_observer.o
 kernelsu-objs += manager/throne_tracker.o
 endif
@@ -184,16 +185,6 @@ endif
 # Function proc_ops check
 ifeq ($(shell grep -q "struct proc_ops " $(srctree)/include/linux/proc_fs.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_PROC_OPS
-endif
-
-ifdef KSU_EXPECTED_SIZE2
-ifndef KSU_EXPECTED_HASH2
-$(error KSU_EXPECTED_HASH2 must be set when KSU_EXPECTED_SIZE2 is set)
-endif
-ccflags-y += -DEXPECTED_SIZE2=$(KSU_EXPECTED_SIZE2)
-ccflags-y += -DEXPECTED_HASH2=\"$(KSU_EXPECTED_HASH2)\"
-$(info -- KernelSU Manager signature size2: $(KSU_EXPECTED_SIZE2))
-$(info -- KernelSU Manager signature hash2: $(KSU_EXPECTED_HASH2))
 endif
 
 ccflags-y += -DKSU_NEW_DCACHE_FLUSH=$(KSU_NEW_DCACHE_FLUSH)

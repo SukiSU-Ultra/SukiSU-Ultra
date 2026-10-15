@@ -200,6 +200,19 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
+                SegmentedColumn(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
+                    content = listOf {
+                        val title = stringResource(R.string.dynamic_manager_title)
+                        SegmentedListItem(
+                            onClick = actions.onOpenDynamicManagers,
+                            headlineContent = { Text(title) },
+                            supportingContent = { Text(stringResource(R.string.dynamic_manager_summary)) },
+                            leadingContent = { Icon(Icons.Filled.AdminPanelSettings, title) },
+                            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) }
+                        )
+                    }
+                )
                 val toolsTitle = stringResource(id = R.string.settings_tools)
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),

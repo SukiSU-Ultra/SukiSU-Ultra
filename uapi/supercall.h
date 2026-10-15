@@ -1,10 +1,11 @@
-#ifndef __KSU_UAPI_SUPERCALL_H
+﻿#ifndef __KSU_UAPI_SUPERCALL_H
 #define __KSU_UAPI_SUPERCALL_H
 
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
 #include "uapi/app_profile.h"
+#include "uapi/manager.h"
 
 // 2: allowlist v4 root profile flags
 // 3: scoped su-session driver fd
@@ -240,6 +241,7 @@ static const __u32 KSU_IOCTL_ENABLE_KPM = _IOC(_IOC_READ, 'K', 102, 0);
 static const __u32 KSU_IOCTL_LIST_TRY_UMOUNT = _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0);
 static const __u32 KSU_IOCTL_SET_SPOOF_VERSION = _IOC(_IOC_WRITE, 'K', 104, 0);
 static const __u32 KSU_IOCTL_SET_SPOOF_CPU = _IOC(_IOC_WRITE, 'K', 105, 0);
+static const __u32 KSU_IOCTL_MANAGER = _IOWR('K', 106, struct ksu_manager_cmd);
 static const __u32 KSU_IOCTL_KPM = _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0);
 
 #endif

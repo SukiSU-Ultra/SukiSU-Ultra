@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Home</string>
     <string name="home_not_installed">Not installed</string>
@@ -682,4 +682,14 @@
     <string name="superuser_filter_system">System</string>
     <string name="superuser_granted_summary">%1$d of %2$d apps granted</string>
     <string name="module_summary">%1$d enabled · %2$d updatable</string>
+    <string name="dynamic_manager_title">Dynamic managers</string>
+    <string name="dynamic_manager_summary">Manage additional trusted KernelSU managers</string>
+    <string name="dynamic_manager_enabled">Dynamic managers enabled</string>
+    <string name="dynamic_manager_add">Add manager</string>
+    <string name="dynamic_manager_remove">Remove manager</string>
+    <string name="dynamic_manager_select_app">Installed apps</string>
+    <string name="dynamic_manager_authorize">Authorize %1$s</string>
+    <string name="dynamic_manager_current">Current manager</string>
+    <string name="dynamic_manager_default">Default manager</string>
+    <string name="dynamic_manager_authorized">Authorized managers</string>
 </resources>

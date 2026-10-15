@@ -981,3 +981,57 @@ private fun parseQuotedValue(value: String): String {
     }
     return sb.toString()
 }
+
+data class DynamicManagerEntry(val packageName: String, val certSize: Int, val hash: String, val uid: Int)
+data class DynamicManagerState(val enabled: Boolean, val entries: List<DynamicManagerEntry>)
+data class DynamicManagerSignature(val certSize: Int, val hash: String)
+
+private suspend fun runDynamicManagerCommand(vararg args: String): String = withContext(Dispatchers.IO) {
+    val command = "${getKsuDaemonPath()} " + args.joinToString(" ") { it.ksudShellArg() }
+    val output = runCmd(getRootShell(), "$command; printf '\\n__KSUD_EXIT_CODE__:%s' $? ")
+    val marker = Regex("\\n__KSUD_EXIT_CODE__:(\\d+)$").find(output)
+        ?: error("ksud command did not return an exit status")
+    check(marker.groupValues[1] == "0") { output.substringBefore(marker.value).ifBlank { "ksud command failed" } }
+    output.substringBefore(marker.value)
+}
+
+private fun String.ksudShellArg(): String = "'${replace("'", "'\\''")}'"
+
+suspend fun getDynamicManagers(): DynamicManagerState {
+    val lines = runDynamicManagerCommand("manager", "list").lines()
+    val enabled = lines.firstOrNull { it.startsWith("enabled:") }
+        ?.substringAfter(':')?.trim()?.toBooleanStrictOrNull() ?: false
+    val entries = lines.drop(1).filter { it.isNotBlank() }.mapNotNull { line ->
+        val fields = line.split('\t')
+        if (fields.size < 4) return@mapNotNull null
+        DynamicManagerEntry(
+            packageName = fields[0],
+            certSize = fields[1].toIntOrNull() ?: return@mapNotNull null,
+            hash = fields[2],
+            uid = fields[3].toIntOrNull() ?: return@mapNotNull null,
+        )
+    }
+    return DynamicManagerState(enabled, entries)
+}
+
+suspend fun setDynamicManagersEnabled(enabled: Boolean) {
+    runDynamicManagerCommand("manager", "set-enabled", enabled.toString())
+}
+
+suspend fun removeDynamicManager(packageName: String) {
+    runDynamicManagerCommand("manager", "remove", packageName)
+}
+
+suspend fun getDynamicManagerSignature(apkPath: String): DynamicManagerSignature {
+    val output = runDynamicManagerCommand("debug", "get-sign", apkPath)
+    val size = Regex("size:\\s*(0x[0-9a-fA-F]+|[0-9]+)").find(output)?.groupValues?.get(1)
+        ?: error("Could not parse signature size")
+    val certSize = if (size.startsWith("0x")) size.substring(2).toLong(16).toInt() else size.toInt()
+    val hash = Regex("hash:\\s*([0-9a-fA-F]{64})").find(output)?.groupValues?.get(1)
+        ?: error("Could not parse signature hash")
+    return DynamicManagerSignature(certSize, hash)
+}
+
+suspend fun addDynamicManager(packageName: String, signature: DynamicManagerSignature) {
+    runDynamicManagerCommand("manager", "add", packageName, signature.certSize.toString(), signature.hash)
+}
