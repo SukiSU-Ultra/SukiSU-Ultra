@@ -8,7 +8,24 @@ struct uid_data {
     char package[KSU_MAX_PACKAGE_NAME];
 };
 
-static void crown_manager(const char *apk, struct list_head *uid_data)
+struct crown_state {
+    bool builtin_seen;
+    bool builtin_crowned;
+};
+
+/*
+ * crown_manager() return values:
+ *   1  built-in was crowned (this call or via state->crowned).
+ *      The caller MUST stop the scan.
+ *   0  built-in is not on the throne yet, AND nothing in this call
+ *      disqualifies a later APK from being crowned. The caller MUST
+ *      keep scanning.
+ *  -1  the built-in candidate was observed (state->seen now true)
+ *      but failed verification. The caller MUST keep scanning (a
+ *      later APK might still be a valid built-in install) AND a
+ *      later dynamic branch MUST NOT be allowed to fill the gap.
+ */
+static int crown_manager(const char *apk, struct list_head *uid_data, struct crown_state *state)
 {
     char pkg[KSU_MAX_PACKAGE_NAME];
     if (get_pkg_from_apk_path(pkg, apk) < 0) {
@@ -20,14 +37,57 @@ static void crown_manager(const char *apk, struct list_head *uid_data)
 
     struct list_head *list = (struct list_head *)uid_data;
     struct uid_data *np;
+    bool builtin_present_this_call = false;
+    bool builtin_crowned_this_call = false;
 
     list_for_each_entry (np, list, list) {
         if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
-            pr_info("Crowning manager: %s(uid=%d)\n", pkg, np->uid);
-            ksu_set_manager_appid(np->uid);
-            break;
+            builtin_present_this_call = true;
+            state->builtin_seen = true;
+            /*
+             * Built-in manager: highest-priority candidate, never
+             * gated by dynamic_manager_enabled. is_manager_apk()
+             * compares against EXPECTED_HASH/EXPECTED_SIZE compiled
+             * in via Kbuild — that is the sole source of truth for
+             * "is this APK the stock manager".
+             */
+            if (is_manager_apk((char *)apk)) {
+                pr_info("Crowning manager: uid=%d\n", np->uid);
+                ksu_set_manager_appid(np->uid);
+                builtin_crowned_this_call = true;
+                state->builtin_crowned = true;
+            } else {
+                pr_info("Built-in candidate %s failed signature check\n", apk);
+            }
+            break; /* KSU_PACKAGE_NAME appears at most once per uid list */
         }
     }
+
+    if (state->builtin_crowned)
+        return 1;
+
+    if (builtin_present_this_call)
+        return -1;
+
+    if (!ksu_manager_enabled())
+        return 0;
+
+    list_for_each_entry (np, list, list) {
+        if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0)
+            continue;
+        /*
+         * For dynamic managers the (package, uid) pair must match a
+         * persisted entry AND the just-completed signature verification
+         * before we crown it. The runtime scan already mutated
+         * dynamic_manager_verified for this iteration; refuse to crown
+         * anything that the scan did not just validate.
+         */
+        if (ksu_dynamic_manager_verify_apk((char *)apk, np->package, np->uid)) {
+            pr_info("Crowning dynamic manager: package=%s, uid=%d\n", pkg, np->uid);
+            ksu_set_manager_appid(np->uid);
+        }
+    }
+    return 0;
 }
 
 #define DATA_PATH_LEN 384 // 384 is enough for /data/app/<package>/base.apk
@@ -124,6 +184,12 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
     struct list_head data_path_list;
     INIT_LIST_HEAD(&data_path_list);
     unsigned long data_app_magic = 0;
+    /*
+     * Per-scan built-in slot state, shared by every call to
+     * crown_manager() in this scan. See struct crown_state above
+     * for the exact semantics of the two flags.
+     */
+    struct crown_state state = { .builtin_seen = false, .builtin_crowned = false };
 
     // First depth
     struct data_path *data = kzalloc(sizeof(*data), GFP_KERNEL);
@@ -136,6 +202,10 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 
     // we put the apk path we collected here
     char candidate_path[DATA_PATH_LEN];
+
+    // Clear dynamic-manager verification flags so that crown_manager()
+    // only crowns entries whose signature was validated during THIS scan.
+    ksu_dynamic_manager_reset_verification();
 
     for (i = depth; i >= 0; i--) {
         struct data_path *pos, *n;
@@ -188,14 +258,84 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
             if (!strstarts(candidate_path, "/data/ap"))
                 goto skip_iterate;
 
-            bool is_manager = is_manager_apk(candidate_path);
-            pr_info("Found new base.apk at path: %s, is_manager: %d\n", candidate_path, is_manager);
+            /*
+             * Resolve which package this APK belongs to and whether
+             * the install matches a known manager. We split the
+             * decision into:
+             *   - KSU_PACKAGE_NAME: must pass is_manager_apk() (pure
+             *     EXPECTED_HASH/EXPECTED_SIZE check) — that is the
+             *     built-in manager.
+             *   - anything else: must be a registered dynamic
+             *     manager AND its persisted UID must match what
+             *     packages.list currently shows. We do not verify
+             *     the signature here; crown_manager() does that as
+             *     the single source of truth, which keeps the two
+             *     classes of manager on independent code paths.
+             */
+            char package[KSU_MAX_PACKAGE_NAME] = {};
+            uid_t package_uid = KSU_INVALID_APPID;
+            struct uid_data *uid_entry;
+            bool is_manager = false;
 
-            if (likely(!is_manager))
+            if (get_pkg_from_apk_path(package, candidate_path) == 0) {
+                list_for_each_entry (uid_entry, (struct list_head *)uid_data, list) {
+                    if (!strcmp(uid_entry->package, package)) {
+                        package_uid = uid_entry->uid;
+                        break;
+                    }
+                }
+                if (package_uid != KSU_INVALID_APPID) {
+                    if (!strcmp(package, KSU_PACKAGE_NAME)) {
+                        is_manager = is_manager_apk(candidate_path);
+                    } else if (ksu_dynamic_manager_package_registered(package)) {
+                        /*
+                         * The dynamic manager's persisted UID must match
+                         * the package's currently installed UID before we
+                         * attempt the signature check. We do NOT mark it
+                         * verified here; that happens in crown_manager()
+                         * which enforces the full (package, uid, hash)
+                         * triplet.
+                         */
+                        uid_t expected_uid = KSU_INVALID_APPID;
+                        is_manager = ksu_dynamic_manager_uid_for_package(package, &expected_uid) == 0 &&
+                                     expected_uid == package_uid % PER_USER_RANGE;
+                    }
+                }
+            }
+            pr_info("Found new base.apk at path: %s, package=%s, uid=%u, is_manager: %d\n",
+                    candidate_path, package, package_uid, is_manager);
+
+            if (unlikely(!is_manager))
                 goto skip_iterate;
 
-            crown_manager(candidate_path, uid_data);
-            stop = 1;
+            /*
+             * crown_manager() returns:
+             *   1  built-in crowned — stop the scan, nothing
+             *      legitimate can outrank it.
+             *   0  keep scanning: a later APK in /data/app may
+             *      still be a valid built-in, or a registered
+             *      dynamic entry, etc.
+             *  -1  the built-in candidate was observed but failed
+             *      verification. Keep scanning (a later APK may
+             *      be a valid built-in install) but invalidate
+             *      whatever ksu_manager_appid currently holds so
+             *      no stale value (e.g. one set by a previous
+             *      track_throne() invocation's dynamic branch)
+             *      can continue to act as the manager.
+             *
+             * The stop=1 boundary is deliberately strict: only an
+             * actual built-in crown (return value 1) ends the
+             * scan. A dynamic crown or a built-in rejection must
+             * never lock us out of finding a legitimate built-in
+             * install in some other /data/app sub-directory.
+             */
+            int crown_result = crown_manager(candidate_path, uid_data, &state);
+            if (crown_result > 0) {
+                stop = 1;
+            } else if (crown_result < 0) {
+                ksu_invalidate_manager_uid();
+                /* intentionally do not set stop = 1 */
+            }
 
         skip_iterate:
             list_del(&pos->list);

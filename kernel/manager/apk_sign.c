@@ -328,19 +328,6 @@ bool is_manager_apk(char *path)
 {
     int i;
 
-#ifdef KSU_MANAGER_PACKAGE
-    char pkg[KSU_MAX_PACKAGE_NAME];
-    if (get_pkg_from_apk_path(pkg, path) < 0) {
-        pr_err("Failed to get package name from apk path: %s\n", path);
-        return false;
-    }
-
-    // pkg is `<real package>`
-    if (strncmp(pkg, KSU_MANAGER_PACKAGE, sizeof(KSU_MANAGER_PACKAGE))) {
-        return false;
-    }
-#endif
-
     for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
         if (check_v2_signature(path, apk_sign_keys[i].size, apk_sign_keys[i].sha256)) {
             pr_info("Manager APK verified with key: %s (size: 0x%x)\n", 
@@ -351,4 +338,9 @@ bool is_manager_apk(char *path)
 
     pr_err("Manager APK signature verification failed for %s\n", path);
     return false;
+}
+
+bool ksu_check_apk_signature(char *path, unsigned int size, const char *hash)
+{
+    return check_v2_signature(path, size, hash);
 }

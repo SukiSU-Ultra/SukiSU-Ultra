@@ -51,6 +51,7 @@ void on_post_fs_data(void)
     pr_info("on_post_fs_data!\n");
 
     ksu_load_allow_list();
+    ksu_dynamic_manager_load();
     ksu_observer_init();
     // sanity check, this may influence the performance
     stop_input_hook();

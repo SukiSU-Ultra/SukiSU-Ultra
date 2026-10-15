@@ -6,6 +6,7 @@
 #include "include/uapi/selinux.h"
 #include "include/uapi/supercall.h"
 #include "include/uapi/sulog.h"
+#include "include/uapi/manager.h"
 
 // includes
 #include "include/klog.h"
@@ -21,6 +22,7 @@
 #include "manager/manager_identity.h"
 #include "manager/throne_tracker.h"
 #include "manager/pkg_observer.h"
+#include "manager/dynamic_manager.h"
 #include "supercall/internal.h"
 #include "supercall/supercall.h"
 #include "infra/su_mount_ns.h"
@@ -67,6 +69,7 @@
 #include "manager/apk_sign.c"
 #include "manager/throne_tracker.c"
 #include "manager/pkg_observer.c"
+#include "manager/dynamic_manager.c"
 
 #include "supercall/perm.c"
 #include "supercall/dispatch.c"
@@ -154,6 +157,8 @@ int __init kernelsu_init(void)
     ksu_kernel_umount_init();
 
     ksu_allowlist_init();
+
+    ksu_dynamic_manager_load();
 
     ksu_throne_tracker_init();
 
