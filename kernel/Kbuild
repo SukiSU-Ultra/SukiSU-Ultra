@@ -61,6 +61,15 @@ kernelsu-objs += feature/uts_spoof.o
 
 kernelsu-objs += feature/cpu_spoof.o
 
+ifeq ($(CONFIG_ARM64), y)
+kernelsu-objs += kpm/kpm.o
+kernelsu-objs += kpm/auto_patch.o
+kernelsu-objs += kpm/kstorage.o
+kernelsu-objs += kpm/syscall_api.o
+kernelsu-objs += kpm/kpm_reloc.o
+kernelsu-objs += kpm/super_access.o
+endif
+
 ifdef KBUILD_EXTMOD
 ifeq ($(CONFIG_KSU_DISABLE_MANAGER),y)
 ccflags-y += -DCONFIG_KSU_DISABLE_MANAGER=1
@@ -76,12 +85,6 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
-obj-$(CONFIG_KPM) += kpm/kpm.o
-obj-$(CONFIG_KPM) += kpm/auto_patch.o
-obj-$(CONFIG_KPM) += kpm/kstorage.o
-obj-$(CONFIG_KPM) += kpm/syscall_api.o
-obj-$(CONFIG_KPM) += kpm/kpm_reloc.o
-obj-$(CONFIG_KPM) += kpm/super_access.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
@@ -171,7 +174,7 @@ endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
-ifeq ($(CONFIG_KPM), m)
+ifeq ($(CONFIG_KPM), y)
 $(info -- KPM is enabled)
 else
 $(info -- KPM is disabled)

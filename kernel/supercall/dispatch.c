@@ -26,7 +26,7 @@
 #include "feature/uts_spoof.h"
 #include "feature/cpu_spoof.h"
 
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
 #include "kpm/kpm.h"
 #endif
 
@@ -1096,7 +1096,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
         .handler = do_enable_kpm,
         .perm_check = manager_or_root
     },
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
     { 
         .cmd = KSU_IOCTL_KPM,
         .name = "KPM_OPERATION",

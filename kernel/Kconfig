@@ -27,14 +27,11 @@ config KSU_MANUAL_SU
 
 config KPM
     bool "Enable SukiSU KPM"
-    depends on KSU && 64BIT
-    default n
+    default y
     help
       Enabling this option will activate the KPM feature of SukiSU.
       This option is suitable for scenarios where you need to force KPM to be enabled.
       but it may affect system stability.
-    select KALLSYMS
-    select KALLSYMS_ALL
 
 config KSU_DISABLE_MANAGER
 	bool "Disable KernelSU manager integration"

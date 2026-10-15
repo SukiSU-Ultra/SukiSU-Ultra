@@ -30,7 +30,7 @@
 #include "feature/shell_su_adb_only.h"
 #include "feature/module_blacklist.h"
 #include "infra/symbol_resolver.h"
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
 #include "kpm/kpm.h"
 #include "kpm/module.h"
 #endif
@@ -147,7 +147,7 @@ int __init kernelsu_init(void)
     }
 
     ksu_init_symbol_resolver();
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
     kpm_init();
 #endif
 

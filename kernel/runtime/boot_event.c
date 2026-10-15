@@ -1,5 +1,5 @@
 #include "feature/selinux_hide.h"
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
 #include "kpm/module.h"
 #endif
 #include <linux/err.h>
@@ -21,7 +21,7 @@ bool ksu_boot_completed __read_mostly = false;
 
 void on_post_fs_data(void)
 {
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
     kpm_notify("post-fs-data", NULL, NULL);
 #endif
     static bool done = false;
@@ -69,7 +69,7 @@ int nuke_ext4_sysfs(const char *mnt)
 
 void on_module_mounted(void)
 {
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
     kpm_notify("module-mounted", NULL, NULL);
 #endif
     pr_info("on_module_mounted!\n");
@@ -78,7 +78,7 @@ void on_module_mounted(void)
 
 void on_boot_completed(void)
 {
-#ifdef CONFIG_KPM
+#ifdef CONFIG_ARM64
     kpm_notify("boot-completed", NULL, NULL);
 #endif
     ksu_boot_completed = true;
