@@ -1079,9 +1079,7 @@ pub fn run() -> Result<()> {
             Manager::Clear => crate::dynamic_manager::manager_clear(),
         },
         Commands::SukisuFs { command } => match command {
-            SukisuFs::Mount { source, target } => {
-                crate::sukisu_fs::mount(&source, &target)
-            }
+            SukisuFs::Mount { source, target } => crate::sukisu_fs::mount(&source, &target),
             SukisuFs::Umount { target } => crate::sukisu_fs::umount(&target),
             SukisuFs::RuleAdd {
                 view,

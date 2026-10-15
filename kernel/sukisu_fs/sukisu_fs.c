@@ -18,9 +18,12 @@
 #include <linux/err.h>
 #include <linux/fs.h>
 #include <linux/fs_context.h>
+#include <linux/fs_parser.h>
 #include <linux/init.h>
 #include <linux/mount.h>
+#include <linux/namei.h>
 #include <linux/parser.h>
+#include <linux/seq_file.h>
 #include <linux/slab.h>
 #include <linux/statfs.h>
 #include <linux/string.h>
@@ -35,8 +38,18 @@ enum sukisu_fs_param {
     Opt_err,
 };
 
+/* fs_parameter_spec was introduced in 5.10. The type enum values
+ * were originally named fs_param_* (e.g. fs_param_is_string);
+ * 5.12 renamed them to fs_parameter_* (e.g. fs_parameter_is_string).
+ * Pick whichever exists at the current kernel version. */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
+#define SU_FS_PARAM_STRING fs_parameter_is_string
+#else
+#define SU_FS_PARAM_STRING fs_param_is_string
+#endif
+
 static const struct fs_parameter_spec sukisu_fs_fs_parameters[] = {
-    [Opt_source] = { .name = "source", .type = fs_parameter_is_string },
+    [Opt_source] = { .name = "source", .type = SU_FS_PARAM_STRING },
     {},
 };
 
@@ -249,7 +262,11 @@ bool sukisu_fs_is_active(void)
 
 struct super_block *sukisu_fs_get_sb(void)
 {
-    return sukisu_fs_active_mnt ? sukisu_fs_active_mnt->mnt.sb : NULL;
+    if (!sukisu_fs_active_mnt)
+        return NULL;
+    /* mnt_root->d_sb works across 5.10..6.18 without depending
+     * on the internal layout of struct vfsmount. */
+    return sukisu_fs_active_mnt->mnt_root->d_sb;
 }
 
 int sukisu_fs_do_mount(const char *source, const char *target)
@@ -272,7 +289,7 @@ int sukisu_fs_do_mount(const char *source, const char *target)
     return 0;
 }
 
-void __init sukisu_fs_init(void)
+void __init ksu_sukisu_fs_init(void)
 {
     int ret = register_filesystem(&sukisu_fs_type);
     if (ret) {
@@ -282,7 +299,7 @@ void __init sukisu_fs_init(void)
     pr_info("sukisu_fs: registered (no backing image, stacking fs)\n");
 }
 
-void __exit sukisu_fs_exit(void)
+void __exit ksu_sukisu_fs_exit(void)
 {
     sukisu_fs_rule_clear();
     unregister_filesystem(&sukisu_fs_type);

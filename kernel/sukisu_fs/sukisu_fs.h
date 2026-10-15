@@ -4,7 +4,18 @@
 
 #include <linux/types.h>
 #include <linux/version.h>
+
+/* UAPI uses no kernel-internal types. */
 #include "uapi/sukisu_fs.h"
+
+#ifdef __KERNEL__
+/* SUKISU_I() and several other helpers below dereference struct
+ * inode fields (i_private, i_sb, ...), so kernel-space consumers
+ * need the full <linux/fs.h> definition. Including it here keeps
+ * every translation unit that uses the inode_info helper from
+ * having to repeat the include. */
+#include <linux/fs.h>
+#endif
 
 /* Versioning / compat shims.
  *
@@ -39,6 +50,20 @@ typedef struct user_namespace *sukisu_idmap_t;
  * need to call read_folio / write_begin directly. */
 #define SUKISU_FS_NEEDS_FOLIO_API 0
 
+/* Forward declarations for VFS types referenced in function
+ * signatures. C files including this header should #include the
+ * full <linux/...> headers before dereferencing any of them. */
+struct path;
+struct dentry;
+struct vfsmount;
+struct super_block;
+struct inode;
+struct file;
+struct kstat;
+struct iattr;
+struct user_namespace;
+struct mnt_idmap;
+
 /*
  * sukisu-fs internal header
  *
@@ -57,12 +82,40 @@ typedef struct user_namespace *sukisu_idmap_t;
  * the existing KSU supercall fd, see uapi/sukisu_fs.h.
  */
 
-struct path;
-
 #define SUKISU_FS_MAGIC 0x534B5355 /* "SKSU" */
 
-void sukisu_fs_init(void);
-void sukisu_fs_exit(void);
+/* Per-inode wrapper state. Stored in i_private of every wrapped
+ * inode so the inode_operations implementations can recover the
+ * underlying inode and the absolute path of the dentry.
+ *
+ * The struct must be defined here (rather than in the .c file) so
+ * every translation unit that includes sukisu_fs.h sees the same
+ * layout. */
+struct sukisu_fs_inode_info {
+    struct inode *underlying;
+    char *cached_path;
+};
+
+/* SUKISU_I() pulls the per-inode blob out of i_private. The macro
+ * form keeps this header free of <linux/fs.h>; consumers must
+ * include that header before dereferencing the result. */
+#define SUKISU_I(inode) ((struct sukisu_fs_inode_info *)(inode)->i_private)
+
+void ksu_sukisu_fs_init(void);
+void ksu_sukisu_fs_exit(void);
+
+/* Mount entry point invoked by sukisu_fs_ioctl.c. Validates that
+ * the target path exists and would be a valid mountpoint; the
+ * actual mount is performed by userspace via mount(2) for now. */
+int sukisu_fs_do_mount(const char *source, const char *target);
+
+/* ioctl dispatch helpers - implemented in sukisu_fs_ioctl.c */
+struct ksu_sukisu_fs_mount_cmd;
+struct ksu_sukisu_fs_rule_cmd;
+int sukisu_fs_handle_mount(struct ksu_sukisu_fs_mount_cmd __user *ucmd);
+int sukisu_fs_handle_umount(struct ksu_sukisu_fs_mount_cmd __user *ucmd);
+int sukisu_fs_handle_rule(struct ksu_sukisu_fs_rule_cmd __user *ucmd);
+int sukisu_fs_handle_list(struct ksu_sukisu_fs_rule_cmd __user *ucmd, u32 *out_total);
 
 /* Rule table API - implemented in sukisu_fs_rule.c */
 int sukisu_fs_rule_add(const struct sukisu_fs_rule *rule);
@@ -82,6 +135,12 @@ struct super_block *sukisu_fs_get_sb(void);
  * failure. The inode is wrapped; the caller does not own an
  * additional reference. */
 struct inode *sukisu_fs_get_inode(struct super_block *sb, struct inode *under);
+
+/* inode / file / dir operation tables, defined in inode.c / file.c
+ * / dir.c respectively. */
+extern const struct inode_operations sukisu_fs_inode_ops;
+extern const struct file_operations sukisu_fs_file_ops;
+extern const struct file_operations sukisu_fs_dir_ops;
 
 /* Rebuild and cache the absolute path for a dentry. Returns 0 on
  * success, -errno on failure. The path is stored on the inode. */

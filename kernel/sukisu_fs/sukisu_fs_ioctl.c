@@ -18,6 +18,7 @@
 #include <linux/uaccess.h>
 
 #include "klog.h"
+#include "uapi/supercall.h"
 #include "sukisu_fs.h"
 #include "uapi/sukisu_fs.h"
 

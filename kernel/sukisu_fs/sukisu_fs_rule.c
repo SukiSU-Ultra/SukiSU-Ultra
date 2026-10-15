@@ -11,12 +11,15 @@
  * readdir() / lookup() / getattr() so we prefer the read path.
  */
 
+#include <linux/cred.h>
 #include <linux/errno.h>
 #include <linux/list.h>
-#include <linux/rwlock.h>
+#include <linux/spinlock.h>
+#include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/uaccess.h>
+#include <linux/uidgid.h>
 
 #include "klog.h"
 #include "uapi/sukisu_fs.h"

@@ -15,7 +15,10 @@
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
+#include <linux/sched.h>
 #include <linux/slab.h>
+#include <linux/uaccess.h>
+#include <linux/uio.h>
 #include <linux/version.h>
 
 #include "klog.h"
@@ -31,13 +34,14 @@ static inline struct sukisu_fs_file_info *sukisu_f_info(struct file *f)
 }
 
 /* Helper: take a reference to a "root-like" credential that is
- * allowed to traverse kernel-internal paths. In practice we use the
- * init_cred because sukisu-fs only operates on /data/adb paths and
- * the underlying VFS doesn't care about the caller once we have a
- * dentry. */
+ * allowed to traverse kernel-internal paths. We use the current
+ * task's credentials so that the underlying VFS sees the same
+ * uid mapping it would have seen had the process opened the file
+ * directly. init_cred is also valid (and was the previous choice
+ * here) but some vendor BSPs on 5.10 do not export it. */
 static const struct cred *sukisu_fs_get_cred(void)
 {
-    return &init_cred;
+    return current_cred();
 }
 
 static int sukisu_fs_open(struct inode *inode, struct file *file)
@@ -100,28 +104,57 @@ static loff_t sukisu_fs_llseek(struct file *file, loff_t offset, int whence)
 static ssize_t sukisu_fs_read_iter(struct kiocb *iocb, struct iov_iter *to)
 {
     struct sukisu_fs_file_info *fi = sukisu_f_info(iocb->ki_filp);
+    struct file *under = fi ? fi->underlying : NULL;
     ssize_t ret;
 
-    if (!fi || !fi->underlying)
+    if (!under)
         return -EIO;
 
-    ret = vfs_read(fi->underlying, NULL, iocb->ki_pos, to, NULL);
-    if (ret > 0)
-        iocb->ki_pos = fi->underlying->f_pos;
+    /* Forward to the underlying file's read_iter directly. We
+     * cannot call vfs_read_iter on a foreign iocb because it
+     * would mutate the caller's ki_pos and ki_filp; instead we
+     * re-use the underlying file's file_operations.read_iter
+     * after a temporary swap. */
+    {
+        struct kiocb local_iocb;
+        memcpy(&local_iocb, iocb, sizeof(local_iocb));
+        local_iocb.ki_filp = under;
+        local_iocb.ki_pos  = under->f_pos;
+        if (under->f_op->read_iter)
+            ret = under->f_op->read_iter(&local_iocb, to);
+        else
+            ret = -EIO;
+        if (ret > 0) {
+            under->f_pos = local_iocb.ki_pos;
+            iocb->ki_pos = iocb->ki_pos + ret;
+        }
+    }
     return ret;
 }
 
 static ssize_t sukisu_fs_write_iter(struct kiocb *iocb, struct iov_iter *from)
 {
     struct sukisu_fs_file_info *fi = sukisu_f_info(iocb->ki_filp);
+    struct file *under = fi ? fi->underlying : NULL;
     ssize_t ret;
 
-    if (!fi || !fi->underlying)
+    if (!under)
         return -EIO;
 
-    ret = vfs_write(fi->underlying, NULL, iocb->ki_pos, from, NULL);
-    if (ret > 0)
-        iocb->ki_pos = fi->underlying->f_pos;
+    {
+        struct kiocb local_iocb;
+        memcpy(&local_iocb, iocb, sizeof(local_iocb));
+        local_iocb.ki_filp = under;
+        local_iocb.ki_pos  = under->f_pos;
+        if (under->f_op->write_iter)
+            ret = under->f_op->write_iter(&local_iocb, from);
+        else
+            ret = -EIO;
+        if (ret > 0) {
+            under->f_pos = local_iocb.ki_pos;
+            iocb->ki_pos = iocb->ki_pos + ret;
+        }
+    }
     return ret;
 }
 
