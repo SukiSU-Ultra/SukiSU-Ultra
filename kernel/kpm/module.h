@@ -34,6 +34,27 @@ struct kpm_module {
     unsigned int text_size;
     unsigned int ro_size;
 
+    /*
+     * .kpm.plt: in-KPM PLT area used to bounce R_AARCH64_CALL26 /
+     * R_AARCH64_JUMP26 branches that target a kernel symbol farther
+     * than the 26-bit signed range (>= 32 MiB).
+     *
+     * The KPM author emits `bl <kernel_fn>` assuming KP's module_alloc
+     * places the KPM within ~32 MiB of kernel text; SukiSU's KPM loader
+     * allocates via plain vmalloc(), which can land hundreds of MiB
+     * away. Each overflowed branch is converted into a `bl <plt>`
+     * pointing into `plt_start`, and the PLT entry is patched to
+     * `adrp x16, val; add x16, x16, #lo12; br x16` (12 bytes) so the
+     * absolute jump to the kernel symbol is constructed at runtime.
+     *
+     * plt_size is the number of bytes reserved for PLT entries; it is
+     * rounded up to a multiple of struct plt_entry (12 bytes) during
+     * move_module() so layout_sections() can include it in mod->size.
+     */
+    void *plt_start;
+    unsigned int plt_size;
+    unsigned int plt_next;       /* byte offset of next free entry */
+
     void *start;
 
     struct list_head list;

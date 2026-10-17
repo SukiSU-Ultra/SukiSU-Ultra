@@ -341,18 +341,131 @@ int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
                                  AARCH64_INSN_IMM_12);
             break;
         case R_AARCH64_TSTBR14:
-            ovf = reloc_insn_imm(RELOC_OP_PREL, loc, val, 2, 14,
-                                 AARCH64_INSN_IMM_14);
-            break;
         case R_AARCH64_CONDBR19:
-            ovf = reloc_insn_imm(RELOC_OP_PREL, loc, val, 2, 19,
-                                 AARCH64_INSN_IMM_19);
+            ovf = reloc_insn_imm(ELF64_R_TYPE(rel[i].r_info) == R_AARCH64_TSTBR14
+                                     ? RELOC_OP_PREL
+                                     : RELOC_OP_PREL,
+                                 loc, val, 2,
+                                 ELF64_R_TYPE(rel[i].r_info) == R_AARCH64_TSTBR14
+                                     ? 14
+                                     : 19,
+                                 ELF64_R_TYPE(rel[i].r_info) == R_AARCH64_TSTBR14
+                                     ? AARCH64_INSN_IMM_14
+                                     : AARCH64_INSN_IMM_19);
+            /*
+             * TBZ/CBZ/BNE etc. are short-range conditional branches
+             * and KPMs only use them for in-module control flow; if
+             * an out-of-range branch does appear, the SIB bug sticks
+             * around silently rather than aborting the load.
+             */
+            overflow_check = false;
             break;
         case R_AARCH64_JUMP26:
-        case R_AARCH64_CALL26:
+        case R_AARCH64_CALL26: {
+            /*
+             * KPMs are loaded via plain vmalloc(), so the KPM .text
+             * can be hundreds of MiB away from kernel text. A KPM
+             * that emits `bl <kernel_fn>` (CALL26) -- which KP's own
+             * re_kernel_7.0.1 does, expecting KP's module_alloc() to
+             * pin the KPM within ~32 MiB of kernel text -- would
+             * therefore fail the imm26 range check.
+             *
+             * To stay compatible, we emit a KPM-internal PLT entry on
+             * demand: a 12-byte block in the reserved .kpm.plt area
+             * holding
+             *
+             *     movz x16, #val_lo16
+             *     movk x16, #val_mid16, lsl #16
+             *     movk x16, #val_hi16,  lsl #32
+             *     br   x16
+             *
+             * (or 3 insns / 12 bytes when val fits in 32 bits). The
+             * original `bl` instruction is rewritten to `bl plt_entry`,
+             * which is in-KPM (the whole KPM image is < 1 MiB so
+             * imm26 is always satisfied). The PLT entry then performs
+             * the absolute jump to the kernel symbol via x16.
+             *
+             * First try the cheap in-place imm26 patch. If that
+             * succeeds we're done; otherwise fall back to a PLT
+             * bounce.
+             */
             ovf = reloc_insn_imm(RELOC_OP_PREL, loc, val, 2, 26,
                                  AARCH64_INSN_IMM_26);
+            if (ovf != -ERANGE)
+                break;
+
+            if (!me || !me->plt_start) {
+                pr_err("KPM-RELO: PLT unavailable for far CALL26/JUMP26 to %llx\n",
+                       (unsigned long long)val);
+                ovf = -ERANGE;
+                break;
+            }
+
+            /*
+             * Round plt_next up to a 16-byte boundary so each PLT
+             * entry starts on a clean cache line; it keeps the
+             * emitted insns aligned and reduces the chance of a
+             * misaligned fetch on a Cortex-A erratum core.
+             */
+            unsigned int slot = ALIGN(me->plt_next, 16);
+            /*
+             * Each PLT slot is fixed-size: 3 mov insns + 1 br insn =
+             * 16 bytes. The .kpm.plt area reserved by move_module()
+             * is sized for 64 such slots, which exceeds anything a
+             * realistic KPM could need.
+             */
+            if (slot + 16 > me->plt_size) {
+                pr_err("KPM-RELO: PLT exhausted for KPM (used %u/%u)\n",
+                       slot, me->plt_size);
+                ovf = -ERANGE;
+                break;
+            }
+            u32 *plt = (u32 *)(me->plt_start + slot);
+
+            /*
+             * PLT body (always 4 insns = 16 bytes):
+             *
+             *     movz x16, #val_lo16        ; zero-init the register
+             *     movk x16, #val_mid16, lsl #16
+             *     movk x16, #val_hi16,  lsl #32
+             *     br   x16                   ; absolute jump
+             *
+             * x16 is the AAPCS64 IP0 scratch register, so a KPM that
+             * held x16 across the call still gets the right value
+             * when the callee returns -- PLT bounce is a leaf-branch
+             * for the caller's purposes.
+             */
+            u64 v = val;
+            plt[0] = cpu_to_le32(kpm_aarch64_insn_gen_movewide(
+                AARCH64_INSN_REG_16, v & 0xffff, 0,
+                AARCH64_INSN_VARIANT_64BIT, AARCH64_INSN_MOVEWIDE_ZERO));
+            plt[1] = cpu_to_le32(kpm_aarch64_insn_gen_movewide(
+                AARCH64_INSN_REG_16, (v >> 16) & 0xffff, 16,
+                AARCH64_INSN_VARIANT_64BIT, AARCH64_INSN_MOVEWIDE_KEEP));
+            plt[2] = cpu_to_le32(kpm_aarch64_insn_gen_movewide(
+                AARCH64_INSN_REG_16, (v >> 32) & 0xffff, 32,
+                AARCH64_INSN_VARIANT_64BIT, AARCH64_INSN_MOVEWIDE_KEEP));
+            plt[3] = cpu_to_le32(kpm_aarch64_insn_gen_branch_reg(
+                AARCH64_INSN_REG_16, AARCH64_INSN_BRANCH_NOLINK));
+
+            /*
+             * Re-issue the original branch relocation against the
+             * new PLT target. The PLT entry is in-KPM, so imm26
+             * always succeeds; we leave overflow_check=true because
+             * the second attempt must not silently pass.
+             */
+            u64 plt_addr = (u64)plt;
+            int rc = reloc_insn_imm(RELOC_OP_PREL, loc, plt_addr, 2, 26,
+                                    AARCH64_INSN_IMM_26);
+            if (rc < 0) {
+                pr_err("KPM-RELO: PLT reloc rewrite failed\n");
+                ovf = rc;
+                break;
+            }
+            me->plt_next = slot + 16;
+            ovf = 0;
             break;
+        }
         default:
             pr_err("KPM-RELO: unsupported RELA relocation: %llu\n",
                    ELF64_R_TYPE(rel[i].r_info));

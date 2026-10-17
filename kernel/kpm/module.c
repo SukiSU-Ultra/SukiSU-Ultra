@@ -245,6 +245,27 @@ static void layout_sections(struct kpm_module *mod, struct load_info *info)
             break;
         }
     }
+
+    /*
+     * Reserve a KPM-internal PLT (procedure linkage table) immediately
+     * after the KPM image. Each PLT entry is 16 bytes (4 insns: movz,
+     * movk, movk, br x16) and gets used by the relocation engine to
+     * bounce R_AARCH64_CALL26 / R_AARCH64_JUMP26 branches whose target
+     * lies more than 32 MiB from the KPM base. The reservation is
+     * independent of the actual number of branches that will overflow;
+     * any unused entries stay zero-initialised and are never executed.
+     *
+     * SUKISU_KPM_PLT_RESERVED sets the upper bound. 64 entries is
+     * 1 KiB -- a single extra page for a KPM of any realistic
+     * size, and far more than the handful of CALL26/JUMP26 relocations
+     * a KPM typically has.
+     */
+#define SUKISU_KPM_PLT_RESERVED 64
+#define SUKISU_KPM_PLT_ENTRY_BYTES 16
+    mod->plt_size = SUKISU_KPM_PLT_RESERVED * SUKISU_KPM_PLT_ENTRY_BYTES;
+    mod->size += mod->plt_size;
+#undef SUKISU_KPM_PLT_RESERVED
+#undef SUKISU_KPM_PLT_ENTRY_BYTES
 }
 
 static bool is_core_symbol(const Elf_Sym *src, const Elf_Shdr *sechdrs,
@@ -377,6 +398,19 @@ static int move_module(struct kpm_module *mod, struct load_info *info)
     mod->start = vmalloc(mod->size);
     if (!mod->start) return -ENOMEM;
     memset(mod->start, 0, mod->size);
+
+    /*
+     * The trailing plt_size bytes of the allocation form the KPM
+     * PLT. The PLT area must be inside the KPM image so that a
+     * `bl <plt_entry>` instruction stays within the 26-bit signed
+     * range (KPM image is < 1 MiB in practice) regardless of where
+     * vmalloc() actually placed the KPM.
+     *
+     * memset above already zeroed this region, so unused PLT slots
+     * remain in their reset state and are never executed.
+     */
+    mod->plt_start = mod->start + mod->size - mod->plt_size;
+    mod->plt_next = 0;
 
     logkd("final section addresses:\n");
 
@@ -590,12 +624,29 @@ long kpm_load_module_ex(const void *data, int len, const char *args,
         goto free;
     }
 
-    /* Make module .text executable; vmalloc pages default to NX. */
+    /* Make module .text executable; vmalloc pages default to NX.
+     *
+     * Two disjoint regions need X permission:
+     *
+     *   1. KPM .text (mod->text_size bytes). Pre-PLT loader used a
+     *      single call here, so we keep that exact range to preserve
+     *      the W^X posture of any .rodata / .data / .bss pages that
+     *      happen to sit on the same vmalloc page as .text.
+     *
+     *   2. The .kpm.plt area at the very tail of the allocation
+     *      (mod->plt_size bytes). In practice PLT is < 1 KiB and the
+     *      KPM image is < 32 KiB, so PLT shares the trailing page
+     *      with the last bytes of .bss and set_memory_x is a no-op
+     *      for any page that already contains KPM .text. When the
+     *      KPM is large enough that PLT lands on a dedicated page
+     *      (KPM > ~32 KiB), that page must be X-marked or the first
+     *      CALL26 into the PLT will fault on execute.
+     */
     if (mod->text_size) {
         int xrc = set_memory_x((unsigned long)mod->start,
                                DIV_ROUND_UP(mod->text_size, PAGE_SIZE));
         if (xrc) {
-            logke("set_memory_x failed: %d\n", xrc);
+            logke("set_memory_x(.text) failed: %d\n", xrc);
             set_load_error(info, "make module text executable failed");
             rc = xrc;
             goto free;
@@ -606,6 +657,16 @@ long kpm_load_module_ex(const void *data, int len, const char *args,
          * would be redundant. We keep the call site in case a future
          * KPM port targets a KMI that does not have set_memory_x.
          */
+    }
+    if (mod->plt_size) {
+        int xrc = set_memory_x((unsigned long)mod->plt_start,
+                               DIV_ROUND_UP(mod->plt_size, PAGE_SIZE));
+        if (xrc) {
+            logke("set_memory_x(.plt) failed: %d\n", xrc);
+            set_load_error(info, "make module plt executable failed");
+            rc = xrc;
+            goto free;
+        }
     }
 
     rc = (*mod->init)(mod->args, event, reserved);
