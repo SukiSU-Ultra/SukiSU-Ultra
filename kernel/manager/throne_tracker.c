@@ -40,13 +40,15 @@ static int crown_manager(const char *apk, const char *apk_dir, struct list_head 
     struct uid_data *np;
     bool builtin_present_this_call = false;
     bool builtin_crowned_this_call = false;
+    char pkg[KSU_MAX_PACKAGE_NAME];
+    const char *builtin_pkg = KSU_PACKAGE_NAME;
 
     if (sig_fallback) {
-        char pkg[KSU_MAX_PACKAGE_NAME];
         if (get_pkg_from_apk_dir_path(pkg, apk_dir) < 0) {
             pr_err("Failed to get package name from apk dir path: %s\n", apk_dir);
             return 0;
         }
+        builtin_pkg = pkg;
 
         pr_info("manager pkg: %s\n", pkg);
 
@@ -94,7 +96,7 @@ static int crown_manager(const char *apk, const char *apk_dir, struct list_head 
         return 0;
 
     list_for_each_entry (np, list, list) {
-        if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0)
+        if (strncmp(np->package, builtin_pkg, KSU_MAX_PACKAGE_NAME) == 0)
             continue;
         /*
          * For dynamic managers the (package, uid) pair must match a
