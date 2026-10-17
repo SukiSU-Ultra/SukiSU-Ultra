@@ -32,6 +32,10 @@
 #include "infra/symbol_resolver.h"
 #include "preinit/preinit.h"
 
+#ifdef CONFIG_KSU_KPM_BUILT
+#include "kpm/module.h"
+#endif
+
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
 #include <linux/version.h>
@@ -160,6 +164,10 @@ int __init kernelsu_init(void)
 
     ksu_supercalls_init();
     ksu_app_profile_init();
+
+#ifdef CONFIG_KSU_KPM_BUILT
+    kpm_module_init();
+#endif
 
     if (ksu_late_loaded) {
         pr_info("late load mode, skipping kprobe hooks\n");

@@ -1,9 +1,20 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/*
+ * Copyright (C) 2025 Liankong. All Rights Reserved.
+ *
+ * Dynamic struct metadata for SukiSU-Ultra KPM. Ported from the
+ * KernelPatch `super_access` facility, with a few additions for fields
+ * added in newer kernels (e.g. anon_name in vm_area_struct).
+ *
+ * The goal is to give a KPM module a stable, version-aware way to compute
+ * struct member offsets at runtime instead of compiling against a single
+ * kernel header.
+ */
+
 #include <linux/export.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
-#include <linux/kernfs.h>
-#include <linux/file.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/uaccess.h>
@@ -13,27 +24,21 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 #include <linux/rcupdate.h>
-#include <asm/elf.h>
-#include <linux/vmalloc.h>
 #include <linux/mm.h>
 #include <linux/string.h>
 #include <asm/cacheflush.h>
-#include <linux/module.h>
-#include <linux/vmalloc.h>
-#include <linux/set_memory.h>
-#include <linux/version.h>
-#include <linux/export.h>
-#include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/stddef.h>
 #include <linux/mount.h>
+#ifdef CONFIG_KPROBES
 #include <linux/kprobes.h>
+#endif
 #include <linux/mm_types.h>
 #include <linux/netlink.h>
 #include <linux/sched.h>
-#include <../fs/mount.h>
-#include "kpm.h"
-#include "compact.h"
+
+#include "module.h"
+#include "kpmodule.h"
 
 struct DynamicStructMember {
     const char *name;
@@ -228,10 +233,10 @@ int sukisu_super_access(const char *struct_name, const char *member_name,
             for (size_t i1 = 0; i1 < info->count; i1++) {
                 if (strcmp(info->members[i1].name, member_name) == 0) {
                     if (out_offset)
-                        *out_offset = info->members[i].offset;
+                        *out_offset = info->members[i1].offset;
 
                     if (out_size)
-                        *out_size = info->members[i].size;
+                        *out_size = info->members[i1].size;
 
                     return 0;
                 }
@@ -257,8 +262,7 @@ EXPORT_SYMBOL(sukisu_super_access);
 int sukisu_super_container_of(const char *struct_name, const char *member_name,
                               void *ptr, void **out_ptr)
 {
-    if (ptr == NULL)
-        return -3;
+    if (ptr == NULL) return -3;
 
     for (size_t i = 0;
          i < (sizeof(dynamic_struct_infos) / sizeof(dynamic_struct_infos[0]));
