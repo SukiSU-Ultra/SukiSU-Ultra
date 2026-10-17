@@ -75,7 +75,7 @@ noinline NO_OPTIMIZE long sukisu_kpm_load_module_path(const char *path,
         if (result) *result = -EINVAL;
         return -EINVAL;
     }
-    rc = load_module_path(path, args, (__user void *)ptr);
+    rc = kpm_load_module_path(path, args, (__user void *)ptr);
     *result = (int)rc;
     return rc;
 }
@@ -89,7 +89,7 @@ noinline NO_OPTIMIZE long sukisu_kpm_unload_module(const char *name, void *ptr,
         if (result) *result = -EINVAL;
         return -EINVAL;
     }
-    rc = unload_module(name, (__user void *)ptr);
+    rc = kpm_unload_module(name, (__user void *)ptr);
     *result = (int)rc;
     return rc;
 }
@@ -98,7 +98,7 @@ EXPORT_SYMBOL(sukisu_kpm_unload_module);
 noinline NO_OPTIMIZE long sukisu_kpm_num(int *result)
 {
     if (!result) return -EINVAL;
-    *result = get_module_nums();
+    *result = kpm_get_module_nums();
     return *result;
 }
 EXPORT_SYMBOL(sukisu_kpm_num);
@@ -111,7 +111,7 @@ noinline NO_OPTIMIZE long sukisu_kpm_info(const char *name, char *buf,
         if (size) *size = 0;
         return -EINVAL;
     }
-    sz = get_module_info(name, buf, bufferSize);
+    sz = kpm_get_module_info(name, buf, bufferSize);
     *size = sz;
     return sz;
 }
@@ -124,7 +124,7 @@ noinline NO_OPTIMIZE long sukisu_kpm_list(void *out, int bufferSize, int *result
         if (result) *result = -EINVAL;
         return -EINVAL;
     }
-    sz = list_modules((char *)out, bufferSize);
+    sz = kpm_list_modules((char *)out, bufferSize);
     *result = sz;
     return sz;
 }
@@ -138,7 +138,7 @@ noinline NO_OPTIMIZE long sukisu_kpm_control(const char *name, const char *args,
         if (result) *result = -EINVAL;
         return -EINVAL;
     }
-    rc = module_control0(name, args, NULL, 0);
+    rc = kpm_module_control0(name, args, NULL, 0);
     *result = (int)rc;
     return rc;
 }
@@ -152,182 +152,233 @@ noinline NO_OPTIMIZE long sukisu_kpm_version(char *buf, int bufferSize)
 }
 EXPORT_SYMBOL(sukisu_kpm_version);
 
+static noinline int sukisu_kpm_handle_load(unsigned long arg1, unsigned long arg2);
+static noinline int sukisu_kpm_handle_unload(unsigned long arg1);
+static noinline int sukisu_kpm_handle_info(unsigned long arg1, unsigned long arg2);
+static noinline int sukisu_kpm_handle_list(unsigned long arg1, unsigned long arg2);
+static noinline int sukisu_kpm_handle_control(unsigned long arg1, unsigned long arg2);
+static noinline int sukisu_kpm_handle_version(unsigned long arg1, unsigned long arg2);
+
 noinline long sukisu_handle_kpm(unsigned long control_code, unsigned long arg1,
                                 unsigned long arg2, unsigned long result_code)
 {
     int res = -ENOSYS;
-    if (control_code == SUKISU_KPM_LOAD) {
-        char kernel_load_path[256];
-        char kernel_args_buffer[1024];
 
-        if (arg1 == 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        if (!access_ok(arg1, sizeof(kernel_load_path))) {
-            goto invalid_arg;
-        }
-
-        strncpy_from_user((char *)&kernel_load_path, (const char *)arg1,
-                          sizeof(kernel_load_path));
-        kernel_load_path[sizeof(kernel_load_path) - 1] = '\0';
-
-        kernel_args_buffer[0] = '\0';
-        if (arg2 != 0) {
-            if (!access_ok(arg2, sizeof(kernel_args_buffer))) {
-                goto invalid_arg;
-            }
-            strncpy_from_user((char *)&kernel_args_buffer,
-                              (const char *)arg2,
-                              sizeof(kernel_args_buffer));
-            kernel_args_buffer[sizeof(kernel_args_buffer) - 1] = '\0';
-        }
-
-        res = (int)load_module_path(kernel_load_path,
-                                    kernel_args_buffer[0] ?
-                                        kernel_args_buffer :
-                                        NULL,
-                                    (void __user *)arg1);
-    } else if (control_code == SUKISU_KPM_UNLOAD) {
-        char kernel_name_buffer[KPM_NAME_LEN];
-
-        if (arg1 == 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        if (!access_ok(arg1, sizeof(kernel_name_buffer))) {
-            goto invalid_arg;
-        }
-
-        strncpy_from_user((char *)&kernel_name_buffer, (const char *)arg1,
-                          sizeof(kernel_name_buffer));
-        kernel_name_buffer[sizeof(kernel_name_buffer) - 1] = '\0';
-
-        res = (int)unload_module(kernel_name_buffer, NULL);
-    } else if (control_code == SUKISU_KPM_NUM) {
-        res = get_module_nums();
-    } else if (control_code == SUKISU_KPM_INFO) {
-        char kernel_name_buffer[KPM_NAME_LEN];
-        char buf[2048];
-        int size;
-
-        if (arg1 == 0 || arg2 == 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        if (!access_ok(arg1, sizeof(kernel_name_buffer))) {
-            goto invalid_arg;
-        }
-
-        strncpy_from_user((char *)&kernel_name_buffer, (const char *)arg1,
-                          sizeof(kernel_name_buffer));
-        kernel_name_buffer[sizeof(kernel_name_buffer) - 1] = '\0';
-
-        size = get_module_info(kernel_name_buffer, buf, sizeof(buf));
-        if (size < 0) {
-            res = size;
-            goto exit;
-        }
-
-        if ((unsigned long)size > arg2) {
-            res = -ENOBUFS;
-            goto exit;
-        }
-
-        if (copy_to_user((void *)arg2, buf, size)) {
-            goto invalid_arg;
-        }
-        res = 0;
-    } else if (control_code == SUKISU_KPM_LIST) {
-        char buf[4096];
-        int len = (int)arg2;
-
-        if (len <= 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        if (!access_ok(arg2, len)) {
-            goto invalid_arg;
-        }
-
-        res = list_modules(buf, sizeof(buf));
-        if (res < 0) goto exit;
-        if (res > len) {
-            res = -ENOBUFS;
-            goto exit;
-        }
-
-        if (copy_to_user((void *)arg1, buf, res)) {
-            goto invalid_arg;
-        }
-    } else if (control_code == SUKISU_KPM_CONTROL) {
-        char kpm_name[KPM_NAME_LEN] = { 0 };
-        char kpm_args[KPM_ARGS_LEN] = { 0 };
-
-        if (arg1 == 0 || arg2 == 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        if (!access_ok(arg1, sizeof(kpm_name))) {
-            goto invalid_arg;
-        }
-
-        if (!access_ok(arg2, sizeof(kpm_args))) {
-            goto invalid_arg;
-        }
-
-        long name_len = strncpy_from_user((char *)&kpm_name,
-                                          (const char __user *)arg1,
-                                          sizeof(kpm_name));
-        if (name_len <= 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        long arg_len = strncpy_from_user((char *)&kpm_args,
-                                         (const char __user *)arg2,
-                                         sizeof(kpm_args));
-        if (arg_len < 0) {
-            res = -EINVAL;
-            goto exit;
-        }
-
-        res = (int)module_control0(kpm_name, kpm_args, NULL, 0);
-    } else if (control_code == SUKISU_KPM_VERSION) {
-        char buffer[256] = { 0 };
-        int len;
-
-        sukisu_kpm_version((char *)&buffer, sizeof(buffer));
-
-        unsigned int outlen = (unsigned int)arg2;
-        len = (int)strlen(buffer);
-        if ((unsigned int)len >= outlen && outlen > 0)
-            len = (int)outlen - 1;
-        if (len < 0) len = 0;
-
-        if (copy_to_user((void *)arg1, buffer, len + 1)) {
-            goto invalid_arg;
-        }
-        res = 0;
+    /*
+     * Each branch carries a non-trivial stack buffer (up to 4 KiB for
+     * the LIST buffer alone). Folding them into a single function
+     * makes the compiler sum the worst case per branch and bust
+     * -Wframe-larger-than on 6.1+, so we keep every branch in its own
+     * noinline helper. `sukisu_handle_kpm` itself stays trivial and
+     * only needs to be noinline to prevent the IOCTL dispatcher from
+     * pulling the whole ladder into the syscall.
+     */
+    switch (control_code) {
+    case SUKISU_KPM_LOAD:
+        res = sukisu_kpm_handle_load(arg1, arg2);
+        break;
+    case SUKISU_KPM_UNLOAD:
+        res = sukisu_kpm_handle_unload(arg1);
+        break;
+    case SUKISU_KPM_NUM:
+        res = kpm_get_module_nums();
+        break;
+    case SUKISU_KPM_INFO:
+        res = sukisu_kpm_handle_info(arg1, arg2);
+        break;
+    case SUKISU_KPM_LIST:
+        res = sukisu_kpm_handle_list(arg1, arg2);
+        break;
+    case SUKISU_KPM_CONTROL:
+        res = sukisu_kpm_handle_control(arg1, arg2);
+        break;
+    case SUKISU_KPM_VERSION:
+        res = sukisu_kpm_handle_version(arg1, arg2);
+        break;
+    default:
+        break;
     }
 
-exit:
     if (copy_to_user((void __user *)result_code, &res, sizeof(res)) != 0)
         pr_warn("KPM: copy_to_user result failed\n");
 
     return 0;
-invalid_arg:
-    pr_err("KPM: invalid pointer detected! arg1: %llx arg2: %llx\n",
-           (unsigned long long)arg1, (unsigned long long)arg2);
-    res = -EFAULT;
-    goto exit;
 }
 EXPORT_SYMBOL(sukisu_handle_kpm);
+
+static noinline int sukisu_kpm_handle_load(unsigned long arg1, unsigned long arg2)
+{
+    char kernel_load_path[256];
+    char kernel_args_buffer[1024];
+
+    if (arg1 == 0)
+        return -EINVAL;
+
+    if (!access_ok(arg1, sizeof(kernel_load_path)))
+        return -EFAULT;
+
+    if (strncpy_from_user(kernel_load_path, (const char __user *)arg1,
+                          sizeof(kernel_load_path)) < 0)
+        return -EFAULT;
+    kernel_load_path[sizeof(kernel_load_path) - 1] = '\0';
+
+    kernel_args_buffer[0] = '\0';
+    if (arg2 != 0) {
+        if (!access_ok(arg2, sizeof(kernel_args_buffer)))
+            return -EFAULT;
+        if (strncpy_from_user(kernel_args_buffer, (const char __user *)arg2,
+                              sizeof(kernel_args_buffer)) < 0)
+            return -EFAULT;
+        kernel_args_buffer[sizeof(kernel_args_buffer) - 1] = '\0';
+    }
+
+    return (int)kpm_load_module_path(kernel_load_path,
+                                    kernel_args_buffer[0] ?
+                                        kernel_args_buffer :
+                                        NULL,
+                                    (void __user *)arg1);
+}
+
+static noinline int sukisu_kpm_handle_unload(unsigned long arg1)
+{
+    char kernel_name_buffer[KPM_NAME_LEN];
+
+    if (arg1 == 0)
+        return -EINVAL;
+
+    if (!access_ok(arg1, sizeof(kernel_name_buffer)))
+        return -EFAULT;
+
+    if (strncpy_from_user(kernel_name_buffer, (const char __user *)arg1,
+                          sizeof(kernel_name_buffer)) < 0)
+        return -EFAULT;
+    kernel_name_buffer[sizeof(kernel_name_buffer) - 1] = '\0';
+
+    return (int)kpm_unload_module(kernel_name_buffer, NULL);
+}
+
+static noinline int sukisu_kpm_handle_info(unsigned long arg1, unsigned long arg2)
+{
+    char kernel_name_buffer[KPM_NAME_LEN];
+    char *buf;
+    int size;
+    int res;
+
+    if (arg1 == 0 || arg2 == 0)
+        return -EINVAL;
+
+    if (!access_ok(arg1, sizeof(kernel_name_buffer)))
+        return -EFAULT;
+
+    if (strncpy_from_user(kernel_name_buffer, (const char __user *)arg1,
+                          sizeof(kernel_name_buffer)) < 0)
+        return -EFAULT;
+    kernel_name_buffer[sizeof(kernel_name_buffer) - 1] = '\0';
+
+    buf = kmalloc(2048, GFP_KERNEL);
+    if (!buf)
+        return -ENOMEM;
+
+    size = kpm_get_module_info(kernel_name_buffer, buf, 2048);
+    if (size < 0) {
+        res = size;
+        goto out;
+    }
+
+    if ((unsigned long)size > arg2) {
+        res = -ENOBUFS;
+        goto out;
+    }
+
+    if (copy_to_user((void __user *)arg2, buf, size))
+        res = -EFAULT;
+    else
+        res = 0;
+
+out:
+    kfree(buf);
+    return res;
+}
+
+static noinline int sukisu_kpm_handle_list(unsigned long arg1, unsigned long arg2)
+{
+    char *buf;
+    int len = (int)arg2;
+    int res;
+
+    if (len <= 0)
+        return -EINVAL;
+
+    if (!access_ok(arg2, len))
+        return -EFAULT;
+
+    buf = kmalloc(4096, GFP_KERNEL);
+    if (!buf)
+        return -ENOMEM;
+
+    res = kpm_list_modules(buf, 4096);
+    if (res < 0)
+        goto out;
+    if (res > len) {
+        res = -ENOBUFS;
+        goto out;
+    }
+
+    if (copy_to_user((void __user *)arg1, buf, res))
+        res = -EFAULT;
+    else
+        res = 0;
+
+out:
+    kfree(buf);
+    return res;
+}
+
+static noinline int sukisu_kpm_handle_control(unsigned long arg1, unsigned long arg2)
+{
+    char kpm_name[KPM_NAME_LEN] = { 0 };
+    char kpm_args[KPM_ARGS_LEN] = { 0 };
+    long name_len, arg_len;
+
+    if (arg1 == 0 || arg2 == 0)
+        return -EINVAL;
+
+    if (!access_ok(arg1, sizeof(kpm_name)))
+        return -EFAULT;
+
+    if (!access_ok(arg2, sizeof(kpm_args)))
+        return -EFAULT;
+
+    name_len = strncpy_from_user(kpm_name, (const char __user *)arg1,
+                                 sizeof(kpm_name));
+    if (name_len <= 0)
+        return -EINVAL;
+
+    arg_len = strncpy_from_user(kpm_args, (const char __user *)arg2,
+                                sizeof(kpm_args));
+    if (arg_len < 0)
+        return -EINVAL;
+
+    return (int)kpm_module_control0(kpm_name, kpm_args, NULL, 0);
+}
+
+static noinline int sukisu_kpm_handle_version(unsigned long arg1, unsigned long arg2)
+{
+    char buffer[256] = { 0 };
+    int len;
+    unsigned int outlen = (unsigned int)arg2;
+
+    sukisu_kpm_version(buffer, sizeof(buffer));
+
+    len = (int)strlen(buffer);
+    if ((unsigned int)len >= outlen && outlen > 0)
+        len = (int)outlen - 1;
+    if (len < 0) len = 0;
+
+    if (copy_to_user((void __user *)arg1, buffer, len + 1))
+        return -EFAULT;
+    return 0;
+}
 
 int sukisu_is_kpm_control_code(unsigned long control_code)
 {

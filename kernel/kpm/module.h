@@ -12,24 +12,10 @@
 #include <linux/list.h>
 #include "kpmodule.h"
 
-struct load_info {
-    struct {
-        const char *base;
-        unsigned long size;
-        const char *name, *version, *license, *author, *description;
-        char error_msg[KPM_LOAD_ERROR_MESSAGE_LEN];
-    } info;
-    const Elf_Ehdr *hdr;
-    unsigned long len;
-    Elf_Shdr *sechdrs;
-    char *secstrings, *strtab;
-    unsigned long symoffs, stroffs;
-    struct {
-        unsigned int sym, str, mod, info;
-    } index;
-};
-
-struct module {
+/* Renamed from `struct module` to avoid colliding with the in-tree
+ * `struct module` exposed by <linux/module.h>, which a few transitive
+ * includes pull into core/init.c on 5.10/5.15 GKI. */
+struct kpm_module {
     struct {
         const char *base, *name, *version, *license, *author, *description;
     } info;
@@ -53,26 +39,26 @@ struct module {
     struct list_head list;
 };
 
-long load_module(const void *data, int len, const char *args,
-                 const char *event, void *__user reserved);
-long load_module_ex(const void *data, int len, const char *args,
-                     const char *event, const char *source,
-                     void *__user reserved);
-long load_module_path(const char *path, const char *args,
-                      void *__user reserved);
-long load_module_path_event(const char *path, const char *args,
-                            const char *event, void *__user reserved);
-long module_control0(const char *name, const char *ctl_args,
-                     char *__user out_msg, int outlen);
-long module_control1(const char *name, void *a1, void *a2, void *a3);
-long unload_module(const char *name, void *__user reserved);
-struct module *find_module(const char *name);
-long notify_modules_event(const char *event, const char *args,
+long kpm_load_module(const void *data, int len, const char *args,
+                      const char *event, void *__user reserved);
+long kpm_load_module_ex(const void *data, int len, const char *args,
+                        const char *event, const char *source,
+                        void *__user reserved);
+long kpm_load_module_path(const char *path, const char *args,
                           void *__user reserved);
+long kpm_load_module_path_event(const char *path, const char *args,
+                                const char *event, void *__user reserved);
+long kpm_module_control0(const char *name, const char *ctl_args,
+                         char *__user out_msg, int outlen);
+long kpm_module_control1(const char *name, void *a1, void *a2, void *a3);
+long kpm_unload_module(const char *name, void *__user reserved);
+struct kpm_module *kpm_find_module(const char *name);
+long kpm_notify_modules_event(const char *event, const char *args,
+                              void *__user reserved);
 
-int get_module_nums(void);
-int list_modules(char *out_names, int size);
-int get_module_info(const char *name, char *out_info, int size);
+int kpm_get_module_nums(void);
+int kpm_list_modules(char *out_names, int size);
+int kpm_get_module_info(const char *name, char *out_info, int size);
 void kpm_module_init(void);
 
 #endif

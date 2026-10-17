@@ -25,7 +25,6 @@
 #include <linux/vmalloc.h>
 #include <linux/uaccess.h>
 #include <linux/elf.h>
-#include <linux/uapi/linux/elf.h>
 #include <linux/kallsyms.h>
 #include <linux/version.h>
 #include <linux/list.h>
@@ -49,7 +48,9 @@
 
 #include "infra/symbol_resolver.h"
 #include "module.h"
-#include "insn.h"
+#include "kpmodule.h"
+#include "kp_symbols.h"
+#include "kp_hook_runtime.h"
 #include "relo.h"
 #include "kpmodule.h"
 
@@ -63,21 +64,34 @@
 
 #define SZ_128M 0x08000000
 
-#define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-#define ALIGN(x, a) ALIGN_MASK(x, (typeof(x))(a) - 1)
-
-static unsigned long page_size = PAGE_SIZE;
 static inline unsigned long align(unsigned long x)
 {
-    return ALIGN(x, page_size);
+    return ALIGN(x, PAGE_SIZE);
 }
 
 #define elf_check_arch(x) ((x)->e_machine == EM_AARCH64)
 
 #define ARCH_SHF_SMALL 0
 
-struct module modules = { 0 };
-static DEFINE_SPINLOCK(module_lock);
+struct load_info {
+    struct {
+        const char *base;
+        unsigned long size;
+        const char *name, *version, *license, *author, *description;
+        char error_msg[KPM_LOAD_ERROR_MESSAGE_LEN];
+    } info;
+    const Elf_Ehdr *hdr;
+    unsigned long len;
+    Elf_Shdr *sechdrs;
+    char *secstrings, *strtab;
+    unsigned long symoffs, stroffs;
+    struct {
+        unsigned int sym, str, mod, info;
+    } index;
+};
+
+struct kpm_module kpm_modules = { 0 };
+static DEFINE_SPINLOCK(kpm_module_lock);
 
 static void set_load_error(struct load_info *info, const char *message)
 {
@@ -133,7 +147,7 @@ static char *next_string(char *string, unsigned long *secsize)
 }
 
 /* Update size with this section: return offset. */
-static long get_offset(struct module *mod, unsigned int *size, Elf_Shdr *sechdr,
+static long get_offset(struct kpm_module *mod, unsigned int *size, Elf_Shdr *sechdr,
                        unsigned int section)
 {
     long ret = ALIGN(*size, sechdr->sh_addralign ?: 1);
@@ -192,7 +206,7 @@ static unsigned long get_sh_size(struct load_info *info, const char *secname)
     return infosec->sh_entsize;
 }
 
-static void layout_sections(struct module *mod, struct load_info *info)
+static void layout_sections(struct kpm_module *mod, struct load_info *info)
 {
     static unsigned long const masks[][2] = {
         /* NOTE: all executable code must be the first section in this
@@ -246,7 +260,7 @@ static bool is_core_symbol(const Elf_Sym *src, const Elf_Shdr *sechdrs,
 }
 
 /* Change all symbols so that st_value encodes the pointer directly. */
-static int simplify_symbols(struct module *mod, struct load_info *info)
+static int simplify_symbols(struct kpm_module *mod, struct load_info *info)
 {
     Elf_Shdr *symsec = &info->sechdrs[info->index.sym];
     Elf_Sym *sym = (void *)symsec->sh_addr;
@@ -266,7 +280,9 @@ static int simplify_symbols(struct module *mod, struct load_info *info)
         case SHN_ABS:
             break;
         case SHN_UNDEF: {
-            unsigned long addr = find_kernel_symbol_exact(name);
+            unsigned long addr = sukisu_kpm_symbol_lookup(name);
+            if (!addr)
+                addr = find_kernel_symbol_exact(name);
             if (!addr)
                 addr = (unsigned long)kallsyms_lookup_name(name);
             if (!addr) {
@@ -290,7 +306,7 @@ static int simplify_symbols(struct module *mod, struct load_info *info)
     return ret;
 }
 
-static int apply_relocations(struct module *mod, const struct load_info *info)
+static int apply_relocations(struct kpm_module *mod, const struct load_info *info)
 {
     int rc = 0;
     unsigned int i;
@@ -299,11 +315,11 @@ static int apply_relocations(struct module *mod, const struct load_info *info)
         if (infosec >= info->hdr->e_shnum) continue;
         if (!(info->sechdrs[infosec].sh_flags & SHF_ALLOC)) continue;
         if (info->sechdrs[i].sh_type == SHT_REL) {
-            rc = apply_relocate(info->sechdrs, info->strtab, info->index.sym,
-                                i, mod);
+            rc = kpm_apply_relocate(info->sechdrs, info->strtab, info->index.sym,
+                                    i, mod);
         } else if (info->sechdrs[i].sh_type == SHT_RELA) {
-            rc = apply_relocate_add(info->sechdrs, info->strtab,
-                                    info->index.sym, i, mod);
+            rc = kpm_apply_relocate_add(info->sechdrs, info->strtab,
+                                        info->index.sym, i, mod);
         }
         if (rc < 0) break;
     }
@@ -311,7 +327,7 @@ static int apply_relocations(struct module *mod, const struct load_info *info)
 }
 
 /* todo: free .strtab and .symtab after relocation */
-static void layout_symtab(struct module *mod, struct load_info *info)
+static void layout_symtab(struct kpm_module *mod, struct load_info *info)
 {
     Elf_Shdr *symsect = info->sechdrs + info->index.sym;
     Elf_Shdr *strsect = info->sechdrs + info->index.str;
@@ -355,9 +371,9 @@ static int rewrite_section_headers(struct load_info *info)
     return 0;
 }
 
-static int move_module(struct module *mod, struct load_info *info)
+static int move_module(struct kpm_module *mod, struct load_info *info)
 {
-    logki("alloc module size: %llx\n", mod->size);
+    logki("alloc module size: %x\n", mod->size);
     mod->start = vmalloc(mod->size);
     if (!mod->start) return -ENOMEM;
     memset(mod->start, 0, mod->size);
@@ -506,10 +522,10 @@ static int elf_header_check(struct load_info *info)
     return 0;
 }
 
-struct module *find_module(const char *name)
+struct kpm_module *kpm_find_module(const char *name)
 {
-    struct module *pos;
-    list_for_each_entry(pos, &modules.list, list)
+    struct kpm_module *pos;
+    list_for_each_entry(pos, &kpm_modules.list, list)
     {
         if (!strcmp(name, pos->info.name)) {
             return pos;
@@ -517,11 +533,11 @@ struct module *find_module(const char *name)
     }
     return NULL;
 }
-EXPORT_SYMBOL(find_module);
+EXPORT_SYMBOL(kpm_find_module);
 
-long load_module_ex(const void *data, int len, const char *args,
-                    const char *event, const char *source,
-                    void *__user reserved)
+long kpm_load_module_ex(const void *data, int len, const char *args,
+                          const char *event, const char *source,
+                          void *__user reserved)
 {
     struct load_info load_info = {
         .len = len,
@@ -533,14 +549,14 @@ long load_module_ex(const void *data, int len, const char *args,
     if ((rc = elf_header_check(info))) goto out;
     if ((rc = setup_load_info(info))) goto out;
 
-    if (find_module(info->info.name)) {
+    if (kpm_find_module(info->info.name)) {
         logkfd("%s exist\n", info->info.name);
         set_load_error(info, "module already exists");
         rc = -EEXIST;
         goto out;
     }
 
-    struct module *mod = vzalloc(sizeof(struct module));
+    struct kpm_module *mod = vzalloc(sizeof(struct kpm_module));
     if (!mod) {
         set_load_error(info, "allocate module state failed");
         rc = -ENOMEM;
@@ -574,8 +590,6 @@ long load_module_ex(const void *data, int len, const char *args,
         goto free;
     }
 
-    flush_icache_all();
-
     /* Make module .text executable; vmalloc pages default to NX. */
     if (mod->text_size) {
         int xrc = set_memory_x((unsigned long)mod->start,
@@ -586,13 +600,19 @@ long load_module_ex(const void *data, int len, const char *args,
             rc = xrc;
             goto free;
         }
+        /*
+         * set_memory_x already issues the dsb/isb needed for I-cache
+         * coherency on aarch64, so an extra flush_icache_range() here
+         * would be redundant. We keep the call site in case a future
+         * KPM port targets a KMI that does not have set_memory_x.
+         */
     }
 
     rc = (*mod->init)(mod->args, event, reserved);
 
     if (!rc) {
         logkfi("[%s] succeed with [%s]\n", mod->info.name, args);
-        list_add_tail(&mod->list, &modules.list);
+        list_add_tail(&mod->list, &kpm_modules.list);
         goto out;
     } else {
         set_load_error(info, "module init failed");
@@ -612,15 +632,15 @@ out:
                            : "module loaded");
     return rc;
 }
-EXPORT_SYMBOL(load_module_ex);
+EXPORT_SYMBOL(kpm_load_module_ex);
 
-long unload_module(const char *name, void *__user reserved)
+long kpm_unload_module(const char *name, void *__user reserved)
 {
     if (!name) return -EINVAL;
     logkfe("name: %s\n", name);
 
     rcu_read_lock();
-    struct module *mod = find_module(name);
+    struct kpm_module *mod = kpm_find_module(name);
     if (mod) list_del_rcu(&mod->list);
     rcu_read_unlock();
     if (!mod) return -ENOENT;
@@ -645,17 +665,17 @@ long unload_module(const char *name, void *__user reserved)
     logkfi("name: %s, rc: %ld\n", name, rc);
     return rc;
 }
-EXPORT_SYMBOL(unload_module);
+EXPORT_SYMBOL(kpm_unload_module);
 
-long load_module(const void *data, int len, const char *args,
-                 const char *event, void *__user reserved)
+long kpm_load_module(const void *data, int len, const char *args,
+                      const char *event, void *__user reserved)
 {
-    return load_module_ex(data, len, args, event, "embedded", reserved);
+    return kpm_load_module_ex(data, len, args, event, "embedded", reserved);
 }
-EXPORT_SYMBOL(load_module);
+EXPORT_SYMBOL(kpm_load_module);
 
-long load_module_path_event(const char *path, const char *args,
-                            const char *event, void *__user reserved)
+long kpm_load_module_path_event(const char *path, const char *args,
+                                const char *event, void *__user reserved)
 {
     long rc = 0;
     logkfd("%s\n", path);
@@ -696,7 +716,7 @@ long load_module_path_event(const char *path, const char *args,
         goto free;
     }
 
-    rc = load_module_ex(data, len, args, event ? event : "load-file", "file",
+    rc = kpm_load_module_ex(data, len, args, event ? event : "load-file", "file",
                         reserved);
 free:
     kvfree(data);
@@ -705,16 +725,16 @@ close:
 out:
     return rc;
 }
-EXPORT_SYMBOL(load_module_path_event);
+EXPORT_SYMBOL(kpm_load_module_path_event);
 
-long load_module_path(const char *path, const char *args, void *__user reserved)
+long kpm_load_module_path(const char *path, const char *args, void *__user reserved)
 {
-    return load_module_path_event(path, args, "load-file", reserved);
+    return kpm_load_module_path_event(path, args, "load-file", reserved);
 }
-EXPORT_SYMBOL(load_module_path);
+EXPORT_SYMBOL(kpm_load_module_path);
 
-long module_control0(const char *name, const char *ctl_args,
-                     char *__user out_msg, int outlen)
+long kpm_module_control0(const char *name, const char *ctl_args,
+                         char *__user out_msg, int outlen)
 {
     if (!name || !ctl_args) return -EINVAL;
     int args_len = strlen(ctl_args);
@@ -725,7 +745,7 @@ long module_control0(const char *name, const char *ctl_args,
     long rc = 0;
     rcu_read_lock();
 
-    struct module *mod = find_module(name);
+    struct kpm_module *mod = kpm_find_module(name);
     if (!mod) {
         rc = -ENOENT;
         goto out;
@@ -754,9 +774,9 @@ out:
     rcu_read_unlock();
     return rc;
 }
-EXPORT_SYMBOL(module_control0);
+EXPORT_SYMBOL(kpm_module_control0);
 
-long module_control1(const char *name, void *a1, void *a2, void *a3)
+long kpm_module_control1(const char *name, void *a1, void *a2, void *a3)
 {
     logkfi("name %s, a1: %llx, a2: %llx, a3: %llx\n", name,
            (unsigned long long)a1, (unsigned long long)a2,
@@ -764,7 +784,7 @@ long module_control1(const char *name, void *a1, void *a2, void *a3)
     long rc = 0;
     rcu_read_lock();
 
-    struct module *mod = find_module(name);
+    struct kpm_module *mod = kpm_find_module(name);
     if (!mod) {
         rc = -ENOENT;
         goto out;
@@ -783,10 +803,10 @@ out:
     rcu_read_unlock();
     return rc;
 }
-EXPORT_SYMBOL(module_control1);
+EXPORT_SYMBOL(kpm_module_control1);
 
-long notify_modules_event(const char *event, const char *args,
-                          void *__user reserved)
+long kpm_notify_modules_event(const char *event, const char *args,
+                              void *__user reserved)
 {
     if (!event) return -EINVAL;
 
@@ -794,8 +814,8 @@ long notify_modules_event(const char *event, const char *args,
     int count = 0;
     rcu_read_lock();
 
-    struct module *pos;
-    list_for_each_entry(pos, &modules.list, list)
+    struct kpm_module *pos;
+    list_for_each_entry(pos, &kpm_modules.list, list)
     {
         if (!pos->event || !*pos->event) continue;
 
@@ -808,15 +828,15 @@ long notify_modules_event(const char *event, const char *args,
     rcu_read_unlock();
     return result ?: count;
 }
-EXPORT_SYMBOL(notify_modules_event);
+EXPORT_SYMBOL(kpm_notify_modules_event);
 
-int get_module_nums(void)
+int kpm_get_module_nums(void)
 {
     rcu_read_lock();
 
-    struct module *pos;
+    struct kpm_module *pos;
     int n = 0;
-    list_for_each_entry(pos, &modules.list, list)
+    list_for_each_entry(pos, &kpm_modules.list, list)
     {
         n++;
     }
@@ -825,18 +845,18 @@ int get_module_nums(void)
     logkfd("%d\n", n);
     return n;
 }
-EXPORT_SYMBOL(get_module_nums);
+EXPORT_SYMBOL(kpm_get_module_nums);
 
-int list_modules(char *out_names, int size)
+int kpm_list_modules(char *out_names, int size)
 {
     if (!out_names || size <= 0) return -EINVAL;
     out_names[0] = '\0';
 
     rcu_read_lock();
 
-    struct module *pos;
+    struct kpm_module *pos;
     int off = 0;
-    list_for_each_entry(pos, &modules.list, list)
+    list_for_each_entry(pos, &kpm_modules.list, list)
     {
         off += snprintf(out_names + off, size - 1 - off, "%s\n",
                         pos->info.name);
@@ -846,14 +866,14 @@ int list_modules(char *out_names, int size)
     rcu_read_unlock();
     return off;
 }
-EXPORT_SYMBOL(list_modules);
+EXPORT_SYMBOL(kpm_list_modules);
 
-int get_module_info(const char *name, char *out_info, int size)
+int kpm_get_module_info(const char *name, char *out_info, int size)
 {
     if (size <= 0) return 0;
     rcu_read_lock();
 
-    struct module *mod = find_module(name);
+    struct kpm_module *mod = kpm_find_module(name);
     if (!mod) {
         rcu_read_unlock();
         return -ENOENT;
@@ -885,10 +905,12 @@ int get_module_info(const char *name, char *out_info, int size)
     rcu_read_unlock();
     return sz;
 }
-EXPORT_SYMBOL(get_module_info);
+EXPORT_SYMBOL(kpm_get_module_info);
 
 void kpm_module_init(void)
 {
-    INIT_LIST_HEAD(&modules.list);
-    spin_lock_init(&module_lock);
+    kp_compat_init();
+    kp_hook_runtime_init();
+    INIT_LIST_HEAD(&kpm_modules.list);
+    spin_lock_init(&kpm_module_lock);
 }

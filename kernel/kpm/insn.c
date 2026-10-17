@@ -21,7 +21,9 @@
 #include <asm/cacheflush.h>
 #include <linux/printk.h>
 #include <linux/cache.h>
+#include <linux/kallsyms.h>
 
+#include "../infra/symbol_resolver.h"
 #include "insn.h"
 
 /* KP-style log prefixes mapped onto Linux pr_* helpers. */
@@ -31,27 +33,55 @@
 #define AARCH64_INSN_SF_BIT BIT(31)
 #define AARCH64_INSN_N_BIT BIT(22)
 
-#define AARCH64_BREAK_MON 0xd4200000
-#define AARCH64_BREAK_FAULT (AARCH64_BREAK_MON | (0x100 << 5))
+/* AARCH64_BREAK_MON / AARCH64_BREAK_FAULT are provided by <asm/insn.h>. */
 
-static int aarch64_insn_encoding_class[] = {
-    AARCH64_INSN_CLS_UNKNOWN, AARCH64_INSN_CLS_UNKNOWN,
-    AARCH64_INSN_CLS_UNKNOWN, AARCH64_INSN_CLS_UNKNOWN,
-    AARCH64_INSN_CLS_LDST,    AARCH64_INSN_CLS_DP_REG,
-    AARCH64_INSN_CLS_LDST,    AARCH64_INSN_CLS_DP_FPSIMD,
-    AARCH64_INSN_CLS_DP_IMM,  AARCH64_INSN_CLS_DP_IMM,
-    AARCH64_INSN_CLS_BR_SYS,  AARCH64_INSN_CLS_BR_SYS,
-    AARCH64_INSN_CLS_LDST,    AARCH64_INSN_CLS_DP_REG,
-    AARCH64_INSN_CLS_LDST,    AARCH64_INSN_CLS_DP_FPSIMD,
+/*
+ * Wrapper around the kernel's aarch64_get_insn_class().
+ *
+ * GKI 5.10 exports both the function and the `AARCH64_INSN_CLS_*`
+ * enumerators, so on that branch we can use the kernel's enum/values
+ * directly via a thin shim.
+ *
+ * GKI 5.15+ (and 6.6) only forward-declares the function and
+ * reclassifies the enumerator values as internal. We therefore look
+ * the function up through kallsyms the first time we are called; if
+ * that fails we fall back to a local 16-entry table that maps opc0
+ * (bits 28:25) to the same encoding class numbers defined by the ARM
+ * ARM (C3.1). The numbers have been stable since 5.10, so the table
+ * is forward-compatible.
+ *
+ * Resolution is intentionally lazy: doing it from an `__init` hook
+ * triggers an LTO/CFI corner case that emits a stray `init_module`
+ * alias from this translation unit, which then collides with
+ * `core/init.c`'s real module entry point.
+ */
+static int (*kpm_aarch64_get_insn_class_fn)(u32 insn);
+
+static int kpm_aarch64_insn_encoding_class_table[16] = {
+    0, 0, 0, 0,            /* 0x0 - 0x3: UNKNOWN */
+    4, 2, 4, 3,            /* 0x4 - 0x7: LDST, DP_REG, LDST, DP_FPSIMD */
+    1, 1, 5, 5,            /* 0x8 - 0xb: DP_IMM, DP_IMM, BR_SYS, BR_SYS */
+    4, 2, 4, 3,            /* 0xc - 0xf: LDST, DP_REG, LDST, DP_FPSIMD */
 };
 
-enum aarch64_insn_encoding_class aarch64_get_insn_class(u32 insn)
+static int kpm_aarch64_lookup_fn(void)
 {
-    return aarch64_insn_encoding_class[(insn >> 25) & 0xf];
+    kpm_aarch64_get_insn_class_fn =
+        (int (*)(u32))ksu_resolve_symbol_for_functable_hook("aarch64_get_insn_class");
+    if (!kpm_aarch64_get_insn_class_fn)
+        pr_debug("KPM-INS: aarch64_get_insn_class not exported, using local table\n");
+    return kpm_aarch64_get_insn_class_fn ? 0 : -1;
 }
-EXPORT_SYMBOL(aarch64_get_insn_class);
 
-bool aarch64_insn_is_nop(u32 insn)
+int kpm_aarch64_get_insn_class(u32 insn)
+{
+    if (!kpm_aarch64_get_insn_class_fn && kpm_aarch64_lookup_fn() != 0)
+        return kpm_aarch64_insn_encoding_class_table[(insn >> 25) & 0xf];
+    return kpm_aarch64_get_insn_class_fn(insn);
+}
+EXPORT_SYMBOL(kpm_aarch64_get_insn_class);
+
+bool kpm_aarch64_insn_is_nop(u32 insn)
 {
     if (!aarch64_insn_is_hint(insn)) return false;
 
@@ -66,47 +96,47 @@ bool aarch64_insn_is_nop(u32 insn)
         return true;
     }
 }
-EXPORT_SYMBOL(aarch64_insn_is_nop);
+EXPORT_SYMBOL(kpm_aarch64_insn_is_nop);
 
-void aarch64_insn_read(void *addr, u32 *insnp)
+void kpm_aarch64_insn_read(void *addr, u32 *insnp)
 {
     *insnp = le32_to_cpu(*(u32 *)addr);
 }
-EXPORT_SYMBOL(aarch64_insn_read);
+EXPORT_SYMBOL(kpm_aarch64_insn_read);
 
-void aarch64_insn_write(void *addr, u32 insn)
+void kpm_aarch64_insn_write(void *addr, u32 insn)
 {
     *(u32 *)addr = cpu_to_le32(insn);
 }
-EXPORT_SYMBOL(aarch64_insn_write);
+EXPORT_SYMBOL(kpm_aarch64_insn_write);
 
-static bool __aarch64_insn_hotpatch_safe(u32 insn)
+static bool kpm___aarch64_insn_hotpatch_safe(u32 insn)
 {
-    if (aarch64_get_insn_class(insn) != AARCH64_INSN_CLS_BR_SYS) return false;
+    if (kpm_aarch64_get_insn_class(insn) != KPM_AARCH64_INSN_CLS_BR_SYS) return false;
 
     return aarch64_insn_is_b(insn) || aarch64_insn_is_bl(insn) ||
            aarch64_insn_is_svc(insn) || aarch64_insn_is_hvc(insn) ||
            aarch64_insn_is_smc(insn) || aarch64_insn_is_brk(insn) ||
-           aarch64_insn_is_nop(insn);
+           kpm_aarch64_insn_is_nop(insn);
 }
 
-bool aarch64_insn_hotpatch_safe(u32 old_insn, u32 new_insn)
+bool kpm_aarch64_insn_hotpatch_safe(u32 old_insn, u32 new_insn)
 {
-    return __aarch64_insn_hotpatch_safe(old_insn) &&
-           __aarch64_insn_hotpatch_safe(new_insn);
+    return kpm___aarch64_insn_hotpatch_safe(old_insn) &&
+           kpm___aarch64_insn_hotpatch_safe(new_insn);
 }
-EXPORT_SYMBOL(aarch64_insn_hotpatch_safe);
+EXPORT_SYMBOL(kpm_aarch64_insn_hotpatch_safe);
 
-int aarch64_insn_patch_text_nosync(void *addr, u32 insn)
+int kpm_aarch64_insn_patch_text_nosync(void *addr, u32 insn)
 {
     u32 *tp = addr;
     int ret = 0;
     if ((uintptr_t)tp & 0x3) return -EINVAL;
-    aarch64_insn_write(tp, insn);
+    kpm_aarch64_insn_write(tp, insn);
     flush_icache_range((uintptr_t)tp, (uintptr_t)tp + AARCH64_INSN_SIZE);
     return ret;
 }
-EXPORT_SYMBOL(aarch64_insn_patch_text_nosync);
+EXPORT_SYMBOL(kpm_aarch64_insn_patch_text_nosync);
 
 struct aarch64_insn_patch {
     void **text_addrs;
@@ -115,14 +145,14 @@ struct aarch64_insn_patch {
     atomic_t cpu_count;
 };
 
-static int aarch64_insn_patch_text_cb(void *arg)
+static int kpm_aarch64_insn_patch_text_cb(void *arg)
 {
     int i, ret = 0;
     struct aarch64_insn_patch *pp = arg;
 
     if (atomic_inc_return(&pp->cpu_count) == 1) {
         for (i = 0; ret == 0 && i < pp->insn_cnt; i++)
-            ret = aarch64_insn_patch_text_nosync(pp->text_addrs[i],
+            ret = kpm_aarch64_insn_patch_text_nosync(pp->text_addrs[i],
                                                  pp->new_insns[i]);
         /* Master flushes the icache; aarch64_insn_patch_text_nosync
          * already issued a dsb;isb pair for global visibility. */
@@ -136,7 +166,7 @@ static int aarch64_insn_patch_text_cb(void *arg)
     return ret;
 }
 
-int aarch64_insn_patch_text_sync(void *addrs[], u32 insns[], int cnt)
+int kpm_aarch64_insn_patch_text_sync(void *addrs[], u32 insns[], int cnt)
 {
     struct aarch64_insn_patch patch = {
         .text_addrs = addrs,
@@ -147,28 +177,28 @@ int aarch64_insn_patch_text_sync(void *addrs[], u32 insns[], int cnt)
 
     if (cnt <= 0) return -EINVAL;
 
-    return stop_machine(aarch64_insn_patch_text_cb, &patch, cpu_online_mask);
+    return stop_machine(kpm_aarch64_insn_patch_text_cb, &patch, cpu_online_mask);
 }
-EXPORT_SYMBOL(aarch64_insn_patch_text_sync);
+EXPORT_SYMBOL(kpm_aarch64_insn_patch_text_sync);
 
-int aarch64_insn_patch_text(void *addrs[], u32 insns[], int cnt)
+int kpm_aarch64_insn_patch_text(void *addrs[], u32 insns[], int cnt)
 {
     int ret;
     u32 insn;
 
     if (cnt == 1) {
-        aarch64_insn_read(addrs[0], &insn);
-        if (aarch64_insn_hotpatch_safe(insn, insns[0])) {
-            ret = aarch64_insn_patch_text_nosync(addrs[0], insns[0]);
+        kpm_aarch64_insn_read(addrs[0], &insn);
+        if (kpm_aarch64_insn_hotpatch_safe(insn, insns[0])) {
+            ret = kpm_aarch64_insn_patch_text_nosync(addrs[0], insns[0]);
             return ret;
         }
     }
 
-    return aarch64_insn_patch_text_sync(addrs, insns, cnt);
+    return kpm_aarch64_insn_patch_text_sync(addrs, insns, cnt);
 }
-EXPORT_SYMBOL(aarch64_insn_patch_text);
+EXPORT_SYMBOL(kpm_aarch64_insn_patch_text);
 
-u32 aarch64_insn_encode_immediate(enum aarch64_insn_imm_type type, u32 insn,
+u32 kpm_aarch64_insn_encode_immediate(enum aarch64_insn_imm_type type, u32 insn,
                                   u64 imm)
 {
     u32 immlo, immhi, lomask, himask, mask;
@@ -233,9 +263,9 @@ u32 aarch64_insn_encode_immediate(enum aarch64_insn_imm_type type, u32 insn,
 
     return insn;
 }
-EXPORT_SYMBOL(aarch64_insn_encode_immediate);
+EXPORT_SYMBOL(kpm_aarch64_insn_encode_immediate);
 
-static u32 aarch64_insn_encode_register(enum aarch64_insn_register_type type,
+static u32 kpm_aarch64_insn_encode_register(enum aarch64_insn_register_type type,
                                         u32 insn, enum aarch64_insn_register reg)
 {
     int shift;
@@ -271,7 +301,7 @@ static u32 aarch64_insn_encode_register(enum aarch64_insn_register_type type,
     return insn;
 }
 
-static u32 aarch64_insn_encode_ldst_size(enum aarch64_insn_size_type type,
+static u32 kpm_aarch64_insn_encode_ldst_size(enum aarch64_insn_size_type type,
                                         u32 insn)
 {
     u32 size;
@@ -313,7 +343,7 @@ static inline long branch_imm_common(unsigned long pc, unsigned long addr,
     return offset;
 }
 
-u32 aarch64_insn_gen_branch_imm(unsigned long pc, unsigned long addr,
+u32 kpm_aarch64_insn_gen_branch_imm(unsigned long pc, unsigned long addr,
                                 enum aarch64_insn_branch_type type)
 {
     u32 insn;
@@ -335,12 +365,12 @@ u32 aarch64_insn_gen_branch_imm(unsigned long pc, unsigned long addr,
         return AARCH64_BREAK_FAULT;
     }
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_26, insn,
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_26, insn,
                                          offset >> 2);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_branch_imm);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_branch_imm);
 
-u32 aarch64_insn_gen_comp_branch_imm(unsigned long pc, unsigned long addr,
+u32 kpm_aarch64_insn_gen_comp_branch_imm(unsigned long pc, unsigned long addr,
                                      enum aarch64_insn_register reg,
                                      enum aarch64_insn_variant variant,
                                      enum aarch64_insn_branch_type type)
@@ -373,14 +403,14 @@ u32 aarch64_insn_gen_comp_branch_imm(unsigned long pc, unsigned long addr,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT, insn, reg);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT, insn, reg);
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_19, insn,
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_19, insn,
                                          offset >> 2);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_comp_branch_imm);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_comp_branch_imm);
 
-u32 aarch64_insn_gen_cond_branch_imm(unsigned long pc, unsigned long addr,
+u32 kpm_aarch64_insn_gen_cond_branch_imm(unsigned long pc, unsigned long addr,
                                      enum aarch64_insn_condition cond)
 {
     u32 insn;
@@ -393,24 +423,24 @@ u32 aarch64_insn_gen_cond_branch_imm(unsigned long pc, unsigned long addr,
     BUG_ON(cond < AARCH64_INSN_COND_EQ || cond > AARCH64_INSN_COND_AL);
     insn |= cond;
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_19, insn,
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_19, insn,
                                          offset >> 2);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_cond_branch_imm);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_cond_branch_imm);
 
-u32 aarch64_insn_gen_hint(enum aarch64_insn_hint_op op)
+u32 kpm_aarch64_insn_gen_hint(enum aarch64_insn_hint_cr_op op)
 {
     return aarch64_insn_get_hint_value() | op;
 }
-EXPORT_SYMBOL(aarch64_insn_gen_hint);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_hint);
 
-u32 aarch64_insn_gen_nop(void)
+u32 kpm_aarch64_insn_gen_nop(void)
 {
-    return aarch64_insn_gen_hint(AARCH64_INSN_HINT_NOP);
+    return kpm_aarch64_insn_gen_hint(AARCH64_INSN_HINT_NOP);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_nop);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_nop);
 
-u32 aarch64_insn_gen_branch_reg(enum aarch64_insn_register reg,
+u32 kpm_aarch64_insn_gen_branch_reg(enum aarch64_insn_register reg,
                                 enum aarch64_insn_branch_type type)
 {
     u32 insn;
@@ -430,11 +460,11 @@ u32 aarch64_insn_gen_branch_reg(enum aarch64_insn_register reg,
         return AARCH64_BREAK_FAULT;
     }
 
-    return aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, reg);
+    return kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, reg);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_branch_reg);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_branch_reg);
 
-u32 aarch64_insn_gen_load_store_reg(enum aarch64_insn_register reg,
+u32 kpm_aarch64_insn_gen_load_store_reg(enum aarch64_insn_register reg,
                                     enum aarch64_insn_register base,
                                     enum aarch64_insn_register offset,
                                     enum aarch64_insn_size_type size,
@@ -454,17 +484,17 @@ u32 aarch64_insn_gen_load_store_reg(enum aarch64_insn_register reg,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_ldst_size(size, insn);
+    insn = kpm_aarch64_insn_encode_ldst_size(size, insn);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT, insn, reg);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT, insn, reg);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, base);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, base);
 
-    return aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, offset);
+    return kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, offset);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_load_store_reg);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_load_store_reg);
 
-u32 aarch64_insn_gen_load_store_pair(enum aarch64_insn_register reg1,
+u32 kpm_aarch64_insn_gen_load_store_pair(enum aarch64_insn_register reg1,
                                      enum aarch64_insn_register reg2,
                                      enum aarch64_insn_register base,
                                      int offset,
@@ -511,18 +541,18 @@ u32 aarch64_insn_gen_load_store_pair(enum aarch64_insn_register reg1,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT, insn, reg1);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT, insn, reg1);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT2, insn, reg2);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RT2, insn, reg2);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, base);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, base);
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_7, insn,
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_7, insn,
                                          offset >> shift);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_load_store_pair);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_load_store_pair);
 
-u32 aarch64_insn_gen_add_sub_imm(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_add_sub_imm(enum aarch64_insn_register dst,
                                  enum aarch64_insn_register src, int imm,
                                  enum aarch64_insn_variant variant,
                                  enum aarch64_insn_adsb_type type)
@@ -560,15 +590,15 @@ u32 aarch64_insn_gen_add_sub_imm(enum aarch64_insn_register dst,
 
     BUG_ON(imm & ~(SZ_4K - 1));
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_12, insn, imm);
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_12, insn, imm);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_add_sub_imm);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_add_sub_imm);
 
-u32 aarch64_insn_gen_bitfield(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_bitfield(enum aarch64_insn_register dst,
                               enum aarch64_insn_register src, int immr,
                               int imms, enum aarch64_insn_variant variant,
                               enum aarch64_insn_bitfield_type type)
@@ -607,17 +637,17 @@ u32 aarch64_insn_gen_bitfield(enum aarch64_insn_register dst,
     BUG_ON(immr & ~mask);
     BUG_ON(imms & ~mask);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
 
-    insn = aarch64_insn_encode_immediate(AARCH64_INSN_IMM_R, insn, immr);
+    insn = kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_R, insn, immr);
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_S, insn, imms);
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_S, insn, imms);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_bitfield);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_bitfield);
 
-u32 aarch64_insn_gen_movewide(enum aarch64_insn_register dst, int imm,
+u32 kpm_aarch64_insn_gen_movewide(enum aarch64_insn_register dst, int imm,
                               int shift, enum aarch64_insn_variant variant,
                               enum aarch64_insn_movewide_type type)
 {
@@ -655,13 +685,13 @@ u32 aarch64_insn_gen_movewide(enum aarch64_insn_register dst, int imm,
 
     insn |= (shift >> 4) << 21;
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
 
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_16, insn, imm);
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_16, insn, imm);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_movewide);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_movewide);
 
-u32 aarch64_insn_gen_add_sub_shifted_reg(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_add_sub_shifted_reg(enum aarch64_insn_register dst,
                                          enum aarch64_insn_register src,
                                          enum aarch64_insn_register reg,
                                          int shift,
@@ -701,14 +731,14 @@ u32 aarch64_insn_gen_add_sub_shifted_reg(enum aarch64_insn_register dst,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg);
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_6, insn, shift);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg);
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_6, insn, shift);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_add_sub_shifted_reg);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_add_sub_shifted_reg);
 
-u32 aarch64_insn_gen_data1(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_data1(enum aarch64_insn_register dst,
                            enum aarch64_insn_register src,
                            enum aarch64_insn_variant variant,
                            enum aarch64_insn_data1_type type)
@@ -742,12 +772,12 @@ u32 aarch64_insn_gen_data1(enum aarch64_insn_register dst,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
-    return aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    return kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_data1);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_data1);
 
-u32 aarch64_insn_gen_data2(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_data2(enum aarch64_insn_register dst,
                            enum aarch64_insn_register src,
                            enum aarch64_insn_register reg,
                            enum aarch64_insn_variant variant,
@@ -790,13 +820,13 @@ u32 aarch64_insn_gen_data2(enum aarch64_insn_register dst,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
-    return aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
+    return kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_data2);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_data2);
 
-u32 aarch64_insn_gen_data3(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_data3(enum aarch64_insn_register dst,
                            enum aarch64_insn_register src,
                            enum aarch64_insn_register reg1,
                            enum aarch64_insn_register reg2,
@@ -828,14 +858,14 @@ u32 aarch64_insn_gen_data3(enum aarch64_insn_register dst,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RA, insn, src);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, reg1);
-    return aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg2);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RA, insn, src);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, reg1);
+    return kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg2);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_data3);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_data3);
 
-u32 aarch64_insn_gen_logical_shifted_reg(enum aarch64_insn_register dst,
+u32 kpm_aarch64_insn_gen_logical_shifted_reg(enum aarch64_insn_register dst,
                                          enum aarch64_insn_register src,
                                          enum aarch64_insn_register reg,
                                          int shift,
@@ -887,9 +917,10 @@ u32 aarch64_insn_gen_logical_shifted_reg(enum aarch64_insn_register dst,
         return AARCH64_BREAK_FAULT;
     }
 
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
-    insn = aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg);
-    return aarch64_insn_encode_immediate(AARCH64_INSN_IMM_6, insn, shift);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RD, insn, dst);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RN, insn, src);
+    insn = kpm_aarch64_insn_encode_register(AARCH64_INSN_REGTYPE_RM, insn, reg);
+    return kpm_aarch64_insn_encode_immediate(AARCH64_INSN_IMM_6, insn, shift);
 }
-EXPORT_SYMBOL(aarch64_insn_gen_logical_shifted_reg);
+EXPORT_SYMBOL(kpm_aarch64_insn_gen_logical_shifted_reg);
+

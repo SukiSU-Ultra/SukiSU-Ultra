@@ -15,6 +15,14 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
+#include <linux/fs_struct.h>
+#include <linux/mount.h>
+#include <linux/mnt_namespace.h>
+#include <linux/nsproxy.h>
+#include <linux/path.h>
+#include <linux/kprobes.h>
+#include <linux/netlink.h>
+#include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/uaccess.h>
@@ -25,17 +33,11 @@
 #include <linux/spinlock.h>
 #include <linux/rcupdate.h>
 #include <linux/mm.h>
+#include <linux/mm_types.h>
 #include <linux/string.h>
-#include <asm/cacheflush.h>
 #include <linux/types.h>
 #include <linux/stddef.h>
-#include <linux/mount.h>
-#ifdef CONFIG_KPROBES
-#include <linux/kprobes.h>
-#endif
-#include <linux/mm_types.h>
-#include <linux/netlink.h>
-#include <linux/sched.h>
+#include <asm/cacheflush.h>
 
 #include "module.h"
 #include "kpmodule.h"
@@ -71,31 +73,23 @@ struct DynamicStructInfo {
         .members = struct_name##_members                                       \
     };
 
-DYNAMIC_STRUCT_BEGIN(mount)
-DEFINE_MEMBER(mount, mnt_parent)
-DEFINE_MEMBER(mount, mnt)
-DEFINE_MEMBER(mount, mnt_id)
-DEFINE_MEMBER(mount, mnt_group_id)
-DEFINE_MEMBER(mount, mnt_expiry_mark)
-DEFINE_MEMBER(mount, mnt_master)
-DEFINE_MEMBER(mount, mnt_devname)
-DYNAMIC_STRUCT_END(mount)
+/*
+ * `struct mount` and `struct mnt_namespace` are NOT exposed by GKI in
+ * any currently supported Android kernel (5.10 / 5.15 / 6.1 / 6.6).
+ * The GKI keeps their full definitions in the internal `fs/mount.h`
+ * header, which is unreachable from external modules. The offset
+ * metadata for these two types is therefore intentionally omitted;
+ * KPM modules that need to traverse the mount graph should call the
+ * exported kernel helpers (e.g. `find_vfsmount`, `mnt_ns_lookup`)
+ * and resolve offsets at runtime through `kallsyms_lookup_name`
+ * instead of relying on compile-time `offsetof`.
+ */
 
 DYNAMIC_STRUCT_BEGIN(vfsmount)
 DEFINE_MEMBER(vfsmount, mnt_root)
 DEFINE_MEMBER(vfsmount, mnt_sb)
 DEFINE_MEMBER(vfsmount, mnt_flags)
 DYNAMIC_STRUCT_END(vfsmount)
-
-DYNAMIC_STRUCT_BEGIN(mnt_namespace)
-DEFINE_MEMBER(mnt_namespace, ns)
-DEFINE_MEMBER(mnt_namespace, root)
-DEFINE_MEMBER(mnt_namespace, seq)
-DEFINE_MEMBER(mnt_namespace, mounts)
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
-DEFINE_MEMBER(mnt_namespace, count)
-#endif
-DYNAMIC_STRUCT_END(mnt_namespace)
 
 #ifdef CONFIG_KPROBES
 DYNAMIC_STRUCT_BEGIN(kprobe)
@@ -176,9 +170,7 @@ DYNAMIC_STRUCT_END(task_struct)
 #define STRUCT_INFO(name) &(name##_info)
 
 static struct DynamicStructInfo *dynamic_struct_infos[] = {
-    STRUCT_INFO(mount),
     STRUCT_INFO(vfsmount),
-    STRUCT_INFO(mnt_namespace),
 #ifdef CONFIG_KPROBES
     STRUCT_INFO(kprobe),
 #endif

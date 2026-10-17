@@ -76,6 +76,7 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
+ifeq ($(CONFIG_ARM64),y)
 ifeq ($(CONFIG_KPM), y)
 KPM_VERSION_OK := $(shell test $(VERSION) -lt 6 -o \( $(VERSION) -eq 6 -a $(PATCHLEVEL) -le 6 \); echo $$?)
 ifeq ($(KPM_VERSION_OK),0)
@@ -85,6 +86,37 @@ kernelsu-objs += kpm/module.o
 kernelsu-objs += kpm/compact.o
 kernelsu-objs += kpm/super_access.o
 kernelsu-objs += kpm/kpm.o
+kernelsu-objs += kpm/kp_symbols.o
+# KP inline-hook framework (kernel/base/hook.c port). The trampoline
+# transits (_transit0/4/8/12) and the per-hook allocator live in
+# their own translation units so the engine can be compiled with
+# BTI / CFI-disabled flags without affecting the rest of KPM.
+#
+# The hook engine is arm64-only: the aarch64-only instruction
+# encoders, `mov x16` chain pointer trick, and BTI landing-pad
+# handling all assume a 64-bit little-endian fixed-width ISA. On
+# x86_64 the symbols resolve to no-op stubs from kp_symbols.c so
+# KPMs compiled for either arch get the same table layout.
+ifeq ($(CONFIG_ARM64),y)
+kernelsu-objs += kpm/kp_hook.o
+kernelsu-objs += kpm/kp_hook_engine.o
+endif
+kernelsu-objs += kpm/kp_hook_runtime.o
+# kp_hook.c reads .transit*.text instructions from arbitrary kernel
+# text and kp_hook_runtime.c patches kernel text directly. Disable
+# CFI / shadow-call-stack / stack-protector on these objects so the
+# trampolines do not trip kCFI on Qualcomm-hardened kernels.
+CFLAGS_kpm/kp_hook.o += -fno-sanitize=cfi -fno-sanitize=shadow-call-stack \
+                        -fno-stack-protector -fno-jump-tables \
+                        -fno-unwind-tables -fno-asynchronous-unwind-tables \
+                        -Wno-int-conversion -Wno-gcc-compat \
+                        -Wno-declaration-after-statement
+CFLAGS_kpm/kp_hook_engine.o += -fno-sanitize=cfi -fno-sanitize=shadow-call-stack \
+                               -fno-stack-protector -fno-jump-tables \
+                               -Wno-int-conversion -Wno-gcc-compat
+CFLAGS_kpm/kp_hook_runtime.o += -fno-sanitize=cfi \
+                                -fno-sanitize=shadow-call-stack \
+                                -fno-stack-protector -fno-jump-tables
 ccflags-y += -DCONFIG_KSU_KPM_BUILT=1
 $(info -- KPM is enabled (Linux $(VERSION).$(PATCHLEVEL) <= 6.6))
 else
@@ -92,6 +124,7 @@ $(warning -- KernelSU: KPM requires Linux <= 6.6, but detected $(VERSION).$(PATC
 endif
 else
 $(info -- KPM is disabled)
+endif
 endif
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include

@@ -21,8 +21,8 @@
  *   SUKISU_KPM_VERSION  = KPM loader version
  */
 
-int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1,
-                      unsigned long arg2, unsigned long result_code);
+long sukisu_handle_kpm(unsigned long control_code, unsigned long arg1,
+                       unsigned long arg2, unsigned long result_code);
 int sukisu_is_kpm_control_code(unsigned long control_code);
 int do_kpm(void __user *arg);
 

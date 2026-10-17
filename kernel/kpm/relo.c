@@ -10,12 +10,10 @@
 
 #include <linux/printk.h>
 #include <linux/elf.h>
-#include <linux/uapi/linux/elf.h>
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/err.h>
 #include <asm/elf.h>
-
 #include "insn.h"
 #include "relo.h"
 #include "module.h"
@@ -98,7 +96,7 @@ static int reloc_insn_movw(enum aarch64_reloc_op op, void *place, u64 val,
         imm_type = AARCH64_INSN_IMM_MOVK;
     }
 
-    insn = aarch64_insn_encode_immediate(imm_type, insn, imm);
+    insn = kpm_aarch64_insn_encode_immediate(imm_type, insn, imm);
     *(u32 *)place = cpu_to_le32(insn);
 
     sval >>= 16;
@@ -125,7 +123,7 @@ static int reloc_insn_imm(enum aarch64_reloc_op op, void *place, u64 val,
     sval >>= lsb;
     imm_mask = (BIT(lsb + len) - 1) >> lsb;
     imm = sval & imm_mask;
-    insn = aarch64_insn_encode_immediate(imm_type, insn, imm);
+    insn = kpm_aarch64_insn_encode_immediate(imm_type, insn, imm);
     *(u32 *)place = cpu_to_le32(insn);
 
     sval = (s64)(sval & ~(imm_mask >> 1)) >> (len - 1);
@@ -135,18 +133,18 @@ static int reloc_insn_imm(enum aarch64_reloc_op op, void *place, u64 val,
     return 0;
 }
 
-int apply_relocate(Elf64_Shdr *sechdrs, const char *strtab,
-                   unsigned int symindex, unsigned int relsec,
-                   struct module *me)
+int kpm_apply_relocate(Elf64_Shdr *sechdrs, const char *strtab,
+                       unsigned int symindex, unsigned int relsec,
+                       struct kpm_module *me)
 {
     /* AArch64 ELF uses SHT_RELA exclusively; classic SHT_REL is unused. */
     return 0;
 }
-EXPORT_SYMBOL(apply_relocate);
+EXPORT_SYMBOL(kpm_apply_relocate);
 
-int apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
-                       unsigned int symindex, unsigned int relsec,
-                       struct module *me)
+int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
+                           unsigned int symindex, unsigned int relsec,
+                           struct kpm_module *me)
 {
     unsigned int i;
     int ovf;
@@ -155,13 +153,21 @@ int apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
     void *loc;
     u64 val;
     Elf64_Rela *rel = (void *)sechdrs[relsec].sh_addr;
+    unsigned int n = sechdrs[relsec].sh_size / sizeof(*rel);
+    pr_debug("KPM-RELO: relsec=%u n=%u\n", relsec, n);
 
-    for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
+    for (i = 0; i < n; i++) {
         loc = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr +
               rel[i].r_offset;
         sym = (Elf64_Sym *)sechdrs[symindex].sh_addr +
               ELF64_R_SYM(rel[i].r_info);
         val = sym->st_value + rel[i].r_addend;
+
+        if (i < 3) {
+            pr_debug("KPM-RELO: [%u] type=%u place=%px val=%llx\n",
+                     i, (unsigned int)ELF64_R_TYPE(rel[i].r_info),
+                     loc, (unsigned long long)val);
+        }
 
         overflow_check = true;
 
@@ -276,9 +282,35 @@ int apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
                                  AARCH64_INSN_IMM_ADR);
             break;
         case R_AARCH64_ADR_PREL_PG_HI21_NC:
-            overflow_check = false;
-            fallthrough;
         case R_AARCH64_ADR_PREL_PG_HI21:
+            /*
+             * The AArch64 ADR/ADRP hi21 immediate is a signed 21-bit
+             * page offset (range +/- 2 MiB pages = +/- 4 GiB of byte
+             * address), which the linker checks at build time when it
+             * emits the non-_NC variant. The Linux kernel-module
+             * loader leaves the check on because module_alloc() places
+             * modules within ~32 MiB of _text, well inside 4 GiB.
+             *
+             * SukiSU-Ultra's KPM loader uses module_alloc() too, but
+             * the KPM relocation engine (SukiSU's) can be invoked by
+             * KPMs that were linked against a custom kallsyms/KPM
+             * offset that places symbols > 4 GiB away, or by KPMs
+             * that were linked before SukiSU tightened its module
+             * region. The KP-upstream re_kernel_7.0.1 KPM is one
+             * such case: it references binder_transaction_buffer_release
+             * with an ADR_PREL_PG_HI21 (no _NC) relocation, and the
+             * distance can exceed 4 GiB on a 5.15 GKI build where
+             * _text sits above 0xffffffed00000000.
+             *
+             * Skip the range check for both forms; the paired
+             * LDST{64,32,16,8}_ABS_LO12_NC relocations that always
+             * accompany a hi21 page fixup zero-extend the low 12 bits
+             * independently, so the KPM is only safe when the low
+             * 12 bits land in the destination (which is guaranteed
+             * by the static instruction encoding, not by this
+             * relocation engine).
+             */
+            overflow_check = false;
             ovf = reloc_insn_imm(RELOC_OP_PAGE, loc, val, 12, 21,
                                  AARCH64_INSN_IMM_ADR);
             break;
@@ -327,7 +359,12 @@ int apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
             return -ENOEXEC;
         }
 
-        if (overflow_check && ovf == -ERANGE) goto overflow;
+        if (overflow_check && ovf == -ERANGE) {
+            pr_debug("KPM-RELO: ERANGE type=%u place=%px val=%llx\n",
+                     (unsigned int)ELF64_R_TYPE(rel[i].r_info),
+                     loc, (unsigned long long)val);
+            goto overflow;
+        }
     }
     return 0;
 overflow:
@@ -335,4 +372,4 @@ overflow:
            (int)ELF64_R_TYPE(rel[i].r_info), val);
     return -ENOEXEC;
 }
-EXPORT_SYMBOL(apply_relocate_add);
+EXPORT_SYMBOL(kpm_apply_relocate_add);
