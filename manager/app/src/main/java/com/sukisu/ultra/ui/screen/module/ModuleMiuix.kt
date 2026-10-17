@@ -778,7 +778,7 @@ fun ModuleItem(
     val hasDescription = module.description.isNotBlank()
     val maxLinesLimit = LocalModuleDescriptionMaxLines.current
     var expanded by rememberSaveable(module.id) { mutableStateOf(false) }
-    val banner = rememberModuleBanner(module.bannerPath)
+    val banner = rememberModuleBanner(module.id, module.bannerPath)
 
     Card(
         modifier = Modifier

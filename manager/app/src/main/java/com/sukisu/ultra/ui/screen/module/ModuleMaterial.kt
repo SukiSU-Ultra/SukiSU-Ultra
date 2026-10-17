@@ -726,7 +726,7 @@ private fun ModuleItem(
     val canOpenWebUi = module.hasWebUi && !module.remove && module.enabled
     val cardInteractionSource = remember { MutableInteractionSource() }
     val descriptionInteractionSource = remember { MutableInteractionSource() }
-    val banner = rememberModuleBanner(module.bannerPath)
+    val banner = rememberModuleBanner(module.id, module.bannerPath)
 
     TonalCard(
         modifier = Modifier.fillMaxWidth(),
