@@ -659,8 +659,24 @@ long kpm_load_module_ex(const void *data, int len, const char *args,
          */
     }
     if (mod->plt_size) {
-        int xrc = set_memory_x((unsigned long)mod->plt_start,
-                               DIV_ROUND_UP(mod->plt_size, PAGE_SIZE));
+        /*
+         * The PLT area is not page-aligned (mod->plt_start sits at
+         * the tail of the KPM image, which is page-aligned at
+         * mod->start, plus a sections-byte offset). Round the start
+         * down and the size up to page boundaries so that
+         * set_memory_x() flips the X bit on every page the PLT
+         * actually touches -- otherwise the bytes that overflow into
+         * a fresh page would remain NX and the first br to a PLT
+         * entry straddling that page would fault on execute.
+         */
+        unsigned long plt_start = mod->plt_start;
+        unsigned long plt_end = plt_start + mod->plt_size;
+        unsigned long plt_start_aligned = plt_start & PAGE_MASK;
+        unsigned long plt_size_aligned =
+            DIV_ROUND_UP(plt_end - plt_start_aligned, PAGE_SIZE);
+        logki("KPM-MOD: plt area [%lx, %lx) -> set_memory_x([%lx + %lu pages)\n",
+              plt_start, plt_end, plt_start_aligned, plt_size_aligned);
+        int xrc = set_memory_x(plt_start_aligned, plt_size_aligned);
         if (xrc) {
             logke("set_memory_x(.plt) failed: %d\n", xrc);
             set_load_error(info, "make module plt executable failed");
@@ -668,6 +684,16 @@ long kpm_load_module_ex(const void *data, int len, const char *args,
             goto free;
         }
     }
+
+    /*
+     * Print a one-line snapshot of where the KPM landed and how big
+     * each section ended up so that post-mortem analysis of a
+     * crash -- the KPM init_module call below may take the device
+     * down with it -- has the relocation context in dmesg.
+     */
+    logki("KPM-MOD: [%s] start=%px size=%x text_size=%x plt=[%px +%u/%u]\n",
+          info->info.name, mod->start, mod->size, mod->text_size,
+          mod->plt_start, mod->plt_next, mod->plt_size);
 
     rc = (*mod->init)(mod->args, event, reserved);
 
