@@ -19,7 +19,7 @@ static void ksu_track_throne_tw_func(struct callback_head *cb)
     // Runs after exit_fs() if the task is exiting; path lookups would oops
     if (current->flags & PF_EXITING)
         return;
-    track_throne(TRACK_THRONE_FORCE_SYNCHRONOUS);
+    track_throne(false);
 }
 
 // Never scan from the fsnotify handler: fsnotify_mark_srcu and the rename's dir
@@ -41,7 +41,7 @@ static void ksu_defer_track_throne(void)
         }
     }
     pr_warn("defer track_throne failed, run it inline\n");
-    track_throne(TRACK_THRONE_FORCE_SYNCHRONOUS);
+    track_throne(false);
 }
 static KSU_DECL_FSNOTIFY_OPS(ksu_handle_generic_event)
 {
