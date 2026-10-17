@@ -76,9 +76,24 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
-obj-$(CONFIG_KPM) += kpm/compact.o
-obj-$(CONFIG_KPM) += kpm/kpm.o
-obj-$(CONFIG_KPM) += kpm/super_access.o
+ifeq ($(CONFIG_KPM), y)
+ifeq ($(ARCH), arm64)
+KPM_VERSION_OK := $(shell test $(VERSION) -lt 6 -o \( $(VERSION) -eq 6 -a $(PATCHLEVEL) -le 6 \); echo $$?)
+ifeq ($(KPM_VERSION_OK),0)
+kernelsu-objs += kpm/compact.o
+kernelsu-objs += kpm/super_access.o
+kernelsu-objs += kpm/kpm.o
+ccflags-y += -DCONFIG_KSU_KPM_BUILT=1
+$(info -- KPM is enabled on arm64 (Linux $(VERSION).$(PATCHLEVEL) <= 6.6))
+else
+$(warning -- KernelSU: KPM requires Linux <= 6.6, but detected $(VERSION).$(PATCHLEVEL). KPM build skipped.)
+endif
+else
+$(warning -- KernelSU: KPM only supports arm64, current ARCH=$(ARCH). KPM build skipped.)
+endif
+else
+$(info -- KPM is disabled)
+endif
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
@@ -202,12 +217,6 @@ KERNEL_TYPE := GKI 2.0
 endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
-
-ifeq ($(CONFIG_KPM), y)
-$(info -- KPM is enabled)
-else
-$(info -- KPM is disabled)
-endif
 
 KSU_NEW_DCACHE_FLUSH := $(shell grep -q __flush_dcache_area $(srctree)/arch/arm64/include/asm/cacheflush.h ; echo $$?)
 $(info -- KSU_NEW_DCACHE_FLUSH: $(KSU_NEW_DCACHE_FLUSH))
