@@ -12,8 +12,8 @@
 #include <linux/string.h>
 #include <linux/version.h>
 
-#include <ktypes.h>
-#include <log.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
 typedef int (*kp_kallsyms_on_each_symbol_t)(int (*fn)(void *, const char *, unsigned long), void *data);

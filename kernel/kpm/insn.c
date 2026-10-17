@@ -10,7 +10,7 @@
  */
 #include <linux/types.h>
 
-#include <ktypes.h>
+#include "kp/include/ktypes.h"
 
 static inline uint32_t insn_nop(void) { return 0xd503201fu; }
 static inline uint32_t insn_ret(void) { return 0xd65f03c0u; }

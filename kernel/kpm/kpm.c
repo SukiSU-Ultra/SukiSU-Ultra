@@ -23,10 +23,11 @@
 #include <linux/types.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/vmalloc.h>
 
-#include <ktypes.h>
-#include <log.h>
-#include <kpmodule.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
+#include "kp/include/kpmodule.h"
 
 #include "kpm.h"
 
@@ -263,7 +264,7 @@ int do_kpm(void __user *arg)
         long n = strncpy_from_user(name, uname, sizeof(name));
         if (n <= 0)
             return -EINVAL;
-        ret = kp_kpm_ioctl_unload(name);
+        ret = kp_kpm_ioctl_unload(name, NULL);
         return kp_kpm_put_ret(&cmd, ret);
     }
     case SUKISU_KPM_NUM: {

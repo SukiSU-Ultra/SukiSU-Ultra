@@ -19,12 +19,14 @@
 #include <linux/types.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/vmalloc.h>
 
 #include <asm/uaccess.h>
 
-#include <ktypes.h>
-#include <log.h>
-#include <kpmodule.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
+#include "kp/include/kpmodule.h"
+#include "kpm.h"
 
 int kpm_relocate_image(struct kpm_module *mod, const void *image, size_t image_size);
 int kp_module_verify(const void *data, size_t size, struct kp_version_info *info);

@@ -33,6 +33,14 @@
 #include "preinit/preinit.h"
 #ifdef CONFIG_KSU_KPM_BUILT
 #include "kpm/kpm.h"
+#include "kp/include/log.h"
+/* KP helpers defined in kp/patch_memory.c, kp/symbol_resolver.c and
+ * kp/fphook.c.  They are linked into the kernelsu LKM but not declared in
+ * any installed header, so we forward-declare them here for the one-shot
+ * init sequence below. */
+extern int kp_patch_memory_init(void);
+extern int kp_fphook_runtime_init(void);
+extern void kp_symres_init(void);
 #endif
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
@@ -147,6 +155,30 @@ int __init kernelsu_init(void)
     }
 
     ksu_init_symbol_resolver();
+
+#ifdef CONFIG_KSU_KPM_BUILT
+    /* The KP pieces linked into the kernelsu LKM need their own one-shot
+     * initialisation (patch_memory / symres / fphook runtime all look up
+     * kernel symbols through kallsyms).  In the upstream KP build this
+     * happens through a postcore_initcall() in kp/infra_init.c, but that
+     * initcall never fires when the code is built as part of an LKM and,
+     * more importantly, exporting a one-shot helper for the only caller
+     * in this very file confuses the post-build check_symbol tool under
+     * LTO (the symbol ends up in the .ko's undefined references list).
+     * We therefore drive the init sequence inline here, right after the
+     * SukiSU symbol resolver is up. */
+    {
+        int kp_err;
+        logki("kp infra init\n");
+        kp_err = kp_patch_memory_init();
+        if (kp_err)
+            logkw("kp patch memory init failed: %d\n", kp_err);
+        kp_symres_init();
+        kp_err = kp_fphook_runtime_init();
+        if (kp_err)
+            logkw("kp fphook runtime init failed: %d\n", kp_err);
+    }
+#endif
 
     if (spoof_release || spoof_version) {
         ksu_spoof_version(spoof_release, spoof_version);

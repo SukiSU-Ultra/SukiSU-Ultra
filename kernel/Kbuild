@@ -76,39 +76,6 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
-ifeq ($(CONFIG_KPM), y)
-ifeq ($(ARCH), arm64)
-KPM_VERSION_OK := $(shell test $(VERSION) -lt 6 -o \( $(VERSION) -eq 6 -a $(PATCHLEVEL) -le 6 \); echo $$?)
-ifeq ($(KPM_VERSION_OK),0)
-# KP infra: kp/base/hook.o, kp/hook/hook_runtime.o, kp/patch_memory.o,
-# kp/symbol_resolver.o, kp/fphook.o, kp/secpass.o, kp/infra_init.o
-kernelsu-objs += kp/base/hook.o
-kernelsu-objs += kp/hook/hook_runtime.o
-kernelsu-objs += kp/patch_memory.o
-kernelsu-objs += kp/symbol_resolver.o
-kernelsu-objs += kp/fphook.o
-kernelsu-objs += kp/secpass.o
-kernelsu-objs += kp/infra_init.o
-
-# KPM loader: kpm/symbols.o, kpm/insn.o, kpm/relo.o, kpm/module.o, kpm/kpm.o
-kernelsu-objs += kpm/symbols.o
-kernelsu-objs += kpm/insn.o
-kernelsu-objs += kpm/relo.o
-kernelsu-objs += kpm/module.o
-kernelsu-objs += kpm/kpm.o
-
-ccflags-y += -DCONFIG_KSU_KPM_BUILT=1
-ccflags-y += -I$(KSU_KERNEL_DIR)/include/kp
-$(info -- KPM (full KP framework) is enabled on arm64 (Linux $(VERSION).$(PATCHLEVEL) <= 6.6))
-else
-$(warning -- KernelSU: KPM requires Linux <= 6.6, but detected $(VERSION).$(PATCHLEVEL). KPM build skipped.)
-endif
-else
-$(warning -- KernelSU: KPM only supports arm64, current ARCH=$(ARCH). KPM build skipped.)
-endif
-else
-$(info -- KPM is disabled)
-endif
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
@@ -235,6 +202,41 @@ $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
 KSU_NEW_DCACHE_FLUSH := $(shell grep -q __flush_dcache_area $(srctree)/arch/arm64/include/asm/cacheflush.h ; echo $$?)
 $(info -- KSU_NEW_DCACHE_FLUSH: $(KSU_NEW_DCACHE_FLUSH))
+
+ifeq ($(CONFIG_KPM), y)
+ifeq ($(ARCH), arm64)
+KPM_VERSION_OK := $(shell test $(VERSION) -lt 6 -o \( $(VERSION) -eq 6 -a $(PATCHLEVEL) -le 6 \); echo $$?)
+ifeq ($(KPM_VERSION_OK),0)
+# KP infra: kp/base/hook.o, kp/hook/hook_runtime.o, kp/patch_memory.o,
+# kp/symbol_resolver.o, kp/fphook.o, kp/secpass.o
+# kp/infra_init.c is *not* linked into the kernelsu LKM because it would
+# clash with core/init.o on the `init_module` symbol; its sukisu_kp_infra_init
+# is invoked directly from core/init.c::kernelsu_init() instead.
+kernelsu-objs += kp/base/hook.o
+kernelsu-objs += kp/hook/hook_runtime.o
+kernelsu-objs += kp/patch_memory.o
+kernelsu-objs += kp/symbol_resolver.o
+kernelsu-objs += kp/fphook.o
+kernelsu-objs += kp/secpass.o
+
+# KPM loader: kpm/symbols.o, kpm/insn.o, kpm/relo.o, kpm/module.o, kpm/kpm.o
+kernelsu-objs += kpm/symbols.o
+kernelsu-objs += kpm/insn.o
+kernelsu-objs += kpm/relo.o
+kernelsu-objs += kpm/module.o
+kernelsu-objs += kpm/kpm.o
+
+ccflags-y += -DCONFIG_KSU_KPM_BUILT=1
+$(info -- KPM (full KP framework) is enabled on arm64 (Linux $(VERSION).$(PATCHLEVEL) <= 6.6))
+else
+$(warning -- KernelSU: KPM requires Linux <= 6.6, but detected $(VERSION).$(PATCHLEVEL). KPM build skipped.)
+endif
+else
+$(warning -- KernelSU: KPM only supports arm64, current ARCH=$(ARCH). KPM build skipped.)
+endif
+else
+$(info -- KPM is disabled)
+endif
 
 # Check new vfs_getattr()
 ifeq ($(shell grep -A1 "^int vfs_getattr" $(srctree)/fs/stat.c | grep -q "query_flags" ; echo $$?),0)

@@ -8,8 +8,8 @@
 #ifndef _KP_HOOK_H_
 #define _KP_HOOK_H_
 
-#include <stdint.h>
-#include <log.h>
+#include "stdint.h"
+#include "log.h"
 
 #define HOOK_INTO_BRANCH_FUNC
 

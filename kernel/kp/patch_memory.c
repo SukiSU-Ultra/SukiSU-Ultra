@@ -22,8 +22,8 @@
 #include <asm/page.h>
 #include <asm/pgtable.h>
 
-#include <ktypes.h>
-#include <log.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
 
 #define KP_PATCH_TEXT_FLUSH_DCACHE 1
 #define KP_PATCH_TEXT_FLUSH_ICACHE 2
@@ -33,7 +33,16 @@ extern unsigned long kp_resolve_symbol(const char *name);
 static struct mm_struct *kp_patch_init_mm;
 
 #ifndef KP_NEW_DCACHE_FLUSH
+/* The kernel drops the leading-double-underscore cache-flush helpers in newer
+ * GKI releases; Kbuild probes for `__flush_dcache_area` and exposes the
+ * result as both KSU_NEW_DCACHE_FLUSH (consumed by hook/arm64/patch_memory.c)
+ * and KP_NEW_DCACHE_FLUSH here. When KP_NEW_DCACHE_FLUSH=1 we route through
+ * the modern dcache_clean_inval_poc / caches_clean_inval_pou helpers. */
+#ifdef KSU_NEW_DCACHE_FLUSH
+#define KP_NEW_DCACHE_FLUSH KSU_NEW_DCACHE_FLUSH
+#else
 #define KP_NEW_DCACHE_FLUSH 0
+#endif
 #endif
 #if KP_NEW_DCACHE_FLUSH
 #define kp_flush_dcache(start, sz) \

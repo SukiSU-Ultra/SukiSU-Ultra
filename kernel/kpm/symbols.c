@@ -23,8 +23,9 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-#include <ktypes.h>
-#include <log.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
+#include "kpm.h"
 
 int kp_compat_printk(const char *fmt, ...);
 void *kp_compat_memcpy(void *dst, const void *src, size_t n);
@@ -73,20 +74,25 @@ unsigned long kp_kallsyms_lookup_name(const char *name)
 }
 EXPORT_SYMBOL(kp_kallsyms_lookup_name);
 
+struct kp_kallsyms_cb {
+    int (*user_fn)(struct kpm_module *, const char *, unsigned long);
+    struct kpm_module *mod;
+};
+
+static int kp_kallsyms_bridge(void *data, const char *name, struct module *owner, unsigned long addr)
+{
+    struct kp_kallsyms_cb *c = data;
+    /* KPM callers don't care about the module owner; the kernel added the
+     * parameter to kallsyms_on_each_symbol() in 5.x for livepatch / fprobe
+     * bookkeeping and we just drop it on the way through. */
+    (void)owner;
+    return c->user_fn(c->mod, name, addr);
+}
+
 int kp_kallsyms_on_each_symbol_wrapper(struct kpm_module *mod, int (*fn)(struct kpm_module *, const char *, unsigned long))
 {
-    struct kp_kallsyms_cb {
-        int (*user_fn)(struct kpm_module *, const char *, unsigned long);
-        struct kpm_module *mod;
-    } ctx = { .user_fn = fn, .mod = mod };
-
-    int bridge(void *data, const char *name, unsigned long addr)
-    {
-        struct kp_kallsyms_cb *c = data;
-        return c->user_fn(c->mod, name, addr);
-    }
-
-    return kallsyms_on_each_symbol(bridge, &ctx);
+    struct kp_kallsyms_cb ctx = { .user_fn = fn, .mod = mod };
+    return kallsyms_on_each_symbol(kp_kallsyms_bridge, &ctx);
 }
 EXPORT_SYMBOL(kp_kallsyms_on_each_symbol_wrapper);
 

@@ -12,13 +12,20 @@
  * and the executable-memory allocator. hotpatch() routes through the LKM's
  * kp_patch_text() (in patch_memory.c) instead of KP's freestanding implementation.
  */
-#include <hook.h>
-#include <io.h>
-#include <symbol.h>
-#include <pgtable.h>
-#include <hotpatch.h>
-#include <kpmalloc.h>
+#include "kp/include/hook.h"
+#include "kp/include/symbol.h"
+#include "kp/include/pgtable.h"
+#include "kp/include/hotpatch.h"
+#include "kp/include/kpmalloc.h"
 #include <asm/barrier.h>
+
+/* The DDK's compiler_attributes.h defines `noinline` as a macro that
+ * re-invokes `__attribute__((__noinline__))`. Clang preprocesses the inner
+ * token so the macro self-recurses and the resulting `__noinline__` is not a
+ * recognised attribute spelling. Undefine the macro before any
+ * `__attribute__((noinline))` so the spelling survives preprocessing
+ * untouched, and rely on Clang/GCC both accepting the bare spelling. */
+#undef noinline
 
 #define KP_HOOK_EXTERNAL_CHAIN_PREPARE 1
 
@@ -141,7 +148,7 @@ uint64_t branch_func_addr(uint64_t addr)
 
 #endif
 
-static __noinline hook_err_t relo_b(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
+static __attribute__((noinline)) hook_err_t relo_b(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
 {
     uint32_t *buf = hook->relo_insts + hook->relo_insts_num;
     uint64_t imm64;
@@ -175,7 +182,7 @@ static __noinline hook_err_t relo_b(hook_t *hook, uint64_t inst_addr, uint32_t i
     return HOOK_NO_ERR;
 }
 
-static __noinline hook_err_t relo_adr(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
+static __attribute__((noinline)) hook_err_t relo_adr(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
 {
     uint32_t *buf = hook->relo_insts + hook->relo_insts_num;
 
@@ -198,7 +205,7 @@ static __noinline hook_err_t relo_adr(hook_t *hook, uint64_t inst_addr, uint32_t
     return HOOK_NO_ERR;
 }
 
-static __noinline hook_err_t relo_ldr(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
+static __attribute__((noinline)) hook_err_t relo_ldr(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
 {
     uint32_t *buf = hook->relo_insts + hook->relo_insts_num;
 
@@ -247,7 +254,7 @@ static __noinline hook_err_t relo_ldr(hook_t *hook, uint64_t inst_addr, uint32_t
     return HOOK_NO_ERR;
 }
 
-static __noinline hook_err_t relo_cb(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
+static __attribute__((noinline)) hook_err_t relo_cb(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
 {
     uint32_t *buf = hook->relo_insts + hook->relo_insts_num;
 
@@ -265,7 +272,7 @@ static __noinline hook_err_t relo_cb(hook_t *hook, uint64_t inst_addr, uint32_t 
     return HOOK_NO_ERR;
 }
 
-static __noinline hook_err_t relo_tb(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
+static __attribute__((noinline)) hook_err_t relo_tb(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
 {
     uint32_t *buf = hook->relo_insts + hook->relo_insts_num;
 
@@ -283,7 +290,7 @@ static __noinline hook_err_t relo_tb(hook_t *hook, uint64_t inst_addr, uint32_t 
     return HOOK_NO_ERR;
 }
 
-static __noinline hook_err_t relo_ignore(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
+static __attribute__((noinline)) hook_err_t relo_ignore(hook_t *hook, uint64_t inst_addr, uint32_t inst, inst_type_t type)
 {
     uint32_t *buf = hook->relo_insts + hook->relo_insts_num;
     buf[0] = inst;
@@ -374,12 +381,12 @@ uint64_t __attribute__((noinline)) _transit0_link(void)
         uint64_t (*origin_func)() = (uint64_t (*)())hook_chain->hook.relo_addr;
         fargs.ret = origin_func();
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain0_callback func = hook_chain->afters[i];
+        hook_chain0_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
@@ -408,12 +415,12 @@ uint64_t __attribute__((noinline)) _transit4_link(uint64_t arg0, uint64_t arg1, 
             (uint64_t (*)(uint64_t, uint64_t, uint64_t, uint64_t))hook_chain->hook.relo_addr;
         fargs.ret = origin_func(fargs.arg0, fargs.arg1, fargs.arg2, fargs.arg3);
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain4_callback func = hook_chain->afters[i];
+        hook_chain4_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
@@ -449,12 +456,12 @@ uint64_t __attribute__((noinline)) _transit8_link(uint64_t arg0, uint64_t arg1, 
         fargs.ret = origin_func(fargs.arg0, fargs.arg1, fargs.arg2, fargs.arg3, fargs.arg4, fargs.arg5, fargs.arg6,
                                 fargs.arg7);
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain8_callback func = hook_chain->afters[i];
+        hook_chain8_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
@@ -496,17 +503,17 @@ uint64_t __attribute__((noinline)) _transit12_link(uint64_t arg0, uint64_t arg1,
         fargs.ret = origin_func(fargs.arg0, fargs.arg1, fargs.arg2, fargs.arg3, fargs.arg4, fargs.arg5, fargs.arg6,
                                 fargs.arg7, fargs.arg8, fargs.arg9, fargs.arg10, fargs.arg11);
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain12_callback func = hook_chain->afters[i];
+        hook_chain12_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
 
-static __noinline hook_err_t relocate_inst(hook_t *hook, uint64_t inst_addr, uint32_t inst)
+static __attribute__((noinline)) hook_err_t relocate_inst(hook_t *hook, uint64_t inst_addr, uint32_t inst)
 {
     hook_err_t rc = HOOK_NO_ERR;
     inst_type_t it = INST_IGNORE;
@@ -578,12 +585,12 @@ hook_err_t hook_prepare(hook_t *hook)
         hook->tramp_insts_num = branch_absolute(hook->tramp_insts, hook->replace_addr);
     }
 
-    for (int i = 0; i < sizeof(hook->relo_insts) / sizeof(hook->relo_insts[0]); i++)
-        hook->relo_insts[i] = ARM64_NOP;
+    for (int j = 0; j < sizeof(hook->relo_insts) / sizeof(hook->relo_insts[0]); j++)
+        hook->relo_insts[j] = ARM64_NOP;
 
-    for (int i = 0; i < hook->tramp_insts_num; i++) {
-        uint64_t inst_addr = hook->origin_addr + i * 4;
-        uint32_t inst = hook->origin_insts[i];
+    for (int k = 0; k < hook->tramp_insts_num; k++) {
+        uint64_t inst_addr = hook->origin_addr + k * 4;
+        uint32_t inst = hook->origin_insts[k];
         hook_err_t relo_res = relocate_inst(hook, inst_addr, inst);
         if (relo_res)
             return -HOOK_BAD_RELO;

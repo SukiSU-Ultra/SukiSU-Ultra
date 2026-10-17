@@ -27,8 +27,8 @@
 
 #include <asm/cacheflush.h>
 
-#include <hook.h>
-#include <ktypes.h>
+#include "kp/include/hook.h"
+#include "kp/include/ktypes.h"
 
 struct kp_hook_mem {
     struct list_head list;
@@ -241,12 +241,12 @@ uint64_t _transit0(void)
         transit0_func_t origin_func = (transit0_func_t)hook_chain->hook.relo_addr;
         fargs.ret = origin_func();
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain0_callback func = hook_chain->afters[i];
+        hook_chain0_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
@@ -275,12 +275,12 @@ uint64_t _transit4(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3)
         transit4_func_t origin_func = (transit4_func_t)hook_chain->hook.relo_addr;
         fargs.ret = origin_func(fargs.arg0, fargs.arg1, fargs.arg2, fargs.arg3);
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain4_callback func = hook_chain->afters[i];
+        hook_chain4_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
@@ -315,12 +315,12 @@ uint64_t _transit8(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, u
         fargs.ret = origin_func(fargs.arg0, fargs.arg1, fargs.arg2, fargs.arg3, fargs.arg4, fargs.arg5, fargs.arg6,
                                 fargs.arg7);
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain8_callback func = hook_chain->afters[i];
+        hook_chain8_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }
@@ -359,12 +359,12 @@ uint64_t _transit12(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, 
         fargs.ret = origin_func(fargs.arg0, fargs.arg1, fargs.arg2, fargs.arg3, fargs.arg4, fargs.arg5, fargs.arg6,
                                 fargs.arg7, fargs.arg8, fargs.arg9, fargs.arg10, fargs.arg11);
     }
-    for (int32_t i = hook_chain->chain_items_max - 1; i >= 0; i--) {
-        if (hook_chain->states[i] != CHAIN_ITEM_STATE_READY)
+    for (int32_t k = hook_chain->chain_items_max - 1; k >= 0; k--) {
+        if (hook_chain->states[k] != CHAIN_ITEM_STATE_READY)
             continue;
-        hook_chain12_callback func = hook_chain->afters[i];
+        hook_chain12_callback func = hook_chain->afters[k];
         if (func)
-            func(&fargs, hook_chain->udata[i]);
+            func(&fargs, hook_chain->udata[k]);
     }
     return fargs.ret;
 }

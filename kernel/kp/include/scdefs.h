@@ -1,15 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/*
+/* 
  * Copyright (C) 2023 bmax121. All Rights Reserved.
- *
- * Mirror of kernel/patch/include/uapi/scdefs.h, kept in sync so the KPM loader
- * compiled into SukiSU-Ultra matches the same ABI as the KP LKM (.ko) and the
- * KP kernel image.
  */
+
 #ifndef _KP_UAPI_SCDEF_H_
 #define _KP_UAPI_SCDEF_H_
 
-#include <ktypes.h>
+#include "ktypes.h"
 
 static inline long hash_key(const char *key)
 {
@@ -21,6 +18,8 @@ static inline long hash_key(const char *key)
 }
 
 #define SUPERCALL_HELLO_ECHO "hello1158"
+
+// #define __NR_supercall __NR3264_truncate // 45
 #define __NR_supercall 45
 
 #define SUPERCALL_HELLO 0x1000
@@ -30,13 +29,14 @@ static inline long hash_key(const char *key)
 #define SUPERCALL_KERNELPATCH_VER 0x1008
 #define SUPERCALL_KERNEL_VER 0x1009
 
+
 #define SUPERCALL_SKEY_GET 0x100a
 #define SUPERCALL_SKEY_SET 0x100b
 #define SUPERCALL_SKEY_ROOT_ENABLE 0x100c
 #define SUPERCALL_AP_LOAD_PACKAGE_CONFIG 0x100d
 
 #define SUPERCALL_SU 0x1010
-#define SUPERCALL_SU_TASK 0x1011
+#define SUPERCALL_SU_TASK 0x1011 // syscall(__NR_gettid)
 
 #define SUPERCALL_KPM_LOAD 0x1020
 #define SUPERCALL_KPM_UNLOAD 0x1021
@@ -49,14 +49,16 @@ static inline long hash_key(const char *key)
 #define KPM_LOAD_RESULT_MAGIC 0x4b504d52
 #define KPM_LOAD_ERROR_MESSAGE_LEN 160
 
-struct kpm_load_result {
+struct kpm_load_result
+{
     unsigned int magic;
     unsigned int size;
     int code;
     char message[KPM_LOAD_ERROR_MESSAGE_LEN];
 };
 
-struct kernel_storage {
+struct kernel_storage
+{
     void *data;
     int len;
 };
@@ -82,7 +84,8 @@ struct kernel_storage {
 #define SUPERCALL_KEY_MAX_LEN 0x40
 #define SUPERCALL_SCONTEXT_LEN 0x60
 
-struct su_profile {
+struct su_profile
+{
     uid_t uid;
     uid_t to_uid;
     char scontext[SUPERCALL_SCONTEXT_LEN];
@@ -122,6 +125,8 @@ struct su_profile {
 #define SUPERCALL_SU_GET_PATH 0x1110
 #define SUPERCALL_SU_RESET_PATH 0x1111
 #define SUPERCALL_SU_GET_SAFEMODE 0x1112
+
+
 
 #define SUPERCALL_MAX 0x1200
 

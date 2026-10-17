@@ -23,8 +23,9 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-#include <ktypes.h>
-#include <log.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
+#include "kpm/kpm.h"
 
 struct kp_signature_header {
     uint32_t magic;
@@ -33,13 +34,26 @@ struct kp_signature_header {
     uint32_t reserved;
 };
 
-struct kp_version_info {
-    uint32_t version;
-    uint32_t flags;
-};
-
 enum {
     KP_SIG_MAGIC = 0x4B505356u,
+};
+
+/* KP verification status codes. The convention is that kp_module_verify() and
+ * kp_signature_verify() return a status directly; callers that need an errno
+ * (e.g. for syscall return) wrap it in `-` (e.g. `-KPV_INV`). The flag bits
+ * are OR'd into struct kp_version_info::flags. */
+enum kpv_status {
+    KPV_OK = 0,
+    KPV_NO_VERIFY = 1,   /* build is unsigned / no embedded signature */
+    KPV_INV = 2,         /* header missing or malformed */
+    KPV_SIGN_FAIL = 3,   /* signature did not verify */
+    KPV_REJECT_KEY = 4,  /* key id is on the deny-list */
+    KPV_REVOKE_KEY = 5,  /* key id has been revoked */
+};
+
+enum kpv_flag {
+    KPV_FLAG_NO_VERIFY = 1u << 0,
+    KPV_FLAG_VERIFY_OK = 1u << 1,
 };
 
 static int kp_signature_verify(const void *data, size_t size, struct kp_version_info *info)

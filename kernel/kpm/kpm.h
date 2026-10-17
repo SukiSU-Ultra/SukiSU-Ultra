@@ -11,17 +11,20 @@
 
 #include <linux/types.h>
 
-#include <ktypes.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/kpmodule.h"
 
 struct kpm_module;
 typedef int (*kpm_entry_t)(void *reserved, struct kpm_module *mod);
+
+int do_kpm(void __user *arg);
 
 struct kpm_info {
     uint32_t magic;
     uint32_t version;
     char name[KPM_NAME_LEN];
     char author[KPM_AUTHOR_LEN];
-    char description[KPM_DESC_LEN];
+    char description[KPM_DESCRIPTION_LEN];
     kpm_entry_t init;
     kpm_entry_t exit;
     void *ctl0;
@@ -49,7 +52,29 @@ struct kpm_module {
     void *priv;
 };
 
-#define KPM_MAGIC 0x4B504D47u
-#define KPM_VERSION 1u
+void sukisu_kpm_init(void);
+void sukisu_kpm_exit(void);
+
+/* KP-side KPM loader API (defined in kpm/module.c). */
+struct kpm_module *kp_kpm_load(const void *data, size_t size, const char *path);
+int kp_kpm_unload_by_name(const char *name);
+int kp_kpm_control(const char *name, int cmd, void *arg);
+int kp_kpm_event(const char *name, int code, void *arg);
+void kp_kpm_unload_all(void);
+void kp_kpm_list_modules(struct kpm_module **mods, int *count);
+
+/* Public SukiSU KPM API (defined in kpm/kpm.c, exported). */
+int sukisu_kpm_load_module_path(const char *path, void **out_handle);
+int sukisu_kpm_unload_module(const char *name);
+int sukisu_kpm_control(const char *name, int cmd, void *arg);
+int sukisu_kpm_event(const char *name, int code, void *arg);
+
+/* Verification result for kp_module_verify() and the version/flags blob
+ * written into the kpm_info header. Defined in kp/secpass.c; declared here
+ * so the KPM loader (kpm/module.c) and the verifier agree on layout. */
+struct kp_version_info {
+    uint32_t version;
+    uint32_t flags;
+};
 
 #endif /* KSU_KPM_KPM_H */

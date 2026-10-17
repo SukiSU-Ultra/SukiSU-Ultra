@@ -21,8 +21,8 @@
 
 #include <asm/cacheflush.h>
 
-#include <hook.h>
-#include <ktypes.h>
+#include "kp/include/hook.h"
+#include "kp/include/ktypes.h"
 
 struct kp_fphook_mem {
     struct list_head list;
@@ -36,6 +36,15 @@ static DEFINE_MUTEX(kp_fphook_lock);
 
 extern unsigned long kp_resolve_symbol(const char *name);
 extern int kp_patch_text(void *dst, const void *src, size_t len, int flags);
+/* Resident transit bodies defined in hook/hook_runtime.c. The chain-prepare
+ * helper below branches each chain trampoline to one of these so the chain
+ * hot path lives in module text, not executable-pool memory. */
+extern uint64_t _transit0(void);
+extern uint64_t _transit4(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3);
+extern uint64_t _transit8(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5,
+                          uint64_t arg6, uint64_t arg7);
+extern uint64_t _transit12(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5,
+                           uint64_t arg6, uint64_t arg7, uint64_t arg8, uint64_t arg9, uint64_t arg10, uint64_t arg11);
 
 static void *(*kp_fphook_module_alloc)(unsigned long size);
 static void (*kp_fphook_module_memfree)(void *region);

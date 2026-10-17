@@ -13,8 +13,9 @@
 #include <linux/kernel.h>
 #include <linux/types.h>
 
-#include <ktypes.h>
-#include <log.h>
+#include "kp/include/ktypes.h"
+#include "kp/include/log.h"
+#include "kpm.h"
 
 #define KPM_RELO_OK 0
 #define KPM_RELO_UNSUPPORTED -1
