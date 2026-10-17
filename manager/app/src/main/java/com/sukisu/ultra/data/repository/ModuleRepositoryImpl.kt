@@ -43,6 +43,7 @@ class ModuleRepositoryImpl : ModuleRepository {
                         zygisk = (obj.optInt("zygisk") != 0) || obj.optBoolean("zygisk"),
                         actionIconPath = obj.optString("actionIcon").takeIf { it.isNotBlank() },
                         webUiIconPath = obj.optString("webuiIcon").takeIf { it.isNotBlank() },
+                        preinit = obj.optString("preinit"),
                         bannerPath = obj.optString("banner").takeIf { it.isNotBlank() }
                     )
                 }.toList()

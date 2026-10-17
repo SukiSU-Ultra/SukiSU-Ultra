@@ -20,5 +20,7 @@ data class Module(
     val zygisk: Boolean = false,
     val actionIconPath: String?,
     val webUiIconPath: String?,
+    // preinit state for the next boot: "", "ok", "no_space", "error" or "bootloop"
+    val preinit: String = "",
     val bannerPath: String? = null,
 )

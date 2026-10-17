@@ -858,6 +858,14 @@ private fun ModuleItem(
                         )
                     }
                 }
+                module.preinitWarning()?.let {
+                    StatusTag(
+                        stringResource(it),
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        backgroundColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
