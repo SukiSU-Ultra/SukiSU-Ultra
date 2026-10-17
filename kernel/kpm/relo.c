@@ -402,19 +402,22 @@ int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
             }
 
             /*
-             * Round plt_next up to a 16-byte boundary so each PLT
+             * Round plt_next up to a 32-byte boundary so each PLT
              * entry starts on a clean cache line; it keeps the
              * emitted insns aligned and reduces the chance of a
              * misaligned fetch on a Cortex-A erratum core.
              */
-            unsigned int slot = ALIGN(me->plt_next, 16);
+            unsigned int slot = ALIGN(me->plt_next, 32);
             /*
-             * Each PLT slot is fixed-size: 3 mov insns + 1 br insn =
-             * 16 bytes. The .kpm.plt area reserved by move_module()
-             * is sized for 64 such slots, which exceeds anything a
-             * realistic KPM could need.
+             * Each PLT slot is fixed-size: 4 mov insns + 1 br insn =
+             * 20 bytes. We always emit the full 64-bit movewide
+             * chain because kernel symbol addresses on aarch64 are
+             * 64-bit values in the 0xffff_xxxx_xxxx_xxxx range --
+             * if the high 16 bits are left implicit the resulting
+             * x16 will be truncated to a low address and the br will
+             * jump into unmapped memory (lockup / panic).
              */
-            if (slot + 16 > me->plt_size) {
+            if (slot + 20 > me->plt_size) {
                 pr_err("KPM-RELO: PLT exhausted for KPM (used %u/%u)\n",
                        slot, me->plt_size);
                 ovf = -ERANGE;
@@ -423,11 +426,12 @@ int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
             u32 *plt = (u32 *)(me->plt_start + slot);
 
             /*
-             * PLT body (always 4 insns = 16 bytes):
+             * PLT body (5 insns = 20 bytes):
              *
              *     movz x16, #val_lo16        ; zero-init the register
              *     movk x16, #val_mid16, lsl #16
              *     movk x16, #val_hi16,  lsl #32
+             *     movk x16, #val_top16, lsl #48
              *     br   x16                   ; absolute jump
              *
              * x16 is the AAPCS64 IP0 scratch register, so a KPM that
@@ -445,7 +449,10 @@ int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
             plt[2] = cpu_to_le32(kpm_aarch64_insn_gen_movewide(
                 AARCH64_INSN_REG_16, (v >> 32) & 0xffff, 32,
                 AARCH64_INSN_VARIANT_64BIT, AARCH64_INSN_MOVEWIDE_KEEP));
-            plt[3] = cpu_to_le32(kpm_aarch64_insn_gen_branch_reg(
+            plt[3] = cpu_to_le32(kpm_aarch64_insn_gen_movewide(
+                AARCH64_INSN_REG_16, (v >> 48) & 0xffff, 48,
+                AARCH64_INSN_VARIANT_64BIT, AARCH64_INSN_MOVEWIDE_KEEP));
+            plt[4] = cpu_to_le32(kpm_aarch64_insn_gen_branch_reg(
                 AARCH64_INSN_REG_16, AARCH64_INSN_BRANCH_NOLINK));
 
             /*
@@ -462,7 +469,7 @@ int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
                 ovf = rc;
                 break;
             }
-            me->plt_next = slot + 16;
+            me->plt_next = slot + 20;
             ovf = 0;
             break;
         }

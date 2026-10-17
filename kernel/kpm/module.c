@@ -261,7 +261,7 @@ static void layout_sections(struct kpm_module *mod, struct load_info *info)
      * a KPM typically has.
      */
 #define SUKISU_KPM_PLT_RESERVED 64
-#define SUKISU_KPM_PLT_ENTRY_BYTES 16
+#define SUKISU_KPM_PLT_ENTRY_BYTES 20
     mod->plt_size = SUKISU_KPM_PLT_RESERVED * SUKISU_KPM_PLT_ENTRY_BYTES;
     mod->size += mod->plt_size;
 #undef SUKISU_KPM_PLT_RESERVED
