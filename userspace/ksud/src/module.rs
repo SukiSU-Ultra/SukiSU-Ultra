@@ -1243,6 +1243,62 @@ where
     false
 }
 
+/// Check whether a process is running by matching the predicate against the
+/// process `comm` as well as the basenames of its `cmdline` arguments and of
+/// its `exe` link.
+///
+/// Daemons such as YukiZygisk's `zygiskd64`/`zygiskd32` are launched through
+/// `execveat(..., AT_EMPTY_PATH)`. On kernels without `comm_from_dentry`
+/// support (not backported to most Android GKI kernels yet), the kernel derives
+/// `comm` from the synthetic "/dev/fd/N" path, so the process name degrades to
+/// a bare fd number and the real executable name only shows up in
+/// `cmdline`/`exe`.
+fn is_process_running_matching_paths<F>(predicate: F) -> bool
+where
+    F: Fn(&str) -> bool,
+{
+    let Ok(entries) = std::fs::read_dir("/proc") else {
+        return false;
+    };
+    for entry in entries.flatten() {
+        let file_name = entry.file_name();
+        let file_str = file_name.to_string_lossy();
+        if !file_str.chars().all(|c| c.is_ascii_digit()) {
+            continue;
+        }
+        let proc_path = entry.path();
+
+        let comm_path = proc_path.join("comm");
+        if let Ok(comm) = std::fs::read_to_string(&comm_path) {
+            if predicate(comm.trim()) {
+                return true;
+            }
+        }
+
+        if let Ok(cmdline) = std::fs::read(proc_path.join("cmdline")) {
+            for arg in cmdline.split(|byte| *byte == 0) {
+                if arg.is_empty() {
+                    continue;
+                }
+                let arg = String::from_utf8_lossy(arg);
+                let basename = arg.rsplit('/').next().unwrap_or_default();
+                if predicate(basename) {
+                    return true;
+                }
+            }
+        }
+
+        if let Ok(exe) = std::fs::read_link(proc_path.join("exe")) {
+            if let Some(basename) = exe.file_name().and_then(|name| name.to_str()) {
+                if predicate(basename) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
 /// Determine whether the Zygisk provider's daemon is actually running
 pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
@@ -1277,8 +1333,9 @@ pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
                 || name.contains("zygisk")
         }),
         // YukiZygisk launches its daemons from $MODDIR/bin/zygiskd64 / $MODDIR/bin/zygiskd32
-        // (the "zygiskd" alias symlink is also accepted by its verifier).
-        "yukizygisk" => is_process_running_matching(|name| {
+        // via execveat(AT_EMPTY_PATH); on Android GKI kernels the process `comm` there is
+        // just the fd number, so fall back to the cmdline/exe basenames as well.
+        "yukizygisk" => is_process_running_matching_paths(|name| {
             name.starts_with("zygiskd") || name.contains("yukizygisk")
         }),
         _ => is_process_running_matching(|name| {
