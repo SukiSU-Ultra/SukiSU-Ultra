@@ -454,7 +454,7 @@ int kpm_apply_relocate_add(Elf64_Shdr *sechdrs, const char *strtab,
                 AARCH64_INSN_VARIANT_64BIT, AARCH64_INSN_MOVEWIDE_KEEP));
             plt[4] = cpu_to_le32(kpm_aarch64_insn_gen_branch_reg(
                 AARCH64_INSN_REG_16, AARCH64_INSN_BRANCH_NOLINK));
-            pr_debug("KPM-RELO: PLT slot=%u plt=%p insns=[%08x %08x %08x %08x %08x] target=%llx\n",
+            pr_info("KPM-RELO: PLT slot=%u plt=%p insns=[%08x %08x %08x %08x %08x] target=%llx\n",
                      slot, plt,
                      le32_to_cpu(plt[0]), le32_to_cpu(plt[1]),
                      le32_to_cpu(plt[2]), le32_to_cpu(plt[3]),
