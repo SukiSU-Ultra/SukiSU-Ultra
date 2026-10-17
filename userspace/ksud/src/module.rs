@@ -1163,7 +1163,7 @@ pub fn is_zygisk_provider(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
     matches!(
         id_lower.as_str(),
-        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk"
+        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk"
     )
 }
 
@@ -1223,6 +1223,11 @@ pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
                 || name.starts_with("zygisk-ptrace")
                 || name.contains("neozygisk")
                 || name.contains("zygisk")
+        }),
+        // YukiZygisk launches its daemons from $MODDIR/bin/zygiskd64 / $MODDIR/bin/zygiskd32
+        // (the "zygiskd" alias symlink is also accepted by its verifier).
+        "yukizygisk" => is_process_running_matching(|name| {
+            name.starts_with("zygiskd") || name.contains("yukizygisk")
         }),
         _ => is_process_running_matching(|name| {
             name.starts_with("zygiskd")
