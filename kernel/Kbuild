@@ -80,11 +80,26 @@ ifeq ($(CONFIG_KPM), y)
 ifeq ($(ARCH), arm64)
 KPM_VERSION_OK := $(shell test $(VERSION) -lt 6 -o \( $(VERSION) -eq 6 -a $(PATCHLEVEL) -le 6 \); echo $$?)
 ifeq ($(KPM_VERSION_OK),0)
-kernelsu-objs += kpm/compact.o
-kernelsu-objs += kpm/super_access.o
+# KP infra: kp/base/hook.o, kp/hook/hook_runtime.o, kp/patch_memory.o,
+# kp/symbol_resolver.o, kp/fphook.o, kp/secpass.o, kp/infra_init.o
+kernelsu-objs += kp/base/hook.o
+kernelsu-objs += kp/hook/hook_runtime.o
+kernelsu-objs += kp/patch_memory.o
+kernelsu-objs += kp/symbol_resolver.o
+kernelsu-objs += kp/fphook.o
+kernelsu-objs += kp/secpass.o
+kernelsu-objs += kp/infra_init.o
+
+# KPM loader: kpm/symbols.o, kpm/insn.o, kpm/relo.o, kpm/module.o, kpm/kpm.o
+kernelsu-objs += kpm/symbols.o
+kernelsu-objs += kpm/insn.o
+kernelsu-objs += kpm/relo.o
+kernelsu-objs += kpm/module.o
 kernelsu-objs += kpm/kpm.o
+
 ccflags-y += -DCONFIG_KSU_KPM_BUILT=1
-$(info -- KPM is enabled on arm64 (Linux $(VERSION).$(PATCHLEVEL) <= 6.6))
+ccflags-y += -I$(KSU_KERNEL_DIR)/include/kp
+$(info -- KPM (full KP framework) is enabled on arm64 (Linux $(VERSION).$(PATCHLEVEL) <= 6.6))
 else
 $(warning -- KernelSU: KPM requires Linux <= 6.6, but detected $(VERSION).$(PATCHLEVEL). KPM build skipped.)
 endif

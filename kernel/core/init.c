@@ -31,6 +31,9 @@
 #include "feature/module_blacklist.h"
 #include "infra/symbol_resolver.h"
 #include "preinit/preinit.h"
+#ifdef CONFIG_KSU_KPM_BUILT
+#include "kpm/kpm.h"
+#endif
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
@@ -179,6 +182,10 @@ int __init kernelsu_init(void)
 
         ksu_syscall_hook_manager_init();
 
+#ifdef CONFIG_KSU_KPM_BUILT
+        sukisu_kpm_init();
+#endif
+
         ksu_throne_tracker_init();
         ksu_observer_init();
         ksu_file_wrapper_init();
@@ -221,6 +228,10 @@ void __exit kernelsu_exit(void)
     ksu_syscall_hook_manager_exit();
 
     ksu_supercalls_exit();
+
+#ifdef CONFIG_KSU_KPM_BUILT
+    sukisu_kpm_exit();
+#endif
 
     if (!ksu_late_loaded) {
         ksu_ksud_exit();
