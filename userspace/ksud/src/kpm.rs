@@ -23,7 +23,7 @@ const KPM_DIR: &str = "/data/adb/kpm";
 fn kpm_io(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
     let mut ret = -1i32;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
-        control_code: control_code as u64,
+        control_code: u64::from(control_code),
         arg1,
         arg2,
         result_code: &raw mut ret as u64,
@@ -35,6 +35,7 @@ fn kpm_io(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
     Ok(ret)
 }
 
+#[allow(dead_code)] // exposed for external ksud callers
 pub fn enabled() -> Result<bool> {
     let state = get_extension(ExtensionId::Kpm as u32)?;
     Ok(state.supported && state.value != 0)

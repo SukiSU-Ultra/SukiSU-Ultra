@@ -126,6 +126,7 @@ pub fn manager_clear() -> Result<()> {
 }
 
 /// Read the sticky enable bit (1 = dynamic manager feature is on).
+#[allow(dead_code)] // exposed for external ksud callers
 pub fn manager_enabled() -> Result<bool> {
     let state = get_extension(ExtensionId::DynamicManager as u32)?;
     Ok(state.supported && state.value != 0)

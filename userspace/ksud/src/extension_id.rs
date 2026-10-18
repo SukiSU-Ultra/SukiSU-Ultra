@@ -56,6 +56,7 @@ impl ExtensionId {
 
     /// Human-readable label suitable for UI cards. The Kotlin side
     /// maps by [`Self::name`] to a localised string.
+    #[allow(dead_code)] // exposed for external ksud callers
     pub const fn display_name(self) -> &'static str {
         match self {
             Self::Kpm => "KPM (Kernel Patch Module)",

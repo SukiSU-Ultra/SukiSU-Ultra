@@ -27,7 +27,7 @@ const EXTENSION_CONFIG_PATH: &str = concatcp!(defs::WORKING_DIR, ".extension_con
 const EXTENSION_MAGIC: u32 = 0x7f4b_4558; // \x7fKEX
 const EXTENSION_VERSION: u32 = 1;
 
-fn on_extension_applied(_extension_id: ExtensionId, _value: u64) {}
+const fn on_extension_applied(_extension_id: ExtensionId, _value: u64) {}
 
 #[cfg(target_os = "android")]
 fn set_kernel_extension(extension_id: ExtensionId, value: u64) -> Result<()> {
@@ -46,6 +46,7 @@ fn is_forced(id: u32) -> bool {
 /// Returns `Ok(None)` if the kernel did not register a handler for
 /// the id (UI shows a "Not supported" hint in that case).
 #[cfg(target_os = "android")]
+#[allow(dead_code)] // exposed for external ksud callers
 pub fn probe(id: ExtensionId) -> Result<Option<crate::ksucalls::ExtensionState>> {
     let state = crate::ksucalls::get_extension(id as u32)
         .with_context(|| format!("Failed to probe extension {}", id.name()))?;
@@ -69,7 +70,8 @@ pub fn load_binary_config() -> Result<HashMap<u32, u64>> {
     if magic != EXTENSION_MAGIC {
         bail!(
             "Invalid extension config magic: expected 0x{:08x}, got 0x{magic:08x}",
-            EXTENSION_MAGIC
+            EXTENSION_MAGIC,
+            magic
         );
     }
 

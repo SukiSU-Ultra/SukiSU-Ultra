@@ -338,6 +338,7 @@ pub fn set_extension(extension_id: u32, value: u64) -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)] // exposed for external ksud callers
 pub fn wipe_extension(extension_id: u32) -> Result<()> {
     let mut cmd = ksu_uapi::ksu_extension_cmd {
         id: extension_id,
@@ -455,9 +456,7 @@ pub fn umount_list_wipe() -> Result<()> {
         value: 0,
         user_ptr: 0,
     };
-    unsafe {
-        ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)?;
-    }
+    unsafe { ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)? };
     Ok(())
 }
 
