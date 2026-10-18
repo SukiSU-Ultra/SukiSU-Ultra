@@ -21,6 +21,7 @@
 
 #include "feature/mount_hide.h"
 #include "feature/kernel_umount.h"
+#include "extension/umount_paths.h"
 #include "infra/symbol_resolver.h"
 #include "hook/patch_memory.h"
 #include "policy/allowlist.h"

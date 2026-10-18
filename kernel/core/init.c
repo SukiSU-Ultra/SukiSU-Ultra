@@ -32,7 +32,7 @@
 #include "infra/symbol_resolver.h"
 #include "preinit/preinit.h"
 #include "extension/extension.h"
-#include "extension/kpm.h"
+#include "extension/kpm/kpm.h"
 #include "extension/cpu_spoof.h"
 #include "extension/umount_paths.h"
 #include "extension/dynamic_manager.h"
