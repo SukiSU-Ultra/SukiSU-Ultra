@@ -79,10 +79,13 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
-obj-$(CONFIG_KPM) += extension/kpm.o
 obj-$(CONFIG_KPM) += extension/kpm/kpm.o
 obj-$(CONFIG_KPM) += extension/kpm/compact.o
 obj-$(CONFIG_KPM) += extension/kpm/super_access.o
+# kpm.c provides the extension glue (ksu_extension_kpm_*), referenced
+# unconditionally by extension/extension.c, so build it even when
+# CONFIG_KPM is off — its set/get/io become no-ops.
+kernelsu-objs += extension/kpm.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h

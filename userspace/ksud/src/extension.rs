@@ -39,8 +39,7 @@ fn set_kernel_extension(extension_id: ExtensionId, value: u64) -> Result<()> {
 
 #[cfg(target_os = "android")]
 fn is_forced(id: u32) -> bool {
-    crate::ksucalls::get_extension(id)
-        .is_ok_and(|state| state.forced)
+    crate::ksucalls::get_extension(id).is_ok_and(|state| state.forced)
 }
 
 /// Read a single extension's current sticky state from the kernel.
@@ -185,12 +184,20 @@ pub fn get_extension_cli(id: &str) -> Result<()> {
         return Ok(());
     }
 
-    println!("Extension: {} ({})", extension_id.name(), extension_id as u32);
+    println!(
+        "Extension: {} ({})",
+        extension_id.name(),
+        extension_id as u32
+    );
     println!("Description: {}", extension_id.description());
     println!("Value: {}", state.value);
     println!(
         "Status: {}",
-        if state.value != 0 { "enabled" } else { "disabled" }
+        if state.value != 0 {
+            "enabled"
+        } else {
+            "disabled"
+        }
     );
     if state.forced {
         println!("Forced: by boot config");
@@ -375,9 +382,7 @@ pub fn save_config() -> Result<()> {
 pub fn check_extension(id: &str) -> Result<()> {
     let extension_id = parse_extension_id(id)?;
 
-    if crate::ksucalls::get_extension(extension_id as u32)
-        .is_ok_and(|state| state.forced)
-    {
+    if crate::ksucalls::get_extension(extension_id as u32).is_ok_and(|state| state.forced) {
         println!("forced");
         return Ok(());
     }

@@ -27,9 +27,7 @@ fn kpm_io<T>(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
         arg2,
         result_code: &raw mut ret as u64,
     };
-    let result = unsafe {
-        extension_io(ksu_uapi::KSU_EXTENSION_KPM as u32, &raw mut cmd)?
-    };
+    let result = unsafe { extension_io(ksu_uapi::KSU_EXTENSION_KPM as u32, &raw mut cmd)? };
     if result < 0 {
         return Err(anyhow::anyhow!(io::Error::from_raw_os_error(-result)));
     }
@@ -48,7 +46,11 @@ where
     let path = CString::new(path.as_ref().to_string_lossy().to_string())?;
     let args = args.map_or_else(|| CString::new(String::new()), CString::new)?;
 
-    let ret = kpm_io(ksu_uapi::SUKISU_KPM_LOAD, path.as_ptr() as u64, args.as_ptr() as u64)?;
+    let ret = kpm_io(
+        ksu_uapi::SUKISU_KPM_LOAD,
+        path.as_ptr() as u64,
+        args.as_ptr() as u64,
+    )?;
     if ret < 0 {
         println!("Failed to load kpm: {}", io::Error::from_raw_os_error(ret));
     }
@@ -58,7 +60,11 @@ where
 pub fn list() -> Result<()> {
     let mut buf = vec![0u8; 1024];
 
-    let ret = kpm_io(ksu_uapi::SUKISU_KPM_LIST, buf.as_mut_ptr() as u64, buf.len() as u64)?;
+    let ret = kpm_io(
+        ksu_uapi::SUKISU_KPM_LIST,
+        buf.as_mut_ptr() as u64,
+        buf.len() as u64,
+    )?;
     if ret < 0 {
         println!(
             "Failed to get kpm list: {}",
@@ -89,7 +95,11 @@ pub fn info(name: String) -> Result<()> {
     let name = CString::new(name)?;
     let mut buf = vec![0u8; 256];
 
-    let ret = kpm_io(ksu_uapi::SUKISU_KPM_INFO, name.as_ptr() as u64, buf.as_mut_ptr() as u64)?;
+    let ret = kpm_io(
+        ksu_uapi::SUKISU_KPM_INFO,
+        name.as_ptr() as u64,
+        buf.as_mut_ptr() as u64,
+    )?;
     if ret < 0 {
         println!(
             "Failed to get kpm info: {}",
@@ -105,7 +115,11 @@ pub fn control(name: String, args: String) -> Result<i32> {
     let name = CString::new(name)?;
     let args = CString::new(args)?;
 
-    let ret = kpm_io(ksu_uapi::SUKISU_KPM_CONTROL, name.as_ptr() as u64, args.as_ptr() as u64)?;
+    let ret = kpm_io(
+        ksu_uapi::SUKISU_KPM_CONTROL,
+        name.as_ptr() as u64,
+        args.as_ptr() as u64,
+    )?;
     if ret < 0 {
         println!(
             "Failed to control kpm: {}",
@@ -128,7 +142,11 @@ pub fn num() -> Result<i32> {
 pub fn version() -> Result<()> {
     let mut buf = vec![0u8; 1024];
 
-    let ret = kpm_io(ksu_uapi::SUKISU_KPM_VERSION, buf.as_mut_ptr() as u64, buf.len() as u64)?;
+    let ret = kpm_io(
+        ksu_uapi::SUKISU_KPM_VERSION,
+        buf.as_mut_ptr() as u64,
+        buf.len() as u64,
+    )?;
     if ret < 0 {
         println!(
             "Failed to get kpm version: {}",
@@ -147,7 +165,11 @@ pub fn version() -> Result<()> {
 pub fn check_version() -> Result<String> {
     let mut buf = vec![0u8; 1024];
 
-    let ret = kpm_io(ksu_uapi::SUKISU_KPM_VERSION, buf.as_mut_ptr() as u64, buf.len() as u64)?;
+    let ret = kpm_io(
+        ksu_uapi::SUKISU_KPM_VERSION,
+        buf.as_mut_ptr() as u64,
+        buf.len() as u64,
+    )?;
     if ret < 0 {
         println!(
             "Failed to get kpm version: {}",

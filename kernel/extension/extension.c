@@ -17,6 +17,10 @@
 #include <linux/string.h>
 
 #include "extension.h"
+#include "kpm.h"
+#include "cpu_spoof.h"
+#include "umount_paths.h"
+#include "dynamic_manager.h"
 #include "klog.h" // IWYU pragma: keep
 
 static const struct ksu_extension_handler *extension_handlers[KSU_EXTENSION_MAX];

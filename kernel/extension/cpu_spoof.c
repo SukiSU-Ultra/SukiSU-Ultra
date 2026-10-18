@@ -18,6 +18,7 @@
 #include <linux/delay.h>
 #include <linux/clocksource.h>
 #include <linux/errno.h>
+#include <linux/uaccess.h>
 #include <linux/version.h>
 
 #include "extension.h"

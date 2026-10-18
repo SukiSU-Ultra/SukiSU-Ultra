@@ -1128,9 +1128,7 @@ pub fn run() -> Result<()> {
                     crate::extension::get_extension_cli(&id)
                 }
             }
-            Extension::Set { id, value } => {
-                crate::extension::set_extension_cli(&id, value)
-            }
+            Extension::Set { id, value } => crate::extension::set_extension_cli(&id, value),
             Extension::List => {
                 crate::extension::list_extensions();
                 Ok(())
