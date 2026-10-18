@@ -89,6 +89,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -542,6 +543,11 @@ fun ModulePagerMiuix(
                             },
                             contentPadding = contentPadding,
                             listState = listState,
+                            summary = if (uiState.moduleList.isEmpty()) null else stringResource(
+                                R.string.module_summary,
+                                uiState.moduleList.count { it.enabled },
+                                uiState.updateInfo.count { it.value.downloadUrl.isNotBlank() },
+                            ),
                         )
                     }
                 }
@@ -695,6 +701,7 @@ private fun ModuleList(
     onModuleAddShortcut: (Module, ShortcutType) -> Unit,
     contentPadding: PaddingValues,
     listState: LazyListState = rememberLazyListState(),
+    summary: String? = null,
 ) {
     val loadingDialog = rememberLoadingDialog()
     val scope = rememberCoroutineScope()
@@ -704,6 +711,16 @@ private fun ModuleList(
         contentPadding = contentPadding,
         overscrollEffect = null,
     ) {
+        if (summary != null) {
+            item(key = "summary", contentType = "summary") {
+                Text(
+                    text = summary,
+                    modifier = Modifier.padding(start = 28.dp, end = 16.dp, bottom = 10.dp),
+                    fontSize = 14.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        }
         items(
             items = modules,
             key = { it.id },
@@ -792,6 +809,7 @@ fun ModuleItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .alpha(if (module.enabled || module.remove) 1f else 0.6f)
                 .moduleBanner(banner, colorScheme.surfaceContainer)
                 .padding(16.dp)
         ) {
@@ -804,9 +822,6 @@ fun ModuleItem(
                         .weight(1f)
                         .padding(end = 4.dp)
                 ) {
-                    val moduleVersion = stringResource(id = R.string.module_version)
-                    val moduleAuthor = stringResource(id = R.string.module_author)
-
                     SubcomposeLayout { constraints ->
                         val spacingPx = 6.dp.roundToPx()
                         var nameTextLayout: TextLayoutResult? = null
@@ -874,18 +889,10 @@ fun ModuleItem(
                         }
                     }
                     Text(
-                        text = "$moduleVersion: ${module.version}",
+                        text = "${module.version} · ${module.author}",
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 2.dp),
-                        fontWeight = FontWeight(550),
-                        color = colorScheme.onSurfaceVariantSummary,
-                        textDecoration = textDecoration
-                    )
-                    Text(
-                        text = "$moduleAuthor: ${module.author}",
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(bottom = 1.dp),
-                        fontWeight = FontWeight(550),
+                        modifier = Modifier.padding(top = 2.dp, bottom = 1.dp),
+                        fontFamily = FontFamily.Monospace,
                         color = colorScheme.onSurfaceVariantSummary,
                         textDecoration = textDecoration
                     )

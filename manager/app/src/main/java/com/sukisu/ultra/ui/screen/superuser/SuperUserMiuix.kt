@@ -8,6 +8,9 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +37,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +47,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -50,13 +56,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -102,6 +111,65 @@ import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
+
+private val AppIconShape = RoundedCornerShape(14.dp)
+
+private enum class AppFilter { All, Root, Custom }
+
+@Composable
+private fun SuperUserHeader(
+    grantedCount: Int,
+    totalCount: Int,
+    filter: AppFilter,
+    onFilterChange: (AppFilter) -> Unit,
+    showSystemApps: Boolean,
+    onToggleShowSystemApps: () -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+
+    @Composable
+    fun Chip(selected: Boolean, label: String, onClick: () -> Unit) {
+        Text(
+            text = label,
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(if (selected) colorScheme.primary else colorScheme.surfaceContainer)
+                .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                    onClick()
+                }
+                .padding(horizontal = 14.dp, vertical = 7.dp),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (selected) colorScheme.onPrimary else colorScheme.onSurfaceVariantSummary,
+        )
+    }
+
+    Column(
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.superuser_granted_summary, grantedCount, totalCount),
+            modifier = Modifier.padding(horizontal = 4.dp),
+            fontSize = 14.sp,
+            color = colorScheme.onSurfaceVariantSummary,
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Chip(filter == AppFilter.All, stringResource(R.string.superuser_filter_all)) {
+                onFilterChange(AppFilter.All)
+            }
+            Chip(filter == AppFilter.Root, "ROOT") { onFilterChange(AppFilter.Root) }
+            Chip(filter == AppFilter.Custom, stringResource(R.string.profile_custom)) {
+                onFilterChange(AppFilter.Custom)
+            }
+            Chip(showSystemApps, stringResource(R.string.superuser_filter_system), onToggleShowSystemApps)
+        }
+    }
+}
 
 @Composable
 fun SuperUserPagerMiuix(
@@ -401,13 +469,22 @@ fun SuperUserPagerMiuix(
         val lazyListState = rememberLazyListState()
         searchStatus.SearchBox {
             val refreshTick = remember { mutableIntStateOf(0) }
-            val latestGroupedApps = rememberUpdatedState(uiState.groupedApps)
+            var filter by rememberSaveable { mutableStateOf(AppFilter.All) }
+            val visibleApps = remember(uiState.groupedApps, filter) {
+                when (filter) {
+                    AppFilter.All -> uiState.groupedApps
+                    AppFilter.Root -> uiState.groupedApps.filter { it.anyAllowSu }
+                    AppFilter.Custom -> uiState.groupedApps.filter { it.anyCustom }
+                }
+            }
+            val latestGroupedApps = rememberUpdatedState(visibleApps)
             val latestRefreshing = rememberUpdatedState(uiState.isRefreshing)
             ScrollToTopOnChange(
                 lazyListState,
                 uiState.sortConfig,
                 uiState.showSystemApps,
                 uiState.showOnlyPrimaryUserApps,
+                filter,
                 refreshTick.intValue,
                 isBusy = { latestRefreshing.value },
             ) { latestGroupedApps.value }
@@ -449,7 +526,17 @@ fun SuperUserPagerMiuix(
                         ),
                         overscrollEffect = null,
                     ) {
-                        items(uiState.groupedApps, key = { it.uid }, contentType = { "group" }) { group ->
+                        item(key = "header", contentType = "header") {
+                            SuperUserHeader(
+                                grantedCount = uiState.groupedApps.count { it.anyAllowSu },
+                                totalCount = uiState.groupedApps.size,
+                                filter = filter,
+                                onFilterChange = { filter = it },
+                                showSystemApps = uiState.showSystemApps,
+                                onToggleShowSystemApps = actions.onToggleShowSystemApps,
+                            )
+                        }
+                        items(visibleApps, key = { it.uid }, contentType = { "group" }) { group ->
                             val expanded = expandedUids.value.contains(group.uid)
                             Column {
                                 GroupItem(
@@ -516,6 +603,7 @@ private fun SimpleAppItem(
                         modifier = Modifier
                             .padding(end = 2.dp)
                             .size(40.dp)
+                            .clip(AppIconShape)
                     )
                 },
                 insideMargin = PaddingValues(horizontal = 9.dp)
@@ -565,6 +653,7 @@ private fun GroupItem(
                 modifier = Modifier
                     .padding(end = 10.dp)
                     .size(48.dp)
+                    .clip(AppIconShape)
             )
             Column(
                 modifier = Modifier
@@ -588,6 +677,7 @@ private fun GroupItem(
                         .basicMarquee(),
                     fontSize = 12.sp,
                     fontWeight = FontWeight(550),
+                    fontFamily = if (group.apps.size > 1) null else FontFamily.Monospace,
                     color = colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     softWrap = false
