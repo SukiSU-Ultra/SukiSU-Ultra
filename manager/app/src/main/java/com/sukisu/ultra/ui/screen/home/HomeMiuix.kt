@@ -300,7 +300,7 @@ private fun ActiveStatusCard(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .offset(27.dp, 31.dp)
-                    .size(130.dp),
+                    .size(150.dp),
                 imageVector = Icons.Rounded.CheckCircleOutline,
                 tint = accentColor.copy(alpha = if (isDynamicColor) 0.8f else 1f),
                 contentDescription = null
@@ -308,8 +308,8 @@ private fun ActiveStatusCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 160.dp)
-                    .padding(18.dp),
+                    .heightIn(min = 188.dp)
+                    .padding(22.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 FlowRow(
@@ -348,7 +348,7 @@ private fun ActiveStatusCard(
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = stringResource(R.string.home_working),
-                        fontSize = 30.sp,
+                        fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
@@ -382,8 +382,8 @@ private fun InactiveStatusCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 160.dp)
-                .padding(18.dp),
+                .heightIn(min = 188.dp)
+                .padding(22.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
@@ -407,7 +407,7 @@ private fun InactiveStatusCard(
             Text(
                 text = stringResource(if (notInstalled) R.string.home_not_installed else R.string.home_unsupported),
                 modifier = Modifier.padding(vertical = 12.dp),
-                fontSize = 30.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
             )
             if (notInstalled) {
