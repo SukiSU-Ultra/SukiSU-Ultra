@@ -69,9 +69,7 @@ pub fn load_binary_config() -> Result<HashMap<u32, u64>> {
 
     if magic != EXTENSION_MAGIC {
         bail!(
-            "Invalid extension config magic: expected 0x{:08x}, got 0x{magic:08x}",
-            EXTENSION_MAGIC,
-            magic
+            "Invalid extension config magic: expected 0x{EXTENSION_MAGIC:08x}, got 0x{magic:08x}"
         );
     }
 

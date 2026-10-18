@@ -456,7 +456,7 @@ pub fn umount_list_wipe() -> Result<()> {
         value: 0,
         user_ptr: 0,
     };
-    unsafe { ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)? };
+    unsafe { ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd) }?;
     Ok(())
 }
 
