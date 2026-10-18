@@ -1,174 +1,118 @@
 #define KSU_DRIVER_PERMISSION_SU_SESSION (1UL << 0)
 
 struct ksu_driver_context {
-    unsigned long permissions;
+	unsigned long permissions;
 };
 
 static int anon_ksu_release(struct inode *inode, struct file *filp)
 {
-    kfree(filp->private_data);
-    pr_info("ksu fd released\n");
-    return 0;
+	kfree(filp->private_data);
+	pr_info("ksu fd released\n");
+	return 0;
 }
 
 static long anon_ksu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-    return ksu_supercall_handle_ioctl(filp, cmd, (void __user *)arg);
+	return ksu_supercall_handle_ioctl(filp, cmd, (void __user *)arg);
 }
 
+// File operations structure
 static const struct file_operations anon_ksu_fops = {
-    .owner = THIS_MODULE,
-    .unlocked_ioctl = anon_ksu_ioctl,
-    .compat_ioctl = anon_ksu_ioctl,
-    .release = anon_ksu_release,
+	.owner = THIS_MODULE,
+	.unlocked_ioctl = anon_ksu_ioctl,
+	.compat_ioctl = anon_ksu_ioctl,
+	.release = anon_ksu_release,
 };
 
+// Install KSU fd to current process
 static int ksu_install_fd_with_permissions(unsigned int fd_flags, unsigned long permissions)
 {
-    struct ksu_driver_context *context;
-    struct file *filp;
-    const char *name;
-    int fd;
+	struct ksu_driver_context *context;
+	struct file *filp;
+	const char *name;
+	int fd;
 
-    context = kzalloc(sizeof(*context), GFP_KERNEL);
-    if (!context)
-        return -ENOMEM;
+	context = kzalloc(sizeof(*context), GFP_KERNEL);
+	if (!context)
+		return -ENOMEM;
 
-    context->permissions = permissions;
-    name = permissions & KSU_DRIVER_PERMISSION_SU_SESSION ? "[ksu_driver_su]" : "[ksu_driver]";
+	context->permissions = permissions;
+	name = permissions & KSU_DRIVER_PERMISSION_SU_SESSION ? "[ksu_driver_su]" : "[ksu_driver]";
 
-    fd = get_unused_fd_flags(fd_flags);
-    if (fd < 0) {
-        pr_err("ksu_install_fd: failed to get unused fd for %s\n", name);
-        kfree(context);
-        return fd;
-    }
+	fd = get_unused_fd_flags(fd_flags);
+	if (fd < 0) {
+		pr_err("ksu_install_fd: failed to get unused fd\n");
+		kfree(context);
+		return fd;
+	}
 
-    filp = anon_inode_getfile(name, &anon_ksu_fops, context, O_RDWR);
-    if (IS_ERR(filp)) {
-        pr_err("ksu_install_fd: failed to create anon inode file for %s\n", name);
-        put_unused_fd(fd);
-        kfree(context);
-        return PTR_ERR(filp);
-    }
+	filp = anon_inode_getfile(name, &anon_ksu_fops, context, O_RDWR);
+	if (IS_ERR(filp)) {
+		pr_err("ksu_install_fd: failed to create anon inode file\n");
+		put_unused_fd(fd);
+		kfree(context);
+		return PTR_ERR(filp);
+	}
 
-    fd_install(fd, filp);
-    pr_info("%s fd installed: %d for pid %d\n", name, fd, current->pid);
-    return fd;
+	fd_install(fd, filp);
+	pr_info("ksu fd installed: %d for pid %d\n", fd, current->pid);
+	return fd;
 }
 
 int ksu_install_fd(void)
 {
-    return ksu_install_fd_with_permissions(O_CLOEXEC, 0);
+	return ksu_install_fd_with_permissions(O_CLOEXEC, 0);
 }
 
 int ksu_install_su_fd(void)
 {
-    // This descriptor must be installed after the exec into ksud.
-    return ksu_install_fd_with_permissions(O_CLOEXEC, KSU_DRIVER_PERMISSION_SU_SESSION);
+	// This descriptor must be installed after the exec into ksud.
+	return ksu_install_fd_with_permissions(0, KSU_DRIVER_PERMISSION_SU_SESSION);
 }
 
 bool ksu_is_su_session_fd(const struct file *filp)
 {
-    const struct ksu_driver_context *context = filp->private_data;
+	const struct ksu_driver_context *context = filp->private_data;
 
-    return context && (context->permissions & KSU_DRIVER_PERMISSION_SU_SESSION);
+	return context && (context->permissions & KSU_DRIVER_PERMISSION_SU_SESSION);
 }
 
-struct ksu_install_fd_tw {
-    struct callback_head cb;
-    int __user *outp;
-};
-
-static void ksu_install_fd_tw_func(struct callback_head *cb)
-{
-    struct ksu_install_fd_tw *tw = container_of(cb, struct ksu_install_fd_tw, cb);
-    int fd = ksu_install_fd();
-    pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
-
-    if (copy_to_user(tw->outp, &fd, sizeof(fd))) {
-        pr_err("install ksu fd reply err\n");
-        close_fd(fd);
-    }
-
-    kfree(tw);
-}
-
-static int ksu_handle_fd_request(void __user *arg)
-{
-    struct ksu_install_fd_tw *tw;
-
-    tw = kzalloc(sizeof(*tw), GFP_ATOMIC);
-    if (!tw)
-        return -ENOMEM;
-
-    tw->outp = (int __user *)arg;
-    tw->cb.func = ksu_install_fd_tw_func;
-
-    if (task_work_add(current, &tw->cb, TWA_RESUME)) {
-        kfree(tw);
-        pr_warn("install fd add task_work failed\n");
-        return -EINVAL;
-    }
-
-    return 0;
-}
-
-#ifdef CONFIG_KSU_SUSFS
-int ksu_supercall_reboot_handler(void __user **arg)
-{
-    struct ksu_install_fd_tw *tw;
-
-    tw = kzalloc(sizeof(*tw), GFP_KERNEL);
-    if (!tw)
-        return 0;
-
-    tw->outp = (int __user *)(*arg);
-    tw->cb.func = ksu_install_fd_tw_func;
-
-    if (task_work_add(current, &tw->cb, TWA_RESUME)) {
-        kfree(tw);
-        pr_warn("install fd add task_work failed\n");
-    }
-
-    return 0;
-}
-#else
+// downstream: make sure to pass arg as reference, this can allow us to extend things.
 int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg)
 {
-    if (magic1 != KSU_INSTALL_MAGIC1)
-        return -EINVAL;
+	if (magic1 != KSU_INSTALL_MAGIC1)
+		return 0;
 
-    // Rare case that unlikely to happen
-    if (unlikely(!arg))
-        return -EINVAL;
+	// when ternary on fmt?
+	// cold syscall, we can splurge xD
+	if (magic2 == KSU_INSTALL_MAGIC2)
+		pr_info("sys_reboot: magic: 0x%x id: 0x%x pid: %d comm: %s \n", magic1, magic2, current->pid, current->comm);
+	else
+		pr_info("sys_reboot: magic: 0x%x id: %d pid: %d pid: %s \n", magic1, magic2, current->pid, current->comm);
 
-#ifdef CONFIG_KSU_DEBUG
-    pr_info("sys_reboot: magic: 0x%x (id: %d)\n", magic1, magic2);
-#endif
+	// arg4 = (unsigned long)PT_REGS_SYSCALL_PARM4(real_regs);
+	// downstream: dereference arg as arg4 so we can be inline to upstream
+	void __user *arg4 = (void __user *)*arg;
 
-    // Dereference **arg.. with IS_ERR check.
-    void __user *argp = (void __user *)*arg;
-    if (IS_ERR(argp)) {
-        pr_err("Failed to deref user arg, err: %lu\n", PTR_ERR(argp));
-        return -EINVAL;
-    }
+	if (magic2 == KSU_INSTALL_MAGIC2) {
+		int fd = ksu_install_fd();
 
-    // Check if this is a request to install KSU fd
-    if (magic2 == KSU_INSTALL_MAGIC2) {
-        return ksu_handle_fd_request(argp);
-    }
+		pr_info("[%d] install ksu fd: %d\n", current->pid, fd);
+		if (copy_to_user((void __user *)arg4, &fd, sizeof(fd))) {
+			pr_err("install ksu fd reply err\n");
+			ksu_close_fd(fd);
+		}
 
-    return 0;
+		return 0;
+	}
+
+	toolkit_handle_sys_reboot(magic1, magic2, cmd, arg);
+	return 0;
 }
-#endif
 
 void __init ksu_supercalls_init(void)
 {
-    ksu_supercall_dump_commands();
+	ksu_supercall_dump_commands();
 }
 
-void __exit ksu_supercalls_exit(void)
-{
-    ksu_supercall_cleanup_state();
-}
+void __exit ksu_supercalls_exit(void) { }

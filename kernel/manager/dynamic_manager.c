@@ -1,18 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0
-#include <linux/ctype.h>
-#include <linux/fs.h>
-#include <linux/mutex.h>
-#include <linux/slab.h>
-#include <linux/string.h>
-#include <linux/uaccess.h>
-
-#include "klog.h"
-#include "ksu.h"
-#include "manager/manager_identity.h"
-#include "manager/apk_sign.h"
-#include "manager/throne_tracker.h"
-#include "uapi/supercall.h"
-
 #define DYNAMIC_MANAGER_FILE "/data/adb/ksu/.dynamic_managers"
 #define DYNAMIC_MANAGER_MAGIC 0x4d534b44
 #define DYNAMIC_MANAGER_VERSION 1

@@ -1,10 +1,6 @@
 #ifndef __KSU_H_SUPERCALL_INTERNAL
 #define __KSU_H_SUPERCALL_INTERNAL
 
-#include <linux/fs.h>
-#include <linux/types.h>
-#include <linux/uaccess.h>
-
 bool only_manager(void);
 bool only_root(void);
 bool manager_or_root(void);

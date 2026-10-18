@@ -1,12 +1,80 @@
 menu "KernelSU"
 
 config KSU
-	bool "KernelSU function support"
+	tristate "KernelSU function support"
+	depends on !CPU_BIG_ENDIAN
+	depends on SECURITY_SELINUX
+	select SECCOMP
 	default y
 	help
 	  Enable kernel-level root privileges on Android System.
-	  To compile as a module, choose M here: the
-	  module will be called kernelsu.
+
+config KSU_KPROBES_KSUD
+	bool "Enable dynamic kprobes for early boot hooks"
+	depends on KSU
+	depends on !KSU_TAMPER_SYSCALL_TABLE
+	depends on !KSU_HACK_ARM64_BRANCH_LINK
+	depends on KPROBES && KRETPROBES
+	depends on DEPRECATED
+	default n
+	help
+	  [deprecated] Use dynamic hooks via kprobes for functions only
+	  on early boot. Hooks are unregistered at boot complete
+	  to reduce overhead.
+
+config KSU_HACK_ARM64_BRANCH_LINK
+	bool "inline call-site hijacking (ARM64 bl insn)"
+	depends on KSU
+	depends on ARM64 && KALLSYMS
+	depends on !KSU_TAMPER_SYSCALL_TABLE
+	default y if KSU = m
+	default n
+	help
+	  Attempts to provide sucompat by scanning kernel text and overwriting caller's
+	  branch insn ('b' or 'bl') directly to our hooks, bypassing trampoline overhead
+	  and CFI fuckups. Inspired by ARM64 optprobes.
+	  Successful patching relies on symbol stability, so hooking success will
+	  vary across different compliers, optimization, tweaks and backports.
+	  When patching fails, it keeps syscall table hook for the target symbol.
+	  Verified on 3.10 ~ 7.1. Recommended for 4.19+.
+
+config KSU_TAMPER_SYSCALL_TABLE
+	bool "tamper sys_call_table for sucompat + sys_reboot"
+	depends on KSU
+	depends on (ARM || ARM64)
+	default n
+	help
+	  Use a high-performance syscall table hijacking method demonstrated on zx2c4's
+	  kernel-assisted-superuser. Replaces sys_reboot, sys_execve, sys_newfstatat,
+	  sys_faccessat, sys_newfstat_ret.
+	  As syscalls are called directly, it avoids indirect branch (blr) overhead and
+	  complies with Clang CFI.
+	  Verified on 3.0 ~ 7.1. Recommended for 3.0 ~ 4.14.
+
+config KSU_DISABLE_32BIT_HOOKS
+	bool "disable 32-bit symbol hooking"
+	depends on KSU
+	depends on 64BIT && COMPAT
+	depends on (KSU_TAMPER_SYSCALL_TABLE || KSU_HACK_ARM64_BRANCH_LINK)
+	default n
+	help
+	  Skips hooking 32-bit syscalls (compat_sys_call_table). Mostly useful for zygote64-only devices.
+	  Author assumes you know what you're doing, __builtin_assume(!!&user_brain).
+
+config KSU_LSM_SECURITY_HOOKS
+	bool "Use LSM security hooks"
+	depends on KSU
+	default y
+	help
+	  Disabling this is mostly useful for non-ARM64 with kernel > 6.8.
+	  Make sure to implement manual hooks on security/security.c.
+
+config KSU_FEATURE_SULOG
+	bool "KernelSU SU Logging feature"
+	depends on KSU
+	default y
+	help
+	  Build KernelSU's SU Log.
 
 config KSU_FEATURE_ADBROOT
 	bool "KernelSU ADB Root feature"
@@ -15,6 +83,52 @@ config KSU_FEATURE_ADBROOT
 	help
 	  Build KernelSU's adb root feature.
 
+config KSU_HOSTSREDIRECT
+	bool "/system/etc/hosts redirection"
+	depends on KSU
+	depends on (ARM || ARM64)
+	default n
+	help
+	  Kernel-level sys_openat fd redirect targeting /system/etc/hosts to /data/adb/hosts.
+	  Allows hosts file modification without mounting hosts file directly, this is meant to
+	  be used with bindhosts mode 3. If /data/adb/hosts does NOT exist at boot, the syscall
+	  hook is automatically skipped. See like ZN-hostsredirect / APatch hosts file redirect.
+	  If unsure, say n.
+
+config KSU_ENABLE_FULL_UID_CHECKS
+	bool "perform full uid checks (reduced performance)"
+	depends on KSU
+	default n
+	help
+	  Validate every non-root UID against the allowlist. When disabled, only shell (2000)
+	  is checked. Recommended for permissive selinux / seccomp disabled scenarios.
+	  Enable for extended security; keep disabled for performance.
+
+config KSU_THRONE_TRACKER_ALWAYS_THREADED
+	bool "Always run throne tracker in a kthread"
+	depends on KSU
+	default n
+	help
+	  Enable this option to run throne tracker in a kthread for the first
+	  run, which happens at boot time / decryption stage. This can decrease
+	  boot time, but can cause crowning failure on some FDE/FBEv1 setups.
+	  If unsure, say n.
+
+config KSU_NOPRINTK
+	bool "disable ALL dmesg logging"
+	depends on KSU
+	depends on !KSU_DEBUG
+	default n
+	help
+	  Disable KernelSU dmesg output.
+
+config KSU_SHELL_HAS_SU_ALWAYS
+	bool "give shell su"
+	depends on KSU
+	default n
+	help
+	  Always allow shell (2000) for su. Can speedup sucompat gate as a side-effect.
+
 config KSU_DEBUG
 	bool "KernelSU debug mode"
 	depends on KSU
@@ -22,108 +136,11 @@ config KSU_DEBUG
 	help
 	  Enable KernelSU debug mode.
 
-config KPM
-    bool "Enable SukiSU KPM"
-    depends on KSU && 64BIT
-    default n
-    help
-      Enabling this option will activate the KPM feature of SukiSU.
-      This option is suitable for scenarios where you need to force KPM to be enabled.
-      but it may affect system stability.
-    select KALLSYMS
-    select KALLSYMS_ALL
-
-menu "KernelSU - SUSFS"
-config KSU_SUSFS
-	bool "KernelSU addon - SUSFS"
+config KSU_HEURISTIC_IN_TREE_BUILD
+	bool "heuristic. do NOT touch"
 	depends on KSU
-	depends on THREAD_INFO_IN_TASK
 	default y
 	help
-	  Patch and Enable SUSFS to kernel with KernelSU.
-
-config KSU_SUSFS_SUS_PATH
-	bool "Enable to hide suspicious path"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Allow hiding the user-defined path and all its sub-paths from various system calls.
-	  - Use "add_sus_path_loop" instead of "add_sus_path" if the user-defined path is frequently modified.
-	  - Use with cautious as it may cause performance loss and will be vulnerable to side channel attacks,
-	  	just disable this feature if it doesn't work for you or you don't need it at all.
-	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED.
-
-config KSU_SUSFS_SUS_MOUNT
-	bool "Enable to hide suspicious mounts"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Automatically assign fake mnt_id and fake mnt_group_id for mounts mounted by ksu process until
-	    /sdcard is  decrypted, this is to evade from mnt_id/mnt_group_id gap detections.
-	  - Allow hiding all sus mounts from /proc/self/[mounts|mountinfo|mountstat] for non-su processes.
-	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED.
-
-config KSU_SUSFS_SUS_KSTAT
-	bool "Enable to spoof suspicious kstat"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Allow spoofing the kstat of user-defined file/directory.
-	  - Effective on all processes with (uid % 100000) >= 10000.
-
-config KSU_SUSFS_SPOOF_UNAME
-	bool "Enable to spoof uname"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Allow spoofing the string returned by uname syscall to user-defined string.
-	  - Effective on all processes.
-
-config KSU_SUSFS_ENABLE_LOG
-	bool "Enable logging susfs log to kernel"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Allow logging susfs log to kernel, uncheck it to completely disable all susfs log.
-
-config KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS
-	bool "Enable to automatically hide ksu and susfs symbols from /proc/kallsyms"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Automatically hide ksu and susfs symbols from '/proc/kallsyms'.
-	  - Effective on all processes.
-
-config KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
-	bool "Enable to spoof /proc/bootconfig (gki) or /proc/cmdline (non-gki)"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Spoof the output of /proc/bootconfig (gki) or /proc/cmdline (non-gki) with a user-defined file.
-	  - Effective on all processes.
-
-config KSU_SUSFS_OPEN_REDIRECT
-	bool "Enable to redirect a path to be opened with another path"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Allow redirecting a target path to be opened with another user-defined path.
-	  - Both target path and redirected path must be existed before they can be added to the kernel.
-	  - Users have to take care of the selinux permission of both target path and redirected path by themselves.
-	  - OPEN_REDIRECT does not bypass some detections by default, but users can work with SUS_KSTAT to bypass them.
-	  - Effective only on processes with pre-defined uid scheme.
-
-config KSU_SUSFS_SUS_MAP
-	bool "Enable to hide some mmapped real file from different proc maps interfaces"
-	depends on KSU_SUSFS
-	default y
-	help
-	  - Allow hiding mmapped real file from /proc/<pid>/[maps|smaps|smaps_rollup|map_files|mem|pagemap]
-	  - It does NOT support hiding for anon memory.
-	  - It does NOT hide any inline hooks or plt hooks cause by the injected library itself.
-	  - It may not be able to evade detections by apps that implement a good injection detection.
-	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED
-
-endmenu
+	  Note: if youre building out-of-tree, configure by editing ksu.c #defines instead.
 
 endmenu
