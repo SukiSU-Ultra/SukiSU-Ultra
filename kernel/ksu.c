@@ -65,6 +65,7 @@
 #include "feature/shell_su_adb_only.h"
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
+#include "runtime/ksud_boot.h"
 #include "runtime/ksud.h"
 #include "sulog/event.h"
 #include "sulog/fd.h"
@@ -139,7 +140,8 @@
 #include "feature/shell_su_adb_only.c"
 #include "feature/sucompat.c"
 #include "feature/sulog.c"
-#include "runtime/ksud.c"
+#include "runtime/boot_event.c"
+#include "runtime/ksud_integration.c"
 
 #include "sulog/event.c"
 #include "sulog/fd.c"

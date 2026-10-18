@@ -191,8 +191,6 @@ static int bl_hook_faccessat(void *data)
 	int ret;
 	uintptr_t target_callsite;
 	uintptr_t symbol_addr;
-	unsigned long sym_size = 0; 
-	unsigned long offset = 0;
 
 	target_callsite = syscall_lookup("sys_faccessat");
 	symbol_addr = kallsyms_lookup_retry("do_faccessat");
@@ -224,48 +222,6 @@ static int bl_hook_newfstatat(void *data)
 	int ret;
 	uintptr_t target_callsite;
 	uintptr_t symbol_addr;
-
-// scope too huge. whole stat subsystem.
-#if 0 // LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
-	target_callsite = kallsyms_lookup_retry("vfs_fstatat");
-	if (!target_callsite)
-		goto skip_single_hook;
-
-	symbol_addr = kallsyms_lookup_retry("vfs_statx");
-	if (!symbol_addr)
-		goto skip_single_hook;
-
-	// patch our hook handler first
-	ret = ksu_self_patch_hook(ksu_vfs_statx, symbol_addr);
-	if (ret)
-		return ret;
-
-	// this is a bit deeper, lets assume 64 insn
-	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 64 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_vfs_statx);
-	pr_info("hook_site: vfs_fstatat->vfs_statx ret: %d \n", ret);
-	if (ret)
-		goto single_hook_fail;
-
-	// single hook point so restore both
-	restore_syscall((void *)&aarch64_newfstatat, __AARCH64_newfstatat, (void *)hook_aarch64_newfstatat, (void *)sys_call_table);
-#ifdef CONFIG_COMPAT
-	restore_syscall((void *)&armeabi_fstatat64, __ARMEABI_fstatat64, (void *)hook_armeabi_fstatat64, (void *)compat_sys_call_table);
-#endif
-	return ret;
-
-single_hook_fail:
-	target_callsite = syscall_lookup("sys_newfstatat");
-	symbol_addr = kallsyms_lookup_retry("vfs_statx");
-
-	// if we are here, we patched hook above already
-	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_vfs_statx);
-	pr_info("hook_site: sys_newfstatat->vfs_statx ret: %d \n", ret);
-	if (!ret)
-		goto unhook_sct_native;
-
-	goto hook2;
-skip_single_hook:
-#endif
 
 	target_callsite = syscall_lookup("sys_newfstatat");
 	symbol_addr = kallsyms_lookup_retry("vfs_statx");
