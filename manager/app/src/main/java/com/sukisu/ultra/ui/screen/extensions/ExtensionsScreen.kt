@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
@@ -34,6 +35,11 @@ fun ExtensionsScreen() {
     val scope = rememberCoroutineScope()
     val viewModel: ExtensionsViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.refresh()
+        onPauseOrDispose { }
+    }
 
     var cpuDialogVisible by remember { mutableStateOf(false) }
     var cpuInfo by remember { mutableStateOf<CpuInfo?>(null) }
