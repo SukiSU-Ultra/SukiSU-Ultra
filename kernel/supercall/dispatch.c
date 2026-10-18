@@ -786,6 +786,135 @@ out:
 	return ret;
 }
 
+static int list_try_umount(void __user *arg)
+{
+    struct ksu_list_try_umount_cmd cmd;
+    struct mount_entry *entry;
+    char *output_buf;
+    size_t output_size;
+    size_t offset = 0;
+    int ret = 0;
+    bool using_vmalloc = false;
+    int mount_count = 0;
+    
+    #define MAX_UMOUNT_LIST_SIZE (2 * 1024 * 1024)  // 2MB absolute max
+    #define DEFAULT_UMOUNT_SIZE (64 * 1024)         // 64KB default
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
+
+    if (cmd.buf_size > 1024 * 1024) {
+        pr_err("list_try_umount: invalid buf_size %u\n", cmd.buf_size);
+        return -EINVAL;
+    }
+
+    output_size = cmd.buf_size ? cmd.buf_size : 4096;
+
+    if (!cmd.arg || output_size == 0)
+        return -EINVAL;
+
+    // Count mounts first to estimate size needed
+    down_read(&mount_list_lock);
+    list_for_each_entry(entry, &mount_list, list) {
+        mount_count++;
+    }
+    up_read(&mount_list_lock);
+
+    // Calculate needed size: ~200 bytes per mount + 1KB header
+    output_size = 1024 + (mount_count * 200);
+    
+    // Use at least default size, cap at maximum
+    if (output_size < DEFAULT_UMOUNT_SIZE)
+        output_size = DEFAULT_UMOUNT_SIZE;
+    if (output_size > MAX_UMOUNT_LIST_SIZE)
+        output_size = MAX_UMOUNT_LIST_SIZE;
+
+    pr_info("KernelSU: Allocating %zu bytes for %d mounts (user requested %zu)\n",
+            output_size, mount_count, (size_t)cmd.buf_size);
+
+    // Try kzalloc first with NOWARN flag
+    output_buf = kzalloc(output_size, GFP_KERNEL | __GFP_NOWARN);
+    if (!output_buf) {
+        // Fallback to vzalloc for large allocations
+        pr_info("KernelSU: kzalloc failed for %zu bytes, using vzalloc\n", 
+                output_size);
+        output_buf = vzalloc(output_size);
+        using_vmalloc = true;
+    }
+
+    if (!output_buf) {
+        pr_err("KernelSU: Failed to allocate %zu bytes for umount list\n",
+               output_size);
+        return -ENOMEM;
+    }
+    offset += snprintf(output_buf + offset, output_size - offset,
+               "Mount Point\tFlags\n");
+    offset += snprintf(output_buf + offset, output_size - offset,
+               "----------\t-----\n");
+
+    down_read(&mount_list_lock);
+    list_for_each_entry (entry, &mount_list, list) {
+        int written =
+            snprintf(output_buf + offset, output_size - offset,
+                 "%s\t%u\n", entry->umountable, entry->flags);
+        if (written < 0) {
+            ret = -EFAULT;
+            break;
+        }
+        if (written >= (int)(output_size - offset)) {
+            // Should rarely happen since we calculated size
+            pr_warn("KernelSU: Buffer full, truncating mount list\n");
+            ret = -ENOSPC;
+            break;
+        }
+        offset += written;
+    }
+    up_read(&mount_list_lock);
+
+    if (ret == 0) {
+        if (copy_to_user((void __user *)cmd.arg, output_buf, offset))
+            ret = -EFAULT;
+    }
+
+    // Free using the correct method
+    if (using_vmalloc)
+        vfree(output_buf);
+    else
+        kfree(output_buf);
+    return ret;
+}
+
+// 100. GET_FULL_VERSION - Get full version string
+static int do_get_full_version(void __user *arg)
+{
+    struct ksu_get_full_version_cmd cmd = { 0 };
+
+    strscpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
+
+    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+        pr_err("get_full_version: copy_to_user failed\n");
+        return -EFAULT;
+    }
+
+    return 0;
+}
+
+// 101. HOOK_TYPE - Get hook type
+static int do_get_hook_type(void __user *arg)
+{
+    struct ksu_hook_type_cmd cmd = { 0 };
+    const char *type = "Tracepoint Syscall Redirect";
+
+    strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
+
+    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+        pr_err("get_hook_type: copy_to_user failed\n");
+        return -EFAULT;
+    }
+
+    return 0;
+}
+
 // 106
 static int do_manager(void __user *arg)
 {
@@ -840,6 +969,12 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_GET_SULOG_FD, .name = "GET_SULOG_FD", .handler = do_get_sulog_fd, .perm_check = only_root },
 	{ .cmd = KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, .name = "DISABLE_ESCAPE_TO_ROOT", .handler = do_disable_escape_to_root, .perm_check = only_root, .allow_su_session = true },
 	{ .cmd = KSU_IOCTL_LOOKUP_SYMBOLS, .name = "LOOKUP_SYMBOLS", .handler = do_lookup_symbols, .perm_check = only_root },
+	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .name = "GET_FULL_VERSION", .handler = do_get_full_version, .perm_check = always_allow },
+    { .cmd = KSU_IOCTL_HOOK_TYPE, .name = "GET_HOOK_TYPE", .handler = do_get_hook_type, .perm_check = manager_or_root },
+#ifdef CONFIG_KPM
+    { .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root },
+#endif
+    { .cmd = KSU_IOCTL_LIST_TRY_UMOUNT, .name = "LIST_TRY_UMOUNT", .handler = list_try_umount, .perm_check = manager_or_root},
 	{ .cmd = KSU_IOCTL_MANAGER, .name = "MANAGER", .handler = do_manager, .perm_check = manager_or_root },
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel
 };

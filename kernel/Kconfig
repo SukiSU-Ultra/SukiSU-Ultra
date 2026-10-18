@@ -143,4 +143,15 @@ config KSU_HEURISTIC_IN_TREE_BUILD
 	help
 	  Note: if youre building out-of-tree, configure by editing ksu.c #defines instead.
 
+config KPM
+    bool "Enable SukiSU KPM"
+    depends on KSU && 64BIT
+    default n
+    help
+      Enabling this option will activate the KPM feature of SukiSU.
+      This option is suitable for scenarios where you need to force KPM to be enabled.
+      but it may affect system stability.
+    select KALLSYMS
+    select KALLSYMS_ALL
+
 endmenu

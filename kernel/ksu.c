@@ -101,6 +101,15 @@
 #endif
 
 // unity build
+#ifdef CONFIG_KPM
+#include "kpm/kpm.h"
+#include "kpm/compact.h"
+#include "kpm/super_access.h"
+#include "kpm/kpm.c"
+#include "kpm/compact.c"
+#include "kpm/super_access.c"
+#endif
+
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
 #include "policy/feature.c"
