@@ -8,7 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
@@ -35,23 +34,6 @@ fun ExtensionsScreen() {
     val scope = rememberCoroutineScope()
     val viewModel: ExtensionsViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val errorMessage = state.errorMessage
-
-    if (errorMessage != null) {
-        Toast.makeText(
-            context,
-            stringResource(
-                R.string.extension_set_failed,
-                errorMessage.substringAfter("set_failed:")
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
-        viewModel.consumeError()
-    }
-
-    val onToggle: (ExtensionId, Boolean) -> Unit = { id, enabled ->
-        viewModel.toggle(id, enabled)
-    }
 
     var cpuDialogVisible by remember { mutableStateOf(false) }
     var cpuInfo by remember { mutableStateOf<CpuInfo?>(null) }
@@ -98,14 +80,12 @@ fun ExtensionsScreen() {
             state = state,
             onBack = { navigator.pop() },
             onRefresh = viewModel::refresh,
-            onToggle = onToggle,
             onOpenDetails = onOpenDetails,
         )
         UiMode.Material -> ExtensionsScreenMaterial(
             state = state,
             onBack = { navigator.pop() },
             onRefresh = viewModel::refresh,
-            onToggle = onToggle,
             onOpenDetails = onOpenDetails,
         )
     }

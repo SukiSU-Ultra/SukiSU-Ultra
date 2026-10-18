@@ -370,10 +370,6 @@ bool ksu_dynamic_manager_verify_apk(char *path, const char *package, uid_t uid)
     return true;
 }
 
-/* ------------------------------------------------------------------ */
-/* Extension wiring                                                  */
-/* ------------------------------------------------------------------ */
-
 int ksu_extension_dynamic_manager_get(u32 id, u64 *value)
 {
     *value = ksu_manager_enabled() ? 1 : 0;

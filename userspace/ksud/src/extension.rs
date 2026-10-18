@@ -148,25 +148,24 @@ fn apply_config(extensions: &HashMap<u32, u64>) {
             log::info!("Skip extension {id}: forced by boot config");
             continue;
         }
-        match ExtensionId::from_u32(id) {
-            Some(ext_id) => match set_kernel_extension(ext_id, value) {
-                Ok(()) => {
-                    log::info!("Set extension {} to {value}", ext_id.name());
-                    applied += 1;
-                }
-                Err(e) => {
-                    log::warn!("Failed to set extension {}: {e}", ext_id.name());
-                }
-            },
-            None => match crate::ksucalls::set_extension(id, value) {
-                Ok(()) => {
-                    log::info!("Set extension {id} to {value}");
-                    applied += 1;
-                }
-                Err(e) => {
-                    log::warn!("Failed to set extension {id}: {e}");
-                }
-            },
+        let Some(ext_id) = ExtensionId::from_u32(id) else {
+            log::info!("Skip extension {id}: unknown id");
+            continue;
+        };
+        // KPM, CPU spoof and umount paths have no runtime sticky bit
+        // to apply; ignore any persisted entry.
+        if !ext_id.has_sticky_bit() {
+            log::info!("Skip extension {id}: no runtime sticky bit");
+            continue;
+        }
+        match set_kernel_extension(ext_id, value) {
+            Ok(()) => {
+                log::info!("Set extension {} to {value}", ext_id.name());
+                applied += 1;
+            }
+            Err(e) => {
+                log::warn!("Failed to set extension {}: {e}", ext_id.name());
+            }
         }
     }
 
@@ -232,6 +231,13 @@ pub fn get_extension_config_cli(id: &str) -> Result<()> {
 #[cfg(target_os = "android")]
 pub fn set_extension_cli(id: &str, value: u64) -> Result<()> {
     let extension_id = parse_extension_id(id)?;
+
+    if !extension_id.has_sticky_bit() {
+        bail!(
+            "Extension '{}' does not have a runtime enable/disable switch (value={value}).",
+            extension_id.name()
+        );
+    }
 
     if let Ok(state) = crate::ksucalls::get_extension(extension_id as u32)
         && state.forced
@@ -306,6 +312,8 @@ pub fn list_extensions() {
 
         let status = if !state.supported {
             "NOT_SUPPORTED".to_string()
+        } else if !extension_id.has_sticky_bit() {
+            "AVAILABLE".to_string()
         } else if state.value != 0 {
             format!("ENABLED ({})", state.value)
         } else {
@@ -360,6 +368,12 @@ pub fn save_config() -> Result<()> {
     let mut extensions = load_binary_config().unwrap_or_default();
 
     for extension_id in &ExtensionId::ALL {
+        // Extensions without a runtime sticky bit cannot be toggled,
+        // and persisting their (always-0) value would be noise.
+        if !extension_id.has_sticky_bit() {
+            extensions.remove(&(*extension_id as u32));
+            continue;
+        }
         let id = *extension_id as u32;
         if let Ok(state) = crate::ksucalls::get_extension(id)
             && state.supported
@@ -400,12 +414,35 @@ pub fn check_extension(id: &str) -> Result<()> {
     let state = crate::ksucalls::get_extension(extension_id as u32)
         .with_context(|| format!("Failed to get extension {id}"))?;
 
-    if state.supported {
-        println!("supported");
-    } else {
+    if !state.supported {
         println!("unsupported");
+        return Ok(());
     }
 
+    if extension_id == ExtensionId::Kpm {
+        #[cfg(target_arch = "aarch64")]
+        {
+            use crate::kpm;
+
+            match kpm::check_version() {
+                Ok(ver) if !ver.is_empty() => {
+                    log::debug!("KPM version check ok: {ver}");
+                }
+                _ => {
+                    println!("unsupported");
+                    return Ok(());
+                }
+            }
+        }
+
+        #[cfg(not(target_arch = "aarch64"))]
+        {
+            println!("unsupported");
+            return Ok(());
+        }
+    }
+
+    println!("supported");
     Ok(())
 }
 

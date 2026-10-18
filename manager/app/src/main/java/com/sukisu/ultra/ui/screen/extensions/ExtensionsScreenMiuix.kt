@@ -20,7 +20,6 @@ import com.sukisu.ultra.ui.viewmodel.ExtensionsUiState
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 
 @Composable
@@ -28,7 +27,6 @@ fun ExtensionsScreenMiuix(
     state: ExtensionsUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    onToggle: (ExtensionId, Boolean) -> Unit,
     onOpenDetails: (ExtensionId) -> Unit,
 ) {
     Scaffold(
@@ -61,18 +59,10 @@ fun ExtensionsScreenMiuix(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item {
-                Text(
-                    text = stringResource(R.string.extension_section_summary),
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-            }
             items(ExtensionId.ALL, key = { it.id }) { ext ->
                 ExtensionCard(
                     id = ext,
                     state = state.states[ext],
-                    managedByModule = false,
-                    onToggle = { onToggle(ext, it) },
                     onOpenDetails = { onOpenDetails(ext) },
                 )
             }

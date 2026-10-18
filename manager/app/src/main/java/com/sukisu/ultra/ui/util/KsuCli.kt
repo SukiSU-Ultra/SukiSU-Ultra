@@ -162,10 +162,6 @@ private suspend fun readExtensionValue(args: String): Long? = withContext(Dispat
     valueLine.substringAfter("Value:").trim().toLongOrNull()
 }
 
-fun setExtensionEnabled(extension: String, enabled: Boolean): Boolean = execKsud(
-    "extension set $extension ${if (enabled) 1 else 0}", true
-)
-
 fun install() {
     val start = SystemClock.elapsedRealtime()
     val libadbroot = File(ksuApp.applicationInfo.nativeLibraryDir, "libadbroot.so").absolutePath

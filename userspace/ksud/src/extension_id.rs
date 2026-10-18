@@ -44,6 +44,19 @@ impl ExtensionId {
         }
     }
 
+    /// Whether this extension exposes a runtime sticky bit at all.
+    ///
+    /// `true` means the kernel can be told "enable / disable" via
+    /// `ksu_extension_set`, and the current value is meaningful when
+    /// probed via `ksu_extension_get`. `false` means the extension is
+    /// either purely io-driven (CPU spoof, umount paths) or whose
+    /// availability is fixed at kernel build time (KPM): the sticky
+    /// value is always 0 and should be displayed as "Available"
+    /// rather than "Disabled".
+    pub const fn has_sticky_bit(self) -> bool {
+        matches!(self, Self::DynamicManager)
+    }
+
     /// Short identifier used in CLI output and on-disk config.
     pub const fn name(self) -> &'static str {
         match self {

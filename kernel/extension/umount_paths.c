@@ -20,32 +20,13 @@
 #include <linux/sched.h>
 
 #include "extension/umount_paths.h"
+#include "uapi/extension.h"
 
 #include "klog.h" // IWYU pragma: keep
 
 /* Mount table previously owned by feature/kernel_umount.{c,h}. */
 struct list_head mount_list = LIST_HEAD_INIT(mount_list);
 DECLARE_RWSEM(mount_list_lock);
-
-static bool umount_paths_armed = true;
-
-int ksu_extension_umount_paths_get(u32 id, u64 *value)
-{
-    *value = umount_paths_armed ? 1 : 0;
-    return 0;
-}
-
-int ksu_extension_umount_paths_set(u32 id, u64 value)
-{
-    umount_paths_armed = value != 0;
-    pr_info("extension/umount_paths: armed=%u\n", umount_paths_armed);
-    return 0;
-}
-
-const struct ksu_extension_handler_ops ksu_extension_umount_paths_ops = {
-    .get = ksu_extension_umount_paths_get,
-    .set = ksu_extension_umount_paths_set,
-};
 
 /*
  * The legacy add/del/wipe handling lived inline in supercall/dispatch.c.

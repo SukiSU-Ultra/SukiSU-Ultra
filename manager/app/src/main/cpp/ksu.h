@@ -58,20 +58,8 @@ int set_mount_hide_enabled(bool enabled);
 
 bool is_mount_hide_enabled();
 
-// -----------------------------------------------------------
-// Extension subsystem (replaces the legacy KSU_IOCTL_KPM,
-// KSU_IOCTL_ADD_TRY_UMOUNT, KSU_IOCTL_LIST_TRY_UMOUNT,
-// KSU_IOCTL_MANAGER, KSU_IOCTL_SET_SPOOF_CPU numbers).
-// See kernel/extension/extension.{c,h}.
-// -----------------------------------------------------------
 
-// KSU_EXTENSION_KPM
-bool set_kpm_enabled(bool enabled);
-bool is_kpm_enabled();
 
-// KSU_EXTENSION_CPU_SPOOF
-int set_cpu_spoof_enabled(bool enabled);
-bool is_cpu_spoof_enabled();
 
 // CPU spoof SET-MIDR io passthrough (kept struct layout from
 // uapi/supercall.h::ksu_set_spoof_cpu_cmd).
@@ -84,8 +72,6 @@ int umount_paths_delete(const char *path);
 int umount_paths_list(char *buffer, uint32_t buf_size);
 
 // KSU_EXTENSION_DYNAMIC_MANAGER
-bool set_dynamic_manager_enabled(bool enabled);
-bool is_dynamic_manager_enabled();
 int dynamic_manager_get(struct ksu_manager_cmd *cmd);
 int dynamic_manager_set(struct ksu_manager_cmd *cmd);
 

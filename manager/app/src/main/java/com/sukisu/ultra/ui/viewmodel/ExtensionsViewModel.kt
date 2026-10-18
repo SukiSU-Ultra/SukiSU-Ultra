@@ -17,9 +17,17 @@ import kotlinx.coroutines.withContext
 data class ExtensionsUiState(
     val loading: Boolean = false,
     val states: Map<ExtensionId, ExtensionState> = emptyMap(),
-    val errorMessage: String? = null,
 )
 
+/**
+ * Read-only view model for the extension overview screen.
+ *
+ * The overview never toggles extensions: every subsystem that has a
+ * runtime sticky bit (currently only DynamicManager) exposes its own
+ * sub-screen with the appropriate controls, and the other three
+ * extensions (KPM, CPU spoof, umount paths) are either compile-time
+ * capabilities or purely io-driven. Refresh is the only operation.
+ */
 class ExtensionsViewModel(
     private val repo: ExtensionRepository = ExtensionRepositoryImpl()
 ) : ViewModel() {
@@ -33,44 +41,13 @@ class ExtensionsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.update { it.copy(loading = true, errorMessage = null) }
+            _uiState.update { it.copy(loading = true) }
             val newStates = mutableMapOf<ExtensionId, ExtensionState>()
-            try {
-                for (ext in ExtensionId.ALL) {
-                    val state = withContext(Dispatchers.IO) { repo.probe(ext) }
-                    newStates[ext] = state
-                }
-            } catch (t: Throwable) {
-                _uiState.update {
-                    it.copy(loading = false, errorMessage = t.message)
-                }
-                return@launch
+            for (ext in ExtensionId.ALL) {
+                val state = withContext(Dispatchers.IO) { repo.probe(ext) }
+                newStates[ext] = state
             }
             _uiState.update { it.copy(loading = false, states = newStates) }
         }
-    }
-
-    fun toggle(id: ExtensionId, enabled: Boolean) {
-        val current = _uiState.value.states[id] ?: return
-        if (!current.userToggleable) return
-        viewModelScope.launch {
-            val ok = withContext(Dispatchers.IO) { repo.setEnabled(id, enabled) }
-            if (!ok) {
-                _uiState.update { it.copy(errorMessage = "set_failed:${id.wireName}") }
-                return@launch
-            }
-            val refreshed = withContext(Dispatchers.IO) { repo.probe(id) }
-            _uiState.update { current ->
-                current.copy(
-                    states = current.states.toMutableMap().also {
-                        it[id] = refreshed
-                    }
-                )
-            }
-        }
-    }
-
-    fun consumeError() {
-        _uiState.update { it.copy(errorMessage = null) }
     }
 }

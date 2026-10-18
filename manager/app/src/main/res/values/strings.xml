@@ -744,19 +744,14 @@
          and dynamic manager. UI must always probe support before
          showing a toggle. -->
     <string name="extension_section_title">Extension features</string>
-    <string name="extension_section_summary">Subsystems with a richer UI than a single toggle. Probed at runtime; unavailable extensions are hidden or marked as unsupported.</string>
-    <string name="extension_supported">Supported</string>
+    <string name="extension_section_summary">Kernel extension features</string>
     <string name="extension_not_supported">Not supported by this kernel</string>
-    <string name="extension_forced">Forced by boot config</string>
-    <string name="extension_managed">Managed by module</string>
     <string name="extension_status_supported">Supported</string>
     <string name="extension_status_unsupported">Not supported</string>
     <string name="extension_status_forced">Forced</string>
     <string name="extension_status_managed">Module-managed</string>
     <string name="extension_status_enabled">Enabled</string>
     <string name="extension_status_disabled">Disabled</string>
-    <string name="extension_set_failed">Failed to set extension: %1$s</string>
-    <string name="extension_set_success">Extension updated</string>
     <string name="extension_kpm_title">KPM (Kernel Patch Module)</string>
     <string name="extension_kpm_summary">Load third-party .kpm modules at runtime. Requires a KPM-capable kernel build.</string>
     <string name="extension_cpu_spoof_title">CPU identity spoofing</string>

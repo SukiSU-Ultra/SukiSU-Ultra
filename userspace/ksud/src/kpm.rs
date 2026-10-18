@@ -16,7 +16,7 @@ use anyhow::{Result, bail};
 
 use crate::extension_id::ExtensionId;
 use crate::ksu_uapi;
-use crate::ksucalls::{extension_io, get_extension};
+use crate::ksucalls::extension_io;
 
 const KPM_DIR: &str = "/data/adb/kpm";
 
@@ -33,12 +33,6 @@ fn kpm_io(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
         return Err(anyhow::anyhow!(io::Error::from_raw_os_error(-result)));
     }
     Ok(ret)
-}
-
-#[allow(dead_code)] // exposed for external ksud callers
-pub fn enabled() -> Result<bool> {
-    let state = get_extension(ExtensionId::Kpm as u32)?;
-    Ok(state.supported && state.value != 0)
 }
 
 pub fn load_module<P>(path: P, args: Option<&str>) -> Result<()>

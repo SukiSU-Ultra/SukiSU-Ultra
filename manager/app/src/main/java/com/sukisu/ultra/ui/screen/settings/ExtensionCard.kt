@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,9 +12,7 @@ import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,28 +25,30 @@ import com.sukisu.ultra.ui.util.ExtensionId
 import com.sukisu.ultra.ui.util.ExtensionState
 
 /**
- * One row in the extension list. Status precedence (highest first):
- *  1. Forced by `force_extension=` boot param → disabled, "Forced"
- *  2. Managed by an active module             → disabled, "Module-managed"
- *  3. Not registered on this kernel           → disabled, "Not supported"
- *  4. Supported, free to toggle               → user-controlled
- *
- * Pass [onOpenDetails] to expose a "open details" trailing button that
- * navigates to the dedicated screen for that extension (e.g. KPM, dynamic
- * manager). The CPU-spoof card uses it to open the spoof-config form.
+ * One row in the extension list. Shows status (enabled/disabled/not supported).
+ * The whole card is clickable if the extension is supported; unsupported
+ * extensions display a non-interactive status and no navigation arrow.
  */
 @Composable
 fun ExtensionCard(
     title: String,
     summary: String,
     state: ExtensionState?,
-    managedByModule: Boolean,
-    onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
     onOpenDetails: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
+    val supported = state?.supported == true
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (supported && onOpenDetails != null) {
+                    Modifier.clickable(onClick = onOpenDetails)
+                } else {
+                    Modifier
+                }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
@@ -77,29 +78,35 @@ fun ExtensionCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                StatusLine(state = state, managedByModule = managedByModule)
+                StatusLine(state = state)
             }
-            Switch(
-                checked = state?.enabled == true,
-                onCheckedChange = onToggle,
-                enabled = state?.userToggleable == true && !managedByModule
-            )
-            if (onOpenDetails != null) {
-                IconButton(onClick = onOpenDetails) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = stringResource(
-                            R.string.extension_open_details
-                        ),
-                    )
-                }
+            if (supported && onOpenDetails != null) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = stringResource(
+                        R.string.extension_open_details
+                    ),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun StatusLine(state: ExtensionState?, managedByModule: Boolean) {
+private fun StatusLine(state: ExtensionState?) {
+    // Extensions without a runtime sticky bit (KPM, CPU spoof, umount
+    // paths) report value=0 even when their subsystem is healthy.
+    // Forcing a neutral "Supported" label here avoids showing a
+    // misleading "Disabled" pill in the overview, since the only
+    // place to actually operate them is their sub-screen.
+    if (state != null && !state.id.hasStickyBit && state.supported) {
+        Text(
+            text = stringResource(R.string.extension_status_supported),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        return
+    }
     val (label, color) = when {
         state == null -> return
         !state.supported ->
@@ -108,7 +115,7 @@ private fun StatusLine(state: ExtensionState?, managedByModule: Boolean) {
         state.forced ->
             stringResource(R.string.extension_status_forced) to
                 MaterialTheme.colorScheme.tertiary
-        managedByModule ->
+        state.managed ->
             stringResource(R.string.extension_status_managed) to
                 MaterialTheme.colorScheme.tertiary
         state.value != 0L ->
@@ -129,10 +136,8 @@ private fun StatusLine(state: ExtensionState?, managedByModule: Boolean) {
 fun ExtensionCard(
     id: ExtensionId,
     state: ExtensionState?,
-    managedByModule: Boolean,
-    onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
     onOpenDetails: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     ExtensionCard(
         title = stringResource(id.displayRes),
@@ -145,9 +150,7 @@ fun ExtensionCard(
             }
         ),
         state = state,
-        managedByModule = managedByModule,
-        onToggle = onToggle,
-        modifier = modifier,
         onOpenDetails = onOpenDetails,
+        modifier = modifier,
     )
 }

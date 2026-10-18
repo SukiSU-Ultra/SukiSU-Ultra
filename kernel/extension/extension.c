@@ -182,15 +182,26 @@ int ksu_extension_get(u32 extension_id, u64 *value, bool *supported)
 
     mutex_lock(&extension_mutex);
     handler = extension_handlers[extension_id];
-    if (!handler || !handler->ops || !handler->ops->get) {
+    if (!handler) {
         *supported = false;
         *value = 0;
         goto out;
     }
+
+    /*
+     * Handler presence means the subsystem is reachable (either via its
+     * sticky get/set ops, its io_handler, or both). Extensions that do
+     * not advertise a sticky bit (CPU_SPOOF, UMOUNT_PATHS) simply
+     * report a constant value of 0; "supported" is independent of
+     * whether `ops->get` exists.
+     */
     *supported = true;
-    ret = handler->ops->get(extension_id, value);
-    if (ret)
-        pr_err("extension: get for %u failed: %d\n", extension_id, ret);
+    *value = 0;
+    if (handler->ops && handler->ops->get) {
+        ret = handler->ops->get(extension_id, value);
+        if (ret)
+            pr_err("extension: get for %u failed: %d\n", extension_id, ret);
+    }
 out:
     mutex_unlock(&extension_mutex);
     return ret;
@@ -344,13 +355,13 @@ void __init ksu_extension_register_all(void)
     static const struct ksu_extension_handler cpu_spoof_handler = {
         .extension_id = KSU_EXTENSION_CPU_SPOOF,
         .name = "cpu_spoof",
-        .ops = &ksu_extension_cpu_spoof_ops,
+        .ops = NULL,
         .io_handler = ksu_extension_cpu_spoof_io,
     };
     static const struct ksu_extension_handler umount_paths_handler = {
         .extension_id = KSU_EXTENSION_UMOUNT_PATHS,
         .name = "umount_paths",
-        .ops = &ksu_extension_umount_paths_ops,
+        .ops = NULL,
         .io_handler = ksu_extension_umount_paths_io,
     };
     static const struct ksu_extension_handler dynamic_manager_handler = {

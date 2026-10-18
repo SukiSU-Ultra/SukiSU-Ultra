@@ -21,7 +21,6 @@
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-#include "extension.h"
 #include "uapi/supercall.h"
 #include "infra/symbol_resolver.h"
 #include "klog.h" // IWYU pragma: keep
@@ -74,8 +73,6 @@
 #endif
 
 #endif
-
-static bool cpu_spoof_armed = false;
 
 static int set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd)
 {
@@ -191,33 +188,12 @@ static int set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd)
     return 0;
 }
 
-int ksu_extension_cpu_spoof_get(u32 id, u64 *value)
-{
-    *value = cpu_spoof_armed ? 1 : 0;
-    return 0;
-}
-
-int ksu_extension_cpu_spoof_set(u32 id, u64 value)
-{
-    cpu_spoof_armed = value != 0;
-    pr_info("extension/cpu_spoof: armed=%u\n", cpu_spoof_armed);
-    return 0;
-}
-
-const struct ksu_extension_handler_ops ksu_extension_cpu_spoof_ops = {
-    .get = ksu_extension_cpu_spoof_get,
-    .set = ksu_extension_cpu_spoof_set,
-};
-
 int ksu_extension_cpu_spoof_io(u32 id, void __user *raw)
 {
     struct ksu_set_spoof_cpu_cmd cmd;
 
     if (copy_from_user(&cmd, raw, sizeof(cmd)))
         return -EFAULT;
-
-    if (!cpu_spoof_armed)
-        return 0;
 
     return set_spoof_cpu(&cmd);
 }

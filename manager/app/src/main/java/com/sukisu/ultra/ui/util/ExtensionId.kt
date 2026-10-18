@@ -20,22 +20,44 @@ enum class ExtensionId(val id: Int, val wireName: String, @StringRes val display
         fun fromWireName(name: String): ExtensionId? =
             ALL.firstOrNull { it.wireName == name }
     }
+
+    /**
+     * Whether this extension exposes a runtime sticky bit at all.
+     *
+     * `true`  → kernel has a get/set handler; UI may show a toggle.
+     * `false` → the subsystem is either compile-time-only (KPM) or
+     *           purely io-driven (CPU spoof, umount paths). The
+     *           status line in the overview shows "Supported" and
+     *           the card has no on/off control; opening the
+     *           sub-screen reveals whatever real controls exist.
+     *
+     * Mirrors `ExtensionId::has_sticky_bit` in
+     * `userspace/ksud/src/extension_id.rs`.
+     */
+    val hasStickyBit: Boolean
+        get() = this == DynamicManager
 }
 
 /**
  * Runtime state of one extension, as reported by the kernel.
- *  - `supported`: the kernel has a registered handler; the toggle is
- *    shown as disabled if false.
+ *  - `supported`: the kernel has a registered handler; the card is
+ *    shown as non-interactive if false.
  *  - `forced`: `force_extension=` boot param took the value; the
- *    toggle is disabled and labelled "Forced by boot config".
- *  - `value`: the sticky bit. Most extensions use bit 0 (1 = enabled).
+ *    card is read-only and labelled "Forced by boot config".
+ *  - `managed`: a module owns the extension; the card is read-only
+ *    and labelled "Managed by module".
+ *  - `value`: the sticky bit. Only meaningful when
+ *    [id.hasStickyBit] is true; for KPM / CPU spoof / umount paths
+ *    the kernel always reports 0 and the UI ignores it.
  */
 data class ExtensionState(
     val id: ExtensionId,
     val value: Long,
     val supported: Boolean,
     val forced: Boolean,
+    val managed: Boolean,
 ) {
-    val userToggleable: Boolean get() = supported && !forced
-    val enabled: Boolean get() = supported && value != 0L
+    val userToggleable: Boolean
+        get() = id.hasStickyBit && supported && !forced && !managed
+    val enabled: Boolean get() = userToggleable && value != 0L
 }

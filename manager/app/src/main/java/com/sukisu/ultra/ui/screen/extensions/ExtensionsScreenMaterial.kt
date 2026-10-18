@@ -1,7 +1,6 @@
 package com.sukisu.ultra.ui.screen.extensions
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -31,7 +30,6 @@ fun ExtensionsScreenMaterial(
     state: ExtensionsUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    onToggle: (ExtensionId, Boolean) -> Unit,
     onOpenDetails: (ExtensionId) -> Unit,
 ) {
     Scaffold(
@@ -57,31 +55,19 @@ fun ExtensionsScreenMaterial(
             )
         },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.extension_section_summary),
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                }
-                items(ExtensionId.ALL, key = { it.id }) { ext ->
-                    ExtensionCard(
-                        id = ext,
-                        state = state.states[ext],
-                        managedByModule = false,
-                        onToggle = { onToggle(ext, it) },
-                        onOpenDetails = { onOpenDetails(ext) },
-                    )
-                }
+            items(ExtensionId.ALL, key = { it.id }) { ext ->
+                ExtensionCard(
+                    id = ext,
+                    state = state.states[ext],
+                    onOpenDetails = { onOpenDetails(ext) },
+                )
             }
         }
     }

@@ -288,52 +288,6 @@ static bool extension_get_sticky(uint32_t id, uint64_t *out_value, bool *out_sup
     return true;
 }
 
-// Helper: extension sticky-bit setter.
-static bool extension_set_sticky(uint32_t id, uint64_t value) {
-    struct ksu_extension_cmd cmd = {};
-    cmd.id = id;
-    cmd.op = KSU_EXTENSION_SET;
-    cmd.value = value;
-    return ksu_extension_call(&cmd) == 0;
-}
-
-// ----- KPM -----
-bool set_kpm_enabled(bool enabled) {
-    return extension_set_sticky(KSU_EXTENSION_KPM, enabled ? 1 : 0);
-}
-
-bool is_kpm_enabled() {
-    uint64_t value = 0;
-    bool supported = false;
-    if (!extension_get_sticky(KSU_EXTENSION_KPM, &value, &supported)) {
-        return false;
-    }
-    if (!supported) {
-        return false;
-    }
-    return value != 0;
-}
-
-// ----- CPU spoof -----
-int set_cpu_spoof_enabled(bool enabled) {
-    if (!extension_set_sticky(KSU_EXTENSION_CPU_SPOOF, enabled ? 1 : 0)) {
-        return -errno;
-    }
-    return 0;
-}
-
-bool is_cpu_spoof_enabled() {
-    uint64_t value = 0;
-    bool supported = false;
-    if (!extension_get_sticky(KSU_EXTENSION_CPU_SPOOF, &value, &supported)) {
-        return false;
-    }
-    if (!supported) {
-        return false;
-    }
-    return value != 0;
-}
-
 // CPU spoof SET-MIDR (ksu_set_spoof_cpu_cmd is the user pointer).
 // Forwards the original struct via KSU_EXTENSION_IO op.
 int ksu_set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd) {
@@ -400,22 +354,6 @@ int umount_paths_list(char *buffer, uint32_t buf_size) {
 }
 
 // ----- Dynamic manager -----
-bool set_dynamic_manager_enabled(bool enabled) {
-    return extension_set_sticky(KSU_EXTENSION_DYNAMIC_MANAGER, enabled ? 1 : 0);
-}
-
-bool is_dynamic_manager_enabled() {
-    uint64_t value = 0;
-    bool supported = false;
-    if (!extension_get_sticky(KSU_EXTENSION_DYNAMIC_MANAGER, &value, &supported)) {
-        return false;
-    }
-    if (!supported) {
-        return false;
-    }
-    return value != 0;
-}
-
 int dynamic_manager_get(struct ksu_manager_cmd *cmd) {
     if (!cmd) return -EINVAL;
     cmd->operation = KSU_MANAGER_GET;
