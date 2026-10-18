@@ -2,6 +2,9 @@
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/ic_launcher_foreground">
     <target
-        android:name="splash_content"
-        android:animation="@animator/anim_splash_pop" />
+        android:name="splash_main_body"
+        android:animation="@animator/anim_splash_main" />
+    <target
+        android:name="splash_accent_heart"
+        android:animation="@animator/anim_splash_accent" />
 </animated-vector>

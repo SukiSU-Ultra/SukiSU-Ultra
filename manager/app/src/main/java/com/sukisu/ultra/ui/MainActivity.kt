@@ -1,16 +1,26 @@
 package com.sukisu.ultra.ui
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.View
+import android.view.animation.PathInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.core.animation.doOnEnd
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -123,7 +133,8 @@ class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
     private var contentReady = false
     private var splashStartedAt = 0L
-    private val splashAnimationDurationMs = 500L
+    private val splashAnimationDurationMs = 600L
+    private var isSplashExiting by mutableStateOf(false)
 
 
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -137,6 +148,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition {
             !contentReady || SystemClock.uptimeMillis() - splashStartedAt < splashAnimationDurationMs
+        }
+        splashScreen.setOnExitAnimationListener { provider ->
+            isSplashExiting = true
+            val iconView = provider.iconView
+            val splashView = provider.view
+
+            // 1. Icon 向前擴散消散 (Scale 1.0 -> 1.35, Alpha 1.0 -> 0.0, 260ms)
+            val iconScaleX = ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, 1.35f)
+            val iconScaleY = ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 1.35f)
+            val iconAlpha = ObjectAnimator.ofFloat(iconView, View.ALPHA, 1f, 0f)
+
+            // 2. 背景平滑淡出 (延遲 40ms, Alpha 1.0 -> 0.0, 240ms)
+            val bgAlpha = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
+                startDelay = 40L
+            }
+
+            AnimatorSet().apply {
+                interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
+                duration = 260L
+                playTogether(iconScaleX, iconScaleY, iconAlpha, bgAlpha)
+                doOnEnd { provider.remove() }
+                start()
+            }
         }
 
         val isManager = Natives.isManager
@@ -281,12 +315,30 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    when (uiMode) {
-                        UiMode.Material -> androidx.compose.material3.Scaffold(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ) { navDisplay() }
+                    val contentScale by animateFloatAsState(
+                        targetValue = if (isSplashExiting) 1.0f else 0.94f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        ),
+                        label = "splashExitContentScale"
+                    )
 
-                        UiMode.Miuix -> Scaffold { navDisplay() }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                scaleX = contentScale
+                                scaleY = contentScale
+                            }
+                    ) {
+                        when (uiMode) {
+                            UiMode.Material -> androidx.compose.material3.Scaffold(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ) { navDisplay() }
+
+                            UiMode.Miuix -> Scaffold { navDisplay() }
+                        }
                     }
                 }
                 SideEffect { contentReady = true }

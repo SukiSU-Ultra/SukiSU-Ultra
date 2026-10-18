@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="460"
+    android:interpolator="@android:interpolator/fast_out_slow_in"
+    android:startOffset="140">
+
+    <propertyValuesHolder
+        android:propertyName="scaleX"
+        android:valueType="floatType">
+        <keyframe
+            android:fraction="0.0"
+            android:value="0.0" />
+        <keyframe
+            android:fraction="0.6"
+            android:value="1.10" />
+        <keyframe
+            android:fraction="1.0"
+            android:value="1.0" />
+    </propertyValuesHolder>
+
+    <propertyValuesHolder
+        android:propertyName="scaleY"
+        android:valueType="floatType">
+        <keyframe
+            android:fraction="0.0"
+            android:value="0.0" />
+        <keyframe
+            android:fraction="0.6"
+            android:value="1.10" />
+        <keyframe
+            android:fraction="1.0"
+            android:value="1.0" />
+    </propertyValuesHolder>
+
+    <propertyValuesHolder
+        android:propertyName="rotation"
+        android:valueType="floatType">
+        <keyframe
+            android:fraction="0.0"
+            android:value="-18.0" />
+        <keyframe
+            android:fraction="0.65"
+            android:value="3.0" />
+        <keyframe
+            android:fraction="1.0"
+            android:value="0.0" />
+    </propertyValuesHolder>
+
+</objectAnimator>
