@@ -382,17 +382,23 @@ int ksu_extension_dynamic_manager_get(u32 id, u64 *value)
 
 int ksu_extension_dynamic_manager_set(u32 id, u64 value)
 {
-    struct ksu_manager_cmd cmd;
+    struct ksu_manager_cmd *cmd;
     bool want_enabled = value != 0;
+    int ret;
 
     if (want_enabled == ksu_manager_enabled())
         return 0;
 
-    memset(&cmd, 0, sizeof(cmd));
-    cmd.operation = KSU_MANAGER_SET_ENABLED;
-    cmd.enabled = want_enabled ? 1 : 0;
-    cmd.count = 0;
-    return ksu_dynamic_manager_set(&cmd);
+    cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+    if (!cmd)
+        return -ENOMEM;
+
+    cmd->operation = KSU_MANAGER_SET_ENABLED;
+    cmd->enabled = want_enabled ? 1 : 0;
+    cmd->count = 0;
+    ret = ksu_dynamic_manager_set(cmd);
+    kfree(cmd);
+    return ret;
 }
 
 const struct ksu_extension_handler_ops ksu_extension_dynamic_manager_ops = {

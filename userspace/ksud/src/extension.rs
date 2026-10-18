@@ -421,7 +421,7 @@ pub fn init_forced_extensions() {
                 extension_id.name(),
                 state.value
             );
-            on_extension_applied(*extension_id, state.value);
+            on_extension_applied(extension_id, state.value);
         }
     }
 }

@@ -14,12 +14,13 @@ use std::{
 
 use anyhow::{Result, bail};
 
+use crate::extension_id::ExtensionId;
 use crate::ksu_uapi;
 use crate::ksucalls::{extension_io, get_extension};
 
 const KPM_DIR: &str = "/data/adb/kpm";
 
-fn kpm_io<T>(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
+fn kpm_io(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
     let mut ret = -1i32;
     let mut cmd = ksu_uapi::ksu_kpm_cmd {
         control_code: control_code as u64,
@@ -27,7 +28,7 @@ fn kpm_io<T>(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
         arg2,
         result_code: &raw mut ret as u64,
     };
-    let result = unsafe { extension_io(ksu_uapi::KSU_EXTENSION_KPM as u32, &raw mut cmd)? };
+    let result = unsafe { extension_io(ExtensionId::Kpm as u32, &raw mut cmd)? };
     if result < 0 {
         return Err(anyhow::anyhow!(io::Error::from_raw_os_error(-result)));
     }
@@ -35,7 +36,7 @@ fn kpm_io<T>(control_code: u32, arg1: u64, arg2: u64) -> Result<i32> {
 }
 
 pub fn enabled() -> Result<bool> {
-    let state = get_extension(ksu_uapi::KSU_EXTENSION_KPM as u32)?;
+    let state = get_extension(ExtensionId::Kpm as u32)?;
     Ok(state.supported && state.value != 0)
 }
 

@@ -1,6 +1,7 @@
 #![allow(clippy::unreadable_literal)]
 use anyhow::{Result, bail};
 
+use crate::extension_id::ExtensionId;
 use crate::ksu_uapi;
 use std::cell::Cell;
 use std::fs;
@@ -447,7 +448,7 @@ pub fn nuke_ext4_sysfs(mnt: &str) -> anyhow::Result<()> {
 pub fn umount_list_wipe() -> Result<()> {
     // KSU_EXTENSION_WIPE on the umount_paths extension wipes the list.
     let mut cmd = ksu_uapi::ksu_extension_cmd {
-        id: ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32,
+        id: ksu_uapi::ExtensionId::UmountPaths as u32,
         op: ksu_uapi::KSU_EXTENSION_WIPE,
         supported: 0,
         reserved: 0,
@@ -469,7 +470,7 @@ pub fn umount_list_add(path: &str, flags: u32) -> anyhow::Result<()> {
     hdr.payload.add.flags = flags;
     hdr.payload.add.mode = ksu_uapi::KSU_UMOUNT_ADD;
     unsafe {
-        extension_io(ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32, &raw mut hdr)?;
+        extension_io(ksu_uapi::ExtensionId::UmountPaths as u32, &raw mut hdr)?;
     }
     Ok(())
 }
@@ -483,7 +484,7 @@ pub fn umount_list_del(path: &str) -> anyhow::Result<()> {
     hdr.payload.add.flags = 0;
     hdr.payload.add.mode = ksu_uapi::KSU_UMOUNT_DEL;
     unsafe {
-        extension_io(ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32, &raw mut hdr)?;
+        extension_io(ksu_uapi::ExtensionId::UmountPaths as u32, &raw mut hdr)?;
     }
     Ok(())
 }
@@ -542,7 +543,7 @@ pub fn umount_list_list() -> anyhow::Result<String> {
     hdr.payload.list.arg = buffer.as_mut_ptr() as u64;
     hdr.payload.list.buf_size = BUF_SIZE as u32;
     unsafe {
-        extension_io(ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32, &raw mut hdr)?;
+        extension_io(ksu_uapi::ExtensionId::UmountPaths as u32, &raw mut hdr)?;
     }
     let len = buffer.iter().position(|&b| b == 0).unwrap_or(BUF_SIZE);
     Ok(String::from_utf8_lossy(&buffer[..len]).to_string())
@@ -581,7 +582,7 @@ pub fn set_spoof_cpu(
         hwcap2,
     };
     unsafe {
-        extension_io(ksu_uapi::KSU_EXTENSION_CPU_SPOOF as u32, &raw mut cmd)?;
+        extension_io(ExtensionId::CpuSpoof as u32, &raw mut cmd)?;
     }
     Ok(())
 }
