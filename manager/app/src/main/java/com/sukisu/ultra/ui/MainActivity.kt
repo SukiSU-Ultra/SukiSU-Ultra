@@ -4,6 +4,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -18,6 +19,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.core.animation.doOnEnd
@@ -55,6 +57,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,6 +66,7 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -150,24 +154,46 @@ class MainActivity : ComponentActivity() {
             !contentReady || SystemClock.uptimeMillis() - splashStartedAt < splashAnimationDurationMs
         }
         splashScreen.setOnExitAnimationListener { provider ->
-            isSplashExiting = true
-            val iconView = provider.iconView
+            // iconView is missing when the system splash has no icon (some OEMs, non-launcher starts)
+            val iconView = runCatching { provider.iconView }.getOrNull()
             val splashView = provider.view
 
-            // 1. Icon 向前擴散消散 (Scale 1.0 -> 1.35, Alpha 1.0 -> 0.0, 260ms)
-            val iconScaleX = ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, 1.35f)
-            val iconScaleY = ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 1.35f)
-            val iconAlpha = ObjectAnimator.ofFloat(iconView, View.ALPHA, 1f, 0f)
+            // 1. Icon 先微縮蓄力 (Scale 1.0 -> 0.86, 140ms)
+            val anticipate = AnimatorSet().apply {
+                interpolator = PathInterpolator(0.3f, 0f, 0.2f, 1f)
+                duration = 140L
+                if (iconView != null) {
+                    playTogether(
+                        ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, 0.86f),
+                        ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 0.86f),
+                    )
+                }
+                doOnEnd { isSplashExiting = true }
+            }
 
-            // 2. 背景平滑淡出 (延遲 40ms, Alpha 1.0 -> 0.0, 240ms)
-            val bgAlpha = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
-                startDelay = 40L
+            // 2. Icon 向前衝出並消散 (Scale 0.86 -> 2.6, Alpha 1.0 -> 0.0, 320ms)
+            // 3. 背景隨之淡出，露出正在展開的內容 (延遲 40ms, 280ms)
+            val launch = AnimatorSet().apply {
+                interpolator = PathInterpolator(0.4f, 0f, 0.6f, 1f)
+                duration = 320L
+                val bgAlpha = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
+                    startDelay = 40L
+                    duration = 280L
+                }
+                if (iconView != null) {
+                    playTogether(
+                        ObjectAnimator.ofFloat(iconView, View.SCALE_X, 0.86f, 2.6f),
+                        ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 0.86f, 2.6f),
+                        ObjectAnimator.ofFloat(iconView, View.ALPHA, 1f, 0f),
+                        bgAlpha,
+                    )
+                } else {
+                    play(bgAlpha)
+                }
             }
 
             AnimatorSet().apply {
-                interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
-                duration = 260L
-                playTogether(iconScaleX, iconScaleY, iconAlpha, bgAlpha)
+                playSequentially(anticipate, launch)
                 doOnEnd { provider.remove() }
                 start()
             }
@@ -200,6 +226,12 @@ class MainActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     window.isNavigationBarContrastEnforced = false
                 }
+                // Match the splash background so the shrunken content never shows a mismatched edge
+                window.setBackgroundDrawable(
+                    ColorDrawable(
+                        getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light)
+                    )
+                )
                 onDispose { }
             }
 
@@ -315,21 +347,34 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val contentScale by animateFloatAsState(
-                        targetValue = if (isSplashExiting) 1.0f else 0.94f,
+                    LaunchedEffect(Unit) {
+                        delay(splashAnimationDurationMs + 300L)
+                        isSplashExiting = true
+                    }
+
+                    val enterProgress by animateFloatAsState(
+                        targetValue = if (isSplashExiting) 1f else 0f,
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMediumLow
+                            stiffness = Spring.StiffnessLow
                         ),
-                        label = "splashExitContentScale"
+                        label = "splashExitContentProgress"
                     )
 
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                scaleX = contentScale
-                                scaleY = contentScale
+                                // 內容從圓角小卡片展開成全螢幕 (Scale 0.86 -> 1.0, 圓角 36dp -> 0)
+                                val scale = 0.86f + 0.14f * enterProgress
+                                scaleX = scale
+                                scaleY = scale
+                                if (enterProgress < 1f) {
+                                    shape = RoundedCornerShape(36.dp * (1f - enterProgress))
+                                    clip = true
+                                } else {
+                                    clip = false
+                                }
                             }
                     ) {
                         when (uiMode) {
