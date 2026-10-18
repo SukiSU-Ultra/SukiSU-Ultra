@@ -778,7 +778,7 @@ private fun ModuleItem(
                     }
 
                     Text(
-                        text = "${module.version} · ${module.author}",
+                        text = "${module.version}, ${module.author}",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,

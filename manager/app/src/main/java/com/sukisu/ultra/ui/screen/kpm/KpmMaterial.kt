@@ -403,7 +403,7 @@ private fun KpmModuleItemMaterial(
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "${module.version} · ${module.author}",
+                    text = "${module.version}, ${module.author}",
                     style = MaterialTheme.typography.labelSmall,
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

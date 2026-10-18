@@ -889,7 +889,7 @@ fun ModuleItem(
                         }
                     }
                     Text(
-                        text = "${module.version} · ${module.author}",
+                        text = "${module.version}, ${module.author}",
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 2.dp, bottom = 1.dp),
                         fontFamily = FontFamily.Monospace,

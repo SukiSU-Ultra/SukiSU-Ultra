@@ -226,7 +226,7 @@ private fun TemplateItem(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
-                    text = "${template.id}${if (template.author.isEmpty()) "" else " · ${template.author}"}",
+                    text = "${template.id}${if (template.author.isEmpty()) "" else ", ${template.author}"}",
                     style = MaterialTheme.typography.labelSmall,
                     fontFamily = FontFamily.Monospace,
                 )

@@ -391,7 +391,7 @@ private fun RepoModuleList(
                         }
                     }
                     Text(
-                        text = if (module.authors.isNotEmpty()) "${module.moduleId} · ${module.authors}" else module.moduleId,
+                        text = if (module.authors.isNotEmpty()) "${module.moduleId}, ${module.authors}" else module.moduleId,
                         modifier = Modifier.padding(top = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
