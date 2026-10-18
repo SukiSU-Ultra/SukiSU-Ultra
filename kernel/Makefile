@@ -59,6 +59,12 @@ $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
 ifeq ($(CONFIG_KSU_SUSFS), y)
 $(info -- $(REPO_NAME): using SUSFS_INLINE_HOOK)
+else ifeq ($(CONFIG_KSU_HACK_ARM64_BRANCH_LINK), y)
+$(info -- $(REPO_NAME): using ARM64_BRANCH_LINK)
+else ifeq ($(CONFIG_KSU_TAMPER_SYSCALL_TABLE), y)
+$(info -- $(REPO_NAME): using TAMPER_SYSCALL_TABLE)
+else ifeq ($(CONFIG_KSU_KPROBES_KSUD), y)
+$(info -- $(REPO_NAME): using KPROBES_KSUD)
 else
 $(info -- $(REPO_NAME): using Unknown)
 endif

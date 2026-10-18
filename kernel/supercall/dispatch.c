@@ -903,7 +903,21 @@ static int do_get_full_version(void __user *arg)
 static int do_get_hook_type(void __user *arg)
 {
     struct ksu_hook_type_cmd cmd = { 0 };
-    const char *type = "Tracepoint Syscall Redirect";
+    const char *type;
+
+#if defined(CONFIG_KSU_SUSFS) && defined(CONFIG_KSU_SUSFS_INLINE_HOOK)
+    type = "SUSFS Inline Hook";
+#elif defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+    type = "ARM64 Branch Link Hijack";
+#elif defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE)
+    type = "Syscall Table Tamper";
+#elif defined(CONFIG_KSU_KPROBES_KSUD)
+    type = "Kprobes KSUD";
+#elif defined(CONFIG_KSU_MANUAL_HOOK)
+    type = "Manual Hook";
+#else
+    type = "Unknown";
+#endif
 
     strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
 

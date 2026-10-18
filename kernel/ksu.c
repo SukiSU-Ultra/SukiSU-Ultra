@@ -36,6 +36,7 @@
 #include "include/uapi/selinux.h"
 #include "include/uapi/supercall.h"
 #include "include/uapi/sulog.h"
+#include "include/uapi/manager.h"
 
 // includes
 #include "include/arch.h"

@@ -2,10 +2,6 @@
 #ifndef __KSU_DYNAMIC_MANAGER_H
 #define __KSU_DYNAMIC_MANAGER_H
 
-#include <linux/errno.h>
-#include <linux/types.h>
-#include "uapi/supercall.h"
-
 #ifdef CONFIG_KSU_DISABLE_MANAGER
 static inline bool ksu_dynamic_manager_match(const char *package, unsigned int size, const char *hash)
 {

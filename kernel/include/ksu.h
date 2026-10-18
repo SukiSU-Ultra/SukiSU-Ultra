@@ -11,6 +11,11 @@ static bool allow_shell = true;
 static bool allow_shell = false;
 #endif
 
+// SukiSU Ultra kernel su version full strings
+#ifndef KSU_VERSION_FULL
+#define KSU_VERSION_FULL "v3.x-00000000@unknown"
+#endif
+
 static inline int startswith(char *s, char *prefix)
 {
 	return strncmp(s, prefix, strlen(prefix));

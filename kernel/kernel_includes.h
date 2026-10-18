@@ -108,6 +108,7 @@
 #include <linux/utsname.h>
 #include <linux/version.h>
 #include <linux/vmalloc.h>
+#include <linux/ctype.h>
 
 // versioned / conditional
 
