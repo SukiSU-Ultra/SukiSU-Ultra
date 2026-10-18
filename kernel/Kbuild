@@ -30,14 +30,18 @@ kernelsu-objs += infra/symbol_resolver.o
 
 ifneq ($(CONFIG_KSU_DISABLE_MANAGER),y)
 kernelsu-objs += manager/apk_sign.o
-kernelsu-objs += manager/dynamic_manager.o
 kernelsu-objs += manager/pkg_observer.o
 kernelsu-objs += manager/throne_tracker.o
+kernelsu-objs += extension/dynamic_manager.o
 endif
 
 kernelsu-objs += policy/allowlist.o
 kernelsu-objs += policy/app_profile.o
 kernelsu-objs += policy/feature.o
+
+kernelsu-objs += extension/extension.o
+kernelsu-objs += extension/cpu_spoof.o
+kernelsu-objs += extension/umount_paths.o
 
 kernelsu-objs += runtime/boot_event.o
 kernelsu-objs += runtime/ksud_integration.o
@@ -60,8 +64,6 @@ kernelsu-objs += feature/shell_su_adb_only.o
 
 kernelsu-objs += feature/uts_spoof.o
 
-kernelsu-objs += feature/cpu_spoof.o
-
 ifdef KBUILD_EXTMOD
 ifeq ($(CONFIG_KSU_DISABLE_MANAGER),y)
 ccflags-y += -DCONFIG_KSU_DISABLE_MANAGER=1
@@ -77,9 +79,10 @@ ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
 endif
 endif
 
-obj-$(CONFIG_KPM) += kpm/compact.o
-obj-$(CONFIG_KPM) += kpm/kpm.o
-obj-$(CONFIG_KPM) += kpm/super_access.o
+obj-$(CONFIG_KPM) += extension/kpm.o
+obj-$(CONFIG_KPM) += extension/kpm/kpm.o
+obj-$(CONFIG_KPM) += extension/kpm/compact.o
+obj-$(CONFIG_KPM) += extension/kpm/super_access.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h

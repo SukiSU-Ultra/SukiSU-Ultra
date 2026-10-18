@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LayersClear
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Policy
@@ -76,7 +77,6 @@ fun SettingPagerMaterial(
     uiState: SettingsUiState,
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
-    isKpmAvailable: Boolean,
     isSusfsSupported: Boolean
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -204,12 +204,12 @@ fun SettingPagerMaterial(
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
-                        val title = stringResource(R.string.dynamic_manager_title)
+                        val extensionsTitle = stringResource(R.string.extension_section_title)
                         SegmentedListItem(
-                            onClick = actions.onOpenDynamicManagers,
-                            headlineContent = { Text(title) },
-                            supportingContent = { Text(stringResource(R.string.dynamic_manager_summary)) },
-                            leadingContent = { IconTile(Icons.Filled.AdminPanelSettings, title) },
+                            onClick = actions.onOpenExtensions,
+                            headlineContent = { Text(extensionsTitle) },
+                            supportingContent = { Text(stringResource(R.string.extension_section_summary)) },
+                            leadingContent = { IconTile(Icons.Filled.Memory, extensionsTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -228,27 +228,6 @@ fun SettingPagerMaterial(
                             headlineContent = { Text(toolsTitle) },
                             supportingContent = { Text(stringResource(id = R.string.settings_tools_summary)) },
                             leadingContent = { IconTile(Icons.Filled.Fence, toolsTitle) },
-                            trailingContent = {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    null
-                                )
-                            }
-                        )
-                    }
-                )
-            }
-
-            val kpmTitle = stringResource(id = R.string.kpm_title)
-            if (isKpmAvailable) {
-                SegmentedColumn(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
-                    content = listOf {
-                        SegmentedListItem(
-                            onClick = actions.onOpenKpm,
-                            headlineContent = { Text(kpmTitle) },
-                            supportingContent = { Text(stringResource(id = R.string.settings_kpm_summary)) },
-                            leadingContent = { IconTile(Icons.Filled.Fence, kpmTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,

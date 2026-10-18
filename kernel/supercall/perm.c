@@ -2,7 +2,7 @@
 
 #include "supercall/internal.h"
 #include "manager/manager_identity.h"
-#include "manager/dynamic_manager.h"
+#include "extension/dynamic_manager.h"
 #include "policy/allowlist.h"
 
 bool only_manager(void)

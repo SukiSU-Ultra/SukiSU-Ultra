@@ -663,4 +663,34 @@
     <string name="dynamic_manager_remove">移除管理器</string>
     <string name="dynamic_manager_select_app">已安裝的應用程式</string>
     <string name="dynamic_manager_authorize">授權 %1$s</string>
+
+    <!-- 擴充功能子系統 (KSU_IOCTL_EXTENSION)。UI 必須在顯示開關前先
+         探測是否被核心支援，不可用時隱藏或標註為不支援。 -->
+    <string name="extension_section_title">擴充功能</string>
+    <string name="extension_section_summary">比單一開關更豐富的核心子系統。執行階段探測；不支援的項目會被隱藏或標記為不可用。</string>
+    <string name="extension_supported">支援</string>
+    <string name="extension_not_supported">目前核心不支援</string>
+    <string name="extension_forced">由啟動參數強制設定</string>
+    <string name="extension_managed">由模組託管</string>
+    <string name="extension_status_supported">支援</string>
+    <string name="extension_status_unsupported">不支援</string>
+    <string name="extension_status_forced">已強制</string>
+    <string name="extension_status_managed">模組託管</string>
+    <string name="extension_status_enabled">已啟用</string>
+    <string name="extension_status_disabled">已停用</string>
+    <string name="extension_set_failed">設定擴充功能失敗：%1$s</string>
+    <string name="extension_set_success">擴充功能已更新</string>
+    <string name="extension_kpm_title">KPM (核心補丁模組)</string>
+    <string name="extension_kpm_summary">執行階段載入第三方 .kpm 模組。需要核心支援 KPM。</string>
+    <string name="extension_cpu_spoof_title">CPU 身分偽裝</string>
+    <string name="extension_cpu_spoof_summary">對新啟動的進程覆寫回報的 MIDR、BogoMIPS 與 ELF hwcap。</string>
+    <string name="extension_umount_paths_title">Umount 路徑管理</string>
+    <string name="extension_umount_paths_summary">管理應用啟動時核心將卸載的掛載點清單。</string>
+    <string name="extension_dynamic_manager_title">動態管理器</string>
+    <string name="extension_dynamic_manager_summary">允許多個透過簽名憑證驗證的應用程式充當 KernelSU 管理器。</string>
+    <string name="extension_open_details">開啟詳情</string>
+    <string name="extension_open_kpm">開啟 KPM 管理</string>
+    <string name="extension_open_dynamic_manager">開啟動態管理器列表</string>
+    <string name="extension_open_umount_paths">開啟 Umount 路徑列表</string>
+    <string name="extension_open_cpu_spoof">開啟 CPU 偽裝表單</string>
 </resources>

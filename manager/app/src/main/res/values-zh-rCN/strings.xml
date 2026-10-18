@@ -734,4 +734,34 @@
     <string name="dynamic_manager_current">当前管理器</string>
     <string name="dynamic_manager_default">默认管理器</string>
     <string name="dynamic_manager_authorized">已授权管理器</string>
+
+    <!-- 拓展功能子系统(KSU_IOCTL_EXTENSION)。UI 必须在显示开关前先
+         探测是否被内核支持,不可用时隐藏或标注为不支持。 -->
+    <string name="extension_section_title">拓展功能</string>
+    <string name="extension_section_summary">比单一开关更丰富的内核子系统。运行时探测;不支持的项目会被隐藏或标记为不可用。</string>
+    <string name="extension_supported">支持</string>
+    <string name="extension_not_supported">当前内核不支持</string>
+    <string name="extension_forced">由启动参数强制设置</string>
+    <string name="extension_managed">由模块托管</string>
+    <string name="extension_status_supported">支持</string>
+    <string name="extension_status_unsupported">不支持</string>
+    <string name="extension_status_forced">已强制</string>
+    <string name="extension_status_managed">模块托管</string>
+    <string name="extension_status_enabled">已启用</string>
+    <string name="extension_status_disabled">已禁用</string>
+    <string name="extension_set_failed">设置拓展功能失败:%1$s</string>
+    <string name="extension_set_success">拓展功能已更新</string>
+    <string name="extension_kpm_title">KPM (内核补丁模块)</string>
+    <string name="extension_kpm_summary">运行时加载第三方 .kpm 模块。需要内核支持 KPM。</string>
+    <string name="extension_cpu_spoof_title">CPU 身份伪装</string>
+    <string name="extension_cpu_spoof_summary">对新启动的进程覆写上报的 MIDR、BogoMIPS 与 ELF hwcap。</string>
+    <string name="extension_umount_paths_title">Umount 路径管理</string>
+    <string name="extension_umount_paths_summary">管理应用启动时内核将卸载的挂载点列表。</string>
+    <string name="extension_dynamic_manager_title">动态管理器</string>
+    <string name="extension_dynamic_manager_summary">允许通过签名证书验证的多个应用充当 KernelSU 管理器。</string>
+    <string name="extension_open_details">打开详情</string>
+    <string name="extension_open_kpm">打开 KPM 管理</string>
+    <string name="extension_open_dynamic_manager">打开动态管理器列表</string>
+    <string name="extension_open_umount_paths">打开 Umount 路径列表</string>
+    <string name="extension_open_cpu_spoof">打开 CPU 伪装表单</string>
 </resources>

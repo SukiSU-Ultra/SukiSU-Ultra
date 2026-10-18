@@ -18,8 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backup
-import androidx.compose.material.icons.rounded.FolderDelete
-import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.runtime.Composable
@@ -115,47 +113,6 @@ fun ToolsMiuix(
                         selinuxLoading = state.selinuxLoading,
                         onSelinuxToggle = actions.onSelinuxToggle
                     )
-
-                    Card(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .fillMaxWidth(),
-                    ) {
-                        val umountManager = stringResource(id = R.string.umount_path_manager)
-                        ArrowPreference(
-                            title = umountManager,
-                            startAction = {
-                                Icon(
-                                    Icons.Rounded.FolderDelete,
-                                    modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = umountManager,
-                                    tint = colorScheme.onBackground
-                                )
-                            },
-                            onClick = actions.onNavigateToUmountManager
-                        )
-                    }
-
-                    Card(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .fillMaxWidth(),
-                    ) {
-                        val spoofCpuTitle = stringResource(id = R.string.tools_spoof_cpu_title)
-                        ArrowPreference(
-                            title = spoofCpuTitle,
-                            summary = stringResource(R.string.tools_spoof_cpu_summary),
-                            startAction = {
-                                Icon(
-                                    Icons.Rounded.Memory,
-                                    modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = spoofCpuTitle,
-                                    tint = colorScheme.onBackground
-                                )
-                            },
-                            onClick = actions.onOpenSpoofCpuDialog
-                        )
-                    }
 
                     AllowlistBackupSectionMiuix(
                         onBackup = actions.onBackupAllowlist,

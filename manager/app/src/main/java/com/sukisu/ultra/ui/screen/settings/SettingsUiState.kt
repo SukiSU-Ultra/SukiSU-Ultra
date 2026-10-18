@@ -93,7 +93,6 @@ data class SettingsScreenActions(
     val onOpenAbout: () -> Unit,
     val onSetAlternativeIcon: (Boolean) -> Unit,
     val onOpenTools: () -> Unit,
-    val onOpenKpm: () -> Unit,
     val onOpenSusfsConfig: () -> Unit,
-    val onOpenDynamicManagers: () -> Unit,
+    val onOpenExtensions: () -> Unit,
 )

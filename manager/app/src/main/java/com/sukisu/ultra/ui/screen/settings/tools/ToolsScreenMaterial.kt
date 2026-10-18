@@ -17,8 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backup
-import androidx.compose.material.icons.rounded.FolderDelete
-import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material3.Button
@@ -92,35 +90,6 @@ fun ToolsMaterial(
                         selinuxEnforcing = state.selinuxEnforcing,
                         selinuxLoading = state.selinuxLoading,
                         onSelinuxToggle = actions.onSelinuxToggle
-                    )
-
-                    SegmentedColumn(
-                        modifier = Modifier.padding(top = 12.dp),
-                        content = listOf({
-                            val umountManager = stringResource(id = R.string.umount_path_manager)
-                            SegmentedListItem(
-                                onClick = actions.onNavigateToUmountManager,
-                                headlineContent = { Text(umountManager) },
-                                leadingContent = {
-                                    IconTile(Icons.Rounded.FolderDelete, umountManager)
-                                }
-                            )
-                        })
-                    )
-
-                    SegmentedColumn(
-                        modifier = Modifier.padding(top = 12.dp),
-                        content = listOf({
-                            val spoofCpuTitle = stringResource(id = R.string.tools_spoof_cpu_title)
-                            SegmentedListItem(
-                                onClick = actions.onOpenSpoofCpuDialog,
-                                headlineContent = { Text(spoofCpuTitle) },
-                                supportingContent = { Text(stringResource(R.string.tools_spoof_cpu_summary)) },
-                                leadingContent = {
-                                    IconTile(Icons.Rounded.Memory, spoofCpuTitle)
-                                }
-                            )
-                        })
                     )
 
                     AllowlistBackupSectionMaterial(

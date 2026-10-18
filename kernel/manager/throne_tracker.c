@@ -15,7 +15,7 @@
 #include "manager/apk_sign.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_identity.h"
-#include "manager/dynamic_manager.h"
+#include "extension/dynamic_manager.h"
 #include "manager/throne_tracker.h"
 
 static DEFINE_MUTEX(throne_tracker_mutex);

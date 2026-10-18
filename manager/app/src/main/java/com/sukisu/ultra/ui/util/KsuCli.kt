@@ -140,6 +140,32 @@ private suspend fun readFeatureValue(args: String): Long? = withContext(Dispatch
     valueLine.substringAfter("Value:").trim().toLongOrNull()
 }
 
+// Extension helpers (mirror the feature helpers above). The ksud
+// subcommand is `extension <get|set|check|list|...>`.
+
+suspend fun getExtensionStatus(extension: String): String = withContext(Dispatchers.IO) {
+    val shell = getRootShell()
+    val out = shell.newJob()
+        .add("${getKsuDaemonPath()} extension check $extension").to(ArrayList<String>(), null).exec().out
+    out.firstOrNull()?.trim().orEmpty()
+}
+
+suspend fun getExtensionPersistValue(extension: String): Long? = readExtensionValue("--config $extension")
+
+suspend fun getExtensionValue(extension: String): Long? = readExtensionValue(extension)
+
+private suspend fun readExtensionValue(args: String): Long? = withContext(Dispatchers.IO) {
+    val shell = getRootShell()
+    val out = shell.newJob()
+        .add("${getKsuDaemonPath()} extension get $args").to(ArrayList<String>(), null).exec().out
+    val valueLine = out.firstOrNull { it.trim().startsWith("Value:") } ?: return@withContext null
+    valueLine.substringAfter("Value:").trim().toLongOrNull()
+}
+
+fun setExtensionEnabled(extension: String, enabled: Boolean): Boolean = execKsud(
+    "extension set $extension ${if (enabled) 1 else 0}", true
+)
+
 fun install() {
     val start = SystemClock.elapsedRealtime()
     val libadbroot = File(ksuApp.applicationInfo.nativeLibraryDir, "libadbroot.so").absolutePath

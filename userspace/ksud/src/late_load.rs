@@ -142,6 +142,12 @@ pub fn run(
         warn!("init features failed: {e}");
     }
 
+    // 7b. Initialize extensions (forced / module-managed are skipped).
+    crate::extension::init_forced_extensions();
+    if let Err(e) = crate::extension::init_extensions() {
+        warn!("init extensions failed: {e}");
+    }
+
     // 8. Execute late-load stage scripts with a shared boot deadline
     let wait = ScriptWait::Until(Instant::now() + defs::BOOT_STAGE_TIMEOUT);
     init_event::run_stage("late-load", wait);

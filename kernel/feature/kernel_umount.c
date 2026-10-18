@@ -11,6 +11,7 @@
 #include <linux/types.h>
 
 #include "feature/kernel_umount.h"
+#include "extension/umount_paths.h"
 #include "klog.h" // IWYU pragma: keep
 #include "policy/allowlist.h"
 #include "selinux/selinux.h"

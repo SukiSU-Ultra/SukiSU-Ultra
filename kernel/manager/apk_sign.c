@@ -20,7 +20,7 @@
 #endif
 
 #include "manager/apk_sign.h"
-#include "manager/dynamic_manager.h"
+#include "extension/dynamic_manager.h"
 #include "manager/manager_identity.h"
 #include "uapi/app_profile.h"
 #include "klog.h" // IWYU pragma: keep

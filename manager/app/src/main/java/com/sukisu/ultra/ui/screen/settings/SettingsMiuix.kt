@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LayersClear
+import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Policy
@@ -79,7 +80,6 @@ fun SettingPagerMiuix(
     uiState: SettingsUiState,
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
-    isKpmAvailable: Boolean,
     isSusfsSupported: Boolean
 ) {
     val scrollBehavior = MiuixScrollBehavior()
@@ -246,14 +246,19 @@ fun SettingPagerMiuix(
                         Card(
                             modifier = Modifier.padding(top = 12.dp).fillMaxWidth()
                         ) {
-                            val title = stringResource(R.string.dynamic_manager_title)
+                            val extensionsTitle = stringResource(R.string.extension_section_title)
                             ArrowPreference(
-                                title = title,
-                                summary = stringResource(R.string.dynamic_manager_summary),
+                                title = extensionsTitle,
+                                summary = stringResource(R.string.extension_section_summary),
                                 startAction = {
-                                    Icon(Icons.Rounded.AdminPanelSettings, modifier = Modifier.padding(end = 6.dp), contentDescription = title, tint = colorScheme.onBackground)
+                                    Icon(
+                                        Icons.Rounded.Memory,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = extensionsTitle,
+                                        tint = colorScheme.onBackground
+                                    )
                                 },
-                                onClick = actions.onOpenDynamicManagers
+                                onClick = actions.onOpenExtensions
                             )
                         }
                         val toolsTitle = stringResource(id = R.string.settings_tools)
@@ -275,31 +280,6 @@ fun SettingPagerMiuix(
                                 },
                                 onClick = {
                                     actions.onOpenTools()
-                                }
-                            )
-                        }
-                    }
-
-                    if (isKpmAvailable) {
-                        Card(
-                            modifier = Modifier
-                                .padding(top = 12.dp)
-                                .fillMaxWidth(),
-                        ) {
-                            val kpmTitle = stringResource(id = R.string.kpm_title)
-                            ArrowPreference(
-                                title = kpmTitle,
-                                summary = stringResource(id = R.string.settings_kpm_summary),
-                                startAction = {
-                                    Icon(
-                                        Icons.Rounded.Code,
-                                        modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = kpmTitle,
-                                        tint = colorScheme.onBackground
-                                    )
-                                },
-                                onClick = {
-                                    actions.onOpenKpm()
                                 }
                             )
                         }
@@ -330,17 +310,20 @@ fun SettingPagerMiuix(
                                 )
                             }
                         }
+                    }
+
+                    KsuIsValid {
+                        val suCompatModeItems = listOf(
+                            stringResource(id = R.string.settings_mode_enable_by_default),
+                            stringResource(id = R.string.settings_mode_disable_until_reboot),
+                            stringResource(id = R.string.settings_mode_disable_always),
+                        )
+
                         Card(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                         ) {
-                            val suCompatModeItems = listOf(
-                                stringResource(id = R.string.settings_mode_enable_by_default),
-                                stringResource(id = R.string.settings_mode_disable_until_reboot),
-                                stringResource(id = R.string.settings_mode_disable_always),
-                            )
-
                             val suSummary = when (uiState.suCompatStatus) {
                                 "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
                                 "managed" -> stringResource(id = R.string.feature_status_managed_summary)

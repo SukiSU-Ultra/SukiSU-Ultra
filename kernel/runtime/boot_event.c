@@ -10,7 +10,7 @@
 #include "runtime/ksud_boot.h"
 #include "runtime/ksud.h"
 #include "manager/manager_observer.h"
-#include "manager/dynamic_manager.h"
+#include "extension/dynamic_manager.h"
 #include "manager/throne_tracker.h"
 
 bool ksu_module_mounted __read_mostly = false;

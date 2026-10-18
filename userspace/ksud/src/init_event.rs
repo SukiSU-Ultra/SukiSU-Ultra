@@ -99,6 +99,13 @@ pub fn on_post_fs_data() -> Result<()> {
         warn!("init features failed: {e}");
     }
 
+    crate::extension::init_forced_extensions();
+    if is_safe_mode() {
+        warn!("safe mode, skip load extension config");
+    } else if let Err(e) = crate::extension::init_extensions() {
+        warn!("init extensions failed: {e}");
+    }
+
     #[cfg(target_arch = "aarch64")]
     if let Err(e) = kpm::booted_load() {
         warn!("KPM: Failed to start KPM watcher: {e}");

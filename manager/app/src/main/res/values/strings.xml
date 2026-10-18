@@ -738,4 +738,36 @@
     <string name="dynamic_manager_current">Current manager</string>
     <string name="dynamic_manager_default">Default manager</string>
     <string name="dynamic_manager_authorized">Authorized managers</string>
+
+    <!-- Extension subsystem (KSU_IOCTL_EXTENSION). The four supported
+         extensions are KPM, CPU identity spoofing, umount path manager
+         and dynamic manager. UI must always probe support before
+         showing a toggle. -->
+    <string name="extension_section_title">Extension features</string>
+    <string name="extension_section_summary">Subsystems with a richer UI than a single toggle. Probed at runtime; unavailable extensions are hidden or marked as unsupported.</string>
+    <string name="extension_supported">Supported</string>
+    <string name="extension_not_supported">Not supported by this kernel</string>
+    <string name="extension_forced">Forced by boot config</string>
+    <string name="extension_managed">Managed by module</string>
+    <string name="extension_status_supported">Supported</string>
+    <string name="extension_status_unsupported">Not supported</string>
+    <string name="extension_status_forced">Forced</string>
+    <string name="extension_status_managed">Module-managed</string>
+    <string name="extension_status_enabled">Enabled</string>
+    <string name="extension_status_disabled">Disabled</string>
+    <string name="extension_set_failed">Failed to set extension: %1$s</string>
+    <string name="extension_set_success">Extension updated</string>
+    <string name="extension_kpm_title">KPM (Kernel Patch Module)</string>
+    <string name="extension_kpm_summary">Load third-party .kpm modules at runtime. Requires a KPM-capable kernel build.</string>
+    <string name="extension_cpu_spoof_title">CPU identity spoofing</string>
+    <string name="extension_cpu_spoof_summary">Override reported MIDR, BogoMIPS and ELF hwcap for newly spawned processes.</string>
+    <string name="extension_umount_paths_title">Umount path manager</string>
+    <string name="extension_umount_paths_summary">Manage the list of mount points the kernel will umount when an app starts.</string>
+    <string name="extension_dynamic_manager_title">Dynamic manager</string>
+    <string name="extension_dynamic_manager_summary">Allow more than one app to act as the KernelSU manager, authenticated by signing certificate.</string>
+    <string name="extension_open_details">Open details</string>
+    <string name="extension_open_kpm">Open KPM manager</string>
+    <string name="extension_open_dynamic_manager">Open dynamic manager list</string>
+    <string name="extension_open_umount_paths">Open umount path list</string>
+    <string name="extension_open_cpu_spoof">Open CPU spoofing form</string>
 </resources>

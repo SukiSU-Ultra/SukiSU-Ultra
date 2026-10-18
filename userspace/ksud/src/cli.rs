@@ -124,6 +124,12 @@ enum Commands {
         command: Feature,
     },
 
+    /// Manage kernel extensions (KPM, CPU spoof, umount paths, dynamic manager)
+    Extension {
+        #[command(subcommand)]
+        command: Extension,
+    },
+
     /// Patch boot or init_boot images to apply KernelSU
     BootPatch(BootPatchArgs),
 
@@ -512,6 +518,42 @@ enum Feature {
     Load,
 
     /// Save current kernel feature states to file
+    Save,
+}
+
+#[derive(clap::Subcommand, Debug)]
+#[clap(name = "extension")]
+enum Extension {
+    /// Get extension value and support status
+    Get {
+        /// Extension ID or name (kpm, cpu_spoof, umount_paths, dynamic_manager)
+        id: String,
+        /// Read from config file
+        #[arg(long, default_value_t = false)]
+        config: bool,
+    },
+
+    /// Set extension sticky value (the toggle bit shown in UI)
+    Set {
+        /// Extension ID or name
+        id: String,
+        /// Extension value (0=disable, 1=enable)
+        value: u64,
+    },
+
+    /// List all known extensions with their current kernel support state
+    List,
+
+    /// Check extension status (supported/unsupported/managed/forced)
+    Check {
+        /// Extension ID or name (kpm, cpu_spoof, umount_paths, dynamic_manager)
+        id: String,
+    },
+
+    /// Load extension configuration from file and apply to kernel
+    Load,
+
+    /// Save current extension states to file
     Save,
 }
 
@@ -1077,6 +1119,25 @@ pub fn run() -> Result<()> {
             Feature::Check { id } => crate::feature::check_feature(&id),
             Feature::Load => crate::feature::load_config_and_apply(),
             Feature::Save => crate::feature::save_config(),
+        },
+        Commands::Extension { command } => match command {
+            Extension::Get { id, config } => {
+                if config {
+                    crate::extension::get_extension_config_cli(&id)
+                } else {
+                    crate::extension::get_extension_cli(&id)
+                }
+            }
+            Extension::Set { id, value } => {
+                crate::extension::set_extension_cli(&id, value)
+            }
+            Extension::List => {
+                crate::extension::list_extensions();
+                Ok(())
+            }
+            Extension::Check { id } => crate::extension::check_extension(&id),
+            Extension::Load => crate::extension::load_config_and_apply(),
+            Extension::Save => crate::extension::save_config(),
         },
 
         Commands::Debug { command } => match command {

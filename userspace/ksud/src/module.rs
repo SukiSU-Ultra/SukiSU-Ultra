@@ -1458,3 +1458,49 @@ pub fn get_managed_features() -> Result<HashMap<String, Vec<String>>> {
 
     Ok(managed_features_map)
 }
+
+/// Get all managed extensions from active modules.
+///
+/// Reuses the same `manage.<name>=true` config key as
+/// [`get_managed_features`]; the name is matched against
+/// [`crate::extension_id::ExtensionId::name`] to filter out unrelated
+/// module options.
+pub fn get_managed_extensions() -> Result<HashMap<String, Vec<String>>> {
+    let mut managed_extensions_map: HashMap<String, Vec<String>> = HashMap::new();
+
+    foreach_active_module(|module_path| {
+        let Some(module_id) = module_path.file_name().and_then(|n| n.to_str()) else {
+            warn!(
+                "Failed to get module id from path: {}",
+                module_path.display()
+            );
+            return Ok(());
+        };
+
+        let config = match crate::module_config::merge_configs(module_id) {
+            Ok(c) => c,
+            Err(e) => {
+                warn!("Failed to merge configs for module '{module_id}': {e}");
+                return Ok(());
+            }
+        };
+
+        let mut extension_list = Vec::new();
+        for (key, value) in &config {
+            if let Some(ext_name) = key.strip_prefix("manage.")
+                && crate::module_config::parse_bool_config(value)
+                && crate::extension_id::parse_extension_id(ext_name).is_ok()
+            {
+                extension_list.push(ext_name.to_string());
+            }
+        }
+
+        if !extension_list.is_empty() {
+            managed_extensions_map.insert(module_id.to_string(), extension_list);
+        }
+
+        Ok(())
+    })?;
+
+    Ok(managed_extensions_map)
+}

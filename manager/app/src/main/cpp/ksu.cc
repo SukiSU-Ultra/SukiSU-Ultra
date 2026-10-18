@@ -263,3 +263,174 @@ bool is_mount_hide_enabled() {
 // Custom
 DEFINE_CACHED_GETTER(full_version, KSU_IOCTL_GET_FULL_VERSION, ksu_get_full_version_cmd, version_full, 255)
 DEFINE_CACHED_GETTER(hook_type, KSU_IOCTL_HOOK_TYPE, ksu_hook_type_cmd, hook_type, 32)
+
+// -----------------------------------------------------------
+// Extension subsystem wrappers.
+// All call KSU_IOCTL_EXTENSION with a struct ksu_extension_cmd.
+// -----------------------------------------------------------
+
+// Generic extension ioctl call. Returns 0 on success, -1 (and sets
+// errno) on failure.
+static int ksu_extension_call(struct ksu_extension_cmd *cmd) {
+    return ksuctl(KSU_IOCTL_EXTENSION, cmd);
+}
+
+// Helper: extension sticky-bit getter.
+static bool extension_get_sticky(uint32_t id, uint64_t *out_value, bool *out_supported) {
+    struct ksu_extension_cmd cmd = {};
+    cmd.id = id;
+    cmd.op = KSU_EXTENSION_GET;
+    if (ksu_extension_call(&cmd) != 0) {
+        return false;
+    }
+    if (out_value) *out_value = cmd.value;
+    if (out_supported) *out_supported = cmd.supported & KSU_FEATURE_FLAG_SUPPORTED;
+    return true;
+}
+
+// Helper: extension sticky-bit setter.
+static bool extension_set_sticky(uint32_t id, uint64_t value) {
+    struct ksu_extension_cmd cmd = {};
+    cmd.id = id;
+    cmd.op = KSU_EXTENSION_SET;
+    cmd.value = value;
+    return ksu_extension_call(&cmd) == 0;
+}
+
+// ----- KPM -----
+bool set_kpm_enabled(bool enabled) {
+    return extension_set_sticky(KSU_EXTENSION_KPM, enabled ? 1 : 0);
+}
+
+bool is_kpm_enabled() {
+    uint64_t value = 0;
+    bool supported = false;
+    if (!extension_get_sticky(KSU_EXTENSION_KPM, &value, &supported)) {
+        return false;
+    }
+    if (!supported) {
+        return false;
+    }
+    return value != 0;
+}
+
+// ----- CPU spoof -----
+int set_cpu_spoof_enabled(bool enabled) {
+    if (!extension_set_sticky(KSU_EXTENSION_CPU_SPOOF, enabled ? 1 : 0)) {
+        return -errno;
+    }
+    return 0;
+}
+
+bool is_cpu_spoof_enabled() {
+    uint64_t value = 0;
+    bool supported = false;
+    if (!extension_get_sticky(KSU_EXTENSION_CPU_SPOOF, &value, &supported)) {
+        return false;
+    }
+    if (!supported) {
+        return false;
+    }
+    return value != 0;
+}
+
+// CPU spoof SET-MIDR (ksu_set_spoof_cpu_cmd is the user pointer).
+// Forwards the original struct via KSU_EXTENSION_IO op.
+int ksu_set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd) {
+    if (!cmd) return -EINVAL;
+    struct ksu_extension_cmd ec = {};
+    ec.id = KSU_EXTENSION_CPU_SPOOF;
+    ec.op = KSU_EXTENSION_IO;
+    ec.user_ptr = (uint64_t)(uintptr_t)cmd;
+    return ksu_extension_call(&ec);
+}
+
+// ----- Umount paths -----
+// On the wire, the user_ptr points to a ksu_extension_umount_cmd
+// (see uapi/extension.h). The kernel decodes .op and dispatches.
+int umount_paths_wipe() {
+    struct ksu_extension_cmd cmd = {};
+    cmd.id = KSU_EXTENSION_UMOUNT_PATHS;
+    cmd.op = KSU_EXTENSION_WIPE;
+    return ksu_extension_call(&cmd);
+}
+
+int umount_paths_add(const char *path, uint32_t flags) {
+    if (!path) return -EINVAL;
+    struct ksu_extension_umount_cmd uc = {};
+    uc.op = KSU_UMOUNT_IO_OP_ADD;
+    uc.payload.add.mode = KSU_UMOUNT_ADD;
+    uc.payload.add.flags = flags;
+    uc.payload.add.arg = (uintptr_t)path;
+
+    struct ksu_extension_cmd cmd = {};
+    cmd.id = KSU_EXTENSION_UMOUNT_PATHS;
+    cmd.op = KSU_EXTENSION_IO;
+    cmd.user_ptr = (uint64_t)(uintptr_t)&uc;
+    return ksu_extension_call(&cmd);
+}
+
+int umount_paths_delete(const char *path) {
+    if (!path) return -EINVAL;
+    struct ksu_extension_umount_cmd uc = {};
+    uc.op = KSU_UMOUNT_IO_OP_DEL;
+    uc.payload.add.mode = KSU_UMOUNT_DEL;
+    uc.payload.add.flags = 0;
+    uc.payload.add.arg = (uintptr_t)path;
+
+    struct ksu_extension_cmd cmd = {};
+    cmd.id = KSU_EXTENSION_UMOUNT_PATHS;
+    cmd.op = KSU_EXTENSION_IO;
+    cmd.user_ptr = (uint64_t)(uintptr_t)&uc;
+    return ksu_extension_call(&cmd);
+}
+
+int umount_paths_list(char *buffer, uint32_t buf_size) {
+    if (!buffer || buf_size == 0) return -EINVAL;
+    struct ksu_extension_umount_cmd uc = {};
+    uc.op = KSU_UMOUNT_IO_OP_LIST;
+    uc.payload.list.buf_size = buf_size;
+    uc.payload.list.arg = (uintptr_t)buffer;
+
+    struct ksu_extension_cmd cmd = {};
+    cmd.id = KSU_EXTENSION_UMOUNT_PATHS;
+    cmd.op = KSU_EXTENSION_IO;
+    cmd.user_ptr = (uint64_t)(uintptr_t)&uc;
+    return ksu_extension_call(&cmd);
+}
+
+// ----- Dynamic manager -----
+bool set_dynamic_manager_enabled(bool enabled) {
+    return extension_set_sticky(KSU_EXTENSION_DYNAMIC_MANAGER, enabled ? 1 : 0);
+}
+
+bool is_dynamic_manager_enabled() {
+    uint64_t value = 0;
+    bool supported = false;
+    if (!extension_get_sticky(KSU_EXTENSION_DYNAMIC_MANAGER, &value, &supported)) {
+        return false;
+    }
+    if (!supported) {
+        return false;
+    }
+    return value != 0;
+}
+
+int dynamic_manager_get(struct ksu_manager_cmd *cmd) {
+    if (!cmd) return -EINVAL;
+    cmd->operation = KSU_MANAGER_GET;
+    struct ksu_extension_cmd ec = {};
+    ec.id = KSU_EXTENSION_DYNAMIC_MANAGER;
+    ec.op = KSU_EXTENSION_IO;
+    ec.user_ptr = (uint64_t)(uintptr_t)cmd;
+    return ksu_extension_call(&ec);
+}
+
+int dynamic_manager_set(struct ksu_manager_cmd *cmd) {
+    if (!cmd) return -EINVAL;
+    struct ksu_extension_cmd ec = {};
+    ec.id = KSU_EXTENSION_DYNAMIC_MANAGER;
+    ec.op = KSU_EXTENSION_IO;
+    ec.user_ptr = (uint64_t)(uintptr_t)cmd;
+    return ksu_extension_call(&ec);
+}

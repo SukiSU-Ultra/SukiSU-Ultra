@@ -290,6 +290,91 @@ pub fn set_feature(feature_id: u32, value: u64) -> Result<()> {
     Ok(())
 }
 
+/// State returned by [`get_extension`] for a single extension.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ExtensionState {
+    /// Sticky enable bit. Most extensions use bit 0 (1 = enabled).
+    pub value: u64,
+    /// Whether the kernel has a handler registered for this id. UI
+    /// uses this to show a "Not supported" hint instead of a toggle.
+    pub supported: bool,
+    /// Forced by `force_extension=` boot param. The kernel will
+    /// refuse `KSU_EXTENSION_SET` for this id.
+    pub forced: bool,
+}
+
+pub fn get_extension(extension_id: u32) -> Result<ExtensionState> {
+    let mut cmd = ksu_uapi::ksu_extension_cmd {
+        id: extension_id,
+        op: ksu_uapi::KSU_EXTENSION_GET,
+        supported: 0,
+        reserved: 0,
+        value: 0,
+        user_ptr: 0,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)?;
+    let flags = cmd.supported;
+    Ok(ExtensionState {
+        value: cmd.value,
+        supported: flags & ksu_uapi::KSU_FEATURE_FLAG_SUPPORTED != 0,
+        forced: flags & ksu_uapi::KSU_EXTENSION_FLAG_FORCED != 0,
+    })
+}
+
+pub fn set_extension(extension_id: u32, value: u64) -> Result<()> {
+    let mut cmd = ksu_uapi::ksu_extension_cmd {
+        id: extension_id,
+        op: ksu_uapi::KSU_EXTENSION_SET,
+        supported: 0,
+        reserved: 0,
+        value,
+        user_ptr: 0,
+    };
+    let ret = ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)?;
+    if ret != 0 {
+        bail!("set_extension(id={extension_id}, value={value}) failed: {ret}");
+    }
+    Ok(())
+}
+
+pub fn wipe_extension(extension_id: u32) -> Result<()> {
+    let mut cmd = ksu_uapi::ksu_extension_cmd {
+        id: extension_id,
+        op: ksu_uapi::KSU_EXTENSION_WIPE,
+        supported: 0,
+        reserved: 0,
+        value: 0,
+        user_ptr: 0,
+    };
+    let ret = ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)?;
+    if ret != 0 {
+        bail!("wipe_extension(id={extension_id}) failed: {ret}");
+    }
+    Ok(())
+}
+
+/// Forward a raw user payload to the extension's io op. The extension
+/// (chosen by `extension_id`) is responsible for decoding the buffer
+/// (e.g. `ksu_set_spoof_cpu_cmd`, `ksu_kpm_cmd`,
+/// `ksu_extension_umount_cmd`, `ksu_manager_cmd`).
+///
+/// # Safety
+///
+/// The caller must ensure `payload` points to a valid layout understood
+/// by the targeted extension and that the buffer remains alive for the
+/// duration of the call.
+pub unsafe fn extension_io<T>(extension_id: u32, payload: *mut T) -> Result<i32> {
+    let mut cmd = ksu_uapi::ksu_extension_cmd {
+        id: extension_id,
+        op: ksu_uapi::KSU_EXTENSION_IO,
+        supported: 0,
+        reserved: 0,
+        value: 0,
+        user_ptr: payload as u64,
+    };
+    ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)
+}
+
 pub fn get_wrapped_fd(fd: RawFd) -> Result<RawFd> {
     let mut cmd = ksu_uapi::ksu_get_wrapper_fd_cmd {
         fd: fd as u32,
@@ -358,38 +443,48 @@ pub fn nuke_ext4_sysfs(mnt: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Wipe all entries from umount list
+/// Wipe all entries from umount list (via the extension ioctl).
 pub fn umount_list_wipe() -> Result<()> {
-    let mut cmd = ksu_uapi::ksu_add_try_umount_cmd {
-        arg: 0,
-        flags: 0,
-        mode: ksu_uapi::KSU_UMOUNT_WIPE,
+    // KSU_EXTENSION_WIPE on the umount_paths extension wipes the list.
+    let mut cmd = ksu_uapi::ksu_extension_cmd {
+        id: ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32,
+        op: ksu_uapi::KSU_EXTENSION_WIPE,
+        supported: 0,
+        reserved: 0,
+        value: 0,
+        user_ptr: 0,
     };
-    ksuctl(ksu_uapi::KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
+    unsafe {
+        ksuctl(ksu_uapi::KSU_IOCTL_EXTENSION, &raw mut cmd)?;
+    }
     Ok(())
 }
 
-/// Add mount point to umount list
+/// Add mount point to umount list.
 pub fn umount_list_add(path: &str, flags: u32) -> anyhow::Result<()> {
     let c_path = std::ffi::CString::new(path)?;
-    let mut cmd = ksu_uapi::ksu_add_try_umount_cmd {
-        arg: c_path.as_ptr() as u64,
-        flags,
-        mode: ksu_uapi::KSU_UMOUNT_ADD,
-    };
-    ksuctl(ksu_uapi::KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
+    let mut hdr: ksu_uapi::ksu_extension_umount_cmd = unsafe { std::mem::zeroed() };
+    hdr.op = ksu_uapi::KSU_UMOUNT_IO_OP_ADD;
+    hdr.payload.add.arg = c_path.as_ptr() as u64;
+    hdr.payload.add.flags = flags;
+    hdr.payload.add.mode = ksu_uapi::KSU_UMOUNT_ADD;
+    unsafe {
+        extension_io(ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32, &raw mut hdr)?;
+    }
     Ok(())
 }
 
-/// Delete mount point from umount list
+/// Delete mount point from umount list.
 pub fn umount_list_del(path: &str) -> anyhow::Result<()> {
     let c_path = std::ffi::CString::new(path)?;
-    let mut cmd = ksu_uapi::ksu_add_try_umount_cmd {
-        arg: c_path.as_ptr() as u64,
-        flags: 0,
-        mode: ksu_uapi::KSU_UMOUNT_DEL,
-    };
-    ksuctl(ksu_uapi::KSU_IOCTL_ADD_TRY_UMOUNT, &raw mut cmd)?;
+    let mut hdr: ksu_uapi::ksu_extension_umount_cmd = unsafe { std::mem::zeroed() };
+    hdr.op = ksu_uapi::KSU_UMOUNT_IO_OP_DEL;
+    hdr.payload.add.arg = c_path.as_ptr() as u64;
+    hdr.payload.add.flags = 0;
+    hdr.payload.add.mode = ksu_uapi::KSU_UMOUNT_DEL;
+    unsafe {
+        extension_io(ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32, &raw mut hdr)?;
+    }
     Ok(())
 }
 
@@ -438,20 +533,19 @@ pub fn set_ksu_no_new_privs() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// List all mount points in umount list
+/// List all mount points in umount list.
 pub fn umount_list_list() -> anyhow::Result<String> {
     const BUF_SIZE: usize = 4096;
     let mut buffer = vec![0u8; BUF_SIZE];
-    let mut cmd = ksu_uapi::ksu_list_try_umount_cmd {
-        arg: buffer.as_mut_ptr() as u64,
-        buf_size: BUF_SIZE as u32,
-    };
-    ksuctl(ksu_uapi::KSU_IOCTL_LIST_TRY_UMOUNT, &raw mut cmd)?;
-
-    // Find null terminator or end of buffer
+    let mut hdr: ksu_uapi::ksu_extension_umount_cmd = unsafe { std::mem::zeroed() };
+    hdr.op = ksu_uapi::KSU_UMOUNT_IO_OP_LIST;
+    hdr.payload.list.arg = buffer.as_mut_ptr() as u64;
+    hdr.payload.list.buf_size = BUF_SIZE as u32;
+    unsafe {
+        extension_io(ksu_uapi::KSU_EXTENSION_UMOUNT_PATHS as u32, &raw mut hdr)?;
+    }
     let len = buffer.iter().position(|&b| b == 0).unwrap_or(BUF_SIZE);
-    let result = String::from_utf8_lossy(&buffer[..len]).to_string();
-    Ok(result)
+    Ok(String::from_utf8_lossy(&buffer[..len]).to_string())
 }
 
 pub fn set_spoof_version(release: &str, version: &str) -> anyhow::Result<()> {
@@ -486,6 +580,8 @@ pub fn set_spoof_cpu(
         hwcap,
         hwcap2,
     };
-    ksuctl(ksu_uapi::KSU_IOCTL_SET_SPOOF_CPU, &raw mut cmd)?;
+    unsafe {
+        extension_io(ksu_uapi::KSU_EXTENSION_CPU_SPOOF as u32, &raw mut cmd)?;
+    }
     Ok(())
 }
