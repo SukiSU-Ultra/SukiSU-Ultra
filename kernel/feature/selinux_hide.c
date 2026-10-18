@@ -194,7 +194,7 @@ static int ksu_prepare_fake_status_page()
 	// not a leak when it is used forever :)
 	struct selinux_kernel_status *real_status = page_address(real_page);
 	struct selinux_kernel_status *fake_status = page_address(new_page);
-    
+	
 	memcpy(fake_status, real_status, sizeof(*real_status));
 
 	fake_status->enforcing = 1;
@@ -207,9 +207,9 @@ static int ksu_prepare_fake_status_page()
 #endif
 
 	ksu_fake_status_page = new_page;
-    
+	
 	pr_info("selinux_hide: ksu_fake_status_page ready! seq=%d\n", fake_status->sequence);
-            
+			
 	return 0;
 }
 

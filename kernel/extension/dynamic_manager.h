@@ -20,10 +20,10 @@
 
 /* Backwards-compat: dynamic_manager.{c,h} from kernel/manager/, hoisted here. */
 bool ksu_dynamic_manager_match(const char *package, unsigned int size,
-                               const char *hash);
+							   const char *hash);
 bool ksu_dynamic_manager_package_registered(const char *package);
 bool ksu_dynamic_manager_verify_apk(char *path, const char *package,
-                                    uid_t uid);
+									uid_t uid);
 int ksu_dynamic_manager_uid_for_package(const char *package, uid_t *uid);
 void ksu_dynamic_manager_reset_verification(void);
 void ksu_dynamic_manager_load(void);

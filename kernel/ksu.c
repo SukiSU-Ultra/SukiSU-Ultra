@@ -65,6 +65,7 @@
 #include "feature/shell_su_adb_only.h"
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
+#include "feature/mount_hide.h"
 #include "runtime/ksud_boot.h"
 #include "runtime/ksud.h"
 #include "sulog/event.h"
@@ -148,6 +149,7 @@
 #include "feature/shell_su_adb_only.c"
 #include "feature/sucompat.c"
 #include "feature/sulog.c"
+#include "feature/mount_hide.c"
 #include "runtime/boot_event.c"
 #include "runtime/ksud_integration.c"
 
@@ -258,11 +260,11 @@ static int __init kernelsu_init(void)
 
 #ifdef CONFIG_KSU_DEBUG
 	pr_alert("*************************************************************");
-	pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
-	pr_alert("**                                                         **");
-	pr_alert("**         You are running KernelSU in DEBUG mode          **");
-	pr_alert("**                                                         **");
-	pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
+	pr_alert("**	 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE	**");
+	pr_alert("**														 **");
+	pr_alert("**		 You are running KernelSU in DEBUG mode		  **");
+	pr_alert("**														 **");
+	pr_alert("**	 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE	**");
 	pr_alert("*************************************************************");
 #endif
 	if (allow_shell)
@@ -280,7 +282,7 @@ static int __init kernelsu_init(void)
 	// register features
 	ksu_feature_init();
 	 ksu_extension_init();
-    ksu_extension_register_all();
+	ksu_extension_register_all();
 	ksu_sucompat_init();
 	ksu_kernel_umount_init();
 #ifdef CONFIG_KSU_FEATURE_SULOG	

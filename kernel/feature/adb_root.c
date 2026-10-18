@@ -167,7 +167,7 @@ static noinline void do_ksu_adb_root_execve_user(void *restrict filename, void *
 
 	uid_t uid = current_euid().val;
 	if (uid != 0 && uid != 2000)
-        	return;
+			return;
 
 	// filename is void * char __user *
 	const char __user **filename_user = (const char __user **)filename;
@@ -194,7 +194,7 @@ static noinline void do_ksu_adb_root_execve_kernel(void *restrict filename, void
 
 	uid_t uid = current_euid().val;
 	if (uid != 0 && uid != 2000)
-        	return;
+			return;
 
 	if (!filename)
 		return;

@@ -2,21 +2,21 @@ static const char KERNEL_SU_RC[] =
 	"\n"
 
 	"on post-fs-data\n"
-	"    start logd\n"
+	"	start logd\n"
 	// We should wait for the post-fs-data finish
-	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " post-fs-data\n"
+	"	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " post-fs-data\n"
 	"\n"
 
 	"on nonencrypted\n"
-	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
+	"	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
 	"\n"
 
 	"on property:vold.decrypt=trigger_restart_framework\n"
-	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
+	"	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
 	"\n"
 
 	"on property:sys.boot_completed=1\n"
-	"    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " boot-completed\n"
+	"	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " boot-completed\n"
 	"\n"
 
 	"\n";
@@ -681,11 +681,11 @@ static void vol_detector_disconnect(struct input_handle *handle)
 MODULE_DEVICE_TABLE(input, vol_detector_ids);
 
 static struct input_handler vol_detector_handler = {
-        .event =	vol_detector_event,
-        .connect =	vol_detector_connect,
-        .disconnect =	vol_detector_disconnect,
-        .name =		"ksu",
-        .id_table =	vol_detector_ids,
+		.event =	vol_detector_event,
+		.connect =	vol_detector_connect,
+		.disconnect =	vol_detector_disconnect,
+		.name =		"ksu",
+		.id_table =	vol_detector_ids,
 };
 
 static int vol_detector_init()

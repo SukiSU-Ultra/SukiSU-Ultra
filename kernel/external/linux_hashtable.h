@@ -18,7 +18,7 @@
 	struct hlist_head name[1 << (bits)] =					\
 			{ [0 ... ((1 << (bits)) - 1)] = HLIST_HEAD_INIT }
 
-#define DECLARE_HASHTABLE(name, bits)                                   	\
+#define DECLARE_HASHTABLE(name, bits)								   	\
 	struct hlist_head name[1 << (bits)]
 
 #define HASH_SIZE(name) (ARRAY_SIZE(name))
@@ -145,8 +145,8 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hlist_for_each_entry(pos, head, member)				\
 	for (pos = hlist_entry_safe((head)->first, typeof(*(pos)), member);\
-	     pos;							\
-	     pos = hlist_entry_safe((pos)->member.next, typeof(*(pos)), member))
+		 pos;							\
+		 pos = hlist_entry_safe((pos)->member.next, typeof(*(pos)), member))
 
 /**
  * hlist_for_each_entry_safe - iterate over list of given type safe against removal of list entry
@@ -157,8 +157,8 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hlist_for_each_entry_safe(pos, n, head, member) 		\
 	for (pos = hlist_entry_safe((head)->first, typeof(*pos), member);\
-	     pos && ({ n = pos->member.next; 1; });			\
-	     pos = hlist_entry_safe(n, typeof(*pos), member))
+		 pos && ({ n = pos->member.next; 1; });			\
+		 pos = hlist_entry_safe(n, typeof(*pos), member))
 
 #undef hash_for_each
 #undef hash_for_each_rcu

@@ -254,7 +254,7 @@ flatten:
 
 flatten_done:
 	//	this should look like
-	//      /system/bin/sh\0-c sh -c id
+	//	  /system/bin/sh\0-c sh -c id
 	ksu_sulog_emit(KSU_SULOG_EVENT_ROOT_EXECVE, args, argv_copy_len, GFP_KERNEL);
 }
 

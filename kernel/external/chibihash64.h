@@ -10,7 +10,7 @@
 static inline uint64_t chibihash64__load32le(const unsigned char *p)
 {
 	return (uint64_t)p[0] <<  0 | (uint64_t)p[1] <<  8 |
-	       (uint64_t)p[2] << 16 | (uint64_t)p[3] << 24;
+		   (uint64_t)p[2] << 16 | (uint64_t)p[3] << 24;
 }
 static inline uint64_t chibihash64__load64le(const unsigned char *p)
 {

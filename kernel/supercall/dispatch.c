@@ -444,8 +444,8 @@ static int do_manage_mark(void __user *arg)
 			// at the very least we have partial featureset
 			ret = ksu_get_task_mark(cmd.pid);
 			if (ret < 0) {
-			    pr_err("manage_mark: get failed for pid %d: %d\n", cmd.pid, ret);
-			    return ret;
+				pr_err("manage_mark: get failed for pid %d: %d\n", cmd.pid, ret);
+				return ret;
 			}
 			cmd.result = (u32)ret;
 			break;
@@ -642,131 +642,131 @@ out:
 // 100. GET_FULL_VERSION - Get full version string
 static int do_get_full_version(void __user *arg)
 {
-    struct ksu_get_full_version_cmd cmd = { 0 };
+	struct ksu_get_full_version_cmd cmd = { 0 };
 
-    strscpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
+	strscpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-        pr_err("get_full_version: copy_to_user failed\n");
-        return -EFAULT;
-    }
+	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+		pr_err("get_full_version: copy_to_user failed\n");
+		return -EFAULT;
+	}
 
-    return 0;
+	return 0;
 }
 
 // 101. HOOK_TYPE - Get hook type
 static int do_get_hook_type(void __user *arg)
 {
-    struct ksu_hook_type_cmd cmd = { 0 };
-    const char *type;
+	struct ksu_hook_type_cmd cmd = { 0 };
+	const char *type;
 
 #if defined(CONFIG_KSU_SUSFS) && defined(CONFIG_KSU_SUSFS_INLINE_HOOK)
-    type = "SUSFS Inline Hook";
+	type = "SUSFS Inline Hook";
 #elif defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
-    type = "ARM64 Branch Link Hijack";
+	type = "ARM64 Branch Link Hijack";
 #elif defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE)
-    type = "Syscall Table Tamper";
+	type = "Syscall Table Tamper";
 #elif defined(CONFIG_KSU_KPROBES_KSUD)
-    type = "Kprobes KSUD";
+	type = "Kprobes KSUD";
 #elif defined(CONFIG_KSU_MANUAL_HOOK)
-    type = "Manual Hook";
+	type = "Manual Hook";
 #else
-    type = "Unknown";
+	type = "Unknown";
 #endif
 
-    strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
+	strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-        pr_err("get_hook_type: copy_to_user failed\n");
-        return -EFAULT;
-    }
+	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+		pr_err("get_hook_type: copy_to_user failed\n");
+		return -EFAULT;
+	}
 
-    return 0;
+	return 0;
 }
 
 /*
  * Single entry point for the four extensions. Userspace fills
  * struct ksu_extension_cmd with an extension_id and one of:
  *   GET  -> returns supported/value. value=0 and supported=true
- *           for io-only handlers (handler presence is the signal).
+ *		   for io-only handlers (handler presence is the signal).
  *   SET  -> value-flavoured: forwards to ops->set.
- *           io-flavoured:    -EOPNOTSUPP (no sticky bit).
- *           While a force_extension=<id> is in effect, all SETs
- *           return -EPERM until reboot. On success, the post-set
- *           state (supported / forced flag / current value) is
- *           written back to *arg so userspace can confirm the write
- *           without an extra GET round-trip.
+ *		   io-flavoured:	-EOPNOTSUPP (no sticky bit).
+ *		   While a force_extension=<id> is in effect, all SETs
+ *		   return -EPERM until reboot. On success, the post-set
+ *		   state (supported / forced flag / current value) is
+ *		   written back to *arg so userspace can confirm the write
+ *		   without an extra GET round-trip.
  *   IO   -> forwards cmd.user_ptr to the registered io_handler.
  *   WIPE -> handler->wipe (kernel-side). Today only umount_paths
- *           registers one; other handlers return -EOPNOTSUPP. Wipe
- *           does not go through io_handler.
+ *		   registers one; other handlers return -EOPNOTSUPP. Wipe
+ *		   does not go through io_handler.
  */
 static int do_extension(void __user *arg)
 {
-    struct ksu_extension_cmd cmd;
-    u32 extension_id;
-    int ret;
+	struct ksu_extension_cmd cmd;
+	u32 extension_id;
+	int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
+	if (copy_from_user(&cmd, arg, sizeof(cmd)))
+		return -EFAULT;
 
-    extension_id = cmd.id;
-    if (extension_id >= KSU_EXTENSION_MAX)
-        return -EINVAL;
+	extension_id = cmd.id;
+	if (extension_id >= KSU_EXTENSION_MAX)
+		return -EINVAL;
 
-    /* op == IO  -> forward the user pointer verbatim */
-    if (cmd.op == KSU_EXTENSION_IO)
-        return ksu_extension_ioctl(extension_id,
-                                   (void __user *)(uintptr_t)cmd.user_ptr);
+	/* op == IO  -> forward the user pointer verbatim */
+	if (cmd.op == KSU_EXTENSION_IO)
+		return ksu_extension_ioctl(extension_id,
+								   (void __user *)(uintptr_t)cmd.user_ptr);
 
-    /* op == WIPE -> call the extension's wipe handler if any */
-    if (cmd.op == KSU_EXTENSION_WIPE)
-        return ksu_extension_wipe(extension_id);
+	/* op == WIPE -> call the extension's wipe handler if any */
+	if (cmd.op == KSU_EXTENSION_WIPE)
+		return ksu_extension_wipe(extension_id);
 
-    if (cmd.op == KSU_EXTENSION_SET) {
-        ret = ksu_extension_set(extension_id, cmd.value);
-        if (ret)
-            return ret;
-        /*
-         * Round-trip the post-set state to userspace. The cmd.supported
-         * field is documented as out, and a manager that just wrote
-         * `value=1` wants to see "supported, FORCED if applicable"
-         * come back rather than zeroed bytes. Failure to copy_to_user
-         * is non-fatal here (the write itself succeeded) but reported
-         * as -EFAULT so the caller can retry.
-         */
-        {
-            u64 value = 0;
-            bool supported = false;
+	if (cmd.op == KSU_EXTENSION_SET) {
+		ret = ksu_extension_set(extension_id, cmd.value);
+		if (ret)
+			return ret;
+		/*
+		 * Round-trip the post-set state to userspace. The cmd.supported
+		 * field is documented as out, and a manager that just wrote
+		 * `value=1` wants to see "supported, FORCED if applicable"
+		 * come back rather than zeroed bytes. Failure to copy_to_user
+		 * is non-fatal here (the write itself succeeded) but reported
+		 * as -EFAULT so the caller can retry.
+		 */
+		{
+			u64 value = 0;
+			bool supported = false;
 
-            (void)ksu_extension_get(extension_id, &value, &supported);
-            cmd.supported = supported ? KSU_FEATURE_FLAG_SUPPORTED : 0;
-            if (ksu_extension_is_forced(extension_id))
-                cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
-            cmd.value = value;
-            if (copy_to_user(arg, &cmd, sizeof(cmd)))
-                return -EFAULT;
-        }
-        return 0;
-    }
+			(void)ksu_extension_get(extension_id, &value, &supported);
+			cmd.supported = supported ? KSU_FEATURE_FLAG_SUPPORTED : 0;
+			if (ksu_extension_is_forced(extension_id))
+				cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
+			cmd.value = value;
+			if (copy_to_user(arg, &cmd, sizeof(cmd)))
+				return -EFAULT;
+		}
+		return 0;
+	}
 
-    {
-        u64 value = 0;
-        bool supported = false;
+	{
+		u64 value = 0;
+		bool supported = false;
 
-        ret = ksu_extension_get(extension_id, &value, &supported);
-        if (ret)
-            return ret;
-        if (!supported)
-            return -EOPNOTSUPP;
-        cmd.value = value;
-        cmd.supported = KSU_FEATURE_FLAG_SUPPORTED;
-        if (ksu_extension_is_forced(extension_id))
-            cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
-        if (copy_to_user(arg, &cmd, sizeof(cmd)))
-            return -EFAULT;
-        return 0;
-    }
+		ret = ksu_extension_get(extension_id, &value, &supported);
+		if (ret)
+			return ret;
+		if (!supported)
+			return -EOPNOTSUPP;
+		cmd.value = value;
+		cmd.supported = KSU_FEATURE_FLAG_SUPPORTED;
+		if (ksu_extension_is_forced(extension_id))
+			cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
+		if (copy_to_user(arg, &cmd, sizeof(cmd)))
+			return -EFAULT;
+		return 0;
+	}
 }
 
 
@@ -798,7 +798,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, .name = "DISABLE_ESCAPE_TO_ROOT", .handler = do_disable_escape_to_root, .perm_check = only_root, .allow_su_session = true },
 	{ .cmd = KSU_IOCTL_LOOKUP_SYMBOLS, .name = "LOOKUP_SYMBOLS", .handler = do_lookup_symbols, .perm_check = only_root },
 	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .name = "GET_FULL_VERSION", .handler = do_get_full_version, .perm_check = always_allow },
-    { .cmd = KSU_IOCTL_HOOK_TYPE, .name = "GET_HOOK_TYPE", .handler = do_get_hook_type, .perm_check = manager_or_root },
+	{ .cmd = KSU_IOCTL_HOOK_TYPE, .name = "GET_HOOK_TYPE", .handler = do_get_hook_type, .perm_check = manager_or_root },
 	{ .cmd = KSU_IOCTL_EXTENSION, .name = "EXTENSION", .handler = do_extension, .perm_check = manager_or_root },
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel
 };

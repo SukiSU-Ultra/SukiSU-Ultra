@@ -23,9 +23,9 @@ static int hook_setprocattr(struct task_struct *p, char *name, void *value, size
 }
 
 static int (*orig_inode_rename) (struct inode *old_dir, struct dentry *old_dentry,
-			     struct inode *new_dir, struct dentry *new_dentry) __read_mostly = nullptr;
+				 struct inode *new_dir, struct dentry *new_dentry) __read_mostly = nullptr;
 static int hook_inode_rename(struct inode *old_inode, struct dentry *old_dentry,
-			    struct inode *new_inode, struct dentry *new_dentry)
+				struct inode *new_inode, struct dentry *new_dentry)
 {
 	ksu_rename_observer(old_dentry, new_dentry);
 	return orig_inode_rename(old_inode, old_dentry, new_inode, new_dentry);

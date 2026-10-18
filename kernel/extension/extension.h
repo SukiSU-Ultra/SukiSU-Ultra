@@ -12,14 +12,14 @@
  * dispatched through KSU_IOCTL_EXTENSION.
  *
  * Flavours:
- *   - value      : sticky enable bit via get/set ops. DYNAMIC_MANAGER.
- *                  KSU_EXTENSION_SET calls ops->set; KSU_EXTENSION_GET
- *                  calls ops->get.
+ *   - value	  : sticky enable bit via get/set ops. DYNAMIC_MANAGER.
+ *				  KSU_EXTENSION_SET calls ops->set; KSU_EXTENSION_GET
+ *				  calls ops->get.
  *   - io + get   : exposes a runtime GET (e.g. CONFIG_KPM presence) but
- *                  has no runtime SET. KSU_EXTENSION_SET returns
- *                  -EOPNOTSUPP. KPM.
- *   - io only    : no sticky bit at all; io_handler forwards raw user
- *                  payloads. CPU_SPOOF, UMOUNT_PATHS.
+ *				  has no runtime SET. KSU_EXTENSION_SET returns
+ *				  -EOPNOTSUPP. KPM.
+ *   - io only	: no sticky bit at all; io_handler forwards raw user
+ *				  payloads. CPU_SPOOF, UMOUNT_PATHS.
  *
  * Forced-by-config (force_extension=<id>:<value>) is replayed on every
  * boot: value-flavoured handlers go through ops->set; io-flavoured
@@ -42,10 +42,10 @@ typedef int (*ksu_extension_get_value_fn)(u32 extension_id, u64 *value);
 typedef int (*ksu_extension_set_value_fn)(u32 extension_id, u64 value);
 
 struct ksu_extension_handler_ops {
-    /* read sticky enable bit. KSU_EXTENSION_OP_GET. */
-    ksu_extension_get_value_fn get;
-    /* write sticky enable bit. KSU_EXTENSION_OP_SET. */
-    ksu_extension_set_value_fn set;
+	/* read sticky enable bit. KSU_EXTENSION_OP_GET. */
+	ksu_extension_get_value_fn get;
+	/* write sticky enable bit. KSU_EXTENSION_OP_SET. */
+	ksu_extension_set_value_fn set;
 };
 
 /*
@@ -75,16 +75,16 @@ typedef void (*ksu_extension_apply_forced_fn)(u32 extension_id, u64 value);
 typedef int (*ksu_extension_wipe_fn)(u32 extension_id);
 
 struct ksu_extension_handler {
-    u32 extension_id;
-    const char *name;
-    /* required */
-    const struct ksu_extension_handler_ops *ops;
-    /* optional, used by io-flavoured extensions */
-    ksu_extension_io_fn io_handler;
-    /* optional, used by io-flavoured extensions to apply a forced value */
-    ksu_extension_apply_forced_fn apply_forced;
-    /* optional, used to clear runtime state on KSU_EXTENSION_WIPE */
-    ksu_extension_wipe_fn wipe;
+	u32 extension_id;
+	const char *name;
+	/* required */
+	const struct ksu_extension_handler_ops *ops;
+	/* optional, used by io-flavoured extensions */
+	ksu_extension_io_fn io_handler;
+	/* optional, used by io-flavoured extensions to apply a forced value */
+	ksu_extension_apply_forced_fn apply_forced;
+	/* optional, used to clear runtime state on KSU_EXTENSION_WIPE */
+	ksu_extension_wipe_fn wipe;
 };
 
 int ksu_register_extension_handler(const struct ksu_extension_handler *handler);
@@ -126,24 +126,24 @@ void ksu_extension_register_all(void);
  *
  * <id>   = enum ksu_extension_id (decimal or hex)
  * <value>= u64, parsed by the kernel's kstrtou64() (decimal, 0x hex,
- *           0 octal). The value's meaning is per-extension:
- *     - value-flavoured handlers (DYNAMIC_MANAGER) treat <value> as
- *       the sticky bit (0 or 1) and replay it through ops->set().
- *     - io-flavoured handlers (KPM) may pack a (sub-op, arg) tuple
- *       into the u64 using the KSU_EXTENSION_FORCE_* macros below.
+ *		   0 octal). The value's meaning is per-extension:
+ *	 - value-flavoured handlers (DYNAMIC_MANAGER) treat <value> as
+ *	   the sticky bit (0 or 1) and replay it through ops->set().
+ *	 - io-flavoured handlers (KPM) may pack a (sub-op, arg) tuple
+ *	   into the u64 using the KSU_EXTENSION_FORCE_* macros below.
  *
  * # Replay order
  *
- *   1. ops->set      — value-flavoured handlers, replay the raw u64
- *                       extension_forced_values[id].
+ *   1. ops->set	  — value-flavoured handlers, replay the raw u64
+ *					   extension_forced_values[id].
  *   2. apply_forced  — io-flavoured handlers, kernel-side callback
- *                       that receives the raw u64. No user pointer
- *                       is fabricated.
- *   3. neither       — log and clear forced_pending. This is a
- *                       deliberate refusal, not a bug. The old
- *                       io_handler(id, NULL) fallback was unsafe
- *                       (NULL is WIPE for umount_paths, EFAULT for
- *                       others) and is no longer used.
+ *					   that receives the raw u64. No user pointer
+ *					   is fabricated.
+ *   3. neither	   — log and clear forced_pending. This is a
+ *					   deliberate refusal, not a bug. The old
+ *					   io_handler(id, NULL) fallback was unsafe
+ *					   (NULL is WIPE for umount_paths, EFAULT for
+ *					   others) and is no longer used.
  *
  * # Single source of truth
  *
@@ -170,6 +170,6 @@ void ksu_extension_register_all(void);
 #define KSU_EXTENSION_FORCE_OP(value) ((u32)((value) & 0xffffffffu))
 #define KSU_EXTENSION_FORCE_ARG(value) ((u32)((value) >> 32))
 #define KSU_EXTENSION_FORCE_PACK(op, arg) \
-    (((u64)(u32)(op)) | (((u64)(u32)(arg)) << 32))
+	(((u64)(u32)(op)) | (((u64)(u32)(arg)) << 32))
 
 #endif /* __KSU_H_EXTENSION */

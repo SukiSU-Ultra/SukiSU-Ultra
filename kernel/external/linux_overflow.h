@@ -33,14 +33,14 @@
  * https://mail-index.netbsd.org/tech-misc/2007/02/05/0000.html -
  * credit to Christian Biere.
  */
-#define is_signed_type(type)       (((type)(-1)) < (type)1)
+#define is_signed_type(type)	   (((type)(-1)) < (type)1)
 #define __type_half_max(type) ((type)1 << (8*sizeof(type) - 1 - is_signed_type(type)))
 #define type_max(T) ((T)((__type_half_max(T) - 1) + __type_half_max(T)))
 #define type_min(T) ((T)((T)-type_max(T)-(T)1))
 
 #if __has_builtin(__builtin_mul_overflow) && \
-    __has_builtin(__builtin_add_overflow) && \
-    __has_builtin(__builtin_sub_overflow)
+	__has_builtin(__builtin_add_overflow) && \
+	__has_builtin(__builtin_sub_overflow)
 
 /*
  * For simplicity and code hygiene, the fallback code below insists on
@@ -285,8 +285,8 @@ static inline __must_check size_t ksu_ab_c_size(size_t n, size_t size, size_t c)
 #ifndef struct_size
 #define struct_size(p, member, n)					\
 	__ab_c_size(n,							\
-		    sizeof(*(p)->member) + __must_be_array((p)->member),\
-		    sizeof(*(p)))
+			sizeof(*(p)->member) + __must_be_array((p)->member),\
+			sizeof(*(p)))
 #endif
 
 #endif /* __LINUX_OVERFLOW_H */

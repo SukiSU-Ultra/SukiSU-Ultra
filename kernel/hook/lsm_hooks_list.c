@@ -99,9 +99,9 @@ static __nocfi int ksu_setprocattr_old(struct task_struct *p, char *name, void *
 
 #if 0 // small demo of __builtin_choose_expr vs C11 _Generic
 #define OVERLOAD_SETPROCATTR(fn) __builtin_choose_expr(					\
-        __builtin_types_compatible_p(typeof(fn), int (*)(SETPROCATTR_TYPE_old)),	\
-        ksu_setprocattr_old,								\
-        ksu_setprocattr_new								\
+		__builtin_types_compatible_p(typeof(fn), int (*)(SETPROCATTR_TYPE_old)),	\
+		ksu_setprocattr_old,								\
+		ksu_setprocattr_new								\
 )
 #else
 #define OVERLOAD_SETPROCATTR(fn) _Generic(			\

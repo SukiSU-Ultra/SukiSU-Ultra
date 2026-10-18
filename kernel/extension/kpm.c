@@ -9,7 +9,7 @@
  * Forced-by-config (force_extension=kpm:<value>) goes through
  * handler->apply_forced. The u64 is decoded as
  *   sub-op = (u32)(value & 0xffffffff)
- *   arg    = (u32)(value >> 32)
+ *   arg	= (u32)(value >> 32)
  *
  * IMPORTANT: this is a *kernel-internal* ABI between
  * `force_extension_param_set()` and the per-handler `apply_forced`
@@ -24,11 +24,11 @@
  *
  * New sub-op authors:
  *   - If your sub-op does not need an argument, do nothing special.
- *     Document the literal value (e.g. `force_extension=kpm:7`).
+ *	 Document the literal value (e.g. `force_extension=kpm:7`).
  *   - If your sub-op DOES need an argument, never write the
- *     `(u32)(value & 0xffffffff)` / `>> 32` bit-twiddling inline.
- *     Use the helpers below — they are the single source of truth
- *     for the encoding, kept in lockstep with the decoder.
+ *	 `(u32)(value & 0xffffffff)` / `>> 32` bit-twiddling inline.
+ *	 Use the helpers below — they are the single source of truth
+ *	 for the encoding, kept in lockstep with the decoder.
  *
  * IMPORTANT: this callback is a *probe*, not an enable hook. KPM
  * availability is fixed at kernel build time (CONFIG_KPM) and cannot
@@ -52,49 +52,49 @@
 int ksu_extension_kpm_get(u32 id, u64 *value)
 {
 #ifdef CONFIG_KPM
-    *value = 1;
+	*value = 1;
 #else
-    *value = 0;
+	*value = 0;
 #endif
-    return 0;
+	return 0;
 }
 
 const struct ksu_extension_handler_ops ksu_extension_kpm_ops = {
-    .get = ksu_extension_kpm_get,
+	.get = ksu_extension_kpm_get,
 };
 
 int ksu_extension_kpm_io(u32 id, void __user *raw)
 {
 #ifdef CONFIG_KPM
-    return do_kpm(raw);
+	return do_kpm(raw);
 #else
-    (void)raw;
-    return -EOPNOTSUPP;
+	(void)raw;
+	return -EOPNOTSUPP;
 #endif
 }
 
 void ksu_extension_kpm_apply_forced(u32 id, u64 value)
 {
-    /*
-     * Decode using the shared macros in extension.h. The decode
-     * direction is part of the kernel-internal ABI; if you change
-     * it, also update the KSU_EXTENSION_FORCE_* macros. Today no
-     * other consumer exists, so changing one without the other
-     * would silently corrupt every KPM force entry.
-     */
-    u32 op = KSU_EXTENSION_FORCE_OP(value);
-    u32 arg = KSU_EXTENSION_FORCE_ARG(value);
+	/*
+	 * Decode using the shared macros in extension.h. The decode
+	 * direction is part of the kernel-internal ABI; if you change
+	 * it, also update the KSU_EXTENSION_FORCE_* macros. Today no
+	 * other consumer exists, so changing one without the other
+	 * would silently corrupt every KPM force entry.
+	 */
+	u32 op = KSU_EXTENSION_FORCE_OP(value);
+	u32 arg = KSU_EXTENSION_FORCE_ARG(value);
 
-    switch (op) {
-    case SUKISU_KPM_VERSION:
+	switch (op) {
+	case SUKISU_KPM_VERSION:
 #ifdef CONFIG_KPM
-        pr_info("extension/kpm: forced VERSION probe, KPM is built in (arg=%u)\n", arg);
+		pr_info("extension/kpm: forced VERSION probe, KPM is built in (arg=%u)\n", arg);
 #else
-        pr_warn("extension/kpm: forced VERSION probe, KPM is *not* built in (arg=%u)\n", arg);
+		pr_warn("extension/kpm: forced VERSION probe, KPM is *not* built in (arg=%u)\n", arg);
 #endif
-        return;
-    default:
-        pr_warn("extension/kpm: forced op=%u arg=%u not honoured\n", op, arg);
-        return;
-    }
+		return;
+	default:
+		pr_warn("extension/kpm: forced op=%u arg=%u not honoured\n", op, arg);
+		return;
+	}
 }

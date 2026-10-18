@@ -340,5 +340,5 @@ bool is_manager_apk(char *path)
 
 bool ksu_check_apk_signature(char *path, unsigned int size, const char *hash)
 {
-    return check_v2_signature(path, size, hash);
+	return check_v2_signature(path, size, hash);
 }

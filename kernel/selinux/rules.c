@@ -655,7 +655,7 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
 	int success_cmd_count = 0;
 
 	if (!user_data || !data_len)
-    		return -EINVAL;
+			return -EINVAL;
 
 	if (data_len > KSU_SEPOLICY_MAX_BATCH_SIZE)
 		return -E2BIG;

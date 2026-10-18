@@ -73,166 +73,166 @@
 
 static int set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd)
 {
-    int missing = 0;
+	int missing = 0;
 
-    if (!cmd)
-        return -EINVAL;
+	if (!cmd)
+		return -EINVAL;
 
-    if (cmd->cpu_index >= num_possible_cpus()) {
-        pr_warn("ksu: set_spoof_cpu out-of-bounds cpu_index %u\n",
-                cmd->cpu_index);
-        return -EINVAL;
-    }
+	if (cmd->cpu_index >= num_possible_cpus()) {
+		pr_warn("ksu: set_spoof_cpu out-of-bounds cpu_index %u\n",
+				cmd->cpu_index);
+		return -EINVAL;
+	}
 
 #if defined(CONFIG_ARM64) || defined(__aarch64__)
-    {
-        unsigned long cpu_data_base = find_kernel_symbol_exact("cpu_data");
-        if (cpu_data_base) {
-            struct cpuinfo_arm64 *info =
-                per_cpu_ptr((struct cpuinfo_arm64 *)cpu_data_base,
-                            cmd->cpu_index);
-            if (info) {
-                info->reg_midr = cmd->midr;
-            } else {
-                pr_warn("ksu: set_spoof_cpu per_cpu_ptr failed for cpu_index %u\n",
-                        cmd->cpu_index);
-                ++missing;
-            }
-        } else {
-            pr_warn("ksu: set_spoof_cpu failed to resolve 'cpu_data'\n");
-            ++missing;
-        }
-    }
+	{
+		unsigned long cpu_data_base = find_kernel_symbol_exact("cpu_data");
+		if (cpu_data_base) {
+			struct cpuinfo_arm64 *info =
+				per_cpu_ptr((struct cpuinfo_arm64 *)cpu_data_base,
+							cmd->cpu_index);
+			if (info) {
+				info->reg_midr = cmd->midr;
+			} else {
+				pr_warn("ksu: set_spoof_cpu per_cpu_ptr failed for cpu_index %u\n",
+						cmd->cpu_index);
+				++missing;
+			}
+		} else {
+			pr_warn("ksu: set_spoof_cpu failed to resolve 'cpu_data'\n");
+			++missing;
+		}
+	}
 
-    if (cmd->cpu_index == 0) {
-        unsigned long *lpj =
-            (unsigned long *)find_kernel_symbol_exact("loops_per_jiffy");
-        if (lpj) {
-            *lpj = ((unsigned long)cmd->bogomips * 500000) / (100 * HZ);
-        } else {
-            pr_warn("ksu: set_spoof_cpu failed to resolve 'loops_per_jiffy'\n");
-            ++missing;
-        }
+	if (cmd->cpu_index == 0) {
+		unsigned long *lpj =
+			(unsigned long *)find_kernel_symbol_exact("loops_per_jiffy");
+		if (lpj) {
+			*lpj = ((unsigned long)cmd->bogomips * 500000) / (100 * HZ);
+		} else {
+			pr_warn("ksu: set_spoof_cpu failed to resolve 'loops_per_jiffy'\n");
+			++missing;
+		}
 
-        unsigned long *elf_hwcap_bitmap =
-            (unsigned long *)find_kernel_symbol_exact("elf_hwcap");
-        if (elf_hwcap_bitmap) {
-            elf_hwcap_bitmap[0] = cmd->hwcap;
-            elf_hwcap_bitmap[1] = cmd->hwcap2;
-        } else {
-            pr_warn("ksu: set_spoof_cpu failed to resolve 'elf_hwcap'\n");
-            ++missing;
-        }
+		unsigned long *elf_hwcap_bitmap =
+			(unsigned long *)find_kernel_symbol_exact("elf_hwcap");
+		if (elf_hwcap_bitmap) {
+			elf_hwcap_bitmap[0] = cmd->hwcap;
+			elf_hwcap_bitmap[1] = cmd->hwcap2;
+		} else {
+			pr_warn("ksu: set_spoof_cpu failed to resolve 'elf_hwcap'\n");
+			++missing;
+		}
 
-        {
-            unsigned int part = MIDR_PARTNUM(cmd->midr);
-            if (part != ARM_CPU_PART_NEOVERSE_N1 &&
-                part != ARM_CPU_PART_CORTEX_A76 &&
-                part != QCOM_CPU_PART_KRYO_4XX_GOLD) {
+		{
+			unsigned int part = MIDR_PARTNUM(cmd->midr);
+			if (part != ARM_CPU_PART_NEOVERSE_N1 &&
+				part != ARM_CPU_PART_CORTEX_A76 &&
+				part != QCOM_CPU_PART_KRYO_4XX_GOLD) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
-                struct vdso_time_data **vdso_time_data_ptr =
-                    (struct vdso_time_data **)find_kernel_symbol_exact(
-                        "vdso_time_data");
-                if (!vdso_time_data_ptr)
-                    vdso_time_data_ptr =
-                        (struct vdso_time_data **)find_kernel_symbol_exact(
-                            "_vdso_time_data");
-                if (!vdso_time_data_ptr)
-                    vdso_time_data_ptr =
-                        (struct vdso_time_data **)find_kernel_symbol_exact(
-                            "vdso_data");
-                if (vdso_time_data_ptr && *vdso_time_data_ptr) {
-                    struct vdso_time_data *vdso = *vdso_time_data_ptr;
-                    vdso->clock_data[CS_HRES_COARSE].clock_mode =
-                        VDSO_CLOCKMODE_ARCHTIMER;
-                    vdso->clock_data[CS_RAW].clock_mode =
-                        VDSO_CLOCKMODE_ARCHTIMER;
-                } else {
-                    pr_warn("ksu: set_spoof_cpu failed to resolve vDSO time data\n");
-                    ++missing;
-                }
+				struct vdso_time_data **vdso_time_data_ptr =
+					(struct vdso_time_data **)find_kernel_symbol_exact(
+						"vdso_time_data");
+				if (!vdso_time_data_ptr)
+					vdso_time_data_ptr =
+						(struct vdso_time_data **)find_kernel_symbol_exact(
+							"_vdso_time_data");
+				if (!vdso_time_data_ptr)
+					vdso_time_data_ptr =
+						(struct vdso_time_data **)find_kernel_symbol_exact(
+							"vdso_data");
+				if (vdso_time_data_ptr && *vdso_time_data_ptr) {
+					struct vdso_time_data *vdso = *vdso_time_data_ptr;
+					vdso->clock_data[CS_HRES_COARSE].clock_mode =
+						VDSO_CLOCKMODE_ARCHTIMER;
+					vdso->clock_data[CS_RAW].clock_mode =
+						VDSO_CLOCKMODE_ARCHTIMER;
+				} else {
+					pr_warn("ksu: set_spoof_cpu failed to resolve vDSO time data\n");
+					++missing;
+				}
 #else
-                struct vdso_data **vdso_data_ptr =
-                    (struct vdso_data **)find_kernel_symbol_exact("vdso_data");
-                if (vdso_data_ptr && *vdso_data_ptr) {
-                    struct vdso_data *vdso = *vdso_data_ptr;
-                    vdso[CS_HRES_COARSE].clock_mode =
-                        VDSO_CLOCKMODE_ARCHTIMER;
-                    vdso[CS_RAW].clock_mode = VDSO_CLOCKMODE_ARCHTIMER;
-                } else {
-                    pr_warn("ksu: set_spoof_cpu failed to resolve 'vdso_data'\n");
-                    ++missing;
-                }
+				struct vdso_data **vdso_data_ptr =
+					(struct vdso_data **)find_kernel_symbol_exact("vdso_data");
+				if (vdso_data_ptr && *vdso_data_ptr) {
+					struct vdso_data *vdso = *vdso_data_ptr;
+					vdso[CS_HRES_COARSE].clock_mode =
+						VDSO_CLOCKMODE_ARCHTIMER;
+					vdso[CS_RAW].clock_mode = VDSO_CLOCKMODE_ARCHTIMER;
+				} else {
+					pr_warn("ksu: set_spoof_cpu failed to resolve 'vdso_data'\n");
+					++missing;
+				}
 #endif
 
-                {
-                    struct clocksource **curr_cs_ptr =
-                        (struct clocksource **)find_kernel_symbol_exact(
-                            "curr_clocksource");
-                    if (curr_cs_ptr && *curr_cs_ptr) {
-                        (*curr_cs_ptr)->vdso_clock_mode =
-                            VDSO_CLOCKMODE_ARCHTIMER;
-                    } else {
-                        pr_warn("ksu: set_spoof_cpu failed to resolve 'curr_clocksource'\n");
-                        ++missing;
-                    }
-                }
+				{
+					struct clocksource **curr_cs_ptr =
+						(struct clocksource **)find_kernel_symbol_exact(
+							"curr_clocksource");
+					if (curr_cs_ptr && *curr_cs_ptr) {
+						(*curr_cs_ptr)->vdso_clock_mode =
+							VDSO_CLOCKMODE_ARCHTIMER;
+					} else {
+						pr_warn("ksu: set_spoof_cpu failed to resolve 'curr_clocksource'\n");
+						++missing;
+					}
+				}
 
-                {
-                    enum vdso_clock_mode *vd_default =
-                        (enum vdso_clock_mode *)find_kernel_symbol_exact(
-                            "vdso_default");
-                    if (vd_default) {
-                        *vd_default = VDSO_CLOCKMODE_ARCHTIMER;
-                    } else {
-                        pr_warn("ksu: set_spoof_cpu failed to resolve 'vdso_default'\n");
-                        ++missing;
-                    }
-                }
+				{
+					enum vdso_clock_mode *vd_default =
+						(enum vdso_clock_mode *)find_kernel_symbol_exact(
+							"vdso_default");
+					if (vd_default) {
+						*vd_default = VDSO_CLOCKMODE_ARCHTIMER;
+					} else {
+						pr_warn("ksu: set_spoof_cpu failed to resolve 'vdso_default'\n");
+						++missing;
+					}
+				}
 
-                {
-                    unsigned long *caps =
-                        (unsigned long *)find_kernel_symbol_exact("cpu_hwcaps");
-                    if (!caps)
-                        caps = (unsigned long *)find_kernel_symbol_exact(
-                            "system_cpucaps");
-                    if (caps) {
-                        clear_bit(ARM64_WORKAROUND_1418040, caps);
-                    } else {
-                        pr_warn("ksu: set_spoof_cpu failed to resolve 'cpu_hwcaps' / 'system_cpucaps'\n");
-                        ++missing;
-                    }
-                }
-            }
-        }
-    }
+				{
+					unsigned long *caps =
+						(unsigned long *)find_kernel_symbol_exact("cpu_hwcaps");
+					if (!caps)
+						caps = (unsigned long *)find_kernel_symbol_exact(
+							"system_cpucaps");
+					if (caps) {
+						clear_bit(ARM64_WORKAROUND_1418040, caps);
+					} else {
+						pr_warn("ksu: set_spoof_cpu failed to resolve 'cpu_hwcaps' / 'system_cpucaps'\n");
+						++missing;
+					}
+				}
+			}
+		}
+	}
 #endif
 
-    /*
-     * If any of the kallsyms lookups failed, refuse to claim success.
-     * Previously the function silently returned 0 even when none of
-     * the writes had taken effect, which made callers (and users)
-     * think CPU spoof was active when only partial — or no —
-     * rewrites had happened. -ENXIO distinguishes "subsystem
-     * missing on this build" from a generic -EINVAL.
-     */
-    if (missing) {
-        pr_warn("ksu: set_spoof_cpu for cpu %u incomplete (%d symbol(s) unresolved)\n",
-                cmd->cpu_index, missing);
-        return -ENXIO;
-    }
+	/*
+	 * If any of the kallsyms lookups failed, refuse to claim success.
+	 * Previously the function silently returned 0 even when none of
+	 * the writes had taken effect, which made callers (and users)
+	 * think CPU spoof was active when only partial — or no —
+	 * rewrites had happened. -ENXIO distinguishes "subsystem
+	 * missing on this build" from a generic -EINVAL.
+	 */
+	if (missing) {
+		pr_warn("ksu: set_spoof_cpu for cpu %u incomplete (%d symbol(s) unresolved)\n",
+				cmd->cpu_index, missing);
+		return -ENXIO;
+	}
 
-    pr_info("KernelSU Stealth: CPU %u identity spoofed (MIDR: 0x%08x)\n",
-            cmd->cpu_index, cmd->midr);
-    return 0;
+	pr_info("KernelSU Stealth: CPU %u identity spoofed (MIDR: 0x%08x)\n",
+			cmd->cpu_index, cmd->midr);
+	return 0;
 }
 
 int ksu_extension_cpu_spoof_io(u32 id, void __user *raw)
 {
-    struct ksu_set_spoof_cpu_cmd cmd;
+	struct ksu_set_spoof_cpu_cmd cmd;
 
-    if (copy_from_user(&cmd, raw, sizeof(cmd)))
-        return -EFAULT;
+	if (copy_from_user(&cmd, raw, sizeof(cmd)))
+		return -EFAULT;
 
-    return set_spoof_cpu(&cmd);
+	return set_spoof_cpu(&cmd);
 }

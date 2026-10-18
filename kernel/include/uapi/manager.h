@@ -15,21 +15,21 @@
 #define KSU_MANAGER_CLEAR 4
 
 struct ksu_manager_entry {
-    __u32 cert_size;
-    __u32 uid;
-    char package[KSU_MANAGER_PACKAGE_LENGTH];
-    char hash[KSU_MANAGER_HASH_LENGTH + 1];
+	__u32 cert_size;
+	__u32 uid;
+	char package[KSU_MANAGER_PACKAGE_LENGTH];
+	char hash[KSU_MANAGER_HASH_LENGTH + 1];
 };
 
 struct ksu_manager_cmd {
-    __u32 operation;
-    __u32 enabled;
-    __u32 count;
-    __u32 cert_size;
-    __u32 uid;
-    char package[KSU_MANAGER_PACKAGE_LENGTH];
-    char hash[KSU_MANAGER_HASH_LENGTH + 1];
-    struct ksu_manager_entry entries[KSU_MANAGER_MAX_ENTRIES];
+	__u32 operation;
+	__u32 enabled;
+	__u32 count;
+	__u32 cert_size;
+	__u32 uid;
+	char package[KSU_MANAGER_PACKAGE_LENGTH];
+	char hash[KSU_MANAGER_HASH_LENGTH + 1];
+	struct ksu_manager_entry entries[KSU_MANAGER_MAX_ENTRIES];
 };
 
 #endif
