@@ -36,6 +36,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KeyEventBlocker
 import com.sukisu.ultra.ui.kernelFlash.state.FlashState
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -129,21 +130,25 @@ fun KernelFlashMiuix(
                 .scrollEndHaptic(),
         ) {
             FlashProgressIndicatorMiuix(state, kpmPatchEnabled, kpmUndoPatch)
-            Box(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .verticalScroll(scrollState)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                colors = CardDefaults.defaultColors(color = colorScheme.surfaceContainer),
             ) {
-                LaunchedEffect(logText) {
-                    scrollState.animateScrollTo(scrollState.maxValue)
+                Box(modifier = Modifier.verticalScroll(scrollState)) {
+                    LaunchedEffect(logText) {
+                        scrollState.animateScrollTo(scrollState.maxValue)
+                    }
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = logText,
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = colorScheme.onSurfaceContainer
+                    )
                 }
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = logText,
-                    fontFamily = FontFamily.Monospace,
-                    color = colorScheme.onSurface
-                )
             }
         }
     }

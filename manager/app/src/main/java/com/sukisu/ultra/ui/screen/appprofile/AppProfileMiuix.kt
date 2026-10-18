@@ -21,15 +21,16 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Security
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -65,6 +68,7 @@ import com.sukisu.ultra.ui.util.setSepolicy
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -73,6 +77,7 @@ import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
@@ -82,8 +87,8 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.MoreCircle
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
@@ -142,7 +147,7 @@ fun AppProfileScreenMiuix(
                             AppIconImage(
                                 packageInfo = state.appGroup.primary.packageInfo,
                                 label = state.appGroup.primary.label,
-                                modifier = Modifier.size(64.dp)
+                                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(20.dp))
                             )
                         },
                         appUid = state.uid,
@@ -192,152 +197,128 @@ private fun AppProfileInner(
     val appId = appUid % 100000
     val templates = remember { listAppProfileTemplates() }
 
+    val initialRootMode = if (profile.rootUseDefault) {
+        Mode.Default
+    } else if (profile.rootTemplate != null) {
+        Mode.Template
+    } else {
+        Mode.Custom
+    }
+    var rootMode by rememberSaveable {
+        mutableStateOf(initialRootMode)
+    }
+    val nonRootMode = if (profile.nonRootUseDefault) Mode.Default else Mode.Custom
+    val dropdownMode = if (isRootGranted) rootMode else nonRootMode
+
     Column(
         modifier = modifier
     ) {
-        Card(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 12.dp),
-            insideMargin = PaddingValues(start = 12.dp, end = 16.dp, top = 10.dp, bottom = 10.dp)
+                .padding(horizontal = 24.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            appIcon()
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                appIcon()
-                Column(
-                    modifier = Modifier
-                        .padding(start = 12.dp, end = 8.dp)
-                        .weight(1f),
-                ) {
+                Text(
+                    text = appLabel,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    modifier = Modifier.basicMarquee(),
+                    maxLines = 1,
+                    softWrap = false
+                )
+                val details = buildList {
+                    if (isSpecialApp) {
+                        add(packageName)
+                    } else if (!isUidGroup) {
+                        add(packageName)
+                        add("$appVersionName ($appVersionCode)")
+                    } else {
+                        if (sharedUserId.isNotEmpty()) add(sharedUserId)
+                        add(stringResource(R.string.group_contains_apps, affectedApps.size))
+                    }
+                }
+                details.forEach {
                     Text(
-                        text = appLabel,
-                        color = colorScheme.onSurface,
-                        fontWeight = FontWeight(550),
-                        modifier = Modifier
-                            .basicMarquee(),
+                        text = it,
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.basicMarquee(),
                         maxLines = 1,
                         softWrap = false
                     )
-                    if (isSpecialApp) {
-                        Text(
-                            text = packageName,
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.basicMarquee(),
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    } else if (!isUidGroup) {
-                        Text(
-                            text = "$appVersionName ($appVersionCode)",
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .basicMarquee(),
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                        Text(
-                            text = packageName,
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .basicMarquee(),
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    } else {
-                        if (sharedUserId.isNotEmpty()) {
-                            Text(
-                                text = sharedUserId,
-                                fontSize = 12.sp,
-                                color = colorScheme.onSurfaceVariantSummary,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier
-                                    .basicMarquee(),
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.group_contains_apps, affectedApps.size),
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .basicMarquee(),
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier,
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    if (userId != 0) {
-                        StatusTag(
-                            label = "USER $userId",
-                            backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
-                            contentColor = colorScheme.onPrimary
-                        )
-                        StatusTag(
-                            label = "UID $appId",
-                            backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
-                            contentColor = colorScheme.onPrimary
-                        )
-                    } else {
-                        StatusTag(
-                            label = "UID $appUid",
-                            backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
-                            contentColor = colorScheme.onPrimary
-                        )
-                    }
                 }
             }
-        }
-
-        if (!isSpecialApp) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-                    .padding(bottom = 12.dp),
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                SwitchPreference(
-                    startAction = {
-                        Icon(
-                            imageVector = Icons.Rounded.Security,
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 6.dp),
-                            tint = colorScheme.onBackground
-                        )
-                    },
-                    title = stringResource(id = R.string.superuser),
-                    checked = isRootGranted,
-                    onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+                if (userId != 0) {
+                    StatusTag(
+                        label = "USER $userId",
+                        backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
+                        contentColor = colorScheme.onPrimary
+                    )
+                }
+                StatusTag(
+                    label = "UID ${if (userId != 0) appId else appUid}",
+                    backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
+                    contentColor = colorScheme.onPrimary
                 )
             }
         }
 
-        val initialRootMode = if (profile.rootUseDefault) {
-            Mode.Default
-        } else if (profile.rootTemplate != null) {
-            Mode.Template
-        } else {
-            Mode.Custom
+        if (!isSpecialApp) {
+            val checked = isRootGranted
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 4.dp, bottom = 12.dp),
+                colors = CardDefaults.defaultColors(
+                    color = if (checked) colorScheme.primary else colorScheme.surfaceContainer
+                ),
+                insideMargin = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
+                onClick = { onProfileChange(profile.copy(allowSu = !checked)) },
+                pressFeedbackType = PressFeedbackType.Sink,
+            ) {
+                Row(
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(id = R.string.superuser),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (checked) colorScheme.onPrimary else colorScheme.onSurface,
+                        )
+                        Text(
+                            text = dropdownMode.text,
+                            fontSize = 13.sp,
+                            color = if (checked) {
+                                colorScheme.onPrimary.copy(alpha = 0.75f)
+                            } else {
+                                colorScheme.onSurfaceVariantSummary
+                            },
+                        )
+                    }
+                    Switch(
+                        checked = checked,
+                        onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+                    )
+                }
+            }
         }
-        var rootMode by rememberSaveable {
-            mutableStateOf(initialRootMode)
-        }
-        val nonRootMode = if (profile.nonRootUseDefault) Mode.Default else Mode.Custom
-        val dropdownMode = if (isRootGranted) rootMode else nonRootMode
+
         ProfileBox(dropdownMode, isRootGranted) { mode ->
             if (isRootGranted) {
                 when (mode) {

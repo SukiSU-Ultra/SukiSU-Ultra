@@ -55,6 +55,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
@@ -316,10 +317,10 @@ private fun TemplateItem(
             }
 
             Text(
-                text = "${template.id}${if (template.author.isEmpty()) "" else " by @${template.author}"}",
+                text = "${template.id}${if (template.author.isEmpty()) "" else ", ${template.author}"}",
                 modifier = Modifier.padding(top = 1.dp),
                 fontSize = 12.sp,
-                fontWeight = FontWeight(550),
+                fontFamily = FontFamily.Monospace,
                 color = colorScheme.onSurfaceVariantSummary,
             )
 

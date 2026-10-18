@@ -42,12 +42,12 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.LogConsole
 import com.sukisu.ultra.ui.component.KeyEventBlocker
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.BlurredBar
@@ -167,12 +167,7 @@ fun ExecuteModuleActionScreenMiuix(
                     scrollState.animateScrollTo(scrollState.maxValue)
                 }
                 Spacer(Modifier.height(innerPadding.calculateTopPadding()))
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = state.text,
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace,
-                )
+                LogConsole(text = state.text)
                 state.resultNotice?.let { ResultNoticeMiuix(it) }
                 Spacer(
                     Modifier.height(

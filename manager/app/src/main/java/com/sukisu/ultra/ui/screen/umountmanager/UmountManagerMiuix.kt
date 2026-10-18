@@ -17,9 +17,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.statustag.StatusTag
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
@@ -206,16 +209,15 @@ private fun UmountPathCardMiuix(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entry.path,
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Monospace,
                     color = colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = buildString {
-                        append(stringResource(R.string.flags))
-                        append(": ")
-                        append(entry.flags.toUmountFlagName(context))
-                    },
-                    color = colorScheme.onSurfaceVariantSummary
+                StatusTag(
+                    label = "${stringResource(R.string.flags)}: ${entry.flags.toUmountFlagName(context)}",
+                    contentColor = colorScheme.onSecondaryContainer,
+                    backgroundColor = colorScheme.secondaryContainer,
                 )
             }
 

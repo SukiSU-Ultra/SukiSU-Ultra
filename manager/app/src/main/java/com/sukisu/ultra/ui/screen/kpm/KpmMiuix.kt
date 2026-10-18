@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -13,22 +14,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -433,45 +436,34 @@ private fun KpmModuleItem(
                     .weight(1f)
                     .padding(end = 4.dp)
             ) {
-                val kpmVersion = stringResource(R.string.kpm_version)
-                val kpmAuthor = stringResource(R.string.kpm_author)
                 val kpmArgs = stringResource(R.string.kpm_args)
 
-                SubcomposeLayout { constraints ->
-                    val namePlaceable = subcompose("name") {
-                        Text(
-                            text = module.name,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight(550),
-                            color = colorScheme.onSurface,
-                            onTextLayout = { }
-                        )
-                    }.first().measure(constraints)
-
-                    layout(namePlaceable.width, namePlaceable.height) {
-                        namePlaceable.placeRelative(0, 0)
-                    }
-                }
                 Text(
-                    text = "$kpmVersion: ${module.version}",
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp),
-                    fontWeight = FontWeight(550),
-                    color = colorScheme.onSurfaceVariantSummary
+                    text = module.name,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    color = colorScheme.onSurface,
                 )
                 Text(
-                    text = "$kpmAuthor: ${module.author}",
+                    text = "${module.version}, ${module.author}",
                     fontSize = 12.sp,
-                    modifier = Modifier.padding(bottom = 1.dp),
-                    fontWeight = FontWeight(550),
+                    modifier = Modifier.padding(top = 2.dp, bottom = 1.dp),
+                    fontFamily = FontFamily.Monospace,
                     color = colorScheme.onSurfaceVariantSummary
                 )
                 if (module.args.isNotEmpty()) {
                     Text(
                         text = "$kpmArgs: ${module.args}",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight(550),
-                        color = colorScheme.onSurfaceVariantSummary
+                        fontFamily = FontFamily.Monospace,
+                        color = colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(colorScheme.surfaceContainerHigh)
+                            .padding(horizontal = 10.dp, vertical = 8.dp)
                     )
                 }
             }
