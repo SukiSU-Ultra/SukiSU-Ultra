@@ -5,7 +5,7 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
-    <style name="Theme.KernelSU.Starting" parent="Theme.SplashScreen">
+    <style name="Theme.KernelSU.Starting" parent="Theme.SplashScreen.IconBackground">
         <item name="windowSplashScreenBackground">@android:color/background_dark</item>
         <item name="windowSplashScreenIconBackgroundColor">@color/ic_splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_splash</item>
