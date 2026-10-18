@@ -632,6 +632,10 @@
     <string name="seccomp_status_unknown">未知</string>
     <string name="settings_selinux_hide">隱藏 SELinux 修改</string>
     <string name="settings_selinux_hide_failed">錯誤： %d</string>
+    <string name="settings_mount_hide">隱藏可疑掛載</string>
+    <string name="settings_mount_hide_summary">從隔離程序與應用程式程序的 /proc 掛載視圖中過濾 KernelSU 與模組的掛載記錄</string>
+    <string name="settings_mount_hide_reboot_required">重新啟動後生效</string>
+    <string name="settings_mount_hide_failed">錯誤：%d</string>
     <string name="settings_sulog">SU 日誌</string>
     <string name="settings_sulog_summary">將 Root 相關事件記錄至 SukiSU 的 SU 日誌檔</string>
     <string name="feature_status_unsupported_summary">核心不支援此功能</string>

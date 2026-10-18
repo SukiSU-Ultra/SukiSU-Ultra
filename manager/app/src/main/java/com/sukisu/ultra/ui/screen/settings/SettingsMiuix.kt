@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SystemUpdate
@@ -405,6 +406,28 @@ fun SettingPagerMiuix(
                                 enabled = uiState.selinuxHideStatus == "supported",
                                 checked = uiState.isSelinuxHideEnabled,
                                 onCheckedChange = actions.onSetSelinuxHideEnabled
+                            )
+
+                            val mountHideSummary = when (uiState.mountHideStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                "forced" -> stringResource(id = R.string.feature_status_forced_summary)
+                                else -> stringResource(id = R.string.settings_mount_hide_summary)
+                            }
+                            SwitchPreference(
+                                title = stringResource(id = R.string.settings_mount_hide),
+                                summary = mountHideSummary,
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Policy,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_mount_hide),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                enabled = uiState.mountHideStatus == "supported",
+                                checked = uiState.isMountHideEnabled,
+                                onCheckedChange = actions.onSetMountHideEnabled
                             )
 
                             val sulogSummary = when (uiState.sulogStatus) {

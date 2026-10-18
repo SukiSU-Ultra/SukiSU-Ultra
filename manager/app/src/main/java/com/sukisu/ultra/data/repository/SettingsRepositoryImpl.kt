@@ -227,6 +227,12 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override fun setSelinuxHideEnabled(enabled: Boolean): Int = Natives.setSelinuxHideEnabled(enabled)
 
+    override suspend fun getMountHideStatus(): String = getFeatureStatus("mount_hide")
+
+    override fun isMountHideEnabled(): Boolean = Natives.isMountHideEnabled()
+
+    override fun setMountHideEnabled(enabled: Boolean): Int = Natives.setMountHideEnabled(enabled)
+
     override suspend fun getSulogStatus(): String = getFeatureStatus("sulog")
 
     override suspend fun getSulogPersistValue(): Long? = getFeaturePersistValue("sulog")

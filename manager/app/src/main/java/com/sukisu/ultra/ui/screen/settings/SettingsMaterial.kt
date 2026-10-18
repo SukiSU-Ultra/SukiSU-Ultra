@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.SystemUpdateAlt
@@ -337,6 +338,22 @@ fun SettingPagerMaterial(
                                 enabled = uiState.selinuxHideStatus == "supported",
                                 checked = uiState.isSelinuxHideEnabled,
                                 onCheckedChange = actions.onSetSelinuxHideEnabled
+                            )
+                        },
+                        {
+                            val mountHideSummary = when (uiState.mountHideStatus) {
+                                "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(id = R.string.feature_status_managed_summary)
+                                "forced" -> stringResource(id = R.string.feature_status_forced_summary)
+                                else -> stringResource(id = R.string.settings_mount_hide_summary)
+                            }
+                            SegmentedSwitchItem(
+                                icon = Icons.Filled.Policy,
+                                title = stringResource(id = R.string.settings_mount_hide),
+                                summary = mountHideSummary,
+                                enabled = uiState.mountHideStatus == "supported",
+                                checked = uiState.isMountHideEnabled,
+                                onCheckedChange = actions.onSetMountHideEnabled
                             )
                         },
                         {

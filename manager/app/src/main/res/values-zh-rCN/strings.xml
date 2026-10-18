@@ -314,6 +314,10 @@
     <string name="settings_selinux_hide_summary">阻止应用检测 SELinux 修改</string>
     <string name="settings_selinux_hide_reboot_required">重启生效</string>
     <string name="settings_selinux_hide_failed">错误：%d</string>
+    <string name="settings_mount_hide">隐藏可疑挂载</string>
+    <string name="settings_mount_hide_summary">从隔离进程与应用进程的 /proc 挂载视图中过滤 KernelSU 与模块的挂载记录</string>
+    <string name="settings_mount_hide_reboot_required">重启后生效</string>
+    <string name="settings_mount_hide_failed">错误：%d</string>
     <string name="menu_sort">排序</string>
     <string name="sort_by_name">应用名</string>
     <string name="sort_by_package_name">包名</string>

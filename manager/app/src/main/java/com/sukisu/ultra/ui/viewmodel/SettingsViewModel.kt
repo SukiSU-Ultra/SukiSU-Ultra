@@ -72,6 +72,8 @@ class SettingsViewModel(
             val isKernelUmountEnabled = repo.isKernelUmountEnabled()
             val selinuxHideStatus = repo.getSelinuxHideStatus()
             val isSelinuxHideEnabled = repo.isSelinuxHideEnabled()
+            val mountHideStatus = repo.getMountHideStatus()
+            val isMountHideEnabled = repo.isMountHideEnabled()
             val sulogStatus = repo.getSulogStatus()
             val isSulogEnabled = if (sulogStatus == "forced") {
                 repo.getSulogValue() == 1L
@@ -131,6 +133,8 @@ class SettingsViewModel(
                     isKernelUmountEnabled = isKernelUmountEnabled,
                     selinuxHideStatus = selinuxHideStatus,
                     isSelinuxHideEnabled = isSelinuxHideEnabled,
+                    mountHideStatus = mountHideStatus,
+                    isMountHideEnabled = isMountHideEnabled,
                     sulogStatus = sulogStatus,
                     isSulogEnabled = isSulogEnabled,
                     isDefaultUmountModules = isDefaultUmountModules,
@@ -349,6 +353,29 @@ class SettingsViewModel(
                 else -> {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(ksuApp, ksuApp.getString(R.string.settings_selinux_hide_failed, status),
+                            Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
+    fun setMountHideEnabled(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val status = repo.setMountHideEnabled(enabled)
+            repo.execKsudFeatureSave()
+            _uiState.update { it.copy(isMountHideEnabled = enabled) }
+            when (status) {
+                0 -> {}
+                -OsConstants.EAGAIN -> {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(ksuApp, R.string.settings_mount_hide_reboot_required,
+                            Toast.LENGTH_LONG).show()
+                    }
+                }
+                else -> {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(ksuApp, ksuApp.getString(R.string.settings_mount_hide_failed, status),
                             Toast.LENGTH_LONG).show()
                     }
                 }

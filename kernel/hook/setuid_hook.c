@@ -20,6 +20,7 @@
 #include "supercall/supercall.h"
 #include "hook/tp_marker.h"
 #include "feature/kernel_umount.h"
+#include "feature/mount_hide.h"
 
 int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid)
 {
@@ -58,10 +59,12 @@ int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid)
 void __init ksu_setuid_hook_init(void)
 {
     ksu_kernel_umount_init();
+    ksu_mount_hide_init();
 }
 
 void __exit ksu_setuid_hook_exit(void)
 {
     pr_info("ksu_core_exit\n");
     ksu_kernel_umount_exit();
+    ksu_mount_hide_exit();
 }
