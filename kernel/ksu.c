@@ -28,6 +28,7 @@
 #include "infra/su_mount_ns.h"
 #include "infra/file_wrapper.h"
 #include "infra/event_queue.h"
+#include "infra/symbol_resolver.h"
 #include "feature/adb_root.h"
 #include "feature/kernel_umount.h"
 #include "feature/sucompat.h"
@@ -101,6 +102,7 @@
 #include "selinux/rules.c"
 
 #include "infra/kernel_compat.c"
+#include "infra/symbol_resolver.c"
 
 struct cred *ksu_cred;
 
@@ -137,6 +139,8 @@ int __init kernelsu_init(void)
 #endif
 
     ksu_feature_init();
+
+    ksu_init_symbol_resolver();
 
     ksu_supercalls_init();
 
