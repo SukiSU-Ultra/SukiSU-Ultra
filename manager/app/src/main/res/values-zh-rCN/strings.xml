@@ -719,6 +719,7 @@
     <string name="superuser_filter_system">系统</string>
     <string name="superuser_granted_summary">已授权 %1$d / %2$d 个应用</string>
     <string name="module_summary">%1$d 个启用 · %2$d 个可更新</string>
+    <string name="home_preview_mode">未检测到 SukiSU 内核。当前已有 root 权限，页面以预览模式打开；内核相关功能不会生效。</string>
     <string name="dynamic_manager_title">动态管理器</string>
     <string name="dynamic_manager_summary">管理额外受信任的 KernelSU 管理器</string>
     <string name="dynamic_manager_enabled">启用动态管理器</string>

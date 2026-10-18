@@ -152,10 +152,17 @@ object Natives {
     val managerUAPIVersion: Int
         external get
 
+    /**
+     * Root through some other means, no SukiSU kernel. Kernel calls just return defaults here,
+     * so the pages can be opened and browsed.
+     */
+    fun isPreviewMode(): Boolean = !isManager && rootAvailable()
+
     fun isFullFeatured(): Boolean {
         val kernelFullVersion = getFullVersion()
         return (kernelFullVersion != null && isVersionLessThan(kernelFullVersion, MINIMAL_SUPPORTED_KERNEL_FULL)) ||
-                isManager && kernelUAPIVersion == managerUAPIVersion && rootAvailable()
+                isManager && kernelUAPIVersion == managerUAPIVersion && rootAvailable() ||
+                isPreviewMode()
     }
 
     @Keep

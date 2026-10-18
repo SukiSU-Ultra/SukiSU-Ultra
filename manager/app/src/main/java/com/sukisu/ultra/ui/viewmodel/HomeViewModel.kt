@@ -48,8 +48,8 @@ class HomeViewModel(
                     kpmCount = current.kpmCount,
                 )
             }
-            if (baseState.isManager && baseState.isRootAvailable) {
-                val counts = withContext(Dispatchers.IO) { loadCounts(baseState.lkmMode) }
+            if ((baseState.isManager || baseState.isPreviewMode) && baseState.isRootAvailable) {
+                val counts = withContext(Dispatchers.IO) { loadCounts(baseState.lkmMode, baseState.isPreviewMode) }
                 _uiState.update {
                     it.copy(superuserCount = counts.first, moduleCount = counts.second, kpmCount = counts.third)
                 }
@@ -61,11 +61,12 @@ class HomeViewModel(
         }
     }
 
-    private fun loadCounts(lkmMode: Boolean?): Triple<Int?, Int?, Int?> {
-        val superuserCount = runCatching { getSuperuserCount() }.getOrNull()
+    private fun loadCounts(lkmMode: Boolean?, preview: Boolean): Triple<Int?, Int?, Int?> {
+        // The allowlist and KPM live in the kernel; there is nothing to count without one.
+        val superuserCount = if (preview) null else runCatching { getSuperuserCount() }.getOrNull()
         val moduleCount = runCatching { getModuleCount() }.getOrNull()
         // KPM only exists on built-in kernels.
-        val kpmCount = if (lkmMode == true) null else runCatching {
+        val kpmCount = if (preview || lkmMode == true) null else runCatching {
             val version = getKpmVersion()
             if (version.isEmpty() || version.contains("Error", ignoreCase = true)) null else getKpmModuleCount()
         }.getOrNull()
@@ -104,6 +105,7 @@ class HomeViewModel(
             kernelUAPIVersion = kernelUAPIVersion,
             managerUAPIVersion = managerUAPIVersion,
             isRootAvailable = isRootAvailable,
+            isPreviewMode = !isManager && isRootAvailable,
             isSafeMode = Natives.isSafeMode,
             isLateLoadMode = Natives.isLateLoadMode,
             checkUpdateEnabled = settingsRepo.checkUpdate,

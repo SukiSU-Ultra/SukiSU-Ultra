@@ -723,6 +723,7 @@
     <string name="superuser_filter_system">System</string>
     <string name="superuser_granted_summary">%1$d of %2$d apps granted</string>
     <string name="module_summary">%1$d enabled · %2$d updatable</string>
+    <string name="home_preview_mode">No SukiSU kernel detected. Root access is available, so the pages open in preview mode; kernel features do nothing.</string>
     <string name="dynamic_manager_title">Dynamic managers</string>
     <string name="dynamic_manager_summary">Manage additional trusted KernelSU managers</string>
     <string name="dynamic_manager_enabled">Dynamic managers enabled</string>
