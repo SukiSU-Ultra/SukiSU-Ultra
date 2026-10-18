@@ -87,8 +87,6 @@ import com.sukisu.ultra.ui.viewmodel.AppSortType
 
 private val AppIconShape = RoundedCornerShape(14.dp)
 
-private enum class AppFilter { All, Root, Custom }
-
 @Composable
 private fun SuperUserHeader(
     grantedCount: Int,

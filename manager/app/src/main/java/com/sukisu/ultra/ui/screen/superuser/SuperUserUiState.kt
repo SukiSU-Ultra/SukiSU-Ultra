@@ -53,3 +53,6 @@ data class StatusMeta(
     val bg: Color,
     val fg: Color
 )
+
+/** List filter shared by the Material and Miuix superuser pages. */
+internal enum class AppFilter { All, Root, Custom }
