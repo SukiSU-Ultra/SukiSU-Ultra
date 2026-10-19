@@ -1268,11 +1268,10 @@ where
         }
         let proc_path = entry.path();
 
-        let comm_path = proc_path.join("comm");
-        if let Ok(comm) = std::fs::read_to_string(&comm_path) {
-            if predicate(comm.trim()) {
-                return true;
-            }
+        if let Ok(comm) = std::fs::read_to_string(proc_path.join("comm"))
+            && predicate(comm.trim())
+        {
+            return true;
         }
 
         if let Ok(cmdline) = std::fs::read(proc_path.join("cmdline")) {
@@ -1288,12 +1287,11 @@ where
             }
         }
 
-        if let Ok(exe) = std::fs::read_link(proc_path.join("exe")) {
-            if let Some(basename) = exe.file_name().and_then(|name| name.to_str()) {
-                if predicate(basename) {
-                    return true;
-                }
-            }
+        if let Ok(exe) = std::fs::read_link(proc_path.join("exe"))
+            && let Some(basename) = exe.file_name().and_then(|name| name.to_str())
+            && predicate(basename)
+        {
+            return true;
         }
     }
     false
