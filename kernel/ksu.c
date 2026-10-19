@@ -33,6 +33,7 @@
 #include "feature/kernel_umount.h"
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
+#include "feature/mount_hide.h"
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #include "feature/selinux_hide.h"
 #endif
@@ -98,6 +99,7 @@
 #include "feature/selinux_hide.c"
 #endif
 #include "feature/shell_su_adb_only.c"
+#include "feature/mount_hide.c"
 #include "runtime/ksud.c"
 
 #include "sulog/event.c"
@@ -171,6 +173,8 @@ int __init kernelsu_init(void)
 #endif
 
     ksu_kernel_umount_init();
+
+	ksu_mount_hide_init();
 
     ksu_allowlist_init();
 
