@@ -48,7 +48,6 @@ static_assert(1 == 0, "Unsupported architecture!");
 #define ksyscall(...) __ksyscall_exp(ksyscall_, __ksyscall_count_args(__VA_ARGS__))(__VA_ARGS__)
 
 #define ksu_close_fd(fd) ({ ksyscall(close, fd); })
-#define ksu_sys_setns(fd, flags) ({ ksyscall(setns, fd, flags); })
 #define ksu_sys_umount(mnt, flags) ({ ksyscall(umount, mnt, flags); })
 #else
 #define ksu_close_fd sys_close
