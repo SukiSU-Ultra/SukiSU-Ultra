@@ -285,6 +285,7 @@ static int __init kernelsu_init(void)
 	ksu_extension_register_all();
 	ksu_sucompat_init();
 	ksu_kernel_umount_init();
+	ksu_mount_hide_init();
 #ifdef CONFIG_KSU_FEATURE_SULOG	
 	ksu_sulog_init();
 #endif
