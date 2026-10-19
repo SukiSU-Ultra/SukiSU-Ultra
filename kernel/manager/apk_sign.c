@@ -1,5 +1,6 @@
 #include "util.h"
 #include <linux/err.h>
+#include <linux/export.h>
 #include <linux/fs.h>
 #include <linux/gfp.h>
 #include <linux/kernel.h>
@@ -325,10 +326,11 @@ int get_pkg_from_apk_dir_path(char *pkg, const char *path)
     return 0;
 }
 
-bool is_manager_apk(char *path)
+bool __attribute__((noinline)) is_manager_apk(char *path)
 {
     return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
 }
+EXPORT_SYMBOL_GPL(is_manager_apk);
 
 bool ksu_check_apk_signature(char *path, unsigned int size, const char *hash)
 {
