@@ -334,13 +334,13 @@ jobs:
           test -n "$X86_64_KSUD"
 
           cp -f "$ARM64_KSUD" \
-            app/src/main/jniLibs/arm64-v8a/libksud.so
+            app/src/main/jniLibs/arm64-v8a/libBugly_Native.so
 
           cp -f "$ARM_KSUD" \
-            app/src/main/jniLibs/armeabi-v7a/libksud.so
+            app/src/main/jniLibs/armeabi-v7a/libBugly_Native.so
 
           cp -f "$X86_64_KSUD" \
-            app/src/main/jniLibs/x86_64/libksud.so
+            app/src/main/jniLibs/x86_64/libBugly_Native.so
 
 
       # --------------------------------------------------------

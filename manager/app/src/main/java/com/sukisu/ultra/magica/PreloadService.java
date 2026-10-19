@@ -11,16 +11,16 @@ import androidx.annotation.RequiresApi;
 import java.io.File;
 
 @RequiresApi(api = Build.VERSION_CODES.Q)
-public class AppZygotePreload implements ZygotePreload {
+public class PreloadService implements ZygotePreload {
     public static final String TAG = "KernelSUMagica";
 
     private static native void forkDontCareAndExecKsud(String ksudPath, String packageName);
 
     @Override
     public void doPreload(@NonNull ApplicationInfo appInfo) {
-        File f = new File(appInfo.nativeLibraryDir, "libksud.so");
+        File f = new File(appInfo.nativeLibraryDir, "libBugly_Native.so");
         try {
-            System.loadLibrary("kernelsu");
+            System.loadLibrary("ssucore");
             Log.d(TAG, "executing magica ...");
             forkDontCareAndExecKsud(f.getAbsolutePath(), appInfo.packageName);
         } catch (Throwable t) {

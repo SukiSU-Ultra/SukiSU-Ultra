@@ -12,7 +12,7 @@
     <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur" />
 
     <application
-        android:name=".KernelSUApplication"
+        android:name=".SukiApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:directBootAware="true"
@@ -23,7 +23,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.KernelSU"
-        android:zygotePreloadName="com.sukisu.ultra.magica.AppZygotePreload"
+        android:zygotePreloadName="com.sukisu.ultra.magica.PreloadService"
         tools:targetApi="R">
         <activity
             android:name=".ui.MainActivity"

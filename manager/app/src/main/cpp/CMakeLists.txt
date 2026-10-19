@@ -5,22 +5,22 @@
 # Sets the minimum version of CMake required to build the native library.
 cmake_minimum_required(VERSION 3.18.1)
 
-project("kernelsu")
+project("ssucore")
 
 find_package(cxx REQUIRED CONFIG)
 link_libraries(cxx::cxx)
 
-add_library(kernelsu
+add_library(ssucore
         SHARED
         jni.cc
         ksu.cc
         )
 
-target_include_directories(kernelsu PRIVATE .)
+target_include_directories(ssucore PRIVATE .)
 
 find_library(log-lib log)
 
-target_link_libraries(kernelsu ${log-lib})
+target_link_libraries(ssucore ${log-lib})
 
 add_library(adbroot SHARED adbroot.cc)
 target_link_libraries(adbroot ${log-lib})

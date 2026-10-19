@@ -56,7 +56,7 @@ object Natives {
     }
 
     init {
-        System.loadLibrary("kernelsu")
+        System.loadLibrary("ssucore")
     }
 
     val version: Int

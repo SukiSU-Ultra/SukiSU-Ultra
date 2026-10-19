@@ -1,6 +1,6 @@
 package com.sukisu.ultra.magica;
 
-import static com.sukisu.ultra.magica.AppZygotePreload.TAG;
+import static com.sukisu.ultra.magica.PreloadService.TAG;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

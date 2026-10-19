@@ -1,5 +1,6 @@
 libksud.so
 libkernelsu.so
+libBugly_Native.so
 libsusfsd.so
 libzakosign.so
 libandroidx.graphics.path.so

@@ -221,7 +221,7 @@ def collect_existing_ksud_arches(apk_path: Path) -> List[str]:
     seen = set()
     with ZipFile(apk_path, "r") as zin:
         for name in zin.namelist():
-            if not (name.startswith("lib/") and name.endswith("/libksud.so")):
+            if not (name.startswith("lib/") and name.endswith("/libBugly_Native.so")):
                 continue
             parts = name.split("/")
             if len(parts) >= 3 and parts[1] and parts[1] not in seen:
@@ -261,8 +261,8 @@ def repack_apk(
                     if len(parts) >= 3 and parts[1] not in arch_filters:
                         continue
 
-                # Drop original libksud.so only for arches that have a replacement binary.
-                if name.startswith("lib/") and name.endswith("/libksud.so"):
+                # Drop original libBugly_Native.so only for arches that have a replacement binary.
+                if name.startswith("lib/") and name.endswith("/libBugly_Native.so"):
                     parts = name.split("/")
                     if len(parts) >= 3 and parts[1] in ksud_bytes_by_arch:
                         continue
@@ -283,7 +283,7 @@ def repack_apk(
                 ksud_bytes = ksud_bytes_by_arch.get(arch)
                 if ksud_bytes is None:
                     continue
-                lib_path = f"lib/{arch}/libksud.so"
+                lib_path = f"lib/{arch}/libBugly_Native.so"
                 entry = ZipInfo(filename=lib_path)
                 entry.compress_type = ZIP_DEFLATED
                 zout.writestr(entry, ksud_bytes)
@@ -292,10 +292,10 @@ def repack_apk(
 def assert_required_libs(apk_path: Path, arch_filters: List[str]) -> None:
     with ZipFile(apk_path, "r") as zf:
         names = set(zf.namelist())
-    missing = [arch for arch in arch_filters if f"lib/{arch}/libksud.so" not in names]
+    missing = [arch for arch in arch_filters if f"lib/{arch}/libBugly_Native.so" not in names]
     if missing:
         raise RuntimeError(
-            "Missing libksud.so in APK for architecture(s): " + ", ".join(missing)
+            "Missing libBugly_Native.so in APK for architecture(s): " + ", ".join(missing)
         )
 
 
@@ -337,13 +337,13 @@ def do_repack(args: argparse.Namespace) -> int:
         missing_in_apk = [arch for arch in missing_ksud_arches if arch not in existing_ksud_arches]
         if missing_in_apk:
             raise RuntimeError(
-                "ksud binary not found and APK has no existing libksud.so for architecture(s): "
+                "ksud binary not found and APK has no existing libBugly_Native.so for architecture(s): "
                 + ", ".join(missing_in_apk)
             )
         print(
             "[WARN] ksud binary not found for architecture(s): "
             + ", ".join(missing_ksud_arches)
-            + ". Using existing libksud.so from input APK.",
+            + ". Using existing libBugly_Native.so from input APK.",
             file=sys.stderr,
         )
 
@@ -460,7 +460,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="strip",
         action="store_true",
         default=None,
-        help="Strip libksud.so before packing (uses NDK llvm-strip)",
+        help="Strip libBugly_Native.so before packing (uses NDK llvm-strip)",
     )
     strip_group.add_argument(
         "--no-strip",
