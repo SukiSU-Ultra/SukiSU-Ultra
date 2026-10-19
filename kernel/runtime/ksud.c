@@ -58,6 +58,7 @@ void on_post_fs_data(void)
 
 	// retry forced features which failed at second stage
 	ksu_feature_apply_forced();
+	ksu_extension_apply_forced();
 }
 
 extern void ext4_unregister_sysfs(struct super_block *sb);
@@ -404,6 +405,7 @@ static noinline void ksu_install_rc_hook(struct file *file)
 	setup_ksu_cred();
 	ksu_grab_init_session_keyring();
 	ksu_feature_apply_forced();
+	ksu_extension_apply_forced();
 
 	// now we can sure that the init process is reading
 	// `/system/etc/init/init.rc`

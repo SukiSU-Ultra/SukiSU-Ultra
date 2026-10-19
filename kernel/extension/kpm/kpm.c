@@ -1,14 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
-/* 
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
  * Copyright (C) 2025 Liankong (xhsw.new@outlook.com). All Rights Reserved.
- * 本代码由GPL-2授权
- * 
- * 适配KernelSU的KPM 内核模块加载器兼容实现
- * 
- * 集成了 ELF 解析、内存布局、符号处理、重定位（支持 ARM64 重定位类型）
- * 并参照KernelPatch的标准KPM格式实现加载和控制
+ * 本代码由 GPL-2 授权
+ *
+ * KPM (Kernel Patch Module) subsystem.
+ *
+ * This file consolidates what used to live in kernel/kpm/kpm.c.
+ * It exposes the same kpm control surface that manager UI relied on
+ * (load / unload / list / info / control / num / version), now reached
+ * via the extension io op with extension_id=KSU_EXTENSION_KPM and the
+ * sub-op code as a struct ksu_kpm_cmd.
  */
-
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/kernfs.h>
@@ -35,6 +37,7 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0) && defined(CONFIG_MODULES)
 #include <linux/moduleloader.h>
 #endif
+
 #include "kpm.h"
 #include "compact.h"
 
@@ -58,7 +61,6 @@ noinline NO_OPTIMIZE void sukisu_kpm_load_module_path(const char *path,
     pr_info("kpm: Stub function called (sukisu_kpm_load_module_path). "
             "path=%s args=%s ptr=%p\n",
             path, args, ptr);
-
     __asm__ volatile("nop");
 }
 EXPORT_SYMBOL(sukisu_kpm_load_module_path);
@@ -69,7 +71,6 @@ noinline NO_OPTIMIZE void sukisu_kpm_unload_module(const char *name, void *ptr,
     pr_info("kpm: Stub function called (sukisu_kpm_unload_module). "
             "name=%s ptr=%p\n",
             name, ptr);
-
     __asm__ volatile("nop");
 }
 EXPORT_SYMBOL(sukisu_kpm_unload_module);
@@ -77,7 +78,6 @@ EXPORT_SYMBOL(sukisu_kpm_unload_module);
 noinline NO_OPTIMIZE void sukisu_kpm_num(int *result)
 {
     pr_info("kpm: Stub function called (sukisu_kpm_num).\n");
-
     __asm__ volatile("nop");
 }
 EXPORT_SYMBOL(sukisu_kpm_num);
@@ -88,7 +88,6 @@ noinline NO_OPTIMIZE void sukisu_kpm_info(const char *name, char *buf,
     pr_info("kpm: Stub function called (sukisu_kpm_info). "
             "name=%s buffer=%p\n",
             name, buf);
-
     __asm__ volatile("nop");
 }
 EXPORT_SYMBOL(sukisu_kpm_info);
@@ -108,7 +107,6 @@ noinline NO_OPTIMIZE void sukisu_kpm_control(const char *name, const char *args,
     pr_info("kpm: Stub function called (sukisu_kpm_control). "
             "name=%p args=%p arg_len=%ld\n",
             name, args, arg_len);
-
     __asm__ volatile("nop");
 }
 EXPORT_SYMBOL(sukisu_kpm_control);
@@ -121,185 +119,171 @@ noinline NO_OPTIMIZE void sukisu_kpm_version(char *buf, int bufferSize)
 }
 EXPORT_SYMBOL(sukisu_kpm_version);
 
-noinline int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1,
-                               unsigned long arg2, unsigned long result_code)
+/*
+ * Scratch buffers used by sukisu_handle_kpm. The dispatch is a chain of
+ * mutually exclusive branches, so a single allocation covering every
+ * sub-op is fine and avoids per-branch kfree. Allocated with kmalloc
+ * (instead of left on the stack or declared static) so the handler
+ * stays reentrant: two concurrent ioctl() callers on different cores
+ * no longer trample each other's storage, and the function frame
+ * stays under the per-function limit (ld.lld: 1344 > 1024 was caused
+ * by these buffers living on the stack).
+ */
+struct kpm_scratch {
+    char kernel_load_path[256];
+    char kernel_args_buffer[256];
+    char kernel_name_buffer[256];
+    char buf[1024];
+    char kpm_name[KPM_NAME_LEN];
+    char kpm_args[KPM_ARGS_LEN];
+    char buffer[256];
+};
+
+noinline static int sukisu_handle_kpm(unsigned long control_code,
+                                       unsigned long arg1,
+                                       unsigned long arg2,
+                                       unsigned long result_code)
 {
     int res = -1;
+    /*
+     * Scratch buffers are kmalloc'd rather than left on the stack or
+     * declared static:
+     *   - stack: the union of every branch pushed the frame past the
+     *     per-function limit (ld.lld: 1344 > 1024).
+     *   - static: not reentrant; two concurrent ioctl() callers on
+     *     different cores would share the storage.
+     * The dispatch is a chain of mutually exclusive branches, so a
+     * single allocation covering every sub-op is fine and avoids
+     * per-branch kfree.
+     */
+    struct kpm_scratch *s = kmalloc(sizeof(*s), GFP_KERNEL);
+    if (!s) {
+        res = -ENOMEM;
+        goto exit;
+    }
     if (control_code == SUKISU_KPM_LOAD) {
-        char kernel_load_path[256];
-        char kernel_args_buffer[256];
-
         if (arg1 == 0) {
             res = -EINVAL;
             goto exit;
         }
-
-        if (!access_ok(arg1, 255)) {
+        if (!access_ok(arg1, 255))
             goto invalid_arg;
-        }
-
-        strncpy_from_user((char *)&kernel_load_path, (const char *)arg1, 255);
-
+        strncpy_from_user(s->kernel_load_path, (const char __user *)arg1,
+                          255);
         if (arg2 != 0) {
-            if (!access_ok(arg2, 255)) {
+            if (!access_ok(arg2, 255))
                 goto invalid_arg;
-            }
-
-            strncpy_from_user((char *)&kernel_args_buffer, (const char *)arg2,
-                              255);
+            strncpy_from_user(s->kernel_args_buffer,
+                              (const char __user *)arg2, 255);
         }
-
-        sukisu_kpm_load_module_path((const char *)&kernel_load_path,
-                                    (const char *)&kernel_args_buffer, NULL,
-                                    &res);
+        sukisu_kpm_load_module_path(s->kernel_load_path,
+                                    s->kernel_args_buffer, NULL, &res);
     } else if (control_code == SUKISU_KPM_UNLOAD) {
-        char kernel_name_buffer[256];
-
         if (arg1 == 0) {
             res = -EINVAL;
             goto exit;
         }
-
-        if (!access_ok(arg1, sizeof(kernel_name_buffer))) {
+        if (!access_ok(arg1, sizeof(s->kernel_name_buffer)))
             goto invalid_arg;
-        }
-
-        strncpy_from_user((char *)&kernel_name_buffer, (const char *)arg1,
-                          sizeof(kernel_name_buffer));
-
-        sukisu_kpm_unload_module((const char *)&kernel_name_buffer, NULL, &res);
+        strncpy_from_user(s->kernel_name_buffer,
+                          (const char __user *)arg1,
+                          sizeof(s->kernel_name_buffer));
+        sukisu_kpm_unload_module(s->kernel_name_buffer, NULL, &res);
     } else if (control_code == SUKISU_KPM_NUM) {
         sukisu_kpm_num(&res);
     } else if (control_code == SUKISU_KPM_INFO) {
-        char kernel_name_buffer[256];
-        char buf[256];
         int size;
-
         if (arg1 == 0 || arg2 == 0) {
             res = -EINVAL;
             goto exit;
         }
-
-        if (!access_ok(arg1, sizeof(kernel_name_buffer))) {
+        if (!access_ok(arg1, sizeof(s->kernel_name_buffer)))
             goto invalid_arg;
-        }
-
-        strncpy_from_user((char *)&kernel_name_buffer,
+        strncpy_from_user(s->kernel_name_buffer,
                           (const char __user *)arg1,
-                          sizeof(kernel_name_buffer));
-
-        sukisu_kpm_info((const char *)&kernel_name_buffer, (char *)&buf,
-                        sizeof(buf), &size);
-
-        if (!access_ok(arg2, size)) {
+                          sizeof(s->kernel_name_buffer));
+        sukisu_kpm_info(s->kernel_name_buffer, s->buf,
+                        sizeof(s->buf), &size);
+        if (!access_ok(arg2, size))
             goto invalid_arg;
-        }
-
-        res = copy_to_user(arg2, &buf, size);
-
+        res = copy_to_user(arg2, s->buf, size);
     } else if (control_code == SUKISU_KPM_LIST) {
-        char buf[1024];
         int len = (int)arg2;
-
         if (len <= 0) {
             res = -EINVAL;
             goto exit;
         }
-
-        if (!access_ok(arg2, len)) {
+        if (!access_ok(arg2, len))
             goto invalid_arg;
-        }
-
-        sukisu_kpm_list((char *)&buf, sizeof(buf), &res);
-
+        sukisu_kpm_list(s->buf, sizeof(s->buf), &res);
         if (res > len) {
             res = -ENOBUFS;
             goto exit;
         }
-
-        if (copy_to_user(arg1, &buf, len) != 0)
+        if (copy_to_user(arg1, s->buf, len) != 0)
             pr_info("kpm: Copy to user failed.");
-
     } else if (control_code == SUKISU_KPM_CONTROL) {
-        char kpm_name[KPM_NAME_LEN] = { 0 };
-        char kpm_args[KPM_ARGS_LEN] = { 0 };
-
-        if (!access_ok(arg1, sizeof(kpm_name))) {
+        if (!access_ok(arg1, sizeof(s->kpm_name)))
             goto invalid_arg;
-        }
-
-        if (!access_ok(arg2, sizeof(kpm_args))) {
+        if (!access_ok(arg2, sizeof(s->kpm_args)))
             goto invalid_arg;
-        }
-
-        long name_len = strncpy_from_user(
-            (char *)&kpm_name, (const char __user *)arg1, sizeof(kpm_name));
+        long name_len = strncpy_from_user(s->kpm_name,
+                                          (const char __user *)arg1,
+                                          sizeof(s->kpm_name));
         if (name_len <= 0) {
             res = -EINVAL;
             goto exit;
         }
-
-        long arg_len = strncpy_from_user(
-            (char *)&kpm_args, (const char __user *)arg2, sizeof(kpm_args));
-
-        sukisu_kpm_control((const char *)&kpm_name, (const char *)&kpm_args,
-                           arg_len, &res);
-
+        long arg_len = strncpy_from_user(s->kpm_args,
+                                         (const char __user *)arg2,
+                                         sizeof(s->kpm_args));
+        sukisu_kpm_control(s->kpm_name, s->kpm_args, arg_len, &res);
     } else if (control_code == SUKISU_KPM_VERSION) {
-        char buffer[256] = { 0 };
-
-        sukisu_kpm_version((char *)&buffer, sizeof(buffer));
-
+        sukisu_kpm_version(s->buffer, sizeof(s->buffer));
         unsigned int outlen = (unsigned int)arg2;
-        int len = strlen(buffer);
+        int len = strlen(s->buffer);
         if (len >= outlen)
             len = outlen - 1;
-
-        res = copy_to_user(arg1, &buffer, len + 1);
+        res = copy_to_user(arg1, s->buffer, len + 1);
     }
 
 exit:
+    /*
+     * kfree(NULL) is safe, so the single free below covers both the
+     * kmalloc-failed path and every successful branch.
+     */
+    kfree(s);
     if (copy_to_user(result_code, &res, sizeof(res)) != 0)
         pr_info("kpm: Copy to user failed.");
-
     return 0;
 invalid_arg:
-    pr_err("kpm: invalid pointer detected! arg1: %px arg2: %px\n", (void *)arg1,
-           (void *)arg2);
+    pr_err("kpm: invalid pointer detected! arg1: %px arg2: %px\n",
+           (void *)arg1, (void *)arg2);
     res = -EFAULT;
     goto exit;
-}
-EXPORT_SYMBOL(sukisu_handle_kpm);
-
-int sukisu_is_kpm_control_code(unsigned long control_code)
-{
-    return (control_code >= CMD_KPM_CONTROL &&
-            control_code <= CMD_KPM_CONTROL_MAX) ?
-               1 :
-               0;
 }
 
 int do_kpm(void __user *arg)
 {
     struct ksu_kpm_cmd cmd;
-
     if (copy_from_user(&cmd, arg, sizeof(cmd))) {
         pr_err("kpm: copy_from_user failed\n");
         return -EFAULT;
     }
-
     if (!access_ok(cmd.control_code, sizeof(int))) {
         pr_err("kpm: invalid control_code pointer %px\n",
                (void *)cmd.control_code);
         return -EFAULT;
     }
-
     if (!access_ok(cmd.result_code, sizeof(int))) {
         pr_err("kpm: invalid result_code pointer %px\n",
                (void *)cmd.result_code);
         return -EFAULT;
     }
-
     return sukisu_handle_kpm(cmd.control_code, cmd.arg1, cmd.arg2,
                              cmd.result_code);
 }
+
+/* The top-level extension.c registers the KPM extension handler; this
+ * file only implements the underlying KPM control surface. */
+

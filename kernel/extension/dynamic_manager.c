@@ -1,4 +1,24 @@
 // SPDX-License-Identifier: GPL-2.0
+/*
+ * Dynamic manager subsystem (consolidated from kernel/manager/dynamic_manager.c).
+ *
+ * Implements ksu_dynamic_manager_{get,set}, ksu_dynamic_manager_match,
+ * ksu_dynamic_manager_verify_apk, etc., AND the KSU_EXTENSION_DYNAMIC_MANAGER
+ * extension wiring.
+ *
+ * The two responsibilities share state: getting the sticky-state bit
+ * reads dynamic_manager_enabled, and the io op forwards to the same
+ * set/get code paths that manager UI used to call via KSU_IOCTL_MANAGER.
+ */
+#include <linux/ctype.h>
+#include <linux/fs.h>
+#include <linux/mutex.h>
+#include <linux/slab.h>
+#include <linux/string.h>
+#include <linux/uaccess.h>
+#include <linux/errno.h>
+#include <linux/kernel.h>
+
 #define DYNAMIC_MANAGER_FILE "/data/adb/ksu/.dynamic_managers"
 #define DYNAMIC_MANAGER_MAGIC 0x4d534b44
 #define DYNAMIC_MANAGER_VERSION 1
@@ -74,13 +94,14 @@ bool ksu_manager_package_authorized(const char *package, uid_t uid)
     int index;
     bool found = false;
 
-    if (ksu_manager_appid != KSU_INVALID_APPID && ksu_manager_appid == uid % KSU_PER_USER_RANGE)
+    if (ksu_manager_appid != KSU_INVALID_APPID &&
+        ksu_manager_appid == uid % KSU_PER_USER_RANGE)
         return true;
     read_lock(&dynamic_manager_lock);
     if (READ_ONCE(dynamic_manager_enabled)) {
         index = find_manager_locked(package);
         found = index >= 0 && dynamic_manager_verified[index] &&
-            dynamic_managers[index].uid == uid % KSU_PER_USER_RANGE;
+                dynamic_managers[index].uid == uid % KSU_PER_USER_RANGE;
     }
     read_unlock(&dynamic_manager_lock);
     return found;
@@ -136,7 +157,8 @@ void ksu_dynamic_manager_load(void)
     for (i = 0; i < state->count; ++i) {
         const struct ksu_manager_entry *entry = &state->entries[i];
 
-        if (!entry->cert_size || entry->cert_size > DYNAMIC_MANAGER_MAX_CERT_SIZE ||
+        if (!entry->cert_size ||
+            entry->cert_size > DYNAMIC_MANAGER_MAX_CERT_SIZE ||
             !package_valid(entry->package) || !hash_valid(entry->hash))
             goto out;
     }
@@ -168,8 +190,10 @@ int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
         return -EINVAL;
 
     if (cmd->operation == KSU_MANAGER_ADD) {
-        if (!cmd->cert_size || cmd->cert_size > DYNAMIC_MANAGER_MAX_CERT_SIZE ||
-            strnlen(cmd->package, sizeof(cmd->package)) >= sizeof(cmd->package) ||
+        if (!cmd->cert_size ||
+            cmd->cert_size > DYNAMIC_MANAGER_MAX_CERT_SIZE ||
+            strnlen(cmd->package, sizeof(cmd->package)) >=
+                sizeof(cmd->package) ||
             strnlen(cmd->hash, sizeof(cmd->hash)) >= sizeof(cmd->hash) ||
             !package_valid(cmd->package) || !hash_valid(cmd->hash) ||
             cmd->uid == KSU_INVALID_APPID)
@@ -202,20 +226,26 @@ int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)
         dynamic_manager_verified[dynamic_manager_count - 1] = false;
         break;
     case KSU_MANAGER_REMOVE:
-        if (strnlen(cmd->package, sizeof(cmd->package)) >= sizeof(cmd->package) || !package_valid(cmd->package)) {
+        if (strnlen(cmd->package, sizeof(cmd->package)) >=
+                sizeof(cmd->package) ||
+            !package_valid(cmd->package)) {
             ret = -EINVAL;
             break;
         }
-        if (cmd->hash[0] && strnlen(cmd->hash, sizeof(cmd->hash)) >= sizeof(cmd->hash)) {
+        if (cmd->hash[0] &&
+            strnlen(cmd->hash, sizeof(cmd->hash)) >= sizeof(cmd->hash)) {
             ret = -EINVAL;
             break;
         }
         i = find_manager_locked(cmd->package);
         if (i >= 0) {
             --dynamic_manager_count;
-            dynamic_managers[i] = dynamic_managers[dynamic_manager_count];
-            dynamic_manager_verified[i] = dynamic_manager_verified[dynamic_manager_count];
-            memset(&dynamic_managers[dynamic_manager_count], 0, sizeof(dynamic_managers[0]));
+            dynamic_managers[i] =
+                dynamic_managers[dynamic_manager_count];
+            dynamic_manager_verified[i] =
+                dynamic_manager_verified[dynamic_manager_count];
+            memset(&dynamic_managers[dynamic_manager_count], 0,
+                   sizeof(dynamic_managers[0]));
             dynamic_manager_verified[dynamic_manager_count] = false;
         }
         break;
@@ -245,7 +275,8 @@ int ksu_dynamic_manager_get(struct ksu_manager_cmd *cmd)
     return 0;
 }
 
-bool ksu_dynamic_manager_match(const char *package, unsigned int size, const char *hash)
+bool ksu_dynamic_manager_match(const char *package, unsigned int size,
+                               const char *hash)
 {
     unsigned int i;
     bool found = false;
@@ -255,8 +286,10 @@ bool ksu_dynamic_manager_match(const char *package, unsigned int size, const cha
 
     read_lock(&dynamic_manager_lock);
     for (i = 0; i < dynamic_manager_count; ++i) {
-        if (dynamic_managers[i].cert_size == size && !strcmp(dynamic_managers[i].package, package) &&
-            !strncasecmp(dynamic_managers[i].hash, hash, KSU_MANAGER_HASH_LENGTH)) {
+        if (dynamic_managers[i].cert_size == size &&
+            !strcmp(dynamic_managers[i].package, package) &&
+            !strncasecmp(dynamic_managers[i].hash, hash,
+                         KSU_MANAGER_HASH_LENGTH)) {
             found = true;
             break;
         }
@@ -307,14 +340,16 @@ bool ksu_dynamic_manager_verify_apk(char *path, const char *package, uid_t uid)
 
     read_lock(&dynamic_manager_lock);
     for (i = 0; i < dynamic_manager_count; ++i) {
-        if (!strcmp(dynamic_managers[i].package, package) && dynamic_managers[i].uid == uid % KSU_PER_USER_RANGE) {
+        if (!strcmp(dynamic_managers[i].package, package) &&
+            dynamic_managers[i].uid == uid % KSU_PER_USER_RANGE) {
             entry = dynamic_managers[i];
             found = true;
             break;
         }
     }
     read_unlock(&dynamic_manager_lock);
-    if (!found || !ksu_check_apk_signature(path, entry.cert_size, entry.hash))
+    if (!found ||
+        !ksu_check_apk_signature(path, entry.cert_size, entry.hash))
         return false;
 
     write_lock(&dynamic_manager_lock);
@@ -326,4 +361,68 @@ bool ksu_dynamic_manager_verify_apk(char *path, const char *package, uid_t uid)
     }
     write_unlock(&dynamic_manager_lock);
     return true;
+}
+
+int ksu_extension_dynamic_manager_get(u32 id, u64 *value)
+{
+    *value = ksu_manager_enabled() ? 1 : 0;
+    return 0;
+}
+
+int ksu_extension_dynamic_manager_set(u32 id, u64 value)
+{
+    struct ksu_manager_cmd *cmd;
+    bool want_enabled = value != 0;
+    int ret;
+
+    if (want_enabled == ksu_manager_enabled())
+        return 0;
+
+    cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+    if (!cmd)
+        return -ENOMEM;
+
+    cmd->operation = KSU_MANAGER_SET_ENABLED;
+    cmd->enabled = want_enabled ? 1 : 0;
+    cmd->count = 0;
+    ret = ksu_dynamic_manager_set(cmd);
+    kfree(cmd);
+    return ret;
+}
+
+const struct ksu_extension_handler_ops ksu_extension_dynamic_manager_ops = {
+    .get = ksu_extension_dynamic_manager_get,
+    .set = ksu_extension_dynamic_manager_set,
+};
+
+int ksu_extension_dynamic_manager_io(u32 id, void __user *raw)
+{
+    struct ksu_manager_cmd *cmd;
+    int ret;
+
+#ifdef CONFIG_KSU_DISABLE_MANAGER
+    (void)raw;
+    return -EOPNOTSUPP;
+#else
+    cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
+    if (!cmd)
+        return -ENOMEM;
+
+    if (copy_from_user(cmd, raw, sizeof(*cmd))) {
+        ret = -EFAULT;
+        goto out;
+    }
+
+    if (cmd->operation == KSU_MANAGER_GET) {
+        ret = ksu_dynamic_manager_get(cmd);
+        if (!ret && copy_to_user(raw, cmd, sizeof(*cmd)))
+            ret = -EFAULT;
+        goto out;
+    }
+    ret = ksu_dynamic_manager_set(cmd);
+
+out:
+    kfree(cmd);
+    return ret;
+#endif
 }

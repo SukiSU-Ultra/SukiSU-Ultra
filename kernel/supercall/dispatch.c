@@ -500,159 +500,11 @@ static int do_nuke_ext4_sysfs(void __user *arg)
 	return nuke_ext4_sysfs(mnt);
 }
 
-struct list_head mount_list = LIST_HEAD_INIT(mount_list);
-DECLARE_RWSEM(mount_list_lock);
-
-static int add_try_umount(void __user *arg)
-{
-	struct mount_entry *new_entry, *entry, *tmp;
-	struct ksu_add_try_umount_cmd cmd;
-	char buf[256] = {0};
-
-	if (copy_from_user(&cmd, arg, sizeof cmd))
-		return -EFAULT;
-
-	switch (cmd.mode) {
-		case KSU_UMOUNT_WIPE: {
-			struct mount_entry *entry, *tmp;
-			down_write(&mount_list_lock);
-			list_for_each_entry_safe(entry, tmp, &mount_list, list) {
-				pr_info("wipe_umount_list: removing entry: %s\n", entry->umountable);
-				list_del(&entry->list);
-				kfree(entry->umountable);
-				kfree(entry);
-			}
-			up_write(&mount_list_lock);
-
-			return 0;
-		}
-
-		case KSU_UMOUNT_ADD: {
-			long len = strncpy_from_user(buf, (const char __user *)cmd.arg, 256);
-			if (len <= 0)
-				return -EFAULT;	
-			
-			buf[sizeof(buf) - 1] = '\0';
-
-			new_entry = kzalloc(sizeof(*new_entry), GFP_KERNEL);
-			if (!new_entry)
-				return -ENOMEM;
-
-			new_entry->umountable = kstrdup(buf, GFP_KERNEL);
-			if (!new_entry->umountable) {
-				kfree(new_entry);
-				return -ENOMEM;
-			}
-
-			down_write(&mount_list_lock);
-
-			// disallow dupes
-			// if this gets too many, we can consider moving this whole task to a kthread
-			list_for_each_entry(entry, &mount_list, list) {
-				if (!strcmp(entry->umountable, buf)) {
-					pr_info("cmd_add_try_umount: %s is already here!\n", buf);
-					up_write(&mount_list_lock);
-					kfree(new_entry->umountable);
-					kfree(new_entry);
-					return -EEXIST;
-				}
-			}
-
-			// now check flags and add
-			// this also serves as a null check
-			if (cmd.flags)
-				new_entry->flags = cmd.flags;
-			else
-				new_entry->flags = 0;
-
-			// debug
-			list_add(&new_entry->list, &mount_list);
-			up_write(&mount_list_lock);
-			pr_info("cmd_add_try_umount: %s added!\n", buf);
-
-			return 0;
-		}
-
-		// this is just strcmp'd wipe anyway
-		case KSU_UMOUNT_DEL: {
-			long len = strncpy_from_user(buf, (const char __user *)cmd.arg, sizeof(buf) - 1);
-			if (len <= 0)
-				return -EFAULT;
-			
-			buf[sizeof(buf) - 1] = '\0';
-
-			down_write(&mount_list_lock);
-			list_for_each_entry_safe(entry, tmp, &mount_list, list) {
-				if (!strcmp(entry->umountable, buf)) {
-					pr_info("cmd_add_try_umount: entry removed: %s\n", entry->umountable);
-					list_del(&entry->list);
-					kfree(entry->umountable);
-					kfree(entry);
-				}
-			}
-			up_write(&mount_list_lock);
-			
-			return 0;
-		}
-
-		// this way userspace can deduce the memory it has to prepare.
-		case KSU_UMOUNT_GETSIZE: {
-			// check for pointer first
-			if (!cmd.arg)
-				return -EFAULT;
-		
-			size_t total_size = 0; // size of list in bytes
-
-			down_read(&mount_list_lock);
-			list_for_each_entry(entry, &mount_list, list) {
-				total_size = total_size + strlen(entry->umountable) + 1; // + 1 for \0
-			}
-			up_read(&mount_list_lock);
-
-			pr_info("cmd_add_try_umount: total_size: %zu\n", total_size);
-			
-			if (copy_to_user((size_t __user *)cmd.arg, &total_size, sizeof(total_size)))
-				return -EFAULT;
-
-			return 0;
-		}
-		
-		// WARNING! this is straight up pointerwalking.
-		// this way we dont need to redefine the ioctl defs.
-		// this also avoids us needing to kmalloc
-		// userspace have to send pointer to memory (malloc/alloca) or pointer to a VLA.
-		case KSU_UMOUNT_GETLIST: {
-			if (!cmd.arg)
-				return -EFAULT;
-			
-			char *user_buf = (char *)cmd.arg;
-
-			down_read(&mount_list_lock);
-			list_for_each_entry(entry, &mount_list, list) {
-				pr_info("cmd_add_try_umount: entry: %s\n", entry->umountable);
-			
-				if (copy_to_user((char __user *)user_buf, entry->umountable, strlen(entry->umountable) + 1 )) {
-					up_read(&mount_list_lock);
-					return -EFAULT;
-				}
-				
-				// walk it! +1 for null terminator
-				user_buf = user_buf + strlen(entry->umountable) + 1;
-			}
-			up_read(&mount_list_lock);
-
-			return 0;
-		}
-
-		default: {
-			pr_err("cmd_add_try_umount: invalid operation %u\n", cmd.mode);
-			return -EINVAL;
-		}
-
-	} // switch(cmd.mode)
-	
-	return 0;
-}
+/*
+ * mount_list / mount_list_lock were relocated to kernel/extension/umount_paths.h
+ * (and are defined in kernel/extension/umount_paths.c). See that header for the
+ * canonical definitions.
+ */
 
 static int do_set_init_pgrp(void __user *arg)
 {
@@ -786,103 +638,6 @@ out:
 	return ret;
 }
 
-static int list_try_umount(void __user *arg)
-{
-    struct ksu_list_try_umount_cmd cmd;
-    struct mount_entry *entry;
-    char *output_buf;
-    size_t output_size;
-    size_t offset = 0;
-    int ret = 0;
-    bool using_vmalloc = false;
-    int mount_count = 0;
-    
-    #define MAX_UMOUNT_LIST_SIZE (2 * 1024 * 1024)  // 2MB absolute max
-    #define DEFAULT_UMOUNT_SIZE (64 * 1024)         // 64KB default
-
-    if (copy_from_user(&cmd, arg, sizeof(cmd)))
-        return -EFAULT;
-
-    if (cmd.buf_size > 1024 * 1024) {
-        pr_err("list_try_umount: invalid buf_size %u\n", cmd.buf_size);
-        return -EINVAL;
-    }
-
-    output_size = cmd.buf_size ? cmd.buf_size : 4096;
-
-    if (!cmd.arg || output_size == 0)
-        return -EINVAL;
-
-    // Count mounts first to estimate size needed
-    down_read(&mount_list_lock);
-    list_for_each_entry(entry, &mount_list, list) {
-        mount_count++;
-    }
-    up_read(&mount_list_lock);
-
-    // Calculate needed size: ~200 bytes per mount + 1KB header
-    output_size = 1024 + (mount_count * 200);
-    
-    // Use at least default size, cap at maximum
-    if (output_size < DEFAULT_UMOUNT_SIZE)
-        output_size = DEFAULT_UMOUNT_SIZE;
-    if (output_size > MAX_UMOUNT_LIST_SIZE)
-        output_size = MAX_UMOUNT_LIST_SIZE;
-
-    pr_info("KernelSU: Allocating %zu bytes for %d mounts (user requested %zu)\n",
-            output_size, mount_count, (size_t)cmd.buf_size);
-
-    // Try kzalloc first with NOWARN flag
-    output_buf = kzalloc(output_size, GFP_KERNEL | __GFP_NOWARN);
-    if (!output_buf) {
-        // Fallback to vzalloc for large allocations
-        pr_info("KernelSU: kzalloc failed for %zu bytes, using vzalloc\n", 
-                output_size);
-        output_buf = vzalloc(output_size);
-        using_vmalloc = true;
-    }
-
-    if (!output_buf) {
-        pr_err("KernelSU: Failed to allocate %zu bytes for umount list\n",
-               output_size);
-        return -ENOMEM;
-    }
-    offset += snprintf(output_buf + offset, output_size - offset,
-               "Mount Point\tFlags\n");
-    offset += snprintf(output_buf + offset, output_size - offset,
-               "----------\t-----\n");
-
-    down_read(&mount_list_lock);
-    list_for_each_entry (entry, &mount_list, list) {
-        int written =
-            snprintf(output_buf + offset, output_size - offset,
-                 "%s\t%u\n", entry->umountable, entry->flags);
-        if (written < 0) {
-            ret = -EFAULT;
-            break;
-        }
-        if (written >= (int)(output_size - offset)) {
-            // Should rarely happen since we calculated size
-            pr_warn("KernelSU: Buffer full, truncating mount list\n");
-            ret = -ENOSPC;
-            break;
-        }
-        offset += written;
-    }
-    up_read(&mount_list_lock);
-
-    if (ret == 0) {
-        if (copy_to_user((void __user *)cmd.arg, output_buf, offset))
-            ret = -EFAULT;
-    }
-
-    // Free using the correct method
-    if (using_vmalloc)
-        vfree(output_buf);
-    else
-        kfree(output_buf);
-    return ret;
-}
 
 // 100. GET_FULL_VERSION - Get full version string
 static int do_get_full_version(void __user *arg)
@@ -929,32 +684,91 @@ static int do_get_hook_type(void __user *arg)
     return 0;
 }
 
-// 106
-static int do_manager(void __user *arg)
+/*
+ * Single entry point for the four extensions. Userspace fills
+ * struct ksu_extension_cmd with an extension_id and one of:
+ *   GET  -> returns supported/value. value=0 and supported=true
+ *           for io-only handlers (handler presence is the signal).
+ *   SET  -> value-flavoured: forwards to ops->set.
+ *           io-flavoured:    -EOPNOTSUPP (no sticky bit).
+ *           While a force_extension=<id> is in effect, all SETs
+ *           return -EPERM until reboot. On success, the post-set
+ *           state (supported / forced flag / current value) is
+ *           written back to *arg so userspace can confirm the write
+ *           without an extra GET round-trip.
+ *   IO   -> forwards cmd.user_ptr to the registered io_handler.
+ *   WIPE -> handler->wipe (kernel-side). Today only umount_paths
+ *           registers one; other handlers return -EOPNOTSUPP. Wipe
+ *           does not go through io_handler.
+ */
+static int do_extension(void __user *arg)
 {
-    struct ksu_manager_cmd *cmd;
+    struct ksu_extension_cmd cmd;
+    u32 extension_id;
     int ret;
 
-    cmd = kzalloc(sizeof(*cmd), GFP_KERNEL);
-    if (!cmd)
-        return -ENOMEM;
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
 
-    if (copy_from_user(cmd, arg, sizeof(*cmd))) {
-        ret = -EFAULT;
-        goto out;
-    }
-    if (cmd->operation == KSU_MANAGER_GET) {
-        ret = ksu_dynamic_manager_get(cmd);
-        if (!ret && copy_to_user(arg, cmd, sizeof(*cmd)))
-            ret = -EFAULT;
-        goto out;
-    }
-    ret = ksu_dynamic_manager_set(cmd);
+    extension_id = cmd.id;
+    if (extension_id >= KSU_EXTENSION_MAX)
+        return -EINVAL;
 
-out:
-    kfree(cmd);
-    return ret;
+    /* op == IO  -> forward the user pointer verbatim */
+    if (cmd.op == KSU_EXTENSION_IO)
+        return ksu_extension_ioctl(extension_id,
+                                   (void __user *)(uintptr_t)cmd.user_ptr);
+
+    /* op == WIPE -> call the extension's wipe handler if any */
+    if (cmd.op == KSU_EXTENSION_WIPE)
+        return ksu_extension_wipe(extension_id);
+
+    if (cmd.op == KSU_EXTENSION_SET) {
+        ret = ksu_extension_set(extension_id, cmd.value);
+        if (ret)
+            return ret;
+        /*
+         * Round-trip the post-set state to userspace. The cmd.supported
+         * field is documented as out, and a manager that just wrote
+         * `value=1` wants to see "supported, FORCED if applicable"
+         * come back rather than zeroed bytes. Failure to copy_to_user
+         * is non-fatal here (the write itself succeeded) but reported
+         * as -EFAULT so the caller can retry.
+         */
+        {
+            u64 value = 0;
+            bool supported = false;
+
+            (void)ksu_extension_get(extension_id, &value, &supported);
+            cmd.supported = supported ? KSU_FEATURE_FLAG_SUPPORTED : 0;
+            if (ksu_extension_is_forced(extension_id))
+                cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
+            cmd.value = value;
+            if (copy_to_user(arg, &cmd, sizeof(cmd)))
+                return -EFAULT;
+        }
+        return 0;
+    }
+
+    {
+        u64 value = 0;
+        bool supported = false;
+
+        ret = ksu_extension_get(extension_id, &value, &supported);
+        if (ret)
+            return ret;
+        if (!supported)
+            return -EOPNOTSUPP;
+        cmd.value = value;
+        cmd.supported = KSU_FEATURE_FLAG_SUPPORTED;
+        if (ksu_extension_is_forced(extension_id))
+            cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
+        if (copy_to_user(arg, &cmd, sizeof(cmd)))
+            return -EFAULT;
+        return 0;
+    }
 }
+
 
 // IOCTL handlers mapping table
 static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
@@ -985,11 +799,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_LOOKUP_SYMBOLS, .name = "LOOKUP_SYMBOLS", .handler = do_lookup_symbols, .perm_check = only_root },
 	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .name = "GET_FULL_VERSION", .handler = do_get_full_version, .perm_check = always_allow },
     { .cmd = KSU_IOCTL_HOOK_TYPE, .name = "GET_HOOK_TYPE", .handler = do_get_hook_type, .perm_check = manager_or_root },
-#ifdef CONFIG_KPM
-    { .cmd = KSU_IOCTL_KPM, .name = "KPM_OPERATION", .handler = do_kpm, .perm_check = manager_or_root },
-#endif
-    { .cmd = KSU_IOCTL_LIST_TRY_UMOUNT, .name = "LIST_TRY_UMOUNT", .handler = list_try_umount, .perm_check = manager_or_root},
-	{ .cmd = KSU_IOCTL_MANAGER, .name = "MANAGER", .handler = do_manager, .perm_check = manager_or_root },
+	{ .cmd = KSU_IOCTL_EXTENSION, .name = "EXTENSION", .handler = do_extension, .perm_check = manager_or_root },
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel
 };
 

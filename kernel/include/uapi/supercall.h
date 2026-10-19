@@ -146,6 +146,10 @@ struct ksu_add_try_umount_cmd {
 	__u8 mode; /* denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry */
 };
 
+#define KSU_UMOUNT_WIPE 0	/* ignore everything and wipe list */
+#define KSU_UMOUNT_ADD 1	/* add entry (path + flags) */
+#define KSU_UMOUNT_DEL 2	/* delete entry, strcmp */
+
 struct ksu_get_sulog_fd_cmd {
 	__u32 flags; /* Input: reserved for future use, must be 0 */
 };
@@ -165,20 +169,6 @@ struct ksu_lookup_symbols_cmd {
 };
 #define KSU_LOOKUP_SYMBOLS_MAX 1024
 
-#define KSU_UMOUNT_WIPE 0	/* ignore everything and wipe list */
-#define KSU_UMOUNT_ADD 1	/* add entry (path + flags) */
-#define KSU_UMOUNT_DEL 2	/* delete entry, strcmp */
-
-// List current umount entries
-struct ksu_list_try_umount_cmd {
-    __aligned_u64 arg; // User buffer
-    __u32 buf_size; // Buffer size provided by userspace
-};
-
-#define KSU_UMOUNT_WIPE 0 /* ignore everything and wipe list */
-#define KSU_UMOUNT_ADD 1 /* add entry (path + flags) */
-#define KSU_UMOUNT_DEL 2 /* delete entry, strcmp */
-
 // Other command structures
 struct ksu_get_full_version_cmd {
 	char version_full[255]; // Output: full version string
@@ -186,21 +176,6 @@ struct ksu_get_full_version_cmd {
 
 struct ksu_hook_type_cmd {
 	char hook_type[32]; // Output: hook type string
-};
-
-#define SUKISU_KPM_LOAD 1
-#define SUKISU_KPM_UNLOAD 2
-#define SUKISU_KPM_NUM 3
-#define SUKISU_KPM_LIST 4
-#define SUKISU_KPM_INFO 5
-#define SUKISU_KPM_CONTROL 6
-#define SUKISU_KPM_VERSION 7
-
-struct ksu_kpm_cmd {
-    __aligned_u64 __user control_code;
-    __aligned_u64 __user arg1;
-    __aligned_u64 __user arg2;
-    __aligned_u64 __user result_code;
 };
 
 /* IOCTL command definitions */
@@ -236,8 +211,5 @@ struct ksu_kpm_cmd {
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION		_IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE			_IOC(_IOC_READ, 'K', 101, 0)
-#define KSU_IOCTL_LIST_TRY_UMOUNT		_IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0)
-#define KSU_IOCTL_MANAGER			_IOWR('K', 106, struct ksu_manager_cmd)
-#define KSU_IOCTL_KPM				_IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0)
 
 #endif
