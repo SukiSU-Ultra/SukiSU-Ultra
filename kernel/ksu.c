@@ -63,6 +63,7 @@
 #include "extension/kpm/kpm.h"
 #include "extension/kpm/compact.h"
 #include "extension/kpm/super_access.h"
+#include "extension/susfs_extension.h"
 
 // unity build
 #include "extension/extension.c"
@@ -73,6 +74,7 @@
 #include "extension/kpm/kpm.c"
 #include "extension/kpm/compact.c"
 #include "extension/kpm/super_access.c"
+#include "extension/susfs_extension.c"
 
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
