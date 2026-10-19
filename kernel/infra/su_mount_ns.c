@@ -89,7 +89,7 @@ try_setns:;
 	}
 
 	fd_install(fd, ns_file);
-	ret = ksu_sys_setns(fd, CLONE_NEWNS);
+	ret = ksyscall(setns, fd, CLONE_NEWNS);
 
 	ksu_close_fd(fd);
 
@@ -115,9 +115,9 @@ out:
 // individual mode , need CAP_SYS_ADMIN to perform unshare and remount
 static void ksu_mnt_ns_individual(void)
 {
-	long ret = ksys_unshare(CLONE_NEWNS);
+	long ret = ksyscall(unshare, CLONE_NEWNS);
 	if (ret) {
-		pr_warn("call ksys_unshare failed: %ld\n", ret);
+		pr_warn("call sys_unshare failed: %ld\n", ret);
 		return;
 	}
 

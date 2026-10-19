@@ -260,11 +260,11 @@ static int __init kernelsu_init(void)
 
 #ifdef CONFIG_KSU_DEBUG
 	pr_alert("*************************************************************");
-	pr_alert("**	 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE	**");
-	pr_alert("**														 **");
-	pr_alert("**		 You are running KernelSU in DEBUG mode		  **");
-	pr_alert("**														 **");
-	pr_alert("**	 NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE	**");
+	pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
+	pr_alert("**                                                         **");
+	pr_alert("**         You are running KernelSU in DEBUG mode          **");
+	pr_alert("**                                                         **");
+	pr_alert("**     NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE    **");
 	pr_alert("*************************************************************");
 #endif
 	if (allow_shell)
@@ -281,7 +281,7 @@ static int __init kernelsu_init(void)
 #endif
 	// register features
 	ksu_feature_init();
-	 ksu_extension_init();
+	ksu_extension_init();
 	ksu_extension_register_all();
 	ksu_sucompat_init();
 	ksu_kernel_umount_init();

@@ -146,10 +146,6 @@ struct ksu_add_try_umount_cmd {
 	__u8 mode; /* denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry */
 };
 
-#define KSU_UMOUNT_WIPE 0	/* ignore everything and wipe list */
-#define KSU_UMOUNT_ADD 1	/* add entry (path + flags) */
-#define KSU_UMOUNT_DEL 2	/* delete entry, strcmp */
-
 struct ksu_get_sulog_fd_cmd {
 	__u32 flags; /* Input: reserved for future use, must be 0 */
 };
@@ -168,6 +164,10 @@ struct ksu_lookup_symbols_cmd {
 	__u32 flags; /* Input: reserved for future use, must be 0 */
 };
 #define KSU_LOOKUP_SYMBOLS_MAX 1024
+
+#define KSU_UMOUNT_WIPE 0	/* ignore everything and wipe list */
+#define KSU_UMOUNT_ADD 1	/* add entry (path + flags) */
+#define KSU_UMOUNT_DEL 2	/* delete entry, strcmp */
 
 // Other command structures
 struct ksu_get_full_version_cmd {

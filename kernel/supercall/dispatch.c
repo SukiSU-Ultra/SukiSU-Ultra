@@ -444,8 +444,8 @@ static int do_manage_mark(void __user *arg)
 			// at the very least we have partial featureset
 			ret = ksu_get_task_mark(cmd.pid);
 			if (ret < 0) {
-				pr_err("manage_mark: get failed for pid %d: %d\n", cmd.pid, ret);
-				return ret;
+			    pr_err("manage_mark: get failed for pid %d: %d\n", cmd.pid, ret);
+			    return ret;
 			}
 			cmd.result = (u32)ret;
 			break;
