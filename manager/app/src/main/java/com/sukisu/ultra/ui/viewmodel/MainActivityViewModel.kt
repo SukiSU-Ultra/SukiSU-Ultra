@@ -53,6 +53,7 @@ class MainActivityViewModel(
             enableSwipeDismiss = settingRepo.enableSwipeDismiss,
             pagerInterceptionMode = settingRepo.pagerInterceptionMode,
             moduleDescriptionMaxLines = settingRepo.moduleDescriptionMaxLines,
+            showModuleBanner = settingRepo.showModuleBanner,
             uiMode = UiMode.fromValue(settingRepo.uiMode),
         )
     }
@@ -65,6 +66,7 @@ class MainActivityViewModel(
             "color_spec",
             "page_scale",
             "module_description_max_lines",
+            "show_module_banner",
             "enable_blur",
             "enable_floating_bottom_bar",
             "enable_floating_bottom_bar_blur",

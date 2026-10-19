@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Brightness7
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AspectRatio
+import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DesignServices
@@ -329,6 +330,15 @@ fun ColorPaletteScreenMaterial(
                                 summary = stringResource(id = R.string.settings_show_fullstatus_summary),
                                 checked = state.showFullStatus,
                                 onCheckedChange = actions.onSetShowFullStatus
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.ViewAgenda,
+                                title = stringResource(id = R.string.settings_show_module_banner),
+                                summary = stringResource(id = R.string.settings_show_module_banner_summary),
+                                checked = uiState.showModuleBanner,
+                                onCheckedChange = actions.onSetShowModuleBanner
                             )
                         }
                     )

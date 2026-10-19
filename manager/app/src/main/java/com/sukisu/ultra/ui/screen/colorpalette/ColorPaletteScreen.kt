@@ -62,6 +62,7 @@ fun ColorPaletteScreen() {
         onSetPageScale = viewModel::setPageScale,
         onSetModuleDescriptionMaxLines = viewModel::setModuleDescriptionMaxLines,
         onSetShowFullStatus = viewModel::setShowFullStatus,
+        onSetShowModuleBanner = viewModel::setShowModuleBanner,
     )
 
     when (LocalUiMode.current) {

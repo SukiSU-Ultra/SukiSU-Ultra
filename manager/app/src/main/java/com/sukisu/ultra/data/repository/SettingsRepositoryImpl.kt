@@ -172,6 +172,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("show_fingerprint", true)
         set(value) = prefs.edit { putBoolean("show_fingerprint", value) }
 
+    override var showModuleBanner: Boolean
+        get() = prefs.getBoolean("show_module_banner", true)
+        set(value) = prefs.edit { putBoolean("show_module_banner", value) }
+
     override var autoJailbreak: Boolean
         get() = prefs.getBoolean("auto_jailbreak", false)
         set(value) {

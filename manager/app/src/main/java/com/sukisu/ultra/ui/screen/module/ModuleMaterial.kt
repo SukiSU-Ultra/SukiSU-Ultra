@@ -142,6 +142,7 @@ import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
+import com.sukisu.ultra.ui.theme.LocalShowModuleBanner
 import com.sukisu.ultra.ui.util.reboot
 import top.yukonga.miuix.kmp.nav.gesture.WindowNavigationEventBridge
 
@@ -728,7 +729,7 @@ private fun ModuleItem(
     val canOpenWebUi = module.hasWebUi && !module.remove && module.enabled
     val cardInteractionSource = remember { MutableInteractionSource() }
     val descriptionInteractionSource = remember { MutableInteractionSource() }
-    val banner = rememberModuleBanner(module.id, module.bannerPath)
+    val banner = rememberModuleBanner(module.id, module.bannerPath, LocalShowModuleBanner.current)
 
     TonalCard(
         modifier = Modifier.fillMaxWidth(),

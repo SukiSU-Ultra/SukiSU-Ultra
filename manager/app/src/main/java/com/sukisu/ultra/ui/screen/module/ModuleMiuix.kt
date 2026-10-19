@@ -115,6 +115,7 @@ import com.sukisu.ultra.ui.component.miuix.SearchBox
 import com.sukisu.ultra.ui.component.miuix.SearchPager
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
+import com.sukisu.ultra.ui.theme.LocalShowModuleBanner
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.getFileName
@@ -795,7 +796,7 @@ fun ModuleItem(
     val hasDescription = module.description.isNotBlank()
     val maxLinesLimit = LocalModuleDescriptionMaxLines.current
     var expanded by rememberSaveable(module.id) { mutableStateOf(false) }
-    val banner = rememberModuleBanner(module.id, module.bannerPath)
+    val banner = rememberModuleBanner(module.id, module.bannerPath, LocalShowModuleBanner.current)
 
     Card(
         modifier = Modifier

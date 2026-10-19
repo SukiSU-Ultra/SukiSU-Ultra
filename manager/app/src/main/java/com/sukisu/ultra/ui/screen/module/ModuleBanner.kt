@@ -65,8 +65,8 @@ private fun loadModuleBanner(moduleId: String, banner: String): ImageBitmap? = r
     .getOrNull()?.also { bannerCache.put("$moduleId:$banner", it) }
 
 @Composable
-fun rememberModuleBanner(moduleId: String, banner: String?): ImageBitmap? {
-    if (banner == null) return null
+fun rememberModuleBanner(moduleId: String, banner: String?, show: Boolean): ImageBitmap? {
+    if (banner == null || !show) return null
     val key = "$moduleId:$banner"
     val bitmap by produceState(bannerCache.get(key), key) {
         if (value == null) value = withContext(Dispatchers.IO) { loadModuleBanner(moduleId, banner) }

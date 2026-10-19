@@ -46,6 +46,7 @@ import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Swipe
+import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -431,6 +432,23 @@ fun ColorPaletteScreenMiuix(
                             checked = state.showFullStatus,
                             onCheckedChange = {
                                 actions.onSetShowFullStatus(it)
+                            }
+                        )
+
+                        SwitchPreference(
+                            title = stringResource(id = R.string.settings_show_module_banner),
+                            summary = stringResource(id = R.string.settings_show_module_banner_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.ViewAgenda,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_show_module_banner),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            checked = uiState.showModuleBanner,
+                            onCheckedChange = {
+                                actions.onSetShowModuleBanner(it)
                             }
                         )
 

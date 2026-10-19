@@ -51,6 +51,7 @@ class SettingsViewModel(
             val moduleDescriptionMaxLines = repo.moduleDescriptionMaxLines
             val enableWebDebugging = repo.enableWebDebugging
             val showFullStatus = repo.showFullStatus
+            val showModuleBanner = repo.showModuleBanner
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
@@ -120,6 +121,7 @@ class SettingsViewModel(
                     moduleDescriptionMaxLines = moduleDescriptionMaxLines,
                     enableWebDebugging = enableWebDebugging,
                     showFullStatus = showFullStatus,
+                    showModuleBanner = showModuleBanner,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
                     suCompatStatus = suCompatStatus,
@@ -298,6 +300,11 @@ class SettingsViewModel(
     fun setShowFullStatus(enabled: Boolean) {
         repo.showFullStatus = enabled
         _uiState.update { it.copy(showFullStatus = enabled) }
+    }
+
+    fun setShowModuleBanner(enabled: Boolean) {
+        repo.showModuleBanner = enabled
+        _uiState.update { it.copy(showModuleBanner = enabled) }
     }
 
     fun setSuCompatMode(mode: Int) {

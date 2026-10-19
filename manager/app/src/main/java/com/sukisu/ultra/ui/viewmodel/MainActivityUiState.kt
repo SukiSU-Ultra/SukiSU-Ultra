@@ -15,5 +15,6 @@ data class MainActivityUiState(
     val enableSwipeDismiss: Boolean,
     val pagerInterceptionMode: Int,
     val moduleDescriptionMaxLines: Int = 4,
+    val showModuleBanner: Boolean = true,
     val uiMode: UiMode,
 )
