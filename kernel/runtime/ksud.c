@@ -58,6 +58,7 @@ void on_post_fs_data(void)
     ksu_selinux_hide_handle_post_fs_data();
     // retry forced features which failed at second stage
     ksu_feature_apply_forced();
+    ksu_extension_apply_forced();
 }
 
 extern void ext4_unregister_sysfs(struct super_block *sb);
@@ -225,6 +226,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
                 setup_ksu_cred();
                 // after apply_kernelsu_rules, so that selinux_hide has its sepolicy backup
                 ksu_feature_apply_forced();
+                ksu_extension_apply_forced();
 #ifdef KSU_COMPAT_USE_STATIC_KEY
                 static_branch_disable(&is_init_second_stage_not_executed);
 #else
@@ -339,6 +341,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
                         setup_ksu_cred();
                         // after apply_kernelsu_rules, so that selinux_hide has its sepolicy backup
                         ksu_feature_apply_forced();
+                        ksu_extension_apply_forced();
                         init_second_stage_executed = true;
                     }
                 }

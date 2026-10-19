@@ -160,6 +160,10 @@ struct ksu_add_try_umount_cmd {
     __u8 mode; /* denotes what to do with it 0:wipe_list 1:add_to_list 2:delete_entry */
 };
 
+DECLARE(__u8, KSU_UMOUNT_WIPE, 0); /* ignore everything and wipe list */
+DECLARE(__u8, KSU_UMOUNT_ADD, 1); /* add entry (path + flags) */
+DECLARE(__u8, KSU_UMOUNT_DEL, 2); /* delete entry, strcmp */
+
 struct ksu_get_sulog_fd_cmd {
     __u32 flags; /* Input: reserved for future use, must be 0 */
 };
@@ -180,16 +184,6 @@ struct ksu_lookup_symbols_cmd {
 
 DECLARE(__u32, KSU_LOOKUP_SYMBOLS_MAX, 1024);
 
-// List current umount entries
-struct ksu_list_try_umount_cmd {
-    __aligned_u64 arg; // User buffer
-    __u32 buf_size; // Buffer size provided by userspace
-};
-
-DECLARE(__u8, KSU_UMOUNT_WIPE, 0); /* ignore everything and wipe list */
-DECLARE(__u8, KSU_UMOUNT_ADD, 1); /* add entry (path + flags) */
-DECLARE(__u8, KSU_UMOUNT_DEL, 2); /* delete entry, strcmp */
-
 // Other command structures
 struct ksu_get_full_version_cmd {
     char version_full[255]; // Output: full version string
@@ -197,25 +191,6 @@ struct ksu_get_full_version_cmd {
 
 struct ksu_hook_type_cmd {
     char hook_type[32]; // Output: hook type string
-};
-
-struct ksu_enable_kpm_cmd {
-    __u8 enabled; // Output: true if KPM is enabled
-};
-
-DECLARE(__u32, SUKISU_KPM_LOAD, 1);
-DECLARE(__u32, SUKISU_KPM_UNLOAD, 2);
-DECLARE(__u32, SUKISU_KPM_NUM, 3);
-DECLARE(__u32, SUKISU_KPM_LIST, 4);
-DECLARE(__u32, SUKISU_KPM_INFO, 5);
-DECLARE(__u32, SUKISU_KPM_CONTROL, 6);
-DECLARE(__u32, SUKISU_KPM_VERSION, 7);
-
-struct ksu_kpm_cmd {
-    __aligned_u64 __user control_code;
-    __aligned_u64 __user arg1;
-    __aligned_u64 __user arg2;
-    __aligned_u64 __user result_code;
 };
 
 /* IOCTL command definitions */
@@ -250,9 +225,5 @@ DECLARE(__u32, KSU_IOCTL_LOOKUP_SYMBOLS, _IOW('K', 22, struct ksu_lookup_symbols
 // Other IOCTL command definitions
 DECLARE(__u32, KSU_IOCTL_GET_FULL_VERSION, _IOC(_IOC_READ, 'K', 100, 0));
 DECLARE(__u32, KSU_IOCTL_HOOK_TYPE, _IOC(_IOC_READ, 'K', 101, 0));
-DECLARE(__u32, KSU_IOCTL_ENABLE_KPM, _IOC(_IOC_READ, 'K', 102, 0));
-DECLARE(__u32, KSU_IOCTL_LIST_TRY_UMOUNT, _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0));
-DECLARE(__u32, KSU_IOCTL_MANAGER, _IOWR('K', 106, struct ksu_manager_cmd));
-DECLARE(__u32, KSU_IOCTL_KPM, _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0));
 
 #endif

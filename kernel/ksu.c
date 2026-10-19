@@ -7,6 +7,7 @@
 #include "include/uapi/supercall.h"
 #include "include/uapi/sulog.h"
 #include "include/uapi/manager.h"
+#include "include/uapi/extension.h"
 
 // includes
 #include "include/klog.h"
@@ -22,7 +23,6 @@
 #include "manager/manager_identity.h"
 #include "manager/throne_tracker.h"
 #include "manager/pkg_observer.h"
-#include "manager/dynamic_manager.h"
 #include "supercall/internal.h"
 #include "supercall/supercall.h"
 #include "infra/su_mount_ns.h"
@@ -54,23 +54,31 @@
 #include "avc.h"
 #endif
 
-#ifdef CONFIG_KPM
-#include "kpm/kpm.h"
-#include "kpm/compact.h"
-#include "kpm/super_access.h"
-#include "kpm/kpm.c"
-#include "kpm/compact.c"
-#include "kpm/super_access.c"
-#endif
+#include "extension/extension.h"
+#include "extension/cpu_spoof.h"
+#include "extension/umount_paths.h"
+#include "extension/dynamic_manager.h"
+#include "extension/kpm.h"
+#include "extension/kpm/kpm.h"
+#include "extension/kpm/compact.h"
+#include "extension/kpm/super_access.h"
 
 // unity build
+#include "extension/extension.c"
+#include "extension/cpu_spoof.c"
+#include "extension/umount_paths.c"
+#include "extension/dynamic_manager.c"
+#include "extension/kpm.c"
+#include "extension/kpm/kpm.c"
+#include "extension/kpm/compact.c"
+#include "extension/kpm/super_access.c"
+
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
 #include "policy/feature.c"
 #include "manager/apk_sign.c"
 #include "manager/throne_tracker.c"
 #include "manager/pkg_observer.c"
-#include "manager/dynamic_manager.c"
 
 #include "supercall/perm.c"
 #include "supercall/dispatch.c"
@@ -140,6 +148,10 @@ int __init kernelsu_init(void)
 
     ksu_feature_init();
 
+    ksu_extension_init();
+
+    ksu_extension_register_all();
+
     ksu_init_symbol_resolver();
 
     ksu_supercalls_init();
@@ -171,6 +183,8 @@ int __init kernelsu_init(void)
     ksu_file_wrapper_init();
 
     ksu_feature_apply_forced();
+
+    ksu_extension_apply_forced();
 
     return 0;
 }
