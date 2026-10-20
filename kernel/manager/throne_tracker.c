@@ -94,7 +94,22 @@ bool maybe_manager_apk_dir(const char *path)
     }
 
     // pkg is `<real package>`
-    return strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0;
+    if (strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0)
+        return true;
+
+    /*
+     * Third-party manager signed with the canonical built-in signature:
+     * admit it regardless of package name. This is the static fallback that
+     * used to require extension/manager_auth_patch.c (now removed). We need
+     * an APK file path for the v2 signature check, so append "/base.apk".
+     */
+    {
+        char apk_path[DATA_PATH_LEN];
+        int n = snprintf(apk_path, sizeof(apk_path), "%s/base.apk", path);
+        if (n > 0 && (size_t)n < sizeof(apk_path))
+            return is_manager_apk(apk_path);
+    }
+    return false;
 }
 
 static FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,

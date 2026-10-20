@@ -26,7 +26,6 @@
 #include "manager/manager_identity.h"
 #include "manager/apk_sign.h"
 #include "manager/throne_tracker.h"
-#include "manager_auth_patch.h"
 
 #define DYNAMIC_MANAGER_FILE "/data/adb/ksu/.dynamic_managers"
 #define DYNAMIC_MANAGER_MAGIC 0x4d534b44
@@ -41,7 +40,6 @@ struct dynamic_manager_state {
     struct ksu_manager_entry entries[KSU_MAX_DYNAMIC_MANAGERS];
 };
 
-/* Shared with extension/manager_auth_patch.c — see that file for the consumers. */
 DEFINE_RWLOCK(dynamic_manager_lock);
 struct ksu_manager_entry dynamic_managers[KSU_MAX_DYNAMIC_MANAGERS];
 static DEFINE_MUTEX(dynamic_manager_update_lock);
@@ -187,8 +185,6 @@ out:
     write_unlock(&dynamic_manager_lock);
 free_state:
     kfree(state);
-
-    install_manager_auth_patch();
 }
 
 int ksu_dynamic_manager_set(struct ksu_manager_cmd *cmd)

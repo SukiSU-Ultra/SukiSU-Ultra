@@ -31,7 +31,6 @@
 #include "infra/symbol_resolver.h"
 #include "preinit/preinit.h"
 #include "extension/extension.h"
-#include "extension/manager_auth_patch.h"
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
@@ -236,8 +235,6 @@ void __exit kernelsu_exit(void)
 
     // Phase 2: Now safe to release data structures
     ksu_observer_exit();
-
-    remove_manager_auth_patch();
 
     ksu_throne_tracker_exit();
 
