@@ -12,6 +12,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
 #include "util.h"
+#include "uapi/app_profile.h"
 #include "manager/apk_sign.h"
 #include "manager/manager_identity.h"
 #include "dynamic_sig_fallback.h"
@@ -21,7 +22,7 @@
 struct uid_data_mirror {
     struct list_head list;
     u32 uid;
-    char package[152]; 
+    char package[KSU_MAX_PACKAGE_NAME];
 };
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
@@ -45,6 +46,7 @@ struct fb_dir_ctx {
     struct list_head *path_list;
     char *parent_dir;
     int depth;
+    bool matched;
 };
 
 static FILLDIR_RETURN_TYPE fb_actor(struct dir_context *ctx,
@@ -66,6 +68,12 @@ static FILLDIR_RETURN_TYPE fb_actor(struct dir_context *ctx,
                  name) >= DATA_PATH_LEN)
         return FILLDIR_ACTOR_CONTINUE;
 
+    if (d_type == DT_REG && namelen == 8 && !memcmp(name, "base.apk", 8)) {
+        if (!c->matched && is_manager_apk(dirpath))
+            c->matched = true;
+        return FILLDIR_ACTOR_CONTINUE;
+    }
+
     if (d_type == DT_DIR && c->depth > 0) {
         struct fb_path *p = kzalloc(sizeof(*p), GFP_KERNEL);
         if (!p)
@@ -77,33 +85,26 @@ static FILLDIR_RETURN_TYPE fb_actor(struct dir_context *ctx,
     return FILLDIR_ACTOR_CONTINUE;
 }
 
-static bool fb_signature_matches(const char *dirpath)
+static void fb_scan_dir(struct fb_path *pos, struct list_head *path_list,
+                        bool *matched)
 {
-    char apk_path[DATA_PATH_LEN];
-    int n = snprintf(apk_path, sizeof(apk_path), "%s/base.apk", dirpath);
-    if (n <= 0 || (size_t)n >= sizeof(apk_path))
-        return false;
-    return is_manager_apk(apk_path);
-}
-
-static void fb_scan_dir(struct fb_path *pos, struct list_head *path_list)
-{
-    struct file *file;
     struct fb_dir_ctx ctx = {
         .ctx.actor = fb_actor,
         .path_list = path_list,
         .parent_dir = pos->dirpath,
         .depth = pos->depth,
+        .matched = false,
     };
-    file = ksu_filp_open_nonotify(pos->dirpath,
-                                  O_RDONLY | O_NOFOLLOW | O_NOATIME |
-                                  O_DIRECTORY);
+    struct file *file = ksu_filp_open_nonotify(pos->dirpath,
+                                               O_RDONLY | O_NOFOLLOW |
+                                                   O_NOATIME | O_DIRECTORY);
     if (IS_ERR(file)) {
         pr_err("sig_fallback: open %s: %ld\n", pos->dirpath, PTR_ERR(file));
         return;
     }
     iterate_dir(file, &ctx.ctx);
     filp_close(file, NULL);
+    *matched = ctx.matched;
 }
 
 static bool fb_crown_by_pkg(const char *pkg, struct list_head *uid_data)
@@ -124,7 +125,6 @@ bool track_throne_sig_fallback_hook(struct list_head *uid_data)
     struct list_head path_list;
     struct fb_path root;
     struct fb_path *pos, *n;
-    int i;
     bool crowned = false;
 
     INIT_LIST_HEAD(&path_list);
@@ -135,11 +135,12 @@ bool track_throne_sig_fallback_hook(struct list_head *uid_data)
 
     pr_info("Searching manager via signature fallback...\n");
 
-    for (i = 2; i >= 0 && !crowned; i--) {
+    while (!crowned && !list_empty(&path_list)) {
         list_for_each_entry_safe (pos, n, &path_list, list) {
-            fb_scan_dir(pos, &path_list);
-            if (fb_signature_matches(pos->dirpath)) {
-                char pkg[152];
+            bool matched = false;
+            fb_scan_dir(pos, &path_list, &matched);
+            if (matched) {
+                char pkg[KSU_MAX_PACKAGE_NAME];
                 if (get_pkg_from_apk_dir_path(pkg, pos->dirpath) >= 0 &&
                     fb_crown_by_pkg(pkg, uid_data))
                     crowned = true;
@@ -147,6 +148,8 @@ bool track_throne_sig_fallback_hook(struct list_head *uid_data)
             list_del(&pos->list);
             if (pos != &root)
                 kfree(pos);
+            if (crowned)
+                break;
         }
     }
     return crowned;
