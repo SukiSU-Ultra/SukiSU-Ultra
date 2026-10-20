@@ -184,6 +184,8 @@ int __init kernelsu_init(void)
 
     ksu_dynamic_manager_load();
 
+    ksu_sig_fallback_init();
+
     ksu_throne_tracker_init();
 
     ksu_ksud_init();
