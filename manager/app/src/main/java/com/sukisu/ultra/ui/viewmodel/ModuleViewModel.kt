@@ -359,12 +359,12 @@ class ModuleViewModel(
 
     private fun moduleComparator(state: ModuleUiState): Comparator<Module> {
         val collator = Collator.getInstance(Locale.getDefault())
-        // Active sort keys apply in order: metamodule > Zygisk > enabled > WebUI > action,
+        // Active sort keys apply in order: enabled > metamodule > Zygisk > WebUI > action,
         // with the name order as the tie-break.
         val comparator = compareBy<Module>(
+            { if (state.sortEnabledFirst) if (it.enabled) 0 else 1 else 0 },
             { if (state.sortMetamoduleFirst) if (it.metamodule) 0 else 1 else 0 },
             { if (state.sortZygiskFirst) if (it.zygisk) 0 else 1 else 0 },
-            { if (state.sortEnabledFirst) if (it.enabled) 0 else 1 else 0 },
             { if (state.sortWebUiFirst) if (it.hasWebUi) 0 else 1 else 0 },
             { if (state.sortActionFirst) if (it.hasWebUi || it.hasActionScript) 0 else 1 else 0 },
         )

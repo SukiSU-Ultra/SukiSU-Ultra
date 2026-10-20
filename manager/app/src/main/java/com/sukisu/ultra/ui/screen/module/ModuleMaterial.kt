@@ -308,22 +308,6 @@ fun ModulePagerMaterial(
                         ) {
                             DropdownMenuGroup(shapes = MenuDefaults.groupShapes()) {
                                 CheckableDropdownMenuItem(
-                                    text = { Text(stringResource(R.string.module_sort_action_first)) },
-                                    checked = uiState.sortActionFirst,
-                                    checkedLeadingIcon = {
-                                        Icon(
-                                            Icons.Filled.Check,
-                                            modifier = Modifier.size(MenuDefaults.LeadingIconSize),
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onCheckedChange = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                        actions.onToggleSortActionFirst()
-                                    },
-                                    shapes = MenuDefaults.itemShape(index = 0, count = 8),
-                                )
-                                CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_enabled_first)) },
                                     checked = uiState.sortEnabledFirst,
                                     checkedLeadingIcon = {
@@ -337,11 +321,11 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortEnabledFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 1, count = 8),
+                                    shapes = MenuDefaults.itemShape(index = 0, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
-                                    text = { Text(stringResource(R.string.module_sort_webui_first)) },
-                                    checked = uiState.sortWebUiFirst,
+                                    text = { Text(stringResource(R.string.module_sort_metamodule_first)) },
+                                    checked = uiState.sortMetamoduleFirst,
                                     checkedLeadingIcon = {
                                         Icon(
                                             Icons.Filled.Check,
@@ -351,9 +335,9 @@ fun ModulePagerMaterial(
                                     },
                                     onCheckedChange = {
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                        actions.onToggleSortWebUiFirst()
+                                        actions.onToggleSortMetamoduleFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 2, count = 8),
+                                    shapes = MenuDefaults.itemShape(index = 1, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_zygisk_first)) },
@@ -369,11 +353,11 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortZygiskFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 3, count = 8),
+                                    shapes = MenuDefaults.itemShape(index = 2, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
-                                    text = { Text(stringResource(R.string.module_sort_metamodule_first)) },
-                                    checked = uiState.sortMetamoduleFirst,
+                                    text = { Text(stringResource(R.string.module_sort_webui_first)) },
+                                    checked = uiState.sortWebUiFirst,
                                     checkedLeadingIcon = {
                                         Icon(
                                             Icons.Filled.Check,
@@ -383,7 +367,23 @@ fun ModulePagerMaterial(
                                     },
                                     onCheckedChange = {
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                        actions.onToggleSortMetamoduleFirst()
+                                        actions.onToggleSortWebUiFirst()
+                                    },
+                                    shapes = MenuDefaults.itemShape(index = 3, count = 8),
+                                )
+                                CheckableDropdownMenuItem(
+                                    text = { Text(stringResource(R.string.module_sort_action_first)) },
+                                    checked = uiState.sortActionFirst,
+                                    checkedLeadingIcon = {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            modifier = Modifier.size(MenuDefaults.LeadingIconSize),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onCheckedChange = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                        actions.onToggleSortActionFirst()
                                     },
                                     shapes = MenuDefaults.itemShape(index = 4, count = 8),
                                 )
