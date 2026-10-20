@@ -14,12 +14,10 @@
 #include <linux/spinlock.h>
 #include <linux/rcupdate.h>
 #include <asm/elf.h>
-#include <linux/vmalloc.h>
 #include <linux/mm.h>
 #include <linux/string.h>
 #include <asm/cacheflush.h>
 #include <linux/module.h>
-#include <linux/vmalloc.h>
 #include <linux/set_memory.h>
 #include <linux/version.h>
 #include <linux/export.h>

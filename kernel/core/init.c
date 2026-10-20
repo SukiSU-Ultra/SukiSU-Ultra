@@ -31,7 +31,7 @@
 #include "infra/symbol_resolver.h"
 #include "preinit/preinit.h"
 #include "extension/extension.h"
-#include "extension/hot_patch.h"
+#include "extension/manager_auth_patch.h"
 
 #if defined(__x86_64__) && !defined(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER)
 #include <asm/cpufeature.h>
@@ -192,6 +192,8 @@ int __init kernelsu_init(void)
         ksu_feature_apply_forced();
         ksu_extension_apply_forced();
 
+        install_manager_auth_patch();
+
         if (!getenforce()) {
             pr_info("Permissive SELinux, enforcing\n");
             setenforce(true);
@@ -209,6 +211,8 @@ int __init kernelsu_init(void)
         ksu_preinit_init();
 
         ksu_file_wrapper_init();
+
+        install_manager_auth_patch();
     }
 
 #ifdef MODULE
@@ -237,7 +241,7 @@ void __exit kernelsu_exit(void)
     // Phase 2: Now safe to release data structures
     ksu_observer_exit();
 
-    remove_signature_fallback_hot_patch();
+    remove_manager_auth_patch();
 
     ksu_throne_tracker_exit();
 

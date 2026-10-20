@@ -5,7 +5,7 @@
 #include <linux/types.h>
 
 bool is_manager_apk(char *path);
-bool ksu_check_apk_signature(char *path, unsigned int size, const char *hash);
+bool ksu_check_apk_signature(const char *path, unsigned int size, const char *hash);
 int get_pkg_from_apk_dir_path(char *pkg, const char *path);
 
 #endif

@@ -145,7 +145,7 @@ static bool check_block(struct file *fp, loff_t *pos, loff_t block_end, unsigned
     return strcmp(expected_sha256, hash_str) == 0;
 }
 
-static __always_inline bool check_v2_signature(char *path, unsigned expected_size, const char *expected_sha256)
+static __always_inline bool check_v2_signature(const char *path, unsigned expected_size, const char *expected_sha256)
 {
     unsigned char buffer[0x10] = { 0 };
     u32 cd_offset, cd_size;
@@ -326,13 +326,12 @@ int get_pkg_from_apk_dir_path(char *pkg, const char *path)
     return 0;
 }
 
-bool __attribute__((noinline)) is_manager_apk(char *path)
+bool is_manager_apk(char *path)
 {
     return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
 }
-EXPORT_SYMBOL_GPL(is_manager_apk);
 
-bool ksu_check_apk_signature(char *path, unsigned int size, const char *hash)
+bool ksu_check_apk_signature(const char *path, unsigned int size, const char *hash)
 {
     return check_v2_signature(path, size, hash);
 }
