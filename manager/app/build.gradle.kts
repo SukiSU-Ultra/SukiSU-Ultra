@@ -233,6 +233,8 @@ dependencies {
     implementation(libs.miuix.preference)
     implementation(libs.miuix.blur)
 
+    implementation(libs.reorderable)
+
     implementation(platform(libs.okhttp.bom))
     implementation(libs.okhttp)
 

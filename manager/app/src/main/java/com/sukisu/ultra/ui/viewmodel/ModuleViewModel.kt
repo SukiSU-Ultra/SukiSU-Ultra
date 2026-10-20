@@ -42,6 +42,7 @@ import com.sukisu.ultra.ui.screen.module.ModuleUiState
 import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.hasMagisk
 import okhttp3.Request
+import org.json.JSONArray
 import java.text.Collator
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
@@ -91,6 +92,7 @@ class ModuleViewModel(
 
     init {
         viewModelScope.launchSearchQueryCollector(searchQuery, ::applySearchText)
+        initializePreferences()
     }
 
     fun markNeedRefresh() {
@@ -106,13 +108,18 @@ class ModuleViewModel(
                 sortWebUiFirst = settingsRepo.moduleSortWebUiFirst,
                 sortZygiskFirst = settingsRepo.moduleSortZygiskFirst,
                 sortNameOrder = ModuleNameSort.fromStored(settingsRepo.moduleSortNameOrder),
+                sortManual = settingsRepo.moduleSortManual,
+                manualOrder = parseManualOrder(settingsRepo.moduleManualOrder),
             )
         }
-        updateModuleList()
+        if (_uiState.value.modules.isNotEmpty()) {
+            updateModuleList()
+        }
     }
 
     fun toggleSortActionFirst() {
         val newValue = !_uiState.value.sortActionFirst
+        disableManualSort()
         settingsRepo.moduleSortActionFirst = newValue
         _uiState.update { it.copy(sortActionFirst = newValue) }
         updateModuleList()
@@ -120,6 +127,7 @@ class ModuleViewModel(
 
     fun toggleSortEnabledFirst() {
         val newValue = !_uiState.value.sortEnabledFirst
+        disableManualSort()
         settingsRepo.moduleSortEnabledFirst = newValue
         _uiState.update { it.copy(sortEnabledFirst = newValue) }
         updateModuleList()
@@ -127,6 +135,7 @@ class ModuleViewModel(
 
     fun toggleSortWebUiFirst() {
         val newValue = !_uiState.value.sortWebUiFirst
+        disableManualSort()
         settingsRepo.moduleSortWebUiFirst = newValue
         _uiState.update { it.copy(sortWebUiFirst = newValue) }
         updateModuleList()
@@ -134,6 +143,7 @@ class ModuleViewModel(
 
     fun toggleSortZygiskFirst() {
         val newValue = !_uiState.value.sortZygiskFirst
+        disableManualSort()
         settingsRepo.moduleSortZygiskFirst = newValue
         _uiState.update { it.copy(sortZygiskFirst = newValue) }
         updateModuleList()
@@ -141,9 +151,89 @@ class ModuleViewModel(
 
     fun setSortNameOrder(order: ModuleNameSort) {
         val newValue = if (_uiState.value.sortNameOrder == order) ModuleNameSort.DEFAULT else order
+        disableManualSort()
         settingsRepo.moduleSortNameOrder = newValue.name
         _uiState.update { it.copy(sortNameOrder = newValue) }
         updateModuleList()
+    }
+
+    fun toggleSortManual() {
+        val newValue = !_uiState.value.sortManual
+        val previousOrder = _uiState.value.manualOrder
+        if (newValue) {
+            clearAutomaticSort()
+        }
+        settingsRepo.moduleSortManual = newValue
+        _uiState.update {
+            val manualOrder = if (newValue && it.manualOrder.isEmpty()) {
+                it.moduleList.map(Module::id)
+            } else {
+                it.manualOrder
+            }
+            it.copy(sortManual = newValue, manualOrder = manualOrder)
+        }
+        if (_uiState.value.manualOrder != previousOrder) {
+            persistManualOrder(_uiState.value.manualOrder)
+        }
+        updateModuleList()
+    }
+
+    fun moveModule(from: Module, to: Module) {
+        if (!_uiState.value.sortManual) return
+        _uiState.update { state ->
+            val fromIndex = state.moduleList.indexOfFirst { it.id == from.id }
+            val toIndex = state.moduleList.indexOfFirst { it.id == to.id }
+            if (fromIndex == -1 || toIndex == -1 || fromIndex == toIndex) return@update state
+            val reordered = state.moduleList.toMutableList().apply {
+                add(toIndex, removeAt(fromIndex))
+            }
+            state.copy(
+                moduleList = reordered,
+                manualOrder = reordered.map(Module::id),
+            )
+        }
+        persistManualOrder(_uiState.value.manualOrder)
+    }
+
+    private fun disableManualSort() {
+        if (!_uiState.value.sortManual) return
+        settingsRepo.moduleSortManual = false
+        _uiState.update { it.copy(sortManual = false) }
+    }
+
+    private fun clearAutomaticSort() {
+        val state = _uiState.value
+        val hasAutomaticSort = state.sortActionFirst || state.sortEnabledFirst ||
+                state.sortWebUiFirst || state.sortZygiskFirst ||
+                state.sortNameOrder != ModuleNameSort.DEFAULT
+        if (!hasAutomaticSort) return
+        settingsRepo.moduleSortActionFirst = false
+        settingsRepo.moduleSortEnabledFirst = false
+        settingsRepo.moduleSortWebUiFirst = false
+        settingsRepo.moduleSortZygiskFirst = false
+        settingsRepo.moduleSortNameOrder = ModuleNameSort.DEFAULT.name
+        _uiState.update {
+            it.copy(
+                sortActionFirst = false,
+                sortEnabledFirst = false,
+                sortWebUiFirst = false,
+                sortZygiskFirst = false,
+                sortNameOrder = ModuleNameSort.DEFAULT,
+            )
+        }
+    }
+
+    private fun parseManualOrder(raw: String): List<String> = runCatching {
+        val array = JSONArray(raw)
+        buildList {
+            for (index in 0 until array.length()) {
+                array.optString(index).takeIf { it.isNotEmpty() }?.let(::add)
+            }
+        }
+    }.getOrDefault(emptyList())
+
+    private fun persistManualOrder(order: List<String>) {
+        settingsRepo.moduleManualOrder = JSONArray(order).toString()
     }
 
     fun refreshEnvironmentState() {
@@ -197,7 +287,7 @@ class ModuleViewModel(
 
         val result = withContext(Dispatchers.IO) {
             val state = _uiState.value
-            filterModules(state.modules, text).sortedWith(moduleComparator(state))
+            sortModules(filterModules(state.modules, text), state)
         }
 
         _uiState.update {
@@ -215,7 +305,7 @@ class ModuleViewModel(
             val state = _uiState.value
             val searchText = state.searchStatus.searchText
             val shorted = if (resort || state.moduleList.isEmpty()) {
-                state.modules.sortedWith(moduleComparator(state))
+                sortModules(state.modules, state)
             } else {
                 // Order-preserving reload: keep order, refresh data, drop removed, append new (no re-sort on toggle/uninstall)
                 val byId = state.modules.associateBy { it.id }
@@ -223,17 +313,37 @@ class ModuleViewModel(
                 state.moduleList.mapNotNull { byId[it.id] } + state.modules.filter { it.id !in existingIds }
             }
             val searchResults = filterModules(shorted, searchText)
+            // Never overwrite the saved order while the module list is not loaded yet.
+            val manualOrder = if (state.sortManual && shorted.isNotEmpty()) {
+                shorted.map(Module::id)
+            } else {
+                state.manualOrder
+            }
+            if (state.sortManual && manualOrder != state.manualOrder) {
+                persistManualOrder(manualOrder)
+            }
 
             _uiState.update {
                 it.copy(
                     moduleList = shorted,
                     searchResults = searchResults,
+                    manualOrder = manualOrder,
                     searchStatus = it.searchStatus.copy(
                         resultStatus = searchResultStatusFor(searchText, searchResults.isEmpty())
                     )
                 )
             }
         }
+    }
+
+    private fun sortModules(modules: List<Module>, state: ModuleUiState): List<Module> {
+        if (!state.sortManual) return modules.sortedWith(moduleComparator(state))
+
+        val byId = modules.associateBy { it.id }
+        val ordered = state.manualOrder.mapNotNullTo(mutableListOf()) { byId[it] }
+        val orderedIds = ordered.mapTo(HashSet()) { it.id }
+        ordered += modules.filter { it.id !in orderedIds }.sortedWith(moduleComparator(state))
+        return ordered
     }
 
     private fun moduleComparator(state: ModuleUiState): Comparator<Module> {

@@ -165,6 +165,12 @@ fun ModulePager(
         onSetSortNameOrder = {
             viewModel.setSortNameOrder(it)
         },
+        onToggleSortManual = {
+            viewModel.toggleSortManual()
+        },
+        onMoveModule = { from, to ->
+            viewModel.moveModule(from, to)
+        },
         onOpenWebUi = { module ->
             webUILauncher.launch(
                 Intent(context, WebUIActivity::class.java)

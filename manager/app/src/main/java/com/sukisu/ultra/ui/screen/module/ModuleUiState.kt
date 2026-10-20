@@ -69,6 +69,9 @@ data class ModuleUiState(
     val sortWebUiFirst: Boolean = false,
     val sortZygiskFirst: Boolean = false,
     val sortNameOrder: ModuleNameSort = ModuleNameSort.DEFAULT,
+    val sortManual: Boolean = false,
+    /** Module IDs in the user-defined order, used while [sortManual] is active. */
+    val manualOrder: List<String> = emptyList(),
     val checkModuleUpdate: Boolean = true,
     val isSafeMode: Boolean = false,
     val magiskInstalled: Boolean = false,
@@ -94,6 +97,8 @@ data class ModuleActions(
     val onToggleSortWebUiFirst: () -> Unit,
     val onToggleSortZygiskFirst: () -> Unit,
     val onSetSortNameOrder: (ModuleNameSort) -> Unit,
+    val onToggleSortManual: () -> Unit,
+    val onMoveModule: (Module, Module) -> Unit,
     val onOpenWebUi: (Module) -> Unit,
     val onToggleModule: (Module) -> Unit,
     val onUninstallModule: (Module) -> Unit,

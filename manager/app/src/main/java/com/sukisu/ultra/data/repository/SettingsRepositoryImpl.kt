@@ -155,6 +155,14 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = ModuleNameSort.fromStored(prefs.getString("module_sort_name_order", null)).name
         set(value) = prefs.edit { putString("module_sort_name_order", value) }
 
+    override var moduleSortManual: Boolean
+        get() = prefs.getBoolean("module_sort_manual", false)
+        set(value) = prefs.edit { putBoolean("module_sort_manual", value) }
+
+    override var moduleManualOrder: String
+        get() = prefs.getString("module_manual_order", "") ?: ""
+        set(value) = prefs.edit { putString("module_manual_order", value) }
+
     override var moduleRepoSortOrder: String
         get() = RepoSort.fromStored(
             name = prefs.getString("module_repo_sort", null),

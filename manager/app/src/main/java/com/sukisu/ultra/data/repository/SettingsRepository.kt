@@ -27,6 +27,8 @@ interface SettingsRepository {
     var moduleSortWebUiFirst: Boolean
     var moduleSortZygiskFirst: Boolean
     var moduleSortNameOrder: String
+    var moduleSortManual: Boolean
+    var moduleManualOrder: String
     /** Name of the [com.sukisu.ultra.ui.screen.modulerepo.RepoSort] entry. */
     var moduleRepoSortOrder: String
     var superuserShowSystemApps: Boolean
