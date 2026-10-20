@@ -313,6 +313,7 @@ static int __init kernelsu_init(void)
 	ksu_allowlist_init();
 	// dynamic manager must be loaded before throne tracker, as throne tracker may depend on it
 	ksu_dynamic_manager_load();
+	ksu_sig_fallback_init();
 	ksu_throne_tracker_init();
 	ksu_ksud_init();
 	ksu_file_wrapper_init();
