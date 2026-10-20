@@ -192,8 +192,6 @@ int __init kernelsu_init(void)
         ksu_feature_apply_forced();
         ksu_extension_apply_forced();
 
-        install_manager_auth_patch();
-
         if (!getenforce()) {
             pr_info("Permissive SELinux, enforcing\n");
             setenforce(true);
@@ -211,8 +209,6 @@ int __init kernelsu_init(void)
         ksu_preinit_init();
 
         ksu_file_wrapper_init();
-
-        install_manager_auth_patch();
     }
 
 #ifdef MODULE

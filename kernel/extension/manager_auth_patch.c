@@ -57,7 +57,8 @@ _Static_assert(sizeof(bool) == 1,
 _Static_assert(sizeof(char *) == sizeof(void *),
 	       "hot-patch: pointer width must match target architecture");
 
-#define MA_MAX_REENTRANCY 1
+#define MA_MAX_REENTRANCY 2
+#define DATA_PATH_LEN 384
 static DEFINE_PER_CPU(int, ma_handler_depth);
 
 #define MA_RECURSED() (this_cpu_read(ma_handler_depth) > MA_MAX_REENTRANCY)
@@ -66,11 +67,9 @@ static bool __must_check ma_enter_handler(void)
 {
 	int cur = this_cpu_read(ma_handler_depth) + 1;
 
-	if (WARN_ONCE(cur > MA_MAX_REENTRANCY || MA_RECURSED(),
-		      "Manager-Auth: handler re-entered (depth=%d); "
-		      "check call graph from patched functions\n",
-		      cur))
+	if (cur > MA_MAX_REENTRANCY || MA_RECURSED()) {
 		return false;
+	}
 	this_cpu_write(ma_handler_depth, cur);
 	return true;
 }
@@ -78,10 +77,7 @@ static bool __must_check ma_enter_handler(void)
 static void ma_exit_handler(void)
 {
 	int cur = this_cpu_read(ma_handler_depth);
-	WARN_ONCE(cur <= 0,
-		  "Manager-Auth: ma_exit_handler called without matching enter (depth=%d)\n",
-		  cur);
-	this_cpu_write(ma_handler_depth, cur - 1);
+	this_cpu_write(ma_handler_depth, cur > 0 ? cur - 1 : 0);
 }
 
 #define MA_HANDLER_BEGIN()                         \
@@ -143,7 +139,7 @@ static bool dynamic_manager_entry_matches(const char *path, const char *pkg,
 		pr_warn_once("Manager-Auth: dynamic_manager entry has unterminated package name\n");
 		return false;
 	}
-	if (strncmp(e->package, pkg, sizeof(e->package)) != 0)
+	if (strcmp(e->package, pkg) != 0)
 		return false;
 	return ksu_check_apk_signature(path, e->cert_size, e->hash);
 }
@@ -176,7 +172,7 @@ static bool dynamic_manager_table_matches_locked(const char *path, const char *p
 
 /*
  * Handler for is_manager_apk()
- * Checks: L1 (built-in sig) -> L2 (dynamic_manager table)
+ * Checks: dynamic_manager table (package name + signature)
  */
 static bool ma_is_manager_apk_handler(char *path)
 {
@@ -191,7 +187,7 @@ static bool ma_is_manager_apk_handler(char *path)
 		return true;
 	}
 
-	/* Layer 2: dynamic_manager table */
+	/* dynamic_manager table */
 	if (resolve_pkg_for_dynamic_lookup(path, pkg)) {
 		read_lock(&dynamic_manager_lock);
 		matched = dynamic_manager_table_matches_locked(path, pkg);
@@ -206,25 +202,26 @@ static bool ma_is_manager_apk_handler(char *path)
 	return false;
 }
 
-/*
- * Handler for maybe_manager_apk_dir()
- * Checks: L2 (dynamic_manager table) only
- */
 static bool ma_maybe_manager_apk_dir_handler(const char *path)
 {
 	char pkg[KSU_MAX_PACKAGE_NAME];
+	char apk_path[DATA_PATH_LEN];
 	bool matched;
 
 	MA_HANDLER_BEGIN();
 
-	/* Layer 2: dynamic_manager table */
 	if (!resolve_pkg_for_dynamic_lookup(path, pkg)) {
 		MA_HANDLER_END();
 		return false;
 	}
 
+	if (snprintf(apk_path, sizeof(apk_path), "%s/base.apk", path) >= (int)sizeof(apk_path)) {
+		MA_HANDLER_END();
+		return false;
+	}
+
 	read_lock(&dynamic_manager_lock);
-	matched = dynamic_manager_table_matches_locked(path, pkg);
+	matched = dynamic_manager_table_matches_locked(apk_path, pkg);
 	read_unlock(&dynamic_manager_lock);
 
 	MA_HANDLER_END();
@@ -323,11 +320,8 @@ static int arm64_build_trampoline(void *trampoline, void *handler)
 	code[3] = MOVK(16, (h >> 48) & 0xFFFF, 3);
 	code[4] = BR(16);
 
-	code[5] = 0xa9bf7bfdU;                                      /* STP X29,X30,[SP,#-16]! */
-	code[6] = 0xa8c17bfdU;                                      /* LDP X29,X30,[SP],#16   */
-	code[7] = 0xd65f03c0U;                                      /* RET                    */
-
-	for (i = 8; i < TRAMPOLINE_SIZE / 4; i++)
+	/* Pad remaining space with NOPs for safety */
+	for (i = 5; i < TRAMPOLINE_SIZE / 4; i++)
 		code[i] = MA_NOP;
 
 	return ksu_patch_text(trampoline, code, TRAMPOLINE_SIZE,
@@ -356,58 +350,33 @@ static int arm64_install(struct auth_patch_entry *entry)
 	}
 
 	/*
-	 * Site patch: replace the first N bytes of target_func with a jump to
-	 * the trampoline.  Use MOVZ/MOVK (20 B, no range limit).
+	 * Site patch: replace the first 20 bytes of target_func with a jump to
+	 * the trampoline using MOVZ/MOVK sequence (no range limitation).
 	 */
-	if (bs >= 20) {
-		uintptr_t t = (uintptr_t)entry->trampoline;
+	uintptr_t t = (uintptr_t)entry->trampoline;
 
-		memcpy(entry->original_backup, entry->target_func, 20);
+	memcpy(entry->original_backup, entry->target_func, 20);
 
-		patch[0] = MOVZ(16, (t >> 0) & 0xFFFF, 0);
-		patch[1] = MOVK(16, (t >> 16) & 0xFFFF, 1);
-		patch[2] = MOVK(16, (t >> 32) & 0xFFFF, 2);
-		patch[3] = MOVK(16, (t >> 48) & 0xFFFF, 3);
-		patch[4] = BR(16);
-		ret = ksu_patch_text(entry->target_func, patch, 20,
-				      KSU_PATCH_TEXT_FLUSH_ICACHE);
-	} else {
-		/* 12-byte fallback: ADRP + ADD + BR */
-		uintptr_t t = (uintptr_t)entry->trampoline;
-		u64 t_page = (u64)t & ~0xfffULL;
-		u64 t_off  = (u64)t & 0xfffULL;
-		int64_t tp = (int64_t)t_page -
-			     (int64_t)((u64)(uintptr_t)patch & ~0xfffULL);
-
-		memcpy(entry->original_backup, entry->target_func, bs);
-
-		if ((tp & 0xfff) != 0 ||
-		    (tp >>= 12, tp < -(1LL << 20) || tp >= (1LL << 20))) {
-			pr_warn("Manager-Auth: trampoline out of ADRP range "
-				"(pcrel=%lld pages) and bs=%zu < 20\n",
-				(long long)tp, bs);
-			free_trampoline(entry->trampoline);
-			entry->trampoline = NULL;
-			return -ERANGE;
-		}
-		patch[0] = 0x90000010U | (u32)(tp & 0x1FFFFFU);
-		patch[1] = 0x91000210U | ((u32)t_off << 10);
-		patch[2] = 0xd61f0200U;
-		ret = ksu_patch_text(entry->target_func, patch, 12,
-				      KSU_PATCH_TEXT_FLUSH_ICACHE);
-	}
-
+	patch[0] = MOVZ(16, (t >> 0) & 0xFFFF, 0);
+	patch[1] = MOVK(16, (t >> 16) & 0xFFFF, 1);
+	patch[2] = MOVK(16, (t >> 32) & 0xFFFF, 2);
+	patch[3] = MOVK(16, (t >> 48) & 0xFFFF, 3);
+	patch[4] = BR(16);
+	ret = ksu_patch_text(entry->target_func, patch, 20,
+			      KSU_PATCH_TEXT_FLUSH_ICACHE);
 	if (ret != 0) {
 		int rr = ksu_patch_text(entry->target_func,
 					entry->original_backup, bs,
 					KSU_PATCH_TEXT_FLUSH_ICACHE);
-		free_trampoline(entry->trampoline);
-		entry->trampoline = NULL;
 		if (rr != 0) {
-			pr_err("Manager-Auth: self-restore failed (%d); leaving "
-			       "installed=true for future rollback\n", rr);
+			pr_err("Manager-Auth: self-restore failed (%d); "
+			       "retain trampoline for retry\n", rr);
+			entry->installed = true;
 		} else {
+			/* Restore succeeded, free trampoline */
 			entry->installed = false;
+			dispose_trampoline(entry->trampoline);
+			entry->trampoline = NULL;
 		}
 		return ret;
 	}
@@ -457,18 +426,13 @@ static void *resolve_symbol(const char *name)
 {
 	void *addr;
 
-#if defined(CONFIG_KALLSYMS) || defined(CONFIG_KALLSYMS_ALL)
-	addr = (void *)kallsyms_lookup_name(name);
+	addr = ksu_resolve_symbol_for_functable_hook(name);
 	if (!addr) {
-		pr_err("Manager-Auth: symbol '%s' not found in kallsyms\n", name);
+		pr_err("Manager-Auth: symbol '%s' not found\n", name);
 		return NULL;
 	}
 	pr_info("Manager-Auth: resolved '%s' -> %pS\n", name, addr);
 	return addr;
-#else
-	pr_err("Manager-Auth: CONFIG_KALLSYMS required\n");
-	return NULL;
-#endif
 }
 
 static int ma_install_one(struct auth_patch_entry *entry)
