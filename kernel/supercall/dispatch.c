@@ -28,6 +28,9 @@ static int do_get_info(void __user *arg)
 	if (is_manager()) {
 		cmd.flags |= KSU_GET_INFO_FLAG_MANAGER;
 	}
+#ifndef KSU_NO_PREINIT
+	cmd.flags |= KSU_GET_INFO_FLAG_PREINIT;
+#endif
 	cmd.features = KSU_FEATURE_MAX;
 	cmd.uapi_version = KERNEL_SU_UAPI_VERSION;
 

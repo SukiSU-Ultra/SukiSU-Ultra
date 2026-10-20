@@ -65,6 +65,7 @@
 #include "feature/shell_su_adb_only.h"
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
+#include "preinit/preinit.h"
 #include "feature/mount_hide.h"
 #include "runtime/ksud_boot.h"
 #include "runtime/ksud.h"
@@ -111,6 +112,7 @@
 #include "extension/kpm/kpm.h"
 #include "extension/kpm/compact.h"
 #include "extension/kpm/super_access.h"
+#include "extension/dynamic_sig_fallback.h"
 
 // unity build
 #include "extension/extension.c"
@@ -121,6 +123,7 @@
 #include "extension/kpm/kpm.c"
 #include "extension/kpm/compact.c"
 #include "extension/kpm/super_access.c"
+#include "extension/dynamic_sig_fallback.c"
 
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
@@ -141,6 +144,11 @@
 #define KSU_CAN_USE_MODULE_BLACKLIST
 #include "feature/module_blacklist.h"
 #include "feature/module_blacklist.c"
+#endif
+
+#ifndef KSU_NO_PREINIT
+#include "preinit/runner/runner_xxd.h"
+#include "preinit/preinit.c"
 #endif
 
 #include "feature/adb_root.c"
@@ -308,6 +316,7 @@ static int __init kernelsu_init(void)
 	ksu_throne_tracker_init();
 	ksu_ksud_init();
 	ksu_file_wrapper_init();
+	ksu_preinit_init();
 
 #ifdef CONFIG_KSU_TAMPER_SYSCALL_TABLE
 	ksu_syscall_table_hook_init();

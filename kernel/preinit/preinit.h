@@ -1,24 +1,44 @@
 #ifndef __KSU_H_PREINIT
 #define __KSU_H_PREINIT
 
-static inline void ksu_preinit_init(void)
+#if !defined(CONFIG_ARM64) || !defined(KSU_CAN_USE_JUMP_LABEL)
+#define KSU_NO_PREINIT
+#endif
+
+#ifndef KSU_NO_PREINIT
+
+void ksu_preinit_init(void);
+void ksu_preinit_exit(void);
+
+// NOTE: even if this has to be enabled by default, this has better codegen on execve.
+DEFINE_STATIC_KEY_FALSE(ksu_preinit_key);
+
+static inline void ksu_preinit_kernel_execve_hook(void **filename, void *k_argv);
+static inline void ksu_preinit_user_execve_hook(const char __user **filename, void *u_argv);
+
+static int ksu_disable_preinit_branch(void *data)
 {
+	static bool disabled = false;
+	if (disabled)
+		return 0;
+
+	pr_info("preinit: remove preinit execve branches\n");
+	static_branch_disable(&ksu_preinit_key);
+	kick_all_cpus_sync();
+
+	disabled = true;
+	return 0;
 }
-static inline void ksu_preinit_exit(void)
-{
-}
-static inline bool ksu_preinit_handle_execve(const char __user **filename_user,
-					const char __user *const __user *argv_user, int orig_nr,
-					struct pt_regs *regs, long *ret)
-{
-	return false;
-}
-static inline void ksu_preinit_release(void)
-{
-}
-static inline bool ksu_preinit_enabled_param(void)
-{
-	return false;
-}
+#else
+
+#define ksu_preinit_init() do { } while (0)
+#define ksu_preinit_exit() do { } while (0)
+
+#define ksu_preinit_kernel_execve_hook(...)	do { } while (0)
+#define ksu_preinit_user_execve_hook(...)	do { } while (0)
+
+#define ksu_disable_preinit_branch(...)		do { } while (0)
+
+#endif // KSU_NO_PREINIT
 
 #endif // __KSU_H_PREINIT

@@ -298,12 +298,8 @@ static bool is_init_rc(struct file *fp)
 		return false;
 	}
 
-	const char *short_name = fp->f_path.dentry->d_name.name;
-	if (strcmp(short_name, "init.rc")) {
-		// we are only interest `init.rc` file name file
-		return false;
-	}
-	char path[256] = {0};
+	// Bind mounts retain the source dentry name, so match the mounted path.
+	char path[256];
 	char *dpath = d_path(&fp->f_path, path, sizeof(path));
 
 	if (IS_ERR(dpath)) {
@@ -676,6 +672,7 @@ static void stop_init_rc_hook()
 	ksu_vfs_read_hook = false;
 	pr_info("stop vfs_read_hook\n");
 	ksu_disable_vfs_read_branch();
+	ksu_disable_preinit_branch(nullptr);
 
 	kthread_run(ksu_hook_watchdog, NULL, "watchdog");
 }

@@ -96,6 +96,7 @@
 #include <linux/seccomp.h>
 #include <linux/security.h>
 #include <linux/seq_file.h>
+#include <linux/shmem_fs.h>
 #include <linux/slab.h>
 #include <linux/stddef.h>
 #include <linux/string.h>

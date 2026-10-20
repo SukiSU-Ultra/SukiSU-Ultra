@@ -1,6 +1,5 @@
 # Quirks / Adaptations
 ## NOT IMPLEMENTED
-- preinit, #3397
 - late-load, #3258
 
 ## differences

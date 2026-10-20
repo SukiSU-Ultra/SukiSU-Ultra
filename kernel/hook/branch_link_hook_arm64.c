@@ -291,14 +291,14 @@ unhook_sct_compat:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
 static int bl_hook_execve(void *data)
 {
-	int ret;
+	int ret = -ENOENT;
+	int ret2 = -ENOENT;
+	uintptr_t symbol_addr;
 	uintptr_t target_callsite;
 	uintptr_t target_callsite2;
-	uintptr_t symbol_addr;
 
 	target_callsite = syscall_lookup("sys_execve");
 	target_callsite2 = syscall_lookup("sys_execveat");
-
 	symbol_addr = kallsyms_lookup_retry("do_execveat_common");
 	if (!symbol_addr)
 		goto hook2;
@@ -310,13 +310,14 @@ static int bl_hook_execve(void *data)
 
 	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_do_execveat_common);
 	pr_info("hook_site: sys_execve->do_execveat_common ret: %d \n", ret);
-	if (!ret && !!target_callsite2) {
-		ret = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execveat_common);
-		pr_info("hook_site: sys_execveat->do_execveat_common ret: %d \n", ret);
-	}
 	if (!ret)
-		goto unhook_sct_native;
+		restore_syscall((void *)&aarch64_execve, __AARCH64_execve, (void *)hook_aarch64_execve, (void *)sys_call_table);
 
+	ret2 = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execveat_common);
+	pr_info("hook_site: sys_execveat->do_execveat_common ret: %d \n", ret2);
+	if (!ret2)
+		restore_syscall((void *)&aarch64_execveat, __AARCH64_execveat, (void *)hook_aarch64_execveat, (void *)sys_call_table);
+	goto compat;
 hook2:
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	symbol_addr = kallsyms_lookup_retry("__do_execve_file");
@@ -330,12 +331,14 @@ hook2:
 
 	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_do_execve_file);
 	pr_info("hook_site: sys_execve->__do_execve_file ret: %d \n", ret);
-	if (!ret && !!target_callsite2) {
-		ret = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execve_file);
-		pr_info("hook_site: sys_execveat->__do_execve_file ret: %d \n", ret);
-	}
 	if (!ret)
-		goto unhook_sct_native;
+		restore_syscall((void *)&aarch64_execve, __AARCH64_execve, (void *)hook_aarch64_execve, (void *)sys_call_table);
+
+	ret2 = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execve_file);
+	pr_info("hook_site: sys_execveat->__do_execve_file ret: %d \n", ret2);
+	if (!ret2)
+		restore_syscall((void *)&aarch64_execveat, __AARCH64_execveat, (void *)hook_aarch64_execveat, (void *)sys_call_table);
+	goto compat;
 #endif // < 5.9
 hook3:
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
@@ -351,13 +354,11 @@ hook3:
 	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_do_execve_common);
 	pr_info("hook_site: sys_execve->do_execve_common ret: %d \n", ret);
 	if (!ret)
-		goto unhook_sct_native;
+		restore_syscall((void *)&aarch64_execve, __AARCH64_execve, (void *)hook_aarch64_execve, (void *)sys_call_table);
+	goto compat;
 #endif // < 3.19
 
-unhook_sct_native:
-	restore_syscall((void *)&aarch64_execve, __AARCH64_execve, (void *)hook_aarch64_execve, (void *)sys_call_table);
-	restore_syscall((void *)&aarch64_execveat, __AARCH64_execveat, (void *)hook_aarch64_execveat, (void *)sys_call_table);
-
+compat:
 #ifdef CONFIG_COMPAT
 	target_callsite = syscall_lookup("compat_sys_execve");
 	target_callsite2 = syscall_lookup("compat_sys_execveat");
@@ -368,13 +369,15 @@ unhook_sct_native:
 
 	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_do_execveat_common);
 	pr_info("hook_site: compat_sys_execve->do_execveat_common ret: %d \n", ret);
-	if (!ret && !!target_callsite2) {
-		ret = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execveat_common);
-		pr_info("hook_site: compat_sys_execveat->do_execveat_common ret: %d \n", ret);
-	}
 	if (!ret)
-		goto unhook_sct_compat;
+		restore_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, (void *)compat_sys_call_table);
 
+	ret2 = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execveat_common);
+	pr_info("hook_site: compat_sys_execveat->do_execveat_common ret: %d \n", ret2);
+	if (!ret2)
+		restore_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, (void *)compat_sys_call_table);
+
+	return ret;
 hook2c:
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 	symbol_addr = kallsyms_lookup_retry("__do_execve_file");
@@ -383,12 +386,15 @@ hook2c:
 
 	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_do_execve_file);
 	pr_info("hook_site: compat_sys_execve->__do_execve_file ret: %d \n", ret);
-	if (!ret && !!target_callsite2) {
-		ret = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execve_file);
-		pr_info("hook_site: compat_sys_execveat->__do_execve_file ret: %d \n", ret);
-	}
 	if (!ret)
-		goto unhook_sct_compat;
+		restore_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, (void *)compat_sys_call_table);
+
+	ret2 = arm64_b_or_bl_patch(target_callsite2, ksu_get_ksym_size32(target_callsite2), symbol_addr, (uintptr_t)&ksu_do_execve_file);
+	pr_info("hook_site: compat_sys_execveat->__do_execve_file ret: %d \n", ret2);
+	if (!ret2)
+		restore_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, (void *)compat_sys_call_table);
+
+	return ret;
 #endif // < 5.9
 hook3c:
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
@@ -399,13 +405,12 @@ hook3c:
 	ret = arm64_b_or_bl_patch(target_callsite, ksu_get_ksym_size32(target_callsite), symbol_addr, (uintptr_t)&ksu_do_execve_common);
 	pr_info("hook_site: compat_sys_execve->do_execve_common ret: %d \n", ret);
 	if (!ret)
-		goto unhook_sct_compat;
-#endif // < 3.19
+		restore_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, (void *)compat_sys_call_table);
 
-unhook_sct_compat:
-	restore_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, (void *)compat_sys_call_table);
-	restore_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, (void *)compat_sys_call_table);
+	return ret;
+#endif // < 3.19
 #endif // COMPAT
+
 	return ret;
 }
 #else /* < 3.14 */
@@ -461,6 +466,13 @@ unhook_sct_compat:
 static int bl_hack_init_thread(void *data)
 {
 	set_user_nice(current, 19); // low prio
+
+loop_start:
+	msleep(1000);
+	if (*(volatile bool *)&ksu_vfs_read_hook)
+		goto loop_start;
+
+	msleep(1000);
 
 	bool faccessat = !!!bl_hook_faccessat(data);
 	bool newfstatat = !!!bl_hook_newfstatat(data);

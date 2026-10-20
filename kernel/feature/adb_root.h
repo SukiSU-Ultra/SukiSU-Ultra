@@ -4,6 +4,11 @@
 #ifdef CONFIG_KSU_FEATURE_ADBROOT
 void ksu_adb_root_init(void);
 void ksu_adb_root_exit(void);
+#else
+
+#define ksu_adb_root_execve_user(...) do { } while (0)
+#define ksu_adb_root_execve_kernel(...) do { } while (0)
+
 #endif
 
 #endif
