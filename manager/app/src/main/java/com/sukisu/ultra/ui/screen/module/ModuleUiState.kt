@@ -101,6 +101,7 @@ data class ModuleActions(
     val onSetSortNameOrder: (ModuleNameSort) -> Unit,
     val onToggleSortManual: () -> Unit,
     val onMoveModule: (Module, Module) -> Unit,
+    val onCommitManualOrder: () -> Unit,
     val onOpenWebUi: (Module) -> Unit,
     val onToggleModule: (Module) -> Unit,
     val onUninstallModule: (Module) -> Unit,

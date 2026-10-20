@@ -174,6 +174,9 @@ fun ModulePager(
         onMoveModule = { from, to ->
             viewModel.moveModule(from, to)
         },
+        onCommitManualOrder = {
+            viewModel.commitManualOrder()
+        },
         onOpenWebUi = { module ->
             webUILauncher.launch(
                 Intent(context, WebUIActivity::class.java)

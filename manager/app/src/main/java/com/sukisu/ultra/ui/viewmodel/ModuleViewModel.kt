@@ -201,6 +201,10 @@ class ModuleViewModel(
                 manualOrder = reordered.map(Module::id),
             )
         }
+    }
+
+    fun commitManualOrder() {
+        if (!_uiState.value.sortManual) return
         persistManualOrder(_uiState.value.manualOrder)
     }
 

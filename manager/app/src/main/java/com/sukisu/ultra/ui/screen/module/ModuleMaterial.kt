@@ -676,6 +676,9 @@ private fun ModuleList(
                             onDragStarted = {
                                 haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             },
+                            onDragStopped = {
+                                actions.onCommitManualOrder()
+                            },
                         )
                     } else {
                         null
