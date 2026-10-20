@@ -38,13 +38,13 @@ import com.sukisu.ultra.ui.screen.module.ModuleConfirmDialogState
 import com.sukisu.ultra.ui.screen.module.ModuleConfirmRequest
 import com.sukisu.ultra.ui.screen.module.ModuleEffect
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
+import com.sukisu.ultra.ui.screen.module.ModuleSortOptions
 import com.sukisu.ultra.ui.screen.module.ModuleUiState
+import com.sukisu.ultra.ui.screen.module.sortModules
 import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.hasMagisk
 import okhttp3.Request
 import org.json.JSONArray
-import java.text.Collator
-import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 import com.sukisu.ultra.ui.util.toggleModule as toggleModuleUtil
 import com.sukisu.ultra.ui.util.undoUninstallModule as undoUninstallModuleUtil
@@ -302,7 +302,7 @@ class ModuleViewModel(
 
         val result = withContext(Dispatchers.IO) {
             val state = _uiState.value
-            sortModules(filterModules(state.modules, text), state)
+            sortModules(filterModules(state.modules, text), state.sortOptions())
         }
 
         _uiState.update {
@@ -320,7 +320,7 @@ class ModuleViewModel(
             val state = _uiState.value
             val searchText = state.searchStatus.searchText
             val shorted = if (resort || state.moduleList.isEmpty()) {
-                sortModules(state.modules, state)
+                sortModules(state.modules, state.sortOptions())
             } else {
                 // Order-preserving reload: keep order, refresh data, drop removed, append new (no re-sort on toggle/uninstall)
                 val byId = state.modules.associateBy { it.id }
@@ -351,38 +351,16 @@ class ModuleViewModel(
         }
     }
 
-    private fun sortModules(modules: List<Module>, state: ModuleUiState): List<Module> {
-        if (!state.sortManual) return modules.sortedWith(moduleComparator(state))
-
-        val byId = modules.associateBy { it.id }
-        val ordered = state.manualOrder.mapNotNullTo(mutableListOf()) { byId[it] }
-        val orderedIds = ordered.mapTo(HashSet()) { it.id }
-        ordered += modules.filter { it.id !in orderedIds }.sortedWith(moduleComparator(state))
-        return ordered
-    }
-
-    private fun moduleComparator(state: ModuleUiState): Comparator<Module> {
-        val collator = Collator.getInstance(Locale.getDefault())
-        // Active sort keys apply in order: enabled > metamodule > Zygisk > WebUI > action,
-        // with the name order as the tie-break.
-        val comparator = compareBy<Module>(
-            { if (state.sortEnabledFirst) if (it.enabled) 0 else 1 else 0 },
-            { if (state.sortMetamoduleFirst) if (it.metamodule) 0 else 1 else 0 },
-            { if (state.sortZygiskFirst) if (it.zygisk) 0 else 1 else 0 },
-            { if (state.sortWebUiFirst) if (it.hasWebUi) 0 else 1 else 0 },
-            { if (state.sortActionFirst) if (it.hasWebUi || it.hasActionScript) 0 else 1 else 0 },
-        )
-        return when (state.sortNameOrder) {
-            ModuleNameSort.DEFAULT -> comparator.thenBy(collator, Module::id)
-            ModuleNameSort.ASCENDING -> comparator
-                .thenBy(collator) { it.name.ifBlank { it.id } }
-                .thenBy(collator, Module::id)
-
-            ModuleNameSort.DESCENDING -> comparator
-                .thenByDescending(collator) { it.name.ifBlank { it.id } }
-                .thenBy(collator, Module::id)
-        }
-    }
+    private fun ModuleUiState.sortOptions() = ModuleSortOptions(
+        enabledFirst = sortEnabledFirst,
+        metamoduleFirst = sortMetamoduleFirst,
+        zygiskFirst = sortZygiskFirst,
+        webUiFirst = sortWebUiFirst,
+        actionFirst = sortActionFirst,
+        nameOrder = sortNameOrder,
+        manual = sortManual,
+        manualOrder = manualOrder,
+    )
 
     suspend fun loadModuleList(resort: Boolean = true) {
         val parsedModules = withContext(Dispatchers.IO) {
