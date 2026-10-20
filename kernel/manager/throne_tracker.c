@@ -303,28 +303,10 @@ void track_throne(bool prune_only)
     if (manager_package_uid == KSU_INVALID_APPID) {
         cached_manager_apk_path[0] = 0;
         if (ksu_is_manager_appid_valid()) {
-            struct uid_data *cur;
-            bool still_installed = false;
-
-            list_for_each_entry (cur, &uid_list, list) {
-                if (cur->uid == ksu_get_manager_appid()) {
-                    still_installed = true;
-                    break;
-                }
-            }
-
-            if (still_installed) {
-                pr_info("manager uid=%u still installed (signature fallback), skip search!\n",
-                        ksu_get_manager_appid());
-                goto prune;
-            }
-
             pr_info("manager is uninstalled, invalidate it!\n");
             ksu_invalidate_manager_uid();
-        }
-
-        if (ksu_sig_fallback_run(&uid_list))
             goto prune;
+        }
     } else {
         if (!ksu_is_manager_appid_valid()) {
             need_rescan = true;
@@ -375,12 +357,10 @@ out_revert_cred:
 
 void __init ksu_throne_tracker_init()
 {
-    ksu_sig_fallback_init();
     // nothing to do
 }
 
 void __exit ksu_throne_tracker_exit()
 {
-    ksu_sig_fallback_exit();
     // nothing to do
 }
