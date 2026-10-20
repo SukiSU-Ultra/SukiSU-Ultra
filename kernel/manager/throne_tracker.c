@@ -17,9 +17,6 @@
 #include "manager/throne_tracker.h"
 #include "extension/dynamic_sig_fallback.h"
 
-extern bool __attribute__((weak))
-    track_throne_sig_fallback_hook(struct list_head *);
-
 static DEFINE_MUTEX(throne_tracker_mutex);
 
 uid_t ksu_manager_appid = KSU_INVALID_APPID;
@@ -314,11 +311,8 @@ void track_throne(bool prune_only)
         if (ksu_is_manager_appid_valid()) {
             pr_info("manager is uninstalled, invalidate it!\n");
             ksu_invalidate_manager_uid();
-        }
-        /* Optional weak hook: extension/dynamic_sig_fallback.c */
-        if (track_throne_sig_fallback_hook &&
-            track_throne_sig_fallback_hook(&uid_list))
             goto prune;
+        }
     } else {
         if (!ksu_is_manager_appid_valid()) {
             need_rescan = true;
