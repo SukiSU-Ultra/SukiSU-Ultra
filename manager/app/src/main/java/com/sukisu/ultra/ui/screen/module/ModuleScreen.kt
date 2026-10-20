@@ -162,6 +162,9 @@ fun ModulePager(
         onToggleSortZygiskFirst = {
             viewModel.toggleSortZygiskFirst()
         },
+        onToggleSortMetamoduleFirst = {
+            viewModel.toggleSortMetamoduleFirst()
+        },
         onSetSortNameOrder = {
             viewModel.setSortNameOrder(it)
         },

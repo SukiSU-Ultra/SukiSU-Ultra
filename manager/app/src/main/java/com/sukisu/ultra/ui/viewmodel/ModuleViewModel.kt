@@ -107,6 +107,7 @@ class ModuleViewModel(
                 sortActionFirst = settingsRepo.moduleSortActionFirst,
                 sortWebUiFirst = settingsRepo.moduleSortWebUiFirst,
                 sortZygiskFirst = settingsRepo.moduleSortZygiskFirst,
+                sortMetamoduleFirst = settingsRepo.moduleSortMetamoduleFirst,
                 sortNameOrder = ModuleNameSort.fromStored(settingsRepo.moduleSortNameOrder),
                 sortManual = settingsRepo.moduleSortManual,
                 manualOrder = parseManualOrder(settingsRepo.moduleManualOrder),
@@ -146,6 +147,14 @@ class ModuleViewModel(
         disableManualSort()
         settingsRepo.moduleSortZygiskFirst = newValue
         _uiState.update { it.copy(sortZygiskFirst = newValue) }
+        updateModuleList()
+    }
+
+    fun toggleSortMetamoduleFirst() {
+        val newValue = !_uiState.value.sortMetamoduleFirst
+        disableManualSort()
+        settingsRepo.moduleSortMetamoduleFirst = newValue
+        _uiState.update { it.copy(sortMetamoduleFirst = newValue) }
         updateModuleList()
     }
 
@@ -204,13 +213,14 @@ class ModuleViewModel(
     private fun clearAutomaticSort() {
         val state = _uiState.value
         val hasAutomaticSort = state.sortActionFirst || state.sortEnabledFirst ||
-                state.sortWebUiFirst || state.sortZygiskFirst ||
+                state.sortWebUiFirst || state.sortZygiskFirst || state.sortMetamoduleFirst ||
                 state.sortNameOrder != ModuleNameSort.DEFAULT
         if (!hasAutomaticSort) return
         settingsRepo.moduleSortActionFirst = false
         settingsRepo.moduleSortEnabledFirst = false
         settingsRepo.moduleSortWebUiFirst = false
         settingsRepo.moduleSortZygiskFirst = false
+        settingsRepo.moduleSortMetamoduleFirst = false
         settingsRepo.moduleSortNameOrder = ModuleNameSort.DEFAULT.name
         _uiState.update {
             it.copy(
@@ -218,6 +228,7 @@ class ModuleViewModel(
                 sortEnabledFirst = false,
                 sortWebUiFirst = false,
                 sortZygiskFirst = false,
+                sortMetamoduleFirst = false,
                 sortNameOrder = ModuleNameSort.DEFAULT,
             )
         }
@@ -348,10 +359,10 @@ class ModuleViewModel(
 
     private fun moduleComparator(state: ModuleUiState): Comparator<Module> {
         val collator = Collator.getInstance(Locale.getDefault())
-        // Enabled metamodules come first; active sort keys then apply in order:
-        // Zygisk > enabled > WebUI > action, with the name order as the tie-break.
+        // Active sort keys apply in order: metamodule > Zygisk > enabled > WebUI > action,
+        // with the name order as the tie-break.
         val comparator = compareBy<Module>(
-            { if (it.metamodule && it.enabled) 0 else 1 },
+            { if (state.sortMetamoduleFirst) if (it.metamodule) 0 else 1 else 0 },
             { if (state.sortZygiskFirst) if (it.zygisk) 0 else 1 else 0 },
             { if (state.sortEnabledFirst) if (it.enabled) 0 else 1 else 0 },
             { if (state.sortWebUiFirst) if (it.hasWebUi) 0 else 1 else 0 },

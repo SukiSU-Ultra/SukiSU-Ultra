@@ -298,7 +298,7 @@ fun ModulePagerMiuix(
                                         ListPopupColumn {
                                             DropdownImpl(
                                                 text = stringResource(R.string.module_sort_action_first),
-                                                optionSize = 7,
+                                                optionSize = 8,
                                                 isSelected = uiState.sortActionFirst,
                                                 onSelectedIndexChange = {
                                                     actions.onToggleSortActionFirst()
@@ -308,7 +308,7 @@ fun ModulePagerMiuix(
                                             )
                                             DropdownImpl(
                                                 text = stringResource(R.string.module_sort_enabled_first),
-                                                optionSize = 7,
+                                                optionSize = 8,
                                                 isSelected = uiState.sortEnabledFirst,
                                                 onSelectedIndexChange = {
                                                     actions.onToggleSortEnabledFirst()
@@ -318,7 +318,7 @@ fun ModulePagerMiuix(
                                             )
                                             DropdownImpl(
                                                 text = stringResource(R.string.module_sort_webui_first),
-                                                optionSize = 7,
+                                                optionSize = 8,
                                                 isSelected = uiState.sortWebUiFirst,
                                                 onSelectedIndexChange = {
                                                     actions.onToggleSortWebUiFirst()
@@ -328,7 +328,7 @@ fun ModulePagerMiuix(
                                             )
                                             DropdownImpl(
                                                 text = stringResource(R.string.module_sort_zygisk_first),
-                                                optionSize = 7,
+                                                optionSize = 8,
                                                 isSelected = uiState.sortZygiskFirst,
                                                 onSelectedIndexChange = {
                                                     actions.onToggleSortZygiskFirst()
@@ -337,34 +337,44 @@ fun ModulePagerMiuix(
                                                 index = 3
                                             )
                                             DropdownImpl(
-                                                text = stringResource(R.string.module_sort_name_asc),
-                                                optionSize = 7,
-                                                isSelected = uiState.sortNameOrder == ModuleNameSort.ASCENDING,
+                                                text = stringResource(R.string.module_sort_metamodule_first),
+                                                optionSize = 8,
+                                                isSelected = uiState.sortMetamoduleFirst,
                                                 onSelectedIndexChange = {
-                                                    actions.onSetSortNameOrder(ModuleNameSort.ASCENDING)
+                                                    actions.onToggleSortMetamoduleFirst()
                                                     showTopPopup.value = false
                                                 },
                                                 index = 4
                                             )
                                             DropdownImpl(
-                                                text = stringResource(R.string.module_sort_name_desc),
-                                                optionSize = 7,
-                                                isSelected = uiState.sortNameOrder == ModuleNameSort.DESCENDING,
+                                                text = stringResource(R.string.module_sort_name_asc),
+                                                optionSize = 8,
+                                                isSelected = uiState.sortNameOrder == ModuleNameSort.ASCENDING,
                                                 onSelectedIndexChange = {
-                                                    actions.onSetSortNameOrder(ModuleNameSort.DESCENDING)
+                                                    actions.onSetSortNameOrder(ModuleNameSort.ASCENDING)
                                                     showTopPopup.value = false
                                                 },
                                                 index = 5
                                             )
                                             DropdownImpl(
+                                                text = stringResource(R.string.module_sort_name_desc),
+                                                optionSize = 8,
+                                                isSelected = uiState.sortNameOrder == ModuleNameSort.DESCENDING,
+                                                onSelectedIndexChange = {
+                                                    actions.onSetSortNameOrder(ModuleNameSort.DESCENDING)
+                                                    showTopPopup.value = false
+                                                },
+                                                index = 6
+                                            )
+                                            DropdownImpl(
                                                 text = stringResource(R.string.module_sort_manual),
-                                                optionSize = 7,
+                                                optionSize = 8,
                                                 isSelected = uiState.sortManual,
                                                 onSelectedIndexChange = {
                                                     actions.onToggleSortManual()
                                                     showTopPopup.value = false
                                                 },
-                                                index = 6
+                                                index = 7
                                             )
                                         }
                                     }
@@ -584,6 +594,7 @@ fun ModulePagerMiuix(
                         uiState.sortActionFirst,
                         uiState.sortWebUiFirst,
                         uiState.sortZygiskFirst,
+                        uiState.sortMetamoduleFirst,
                         uiState.sortNameOrder,
                         uiState.sortManual,
                         refreshTick.intValue,

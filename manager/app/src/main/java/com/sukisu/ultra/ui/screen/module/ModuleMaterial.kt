@@ -321,7 +321,7 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortActionFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 0, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 0, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_enabled_first)) },
@@ -337,7 +337,7 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortEnabledFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 1, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 1, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_webui_first)) },
@@ -353,7 +353,7 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortWebUiFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 2, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 2, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_zygisk_first)) },
@@ -369,7 +369,23 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortZygiskFirst()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 3, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 3, count = 8),
+                                )
+                                CheckableDropdownMenuItem(
+                                    text = { Text(stringResource(R.string.module_sort_metamodule_first)) },
+                                    checked = uiState.sortMetamoduleFirst,
+                                    checkedLeadingIcon = {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            modifier = Modifier.size(MenuDefaults.LeadingIconSize),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onCheckedChange = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                        actions.onToggleSortMetamoduleFirst()
+                                    },
+                                    shapes = MenuDefaults.itemShape(index = 4, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_name_asc)) },
@@ -385,7 +401,7 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onSetSortNameOrder(ModuleNameSort.ASCENDING)
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 4, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 5, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_name_desc)) },
@@ -401,7 +417,7 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onSetSortNameOrder(ModuleNameSort.DESCENDING)
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 5, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 6, count = 8),
                                 )
                                 CheckableDropdownMenuItem(
                                     text = { Text(stringResource(R.string.module_sort_manual)) },
@@ -417,7 +433,7 @@ fun ModulePagerMaterial(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         actions.onToggleSortManual()
                                     },
-                                    shapes = MenuDefaults.itemShape(index = 6, count = 7),
+                                    shapes = MenuDefaults.itemShape(index = 7, count = 8),
                                 )
                             }
                         }
@@ -534,6 +550,7 @@ fun ModulePagerMaterial(
                 uiState.sortActionFirst,
                 uiState.sortWebUiFirst,
                 uiState.sortZygiskFirst,
+                uiState.sortMetamoduleFirst,
                 uiState.sortNameOrder,
                 uiState.sortManual,
                 refreshTick.intValue,

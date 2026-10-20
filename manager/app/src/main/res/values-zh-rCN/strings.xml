@@ -33,6 +33,7 @@
     <string name="module_sort_enabled_first">已启用优先</string>
     <string name="module_sort_webui_first">WebUI 优先</string>
     <string name="module_sort_zygisk_first">Zygisk 优先</string>
+    <string name="module_sort_metamodule_first">元模块优先</string>
     <string name="module_sort_name_asc">A→Z</string>
     <string name="module_sort_name_desc">Z→A</string>
     <string name="module_sort_manual">手动排序</string>

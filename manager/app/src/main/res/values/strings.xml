@@ -45,6 +45,7 @@
     <string name="module_sort_enabled_first">Enabled first</string>
     <string name="module_sort_webui_first">WebUI first</string>
     <string name="module_sort_zygisk_first">Zygisk first</string>
+    <string name="module_sort_metamodule_first">Metamodule first</string>
     <string name="module_sort_name_asc">A→Z</string>
     <string name="module_sort_name_desc">Z→A</string>
     <string name="module_sort_manual">Manual order</string>

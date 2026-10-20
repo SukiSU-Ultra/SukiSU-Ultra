@@ -26,6 +26,7 @@ interface SettingsRepository {
     var moduleSortActionFirst: Boolean
     var moduleSortWebUiFirst: Boolean
     var moduleSortZygiskFirst: Boolean
+    var moduleSortMetamoduleFirst: Boolean
     var moduleSortNameOrder: String
     var moduleSortManual: Boolean
     var moduleManualOrder: String

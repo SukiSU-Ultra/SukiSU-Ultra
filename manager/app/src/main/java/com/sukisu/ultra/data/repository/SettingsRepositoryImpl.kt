@@ -151,6 +151,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("module_sort_zygisk_first", false)
         set(value) = prefs.edit { putBoolean("module_sort_zygisk_first", value) }
 
+    override var moduleSortMetamoduleFirst: Boolean
+        get() = prefs.getBoolean("module_sort_metamodule_first", false)
+        set(value) = prefs.edit { putBoolean("module_sort_metamodule_first", value) }
+
     override var moduleSortNameOrder: String
         get() = ModuleNameSort.fromStored(prefs.getString("module_sort_name_order", null)).name
         set(value) = prefs.edit { putString("module_sort_name_order", value) }

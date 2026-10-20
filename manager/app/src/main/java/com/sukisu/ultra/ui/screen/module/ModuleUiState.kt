@@ -68,6 +68,7 @@ data class ModuleUiState(
     val sortActionFirst: Boolean = false,
     val sortWebUiFirst: Boolean = false,
     val sortZygiskFirst: Boolean = false,
+    val sortMetamoduleFirst: Boolean = false,
     val sortNameOrder: ModuleNameSort = ModuleNameSort.DEFAULT,
     val sortManual: Boolean = false,
     /** Module IDs in the user-defined order, used while [sortManual] is active. */
@@ -96,6 +97,7 @@ data class ModuleActions(
     val onToggleSortEnabledFirst: () -> Unit,
     val onToggleSortWebUiFirst: () -> Unit,
     val onToggleSortZygiskFirst: () -> Unit,
+    val onToggleSortMetamoduleFirst: () -> Unit,
     val onSetSortNameOrder: (ModuleNameSort) -> Unit,
     val onToggleSortManual: () -> Unit,
     val onMoveModule: (Module, Module) -> Unit,
