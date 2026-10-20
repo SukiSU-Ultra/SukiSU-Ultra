@@ -17,9 +17,6 @@
 #include "manager/throne_tracker.h"
 #include "extension/dynamic_sig_fallback.h"
 
-extern bool __attribute__((weak))
-    track_throne_sig_fallback_hook(struct list_head *);
-
 static DEFINE_MUTEX(throne_tracker_mutex);
 
 uid_t ksu_manager_appid = KSU_INVALID_APPID;
@@ -29,12 +26,6 @@ uid_t ksu_manager_appid = KSU_INVALID_APPID;
 static char cached_manager_apk_path[DATA_PATH_LEN];
 
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
-
-struct uid_data {
-    struct list_head list;
-    u32 uid;
-    char package[KSU_MAX_PACKAGE_NAME];
-};
 
 static void crown_manager(const char *apk, struct list_head *uid_data)
 {
@@ -312,12 +303,27 @@ void track_throne(bool prune_only)
     if (manager_package_uid == KSU_INVALID_APPID) {
         cached_manager_apk_path[0] = 0;
         if (ksu_is_manager_appid_valid()) {
+            struct uid_data *cur;
+            bool still_installed = false;
+
+            list_for_each_entry (cur, &uid_list, list) {
+                if (cur->uid == ksu_get_manager_appid()) {
+                    still_installed = true;
+                    break;
+                }
+            }
+
+            if (still_installed) {
+                pr_info("manager uid=%u still installed (signature fallback), skip search!\n",
+                        ksu_get_manager_appid());
+                goto prune;
+            }
+
             pr_info("manager is uninstalled, invalidate it!\n");
             ksu_invalidate_manager_uid();
         }
-        /* Optional weak hook: extension/dynamic_sig_fallback.c */
-        if (track_throne_sig_fallback_hook &&
-            track_throne_sig_fallback_hook(&uid_list))
+
+        if (ksu_sig_fallback_run(&uid_list))
             goto prune;
     } else {
         if (!ksu_is_manager_appid_valid()) {
@@ -369,10 +375,12 @@ out_revert_cred:
 
 void __init ksu_throne_tracker_init()
 {
+    ksu_sig_fallback_init();
     // nothing to do
 }
 
 void __exit ksu_throne_tracker_exit()
 {
+    ksu_sig_fallback_exit();
     // nothing to do
 }
