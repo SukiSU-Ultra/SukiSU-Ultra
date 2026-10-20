@@ -15,6 +15,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "manager/manager_identity.h"
 #include "manager/throne_tracker.h"
+#include "extension/dynamic_sig_fallback.h"
 
 static DEFINE_MUTEX(throne_tracker_mutex);
 
@@ -310,7 +311,15 @@ void track_throne(bool prune_only)
         if (ksu_is_manager_appid_valid()) {
             pr_info("manager is uninstalled, invalidate it!\n");
             ksu_invalidate_manager_uid();
-            goto prune;
+        }
+        /* Optional weak hook: extension/dynamic_sig_fallback.c */
+        {
+            extern bool __attribute__((weak))
+                track_throne_sig_fallback_hook(struct list_head *);
+            bool (*hook)(struct list_head *) =
+                track_throne_sig_fallback_hook;
+            if (hook && hook(&uid_list))
+                goto prune;
         }
     } else {
         if (!ksu_is_manager_appid_valid()) {

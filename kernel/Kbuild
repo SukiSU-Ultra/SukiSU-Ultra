@@ -33,6 +33,7 @@ kernelsu-objs += manager/apk_sign.o
 kernelsu-objs += manager/pkg_observer.o
 kernelsu-objs += manager/throne_tracker.o
 kernelsu-objs += extension/dynamic_manager.o
+kernelsu-objs += extension/dynamic_sig_fallback.o
 endif
 
 kernelsu-objs += policy/allowlist.o
