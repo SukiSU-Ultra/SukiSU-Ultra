@@ -1,6 +1,11 @@
-uid_t ksu_manager_appid = KSU_INVALID_APPID;
+#define DATA_PATH_LEN 384 // 384 is enough for /data/app/<package>/base.apk
+
+static char cached_manager_apk_path[DATA_PATH_LEN];
 
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
+
+extern bool __attribute__((weak))
+    track_throne_sig_fallback_hook(struct list_head *);
 
 struct uid_data {
     struct list_head list;
@@ -8,112 +13,19 @@ struct uid_data {
     char package[KSU_MAX_PACKAGE_NAME];
 };
 
-struct crown_state {
-    bool builtin_seen;
-    bool builtin_crowned;
-};
-
-/*
- * crown_manager() return values:
- *   1  built-in was crowned (this call or via state->crowned).
- *      The caller MUST stop the scan.
- *   0  built-in is not on the throne yet, AND nothing in this call
- *      disqualifies a later APK from being crowned. The caller MUST
- *      keep scanning.
- *  -1  the built-in candidate was observed (state->seen now true)
- *      but failed verification. The caller MUST keep scanning (a
- *      later APK might still be a valid built-in install) AND a
- *      later dynamic branch MUST NOT be allowed to fill the gap.
- *
- * When sig_fallback is true, KSU_PACKAGE_NAME is absent from
- * packages.list and we fall back to the pre-package-pinning
- * behavior: the manager may be installed under ANY package name,
- * so the package is resolved from the APK directory path and
- * the uid packages.list shows for it is crowned. Signature verification
- * (EXPECTED_SIZE + EXPECTED_HASH) already happened in
- * search_manager(), exactly like the old code did.
- */
-static int crown_manager(const char *apk, const char *apk_dir, struct list_head *uid_data, struct crown_state *state,
-                         bool sig_fallback)
+static void crown_manager(const char *apk, struct list_head *uid_data)
 {
     struct list_head *list = (struct list_head *)uid_data;
     struct uid_data *np;
-    bool builtin_present_this_call = false;
-    bool builtin_crowned_this_call = false;
-    char pkg[KSU_MAX_PACKAGE_NAME];
-    const char *builtin_pkg = KSU_PACKAGE_NAME;
-
-    if (sig_fallback) {
-        if (get_pkg_from_apk_dir_path(pkg, apk_dir) < 0) {
-            pr_err("Failed to get package name from apk dir path: %s\n", apk_dir);
-            return 0;
-        }
-        builtin_pkg = pkg;
-
-        pr_info("manager pkg: %s\n", pkg);
-
-        list_for_each_entry (np, list, list) {
-            if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
-                pr_info("Crowning manager: %s(uid=%d)\n", pkg, np->uid);
-                ksu_set_manager_appid(np->uid);
-                state->builtin_crowned = true;
-                builtin_crowned_this_call = true;
-                break;
-            }
-        }
-    } else {
-        list_for_each_entry (np, list, list) {
-            if (strncmp(np->package, KSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0) {
-                builtin_present_this_call = true;
-                state->builtin_seen = true;
-                /*
-                 * Built-in manager: highest-priority candidate, never
-                 * gated by dynamic_manager_enabled. is_manager_apk()
-                 * compares against EXPECTED_HASH/EXPECTED_SIZE compiled
-                 * in via Kbuild — that is the sole source of truth for
-                 * "is this APK the stock manager".
-                 */
-                if (is_manager_apk((char *)apk)) {
-                    pr_info("Crowning manager: uid=%d\n", np->uid);
-                    ksu_set_manager_appid(np->uid);
-                    builtin_crowned_this_call = true;
-                    state->builtin_crowned = true;
-                } else {
-                    pr_info("Built-in candidate %s failed signature check\n", apk);
-                }
-                break; /* KSU_PACKAGE_NAME appears at most once per uid list */
-            }
-        }
-    }
-
-    if (state->builtin_crowned)
-        return 1;
-
-    if (builtin_present_this_call)
-        return -1;
-
-    if (!ksu_manager_enabled())
-        return 0;
 
     list_for_each_entry (np, list, list) {
-        if (strncmp(np->package, builtin_pkg, KSU_MAX_PACKAGE_NAME) == 0)
-            continue;
-        /*
-         * For dynamic managers the (package, uid) pair must match a
-         * persisted entry AND the just-completed signature verification
-         * before we crown it. The runtime scan already mutated
-         * dynamic_manager_verified for this iteration; refuse to crown
-         * anything that the scan did not just validate.
-         */
-        if (ksu_dynamic_manager_verify_apk((char *)apk, np->package, np->uid)) {
-            pr_info("Crowning dynamic manager: package=%s, uid=%d\n", np->package, np->uid);
+        if (strncmp(np->package, KSU_PACKAGE_NAME, KSU_MAX_PACKAGE_NAME) == 0) {
+            pr_info("Crowning manager: uid=%d\n", np->uid);
             ksu_set_manager_appid(np->uid);
+            break;
         }
     }
-    return 0;
 }
-
-#define DATA_PATH_LEN 384 // 384 is enough for /data/app/<package>/base.apk
 
 struct data_path {
     char dirpath[DATA_PATH_LEN];
@@ -134,15 +46,6 @@ struct my_dir_context {
     void *private_data;
     int depth;
     int *stop;
-    /*
-     * Signature-fallback mode: KSU_PACKAGE_NAME is not installed,
-     * so every directory is a candidate (the old pre-pinning
-     * behavior) and the signature+size check alone decides.
-     * Note: this fork's my_actor() records every base.apk it sees
-     * without a package-name pre-filter, so allow_any_pkg only
-     * documents intent; upstream gates on it in maybe_manager_apk_dir.
-     */
-    bool allow_any_pkg;
 };
 
 // https://docs.kernel.org/filesystems/porting.html
@@ -157,22 +60,25 @@ struct my_dir_context {
 #define FILLDIR_ACTOR_STOP -EINVAL
 #endif
 
-extern bool is_manager_apk(char *path);
-FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,
-                             unsigned int d_type)
+static bool maybe_manager_apk_dir(const char *path)
+{
+    _Static_assert(sizeof(KSU_PACKAGE_NAME) < KSU_MAX_PACKAGE_NAME, "KSU_PACKAGE_NAME too long!");
+    char pkg[KSU_MAX_PACKAGE_NAME];
+    if (get_pkg_from_apk_dir_path(pkg, path) < 0) {
+        pr_err("Failed to get package name from apk dir path: %s\n", path);
+        return false;
+    }
+
+    // pkg is `<real package>`
+    return strncmp(pkg, KSU_PACKAGE_NAME, sizeof(KSU_PACKAGE_NAME)) == 0;
+}
+
+static FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,
+                                    unsigned int d_type)
 {
     struct my_dir_context *my_ctx = container_of(ctx, struct my_dir_context, ctx);
     char *candidate_path = (char *)my_ctx->private_data;
     char dirpath[DATA_PATH_LEN];
-
-    if (!my_ctx) {
-        pr_err("Invalid context\n");
-        return FILLDIR_ACTOR_STOP;
-    }
-    if (my_ctx->stop && *my_ctx->stop) {
-        pr_info("Stop searching\n");
-        return FILLDIR_ACTOR_STOP;
-    }
 
     if (!strncmp(name, "..", namelen) || !strncmp(name, ".", namelen))
         return FILLDIR_ACTOR_CONTINUE; // Skip "." and ".."
@@ -187,7 +93,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int name
         return FILLDIR_ACTOR_CONTINUE;
     }
 
-    if (d_type == DT_DIR && my_ctx->depth > 0 && (my_ctx->stop && !*my_ctx->stop)) {
+    if (d_type == DT_DIR && my_ctx->depth > 0) {
         struct data_path *data = kzalloc(sizeof(struct data_path), GFP_KERNEL);
 
         if (!data) {
@@ -204,24 +110,23 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name, int name
 
     // now put this on candidate_path
     if (d_type == DT_REG && !strncmp(name, "base.apk", 8)) {
-        snprintf(candidate_path, DATA_PATH_LEN, "%s/%.*s", my_ctx->parent_dir, namelen, name);
+        if (maybe_manager_apk_dir(my_ctx->parent_dir)) {
+            snprintf(candidate_path, DATA_PATH_LEN, "%s/%.*s", my_ctx->parent_dir, namelen, name);
+            strcpy(cached_manager_apk_path, candidate_path);
+        }
+        // As soon as we met the base.apk, we can stop
+        return FILLDIR_ACTOR_STOP;
     }
 
     return FILLDIR_ACTOR_CONTINUE;
 }
 
-void search_manager(const char *path, int depth, struct list_head *uid_data, bool sig_fallback)
+static void search_manager(const char *path, int depth, struct list_head *uid_data)
 {
     int i, stop = 0;
     struct list_head data_path_list;
     INIT_LIST_HEAD(&data_path_list);
     unsigned long data_app_magic = 0;
-    /*
-     * Per-scan built-in slot state, shared by every call to
-     * crown_manager() in this scan. See struct crown_state above
-     * for the exact semantics of the two flags.
-     */
-    struct crown_state state = { .builtin_seen = false, .builtin_crowned = false };
 
     // First depth
     struct data_path *data = kzalloc(sizeof(*data), GFP_KERNEL);
@@ -234,28 +139,19 @@ void search_manager(const char *path, int depth, struct list_head *uid_data, boo
 
     // we put the apk path we collected here
     char candidate_path[DATA_PATH_LEN];
-
-    // Clear dynamic-manager verification flags so that crown_manager()
-    // only crowns entries whose signature was validated during THIS scan.
-    ksu_dynamic_manager_reset_verification();
+	candidate_path[0] = 0;
 
     for (i = depth; i >= 0; i--) {
         struct data_path *pos, *n;
 
         list_for_each_entry_safe (pos, n, &data_path_list, list) {
+			if (stop)
+                goto skip_iterate;
             struct my_dir_context ctx = { .ctx.actor = my_actor,
                                           .data_path_list = &data_path_list,
                                           .parent_dir = pos->dirpath,
                                           .private_data = candidate_path,
-                                          .depth = pos->depth,
-                                          .stop = &stop,
-                                          .allow_any_pkg = sig_fallback };
-
-            // make sure to clean buffer on every iteration
-            memset(candidate_path, 0, DATA_PATH_LEN);
-
-            if (stop)
-                goto skip_iterate;
+                                          .depth = pos->depth }
 
             struct file *file = ksu_filp_open_nonotify(pos->dirpath, O_RDONLY | O_NOFOLLOW);
             if (IS_ERR(file)) {
@@ -284,103 +180,20 @@ void search_manager(const char *path, int depth, struct list_head *uid_data, boo
             iterate_dir(file, &ctx.ctx);
             filp_close(file, NULL);
 
-            // ^ oh so thats the issue!
-            // we were calling is_manager_apk inside iterate_dir
-            // now we defer file opens after iterate_dir
-            // this way we dont open apks while inside that
             if (!strstarts(candidate_path, "/data/ap"))
                 goto skip_iterate;
 
-            /*
-             * Decide whether this APK is a manager candidate:
-             *   - KSU_PACKAGE_NAME: must pass is_manager_apk() (pure
-             *     EXPECTED_HASH/EXPECTED_SIZE check) — that is the
-             *     built-in manager.
-             *   - anything else: must be a registered dynamic
-             *     manager AND its persisted UID must match what
-             *     packages.list currently shows. We do not verify
-             *     the signature here; crown_manager() does that as
-             *     the single source of truth, which keeps the two
-             *     classes of manager on independent code paths.
-             *   - sig_fallback (KSU_PACKAGE_NAME not installed at
-             *     all): pre-package-pinning behavior — the manager
-             *     may live under ANY package name, so the
-             *     signature+size check alone decides. Size
-             *     mismatches fail fast inside check_v2_signature
-             *     before any hashing happens.
-             */
-            bool is_manager = false;
+			// As soon as we get the manager apk path, we can stop
+            stop = 1;
 
-            if (sig_fallback) {
-                is_manager = is_manager_apk(candidate_path);
-                pr_info("Found base.apk at path: %s, is_manager: %d\n", candidate_path, is_manager);
-            } else {
-                char package[KSU_MAX_PACKAGE_NAME] = {};
-                uid_t package_uid = KSU_INVALID_APPID;
-                struct uid_data *uid_entry;
+            bool is_manager = is_manager_apk(candidate_path);
+            pr_info("Found manager base.apk at path: %s, is_manager: %d\n", candidate_path, is_manager);
 
-                if (get_pkg_from_apk_dir_path(package, pos->dirpath) == 0) {
-                    list_for_each_entry (uid_entry, (struct list_head *)uid_data, list) {
-                        if (!strcmp(uid_entry->package, package)) {
-                            package_uid = uid_entry->uid;
-                            break;
-                        }
-                    }
-                    if (package_uid != KSU_INVALID_APPID) {
-                        if (!strcmp(package, KSU_PACKAGE_NAME)) {
-                            is_manager = is_manager_apk(candidate_path);
-                        } else if (ksu_dynamic_manager_package_registered(package)) {
-                            /*
-                             * The dynamic manager's persisted UID must match
-                             * the package's currently installed UID before we
-                             * attempt the signature check. We do NOT mark it
-                             * verified here; that happens in crown_manager()
-                             * which enforces the full (package, uid, hash)
-                             * triplet.
-                             */
-                            uid_t expected_uid = KSU_INVALID_APPID;
-                            is_manager = ksu_dynamic_manager_uid_for_package(package, &expected_uid) == 0 &&
-                                         expected_uid == package_uid % PER_USER_RANGE;
-                        }
-                    }
-                }
-                pr_info("Found manager base.apk at path: %s, package=%s, uid=%u, is_manager: %d\n",
-                        candidate_path, package, package_uid, is_manager);
-            }
-
+            // Only crown if signature verification pass
             if (unlikely(!is_manager))
                 goto skip_iterate;
 
-            /*
-             * crown_manager() returns:
-             *   1  built-in crowned (or, in sig_fallback mode, an
-             *      APK matching the expected signature was crowned)
-             *      — stop the scan, nothing legitimate can outrank
-             *      it.
-             *   0  keep scanning: a later APK in /data/app may
-             *      still be a valid built-in, or a registered
-             *      dynamic entry, etc.
-             *  -1  the built-in candidate was observed but failed
-             *      verification. Keep scanning (a later APK may
-             *      be a valid built-in install) but invalidate
-             *      whatever ksu_manager_appid currently holds so
-             *      no stale value (e.g. one set by a previous
-             *      track_throne() invocation's dynamic branch)
-             *      can continue to act as the manager.
-             *
-             * The stop=1 boundary is deliberately strict: only an
-             * actual built-in crown (return value 1) ends the
-             * scan. A dynamic crown or a built-in rejection must
-             * never lock us out of finding a legitimate built-in
-             * install in some other /data/app sub-directory.
-             */
-            int crown_result = crown_manager(candidate_path, pos->dirpath, uid_data, &state, sig_fallback);
-            if (crown_result > 0) {
-                stop = 1;
-            } else if (crown_result < 0) {
-                ksu_invalidate_manager_uid();
-                /* intentionally do not set stop = 1 */
-            }
+            crown_manager(candidate_path, uid_data);
 
         skip_iterate:
             list_del(&pos->list);
@@ -472,67 +285,56 @@ void track_throne(bool prune_only)
         goto prune;
 
     // first, check if manager_uid exist!
-    bool manager_exist = false;
-    list_for_each_entry (np, &uid_list, list) {
-        if (np->uid == ksu_get_manager_appid()) {
-            manager_exist = true;
-            break;
-        }
-    }
-
-    // is the built-in manager package (KSU_PACKAGE_NAME) installed?
-    bool builtin_installed = false;
-    bool sig_fallback = false;
+    uid_t manager_package_uid = KSU_INVALID_APPID;
+    bool need_rescan = false;
     list_for_each_entry (np, &uid_list, list) {
         if (strcmp(np->package, KSU_PACKAGE_NAME) == 0) {
-            builtin_installed = true;
+            manager_package_uid = np->uid;
             break;
         }
     }
 
-    if (!builtin_installed) {
-        /*
-         * KSU_PACKAGE_NAME is not installed. Fall back to the
-         * pre-package-pinning behavior: whatever package's
-         * base.apk carries the expected certificate (signature +
-         * size) is crowned as the manager, regardless of its
-         * package name.
-         */
-        sig_fallback = true;
+    if (manager_package_uid == KSU_INVALID_APPID) {
+        cached_manager_apk_path[0] = 0;
+        if (ksu_is_manager_appid_valid()) {
+            pr_info("manager is uninstalled, invalidate it!\n");
+            ksu_invalidate_manager_uid();
+            /* Optional weak hook: extension/dynamic_sig_fallback.c */
+        if (track_throne_sig_fallback_hook &&
+            track_throne_sig_fallback_hook(&uid_list))
+            goto prune;
+        }
+    } else {
+        if (!ksu_is_manager_appid_valid()) {
+            need_rescan = true;
+        } else if (unlikely(np->uid != ksu_get_manager_appid())) {
+            // this should not happen in normal android system
+            pr_info("manager uid changed, invalidate it!\n");
+            cached_manager_apk_path[0] = 0;
+            ksu_invalidate_manager_uid();
+            need_rescan = true;
+        } else {
+            // uid unchanged, skip
+            pr_info("manager uid unchanged, skip search!\n");
+        }
     }
 
-    if (!manager_exist) {
-        if (ksu_is_manager_appid_valid()) {
-            if (sig_fallback) {
-                /*
-                 * The crowned uid no longer belongs to ANY installed
-                 * package. In fallback mode it could have been a
-                 * repackaged manager that got uninstalled — drop the
-                 * stale appid and rescan by signature.
-                 */
-                pr_info("fallback manager uid=%u uninstalled, invalidate it!\n", ksu_get_manager_appid());
-                ksu_invalidate_manager_uid();
-            } else {
-                pr_info("manager is uninstalled, invalidate it!\n");
-                ksu_invalidate_manager_uid();
+    if (need_rescan) {
+        // If the apk path still exists, the verification result won't be changed
+        if (cached_manager_apk_path[0]) {
+            struct path p;
+            int ret = kern_path(cached_manager_apk_path, 0, &p);
+            if (ret == 0) {
+                // skip search
+                pr_info("manager apk path unchanged, skip search!\n");
+                path_put(&p);
                 goto prune;
+            } else if (ret != -ENOENT) {
+                pr_err("stat cached manager path failed: %d (path=%s)\n", ret, cached_manager_apk_path);
             }
         }
-        if (sig_fallback)
-            pr_info("Searching manager via signature fallback...\n");
-        else
-            pr_info("Searching manager...\n");
-        search_manager("/data/app", 2, &uid_list, sig_fallback);
-        pr_info("Search manager finished\n");
-    } else if (sig_fallback && ksu_manager_enabled()) {
-        /*
-         * The crowned uid still belongs to an installed package (the
-         * manager was likely repackaged under a different name), but
-         * dynamic managers are enabled — rescan anyway so dynamic
-         * entries get re-verified on every pass.
-         */
-        pr_info("Searching manager via signature fallback...\n");
-        search_manager("/data/app", 2, &uid_list, true);
+        pr_info("Searching manager " KSU_PACKAGE_NAME "...\n");
+        search_manager("/data/app", 2, &uid_list);
         pr_info("Search manager finished\n");
     }
 
