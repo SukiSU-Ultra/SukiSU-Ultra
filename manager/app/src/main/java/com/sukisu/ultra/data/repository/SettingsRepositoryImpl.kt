@@ -12,6 +12,7 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.magica.BootCompletedReceiver
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
@@ -141,6 +142,18 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var moduleSortActionFirst: Boolean
         get() = prefs.getBoolean("module_sort_action_first", false)
         set(value) = prefs.edit { putBoolean("module_sort_action_first", value) }
+
+    override var moduleSortWebUiFirst: Boolean
+        get() = prefs.getBoolean("module_sort_webui_first", false)
+        set(value) = prefs.edit { putBoolean("module_sort_webui_first", value) }
+
+    override var moduleSortZygiskFirst: Boolean
+        get() = prefs.getBoolean("module_sort_zygisk_first", false)
+        set(value) = prefs.edit { putBoolean("module_sort_zygisk_first", value) }
+
+    override var moduleSortNameOrder: String
+        get() = ModuleNameSort.fromStored(prefs.getString("module_sort_name_order", null)).name
+        set(value) = prefs.edit { putString("module_sort_name_order", value) }
 
     override var moduleRepoSortOrder: String
         get() = RepoSort.fromStored(

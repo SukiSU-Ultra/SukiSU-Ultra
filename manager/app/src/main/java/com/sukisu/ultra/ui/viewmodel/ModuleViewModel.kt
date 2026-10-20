@@ -37,6 +37,7 @@ import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.screen.module.ModuleConfirmDialogState
 import com.sukisu.ultra.ui.screen.module.ModuleConfirmRequest
 import com.sukisu.ultra.ui.screen.module.ModuleEffect
+import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.module.ModuleUiState
 import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.hasMagisk
@@ -102,6 +103,9 @@ class ModuleViewModel(
                 checkModuleUpdate = settingsRepo.checkModuleUpdate,
                 sortEnabledFirst = settingsRepo.moduleSortEnabledFirst,
                 sortActionFirst = settingsRepo.moduleSortActionFirst,
+                sortWebUiFirst = settingsRepo.moduleSortWebUiFirst,
+                sortZygiskFirst = settingsRepo.moduleSortZygiskFirst,
+                sortNameOrder = ModuleNameSort.fromStored(settingsRepo.moduleSortNameOrder),
             )
         }
         updateModuleList()
@@ -118,6 +122,27 @@ class ModuleViewModel(
         val newValue = !_uiState.value.sortEnabledFirst
         settingsRepo.moduleSortEnabledFirst = newValue
         _uiState.update { it.copy(sortEnabledFirst = newValue) }
+        updateModuleList()
+    }
+
+    fun toggleSortWebUiFirst() {
+        val newValue = !_uiState.value.sortWebUiFirst
+        settingsRepo.moduleSortWebUiFirst = newValue
+        _uiState.update { it.copy(sortWebUiFirst = newValue) }
+        updateModuleList()
+    }
+
+    fun toggleSortZygiskFirst() {
+        val newValue = !_uiState.value.sortZygiskFirst
+        settingsRepo.moduleSortZygiskFirst = newValue
+        _uiState.update { it.copy(sortZygiskFirst = newValue) }
+        updateModuleList()
+    }
+
+    fun setSortNameOrder(order: ModuleNameSort) {
+        val newValue = if (_uiState.value.sortNameOrder == order) ModuleNameSort.DEFAULT else order
+        settingsRepo.moduleSortNameOrder = newValue.name
+        _uiState.update { it.copy(sortNameOrder = newValue) }
         updateModuleList()
     }
 
@@ -212,26 +237,26 @@ class ModuleViewModel(
     }
 
     private fun moduleComparator(state: ModuleUiState): Comparator<Module> {
-        return compareBy<Module>(
-            {
-                val executable = it.hasWebUi || it.hasActionScript
-                when {
-                    it.metamodule && it.enabled -> 0
-                    state.sortEnabledFirst && state.sortActionFirst -> when {
-                        it.enabled && executable -> 1
-                        it.enabled -> 2
-                        executable -> 3
-                        else -> 4
-                    }
+        val collator = Collator.getInstance(Locale.getDefault())
+        // Enabled metamodules come first; active sort keys then apply in order:
+        // Zygisk > enabled > WebUI > action, with the name order as the tie-break.
+        val comparator = compareBy<Module>(
+            { if (it.metamodule && it.enabled) 0 else 1 },
+            { if (state.sortZygiskFirst) if (it.zygisk) 0 else 1 else 0 },
+            { if (state.sortEnabledFirst) if (it.enabled) 0 else 1 else 0 },
+            { if (state.sortWebUiFirst) if (it.hasWebUi) 0 else 1 else 0 },
+            { if (state.sortActionFirst) if (it.hasWebUi || it.hasActionScript) 0 else 1 else 0 },
+        )
+        return when (state.sortNameOrder) {
+            ModuleNameSort.DEFAULT -> comparator.thenBy(collator, Module::id)
+            ModuleNameSort.ASCENDING -> comparator
+                .thenBy(collator) { it.name.ifBlank { it.id } }
+                .thenBy(collator, Module::id)
 
-                    state.sortEnabledFirst && !state.sortActionFirst -> if (it.enabled) 1 else 2
-                    !state.sortEnabledFirst && state.sortActionFirst -> if (executable) 1 else 2
-                    else -> 1
-                }
-            },
-            { if (state.sortEnabledFirst) !it.enabled else 0 },
-            { if (state.sortActionFirst) !(it.hasWebUi || it.hasActionScript) else 0 },
-        ).thenBy(Collator.getInstance(Locale.getDefault()), Module::id)
+            ModuleNameSort.DESCENDING -> comparator
+                .thenByDescending(collator) { it.name.ifBlank { it.id } }
+                .thenBy(collator, Module::id)
+        }
     }
 
     suspend fun loadModuleList(resort: Boolean = true) {

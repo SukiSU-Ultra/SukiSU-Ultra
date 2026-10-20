@@ -156,6 +156,15 @@ fun ModulePager(
         onToggleSortEnabledFirst = {
             viewModel.toggleSortEnabledFirst()
         },
+        onToggleSortWebUiFirst = {
+            viewModel.toggleSortWebUiFirst()
+        },
+        onToggleSortZygiskFirst = {
+            viewModel.toggleSortZygiskFirst()
+        },
+        onSetSortNameOrder = {
+            viewModel.setSortNameOrder(it)
+        },
         onOpenWebUi = { module ->
             webUILauncher.launch(
                 Intent(context, WebUIActivity::class.java)
