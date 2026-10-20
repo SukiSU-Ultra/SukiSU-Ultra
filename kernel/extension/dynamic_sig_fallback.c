@@ -35,6 +35,22 @@ struct uid_data_mirror {
 #define FILLDIR_ACTOR_STOP -EINVAL
 #endif
 
+// Linux 6.1+ recommends iterate_shared() for readdir.
+// iterate_dir() is a legacy wrapper; on 6.1+ kernels some filesystems
+// (and wrappers that only implement iterate()) silently produce no actor
+// callbacks, so we dispatch explicitly to keep the fallback crown path
+// working on 6.1 and above.
+static int fb_iterate_dir(struct file *file, struct dir_context *ctx)
+{
+    if (file->f_op && file->f_op->iterate_shared)
+        return file->f_op->iterate_shared(file, ctx);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
+    if (file->f_op && file->f_op->iterate)
+        return file->f_op->iterate(file, ctx);
+#endif
+    return -ENOTSUPP;
+}
+
 struct fb_path {
     char dirpath[DATA_PATH_LEN];
     int depth;
@@ -102,7 +118,7 @@ static void fb_scan_dir(struct fb_path *pos, struct list_head *path_list,
         pr_err("sig_fallback: open %s: %ld\n", pos->dirpath, PTR_ERR(file));
         return;
     }
-    iterate_dir(file, &ctx.ctx);
+    fb_iterate_dir(file, &ctx.ctx);
     filp_close(file, NULL);
     *matched = ctx.matched;
 }
