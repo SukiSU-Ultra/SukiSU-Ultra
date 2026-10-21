@@ -10,7 +10,7 @@
 #include "policy/feature.h"
 #include "selinux/selinux.h"
 
-#include "klog.h" // IWYU pragma: keep
+#include "include/klog.h" // IWYU pragma: keep
 
 // Apps that manage to run code as the shell uid (e.g. through a system service
 // bug) would otherwise inherit the root grant of com.android.shell. When this
@@ -35,7 +35,8 @@ static bool has_trusted_ancestor(void)
 
     rcu_read_lock();
     // Stop at init: orphans reparented to it are not attached to a session any more
-    for (t = current; t->pid > 1 && depth < MAX_ANCESTOR_DEPTH; t = rcu_dereference(t->real_parent), depth++) {
+    for (t = current; t->pid > 1 && depth < MAX_ANCESTOR_DEPTH;
+         t = rcu_dereference(t->real_parent), depth++) {
         const struct cred *cred = __task_cred(t);
         if (is_adbd(cred) || is_task_ksu_domain(cred)) {
             found = true;
@@ -53,18 +54,18 @@ bool ksu_shell_su_allowed_for_current(void)
     if (!static_branch_unlikely(&ksu_shell_su_adb_only)) {
         return true;
     }
-   if (unlikely(ksu_shell_su_adb_only)) {
+#else
+    if (!ksu_shell_su_adb_only) {
         return true;
     }
-#else
-
+#endif
     return has_trusted_ancestor();
 }
 
 static int shell_su_adb_only_feature_get(u64 *value)
 {
 #ifdef KSU_COMPAT_USE_STATIC_KEY
-    *value = static_key_enabled(&ksu_shell_su_adb_only) ? 1 : 0;
+    *value = static_key_enabled(&ksu_shell_su_adb_only.key) ? 1 : 0;
 #else
     *value = ksu_shell_su_adb_only ? 1 : 0;
 #endif
@@ -82,7 +83,7 @@ static int shell_su_adb_only_feature_set(u64 value)
         static_key_disable(&ksu_shell_su_adb_only.key);
     }
 #else
-        ksu_shell_su_adb_only = enable;
+    ksu_shell_su_adb_only = enable;
 #endif
     pr_info("shell_su_adb_only: set to %d\n", enable);
     return 0;

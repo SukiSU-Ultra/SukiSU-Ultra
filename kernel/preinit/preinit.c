@@ -9,11 +9,21 @@
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <linux/syscalls.h>
+#include <linux/binfmts.h>
+#include <asm/ptrace.h>
 
-#include "klog.h" // IWYU pragma: keep
-#include "util.h"
+#include "include/klog.h"    // IWYU pragma: keep
+#include "include/util.h"
 #include "runtime/ksud.h"
 #include "preinit/preinit.h"
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#include <linux/fdtable.h>
+#define ksu_close_fd_compat(fd) close_fd(fd)
+#else
+#define ksu_close_fd_compat(fd) ksys_close(fd)
+#endif
 
 #define INIT_PATH "/system/bin/init"
 
@@ -127,7 +137,7 @@ int ksu_setup_preinit_file(struct filename **filename_ptr, struct user_arg_ptr *
     len = snprintf(fd_path, sizeof(fd_path), "/proc/self/fd/%d", fd);
     if (kern_path(fd_path, LOOKUP_FOLLOW, &path)) {
         pr_err("preinit: %s not reachable, booting without preinit\n", fd_path);
-        close_fd(fd);
+        ksu_close_fd_compat(fd);
         return -EINVAL;
     }
     path_put(&path);
@@ -144,7 +154,7 @@ int ksu_preinit_handle_post_execveat(int *fd, struct filename **filename_ptr,
                  int *flags, int *retval, int *preinit_fd)
 {
     if (*retval && *preinit_fd > 0) {
-        ksu_close_fd(*preinit_fd);
+        ksu_close_fd_compat(*preinit_fd);
         memset((void*)(*filename_ptr)->name, 0, strlen((*filename_ptr)->name));
         memcpy((void*)(*filename_ptr)->name, INIT_PATH, strlen(INIT_PATH));
         return -EINVAL;

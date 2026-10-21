@@ -128,7 +128,7 @@
 #include "selinux/sepolicy.c"
 #include "selinux/rules.c"
 
-#include "infra/kernel_compat.c"
+#include "kernel_compat.c"
 #include "infra/symbol_resolver.c"
 
 struct cred *ksu_cred;

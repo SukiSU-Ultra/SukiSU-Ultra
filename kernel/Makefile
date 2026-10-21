@@ -21,10 +21,6 @@ endif
 MDIR    := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # ===== preinit runner =====
-# preinit runner: a static nolibc binary embedded into kernelsu, see preinit/.
-# It is built against the installed UAPI headers of the target kernel
-# (CONFIG_HEADERS_INSTALL, enabled by gki_defconfig).
-# Only supported on 5.10+ kernels.
 KSU_UAPI_INC := $(objtree)/usr/include
 ifneq ($(wildcard $(KSU_UAPI_INC)/linux/unistd.h),)
 ksu-y += preinit/preinit.o preinit/blob.o
@@ -51,7 +47,7 @@ $(obj)/preinit/runner.elf: $(KSU_KERNEL_DIR)/preinit/runner/runner.c \
 targets += preinit/runner.elf
 
 $(obj)/preinit/blob.o: $(obj)/preinit/runner.elf
-AFLAGS_blob.o += -DKSU_PREINIT_RUNNER_BIN=\"$(obj)/preinit/runner.elf\"
+asflags-y += -DKSU_PREINIT_RUNNER_BIN=\"$(abspath $(obj)/preinit/runner.elf)\"
 
 else
 $(warning -- KernelSU: $(KSU_UAPI_INC) not found, preinit disabled)

@@ -1,3 +1,5 @@
+uid_t ksu_manager_appid = KSU_INVALID_APPID;
+
 #define DATA_PATH_LEN 384 // 384 is enough for /data/app/<package>/base.apk
 
 static char cached_manager_apk_path[DATA_PATH_LEN];
