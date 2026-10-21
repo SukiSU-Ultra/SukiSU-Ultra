@@ -333,14 +333,74 @@ jobs:
           test -n "$ARM_KSUD"
           test -n "$X86_64_KSUD"
 
+          # Randomize the packaged identity on every build so detectors cannot
+          # pin stable anchors: the daemon/JNI library names and the component
+          # class names (Application, ZygotePreload, activities, services).
+          # Only the copies inside the APK change; /data/adb/ksud, the kernel
+          # sucompat path and the module layout stay untouched.
+          # Lowercase letters only: a hex name is itself a fingerprint that
+          # /lib[0-9a-f]+\.so/ matches, while letter names look like ordinary
+          # third-party libraries.
+          rand_alpha() {
+            openssl rand -base64 48 | tr -dc 'a-z' | cut -c1-"$1"
+          }
+          KSUD_LIB="lib$(rand_alpha 10).so"
+          CORE_LIB="$(rand_alpha 11)"
+          APP_CLASS="$(rand_alpha 11)"
+          PRELOAD_CLASS="$(rand_alpha 11)"
+          MAIN_CLASS="$(rand_alpha 11)"
+          WEBUI_CLASS="$(rand_alpha 11)"
+          DOWNLOAD_CLASS="$(rand_alpha 11)"
+          MAGICA_CLASS="$(rand_alpha 11)"
+
+          # Rewrite every identifier reference in one pass: sources, manifest
+          # component names, JNI symbol names and the CMake targets.
+          find app/src/main -type f \
+            \( -name '*.kt' -o -name '*.java' -o -name '*.xml' \
+               -o -name '*.cc' -o -name 'CMakeLists.txt' \) \
+            -exec sed -i \
+              -e "s/\"libksud\.so\"/\"$KSUD_LIB\"/g" \
+              -e "s/project(\"kernelsu\")/project(\"$CORE_LIB\")/" \
+              -e "s/add_library(kernelsu/add_library($CORE_LIB/" \
+              -e "s/target_include_directories(kernelsu /target_include_directories($CORE_LIB /" \
+              -e "s/target_link_libraries(kernelsu /target_link_libraries($CORE_LIB /" \
+              -e "s/loadLibrary(\"kernelsu\")/loadLibrary(\"$CORE_LIB\")/g" \
+              -e "/^[[:space:]]*[*\/]/!s/KernelSUApplication/${APP_CLASS}Application/g" \
+              -e "/^[[:space:]]*[*\/]/!s/AppZygotePreload/${PRELOAD_CLASS}Preload/g" \
+              -e "/^[[:space:]]*[*\/]/!s/MainActivity/${MAIN_CLASS}Activity/g" \
+              -e "/^[[:space:]]*[*\/]/!s/WebUIActivity/${WEBUI_CLASS}Activity/g" \
+              -e "/^[[:space:]]*[*\/]/!s/DownloadService/${DOWNLOAD_CLASS}Service/g" \
+              -e "/^[[:space:]]*[*\/]/!s/MagicaService/${MAGICA_CLASS}Service/g" \
+              {} +
+
+          # Rename the files that carry the identifier in their names.
+          find app/src/main -depth -type f -name 'KernelSUApplication.kt' \
+            -execdir mv {} "${APP_CLASS}Application.kt" \;
+          find app/src/main -depth -type f -name 'AppZygotePreload.java' \
+            -execdir mv {} "${PRELOAD_CLASS}Preload.java" \;
+          find app/src/main -depth -type f -name 'MainActivity.kt' \
+            -execdir mv {} "${MAIN_CLASS}Activity.kt" \;
+          find app/src/main -depth -type f -name 'MainActivityUiState.kt' \
+            -execdir mv {} "${MAIN_CLASS}ActivityUiState.kt" \;
+          find app/src/main -depth -type f -name 'MainActivityViewModel.kt' \
+            -execdir mv {} "${MAIN_CLASS}ActivityViewModel.kt" \;
+          find app/src/main -depth -type f -name 'WebUIActivity.kt' \
+            -execdir mv {} "${WEBUI_CLASS}Activity.kt" \;
+          find app/src/main -depth -type f -name 'DownloadService.kt' \
+            -execdir mv {} "${DOWNLOAD_CLASS}Service.kt" \;
+          find app/src/main -depth -type f -name 'MagicaService.java' \
+            -execdir mv {} "${MAGICA_CLASS}Service.java" \;
+
+          echo "Packaged identity: $KSUD_LIB, lib$CORE_LIB.so, ${APP_CLASS}Application, ${PRELOAD_CLASS}Preload"
+
           cp -f "$ARM64_KSUD" \
-            app/src/main/jniLibs/arm64-v8a/libksud.so
+            "app/src/main/jniLibs/arm64-v8a/$KSUD_LIB"
 
           cp -f "$ARM_KSUD" \
-            app/src/main/jniLibs/armeabi-v7a/libksud.so
+            "app/src/main/jniLibs/armeabi-v7a/$KSUD_LIB"
 
           cp -f "$X86_64_KSUD" \
-            app/src/main/jniLibs/x86_64/libksud.so
+            "app/src/main/jniLibs/x86_64/$KSUD_LIB"
 
 
       # --------------------------------------------------------

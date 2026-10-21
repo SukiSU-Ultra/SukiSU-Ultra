@@ -216,18 +216,37 @@ def collect_existing_arches(apk_path: Path) -> List[str]:
     return arches
 
 
-def collect_existing_ksud_arches(apk_path: Path) -> List[str]:
-    arches = []
-    seen = set()
+def find_ksud_lib_entries(apk_path: Path) -> Dict[str, str]:
+    """Map arch -> ksud daemon entry name inside the APK.
+
+    Prefer the historical ``libksud.so`` name so unmodified APKs behave
+    exactly as before. Release builds randomize the ksud daemon file name,
+    so for arches without that name fall back to the largest ``.so``: the
+    ksud daemon is multi-MB while the JNI bridges are a few KB, which makes
+    the size check unambiguous.
+    """
+    named: Dict[str, str] = {}
+    largest: Dict[str, Tuple[int, str]] = {}
     with ZipFile(apk_path, "r") as zin:
-        for name in zin.namelist():
-            if not (name.startswith("lib/") and name.endswith("/libksud.so")):
+        for info in zin.infolist():
+            name = info.filename
+            if not (name.startswith("lib/") and name.endswith(".so")):
                 continue
             parts = name.split("/")
-            if len(parts) >= 3 and parts[1] and parts[1] not in seen:
-                seen.add(parts[1])
-                arches.append(parts[1])
-    return arches
+            if len(parts) < 3 or not parts[1]:
+                continue
+            arch = parts[1]
+            if parts[2] == "libksud.so":
+                named[arch] = name
+                continue
+            previous = largest.get(arch)
+            if info.file_size >= 1_000_000 and (
+                previous is None or info.file_size > previous[0]
+            ):
+                largest[arch] = (info.file_size, name)
+    for arch, (_, name) in largest.items():
+        named.setdefault(arch, name)
+    return named
 
 
 def strip_binary(src: Path, strip_tool: Path, tmp_dir: Path) -> bytes:
@@ -252,6 +271,8 @@ def repack_apk(
             else:
                 ksud_bytes_by_arch[arch] = ksud_path.read_bytes()
 
+        ksud_entries = find_ksud_lib_entries(apk_path)
+
         with ZipFile(apk_path, "r") as zin, ZipFile(out_unsigned_path, "w") as zout:
             for info in zin.infolist():
                 name = info.filename
@@ -261,10 +282,15 @@ def repack_apk(
                     if len(parts) >= 3 and parts[1] not in arch_filters:
                         continue
 
-                # Drop original libksud.so only for arches that have a replacement binary.
-                if name.startswith("lib/") and name.endswith("/libksud.so"):
+                # Drop the original ksud daemon only for arches that have a
+                # replacement binary (its name may be randomized per build).
+                if name.startswith("lib/") and name.endswith(".so"):
                     parts = name.split("/")
-                    if len(parts) >= 3 and parts[1] in ksud_bytes_by_arch:
+                    if (
+                        len(parts) >= 3
+                        and parts[1] in ksud_bytes_by_arch
+                        and ksud_entries.get(parts[1]) == name
+                    ):
                         continue
 
                 data = zin.read(name)
@@ -283,19 +309,26 @@ def repack_apk(
                 ksud_bytes = ksud_bytes_by_arch.get(arch)
                 if ksud_bytes is None:
                     continue
-                lib_path = f"lib/{arch}/libksud.so"
+                lib_path = ksud_entries.get(arch)
+                if lib_path is None:
+                    # Arch only present during repack (e.g. riscv64): reuse
+                    # the (possibly randomized) library file name.
+                    basename = next(
+                        (entry.rsplit("/", 1)[-1] for entry in ksud_entries.values()),
+                        "libksud.so",
+                    )
+                    lib_path = f"lib/{arch}/{basename}"
                 entry = ZipInfo(filename=lib_path)
                 entry.compress_type = ZIP_DEFLATED
                 zout.writestr(entry, ksud_bytes)
 
 
 def assert_required_libs(apk_path: Path, arch_filters: List[str]) -> None:
-    with ZipFile(apk_path, "r") as zf:
-        names = set(zf.namelist())
-    missing = [arch for arch in arch_filters if f"lib/{arch}/libksud.so" not in names]
+    ksud_entries = find_ksud_lib_entries(apk_path)
+    missing = [arch for arch in arch_filters if arch not in ksud_entries]
     if missing:
         raise RuntimeError(
-            "Missing libksud.so in APK for architecture(s): " + ", ".join(missing)
+            "Missing ksud daemon in APK for architecture(s): " + ", ".join(missing)
         )
 
 
@@ -333,17 +366,17 @@ def do_repack(args: argparse.Namespace) -> int:
     ksud_by_arch = find_ksud_binaries_by_arch(cfg["ksud_build_type"], arch_filters)
     missing_ksud_arches = [arch for arch in arch_filters if arch not in ksud_by_arch]
     if missing_ksud_arches:
-        existing_ksud_arches = set(collect_existing_ksud_arches(apk))
+        existing_ksud_arches = set(find_ksud_lib_entries(apk))
         missing_in_apk = [arch for arch in missing_ksud_arches if arch not in existing_ksud_arches]
         if missing_in_apk:
             raise RuntimeError(
-                "ksud binary not found and APK has no existing libksud.so for architecture(s): "
+                "ksud binary not found and APK has no existing ksud daemon for architecture(s): "
                 + ", ".join(missing_in_apk)
             )
         print(
             "[WARN] ksud binary not found for architecture(s): "
             + ", ".join(missing_ksud_arches)
-            + ". Using existing libksud.so from input APK.",
+            + ". Using existing ksud daemon from input APK.",
             file=sys.stderr,
         )
 
@@ -460,7 +493,7 @@ def build_parser() -> argparse.ArgumentParser:
         dest="strip",
         action="store_true",
         default=None,
-        help="Strip libksud.so before packing (uses NDK llvm-strip)",
+        help="Strip the packaged ksud daemon before packing (uses NDK llvm-strip)",
     )
     strip_group.add_argument(
         "--no-strip",
