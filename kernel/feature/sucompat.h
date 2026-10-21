@@ -6,12 +6,11 @@
 extern bool ksu_su_compat_enabled;
 
 #ifdef CONFIG_KSU_SUSFS
-int ksu_handle_faccessat(int *dfd, struct filename **filename, int *mode,
-             int *__unused_flags);
+int ksu_handle_faccessat(int *dfd, struct filename **filename, int *mode, int *__unused_flags);
 int ksu_handle_stat(int *dfd, struct filename **filename, int *flags);
 int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
                  void *argv_user, void *envp_user,
-                 int *__never_use_flags);
+                 int *flags);
 #else
 int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *__unused_flags);
 int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);

@@ -17,9 +17,7 @@ struct ksu_sulog_identity {
     __u32 euid;
 };
 
-#ifdef CONFIG_KSU_SUSFS
-extern const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr);
-#else
+#ifndef CONFIG_KSU_SUSFS
 static const char __user *ksu_sulog_get_user_arg_ptr(struct user_arg_ptr argv, int nr)
 {
     const char __user *native;

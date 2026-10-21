@@ -10,11 +10,13 @@
 #include "include/uapi/extension.h"
 
 // includes
+#include "include/arch.h"
 #include "include/klog.h"
 #include "include/ksu.h"
 
-// kernel compat, lite ones
-#include "infra/kernel_compat.h"
+// kernel compat
+#include "kernel_compat.h"
+#include "include/util.h"
 
 #include "policy/app_profile.h"
 #include "policy/allowlist.h"
@@ -66,6 +68,12 @@
 #include "extension/susfs_extension.h"
 #include "extension/dynamic_sig_fallback.h"
 
+#ifdef CONFIG_KSU_SUSFS
+#include "preinit/preinit.h"
+#else
+#include "preinit/common/preinit.h"
+#endif
+
 // unity build
 #include "extension/extension.c"
 #include "extension/cpu_spoof.c"
@@ -77,6 +85,11 @@
 #include "extension/kpm/super_access.c"
 #include "extension/susfs_extension.c"
 #include "extension/dynamic_sig_fallback.c"
+
+#if !defined(KSU_NO_PREINIT) && !defined(CONFIG_KSU_SUSFS)
+#include "preinit/common/runner/runner_xxd.h"
+#include "preinit/common/preinit.c"
+#endif
 
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
@@ -189,6 +202,10 @@ int __init kernelsu_init(void)
     ksu_throne_tracker_init();
 
     ksu_ksud_init();
+
+#ifndef KSU_NO_PREINIT
+    ksu_preinit_init();
+#endif
 
     ksu_file_wrapper_init();
 

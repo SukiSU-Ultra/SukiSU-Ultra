@@ -28,15 +28,6 @@ static const struct ksu_feature_handler su_compat_handler = {
     .set_handler = su_compat_feature_set,
 };
 
-static void __user *userspace_stack_buffer(const void *d, size_t len)
-{
-    // To avoid having to mmap a page in userspace, just write below the stack
-    // pointer.
-    char __user *p = (void __user *)current_user_stack_pointer() - len;
-
-    return copy_to_user(p, d, len) ? NULL : p;
-}
-
 static char __user *sh_user_path(void)
 {
     return userspace_stack_buffer(sh_path, sizeof(sh_path));
@@ -49,7 +40,6 @@ static char __user *ksud_user_path(void)
 
 
 #ifdef CONFIG_KSU_SUSFS
-extern const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr);
 /*
  * return 0 -> No further checks should be required afterwards
  * return non-zero -> Further checks should be continued afterwards
@@ -111,7 +101,7 @@ int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *arg
 // the call from execve_handler_pre won't provided correct value for __never_use_argument, use them after fix execve_handler_pre, keeping them for consistence for manually patched code
 int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
                  void *argv_user, void *envp_user,
-                 int *__never_use_flags)
+                 int *flags)
 {
     struct filename *filename;
     struct ksu_sulog_pending_event *pending_sucompat = NULL;
@@ -127,7 +117,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
     if (!ksu_handle_execveat_init(filename, (struct user_arg_ptr*)argv_user, (struct user_arg_ptr*)envp_user))
         return -EINVAL;
 
-    if (!(__ksu_is_allow_uid_for_current(current_uid().val)))
+    if (likely(!__ksu_is_allow_uid_for_current(current_uid().val)))
         return -EINVAL;
 
     if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
@@ -163,7 +153,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 
 int ksu_handle_post_execveat_sucompat(int *fd, struct filename **filename_ptr,
                  void *argv_user, void *envp_user,
-                 int *__never_use_flags, int *retval)
+                 int *flags, int *retval)
 {
     if (*retval >= 0) {
         (void)ksu_install_su_fd();

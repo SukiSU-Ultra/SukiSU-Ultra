@@ -25,6 +25,38 @@
 // https://cs.android.com/android/kernel/superproject/+/common-android-mainline:common/scripts/syscalltbl.sh;l=57;drc=9142be9e6443fd641ca37f820efe00d9cd890eb1
 // https://cs.android.com/android/kernel/superproject/+/common-android-mainline:common/scripts/syscall.tbl;l=104;drc=b36d4b6aa88ef039647228b98c59a875e92f8c8e
 #define SYS_FSTAT_SYMBOL "__arm64_sys_newfstat"
+#define SYS_NEWFSTAT_SYMBOL "__arm64_sys_newfstat"
+#define SYS_FSTAT64_SYMBOL "__arm64_sys_fstat64"
+
+#elif defined(__arm__)
+
+// https://elixir.bootlin.com/linux/v6.17-rc6/source/tools/lib/bpf/bpf_tracing.h
+// seems to work atleast on 3.0 on samsung galaxy s3
+// nfi what im doing
+#define __PT_PARM1_REG uregs[0]
+#define __PT_PARM2_REG uregs[1]
+#define __PT_PARM3_REG uregs[2]
+#define __PT_PARM4_REG uregs[3]
+#define __PT_SYSCALL_PARM4_REG uregs[3] 
+#define __PT_CCALL_PARM4_REG uregs[3]
+#define __PT_PARM1_SYSCALL_REG __PT_PARM1_REG
+#define __PT_PARM2_SYSCALL_REG __PT_PARM2_REG
+#define __PT_PARM3_SYSCALL_REG __PT_PARM3_REG
+#define __PT_PARM4_SYSCALL_REG __PT_PARM4_REG
+#define __PT_PARM5_SYSCALL_REG uregs[4]
+#define __PT_PARM6_SYSCALL_REG uregs[5]
+#define __PT_PARM7_SYSCALL_REG uregs[6]
+#define __PT_RET_REG uregs[14]
+#define __PT_FP_REG uregs[11]	/* Works only with CONFIG_FRAME_POINTER */
+#define __PT_RC_REG uregs[0]
+#define __PT_SP_REG uregs[13]
+#define __PT_IP_REG uregs[12]
+
+#define REBOOT_SYMBOL "sys_reboot"
+#define SYS_READ_SYMBOL "sys_read"
+#define SYS_EXECVE_SYMBOL "sys_execve"
+#define SYS_NEWFSTAT_SYMBOL "sys_newfstat"
+#define SYS_FSTAT64_SYMBOL "sys_fstat64"
 
 #elif defined(__x86_64__)
 
@@ -46,6 +78,8 @@
 #define SYS_READ_SYMBOL "__x64_sys_read"
 #define SYS_EXECVE_SYMBOL "__x64_sys_execve"
 #define SYS_FSTAT_SYMBOL "__x64_sys_newfstat"
+#define SYS_FSTAT64_SYMBOL "__ia32_compat_sys_x86_fstat64"
+#define SYS_NEWFSTAT_SYMBOL "__x64_sys_newfstat"
 
 #elif defined(__riscv)
 
@@ -71,6 +105,19 @@
 
 #else
 #error "Unsupported arch"
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
+#undef REBOOT_SYMBOL
+#define REBOOT_SYMBOL "sys_reboot"
+#undef SYS_READ_SYMBOL
+#define SYS_READ_SYMBOL "sys_read"
+#undef SYS_EXECVE_SYMBOL
+#define SYS_EXECVE_SYMBOL "sys_execve"
+#undef SYS_NEWFSTAT_SYMBOL
+#define SYS_NEWFSTAT_SYMBOL "sys_newfstat"
+#undef SYS_FSTAT64_SYMBOL
+#define SYS_FSTAT64_SYMBOL "sys_fstat64"
 #endif
 
 /* allow some architecutres to override `struct pt_regs` */
@@ -99,6 +146,10 @@
 #define PT_REGS_IP(x) (__PT_REGS_CAST(x)->__PT_IP_REG)
 #define PT_REGS_ORIG_SYSCALL(x) (__PT_REGS_CAST(x)->__PT_ORIG_SYSCALL_REG)
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
 #define PT_REAL_REGS(regs) ((struct pt_regs *)PT_REGS_PARM1(regs))
+#else
+#define PT_REAL_REGS(regs) ((regs))
+#endif
 
 #endif

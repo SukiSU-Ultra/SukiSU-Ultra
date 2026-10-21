@@ -20,6 +20,12 @@ static int do_get_info(void __user *arg)
     if (is_manager()) {
         cmd.flags |= KSU_GET_INFO_FLAG_MANAGER;
     }
+#ifndef KSU_NO_PREINIT
+    // A late load never sees PID 1's selinux_setup, so preinit cannot run.
+    if (ksu_preinit_enabled_param()) {
+        cmd.flags |= KSU_GET_INFO_FLAG_PREINIT;
+    }
+#endif
 
     cmd.features = KSU_FEATURE_MAX;
     cmd.uapi_version = KERNEL_SU_UAPI_VERSION;
@@ -43,9 +49,7 @@ static int do_get_info_legacy(void __user *arg)
     if (is_manager()) {
         cmd.flags |= KSU_GET_INFO_FLAG_MANAGER;
     }
-#ifdef EXPECTED_SIZE2
-    cmd.flags |= KSU_GET_INFO_FLAG_PR_BUILD;
-#endif
+    
     cmd.features = KSU_FEATURE_MAX;
 
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {

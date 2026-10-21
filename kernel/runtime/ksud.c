@@ -102,27 +102,6 @@ void on_boot_completed(void)
 
 #define MAX_ARG_STRINGS 0x7FFFFFFF
 
-const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
-{
-    const char __user *native;
-
-#ifdef CONFIG_COMPAT
-    if (unlikely(argv.is_compat)) {
-        compat_uptr_t compat;
-
-        if (get_user(compat, argv.ptr.compat + nr))
-            return ERR_PTR(-EFAULT);
-
-        return compat_ptr(compat);
-    }
-#endif
-
-    if (get_user(native, argv.ptr.native + nr))
-        return ERR_PTR(-EFAULT);
-
-    return native;
-}
-
 /*
  * count() counts the number of strings in array ARGV.
  */
@@ -220,6 +199,9 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
             char buf[16];
             if (check_argv(*argv, 1, "second_stage", buf, sizeof(buf))) {
                 pr_info("/system/bin/init second_stage executed\n");
+#ifndef KSU_NO_PREINIT
+                ksu_preinit_release();
+#endif
                 ksu_selinux_hide_handle_second_stage();
                 apply_kernelsu_rules();
                 cache_sid();
@@ -295,6 +277,9 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr, struct use
         char buf[16];
         if (!init_second_stage_executed && check_argv(*argv, 1, "second_stage", buf, sizeof(buf))) {
             pr_info("/system/bin/init second_stage executed\n");
+#ifndef KSU_NO_PREINIT
+            ksu_preinit_release();
+#endif
             ksu_selinux_hide_handle_second_stage();
             apply_kernelsu_rules();
             cache_sid();

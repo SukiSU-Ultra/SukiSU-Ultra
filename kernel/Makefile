@@ -1,4 +1,5 @@
 obj-$(CONFIG_KSU) := ksu.o
+ksu-y := ksu_main.o
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
@@ -18,6 +19,45 @@ ccflags-y += -I$(KSU_KERNEL_DIR) -I$(KSU_KERNEL_DIR)/include
 endif
 
 MDIR    := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+# ===== preinit runner =====
+# preinit runner: a static nolibc binary embedded into kernelsu, see preinit/.
+# It is built against the installed UAPI headers of the target kernel
+# (CONFIG_HEADERS_INSTALL, enabled by gki_defconfig).
+# Only supported on 5.10+ kernels.
+KSU_UAPI_INC := $(objtree)/usr/include
+ifneq ($(wildcard $(KSU_UAPI_INC)/linux/unistd.h),)
+ksu-y += preinit/preinit.o preinit/blob.o
+
+KSU_RUNNER_CFLAGS := $(CLANG_FLAGS) -std=gnu11 -Os -Wall \
+	-nostdinc -isystem $(shell $(CC) -print-file-name=include) \
+	-I$(KSU_KERNEL_DIR)/preinit/runner/nolibc -I$(KSU_UAPI_INC) \
+	-I$(KSU_KERNEL_DIR)/include \
+	-ffreestanding -fno-stack-protector -fno-pic -fno-pie \
+	-fno-asynchronous-unwind-tables -fno-unwind-tables \
+	-ffunction-sections -fdata-sections
+
+quiet_cmd_ksu_runner = RUNNER  $@
+      cmd_ksu_runner = $(CC) $(KSU_RUNNER_CFLAGS) -c -o $@.o $< && \
+		$(LD) -static -nostdlib -e _start --gc-sections -s -o $@ $@.o && \
+		rm -f $@.o
+
+$(obj)/preinit/runner.elf: $(KSU_KERNEL_DIR)/preinit/runner/runner.c \
+		$(wildcard $(KSU_KERNEL_DIR)/preinit/runner/nolibc/*.h \
+			   $(KSU_KERNEL_DIR)/preinit/runner/nolibc/sys/*.h \
+			   $(KSU_KERNEL_DIR)/include/uapi/*.h) FORCE
+	$(call if_changed,ksu_runner)
+
+targets += preinit/runner.elf
+
+$(obj)/preinit/blob.o: $(obj)/preinit/runner.elf
+AFLAGS_blob.o += -DKSU_PREINIT_RUNNER_BIN=\"$(obj)/preinit/runner.elf\"
+
+else
+$(warning -- KernelSU: $(KSU_UAPI_INC) not found, preinit disabled)
+ccflags-y += -DKSU_NO_PREINIT
+endif
+# ===== end preinit runner =====
 
 REPO_OWNER  := SukiSU-Ultra
 REPO_NAME   := SukiSU-Ultra
@@ -152,5 +192,6 @@ endif
 
 ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat -Wno-missing-prototypes
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
+
 
 # Keep a new line here!! Because someone may append config

@@ -1,0 +1,4 @@
+- drops nolibc dependency
+- manually mapped kernel function to syscalls
+- absolute minimum change possible, just header overrides
+- compiled and verified on zig 0.18.0-dev.349+d924f83bf, clang version 23.1.2
