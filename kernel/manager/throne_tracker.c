@@ -27,12 +27,6 @@ static char cached_manager_apk_path[DATA_PATH_LEN];
 
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
 
-struct uid_data {
-    struct list_head list;
-    u32 uid;
-    char package[KSU_MAX_PACKAGE_NAME];
-};
-
 static void crown_manager(const char *apk, struct list_head *uid_data)
 {
     struct list_head *list = (struct list_head *)uid_data;
@@ -307,13 +301,38 @@ void track_throne(bool prune_only)
     }
 
     if (manager_package_uid == KSU_INVALID_APPID) {
-        cached_manager_apk_path[0] = 0;
-        if (ksu_is_manager_appid_valid()) {
-            pr_info("manager is uninstalled, invalidate it!\n");
-            ksu_invalidate_manager_uid();
-            goto prune;
-        }
-    } else {
+		cached_manager_apk_path[0] = 0;
+		if (ksu_is_manager_appid_valid()) {
+			struct uid_data *cur;
+			bool still_installed = false;
+
+			list_for_each_entry (cur, &uid_list, list) {
+				if (cur->uid == ksu_get_manager_appid()) {
+					still_installed = true;
+					break;
+				}
+			}
+
+			if (still_installed) {
+				pr_info("manager uid=%u still installed (signature fallback), skip search!\n",
+						ksu_get_manager_appid());
+				goto prune;
+			}
+
+			pr_info("manager is uninstalled, invalidate it!\n");
+			ksu_invalidate_manager_uid();
+		}
+
+		/*
+		 * Signature fallback: crown any APK signed with the canonical
+		 * KernelSU signature, whatever its package name is. The branch
+		 * is a static key, so it is patched out entirely when no
+		 * fallback implementation is registered.
+		 */
+		if (ksu_sig_fallback_run(&uid_list))
+			goto prune;
+
+	} else {
         if (!ksu_is_manager_appid_valid()) {
             need_rescan = true;
         } else if (unlikely(np->uid != ksu_get_manager_appid())) {
@@ -364,9 +383,11 @@ out_revert_cred:
 void __init ksu_throne_tracker_init()
 {
     // nothing to do
+    ksu_sig_fallback_init();
 }
 
 void __exit ksu_throne_tracker_exit()
 {
     // nothing to do
+    ksu_sig_fallback_exit();
 }

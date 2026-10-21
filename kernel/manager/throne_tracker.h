@@ -2,6 +2,15 @@
 #define __KSU_H_UID_OBSERVER
 
 #include <linux/types.h>
+#include <linux/list.h>
+#include "uapi/app_profile.h"
+
+struct uid_data {
+	struct list_head list;
+	u32 uid;
+	char package[KSU_MAX_PACKAGE_NAME];
+};
+
 #ifdef CONFIG_KSU_DISABLE_MANAGER
 static inline void ksu_throne_tracker_init()
 {

@@ -2,22 +2,31 @@
 #ifndef __KSU_H_DYNAMIC_SIG_FALLBACK
 #define __KSU_H_DYNAMIC_SIG_FALLBACK
 
+#include <linux/compiler.h>
+#include <linux/init.h>
 #include <linux/list.h>
-#include <linux/static_call.h>
+#include <linux/static_key.h>
 
-struct ksu_uid_data {
-    struct list_head list;
-    u32 uid;
-    char package[256];
-};
+#include "manager/throne_tracker.h"
 
-typedef bool (*ksu_sig_fallback_fn)(struct list_head *ksu_uid_data);
-DECLARE_STATIC_CALL(ksu_sig_fallback, bool(struct list_head *));
-bool ksu_sig_fallback_stub(struct list_head *ksu_uid_data);
+typedef bool (*ksu_sig_fallback_fn)(struct list_head *uid_data);
 
-static inline bool ksu_sig_fallback_run(struct list_head *ksu_uid_data)
+DECLARE_STATIC_KEY_FALSE(ksu_sig_fallback_key);
+
+extern ksu_sig_fallback_fn ksu_sig_fallback_current;
+
+static inline bool ksu_sig_fallback_run(struct list_head *uid_data)
 {
-    return static_call(ksu_sig_fallback)(ksu_uid_data);
+    ksu_sig_fallback_fn fn;
+
+    if (!static_branch_unlikely(&ksu_sig_fallback_key))
+        return false;
+
+    fn = READ_ONCE(ksu_sig_fallback_current);
+    if (!fn)
+        return false;
+
+    return fn(uid_data);
 }
 
 int ksu_sig_fallback_register(ksu_sig_fallback_fn fn);

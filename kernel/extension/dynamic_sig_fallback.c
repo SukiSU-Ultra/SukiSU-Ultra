@@ -5,7 +5,7 @@
  * track_throne() only crowns KSU_PACKAGE_NAME. This file supplies the
  * second chance: re-scan /data/app and crown *any* APK signed with the
  * canonical built-in KernelSU signature, regardless of its package name.
- * It is reached through the ksu_sig_fallback static_call (see
+ * It is reached through the ksu_sig_fallback static key (see
  * dynamic_sig_fallback.h) rather than a weak symbol, so the call site is
  * an indirect branch with a real default target and an uninstalled
  * fallback can never deref NULL.
@@ -34,10 +34,10 @@
 
 #include "klog.h" // IWYU pragma: keep
 #include "util.h"
+#include "uapi/app_profile.h"
 #include "manager/apk_sign.h"
 #include "manager/manager_identity.h"
 #include "dynamic_sig_fallback.h"
-
 
 #define DATA_PATH_LEN 384 // 384 is enough for /data/app/<package>/base.apk
 
@@ -112,12 +112,12 @@ static FILLDIR_RETURN_TYPE fb_actor(struct dir_context *ctx, const char *name, i
     return FILLDIR_ACTOR_CONTINUE;
 }
 
-static bool fb_crown_by_pkg(const char *pkg, struct list_head *ksu_uid_data)
+static bool fb_crown_by_pkg(const char *pkg, struct list_head *uid_data)
 {
-    struct ksu_uid_data *np;
+    struct uid_data *np;
 
-    list_for_each_entry (np, ksu_uid_data, list) {
-        if (strncmp(np->package, pkg, 256) == 0) {
+    list_for_each_entry (np, uid_data, list) {
+        if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
             pr_info("sig_fallback: crowning %s(uid=%u)\n", pkg, np->uid);
             ksu_set_manager_appid(np->uid);
             return true;
@@ -128,7 +128,7 @@ static bool fb_crown_by_pkg(const char *pkg, struct list_head *ksu_uid_data)
     return false;
 }
 
-static bool fb_crown_by_signature(struct list_head *ksu_uid_data)
+static bool fb_crown_by_signature(struct list_head *uid_data)
 {
     struct list_head data_path_list;
     struct fb_path root;
@@ -189,10 +189,10 @@ static bool fb_crown_by_signature(struct list_head *ksu_uid_data)
             pr_info("sig_fallback: signed apk found at %s\n", pos->dirpath);
 
             {
-                char pkg[256];
+                char pkg[KSU_MAX_PACKAGE_NAME];
 
                 if (get_pkg_from_apk_dir_path(pkg, pos->dirpath) >= 0)
-                    crowned = fb_crown_by_pkg(pkg, ksu_uid_data);
+                    crowned = fb_crown_by_pkg(pkg, uid_data);
             }
 
         skip_iterate:
@@ -210,43 +210,43 @@ static bool fb_crown_by_signature(struct list_head *ksu_uid_data)
     return crowned;
 }
 
-bool ksu_sig_fallback_stub(struct list_head *ksu_uid_data)
-{
-    (void)ksu_uid_data;
-    return false;
-}
+DEFINE_STATIC_KEY_FALSE(ksu_sig_fallback_key);
 
-DEFINE_STATIC_CALL(ksu_sig_fallback, ksu_sig_fallback_stub);
-
-static ksu_sig_fallback_fn sig_fallback_current = ksu_sig_fallback_stub;
+ksu_sig_fallback_fn ksu_sig_fallback_current;
 
 int ksu_sig_fallback_register(ksu_sig_fallback_fn fn)
 {
+    bool was_enabled;
+
     if (!fn)
         return -EINVAL;
 
-    if (READ_ONCE(sig_fallback_current) == fn)
+    was_enabled = READ_ONCE(ksu_sig_fallback_current) != NULL;
+    if (was_enabled && READ_ONCE(ksu_sig_fallback_current) == fn)
         return 0;
 
-    WRITE_ONCE(sig_fallback_current, fn);
-    static_call_update(ksu_sig_fallback, fn);
+    if (was_enabled)
+        static_branch_disable(&ksu_sig_fallback_key);
+
+    WRITE_ONCE(ksu_sig_fallback_current, fn);
+    static_branch_enable(&ksu_sig_fallback_key);
     pr_info("sig_fallback: registered %px\n", (void *)fn);
     return 0;
 }
 
 void ksu_sig_fallback_unregister(void)
 {
-    if (READ_ONCE(sig_fallback_current) == ksu_sig_fallback_stub)
+    if (!READ_ONCE(ksu_sig_fallback_current))
         return;
 
-    WRITE_ONCE(sig_fallback_current, ksu_sig_fallback_stub);
-    static_call_update(ksu_sig_fallback, ksu_sig_fallback_stub);
-    pr_info("sig_fallback: unregistered, restored stub\n");
+    static_branch_disable(&ksu_sig_fallback_key);
+    WRITE_ONCE(ksu_sig_fallback_current, NULL);
+    pr_info("sig_fallback: unregistered, fallback disabled\n");
 }
 
 bool ksu_sig_fallback_registered(void)
 {
-    return READ_ONCE(sig_fallback_current) != ksu_sig_fallback_stub;
+    return READ_ONCE(ksu_sig_fallback_current) != NULL;
 }
 
 void __init ksu_sig_fallback_init(void)
