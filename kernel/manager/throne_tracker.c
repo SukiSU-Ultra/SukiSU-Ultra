@@ -142,7 +142,7 @@ static void search_manager(const char *path, int depth, struct list_head *uid_da
                                           .data_path_list = &data_path_list,
                                           .parent_dir = pos->dirpath,
                                           .private_data = candidate_path,
-                                          .depth = pos->depth }
+                                          .depth = pos->depth };
 
             struct file *file = ksu_filp_open_nonotify(pos->dirpath, O_RDONLY | O_NOFOLLOW);
             if (IS_ERR(file)) {
