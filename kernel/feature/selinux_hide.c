@@ -19,6 +19,8 @@ struct selinux_state fake_state;
 #endif
 #ifdef KSU_COMPAT_USE_STATIC_KEY
 DEFINE_STATIC_KEY_FALSE(fake_status_initialize_key);
+#else
+bool fake_status_initialize_key __read_mostly = false;
 #endif
 struct page *fake_status = NULL;
 
@@ -60,14 +62,22 @@ void ksu_selinux_hide_handle_second_stage()
     initialize_fake_status();
     // https://github.com/torvalds/linux/blame/e8c2f9fdadee7cbc75134dc463c1e0d856d6e5c7/security/selinux/selinuxfs.c#L2014
     if (fake_status)
+#ifdef KSU_COMPAT_USE_STATIC_KEY
         static_key_disable(&fake_status_initialize_key.key);
+#else
+        fake_status_initialize_key = false;
+#endif
     else
         pr_warn("selinux_hide: fake status need late initialization\n");
 }
 
 void ksu_selinux_hide_handle_post_fs_data()
 {
-    static_key_disable(&fake_status_initialize_key.key);
+#ifdef KSU_COMPAT_USE_STATIC_KEY
+        static_key_disable(&fake_status_initialize_key.key);
+#else
+        fake_status_initialize_key = false;
+#endif
     if (!fake_status)
         pr_err("selinux_hide: fake status is not initialized after post-fs-data!\n");
 }

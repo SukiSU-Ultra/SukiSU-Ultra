@@ -1,7 +1,9 @@
 #include <linux/cred.h>
 #include <linux/rcupdate.h>
 #include <linux/sched.h>
+#ifdef KSU_COMPAT_USE_STATIC_KEY
 #include <linux/static_key.h>
+#endif
 #include <linux/types.h>
 
 #include "feature/shell_su_adb_only.h"
@@ -16,7 +18,11 @@
 // it is a real `adb shell` session, or by a KernelSU root process (e.g. adb
 // daemons provided by modules such as altdb). The latter is no escalation, as
 // only processes already granted root by KernelSU run in the ksu domain.
+#ifdef KSU_COMPAT_USE_STATIC_KEY
 static DEFINE_STATIC_KEY_FALSE(ksu_shell_su_adb_only);
+#else
+bool ksu_shell_su_adb_only __read_mostly = false;
+#endif
 
 // Deny instead of walking an unbounded chain of ancestors
 #define MAX_ANCESTOR_DEPTH 128
@@ -43,27 +49,41 @@ static bool has_trusted_ancestor(void)
 
 bool ksu_shell_su_allowed_for_current(void)
 {
+#ifdef KSU_COMPAT_USE_STATIC_KEY
     if (!static_branch_unlikely(&ksu_shell_su_adb_only)) {
         return true;
     }
+   if (unlikely(ksu_shell_su_adb_only)) {
+        return true;
+    }
+#else
 
     return has_trusted_ancestor();
 }
 
 static int shell_su_adb_only_feature_get(u64 *value)
 {
+#ifdef KSU_COMPAT_USE_STATIC_KEY
     *value = static_key_enabled(&ksu_shell_su_adb_only) ? 1 : 0;
+#else
+    *value = ksu_shell_su_adb_only ? 1 : 0;
+#endif
+
     return 0;
 }
 
 static int shell_su_adb_only_feature_set(u64 value)
 {
     bool enable = value != 0;
+#ifdef KSU_COMPAT_USE_STATIC_KEY
     if (enable) {
         static_key_enable(&ksu_shell_su_adb_only.key);
     } else {
         static_key_disable(&ksu_shell_su_adb_only.key);
     }
+#else
+        ksu_shell_su_adb_only = enable;
+#endif
     pr_info("shell_su_adb_only: set to %d\n", enable);
     return 0;
 }
