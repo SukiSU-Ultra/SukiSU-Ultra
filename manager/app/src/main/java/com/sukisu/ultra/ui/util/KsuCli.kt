@@ -1297,14 +1297,14 @@ class AppContextTestSession private constructor(val uid: Long) {
 
     private fun acceptReceipt(output: String): AppContextEntry? {
         val receipt = org.json.JSONObject(output)
-        check(receipt.getInt("version") == 1)
+        checkAppContextTest(receipt.getInt("version") == 1)
         val exists = receipt.getBoolean("exists")
         val nextRevision = receipt.getString("revision")
-        check(if (exists) nextRevision.toULong() > 0uL else nextRevision == "0")
+        checkAppContextTest(if (exists) nextRevision.toULong() > 0uL else nextRevision == "0")
         val entry = if (exists) {
             val envelope = org.json.JSONObject().put("version", 1)
                 .put("entries", org.json.JSONArray().put(receipt.getJSONObject("entry")))
-            AppContextJson.decode(envelope.toString()).single().also { check(it.uid == uid) }
+            AppContextJson.decode(envelope.toString()).single().also { checkAppContextTest(it.uid == uid) }
         } else null
         revision = nextRevision
         expected = entry
@@ -1374,7 +1374,7 @@ class AppContextTestSession private constructor(val uid: Long) {
         val before = expected ?: error(appContextTestText(R.string.app_context_log_missing))
         val stale = revision
         val after = updateAll(true, "123", "0x8000000000000001")
-        check(after.foreground && after.profileId == 123L && after.tags.toULong() == 0x8000000000000001uL)
+        checkAppContextTest(after.foreground && after.profileId == 123L && after.tags.toULong() == 0x8000000000000001uL)
         suspend fun rejected(vararg args: String) {
             var failed = false
             try { command(*args) } catch (_: IOException) { failed = true }
@@ -1387,7 +1387,7 @@ class AppContextTestSession private constructor(val uid: Long) {
         rejected("rollback", uid.toString(), stale)
         log(appContextTestText(R.string.app_context_log_atomic))
         val restored = rollback() ?: error(appContextTestText(R.string.app_context_log_missing))
-        check(restored.foreground == before.foreground && restored.profileId == before.profileId && restored.tags == before.tags)
+        checkAppContextTest(restored.foreground == before.foreground && restored.profileId == before.profileId && restored.tags == before.tags)
         rejected("rollback", uid.toString(), revision)
         log(appContextTestText(R.string.app_context_log_rollback))
     }
@@ -1414,3 +1414,7 @@ class AppContextTestSession private constructor(val uid: Long) {
 
 internal fun appContextTestText(@androidx.annotation.StringRes id: Int, vararg args: Any): String =
     LocaleHelper.wrap(ksuApp).getString(id, *args)
+
+internal fun checkAppContextTest(condition: Boolean) {
+    check(condition) { appContextTestText(R.string.app_context_log_check_failed) }
+}

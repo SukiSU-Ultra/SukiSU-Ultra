@@ -757,13 +757,13 @@
     <string name="susfs_runtime_status">状态</string>
     <string name="susfs_runtime_version">版本</string>
     <string name="susfs_runtime_variant">内核类型</string>
-    <!-- AppContext. -->
     <string name="susfs_runtime_implementation">实现方式</string>
+    <!-- AppContext. -->
     <string name="app_context_back">返回</string>
     <string name="app_context_uid">UID：%1$d</string>
     <string name="app_context_uid_title">UID %1$d</string>
     <string name="app_context_foreground">前台</string>
-    <string name="app_context_profile">个人资料</string>
+    <string name="app_context_profile">配置 ID</string>
     <string name="app_context_tags">标签</string>
     <string name="app_context_yes">是</string>
     <string name="app_context_no">否</string>
@@ -791,6 +791,7 @@
     <string name="app_context_test_log">结果日志（长按选择复制）</string>
     <string name="app_context_tools_close">关闭</string>
     <string name="app_context_detach_session">脱离会话但不删除（需手动检查清理）</string>
+    <string name="app_context_log_cleanup_failed">清理失败：%1$s</string>
     <string name="app_context_log_failed">失败：%1$s</string>
     <string name="app_context_log_started">会话已启动：UID %1$s</string>
     <string name="app_context_log_ended">会话已结束，测试记录已删除</string>
@@ -809,7 +810,6 @@
     <string name="app_context_log_start_first">请先启动调试会话</string>
     <string name="app_context_log_missing">记录不存在</string>
     <string name="app_context_log_uid_range">测试 UID 必须在 1..4294967295 范围内</string>
-    <string name="app_context_log_exists">UID %1$s 已存在，拒绝覆盖</string>
     <string name="app_context_log_conflict">UID %1$s 已被外部修改，拒绝修改或删除</string>
     <string name="app_context_log_created">会话记录已创建</string>
     <string name="app_context_log_profile_range">Profile 必须在 0..4294967295 范围内</string>

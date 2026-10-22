@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.viewmodel
 
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.util.appContextTestText
+import com.sukisu.ultra.ui.util.checkAppContextTest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.ui.util.AppContextTestSession
@@ -43,7 +44,6 @@ class AppContextToolsViewModel : ViewModel() {
             } catch (e: Exception) {
                 val detail = when {
                     e is NumberFormatException -> appContextTestText(R.string.app_context_log_invalid_number, e.message.orEmpty())
-                    e.message == "Check failed." -> appContextTestText(R.string.app_context_log_check_failed)
                     else -> e.message ?: e.javaClass.simpleName
                 }
                 log(appContextTestText(R.string.app_context_log_failed, detail))
@@ -102,40 +102,54 @@ class AppContextToolsViewModel : ViewModel() {
         check(session == null) { appContextTestText(R.string.app_context_log_end_first) }
         val test = AppContextTestSession.start(uid.toLong())
         session = test
+        var failure: Throwable? = null
         try {
             test.create()
             val initial = test.snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
-            check(!initial.foreground && initial.profileId == 0L && initial.tags == 0L)
+            checkAppContextTest(!initial.foreground && initial.profileId == 0L && initial.tags == 0L)
             log(appContextTestText(R.string.app_context_log_creation))
             val query = org.json.JSONObject(test.query())
-            check(query.getInt("version") == 1)
-            check(query.getJSONObject("entry").getLong("uid") == test.uid)
+            checkAppContextTest(query.getInt("version") == 1)
+            checkAppContextTest(query.getJSONObject("entry").getLong("uid") == test.uid)
             log(appContextTestText(R.string.app_context_log_query))
-            check(test.update("set-fg", "true").foreground)
+            checkAppContextTest(test.update("set-fg", "true").foreground)
             log(appContextTestText(R.string.app_context_log_fg))
-            check(!test.update("set-fg", "false").foreground)
+            checkAppContextTest(!test.update("set-fg", "false").foreground)
             log(appContextTestText(R.string.app_context_log_bg))
-            check(test.update("set-profile", "4294967295").profileId == 0xffffffffL)
+            checkAppContextTest(test.update("set-profile", "4294967295").profileId == 0xffffffffL)
             log(appContextTestText(R.string.app_context_log_profile))
-            check(test.update("set-tag", "0x8000000000000001").tags.toULong() == 0x8000000000000001uL)
-            check(test.update("set-tag", "0x2").tags.toULong() == 0x8000000000000003uL)
-            check(test.update("clear-tag", "0x1").tags.toULong() == 0x8000000000000002uL)
+            checkAppContextTest(test.update("set-tag", "0x8000000000000001").tags.toULong() == 0x8000000000000001uL)
+            checkAppContextTest(test.update("set-tag", "0x2").tags.toULong() == 0x8000000000000003uL)
+            checkAppContextTest(test.update("clear-tag", "0x1").tags.toULong() == 0x8000000000000002uL)
             log(appContextTestText(R.string.app_context_log_bits))
-            check(test.update("set-tag", "0xffffffffffffffff").tags.toULong() == ULong.MAX_VALUE)
+            checkAppContextTest(test.update("set-tag", "0xffffffffffffffff").tags.toULong() == ULong.MAX_VALUE)
             log(appContextTestText(R.string.app_context_log_allbits))
             test.verifyInvalidInputs(::log)
             test.verifyAtomicity(::log)
             val before = test.snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
-            check(test.snapshot() == before)
+            checkAppContextTest(test.snapshot() == before)
             val after = test.update("set-profile", "42")
-            check(after.lastUpdateNs.toULong() >= before.lastUpdateNs.toULong())
-            check(!after.foreground && after.tags.toULong() == ULong.MAX_VALUE)
+            checkAppContextTest(after.lastUpdateNs.toULong() >= before.lastUpdateNs.toULong())
+            checkAppContextTest(!after.foreground && after.tags.toULong() == ULong.MAX_VALUE)
             log(appContextTestText(R.string.app_context_log_stable))
+            test.cleanup()
+            check(test.snapshot() == null) { appContextTestText(R.string.app_context_log_still_exists) }
+            session = null
+            log(appContextTestText(R.string.app_context_log_removed))
+        } catch (e: Throwable) {
+            failure = e
+            throw e
         } finally {
             withContext(NonCancellable) {
-                test.cleanup()
-                session = null
-                log(appContextTestText(R.string.app_context_log_removed))
+                try {
+                    test.cleanup()
+                    session = null
+                } catch (cleanupFailure: Throwable) {
+                    val original = failure ?: throw cleanupFailure
+                    original.addSuppressed(cleanupFailure)
+                    log(appContextTestText(R.string.app_context_log_cleanup_failed,
+                        cleanupFailure.message ?: cleanupFailure.javaClass.simpleName))
+                }
             }
         }
         log(appContextTestText(R.string.app_context_log_complete))
