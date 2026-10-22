@@ -13,6 +13,10 @@
 )]
 
 mod apk_sign;
+#[cfg(target_os = "android")]
+mod app_context;
+#[cfg(target_os = "android")]
+mod app_context_cli;
 mod assets;
 mod boot_patch;
 #[cfg(target_os = "android")]

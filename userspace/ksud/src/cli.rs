@@ -1,3 +1,4 @@
+use crate::app_context_cli::AppContextCmd;
 use anyhow::{Context, Ok, Result};
 use clap::Parser;
 use std::path::PathBuf;
@@ -555,6 +556,12 @@ enum Extension {
 
     /// Save current extension states to file
     Save,
+
+    /// Manage App Context (per-UID state tracking)
+    AppContext {
+        #[command(subcommand)]
+        command: AppContextCmd,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1138,6 +1145,26 @@ pub fn run() -> Result<()> {
             Extension::Check { id } => crate::extension::check_extension(&id),
             Extension::Load => crate::extension::load_config_and_apply(),
             Extension::Save => crate::extension::save_config(),
+            Extension::AppContext { command } => match command {
+                AppContextCmd::Query { uid, json } => {
+                    crate::app_context::query_context_cli(uid, json)
+                }
+                AppContextCmd::SetFg { uid, foreground } => {
+                    crate::app_context::set_foreground_cli(uid, foreground)
+                }
+                AppContextCmd::SetProfile { uid, profile_id } => {
+                    crate::app_context::set_profile_cli(uid, profile_id)
+                }
+                AppContextCmd::SetTag { uid, tag_mask } => {
+                    crate::app_context::set_tag_cli(uid, tag_mask)
+                }
+                AppContextCmd::ClearTag { uid, tag_mask } => {
+                    crate::app_context::clear_tag_cli(uid, tag_mask)
+                }
+                AppContextCmd::List { json } => crate::app_context::list_contexts_cli(json),
+                AppContextCmd::ClearAll => crate::app_context::clear_all_cli(),
+                AppContextCmd::Remove { uid } => crate::app_context::remove_context_cli(uid),
+            },
         },
 
         Commands::Debug { command } => match command {

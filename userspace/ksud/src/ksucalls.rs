@@ -401,6 +401,12 @@ pub unsafe fn dynamic_manager_io(cmd: *mut ksu_uapi::ksu_manager_cmd) -> Result<
     unsafe { extension_io(ExtensionId::DynamicManager as u32, cmd) }
 }
 
+/// # Safety
+/// Nested LIST buffers must remain valid for the synchronous call.
+pub unsafe fn app_context_io(cmd: *mut ksu_uapi::ksu_app_context_cmd) -> Result<i32> {
+    unsafe { extension_io(ExtensionId::AppContext as u32, cmd) }
+}
+
 pub fn get_wrapped_fd(fd: RawFd) -> Result<RawFd> {
     let mut cmd = ksu_uapi::ksu_get_wrapper_fd_cmd {
         fd: fd as u32,

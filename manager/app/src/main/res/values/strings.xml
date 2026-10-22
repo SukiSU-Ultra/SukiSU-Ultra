@@ -765,4 +765,18 @@
     <string name="susfs_runtime_version">Version</string>
     <string name="susfs_runtime_variant">Kernel variant</string>
     <string name="susfs_runtime_implementation">Implementation</string>
+    <string name="app_context_back">Back</string>
+    <string name="app_context_uid">UID: %1$d</string>
+    <string name="app_context_uid_title">UID %1$d</string>
+    <string name="app_context_foreground">Foreground</string>
+    <string name="app_context_profile">Profile</string>
+    <string name="app_context_tags">Tags</string>
+    <string name="app_context_yes">Yes</string>
+    <string name="app_context_no">No</string>
+    <string name="app_context_load_failed">Failed to load app contexts. Please try refreshing.</string>
+    <string name="app_context_empty">No app contexts tracked yet</string>
+    <string name="extension_app_context_title">App Context</string>
+    <string name="extension_app_context_summary">Caller-maintained shared state per UID. Modules report foreground state, profile identifiers and tags; no automatic detection or persistence. Writers must remove stale records.</string>
+    <string name="app_context_updated">Last write (monotonic clock)</string>
+    <string name="app_context_update_ns">%1$s ns</string>
 </resources>

@@ -125,4 +125,9 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data object CpuSpoof : Route
+
+    /** App Context (per-UID state tracking). */
+    @Parcelize
+    @Serializable
+    data object AppContext : Route
 }

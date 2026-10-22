@@ -758,4 +758,18 @@
     <string name="susfs_runtime_version">版本</string>
     <string name="susfs_runtime_variant">内核类型</string>
     <string name="susfs_runtime_implementation">实现方式</string>
+    <string name="app_context_back">返回</string>
+    <string name="app_context_uid">UID：%1$d</string>
+    <string name="app_context_uid_title">UID %1$d</string>
+    <string name="app_context_foreground">前台</string>
+    <string name="app_context_profile">个人资料</string>
+    <string name="app_context_tags">标签</string>
+    <string name="app_context_yes">是</string>
+    <string name="app_context_no">否</string>
+    <string name="app_context_load_failed">加载应用上下文失败。请尝试刷新</string>
+    <string name="app_context_empty">尚未跟踪任何应用上下文</string>
+    <string name="extension_app_context_title">应用上下文</string>
+    <string name="extension_app_context_summary">由调用方维护的 UID 共享状态。模块主动上报前台状态、配置标识与标签；不自动检测或持久化，上报方须清理失效记录。</string>
+    <string name="app_context_updated">最近写入（单调时钟）</string>
+    <string name="app_context_update_ns">%1$s 纳秒</string>
 </resources>

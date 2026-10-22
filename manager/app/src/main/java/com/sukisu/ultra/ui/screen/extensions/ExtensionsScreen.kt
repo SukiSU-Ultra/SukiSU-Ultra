@@ -88,6 +88,7 @@ fun ExtensionsScreen() {
             ExtensionId.UmountPaths -> navigator.push(Route.UmountManager)
             ExtensionId.CpuSpoof -> openCpuDialog()
             ExtensionId.SuSFS -> navigator.push(Route.SuSFS)
+            ExtensionId.AppContext -> navigator.push(Route.AppContext)
         }
     }
 

@@ -13,10 +13,11 @@ enum class ExtensionId(val id: Int, val wireName: String, @StringRes val display
     CpuSpoof(1, "cpu_spoof", R.string.extension_cpu_spoof_title),
     UmountPaths(2, "umount_paths", R.string.extension_umount_paths_title),
     DynamicManager(3, "dynamic_manager", R.string.extension_dynamic_manager_title),
-    SuSFS(4, "susfs", R.string.extension_susfs_title);
+    SuSFS(4, "susfs", R.string.extension_susfs_title),
+    AppContext(5, "app_context", R.string.extension_app_context_title);
 
     companion object {
-        val ALL: List<ExtensionId> = listOf(Kpm, CpuSpoof, UmountPaths, DynamicManager, SuSFS)
+        val ALL: List<ExtensionId> = listOf(Kpm, CpuSpoof, UmountPaths, DynamicManager, SuSFS, AppContext)
 
         fun fromWireName(name: String): ExtensionId? =
             ALL.firstOrNull { it.wireName == name }
