@@ -1,7 +1,6 @@
 package com.sukisu.ultra.ui.screen.appprofile
 
 import com.sukisu.ultra.ui.component.profile.TemporaryRoot
-import com.sukisu.ultra.ui.component.profile.TemporaryRootGrantDialog
 import android.widget.Toast
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -90,7 +89,6 @@ fun AppProfileScreen(uid: Int) {
     }
 
     var temporaryEnabled by rememberSaveable(uid) { mutableStateOf(false) }
-    var pendingGrant by remember { mutableStateOf<Natives.Profile?>(null) }
     var saving by remember { mutableStateOf(false) }
     LaunchedEffect(uid) {
         temporaryEnabled = TemporaryRoot.status(uid) in listOf("timed", "boot")
@@ -98,12 +96,16 @@ fun AppProfileScreen(uid: Int) {
             delay(1000)
             if (!saving && profile.allowSu) {
                 val current = Natives.getAppProfile(packageName, uid)
-                if (!current.allowSu) profile = current
+                if (!current.allowSu) {
+                    profile = current
+                    temporaryEnabled = false
+                    viewModel.loadAppList()
+                }
             }
         }
     }
 
-    fun saveProfile(updatedProfile: Natives.Profile, seconds: Long? = null, updateLease: Boolean = false) {
+    fun saveProfile(updatedProfile: Natives.Profile, seconds: Long? = null, updateLease: Boolean = false, selectTemporary: Boolean = false) {
         if (saving) return
         saving = true
         scope.launch {
@@ -134,7 +136,8 @@ fun AppProfileScreen(uid: Int) {
                     showMessage(failToUpdateAppProfile)
                 } else {
                     profile = profileToSave
-                    if (updateLease) temporaryEnabled = seconds != null
+                    if (!profileToSave.allowSu) temporaryEnabled = selectTemporary
+                    else if (updateLease) temporaryEnabled = seconds != null
                     viewModel.loadAppList()
                 }
             } catch (e: Exception) {
@@ -144,16 +147,6 @@ fun AppProfileScreen(uid: Int) {
                 saving = false
             }
         }
-    }
-
-    pendingGrant?.let { requested ->
-        TemporaryRootGrantDialog(
-            onDismiss = { pendingGrant = null },
-            onChoose = { seconds ->
-                pendingGrant = null
-                saveProfile(requested, seconds, updateLease = true)
-            },
-        )
     }
 
     val state = AppProfileUiState(
@@ -179,18 +172,23 @@ fun AppProfileScreen(uid: Int) {
             navigator.push(Route.AppProfileTemplate)
         },
         onTemporaryRootChange = { enabled ->
-            if (profile.allowSu) {
-                if (enabled) pendingGrant = profile
-                else saveProfile(profile, null, updateLease = true)
+            if (enabled) {
+                // Selecting temporary mode must not leave a permanent grant active.
+                if (profile.allowSu) saveProfile(profile.copy(allowSu = false), selectTemporary = true)
+                else temporaryEnabled = true
+            } else if (profile.allowSu && temporaryEnabled) {
+                saveProfile(profile.copy(allowSu = false), updateLease = true)
             } else {
-                temporaryEnabled = enabled
+                temporaryEnabled = false
             }
         },
-        onTemporaryRootGrant = { seconds -> saveProfile(profile.copy(allowSu = true), seconds, updateLease = true) },
-        onProfileChange = { updatedProfile ->
-            if (updatedProfile.allowSu && !profile.allowSu) pendingGrant = updatedProfile
-            else saveProfile(updatedProfile)
+        onTemporaryRootGrant = { seconds ->
+            if (seconds != null) saveProfile(profile.copy(allowSu = true), seconds, updateLease = true)
         },
+        onPermanentRootChange = { enabled ->
+            saveProfile(profile.copy(allowSu = enabled), updateLease = true)
+        },
+        onProfileChange = { updatedProfile -> saveProfile(updatedProfile) },
     )
 
     when (uiMode) {

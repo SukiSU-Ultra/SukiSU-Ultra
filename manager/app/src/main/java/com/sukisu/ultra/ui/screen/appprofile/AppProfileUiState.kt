@@ -18,6 +18,7 @@ data class AppProfileUiState(
 
 @Immutable
 data class AppProfileActions(
+    val onPermanentRootChange: (Boolean) -> Unit = {},
     val onTemporaryRootChange: (Boolean) -> Unit = {},
     val onTemporaryRootGrant: (Long?) -> Unit = {},
     val onBack: () -> Unit,

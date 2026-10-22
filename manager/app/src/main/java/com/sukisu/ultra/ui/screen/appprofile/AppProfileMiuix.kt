@@ -162,6 +162,7 @@ fun AppProfileScreenMiuix(
                         onViewTemplate = actions.onViewTemplate,
                         onManageTemplate = actions.onManageTemplate,
                         onProfileChange = actions.onProfileChange,
+                        onPermanentRootChange = actions.onPermanentRootChange,
                         temporaryRoot = state.temporaryRoot,
                         onTemporaryRootChange = actions.onTemporaryRootChange,
                         onTemporaryRootGrant = actions.onTemporaryRootGrant,
@@ -189,6 +190,7 @@ private fun AppProfileInner(
     appVersionName: String,
     appVersionCode: Long,
     profile: Natives.Profile,
+    onPermanentRootChange: (Boolean) -> Unit = {},
     temporaryRoot: Boolean = false,
     onTemporaryRootChange: (Boolean) -> Unit = {},
     onTemporaryRootGrant: (Long?) -> Unit = {},
@@ -284,7 +286,7 @@ private fun AppProfileInner(
         }
 
         if (!isSpecialApp) {
-            val checked = isRootGranted
+            val checked = isRootGranted && !temporaryRoot
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -294,7 +296,7 @@ private fun AppProfileInner(
                     color = if (checked) colorScheme.primary else colorScheme.surfaceContainer
                 ),
                 insideMargin = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
-                onClick = { onProfileChange(profile.copy(allowSu = !checked)) },
+                onClick = { onPermanentRootChange(!checked) },
                 pressFeedbackType = PressFeedbackType.Sink,
             ) {
                 Row(
@@ -320,7 +322,7 @@ private fun AppProfileInner(
                     }
                     Switch(
                         checked = checked,
-                        onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+                        onCheckedChange = onPermanentRootChange,
                     )
                 }
             }

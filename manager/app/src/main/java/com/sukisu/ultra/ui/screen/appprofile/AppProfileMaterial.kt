@@ -145,6 +145,7 @@ fun AppProfileScreenMaterial(
             onViewTemplate = actions.onViewTemplate,
             onManageTemplate = actions.onManageTemplate,
             onProfileChange = actions.onProfileChange,
+            onPermanentRootChange = actions.onPermanentRootChange,
             temporaryRoot = state.temporaryRoot,
             onTemporaryRootChange = actions.onTemporaryRootChange,
             onTemporaryRootGrant = actions.onTemporaryRootGrant,
@@ -163,6 +164,7 @@ private fun AppProfileInner(
     appVersionName: String,
     appVersionCode: Long,
     profile: Natives.Profile,
+    onPermanentRootChange: (Boolean) -> Unit = {},
     temporaryRoot: Boolean = false,
     onTemporaryRootChange: (Boolean) -> Unit = {},
     onTemporaryRootGrant: (Long?) -> Unit = {},
@@ -262,9 +264,9 @@ private fun AppProfileInner(
             )
         } else {
             RootSwitchCard(
-                checked = isRootGranted,
+                checked = isRootGranted && !temporaryRoot,
                 summary = mode.text,
-                onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+                onCheckedChange = onPermanentRootChange,
             )
         }
 

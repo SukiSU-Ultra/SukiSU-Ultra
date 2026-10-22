@@ -788,7 +788,7 @@
     <string name="temporary_root_warning">Expiration only cancels future elevation; existing Root processes keep their privileges. Revocation is performed by ksud, not enforced by the kernel. If ksud stops, revocation may be delayed. Reboot cleanup also has a window before revocation; do not use this as a strict security boundary.</string>
     <string name="temporary_root_duration_title">Temporary Root duration</string>
     <string name="temporary_root_duration_summary">Default duration offered when granting temporary access</string>
-    <string name="temporary_root_switch_summary">Turning this off keeps Root access permanently. To revoke access, turn off the Root switch.</string>
+    <string name="temporary_root_switch_summary">Mutually exclusive with permanent Root. Turn on and choose a duration to grant access; turning off revokes temporary Root access.</string>
     <string name="temporary_root_apply_summary">Grant access now or restart the authorization period</string>
     <string name="temporary_root_grant_title">Choose authorization period</string>
 </resources>
