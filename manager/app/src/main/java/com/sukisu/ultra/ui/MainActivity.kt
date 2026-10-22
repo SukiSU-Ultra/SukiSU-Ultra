@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.view.View
 import android.view.animation.PathInterpolator
 import androidx.activity.ComponentActivity
@@ -65,6 +66,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
@@ -145,6 +147,10 @@ class MainActivity : ComponentActivity() {
     private val splashAnimationDurationMs = 600L
     private var splashPhase by mutableStateOf(SplashPhase.Done)
 
+    private companion object {
+        private const val TAG = "MainActivity"
+    }
+
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(newBase))
@@ -207,19 +213,25 @@ class MainActivity : ComponentActivity() {
 
         if (savedInstanceState == null) intent?.let { intentChannel.trySend(it) }
 
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
+        // Installing the manager is background housekeeping, so it must not gate the first frame:
+        // the splash has no fallback timer, and a failed install used to leave it on screen forever
+        // because content was only composed after install returned.
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
                 val isManager = Natives.isManager
                 ensureActive()
                 if (isManager && Natives.kernelUAPIVersion == Natives.managerUAPIVersion) {
-                    // Keep install's result logging and exception propagation intact.
                     install()
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                // Never let a broken install (or a missing native) crash startup.
+                Log.w(TAG, "manager install failed", e)
             }
-            // A blocking shell may finish after destruction; never initialize that Activity.
-            ensureActive()
-            if (!isFinishing && !isDestroyed) setMainContent()
         }
+
+        setMainContent()
     }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
