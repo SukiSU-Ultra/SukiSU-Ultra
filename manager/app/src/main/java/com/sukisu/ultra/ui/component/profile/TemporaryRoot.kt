@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.component.profile
 
 import android.os.Process
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,14 +71,18 @@ fun TemporaryRootPreferences() {
         }
     }
     if (showCustom) {
-        var input by rememberSaveable { mutableStateOf(minutes.toString()) }
-        val valid = input.toIntOrNull()?.let { it in 1..10080 } == true
-        val onInput: (String) -> Unit = { value ->
-            if (value.length <= 5 && value.all { it in '0'..'9' }) input = value
+        var input by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+            val text = minutes.toString()
+            mutableStateOf(TextFieldValue(text, selection = TextRange(text.length)))
+        }
+        val valid = input.text.toIntOrNull()?.let { it in 1..10080 } == true
+        val onInput: (TextFieldValue) -> Unit = { value ->
+            // Keep selection-only and IME composition updates, not just text.
+            if (value.text.length <= 5 && value.text.all { it in '0'..'9' }) input = value
         }
         val onConfirm: () -> Unit = {
             if (valid) {
-                minutes = input.toInt()
+                minutes = input.text.toInt()
                 TemporaryRoot.setDefaultMinutes(context, minutes)
                 showCustom = false
             }

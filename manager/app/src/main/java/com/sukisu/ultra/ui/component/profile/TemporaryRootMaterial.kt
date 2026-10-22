@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -128,9 +129,9 @@ internal fun TemporaryRootGrantDialogMaterial(options: List<RootGrantOption>, on
 
 @Composable
 internal fun TemporaryRootCustomDurationMaterial(
-    input: String,
+    input: TextFieldValue,
     valid: Boolean,
-    onInput: (String) -> Unit,
+    onInput: (TextFieldValue) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
