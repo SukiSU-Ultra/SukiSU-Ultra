@@ -772,4 +772,22 @@
     <string name="extension_app_context_summary">由调用方维护的 UID 共享状态。模块主动上报前台状态、配置标识与标签；不自动检测或持久化，上报方须清理失效记录。</string>
     <string name="app_context_updated">最近写入（单调时钟）</string>
     <string name="app_context_update_ns">%1$s 纳秒</string>
+    <string name="app_context_tools">测试与调试</string>
+    <string name="app_context_tools_warning">仅允许使用专用且未占用的 UID，不会接管已有记录。请停止其他写入方操作此 UID：内核不提供原子所有权校验。不会执行全部清空或容量测试。结束会话会删除测试记录；应用被终止时可能残留记录，请检查后手动清理。</string>
+    <string name="app_context_test_uid">专用测试 UID（1–4294967295）</string>
+    <string name="app_context_test_consent">我确认此 UID 未被使用，且没有其他生产者向其写入。</string>
+    <string name="app_context_run_tests">自动测试</string>
+    <string name="app_context_start_session">开始调试会话</string>
+    <string name="app_context_active_uid">当前测试 UID：%1$s</string>
+    <string name="app_context_debug_fg">设为前台</string>
+    <string name="app_context_debug_bg">设为后台</string>
+    <string name="app_context_apply_profile">设置 Profile</string>
+    <string name="app_context_debug_mask">标签掩码（十进制或 0x 十六进制）</string>
+    <string name="app_context_set_bits">设置标签位（OR）</string>
+    <string name="app_context_clear_bits">清除标签位</string>
+    <string name="app_context_query_test">查询记录</string>
+    <string name="app_context_end_session">结束并清理</string>
+    <string name="app_context_test_log">结果日志（长按选择复制）</string>
+    <string name="app_context_tools_close">关闭</string>
+    <string name="app_context_detach_session">脱离会话但不删除（需手动检查清理）</string>
 </resources>

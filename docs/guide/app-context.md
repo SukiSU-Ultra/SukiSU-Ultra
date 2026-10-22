@@ -4,7 +4,10 @@ App Context (extension ID 5) is a bounded, volatile per-UID state store.
 It does **not** detect foreground applications, synchronize KernelSU App Profiles,
 subscribe to lifecycle events, or persist records. A profile ID is an opaque
 number assigned by the producer, not an existing KernelSU profile reference.
-The Manager is a read-only snapshot viewer; refresh explicitly to see changes.
+The Manager snapshot viewer refreshes every five seconds while the page is
+resumed, and supports pull-to-refresh and toolbar refresh in both UI modes.
+Polling pauses in the background and while the test/debug panel is open.
+Existing rows remain visible during refresh and on load failure.
 
 ## CLI
 
@@ -88,3 +91,27 @@ published maximum capacity. Output is only valid on success.
 Operations 1-7 are query, set-fg, set-profile, set-tag, clear-tag, list and remove;
 operation 8 clears all records. The extension WIPE callback also clears all.
 The extension does not have a sticky enable bit or support force-extension.
+
+## In-app test and debug panel
+
+Open App Context and tap the tools icon in the toolbar (available in both UI
+modes). Choose a dedicated unused UID and confirm that no other producer will
+write to it. Existing records are rejected instead of being adopted.
+
+* **Run tests** checks zero defaults, query/list JSON, foreground transitions,
+  full-width profile IDs, high/all tag bits, OR/AND-NOT, invalid CLI inputs,
+  independent fields, timestamps, and removal. Its record is cleaned up on
+  completion or failure when the ownership snapshot still matches.
+* **Start debug session** creates a dedicated test record. Set foreground,
+  profile and tag masks, query the raw JSON, then end the session to remove it.
+  No arbitrary shell command, clear-all, or capacity test is exposed.
+* Results can be selected and copied. Low-level diagnostics use English.
+* Before each mutation/deletion the tool checks the last observed snapshot.
+  If another producer changes it, mutation is refused. Use **Detach without
+  deleting** to leave a conflicted record for manual inspection.
+
+These checks are best effort: the UAPI has no exclusive-create, owner token or
+compare-and-swap operation, so there is still a race between a snapshot check and
+its write. Stop other writers for the chosen UID. Process death can leave the
+test record behind; inspect that UID before manual removal. This panel is not a
+replacement for concurrency, invalid-pointer or kernel fault-injection tests.

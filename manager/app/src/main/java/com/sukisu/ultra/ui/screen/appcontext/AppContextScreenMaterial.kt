@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +48,7 @@ fun AppContextScreenMaterial(
     state: AppContextUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
+    onTools: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     ExpressiveScaffold(
@@ -59,6 +62,9 @@ fun AppContextScreenMaterial(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onTools) {
+                        Icon(Icons.Rounded.Build, stringResource(R.string.app_context_tools))
+                    }
                     IconButton(onClick = onRefresh, enabled = !state.isLoading) {
                         Icon(Icons.Rounded.Refresh, stringResource(R.string.refresh))
                     }
@@ -70,57 +76,63 @@ fun AppContextScreenMaterial(
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
     ) { padding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = onRefresh,
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item(key = "description") {
-                Text(
-                    text = stringResource(R.string.extension_app_context_summary),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-            }
-            if (state.isLoading) {
-                item(key = "loading") {
-                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        LoadingIndicator()
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item(key = "description") {
+                    Text(
+                        text = stringResource(R.string.extension_app_context_summary),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                }
+                if (state.isLoading && state.contexts.isEmpty()) {
+                    item(key = "loading") {
+                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                            LoadingIndicator()
+                        }
                     }
                 }
-            }
-            if (state.error != null) {
-                item(key = "error") {
-                    Surface(
-                        shape = MaterialTheme.shapes.extraLarge,
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    ) {
-                        Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text(stringResource(state.error), style = MaterialTheme.typography.bodyLarge)
-                            FilledTonalButton(onClick = onRefresh, enabled = !state.isLoading) {
-                                Text(stringResource(R.string.refresh))
+                if (state.error != null) {
+                    item(key = "error") {
+                        Surface(
+                            shape = MaterialTheme.shapes.extraLarge,
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                Text(stringResource(state.error), style = MaterialTheme.typography.bodyLarge)
+                                FilledTonalButton(onClick = onRefresh, enabled = !state.isLoading) {
+                                    Text(stringResource(R.string.refresh))
+                                }
+                            }
+                        }
+                    }
+                } else if (!state.isLoading && state.contexts.isEmpty()) {
+                    item(key = "empty") {
+                        Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                IconTile(Icons.Rounded.Apps, null)
+                                Text(stringResource(R.string.app_context_empty), style = MaterialTheme.typography.titleMedium)
                             }
                         }
                     }
                 }
-            } else if (!state.isLoading && state.contexts.isEmpty()) {
-                item(key = "empty") {
-                    Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            IconTile(Icons.Rounded.Apps, null)
-                            Text(stringResource(R.string.app_context_empty), style = MaterialTheme.typography.titleMedium)
-                        }
-                    }
+                items(state.contexts, key = { it.uid }) { entry ->
+                    AppContextCard(entry)
                 }
-            }
-            items(state.contexts, key = { it.uid }) { entry ->
-                AppContextCard(entry)
             }
         }
     }

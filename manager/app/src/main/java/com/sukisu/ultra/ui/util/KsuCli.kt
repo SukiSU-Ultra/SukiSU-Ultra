@@ -32,6 +32,10 @@ import com.sukisu.ultra.data.registry.DownloadVerificationException
 import com.sukisu.ultra.data.registry.RegistryDownloadStore
 import com.sukisu.ultra.data.registry.copyForInstall
 import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.ui.screen.appcontext.AppContextEntry
+import com.sukisu.ultra.ui.screen.appcontext.AppContextJson
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import java.io.File
@@ -158,6 +162,59 @@ suspend fun getExtensionStatus(extension: String): String = withContext(Dispatch
             .out
     }
     out.firstOrNull()?.trim().orEmpty()
+}
+
+/** Load shared state and resolve package names without hiding unresolved UIDs. */
+suspend fun getAppContexts(): List<AppContextEntry> = withContext(Dispatchers.IO) {
+    withNewRootShell {
+        val stdout = mutableListOf<String>()
+        val stderr = mutableListOf<String>()
+        val result = newJob()
+            .add("${getKsuDaemonPath().ksudShellArg()} extension app-context list --json")
+            .to(stdout, stderr)
+            .exec()
+
+        currentCoroutineContext().ensureActive()
+        if (!result.isSuccess) {
+            throw IOException(
+                "ksud App Context list failed (exit=${result.code}): ${stderr.joinToString("\n")}"
+            )
+        }
+
+        val entries = AppContextJson.decode(stdout.joinToString("\n"))
+        if (entries.isEmpty()) return@withNewRootShell entries
+
+        // Package names are optional; a failed lookup must not hide the snapshot.
+        val packageOutput = mutableListOf<String>()
+        val packageErrors = mutableListOf<String>()
+        val packageResult = newJob()
+            .add("cmd package list packages -U --user all")
+            .to(packageOutput, packageErrors)
+            .exec()
+
+        currentCoroutineContext().ensureActive()
+        val packages = mutableMapOf<Long, String>()
+        if (packageResult.isSuccess) {
+            val pattern = Regex("""^package:(\S+)\s+uid:(\d+)$""")
+            for (line in packageOutput) {
+                currentCoroutineContext().ensureActive()
+                val match = pattern.matchEntire(line.trim()) ?: continue
+                val uid = match.groupValues[2].toLongOrNull() ?: continue
+                val name = match.groupValues[1]
+                packages[uid] = packages[uid]?.let { "$it\n$name" } ?: name
+            }
+        } else {
+            Log.w(
+                TAG,
+                "Package lookup failed (exit=${packageResult.code}): ${packageErrors.joinToString("\n")}"
+            )
+        }
+
+        entries.map { entry ->
+            currentCoroutineContext().ensureActive()
+            entry.copy(packageName = packages[entry.uid])
+        }
+    }
 }
 
 suspend fun getExtensionPersistValue(extension: String): Long? = readExtensionValue("--config $extension")
@@ -1206,4 +1263,106 @@ suspend fun getDynamicManagerSignature(apkPath: String): DynamicManagerSignature
 
 suspend fun addDynamicManager(packageName: String, signature: DynamicManagerSignature) {
     runDynamicManagerCommand("manager", "add", packageName, signature.certSize.toString(), signature.hash)
+}
+
+/** Restricted test session: never adopts an existing record or clears global state.
+ * The UAPI has no compare-and-swap/ownership token. Stop other writers for this UID;
+ * snapshot checks detect interference but cannot eliminate check/write races.
+ */
+class AppContextTestSession private constructor(val uid: Long) {
+    private var expected: AppContextEntry? = null
+
+    companion object {
+        suspend fun start(uid: Long): AppContextTestSession {
+            require(uid in 1..0xffffffffL) { "Test UID must be in 1..4294967295" }
+            val session = AppContextTestSession(uid)
+            check(session.snapshot() == null) { "UID $uid already exists; refusing to overwrite it" }
+            return session
+        }
+    }
+
+    private suspend fun command(vararg args: String): String = withContext(Dispatchers.IO) {
+        withNewRootShell {
+            val stdout = mutableListOf<String>()
+            val stderr = mutableListOf<String>()
+            val result = newJob()
+                .add("${getKsuDaemonPath().ksudShellArg()} extension app-context " +
+                    args.joinToString(" ") { it.ksudShellArg() })
+                .to(stdout, stderr).exec()
+            if (!result.isSuccess) {
+                throw IOException("exit=${result.code}: ${stderr.joinToString("\n")}")
+            }
+            stdout.joinToString("\n")
+        }
+    }
+
+    suspend fun snapshot(): AppContextEntry? =
+        AppContextJson.decode(command("list", "--json")).singleOrNull { it.uid == uid }
+
+    suspend fun query(): String {
+        checkUnchanged()
+        return command("query", uid.toString(), "--json")
+    }
+
+    private suspend fun checkUnchanged() {
+        check(snapshot() == expected) {
+            "UID $uid changed outside this session; refusing to modify or delete it"
+        }
+    }
+
+    suspend fun create() {
+        check(expected == null) { "Session record already created" }
+        checkUnchanged()
+        command("set-fg", uid.toString(), "false")
+        expected = snapshot() ?: error("Created record is missing")
+    }
+
+    suspend fun update(operation: String, value: String): AppContextEntry {
+        check(expected != null) { "Start a session first" }
+        val normalized = when (operation) {
+            "set-fg" -> value.toBooleanStrict().toString()
+            "set-profile" -> value.toLong().also {
+                require(it in 0..0xffffffffL) { "Profile must be in 0..4294967295" }
+            }.toString()
+            "set-tag", "clear-tag" -> {
+                val mask = if (value.startsWith("0x", ignoreCase = true)) {
+                    value.substring(2).toULong(16)
+                } else value.toULong()
+                "0x" + mask.toString(16)
+            }
+            else -> error("Unsupported test operation")
+        }
+        checkUnchanged()
+        command(operation, uid.toString(), normalized)
+        val entry = snapshot() ?: error("Updated record is missing")
+        expected = entry
+        return entry
+    }
+
+    suspend fun cleanup() {
+        if (expected == null) return
+        checkUnchanged()
+        command("remove", uid.toString())
+        expected = null
+        check(snapshot() == null) { "Record still exists after removal" }
+    }
+
+    suspend fun verifyInvalidInputs(log: (String) -> Unit) {
+        for (args in listOf(
+            arrayOf("set-fg", uid.toString(), "yes"),
+            arrayOf("set-profile", uid.toString(), "4294967296"),
+            arrayOf("set-tag", uid.toString(), "0x10000000000000000"),
+        )) {
+            checkUnchanged()
+            var rejected = false
+            try {
+                command(*args)
+            } catch (_: IOException) {
+                rejected = true
+            }
+            check(rejected) { "Invalid input was accepted: ${args.joinToString(" ")}" }
+            checkUnchanged()
+            log("PASS: rejected ${args.first()} ${args.last()}")
+        }
+    }
 }

@@ -779,4 +779,22 @@
     <string name="extension_app_context_summary">Caller-maintained shared state per UID. Modules report foreground state, profile identifiers and tags; no automatic detection or persistence. Writers must remove stale records.</string>
     <string name="app_context_updated">Last write (monotonic clock)</string>
     <string name="app_context_update_ns">%1$s ns</string>
+    <string name="app_context_tools">Test and debug</string>
+    <string name="app_context_tools_warning">Only a dedicated, unused UID is allowed. Existing records are never adopted. Stop other writers for this UID: the kernel has no atomic ownership check. No clear-all or capacity test is performed. End the session to remove the test record. App termination may leave a record behind; inspect it before manual cleanup.</string>
+    <string name="app_context_test_uid">Dedicated test UID (1?4294967295)</string>
+    <string name="app_context_test_consent">I confirm this UID is unused and no other producer will write to it.</string>
+    <string name="app_context_run_tests">Run tests</string>
+    <string name="app_context_start_session">Start debug session</string>
+    <string name="app_context_active_uid">Active test UID: %1$s</string>
+    <string name="app_context_debug_fg">Foreground</string>
+    <string name="app_context_debug_bg">Background</string>
+    <string name="app_context_apply_profile">Set profile</string>
+    <string name="app_context_debug_mask">Tag mask (decimal or 0x hex)</string>
+    <string name="app_context_set_bits">Set bits (OR)</string>
+    <string name="app_context_clear_bits">Clear bits</string>
+    <string name="app_context_query_test">Query record</string>
+    <string name="app_context_end_session">End and clean up</string>
+    <string name="app_context_test_log">Results (select text to copy)</string>
+    <string name="app_context_tools_close">Close</string>
+    <string name="app_context_detach_session">Detach without deleting (manual cleanup required)</string>
 </resources>

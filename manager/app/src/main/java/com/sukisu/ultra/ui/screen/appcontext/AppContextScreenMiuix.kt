@@ -2,6 +2,9 @@ package com.sukisu.ultra.ui.screen.appcontext
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +23,7 @@ import top.yukonga.miuix.kmp.basic.CardDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Build
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -27,6 +31,7 @@ fun AppContextScreenMiuix(
     state: AppContextUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
+    onTools: () -> Unit,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
 
@@ -41,6 +46,9 @@ fun AppContextScreenMiuix(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onTools) {
+                        Icon(Icons.Rounded.Build, stringResource(R.string.app_context_tools))
+                    }
                     IconButton(onClick = onRefresh, enabled = !state.isLoading) {
                         Icon(imageVector = Icons.Rounded.Refresh, contentDescription = stringResource(R.string.refresh))
                     }
@@ -48,47 +56,45 @@ fun AppContextScreenMiuix(
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+        PullToRefresh(
+            isRefreshing = state.isLoading,
+            pullToRefreshState = rememberPullToRefreshState(),
+            onRefresh = onRefresh,
+            refreshTexts = listOf(
+                stringResource(R.string.refresh_pulling),
+                stringResource(R.string.refresh_release),
+                stringResource(R.string.refresh_refresh),
+                stringResource(R.string.refresh_complete),
+            ),
+            contentPadding = paddingValues,
         ) {
-            when {
-                state.isLoading -> {
-                    top.yukonga.miuix.kmp.basic.CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(paddingValues)
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item(key = "description") {
+                    Text(stringResource(R.string.extension_app_context_summary))
                 }
-                state.error != null -> {
-                    Text(
-                        text = stringResource(state.error),
-                        color = MiuixTheme.colorScheme.error,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
-                }
-                state.contexts.isEmpty() -> {
-                    Text(
-                        text = stringResource(R.string.app_context_empty),
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-                        contentPadding = PaddingValues(16.dp),
-                    ) {
-                        items(state.contexts.size) { index ->
-                            val context = state.contexts[index]
-                            AppContextCardMiuix(context)
-                            if (index < state.contexts.size - 1) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
+                if (state.isLoading && state.contexts.isEmpty()) {
+                    item(key = "loading") {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            top.yukonga.miuix.kmp.basic.CircularProgressIndicator()
                         }
                     }
+                }
+                if (state.error != null) {
+                    item(key = "error") {
+                        Text(stringResource(state.error), color = MiuixTheme.colorScheme.error)
+                    }
+                } else if (!state.isLoading && state.contexts.isEmpty()) {
+                    item(key = "empty") {
+                        Text(stringResource(R.string.app_context_empty))
+                    }
+                }
+                items(state.contexts, key = { it.uid }) { entry ->
+                    AppContextCardMiuix(entry)
                 }
             }
         }
