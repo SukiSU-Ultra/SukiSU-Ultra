@@ -51,6 +51,7 @@ internal fun TemporaryRootPreferencesMaterial(labels: List<String>, selectedInde
 @Composable
 internal fun TemporaryRootControlsMaterial(
     enabled: Boolean,
+    granted: Boolean,
     options: List<RootGrantOption>,
     onEnabledChange: (Boolean) -> Unit,
     onChoose: (Long?) -> Unit,
@@ -65,7 +66,7 @@ internal fun TemporaryRootControlsMaterial(
                 onCheckedChange = onEnabledChange,
             )
         })
-        AnimatedVisibility(visible = enabled) {
+        AnimatedVisibility(visible = enabled && !granted) {
             Column(Modifier.padding(top = 8.dp)) {
                 SegmentedColumn(content = options.map { option ->
                     {

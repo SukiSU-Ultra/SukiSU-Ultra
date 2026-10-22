@@ -81,11 +81,11 @@ internal fun temporaryRootOptions(includePermanent: Boolean): List<RootGrantOpti
 }
 
 @Composable
-fun TemporaryRootControls(enabled: Boolean, onEnabledChange: (Boolean) -> Unit, onChoose: (Long?) -> Unit) {
+fun TemporaryRootControls(enabled: Boolean, granted: Boolean, onEnabledChange: (Boolean) -> Unit, onChoose: (Long?) -> Unit) {
     val options = temporaryRootOptions(includePermanent = false)
     when (LocalUiMode.current) {
-        UiMode.Miuix -> TemporaryRootControlsMiuix(enabled, options, onEnabledChange, onChoose)
-        UiMode.Material -> TemporaryRootControlsMaterial(enabled, options, onEnabledChange, onChoose)
+        UiMode.Miuix -> TemporaryRootControlsMiuix(enabled, granted, options, onEnabledChange, onChoose)
+        UiMode.Material -> TemporaryRootControlsMaterial(enabled, granted, options, onEnabledChange, onChoose)
     }
 }
 

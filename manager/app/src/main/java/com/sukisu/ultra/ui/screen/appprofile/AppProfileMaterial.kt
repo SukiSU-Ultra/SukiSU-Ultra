@@ -264,8 +264,8 @@ private fun AppProfileInner(
             )
         } else {
             RootSwitchCard(
-                checked = isRootGranted && !temporaryRoot,
-                summary = mode.text,
+                checked = isRootGranted,
+                summary = if (isRootGranted && temporaryRoot) stringResource(R.string.temporary_root_active) else mode.text,
                 onCheckedChange = onPermanentRootChange,
             )
         }
@@ -273,6 +273,7 @@ private fun AppProfileInner(
         if (!isSpecialApp) {
             TemporaryRootControls(
                 enabled = temporaryRoot,
+                granted = isRootGranted,
                 onEnabledChange = onTemporaryRootChange,
                 onChoose = onTemporaryRootGrant,
             )

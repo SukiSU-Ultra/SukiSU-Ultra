@@ -778,6 +778,7 @@
     <string name="config_autostart_required">Auto-start is disabled; this configuration will not run on reboot</string>
     <string name="config_status_explanation">Switches show saved configuration, not runtime state. Runtime results below are from this session; reload does not verify kernel state.</string>
     <string name="config_exit_code">Command exit code: %1$d</string>
+    <string name="temporary_root_active">Temporary Root is enabled</string>
     <string name="temporary_root_title">Temporary Root (best effort)</string>
     <string name="temporary_root_default">Default temporary Root duration: %1$d minutes</string>
     <string name="temporary_root_minutes">%1$d min</string>

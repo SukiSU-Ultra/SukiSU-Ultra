@@ -56,6 +56,7 @@ internal fun TemporaryRootPreferencesMiuix(labels: List<String>, selectedIndex: 
 @Composable
 internal fun TemporaryRootControlsMiuix(
     enabled: Boolean,
+    granted: Boolean,
     options: List<RootGrantOption>,
     onEnabledChange: (Boolean) -> Unit,
     onChoose: (Long?) -> Unit,
@@ -69,7 +70,7 @@ internal fun TemporaryRootControlsMiuix(
                 onCheckedChange = onEnabledChange,
                 startAction = { TemporaryRootIconMiuix() },
             )
-            AnimatedVisibility(visible = enabled) {
+            AnimatedVisibility(visible = enabled && !granted) {
                 Column {
                     options.forEach { option ->
                         ArrowPreference(

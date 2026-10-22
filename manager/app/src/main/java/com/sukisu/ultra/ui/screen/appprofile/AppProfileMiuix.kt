@@ -286,7 +286,7 @@ private fun AppProfileInner(
         }
 
         if (!isSpecialApp) {
-            val checked = isRootGranted && !temporaryRoot
+            val checked = isRootGranted
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -311,7 +311,7 @@ private fun AppProfileInner(
                             color = if (checked) colorScheme.onPrimary else colorScheme.onSurface,
                         )
                         Text(
-                            text = dropdownMode.text,
+                            text = if (isRootGranted && temporaryRoot) stringResource(R.string.temporary_root_active) else dropdownMode.text,
                             fontSize = 13.sp,
                             color = if (checked) {
                                 colorScheme.onPrimary.copy(alpha = 0.75f)
@@ -331,6 +331,7 @@ private fun AppProfileInner(
         if (!isSpecialApp) {
             TemporaryRootControls(
                 enabled = temporaryRoot,
+                granted = isRootGranted,
                 onEnabledChange = onTemporaryRootChange,
                 onChoose = onTemporaryRootGrant,
             )

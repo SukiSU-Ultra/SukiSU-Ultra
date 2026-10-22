@@ -771,6 +771,7 @@
     <string name="config_autostart_required">未开启自动启动，重启时不会执行此配置</string>
     <string name="config_status_explanation">开关表示已保存配置，不代表运行状态。下方结果仅来自本次操作；重新加载配置不会验证内核状态。</string>
     <string name="config_exit_code">命令退出码：%1$d</string>
+    <string name="temporary_root_active">已启用临时 Root</string>
     <string name="temporary_root_title">临时 Root（尽力撤销）</string>
     <string name="temporary_root_default">临时 Root 默认时长：%1$d 分钟</string>
     <string name="temporary_root_minutes">%1$d 分钟</string>
