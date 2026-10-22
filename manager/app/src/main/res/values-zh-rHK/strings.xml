@@ -57,6 +57,9 @@
     <string name="reboot_download">重啟至 Download</string>
     <string name="reboot_edl">重啟至 EDL</string>
     <string name="about">關於</string>
+    <string name="about_contributors">主要貢獻者</string>
+    <string name="about_contributors_hint">拖曳瀏覽，雙指縮放，點擊頭像開啟個人頁面。</string>
+    <string name="about_wordmark_hint">每個字元都來自貢獻者的名字，雙指放大查看。</string>
     <string name="module_uninstall_confirm">是否解除安裝 %s 模組？</string>
     <string name="metamodule_uninstall_confirm">是否解除安裝 %s 模組？這將影響所有模組，且 meta 模組提供的功能（如掛載）將失效</string>
     <string name="module_uninstall_success">已解除安裝 %s</string>
