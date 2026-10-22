@@ -1164,6 +1164,33 @@ pub fn run() -> Result<()> {
                 AppContextCmd::List { json } => crate::app_context::list_contexts_cli(json),
                 AppContextCmd::ClearAll => crate::app_context::clear_all_cli(),
                 AppContextCmd::Remove { uid } => crate::app_context::remove_context_cli(uid),
+                AppContextCmd::Transact {
+                    uid,
+                    create,
+                    revision,
+                    foreground,
+                    profile,
+                    tags,
+                } => crate::app_context::transact_cli(
+                    uid, create, revision, foreground, profile, tags,
+                ),
+                AppContextCmd::QueryVersioned { uid } => crate::app_context::versioned_cli(
+                    uid,
+                    0,
+                    crate::ksu_uapi::KSU_APP_CONTEXT_OP_QUERY_VERSIONED,
+                ),
+                AppContextCmd::Rollback { uid, revision } => crate::app_context::versioned_cli(
+                    uid,
+                    revision,
+                    crate::ksu_uapi::KSU_APP_CONTEXT_OP_ROLLBACK,
+                ),
+                AppContextCmd::RemoveVersioned { uid, revision } => {
+                    crate::app_context::versioned_cli(
+                        uid,
+                        revision,
+                        crate::ksu_uapi::KSU_APP_CONTEXT_OP_REMOVE_VERSIONED,
+                    )
+                }
             },
         },
 

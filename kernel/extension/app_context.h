@@ -15,6 +15,12 @@ int ksu_app_context_set_tag(uid_t uid, u64 tag_mask);
 int ksu_app_context_clear_tag(uid_t uid, u64 tag_mask);
 int ksu_app_context_list(struct ksu_app_context_entry *buf, u32 max_count,
                          u32 *out_count);
+/* All-or-nothing replacements; returned receipt valid only on success.
+ * Kernel-owned single-level undo; revision-checked rollback refuses stale data.
+ * All writers, including legacy APIs, invalidate previous receipts.
+ */
+int ksu_app_context_transact(struct ksu_app_context_transaction_cmd *cmd);
+int ksu_app_context_versioned(u32 op, struct ksu_app_context_versioned_cmd *cmd);
 int ksu_app_context_remove(uid_t uid);
 int ksu_app_context_clear_all(u32 id);
 void ksu_app_context_init(void);

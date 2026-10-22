@@ -774,7 +774,7 @@
     <string name="app_context_updated">最近写入（单调时钟）</string>
     <string name="app_context_update_ns">%1$s 纳秒</string>
     <string name="app_context_tools">测试与调试</string>
-    <string name="app_context_tools_warning">仅允许使用专用且未占用的 UID，不会接管已有记录。请停止其他写入方操作此 UID：内核不提供原子所有权校验。不会执行全部清空或容量测试。结束会话会删除测试记录；应用被终止时可能残留记录，请检查后手动清理。</string>
+    <string name="app_context_tools_warning">请使用专用 UID。创建为独占操作，更新、删除和撤销均在内核中原子校验修订号，外部写入导致冲突而非被覆盖。撤销仅恢复最近一次事务，且只能执行一次；撤销创建会删除记录。需要配套内核和 ksud，不会降级为非原子操作。应用被终止时可能残留测试记录。</string>
     <string name="app_context_test_uid">专用测试 UID（1–4294967295）</string>
     <string name="app_context_test_consent">我确认此 UID 未被使用，且没有其他生产者向其写入。</string>
     <string name="app_context_run_tests">自动测试</string>
@@ -819,4 +819,8 @@
     <string name="app_context_log_rejected">通过：拒绝非法输入 %1$s</string>
     <string name="app_context_log_invalid_number">数值或标签掩码无效：%1$s</string>
     <string name="app_context_log_check_failed">测试断言失败，请查看最后完成的步骤</string>
+    <string name="app_context_atomic_apply">原子替换前台、Profile 和标签</string>
+    <string name="app_context_rollback">撤销最近事务（撤销创建会删除记录）</string>
+    <string name="app_context_log_atomic">通过：原子多字段更新、独占创建及拒绝过期请求</string>
+    <string name="app_context_log_rollback">通过：最近事务已撤销，并生成新修订号</string>
 </resources>

@@ -233,6 +233,82 @@ pub fn remove_context_cli(uid: u32) -> Result<()> {
     Ok(())
 }
 
+/// All supplied fields are replaced in one kernel transaction. Old kernels
+/// reject the new opcode; deliberately do not fall back to non-atomic writes.
+#[cfg(target_os = "android")]
+pub fn transact_cli(
+    uid: u32,
+    create: bool,
+    revision: Option<u64>,
+    foreground: Option<bool>,
+    profile: Option<u32>,
+    tags: Option<u64>,
+) -> Result<()> {
+    let mut cmd = command(uapi::KSU_APP_CONTEXT_OP_TRANSACT);
+    let fields = foreground.map_or(0, |_| uapi::KSU_APP_CONTEXT_FIELD_FG)
+        | profile.map_or(0, |_| uapi::KSU_APP_CONTEXT_FIELD_PROFILE)
+        | tags.map_or(0, |_| uapi::KSU_APP_CONTEXT_FIELD_TAGS);
+    anyhow::ensure!(fields != 0, "Supply at least one field");
+    anyhow::ensure!(create != revision.is_some(), "Use --create or --revision");
+    cmd.payload.transaction = uapi::ksu_app_context_transaction_cmd {
+        uid,
+        flags: if create {
+            uapi::KSU_APP_CONTEXT_TX_CREATE
+        } else {
+            0
+        },
+        fields,
+        foreground: u32::from(foreground.unwrap_or(false)),
+        profile_id: profile.unwrap_or(0),
+        reserved: 0,
+        expected_revision: revision.unwrap_or(0),
+        tags: tags.unwrap_or(0),
+        revision: 0,
+        // SAFETY: UAPI entries contain only integer fields.
+        entry: unsafe { std::mem::zeroed() },
+    };
+    execute(&mut cmd)
+        .context("Atomic App Context transaction failed (matching kernel required)")?;
+    // SAFETY: TRANSACT writes the transaction union arm.
+    let result = unsafe { cmd.payload.transaction };
+    println!(
+        "{}",
+        serde_json::json!({
+            "version": 1, "exists": true, "revision": result.revision.to_string(),
+            "entry": entry_json(&result.entry),
+        })
+    );
+    Ok(())
+}
+
+#[cfg(target_os = "android")]
+pub fn versioned_cli(uid: u32, revision: u64, op: u32) -> Result<()> {
+    let mut cmd = command(op);
+    cmd.payload.versioned = uapi::ksu_app_context_versioned_cmd {
+        uid,
+        reserved: 0,
+        expected_revision: revision,
+        revision: 0,
+        exists: 0,
+        reserved2: 0,
+        // SAFETY: UAPI entries contain only integer fields.
+        entry: unsafe { std::mem::zeroed() },
+    };
+    execute(&mut cmd)
+        .context("Versioned App Context operation failed (stale receipt or unsupported kernel)")?;
+    // SAFETY: all versioned ops write this union arm.
+    let result = unsafe { cmd.payload.versioned };
+    println!(
+        "{}",
+        serde_json::json!({
+            "version": 1, "exists": result.exists != 0,
+            "revision": result.revision.to_string(),
+            "entry": if result.exists != 0 { entry_json(&result.entry) } else { serde_json::Value::Null },
+        })
+    );
+    Ok(())
+}
+
 /// Parse a tag mask from string (supports hex: 0x... or decimal).
 pub fn parse_tag_mask(s: &str) -> Result<u64> {
     s.strip_prefix("0x")

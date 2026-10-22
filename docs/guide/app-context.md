@@ -92,28 +92,93 @@ Operations 1-7 are query, set-fg, set-profile, set-tag, clear-tag, list and remo
 operation 8 clears all records. The extension WIPE callback also clears all.
 The extension does not have a sticky enable bit or support force-extension.
 
+## Atomic single-UID transactions and rollback
+
+Requires a matching kernel and ksud with operations 9-12. Existing operations
+1-8 and JSON v1 snapshots retain their layouts and behavior. New commands never
+fall back to legacy writes when unsupported.
+
+```sh
+# Exclusive create: EEXIST if the UID is already present.
+ksud extension app-context transact 199999 --create --foreground false --profile 42 --tags 0x1
+# Read the current revision. All new commands emit JSON.
+ksud extension app-context query-versioned 199999
+# Substitute the revision STRING returned by the previous command.
+ksud extension app-context transact 199999 --revision REVISION --foreground true --profile 123 --tags 0xffffffffffffffff
+# Undo only the most recent transaction, using THAT transaction receipt.
+ksud extension app-context rollback 199999 TRANSACTION_REVISION
+# Delete only if the current revision still matches.
+ksud extension app-context remove-versioned 199999 CURRENT_REVISION
+```
+
+Example receipt:
+
+```json
+{"version":1,"exists":true,"revision":"123","entry":{"uid":199999,"foreground":true,"profile_id":123,"tags":"0xffffffffffffffff","last_update_ns":"456"}}
+```
+
+Deletion (including undoing creation) returns `exists:false`, revision `"0"`
+and `entry:null`. Revisions and timestamps are strings, not JSON numbers.
+
+### Atomicity and undo contract
+
+* A transaction replaces any nonempty selection of foreground, profile and tags
+  under one mutex. Unselected fields remain unchanged. `--tags` replaces the
+  mask; legacy set-tag/clear-tag still perform OR/AND-NOT.
+* Use **either** exclusive create with expected revision zero, **or** an update
+  with a nonzero current revision. The kernel checks existence/revision and
+  applies all fields as one indivisible change. Stale updates, removal and undo
+  return ESTALE and never overwrite another writer.
+* Each successful transaction stores one kernel-owned previous snapshot. No
+  userspace-supplied snapshot is trusted. Undo is single-level and one-shot:
+  it restores the previous field values with a **new** revision and timestamp.
+  Undoing creation removes the record. It is not an undo stack or redo system.
+* Any later write, even an unchanged legacy value, advances the global revision
+  and invalidates old receipts. Legacy writes invalidate undo entirely. A newer
+  transaction replaces the previous undo snapshot. Successful rollback consumes
+  undo. Failed operations preserve the record **and its undo snapshot**.
+* Removal/clear-all discard undo. The revision counter is not reset by clearing
+  or deleting records, preventing delete/recreate ABA within a subsystem lifetime.
+  Counter exhaustion returns EOVERFLOW instead of reusing revisions. Receipts
+  must be discarded after reboot or KernelSU reload; they are not durable IDs.
+* Validation, allocation and user-copy failures commit nothing. New mutating
+  ioctl paths copy the receipt to userspace while holding the store mutex,
+  **before** the non-failing commit. A partial copy can leave garbage in the
+  caller buffer; all output is invalid on error. Other readers/writers cannot
+  observe a partially updated record. Kernel helper output is likewise valid
+  only on success.
+* A CLI output failure or process death **after a successful ioctl** does not
+  roll back the kernel change. Keep the receipt; query-versioned can recover
+  current state, but do not silently adopt another producer's revision.
+* Revisions are conflict detection, not ownership/security tokens. All operations
+  still use the manager-or-root gate. Authorized writers can query a revision or
+  call legacy unconditional writes; this is not producer isolation.
+* No multi-UID transaction, persistent undo journal or automatic crash recovery.
+
+The new payloads use the same 8-byte command header/union offset as legacy
+payloads. `ksu_app_context_entry` remains 32 bytes; transaction payload is 80
+bytes and versioned payload is 64 bytes. Reserved fields and unselected input
+values must be zero. Output fields are ignored on input.
+
 ## In-app test and debug panel
 
-Open App Context and tap the tools icon in the toolbar (available in both UI
-modes). Choose a dedicated unused UID and confirm that no other producer will
-write to it. Existing records are rejected instead of being adopted.
+Open App Context and tap the tools icon in either UI mode. Confirm a dedicated
+unused UID. Creation uses the kernel's exclusive-create operation; updates,
+cleanup and undo send the last successful receipt's revision. No check/write
+race or legacy fallback remains in the mutation path.
 
-* **Run tests** checks zero defaults, query/list JSON, foreground transitions,
-  full-width profile IDs, high/all tag bits, OR/AND-NOT, invalid CLI inputs,
-  independent fields, timestamps, and removal. Its record is cleaned up on
-  completion or failure when the ownership snapshot still matches.
-* **Start debug session** creates a dedicated test record. Set foreground,
-  profile and tag masks, query the raw JSON, then end the session to remove it.
-  No arbitrary shell command, clear-all, or capacity test is exposed.
-* Results can be selected and copied. Test outcomes and session safety messages
-  follow the app language (English and Simplified Chinese are provided); raw
-  ksud errors and JSON remain unchanged for diagnostics.
-* Before each mutation/deletion the tool checks the last observed snapshot.
-  If another producer changes it, mutation is refused. Use **Detach without
-  deleting** to leave a conflicted record for manual inspection.
+* **Run tests** covers the original field/JSON/boundary checks plus atomic
+  multi-field replacement, exclusive-create rejection, stale update/delete/undo
+  rejection, restoration and one-shot undo. It ends with conditional cleanup.
+* **Start debug session** provides individual field/tag controls and an atomic
+  all-fields action. For the latter, choose foreground and enter profile/tags;
+  all three are replaced at once. **Undo latest transaction** restores the
+  immediately preceding transaction, or deletes the record if creation was the
+  latest transaction. **End and clean up** uses revision-checked deletion.
+* A conflict leaves the receipt unchanged and stops mutation/cleanup. Use
+  **Detach without deleting** for manual inspection; never reacquire the latest
+  revision merely to force cleanup after external writes.
+* Results can be selected/copied. Test outcomes and session safety messages
+  follow the app language (English/Simplified Chinese); raw ksud errors and JSON
+  remain unchanged. Process death may leave a record behind.
 
-These checks are best effort: the UAPI has no exclusive-create, owner token or
-compare-and-swap operation, so there is still a race between a snapshot check and
-its write. Stop other writers for the chosen UID. Process death can leave the
-test record behind; inspect that UID before manual removal. This panel is not a
-replacement for concurrency, invalid-pointer or kernel fault-injection tests.

@@ -18,11 +18,26 @@
 struct app_context {
     struct ksu_app_context_entry entry;
     struct list_head list;
+    u64 revision;
+    bool undo_valid;
+    bool undo_existed;
+    struct ksu_app_context_entry undo_entry;
 };
 
 static LIST_HEAD(app_context_list);
 static DEFINE_MUTEX(app_context_lock);
 static u32 app_context_count = 0;
+/* Never reset on clear/remove: a delete/recreate must not accept an old receipt.
+ * On exhaustion writes fail rather than reusing a revision (ABA protection).
+ */
+static u64 app_context_revision;
+
+static void touch_context_locked(struct app_context *ctx)
+{
+    ctx->revision = ++app_context_revision;
+    ctx->undo_valid = false;
+    ctx->entry.last_update_ns = ktime_get_ns();
+}
 
 static struct app_context *find_or_create_context_locked(uid_t uid)
 {
@@ -87,6 +102,10 @@ int ksu_app_context_set_foreground(uid_t uid, bool foreground)
     int ret = 0;
 
     mutex_lock(&app_context_lock);
+    if (app_context_revision == ~0ULL) {
+        ret = -EOVERFLOW;
+        goto out;
+    }
     ctx = find_or_create_context_locked(uid);
     if (IS_ERR(ctx)) {
         ret = PTR_ERR(ctx);
@@ -94,7 +113,7 @@ int ksu_app_context_set_foreground(uid_t uid, bool foreground)
     }
 
     ctx->entry.foreground = foreground;
-    ctx->entry.last_update_ns = ktime_get_ns();
+    touch_context_locked(ctx);
 
 out:
     mutex_unlock(&app_context_lock);
@@ -107,6 +126,10 @@ int ksu_app_context_set_profile(uid_t uid, u32 profile_id)
     int ret = 0;
 
     mutex_lock(&app_context_lock);
+    if (app_context_revision == ~0ULL) {
+        ret = -EOVERFLOW;
+        goto out;
+    }
     ctx = find_or_create_context_locked(uid);
     if (IS_ERR(ctx)) {
         ret = PTR_ERR(ctx);
@@ -114,7 +137,7 @@ int ksu_app_context_set_profile(uid_t uid, u32 profile_id)
     }
 
     ctx->entry.profile_id = profile_id;
-    ctx->entry.last_update_ns = ktime_get_ns();
+    touch_context_locked(ctx);
 
 out:
     mutex_unlock(&app_context_lock);
@@ -127,6 +150,10 @@ int ksu_app_context_set_tag(uid_t uid, u64 tag_mask)
     int ret = 0;
 
     mutex_lock(&app_context_lock);
+    if (app_context_revision == ~0ULL) {
+        ret = -EOVERFLOW;
+        goto out;
+    }
     ctx = find_or_create_context_locked(uid);
     if (IS_ERR(ctx)) {
         ret = PTR_ERR(ctx);
@@ -134,7 +161,7 @@ int ksu_app_context_set_tag(uid_t uid, u64 tag_mask)
     }
 
     ctx->entry.tags |= tag_mask;
-    ctx->entry.last_update_ns = ktime_get_ns();
+    touch_context_locked(ctx);
 
 out:
     mutex_unlock(&app_context_lock);
@@ -147,6 +174,10 @@ int ksu_app_context_clear_tag(uid_t uid, u64 tag_mask)
     int ret = 0;
 
     mutex_lock(&app_context_lock);
+    if (app_context_revision == ~0ULL) {
+        ret = -EOVERFLOW;
+        goto out;
+    }
     ctx = find_context_locked(uid);
     if (!ctx) {
         ret = -ENOENT;
@@ -154,7 +185,7 @@ int ksu_app_context_clear_tag(uid_t uid, u64 tag_mask)
     }
 
     ctx->entry.tags &= ~tag_mask;
-    ctx->entry.last_update_ns = ktime_get_ns();
+    touch_context_locked(ctx);
 
 out:
     mutex_unlock(&app_context_lock);
@@ -210,6 +241,189 @@ int ksu_app_context_remove(uid_t uid)
 out:
     mutex_unlock(&app_context_lock);
     return ret;
+}
+
+/* Publish the receipt while the lock still excludes all readers/writers. A
+ * partial user copy may expose an unusable receipt, but must never commit state.
+ * Keep this path sleepable: copy_to_user can fault while holding the mutex.
+ */
+static int transact(struct ksu_app_context_transaction_cmd *cmd, void __user *raw)
+{
+    struct app_context *ctx, *allocated = NULL;
+    struct ksu_app_context_entry next = { 0 };
+    bool creating;
+    int ret = 0;
+
+    if (!cmd || cmd->reserved ||
+        (cmd->flags & ~KSU_APP_CONTEXT_TX_CREATE) ||
+        (cmd->fields & ~(KSU_APP_CONTEXT_FIELD_FG |
+                         KSU_APP_CONTEXT_FIELD_PROFILE | KSU_APP_CONTEXT_FIELD_TAGS)) ||
+        !cmd->fields ||
+        (!(cmd->fields & KSU_APP_CONTEXT_FIELD_FG) && cmd->foreground) ||
+        (!(cmd->fields & KSU_APP_CONTEXT_FIELD_PROFILE) && cmd->profile_id) ||
+        (!(cmd->fields & KSU_APP_CONTEXT_FIELD_TAGS) && cmd->tags) ||
+        ((cmd->fields & KSU_APP_CONTEXT_FIELD_FG) && cmd->foreground > 1))
+        return -EINVAL;
+    creating = cmd->flags & KSU_APP_CONTEXT_TX_CREATE;
+    if (creating ? cmd->expected_revision != 0 : cmd->expected_revision == 0)
+        return -EINVAL;
+
+    mutex_lock(&app_context_lock);
+    ctx = find_context_locked(cmd->uid);
+    if (creating) {
+        if (ctx) {
+            ret = -EEXIST;
+            goto out;
+        }
+        if (app_context_count >= KSU_APP_CONTEXT_MAX_ENTRIES) {
+            ret = -ENOSPC;
+            goto out;
+        }
+        allocated = kzalloc(sizeof(*allocated), GFP_KERNEL);
+        if (!allocated) {
+            ret = -ENOMEM;
+            goto out;
+        }
+        ctx = allocated;
+        next.uid = cmd->uid;
+    } else {
+        if (!ctx || ctx->revision != cmd->expected_revision) {
+            ret = -ESTALE;
+            goto out;
+        }
+        next = ctx->entry;
+    }
+    if (app_context_revision == ~0ULL) {
+        ret = -EOVERFLOW;
+        goto out;
+    }
+    if (cmd->fields & KSU_APP_CONTEXT_FIELD_FG)
+        next.foreground = cmd->foreground;
+    if (cmd->fields & KSU_APP_CONTEXT_FIELD_PROFILE)
+        next.profile_id = cmd->profile_id;
+    if (cmd->fields & KSU_APP_CONTEXT_FIELD_TAGS)
+        next.tags = cmd->tags;
+    next.last_update_ns = ktime_get_ns();
+    cmd->entry = next;
+    cmd->revision = app_context_revision + 1;
+    if (raw && copy_to_user(raw, cmd, sizeof(*cmd))) {
+        ret = -EFAULT;
+        goto out;
+    }
+
+    /* No fallible operations beyond this point. */
+    ctx->undo_entry = ctx->entry;
+    ctx->undo_existed = !creating;
+    ctx->undo_valid = true;
+    ctx->entry = next;
+    ctx->revision = ++app_context_revision;
+    if (creating) {
+        list_add(&ctx->list, &app_context_list);
+        app_context_count++;
+        allocated = NULL;
+    }
+out:
+    mutex_unlock(&app_context_lock);
+    kfree(allocated);
+    return ret;
+}
+
+int ksu_app_context_transact(struct ksu_app_context_transaction_cmd *cmd)
+{
+    return transact(cmd, NULL);
+}
+
+static int versioned(u32 op, struct ksu_app_context_versioned_cmd *cmd,
+                     void __user *raw)
+{
+    struct app_context *ctx;
+    struct ksu_app_context_entry next = { 0 };
+    bool remove = false;
+    int ret = 0;
+
+    if (!cmd || cmd->reserved || cmd->reserved2 ||
+        (op != KSU_APP_CONTEXT_OP_QUERY_VERSIONED &&
+         op != KSU_APP_CONTEXT_OP_REMOVE_VERSIONED &&
+         op != KSU_APP_CONTEXT_OP_ROLLBACK))
+        return -EINVAL;
+    if (op == KSU_APP_CONTEXT_OP_QUERY_VERSIONED ?
+        cmd->expected_revision != 0 : cmd->expected_revision == 0)
+        return -EINVAL;
+
+    mutex_lock(&app_context_lock);
+    ctx = find_context_locked(cmd->uid);
+    if (op == KSU_APP_CONTEXT_OP_QUERY_VERSIONED) {
+        if (!ctx) {
+            ret = -ENOENT;
+            goto out;
+        }
+        next = ctx->entry;
+        cmd->revision = ctx->revision;
+        cmd->exists = 1;
+    } else {
+        if (!ctx || ctx->revision != cmd->expected_revision) {
+            ret = -ESTALE;
+            goto out;
+        }
+        if (op == KSU_APP_CONTEXT_OP_ROLLBACK && !ctx->undo_valid) {
+            ret = -ENOENT;
+            goto out;
+        }
+        remove = op == KSU_APP_CONTEXT_OP_REMOVE_VERSIONED || !ctx->undo_existed;
+        cmd->revision = 0;
+        cmd->exists = !remove;
+        if (!remove) {
+            if (app_context_revision == ~0ULL) {
+                ret = -EOVERFLOW;
+                goto out;
+            }
+            next = ctx->undo_entry;
+            next.last_update_ns = ktime_get_ns();
+            cmd->revision = app_context_revision + 1;
+        }
+    }
+    cmd->entry = next;
+    if (raw && copy_to_user(raw, cmd, sizeof(*cmd))) {
+        ret = -EFAULT;
+        goto out;
+    }
+    if (op == KSU_APP_CONTEXT_OP_QUERY_VERSIONED)
+        goto out;
+    if (remove) {
+        list_del(&ctx->list);
+        kfree(ctx);
+        app_context_count--;
+    } else {
+        ctx->entry = next;
+        ctx->revision = ++app_context_revision;
+        ctx->undo_valid = false;
+    }
+out:
+    mutex_unlock(&app_context_lock);
+    return ret;
+}
+
+int ksu_app_context_versioned(u32 op, struct ksu_app_context_versioned_cmd *cmd)
+{
+    return versioned(op, cmd, NULL);
+}
+
+static int handle_transaction(void __user *raw)
+{
+    struct ksu_app_context_transaction_cmd cmd;
+
+    if (copy_from_user(&cmd, raw, sizeof(cmd)))
+        return -EFAULT;
+    return transact(&cmd, raw);
+}
+
+static int handle_versioned(u32 op, void __user *raw)
+{
+    struct ksu_app_context_versioned_cmd cmd;
+
+    if (copy_from_user(&cmd, raw, sizeof(cmd)))
+        return -EFAULT;
+    return versioned(op, &cmd, raw);
 }
 
 static int handle_query(void __user *raw)
@@ -352,6 +566,12 @@ int ksu_extension_app_context_io(u32 id, void __user *raw)
         return -EINVAL;
 
     switch (cmd.op) {
+    case KSU_APP_CONTEXT_OP_TRANSACT:
+        return handle_transaction(raw + offsetof(struct ksu_app_context_cmd, payload.transaction));
+    case KSU_APP_CONTEXT_OP_QUERY_VERSIONED:
+    case KSU_APP_CONTEXT_OP_REMOVE_VERSIONED:
+    case KSU_APP_CONTEXT_OP_ROLLBACK:
+        return handle_versioned(cmd.op, raw + offsetof(struct ksu_app_context_cmd, payload.versioned));
     case KSU_APP_CONTEXT_OP_QUERY:
         return handle_query(raw + offsetof(struct ksu_app_context_cmd, payload.query));
     case KSU_APP_CONTEXT_OP_SET_FG:

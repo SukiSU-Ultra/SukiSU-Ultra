@@ -67,6 +67,19 @@ class AppContextToolsViewModel : ViewModel() {
         log(current.query())
     }
 
+    fun updateAll(foreground: Boolean, profile: String, tags: String) = execute {
+        val current = session ?: error(appContextTestText(R.string.app_context_log_start_first))
+        current.updateAll(foreground, profile, tags)
+        log(current.query())
+    }
+
+    fun rollback() = execute {
+        val current = session ?: error(appContextTestText(R.string.app_context_log_start_first))
+        val restored = current.rollback()
+        log(appContextTestText(R.string.app_context_log_rollback))
+        if (restored == null) session = null else log(current.query())
+    }
+
     fun query() = execute {
         log((session ?: error(appContextTestText(R.string.app_context_log_start_first))).query())
     }
@@ -111,6 +124,7 @@ class AppContextToolsViewModel : ViewModel() {
             check(test.update("set-tag", "0xffffffffffffffff").tags.toULong() == ULong.MAX_VALUE)
             log(appContextTestText(R.string.app_context_log_allbits))
             test.verifyInvalidInputs(::log)
+            test.verifyAtomicity(::log)
             val before = test.snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
             check(test.snapshot() == before)
             val after = test.update("set-profile", "42")

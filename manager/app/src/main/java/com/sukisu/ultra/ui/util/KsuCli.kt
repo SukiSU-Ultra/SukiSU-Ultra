@@ -1266,19 +1266,17 @@ suspend fun addDynamicManager(packageName: String, signature: DynamicManagerSign
     runDynamicManagerCommand("manager", "add", packageName, signature.certSize.toString(), signature.hash)
 }
 
-/** Restricted test session: never adopts an existing record or clears global state.
- * The UAPI has no compare-and-swap/ownership token. Stop other writers for this UID;
- * snapshot checks detect interference but cannot eliminate check/write races.
+/** Dedicated test record. All mutations are revision-checked in the kernel.
+ * Never adopt an externally changed revision or fall back to legacy writes.
  */
 class AppContextTestSession private constructor(val uid: Long) {
     private var expected: AppContextEntry? = null
+    private var revision = "0"
 
     companion object {
         suspend fun start(uid: Long): AppContextTestSession {
             require(uid in 1..0xffffffffL) { appContextTestText(R.string.app_context_log_uid_range) }
-            val session = AppContextTestSession(uid)
-            check(session.snapshot() == null) { appContextTestText(R.string.app_context_log_exists, uid) }
-            return session
+            return AppContextTestSession(uid)
         }
     }
 
@@ -1297,55 +1295,101 @@ class AppContextTestSession private constructor(val uid: Long) {
         }
     }
 
-    suspend fun snapshot(): AppContextEntry? =
-        AppContextJson.decode(command("list", "--json")).singleOrNull { it.uid == uid }
-
-    suspend fun query(): String {
-        checkUnchanged()
-        return command("query", uid.toString(), "--json")
-    }
-
-    private suspend fun checkUnchanged() {
-        check(snapshot() == expected) {
-            appContextTestText(R.string.app_context_log_conflict, uid)
-        }
-    }
-
-    suspend fun create() {
-        check(expected == null) { appContextTestText(R.string.app_context_log_created) }
-        checkUnchanged()
-        command("set-fg", uid.toString(), "false")
-        expected = snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
-    }
-
-    suspend fun update(operation: String, value: String): AppContextEntry {
-        check(expected != null) { appContextTestText(R.string.app_context_log_start_first) }
-        val normalized = when (operation) {
-            "set-fg" -> value.toBooleanStrict().toString()
-            "set-profile" -> value.toLong().also {
-                require(it in 0..0xffffffffL) { appContextTestText(R.string.app_context_log_profile_range) }
-            }.toString()
-            "set-tag", "clear-tag" -> {
-                val mask = if (value.startsWith("0x", ignoreCase = true)) {
-                    value.substring(2).toULong(16)
-                } else value.toULong()
-                "0x" + mask.toString(16)
-            }
-            else -> error(appContextTestText(R.string.app_context_log_unsupported))
-        }
-        checkUnchanged()
-        command(operation, uid.toString(), normalized)
-        val entry = snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
+    private fun acceptReceipt(output: String): AppContextEntry? {
+        val receipt = org.json.JSONObject(output)
+        check(receipt.getInt("version") == 1)
+        val exists = receipt.getBoolean("exists")
+        val nextRevision = receipt.getString("revision")
+        check(if (exists) nextRevision.toULong() > 0uL else nextRevision == "0")
+        val entry = if (exists) {
+            val envelope = org.json.JSONObject().put("version", 1)
+                .put("entries", org.json.JSONArray().put(receipt.getJSONObject("entry")))
+            AppContextJson.decode(envelope.toString()).single().also { check(it.uid == uid) }
+        } else null
+        revision = nextRevision
         expected = entry
         return entry
     }
 
+    suspend fun snapshot(): AppContextEntry? =
+        AppContextJson.decode(command("list", "--json")).singleOrNull { it.uid == uid }
+
+    suspend fun query(): String {
+        val output = command("query-versioned", uid.toString())
+        val receipt = org.json.JSONObject(output)
+        check(receipt.getString("revision") == revision) {
+            appContextTestText(R.string.app_context_log_conflict, uid)
+        }
+        return output
+    }
+
+    private suspend fun checkUnchanged() { query() }
+
+    suspend fun create() {
+        check(expected == null) { appContextTestText(R.string.app_context_log_created) }
+        acceptReceipt(command("transact", uid.toString(), "--create", "--foreground", "false"))
+    }
+
+    private fun parseMask(value: String): ULong =
+        if (value.startsWith("0x", ignoreCase = true)) value.substring(2).toULong(16)
+        else value.toULong()
+
+    private fun parseProfile(value: String): String = value.toLong().also {
+        require(it in 0..0xffffffffL) { appContextTestText(R.string.app_context_log_profile_range) }
+    }.toString()
+
+    suspend fun update(operation: String, value: String): AppContextEntry {
+        val before = expected ?: error(appContextTestText(R.string.app_context_log_start_first))
+        val (field, normalized) = when (operation) {
+            "set-fg" -> "--foreground" to value.toBooleanStrict().toString()
+            "set-profile" -> "--profile" to parseProfile(value)
+            "set-tag" -> "--tags" to "0x${(before.tags.toULong() or parseMask(value)).toString(16)}"
+            "clear-tag" -> "--tags" to "0x${(before.tags.toULong() and parseMask(value).inv()).toString(16)}"
+            else -> error(appContextTestText(R.string.app_context_log_unsupported))
+        }
+        return acceptReceipt(command("transact", uid.toString(), "--revision", revision,
+            field, normalized)) ?: error(appContextTestText(R.string.app_context_log_missing))
+    }
+
+    suspend fun updateAll(foreground: Boolean, profile: String, tags: String): AppContextEntry {
+        check(expected != null) { appContextTestText(R.string.app_context_log_start_first) }
+        return acceptReceipt(command("transact", uid.toString(), "--revision", revision,
+            "--foreground", foreground.toString(), "--profile", parseProfile(profile),
+            "--tags", "0x${parseMask(tags).toString(16)}"))
+            ?: error(appContextTestText(R.string.app_context_log_missing))
+    }
+
+    /** One-shot undo of the latest transaction; create undo removes the record. */
+    suspend fun rollback(): AppContextEntry? {
+        check(expected != null) { appContextTestText(R.string.app_context_log_start_first) }
+        return acceptReceipt(command("rollback", uid.toString(), revision))
+    }
+
     suspend fun cleanup() {
         if (expected == null) return
-        checkUnchanged()
-        command("remove", uid.toString())
-        expected = null
-        check(snapshot() == null) { appContextTestText(R.string.app_context_log_still_exists) }
+        acceptReceipt(command("remove-versioned", uid.toString(), revision))
+    }
+
+    suspend fun verifyAtomicity(log: (String) -> Unit) {
+        val before = expected ?: error(appContextTestText(R.string.app_context_log_missing))
+        val stale = revision
+        val after = updateAll(true, "123", "0x8000000000000001")
+        check(after.foreground && after.profileId == 123L && after.tags.toULong() == 0x8000000000000001uL)
+        suspend fun rejected(vararg args: String) {
+            var failed = false
+            try { command(*args) } catch (_: IOException) { failed = true }
+            check(failed) { appContextTestText(R.string.app_context_log_invalid_accepted, args.joinToString(" ")) }
+            checkUnchanged()
+        }
+        rejected("transact", uid.toString(), "--create", "--foreground", "false")
+        rejected("transact", uid.toString(), "--revision", stale, "--profile", "9")
+        rejected("remove-versioned", uid.toString(), stale)
+        rejected("rollback", uid.toString(), stale)
+        log(appContextTestText(R.string.app_context_log_atomic))
+        val restored = rollback() ?: error(appContextTestText(R.string.app_context_log_missing))
+        check(restored.foreground == before.foreground && restored.profileId == before.profileId && restored.tags == before.tags)
+        rejected("rollback", uid.toString(), revision)
+        log(appContextTestText(R.string.app_context_log_rollback))
     }
 
     suspend fun verifyInvalidInputs(log: (String) -> Unit) {

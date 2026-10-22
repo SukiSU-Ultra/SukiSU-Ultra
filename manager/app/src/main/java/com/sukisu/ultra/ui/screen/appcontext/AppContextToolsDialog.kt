@@ -47,6 +47,7 @@ fun AppContextToolsDialog(onDismiss: () -> Unit) {
     var uid by rememberSaveable { mutableStateOf("199999") }
     var profile by rememberSaveable { mutableStateOf("42") }
     var tags by rememberSaveable { mutableStateOf("0x8000000000000001") }
+    var foreground by rememberSaveable { mutableStateOf(false) }
     var consent by rememberSaveable { mutableStateOf(false) }
     val active = state.sessionUid != null
     val validUid = uid.toLongOrNull()?.let { it in 1..0xffffffffL } == true
@@ -107,6 +108,19 @@ fun AppContextToolsDialog(onDismiss: () -> Unit) {
                     ToolButton(onClick = { model.update("clear-tag", tags) }, enabled = !state.busy) {
                         ToolText(stringResource(R.string.app_context_clear_bits))
                     }
+                }
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (miuix) MiuixCheckbox(state = ToggleableState(foreground),
+                        onClick = { foreground = !foreground }, enabled = !state.busy)
+                    else Checkbox(checked = foreground, onCheckedChange = { foreground = it }, enabled = !state.busy)
+                    ToolText(stringResource(R.string.app_context_foreground))
+                }
+                ToolButton(onClick = { model.updateAll(foreground, profile, tags) }, enabled = !state.busy) {
+                    ToolText(stringResource(R.string.app_context_atomic_apply))
+                }
+                ToolButton(onClick = model::rollback, enabled = !state.busy) {
+                    ToolText(stringResource(R.string.app_context_rollback))
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ToolButton(onClick = model::query, enabled = !state.busy) {

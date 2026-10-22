@@ -781,7 +781,7 @@
     <string name="app_context_updated">Last write (monotonic clock)</string>
     <string name="app_context_update_ns">%1$s ns</string>
     <string name="app_context_tools">Test and debug</string>
-    <string name="app_context_tools_warning">Only a dedicated, unused UID is allowed. Existing records are never adopted. Stop other writers for this UID: the kernel has no atomic ownership check. No clear-all or capacity test is performed. End the session to remove the test record. App termination may leave a record behind; inspect it before manual cleanup.</string>
+    <string name="app_context_tools_warning">Use a dedicated UID. Creation is exclusive; updates, removal and undo are checked atomically against the kernel revision. Other writers cause conflicts rather than being overwritten. Undo is one-shot and only restores the latest transaction; undoing creation removes the record. A matching kernel and ksud are required; no unsafe fallback is used. Process death may leave a test record behind.</string>
     <string name="app_context_test_uid">Dedicated test UID (1?4294967295)</string>
     <string name="app_context_test_consent">I confirm this UID is unused and no other producer will write to it.</string>
     <string name="app_context_run_tests">Run tests</string>
@@ -826,4 +826,8 @@
     <string name="app_context_log_rejected">PASS: rejected invalid input %1$s</string>
     <string name="app_context_log_invalid_number">Invalid number or tag mask: %1$s</string>
     <string name="app_context_log_check_failed">Test assertion failed; see the last completed step</string>
+    <string name="app_context_atomic_apply">Atomically replace foreground, profile and tags</string>
+    <string name="app_context_rollback">Undo latest transaction (undo create deletes record)</string>
+    <string name="app_context_log_atomic">PASS: atomic multi-field update, exclusive create and stale requests rejected</string>
+    <string name="app_context_log_rollback">PASS: latest transaction rolled back with a fresh revision</string>
 </resources>
