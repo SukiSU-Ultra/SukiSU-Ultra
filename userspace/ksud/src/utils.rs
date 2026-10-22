@@ -114,6 +114,72 @@ pub fn ensure_binary<T: AsRef<Path>>(
     Ok(())
 }
 
+#[cfg(test)]
+mod ensure_binary_tests {
+    use super::ensure_binary;
+    use std::fs;
+    use std::os::unix::fs::{PermissionsExt, symlink};
+
+    #[test]
+    fn should_preserve_existing_files_and_directories_when_ignored() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("binary");
+        fs::write(&path, b"existing")?;
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o640))?;
+        ensure_binary(&path, b"replacement", true)?;
+        assert_eq!(fs::read(&path)?, b"existing");
+        assert_eq!(fs::metadata(&path)?.permissions().mode() & 0o777, 0o640);
+        ensure_binary(dir.path(), b"replacement", true)?;
+        assert!(dir.path().is_dir());
+        assert!(ensure_binary(dir.path(), b"replacement", false).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn should_overwrite_and_restore_missing_binaries() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("bin/binary");
+        ensure_binary(&path, b"first", true)?;
+        assert_eq!(fs::read(&path)?, b"first");
+        ensure_binary(&path, b"second", false)?;
+        assert_eq!(fs::read(&path)?, b"second");
+        fs::remove_file(&path)?;
+        ensure_binary(&path, b"restored", true)?;
+        assert_eq!(fs::read(&path)?, b"restored");
+        assert_eq!(fs::metadata(&path)?.permissions().mode() & 0o777, 0o755);
+        Ok(())
+    }
+
+    #[test]
+    fn should_follow_exists_semantics_and_unlink_before_overwriting() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("target");
+        let link = dir.path().join("binary");
+        fs::write(&target, b"target")?;
+        symlink(&target, &link)?;
+        ensure_binary(&link, b"ignored", true)?;
+        assert!(fs::symlink_metadata(&link)?.is_symlink());
+        ensure_binary(&link, b"replacement", false)?;
+        assert!(!fs::symlink_metadata(&link)?.is_symlink());
+        assert_eq!(fs::read(&link)?, b"replacement");
+        assert_eq!(fs::read(&target)?, b"target");
+
+        fs::remove_file(&link)?;
+        fs::remove_file(&target)?;
+        symlink(&target, &link)?;
+        ensure_binary(&link, b"restored", true)?;
+        assert_eq!(fs::read(&link)?, b"restored");
+        assert!(!fs::symlink_metadata(&link)?.is_symlink());
+        assert!(!target.exists());
+
+        fs::remove_file(&link)?;
+        symlink(dir.path(), &link)?;
+        ensure_binary(&link, b"ignored", true)?;
+        assert!(fs::symlink_metadata(&link)?.is_symlink());
+        Ok(())
+    }
+}
+
 unsafe extern "C" fn property_read_callback(
     cookie: *mut c_void,
     _name: *const c_char,

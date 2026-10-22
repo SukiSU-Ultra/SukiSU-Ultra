@@ -5,6 +5,13 @@ import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 
 @Immutable
+data class HomeLoadState(
+    val content: HomeUiState? = null,
+    val isRefreshing: Boolean = true,
+    val error: String? = null,
+)
+
+@Immutable
 data class HomeUiState(
     val kernelVersion: KernelVersion,
     val ksuVersion: Int?,

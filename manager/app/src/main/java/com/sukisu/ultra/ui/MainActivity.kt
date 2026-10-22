@@ -60,15 +60,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.ui.component.bottombar.BottomBar
@@ -147,7 +150,6 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(newBase))
     }
 
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashStartedAt = SystemClock.uptimeMillis()
@@ -203,11 +205,25 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val isManager = Natives.isManager
-        if (isManager && Natives.kernelUAPIVersion == Natives.managerUAPIVersion) install()
-
         if (savedInstanceState == null) intent?.let { intentChannel.trySend(it) }
 
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val isManager = Natives.isManager
+                ensureActive()
+                if (isManager && Natives.kernelUAPIVersion == Natives.managerUAPIVersion) {
+                    // Keep install's result logging and exception propagation intact.
+                    install()
+                }
+            }
+            // A blocking shell may finish after destruction; never initialize that Activity.
+            ensureActive()
+            if (!isFinishing && !isDestroyed) setMainContent()
+        }
+    }
+
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    private fun setMainContent() {
         setContent {
             val viewModel = viewModel<MainActivityViewModel>()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()

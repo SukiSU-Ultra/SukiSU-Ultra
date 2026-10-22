@@ -80,6 +80,20 @@ class RepoSortTest {
     }
 
     @Test
+    fun shouldPreserveEqualValueOrder_whenFilteringSortedModules() {
+        val tied = listOf("z", "a", "y", "b").map { module(it, stars = 5, epoch = 100, name = "Same") }
+        for (order in RepoSort.entries) {
+            val sorted = order.sort(tied, Locale.ENGLISH)
+            assertEquals(tied, sorted)
+            val filtered = sorted.filter { it.moduleId != "a" }
+            assertEquals(listOf("z", "y", "b"), filtered.map { it.moduleId })
+            assertEquals(filtered, order.sort(filtered, Locale.ENGLISH))
+            val selected = order.sort(modules, Locale.ENGLISH).filter { it.moduleId != "a" }
+            assertEquals(selected, order.sort(selected, Locale.ENGLISH))
+        }
+    }
+
+    @Test
     fun starCountIsCompact() {
         assertEquals("0", formatStarCount(0))
         assertEquals("999", formatStarCount(999))

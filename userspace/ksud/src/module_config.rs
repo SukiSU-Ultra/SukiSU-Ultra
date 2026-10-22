@@ -2,7 +2,7 @@ use anyhow::{Context, Result, bail};
 use log::{debug, warn};
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::defs;
@@ -116,14 +116,18 @@ pub fn load_config(module_id: &str, config_type: ConfigType) -> Result<HashMap<S
     crate::module::validate_module_id(module_id)?;
 
     let config_path = get_config_path(module_id, config_type);
+    load_config_file(&config_path)
+}
 
+fn load_config_file(config_path: &Path) -> Result<HashMap<String, String>> {
     if !config_path.exists() {
         debug!("Config file not found: {}", config_path.display());
         return Ok(HashMap::new());
     }
 
-    let mut file = File::open(&config_path)
+    let file = File::open(config_path)
         .with_context(|| format!("Failed to open config file: {}", config_path.display()))?;
+    let mut file = BufReader::new(file);
 
     // Read magic
     let mut magic_buf = [0u8; 4];
@@ -226,11 +230,16 @@ pub fn save_config(
     ensure_config_dir(module_id)?;
 
     let config_path = get_config_path(module_id, config_type);
+    save_config_file(&config_path, config)
+}
+
+fn save_config_file(config_path: &Path, config: &HashMap<String, String>) -> Result<()> {
     let temp_path = config_path.with_extension("tmp");
 
     // Write to temporary file first
-    let mut file = File::create(&temp_path)
+    let file = File::create(&temp_path)
         .with_context(|| format!("Failed to create temp config file: {}", temp_path.display()))?;
+    let mut file = BufWriter::new(file);
 
     // Write magic
     file.write_all(&MODULE_CONFIG_MAGIC.to_le_bytes())
@@ -268,11 +277,14 @@ pub fn save_config(
             .with_context(|| format!("Failed to write value data for '{key}'"))?;
     }
 
-    file.sync_all()
+    file.flush()
+        .with_context(|| "Failed to flush config file")?;
+    file.get_ref()
+        .sync_all()
         .with_context(|| "Failed to sync config file")?;
 
     // Atomic rename
-    fs::rename(&temp_path, &config_path).with_context(|| {
+    fs::rename(&temp_path, config_path).with_context(|| {
         format!(
             "Failed to rename config file: {} -> {}",
             temp_path.display(),
@@ -469,4 +481,197 @@ pub fn clear_module_configs(module_id: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn header(magic: u32, version: u32, count: u32) -> Vec<u8> {
+        [magic, version, count]
+            .into_iter()
+            .flat_map(u32::to_le_bytes)
+            .collect()
+    }
+
+    fn append_entry(bytes: &mut Vec<u8>, key: &[u8], value: &[u8]) {
+        bytes.extend_from_slice(&u32::try_from(key.len()).unwrap().to_le_bytes());
+        bytes.extend_from_slice(key);
+        bytes.extend_from_slice(&u32::try_from(value.len()).unwrap().to_le_bytes());
+        bytes.extend_from_slice(value);
+    }
+
+    #[test]
+    fn should_preserve_binary_format_and_replace_atomically() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let config = HashMap::from([("alpha".to_string(), "value\0\n中文".to_string())]);
+        let mut expected = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 1);
+        append_entry(&mut expected, b"alpha", "value\0\n中文".as_bytes());
+        save_config_file(&path, &config)?;
+        assert_eq!(fs::read(&path)?, expected);
+        assert_eq!(load_config_file(&path)?, config);
+        assert!(!path.with_extension("tmp").exists());
+
+        let old_file = File::open(&path)?;
+        save_config_file(&path, &HashMap::new())?;
+        assert!(load_config_file(&path)?.is_empty());
+        let mut old_contents = Vec::new();
+        BufReader::new(old_file).read_to_end(&mut old_contents)?;
+        assert_eq!(old_contents, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn should_round_trip_values_larger_than_the_buffer() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let config = HashMap::from([
+            ("empty".to_string(), String::new()),
+            (
+                "k".repeat(MAX_CONFIG_KEY_LEN),
+                "v".repeat(MAX_CONFIG_VALUE_LEN),
+            ),
+        ]);
+        for (key, value) in &config {
+            validate_config_key(key)?;
+            validate_config_value(value)?;
+        }
+        save_config_file(&path, &config)?;
+        assert_eq!(load_config_file(&path)?, config);
+        Ok(())
+    }
+
+    #[test]
+    fn should_tolerate_missing_files_and_observe_external_changes() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        assert!(load_config_file(&path)?.is_empty());
+        for value in ["first", "second"] {
+            let mut bytes = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 1);
+            append_entry(&mut bytes, b"alpha", value.as_bytes());
+            fs::write(&path, bytes)?;
+            assert_eq!(load_config_file(&path)?["alpha"], value);
+        }
+        fs::remove_file(&path)?;
+        assert!(load_config_file(&path)?.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn should_reject_truncated_configs_at_every_field() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let mut bytes = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 1);
+        append_entry(&mut bytes, b"alpha", b"value");
+        for length in 0..bytes.len() {
+            fs::write(&path, &bytes[..length])?;
+            assert!(load_config_file(&path).is_err(), "accepted {length} bytes");
+        }
+        fs::write(&path, bytes)?;
+        assert_eq!(load_config_file(&path)?["alpha"], "value");
+        Ok(())
+    }
+
+    #[test]
+    fn should_reject_corrupt_headers_lengths_and_utf8() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let mut cases = vec![
+            header(0, MODULE_CONFIG_VERSION, 0),
+            header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION + 1, 0),
+            header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 33),
+        ];
+        let mut oversized_key = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 1);
+        oversized_key
+            .extend_from_slice(&u32::try_from(MAX_CONFIG_KEY_LEN + 1).unwrap().to_le_bytes());
+        cases.push(oversized_key);
+        let mut oversized_value = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 1);
+        append_entry(&mut oversized_value, b"alpha", b"");
+        oversized_value.truncate(oversized_value.len() - 4);
+        oversized_value.extend_from_slice(
+            &u32::try_from(MAX_CONFIG_VALUE_LEN + 1)
+                .unwrap()
+                .to_le_bytes(),
+        );
+        cases.push(oversized_value);
+        for (key, value) in [
+            (b"\xff".as_slice(), b"value".as_slice()),
+            (b"alpha", b"\xff"),
+        ] {
+            let mut invalid_utf8 = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 1);
+            append_entry(&mut invalid_utf8, key, value);
+            cases.push(invalid_utf8);
+        }
+        for bytes in cases {
+            fs::write(&path, bytes)?;
+            assert!(load_config_file(&path).is_err());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn should_keep_legacy_duplicate_key_and_trailing_byte_behavior() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let mut bytes = header(MODULE_CONFIG_MAGIC, MODULE_CONFIG_VERSION, 2);
+        // Loading historically validates lengths/UTF-8, not the key's save-time syntax.
+        append_entry(&mut bytes, b"!", b"persist");
+        append_entry(&mut bytes, b"!", b"last");
+        bytes.extend_from_slice(b"trailing");
+        fs::write(&path, bytes)?;
+        assert_eq!(
+            load_config_file(&path)?,
+            HashMap::from([("!".into(), "last".into())])
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn should_preserve_destination_when_temp_creation_or_rename_fails() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let temp_path = path.with_extension("tmp");
+        fs::write(&path, b"original")?;
+        fs::create_dir(&temp_path)?;
+        assert!(save_config_file(&path, &HashMap::new()).is_err());
+        assert_eq!(fs::read(&path)?, b"original");
+        fs::remove_dir(&temp_path)?;
+        fs::remove_file(&path)?;
+        fs::create_dir(&path)?;
+        assert!(save_config_file(&path, &HashMap::new()).is_err());
+        assert!(path.is_dir());
+        assert!(temp_path.is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn should_preserve_existing_temp_permissions_after_replacement() -> Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir()?;
+        let path = dir.path().join("config.bin");
+        let temp_path = path.with_extension("tmp");
+        fs::write(&temp_path, b"stale")?;
+        fs::set_permissions(&temp_path, fs::Permissions::from_mode(0o640))?;
+        save_config_file(&path, &HashMap::new())?;
+        assert_eq!(fs::metadata(&path)?.permissions().mode() & 0o777, 0o640);
+        Ok(())
+    }
+
+    #[test]
+    fn should_enforce_save_validation_limits() -> Result<()> {
+        for key in ["", "a", "1a", "a/b"] {
+            assert!(validate_config_key(key).is_err());
+        }
+        assert!(validate_config_key(&"k".repeat(MAX_CONFIG_KEY_LEN + 1)).is_err());
+        assert!(validate_config_value(&"v".repeat(MAX_CONFIG_VALUE_LEN + 1)).is_err());
+        let mut config: HashMap<_, _> = (0..MAX_CONFIG_COUNT)
+            .map(|index| (format!("key{index}"), String::new()))
+            .collect();
+        validate_config_count(&config)?;
+        config.insert("extra".into(), String::new());
+        assert!(validate_config_count(&config).is_err());
+        Ok(())
+    }
 }

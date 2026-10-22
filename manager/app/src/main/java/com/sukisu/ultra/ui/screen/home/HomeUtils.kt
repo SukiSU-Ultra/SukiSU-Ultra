@@ -11,6 +11,11 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.Natives.isManager
 import com.sukisu.ultra.ui.util.getSuSFSStatus
 import com.sukisu.ultra.ui.util.getSuSFSVersion
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 
 data class ManagerVersion(
     val versionName: String,
@@ -29,55 +34,61 @@ data class SystemInfo(
 )
 
 fun getZygiskImplementation(
+    modulesJson: String,
     notInstalledText: String,
     disabledText: String,
     rebootRequiredText: String,
 ): String {
     return runCatching {
-        val modulesJson = com.sukisu.ultra.ui.util.listModules()
-        val array = org.json.JSONArray(modulesJson)
-        val providers = mutableListOf<org.json.JSONObject>()
-        for (i in 0 until array.length()) {
-            val obj = array.getJSONObject(i)
-            val isProvider = (obj.optInt("zygisk_provider") != 0) || obj.optBoolean("zygisk_provider")
-            if (isProvider) {
-                providers.add(obj)
-            }
-        }
+        val providers = Json.parseToJsonElement(modulesJson).jsonArray
+            .map { it.jsonObject }
+            .filter { it.zygiskFlag("zygisk_provider") }
 
         if (providers.isEmpty()) {
             return notInstalledText
         }
 
-        // 1. Check if any provider's daemon is actively running
-        val runningProvider = providers.firstOrNull {
-            (it.optInt("zygisk_running") != 0) || it.optBoolean("zygisk_running")
-        }
+        // Running takes priority even when a provider was disabled/removed pending reboot.
+        val runningProvider = providers.firstOrNull { it.zygiskFlag("zygisk_running") }
         if (runningProvider != null) {
-            val name = runningProvider.optString("name").takeIf { it.isNotBlank() }
-                ?: runningProvider.getString("id")
-            val version = runningProvider.optString("version").takeIf { it.isNotBlank() }
-            return listOfNotNull(name, version).joinToString(" ")
+            val version = runningProvider.stringValue("version").takeIf { it.isNotBlank() }
+            return listOfNotNull(runningProvider.providerName(), version).joinToString(" ")
         }
 
-        // 2. If none is running, check enabled status
         val enabledProviders = providers.filter {
-            it.optBoolean("enabled", false) && !it.optBoolean("remove", false)
+            it.booleanValue("enabled") && !it.booleanValue("remove")
         }
         if (enabledProviders.isNotEmpty()) {
-            val names = enabledProviders.joinToString(", ") {
-                it.optString("name").takeIf { name -> name.isNotBlank() } ?: it.getString("id")
-            }
+            val names = enabledProviders.joinToString(", ") { it.providerName() }
             return "$names ($rebootRequiredText)"
         }
 
-        // 3. All installed providers are disabled
-        val names = providers.joinToString(", ") {
-            it.optString("name").takeIf { name -> name.isNotBlank() } ?: it.getString("id")
-        }
-        return "$names ($disabledText)"
+        val names = providers.joinToString(", ") { it.providerName() }
+        "$names ($disabledText)"
     }.getOrDefault(notInstalledText)
 }
+
+fun getHomeModuleCount(modulesJson: String): Int =
+    runCatching { Json.parseToJsonElement(modulesJson).jsonArray.size }.getOrDefault(0)
+
+private fun JsonObject.stringValue(key: String): String = when (val value = this[key]) {
+    null -> ""
+    is JsonPrimitive -> value.content
+    else -> value.toString()
+}
+
+private fun JsonObject.booleanValue(key: String): Boolean =
+    stringValue(key).equals("true", ignoreCase = true)
+
+private fun JsonObject.zygiskFlag(key: String): Boolean {
+    // Match the old optInt/optBoolean coercion, including numeric and boolean strings.
+    val number = stringValue(key).toDoubleOrNull()?.toInt() ?: 0
+    return number != 0 || booleanValue(key)
+}
+
+private fun JsonObject.providerName(): String =
+    stringValue("name").takeIf { it.isNotBlank() }
+        ?: stringValue("id").also { require(containsKey("id")) }
 
 
 fun getManagerVersion(context: Context): ManagerVersion {

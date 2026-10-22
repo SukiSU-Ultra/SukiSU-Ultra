@@ -13,7 +13,10 @@ import android.util.Log
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import com.sukisu.zako.IKsuInterface
 import com.sukisu.ultra.Natives
@@ -23,15 +26,50 @@ import com.sukisu.ultra.data.model.WEBVIEW_ZYGOTE_UID
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.KsuService
 import com.sukisu.ultra.ui.util.KsuCli
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.resume
 
 class SuperUserRepositoryImpl : SuperUserRepository {
 
     companion object {
         private const val TAG = "SuperUserRepository"
+        private val scanMutex = Mutex()
+        private val packageGeneration = AtomicLong()
+        private var cachedScan: AppScan? = null
+
+        fun invalidateAppList() {
+            packageGeneration.incrementAndGet()
+        }
     }
 
-    override suspend fun getAppList(): Result<Pair<List<AppInfo>, List<Int>>> = withContext(Dispatchers.IO) {
+    private data class AppScan(
+        val apps: List<AppInfo>,
+        val userIds: List<Int>,
+        val locales: String,
+        val generation: Long,
+    )
+
+    override suspend fun getAppList(force: Boolean): Result<Pair<List<AppInfo>, List<Int>>> = withContext(Dispatchers.IO) {
+        if (!KsuCli.SHELL.isRoot) {
+            return@withContext Result.failure(IllegalStateException("Root access is required"))
+        }
+        scanMutex.withLock {
+            val generation = packageGeneration.get()
+            val locales = ksuApp.resources.configuration.locales.toLanguageTags() + ":" + Locale.getDefault().toLanguageTag()
+            val cached = cachedScan
+            if (!force && cached != null && cached.generation == generation && cached.locales == locales) {
+                return@withLock refreshProfiles(cached.apps).map { it to cached.userIds }
+            }
+            scanAppList().onSuccess { (apps, userIds) ->
+                if (packageGeneration.get() == generation) {
+                    cachedScan = AppScan(apps, userIds, locales, generation)
+                }
+            }
+        }
+    }
+
+    private suspend fun scanAppList(): Result<Pair<List<AppInfo>, List<Int>>> = withContext(Dispatchers.IO) {
         runCatching {
             if (!KsuCli.SHELL.isRoot) {
                 return@withContext Result.failure(
@@ -109,7 +147,7 @@ class SuperUserRepositoryImpl : SuperUserRepository {
                 Log.i(TAG, "load cost: ${SystemClock.elapsedRealtime() - start}")
                 Pair(newApps, idsArray.toList())
             } finally {
-                withContext(Dispatchers.Main) {
+                withContext(NonCancellable + Dispatchers.Main) {
                     RootService.unbind(currentConnection)
                 }
             }

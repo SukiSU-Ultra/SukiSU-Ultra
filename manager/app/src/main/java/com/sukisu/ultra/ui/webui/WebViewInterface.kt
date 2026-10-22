@@ -11,17 +11,17 @@ import android.widget.Toast
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.topjohnwu.superuser.CallbackList
-import com.topjohnwu.superuser.ShellUtils
-import com.topjohnwu.superuser.internal.UiThreadHandler
-import com.sukisu.ultra.ui.util.createRootShell
 import com.sukisu.ultra.ui.util.listModules
 import com.sukisu.ultra.ui.util.withNewRootShell
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
+import com.topjohnwu.superuser.CallbackList
+import com.topjohnwu.superuser.ShellUtils
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.util.concurrent.CompletableFuture
 
 class WebViewInterface(private val state: WebUIState) {
     private val webView get() = state.webView
@@ -64,20 +64,16 @@ class WebViewInterface(private val state: WebUIState) {
         processOptions(finalCommand, options)
         finalCommand.append(cmd)
 
-        val result = withNewRootShell(true) {
-            newJob().add(finalCommand.toString()).to(ArrayList(), ArrayList()).exec()
-        }
-        val stdout = result.out.joinToString(separator = "\n")
-        val stderr = result.err.joinToString(separator = "\n")
-
-        val jsCode =
-            "javascript: (function() { try { ${callbackFunc}(${result.code}, ${
-                JSONObject.quote(
-                    stdout
-                )
-            }, ${JSONObject.quote(stderr)}); } catch(e) { console.error(e); } })();"
-        webView?.post {
-            webView?.loadUrl(jsCode)
+        state.exec { page ->
+            val result = page.withShell { shell ->
+                shell.newJob().add(finalCommand.toString()).to(ArrayList(), ArrayList()).exec()
+            }
+            val stdout = result.out.joinToString(separator = "\n")
+            val stderr = result.err.joinToString(separator = "\n")
+            page.evaluateJavascript(
+                "(function() { try { ${callbackFunc}(${result.code}, ${JSONObject.quote(stdout)}, " +
+                    "${JSONObject.quote(stderr)}); } catch(e) { console.error(e); } })();"
+            )
         }
     }
 
@@ -99,59 +95,60 @@ class WebViewInterface(private val state: WebUIState) {
             finalCommand.append(command)
         }
 
-        val shell = createRootShell(true)
-
-        val emitData = fun(name: String, data: String) {
-            val jsCode =
-                "javascript: (function() { try { ${callbackFunc}.${name}.emit('data', ${
-                    JSONObject.quote(
-                        data
-                    )
-                }); } catch(e) { console.error('emitData', e); } })();"
-            webView?.post {
-                webView?.loadUrl(jsCode)
-            }
-        }
-
-        val stdout = object : CallbackList<String>(UiThreadHandler::runAndWait) {
-            override fun onAddElement(s: String) {
-                emitData("stdout", s)
-            }
-        }
-
-        val stderr = object : CallbackList<String>(UiThreadHandler::runAndWait) {
-            override fun onAddElement(s: String) {
-                emitData("stderr", s)
-            }
-        }
-
-        val future = shell.newJob().add(finalCommand.toString()).to(stdout, stderr).enqueue()
-        val completableFuture = CompletableFuture.supplyAsync {
-            future.get()
-        }
-
-        completableFuture.thenAccept { result ->
-            val emitExitCode =
-                "javascript: (function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
-            webView?.post {
-                webView?.loadUrl(emitExitCode)
-            }
-
-            if (result.code != 0) {
-                val emitErrCode =
-                    "javascript: (function() { try { var err = new Error(); err.exitCode = ${result.code}; err.message = ${
-                        JSONObject.quote(
-                            result.err.joinToString(
-                                "\n"
+        state.spawn { page ->
+            coroutineScope {
+                val output = WebUIOutput()
+                val delivery = launch(start = CoroutineStart.UNDISPATCHED) {
+                    try {
+                        output.drain { batch ->
+                            val events = JSONArray()
+                            batch.forEach { line ->
+                                events.put(JSONArray().put(line.stream).put(line.data))
+                            }
+                            page.evaluateJavascript(
+                                "(function() { var events = $events; " +
+                                    "for (var i = 0; i < events.length; i++) { try { " +
+                                    "${callbackFunc}[events[i][0]].emit('data', events[i][1]); " +
+                                    "} catch(e) { console.error('emitData', e); } } })();"
                             )
+                        }
+                    } finally {
+                        output.cancel()
+                    }
+                }
+                try {
+                    val result = page.withShell(onCancel = output::cancel) { shell ->
+                        // Direct callbacks preserve each reader's order without a per-line Main hop.
+                        val stdout = output.callbackList("stdout")
+                        val stderr = output.callbackList("stderr")
+                        shell.newJob().add(finalCommand.toString()).to(stdout, stderr).exec()
+                    }
+                    output.finish()
+                    delivery.join()
+                    page.evaluateJavascript(
+                        "(function() { try { ${callbackFunc}.emit('exit', ${result.code}); " +
+                            "} catch(e) { console.error(`emitExit error: \${e}`); } })();"
+                    )
+                    // Keep the existing exit-before-error contract. The JS wrapper deletes its
+                    // callback on exit; do not cache that object or make error newly observable.
+                    if (result.code != 0) {
+                        page.evaluateJavascript(
+                            "(function() { try { var err = new Error(); err.exitCode = ${result.code}; " +
+                                "err.message = ${JSONObject.quote(result.err.joinToString("\n"))}; " +
+                                "${callbackFunc}.emit('error', err); " +
+                                "} catch(e) { console.error('emitErr', e); } })();"
                         )
-                    };${callbackFunc}.emit('error', err); } catch(e) { console.error('emitErr', e); } })();"
-                webView?.post {
-                    webView?.loadUrl(emitErrCode)
+                    }
+                } finally {
+                    output.cancel()
                 }
             }
-        }.whenComplete { _, _ ->
-            runCatching { shell.close() }
+        }
+    }
+
+    private fun WebUIOutput.callbackList(stream: String) = object : CallbackList<String>({ it.run() }) {
+        override fun onAddElement(s: String) {
+            this@callbackList.add(stream, s)
         }
     }
 
