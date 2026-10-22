@@ -59,6 +59,7 @@ enum ksu_extension_id {
     KSU_EXTENSION_UMOUNT_PATHS = 2,
     KSU_EXTENSION_DYNAMIC_MANAGER = 3,
     KSU_EXTENSION_SUSFS = 4,
+    KSU_EXTENSION_APP_CONTEXT = 5,
 
     KSU_EXTENSION_MAX
 };
@@ -131,6 +132,124 @@ struct ksu_extension_umount_cmd {
 #define KSU_UMOUNT_IO_OP_ADD  1u
 #define KSU_UMOUNT_IO_OP_DEL  2u
 #define KSU_UMOUNT_IO_OP_LIST 3u
+
+/* 5. APP_CONTEXT: caller-maintained, volatile shared state.
+ * No automatic foreground/profile detection or expiry. Writers own cleanup.
+ * Reserved fields must be zero; foreground is exactly 0 or 1.
+ * New UIDs fail with ENOSPC at capacity; existing records are never evicted.
+ * LIST returns ENOSPC instead of silently truncating a snapshot.
+ */
+#define KSU_APP_CONTEXT_MAX_ENTRIES    512u
+#define KSU_APP_CONTEXT_OP_QUERY       1u
+#define KSU_APP_CONTEXT_OP_SET_FG      2u
+#define KSU_APP_CONTEXT_OP_SET_PROFILE 3u
+#define KSU_APP_CONTEXT_OP_SET_TAG     4u
+#define KSU_APP_CONTEXT_OP_CLEAR_TAG   5u
+#define KSU_APP_CONTEXT_OP_LIST        6u
+#define KSU_APP_CONTEXT_OP_REMOVE      7u
+#define KSU_APP_CONTEXT_OP_CLEAR_ALL   8u
+#define KSU_APP_CONTEXT_OP_TRANSACT    9u
+#define KSU_APP_CONTEXT_OP_ROLLBACK    10u
+#define KSU_APP_CONTEXT_OP_QUERY_VERSIONED 11u
+#define KSU_APP_CONTEXT_OP_REMOVE_VERSIONED 12u
+
+#define KSU_APP_CONTEXT_TX_CREATE      1u /* Exclusive create, never upsert. */
+#define KSU_APP_CONTEXT_FIELD_FG       1u
+#define KSU_APP_CONTEXT_FIELD_PROFILE  2u
+#define KSU_APP_CONTEXT_FIELD_TAGS     4u
+
+struct ksu_app_context_entry {
+    __u32 uid;
+    __u32 foreground;
+    __u32 profile_id;
+    __u32 reserved;
+    __aligned_u64 tags;
+    __aligned_u64 last_update_ns;
+};
+
+struct ksu_app_context_query_cmd {
+    __u32 uid;
+    __u32 reserved;
+    struct ksu_app_context_entry entry;
+};
+
+struct ksu_app_context_set_fg_cmd {
+    __u32 uid;
+    __u32 foreground;
+};
+
+struct ksu_app_context_set_profile_cmd {
+    __u32 uid;
+    __u32 profile_id;
+};
+
+struct ksu_app_context_tag_cmd {
+    __u32 uid;
+    __u32 reserved;
+    __aligned_u64 tag_mask;
+};
+
+struct ksu_app_context_list_cmd {
+    __aligned_u64 buffer;
+    __u32 max_count;
+    __u32 out_count;
+};
+
+struct ksu_app_context_remove_cmd {
+    __u32 uid;
+    __u32 reserved;
+};
+
+/* Transactions require expected_revision > 0 for existing records, or CREATE
+ * with expected_revision == 0. fields selects replacements (not tag OR).
+ * Successful CREATE/update saves exactly one kernel-owned undo snapshot.
+ * Any subsequent write (including legacy writes) invalidates the old receipt.
+ * revision and entry are output only. All errors leave the store unchanged.
+ */
+struct ksu_app_context_transaction_cmd {
+    __u32 uid;
+    __u32 flags;
+    __u32 fields;
+    __u32 foreground;
+    __u32 profile_id;
+    __u32 reserved;
+    __aligned_u64 expected_revision;
+    __aligned_u64 tags;
+    __aligned_u64 revision;
+    struct ksu_app_context_entry entry;
+};
+
+/* QUERY_VERSIONED: expected_revision must be zero; missing UID is ENOENT.
+ * REMOVE_VERSIONED / ROLLBACK: expected_revision must match the current record.
+ * ROLLBACK restores only the most recent transaction, with a fresh revision
+ * and timestamp, or removes an exclusively created record. It is one-shot.
+ * exists, revision and entry are outputs; absent output is zero initialized.
+ * reserved/reserved2 must be zero. Stale receipts return ESTALE.
+ */
+struct ksu_app_context_versioned_cmd {
+    __u32 uid;
+    __u32 reserved;
+    __aligned_u64 expected_revision;
+    __aligned_u64 revision;
+    __u32 exists;
+    __u32 reserved2;
+    struct ksu_app_context_entry entry;
+};
+
+struct ksu_app_context_cmd {
+    __u32 op;                  /* KSU_APP_CONTEXT_OP_* */
+    __u32 reserved;
+    union {
+        struct ksu_app_context_query_cmd query;
+        struct ksu_app_context_set_fg_cmd set_fg;
+        struct ksu_app_context_set_profile_cmd set_profile;
+        struct ksu_app_context_tag_cmd tag;
+        struct ksu_app_context_list_cmd list;
+        struct ksu_app_context_remove_cmd remove;
+        struct ksu_app_context_transaction_cmd transaction;
+        struct ksu_app_context_versioned_cmd versioned;
+    } payload;
+};
 
 /* IOCTL command: one ioctl, four extensions. */
 static const __u32 KSU_IOCTL_EXTENSION =

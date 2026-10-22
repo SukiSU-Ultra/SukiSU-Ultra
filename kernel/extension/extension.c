@@ -24,6 +24,7 @@
 #include "umount_paths.h"
 #include "dynamic_manager.h"
 #include "susfs_extension.h"
+#include "app_context.h"
 #include "klog.h" // IWYU pragma: keep
 
 static const struct ksu_extension_handler *extension_handlers[KSU_EXTENSION_MAX];
@@ -36,6 +37,7 @@ static const char *const extension_names[KSU_EXTENSION_MAX] = {
     [KSU_EXTENSION_UMOUNT_PATHS] = "umount_paths",
     [KSU_EXTENSION_DYNAMIC_MANAGER] = "dynamic_manager",
     [KSU_EXTENSION_SUSFS] = "susfs",
+    [KSU_EXTENSION_APP_CONTEXT] = "app_context",
 };
 
 /*
@@ -398,6 +400,9 @@ void __init ksu_extension_init(void)
     for (i = 0; i < KSU_EXTENSION_MAX; i++)
         extension_handlers[i] = NULL;
 
+    /* Initialize app_context subsystem */
+    ksu_app_context_init();
+
     /* The apply_forced → register_all ordering is enforced at the
      * apply_forced call site; see extensions_registered. */
     pr_info("extension: subsystem initialized\n");
@@ -447,6 +452,13 @@ void __init ksu_extension_register_all(void)
         .name = "susfs",
         .ops = &ksu_extension_susfs_ops,
     };
+    static const struct ksu_extension_handler app_context_handler = {
+        .extension_id = KSU_EXTENSION_APP_CONTEXT,
+        .name = "app_context",
+        .ops = NULL,
+        .io_handler = ksu_extension_app_context_io,
+        .wipe = ksu_app_context_clear_all,
+    };
 
     if (ksu_register_extension_handler(&kpm_handler))
         pr_err("extension: failed to register kpm\n");
@@ -458,6 +470,8 @@ void __init ksu_extension_register_all(void)
         pr_err("extension: failed to register dynamic_manager\n");
     if (ksu_register_extension_handler(&susfs_handler))
         pr_err("extension: failed to register susfs\n");
+    if (ksu_register_extension_handler(&app_context_handler))
+        pr_err("extension: failed to register app_context\n");
 
     /* Publish: any future ksu_extension_apply_forced() is now safe.
      * The release-store pairs with the acquire-load in
@@ -473,5 +487,9 @@ void __exit ksu_extension_exit(void)
     mutex_lock(&extension_mutex);
     memset(extension_handlers, 0, sizeof(extension_handlers));
     mutex_unlock(&extension_mutex);
+
+    /* Cleanup app_context subsystem */
+    ksu_app_context_exit();
+
     pr_info("extension: subsystem cleaned up\n");
 }

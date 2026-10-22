@@ -4,7 +4,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -89,6 +88,7 @@ import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
 import com.sukisu.ultra.ui.screen.dynamicmanagers.DynamicManagersScreen
 import com.sukisu.ultra.ui.screen.extensions.ExtensionsScreen
+import com.sukisu.ultra.ui.screen.appcontext.AppContextScreen
 import com.sukisu.ultra.ui.screen.executemoduleaction.ExecuteModuleActionScreen
 import com.sukisu.ultra.ui.screen.flash.FlashScreen
 import com.sukisu.ultra.ui.screen.home.HomePager
@@ -133,6 +133,8 @@ import top.yukonga.miuix.kmp.utils.PagerGestureNestedScrollConnection
 import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
 import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import top.yukonga.miuix.kmp.utils.pagerGestureOverride
+import kotlin.time.Duration.Companion.milliseconds
+import androidx.core.graphics.drawable.toDrawable
 
 class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
@@ -229,9 +231,7 @@ class MainActivity : ComponentActivity() {
                 }
                 // Match the splash background so the shrunken content never shows a mismatched edge
                 window.setBackgroundDrawable(
-                    ColorDrawable(
-                        getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light)
-                    )
+                    getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light).toDrawable()
                 )
                 onDispose { }
             }
@@ -346,11 +346,12 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.UmountManager>(swipeDismiss = swipeDismiss)  { UmountManagerScreen() }
                                 entry<Route.DynamicManagers>(swipeDismiss = swipeDismiss) { DynamicManagersScreen() }
                                 entry<Route.Extensions>(swipeDismiss = swipeDismiss) { ExtensionsScreen() }
+                                entry<Route.AppContext>(swipeDismiss = swipeDismiss) { AppContextScreen() }
                         }
                     }
 
                     LaunchedEffect(Unit) {
-                        delay(splashAnimationDurationMs + 300L)
+                        delay((splashAnimationDurationMs + 300L).milliseconds)
                         isSplashExiting = true
                     }
 

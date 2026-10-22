@@ -22,16 +22,18 @@ pub enum ExtensionId {
     UmountPaths = 2,
     DynamicManager = 3,
     Susfs = 4,
+    AppContext = 5,
 }
 
 impl ExtensionId {
     /// All known extension ids in declaration order.
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Kpm,
         Self::CpuSpoof,
         Self::UmountPaths,
         Self::DynamicManager,
         Self::Susfs,
+        Self::AppContext,
     ];
 
     /// Decode a u32 from the kernel uapi. `None` means "unknown /
@@ -43,6 +45,7 @@ impl ExtensionId {
             2 => Some(Self::UmountPaths),
             3 => Some(Self::DynamicManager),
             4 => Some(Self::Susfs),
+            5 => Some(Self::AppContext),
             _ => None,
         }
     }
@@ -74,6 +77,7 @@ impl ExtensionId {
             Self::UmountPaths => "umount_paths",
             Self::DynamicManager => "dynamic_manager",
             Self::Susfs => "susfs",
+            Self::AppContext => "app_context",
         }
     }
 
@@ -87,6 +91,7 @@ impl ExtensionId {
             Self::UmountPaths => "Umount path manager",
             Self::DynamicManager => "Dynamic manager",
             Self::Susfs => "SuSFS",
+            Self::AppContext => "App Context",
         }
     }
 
@@ -108,6 +113,9 @@ impl ExtensionId {
             Self::Susfs => {
                 "Configure hide-mount, spoof uname, redirect-open, kstat and other low-level kernel tricks. Requires the SuSFS kernel module to be installed."
             }
+            Self::AppContext => {
+                "Caller-maintained, volatile shared state per UID. Modules report foreground state, profile identifiers and tags. No automatic detection; writers own stale-record cleanup."
+            }
         }
     }
 }
@@ -119,6 +127,7 @@ pub fn parse_extension_id(name: &str) -> Result<ExtensionId> {
         "umount_paths" | "2" => Ok(ExtensionId::UmountPaths),
         "dynamic_manager" | "3" => Ok(ExtensionId::DynamicManager),
         "susfs" | "4" => Ok(ExtensionId::Susfs),
+        "app_context" | "5" => Ok(ExtensionId::AppContext),
         _ => bail!("Unknown extension: {name}"),
     }
 }
