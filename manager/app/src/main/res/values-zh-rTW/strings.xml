@@ -687,4 +687,7 @@
     <string name="temporary_root_duration_summary">授予臨時權限時預設的時長</string>
     <string name="temporary_root_switch_summary">與永久 Root 互斥。開啟後選擇時長；關閉即撤銷。</string>
     <string name="temporary_root_grant_title">選擇授權時長</string>
+    <string name="temporary_root_custom_duration">自訂時長</string>
+    <string name="temporary_root_custom_minutes">時長（分鐘）</string>
+    <string name="temporary_root_custom_range">請輸入 1～10080 分鐘（最多 7 天）</string>
 </resources>
