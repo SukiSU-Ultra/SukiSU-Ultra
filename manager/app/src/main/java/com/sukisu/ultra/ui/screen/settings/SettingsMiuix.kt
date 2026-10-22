@@ -113,7 +113,6 @@ fun SettingPagerMiuix(
                 overscrollEffect = null,
             ) {
                 item {
-                    TemporaryRootPreferences()
                     Card(
                         modifier = Modifier
                             .padding(top = 12.dp)
@@ -268,6 +267,7 @@ fun SettingPagerMiuix(
                                 }
                             )
                         }
+                        TemporaryRootPreferences()
                     }
 
                     KsuIsValid {

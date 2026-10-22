@@ -4,6 +4,8 @@ import android.os.Process
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -55,10 +57,34 @@ fun TemporaryRootPreferences() {
     val context = LocalContext.current
     var minutes by remember { mutableIntStateOf(TemporaryRoot.defaultMinutes(context)) }
     val durations = (listOf(5, 10, 30, 60) + minutes).distinct().sorted()
-    val labels = durations.map { stringResource(R.string.temporary_root_minutes, it) }
+    var showCustom by rememberSaveable { mutableStateOf(false) }
+    val labels = durations.map { stringResource(R.string.temporary_root_minutes, it) } +
+        stringResource(R.string.temporary_root_custom_duration)
     val onSelect: (Int) -> Unit = { index ->
-        minutes = durations[index]
-        TemporaryRoot.setDefaultMinutes(context, minutes)
+        if (index == durations.size) {
+            showCustom = true
+        } else {
+            minutes = durations[index]
+            TemporaryRoot.setDefaultMinutes(context, minutes)
+        }
+    }
+    if (showCustom) {
+        var input by rememberSaveable { mutableStateOf(minutes.toString()) }
+        val valid = input.toIntOrNull()?.let { it in 1..10080 } == true
+        val onInput: (String) -> Unit = { value ->
+            if (value.length <= 5 && value.all { it in '0'..'9' }) input = value
+        }
+        val onConfirm: () -> Unit = {
+            if (valid) {
+                minutes = input.toInt()
+                TemporaryRoot.setDefaultMinutes(context, minutes)
+                showCustom = false
+            }
+        }
+        when (LocalUiMode.current) {
+            UiMode.Miuix -> TemporaryRootCustomDurationMiuix(input, valid, onInput, { showCustom = false }, onConfirm)
+            UiMode.Material -> TemporaryRootCustomDurationMaterial(input, valid, onInput, { showCustom = false }, onConfirm)
+        }
     }
     when (LocalUiMode.current) {
         UiMode.Miuix -> TemporaryRootPreferencesMiuix(labels, durations.indexOf(minutes), onSelect)

@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -77,8 +83,12 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Switch
+import androidx.compose.foundation.layout.offset
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.unit.IntOffset
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
@@ -291,7 +301,11 @@ private fun AppProfileInner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
-                    .padding(top = 4.dp, bottom = 12.dp),
+                    .padding(top = 4.dp, bottom = 12.dp)
+                    .semantics {
+                        role = Role.Switch
+                        toggleableState = ToggleableState(checked)
+                    },
                 colors = CardDefaults.defaultColors(
                     color = if (checked) colorScheme.primary else colorScheme.surfaceContainer
                 ),
@@ -320,10 +334,7 @@ private fun AppProfileInner(
                             },
                         )
                     }
-                    Switch(
-                        checked = checked,
-                        onCheckedChange = onPermanentRootChange,
-                    )
+                    SuperuserSwitch(checked = checked)
                 }
             }
         }
@@ -614,6 +625,37 @@ private fun ProfileBox(
             selectedIndex = if (selectedIndex == -1) 0 else selectedIndex,
         ) {
             onModeChange(modesAndTitles[it].first)
+        }
+    }
+}
+/** Local decoration for the superuser card; other Miuix switches stay unchanged. */
+@Composable
+private fun SuperuserSwitch(checked: Boolean) {
+    // Match the thumb geometry and spring in Miuix 0.9.4. Keep the icon in
+    // logical start coordinates so that it follows the thumb in RTL as well.
+    val thumbOffset by animateDpAsState(
+        targetValue = if (checked) 25.dp else 4.dp,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 987f),
+        label = "superuser_check_offset",
+    )
+    Box(Modifier.size(width = 49.dp, height = 28.dp)) {
+        // The enclosing card owns the click action and switch semantics.
+        Switch(checked = checked, onCheckedChange = null)
+        if (checked) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .offset { IntOffset(thumbOffset.roundToPx(), 0) }
+                    .size(20.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
         }
     }
 }

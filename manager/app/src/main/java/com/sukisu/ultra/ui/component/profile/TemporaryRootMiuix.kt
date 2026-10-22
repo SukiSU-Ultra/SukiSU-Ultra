@@ -13,6 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Timer
+import top.yukonga.miuix.kmp.basic.TextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -49,7 +52,6 @@ internal fun TemporaryRootPreferencesMiuix(labels: List<String>, selectedIndex: 
                 startAction = { TemporaryRootIconMiuix() },
             )
         }
-        TemporaryRootNoticeMiuix()
     }
 }
 
@@ -143,6 +145,47 @@ internal fun TemporaryRootGrantDialogMiuix(options: List<RootGrantOption>, onDis
                     modifier = Modifier.weight(1f),
                 )
             }
+        }
+    }
+}
+
+@Composable
+internal fun TemporaryRootCustomDurationMiuix(
+    input: String,
+    valid: Boolean,
+    onInput: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    OverlayDialog(
+        show = true,
+        title = stringResource(R.string.temporary_root_custom_duration),
+        summary = stringResource(R.string.temporary_root_custom_range),
+        onDismissRequest = onDismiss,
+    ) {
+        TextField(
+            value = input,
+            onValueChange = onInput,
+            label = stringResource(R.string.temporary_root_custom_minutes),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+            ),
+        )
+        Row(Modifier.fillMaxWidth().padding(top = 16.dp)) {
+            TextButton(
+                text = stringResource(android.R.string.cancel),
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(16.dp))
+            TextButton(
+                text = stringResource(R.string.confirm),
+                onClick = onConfirm,
+                enabled = valid,
+                colors = ButtonDefaults.textButtonColorsPrimary(),
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }

@@ -12,9 +12,13 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,7 +48,6 @@ internal fun TemporaryRootPreferencesMaterial(labels: List<String>, selectedInde
                 onItemSelected = onSelect,
             )
         })
-        TemporaryRootNoticeMaterial()
     }
 }
 
@@ -121,5 +124,38 @@ internal fun TemporaryRootGrantDialogMaterial(options: List<RootGrantOption>, on
         },
         confirmButton = { TextButton(onClick = { onChoose(options[selectedIndex].seconds) }) { Text(stringResource(R.string.confirm)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+    )
+}
+
+@Composable
+internal fun TemporaryRootCustomDurationMaterial(
+    input: String,
+    valid: Boolean,
+    onInput: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    ExpressiveDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.temporary_root_custom_duration)) },
+        text = {
+            OutlinedTextField(
+                value = input,
+                onValueChange = onInput,
+                singleLine = true,
+                label = { Text(stringResource(R.string.temporary_root_custom_minutes)) },
+                supportingText = { Text(stringResource(R.string.temporary_root_custom_range)) },
+                isError = !valid,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                ),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = valid) { Text(stringResource(R.string.confirm)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
     )
 }
