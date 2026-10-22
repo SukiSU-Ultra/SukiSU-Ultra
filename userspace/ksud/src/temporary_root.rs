@@ -392,6 +392,8 @@ mod tests {
 }
 
 // JSON mirrors the Manager's serializable Profile; rules are managed separately.
+// These independent flags are part of the existing wire format, not a state machine.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ProfileInput {
@@ -422,42 +424,40 @@ fn copy_text(destination: &mut [libc::c_char], text: &str) -> Result<()> {
     Ok(())
 }
 
-impl ProfileInput {
-    fn to_profile(&self) -> Result<uapi::app_profile> {
-        let mut p: uapi::app_profile = unsafe { std::mem::zeroed() };
-        p.version = uapi::KSU_APP_PROFILE_VER;
-        p.curr_uid = self.current_uid;
-        p.allow_su = self.allow_su;
-        copy_text(&mut p.key, &self.name)?;
-        if self.allow_su {
-            let rp = unsafe { &mut p.__bindgen_anon_1.rp_config };
-            rp.use_default = self.root_use_default;
-            copy_text(
-                &mut rp.template_name,
-                self.root_template.as_deref().unwrap_or(""),
-            )?;
-            rp.profile.uid = self.uid;
-            rp.profile.gid = self.gid;
-            if self.groups.len() > rp.profile.groups.len()
-                || self.capabilities.iter().any(|c| *c >= 64)
-            {
-                bail!("invalid groups or capabilities");
-            }
-            rp.profile.groups_count = self.groups.len() as u32;
-            rp.profile.groups[..self.groups.len()].copy_from_slice(&self.groups);
-            rp.profile.capabilities.effective = self
-                .capabilities
-                .iter()
-                .fold(0, |bits, c| bits | (1u64 << c));
-            copy_text(&mut rp.profile.selinux_domain, &self.context)?;
-            rp.profile.namespaces = self.namespace;
-            rp.profile.flags = self.flags as u64;
-        } else {
-            p.__bindgen_anon_1.nrp_config.use_default = self.non_root_use_default;
-            p.__bindgen_anon_1.nrp_config.profile.umount_modules = self.umount_modules;
+fn to_profile(input: &ProfileInput) -> Result<uapi::app_profile> {
+    let mut p: uapi::app_profile = unsafe { std::mem::zeroed() };
+    p.version = uapi::KSU_APP_PROFILE_VER;
+    p.curr_uid = input.current_uid;
+    p.allow_su = input.allow_su;
+    copy_text(&mut p.key, &input.name)?;
+    if input.allow_su {
+        let rp = unsafe { &mut p.__bindgen_anon_1.rp_config };
+        rp.use_default = input.root_use_default;
+        copy_text(
+            &mut rp.template_name,
+            input.root_template.as_deref().unwrap_or(""),
+        )?;
+        rp.profile.uid = input.uid;
+        rp.profile.gid = input.gid;
+        if input.groups.len() > rp.profile.groups.len()
+            || input.capabilities.iter().any(|c| *c >= 64)
+        {
+            bail!("invalid groups or capabilities");
         }
-        Ok(p)
+        rp.profile.groups_count = input.groups.len() as u32;
+        rp.profile.groups[..input.groups.len()].copy_from_slice(&input.groups);
+        rp.profile.capabilities.effective = input
+            .capabilities
+            .iter()
+            .fold(0, |bits, c| bits | (1u64 << c));
+        copy_text(&mut rp.profile.selinux_domain, &input.context)?;
+        rp.profile.namespaces = input.namespace;
+        rp.profile.flags = input.flags as u64;
+    } else {
+        p.__bindgen_anon_1.nrp_config.use_default = input.non_root_use_default;
+        p.__bindgen_anon_1.nrp_config.profile.umount_modules = input.umount_modules;
     }
+    Ok(p)
 }
 
 /// Serialize every editor write with expiration. A lease is persisted before a
@@ -467,7 +467,7 @@ pub fn apply(manager: u32, mode: &str, expected_root: bool, json: &str) -> Resul
         bail!("root required");
     }
     let input: ProfileInput = serde_json::from_str(json)?;
-    let p = input.to_profile()?;
+    let p = to_profile(&input)?;
     if p.curr_uid < 0 || (p.allow_su && p.curr_uid < 2000 && p.curr_uid != 1000) {
         bail!("invalid profile UID");
     }
@@ -504,25 +504,25 @@ pub fn apply(manager: u32, mode: &str, expected_root: bool, json: &str) -> Resul
         }
         Ok(())
     })?;
-    if p.allow_su {
-        if let Some(seconds) = seconds {
-            leases.retain(|lease| lease.uid != p.curr_uid);
-            leases.push(Lease {
-                uid: p.curr_uid,
-                key: input.name,
-                manager,
-                boot,
-                deadline: if seconds == 0 {
-                    None
-                } else {
-                    Some(now + seconds)
-                },
-            });
-            save(&leases)?;
-            // Spawn before writing allow_su. Failure must never leave a grant
-            // without a worker. The worker blocks on our state lock.
-            start()?;
-        }
+    if p.allow_su
+        && let Some(seconds) = seconds
+    {
+        leases.retain(|lease| lease.uid != p.curr_uid);
+        leases.push(Lease {
+            uid: p.curr_uid,
+            key: input.name,
+            manager,
+            boot,
+            deadline: if seconds == 0 {
+                None
+            } else {
+                Some(now + seconds)
+            },
+        });
+        save(&leases)?;
+        // Spawn before writing allow_su. Failure must never leave a grant
+        // without a worker. The worker blocks on our state lock.
+        start()?;
     }
     as_manager(manager, || {
         let mut cmd = uapi::ksu_set_app_profile_cmd { profile: p };
@@ -538,7 +538,7 @@ pub fn apply(manager: u32, mode: &str, expected_root: bool, json: &str) -> Resul
 
 #[cfg(test)]
 mod apply_tests {
-    use super::{ProfileInput, copy_text};
+    use super::{ProfileInput, copy_text, to_profile};
 
     fn input() -> ProfileInput {
         serde_json::from_value(serde_json::json!({
@@ -564,7 +564,7 @@ mod apply_tests {
     #[test]
     fn manager_profile_roundtrip() {
         let input = input();
-        let p = input.to_profile().unwrap();
+        let p = to_profile(&input).unwrap();
         assert_eq!(p.curr_uid, 10001);
         assert!(p.allow_su);
         assert!(super::key_matches(&p, &input.name));
@@ -580,7 +580,7 @@ mod apply_tests {
     fn non_root_profile_uses_non_root_union() {
         let mut input = input();
         input.allow_su = false;
-        let p = input.to_profile().unwrap();
+        let p = to_profile(&input).unwrap();
         let nrp = unsafe { p.__bindgen_anon_1.nrp_config };
         assert!(!p.allow_su);
         assert!(!nrp.use_default);
@@ -591,10 +591,10 @@ mod apply_tests {
     fn reject_invalid_profile_fields() {
         let mut input = input();
         input.groups = vec![0; 33];
-        assert!(input.to_profile().is_err());
+        assert!(to_profile(&input).is_err());
         input.groups.clear();
         input.capabilities = vec![64];
-        assert!(input.to_profile().is_err());
+        assert!(to_profile(&input).is_err());
         let mut dst = [0; 4];
         assert!(copy_text(&mut dst, "abcd").is_err());
         assert!(copy_text(&mut dst, "a\0b").is_err());
