@@ -14,8 +14,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -66,7 +66,6 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -134,12 +133,14 @@ import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
 import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import top.yukonga.miuix.kmp.utils.pagerGestureOverride
 
+private enum class SplashPhase { Covered, Revealing, Done }
+
 class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
     private var contentReady = false
     private var splashStartedAt = 0L
     private val splashAnimationDurationMs = 600L
-    private var isSplashExiting by mutableStateOf(false)
+    private var splashPhase by mutableStateOf(SplashPhase.Done)
 
 
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -158,8 +159,9 @@ class MainActivity : ComponentActivity() {
             // iconView is missing when the system splash has no icon (some OEMs, non-launcher starts)
             val iconView = runCatching { provider.iconView }.getOrNull()
             val splashView = provider.view
+            splashPhase = SplashPhase.Covered
 
-            // 1. Icon 先微縮蓄力 (Scale 1.0 -> 0.86, 140ms)
+            // Icon anticipates, then launches forward while the splash fades out over the expanding content
             val anticipate = AnimatorSet().apply {
                 interpolator = PathInterpolator(0.3f, 0f, 0.2f, 1f)
                 duration = 140L
@@ -169,11 +171,9 @@ class MainActivity : ComponentActivity() {
                         ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 0.86f),
                     )
                 }
-                doOnEnd { isSplashExiting = true }
+                doOnEnd { splashPhase = SplashPhase.Revealing }
             }
 
-            // 2. Icon 向前衝出並消散 (Scale 0.86 -> 2.6, Alpha 1.0 -> 0.0, 320ms)
-            // 3. 背景隨之淡出，露出正在展開的內容 (延遲 40ms, 280ms)
             val launch = AnimatorSet().apply {
                 interpolator = PathInterpolator(0.4f, 0f, 0.6f, 1f)
                 duration = 320L
@@ -195,7 +195,10 @@ class MainActivity : ComponentActivity() {
 
             AnimatorSet().apply {
                 playSequentially(anticipate, launch)
-                doOnEnd { provider.remove() }
+                doOnEnd {
+                    provider.remove()
+                    splashPhase = SplashPhase.Done
+                }
                 start()
             }
         }
@@ -227,13 +230,17 @@ class MainActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     window.isNavigationBarContrastEnforced = false
                 }
-                // Match the splash background so the shrunken content never shows a mismatched edge
+                onDispose { }
+            }
+
+            // The splash follows the system night mode, so match it until the exit animation ends
+            val windowDark = if (splashPhase == SplashPhase.Done) darkMode else isSystemInDarkTheme()
+            LaunchedEffect(windowDark) {
                 window.setBackgroundDrawable(
                     ColorDrawable(
-                        getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light)
+                        getColor(if (windowDark) android.R.color.background_dark else android.R.color.background_light)
                     )
                 )
-                onDispose { }
             }
 
             val navigator = rememberNavigator(Route.Main)
@@ -349,25 +356,28 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    LaunchedEffect(Unit) {
-                        delay(splashAnimationDurationMs + 300L)
-                        isSplashExiting = true
+                    // Only shrinks while a splash covers it, so skipped splashes and recreations stay full size
+                    val enterProgress = remember { Animatable(1f) }
+                    val splashCovered = splashPhase == SplashPhase.Covered
+                    LaunchedEffect(splashCovered) {
+                        if (splashCovered) {
+                            enterProgress.snapTo(0f)
+                        } else {
+                            enterProgress.animateTo(
+                                targetValue = 1f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                ),
+                            )
+                        }
                     }
-
-                    val enterProgress by animateFloatAsState(
-                        targetValue = if (isSplashExiting) 1f else 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "splashExitContentProgress"
-                    )
 
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                // 內容從圓角小卡片展開成全螢幕 (Scale 0.86 -> 1.0, 圓角 36dp -> 0)
+                                val enterProgress = enterProgress.value
                                 val scale = 0.86f + 0.14f * enterProgress
                                 scaleX = scale
                                 scaleY = scale
