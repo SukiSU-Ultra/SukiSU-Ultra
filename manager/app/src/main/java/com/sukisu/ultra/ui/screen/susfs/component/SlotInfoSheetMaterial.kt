@@ -35,7 +35,10 @@ internal fun SlotInfoSheetMaterial(
     val slot = slots.getOrNull(selectedIndex)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+        ),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(

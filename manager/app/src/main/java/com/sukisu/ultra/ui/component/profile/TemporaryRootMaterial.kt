@@ -76,7 +76,6 @@ internal fun TemporaryRootControlsMaterial(
                         SegmentedListItem(
                             onClick = { onChoose(option.seconds) },
                             headlineContent = { Text(option.label) },
-                            supportingContent = { Text(stringResource(R.string.temporary_root_apply_summary)) },
                             leadingContent = { IconTile(Icons.Outlined.Timer, null) },
                         )
                     }
@@ -92,7 +91,7 @@ private fun TemporaryRootNoticeMaterial() {
     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
-            text = stringResource(R.string.temporary_root_warning),
+            text = stringResource(R.string.temporary_root_warning_short),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

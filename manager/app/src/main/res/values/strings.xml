@@ -779,20 +779,19 @@
     <string name="config_status_explanation">Switches show saved configuration, not runtime state. Runtime results below are from this session; reload does not verify kernel state.</string>
     <string name="config_exit_code">Command exit code: %1$d</string>
     <string name="temporary_root_active">Temporary Root is enabled</string>
-    <string name="temporary_root_title">Temporary Root (best effort)</string>
-    <string name="temporary_root_default">Default temporary Root duration: %1$d minutes</string>
+    <string name="temporary_root_title">Temporary Root</string>
     <string name="temporary_root_minutes">%1$d min</string>
     <string name="temporary_root_allow_seconds_test">Allow for %1$d seconds (test)</string>
     <string name="temporary_root_allow_minutes">Allow for %1$d minutes</string>
     <string name="temporary_root_until_reboot">Allow until reboot</string>
     <string name="temporary_root_permanent">Allow permanently</string>
     <string name="temporary_root_warning">Expiration only cancels future elevation; existing Root processes keep their privileges. Revocation is performed by ksud, not enforced by the kernel. If ksud stops, revocation may be delayed. Reboot cleanup also has a window before revocation; do not use this as a strict security boundary.</string>
+    <string name="temporary_root_warning_short">Expiration only blocks new elevation; processes that already have Root keep it.</string>
+    <string name="temporary_root_duration_title">Temporary Root duration</string>
+    <string name="temporary_root_duration_summary">Default duration offered when granting temporary access</string>
+    <string name="temporary_root_switch_summary">Mutually exclusive with permanent Root. Turn on to choose a duration; turn off to revoke.</string>
+    <string name="temporary_root_grant_title">Choose authorization period</string>
     <string name="temporary_root_custom_duration">Custom duration</string>
     <string name="temporary_root_custom_minutes">Duration (minutes)</string>
     <string name="temporary_root_custom_range">Enter 1–10080 minutes (up to 7 days)</string>
-    <string name="temporary_root_duration_title">Temporary Root duration</string>
-    <string name="temporary_root_duration_summary">Default duration offered when granting temporary access</string>
-    <string name="temporary_root_switch_summary">Mutually exclusive with permanent Root. Turn on and choose a duration to grant access; turning off revokes temporary Root access.</string>
-    <string name="temporary_root_apply_summary">Grant access now or restart the authorization period</string>
-    <string name="temporary_root_grant_title">Choose authorization period</string>
 </resources>

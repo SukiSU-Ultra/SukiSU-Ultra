@@ -77,7 +77,6 @@ internal fun TemporaryRootControlsMiuix(
                     options.forEach { option ->
                         ArrowPreference(
                             title = option.label,
-                            summary = stringResource(R.string.temporary_root_apply_summary),
                             onClick = { onChoose(option.seconds) },
                         )
                     }
@@ -99,9 +98,9 @@ private fun TemporaryRootIconMiuix() {
 }
 
 @Composable
-private fun TemporaryRootNoticeMiuix() {
+private fun TemporaryRootNoticeMiuix(text: String = stringResource(R.string.temporary_root_warning_short)) {
     Text(
-        text = stringResource(R.string.temporary_root_warning),
+        text = text,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         fontSize = MiuixTheme.textStyles.footnote1.fontSize,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -120,7 +119,7 @@ internal fun TemporaryRootGrantDialogMiuix(options: List<RootGrantOption>, onDis
         Column(Modifier.heightIn(max = 520.dp)) {
             // Keep actions outside the scrollable content for large text / landscape.
             Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
-                TemporaryRootNoticeMiuix()
+                TemporaryRootNoticeMiuix(stringResource(R.string.temporary_root_warning))
                 options.forEachIndexed { index, option ->
                     CheckboxPreference(
                         title = option.label,

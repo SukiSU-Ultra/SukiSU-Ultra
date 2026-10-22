@@ -772,20 +772,19 @@
     <string name="config_status_explanation">开关表示已保存配置，不代表运行状态。下方结果仅来自本次操作；重新加载配置不会验证内核状态。</string>
     <string name="config_exit_code">命令退出码：%1$d</string>
     <string name="temporary_root_active">已启用临时 Root</string>
-    <string name="temporary_root_title">临时 Root（尽力撤销）</string>
-    <string name="temporary_root_default">临时 Root 默认时长：%1$d 分钟</string>
+    <string name="temporary_root_title">临时 Root</string>
     <string name="temporary_root_minutes">%1$d 分钟</string>
     <string name="temporary_root_allow_seconds_test">允许 %1$d 秒（测试）</string>
     <string name="temporary_root_allow_minutes">允许 %1$d 分钟</string>
     <string name="temporary_root_until_reboot">允许到本次重启</string>
     <string name="temporary_root_permanent">永久允许</string>
     <string name="temporary_root_warning">到期仅取消后续提权资格，不会收回已有 Root 进程的权限。由 ksud 自动撤销，内核不检查期限；ksud 停止时撤销可能延迟，重启后也存在清理窗口。请勿将其作为严格的安全边界。</string>
+    <string name="temporary_root_warning_short">到期仅阻止新的提权，已获得 Root 的进程不受影响。</string>
+    <string name="temporary_root_duration_title">临时 Root 默认时长</string>
+    <string name="temporary_root_duration_summary">设置授予临时权限时提供的默认时长</string>
+    <string name="temporary_root_switch_summary">与永久 Root 互斥。开启后选择时长；关闭即撤销。</string>
+    <string name="temporary_root_grant_title">选择授权期限</string>
     <string name="temporary_root_custom_duration">自定义时长</string>
     <string name="temporary_root_custom_minutes">时长（分钟）</string>
     <string name="temporary_root_custom_range">请输入 1～10080 分钟（最多 7 天）</string>
-    <string name="temporary_root_duration_title">临时 Root 默认时长</string>
-    <string name="temporary_root_duration_summary">设置授予临时权限时提供的默认时长</string>
-    <string name="temporary_root_switch_summary">与永久 Root 授权互斥。开启后选择时长以授权；关闭会撤销临时 Root 权限。</string>
-    <string name="temporary_root_apply_summary">立即授权，或重新开始计算授权期限</string>
-    <string name="temporary_root_grant_title">选择授权期限</string>
 </resources>
