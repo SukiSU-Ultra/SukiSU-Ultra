@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.appprofile
 
+import com.sukisu.ultra.ui.component.profile.TemporaryRoot
+import com.sukisu.ultra.ui.component.profile.TemporaryRootGrantDialog
 import android.widget.Toast
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -16,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
@@ -86,12 +89,80 @@ fun AppProfileScreen(uid: Int) {
         }
     }
 
+    var temporaryEnabled by rememberSaveable(uid) { mutableStateOf(false) }
+    var pendingGrant by remember { mutableStateOf<Natives.Profile?>(null) }
+    var saving by remember { mutableStateOf(false) }
+    LaunchedEffect(uid) {
+        temporaryEnabled = TemporaryRoot.status(uid) in listOf("timed", "boot")
+        while (true) {
+            delay(1000)
+            if (!saving && profile.allowSu) {
+                val current = Natives.getAppProfile(packageName, uid)
+                if (!current.allowSu) profile = current
+            }
+        }
+    }
+
+    fun saveProfile(updatedProfile: Natives.Profile, seconds: Long? = null, updateLease: Boolean = false) {
+        if (saving) return
+        saving = true
+        scope.launch {
+            try {
+                val profileToSave = if (primaryAppInfo.special) updatedProfile.copy(allowSu = false) else updatedProfile
+                if (profileToSave.allowSu && profile.allowSu
+                    && !Natives.getAppProfile(packageName, uid).allowSu) {
+                    // Never regrant from a stale editor after ksud has revoked a lease.
+                    profile = Natives.getAppProfile(packageName, uid)
+                    showMessage(failToUpdateAppProfile)
+                    return@launch
+                }
+                if (profileToSave.allowSu) {
+                    if (uid < 2000 && uid != 1000) {
+                        showMessage(suNotAllowed)
+                        return@launch
+                    }
+                    if (!profileToSave.rootUseDefault && profileToSave.rules.isNotEmpty()
+                        && !primaryAppInfo.special && !setSepolicy(profileToSave.name, profileToSave.rules)) {
+                        showMessage(failToUpdateSepolicy)
+                        return@launch
+                    }
+                }
+                if (!TemporaryRoot.saveProfile(profileToSave, profile.allowSu, updateLease, seconds)) {
+                    // The watcher may have revoked while the editor was open.
+                    profile = Natives.getAppProfile(packageName, uid)
+                    temporaryEnabled = TemporaryRoot.status(uid) in listOf("timed", "boot")
+                    showMessage(failToUpdateAppProfile)
+                } else {
+                    profile = profileToSave
+                    if (updateLease) temporaryEnabled = seconds != null
+                    viewModel.loadAppList()
+                }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                showMessage(failToUpdateAppProfile)
+            } finally {
+                saving = false
+            }
+        }
+    }
+
+    pendingGrant?.let { requested ->
+        TemporaryRootGrantDialog(
+            onDismiss = { pendingGrant = null },
+            onChoose = { seconds ->
+                pendingGrant = null
+                saveProfile(requested, seconds, updateLease = true)
+            },
+        )
+    }
+
     val state = AppProfileUiState(
         uid = uid,
         packageName = packageName,
         profile = profile,
         appGroup = appGroup,
         sharedUserId = sharedUserId,
+        temporaryRoot = temporaryEnabled,
     )
 
     val actions = AppProfileActions(
@@ -107,36 +178,18 @@ fun AppProfileScreen(uid: Int) {
         onManageTemplate = {
             navigator.push(Route.AppProfileTemplate)
         },
-        onProfileChange = { updatedProfile ->
-            scope.launch {
-                val profileToSave = if (primaryAppInfo.special) {
-                    updatedProfile.copy(allowSu = false)
-                } else {
-                    updatedProfile
-                }
-                if (profileToSave.allowSu) {
-                    if (uid < 2000 && uid != 1000) {
-                        showMessage(suNotAllowed)
-                        return@launch
-                    }
-                    if (!profileToSave.rootUseDefault
-                        && profileToSave.rules.isNotEmpty()
-                        && !primaryAppInfo.special
-                        && !setSepolicy(profileToSave.name, profileToSave.rules)
-                    ) {
-                        showMessage(failToUpdateSepolicy)
-                        return@launch
-                    }
-                }
-                if (!Natives.setAppProfile(profileToSave)) {
-                    showMessage(failToUpdateAppProfile)
-                } else {
-                    profile = profileToSave
-                    if (uiMode == UiMode.Material) {
-                        viewModel.loadAppList()
-                    }
-                }
+        onTemporaryRootChange = { enabled ->
+            if (profile.allowSu) {
+                if (enabled) pendingGrant = profile
+                else saveProfile(profile, null, updateLease = true)
+            } else {
+                temporaryEnabled = enabled
             }
+        },
+        onTemporaryRootGrant = { seconds -> saveProfile(profile.copy(allowSu = true), seconds, updateLease = true) },
+        onProfileChange = { updatedProfile ->
+            if (updatedProfile.allowSu && !profile.allowSu) pendingGrant = updatedProfile
+            else saveProfile(updatedProfile)
         },
     )
 

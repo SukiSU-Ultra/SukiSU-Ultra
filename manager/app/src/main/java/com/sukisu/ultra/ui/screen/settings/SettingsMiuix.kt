@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -112,6 +113,7 @@ fun SettingPagerMiuix(
                 overscrollEffect = null,
             ) {
                 item {
+                    TemporaryRootPreferences()
                     Card(
                         modifier = Modifier
                             .padding(top = 12.dp)

@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.appprofile
 
+import com.sukisu.ultra.ui.component.profile.TemporaryRootControls
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -144,6 +145,9 @@ fun AppProfileScreenMaterial(
             onViewTemplate = actions.onViewTemplate,
             onManageTemplate = actions.onManageTemplate,
             onProfileChange = actions.onProfileChange,
+            temporaryRoot = state.temporaryRoot,
+            onTemporaryRootChange = actions.onTemporaryRootChange,
+            onTemporaryRootGrant = actions.onTemporaryRootGrant,
         )
     }
 }
@@ -159,6 +163,9 @@ private fun AppProfileInner(
     appVersionName: String,
     appVersionCode: Long,
     profile: Natives.Profile,
+    temporaryRoot: Boolean = false,
+    onTemporaryRootChange: (Boolean) -> Unit = {},
+    onTemporaryRootGrant: (Long?) -> Unit = {},
     isUidGroup: Boolean = false,
     isSpecialApp: Boolean = false,
     affectedApps: List<SuperUserViewModel.AppInfo> = emptyList(),
@@ -258,6 +265,14 @@ private fun AppProfileInner(
                 checked = isRootGranted,
                 summary = mode.text,
                 onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
+            )
+        }
+
+        if (!isSpecialApp) {
+            TemporaryRootControls(
+                enabled = temporaryRoot,
+                onEnabledChange = onTemporaryRootChange,
+                onChoose = onTemporaryRootGrant,
             )
         }
 
