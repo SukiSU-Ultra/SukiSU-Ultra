@@ -83,12 +83,12 @@ fun ExtensionsScreen() {
 
     val onOpenDetails: (ExtensionId) -> Unit = { id ->
         when (id) {
-            ExtensionId.Kpm -> navigator.push(Route.Kpm)
-            ExtensionId.DynamicManager -> navigator.push(Route.DynamicManagers)
             ExtensionId.UmountPaths -> navigator.push(Route.UmountManager)
             ExtensionId.CpuSpoof -> openCpuDialog()
-            ExtensionId.SuSFS -> navigator.push(Route.SuSFS)
             ExtensionId.AppContext -> navigator.push(Route.AppContext)
+            ExtensionId.DynamicManager -> navigator.push(Route.DynamicManagers)
+            ExtensionId.SuSFS -> navigator.push(Route.SuSFS)
+            ExtensionId.Kpm -> navigator.push(Route.Kpm)
         }
     }
 

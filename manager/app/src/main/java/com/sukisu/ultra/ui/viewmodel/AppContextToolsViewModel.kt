@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.viewmodel
 
+import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.appContextTestText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.ui.util.AppContextTestSession
@@ -39,7 +41,12 @@ class AppContextToolsViewModel : ViewModel() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                log("FAIL: ${e.message}")
+                val detail = when {
+                    e is NumberFormatException -> appContextTestText(R.string.app_context_log_invalid_number, e.message.orEmpty())
+                    e.message == "Check failed." -> appContextTestText(R.string.app_context_log_check_failed)
+                    else -> e.message ?: e.javaClass.simpleName
+                }
+                log(appContextTestText(R.string.app_context_log_failed, detail))
             } finally {
                 mutableState.update { it.copy(busy = false, sessionUid = session?.uid) }
             }
@@ -47,27 +54,27 @@ class AppContextToolsViewModel : ViewModel() {
     }
 
     fun start(uid: String) = execute {
-        check(session == null) { "End the current session first" }
+        check(session == null) { appContextTestText(R.string.app_context_log_end_first) }
         val created = AppContextTestSession.start(uid.toLong())
         session = created
         created.create()
-        log("Session started: UID ${created.uid}")
+        log(appContextTestText(R.string.app_context_log_started, created.uid))
     }
 
     fun update(operation: String, value: String) = execute {
-        val current = session ?: error("Start a session first")
+        val current = session ?: error(appContextTestText(R.string.app_context_log_start_first))
         current.update(operation, value)
         log(current.query())
     }
 
     fun query() = execute {
-        log((session ?: error("Start a session first")).query())
+        log((session ?: error(appContextTestText(R.string.app_context_log_start_first))).query())
     }
 
     fun end() = execute {
         session?.cleanup()
         session = null
-        log("Session ended; test record removed")
+        log(appContextTestText(R.string.app_context_log_ended))
     }
 
     fun detach() {
@@ -75,49 +82,49 @@ class AppContextToolsViewModel : ViewModel() {
         val uid = session?.uid ?: return
         session = null
         mutableState.update { it.copy(sessionUid = null) }
-        log("Detached from UID $uid without deleting it; inspect and clean up manually")
+        log(appContextTestText(R.string.app_context_log_detached, uid))
     }
 
     fun autoTest(uid: String) = execute {
-        check(session == null) { "End the current session first" }
+        check(session == null) { appContextTestText(R.string.app_context_log_end_first) }
         val test = AppContextTestSession.start(uid.toLong())
         session = test
         try {
             test.create()
-            val initial = test.snapshot() ?: error("Record missing")
+            val initial = test.snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
             check(!initial.foreground && initial.profileId == 0L && initial.tags == 0L)
-            log("PASS: creation and zero defaults")
+            log(appContextTestText(R.string.app_context_log_creation))
             val query = org.json.JSONObject(test.query())
             check(query.getInt("version") == 1)
             check(query.getJSONObject("entry").getLong("uid") == test.uid)
-            log("PASS: query JSON and list snapshot")
+            log(appContextTestText(R.string.app_context_log_query))
             check(test.update("set-fg", "true").foreground)
-            log("PASS: foreground true")
+            log(appContextTestText(R.string.app_context_log_fg))
             check(!test.update("set-fg", "false").foreground)
-            log("PASS: foreground false")
+            log(appContextTestText(R.string.app_context_log_bg))
             check(test.update("set-profile", "4294967295").profileId == 0xffffffffL)
-            log("PASS: full-width profile ID")
+            log(appContextTestText(R.string.app_context_log_profile))
             check(test.update("set-tag", "0x8000000000000001").tags.toULong() == 0x8000000000000001uL)
             check(test.update("set-tag", "0x2").tags.toULong() == 0x8000000000000003uL)
             check(test.update("clear-tag", "0x1").tags.toULong() == 0x8000000000000002uL)
-            log("PASS: high-bit tags, OR and AND-NOT")
+            log(appContextTestText(R.string.app_context_log_bits))
             check(test.update("set-tag", "0xffffffffffffffff").tags.toULong() == ULong.MAX_VALUE)
-            log("PASS: all 64 tag bits")
+            log(appContextTestText(R.string.app_context_log_allbits))
             test.verifyInvalidInputs(::log)
-            val before = test.snapshot() ?: error("Record missing")
+            val before = test.snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
             check(test.snapshot() == before)
             val after = test.update("set-profile", "42")
             check(after.lastUpdateNs.toULong() >= before.lastUpdateNs.toULong())
             check(!after.foreground && after.tags.toULong() == ULong.MAX_VALUE)
-            log("PASS: stable reads, timestamp and independent fields")
+            log(appContextTestText(R.string.app_context_log_stable))
         } finally {
             withContext(NonCancellable) {
                 test.cleanup()
                 session = null
-                log("PASS: removal and missing record verified")
+                log(appContextTestText(R.string.app_context_log_removed))
             }
         }
-        log("PASS: all automated checks completed")
+        log(appContextTestText(R.string.app_context_log_complete))
     }
 
     override fun onCleared() {

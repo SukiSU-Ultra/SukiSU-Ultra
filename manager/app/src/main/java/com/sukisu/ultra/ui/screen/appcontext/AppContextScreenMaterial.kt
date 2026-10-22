@@ -22,7 +22,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -93,13 +92,6 @@ fun AppContextScreenMaterial(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
-                }
-                if (state.isLoading && state.contexts.isEmpty()) {
-                    item(key = "loading") {
-                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                            LoadingIndicator()
-                        }
-                    }
                 }
                 if (state.error != null) {
                     item(key = "error") {

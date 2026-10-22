@@ -105,7 +105,9 @@ write to it. Existing records are rejected instead of being adopted.
 * **Start debug session** creates a dedicated test record. Set foreground,
   profile and tag masks, query the raw JSON, then end the session to remove it.
   No arbitrary shell command, clear-all, or capacity test is exposed.
-* Results can be selected and copied. Low-level diagnostics use English.
+* Results can be selected and copied. Test outcomes and session safety messages
+  follow the app language (English and Simplified Chinese are provided); raw
+  ksud errors and JSON remain unchanged for diagnostics.
 * Before each mutation/deletion the tool checks the last observed snapshot.
   If another producer changes it, mutation is refused. Use **Detach without
   deleting** to leave a conflicted record for manual inspection.

@@ -764,6 +764,7 @@
     <string name="susfs_runtime_status">Status</string>
     <string name="susfs_runtime_version">Version</string>
     <string name="susfs_runtime_variant">Kernel variant</string>
+    <!-- AppContext. -->
     <string name="susfs_runtime_implementation">Implementation</string>
     <string name="app_context_back">Back</string>
     <string name="app_context_uid">UID: %1$d</string>
@@ -797,4 +798,32 @@
     <string name="app_context_test_log">Results (select text to copy)</string>
     <string name="app_context_tools_close">Close</string>
     <string name="app_context_detach_session">Detach without deleting (manual cleanup required)</string>
+    <string name="app_context_log_failed">FAIL: %1$s</string>
+    <string name="app_context_log_started">Session started: UID %1$s</string>
+    <string name="app_context_log_ended">Session ended; test record removed</string>
+    <string name="app_context_log_detached">Detached from UID %1$s without deleting it; inspect and clean up manually</string>
+    <string name="app_context_log_creation">PASS: creation and zero defaults</string>
+    <string name="app_context_log_query">PASS: query JSON and list snapshot</string>
+    <string name="app_context_log_fg">PASS: foreground true</string>
+    <string name="app_context_log_bg">PASS: foreground false</string>
+    <string name="app_context_log_profile">PASS: full-width profile ID</string>
+    <string name="app_context_log_bits">PASS: high-bit tags, OR and AND-NOT</string>
+    <string name="app_context_log_allbits">PASS: all 64 tag bits</string>
+    <string name="app_context_log_stable">PASS: stable reads, timestamp and independent fields</string>
+    <string name="app_context_log_removed">PASS: removal and missing record verified</string>
+    <string name="app_context_log_complete">PASS: all automated checks completed</string>
+    <string name="app_context_log_end_first">End the current session first</string>
+    <string name="app_context_log_start_first">Start a session first</string>
+    <string name="app_context_log_missing">Record missing</string>
+    <string name="app_context_log_uid_range">Test UID must be in 1..4294967295</string>
+    <string name="app_context_log_exists">UID %1$s already exists; refusing to overwrite it</string>
+    <string name="app_context_log_conflict">UID %1$s changed outside this session; refusing to modify or delete it</string>
+    <string name="app_context_log_created">Session record already created</string>
+    <string name="app_context_log_profile_range">Profile must be in 0..4294967295</string>
+    <string name="app_context_log_unsupported">Unsupported test operation</string>
+    <string name="app_context_log_still_exists">Record still exists after removal</string>
+    <string name="app_context_log_invalid_accepted">Invalid input was accepted: %1$s</string>
+    <string name="app_context_log_rejected">PASS: rejected invalid input %1$s</string>
+    <string name="app_context_log_invalid_number">Invalid number or tag mask: %1$s</string>
+    <string name="app_context_log_check_failed">Test assertion failed; see the last completed step</string>
 </resources>

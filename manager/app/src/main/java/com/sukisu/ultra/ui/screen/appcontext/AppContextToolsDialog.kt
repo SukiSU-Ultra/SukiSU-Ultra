@@ -3,13 +3,22 @@ package com.sukisu.ultra.ui.screen.appcontext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.ui.state.ToggleableState
+import com.sukisu.ultra.ui.LocalUiMode
+import com.sukisu.ultra.ui.UiMode
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.basic.TextField as MiuixTextField
+import top.yukonga.miuix.kmp.basic.Checkbox as MiuixCheckbox
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixProgress
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
@@ -42,90 +51,139 @@ fun AppContextToolsDialog(onDismiss: () -> Unit) {
     val active = state.sessionUid != null
     val validUid = uid.toLongOrNull()?.let { it in 1..0xffffffffL } == true
 
-    AlertDialog(
-        onDismissRequest = { if (!state.busy && !active) onDismiss() },
-        properties = DialogProperties(dismissOnBackPress = !state.busy && !active,
-            dismissOnClickOutside = !state.busy && !active),
-        title = { Text(stringResource(R.string.app_context_tools)) },
-        text = {
-            Column(
-                modifier = Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(stringResource(R.string.app_context_tools_warning))
-                OutlinedTextField(
-                    value = uid, onValueChange = { uid = it; consent = false },
-                    label = { Text(stringResource(R.string.app_context_test_uid)) },
-                    enabled = !state.busy && !active, singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row {
+    val miuix = LocalUiMode.current == UiMode.Miuix
+    val dismiss = { if (!state.busy && !active) onDismiss() }
+    val content: @Composable () -> Unit = {
+
+        Column(
+            modifier = Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ToolText(stringResource(R.string.app_context_tools_warning))
+            ToolField(value = uid, onValueChange = { uid = it; consent = false },
+                label = stringResource(R.string.app_context_test_uid), enabled = !state.busy && !active)
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (miuix) {
+                    MiuixCheckbox(state = ToggleableState(consent), onClick = { consent = !consent },
+                        enabled = !state.busy && !active)
+                } else {
                     Checkbox(checked = consent, onCheckedChange = { consent = it },
                         enabled = !state.busy && !active)
-                    Text(stringResource(R.string.app_context_test_consent))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { model.autoTest(uid) },
-                        enabled = validUid && consent && !active && !state.busy) {
-                        Text(stringResource(R.string.app_context_run_tests))
-                    }
-                    TextButton(onClick = { model.start(uid) },
-                        enabled = validUid && consent && !active && !state.busy) {
-                        Text(stringResource(R.string.app_context_start_session))
-                    }
+                ToolText(stringResource(R.string.app_context_test_consent))
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                ToolButton(onClick = { model.autoTest(uid) },
+                    enabled = validUid && consent && !active && !state.busy) {
+                    ToolText(stringResource(R.string.app_context_run_tests))
                 }
-                if (active) {
-                    Text(stringResource(R.string.app_context_active_uid, state.sessionUid.toString()))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { model.update("set-fg", "true") }, enabled = !state.busy) {
-                            Text(stringResource(R.string.app_context_debug_fg))
-                        }
-                        TextButton(onClick = { model.update("set-fg", "false") }, enabled = !state.busy) {
-                            Text(stringResource(R.string.app_context_debug_bg))
-                        }
-                    }
-                    OutlinedTextField(value = profile, onValueChange = { profile = it },
-                        label = { Text(stringResource(R.string.app_context_profile)) },
-                        singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth())
-                    TextButton(onClick = { model.update("set-profile", profile) }, enabled = !state.busy) {
-                        Text(stringResource(R.string.app_context_apply_profile))
-                    }
-                    OutlinedTextField(value = tags, onValueChange = { tags = it },
-                        label = { Text(stringResource(R.string.app_context_debug_mask)) },
-                        singleLine = true, enabled = !state.busy, modifier = Modifier.fillMaxWidth())
-                    Row {
-                        TextButton(onClick = { model.update("set-tag", tags) }, enabled = !state.busy) {
-                            Text(stringResource(R.string.app_context_set_bits))
-                        }
-                        TextButton(onClick = { model.update("clear-tag", tags) }, enabled = !state.busy) {
-                            Text(stringResource(R.string.app_context_clear_bits))
-                        }
-                    }
-                    Row {
-                        TextButton(onClick = model::query, enabled = !state.busy) {
-                            Text(stringResource(R.string.app_context_query_test))
-                        }
-                        TextButton(onClick = model::end, enabled = !state.busy) {
-                            Text(stringResource(R.string.app_context_end_session))
-                        }
-                    }
-                }
-                if (active) {
-                    TextButton(onClick = model::detach, enabled = !state.busy) {
-                        Text(stringResource(R.string.app_context_detach_session))
-                    }
-                }
-                if (state.busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                Text(stringResource(R.string.app_context_test_log))
-                SelectionContainer {
-                    Text(state.log.joinToString("\n"), fontFamily = FontFamily.Monospace)
+                ToolButton(onClick = { model.start(uid) },
+                    enabled = validUid && consent && !active && !state.busy) {
+                    ToolText(stringResource(R.string.app_context_start_session))
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss, enabled = !state.busy && !active) {
-                Text(stringResource(R.string.app_context_tools_close))
+            if (active) {
+                ToolText(stringResource(R.string.app_context_active_uid, state.sessionUid.toString()))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    ToolButton(onClick = { model.update("set-fg", "true") }, enabled = !state.busy) {
+                        ToolText(stringResource(R.string.app_context_debug_fg))
+                    }
+                    ToolButton(onClick = { model.update("set-fg", "false") }, enabled = !state.busy) {
+                        ToolText(stringResource(R.string.app_context_debug_bg))
+                    }
+                }
+                ToolField(value = profile, onValueChange = { profile = it },
+                    label = stringResource(R.string.app_context_profile), enabled = !state.busy)
+                ToolButton(onClick = { model.update("set-profile", profile) }, enabled = !state.busy) {
+                    ToolText(stringResource(R.string.app_context_apply_profile))
+                }
+                ToolField(value = tags, onValueChange = { tags = it },
+                    label = stringResource(R.string.app_context_debug_mask), enabled = !state.busy)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ToolButton(onClick = { model.update("set-tag", tags) }, enabled = !state.busy) {
+                        ToolText(stringResource(R.string.app_context_set_bits))
+                    }
+                    ToolButton(onClick = { model.update("clear-tag", tags) }, enabled = !state.busy) {
+                        ToolText(stringResource(R.string.app_context_clear_bits))
+                    }
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ToolButton(onClick = model::query, enabled = !state.busy) {
+                        ToolText(stringResource(R.string.app_context_query_test))
+                    }
+                    ToolButton(onClick = model::end, enabled = !state.busy) {
+                        ToolText(stringResource(R.string.app_context_end_session))
+                    }
+                }
             }
-        },
-    )
+            if (active) {
+                ToolButton(onClick = model::detach, enabled = !state.busy) {
+                    ToolText(stringResource(R.string.app_context_detach_session))
+                }
+            }
+            if (state.busy) {
+                if (miuix) MiuixProgress()
+                else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            ToolText(stringResource(R.string.app_context_test_log))
+            SelectionContainer {
+                ToolText(state.log.joinToString("\n"), fontFamily = FontFamily.Monospace)
+            }
+        }
+    }
+    if (miuix) {
+        OverlayDialog(
+            show = true,
+            title = stringResource(R.string.app_context_tools),
+            onDismissRequest = dismiss,
+            content = {
+                content()
+                MiuixTextButton(
+                    text = stringResource(R.string.app_context_tools_close),
+                    onClick = onDismiss,
+                    enabled = !state.busy && !active,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = dismiss,
+            properties = DialogProperties(dismissOnBackPress = !state.busy && !active,
+                dismissOnClickOutside = !state.busy && !active),
+            title = { Text(stringResource(R.string.app_context_tools)) },
+            text = content,
+            confirmButton = {
+                TextButton(onClick = onDismiss, enabled = !state.busy && !active) {
+                    Text(stringResource(R.string.app_context_tools_close))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun ToolText(text: String, fontFamily: FontFamily? = null) {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        MiuixText(text = text, fontFamily = fontFamily)
+    } else Text(text = text, fontFamily = fontFamily)
+}
+
+@Composable
+private fun ToolButton(onClick: () -> Unit, enabled: Boolean, content: @Composable () -> Unit) {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        top.yukonga.miuix.kmp.basic.Button(onClick = onClick, enabled = enabled) { content() }
+    } else TextButton(onClick = onClick, enabled = enabled) { content() }
+}
+
+@Composable
+private fun ToolField(value: String, onValueChange: (String) -> Unit, label: String, enabled: Boolean) {
+    if (LocalUiMode.current == UiMode.Miuix) {
+        MiuixTextField(value = value, onValueChange = onValueChange, label = label,
+            enabled = enabled, singleLine = true, modifier = Modifier.fillMaxWidth())
+    } else {
+        OutlinedTextField(value = value, onValueChange = onValueChange, label = { Text(label) },
+            enabled = enabled, singleLine = true, modifier = Modifier.fillMaxWidth())
+    }
 }

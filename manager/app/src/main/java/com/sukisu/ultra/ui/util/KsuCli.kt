@@ -22,6 +22,7 @@ import com.topjohnwu.superuser.ShellUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
+import com.sukisu.ultra.R
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.core.tasks.BootKernelVersion
@@ -1274,9 +1275,9 @@ class AppContextTestSession private constructor(val uid: Long) {
 
     companion object {
         suspend fun start(uid: Long): AppContextTestSession {
-            require(uid in 1..0xffffffffL) { "Test UID must be in 1..4294967295" }
+            require(uid in 1..0xffffffffL) { appContextTestText(R.string.app_context_log_uid_range) }
             val session = AppContextTestSession(uid)
-            check(session.snapshot() == null) { "UID $uid already exists; refusing to overwrite it" }
+            check(session.snapshot() == null) { appContextTestText(R.string.app_context_log_exists, uid) }
             return session
         }
     }
@@ -1306,23 +1307,23 @@ class AppContextTestSession private constructor(val uid: Long) {
 
     private suspend fun checkUnchanged() {
         check(snapshot() == expected) {
-            "UID $uid changed outside this session; refusing to modify or delete it"
+            appContextTestText(R.string.app_context_log_conflict, uid)
         }
     }
 
     suspend fun create() {
-        check(expected == null) { "Session record already created" }
+        check(expected == null) { appContextTestText(R.string.app_context_log_created) }
         checkUnchanged()
         command("set-fg", uid.toString(), "false")
-        expected = snapshot() ?: error("Created record is missing")
+        expected = snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
     }
 
     suspend fun update(operation: String, value: String): AppContextEntry {
-        check(expected != null) { "Start a session first" }
+        check(expected != null) { appContextTestText(R.string.app_context_log_start_first) }
         val normalized = when (operation) {
             "set-fg" -> value.toBooleanStrict().toString()
             "set-profile" -> value.toLong().also {
-                require(it in 0..0xffffffffL) { "Profile must be in 0..4294967295" }
+                require(it in 0..0xffffffffL) { appContextTestText(R.string.app_context_log_profile_range) }
             }.toString()
             "set-tag", "clear-tag" -> {
                 val mask = if (value.startsWith("0x", ignoreCase = true)) {
@@ -1330,11 +1331,11 @@ class AppContextTestSession private constructor(val uid: Long) {
                 } else value.toULong()
                 "0x" + mask.toString(16)
             }
-            else -> error("Unsupported test operation")
+            else -> error(appContextTestText(R.string.app_context_log_unsupported))
         }
         checkUnchanged()
         command(operation, uid.toString(), normalized)
-        val entry = snapshot() ?: error("Updated record is missing")
+        val entry = snapshot() ?: error(appContextTestText(R.string.app_context_log_missing))
         expected = entry
         return entry
     }
@@ -1344,7 +1345,7 @@ class AppContextTestSession private constructor(val uid: Long) {
         checkUnchanged()
         command("remove", uid.toString())
         expected = null
-        check(snapshot() == null) { "Record still exists after removal" }
+        check(snapshot() == null) { appContextTestText(R.string.app_context_log_still_exists) }
     }
 
     suspend fun verifyInvalidInputs(log: (String) -> Unit) {
@@ -1360,9 +1361,12 @@ class AppContextTestSession private constructor(val uid: Long) {
             } catch (_: IOException) {
                 rejected = true
             }
-            check(rejected) { "Invalid input was accepted: ${args.joinToString(" ")}" }
+            check(rejected) { appContextTestText(R.string.app_context_log_invalid_accepted, args.joinToString(" ")) }
             checkUnchanged()
-            log("PASS: rejected ${args.first()} ${args.last()}")
+            log(appContextTestText(R.string.app_context_log_rejected, "${args.first()} ${args.last()}"))
         }
     }
 }
+
+internal fun appContextTestText(@androidx.annotation.StringRes id: Int, vararg args: Any): String =
+    LocaleHelper.wrap(ksuApp).getString(id, *args)
