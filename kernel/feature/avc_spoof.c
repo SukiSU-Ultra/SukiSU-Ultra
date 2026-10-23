@@ -187,6 +187,7 @@ static const struct ksu_feature_handler avc_spoof_handler = {
     .get_handler = avc_spoof_feature_get,
     .set_handler = avc_spoof_feature_set,
 };
+static bool avc_spoof_registered;
 
 void ksu_avc_spoof_late_init(void)
 {
@@ -197,7 +198,12 @@ void ksu_avc_spoof_late_init(void)
 
 void __init ksu_avc_spoof_init(void)
 {
-    if (ksu_register_feature_handler(&avc_spoof_handler))
+#ifndef CONFIG_KPROBES
+    pr_warn("avc_spoof: CONFIG_KPROBES is disabled; feature unavailable\n");
+    return;
+#endif
+    avc_spoof_registered = !ksu_register_feature_handler(&avc_spoof_handler);
+    if (!avc_spoof_registered)
         pr_err("avc_spoof: failed to register feature handler\n");
 }
 
@@ -205,5 +211,6 @@ void __exit ksu_avc_spoof_exit(void)
 {
     if (ksu_avc_spoof_enabled)
         ksu_avc_spoof_disable();
-    ksu_unregister_feature_handler(KSU_FEATURE_AVC_SPOOF);
+    if (avc_spoof_registered)
+        ksu_unregister_feature_handler(KSU_FEATURE_AVC_SPOOF);
 }
