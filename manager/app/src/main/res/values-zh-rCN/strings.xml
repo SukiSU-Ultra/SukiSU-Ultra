@@ -806,4 +806,7 @@
     <string name="ci_update_install_success">版本更新安装成功</string>
     <string name="ci_update_install_failed">版本更新安装失败或已取消</string>
     <string name="ci_update_available">发现新的 CI 构建（#%1$d）</string>
+    <string name="settings_avc_spoof">AVC 日志伪装</string>
+    <string name="settings_avc_spoof_summary">防止 AVC 拒绝日志泄漏 SELinux 上下文</string>
+    <string name="settings_avc_spoof_failed">应用 AVC 日志伪装失败</string>
 </resources>

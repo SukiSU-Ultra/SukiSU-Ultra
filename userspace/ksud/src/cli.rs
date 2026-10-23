@@ -519,7 +519,7 @@ enum TemporaryRoot {
 enum Feature {
     /// Get feature value and support status
     Get {
-        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide,
+        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide, avc_spoof,
         /// shell_su_adb_only, mount_hide)
         id: String,
         /// Read from config file
@@ -540,7 +540,7 @@ enum Feature {
 
     /// Check feature status (supported/unsupported/managed/forced)
     Check {
-        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide,
+        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide, avc_spoof,
         /// shell_su_adb_only, mount_hide)
         id: String,
     },

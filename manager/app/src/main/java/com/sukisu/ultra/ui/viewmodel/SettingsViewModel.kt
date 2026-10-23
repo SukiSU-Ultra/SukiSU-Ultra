@@ -74,6 +74,8 @@ class SettingsViewModel(
             val isKernelUmountEnabled = repo.isKernelUmountEnabled()
             val selinuxHideStatus = repo.getSelinuxHideStatus()
             val isSelinuxHideEnabled = repo.isSelinuxHideEnabled()
+            val avcSpoofStatus = repo.getAvcSpoofStatus()
+            val isAvcSpoofEnabled = repo.isAvcSpoofEnabled()
             val mountHideStatus = repo.getMountHideStatus()
             val isMountHideEnabled = repo.isMountHideEnabled()
             val sulogStatus = repo.getSulogStatus()
@@ -136,6 +138,8 @@ class SettingsViewModel(
                     isKernelUmountEnabled = isKernelUmountEnabled,
                     selinuxHideStatus = selinuxHideStatus,
                     isSelinuxHideEnabled = isSelinuxHideEnabled,
+                    avcSpoofStatus = avcSpoofStatus,
+                    isAvcSpoofEnabled = isAvcSpoofEnabled,
                     mountHideStatus = mountHideStatus,
                     isMountHideEnabled = isMountHideEnabled,
                     sulogStatus = sulogStatus,
@@ -432,6 +436,19 @@ class SettingsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             if (repo.setDefaultUmountModules(enabled)) {
                 _uiState.update { it.copy(isDefaultUmountModules = enabled) }
+            }
+        }
+    }
+
+    fun setAvcSpoofEnabled(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (repo.setAvcSpoofEnabled(enabled)) {
+                repo.execKsudFeatureSave()
+                _uiState.update { it.copy(isAvcSpoofEnabled = repo.isAvcSpoofEnabled()) }
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(ksuApp, R.string.settings_avc_spoof_failed, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

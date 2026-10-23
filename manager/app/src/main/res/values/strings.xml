@@ -813,4 +813,7 @@
     <string name="ci_update_install_success">Update installed successfully.</string>
     <string name="ci_update_install_failed">Update installation failed or was cancelled.</string>
     <string name="ci_update_available">New CI build available (#%1$d)</string>
+    <string name="settings_avc_spoof">AVC log spoofing</string>
+    <string name="settings_avc_spoof_summary">Prevent SELinux context leaks in AVC denial logs</string>
+    <string name="settings_avc_spoof_failed">Failed to apply AVC log spoofing</string>
 </resources>

@@ -58,8 +58,9 @@ int set_mount_hide_enabled(bool enabled);
 
 bool is_mount_hide_enabled();
 
-
-
+// AVC log spoof
+int set_avc_spoof_enabled(bool enabled);
+bool is_avc_spoof_enabled();
 
 // CPU spoof SET-MIDR io passthrough (kept struct layout from
 // uapi/supercall.h::ksu_set_spoof_cpu_cmd).

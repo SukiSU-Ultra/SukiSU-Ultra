@@ -260,6 +260,16 @@ bool is_mount_hide_enabled() {
     return value != 0;
 }
 
+int set_avc_spoof_enabled(bool enabled) {
+    return set_feature(KSU_FEATURE_AVC_SPOOF, enabled ? 1 : 0) ? 0 : -errno;
+}
+
+bool is_avc_spoof_enabled() {
+    uint64_t value = 0;
+    bool supported = false;
+    return get_feature(KSU_FEATURE_AVC_SPOOF, &value, &supported) && supported && value != 0;
+}
+
 // Custom
 DEFINE_CACHED_GETTER(full_version, KSU_IOCTL_GET_FULL_VERSION, ksu_get_full_version_cmd, version_full, 255)
 DEFINE_CACHED_GETTER(hook_type, KSU_IOCTL_HOOK_TYPE, ksu_hook_type_cmd, hook_type, 32)
