@@ -1,225 +1,209 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-/* Adapted from KOWX712/KernelSU slow_avc_audit_defs.h (GPL-2.0-only). */
-#include <linux/kernel.h>
-#include <linux/kallsyms.h>
+/* Adapted from KOWX712/KernelSU avc spoofing (GPL-2.0-only). */
 #include <linux/security.h>
+#include <linux/atomic.h>
+#include <linux/version.h>
 #include <linux/string.h>
-#include <linux/rcupdate.h>
-#include <linux/module.h>
+
 #include "policy/feature.h"
 #include "feature/avc_spoof.h"
-#include "infra/symbol_resolver.h"
-#include "hook/patch_memory.h"
 #include "klog.h"
+#include "runtime/ksud_boot.h"
 
-#ifdef CONFIG_ARM64
-#include "avc.h"
+/*
+ * AVC logging receives a target SID.  This feature changes only the SID used
+ * for audit rendering; it does not change the AVC decision or SELinux policy.
+ */
+static u32 su_sid;
+static u32 ksu_sid;
+static u32 priv_app_sid;
 
-struct selinux_state;
+/* Disabled until SIDs are resolved and the boot-completed hook installs the probe. */
+static atomic_t disable_spoof = ATOMIC_INIT(1);
+static bool ksu_avc_spoof_enabled = true;
+static bool boot_completed;
 
-static bool enabled;
-static bool configured;
-static u32 ksu_sid, replacement_sid;
-static void *original_audit;
-static unsigned int patch_count;
-static struct {
-    u32 *address;
-    u32 original;
-    u32 replacement;
-} patches[32];
+#ifdef CONFIG_KPROBES
+#include <linux/kprobes.h>
+#include <linux/slab.h>
+#include "arch.h"
 
-static u32 spoof_sid(u32 sid)
+static struct kprobe *slow_avc_audit_kp;
+
+static int slow_avc_audit_pre_handler(struct kprobe *p, struct pt_regs *regs)
 {
-    return READ_ONCE(enabled) && sid == READ_ONCE(ksu_sid) ?
-           READ_ONCE(replacement_sid) : sid;
-}
+    u32 *tsid;
 
-#define OVERLOAD __attribute__((overloadable))
-static int __nocfi OVERLOAD audit_wrapper(u32 ssid, u32 tsid, u16 cls, u32 req,
-                                         u32 audited, u32 denied, int result,
-                                         struct common_audit_data *a)
-{
-    typedef int (*fn)(u32, u32, u16, u32, u32, u32, int, struct common_audit_data *);
-    return ((fn)original_audit)(ssid, spoof_sid(tsid), cls, req, audited, denied, result, a);
-}
-static int __nocfi OVERLOAD audit_wrapper(struct selinux_state *state, u32 ssid,
-                                         u32 tsid, u16 cls, u32 req, u32 audited,
-                                         u32 denied, int result, struct common_audit_data *a)
-{
-    typedef int (*fn)(struct selinux_state *, u32, u32, u16, u32, u32, u32, int, struct common_audit_data *);
-    return ((fn)original_audit)(state, ssid, spoof_sid(tsid), cls, req, audited, denied, result, a);
-}
-static int __nocfi OVERLOAD audit_wrapper(u32 ssid, u32 tsid, u16 cls, u32 req,
-                                         u32 audited, u32 denied, int result,
-                                         struct common_audit_data *a, unsigned int flags)
-{
-    typedef int (*fn)(u32, u32, u16, u32, u32, u32, int, struct common_audit_data *, unsigned int);
-    return ((fn)original_audit)(ssid, spoof_sid(tsid), cls, req, audited, denied, result, a, flags);
-}
-static int __nocfi OVERLOAD audit_wrapper(struct selinux_state *state, u32 ssid,
-                                         u32 tsid, u16 cls, u32 req, u32 audited,
-                                         u32 denied, int result, struct common_audit_data *a,
-                                         unsigned int flags)
-{
-    typedef int (*fn)(struct selinux_state *, u32, u32, u16, u32, u32, u32, int, struct common_audit_data *, unsigned int);
-    return ((fn)original_audit)(state, ssid, spoof_sid(tsid), cls, req, audited, denied, result, a, flags);
-}
-static typeof(slow_avc_audit) *wrapper = audit_wrapper;
+    if (atomic_read(&disable_spoof))
+        return 0;
 
-/* Collect and validate ALL sites before touching executable memory. */
-static int collect_sites(void)
-{
-    static const char *const names[] = {
-        "slow_avc_audit", "avc_has_perm", "avc_has_perm_flags", "avc_has_extended_perms",
-    };
-    unsigned long addresses[ARRAY_SIZE(names)] = {};
-    unsigned int i, j;
-    char symbol[KSYM_NAME_LEN], *module;
-    unsigned long addr, size, offset;
-    int ret;
+    /*
+     * slow_avc_audit changed ABI across Android/Linux versions:
+     *   < 6.4: tsid is the third argument
+     * >= 6.4: tsid is the second argument
+     *
+     * This matches the upstream implementation and keeps the probe from
+     * writing to the state/ssid argument on newer kernels.
+     */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+    tsid = (u32 *)&PT_REGS_PARM2(regs);
+#else
+    tsid = (u32 *)&PT_REGS_PARM3(regs);
+#endif
 
-    patch_count = 0;
-    ret = ksu_lookup_kernel_symbols(names, addresses, ARRAY_SIZE(names));
-    if (ret < 0)
-        return ret;
-    original_audit = (void *)addresses[0];
-    if (!original_audit)
-        return -ENOENT;
-    for (i = 1; i < ARRAY_SIZE(names); i++) {
-        addr = addresses[i];
-        if (!addr)
-            continue;
-        if (!kallsyms_lookup(addr, &size, &offset, &module, symbol) || offset || module)
-            return -EINVAL;
-        for (j = 0; j + sizeof(u32) <= size; j += sizeof(u32)) {
-            u32 *site = (u32 *)(addr + j);
-            u32 insn = READ_ONCE(*site);
-            s64 displacement;
-            unsigned int k;
-            if ((insn & 0xfc000000U) != 0x94000000U)
-                continue;
-            displacement = (s64)(s32)((insn & 0x03ffffffU) << 6) >> 4;
-            if ((unsigned long)site + displacement != (unsigned long)original_audit)
-                continue;
-            for (k = 0; k < patch_count; k++)
-                if (patches[k].address == site)
-                    break;
-            if (k != patch_count)
-                continue;
-            displacement = (unsigned long)wrapper - (unsigned long)site;
-            if ((displacement & 3) || displacement < -(1LL << 27) || displacement >= (1LL << 27))
-                return -ERANGE;
-            if (patch_count == ARRAY_SIZE(patches))
-                return -ENOSPC;
-            patches[patch_count].address = site;
-            patches[patch_count].original = insn;
-            patches[patch_count++].replacement = 0x94000000U | ((displacement >> 2) & 0x03ffffffU);
-        }
+    if (*tsid == su_sid || *tsid == ksu_sid) {
+        pr_info_ratelimited("avc_spoof: replace tsid %u with %u\n", *tsid, priv_app_sid);
+        *tsid = priv_app_sid;
     }
-    return patch_count ? 0 : -ENOENT;
+    return 0;
 }
 
-static int resolve_sids(void)
+static struct kprobe *init_avc_kprobe(const char *name, kprobe_pre_handler_t handler)
 {
-    u32 source = 0, target = 0;
+    struct kprobe *kp = kzalloc(sizeof(*kp), GFP_KERNEL);
     int ret;
-    ret = security_secctx_to_secid("u:r:ksu:s0", strlen("u:r:ksu:s0"), &source);
-    if (ret)
-        return ret;
-    ret = security_secctx_to_secid("u:r:priv_app:s0:c512,c768",
-                                 strlen("u:r:priv_app:s0:c512,c768"), &target);
-    if (ret)
-        return ret;
-    if (!source || !target)
-        return -EINVAL;
-    WRITE_ONCE(ksu_sid, source);
-    WRITE_ONCE(replacement_sid, target);
-    return 0;
-}
 
-static int avc_get(u64 *value)
-{
-    *value = READ_ONCE(enabled);
-    return 0;
-}
-static int avc_set(u64 value)
-{
-    int ret;
-    /* Serialized by feature_mutex. Hooks remain installed until module exit. */
-    if (value) {
-        ret = resolve_sids();
-        if (ret)
-            return ret;
-    }
-    WRITE_ONCE(enabled, value != 0);
-    WRITE_ONCE(configured, true);
-    return 0;
-}
-static const struct ksu_feature_handler handler = {
-    .feature_id = KSU_FEATURE_AVC_SPOOF,
-    .name = "avc_spoof",
-    .get_handler = avc_get,
-    .set_handler = avc_set,
-};
-static bool registered;
+    if (!kp)
+        return NULL;
 
-void __init ksu_avc_spoof_init(void)
-{
-    unsigned int i;
-    int ret = collect_sites();
+    kp->symbol_name = name;
+    kp->pre_handler = handler;
+    ret = register_kprobe(kp);
+    pr_info("avc_spoof: register_%s kprobe: %d\n", name, ret);
     if (ret) {
-        patch_count = 0;
-        pr_warn("avc_spoof: unsupported call layout: %d\n", ret);
+        kfree(kp);
+        return NULL;
+    }
+    return kp;
+}
+
+static void destroy_avc_kprobe(struct kprobe **kp_ptr)
+{
+    struct kprobe *kp = *kp_ptr;
+
+    if (!kp)
+        return;
+    unregister_kprobe(kp);
+    synchronize_rcu();
+    kfree(kp);
+    *kp_ptr = NULL;
+}
+#endif /* CONFIG_KPROBES */
+
+static int get_avc_sids(void)
+{
+    int ret;
+
+    ret = security_secctx_to_secid("u:r:su:s0", strlen("u:r:su:s0"), &su_sid);
+    if (ret) {
+        pr_info("avc_spoof: su SID not found\n");
+        return ret;
+    }
+    pr_info("avc_spoof: su SID: %u\n", su_sid);
+
+    ret = security_secctx_to_secid("u:r:ksu:s0", strlen("u:r:ksu:s0"), &ksu_sid);
+    if (ret) {
+        pr_info("avc_spoof: ksu SID not found\n");
+        return ret;
+    }
+    pr_info("avc_spoof: ksu SID: %u\n", ksu_sid);
+
+    ret = security_secctx_to_secid("u:r:priv_app:s0:c512,c768",
+                                   strlen("u:r:priv_app:s0:c512,c768"),
+                                   &priv_app_sid);
+    if (ret) {
+        pr_info("avc_spoof: priv_app SID not found\n");
+        return ret;
+    }
+    pr_info("avc_spoof: priv_app SID: %u\n", priv_app_sid);
+    return 0;
+}
+
+void ksu_avc_spoof_disable(void)
+{
+#ifdef CONFIG_KPROBES
+    pr_info("avc_spoof: unregister slow_avc_audit kprobe\n");
+    destroy_avc_kprobe(&slow_avc_audit_kp);
+#endif
+    atomic_set(&disable_spoof, 1);
+    pr_info("avc_spoof: slow_avc_audit spoofing disabled\n");
+}
+
+void ksu_avc_spoof_enable(void)
+{
+    int ret = get_avc_sids();
+
+    if (ret) {
+        pr_info("avc_spoof: SID resolution failed: %d\n", ret);
         return;
     }
-    /*
-     * A caller may be sleeping inside slow_avc_audit with a return address
-     * into our wrapper. stop_machine + synchronize_rcu cannot drain that
-     * stack. Pin the module instead of allowing an unsafe unload (upstream
-     * traps on unload). Disabling the feature still restores original SID
-     * reporting without changing instructions on live callers' stacks.
-     */
-#ifdef MODULE
-    __module_get(THIS_MODULE);
-#endif
-    for (i = 0; i < patch_count; i++) {
-        ret = ksu_patch_text(patches[i].address, &patches[i].replacement, sizeof(u32),
-                             KSU_PATCH_TEXT_FLUSH_ICACHE);
-        if (ret) {
-            while (i--) {
-                if (ksu_patch_text(patches[i].address, &patches[i].original, sizeof(u32),
-                                   KSU_PATCH_TEXT_FLUSH_ICACHE))
-                    panic("avc_spoof: cannot roll back audit call site");
-            }
-            patch_count = 0;
-            pr_err("avc_spoof: patch failed: %d\n", ret);
+
+#ifdef CONFIG_KPROBES
+    if (!slow_avc_audit_kp) {
+        pr_info("avc_spoof: register slow_avc_audit kprobe\n");
+        slow_avc_audit_kp = init_avc_kprobe("slow_avc_audit", slow_avc_audit_pre_handler);
+        if (!slow_avc_audit_kp) {
+            atomic_set(&disable_spoof, 1);
+            pr_err("avc_spoof: failed to register slow_avc_audit kprobe\n");
             return;
         }
     }
-    registered = !ksu_register_feature_handler(&handler);
+    atomic_set(&disable_spoof, 0);
+    pr_info("avc_spoof: slow_avc_audit spoofing enabled\n");
+#else
+    pr_err("avc_spoof: CONFIG_KPROBES is disabled\n");
+#endif
 }
+
+static int avc_spoof_feature_get(u64 *value)
+{
+    *value = ksu_avc_spoof_enabled ? 1 : 0;
+    return 0;
+}
+
+static int avc_spoof_feature_set(u64 value)
+{
+    bool enable = value != 0;
+
+    if (enable == ksu_avc_spoof_enabled) {
+        pr_info("avc_spoof: no need to change\n");
+        return 0;
+    }
+
+    ksu_avc_spoof_enabled = enable;
+    if (boot_completed) {
+        if (enable)
+            ksu_avc_spoof_enable();
+        else
+            ksu_avc_spoof_disable();
+    }
+    pr_info("avc_spoof: set to %d\n", enable);
+    return 0;
+}
+
+static const struct ksu_feature_handler avc_spoof_handler = {
+    .feature_id = KSU_FEATURE_AVC_SPOOF,
+    .name = "avc_spoof",
+    .get_handler = avc_spoof_feature_get,
+    .set_handler = avc_spoof_feature_set,
+};
+
 void ksu_avc_spoof_late_init(void)
 {
-    /* Do not overwrite persisted or boot-forced settings at boot completion. */
-    if (registered && !READ_ONCE(configured) && !ksu_feature_is_forced(KSU_FEATURE_AVC_SPOOF))
-        ksu_set_feature(KSU_FEATURE_AVC_SPOOF, 1);
+    boot_completed = true;
+    if (ksu_avc_spoof_enabled)
+        ksu_avc_spoof_enable();
 }
+
+void __init ksu_avc_spoof_init(void)
+{
+    if (ksu_register_feature_handler(&avc_spoof_handler))
+        pr_err("avc_spoof: failed to register feature handler\n");
+}
+
 void __exit ksu_avc_spoof_exit(void)
 {
-    unsigned int i;
-    WRITE_ONCE(enabled, false);
-    for (i = 0; i < patch_count; i++) {
-        int ret = ksu_patch_text(patches[i].address, &patches[i].original, sizeof(u32),
-                                 KSU_PATCH_TEXT_FLUSH_ICACHE);
-        if (ret)
-            panic("avc_spoof: cannot restore audit call site: %d", ret);
-    }
-    synchronize_rcu();
-    if (registered)
-        ksu_unregister_feature_handler(KSU_FEATURE_AVC_SPOOF);
+    if (ksu_avc_spoof_enabled)
+        ksu_avc_spoof_disable();
+    ksu_unregister_feature_handler(KSU_FEATURE_AVC_SPOOF);
 }
-#else
-void __init ksu_avc_spoof_init(void) { }
-void ksu_avc_spoof_late_init(void) { }
-void __exit ksu_avc_spoof_exit(void) { }
-#endif
