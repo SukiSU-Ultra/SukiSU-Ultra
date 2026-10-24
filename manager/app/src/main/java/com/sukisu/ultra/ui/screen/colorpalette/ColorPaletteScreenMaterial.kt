@@ -1,7 +1,10 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
@@ -58,6 +61,7 @@ import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material3.ButtonGroupDefaults
@@ -67,6 +71,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.rememberTopAppBarState
@@ -80,20 +85,25 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.ExpressiveToggleButton
+import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
+import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
@@ -150,6 +160,66 @@ fun ColorPaletteScreenMaterial(
                     paletteStyle = colorStyle,
                     colorSpec = colorSpec,
                 )
+            }
+
+            item {
+                val context = LocalContext.current
+                val pickImageLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocument()
+                ) { uri: Uri? ->
+                    uri?.let { actions.onSetCustomBackground(context, it) }
+                }
+                val hasCustomBg = uiState.customBackgroundUri.isNotEmpty()
+
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                onClick = { pickImageLauncher.launch(arrayOf("image/*")) },
+                                headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
+                                supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.Image, stringResource(id = R.string.settings_custom_background)) },
+                                trailingContent = if (hasCustomBg) {
+                                    {
+                                        TextButton(onClick = { actions.onClearCustomBackground(context) }) {
+                                            Text(stringResource(id = R.string.settings_clear))
+                                        }
+                                    }
+                                } else null
+                            )
+                        }
+                    )
+                )
+
+                if (hasCustomBg) {
+                    Spacer(Modifier.height(12.dp))
+                    TonalCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.settings_card_background_alpha),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Text(
+                                text = stringResource(id = R.string.settings_card_background_alpha_summary, uiState.cardBackgroundAlphaPercent),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Slider(
+                                value = uiState.cardBackgroundAlphaPercent.toFloat(),
+                                onValueChange = { actions.onSetCardBackgroundAlphaPercent(it.roundToInt()) },
+                                valueRange = 10f..91f,
+                                steps = 80,
+                            )
+                        }
+                    }
+                }
             }
 
             item {

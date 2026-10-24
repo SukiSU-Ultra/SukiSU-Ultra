@@ -65,6 +65,9 @@ fun ColorPaletteScreen() {
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetHideHomeWarnings = viewModel::setHideHomeWarnings,
         onSetAlternativeIcon = { enabled -> viewModel.setAlternativeIcon(context, enabled) },
+        onSetCustomBackground = viewModel::setCustomBackground,
+        onClearCustomBackground = viewModel::clearCustomBackground,
+        onSetCardBackgroundAlphaPercent = viewModel::setCardBackgroundAlphaPercent,
     )
 
     when (LocalUiMode.current) {
