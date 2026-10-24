@@ -53,6 +53,8 @@ class MainActivityViewModel(
             enableSwipeDismiss = settingRepo.enableSwipeDismiss,
             pagerInterceptionMode = settingRepo.pagerInterceptionMode,
             moduleDescriptionMaxLines = settingRepo.moduleDescriptionMaxLines,
+            customBackgroundUri = settingRepo.customBackgroundUri,
+            cardBackgroundAlphaPercent = settingRepo.cardBackgroundAlphaPercent,
             uiMode = UiMode.fromValue(settingRepo.uiMode),
         )
     }
@@ -71,6 +73,8 @@ class MainActivityViewModel(
             "enable_navigation_badge",
             "enable_swipe_dismiss",
             "pager_interception_mode",
+            "custom_bg_uri",
+            "card_bg_alpha_percent",
             "ui_mode",
         )
     }
