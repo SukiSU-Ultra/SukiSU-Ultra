@@ -13,7 +13,9 @@ on:
       - '.github/workflows/ksuinit.yml'
       - '.github/scripts/setup-rust-build.sh'
       - '.github/riscv64-cargo.toml'
+      - 'scripts/upload-telegram.sh'
       - 'repack_apk.py'
+      - 'split_apk_by_arch.py'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
@@ -31,7 +33,9 @@ on:
       - '.github/workflows/ksuinit.yml'
       - '.github/scripts/setup-rust-build.sh'
       - '.github/riscv64-cargo.toml'
+      - 'scripts/upload-telegram.sh'
       - 'repack_apk.py'
+      - 'split_apk_by_arch.py'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
@@ -39,6 +43,12 @@ on:
       - 'Cargo.toml'
 
   workflow_call:
+    inputs:
+      release_upload:
+        description: 'Upload to the releases Telegram thread'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
 
@@ -115,6 +125,7 @@ jobs:
     needs: [build-lkm, build-ksuinit]
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: aarch64-linux-android
@@ -686,8 +697,93 @@ jobs:
 
 
 
+  publish-manager-ci:
+    needs: repack-manager
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: publish-manager-ci
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          name: Manager
+          path: ci-release
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Split and sign CI APKs by architecture
+        env:
+          PROD_KEYSTORE: ${{ secrets.KEYSTORE }}
+          PROD_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          PROD_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          PROD_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PROD_KEYSTORE"
+          KEYSTORE="$RUNNER_TEMP/manager-ci.jks"
+          trap 'rm -f "$KEYSTORE"' EXIT
+          printf '%s' "$PROD_KEYSTORE" | base64 -d > "$KEYSTORE"
+          chmod 600 "$KEYSTORE"
+          APK=$(find ci-release -type f -name '*.apk' -print -quit)
+          test -n "$APK"
+          python3 split_apk_by_arch.py \
+            -i "$APK" \
+            -o ci-release/split \
+            -K "$KEYSTORE" \
+            -A "$PROD_KEY_ALIAS" \
+            -P "$PROD_KEYSTORE_PASSWORD" \
+            -S "$PROD_KEY_PASSWORD"
+      - name: Publish rolling CI prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Skip old builds that finish after a newer commit has reached main.
+          MAIN_SHA=$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')
+          if [ "$MAIN_SHA" != "$GITHUB_SHA" ]; then
+            echo "Skipping outdated build"
+            exit 0
+          fi
+          APK=$(find ci-release/split -type f -name '*.apk' -print -quit)
+          test -n "$APK"
+          VERSION_CODE=$(python3 -c 'import re,sys; m=re.search(r"_(\d+)-(?:(?:arm64-v8a|armeabi-v7a|x86_64|riscv64)-)?release",sys.argv[1]); print(m.group(1) if m else "")' "$APK")
+          test -n "$VERSION_CODE"
+          if ! gh release view manager-ci >/dev/null 2>&1; then
+            gh release create manager-ci --target "$GITHUB_SHA" --prerelease --latest=false \
+              --title "Manager CI ($VERSION_CODE)" --notes 'Rolling main-branch CI build. Experimental; may be unstable.'
+          fi
+          # Publish architecture-specific APKs with their original versioned names.
+          gh release view manager-ci --json assets --jq '.assets[].name' | while IFS= read -r name; do
+            gh release delete-asset manager-ci "$name" --yes
+          done
+          gh release upload manager-ci ci-release/split/*.apk --clobber
+          {
+            printf '## Manager CI\n\n'
+            printf -- '- **Branch:** `main`\n'
+            printf -- '- **Version code:** `%s`\n' "$VERSION_CODE"
+            printf -- '- **Commit:** [`%s`](https://github.com/%s/commit/%s)\n' "${GITHUB_SHA:0:8}" "$GH_REPO" "$GITHUB_SHA"
+            printf -- '- **Build:** [#%s](https://github.com/%s/actions/runs/%s)\n\n' "$GITHUB_RUN_NUMBER" "$GH_REPO" "$GITHUB_RUN_ID"
+            printf '> Experimental build; may be unstable.\n\n### Recent changes\n\n'
+            git log -5 --format='- %s (`%h`)' "$GITHUB_SHA"
+          } > ci-release/notes.md
+          gh release edit manager-ci --prerelease --latest=false \
+            --title "Manager CI ($VERSION_CODE)" \
+            --notes-file ci-release/notes.md
+
+
   # ------------------------------------------------------------
-  # Telegram upload (combined)
+  # Telegram upload (separate threads for normal / spoofed,
+  # split per-arch before upload)
   # ------------------------------------------------------------
 
   upload-telegram:
@@ -721,7 +817,7 @@ jobs:
 
 
       # --------------------------------------------------------
-      # Download APK artifacts
+      # Download APK artifacts (keep variants in separate dirs)
       # --------------------------------------------------------
 
       - name: Download manager apk
@@ -729,56 +825,129 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: Manager
-          path: apks
+          path: apks/manager
 
       - name: Download manager-spoofed apk
         if: steps.need_upload.outputs.UPLOAD == 'true'
         uses: actions/download-artifact@v8
         with:
           name: Manager-spoofed
-          path: apks
+          path: apks/manager-spoofed
 
-
+      
       # --------------------------------------------------------
-      # Telegram session cache
+      # Prepare signing inputs (needed by split + apksigner)
       # --------------------------------------------------------
 
-      - name: Bot session cache
+      - name: Prepare signing inputs
         if: steps.need_upload.outputs.UPLOAD == 'true'
-        id: bot_session_cache
-        uses: actions/cache@v5
-        with:
-          path: scripts/ksubot.session
-          key: ${{ runner.os }}-bot-session
+        env:
+          PROD_KEYSTORE: ${{ secrets.KEYSTORE }}
+          PROD_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          PROD_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          PROD_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          test -n "$PROD_KEYSTORE"
+          echo "$PROD_KEYSTORE" | base64 -d > key.jks
+          echo "SIGN_KEYSTORE_FILE=key.jks" >> "$GITHUB_ENV"
+          echo "SIGN_KEY_ALIAS=$PROD_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "SIGN_KEYSTORE_PASSWORD=$PROD_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "SIGN_KEY_PASSWORD=$PROD_KEY_PASSWORD" >> "$GITHUB_ENV"
 
 
       # --------------------------------------------------------
-      # Telegram upload
+      # Split per-arch before uploading (keep full original name)
       # --------------------------------------------------------
 
-      - name: Upload to telegram
+      - name: Split Manager APK by arch
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        run: |
+          APK=$(find apks/manager -type f -name "*.apk" | head -n 1)
+          test -n "$APK"
+          python3 split_apk_by_arch.py \
+            -i "$APK" \
+            -o apks/split-manager \
+            -K "$SIGN_KEYSTORE_FILE" \
+            -A "$SIGN_KEY_ALIAS" \
+            -P "$SIGN_KEYSTORE_PASSWORD" \
+            -S "$SIGN_KEY_PASSWORD"
+
+      - name: Split Manager-spoofed APK by arch
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        run: |
+          APK=$(find apks/manager-spoofed -type f -name "*.apk" | head -n 1)
+          test -n "$APK"
+          python3 split_apk_by_arch.py \
+            -i "$APK" \
+            -o apks/split-manager-spoofed \
+            -K "$SIGN_KEYSTORE_FILE" \
+            -A "$SIGN_KEY_ALIAS" \
+            -P "$SIGN_KEYSTORE_PASSWORD" \
+            -S "$SIGN_KEY_PASSWORD"
+
+
+      # --------------------------------------------------------
+      # Verify each split APK contains exactly one architecture
+      # --------------------------------------------------------
+
+      - name: Verify split APK arch
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        run: |
+          for apk in apks/split-manager/*.apk apks/split-manager-spoofed/*.apk; do
+            [ -f "$apk" ] || continue
+            echo "== $apk =="
+            unzip -l "$apk" | grep ' lib/' | awk -F/ '{print $2}' | sort -u
+          done
+
+
+      # --------------------------------------------------------
+      # Telegram upload - normal Manager (all per-arch APKs)
+      # --------------------------------------------------------
+
+      - name: Upload Manager to telegram
         if: steps.need_upload.outputs.UPLOAD == 'true'
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          MESSAGE_THREAD_ID: ${{ secrets.MESSAGE_THREAD_ID }}
+          MESSAGE_THREAD_ID: ${{ inputs.release_upload && secrets.MESSAGE_RELEASES_THREAD_ID || secrets.MESSAGE_THREAD_ID }}
+          GITHUB_EVENT: ${{ toJson(github.event) }}
 
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          COMMIT_URL: ${{ github.event.head_commit.url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           TITLE: Manager
           BRANCH: ${{ github.ref_name }}
 
+        shell: bash
         run: |
-          if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
+          set -euo pipefail
+          export VERSION="$(git rev-list --count HEAD)"
+          mapfile -d '' APKS < <(find ./apks/split-manager -type f -name '*.apk' -print0 | sort -z)
+          test "${#APKS[@]}" -gt 0
+          bash scripts/upload-telegram.sh "${APKS[@]}"
 
-            export VERSION=$(git rev-list --count HEAD)
 
-            APKS=$(find ./apks -type f -name "*.apk" | sort)
+      # --------------------------------------------------------
+      # Telegram upload - spoofed Manager (separate thread)
+      # --------------------------------------------------------
 
-            pip3 install telethon
+      - name: Upload Manager-spoofed to telegram
+        if: steps.need_upload.outputs.UPLOAD == 'true'
+        env:
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          MESSAGE_THREAD_ID: ${{ inputs.release_upload && secrets.MESSAGE_RELEASES_THREAD_ID || secrets.MESSAGE_SPOOFED_THREAD_ID }}
+          GITHUB_EVENT: ${{ toJson(github.event) }}
 
-            python3 scripts/ksubot.py $APKS
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          fi
+          TITLE: Manager-spoofed
+          BRANCH: ${{ github.ref_name }}
+
+        shell: bash
+        run: |
+          set -euo pipefail
+          export VERSION="$(git rev-list --count HEAD)"
+          mapfile -d '' APKS < <(find ./apks/split-manager-spoofed -type f -name '*.apk' -print0 | sort -z)
+          test "${#APKS[@]}" -gt 0
+          bash scripts/upload-telegram.sh "${APKS[@]}"

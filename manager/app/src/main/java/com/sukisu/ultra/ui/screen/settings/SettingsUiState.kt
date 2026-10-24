@@ -10,6 +10,7 @@ data class SettingsUiState(
     val uiMode: String = UiMode.DEFAULT_VALUE,
     val appLanguage: String = "",
     val checkUpdate: Boolean = true,
+    val checkCiUpdate: Boolean = false,
     val checkModuleUpdate: Boolean = true,
     val alternativeIcon : Boolean = false,
     val themeMode: Int = 0,
@@ -41,6 +42,10 @@ data class SettingsUiState(
     // SELinux Hide
     val selinuxHideStatus: String = "",
     val isSelinuxHideEnabled: Boolean = false,
+
+    // AVC log spoofing
+    val avcSpoofStatus: String = "",
+    val isAvcSpoofEnabled: Boolean = false,
 
     // Mount Hide
     val mountHideStatus: String = "",
@@ -74,6 +79,7 @@ data class SettingsUiState(
 @Immutable
 data class SettingsScreenActions(
     val onSetCheckUpdate: (Boolean) -> Unit,
+    val onSetCheckCiUpdate: (Boolean) -> Unit,
     val onSetCheckModuleUpdate: (Boolean) -> Unit,
     val onOpenTheme: () -> Unit,
     val onSetUiModeIndex: (Int) -> Unit,
@@ -82,6 +88,7 @@ data class SettingsScreenActions(
     val onSetSuCompatMode: (Int) -> Unit,
     val onSetKernelUmountEnabled: (Boolean) -> Unit,
     val onSetSelinuxHideEnabled: (Boolean) -> Unit,
+    val onSetAvcSpoofEnabled: (Boolean) -> Unit,
     val onSetMountHideEnabled: (Boolean) -> Unit,
     val onSetSulogEnabled: (Boolean) -> Unit,
     val onSetAdbRootEnabled: (Boolean) -> Unit,

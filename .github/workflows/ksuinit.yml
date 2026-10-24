@@ -18,6 +18,7 @@ jobs:
       run: |
         rustup update stable
         rustup target add aarch64-linux-android
+        rustup target add armv7-linux-androideabi
         rustup target add x86_64-linux-android
 
     - uses: nttld/setup-ndk@v1
@@ -45,6 +46,22 @@ jobs:
       with:
         name: ksuinit-aarch64
         path: target/aarch64-linux-android/release/ksuinit
+
+    - name: Build ksuinit ARMv7
+      env:
+        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      run: |
+        source .github/scripts/setup-rust-build.sh armv7-linux-androideabi 26
+        BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-arm-android.a"
+        test -f "$BUILTINS"
+        export RUSTFLAGS="-C target-feature=+crt-static -C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wno-unused-command-line-argument -C link-arg=$BUILTINS"
+        cargo build --package ksuinit --target=armv7-linux-androideabi --release
+
+    - name: Upload ARMv7 ksuinit artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: ksuinit-arm
+        path: target/armv7-linux-androideabi/release/ksuinit
 
     - name: Build ksuinit x64
       env:
@@ -88,6 +105,7 @@ jobs:
       run: |
         source .github/scripts/setup-rust-build.sh riscv64-linux-android 35
         BUILTINS="$($CLANG_PATH --print-resource-dir)/lib/linux/libclang_rt.builtins-riscv64-android.a"
+        test -f "$BUILTINS"
         export RUSTFLAGS="-C target-feature=+crt-static -C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wno-unused-command-line-argument -C link-arg=$BUILTINS"
         cargo +nightly-2026-09-23 build --config .github/riscv64-cargo.toml -Z build-std=std,panic_abort --package ksuinit --target=riscv64-linux-android --release
 

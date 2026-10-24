@@ -1,15 +1,16 @@
 # SukiSU Ultra
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
 
+> Current branch: `main` (active development) · Forked from KernelSU, independently maintained
 
-**English** | [简体中文](./zh/README.md) | [日本語](./ja/README.md) | [Türkçe](./tr/README.md) | [Русский](./ru/README.md)
+**English** | [简体中文](./zh/README.md)
 
-A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`](https://github.com/tiann/KernelSU), and added some interesting changes.
+A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`](https://github.com/tiann/KernelSU), with some interesting changes added.
 
-[![Latest release](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/Sukiksu)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![GitHub License](https://img.shields.io/github/license/tiann/KernelSU?logo=gnu)](/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/SukiSU-Ultra/SukiSU-Ultra?logo=gnu)](/LICENSE)
 
 ## Features
 
@@ -17,56 +18,72 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 2. [App Profile](https://sukisu.org/guide/app-profile): Lock up the root power in a cage
 3. Support non-GKI and GKI 1.0
 4. KPM Support
-5. Tweaks to the manager theme and the built-in susfs management tool.
+5. Built-in susfs management tool for one-click root hiding configuration; customizable manager theme.
 
 ## Compatibility Status
 
-- KernelSU (before v1.0.0) officially supports Android GKI 2.0 devices (kernel 5.10+).
-
-- Older kernels (4.4+) are also compatible, but the kernel will have to be built manually.
-
-- With more backports, KernelSU can supports 3.x kernel (3.4-3.18).
-
-- Currently, only `arm64-v8a`, `armeabi-v7a (bare)` and `X86_64`(some) are supported.
+- SukiSU Ultra supports Android GKI 2.0 devices (kernel 5.10+).
+- Older kernels (4.14+) are also compatible, but the kernel will have to be built manually.
+- With more backports, kernels 3.x (3.4–3.18) can be supported.
+- Currently, only `arm64-v8a`, `armeabi-v7a (bare)` and `X86_64` (some) are supported.
+- **Note**: Since forking from `tiann/KernelSU`, this project has evolved independently. Compatibility is based on actual testing in this repository and no longer equals KernelSU's official support scope.
 
 ## Installation
 
-See [`guide/installation.md`](guide/installation.md)
+Choose the installation method based on your device:
+
+| Scenario | Method | Notes |
+|----------|--------|-------|
+| GKI device (kernel 5.10+) | Flash boot image | See [`guide/installation.md`](guide/installation.md) |
+| Non-GKI / older kernel (4.14+) | Build kernel manually | See [`guide/how-to-integrate.md`](guide/how-to-integrate.md) |
+| Need KPM features | Enable `CONFIG_KPM=y` | See "KPM Support" below |
+
+Detailed steps: [`guide/installation.md`](guide/installation.md)
 
 ## Integration
 
 See [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
 
-## Translation
-
-If you need to submit a translation for the manager, please go to [Crowdin](https://crowdin.com/project/SukiSU-Ultra).
-
 ## KPM Support
 
-- Based on KernelPatch, we removed features redundant with KSU and retained only KPM support.
-- Work in Progress: Expanding APatch compatibility by integrating additional functions to ensure compatibility across different implementations.
+Based on [KernelPatch](https://github.com/bmax121/KernelPatch), we removed features redundant with KSU and retained only KPM support.
 
-**Open-source repository**: [https://github.com/ShirkNeko/SukiSU_KernelPatch_patch](https://github.com/ShirkNeko/SukiSU_KernelPatch_patch)
+**Current status**:
+- ✅ Basic KPM loading is available (requires `CONFIG_KPM=y`)
+- 🚧 APatch compatibility expansion is in progress (some features not yet merged)
+- ⚠️ Non-GKI devices additionally require `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`
+- ⚠️ Kernels below 4.19 require backporting `set_memory.h` from 4.19
 
-**KPM template**: [https://github.com/udochina/KPM-Build-Anywhere](https://github.com/udochina/KPM-Build-Anywhere)
-
-> [!Note]
->
-> 1. Requires `CONFIG_KPM=y`
-> 2. Non-GKI devices requires `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`
-> 3. For kernels below `4.19`, backporting from `set_memory.h` from `4.19` is required.
+**Open-source repository**: [ShirkNeko/SukiSU_KernelPatch_patch](https://github.com/ShirkNeko/SukiSU_KernelPatch_patch)  
+**KPM template**: [udochina/KPM-Build-Anywhere](https://github.com/udochina/KPM-Build-Anywhere)
 
 ## Troubleshooting
 
-1. Device stuck upon manager app uninstallation?
-   Uninstall _com.sony.playmemories.mobile_
+1. **Device stuck after uninstalling the manager app?**  
+   Uninstall `_com.sony.playmemories.mobile_`.
+
+2. **KPM fails to load?**  
+   Confirm the kernel has `CONFIG_KPM=y` enabled; Non-GKI devices also need `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`.
+
+3. **Manager cannot detect root?**  
+   Confirm the flashed kernel matches the manager version, and check that `su` is in PATH.
+
+4. **Kernel build errors?**  
+   Refer to [`guide/how-to-integrate.md`](guide/how-to-integrate.md), and confirm the kernel version meets the minimum requirement (4.14+).
+
+## Translation
+
+If you need to contribute to the translation of the manager, please go to [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/).
+
+<a href="https://hosted.weblate.org/engage/sukisu-ultra/"><img src="https://hosted.weblate.org/widget/sukisu-ultra/multi-auto.svg" alt="Translation status"></a>
 
 ## Sponsor
 
 - [ShirkNeko](https://afdian.com/a/shirkneko) (maintainer of SukiSU)
 - [weishu](https://github.com/sponsors/tiann) (author of KernelSU)
 
-## ShirkNeko's sponsorship list
+<details>
+<summary>ShirkNeko's sponsorship list</summary>
 
 - [Ktouls](https://github.com/Ktouls) Thanks so much for bringing me support.
 - [zaoqi123](https://github.com/zaoqi123) Thanks for the milk tea.
@@ -76,9 +93,11 @@ If you need to submit a translation for the manager, please go to [Crowdin](http
 - [Saksham Singla](https://github.com/TypeFlu) Provide and maintain the website
 - [OukaroMF](https://github.com/OukaroMF) Donation of website domain name
 
+</details>
+
 ## License
 
-- The file in the “kernel” directory is under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
+- The files in the `kernel` directory are under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
 - The images of the files `ic_launcher(?!.*alt.*).*` with anime character artwork are licensed under a special arrangement: drawn by [怡子曰曰](https://space.bilibili.com/10545509), the copyright is held by [明风 OuO](https://space.bilibili.com/274939213), and the vectorized icons are provided by this project. See [`LICENSE_icon_English`](./LICENSE_icon_English) and [`LICENSE_icon_SC`](./LICENSE_icon_SC) for details.
 - Except for the files or directories mentioned above, all other parts are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
@@ -89,6 +108,8 @@ If you need to submit a translation for the manager, please go to [Crowdin](http
 - [RKSU](https://github.com/rsuntk/KernelsU): support non-GKI
 - [susfs](https://gitlab.com/simonpunk/susfs4ksu): An addon root hiding kernel patches and userspace module for KernelSU.
 - [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch is a key part of the APatch implementation of the kernel module
+
+Contributions welcome via PR; translations via [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/); issues via [GitHub Issues](https://github.com/SukiSU-Ultra/SukiSU-Ultra/issues).
 
 <details>
 <summary>KernelSU's credit</summary>

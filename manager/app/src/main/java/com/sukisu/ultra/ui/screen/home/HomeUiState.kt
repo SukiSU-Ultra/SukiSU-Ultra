@@ -24,6 +24,9 @@ data class HomeUiState(
     val latestVersionInfo: LatestVersionInfo,
     val currentManagerVersionCode: Long,
     val systemInfo: SystemInfo,
+    val checkCiUpdateEnabled: Boolean = false,
+    val ciLatestVersionInfo: LatestVersionInfo = LatestVersionInfo(),
+    val ciUpdateBusy: Boolean = false,
     val showFullStatus: Boolean = true,
     // Root without a SukiSU kernel: pages are browsable but kernel features are unavailable.
     val isPreviewMode: Boolean = false,
@@ -73,4 +76,6 @@ data class HomeActions(
     val onJailbreakClick: () -> Unit = {},
     val onSuperuserClick: () -> Unit = {},
     val onModuleClick: () -> Unit = {},
+    val onCiUpdateClick: () -> Unit = {},
+    val onReleaseUpdateClick: () -> Unit = {},
 )

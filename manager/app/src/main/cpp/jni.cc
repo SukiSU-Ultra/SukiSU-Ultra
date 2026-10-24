@@ -378,6 +378,18 @@ Java_com_sukisu_ultra_Natives_setMountHideEnabled(JNIEnv *env, jobject thiz, jbo
 }
 
 extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_sukisu_ultra_Natives_isAvcSpoofEnabled(JNIEnv *env, jobject thiz) {
+    return is_avc_spoof_enabled();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_sukisu_ultra_Natives_setAvcSpoofEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+    return set_avc_spoof_enabled(enabled) == 0;
+}
+
+extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_sukisu_ultra_Natives_getUserName(JNIEnv *env, jobject thiz, jint uid) {
     struct passwd *pw = getpwuid((uid_t) uid);

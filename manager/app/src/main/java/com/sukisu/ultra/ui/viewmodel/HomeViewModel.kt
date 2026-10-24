@@ -21,6 +21,7 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.home.HomeUiState
 import com.sukisu.ultra.ui.screen.home.SystemInfo
 import com.sukisu.ultra.ui.screen.home.getManagerVersion
+import com.sukisu.ultra.ui.util.checkNewCiVersion
 import com.sukisu.ultra.ui.util.checkNewVersion
 import com.sukisu.ultra.ui.util.getKpmModuleCount
 import com.sukisu.ultra.ui.util.getKpmVersion
@@ -38,14 +39,18 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(buildState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private var refreshJob: kotlinx.coroutines.Job? = null
+
     fun refresh() {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             val baseState = withContext(Dispatchers.IO) { buildState() }
             _uiState.update { current ->
                 baseState.copy(
                     superuserCount = current.superuserCount,
                     moduleCount = current.moduleCount,
                     kpmCount = current.kpmCount,
+                    ciUpdateBusy = current.ciUpdateBusy,
                 )
             }
             if ((baseState.isManager || baseState.isPreviewMode) && baseState.isRootAvailable) {
@@ -57,6 +62,37 @@ class HomeViewModel(
             if (baseState.checkUpdateEnabled) {
                 val latestVersionInfo = withContext(Dispatchers.IO) { checkNewVersion() }
                 _uiState.update { it.copy(latestVersionInfo = latestVersionInfo) }
+            }
+            if (baseState.checkCiUpdateEnabled) {
+                val ciVersionInfo = withContext(Dispatchers.IO) { checkNewCiVersion() }
+                _uiState.update { it.copy(ciLatestVersionInfo = ciVersionInfo) }
+            }
+        }
+    }
+
+    fun installCiUpdate() = installUpdate(isCi = true)
+
+    fun installReleaseUpdate() = installUpdate(isCi = false)
+
+    private fun installUpdate(isCi: Boolean) {
+        val info = if (isCi) _uiState.value.ciLatestVersionInfo else _uiState.value.latestVersionInfo
+        if (info.versionCode <= _uiState.value.currentManagerVersionCode || info.downloadUrl.isBlank()) return
+        if (!settingsRepo.checkUpdate || (isCi && !settingsRepo.checkCiUpdate) || _uiState.value.ciUpdateBusy) return
+        _uiState.update { it.copy(ciUpdateBusy = true) }
+        viewModelScope.launch {
+            try {
+                val installed = withContext(Dispatchers.IO) {
+                    com.sukisu.ultra.data.repository.CiManagerUpdater(ksuApp).updateAndInstall(info)
+                }
+                val message = if (installed) com.sukisu.ultra.R.string.ci_update_install_success
+                    else com.sukisu.ultra.R.string.ci_update_install_submitted
+                android.widget.Toast.makeText(ksuApp, message, android.widget.Toast.LENGTH_LONG).show()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(ksuApp, e.message ?: ksuApp.getString(com.sukisu.ultra.R.string.ci_update_download_failed), android.widget.Toast.LENGTH_LONG).show()
+            } finally {
+                _uiState.update { it.copy(ciUpdateBusy = false) }
             }
         }
     }
@@ -109,6 +145,7 @@ class HomeViewModel(
             isSafeMode = Natives.isSafeMode,
             isLateLoadMode = Natives.isLateLoadMode,
             checkUpdateEnabled = settingsRepo.checkUpdate,
+            checkCiUpdateEnabled = settingsRepo.checkUpdate && settingsRepo.checkCiUpdate,
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             latestVersionInfo = LatestVersionInfo(),

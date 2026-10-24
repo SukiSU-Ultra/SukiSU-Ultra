@@ -73,6 +73,8 @@ mod susfs_config;
 #[cfg(target_arch = "aarch64")]
 mod susfs_module;
 #[cfg(target_os = "android")]
+mod temporary_root;
+#[cfg(target_os = "android")]
 mod umount;
 #[cfg(target_os = "android")]
 mod unload;

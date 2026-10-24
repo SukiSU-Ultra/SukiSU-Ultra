@@ -25,7 +25,11 @@ class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
+    private val _uiState = MutableStateFlow(SettingsUiState(
+        checkUpdate = repo.checkUpdate,
+        checkCiUpdate = repo.checkCiUpdate,
+        checkModuleUpdate = repo.checkModuleUpdate,
+    ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
@@ -34,8 +38,6 @@ class SettingsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            val checkUpdate = repo.checkUpdate
-            val checkModuleUpdate = repo.checkModuleUpdate
             val alternativeIcon = repo.alternativeIcon
             val themeMode = repo.themeMode
             val miuixMonet = repo.miuixMonet
@@ -72,6 +74,8 @@ class SettingsViewModel(
             val isKernelUmountEnabled = repo.isKernelUmountEnabled()
             val selinuxHideStatus = repo.getSelinuxHideStatus()
             val isSelinuxHideEnabled = repo.isSelinuxHideEnabled()
+            val avcSpoofStatus = repo.getAvcSpoofStatus()
+            val isAvcSpoofEnabled = repo.isAvcSpoofEnabled()
             val mountHideStatus = repo.getMountHideStatus()
             val isMountHideEnabled = repo.isMountHideEnabled()
             val sulogStatus = repo.getSulogStatus()
@@ -103,8 +107,9 @@ class SettingsViewModel(
                 it.copy(
                     uiMode = uiMode,
                     appLanguage = appLanguage,
-                    checkUpdate = checkUpdate,
-                    checkModuleUpdate = checkModuleUpdate,
+                    checkUpdate = repo.checkUpdate,
+                    checkCiUpdate = repo.checkCiUpdate,
+                    checkModuleUpdate = repo.checkModuleUpdate,
                     alternativeIcon = alternativeIcon,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
@@ -133,6 +138,8 @@ class SettingsViewModel(
                     isKernelUmountEnabled = isKernelUmountEnabled,
                     selinuxHideStatus = selinuxHideStatus,
                     isSelinuxHideEnabled = isSelinuxHideEnabled,
+                    avcSpoofStatus = avcSpoofStatus,
+                    isAvcSpoofEnabled = isAvcSpoofEnabled,
                     mountHideStatus = mountHideStatus,
                     isMountHideEnabled = isMountHideEnabled,
                     sulogStatus = sulogStatus,
@@ -145,6 +152,11 @@ class SettingsViewModel(
                 )
             }
         }
+    }
+
+    fun setCheckCiUpdate(enabled: Boolean) {
+        repo.checkCiUpdate = enabled
+        _uiState.update { it.copy(checkCiUpdate = enabled) }
     }
 
     fun setCheckUpdate(enabled: Boolean) {
@@ -424,6 +436,19 @@ class SettingsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             if (repo.setDefaultUmountModules(enabled)) {
                 _uiState.update { it.copy(isDefaultUmountModules = enabled) }
+            }
+        }
+    }
+
+    fun setAvcSpoofEnabled(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (repo.setAvcSpoofEnabled(enabled)) {
+                repo.execKsudFeatureSave()
+                _uiState.update { it.copy(isAvcSpoofEnabled = repo.isAvcSpoofEnabled()) }
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(ksuApp, R.string.settings_avc_spoof_failed, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

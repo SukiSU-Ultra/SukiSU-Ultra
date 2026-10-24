@@ -16,10 +16,11 @@ pub enum FeatureId {
     ShellSuAdbOnly = 6,
     // Fork-local features start at 16; see uapi/feature.h.
     MountHide = 16,
+    AvcSpoof = 10003,
 }
 
 impl FeatureId {
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 8] = [
         Self::SuCompat,
         Self::KernelUmount,
         Self::Sulog,
@@ -27,6 +28,7 @@ impl FeatureId {
         Self::SelinuxHide,
         Self::ShellSuAdbOnly,
         Self::MountHide,
+        Self::AvcSpoof,
     ];
 
     pub const fn from_u32(id: u32) -> Option<Self> {
@@ -38,6 +40,7 @@ impl FeatureId {
             4 => Some(Self::SelinuxHide),
             6 => Some(Self::ShellSuAdbOnly),
             16 => Some(Self::MountHide),
+            10003 => Some(Self::AvcSpoof),
             _ => None,
         }
     }
@@ -51,6 +54,7 @@ impl FeatureId {
             Self::SelinuxHide => "selinux_hide",
             Self::ShellSuAdbOnly => "shell_su_adb_only",
             Self::MountHide => "mount_hide",
+            Self::AvcSpoof => "avc_spoof",
         }
     }
 
@@ -75,6 +79,7 @@ impl FeatureId {
             Self::MountHide => {
                 "Mount Hide - filter module mounts from /proc mount views of isolated and app processes"
             }
+            Self::AvcSpoof => "AVC Spoof - fix SELinux context leaks in AVC denial logs",
         }
     }
 }
@@ -88,6 +93,7 @@ pub fn parse_feature_id(name: &str) -> Result<FeatureId> {
         "selinux_hide" | "4" => Ok(FeatureId::SelinuxHide),
         "shell_su_adb_only" | "6" => Ok(FeatureId::ShellSuAdbOnly),
         "mount_hide" | "16" => Ok(FeatureId::MountHide),
+        "avc_spoof" | "10003" => Ok(FeatureId::AvcSpoof),
         _ => bail!("Unknown feature: {name}"),
     }
 }

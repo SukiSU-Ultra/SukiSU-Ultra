@@ -26,6 +26,11 @@ struct Args {
 #[derive(clap::Subcommand, Debug)]
 #[allow(clippy::large_enum_variant)]
 enum Commands {
+    /// Best-effort userspace temporary root leases (not kernel-enforced)
+    TemporaryRoot {
+        #[command(subcommand)]
+        command: TemporaryRoot,
+    },
     /// Manage KernelSU modules
     Module {
         #[command(subcommand)]
@@ -485,10 +490,36 @@ enum Profile {
 }
 
 #[derive(clap::Subcommand, Debug)]
+enum TemporaryRoot {
+    Set {
+        uid: i32,
+        key: String,
+        manager: u32,
+        seconds: u64,
+    },
+    Clear {
+        uid: i32,
+    },
+    Status {
+        uid: i32,
+    },
+    /// Atomically save a profile and its lease under the watcher lock.
+    Apply {
+        manager: u32,
+        lease: String,
+        #[arg(action = clap::ArgAction::Set)]
+        expected_root: bool,
+        json: String,
+    },
+    #[command(hide = true)]
+    Watch,
+}
+
+#[derive(clap::Subcommand, Debug)]
 enum Feature {
     /// Get feature value and support status
     Get {
-        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide,
+        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide, avc_spoof,
         /// shell_su_adb_only, mount_hide)
         id: String,
         /// Read from config file
@@ -509,7 +540,7 @@ enum Feature {
 
     /// Check feature status (supported/unsupported/managed/forced)
     Check {
-        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide,
+        /// Feature ID or name (su_compat, kernel_umount, sulog, adb_root, selinux_hide, avc_spoof,
         /// shell_su_adb_only, mount_hide)
         id: String,
     },
@@ -1053,6 +1084,23 @@ pub fn run() -> Result<()> {
             Ok(())
         }
         Commands::Sulogd => sulog::run_sulogd(),
+        Commands::TemporaryRoot { command } => match command {
+            TemporaryRoot::Set {
+                uid,
+                key,
+                manager,
+                seconds,
+            } => crate::temporary_root::set(uid, key, manager, seconds),
+            TemporaryRoot::Clear { uid } => crate::temporary_root::clear(uid),
+            TemporaryRoot::Status { uid } => crate::temporary_root::status(uid),
+            TemporaryRoot::Apply {
+                manager,
+                lease,
+                expected_root,
+                json,
+            } => crate::temporary_root::apply(manager, &lease, expected_root, &json),
+            TemporaryRoot::Watch => crate::temporary_root::watch(),
+        },
         Commands::Profile { command } => match command {
             Profile::GetSepolicy { package } => crate::profile::get_sepolicy(package),
             Profile::SetSepolicy { package, policy } => {

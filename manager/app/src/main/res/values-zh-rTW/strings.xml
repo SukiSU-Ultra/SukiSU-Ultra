@@ -677,4 +677,20 @@
     <string name="susfs_runtime_version">版本</string>
     <string name="susfs_runtime_variant">核心類型</string>
     <string name="susfs_runtime_implementation">實作方式</string>
+    <string name="temporary_root_active">臨時 Root 已啟用</string>
+    <string name="temporary_root_title">臨時 Root</string>
+    <string name="temporary_root_minutes">%1$d 分鐘</string>
+    <string name="temporary_root_allow_seconds_test">允許 %1$d 秒（測試）</string>
+    <string name="temporary_root_allow_minutes">允許 %1$d 分鐘</string>
+    <string name="temporary_root_until_reboot">允許至重新啟動前</string>
+    <string name="temporary_root_permanent">永久允許</string>
+    <string name="temporary_root_warning">到期後只會阻止新的提權，已取得 Root 的行程不受影響。撤銷由 ksud 執行而非核心，ksud 停止或重新啟動期間可能延遲，請勿當作安全邊界。</string>
+    <string name="temporary_root_warning_short">到期只阻止新的提權，已取得 Root 的行程不受影響。</string>
+    <string name="temporary_root_duration_title">臨時 Root 預設時長</string>
+    <string name="temporary_root_duration_summary">授予臨時權限時預設的時長</string>
+    <string name="temporary_root_switch_summary">與永久 Root 互斥。開啟後選擇時長；關閉即撤銷。</string>
+    <string name="temporary_root_grant_title">選擇授權時長</string>
+    <string name="temporary_root_custom_duration">自訂時長</string>
+    <string name="temporary_root_custom_minutes">時長（分鐘）</string>
+    <string name="temporary_root_custom_range">請輸入 1～10080 分鐘（最多 7 天）</string>
 </resources>

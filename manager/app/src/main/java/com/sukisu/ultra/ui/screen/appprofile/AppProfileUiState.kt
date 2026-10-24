@@ -11,12 +11,16 @@ data class AppProfileUiState(
     val profile: Natives.Profile,
     val appGroup: GroupedApps,
     val sharedUserId: String,
+    val temporaryRoot: Boolean = false,
 ) {
     val isUidGroup get() = appGroup.apps.size > 1
 }
 
 @Immutable
 data class AppProfileActions(
+    val onPermanentRootChange: (Boolean) -> Unit = {},
+    val onTemporaryRootChange: (Boolean) -> Unit = {},
+    val onTemporaryRootGrant: (Long?) -> Unit = {},
     val onBack: () -> Unit,
     val onLaunchApp: (String, Int) -> Unit,
     val onForceStopApp: (String, Int) -> Unit,

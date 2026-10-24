@@ -12,6 +12,8 @@ jobs:
   build-manager:
     uses: ./.github/workflows/build-manager.yml
     secrets: inherit
+    with:
+      release_upload: true
   release:
     needs:
       - build-manager

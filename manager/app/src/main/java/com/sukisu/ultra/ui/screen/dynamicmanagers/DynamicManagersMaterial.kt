@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.dynamicmanagers
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -25,33 +26,46 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExpandedFullScreenContainedSearchBar
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +79,8 @@ import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.DynamicManagerState
+import kotlinx.coroutines.flow.drop
+import top.yukonga.miuix.kmp.nav.gesture.WindowNavigationEventBridge
 
 @Composable
 internal fun DynamicManagersMaterial(
@@ -76,6 +92,7 @@ internal fun DynamicManagersMaterial(
     error: String?,
     actions: DynamicManagersActions,
 ) {
+    var showAddSearch by rememberSaveable { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val listState: LazyListState = rememberLazyListState()
 
@@ -88,11 +105,6 @@ internal fun DynamicManagersMaterial(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
                 },
-                actions = {
-                    IconButton(onClick = actions.onRefresh) {
-                        Icon(Icons.Outlined.Refresh, null)
-                    }
-                },
                 colors = expressiveTopAppBarColors(),
                 scrollBehavior = scrollBehavior,
             )
@@ -100,7 +112,12 @@ internal fun DynamicManagersMaterial(
         floatingActionButton = {
             val addManager = stringResource(R.string.dynamic_manager_add)
             SmallExtendedFloatingActionButton(
-                onClick = { if (!busy) actions.onLoadApps() },
+                onClick = {
+                    if (!busy) {
+                        showAddSearch = true
+                        actions.onLoadApps()
+                    }
+                },
                 modifier = Modifier.alpha(if (busy) 0.38f else 1f),
                 icon = { Icon(Icons.Outlined.Add, addManager) },
                 text = { Text(text = addManager) },
@@ -108,81 +125,179 @@ internal fun DynamicManagersMaterial(
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
     ) { innerPadding ->
-        LazyColumn(
-            state = listState,
+        val pullToRefreshState = rememberPullToRefreshState()
+        PullToRefreshBox(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 8.dp,
-                bottom = 16.dp + 56.dp + 16.dp,
-            ),
-        ) {
-            item(key = "status", contentType = "status") {
-                StatusCard(
-                    state = state,
-                    busy = busy,
-                    error = error,
-                    onSetEnabled = actions.onSetEnabled,
+                .padding(innerPadding),
+            isRefreshing = busy,
+            onRefresh = actions.onRefresh,
+            state = pullToRefreshState,
+            indicator = {
+                PullToRefreshDefaults.LoadingIndicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = busy,
+                    state = pullToRefreshState,
                 )
-            }
-
-            currentManager?.let { app ->
-                item(key = "current_header", contentType = "header") {
-                    SectionTitle(stringResource(R.string.dynamic_manager_current))
-                }
-                item(key = "current", contentType = "manager") {
-                    val currentDetail = state?.entries
-                        ?.firstOrNull { it.packageName == app.packageName }
-                        ?.let { "${it.certSize} bytes · ${it.hash}" }
-                    ManagerCard(
-                        app = app,
-                        packageName = app.packageName,
-                        uid = app.uid,
-                        detail = currentDetail,
-                        current = true,
-                        onRemove = null,
+            },
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 16.dp + 56.dp + 16.dp,
+                ),
+            ) {
+                item(key = "status", contentType = "status") {
+                    StatusCard(
+                        state = state,
+                        busy = busy,
+                        error = error,
+                        onSetEnabled = actions.onSetEnabled,
                     )
                 }
-            }
 
-            val entries = state?.entries.orEmpty()
-            if (entries.isNotEmpty()) {
-                item(key = "authorized_header", contentType = "header") {
-                    SectionTitle(stringResource(R.string.dynamic_manager_authorized))
-                }
-                items(
-                    entries.filter { it.packageName != currentManager?.packageName },
-                    key = { it.packageName },
-                    contentType = { "manager" },
-                ) { entry ->
-                    val app = installedApps.firstOrNull { it.packageName == entry.packageName }
-                    ManagerCard(
-                        app = app,
-                        packageName = entry.packageName,
-                        uid = entry.uid,
-                        detail = "${entry.certSize} bytes · ${entry.hash}",
-                        current = false,
-                    ) {
-                        actions.onRemove(entry.packageName)
+                currentManager?.let { app ->
+                    item(key = "current_header", contentType = "header") {
+                        SectionTitle(stringResource(R.string.dynamic_manager_current))
+                    }
+                    item(key = "current", contentType = "manager") {
+                        val currentDetail = state?.entries
+                            ?.firstOrNull { it.packageName == app.packageName }
+                            ?.let { "${it.certSize} bytes · ${it.hash}" }
+                        ManagerCard(
+                            app = app,
+                            packageName = app.packageName,
+                            uid = app.uid,
+                            detail = currentDetail,
+                            current = true,
+                            onRemove = null,
+                        )
                     }
                 }
-            }
 
-            if (apps.isNotEmpty()) {
-                item(key = "apps_header", contentType = "header") {
-                    SectionTitle(stringResource(R.string.dynamic_manager_select_app))
+                val entries = state?.entries.orEmpty()
+                if (entries.isNotEmpty()) {
+                    item(key = "authorized_header", contentType = "header") {
+                        SectionTitle(stringResource(R.string.dynamic_manager_authorized))
+                    }
+                    items(
+                        entries.filter { it.packageName != currentManager?.packageName },
+                        key = { it.packageName },
+                        contentType = { "manager" },
+                    ) { entry ->
+                        val app = installedApps.firstOrNull { it.packageName == entry.packageName }
+                        ManagerCard(
+                            app = app,
+                            packageName = entry.packageName,
+                            uid = entry.uid,
+                            detail = "${entry.certSize} bytes · ${entry.hash}",
+                            current = false,
+                        ) {
+                            actions.onRemove(entry.packageName)
+                        }
+                    }
                 }
-                items(
-                    apps.filterNot { app -> entries.any { it.packageName == app.packageName } },
-                    key = { "app_${it.packageName}" },
-                    contentType = { "app" },
-                ) { app ->
-                    AppCandidateCard(app = app, onAdd = { actions.onAdd(app) })
+
+            }
+        }
+    }
+
+    if (showAddSearch) {
+        val searchState = rememberContainedSearchBarState()
+        val textFieldState = rememberTextFieldState()
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val focusManager = LocalFocusManager.current
+        val closeSearch: () -> Unit = {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+            showAddSearch = false
+        }
+
+        LaunchedEffect(searchState) {
+            searchState.animateToExpanded()
+        }
+        LaunchedEffect(searchState) {
+            snapshotFlow { searchState.currentValue }
+                .drop(1)
+                .collect { value ->
+                    if (value == SearchBarValue.Collapsed) closeSearch()
+                }
+        }
+        BackHandler { closeSearch() }
+
+        val entries = state?.entries.orEmpty()
+        val query = textFieldState.text.toString().trim()
+        val filteredApps = apps.filter { app ->
+            entries.none { it.packageName == app.packageName } &&
+                    (query.isEmpty() ||
+                            app.uid.toString().contains(query) ||
+                            app.packageName.contains(query, ignoreCase = true) ||
+                            app.label.contains(query, ignoreCase = true))
+        }
+
+        ExpandedFullScreenContainedSearchBar(
+            state = searchState,
+            inputField = {
+                SearchBarDefaults.InputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchState,
+                    onSearch = {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    },
+                    placeholder = { Text(stringResource(R.string.search_apps)) },
+                    leadingIcon = {
+                        IconButton(onClick = closeSearch) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        }
+                    },
+                    trailingIcon = {
+                        if (textFieldState.text.isNotEmpty()) {
+                            IconButton(onClick = { textFieldState.setTextAndPlaceCursorAtEnd("") }) {
+                                Icon(Icons.Outlined.Close, stringResource(android.R.string.cancel))
+                            }
+                        }
+                    },
+                )
+            },
+        ) {
+            WindowNavigationEventBridge()
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (busy) {
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
+                error?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(
+                        filteredApps,
+                        key = { it.packageName },
+                        contentType = { "app" },
+                    ) { app ->
+                        AppCandidateCard(
+                            app = app,
+                            onAdd = {
+                                closeSearch()
+                                actions.onAdd(app)
+                            },
+                        )
+                    }
                 }
             }
         }

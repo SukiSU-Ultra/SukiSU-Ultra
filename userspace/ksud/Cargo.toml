@@ -58,6 +58,7 @@ adb_client = { git = "https://github.com/KernelSU2/adb_client" }
 prop-rs-android = { git = "https://github.com/KernelSU2/ksu_props", rev = "ddb6ee7294467f7f25bad2118e9e24eee104144b" }
 serde = { version = "1.0", features = ["derive"] }
 notify = "6.1"
+chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
 
 [target.'cfg(all(target_os = "android", target_arch = "aarch64"))'.dependencies]
 mlua = { version = "0.11.6", features = ["lua54", "vendored"] }

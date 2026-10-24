@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Policy
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.SystemUpdateAlt
@@ -103,27 +105,35 @@ fun SettingPagerMaterial(
             KsuIsValid {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
-                    content = listOf(
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Filled.SystemUpdate,
-                                title = stringResource(id = R.string.settings_check_update),
-                                summary = stringResource(id = R.string.settings_check_update_summary),
-                                checked = uiState.checkUpdate,
-                                onCheckedChange = actions.onSetCheckUpdate
-                            )
-                        },
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Filled.SystemUpdateAlt,
-                                title = stringResource(id = R.string.settings_module_check_update),
-                                summary = stringResource(id = R.string.settings_check_update_summary),
-                                checked = uiState.checkModuleUpdate,
-                                onCheckedChange = actions.onSetCheckModuleUpdate
-                            )
-                        }
-                    )
-                )
+                ) {
+                    item {
+                        SegmentedSwitchItem(
+                            icon = Icons.Filled.SystemUpdate,
+                            title = stringResource(id = R.string.settings_check_update),
+                            summary = stringResource(id = R.string.settings_check_update_summary),
+                            checked = uiState.checkUpdate,
+                            onCheckedChange = actions.onSetCheckUpdate
+                        )
+                    }
+                    item(visible = uiState.checkUpdate) {
+                        SegmentedSwitchItem(
+                            icon = Icons.Filled.Science,
+                            title = stringResource(id = R.string.settings_check_ci_update),
+                            summary = stringResource(id = R.string.settings_check_ci_update_summary),
+                            checked = uiState.checkCiUpdate,
+                            onCheckedChange = actions.onSetCheckCiUpdate
+                        )
+                    }
+                    item {
+                        SegmentedSwitchItem(
+                            icon = Icons.Filled.SystemUpdateAlt,
+                            title = stringResource(id = R.string.settings_module_check_update),
+                            summary = stringResource(id = R.string.settings_check_update_summary),
+                            checked = uiState.checkModuleUpdate,
+                            onCheckedChange = actions.onSetCheckModuleUpdate
+                        )
+                    }
+                }
             }
 
             SegmentedColumn(
@@ -227,6 +237,7 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
+                TemporaryRootPreferences()
             }
 
             KsuIsValid {
@@ -286,6 +297,22 @@ fun SettingPagerMaterial(
                                 enabled = uiState.selinuxHideStatus == "supported",
                                 checked = uiState.isSelinuxHideEnabled,
                                 onCheckedChange = actions.onSetSelinuxHideEnabled
+                            )
+                        },
+                        {
+                            val summary = when (uiState.avcSpoofStatus) {
+                                "unsupported" -> stringResource(R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(R.string.feature_status_managed_summary)
+                                "forced" -> stringResource(R.string.feature_status_forced_summary)
+                                else -> stringResource(R.string.settings_avc_spoof_summary)
+                            }
+                            SegmentedSwitchItem(
+                                icon = Icons.Filled.Security,
+                                title = stringResource(R.string.settings_avc_spoof),
+                                summary = summary,
+                                enabled = uiState.avcSpoofStatus == "supported",
+                                checked = uiState.isAvcSpoofEnabled,
+                                onCheckedChange = actions.onSetAvcSpoofEnabled
                             )
                         },
                         {

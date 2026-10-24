@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"  android:minSdkVersion="33" />
@@ -177,6 +179,8 @@
             android:exported="false"
             android:foregroundServiceType="dataSync"
             tools:targetApi="UPSIDE_DOWN_CAKE" />
+
+        <receiver android:name=".data.repository.CiPackageInstallReceiver" android:exported="false" />
 
         <receiver
             android:name=".magica.BootCompletedReceiver"

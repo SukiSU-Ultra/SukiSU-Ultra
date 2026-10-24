@@ -18,6 +18,11 @@ pub fn on_post_fs_data() -> Result<()> {
 
     ksucalls::report_post_fs_data();
 
+    // Start before safe-mode/module early returns; expired leases survive reboot.
+    if let Err(e) = crate::temporary_root::start() {
+        error!("start temporary root watcher failed: {e:#}");
+    }
+
     utils::umask(0);
 
     // Clear all temporary module configs early

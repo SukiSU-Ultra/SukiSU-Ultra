@@ -1,5 +1,11 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -31,6 +37,7 @@ import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Policy
+import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.SystemUpdateAlt
@@ -131,6 +138,26 @@ fun SettingPagerMiuix(
                             checked = uiState.checkUpdate,
                             onCheckedChange = actions.onSetCheckUpdate
                         )
+                        AnimatedVisibility(
+                            visible = uiState.checkUpdate,
+                            enter = fadeIn() + expandVertically(),
+                            exit = shrinkVertically() + fadeOut(),
+                        ) {
+                            SwitchPreference(
+                                title = stringResource(R.string.settings_check_ci_update),
+                                summary = stringResource(R.string.settings_check_ci_update_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Science,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(R.string.settings_check_ci_update),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = uiState.checkCiUpdate,
+                                onCheckedChange = actions.onSetCheckCiUpdate,
+                            )
+                        }
                         KsuIsValid {
                             SwitchPreference(
                                 title = stringResource(id = R.string.settings_module_check_update),
@@ -266,6 +293,7 @@ fun SettingPagerMiuix(
                                 }
                             )
                         }
+                        TemporaryRootPreferences()
                     }
 
                     KsuIsValid {
@@ -345,6 +373,28 @@ fun SettingPagerMiuix(
                                 enabled = uiState.selinuxHideStatus == "supported",
                                 checked = uiState.isSelinuxHideEnabled,
                                 onCheckedChange = actions.onSetSelinuxHideEnabled
+                            )
+
+                            val avcSummary = when (uiState.avcSpoofStatus) {
+                                "unsupported" -> stringResource(R.string.feature_status_unsupported_summary)
+                                "managed" -> stringResource(R.string.feature_status_managed_summary)
+                                "forced" -> stringResource(R.string.feature_status_forced_summary)
+                                else -> stringResource(R.string.settings_avc_spoof_summary)
+                            }
+                            SwitchPreference(
+                                title = stringResource(R.string.settings_avc_spoof),
+                                summary = avcSummary,
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Security,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(R.string.settings_avc_spoof),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                enabled = uiState.avcSpoofStatus == "supported",
+                                checked = uiState.isAvcSpoofEnabled,
+                                onCheckedChange = actions.onSetAvcSpoofEnabled
                             )
 
                             val mountHideSummary = when (uiState.mountHideStatus) {

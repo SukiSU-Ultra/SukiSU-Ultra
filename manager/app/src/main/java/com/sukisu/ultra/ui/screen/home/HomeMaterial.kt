@@ -160,6 +160,23 @@ private fun UpdateCard(
     state: HomeUiState,
     actions: HomeActions,
 ) {
+    val ciInfo = state.ciLatestVersionInfo
+    val ciDialog = rememberConfirmDialog(onConfirm = actions.onCiUpdateClick)
+    val ciTitle = stringResource(R.string.settings_check_ci_update)
+    val ciConfirm = stringResource(R.string.module_update)
+    val ciContent = ciInfo.changelog
+    if (state.checkCiUpdateEnabled && ciInfo.versionCode > state.currentManagerVersionCode) {
+        WarningCard(
+            message = if (state.ciUpdateBusy) stringResource(R.string.ci_update_busy)
+                else stringResource(R.string.ci_update_available, ciInfo.versionCode),
+            level = WarningLevel.Notice,
+            onClick = {
+                if (!state.ciUpdateBusy) ciDialog.showConfirm(
+                    title = ciTitle, content = ciContent, confirm = ciConfirm, markdown = true,
+                )
+            },
+        )
+    }
     val newVersion = state.latestVersionInfo
     val title = stringResource(id = R.string.module_changelog)
     val updateText = stringResource(id = R.string.module_update)
@@ -169,13 +186,14 @@ private fun UpdateCard(
         enter = fadeIn() + expandVertically(),
         exit = shrinkVertically() + fadeOut()
     ) {
-        val updateDialog = rememberConfirmDialog(onConfirm = { actions.onOpenUrl(newVersion.downloadUrl) })
+        val updateDialog = rememberConfirmDialog(onConfirm = { actions.onReleaseUpdateClick() })
         WarningCard(
             message = stringResource(id = R.string.new_version_available, newVersion.versionCode),
             level = WarningLevel.Notice
         ) {
+            if (state.ciUpdateBusy) return@WarningCard
             if (newVersion.changelog.isEmpty()) {
-                actions.onOpenUrl(newVersion.downloadUrl)
+                actions.onReleaseUpdateClick()
             } else {
                 updateDialog.showConfirm(
                     title = title,

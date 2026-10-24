@@ -4,6 +4,7 @@ interface SettingsRepository {
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean
+    var checkCiUpdate: Boolean
     var checkModuleUpdate: Boolean
     var alternativeIcon : Boolean
     var themeMode: Int
@@ -55,6 +56,10 @@ interface SettingsRepository {
     suspend fun getSelinuxHideStatus(): String
     fun isSelinuxHideEnabled(): Boolean
     fun setSelinuxHideEnabled(enabled: Boolean): Int
+
+    suspend fun getAvcSpoofStatus(): String
+    fun isAvcSpoofEnabled(): Boolean
+    fun setAvcSpoofEnabled(enabled: Boolean): Boolean
 
     suspend fun getMountHideStatus(): String
     fun isMountHideEnabled(): Boolean

@@ -149,6 +149,8 @@ android {
         applicationId = managerPackageName
 
         buildConfigField("boolean", "IS_PR_BUILD", isPrBuild.toString())
+        val commit = providers.exec { commandLine("git", "rev-parse", "HEAD") }.standardOutput.asText.get().trim()
+        buildConfigField("String", "MANAGER_COMMIT", "\"$commit\"")
         resValue("string", "app_name", managerName)
 
         externalNativeBuild {

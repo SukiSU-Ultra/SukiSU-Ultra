@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -38,9 +39,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -48,6 +50,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -57,6 +61,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.AppIconImage
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
@@ -75,6 +81,7 @@ import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -90,6 +97,9 @@ internal fun DynamicManagersMiuix(
     error: String?,
     actions: DynamicManagersActions,
 ) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var showAddSearch by rememberSaveable { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
     val enableBlur = LocalEnableBlur.current
     val scrollBehavior = MiuixScrollBehavior()
     val listState: LazyListState = rememberLazyListState()
@@ -114,15 +124,6 @@ internal fun DynamicManagersMiuix(
                             )
                         }
                     },
-                    actions = {
-                        IconButton(onClick = actions.onRefresh) {
-                            Icon(
-                                imageVector = Icons.Rounded.Refresh,
-                                tint = colorScheme.onSurface,
-                                contentDescription = null,
-                            )
-                        }
-                    },
                     scrollBehavior = scrollBehavior,
                 )
             }
@@ -135,7 +136,13 @@ internal fun DynamicManagersMiuix(
                     .alpha(if (busy) 0.5f else 1f)
                     .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
                 shadowElevation = 0.dp,
-                onClick = { if (!busy) actions.onLoadApps() },
+                onClick = {
+                    if (!busy) {
+                        searchQuery = ""
+                        showAddSearch = true
+                        actions.onLoadApps()
+                    }
+                },
                 content = {
                     Icon(
                         Icons.Rounded.Add,
@@ -228,16 +235,84 @@ internal fun DynamicManagersMiuix(
                         }
                     }
 
-                    if (apps.isNotEmpty()) {
-                        item(key = "apps_header", contentType = "header") {
-                            SectionTitle(stringResource(R.string.dynamic_manager_select_app))
+                }
+            }
+        }
+    }
+
+    if (showAddSearch) {
+        val entries = state?.entries.orEmpty()
+        val availableApps = apps.filterNot { app -> entries.any { it.packageName == app.packageName } }
+        val query = searchQuery.trim()
+        val filteredApps = if (query.isEmpty()) availableApps else availableApps.filter { app ->
+            app.uid.toString().contains(query, ignoreCase = true) ||
+                    app.packageName.contains(query, ignoreCase = true) ||
+                    app.label.contains(query, ignoreCase = true)
+        }
+
+        Dialog(
+            onDismissRequest = { showAddSearch = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            LaunchedEffect(Unit) { searchFocusRequester.requestFocus() }
+            Card(
+                modifier = Modifier.fillMaxSize(),
+                insideMargin = PaddingValues(0.dp),
+                onClick = null,
+            ) {
+                Column(modifier = Modifier.fillMaxSize().imePadding()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = { showAddSearch = false }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                tint = colorScheme.onSurface,
+                                contentDescription = null,
+                            )
                         }
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            label = stringResource(R.string.search_apps),
+                            useLabelAsPlaceholder = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(searchFocusRequester),
+                        )
+                    }
+                    if (busy && apps.isEmpty()) {
+                        top.yukonga.miuix.kmp.basic.LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    error?.let {
+                        Text(
+                            text = it,
+                            fontSize = 12.sp,
+                            color = colorScheme.error,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 16.dp),
+                    ) {
                         items(
-                            items = apps.filterNot { app -> entries.any { it.packageName == app.packageName } },
-                            key = { "app_${it.packageName}" },
+                            items = filteredApps,
+                            key = { "search_app_${it.packageName}" },
                             contentType = { "app" },
                         ) { app ->
-                            AppCandidateCard(app = app, onAdd = { actions.onAdd(app) })
+                            AppCandidateCard(
+                                app = app,
+                                onAdd = {
+                                    showAddSearch = false
+                                    actions.onAdd(app)
+                                },
+                            )
                         }
                     }
                 }
