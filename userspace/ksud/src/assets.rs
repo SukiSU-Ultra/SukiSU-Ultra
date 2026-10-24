@@ -18,9 +18,14 @@ mod android {
                 // don't extract internal executables and kernel modules
                 continue;
             }
+            let path = std::path::PathBuf::from(format!("{BINARY_DIR}{file}"));
+            // Match ensure_binary's exists semantics before fetching/decompressing the asset.
+            if ignore_if_exist && path.exists() {
+                continue;
+            }
             let asset =
                 Asset::get(&file).ok_or_else(|| anyhow::anyhow!("asset not found: {file}"))?;
-            ensure_binary(format!("{BINARY_DIR}{file}"), &asset.data, ignore_if_exist)?;
+            ensure_binary(path, &asset.data, ignore_if_exist)?;
         }
 
         // Create resetprop -> ksud symlink (resetprop is now built into ksud)
