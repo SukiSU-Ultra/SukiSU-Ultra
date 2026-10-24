@@ -93,7 +93,7 @@ internal fun moduleConfigFromValues(values: Map<String, String>): ModuleConfig {
     fun value(key: String): String = values[key].orEmpty().trim()
     fun enabled(key: String): Boolean = value(key) == "true"
     fun entries(key: String, separator: String = ";"): Set<String> =
-        values[key].orEmpty().split(separator).filter { it.isNotBlank() }.toSet()
+        values[key].orEmpty().trim().split(separator).filter { it.isNotBlank() }.toSet()
 
     return ModuleConfig(
         unameValue = value(SuSFSConfig.KEY_UNAME_VALUE).ifBlank { SuSFSConfig.DEFAULT_UNAME },

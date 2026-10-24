@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -65,6 +66,14 @@ fun HomePager(
     LifecycleResumeEffect(viewModel) {
         viewModel.onResume(latestIsCurrentPage)
         onPauseOrDispose { }
+    }
+
+    // Switching back to this tab must still refresh counts changed elsewhere; the ViewModel
+    // already probed once on creation, so skip the selection that coincides with it.
+    val skipInitialSelection = remember { mutableStateOf(isCurrentPage) }
+    LaunchedEffect(isCurrentPage) {
+        if (!isCurrentPage) return@LaunchedEffect
+        if (skipInitialSelection.value) skipInitialSelection.value = false else viewModel.refresh()
     }
 
     LaunchedEffect(uiState.error, isCurrentPage) {
