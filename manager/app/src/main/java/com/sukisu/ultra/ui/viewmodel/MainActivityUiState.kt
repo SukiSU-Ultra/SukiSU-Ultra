@@ -15,5 +15,7 @@ data class MainActivityUiState(
     val enableSwipeDismiss: Boolean,
     val pagerInterceptionMode: Int,
     val moduleDescriptionMaxLines: Int = 4,
+    val customBackgroundUri: String = "",
+    val cardBackgroundAlphaPercent: Int = 60,
     val uiMode: UiMode,
 )

@@ -141,3 +141,37 @@ val LocalEnableFloatingBottomBarBlur = staticCompositionLocalOf { false }
 val LocalEnableNavigationBadge = staticCompositionLocalOf { true }
 
 val LocalModuleDescriptionMaxLines = staticCompositionLocalOf { 4 }
+
+val LocalBackgroundImagePath = staticCompositionLocalOf { "" }
+
+val LocalCardBackgroundAlpha = staticCompositionLocalOf { 0.6f }
+
+@Composable
+fun backgroundAwareCardColors(
+    color: androidx.compose.ui.graphics.Color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer,
+    contentColor: androidx.compose.ui.graphics.Color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceContainer,
+    backgroundAlpha: Float = LocalCardBackgroundAlpha.current,
+): top.yukonga.miuix.kmp.basic.CardColors {
+    val adjusted = if (LocalBackgroundImagePath.current.isNotEmpty()) {
+        color.copy(alpha = backgroundAlpha)
+    } else {
+        color
+    }
+    return top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(
+        color = adjusted,
+        contentColor = contentColor,
+    )
+}
+
+@Composable
+fun backgroundAwareColor(
+    color: androidx.compose.ui.graphics.Color,
+    backgroundAlpha: Float = LocalCardBackgroundAlpha.current,
+): androidx.compose.ui.graphics.Color {
+    return if (LocalBackgroundImagePath.current.isNotEmpty()) {
+        color.copy(alpha = backgroundAlpha)
+    } else {
+        color
+    }
+}
+
