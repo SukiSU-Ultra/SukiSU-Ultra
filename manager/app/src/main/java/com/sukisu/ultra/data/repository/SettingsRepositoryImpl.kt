@@ -46,6 +46,14 @@ class SettingsRepositoryImpl : SettingsRepository {
         ksuApp.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE)
     }
 
+    override var customBackgroundUri: String
+        get() = prefs.getString("custom_bg_uri", "") ?: ""
+        set(value) = prefs.edit { putString("custom_bg_uri", value) }
+
+    override var cardBackgroundAlphaPercent: Int
+        get() = prefs.getInt("card_bg_alpha_percent", 60)
+        set(value) = prefs.edit { putInt("card_bg_alpha_percent", value) }
+
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->
             prefs.edit { putString("ui_mode", mode) }

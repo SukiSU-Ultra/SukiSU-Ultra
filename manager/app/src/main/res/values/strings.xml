@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">Home</string>
     <string name="home_not_installed">Not installed</string>
@@ -931,4 +931,10 @@
     <string name="kernel_modules_expand">Show dependency chain</string>
     <string name="kernel_modules_collapse">Hide dependency chain</string>
     <string name="tools_kernel_modules_summary">Review blocked modules, dependencies and flash parameters</string>
+    <string name="settings_custom_background">Custom Background</string>
+    <string name="settings_custom_background_summary">Set a custom background image for main pages</string>
+    <string name="settings_card_background_alpha">Card Opacity</string>
+    <string name="settings_card_background_alpha_summary">Adjust background card opacity (%d%%)</string>
+    <string name="settings_clear">Clear</string>
+
 </resources>

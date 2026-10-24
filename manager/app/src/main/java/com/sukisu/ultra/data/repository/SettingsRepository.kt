@@ -1,6 +1,8 @@
 package com.sukisu.ultra.data.repository
 
 interface SettingsRepository {
+    var customBackgroundUri: String
+    var cardBackgroundAlphaPercent: Int
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean
