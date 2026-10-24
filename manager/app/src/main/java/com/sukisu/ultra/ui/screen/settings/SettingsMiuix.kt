@@ -55,7 +55,9 @@ import com.sukisu.ultra.ui.component.KsuIsValid
 import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
 import com.sukisu.ultra.ui.component.miuix.SendLogDialog
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
@@ -86,12 +88,14 @@ fun SettingPagerMiuix(
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
     val loadingDialog = rememberLoadingDialog()
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
@@ -120,6 +124,7 @@ fun SettingPagerMiuix(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
+                        colors = backgroundAwareCardColors(),
                     ) {
                         OverlayDropdownPreference(
                             title = stringResource(id = R.string.settings_ui_mode),
@@ -177,6 +182,7 @@ fun SettingPagerMiuix(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
+                            colors = backgroundAwareCardColors(),
                         ) {
                             val profileTemplate = stringResource(id = R.string.settings_profile_template)
                             ArrowPreference(
@@ -194,7 +200,8 @@ fun SettingPagerMiuix(
                             )
                         }
                         Card(
-                            modifier = Modifier.padding(top = 12.dp).fillMaxWidth()
+                            modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
+                            colors = backgroundAwareCardColors(),
                         ) {
                             val extensionsTitle = stringResource(R.string.extension_section_title)
                             ArrowPreference(
@@ -215,7 +222,8 @@ fun SettingPagerMiuix(
                         Card(
                             modifier = Modifier
                                 .padding(top = 12.dp)
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
+                            colors = backgroundAwareCardColors(),
                         ) {
                             ArrowPreference(
                                 title = toolsTitle,
@@ -247,6 +255,7 @@ fun SettingPagerMiuix(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
+                            colors = backgroundAwareCardColors(),
                         ) {
                             val suSummary = when (uiState.suCompatStatus) {
                                 "unsupported" -> stringResource(id = R.string.feature_status_unsupported_summary)
@@ -445,6 +454,7 @@ fun SettingPagerMiuix(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
+                            colors = backgroundAwareCardColors(),
                         ) {
                             SwitchPreference(
                                 title = stringResource(id = R.string.settings_umount_modules_default),
@@ -498,6 +508,7 @@ fun SettingPagerMiuix(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
+                            colors = backgroundAwareCardColors(),
                         ) {
                             val uninstall = stringResource(id = R.string.settings_uninstall)
                             ArrowPreference(
@@ -524,6 +535,7 @@ fun SettingPagerMiuix(
                         modifier = Modifier
                             .padding(vertical = 12.dp)
                             .fillMaxWidth(),
+                        colors = backgroundAwareCardColors(),
                     ) {
                         ArrowPreference(
                             title = stringResource(id = R.string.send_log),

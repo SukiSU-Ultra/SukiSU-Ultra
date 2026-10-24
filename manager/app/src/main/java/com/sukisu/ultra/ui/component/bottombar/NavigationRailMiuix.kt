@@ -9,6 +9,7 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ui.LocalMainPagerState
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailValue
@@ -43,7 +44,7 @@ fun NavigationRailMiuix(
     NavigationRail(
         modifier = modifier,
         state = state,
-        color = MiuixTheme.colorScheme.surface,
+        color = backgroundAwareColor(MiuixTheme.colorScheme.surface),
         expandContentDescription = stringResource(R.string.nav_rail_expand),
         collapseContentDescription = stringResource(R.string.nav_rail_collapse),
     ) {

@@ -68,6 +68,8 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.component.WarningLevel
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
@@ -89,8 +91,10 @@ fun HomePagerMaterial(
     bottomInnerPadding: Dp,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
 
     ExpressiveScaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
         topBar = { TopBar(scrollBehavior = scrollBehavior) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
@@ -210,10 +214,14 @@ private fun UpdateCard(
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.app_name)) },
         actions = { RebootListPopup() },
-        colors = expressiveTopAppBarColors(),
+        colors = expressiveTopAppBarColors(
+            containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+            scrolledContainerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+        ),
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )
@@ -248,7 +256,7 @@ private fun ActiveStatusCard(
     state: HomeUiState,
     onClick: () -> Unit,
 ) {
-    val containerColor = MaterialTheme.colorScheme.primary
+    val containerColor = backgroundAwareColor(MaterialTheme.colorScheme.primary)
     val contentColor = MaterialTheme.colorScheme.onPrimary
     val workingMode = when (state.lkmMode) {
         null -> ""
@@ -333,7 +341,7 @@ private fun InactiveStatusCard(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceBright,
+        color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceBright),
         shape = HeroShape,
         onClick = onClick,
     ) {
@@ -469,14 +477,14 @@ private fun StatTile(
             onClick = onClick,
             modifier = modifier,
             shape = TileShape,
-            color = MaterialTheme.colorScheme.surfaceBright,
+            color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceBright),
             content = content,
         )
     } else {
         Surface(
             modifier = modifier,
             shape = TileShape,
-            color = MaterialTheme.colorScheme.surfaceBright,
+            color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceBright),
             content = content,
         )
     }
@@ -553,7 +561,7 @@ private fun SpecSheet(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = TileShape,
-        color = MaterialTheme.colorScheme.surfaceBright,
+        color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceBright),
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             rows.forEachIndexed { index, (label, value) ->

@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -41,7 +42,7 @@ fun TonalCard(
     content: @Composable () -> Unit,
 ) {
     val colors = CardDefaults.cardColors(
-        containerColor = containerColor,
+        containerColor = backgroundAwareColor(containerColor),
         contentColor = contentColor,
     )
     when {

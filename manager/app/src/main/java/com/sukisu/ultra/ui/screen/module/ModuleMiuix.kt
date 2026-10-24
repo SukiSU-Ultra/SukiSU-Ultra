@@ -118,8 +118,10 @@ import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
 import com.sukisu.ultra.ui.component.miuix.SearchBarFake
 import com.sukisu.ultra.ui.component.miuix.SearchBox
 import com.sukisu.ultra.ui.component.miuix.SearchPager
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
+import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.getFileName
@@ -265,9 +267,11 @@ fun ModulePagerMiuix(
 
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
     Scaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
         topBar = {
             BlurredBar(backdrop) {
                 searchStatus.TopAppBarAnim(backgroundColor = barColor) {
@@ -901,6 +905,7 @@ fun ModuleItem(
             .padding(horizontal = 12.dp)
             .padding(bottom = 12.dp),
         insideMargin = PaddingValues(0.dp),
+        colors = backgroundAwareCardColors(),
         onClick = if (hasDescription) {
             { expanded = !expanded }
         } else null
