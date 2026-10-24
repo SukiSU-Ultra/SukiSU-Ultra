@@ -75,7 +75,6 @@ data class ModuleConfig(
     val enableCleanupResidue: Boolean,
     val enableAvcLogSpoofing: Boolean,
     val cmdlineOrBootconfigPath: String = "",
-    val autoStartEnabled: Boolean = false,
 ) {
     fun hasAutoStartConfig(): Boolean {
         return unameValue != SuSFSConfig.DEFAULT_UNAME ||
@@ -87,29 +86,4 @@ data class ModuleConfig(
                 addKstatPaths.isNotEmpty() ||
                 cmdlineOrBootconfigPath.isNotBlank()
     }
-}
-
-internal fun moduleConfigFromValues(values: Map<String, String>): ModuleConfig {
-    fun value(key: String): String = values[key].orEmpty().trim()
-    fun enabled(key: String): Boolean = value(key) == "true"
-    fun entries(key: String, separator: String = ";"): Set<String> =
-        values[key].orEmpty().split(separator).filter { it.isNotBlank() }.toSet()
-
-    return ModuleConfig(
-        unameValue = value(SuSFSConfig.KEY_UNAME_VALUE).ifBlank { SuSFSConfig.DEFAULT_UNAME },
-        buildTimeValue = value(SuSFSConfig.KEY_BUILD_TIME_VALUE).ifBlank { SuSFSConfig.DEFAULT_BUILD_TIME },
-        executeInPostFsData = enabled(SuSFSConfig.KEY_EXECUTE_IN_POST_FS_DATA),
-        susPaths = entries(SuSFSConfig.KEY_SUS_PATHS),
-        susLoopPaths = entries(SuSFSConfig.KEY_SUS_LOOP_PATHS),
-        susMaps = entries(SuSFSConfig.KEY_SUS_MAPS),
-        enableLog = enabled(SuSFSConfig.KEY_ENABLE_LOG),
-        kstatConfigs = entries(SuSFSConfig.KEY_KSTAT_CONFIGS, ";;"),
-        addKstatPaths = entries(SuSFSConfig.KEY_ADD_KSTAT_PATHS),
-        hideSusMountsForAllProcs = enabled(SuSFSConfig.KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS),
-        enableHideBl = enabled(SuSFSConfig.KEY_ENABLE_HIDE_BL),
-        enableCleanupResidue = enabled(SuSFSConfig.KEY_ENABLE_CLEANUP_RESIDUE),
-        enableAvcLogSpoofing = enabled(SuSFSConfig.KEY_ENABLE_AVC_LOG_SPOOFING),
-        cmdlineOrBootconfigPath = value(SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH),
-        autoStartEnabled = enabled(SuSFSConfig.KEY_AUTO_START_ENABLED),
-    )
 }

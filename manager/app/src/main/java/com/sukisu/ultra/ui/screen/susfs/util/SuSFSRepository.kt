@@ -16,7 +16,24 @@ import kotlinx.coroutines.withContext
 object SuSFSRepository {
     private const val SAVE_FAILURE = "Failed to save SUSFS configuration"
 
-    suspend fun getCurrentModuleConfig(): ModuleConfig = moduleConfigFromValues(SuSFSConfig.getAll())
+    fun getCurrentModuleConfig(): ModuleConfig = runBlocking(Dispatchers.IO) {
+        ModuleConfig(
+            unameValue = getUnameValue(),
+            buildTimeValue = getBuildTimeValue(),
+            executeInPostFsData = getExecuteInPostFsData(),
+            susPaths = getSusPaths(),
+            susLoopPaths = getSusLoopPaths(),
+            susMaps = getSusMaps(),
+            enableLog = getEnableLogState(),
+            kstatConfigs = getKstatConfigs(),
+            addKstatPaths = getAddKstatPaths(),
+            hideSusMountsForAllProcs = getHideSusMountsForAllProcs(),
+            enableHideBl = getEnableHideBl(),
+            enableCleanupResidue = getEnableCleanupResidue(),
+            enableAvcLogSpoofing = getEnableAvcLogSpoofing(),
+            cmdlineOrBootconfigPath = getCmdlineOrBootconfigPath()
+        )
+    }
 
     private suspend fun getUnameValue(): String {
         val v = SuSFSConfig.get(SuSFSConfig.KEY_UNAME_VALUE)

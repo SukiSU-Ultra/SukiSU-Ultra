@@ -339,11 +339,11 @@ class SuperUserViewModel(
         })
     }
 
-    suspend fun fetchAppList(force: Boolean = false) {
+    suspend fun fetchAppList() {
         refreshMutex.withLock {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
 
-            repo.getAppList(force).onSuccess { (newApps, ids) ->
+            repo.getAppList().onSuccess { (newApps, ids) ->
                 val (cachedGroups, grouped) = withContext(Dispatchers.IO) {
                     val cached = buildCachedGroups(newApps)
                     val umountByUid = cached.associate { it.uid to it.shouldUmount }
@@ -407,7 +407,7 @@ class SuperUserViewModel(
     fun loadAppList(force: Boolean = false, resort: Boolean = true): Job {
         return viewModelScope.launch {
             if (force || _uiState.value.groupedApps.isEmpty()) {
-                fetchAppList(force)
+                fetchAppList()
             } else {
                 refreshAppList(resort)
             }

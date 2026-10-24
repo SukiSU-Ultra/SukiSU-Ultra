@@ -6,19 +6,14 @@ import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
 import com.sukisu.ultra.ui.screen.susfs.util.ModuleConfig
 import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class SuSFSRepositoryImpl : SuSFSRepositoryInterface {
 
     override suspend fun loadInitialConfig(context: Context): Result<ModuleConfig> =
-        try {
-            Result.success(SuSFSManager.getCurrentModuleConfig())
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Result.failure(e)
+        withContext(Dispatchers.IO) {
+            runCatching { SuSFSManager.getCurrentModuleConfig() }
         }
 
     override suspend fun getEnabledFeatures(context: Context): Result<List<EnabledFeature>> =

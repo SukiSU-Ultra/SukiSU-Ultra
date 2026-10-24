@@ -1,8 +1,6 @@
 package com.sukisu.ultra.data.repository
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import com.sukisu.ultra.data.model.Module
 import com.sukisu.ultra.data.model.ModuleUpdateInfo
@@ -10,14 +8,9 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.util.isNetworkAvailable
 import com.sukisu.ultra.ui.util.listModules
 import com.sukisu.ultra.ui.util.module.sanitizeVersionString
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.Request
-import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
-import kotlin.coroutines.resumeWithException
 
 class ModuleRepositoryImpl : ModuleRepository {
 
@@ -67,9 +60,15 @@ class ModuleRepositoryImpl : ModuleRepository {
             }
 
             val url = module.updateJson
-            val result = ksuApp.okhttpClient.newCall(
+            val response = ksuApp.okhttpClient.newCall(
                 Request.Builder().url(url).build()
-            ).awaitModuleUpdateBody()
+            ).execute()
+
+            val result = if (response.isSuccessful) {
+                response.body.string()
+            } else {
+                ""
+            }
 
             if (result.isEmpty()) {
                 return@runCatching ModuleUpdateInfo.Empty
@@ -87,25 +86,6 @@ class ModuleRepositoryImpl : ModuleRepository {
             } else {
                 ModuleUpdateInfo(zipUrl, version, changelog, versionCode)
             }
-        }.onFailure { if (it is CancellationException) throw it }
+        }
     }
-}
-
-internal suspend fun Call.awaitModuleUpdateBody(): String = suspendCancellableCoroutine { continuation ->
-    continuation.invokeOnCancellation { cancel() }
-    enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            continuation.resumeWithException(e)
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            // Read before resuming so cancellation also cancels an in-progress body read.
-            val result = runCatching {
-                response.use {
-                    if (continuation.isActive && it.isSuccessful) it.body.string() else ""
-                }
-            }
-            continuation.resumeWith(result)
-        }
-    })
 }

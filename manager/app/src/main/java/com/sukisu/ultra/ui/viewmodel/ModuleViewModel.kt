@@ -4,12 +4,8 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
@@ -58,8 +54,7 @@ class ModuleViewModel(
     private val repo: ModuleRepository = ModuleRepositoryImpl(),
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl(),
     private val registryRepo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
-    scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
-) : ViewModel(scope) {
+) : ViewModel() {
     
     companion object {
         private const val TAG = "ModuleViewModel"
@@ -78,11 +73,6 @@ class ModuleViewModel(
         val info: ModuleUpdateInfo
     )
 
-    private class ModuleUpdateRequest(
-        val module: Module,
-        val signature: ModuleUpdateSignature
-    )
-
     private val _uiState = MutableStateFlow(ModuleUiState())
     val uiState: StateFlow<ModuleUiState> = _uiState.asStateFlow()
 
@@ -92,7 +82,7 @@ class ModuleViewModel(
 
     private val updateInfoMutex = Mutex()
     private var updateInfoCache: MutableMap<String, ModuleUpdateCache> = mutableMapOf()
-    private val updateInfoInFlight = mutableMapOf<String, ModuleUpdateRequest>()
+    private val updateInfoInFlight = mutableSetOf<String>()
     private val searchQuery = MutableStateFlow("")
 
     private var fetchJob: Job? = null
@@ -423,69 +413,61 @@ class ModuleViewModel(
     suspend fun syncModuleUpdateInfo(modules: List<Module>) {
         if (!_uiState.value.checkModuleUpdate) return
 
-        val requests = mutableListOf<ModuleUpdateRequest>()
-        try {
-            updateInfoMutex.withLock {
-                val ids = modules.map { it.id }.toSet()
-                val removedIds = (updateInfoCache.keys + updateInfoInFlight.keys).filter { it !in ids }.toSet()
-                removedIds.forEach { id ->
-                    updateInfoCache.remove(id)
-                    updateInfoInFlight.remove(id)
-                }
-                if (removedIds.isNotEmpty()) {
-                    _uiState.update { it.copy(updateInfo = it.updateInfo - removedIds) }
-                }
+        val modulesToFetch = mutableListOf<Triple<String, Module, ModuleUpdateSignature>>()
+        val removedIds = mutableSetOf<String>()
 
-                modules.forEach { module ->
-                    val signature = module.toSignature()
-                    val cached = updateInfoCache[module.id]
-                    if (updateInfoInFlight[module.id]?.signature != signature) {
-                        updateInfoInFlight.remove(module.id)
-                    }
-                    if ((cached == null || cached.signature != signature) && module.id !in updateInfoInFlight) {
-                        val request = ModuleUpdateRequest(module, signature)
-                        requests += request
-                        updateInfoInFlight[module.id] = request
-                    }
-                }
+        updateInfoMutex.withLock {
+            val ids = modules.map { it.id }.toSet()
+            updateInfoCache.keys.filter { it !in ids }.forEach { removedId ->
+                removedIds += removedId
+                updateInfoCache.remove(removedId)
+                updateInfoInFlight.remove(removedId)
             }
 
-            val fetchedEntries = coroutineScope {
-                requests.map { request ->
-                    async {
-                        val info = withTimeoutOrNull(5_000L.milliseconds) {
-                            withContext(Dispatchers.IO) { checkUpdate(request.module) }
-                        }
-                        info?.let { request to ModuleUpdateCache(request.signature, it) }
-                    }
-                }.awaitAll().filterNotNull()
+            modules.forEach { module ->
+                val signature = module.toSignature()
+                val cached = updateInfoCache[module.id]
+                if ((cached == null || cached.signature != signature) && updateInfoInFlight.add(module.id)) {
+                    modulesToFetch += Triple(module.id, module, signature)
+                }
             }
+        }
 
-            updateInfoMutex.withLock {
-                val changedEntries = mutableMapOf<String, ModuleUpdateInfo>()
-                fetchedEntries.forEach { (request, entry) ->
-                    val id = request.module.id
-                    // A newer signature or remove/re-add may have replaced this request.
-                    if (updateInfoInFlight[id] !== request) return@forEach
-                    val existing = updateInfoCache[id]
-                    if (existing != entry) {
-                        updateInfoCache[id] = entry
-                        changedEntries[id] = entry.info
-                    }
+        val fetchedEntries = coroutineScope {
+            modulesToFetch.map { (id, module, signature) ->
+                async {
+                    val info = withTimeoutOrNull(5_000L.milliseconds) {
+                        withContext(Dispatchers.IO) { checkUpdate(module) }
+                    } ?: ModuleUpdateInfo.Empty
+                    id to ModuleUpdateCache(signature, info)
                 }
-                if (changedEntries.isNotEmpty()) {
-                    // StateFlow is thread-safe; publish with the cache under the same lock.
-                    _uiState.update { it.copy(updateInfo = it.updateInfo + changedEntries) }
+            }.awaitAll()
+        }
+
+        val changedEntries = mutableListOf<Pair<String, ModuleUpdateInfo>>()
+        updateInfoMutex.withLock {
+            fetchedEntries.forEach { (id, entry) ->
+                val existing = updateInfoCache[id]
+                if (existing == null || existing.signature != entry.signature || existing.info != entry.info) {
+                    updateInfoCache[id] = entry
+                    changedEntries += id to entry.info
                 }
+                updateInfoInFlight.remove(id)
             }
-        } finally {
-            withContext(NonCancellable) {
-                updateInfoMutex.withLock {
-                    requests.forEach { request ->
-                        val id = request.module.id
-                        if (updateInfoInFlight[id] === request) updateInfoInFlight.remove(id)
-                    }
+        }
+
+        if (removedIds.isEmpty() && changedEntries.isEmpty()) {
+            return
+        }
+
+        withContext(Dispatchers.Main) {
+            _uiState.update { state ->
+                val newMap = state.updateInfo.toMutableMap()
+                removedIds.forEach { newMap.remove(it) }
+                changedEntries.forEach { (id, info) ->
+                    newMap[id] = info
                 }
+                state.copy(updateInfo = newMap)
             }
         }
     }
@@ -660,10 +642,7 @@ class ModuleViewModel(
         )
     }
 
-    private suspend fun checkUpdate(m: Module): ModuleUpdateInfo? {
-        return repo.checkUpdate(m).getOrElse {
-            if (it is CancellationException) throw it
-            null
-        }
+    private suspend fun checkUpdate(m: Module): ModuleUpdateInfo {
+        return repo.checkUpdate(m).getOrDefault(ModuleUpdateInfo.Empty)
     }
 }

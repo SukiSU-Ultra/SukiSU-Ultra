@@ -4,9 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,10 +28,8 @@ import com.sukisu.ultra.ui.util.isNetworkAvailable
 
 class ModuleRepoViewModel(
     private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
-    private val settingsRepo: SettingsRepository = SettingsRepositoryImpl(),
-    scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
-    private val networkAvailable: () -> Boolean = { isNetworkAvailable(ksuApp) },
-) : ViewModel(scope) {
+    private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
+) : ViewModel() {
 
     companion object {
         private const val TAG = "ModuleRepoViewModel"
@@ -55,7 +51,7 @@ class ModuleRepoViewModel(
         _uiState.update {
             it.copy(
                 sortOrder = initial,
-                offline = !networkAvailable()
+                offline = !isNetworkAvailable(ksuApp)
             )
         }
 
@@ -79,7 +75,6 @@ class ModuleRepoViewModel(
 
     private suspend fun applySearchText(text: String) {
         _uiState.update {
-            if (it.searchStatus.searchText != text) return@update it
             it.copy(
                 searchStatus = it.searchStatus.copy(
                     resultStatus = searchLoadingStatusFor(text)
@@ -87,24 +82,35 @@ class ModuleRepoViewModel(
             )
         }
 
+        if (text.isEmpty()) {
+            _uiState.update { state ->
+                state.copy(
+                    searchResults = emptyList(),
+                    searchStatus = state.searchStatus.copy(resultStatus = SearchStatus.ResultStatus.DEFAULT)
+                )
+            }
+            return
+        }
+
         listMutex.withLock {
-            if (_uiState.value.searchStatus.searchText != text) return@withLock
-            refreshSearchResults()
+            val result = withContext(Dispatchers.IO) {
+                sortModules(filterModules(_uiState.value.modules, text), _uiState.value.sortOrder)
+            }
+
+            _uiState.update {
+                it.copy(
+                    searchResults = result,
+                    searchStatus = it.searchStatus.copy(resultStatus = searchResultStatusFor(text, result.isEmpty()))
+                )
+            }
         }
     }
 
-    // Call only while holding listMutex, just like all sorted list writes.
-    private suspend fun refreshSearchResults() {
+    private fun refreshSearchResults() {
         val state = _uiState.value
         val text = state.searchStatus.searchText
-        val results = withContext(Dispatchers.Default) {
-            // RepoSort is stable; filtering its sorted output preserves ties and order.
-            filterModules(state.modules, text)
-        }
+        val results = sortModules(filterModules(state.modules, text), state.sortOrder)
         _uiState.update {
-            if (it.searchStatus.searchText != text || it.sortOrder != state.sortOrder || it.modules !== state.modules) {
-                return@update it
-            }
             it.copy(
                 searchResults = results,
                 searchStatus = it.searchStatus.copy(resultStatus = searchResultStatusFor(text, results.isEmpty()))
@@ -119,7 +125,7 @@ class ModuleRepoViewModel(
                 it.copy(
                     isRefreshing = true,
                     error = null,
-                    offline = !networkAvailable()
+                    offline = !isNetworkAvailable(ksuApp)
                 )
             }
             val result = repo.fetchModules()
@@ -138,7 +144,7 @@ class ModuleRepoViewModel(
                                 modules = sorted,
                                 stale = list.stale,
                                 error = list.error,
-                                offline = !networkAvailable()
+                                offline = !isNetworkAvailable(ksuApp)
                             )
                         }
                         refreshSearchResults()
@@ -151,7 +157,7 @@ class ModuleRepoViewModel(
                         it.copy(
                             isRefreshing = false,
                             error = e,
-                            offline = !networkAvailable()
+                            offline = !isNetworkAvailable(ksuApp)
                         )
                     }
                 }
@@ -162,7 +168,7 @@ class ModuleRepoViewModel(
     private fun errorMessage(e: Throwable, cached: Boolean): String = when {
         e is UnsupportedSchemaException -> ksuApp.getString(R.string.module_repo_unsupported_schema)
         cached -> ksuApp.getString(R.string.module_repo_using_cache)
-        !networkAvailable() -> ksuApp.getString(R.string.network_offline)
+        !isNetworkAvailable(ksuApp) -> ksuApp.getString(R.string.network_offline)
         else -> ksuApp.getString(R.string.module_repo_load_failed)
     }
 
@@ -173,16 +179,16 @@ class ModuleRepoViewModel(
                 // Checked under the lock: an earlier change may still be pending.
                 val state = _uiState.value
                 if (state.sortOrder == order) return@withLock
-                val sortedModules = withContext(Dispatchers.Default) {
-                    sortModules(state.modules, order)
+                val (sortedModules, sortedSearch) = withContext(Dispatchers.Default) {
+                    sortModules(state.modules, order) to sortModules(state.searchResults, order)
                 }
                 _uiState.update {
                     it.copy(
                         sortOrder = order,
                         modules = sortedModules,
+                        searchResults = sortedSearch,
                     )
                 }
-                refreshSearchResults()
             }
         }
     }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object SuSFSManager {
-    suspend fun getCurrentModuleConfig(): ModuleConfig = SuSFSRepository.getCurrentModuleConfig()
+    fun getCurrentModuleConfig(): ModuleConfig = SuSFSRepository.getCurrentModuleConfig()
 
     fun getKernelSpoofRelease(): String = SuSFSRepository.getKernelSpoofRelease()
     fun getKernelSpoofVersion(): String = SuSFSRepository.getKernelSpoofVersion()
@@ -79,14 +79,15 @@ object SuSFSManager {
     suspend fun validateBackupFile(backupFilePath: String): BackupData? = SuSFSBackupManager.validateBackupFile(backupFilePath)
     fun getDefaultBackupFileName(): String = SuSFSBackupManager.getDefaultBackupFileName()
 
-    suspend fun hasConfigurationForAutoStart(context: Context, config: ModuleConfig): Boolean {
+    suspend fun hasConfigurationForAutoStart(context: Context): Boolean {
+        val config = getCurrentModuleConfig()
         return config.hasAutoStartConfig() || SuSFSCommands.getEnabledFeatures(context).any { it.isEnabled }
     }
 
     suspend fun configureAutoStart(context: Context, enabled: Boolean): Boolean = withContext(Dispatchers.IO) {
         try {
             if (enabled) {
-                if (!hasConfigurationForAutoStart(context, getCurrentModuleConfig())) {
+                if (!hasConfigurationForAutoStart(context)) {
                     Log.e("SuSFSManager", "No configuration available for auto start")
                     return@withContext false
                 }

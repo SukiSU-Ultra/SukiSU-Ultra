@@ -49,14 +49,17 @@ class SuSFSViewModel(
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
+            val canEnableAutoStart = withContext(Dispatchers.IO) {
+                SuSFSManager.hasConfigurationForAutoStart(context)
+            }
+
             repo.loadInitialConfig(context).onSuccess { config ->
-                val canEnableAutoStart = SuSFSManager.hasConfigurationForAutoStart(context, config)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         unameValue = config.unameValue,
                         buildTimeValue = config.buildTimeValue,
-                        autoStartEnabled = config.autoStartEnabled,
+                        autoStartEnabled = SuSFSManager.isAutoStartEnabled(),
                         executeInPostFsData = config.executeInPostFsData,
                         susPaths = config.susPaths,
                         susLoopPaths = config.susLoopPaths,
@@ -446,13 +449,13 @@ class SuSFSViewModel(
     }
 
     internal suspend fun refreshConfig() {
-        val config = SuSFSManager.getCurrentModuleConfig()
-        val canEnable = appContext?.let { SuSFSManager.hasConfigurationForAutoStart(it, config) } ?: false
+        val config = withContext(Dispatchers.IO) { SuSFSManager.getCurrentModuleConfig() }
+        val canEnable = appContext?.let { SuSFSManager.hasConfigurationForAutoStart(it) } ?: false
         _uiState.update {
             it.copy(
                 unameValue = config.unameValue,
                 buildTimeValue = config.buildTimeValue,
-                autoStartEnabled = config.autoStartEnabled,
+                autoStartEnabled = SuSFSManager.isAutoStartEnabled(),
                 executeInPostFsData = config.executeInPostFsData,
                 susPaths = config.susPaths,
                 susLoopPaths = config.susLoopPaths,
