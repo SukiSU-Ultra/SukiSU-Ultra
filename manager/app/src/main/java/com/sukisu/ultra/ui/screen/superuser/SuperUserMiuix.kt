@@ -81,7 +81,9 @@ import com.sukisu.ultra.ui.component.miuix.SearchBarFake
 import com.sukisu.ultra.ui.component.miuix.SearchBox
 import com.sukisu.ultra.ui.component.miuix.SearchPager
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.ownerNameForUid
@@ -186,9 +188,11 @@ fun SuperUserPagerMiuix(
 
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
     Scaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
         topBar = {
             BlurredBar(backdrop) {
                 searchStatus.TopAppBarAnim(backgroundColor = barColor) {
@@ -589,7 +593,8 @@ private fun SimpleAppItem(
         )
         Card(
             modifier = Modifier
-                .padding(start = 6.dp, end = 12.dp, bottom = 6.dp)
+                .padding(start = 6.dp, end = 12.dp, bottom = 6.dp),
+            colors = backgroundAwareCardColors(),
         ) {
             BasicComponent(
                 title = app.label,
@@ -637,6 +642,7 @@ private fun GroupItem(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .padding(bottom = 12.dp),
+        colors = backgroundAwareCardColors(),
         onClick = onClickPrimary,
         onLongPress = if (group.apps.size > 1) onToggleExpand else null,
         showIndication = true,

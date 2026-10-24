@@ -78,6 +78,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
@@ -94,8 +95,8 @@ annotation class SegmentedColumnDsl
 
 @Composable
 private fun defaultSegmentedColors(): ListItemColors = ListItemDefaults.segmentedColors(
-    containerColor = colorScheme.surfaceBright,
-    disabledContainerColor = colorScheme.surfaceBright,
+    containerColor = backgroundAwareColor(colorScheme.surfaceBright),
+    disabledContainerColor = backgroundAwareColor(colorScheme.surfaceBright),
     supportingContentColor = colorScheme.onSurfaceVariant
 )
 

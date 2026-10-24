@@ -37,13 +37,17 @@ import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun TemporaryRootPreferencesMiuix(labels: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
     // Settings' LazyColumn already supplies the 12 dp horizontal page inset.
     Column(Modifier.padding(top = 12.dp)) {
-        Card(Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = backgroundAwareCardColors(),
+        ) {
             OverlayDropdownPreference(
                 title = stringResource(R.string.temporary_root_duration_title),
                 summary = stringResource(R.string.temporary_root_duration_summary),

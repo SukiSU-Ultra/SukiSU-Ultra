@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalMainPagerState
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 
 @Composable
 fun BottomBarMaterial(
@@ -112,7 +113,7 @@ fun BottomBarMaterial(
         Surface(
             modifier = Modifier.widthIn(max = 480.dp),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerHighest),
             shadowElevation = 6.dp,
         ) {
             Row(

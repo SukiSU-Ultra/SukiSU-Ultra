@@ -28,6 +28,7 @@ import com.sukisu.ultra.ui.component.FloatingBottomBar
 import com.sukisu.ultra.ui.component.FloatingBottomBarItem
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.BlurredBar
 import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.BadgedBox
@@ -64,7 +65,7 @@ fun BottomBarMiuix(
         BlurredBar(blurBackdrop) {
             NavigationBar(
                 modifier = modifier,
-                color = if (blurBackdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
+                color = if (blurBackdrop != null) Color.Transparent else backgroundAwareColor(MiuixTheme.colorScheme.surface),
                 content = {
                     items.forEachIndexed { index, item ->
                         NavigationBarItem(

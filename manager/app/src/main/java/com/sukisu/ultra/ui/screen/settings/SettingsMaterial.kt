@@ -46,7 +46,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -63,6 +65,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.SendLogBottomSheet
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 
@@ -86,7 +89,9 @@ fun SettingPagerMaterial(
         onDismissRequest = { showUninstallDialog.value = false }
     )
 
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     ExpressiveScaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopBar(scrollBehavior = scrollBehavior)
         },
@@ -463,9 +468,13 @@ fun SettingPagerMaterial(
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.settings)) },
-        colors = expressiveTopAppBarColors(),
+        colors = expressiveTopAppBarColors(
+            containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+            scrolledContainerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+        ),
         windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         scrollBehavior = scrollBehavior
     )

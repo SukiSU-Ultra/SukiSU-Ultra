@@ -143,6 +143,7 @@ import com.sukisu.ultra.ui.component.material.SearchAppBar
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
 import com.sukisu.ultra.ui.util.reboot
 import sh.calvin.reorderable.ReorderableItem
@@ -275,7 +276,9 @@ fun ModulePagerMaterial(
         }
     }
 
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     ExpressiveScaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             SearchAppBar(
                 title = { Text(stringResource(R.string.module)) },

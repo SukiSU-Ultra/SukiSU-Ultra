@@ -33,6 +33,8 @@ import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -75,11 +77,12 @@ fun NavigationRailMaterial(
             state.targetValue == WideNavigationRailValue.Expanded
     }
 
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     WideNavigationRail(
         modifier = modifier.fillMaxHeight(),
         state = state,
         colors = WideNavigationRailDefaults.colors().copy(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
         windowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(

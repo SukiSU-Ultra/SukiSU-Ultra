@@ -57,7 +57,10 @@ import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopupMiuix
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
@@ -93,8 +96,10 @@ fun HomePagerMiuix(
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
     Scaffold(
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
         topBar = {
             TopBar(
                 scrollBehavior = scrollBehavior,
@@ -311,11 +316,13 @@ private fun ActiveStatusCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(
-            color = when {
-                isDynamicColor -> colorScheme.secondaryContainer
-                isDark -> Color(0xFF1A3825)
-                else -> Color(0xFFDFFAE4)
-            }
+            color = backgroundAwareColor(
+                when {
+                    isDynamicColor -> colorScheme.secondaryContainer
+                    isDark -> Color(0xFF1A3825)
+                    else -> Color(0xFFDFFAE4)
+                }
+            )
         ),
         onClick = onClick,
         showIndication = !state.isLateLoadMode,
@@ -401,6 +408,7 @@ private fun InactiveStatusCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        colors = backgroundAwareCardColors(),
         onClick = onClick,
         showIndication = !state.isLateLoadMode,
         pressFeedbackType = PressFeedbackType.Tilt
@@ -474,6 +482,7 @@ private fun StatsRow(
         tiles.forEach { (count, label, onClick) ->
             Card(
                 modifier = Modifier.weight(1f),
+                colors = backgroundAwareCardColors(),
                 onClick = onClick,
                 showIndication = onClick != null,
                 pressFeedbackType = PressFeedbackType.Sink
@@ -509,7 +518,10 @@ private fun SupportLinks(
 ) {
     val learnMoreUrl = stringResource(R.string.home_learn_kernelsu_url)
 
-    Card(modifier = modifier) {
+    Card(
+        modifier = modifier,
+        colors = backgroundAwareCardColors(),
+    ) {
         ArrowPreference(
             title = stringResource(R.string.home_support_title),
             summary = stringResource(R.string.home_support_content),
@@ -544,7 +556,10 @@ private fun SpecSheet(
     rows: List<Pair<String, String>>,
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = backgroundAwareCardColors(),
+    ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             rows.forEachIndexed { index, (label, value) ->
                 if (index > 0) {
