@@ -247,6 +247,7 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.xz)
     implementation(libs.protobuf.kotlin.lite)
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
 }
