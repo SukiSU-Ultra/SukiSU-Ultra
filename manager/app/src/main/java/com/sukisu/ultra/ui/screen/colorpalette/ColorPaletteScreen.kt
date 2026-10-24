@@ -63,6 +63,9 @@ fun ColorPaletteScreen() {
         onSetModuleDescriptionMaxLines = viewModel::setModuleDescriptionMaxLines,
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetAlternativeIcon = { enabled -> viewModel.setAlternativeIcon(context, enabled) },
+        onSetCustomBackground = viewModel::setCustomBackground,
+        onClearCustomBackground = viewModel::clearCustomBackground,
+        onSetCardBackgroundAlphaPercent = viewModel::setCardBackgroundAlphaPercent,
     )
 
     when (LocalUiMode.current) {

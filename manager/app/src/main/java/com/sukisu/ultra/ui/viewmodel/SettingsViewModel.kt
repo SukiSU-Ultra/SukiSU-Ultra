@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.viewmodel
 
 import android.content.Context
+import android.net.Uri
 import android.system.OsConstants
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -19,7 +20,10 @@ import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.theme.ColorMode
+import com.sukisu.ultra.ui.theme.ThemeController
+import com.sukisu.ultra.ui.util.BgStorage
 import com.sukisu.ultra.ui.util.findActivity
+import java.io.File
 
 class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
@@ -149,9 +153,34 @@ class SettingsViewModel(
                     autoJailbreak = autoJailbreak,
                     useSoftReboot = useSoftReboot,
                     isLateLoadMode = isLateLoadMode,
+                    customBackgroundUri = repo.customBackgroundUri,
+                    cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                 )
             }
         }
+    }
+
+    fun setCustomBackground(context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val savedPath = BgStorage.persist(context, uri) ?: return@launch
+            val seed = BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
+            repo.customBackgroundUri = savedPath
+            repo.keyColor = seed
+            _uiState.update { it.copy(customBackgroundUri = savedPath, keyColor = seed) }
+        }
+    }
+
+    fun clearCustomBackground(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            BgStorage.clear(context)
+            repo.customBackgroundUri = ""
+            _uiState.update { it.copy(customBackgroundUri = "") }
+        }
+    }
+
+    fun setCardBackgroundAlphaPercent(percent: Int) {
+        repo.cardBackgroundAlphaPercent = percent
+        _uiState.update { it.copy(cardBackgroundAlphaPercent = percent) }
     }
 
     fun setCheckCiUpdate(enabled: Boolean) {

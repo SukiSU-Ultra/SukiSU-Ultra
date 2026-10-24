@@ -35,4 +35,7 @@ data class ColorPaletteScreenActions(
     val onSetModuleDescriptionMaxLines: (Int) -> Unit,
     val onSetShowFullStatus: (Boolean) -> Unit,
     val onSetAlternativeIcon: (Boolean) -> Unit,
+    val onSetCustomBackground: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
+    val onClearCustomBackground: (android.content.Context) -> Unit = {},
+    val onSetCardBackgroundAlphaPercent: (Int) -> Unit = {},
 )

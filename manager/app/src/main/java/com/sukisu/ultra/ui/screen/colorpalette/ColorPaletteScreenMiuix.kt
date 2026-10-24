@@ -1,7 +1,10 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,6 +43,7 @@ import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Style
@@ -64,8 +68,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,6 +87,7 @@ import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -89,6 +96,8 @@ import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SliderDefaults
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -167,6 +176,71 @@ fun ColorPaletteScreenMiuix(
                         colorSpec = state.currentColorSpec,
                     )
                     Spacer(modifier = Modifier.height(72.dp))
+
+                    val context = LocalContext.current
+                    val pickImageLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.OpenDocument()
+                    ) { uri: Uri? ->
+                        uri?.let { actions.onSetCustomBackground(context, it) }
+                    }
+                    val hasCustomBg = uiState.customBackgroundUri.isNotEmpty()
+
+                    Card(
+                        modifier = Modifier
+                            .padding(bottom = 12.dp)
+                            .fillMaxWidth(),
+                        colors = backgroundAwareCardColors(),
+                    ) {
+                        BasicComponent(
+                            title = stringResource(id = R.string.settings_custom_background),
+                            summary = stringResource(id = R.string.settings_custom_background_summary),
+                            startAction = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Image,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_custom_background),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            endActions = {
+                                if (hasCustomBg) {
+                                    TextButton(
+                                        text = stringResource(id = R.string.settings_clear),
+                                        onClick = { actions.onClearCustomBackground(context) }
+                                    )
+                                }
+                            },
+                            onClick = { pickImageLauncher.launch(arrayOf("image/*")) }
+                        )
+
+                        if (hasCustomBg) {
+                            HorizontalDivider()
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.settings_card_background_alpha),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.settings_card_background_alpha_summary, uiState.cardBackgroundAlphaPercent),
+                                    fontSize = 13.sp,
+                                    color = colorScheme.onSurfaceVariantSummary
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                Slider(
+                                    value = uiState.cardBackgroundAlphaPercent.toFloat(),
+                                    onValueChange = { actions.onSetCardBackgroundAlphaPercent(it.roundToInt()) },
+                                    valueRange = 10f..91f,
+                                    steps = 80,
+                                )
+                            }
+                        }
+                    }
 
                     val themeItems = listOf(
                         stringResource(id = R.string.settings_theme_mode_system),
