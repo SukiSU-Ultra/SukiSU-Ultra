@@ -78,7 +78,7 @@ fn defaults() -> Result<VersionSpoofView> {
             cmd.default_full_version
                 .iter()
                 .take_while(|&&b| b != 0)
-                .map(|&b| b as u8)
+                .map(|&b| b.to_ne_bytes()[0])
                 .collect(),
         )?,
         uapi: cmd.default_uapi_version,
@@ -87,7 +87,7 @@ fn defaults() -> Result<VersionSpoofView> {
             cmd.default_full_version
                 .iter()
                 .take_while(|&&b| b != 0)
-                .map(|&b| b as u8)
+                .map(|&b| b.to_ne_bytes()[0])
                 .collect(),
         )?,
         default_uapi: cmd.default_uapi_version,
@@ -198,7 +198,7 @@ pub fn print_config() -> Result<()> {
         .full_version
         .iter()
         .take_while(|&&b| b != 0)
-        .map(|&b| b as u8)
+        .map(|&b| b.to_ne_bytes()[0])
         .collect::<Vec<_>>();
     let effective_full = String::from_utf8(full)?;
     let view = VersionSpoofView {
@@ -210,7 +210,7 @@ pub fn print_config() -> Result<()> {
             cmd.default_full_version
                 .iter()
                 .take_while(|&&b| b != 0)
-                .map(|&b| b as u8)
+                .map(|&b| b.to_ne_bytes()[0])
                 .collect(),
         )?,
         default_uapi: cmd.default_uapi_version,
