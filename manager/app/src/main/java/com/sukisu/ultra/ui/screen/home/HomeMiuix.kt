@@ -140,7 +140,7 @@ fun HomePagerMiuix(
                         } else if (state.showKernelPrBuildWarning && state.showFullStatus) {
                             WarningCard(stringResource(id = R.string.home_pr_kernel_warning), level = WarningLevel.Notice)
                         }
-                        if (state.requiresNewKernel && state.showFullStatus && !state.isVersionMismatch) {
+                        if (state.requiresNewKernel && state.showFullStatus) {
                             WarningCard(
                                 stringResource(
                                     id = if (state.canInstallKernelUpdate) R.string.require_kernel_version else R.string.require_kernel_version_gki
@@ -148,7 +148,7 @@ fun HomePagerMiuix(
                                 onClick = if (state.canInstallKernelUpdate) actions.onInstallClick else null
                             )
                         }
-                        if (state.requiresNewManager && !state.isVersionMismatch) {
+                        if (state.requiresNewManager) {
                             WarningCard(
                                 stringResource(
                                     id = R.string.require_manager_version
