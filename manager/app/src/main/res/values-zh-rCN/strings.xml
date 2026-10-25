@@ -172,6 +172,8 @@
     <string name="settings_pager_gesture_cross_axis">跨轴拦截</string>
     <string name="settings_pager_gesture_ios_like">iOS 风格</string>
     <string name="settings_module_check_update">检查模块更新</string>
+    <string name="settings_auto_delete_module_zip">安装后删除模块压缩包</string>
+    <string name="settings_auto_delete_module_zip_summary">模块更新或从仓库安装成功后，自动删除下载的模块压缩包</string>
     <string name="grant_root_failed">获取 Root 失败！</string>
     <string name="home_pr_build_warning">当前为 PR 调试构建，请勿在生产环境中使用！</string>
     <string name="home_pr_kernel_warning">当前内核包含 PR 签名支持，这不是一个生产内核！</string>

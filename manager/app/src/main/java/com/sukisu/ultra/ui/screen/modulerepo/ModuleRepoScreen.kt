@@ -151,7 +151,7 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
                 val name = state.detail?.module?.moduleName ?: module.moduleName
                 navigator.push(Route.ScriptRun(ScriptRunArg(uri, registryId = module.moduleId, displayName = name)))
             } else {
-                navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri))))
+                navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri), downloadedByApp = true)))
             }
         },
         onRetry = { detailVm.load(module.moduleId, force = true) },

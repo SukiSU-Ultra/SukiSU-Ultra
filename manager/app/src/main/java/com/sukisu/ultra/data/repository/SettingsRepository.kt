@@ -6,6 +6,7 @@ interface SettingsRepository {
     var checkUpdate: Boolean
     var checkCiUpdate: Boolean
     var checkModuleUpdate: Boolean
+    var autoDeleteModuleZip: Boolean
     var alternativeIcon : Boolean
     var themeMode: Int
     var miuixMonet: Boolean

@@ -329,7 +329,8 @@ private fun flashWithIO(
 fun flashModule(
     uri: Uri,
     onStdout: (String) -> Unit,
-    onStderr: (String) -> Unit
+    onStderr: (String) -> Unit,
+    deleteSourceOnSuccess: Boolean = false,
 ): FlashResult {
     // Registry downloads live in app-private storage and carry their expected size + SHA-256;
     // the exact copy handed to ksud is re-hashed right before installing.
@@ -357,6 +358,11 @@ fun flashModule(
         val cmd = "module install ${file.absolutePath}"
         val result = flashWithIO("${getKsuDaemonPath()} $cmd", onStdout, onStderr)
         Log.i("KernelSU", "install module $uri result: $result")
+        if (deleteSourceOnSuccess && result.isSuccess) {
+            runCatching { deleteDownloadedModuleZip(uri) }
+                .onSuccess { if (!it) Log.w("KernelSU", "module zip $uri was not deleted") }
+                .onFailure { Log.w("KernelSU", "Failed to delete module zip $uri", it) }
+        }
         return FlashResult(result, result.isSuccess && moduleNeedsReboot(file))
     } finally {
         file.delete()

@@ -52,6 +52,7 @@ class SettingsViewModel(
             val pageScale = repo.pageScale
             val moduleDescriptionMaxLines = repo.moduleDescriptionMaxLines
             val enableWebDebugging = repo.enableWebDebugging
+            val autoDeleteModuleZip = repo.autoDeleteModuleZip
             val showFullStatus = repo.showFullStatus
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
@@ -124,6 +125,7 @@ class SettingsViewModel(
                     pageScale = pageScale,
                     moduleDescriptionMaxLines = moduleDescriptionMaxLines,
                     enableWebDebugging = enableWebDebugging,
+                    autoDeleteModuleZip = autoDeleteModuleZip,
                     showFullStatus = showFullStatus,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
@@ -206,6 +208,11 @@ class SettingsViewModel(
     fun setCheckModuleUpdate(enabled: Boolean) {
         repo.checkModuleUpdate = enabled
         _uiState.update { it.copy(checkModuleUpdate = enabled) }
+    }
+
+    fun setAutoDeleteModuleZip(enabled: Boolean) {
+        repo.autoDeleteModuleZip = enabled
+        _uiState.update { it.copy(autoDeleteModuleZip = enabled) }
     }
     fun setAlternativeIcon(context: Context, enabled: Boolean) {
         repo.alternativeIcon = enabled

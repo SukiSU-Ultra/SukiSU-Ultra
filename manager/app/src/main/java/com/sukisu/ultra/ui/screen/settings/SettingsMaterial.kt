@@ -369,6 +369,15 @@ fun SettingPagerMaterial(
                         },
                         {
                             SegmentedSwitchItem(
+                                icon = Icons.Filled.Delete,
+                                title = stringResource(id = R.string.settings_auto_delete_module_zip),
+                                summary = stringResource(id = R.string.settings_auto_delete_module_zip_summary),
+                                checked = uiState.autoDeleteModuleZip,
+                                onCheckedChange = actions.onSetAutoDeleteModuleZip
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
                                 icon = Icons.Filled.DeveloperMode,
                                 title = stringResource(id = R.string.enable_web_debugging),
                                 summary = stringResource(id = R.string.enable_web_debugging_summary),

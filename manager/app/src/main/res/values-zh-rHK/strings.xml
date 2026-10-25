@@ -146,6 +146,8 @@
     <string name="settings_pager_gesture_cross_axis">跨軸攔截</string>
     <string name="settings_pager_gesture_ios_like">iOS 風格</string>
     <string name="settings_module_check_update">檢查模組更新</string>
+    <string name="settings_auto_delete_module_zip">安裝後刪除模組壓縮檔</string>
+    <string name="settings_auto_delete_module_zip_summary">模組更新或從倉庫安裝成功後，自動刪除下載的模組壓縮檔</string>
     <string name="grant_root_failed">授予 Root 權限失敗！</string>
     <string name="home_pr_build_warning">此為 PR 除錯版本，切勿於正式環境使用！</string>
     <string name="home_pr_kernel_warning">此核心具 PR 簽名支援，並非正式版本核心！</string>

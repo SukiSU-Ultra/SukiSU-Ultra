@@ -267,6 +267,8 @@
     <string name="settings_adb_root_summary">以 Root 權限執行 adbd 常駐程式</string>
     <string name="safe_mode_module_disabled">處於安全模式下，禁止安裝模組</string>
     <string name="settings_module_check_update">檢查模組更新</string>
+    <string name="settings_auto_delete_module_zip">安裝後刪除模組壓縮檔</string>
+    <string name="settings_auto_delete_module_zip_summary">模組更新或從倉庫安裝成功後，自動刪除下載的模組壓縮檔</string>
     <string name="menu_sort">排序</string>
     <string name="sort_by_name">應用名</string>
     <string name="sort_by_package_name">套件名</string>

@@ -1,10 +1,13 @@
 package com.sukisu.ultra.ui.util
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
+import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,8 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import com.sukisu.ultra.data.registry.DownloadVerificationException
 import com.sukisu.ultra.data.registry.ExpectedFile
+import com.sukisu.ultra.data.registry.RegistryDownloadStore
 import com.sukisu.ultra.data.registry.RegistryUrls
 import com.sukisu.ultra.data.registry.canShareDownload
+import com.sukisu.ultra.ksuApp
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -127,4 +133,24 @@ object DownloadManager {
         }
         completionCallbacks.remove(id)
     }
+}
+
+/**
+ * Deletes a module ZIP downloaded by the manager: either a MediaStore Downloads entry or a
+ * verified registry ZIP in app-private storage. URIs from any other source are left untouched.
+ * Returns whether something was deleted.
+ */
+fun deleteDownloadedModuleZip(uri: Uri): Boolean = when {
+    uri.scheme == ContentResolver.SCHEME_FILE -> {
+        val path = uri.path ?: return false
+        RegistryDownloadStore.delete(File(ksuApp.filesDir, RegistryDownloadStore.DIR_NAME), File(path))
+    }
+
+    uri.scheme == ContentResolver.SCHEME_CONTENT && uri.authority == MediaStore.AUTHORITY -> {
+        runCatching { ksuApp.contentResolver.delete(uri, null, null) }
+            .onFailure { Log.w("DownloadManager", "Failed to delete module zip: $uri", it) }
+            .getOrDefault(0) > 0
+    }
+
+    else -> false
 }

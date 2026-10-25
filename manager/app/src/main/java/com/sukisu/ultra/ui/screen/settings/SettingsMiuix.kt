@@ -462,6 +462,20 @@ fun SettingPagerMiuix(
                             )
 
                             SwitchPreference(
+                                title = stringResource(id = R.string.settings_auto_delete_module_zip),
+                                summary = stringResource(id = R.string.settings_auto_delete_module_zip_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Delete,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_auto_delete_module_zip),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = uiState.autoDeleteModuleZip,
+                                onCheckedChange = actions.onSetAutoDeleteModuleZip
+                            )
+                            SwitchPreference(
                                 title = stringResource(id = R.string.enable_web_debugging),
                                 summary = stringResource(id = R.string.enable_web_debugging_summary),
                                 startAction = {
