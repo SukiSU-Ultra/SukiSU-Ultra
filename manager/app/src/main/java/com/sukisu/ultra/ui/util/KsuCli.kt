@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.R
 import com.sukisu.ultra.core.tasks.BootKernelVersion
 import com.sukisu.ultra.core.tasks.ExtractImage
 import com.sukisu.ultra.core.tasks.ProbeResult
@@ -359,9 +360,18 @@ fun flashModule(
         val result = flashWithIO("${getKsuDaemonPath()} $cmd", onStdout, onStderr)
         Log.i("KernelSU", "install module $uri result: $result")
         if (deleteSourceOnSuccess && result.isSuccess) {
-            runCatching { deleteInstalledModuleZip(uri) }
-                .onSuccess { if (!it) Log.w("KernelSU", "module zip $uri was not deleted") }
+            val name = runCatching { uri.getFileName(ksuApp) }.getOrNull()
+                ?: uri.lastPathSegment?.substringAfterLast('/').orEmpty()
+            val deleted = runCatching { deleteInstalledModuleZip(uri) }
                 .onFailure { Log.w("KernelSU", "Failed to delete module zip $uri", it) }
+                .getOrDefault(false)
+            // The flash screen only renders stdout, so report both outcomes there.
+            onStdout(
+                ksuApp.getString(
+                    if (deleted) R.string.module_zip_deleted else R.string.module_zip_delete_failed,
+                    name,
+                )
+            )
         }
         return FlashResult(result, result.isSuccess && moduleNeedsReboot(file))
     } finally {

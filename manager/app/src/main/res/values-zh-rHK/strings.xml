@@ -148,6 +148,8 @@
     <string name="settings_module_check_update">檢查模組更新</string>
     <string name="settings_auto_delete_module_zip">安裝後刪除模組壓縮檔</string>
     <string name="settings_auto_delete_module_zip_summary">安裝成功後自動刪除模組壓縮檔，包含手動選擇、模組更新及從倉庫下載的</string>
+    <string name="module_zip_deleted">已刪除模組壓縮檔：%1$s</string>
+    <string name="module_zip_delete_failed">! 刪除模組壓縮檔失敗：%1$s</string>
     <string name="grant_root_failed">授予 Root 權限失敗！</string>
     <string name="home_pr_build_warning">此為 PR 除錯版本，切勿於正式環境使用！</string>
     <string name="home_pr_kernel_warning">此核心具 PR 簽名支援，並非正式版本核心！</string>

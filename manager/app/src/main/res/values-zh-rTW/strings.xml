@@ -269,6 +269,8 @@
     <string name="settings_module_check_update">檢查模組更新</string>
     <string name="settings_auto_delete_module_zip">安裝後刪除模組壓縮檔</string>
     <string name="settings_auto_delete_module_zip_summary">安裝成功後自動刪除模組壓縮檔，包含手動選擇、模組更新及從倉庫下載的</string>
+    <string name="module_zip_deleted">已刪除模組壓縮檔：%1$s</string>
+    <string name="module_zip_delete_failed">! 刪除模組壓縮檔失敗：%1$s</string>
     <string name="menu_sort">排序</string>
     <string name="sort_by_name">應用名</string>
     <string name="sort_by_package_name">套件名</string>
