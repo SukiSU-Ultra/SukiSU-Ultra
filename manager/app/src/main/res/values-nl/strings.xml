@@ -45,7 +45,7 @@
     <string name="home_learn_kernelsu_url">https://sukisu.org/guide/</string>
     <string name="home_click_to_learn_kernelsu">Leer hoe SukiSU te installeren en modules te gebruiken.</string>
     <string name="home_support_title">Ondersteun ons</string>
-    <string name="home_support_content">KernelSU is en blijft gratis en open source. U kunt ons echter laten zien dat u ons steunt door een donatie te doen.</string>
+    <string name="home_support_content">SukiSU is en blijft gratis en open source. U kunt ons echter laten zien dat u ons steunt door een donatie te doen.</string>
     <string name="about_source_code"><![CDATA[Bekijk source code op %1$s<br/>Vervoeg ons %2$s kanaal]]></string>
     <string name="profile" translatable="false">App profiel</string>
     <string name="profile_default">Standaard</string>

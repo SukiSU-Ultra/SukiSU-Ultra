@@ -63,7 +63,7 @@
     <string name="profile_name">Ime profila</string>
     <string name="profile_groups">Skupine</string>
     <string name="profile_selinux_context">SELinux kontekst</string>
-    <string name="home_support_content">KernelSU je, in bo vedno brezplačen in odprtokoden. Kljub temu, nam lahko z donacijo pokažete, da vam je mar.</string>
+    <string name="home_support_content">SukiSU je, in bo vedno brezplačen in odprtokoden. Kljub temu, nam lahko z donacijo pokažete, da vam je mar.</string>
     <string name="failed_to_update_app_profile">Napaka pri posodobitvi aplikacijskega profila za %s</string>
     <string name="home_lkm_update_available">Na voljo je novejša različica vgrajenega LKM. Tapnite za posodobitev.</string>
     <string name="home_lkm_custom">Po meri</string>

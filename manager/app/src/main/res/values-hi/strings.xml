@@ -39,7 +39,7 @@
     <string name="reboot_recovery">रिकवरी में रिबूट करें</string>
     <string name="reboot_userspace">सॉफ्ट रिबूट</string>
     <string name="profile_name">प्रोफाइल का नाम</string>
-    <string name="home_support_content">KernelSU मुफ़्त और ओपन सोर्स और हमेशा रहेगा। हालाँकि आप दान देकर हमें दिखा सकते हैं कि आप संरक्षण करते हैं।</string>
+    <string name="home_support_content">SukiSU मुफ़्त और ओपन सोर्स और हमेशा रहेगा। हालाँकि आप दान देकर हमें दिखा सकते हैं कि आप संरक्षण करते हैं।</string>
     <string name="uninstall">अनइंस्टॉल करें</string>
     <string name="profile_namespace">Namspace माउंट करें</string>
     <string name="module_install">इंस्टाल करें</string>

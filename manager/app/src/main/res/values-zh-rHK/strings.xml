@@ -80,7 +80,7 @@
     <string name="home_learn_kernelsu_url">https://sukisu.org/zh/guide/</string>
     <string name="home_click_to_learn_kernelsu">了解如何安裝 SukiSU 及使用模組</string>
     <string name="home_support_title">支持開發</string>
-    <string name="home_support_content">KernelSU 承諾永久免費且開源，歡迎捐款支持</string>
+    <string name="home_support_content">SukiSU 承諾永久免費且開源，歡迎捐款支持</string>
     <string name="about_source_code"><![CDATA[在 %1$s 中檢視原始碼<br/>加入我們的 %2$s 頻道]]></string>
     <string name="profile_default">預設</string>
     <string name="profile_template">模板</string>
@@ -290,7 +290,7 @@
     <string name="download_install">安裝</string>
     <string name="settings_adb_root_summary">以 Root 權限執行 adbd daemon</string>
     <string name="settings_shell_su_adb_only">限制 Shell 僅可透過 ADB 取得 Root</string>
-    <string name="settings_shell_su_adb_only_summary">授權 Shell 後的額外檢查：僅由 adbd 或 KernelSU Root 程序（如 ADB 模組）啟動的 shell 程序可取得 Root，防止 App 提權至 shell 後進一步取得 Root</string>
+    <string name="settings_shell_su_adb_only_summary">授權 Shell 後的額外檢查：僅由 adbd 或 SukiSU Root 程序（如 ADB 模組）啟動的 shell 程序可取得 Root，防止 App 提權至 shell 後進一步取得 Root</string>
     <string name="menu_sort">排序</string>
     <string name="sort_by_name">應用名</string>
     <string name="sort_by_package_name">套件名</string>

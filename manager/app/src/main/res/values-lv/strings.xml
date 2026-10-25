@@ -89,7 +89,7 @@
     <string name="module_version">Versija</string>
     <string name="safe_mode">Drošais režīms</string>
     <string name="module_magisk_conflict">Moduļi nav pieejami dēļ konflikta ar Magisk!</string>
-    <string name="home_support_content">KernelSU ir un vienmēr būs bezmaksas un atvērtā koda. Tomēr jūs varat parādīt mums, ka jums rūp, veicot ziedojumu.</string>
+    <string name="home_support_content">SukiSU ir un vienmēr būs bezmaksas un atvērtā koda. Tomēr jūs varat parādīt mums, ka jums rūp, veicot ziedojumu.</string>
     <string name="profile_groups">Grupas</string>
     <string name="profile_namespace_global">Globāli</string>
     <string name="home_lkm_update_available">Pieejama jaunāka iebūvētā LKM versija. Pieskarieties, lai atjauninātu.</string>

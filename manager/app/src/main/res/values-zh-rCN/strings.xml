@@ -46,7 +46,7 @@
     <string name="module_repo_update_available">可更新</string>
     <string name="module_repo_installed">已安装</string>
     <string name="module_repo_using_cache">无法刷新模块仓库，正在显示上次获取的内容</string>
-    <string name="module_repo_unsupported_schema">模块仓库使用了更新的数据格式，请更新 KernelSU 管理器</string>
+    <string name="module_repo_unsupported_schema">模块仓库使用了更新的数据格式，请更新 SukiSU 管理器</string>
     <string name="module_repo_load_failed">加载模块仓库失败</string>
     <string name="module_repo_empty">暂无模块</string>
     <string name="module_repo_not_in_index">该模块当前不在模块仓库索引中，无法从此处安装</string>
@@ -106,7 +106,7 @@
     <string name="home_learn_kernelsu_url">https://sukisu.org/zh/guide/</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 SukiSU 以及如何开发模块</string>
     <string name="home_support_title">支持开发</string>
-    <string name="home_support_content">KernelSU 将保持免费开源，向开发者捐赠以表示支持</string>
+    <string name="home_support_content">SukiSU 将保持免费开源，向开发者捐赠以表示支持</string>
     <string name="about_source_code"><![CDATA[在 %1$s 查看源码<br/>加入我们的 %2$s 频道<br/><br/>图标以特别的形式授权，怡子曰曰绘制，版权明风OuO所有。矢量化图标由本项目提供。]]></string>
     <string name="profile_default">默认</string>
     <string name="profile_template">模板</string>
@@ -317,13 +317,13 @@
     <string name="download_install">安装</string>
     <string name="settings_adb_root_summary">以 Root 权限运行 adbd 守护进程</string>
     <string name="settings_shell_su_adb_only">限制 Shell 仅可通过 ADB 获取 Root</string>
-    <string name="settings_shell_su_adb_only_summary">授权 Shell 后的额外检查：仅由 adbd 或 KernelSU Root 进程（如 ADB 模块）启动的 shell 进程可获取 Root，防止应用提权到 shell 后进一步获取 Root</string>
+    <string name="settings_shell_su_adb_only_summary">授权 Shell 后的额外检查：仅由 adbd 或 SukiSU Root 进程（如 ADB 模块）启动的 shell 进程可获取 Root，防止应用提权到 shell 后进一步获取 Root</string>
     <string name="settings_selinux_hide">隐藏 SELinux 修改</string>
     <string name="settings_selinux_hide_summary">阻止应用检测 SELinux 修改</string>
     <string name="settings_selinux_hide_reboot_required">重启生效</string>
     <string name="settings_selinux_hide_failed">错误：%d</string>
     <string name="settings_mount_hide">隐藏可疑挂载</string>
-    <string name="settings_mount_hide_summary">从隔离进程与应用进程的 /proc 挂载视图中过滤 KernelSU 与模块的挂载记录</string>
+    <string name="settings_mount_hide_summary">从隔离进程与应用进程的 /proc 挂载视图中过滤 SukiSU 与模块的挂载记录</string>
     <string name="settings_mount_hide_reboot_required">重启后生效</string>
     <string name="settings_mount_hide_failed">错误：%d</string>
     <string name="menu_sort">排序</string>
@@ -705,7 +705,7 @@
     <string name="sus_maps_warning">重要提示：对于具备完善注入检测机制的应用，此功能可能无法有效绕过检测。</string>
     <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
     <string name="icon_switch_title">备选图标</string>
-    <string name="icon_switch_summary">更换为 KernelSU 图标</string>
+    <string name="icon_switch_summary">更换为 SukiSU 图标</string>
     <string name="refresh">刷新</string>
     <string name="home_kernel_full_version">内核完整版本</string>
     <string name="settings_show_fullstatus">显示完整状态</string>
@@ -720,7 +720,7 @@
     <string name="module_summary">%1$d 个启用 · %2$d 个可更新</string>
     <string name="home_preview_mode">未检测到 SukiSU 内核。当前已有 root 权限，页面以预览模式打开；内核相关功能不会生效。</string>
     <string name="dynamic_manager_title">动态管理器</string>
-    <string name="dynamic_manager_summary">管理额外受信任的 KernelSU 管理器</string>
+    <string name="dynamic_manager_summary">管理额外受信任的 SukiSU 管理器</string>
     <string name="dynamic_manager_enabled">启用动态管理器</string>
     <string name="dynamic_manager_add">添加管理器</string>
     <string name="dynamic_manager_remove">移除管理器</string>
@@ -745,7 +745,7 @@
     <string name="extension_umount_paths_title">Umount 路径管理</string>
     <string name="extension_umount_paths_summary">管理应用启动时内核将卸载的挂载点列表。</string>
     <string name="extension_dynamic_manager_title">动态管理器</string>
-    <string name="extension_dynamic_manager_summary">允许通过签名证书验证的多个应用充当 KernelSU 管理器。</string>
+    <string name="extension_dynamic_manager_summary">允许通过签名证书验证的多个应用充当 SukiSU 管理器。</string>
     <string name="extension_open_details">打开详情</string>
 
     <!-- 空状态:尚未拉到任何扩展状态,屏幕也不在刷新中。 -->
@@ -819,13 +819,13 @@
     <string name="susfs_priority_uid_filter_empty">尚未选择应用</string>
     <string name="susfs_priority_uid_filter_select">选择应用</string>
     <string name="susfs_priority_uid_filter_clear">清空过滤列表</string>
-    <string name="extension_version_spoof_title">KernelSU 版本信息自定义</string>
-    <string name="extension_version_spoof_summary">自定义内核对外报告的 KernelSU 数字版本号、完整版本字符串和 UAPI 版本号。</string>
-    <string name="version_spoof_warning">注意：这些设置会改变内核实际返回的 KernelSU 版本信息，不只是修改界面显示。版本号或 UAPI 与编译值不一致可能导致 Manager 错误判断兼容性，并影响安装和更新。可随时恢复内核编译值。</string>
+    <string name="extension_version_spoof_title">SukiSU 版本信息自定义</string>
+    <string name="extension_version_spoof_summary">自定义内核对外报告的 SukiSU 数字版本号、完整版本字符串和 UAPI 版本号。</string>
+    <string name="version_spoof_warning">注意：这些设置会改变内核实际返回的 SukiSU 版本信息，不只是修改界面显示。版本号或 UAPI 与编译值不一致可能导致 Manager 错误判断兼容性，并影响安装和更新。可随时恢复内核编译值。</string>
     <string name="version_spoof_hint">字段显示当前生效值，其下会标出内核编译时的原始值。修改后会保存并在启动时重新应用（安全模式除外）。其他应用可能会缓存版本信息；若显示未更新，请重启该应用。完整版本字符串最长 254 个 UTF-8 字节。</string>
-    <string name="version_spoof_code">KernelSU 数字版本号</string>
-    <string name="version_spoof_full">KernelSU 完整版本字符串</string>
-    <string name="version_spoof_uapi">KernelSU UAPI 版本号</string>
+    <string name="version_spoof_code">SukiSU 数字版本号</string>
+    <string name="version_spoof_full">SukiSU 完整版本字符串</string>
+    <string name="version_spoof_uapi">SukiSU UAPI 版本号</string>
     <string name="version_spoof_ack">我已了解可能带来的兼容性影响</string>
     <string name="version_spoof_reset">恢复内核编译值</string>
     <string name="version_spoof_success">版本信息已更新。若其他应用仍显示旧值，请重启该应用。</string>
@@ -833,7 +833,7 @@
     <string name="version_spoof_must_match">输入值超出支持的数值范围，请检查版本号和 UAPI。</string>
     <string name="version_spoof_original_value">内核编译时的原始值：%1$s</string>
     <string name="version_spoof_back">返回</string>
-    <string name="version_spoof_home_warning">KernelSU 版本号或 UAPI 与当前管理器不一致。点击查看版本设置与恢复方法。</string>
+    <string name="version_spoof_home_warning">SukiSU 版本号或 UAPI 与当前管理器不一致。点击查看版本设置与恢复方法。</string>
     <string name="version_spoof_hide_warning">隐藏主页版本警告</string>
     <string name="version_spoof_hide_warning_summary">默认关闭。仅隐藏版本不匹配提示，不会跳过兼容性检查。</string>
     <string name="version_spoof_section_info">兼容性与编译信息</string>

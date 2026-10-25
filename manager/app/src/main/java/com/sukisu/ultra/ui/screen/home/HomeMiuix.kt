@@ -519,7 +519,7 @@ private fun SupportLinks(
                     tint = colorScheme.onBackground,
                 )
             },
-            onClick = { onOpenUrl("https://patreon.com/weishu") },
+            onClick = { onOpenUrl("https://opencollective.com/sukisu-ultra") },
         )
         ArrowPreference(
             title = stringResource(R.string.home_learn_kernelsu),

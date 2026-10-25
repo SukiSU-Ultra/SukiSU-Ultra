@@ -48,7 +48,7 @@
     <string name="profile_template">Şablon</string>
     <string name="profile_default">Defolt</string>
     <string name="profile_custom">Özəl</string>
-    <string name="home_support_content">KernelSU pulsuz və açıq mənbəlidir,həmişə belə olacaqdır. Bununla belə, ianə etməklə bizə qayğı göstərdiyinizi göstərə bilərsiniz.</string>
+    <string name="home_support_content">SukiSU pulsuz və açıq mənbəlidir,həmişə belə olacaqdır. Bununla belə, ianə etməklə bizə qayğı göstərdiyinizi göstərə bilərsiniz.</string>
     <string name="about_source_code">Mənbə kodlarımıza baxın %1$s<br/>
 Kanalımıza %2$s qoşulun</string>
     <string name="profile_name">Profil adı</string>

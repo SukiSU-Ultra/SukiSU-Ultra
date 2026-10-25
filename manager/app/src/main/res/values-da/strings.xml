@@ -64,7 +64,7 @@
     <string name="show_system_apps">Vis system-apps</string>
     <string name="module_magisk_conflict">Moduler er utilgængelige på grund af en konflikt med Magisk!</string>
     <string name="home_support_title">Støt Os</string>
-    <string name="home_support_content">KernelSU er, og vil altid være, gratis og åben kildekode. Du kan dog vise os, at du holder af os, ved at give en donation.</string>
+    <string name="home_support_content">SukiSU er, og vil altid være, gratis og åben kildekode. Du kan dog vise os, at du holder af os, ved at give en donation.</string>
     <string name="profile_custom">Brugerdefineret</string>
     <string name="profile_name">Profilnavn</string>
     <string name="profile_namespace_individual">Individuel</string>

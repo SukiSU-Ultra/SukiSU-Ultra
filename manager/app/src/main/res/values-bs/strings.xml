@@ -73,7 +73,7 @@
     <string name="selinux_status_disabled">Isključeno</string>
     <string name="about">O</string>
     <string name="module_uninstall_confirm">Jeste li sigurni da želite deinstalirati modulu %s\?</string>
-    <string name="home_support_content">KernelSU je, i uvijek če biti, besplatan, i otvorenog izvora. Možete nam međutim pokazati da vas je briga s time da napravite donaciju.</string>
+    <string name="home_support_content">SukiSU je, i uvijek če biti, besplatan, i otvorenog izvora. Možete nam međutim pokazati da vas je briga s time da napravite donaciju.</string>
     <string name="profile_default">Zadano</string>
     <string name="profile_template">Šablon</string>
     <string name="profile_custom">Prilagođeno</string>

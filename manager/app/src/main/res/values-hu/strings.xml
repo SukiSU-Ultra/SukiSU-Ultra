@@ -67,7 +67,7 @@ Csatlakozzon a %2$s csatornánkhoz</string>
     <string name="module_version">Verzió</string>
     <string name="send_log">Naplók küldése</string>
     <string name="reboot_to_apply">Indítsa újra a készüléket a változások érvényesítéséhez</string>
-    <string name="home_support_content">A KernelSU ingyenes, nyílt forráskódú és mindig is az lesz. Ön azonban adományozással megmutathatja, hogy törődik a projekttel.</string>
+    <string name="home_support_content">A SukiSU ingyenes, nyílt forráskódú és mindig is az lesz. Ön azonban adományozással megmutathatja, hogy törődik a projekttel.</string>
     <string name="profile_namespace_global">Globális</string>
     <string name="profile_umount_modules">Modulok leválasztása</string>
     <string name="failed_to_update_app_profile">Nem sikerült frissíteni az App Profilt ehhez: %s</string>
