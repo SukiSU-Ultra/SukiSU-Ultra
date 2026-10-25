@@ -5,7 +5,7 @@
 /*
  * KPM (Kernel Patch Module) extension.
  *
- * Sticky state (u64 bit 0): whether CONFIG_KPM is enabled in this kernel.
+ * Sticky state (u64 bit 0): whether CONFIG_KPM and the runtime KP bridge are available.
  * io op: forwards struct ksu_kpm_cmd to do_kpm().
  *
  * The actual KPM control surface (load / unload / list / info / control /

@@ -172,6 +172,16 @@ $(info -- $(REPO_NAME)/compat: modern static_key_interface found)
 ccflags-y += -DKSU_HAS_MODERN_STATIC_KEY_INTERFACE
 endif
 
+# Vendor backports may change these fields independently of LINUX_VERSION_CODE.
+# Inspect the actual target source header, not the host kernel or KMI label.
+ksu_netlink_cfg := $(shell sed -n '/struct netlink_kernel_cfg {/,/^};/p' $(srctree)/include/linux/netlink.h)
+ifneq ($(findstring cb_mutex,$(ksu_netlink_cfg)),)
+ccflags-y += -DKSU_NETLINK_CFG_HAS_CB_MUTEX=1
+endif
+ifneq ($(findstring compare,$(ksu_netlink_cfg)),)
+ccflags-y += -DKSU_NETLINK_CFG_HAS_COMPARE=1
+endif
+
 KSU_PACKAGE_NAME ?= com.sukisu.ultra
 
 ccflags-y += -DKSU_PACKAGE_NAME=\"$(KSU_PACKAGE_NAME)\"
