@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.DocumentsContract
+import android.system.Os
 import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,7 +144,14 @@ private val DATA_COLUMN = Regex("""_data=(.*?)(?:, [A-Za-z_]+=|$)""")
 
 // Only shareable storage is a valid delete target for picked documents; anything else means the
 // URI was crafted or the provider reported a path we must not touch as root.
-private val EXTERNAL_ROOTS = listOf("/storage/", "/mnt/media_rw/", "/data/media/")
+private val EXTERNAL_ROOTS = listOf(
+    "/storage/",
+    "/mnt/media_rw/",
+    "/mnt/runtime/",
+    "/mnt/pass_through/",
+    "/mnt/user/",
+    "/data/media/",
+)
 
 /**
  * Best-effort deletion of the ZIP a module was installed from: an app-private registry download,
@@ -156,11 +164,12 @@ fun deleteInstalledModuleZip(uri: Uri): Boolean = runCatching {
     val path = when (uri.scheme) {
         ContentResolver.SCHEME_FILE -> uri.path
         ContentResolver.SCHEME_CONTENT ->
-            if (DocumentsContract.isDocumentUri(ksuApp, uri)) resolveDocumentPath(uri) else queryDataPath(uri)
+            resolveOpenFilePath(uri)
+                ?: if (DocumentsContract.isDocumentUri(ksuApp, uri)) resolveDocumentPath(uri) else queryDataPath(uri)
         else -> null
     } ?: return false
     if (!isSafeToDelete(uri, path)) {
-        Log.w("DownloadManager", "Refusing to delete unexpected path for $uri")
+        Log.w("DownloadManager", "Refusing to delete unexpected path $path for $uri")
         return false
     }
     // Job.add() runs every argument as a separate command line, so the whole command is one string.
@@ -169,6 +178,16 @@ fun deleteInstalledModuleZip(uri: Uri): Boolean = runCatching {
 }.onFailure {
     Log.w("DownloadManager", "Failed to delete module zip: $uri", it)
 }.getOrDefault(false)
+
+/**
+ * Asks the provider which file a content URI really points at, through the descriptor the URI
+ * already grants. Unlike document id parsing this works for any provider, AOSP or OEM.
+ */
+private fun resolveOpenFilePath(uri: Uri): String? = runCatching {
+    ksuApp.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+        Os.readlink("/proc/self/fd/${pfd.fd}")
+    }
+}.getOrNull()?.takeIf { it.startsWith('/') }
 
 private fun isSafeToDelete(uri: Uri, path: String): Boolean = runCatching {
     if (!path.startsWith('/') || path.split('/').any { it == ".." }) return false
