@@ -67,6 +67,7 @@
 #include "extension/kpm/super_access.h"
 #include "extension/susfs_extension.h"
 #include "extension/dynamic_sig_fallback.h"
+#include "extension/version_spoof.h"
 
 #ifdef CONFIG_KSU_SUSFS
 #include "preinit/preinit.h"
@@ -85,6 +86,7 @@
 #include "extension/kpm/super_access.c"
 #include "extension/susfs_extension.c"
 #include "extension/dynamic_sig_fallback.c"
+#include "extension/version_spoof.c"
 
 #if !defined(KSU_NO_PREINIT) && !defined(CONFIG_KSU_SUSFS)
 #include "preinit/common/runner/runner_xxd.h"
