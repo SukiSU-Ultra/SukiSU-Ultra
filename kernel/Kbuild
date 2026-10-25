@@ -44,6 +44,7 @@ kernelsu-objs += extension/extension.o
 kernelsu-objs += extension/cpu_spoof.o
 kernelsu-objs += extension/umount_paths.o
 kernelsu-objs += extension/susfs_extension.o
+kernelsu-objs += extension/version_spoof.o
 
 kernelsu-objs += runtime/boot_event.o
 kernelsu-objs += runtime/ksud_integration.o

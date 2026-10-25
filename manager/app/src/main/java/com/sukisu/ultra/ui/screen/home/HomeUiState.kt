@@ -37,6 +37,7 @@ data class HomeUiState(
     val showFullStatus: Boolean = true,
     // Root without a SukiSU kernel: pages are browsable but kernel features are unavailable.
     val isPreviewMode: Boolean = false,
+    val hideVersionMismatchWarning: Boolean = false,
     // Null until loaded through the root shell; kpmCount stays null when KPM is unavailable.
     val superuserCount: Int? = null,
     val moduleCount: Int? = null,
@@ -63,6 +64,12 @@ data class HomeUiState(
     val showCustomLkmBadge: Boolean
         get() = lkmMode == true && !isLkmBundled
 
+    val isVersionMismatch: Boolean
+        get() = isManager && (kernelUAPIVersion != managerUAPIVersion || ksuVersion?.toUInt()?.toLong() != currentManagerVersionCode)
+
+    val showVersionMismatchWarning: Boolean
+        get() = isVersionMismatch && !hideVersionMismatchWarning
+
     val showRootWarning: Boolean
         get() = ksuVersion != null && !isRootAvailable
 
@@ -85,4 +92,5 @@ data class HomeActions(
     val onModuleClick: () -> Unit = {},
     val onCiUpdateClick: () -> Unit = {},
     val onReleaseUpdateClick: () -> Unit = {},
+    val onOpenVersionSpoof: () -> Unit = {},
 )

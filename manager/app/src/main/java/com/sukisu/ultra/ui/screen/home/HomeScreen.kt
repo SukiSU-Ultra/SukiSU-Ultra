@@ -125,6 +125,7 @@ fun HomePager(
         onOpenUrl = uriHandler::openUri,
         onCiUpdateClick = { startUpdate(true) },
         onReleaseUpdateClick = { startUpdate(false) },
+        onOpenVersionSpoof = { navigator.push(Route.VersionSpoof) },
         onJailbreakClick = {
             loadingDialog.showLoading()
             context.startService(Intent(context, MagicaService::class.java))

@@ -705,4 +705,25 @@
     <string name="susfs_priority_uid_filter_empty">尚未選擇應用程式</string>
     <string name="susfs_priority_uid_filter_select">選擇應用程式</string>
     <string name="susfs_priority_uid_filter_clear">清除過濾清單</string>
+    <string name="extension_version_spoof_title">KernelSU 版本資訊自訂</string>
+    <string name="extension_version_spoof_summary">自訂核心對外回報的 KernelSU 數字版本號、完整版本字串和 UAPI 版本號。</string>
+    <string name="version_spoof_warning">注意：這些設定會改變核心實際回傳的 KernelSU 版本資訊，不只是修改介面顯示。版本號或 UAPI 與編譯值不一致，可能導致 Manager 誤判相容性，並影響安裝與更新。可隨時還原核心編譯值。</string>
+    <string name="version_spoof_hint">欄位顯示目前生效值，下方會標示核心編譯時的原始值。修改後會儲存，並在開機時重新套用（安全模式除外）。其他應用程式可能會快取版本資訊；若顯示未更新，請重新啟動該應用程式。完整版本字串最長 254 個 UTF-8 位元組。</string>
+    <string name="version_spoof_code">KernelSU 數字版本號</string>
+    <string name="version_spoof_full">KernelSU 完整版本字串</string>
+    <string name="version_spoof_uapi">KernelSU UAPI 版本號</string>
+    <string name="version_spoof_ack">我已了解可能帶來的相容性影響</string>
+    <string name="version_spoof_reset">還原核心編譯值</string>
+    <string name="version_spoof_success">版本資訊已更新。若其他應用程式仍顯示舊值，請重新啟動該應用程式。</string>
+    <string name="version_spoof_compiled_target">目前 Manager 編譯參考值：版本號 %1$s，UAPI %2$s。自訂值可以不同；儲存前請確認已了解相容性影響。</string>
+    <string name="version_spoof_must_match">輸入值超出支援的數值範圍，請檢查版本號和 UAPI。</string>
+    <string name="version_spoof_original_value">核心編譯時的原始值：%1$s</string>
+    <string name="version_spoof_back">返回</string>
+    <string name="version_spoof_home_warning">KernelSU 版本號或 UAPI 與目前管理器不一致。點選查看版本設定與還原方法。</string>
+    <string name="version_spoof_hide_warning">隱藏首頁版本警告</string>
+    <string name="version_spoof_hide_warning_summary">預設關閉。僅隱藏版本不符提示，不會略過相容性檢查。</string>
+    <string name="version_spoof_section_info">相容性與編譯資訊</string>
+    <string name="version_spoof_section_fields">對外回報的版本</string>
+    <string name="version_spoof_section_recovery">警告設定與還原</string>
+    <string name="version_spoof_recovery">還原核心原始版本：使用 Root 權限刪除 /data/adb/ksu/.version_spoof_config，然後重新開機。\n\n重新顯示警告：使用 Root 權限刪除 /data/adb/ksu/.version_spoof_warning_hidden，然後重新啟動管理器或裝置。刪除此檔案不會清除自訂版本。若管理器無法開啟，請使用其他可用的 Root 或 Recovery 環境操作。</string>
 </resources>

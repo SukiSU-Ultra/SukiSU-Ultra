@@ -13,6 +13,7 @@ import android.os.Environment
 import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -76,6 +77,7 @@ class DownloadService : Service() {
         createNotificationChannel()
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_DOWNLOAD -> {
@@ -141,6 +143,7 @@ class DownloadService : Service() {
         }
         .build()
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun startDownload(id: Int, url: String, fileName: String, expected: ExpectedFile?) {
         val job = serviceScope.launch(start = CoroutineStart.LAZY) {
             var pendingUri: Uri? = null

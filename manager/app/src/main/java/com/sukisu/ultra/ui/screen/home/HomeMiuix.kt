@@ -126,15 +126,21 @@ fun HomePagerMiuix(
                             state = state,
                             actions = actions,
                         )
-                        if (state.checkUpdateEnabled) {
-                            UpdateCard(state = state, actions = actions)
-                        }
+                if (state.showVersionMismatchWarning) {
+                    WarningCard(
+                        stringResource(R.string.version_spoof_home_warning),
+                        onClick = actions.onOpenVersionSpoof,
+                    )
+                }
+                if (state.checkUpdateEnabled) {
+                    UpdateCard(state = state, actions = actions)
+                }
                         if (state.showManagerPrBuildWarning && state.showFullStatus) {
                             WarningCard(stringResource(id = R.string.home_pr_build_warning), level = WarningLevel.Notice)
                         } else if (state.showKernelPrBuildWarning && state.showFullStatus) {
                             WarningCard(stringResource(id = R.string.home_pr_kernel_warning), level = WarningLevel.Notice)
                         }
-                        if (state.requiresNewKernel && state.showFullStatus) {
+                        if (state.requiresNewKernel && state.showFullStatus && !state.isVersionMismatch) {
                             WarningCard(
                                 stringResource(
                                     id = if (state.canInstallKernelUpdate) R.string.require_kernel_version else R.string.require_kernel_version_gki
@@ -142,7 +148,7 @@ fun HomePagerMiuix(
                                 onClick = if (state.canInstallKernelUpdate) actions.onInstallClick else null
                             )
                         }
-                        if (state.requiresNewManager) {
+                        if (state.requiresNewManager && !state.isVersionMismatch) {
                             WarningCard(
                                 stringResource(
                                     id = R.string.require_manager_version

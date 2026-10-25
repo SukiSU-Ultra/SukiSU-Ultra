@@ -142,6 +142,7 @@ private fun ExtensionCardMaterial(
             ExtensionId.UmountPaths -> R.string.extension_umount_paths_summary
             ExtensionId.DynamicManager -> R.string.extension_dynamic_manager_summary
             ExtensionId.SuSFS -> R.string.extension_susfs_summary
+            ExtensionId.VersionSpoof -> R.string.extension_version_spoof_summary
         }
     )
     val statusSummary: String? = if (state == null) {

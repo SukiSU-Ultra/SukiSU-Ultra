@@ -186,6 +186,10 @@ fn apply_config(extensions: &HashMap<u32, u64>) {
 
     let mut applied = 0;
     for (&id, &value) in extensions {
+        if id == ExtensionId::VersionSpoof as u32 {
+            log::debug!("Version overrides are restored by version_spoof::apply_saved");
+            continue;
+        }
         if is_forced(id) {
             log::info!("Skip extension {id}: forced by boot config");
             continue;
@@ -580,6 +584,9 @@ pub fn init_forced_extensions() {
 #[cfg(target_os = "android")]
 pub fn init_extensions() -> Result<()> {
     log::info!("Initializing extensions from config...");
+    if let Err(error) = crate::version_spoof::apply_saved() {
+        log::warn!("Failed to restore version overrides: {error:#}");
+    }
 
     let mut extensions = load_binary_config()?;
 

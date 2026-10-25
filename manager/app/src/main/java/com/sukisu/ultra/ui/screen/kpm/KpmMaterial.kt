@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.ConfigResults
 import com.sukisu.ultra.ui.viewmodel.KpmViewModel
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -265,7 +266,7 @@ private fun KpmListMaterial(
                     end = innerPadding.calculateEndPadding(layoutDirection),
                 ),
             ) {
-            item { com.sukisu.ultra.ui.component.ConfigResults(state.operationResults) }
+            item { ConfigResults(state.operationResults) }
                 if (!isNoticeClosed) {
                     item {
                         Card(

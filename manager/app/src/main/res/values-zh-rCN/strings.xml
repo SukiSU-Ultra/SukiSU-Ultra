@@ -819,4 +819,25 @@
     <string name="susfs_priority_uid_filter_empty">尚未选择应用</string>
     <string name="susfs_priority_uid_filter_select">选择应用</string>
     <string name="susfs_priority_uid_filter_clear">清空过滤列表</string>
+    <string name="extension_version_spoof_title">KernelSU 版本信息自定义</string>
+    <string name="extension_version_spoof_summary">自定义内核对外报告的 KernelSU 数字版本号、完整版本字符串和 UAPI 版本号。</string>
+    <string name="version_spoof_warning">注意：这些设置会改变内核实际返回的 KernelSU 版本信息，不只是修改界面显示。版本号或 UAPI 与编译值不一致可能导致 Manager 错误判断兼容性，并影响安装和更新。可随时恢复内核编译值。</string>
+    <string name="version_spoof_hint">字段显示当前生效值，其下会标出内核编译时的原始值。修改后会保存并在启动时重新应用（安全模式除外）。其他应用可能会缓存版本信息；若显示未更新，请重启该应用。完整版本字符串最长 254 个 UTF-8 字节。</string>
+    <string name="version_spoof_code">KernelSU 数字版本号</string>
+    <string name="version_spoof_full">KernelSU 完整版本字符串</string>
+    <string name="version_spoof_uapi">KernelSU UAPI 版本号</string>
+    <string name="version_spoof_ack">我已了解可能带来的兼容性影响</string>
+    <string name="version_spoof_reset">恢复内核编译值</string>
+    <string name="version_spoof_success">版本信息已更新。若其他应用仍显示旧值，请重启该应用。</string>
+    <string name="version_spoof_compiled_target">当前 Manager 编译参考值：版本号 %1$s，UAPI %2$s。自定义值可以不同；保存前请确认已了解兼容性影响。</string>
+    <string name="version_spoof_must_match">输入值超出支持的数值范围，请检查版本号和 UAPI。</string>
+    <string name="version_spoof_original_value">内核编译时的原始值：%1$s</string>
+    <string name="version_spoof_back">返回</string>
+    <string name="version_spoof_home_warning">KernelSU 版本号或 UAPI 与当前管理器不一致。点击查看版本设置与恢复方法。</string>
+    <string name="version_spoof_hide_warning">隐藏主页版本警告</string>
+    <string name="version_spoof_hide_warning_summary">默认关闭。仅隐藏版本不匹配提示，不会跳过兼容性检查。</string>
+    <string name="version_spoof_section_info">兼容性与编译信息</string>
+    <string name="version_spoof_section_fields">对外报告的版本</string>
+    <string name="version_spoof_section_recovery">警告设置与恢复</string>
+    <string name="version_spoof_recovery">恢复内核原始版本：使用 Root 权限删除 /data/adb/ksu/.version_spoof_config，然后重启设备。\n\n重新显示警告：使用 Root 权限删除 /data/adb/ksu/.version_spoof_warning_hidden，然后重启管理器或设备。删除此文件不会清除自定义版本。若管理器无法打开，请使用其他可用的 Root 或 Recovery 环境操作。</string>
 </resources>

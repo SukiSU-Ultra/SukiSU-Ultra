@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.ConfigResults
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
@@ -298,7 +299,7 @@ private fun KpmList(
             ),
             overscrollEffect = null,
         ) {
-            item { com.sukisu.ultra.ui.component.ConfigResults(state.operationResults) }
+            item { ConfigResults(state.operationResults) }
             if (!isNoticeClosed) {
                 item {
                     Card(

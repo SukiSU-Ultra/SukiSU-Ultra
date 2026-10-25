@@ -78,6 +78,7 @@ import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopup
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 
 private val HeroShape = RoundedCornerShape(28.dp)
 private val TileShape = RoundedCornerShape(22.dp)
@@ -106,6 +107,12 @@ fun HomePagerMaterial(
                 state = state,
                 actions = actions,
             )
+            if (state.showVersionMismatchWarning) {
+                WarningCard(
+                    stringResource(R.string.version_spoof_home_warning),
+                    onClick = actions.onOpenVersionSpoof,
+                )
+            }
             if (state.checkUpdateEnabled) {
                 UpdateCard(state = state, actions = actions)
             }
@@ -114,7 +121,7 @@ fun HomePagerMaterial(
             } else if (state.showKernelPrBuildWarning && state.showFullStatus) {
                 WarningCard(stringResource(id = R.string.home_pr_kernel_warning), level = WarningLevel.Notice)
             }
-            if (state.requiresNewKernel && state.showFullStatus) {
+            if (state.requiresNewKernel && state.showFullStatus && !state.isVersionMismatch) {
                 WarningCard(
                     stringResource(
                         id = if (state.canInstallKernelUpdate) R.string.require_kernel_version else R.string.require_kernel_version_gki
@@ -122,7 +129,7 @@ fun HomePagerMaterial(
                     onClick = if (state.canInstallKernelUpdate) actions.onInstallClick else null
                 )
             }
-            if (state.requiresNewManager) {
+            if (state.requiresNewManager && !state.isVersionMismatch) {
                 WarningCard(
                     stringResource(
                         id = R.string.require_manager_version
@@ -769,7 +776,7 @@ private fun previewHomeScreenState(
     isLateLoadMode = isLateLoadMode,
     checkUpdateEnabled = false,
     showFullStatus = true,
-    latestVersionInfo = com.sukisu.ultra.ui.util.module.LatestVersionInfo(),
+    latestVersionInfo = LatestVersionInfo(),
     currentManagerVersionCode = 10000,
     systemInfo = previewSystemInfo.copy(selinuxStatus = selinuxStatus),
     kernelUAPIVersion = 1,

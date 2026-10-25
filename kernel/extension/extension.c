@@ -24,6 +24,7 @@
 #include "umount_paths.h"
 #include "dynamic_manager.h"
 #include "susfs_extension.h"
+#include "version_spoof.h"
 #include "klog.h" // IWYU pragma: keep
 
 static const struct ksu_extension_handler *extension_handlers[KSU_EXTENSION_MAX];
@@ -36,6 +37,7 @@ static const char *const extension_names[KSU_EXTENSION_MAX] = {
     [KSU_EXTENSION_UMOUNT_PATHS] = "umount_paths",
     [KSU_EXTENSION_DYNAMIC_MANAGER] = "dynamic_manager",
     [KSU_EXTENSION_SUSFS] = "susfs",
+    [KSU_EXTENSION_VERSION_SPOOF] = "version_spoof",
 };
 
 /*
@@ -448,6 +450,14 @@ void __init ksu_extension_register_all(void)
         .ops = &ksu_extension_susfs_ops,
     };
 
+    static const struct ksu_extension_handler version_spoof_handler = {
+        .extension_id = KSU_EXTENSION_VERSION_SPOOF,
+        .name = "version_spoof",
+        .ops = NULL,
+        .io_handler = ksu_extension_version_spoof_io,
+        .wipe = ksu_extension_version_spoof_wipe,
+    };
+
     if (ksu_register_extension_handler(&kpm_handler))
         pr_err("extension: failed to register kpm\n");
     if (ksu_register_extension_handler(&cpu_spoof_handler))
@@ -458,6 +468,8 @@ void __init ksu_extension_register_all(void)
         pr_err("extension: failed to register dynamic_manager\n");
     if (ksu_register_extension_handler(&susfs_handler))
         pr_err("extension: failed to register susfs\n");
+    if (ksu_register_extension_handler(&version_spoof_handler))
+        pr_err("extension: failed to register version_spoof\n");
 
     /* Publish: any future ksu_extension_apply_forced() is now safe.
      * The release-store pairs with the acquire-load in

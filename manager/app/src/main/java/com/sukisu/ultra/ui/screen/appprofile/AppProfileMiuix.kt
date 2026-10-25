@@ -88,6 +88,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.ui.unit.IntOffset
+import com.sukisu.ultra.ui.viewmodel.getTemplateInfoById
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -364,7 +365,7 @@ private fun AppProfileInner(
                     Mode.Template -> {
                         if (templates.isNotEmpty()) {
                             val selected = profile.rootTemplate ?: templates[0]
-                            val info = com.sukisu.ultra.ui.viewmodel.getTemplateInfoById(selected)
+                            val info = getTemplateInfoById(selected)
                             if (info != null && setSepolicy(selected, info.rules.joinToString("\n"))) {
                                 onProfileChange(
                                     profile.copy(

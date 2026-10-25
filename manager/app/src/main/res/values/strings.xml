@@ -826,4 +826,25 @@
     <string name="susfs_priority_uid_filter_empty">No packages selected</string>
     <string name="susfs_priority_uid_filter_select">Select apps</string>
     <string name="susfs_priority_uid_filter_clear">Clear filter</string>
+    <string name="extension_version_spoof_title">KernelSU version overrides</string>
+    <string name="extension_version_spoof_summary">Customize the reported KernelSU version code, full version and UAPI version.</string>
+    <string name="version_spoof_warning">Warning: these are real kernel API response overrides, not cosmetic labels. Changing UAPI or version values can break Manager compatibility checks, installation and updates. Reset remains available through ksud.</string>
+    <string name="version_spoof_hint">Blank fields use build values. Saved overrides are restored at boot except in safe mode. Other apps may cache versions; restart them after changing values. Full version: up to 254 UTF-8 bytes.</string>
+    <string name="version_spoof_code">Working version code</string>
+    <string name="version_spoof_full">Full KernelSU version</string>
+    <string name="version_spoof_uapi">Reported UAPI version</string>
+    <string name="version_spoof_ack">I understand the compatibility risks</string>
+    <string name="version_spoof_reset">Restore build values</string>
+    <string name="version_spoof_success">Applied. Restart Manager to refresh cached versions.</string>
+    <string name="version_spoof_compiled_target">Compiled Manager reference: version %1$s, UAPI %2$s. Custom values may differ; confirm the compatibility warning before saving.</string>
+    <string name="version_spoof_must_match">The entered value is outside the supported numeric range. Check the version and UAPI fields.</string>
+    <string name="version_spoof_original_value">Original: %1$s</string>
+    <string name="version_spoof_back">Back</string>
+    <string name="version_spoof_home_warning">KernelSU version or UAPI differs from this Manager build. Tap to review version settings and recovery instructions.</string>
+    <string name="version_spoof_hide_warning">Hide home-page version warnings</string>
+    <string name="version_spoof_hide_warning_summary">Off by default. Hides version mismatch notices only; compatibility checks remain active.</string>
+    <string name="version_spoof_section_info">Compatibility and build information</string>
+    <string name="version_spoof_section_fields">Reported versions</string>
+    <string name="version_spoof_section_recovery">Warning preferences and recovery</string>
+    <string name="version_spoof_recovery">Restore kernel versions: delete /data/adb/ksu/.version_spoof_config as root, then reboot the device.\n\nShow warnings again: delete /data/adb/ksu/.version_spoof_warning_hidden as root, then restart Manager or reboot. Removing this file does not reset version overrides. If Manager cannot open, use another available root or recovery environment.</string>
 </resources>

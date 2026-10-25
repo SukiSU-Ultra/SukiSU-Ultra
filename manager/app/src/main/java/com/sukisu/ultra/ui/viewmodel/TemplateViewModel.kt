@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import com.sukisu.ultra.Natives
+import com.sukisu.ultra.data.model.TemplateInfo
 import com.sukisu.ultra.data.repository.TemplateRepository
 import com.sukisu.ultra.data.repository.TemplateRepositoryImpl
 import com.sukisu.ultra.profile.Capabilities
@@ -80,9 +81,9 @@ class TemplateViewModel(
     }
 }
 
-fun getTemplateInfoById(id: String): com.sukisu.ultra.data.model.TemplateInfo? {
+fun getTemplateInfoById(id: String): TemplateInfo? {
     return runCatching {
-        com.sukisu.ultra.data.model.TemplateInfo.fromJSON(JSONObject(getAppProfileTemplate(id)))
+        TemplateInfo.fromJSON(JSONObject(getAppProfileTemplate(id)))
     }.onFailure {
         Log.e(TAG, "ignore invalid template: $it", it)
     }.getOrNull()

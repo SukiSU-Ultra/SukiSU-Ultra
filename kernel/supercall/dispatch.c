@@ -31,6 +31,7 @@
 #include "feature/uts_spoof.h"
 #include "extension/extension.h"
 #include "extension/umount_paths.h"
+#include "extension/version_spoof.h"
 
 static int do_grant_root(void __user *arg)
 {
@@ -73,6 +74,7 @@ static int do_get_info(void __user *arg)
 #endif
     cmd.features = KSU_FEATURE_MAX;
     cmd.uapi_version = KERNEL_SU_UAPI_VERSION;
+    ksu_version_spoof_apply_info(&cmd);
 
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {
         pr_err("get_version: copy_to_user failed\n");
@@ -103,6 +105,8 @@ static int do_get_info_legacy(void __user *arg)
     cmd.flags |= KSU_GET_INFO_FLAG_PR_BUILD;
 #endif
     cmd.features = KSU_FEATURE_MAX;
+
+    ksu_version_spoof_apply_info_legacy(&cmd);
 
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {
         pr_err("get_version: copy_to_user failed\n");
@@ -731,6 +735,7 @@ static int do_get_full_version(void __user *arg)
     struct ksu_get_full_version_cmd cmd = { 0 };
 
     strscpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
+    ksu_version_spoof_apply_full_version(cmd.version_full, sizeof(cmd.version_full));
 
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {
         pr_err("get_full_version: copy_to_user failed\n");

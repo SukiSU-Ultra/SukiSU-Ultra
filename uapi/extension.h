@@ -59,6 +59,7 @@ enum ksu_extension_id {
     KSU_EXTENSION_UMOUNT_PATHS = 2,
     KSU_EXTENSION_DYNAMIC_MANAGER = 3,
     KSU_EXTENSION_SUSFS = 4,
+    KSU_EXTENSION_VERSION_SPOOF = 5,
 
     KSU_EXTENSION_MAX
 };
@@ -132,7 +133,29 @@ struct ksu_extension_umount_cmd {
 #define KSU_UMOUNT_IO_OP_DEL  2u
 #define KSU_UMOUNT_IO_OP_LIST 3u
 
-/* IOCTL command: one ioctl, four extensions. */
+/* 5. VERSION_SPOOF */
+#define KSU_VERSION_SPOOF_IO_GET   1u
+#define KSU_VERSION_SPOOF_IO_SET   2u
+#define KSU_VERSION_SPOOF_IO_RESET 3u
+#define KSU_VERSION_SPOOF_WORKING_VERSION (1u << 0)
+#define KSU_VERSION_SPOOF_FULL_VERSION    (1u << 1)
+#define KSU_VERSION_SPOOF_UAPI_VERSION    (1u << 2)
+#define KSU_VERSION_SPOOF_MASK_ALL \
+    (KSU_VERSION_SPOOF_WORKING_VERSION | KSU_VERSION_SPOOF_FULL_VERSION | \
+     KSU_VERSION_SPOOF_UAPI_VERSION)
+struct ksu_version_spoof_cmd {
+    __u32 op;
+    __u32 mask;
+    __u32 working_version;
+    __u32 uapi_version;
+    char full_version[255];
+    /* Read-only build values returned by GET. */
+    __u32 default_working_version;
+    __u32 default_uapi_version;
+    char default_full_version[255];
+};
+
+/* IOCTL command: one ioctl, extension handlers are enumerated above. */
 static const __u32 KSU_IOCTL_EXTENSION =
     _IOC(_IOC_READ | _IOC_WRITE, 'K', 300, sizeof(struct ksu_extension_cmd));
 
