@@ -141,6 +141,16 @@ $(info -- KernelSU/compat: f_op->read_iter found!)
 CFLAGS_ksu.o += -DKSU_HAS_FOP_READ_ITER
 endif
 
+# Vendor backports may change these fields independently of LINUX_VERSION_CODE.
+# Inspect the actual target source header, not the host kernel or KMI label.
+ksu_netlink_cfg := $(shell sed -n '/struct netlink_kernel_cfg {/,/^};/p' $(srctree)/include/linux/netlink.h)
+ifneq ($(findstring cb_mutex,$(ksu_netlink_cfg)),)
+ccflags-y += -DKSU_NETLINK_CFG_HAS_CB_MUTEX=1
+endif
+ifneq ($(findstring compare,$(ksu_netlink_cfg)),)
+ccflags-y += -DKSU_NETLINK_CFG_HAS_COMPARE=1
+endif
+
 CFLAGS_ksu.o += $(call cc-option, -Wno-declaration-after-statement)
 CFLAGS_ksu.o += $(call cc-option, -Wno-implicit-function-declaration)
 CFLAGS_ksu.o += $(call cc-option, -Wno-missing-prototypes)
