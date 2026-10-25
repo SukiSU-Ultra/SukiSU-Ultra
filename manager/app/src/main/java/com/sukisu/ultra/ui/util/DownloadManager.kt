@@ -18,6 +18,7 @@ import com.sukisu.ultra.data.registry.ExpectedFile
 import com.sukisu.ultra.data.registry.RegistryUrls
 import com.sukisu.ultra.data.registry.canShareDownload
 import com.sukisu.ultra.ksuApp
+import com.topjohnwu.superuser.ShellUtils
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -162,7 +163,9 @@ fun deleteInstalledModuleZip(uri: Uri): Boolean = runCatching {
         Log.w("DownloadManager", "Refusing to delete unexpected path for $uri")
         return false
     }
-    getRootShell().newJob().add("/system/bin/rm", "-f", "--", path).exec().isSuccess
+    // Job.add() runs every argument as a separate command line, so the whole command is one string.
+    val cmd = "/system/bin/rm -f -- ${ShellUtils.escapedString(path)}"
+    getRootShell().newJob().add(cmd).exec().isSuccess
 }.onFailure {
     Log.w("DownloadManager", "Failed to delete module zip: $uri", it)
 }.getOrDefault(false)
@@ -218,9 +221,8 @@ private fun resolveDocumentPath(uri: Uri): String? {
 
 /** Reads the backing file path of a MediaStore row through the root shell. */
 private fun queryDataPath(uri: Uri): String? {
-    val out = getRootShell().newJob()
-        .add("/system/bin/content", "query", "--uri", uri.toString(), "--projection", "_data")
-        .to(ArrayList(), null).exec().out
+    val cmd = "/system/bin/content query --uri ${ShellUtils.escapedString(uri.toString())} --projection _data"
+    val out = getRootShell().newJob().add(cmd).to(ArrayList(), null).exec().out
     val line = out.firstOrNull { it.contains("_data=") } ?: return null
     return DATA_COLUMN.find(line)?.groupValues?.get(1)?.trim()
 }
