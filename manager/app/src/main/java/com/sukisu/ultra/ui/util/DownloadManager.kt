@@ -18,6 +18,7 @@ import com.sukisu.ultra.data.registry.ExpectedFile
 import com.sukisu.ultra.data.registry.RegistryUrls
 import com.sukisu.ultra.data.registry.canShareDownload
 import com.sukisu.ultra.ksuApp
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -139,6 +140,10 @@ private const val MEDIA_DOCUMENTS_AUTHORITY = "com.android.providers.media.docum
 
 private val DATA_COLUMN = Regex("""_data=(.*?)(?:, [A-Za-z_]+=|$)""")
 
+// Only shareable storage is a valid delete target for picked documents; anything else means the
+// URI was crafted or the provider reported a path we must not touch as root.
+private val EXTERNAL_ROOTS = listOf("/storage/", "/mnt/media_rw/", "/data/media/")
+
 /**
  * Best-effort deletion of the ZIP a module was installed from: an app-private registry download,
  * a document the user picked for installing, or a download created by the manager.
@@ -152,11 +157,24 @@ fun deleteInstalledModuleZip(uri: Uri): Boolean = runCatching {
         ContentResolver.SCHEME_CONTENT ->
             if (DocumentsContract.isDocumentUri(ksuApp, uri)) resolveDocumentPath(uri) else queryDataPath(uri)
         else -> null
+    } ?: return false
+    if (!isSafeToDelete(uri, path)) {
+        Log.w("DownloadManager", "Refusing to delete unexpected path for $uri")
+        return false
     }
-    if (path.isNullOrBlank()) return false
-    getRootShell().newJob().add("rm", "-f", "--", path).exec().isSuccess
+    getRootShell().newJob().add("/system/bin/rm", "-f", "--", path).exec().isSuccess
 }.onFailure {
     Log.w("DownloadManager", "Failed to delete module zip: $uri", it)
+}.getOrDefault(false)
+
+private fun isSafeToDelete(uri: Uri, path: String): Boolean = runCatching {
+    if (!path.startsWith('/') || path.split('/').any { it == ".." }) return false
+    if (uri.scheme == ContentResolver.SCHEME_FILE) {
+        val file = File(path).canonicalFile
+        file.startsWith(ksuApp.filesDir.canonicalFile) || file.startsWith(ksuApp.cacheDir.canonicalFile)
+    } else {
+        EXTERNAL_ROOTS.any { path.startsWith(it) }
+    }
 }.getOrDefault(false)
 
 private fun resolveDocumentPath(uri: Uri): String? {
