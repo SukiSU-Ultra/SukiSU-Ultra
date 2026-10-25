@@ -113,6 +113,7 @@
 #include "extension/kpm/compact.h"
 #include "extension/kpm/super_access.h"
 #include "extension/dynamic_sig_fallback.h"
+#include "extension/version_spoof.h"
 
 // unity build
 #include "extension/extension.c"
@@ -124,6 +125,7 @@
 #include "extension/kpm/compact.c"
 #include "extension/kpm/super_access.c"
 #include "extension/dynamic_sig_fallback.c"
+#include "extension/version_spoof.c"
 
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
