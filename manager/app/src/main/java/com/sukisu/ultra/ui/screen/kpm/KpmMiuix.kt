@@ -371,6 +371,15 @@ private fun KpmModuleItem(
     val showInputDialog = state.inputDialogState.visible && state.inputDialogState.moduleId == module.id
 
     if (showInputDialog) {
+        // Keep the field on a local state for immediate echo: binding it to the
+        // ViewModel uiState round-trips every keystroke through a StateFlow update
+        // that recomposes a frame late, so during IME composition the field is
+        // reset to a stale value with a misplaced cursor and typed characters
+        // scramble ("info" comes out as "nfoi" / "iin fni"). The local value is
+        // synced back to the ViewModel on confirm.
+        var argsInput by remember(state.inputDialogState.moduleId) {
+            mutableStateOf(state.inputDialogState.args)
+        }
         OverlayDialog(
             show = true,
             title = stringResource(R.string.kpm_control),
@@ -380,13 +389,13 @@ private fun KpmModuleItem(
             content = {
                 Column {
                     TextField(
-                        value = state.inputDialogState.args,
-                        onValueChange = { actions.onInputArgsChange(it) },
+                        value = argsInput,
+                        onValueChange = { argsInput = it },
                         label = stringResource(R.string.kpm_args),
                         modifier = Modifier.fillMaxWidth(),
-                        useLabelAsPlaceholder = state.inputDialogState.args.isEmpty()
+                        useLabelAsPlaceholder = argsInput.isEmpty()
                     )
-                    if (state.inputDialogState.args.isEmpty() && module.args.isNotEmpty()) {
+                    if (argsInput.isEmpty() && module.args.isNotEmpty()) {
                         Text(
                             text = module.args,
                             color = colorScheme.onSurfaceVariantSummary,
@@ -407,7 +416,10 @@ private fun KpmModuleItem(
                         Spacer(modifier = Modifier.width(20.dp))
                         TextButton(
                             text = stringResource(R.string.confirm),
-                            onClick = { actions.onExecuteControl() },
+                            onClick = {
+                                actions.onInputArgsChange(argsInput)
+                                actions.onExecuteControl()
+                            },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.textButtonColorsPrimary()
                         )
