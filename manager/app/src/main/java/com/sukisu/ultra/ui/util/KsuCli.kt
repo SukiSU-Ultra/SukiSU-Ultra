@@ -32,6 +32,7 @@ import com.sukisu.ultra.data.registry.DownloadVerificationException
 import com.sukisu.ultra.data.registry.RegistryDownloadStore
 import com.sukisu.ultra.data.registry.copyForInstall
 import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.ui.screen.susfs.util.SuSFSConfig
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import java.io.File
@@ -889,15 +890,19 @@ fun restartApp(packageName: String, userId: Int? = null) {
 }
 
 // KPM控制
+// KPM module names may contain spaces ("ABC EFG"): always pass names, paths and
+// args through shellQuote, otherwise the shell splits them into multiple argv and
+// ksud (clap) only takes the first token, so info/unload/control hit the wrong
+// module or fail.
 fun loadKpmModule(path: String, args: String? = null): Boolean {
     val shell = getRootShell()
-    val cmd = "${getKsuDaemonPath()} kpm load $path ${args ?: ""}"
+    val cmd = "${getKsuDaemonPath()} kpm load ${SuSFSConfig.shellQuote(path)} ${SuSFSConfig.shellQuote(args ?: "")}"
     return ShellUtils.fastCmdResult(shell, cmd)
 }
 
 fun unloadKpmModule(name: String): Boolean {
     val shell = getRootShell()
-    val cmd = "${getKsuDaemonPath()} kpm unload $name"
+    val cmd = "${getKsuDaemonPath()} kpm unload ${SuSFSConfig.shellQuote(name)}"
     return ShellUtils.fastCmdResult(shell, cmd)
 }
 
@@ -949,7 +954,7 @@ fun listKpmModules(): String {
 
 fun getKpmModuleInfo(name: String): String {
     val shell = getRootShell()
-    val cmd = "${getKsuDaemonPath()} kpm info $name"
+    val cmd = "${getKsuDaemonPath()} kpm info ${SuSFSConfig.shellQuote(name)}"
     return try {
         runCmd(shell, cmd).trim()
     } catch (e: Exception) {
@@ -960,7 +965,7 @@ fun getKpmModuleInfo(name: String): String {
 
 fun controlKpmModule(name: String, args: String? = null): Int {
     val shell = getRootShell()
-    val cmd = """${getKsuDaemonPath()} kpm control $name "${args ?: ""}""""
+    val cmd = "${getKsuDaemonPath()} kpm control ${SuSFSConfig.shellQuote(name)} ${SuSFSConfig.shellQuote(args ?: "")}"
     val result = runCmd(shell, cmd)
     return result.trim().toIntOrNull() ?: -1
 }
