@@ -6,7 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
+import android.provider.DocumentsContract
 import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -136,21 +136,33 @@ object DownloadManager {
 }
 
 /**
- * Deletes a module ZIP downloaded by the manager: either a MediaStore Downloads entry or a
- * verified registry ZIP in app-private storage. URIs from any other source are left untouched.
- * Returns whether something was deleted.
+ * Best-effort deletion of the ZIP a module was installed from: an app-private registry download,
+ * a document the user picked for installing, or a MediaStore entry. Returns whether it was deleted.
  */
-fun deleteDownloadedModuleZip(uri: Uri): Boolean = when {
-    uri.scheme == ContentResolver.SCHEME_FILE -> {
+fun deleteInstalledModuleZip(uri: Uri): Boolean = when (uri.scheme) {
+    ContentResolver.SCHEME_FILE -> {
         val path = uri.path ?: return false
-        RegistryDownloadStore.delete(File(ksuApp.filesDir, RegistryDownloadStore.DIR_NAME), File(path))
+        val file = File(path)
+        val registryRoot = File(ksuApp.filesDir, RegistryDownloadStore.DIR_NAME)
+        if (RegistryDownloadStore.expectedFor(registryRoot, file) != null) {
+            RegistryDownloadStore.delete(registryRoot, file)
+        } else {
+            file.delete()
+        }
     }
 
-    uri.scheme == ContentResolver.SCHEME_CONTENT && uri.authority == MediaStore.AUTHORITY -> {
-        runCatching { ksuApp.contentResolver.delete(uri, null, null) }
-            .onFailure { Log.w("DownloadManager", "Failed to delete module zip: $uri", it) }
-            .getOrDefault(0) > 0
-    }
+    ContentResolver.SCHEME_CONTENT -> runCatching {
+        val resolver = ksuApp.contentResolver
+        // DocumentsProviders expose delete through SAF; other content URIs (MediaStore) take a row delete.
+        if (DocumentsContract.isDocumentUri(ksuApp, uri)) {
+            DocumentsContract.deleteDocument(resolver, uri)
+            true
+        } else {
+            resolver.delete(uri, null, null) > 0
+        }
+    }.onFailure {
+        Log.w("DownloadManager", "Failed to delete module zip: $uri", it)
+    }.getOrDefault(false)
 
     else -> false
 }

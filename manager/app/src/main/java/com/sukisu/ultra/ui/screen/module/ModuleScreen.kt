@@ -133,7 +133,7 @@ fun ModulePager(
                     },
                     onDownloaded = { uri ->
                         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri), downloadedByApp = true)))
+                            navigator.push(Route.Flash(FlashIt.FlashModules(listOf(uri))))
                             viewModel.markNeedRefresh()
                         }
                     },

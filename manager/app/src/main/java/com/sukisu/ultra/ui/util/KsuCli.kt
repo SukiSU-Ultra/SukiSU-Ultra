@@ -359,7 +359,7 @@ fun flashModule(
         val result = flashWithIO("${getKsuDaemonPath()} $cmd", onStdout, onStderr)
         Log.i("KernelSU", "install module $uri result: $result")
         if (deleteSourceOnSuccess && result.isSuccess) {
-            runCatching { deleteDownloadedModuleZip(uri) }
+            runCatching { deleteInstalledModuleZip(uri) }
                 .onSuccess { if (!it) Log.w("KernelSU", "module zip $uri was not deleted") }
                 .onFailure { Log.w("KernelSU", "Failed to delete module zip $uri", it) }
         }

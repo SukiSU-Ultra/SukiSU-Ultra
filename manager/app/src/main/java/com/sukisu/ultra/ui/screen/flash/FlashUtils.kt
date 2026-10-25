@@ -98,11 +98,7 @@ sealed class FlashIt : Parcelable {
     ) : FlashIt()
 
     @Parcelize
-    data class FlashModules(
-        val uris: List<Uri>,
-        /** The ZIPs were downloaded by the manager and may be deleted after installing. */
-        val downloadedByApp: Boolean = false,
-    ) : FlashIt()
+    data class FlashModules(val uris: List<Uri>) : FlashIt()
 
     @Parcelize
     data object FlashRestore : FlashIt()
@@ -115,11 +111,11 @@ fun flashModulesSequentially(
     uris: List<Uri>,
     onStdout: (String) -> Unit,
     onStderr: (String) -> Unit,
-    deleteDownloadedZips: Boolean = false,
+    deleteInstalledZips: Boolean = false,
 ): FlashResult {
     var needsReboot = false
     for (uri in uris) {
-        flashModule(uri, onStdout, onStderr, deleteSourceOnSuccess = deleteDownloadedZips).apply {
+        flashModule(uri, onStdout, onStderr, deleteSourceOnSuccess = deleteInstalledZips).apply {
             needsReboot = needsReboot || showReboot
             if (code != 0) {
                 return FlashResult(code, err, needsReboot)
@@ -169,7 +165,7 @@ fun flashIt(
                 uris = flashIt.uris,
                 onStdout = onStdout,
                 onStderr = onStderr,
-                deleteDownloadedZips = flashIt.downloadedByApp && isAutoDeleteModuleZipEnabled(),
+                deleteInstalledZips = isAutoDeleteModuleZipEnabled(),
             )
         }
 
