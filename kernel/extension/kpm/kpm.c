@@ -16,6 +16,7 @@
 #define KPM_NAME_LEN 32
 #define KPM_ARGS_LEN 1024
 #define KPM_PATH_LEN 1024
+#define KPM_EVENT_LEN 64
 /* Legacy INFO has no capacity argument. Existing ksud allocates 256 bytes. */
 #define KPM_INFO_LEN 256
 
@@ -74,6 +75,37 @@ static int copy_output(void __user *out, const char *buf, long len, size_t size)
     return copy_to_user(out, buf, len + 1) ? -EFAULT : 0;
 }
 
+static int handle_kpm_load_event(const struct ksu_kpm_cmd *cmd)
+{
+    struct ksu_kpm_load_event_cmd load;
+    char *path, *args, *event;
+    int rc;
+
+    if (copy_from_user(&load, u64_to_user_ptr(cmd->arg2), sizeof(load))) return -EFAULT;
+
+    path = kzalloc(KPM_PATH_LEN, GFP_KERNEL);
+    args = kzalloc(KPM_ARGS_LEN, GFP_KERNEL);
+    event = kzalloc(KPM_EVENT_LEN, GFP_KERNEL);
+    if (!path || !args || !event) {
+        rc = -ENOMEM;
+        goto out;
+    }
+
+    rc = copy_string(path, u64_to_user_ptr(cmd->arg1), KPM_PATH_LEN, false);
+    if (!rc) rc = copy_string(args, u64_to_user_ptr(load.args), KPM_ARGS_LEN, true);
+    if (!rc) rc = copy_string(event, u64_to_user_ptr(load.event), KPM_EVENT_LEN, false);
+    if (!rc) {
+        rc = sukisu_kpm_bridge(SUKISU_KPM_LOAD_EVENT, (unsigned long)path,
+                               (unsigned long)args, (unsigned long)event, 0);
+    }
+
+out:
+    kfree(event);
+    kfree(args);
+    kfree(path);
+    return rc;
+}
+
 static int handle_kpm(const struct ksu_kpm_cmd *cmd)
 {
     const char __user *arg1 = u64_to_user_ptr(cmd->arg1);
@@ -84,6 +116,9 @@ static int handle_kpm(const struct ksu_kpm_cmd *cmd)
 
     if (cmd->control_code == SUKISU_KPM_NUM)
         return sukisu_kpm_bridge(SUKISU_KPM_NUM, 0, 0, 0, 0);
+
+    if (cmd->control_code == SUKISU_KPM_LOAD_EVENT)
+        return handle_kpm_load_event(cmd);
 
     if (cmd->control_code == SUKISU_KPM_LOAD ||
         cmd->control_code == SUKISU_KPM_CONTROL) {
