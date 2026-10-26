@@ -39,17 +39,12 @@ internal fun deleteModuleZip(
     filesDir: File,
     cacheDir: File,
     isDocument: () -> Boolean,
-    deleteDocument: () -> Unit,
+    deleteDocument: () -> Boolean,
     deleteRow: () -> Int,
 ): Boolean = when (scheme) {
     ContentResolver.SCHEME_FILE -> deletePrivateZip(filePath, filesDir, cacheDir)
     ContentResolver.SCHEME_CONTENT -> runCatching {
-        if (isDocument()) {
-            deleteDocument()
-            true
-        } else {
-            deleteRow() > 0
-        }
+        if (isDocument()) deleteDocument() else deleteRow() > 0
     }.getOrDefault(false)
     else -> false
 }

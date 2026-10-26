@@ -30,7 +30,7 @@ class ModuleZipDeletionTest {
         scheme: String?,
         path: String?,
         isDocument: () -> Boolean = { false },
-        deleteDocument: () -> Unit = { throw AssertionError("deleteDocument must not run") },
+        deleteDocument: () -> Boolean = { throw AssertionError("deleteDocument must not run") },
         deleteRow: () -> Int = { throw AssertionError("deleteRow must not run") },
     ): Boolean = deleteModuleZip(scheme, path, filesDir, cacheDir, isDocument, deleteDocument, deleteRow)
 
@@ -109,8 +109,16 @@ class ModuleZipDeletionTest {
     fun documentIsDeletedThroughItsProvider() {
         var deleted = false
 
-        assertTrue(delete("content", null, isDocument = { true }, deleteDocument = { deleted = true }))
+        assertTrue(delete("content", null, isDocument = { true }, deleteDocument = { deleted = true; true }))
         assertTrue(deleted)
+    }
+
+    @Test
+    fun providerReturningFalseIsNotReportedAsDeleted() {
+        var askedToDelete = false
+
+        assertFalse(delete("content", null, isDocument = { true }, deleteDocument = { askedToDelete = true; false }))
+        assertTrue(askedToDelete)
     }
 
     @Test
