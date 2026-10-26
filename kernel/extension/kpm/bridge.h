@@ -3,7 +3,8 @@
 #define _SUKISU_KPM_BRIDGE_H_
 
 /* Kernel-only ABI v2, mirrored in KernelPatch patch/sukisu/supercall.h.
- * op 1..7 are the existing SUKISU_KPM_* extension operations.
+ * op 1..7 are the existing SUKISU_KPM_* extension operations. Op 8 is an
+ * optional event-aware file load for boot-stage modules.
  * LOAD(path,args,user_reserved), UNLOAD(name,user_reserved), NUM(),
  * LIST(kernel_buf,size), INFO(name,kernel_buf,size),
  * CONTROL(name,args,user_output,size), VERSION(kernel_buf,size).
@@ -14,9 +15,10 @@
 #define SUKISU_KPM_SUPERCALL_MAGIC3 0x53554b494e544552UL
 /* x6=magic2, x7=magic3, x8=ABI version; x9..x30 reserved (zero).
  * Internal synthetic pt_regs only; the userspace extension ABI is unchanged.
- * No fallback to v1: rebuild KernelPatch and SukiSU together.
+ * Event-aware loading is optional so newer ksud can fall back to LOAD on
+ * older KernelPatch builds that return -EOPNOTSUPP for op 8.
  */
-#define SUKISU_KPM_ABI_VERSION 1
+#define SUKISU_KPM_ABI_VERSION 2
 #define SUKISU_KPM_PROBE 0
 #define SUKISU_KPM_OUTPUT_MAX 4096
 

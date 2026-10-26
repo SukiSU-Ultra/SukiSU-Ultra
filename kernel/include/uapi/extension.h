@@ -94,12 +94,20 @@ DECLARE(__u32, SUKISU_KPM_LIST, 4);
 DECLARE(__u32, SUKISU_KPM_INFO, 5);
 DECLARE(__u32, SUKISU_KPM_CONTROL, 6);
 DECLARE(__u32, SUKISU_KPM_VERSION, 7);
+/* Optional event-aware load used for boot-stage modules. */
+DECLARE(__u32, SUKISU_KPM_LOAD_EVENT, 8);
 
 struct ksu_kpm_cmd {
     __aligned_u64 control_code;
     __aligned_u64 arg1;
     __aligned_u64 arg2;
     __aligned_u64 result_code;
+};
+
+/* arg2 payload for SUKISU_KPM_LOAD_EVENT. Both fields are user pointers. */
+struct ksu_kpm_load_event_cmd {
+    __aligned_u64 args;
+    __aligned_u64 event;
 };
 
 // 1. CPU_SPOOF
