@@ -1,14 +1,10 @@
 package com.sukisu.ultra.ui.util
 
-import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.provider.DocumentsContract
-import android.system.Os
-import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,9 +14,6 @@ import com.sukisu.ultra.data.registry.DownloadVerificationException
 import com.sukisu.ultra.data.registry.ExpectedFile
 import com.sukisu.ultra.data.registry.RegistryUrls
 import com.sukisu.ultra.data.registry.canShareDownload
-import com.sukisu.ultra.ksuApp
-import com.topjohnwu.superuser.ShellUtils
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -134,114 +127,4 @@ object DownloadManager {
         }
         completionCallbacks.remove(id)
     }
-}
-
-private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
-private const val DOWNLOADS_AUTHORITY = "com.android.providers.downloads.documents"
-private const val MEDIA_DOCUMENTS_AUTHORITY = "com.android.providers.media.documents"
-
-private val DATA_COLUMN = Regex("""_data=(.*?)(?:, [A-Za-z_]+=|$)""")
-
-// Only shareable storage is a valid delete target for picked documents; anything else means the
-// URI was crafted or the provider reported a path we must not touch as root.
-private val EXTERNAL_ROOTS = listOf(
-    "/storage/",
-    "/mnt/media_rw/",
-    "/mnt/runtime/",
-    "/mnt/pass_through/",
-    "/mnt/user/",
-    "/data/media/",
-)
-
-/**
- * Best-effort deletion of the ZIP a module was installed from: an app-private registry download,
- * a document the user picked for installing, or a download created by the manager.
- *
- * The manager has no all-files access, so the path is resolved for the root shell and removed
- * with `rm`; Android file/provider APIs cannot delete files the app does not own.
- */
-fun deleteInstalledModuleZip(uri: Uri): Boolean = runCatching {
-    val path = when (uri.scheme) {
-        ContentResolver.SCHEME_FILE -> uri.path
-        ContentResolver.SCHEME_CONTENT ->
-            resolveOpenFilePath(uri)
-                ?: if (DocumentsContract.isDocumentUri(ksuApp, uri)) resolveDocumentPath(uri) else queryDataPath(uri)
-        else -> null
-    } ?: return false
-    if (!isSafeToDelete(uri, path)) {
-        Log.w("DownloadManager", "Refusing to delete unexpected path $path for $uri")
-        return false
-    }
-    // Job.add() runs every argument as a separate command line, so the whole command is one string.
-    val cmd = "/system/bin/rm -f -- ${ShellUtils.escapedString(path)}"
-    getRootShell().newJob().add(cmd).exec().isSuccess
-}.onFailure {
-    Log.w("DownloadManager", "Failed to delete module zip: $uri", it)
-}.getOrDefault(false)
-
-/**
- * Asks the provider which file a content URI really points at, through the descriptor the URI
- * already grants. Unlike document id parsing this works for any provider, AOSP or OEM.
- */
-private fun resolveOpenFilePath(uri: Uri): String? = runCatching {
-    ksuApp.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
-        Os.readlink("/proc/self/fd/${pfd.fd}")
-    }
-}.getOrNull()?.takeIf { it.startsWith('/') }
-
-private fun isSafeToDelete(uri: Uri, path: String): Boolean = runCatching {
-    if (!path.startsWith('/') || path.split('/').any { it == ".." }) return false
-    if (uri.scheme == ContentResolver.SCHEME_FILE) {
-        val file = File(path).canonicalFile
-        file.startsWith(ksuApp.filesDir.canonicalFile) || file.startsWith(ksuApp.cacheDir.canonicalFile)
-    } else {
-        EXTERNAL_ROOTS.any { path.startsWith(it) }
-    }
-}.getOrDefault(false)
-
-private fun resolveDocumentPath(uri: Uri): String? {
-    val docId = runCatching { DocumentsContract.getDocumentId(uri) }.getOrNull() ?: return null
-    return when (uri.authority) {
-        EXTERNAL_STORAGE_AUTHORITY -> {
-            val parts = docId.split(':', limit = 2)
-            if (parts.size != 2) return null
-            val volume = parts[0]
-            val root = when {
-                volume.equals("primary", ignoreCase = true) -> "/storage/emulated/0"
-                volume.equals("home", ignoreCase = true) -> "/storage/emulated/0/Documents"
-                else -> "/storage/$volume"
-            }
-            "$root/${parts[1]}"
-        }
-
-        DOWNLOADS_AUTHORITY ->
-            if (docId.startsWith("raw:")) {
-                docId.removePrefix("raw:")
-            } else {
-                queryDataPath(Uri.parse("content://media/external/downloads/${docId.removePrefix("msf:")}"))
-            }
-
-        MEDIA_DOCUMENTS_AUTHORITY -> {
-            val parts = docId.split(':', limit = 2)
-            if (parts.size != 2) return null
-            val collection = when (parts[0]) {
-                "image" -> "images"
-                "audio" -> "audio"
-                "video" -> "video"
-                "downloads" -> "downloads"
-                else -> return null
-            }
-            queryDataPath(Uri.parse("content://media/external/$collection/${parts[1]}"))
-        }
-
-        else -> null
-    }
-}
-
-/** Reads the backing file path of a MediaStore row through the root shell. */
-private fun queryDataPath(uri: Uri): String? {
-    val cmd = "/system/bin/content query --uri ${ShellUtils.escapedString(uri.toString())} --projection _data"
-    val out = getRootShell().newJob().add(cmd).to(ArrayList(), null).exec().out
-    val line = out.firstOrNull { it.contains("_data=") } ?: return null
-    return DATA_COLUMN.find(line)?.groupValues?.get(1)?.trim()
 }

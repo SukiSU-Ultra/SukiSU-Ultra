@@ -359,12 +359,10 @@ fun flashModule(
         val cmd = "module install ${file.absolutePath}"
         val result = flashWithIO("${getKsuDaemonPath()} $cmd", onStdout, onStderr)
         Log.i("KernelSU", "install module $uri result: $result")
-        if (deleteSourceOnSuccess && result.isSuccess) {
+        if (shouldDeleteSourceAfterInstall(deleteSourceOnSuccess, result.isSuccess)) {
             val name = runCatching { uri.getFileName(ksuApp) }.getOrNull()
                 ?: uri.lastPathSegment?.substringAfterLast('/').orEmpty()
-            val deleted = runCatching { deleteInstalledModuleZip(uri) }
-                .onFailure { Log.w("KernelSU", "Failed to delete module zip $uri", it) }
-                .getOrDefault(false)
+            val deleted = deleteInstalledModuleZip(uri)
             // The flash screen only renders stdout, so report both outcomes there.
             onStdout(
                 ksuApp.getString(
