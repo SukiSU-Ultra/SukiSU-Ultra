@@ -12,7 +12,6 @@
 #include <linux/uaccess.h>
 
 #include "version_spoof.h"
-#include "ksu.h"
 
 struct version_spoof_state {
     u32 mask;

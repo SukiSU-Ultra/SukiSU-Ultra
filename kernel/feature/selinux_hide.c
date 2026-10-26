@@ -22,7 +22,6 @@
 #include "avc.h"
 #include "klog.h" // IWYU pragma: keep
 #include "objsec.h"
-#include "ksu.h"
 
 
 static DEFINE_MUTEX(selinux_hide_mutex);
