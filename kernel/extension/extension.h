@@ -145,6 +145,17 @@ int ksu_extension_ioctl(u32 extension_id, u32 caller_api_version, void __user *r
 /* Wipe an extension's state. Used by KSU_EXTENSION_WIPE. */
 int ksu_extension_wipe(u32 extension_id, u32 caller_api_version);
 
+/*
+ * Fill `desc` with the handler at zero-based `index` among registered
+ * handlers (gaps in the id space are skipped). Used by
+ * KSU_EXTENSION_ENUM so userspace does not keep a mirror of the handler
+ * table. Returns -ENOENT once index is past the last handler.
+ *
+ * `desc->caps` already includes KSU_FEATURE_FLAG_SUPPORTED; FORCED is
+ * reported separately in `desc->forced` because it is boot state.
+ */
+int ksu_extension_enumerate(u32 index, struct ksu_extension_desc *desc);
+
 /* Force an extension to be present. Used by force_feature= extension:<id>. */
 bool ksu_extension_is_forced(u32 extension_id);
 

@@ -288,6 +288,37 @@ out:
     return ret;
 }
 
+int ksu_extension_enumerate(u32 index, struct ksu_extension_desc *desc)
+{
+    const struct ksu_extension_handler *handler;
+    u32 id, seen = 0;
+    int ret = -ENOENT;
+
+    if (!desc)
+        return -EINVAL;
+
+    mutex_lock(&extension_mutex);
+    for (id = 0; id < KSU_EXTENSION_MAX; id++) {
+        handler = extension_handlers[id];
+        if (!handler)
+            continue;
+        if (seen++ != index)
+            continue;
+
+        memset(desc, 0, sizeof(*desc));
+        desc->id = id;
+        desc->caps = KSU_FEATURE_FLAG_SUPPORTED | handler->caps;
+        desc->min_api_version = handler->min_api_version;
+        desc->forced = test_bit(id, forced_mask) ? 1 : 0;
+        strscpy(desc->name, handler->name ? handler->name : "unknown",
+                sizeof(desc->name));
+        ret = 0;
+        break;
+    }
+    mutex_unlock(&extension_mutex);
+    return ret;
+}
+
 int ksu_extension_set(u32 extension_id, u32 caller_api_version, u64 value)
 {
     int ret = 0;

@@ -85,6 +85,9 @@
  *   op  = KSU_EXTENSION_ABI
  *   out: cmd.api_version = highest ABI version the kernel speaks (>= 1)
  *
+ * ABI 2 adds KSU_EXTENSION_ENUM, which lets userspace discover handlers
+ * without a compiled-in copy of enum ksu_extension_id.
+ *
  * Userspace MUST treat any error from the probe as "legacy kernel, the
  * capability bits are unavailable" and fall back to its own knowledge for
  * that boot only.
@@ -107,6 +110,20 @@ enum ksu_extension_id {
 #define KSU_EXTENSION_WIPE 4u
 /* Answers the extension ABI probe; see the api_version discussion above. */
 #define KSU_EXTENSION_ABI  5u
+/*
+ * Enumerates registered handlers so userspace does not need a mirror of
+ * enum ksu_extension_id. ABI 2+ only.
+ *
+ *   id       = KSU_EXTENSION_ABI_PROBE_ID (keeps pre-ABI-2 kernels rejecting
+ *              the call with -EINVAL instead of misreading it)
+ *   value    = zero-based index among registered handlers
+ *   user_ptr = struct ksu_extension_desc __user *
+ *
+ * Returns 0 and fills the descriptor, or -ENOENT once index is past the last
+ * registered handler. The reply also echoes id/supported/api_version, but the
+ * descriptor is the authoritative copy.
+ */
+#define KSU_EXTENSION_ENUM 6u
 
 /*
  * Extension ABI version spoken by this kernel, and the id reserved for the
@@ -114,8 +131,25 @@ enum ksu_extension_id {
  * enum ksu_extension_id so kernels that predate the probe reject the call
  * with -EINVAL instead of treating it as a regular GET.
  */
-#define KSU_EXTENSION_API_VERSION   1u
+#define KSU_EXTENSION_API_VERSION   2u
 #define KSU_EXTENSION_ABI_PROBE_ID  0xFFFFFFFFu
+
+/* Longest handler name reported through KSU_EXTENSION_ENUM, including NUL. */
+#define KSU_EXTENSION_NAME_LEN 32
+
+/*
+ * One handler as reported by KSU_EXTENSION_ENUM. `caps` carries the same
+ * semantic bits as cmd.supported plus KSU_FEATURE_FLAG_SUPPORTED; `forced`
+ * is split out because it is mutable boot state, not a handler property.
+ * `min_api_version` is the lowest caller ABI the handler accepts (0 = any).
+ */
+struct ksu_extension_desc {
+    __u32 id;
+    __u32 caps;
+    __u32 min_api_version;
+    __u32 forced;
+    char name[KSU_EXTENSION_NAME_LEN];
+};
 
 /* Capability bits returned in cmd.supported.
  * KSU_FEATURE_FLAG_SUPPORTED is shared with uapi/supercall.h; bit 7 keeps
