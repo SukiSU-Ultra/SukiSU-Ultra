@@ -135,6 +135,56 @@ static const struct kernel_param_ops force_extension_param_ops = {
 };
 module_param_cb(force_extension, &force_extension_param_ops, NULL, 0);
 
+/*
+ * Does a caller that speaks `caller_api_version` understand this handler?
+ *
+ * 0 means the caller predates the api_version field, so it was built
+ * against the original ABI: treat it as version 1 rather than 0, which
+ * would otherwise reject perfectly compatible managers.
+ */
+static bool extension_api_allowed(const struct ksu_extension_handler *handler, u32 caller_api_version)
+{
+    u32 caller = caller_api_version ? caller_api_version : 1;
+
+    return !handler->min_api_version || caller >= handler->min_api_version;
+}
+
+/*
+ * Reject handler tables that would publish capability bits the callbacks
+ * cannot honour. Runs at registration, while the table is still cheap to
+ * fix, instead of leaving userspace with a toggle that always fails.
+ */
+static int extension_handler_validate(const struct ksu_extension_handler *handler)
+{
+    const char *name = handler->name ? handler->name : "unknown";
+    bool has_setter = handler->ops && handler->ops->set;
+    bool declares_toggle = !!(handler->caps & KSU_EXTENSION_FLAG_STICKY);
+
+    if (handler->caps & (KSU_FEATURE_FLAG_SUPPORTED | KSU_EXTENSION_FLAG_FORCED)) {
+        pr_err("extension: %s: caps must not carry SUPPORTED/FORCED\n", name);
+        return -EINVAL;
+    }
+
+    if (declares_toggle != has_setter) {
+        pr_err("extension: %s: STICKY cap=%d but ops->set=%d\n", name,
+               declares_toggle, has_setter);
+        return -EINVAL;
+    }
+
+    if ((handler->caps & KSU_EXTENSION_FLAG_PERSIST) && !has_setter) {
+        pr_err("extension: %s: PERSIST requires STICKY\n", name);
+        return -EINVAL;
+    }
+
+    if (handler->min_api_version > KSU_EXTENSION_API_VERSION) {
+        pr_err("extension: %s: min_api_version %u exceeds ABI %u\n", name,
+               handler->min_api_version, KSU_EXTENSION_API_VERSION);
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
 int ksu_register_extension_handler(const struct ksu_extension_handler *handler)
 {
     if (!handler)
@@ -146,6 +196,9 @@ int ksu_register_extension_handler(const struct ksu_extension_handler *handler)
     if (!handler->ops && !handler->io_handler)
         return -EINVAL;
 
+    if (extension_handler_validate(handler))
+        return -EINVAL;
+
     mutex_lock(&extension_mutex);
 
     if (extension_handlers[handler->extension_id])
@@ -154,9 +207,9 @@ int ksu_register_extension_handler(const struct ksu_extension_handler *handler)
 
     extension_handlers[handler->extension_id] = handler;
 
-    pr_info("extension: registered handler for %s (id=%u)\n",
-            handler->name ? handler->name : "unknown",
-            handler->extension_id);
+    pr_info("extension: registered handler for %s (id=%u, caps=0x%x, min_api=%u)\n",
+            handler->name ? handler->name : "unknown", handler->extension_id,
+            handler->caps, handler->min_api_version);
 
     mutex_unlock(&extension_mutex);
     return 0;
@@ -182,21 +235,35 @@ out:
     return ret;
 }
 
-int ksu_extension_get(u32 extension_id, u64 *value, bool *supported)
+int ksu_extension_get(u32 extension_id, u32 caller_api_version, u64 *value, u32 *caps)
 {
     int ret = 0;
     const struct ksu_extension_handler *handler;
 
     if (extension_id >= KSU_EXTENSION_MAX)
         return -EINVAL;
-    if (!value || !supported)
+    if (!value || !caps)
         return -EINVAL;
 
     mutex_lock(&extension_mutex);
     handler = extension_handlers[extension_id];
-    if (!handler) {
-        *supported = false;
-        *value = 0;
+    *caps = 0;
+    *value = 0;
+    if (!handler)
+        goto out;
+
+    /*
+     * A caller too old for this handler is reported exactly like a
+     * missing handler. Userspace acts on both the same way ("this
+     * extension is not usable here"), and returning a distinct errno
+     * would leak the existence of a handler whose payload the caller
+     * could not decode anyway.
+     */
+    if (!extension_api_allowed(handler, caller_api_version)) {
+        pr_warn("extension: %s: caller api %u < required %u\n",
+                handler->name ? handler->name : "unknown",
+                caller_api_version ? caller_api_version : 1,
+                handler->min_api_version);
         goto out;
     }
 
@@ -207,19 +274,22 @@ int ksu_extension_get(u32 extension_id, u64 *value, bool *supported)
      * report a constant value of 0; "supported" is independent of
      * whether `ops->get` exists.
      */
-    *supported = true;
-    *value = 0;
+    *caps = KSU_FEATURE_FLAG_SUPPORTED | handler->caps;
     if (handler->ops && handler->ops->get) {
         ret = handler->ops->get(extension_id, value);
-        if (ret)
+        if (ret) {
             pr_err("extension: get for %u failed: %d\n", extension_id, ret);
+            /* The read itself failed; do not let the caller treat the
+             * zeroed value as real state. */
+            *caps = 0;
+        }
     }
 out:
     mutex_unlock(&extension_mutex);
     return ret;
 }
 
-int ksu_extension_set(u32 extension_id, u64 value)
+int ksu_extension_set(u32 extension_id, u32 caller_api_version, u64 value)
 {
     int ret = 0;
     const struct ksu_extension_handler *handler;
@@ -242,6 +312,10 @@ int ksu_extension_set(u32 extension_id, u64 value)
         ret = -EOPNOTSUPP;
         goto out;
     }
+    if (!extension_api_allowed(handler, caller_api_version)) {
+        ret = -EOPNOTSUPP;
+        goto out;
+    }
     ret = handler->ops->set(extension_id, value);
     if (ret)
         pr_err("extension: set for %u failed: %d\n", extension_id, ret);
@@ -256,7 +330,7 @@ bool ksu_extension_is_forced(u32 extension_id)
            test_bit(extension_id, forced_mask);
 }
 
-int ksu_extension_ioctl(u32 extension_id, void __user *raw)
+int ksu_extension_ioctl(u32 extension_id, u32 caller_api_version, void __user *raw)
 {
     int ret;
     const struct ksu_extension_handler *handler;
@@ -266,7 +340,8 @@ int ksu_extension_ioctl(u32 extension_id, void __user *raw)
 
     mutex_lock(&extension_mutex);
     handler = extension_handlers[extension_id];
-    if (!handler || !handler->io_handler) {
+    if (!handler || !handler->io_handler ||
+        !extension_api_allowed(handler, caller_api_version)) {
         ret = -EOPNOTSUPP;
         goto out;
     }
@@ -276,7 +351,7 @@ out:
     return ret;
 }
 
-int ksu_extension_wipe(u32 extension_id)
+int ksu_extension_wipe(u32 extension_id, u32 caller_api_version)
 {
     int ret = 0;
     const struct ksu_extension_handler *handler;
@@ -296,7 +371,8 @@ int ksu_extension_wipe(u32 extension_id)
 
     mutex_lock(&extension_mutex);
     handler = extension_handlers[extension_id];
-    if (!handler || !handler->wipe) {
+    if (!handler || !handler->wipe ||
+        !extension_api_allowed(handler, caller_api_version)) {
         ret = -EOPNOTSUPP;
         goto out;
     }
@@ -412,6 +488,8 @@ void __init ksu_extension_register_all(void)
     static const struct ksu_extension_handler kpm_handler = {
         .extension_id = KSU_EXTENSION_KPM,
         .name = "kpm",
+        /* GET reports CONFIG_KPM, but there is no runtime sticky bit. */
+        .caps = 0,
         .ops = &ksu_extension_kpm_ops,
         .io_handler = ksu_extension_kpm_io,
         .apply_forced = ksu_extension_kpm_apply_forced,
@@ -419,12 +497,15 @@ void __init ksu_extension_register_all(void)
     static const struct ksu_extension_handler cpu_spoof_handler = {
         .extension_id = KSU_EXTENSION_CPU_SPOOF,
         .name = "cpu_spoof",
+        /* State lives in each ioctl payload; nothing to toggle or keep. */
+        .caps = 0,
         .ops = NULL,
         .io_handler = ksu_extension_cpu_spoof_io,
     };
     static const struct ksu_extension_handler umount_paths_handler = {
         .extension_id = KSU_EXTENSION_UMOUNT_PATHS,
         .name = "umount_paths",
+        .caps = 0,
         .ops = NULL,
         .io_handler = ksu_extension_umount_paths_io,
         .wipe = ksu_extension_umount_paths_wipe,
@@ -432,18 +513,31 @@ void __init ksu_extension_register_all(void)
     static const struct ksu_extension_handler dynamic_manager_handler = {
         .extension_id = KSU_EXTENSION_DYNAMIC_MANAGER,
         .name = "dynamic_manager",
+        /*
+         * The only extension with a real toggle: ops->set exists, and
+         * ksud replays the saved value from .extension_config on boot,
+         * so the bit is worth persisting.
+         */
+        .caps = KSU_EXTENSION_FLAG_STICKY | KSU_EXTENSION_FLAG_PERSIST,
         .ops = &ksu_extension_dynamic_manager_ops,
         .io_handler = ksu_extension_dynamic_manager_io,
     };
     static const struct ksu_extension_handler susfs_handler = {
         .extension_id = KSU_EXTENSION_SUSFS,
         .name = "susfs",
+        /*
+         * The SuSFS module reads its configuration while it mounts at
+         * boot, so a change made here only lands on the next boot.
+         */
+        .caps = KSU_EXTENSION_FLAG_REBOOT,
         .ops = &ksu_extension_susfs_ops,
     };
 
     static const struct ksu_extension_handler version_spoof_handler = {
         .extension_id = KSU_EXTENSION_VERSION_SPOOF,
         .name = "version_spoof",
+        /* Applied to the running kernel immediately by the io handler. */
+        .caps = 0,
         .ops = NULL,
         .io_handler = ksu_extension_version_spoof_io,
         .wipe = ksu_extension_version_spoof_wipe,
