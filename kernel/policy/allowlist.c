@@ -452,7 +452,7 @@ static void migrate_profile(u32 version, struct app_profile *profile)
                 pr_info("migrated domain of profile: %s\n", profile->key);
             }
         }
-        fallthrough;
+        /* fall through */
     case 3:
         if (profile->allow_su) {
             profile->rp_config.profile.flags = FLAG_KSU_NO_NEW_PRIVS;

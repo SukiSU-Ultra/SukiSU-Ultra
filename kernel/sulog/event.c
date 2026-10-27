@@ -371,10 +371,11 @@ static struct ksu_sulog_pending_event *ksu_sulog_capture_grant_root(const struct
     struct ksu_sulog_pending_event *pending;
     struct ksu_sulog_event *event;
 
-    // This is actually stupid fix
-    #define USER_ARG_NULL user_arg_null_ptr()
-
-    pending = ksu_sulog_capture(KSU_SULOG_EVENT_IOCTL_GRANT_ROOT, NULL, USER_ARG_NULL, gfp);
+#ifdef CONFIG_KSU_SUSFS
+    pending = ksu_sulog_capture(KSU_SULOG_EVENT_IOCTL_GRANT_ROOT, NULL, user_arg_null_ptr(), gfp);
+#else
+    pending = ksu_sulog_capture(KSU_SULOG_EVENT_IOCTL_GRANT_ROOT, NULL, *user_arg_null_ptr(), gfp);
+#endif
     if (!pending)
         return NULL;
 
