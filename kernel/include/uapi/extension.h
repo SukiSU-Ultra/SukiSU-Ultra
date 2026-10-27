@@ -24,40 +24,80 @@
  * There are three flavours of extension:
  *
  *   - "value-flavored": get/set a single u64 via ksu_extension_cmd.value.
- *	 Suitable for sticky enable bits (DYNAMIC_MANAGER).
+ *     Suitable for sticky enable bits (DYNAMIC_MANAGER).
  *
  *   - "io-flavored"   : the handler receives the raw user pointer
- *	 (cmd.user_ptr) and payload, e.g. CPU spoof keeps its existing
- *	 ksu_set_spoof_cpu_cmd shape and is just forwarded; KPM
- *	 forwards ksu_kpm_cmd; umount paths forward ksu_extension_umount_cmd.
+ *     (cmd.user_ptr) and payload, e.g. CPU spoof keeps its existing
+ *     ksu_set_spoof_cpu_cmd shape and is just forwarded; KPM
+ *     forwards ksu_kpm_cmd; umount paths forward ksu_extension_umount_cmd.
  *
  *   - "io-only + get" : like KPM, supports a value GET to advertise
- *	 compile-time availability (e.g. CONFIG_KPM) but has no
- *	 runtime sticky SET. KSU_EXTENSION_SET returns -EOPNOTSUPP.
+ *     compile-time availability (e.g. CONFIG_KPM) but has no
+ *     runtime sticky SET. KSU_EXTENSION_SET returns -EOPNOTSUPP.
  *
  * Each handler advertises its flavour through the ksu_extension_handler
  * registration so userspace can probe it via KSU_EXTENSION_GET and read
  * cmd.supported.
  *
- * cmd.supported is a flag field; the only bits that are part of the
- * UAPI are:
- *   - bit 0: KSU_FEATURE_FLAG_SUPPORTED (defined in uapi/supercall.h)
- *   - bit 7: KSU_EXTENSION_FLAG_FORCED
- * All other bits are reserved and must be ignored by userspace. There
- * is currently no per-extension "STICKY" bit: whether a given
- * extension has a runtime sticky bit is determined by its flavour
- * (see userspace/ksud/src/extension_id.rs::has_sticky_bit, which is
- * the canonical Rust mirror of the kernel's handler table).
+ * ---------------------------------------------------------------------
+ * Capability bits (cmd.supported)
+ * ---------------------------------------------------------------------
+ *
+ * cmd.supported is a flag field filled by the kernel on every successful
+ * call. It is the single source of truth for "what can this extension
+ * do"; userspace must not keep a parallel table, because such a table
+ * silently drifts from the kernel's handler table.
+ *
+ *   - bit 0: KSU_FEATURE_FLAG_SUPPORTED  a handler is registered
+ *   - bit 1: KSU_EXTENSION_FLAG_STICKY   runtime get/set of a u64 exists,
+ *                                        so a toggle is meaningful
+ *   - bit 2: KSU_EXTENSION_FLAG_PERSIST  the sticky value survives reboot
+ *                                        (userspace persists and replays it)
+ *   - bit 3: KSU_EXTENSION_FLAG_PER_UID  the extension's state is scoped
+ *                                        per uid, not one global value
+ *   - bit 4: KSU_EXTENSION_FLAG_REBOOT   changes only take effect after a
+ *                                        reboot
+ *   - bit 7: KSU_EXTENSION_FLAG_FORCED   pinned by force_extension=; SET and
+ *                                        WIPE are refused with -EPERM
+ *
+ * Bits 5, 6 and 8..31 are reserved: the kernel never sets them and
+ * userspace must ignore them.
+ *
+ * ---------------------------------------------------------------------
+ * Extension ABI version
+ * ---------------------------------------------------------------------
+ *
+ * cmd.api_version carries the extension ABI version the caller speaks and
+ * is overwritten with the kernel's version on success. It exists so a
+ * handler can refuse a caller that is too old to build the payload the
+ * handler expects: the handler declares a minimum version and the kernel
+ * answers -EOPNOTSUPP instead of parsing a struct the caller never knew
+ * about. 0 means "client predates this field" and is treated as ABI 1.
+ *
+ * The capability bits above bit 0 are only meaningful on a kernel that
+ * answers KSU_EXTENSION_ABI. A version field alone cannot distinguish
+ * "new kernel" from "old kernel", because kernels that predate this field
+ * simply echo cmd.api_version back verbatim. The probe removes the
+ * ambiguity by using an id that is out of range for the handler table, so
+ * an old kernel rejects it with -EINVAL:
+ *
+ *   id  = KSU_EXTENSION_ABI_PROBE_ID   (never a real extension)
+ *   op  = KSU_EXTENSION_ABI
+ *   out: cmd.api_version = highest ABI version the kernel speaks (>= 1)
+ *
+ * Userspace MUST treat any error from the probe as "legacy kernel, the
+ * capability bits are unavailable" and fall back to its own knowledge for
+ * that boot only.
  */
 
 enum ksu_extension_id {
-	KSU_EXTENSION_KPM = 0,
-	KSU_EXTENSION_CPU_SPOOF = 1,
-	KSU_EXTENSION_UMOUNT_PATHS = 2,
-	KSU_EXTENSION_DYNAMIC_MANAGER = 3,
-	KSU_EXTENSION_VERSION_SPOOF = 5,
+    KSU_EXTENSION_KPM = 0,
+    KSU_EXTENSION_CPU_SPOOF = 1,
+    KSU_EXTENSION_UMOUNT_PATHS = 2,
+    KSU_EXTENSION_DYNAMIC_MANAGER = 3,
+    KSU_EXTENSION_VERSION_SPOOF = 5,
 
-	KSU_EXTENSION_MAX
+    KSU_EXTENSION_MAX
 };
 
 /* Operation discriminator for the unified KSU_IOCTL_EXTENSION. */
@@ -65,19 +105,36 @@ enum ksu_extension_id {
 #define KSU_EXTENSION_SET  2u
 #define KSU_EXTENSION_IO   3u
 #define KSU_EXTENSION_WIPE 4u
+/* Answers the extension ABI probe; see the api_version discussion above. */
+#define KSU_EXTENSION_ABI  5u
 
-/* Forced flag returned in cmd.supported.
- * KSU_FEATURE_FLAG_SUPPORTED is shared with uapi/supercall.h. */
+/*
+ * Extension ABI version spoken by this kernel, and the id reserved for the
+ * probe that reports it. The id is deliberately out of range for
+ * enum ksu_extension_id so kernels that predate the probe reject the call
+ * with -EINVAL instead of treating it as a regular GET.
+ */
+#define KSU_EXTENSION_API_VERSION   1u
+#define KSU_EXTENSION_ABI_PROBE_ID  0xFFFFFFFFu
+
+/* Capability bits returned in cmd.supported.
+ * KSU_FEATURE_FLAG_SUPPORTED is shared with uapi/supercall.h; bit 7 keeps
+ * its historical value so managers built before the other bits existed
+ * still read FORCED correctly. */
+#define KSU_EXTENSION_FLAG_STICKY   (1u << 1)
+#define KSU_EXTENSION_FLAG_PERSIST  (1u << 2)
+#define KSU_EXTENSION_FLAG_PER_UID  (1u << 3)
+#define KSU_EXTENSION_FLAG_REBOOT   (1u << 4)
 #define KSU_EXTENSION_FLAG_FORCED   (1u << 7)
 
 /* Common header for the unified extension ioctl. */
 struct ksu_extension_cmd {
-	__u32 id;				  /* ksu_extension_id, in */
-	__u32 op;				  /* KSU_EXTENSION_* in */
-	__u32 supported;		   /* bitfield, see flag defs above, out */
-	__u32 reserved;
-	__u64 value;			   /* sticky state bit, in/out */
-	__u64 user_ptr;			/* opaque user pointer, in (for KSU_EXTENSION_IO) */
+    __u32 id;                  /* ksu_extension_id, in */
+    __u32 op;                  /* KSU_EXTENSION_* in */
+    __u32 supported;           /* capability bitfield, out (see above) */
+    __u32 api_version;         /* extension ABI version, in/out (see above) */
+    __u64 value;               /* sticky state bit, in/out */
+    __u64 user_ptr;            /* opaque user pointer, in (for KSU_EXTENSION_IO) */
 };
 
 // 0. KPM
@@ -92,10 +149,10 @@ struct ksu_extension_cmd {
 #define SUKISU_KPM_LOAD_EVENT 8
 
 struct ksu_kpm_cmd {
-	__aligned_u64 control_code;
-	__aligned_u64 arg1;
-	__aligned_u64 arg2;
-	__aligned_u64 result_code;
+    __aligned_u64 control_code;
+    __aligned_u64 arg1;
+    __aligned_u64 arg2;
+    __aligned_u64 result_code;
 };
 
 /* arg2 payload for SUKISU_KPM_LOAD_EVENT. Both fields are user pointers. */
@@ -106,16 +163,16 @@ struct ksu_kpm_load_event_cmd {
 
 // 1. CPU_SPOOF
 struct ksu_set_spoof_cpu_cmd {
-	__u32 cpu_index;  /* Target processor core index */
-	__u32 midr;	   /* Main ID Register payload */
-	__u32 bogomips;   /* BogoMIPS performance timing metric */
-	__u64 hwcap;	  /* Main ELF Hardware Capabilities mask */
-	__u64 hwcap2;	 /* Auxiliary ELF Hardware Capabilities mask */
+    __u32 cpu_index;  /* Target processor core index */
+    __u32 midr;       /* Main ID Register payload */
+    __u32 bogomips;   /* BogoMIPS performance timing metric */
+    __u64 hwcap;      /* Main ELF Hardware Capabilities mask */
+    __u64 hwcap2;     /* Auxiliary ELF Hardware Capabilities mask */
 };
 // 2. UMOUNT_PATHS
 struct ksu_list_try_umount_cmd {
-	__aligned_u64 arg; // User buffer
-	__u32 buf_size; // Buffer size provided by userspace
+    __aligned_u64 arg; // User buffer
+    __u32 buf_size; // Buffer size provided by userspace
 };
 
 /*
@@ -125,12 +182,12 @@ struct ksu_list_try_umount_cmd {
  * handler (kernel/extension/umount_paths.c) build/read this layout.
  */
 struct ksu_extension_umount_cmd {
-	__u32 op;				  /* KSU_UMOUNT_IO_OP_* in */
-	__u32 reserved;
-	union {
-		struct ksu_add_try_umount_cmd add;
-		struct ksu_list_try_umount_cmd list;
-	} payload;
+    __u32 op;                  /* KSU_UMOUNT_IO_OP_* in */
+    __u32 reserved;
+    union {
+        struct ksu_add_try_umount_cmd add;
+        struct ksu_list_try_umount_cmd list;
+    } payload;
 };
 
 #define KSU_UMOUNT_IO_OP_ADD  1u

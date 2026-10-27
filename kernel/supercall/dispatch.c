@@ -689,89 +689,118 @@ static int do_get_hook_type(void __user *arg)
 	return 0;
 }
 
+/* Capability bits for a reply: handler caps plus the bits the dispatcher
+ * owns. FORCED is global state, not a handler property. */
+static u32 extension_reply_caps(u32 extension_id, u32 caps)
+{
+    if (ksu_extension_is_forced(extension_id))
+        caps |= KSU_EXTENSION_FLAG_FORCED;
+    return caps;
+}
+
 /*
- * Single entry point for the four extensions. Userspace fills
+ * Single entry point for the five extension ops. Userspace fills
  * struct ksu_extension_cmd with an extension_id and one of:
- *   GET  -> returns supported/value. value=0 and supported=true
- *		   for io-only handlers (handler presence is the signal).
+ *   ABI  -> answers the extension ABI probe. The id must be
+ *           KSU_EXTENSION_ABI_PROBE_ID, which no handler owns, so an old
+ *           kernel rejects the call with -EINVAL: that rejection is how
+ *           userspace tells "no capability bits available" apart from
+ *           "capability bits are all zero".
+ *   GET  -> returns supported/value/capability bits. value=0 and
+ *           supported=true for io-only handlers (handler presence is the
+ *           signal).
  *   SET  -> value-flavoured: forwards to ops->set.
- *		   io-flavoured:	-EOPNOTSUPP (no sticky bit).
- *		   While a force_extension=<id> is in effect, all SETs
- *		   return -EPERM until reboot. On success, the post-set
- *		   state (supported / forced flag / current value) is
- *		   written back to *arg so userspace can confirm the write
- *		   without an extra GET round-trip.
+ *           io-flavoured:    -EOPNOTSUPP (no sticky bit).
+ *           While a force_extension=<id> is in effect, all SETs
+ *           return -EPERM until reboot. On success, the post-set
+ *           state (capability bits / forced flag / current value) is
+ *           written back to *arg so userspace can confirm the write
+ *           without an extra GET round-trip.
  *   IO   -> forwards cmd.user_ptr to the registered io_handler.
  *   WIPE -> handler->wipe (kernel-side). Today only umount_paths
- *		   registers one; other handlers return -EOPNOTSUPP. Wipe
- *		   does not go through io_handler.
+ *           registers one; other handlers return -EOPNOTSUPP. Wipe
+ *           does not go through io_handler.
+ *
+ * Every successful reply overwrites cmd.api_version with the kernel's
+ * extension ABI, so callers learn the negotiated version from the same
+ * round-trip that carries the data.
  */
 static int do_extension(void __user *arg)
 {
-	struct ksu_extension_cmd cmd;
-	u32 extension_id;
-	int ret;
+    struct ksu_extension_cmd cmd;
+    u32 extension_id;
+    int ret;
 
-	if (copy_from_user(&cmd, arg, sizeof(cmd)))
-		return -EFAULT;
+    if (copy_from_user(&cmd, arg, sizeof(cmd)))
+        return -EFAULT;
 
-	extension_id = cmd.id;
-	if (extension_id >= KSU_EXTENSION_MAX)
-		return -EINVAL;
+    if (cmd.op == KSU_EXTENSION_ABI) {
+        if (cmd.id != KSU_EXTENSION_ABI_PROBE_ID)
+            return -EINVAL;
+        cmd.value = 0;
+        cmd.supported = 0;
+        cmd.api_version = KSU_EXTENSION_API_VERSION;
+        if (copy_to_user(arg, &cmd, sizeof(cmd)))
+            return -EFAULT;
+        return 0;
+    }
 
-	/* op == IO  -> forward the user pointer verbatim */
-	if (cmd.op == KSU_EXTENSION_IO)
-		return ksu_extension_ioctl(extension_id,
-								   (void __user *)(uintptr_t)cmd.user_ptr);
+    extension_id = cmd.id;
+    if (extension_id >= KSU_EXTENSION_MAX)
+        return -EINVAL;
 
-	/* op == WIPE -> call the extension's wipe handler if any */
-	if (cmd.op == KSU_EXTENSION_WIPE)
-		return ksu_extension_wipe(extension_id);
+    /* op == IO  -> forward the user pointer verbatim */
+    if (cmd.op == KSU_EXTENSION_IO)
+        return ksu_extension_ioctl(extension_id, cmd.api_version,
+                                   (void __user *)(uintptr_t)cmd.user_ptr);
 
-	if (cmd.op == KSU_EXTENSION_SET) {
-		ret = ksu_extension_set(extension_id, cmd.value);
-		if (ret)
-			return ret;
-		/*
-		 * Round-trip the post-set state to userspace. The cmd.supported
-		 * field is documented as out, and a manager that just wrote
-		 * `value=1` wants to see "supported, FORCED if applicable"
-		 * come back rather than zeroed bytes. Failure to copy_to_user
-		 * is non-fatal here (the write itself succeeded) but reported
-		 * as -EFAULT so the caller can retry.
-		 */
-		{
-			u64 value = 0;
-			bool supported = false;
+    /* op == WIPE -> call the extension's wipe handler if any */
+    if (cmd.op == KSU_EXTENSION_WIPE)
+        return ksu_extension_wipe(extension_id, cmd.api_version);
 
-			(void)ksu_extension_get(extension_id, &value, &supported);
-			cmd.supported = supported ? KSU_FEATURE_FLAG_SUPPORTED : 0;
-			if (ksu_extension_is_forced(extension_id))
-				cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
-			cmd.value = value;
-			if (copy_to_user(arg, &cmd, sizeof(cmd)))
-				return -EFAULT;
-		}
-		return 0;
-	}
+    if (cmd.op == KSU_EXTENSION_SET) {
+        ret = ksu_extension_set(extension_id, cmd.api_version, cmd.value);
+        if (ret)
+            return ret;
+        /*
+         * Round-trip the post-set state to userspace. The cmd.supported
+         * field is documented as out, and a manager that just wrote
+         * `value=1` wants to see "supported, FORCED if applicable"
+         * come back rather than zeroed bytes. Failure to copy_to_user
+         * is non-fatal here (the write itself succeeded) but reported
+         * as -EFAULT so the caller can retry.
+         */
+        {
+            u64 value = 0;
+            u32 caps = 0;
 
-	{
-		u64 value = 0;
-		bool supported = false;
+            (void)ksu_extension_get(extension_id, KSU_EXTENSION_API_VERSION,
+                                    &value, &caps);
+            cmd.supported = extension_reply_caps(extension_id, caps);
+            cmd.value = value;
+            cmd.api_version = KSU_EXTENSION_API_VERSION;
+            if (copy_to_user(arg, &cmd, sizeof(cmd)))
+                return -EFAULT;
+        }
+        return 0;
+    }
 
-		ret = ksu_extension_get(extension_id, &value, &supported);
-		if (ret)
-			return ret;
-		if (!supported)
-			return -EOPNOTSUPP;
-		cmd.value = value;
-		cmd.supported = KSU_FEATURE_FLAG_SUPPORTED;
-		if (ksu_extension_is_forced(extension_id))
-			cmd.supported |= KSU_EXTENSION_FLAG_FORCED;
-		if (copy_to_user(arg, &cmd, sizeof(cmd)))
-			return -EFAULT;
-		return 0;
-	}
+    {
+        u64 value = 0;
+        u32 caps = 0;
+
+        ret = ksu_extension_get(extension_id, cmd.api_version, &value, &caps);
+        if (ret)
+            return ret;
+        if (!(caps & KSU_FEATURE_FLAG_SUPPORTED))
+            return -EOPNOTSUPP;
+        cmd.value = value;
+        cmd.supported = extension_reply_caps(extension_id, caps);
+        cmd.api_version = KSU_EXTENSION_API_VERSION;
+        if (copy_to_user(arg, &cmd, sizeof(cmd)))
+            return -EFAULT;
+        return 0;
+    }
 }
 
 
