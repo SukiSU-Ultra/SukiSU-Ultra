@@ -718,13 +718,18 @@ static u32 extension_reply_caps(u32 extension_id, u32 caps)
 }
 
 /*
- * Single entry point for the five extension ops. Userspace fills
+ * Single entry point for the six extension ops. Userspace fills
  * struct ksu_extension_cmd with an extension_id and one of:
  *   ABI  -> answers the extension ABI probe. The id must be
  *           KSU_EXTENSION_ABI_PROBE_ID, which no handler owns, so an old
  *           kernel rejects the call with -EINVAL: that rejection is how
  *           userspace tells "no capability bits available" apart from
  *           "capability bits are all zero".
+ *   ENUM -> fills struct ksu_extension_desc at cmd.user_ptr for the
+ *           handler at index cmd.value. The id must also be
+ *           KSU_EXTENSION_ABI_PROBE_ID so pre-ABI-2 kernels reject it
+ *           instead of reading cmd.value as a sticky write. Returns
+ *           -ENOENT past the last registered handler.
  *   GET  -> returns supported/value/capability bits. value=0 and
  *           supported=true for io-only handlers (handler presence is the
  *           signal).
@@ -758,6 +763,30 @@ static int do_extension(void __user *arg)
             return -EINVAL;
         cmd.value = 0;
         cmd.supported = 0;
+        cmd.api_version = KSU_EXTENSION_API_VERSION;
+        if (copy_to_user(arg, &cmd, sizeof(cmd)))
+            return -EFAULT;
+        return 0;
+    }
+
+    if (cmd.op == KSU_EXTENSION_ENUM) {
+        struct ksu_extension_desc desc;
+
+        if (cmd.id != KSU_EXTENSION_ABI_PROBE_ID)
+            return -EINVAL;
+        if (!cmd.user_ptr || cmd.value >> 32)
+            return -EINVAL;
+
+        ret = ksu_extension_enumerate((u32)cmd.value, &desc);
+        if (ret)
+            return ret;
+        if (copy_to_user((void __user *)(uintptr_t)cmd.user_ptr, &desc,
+                         sizeof(desc)))
+            return -EFAULT;
+
+        cmd.id = desc.id;
+        cmd.supported = desc.caps;
+        cmd.value = 0;
         cmd.api_version = KSU_EXTENSION_API_VERSION;
         if (copy_to_user(arg, &cmd, sizeof(cmd)))
             return -EFAULT;
