@@ -883,7 +883,6 @@
     <string name="version_spoof_section_fields">Reported versions</string>
     <string name="version_spoof_section_recovery">Warning preferences and recovery</string>
     <string name="version_spoof_recovery">Restore kernel versions: delete /data/adb/ksu/.version_spoof_config as root, then reboot the device.\n\nShow warnings again: delete /data/adb/ksu/.version_spoof_warning_hidden as root, then restart Manager or reboot. Removing this file does not reset version overrides. If Manager cannot open, use another available root or recovery environment.</string>
-
     <!-- Kernel module blacklist (block_modules=) page. The page reads the
          kernel core_param and the module tables; it never changes them. -->
     <string name="kernel_modules_title">Kernel module blacklist</string>
@@ -957,10 +956,13 @@
     <string name="kernel_modules_expand">Show dependency chain</string>
     <string name="kernel_modules_collapse">Hide dependency chain</string>
     <string name="tools_kernel_modules_summary">Review blocked modules, dependencies and flash parameters</string>
+<<<<<<< HEAD
     <string name="settings_custom_background">Custom Background</string>
     <string name="settings_custom_background_summary">Set a custom background image for main pages</string>
     <string name="settings_card_background_alpha">Card Opacity</string>
     <string name="settings_card_background_alpha_summary">Adjust background card opacity (%d%%)</string>
     <string name="settings_clear">Clear</string>
 
+=======
+>>>>>>> 91d216c50 (rebase stings)
 </resources>

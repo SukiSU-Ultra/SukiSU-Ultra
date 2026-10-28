@@ -876,9 +876,12 @@
     <string name="kernel_modules_expand">顯示依賴鏈</string>
     <string name="kernel_modules_collapse">隱藏依賴鏈</string>
     <string name="tools_kernel_modules_summary">查看被封鎖的模組、依賴關係和刷機參數</string>
+<<<<<<< HEAD
     <string name="settings_custom_background">自定義背景</string>
     <string name="settings_custom_background_summary">為應用主頁面設定自定義背景圖片</string>
     <string name="settings_card_background_alpha">卡片不透明度</string>
     <string name="settings_card_background_alpha_summary">調節背景卡片不透明度（%d%%）</string>
     <string name="settings_clear">清除</string>
+=======
+>>>>>>> 91d216c50 (rebase stings)
 </resources>

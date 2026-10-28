@@ -925,7 +925,10 @@
     <string name="version_spoof_section_fields">对外报告的版本</string>
     <string name="version_spoof_section_recovery">警告设置与恢复</string>
     <string name="version_spoof_recovery">恢复内核原始版本：使用 Root 权限删除 /data/adb/ksu/.version_spoof_config，然后重启设备。\n\n重新显示警告：使用 Root 权限删除 /data/adb/ksu/.version_spoof_warning_hidden，然后重启管理器或设备。删除此文件不会清除自定义版本。若管理器无法打开，请使用其他可用的 Root 或 Recovery 环境操作。</string>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 91d216c50 (rebase stings)
     <!-- 内核模块黑名单（block_modules=）页面 -->
     <string name="kernel_modules_title">内核模块黑名单</string>
     <plurals name="kernel_modules_summary_count">
@@ -998,9 +1001,12 @@
     <string name="kernel_modules_expand">显示依赖链</string>
     <string name="kernel_modules_collapse">隐藏依赖链</string>
     <string name="tools_kernel_modules_summary">查看被阻止的模块、依赖关系和刷机参数</string>
+<<<<<<< HEAD
     <string name="settings_custom_background">自定义背景</string>
     <string name="settings_custom_background_summary">为应用主页面设置自定义背景图片</string>
     <string name="settings_card_background_alpha">卡片不透明度</string>
     <string name="settings_card_background_alpha_summary">调节背景卡片不透明度（%d%%）</string>
     <string name="settings_clear">清除</string>
+=======
+>>>>>>> 91d216c50 (rebase stings)
 </resources>
