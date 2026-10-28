@@ -26,6 +26,9 @@ import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
@@ -36,6 +39,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Delete
@@ -52,36 +56,42 @@ fun UmountManagerMiuix(
 ) {
     val scrollBehavior = MiuixScrollBehavior()
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val enableBlur = LocalEnableBlur.current
+    val backdrop = rememberBlurBackdrop(enableBlur)
+    val blurActive = backdrop != null
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
     AppScaffold(
         topBar = {
-            TopAppBar(
-                title = stringResource(R.string.umount_path_manager),
-                color = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
-                navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        val layoutDirection = LocalLayoutDirection.current
-                        Icon(
-                            modifier = Modifier.graphicsLayer {
-                                if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
-                            },
-                            imageVector = MiuixIcons.Back,
-                            contentDescription = null,
-                            tint = colorScheme.onBackground
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = actions.onRefresh) {
-                        Icon(
-                            imageVector = MiuixIcons.Refresh,
-                            contentDescription = null,
-                            tint = colorScheme.onBackground
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
+            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
+                TopAppBar(
+                    title = stringResource(R.string.umount_path_manager),
+                    color = barColor,
+                    navigationIcon = {
+                        IconButton(onClick = actions.onBack) {
+                            val layoutDirection = LocalLayoutDirection.current
+                            Icon(
+                                modifier = Modifier.graphicsLayer {
+                                    if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                                },
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = null,
+                                tint = colorScheme.onBackground
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = actions.onRefresh) {
+                            Icon(
+                                imageVector = MiuixIcons.Refresh,
+                                contentDescription = null,
+                                tint = colorScheme.onBackground
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = actions.onAddClick) {
@@ -93,82 +103,83 @@ fun UmountManagerMiuix(
             }
         }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
+                .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier)
                 .fillMaxSize()
-                .padding(innerPadding)
                 .scrollEndHaptic()
                 .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = innerPadding.calculateTopPadding() + 12.dp,
+                bottom = innerPadding.calculateBottomPadding() + 12.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            AppCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = stringResource(R.string.umount_path_restart_notice),
-                        color = colorScheme.onSurface
-                    )
+            item {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.umount_path_restart_notice),
+                            color = colorScheme.onSurface
+                        )
+                    }
                 }
             }
 
             if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(state.pathList, key = { it.path }) { entry ->
-                        UmountPathCardMiuix(
-                            entry = entry,
-                            onDelete = {
-                                actions.onDeletePath(entry)
-                            }
-                        )
-                    }
+                items(state.pathList, key = { it.path }) { entry ->
+                    UmountPathCardMiuix(
+                        entry = entry,
+                        onDelete = {
+                            actions.onDeletePath(entry)
+                        }
+                    )
+                }
 
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = actions.onClearCustomPaths,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Button(
-                                onClick = actions.onClearCustomPaths,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(text = stringResource(R.string.clear_custom_paths))
-                            }
+                            Text(text = stringResource(R.string.clear_custom_paths))
+                        }
 
-                            Button(
-                                onClick = actions.onApplyConfig,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(text = stringResource(R.string.apply_config))
-                            }
+                        Button(
+                            onClick = actions.onApplyConfig,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = stringResource(R.string.apply_config))
                         }
                     }
                 }

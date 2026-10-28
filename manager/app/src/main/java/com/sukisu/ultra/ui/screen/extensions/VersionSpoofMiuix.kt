@@ -19,7 +19,11 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.*
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -28,16 +32,25 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun VersionSpoofMiuix(s: VersionSpoofState, a: VersionSpoofActions, version: String, uapi: String) {
     val scroll = MiuixScrollBehavior()
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val enableBlur = LocalEnableBlur.current
+    val backdrop = rememberBlurBackdrop(enableBlur)
+    val blurActive = backdrop != null
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
     AppScaffold(topBar = {
-        TopAppBar(title = stringResource(R.string.extension_version_spoof_title),
-            color = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface,
-            scrollBehavior = scroll,
-            navigationIcon = { IconButton(onClick = a.onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.version_spoof_back))
-            } })
+        BlurredBar(backdrop, scrollBehavior = scroll) {
+            TopAppBar(title = stringResource(R.string.extension_version_spoof_title),
+                color = barColor,
+                scrollBehavior = scroll,
+                navigationIcon = { IconButton(onClick = a.onBack) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.version_spoof_back))
+                } })
+        }
     }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).nestedScroll(scroll.nestedScrollConnection)
-            .verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
+        Column(Modifier
+            .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier)
+            .fillMaxSize().nestedScroll(scroll.nestedScrollConnection)
+            .verticalScroll(rememberScrollState()).imePadding()
+            .padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (s.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             MiuixVersionSection(R.string.version_spoof_section_info) {

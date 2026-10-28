@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.sukisu.ultra.ui.component.TopBarVeil
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import top.yukonga.miuix.kmp.basic.FabPosition
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -46,7 +47,7 @@ fun AppScaffold(
     }
     Scaffold(
         modifier = modifier,
-        topBar = topBar,
+        topBar = { TopBarVeil(MiuixTheme.colorScheme.surface) { topBar() } },
         bottomBar = bottomBar,
         floatingActionButton = floatingActionButton,
         floatingActionButtonPosition = floatingActionButtonPosition,

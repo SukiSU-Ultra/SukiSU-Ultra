@@ -13,6 +13,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.sukisu.ultra.ui.component.TopBarVeil
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 
 @Composable
@@ -41,7 +42,7 @@ fun ExpressiveScaffold(
     }
     Scaffold(
         modifier = modifier,
-        topBar = topBar,
+        topBar = { TopBarVeil(MaterialTheme.colorScheme.surface) { topBar() } },
         bottomBar = bottomBar,
         snackbarHost = snackbarHost,
         floatingActionButton = floatingActionButton,
