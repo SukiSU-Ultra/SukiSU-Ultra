@@ -80,6 +80,11 @@ data class SettingsUiState(
 
     val customBackgroundUri: String = "",
     val customBackgroundUpdatedAt: Long = 0L,
+    val useSystemWallpaper: Boolean = false,
+    /** Cached launcher wallpaper used when [useSystemWallpaper] is on and the file exists. */
+    val systemWallpaperPath: String = "",
+    val isSystemWallpaperBusy: Boolean = false,
+    val extractColorFromBackground: Boolean = true,
     val cardBackgroundAlphaPercent: Int = 60,
     val customBackgroundBlurPercent: Int = 50,
     val customBackgroundScrimPercent: Int = -35,

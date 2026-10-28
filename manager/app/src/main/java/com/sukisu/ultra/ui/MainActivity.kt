@@ -69,6 +69,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigationevent.NavigationEventInfo
@@ -234,6 +236,11 @@ class MainActivity : ComponentActivity() {
             val appSettings = uiState.appSettings
             val uiMode = uiState.uiMode
             val darkMode = appSettings.colorMode.isDark || (appSettings.colorMode.isSystem && isSystemInDarkTheme())
+
+            // Pick up launcher wallpaper changes while the "use system wallpaper" option is on.
+            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshSystemWallpaper()
+            }
 
             DisposableEffect(darkMode) {
                 enableEdgeToEdge(

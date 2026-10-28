@@ -165,6 +165,10 @@ class SettingsViewModel(
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
                     customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                    useSystemWallpaper = repo.useSystemWallpaper && BgStorage.systemWallpaperFile(ksuApp).isFile,
+                    systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
+                        .takeIf { it.isFile }?.absolutePath.orEmpty(),
+                    extractColorFromBackground = repo.extractColorFromBackground,
                     cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                     customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
                     customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
@@ -217,7 +221,11 @@ class SettingsViewModel(
         val savedPath = BgStorage.replace(context, output) ?: return@withContext false
         runCatching { if (output.isFile) output.delete() }
         BgStorage.discardStaged(sourcePath)
-        val seed = BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
+        val seed = if (repo.extractColorFromBackground) {
+            BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
+        } else {
+            repo.keyColor
+        }
         repo.customBackgroundUri = savedPath
         repo.customBackgroundUpdatedAt = System.currentTimeMillis()
         repo.keyColor = seed
@@ -243,6 +251,35 @@ class SettingsViewModel(
      * instance, so the theme screen needs this when it is resumed from the cropper.
      */
     fun refreshBackgroundAppearance() {
+        if (repo.useSystemWallpaper) {
+            viewModelScope.launch {
+                refreshSystemWallpaperCache()
+                updateBackgroundAppearanceState()
+            }
+        } else {
+            updateBackgroundAppearanceState()
+        }
+    }
+
+    /** Re-copies the launcher wallpaper when it changed since the last capture. */
+    private suspend fun refreshSystemWallpaperCache() {
+        val result = BgStorage.captureSystemWallpaper(ksuApp, force = false)
+        if (result.changed) {
+            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+            if (repo.extractColorFromBackground && result.path != null) {
+                repo.keyColor = BgStorage.extractSeedColor(File(result.path), repo.keyColor)
+            }
+        }
+        if (!BgStorage.systemWallpaperFile(ksuApp).isFile) {
+            // The cache is gone and cannot be rebuilt; fall back to the picked image.
+            repo.useSystemWallpaper = false
+        }
+    }
+
+    private fun updateBackgroundAppearanceState() {
+        val useSystemWallpaper = repo.useSystemWallpaper
+        val systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
+            .takeIf { it.isFile }?.absolutePath.orEmpty()
         _uiState.update {
             it.copy(
                 customBackgroundUri = repo.customBackgroundUri,
@@ -251,7 +288,79 @@ class SettingsViewModel(
                 customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
                 customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
                 keyColor = repo.keyColor,
+                useSystemWallpaper = useSystemWallpaper && systemWallpaperPath.isNotEmpty(),
+                systemWallpaperPath = systemWallpaperPath,
+                extractColorFromBackground = repo.extractColorFromBackground,
             )
+        }
+    }
+
+    fun setUseSystemWallpaper(context: Context, enabled: Boolean) {
+        if (!enabled) {
+            repo.useSystemWallpaper = false
+            _uiState.update {
+                it.copy(
+                    useSystemWallpaper = false,
+                    systemWallpaperPath = "",
+                    isSystemWallpaperBusy = false,
+                )
+            }
+            return
+        }
+        if (_uiState.value.isSystemWallpaperBusy) return
+        _uiState.update { it.copy(isSystemWallpaperBusy = true) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                BgStorage.captureSystemWallpaper(context, force = true)
+            }
+            if (result.path == null) {
+                Toast.makeText(
+                    ksuApp,
+                    R.string.settings_system_wallpaper_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                _uiState.update { it.copy(isSystemWallpaperBusy = false) }
+                return@launch
+            }
+            repo.useSystemWallpaper = true
+            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+            if (repo.extractColorFromBackground) {
+                repo.keyColor = withContext(Dispatchers.IO) {
+                    BgStorage.extractSeedColor(File(result.path), repo.keyColor)
+                }
+            }
+            _uiState.update {
+                it.copy(
+                    useSystemWallpaper = true,
+                    systemWallpaperPath = result.path,
+                    customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                    keyColor = repo.keyColor,
+                    isSystemWallpaperBusy = false,
+                )
+            }
+        }
+    }
+
+    /**
+     * Toggles deriving the key color from the background. Enabling it immediately re-seeds from
+     * the active background; disabling leaves the current color in place for manual selection.
+     */
+    fun setExtractColorFromBackground(enabled: Boolean) {
+        repo.extractColorFromBackground = enabled
+        _uiState.update { it.copy(extractColorFromBackground = enabled) }
+        if (!enabled) return
+
+        val backgroundPath = if (repo.useSystemWallpaper) {
+            BgStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }?.absolutePath
+        } else {
+            repo.customBackgroundUri.takeIf { it.isNotEmpty() }
+        } ?: return
+        val background = File(backgroundPath).takeIf { it.isFile } ?: return
+
+        viewModelScope.launch {
+            val seed = BgStorage.extractSeedColor(background, repo.keyColor)
+            repo.keyColor = seed
+            _uiState.update { it.copy(keyColor = seed) }
         }
     }
 
@@ -358,6 +467,8 @@ class SettingsViewModel(
         repo.customBackgroundBlurPercent = blurPercent
         repo.customBackgroundScrimPercent = scrimPercent
         repo.customBackgroundUri = backgroundUri
+        // The imported appearance owns the background; the device wallpaper is a local choice.
+        repo.useSystemWallpaper = false
         if (imported.backgroundPath != null) {
             repo.customBackgroundUpdatedAt = System.currentTimeMillis()
         }
@@ -374,6 +485,8 @@ class SettingsViewModel(
                 customBackgroundScrimPercent = scrimPercent,
                 customBackgroundUri = backgroundUri,
                 customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                useSystemWallpaper = false,
+                systemWallpaperPath = "",
             )
         }
     }

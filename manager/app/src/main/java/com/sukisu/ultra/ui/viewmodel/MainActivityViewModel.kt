@@ -4,14 +4,18 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.theme.ThemeController
+import com.sukisu.ultra.ui.util.BgStorage
+import java.io.File
 
 class MainActivityViewModel(
     savedStateHandle: SavedStateHandle,
@@ -42,7 +46,31 @@ class MainActivityViewModel(
         mainPageState.updateSelectedPage(page)
     }
 
+    /**
+     * Keeps the cached launcher wallpaper up to date while the option is enabled. The copy
+     * only runs when the system wallpaper file changed, so this is cheap on every resume.
+     */
+    fun refreshSystemWallpaper() {
+        if (!settingRepo.useSystemWallpaper) return
+        viewModelScope.launch {
+            val result = BgStorage.captureSystemWallpaper(ksuApp, force = false)
+            if (result.changed) {
+                settingRepo.customBackgroundUpdatedAt = System.currentTimeMillis()
+                if (settingRepo.extractColorFromBackground && result.path != null) {
+                    settingRepo.keyColor = BgStorage.extractSeedColor(File(result.path), settingRepo.keyColor)
+                }
+            }
+            if (!BgStorage.systemWallpaperFile(ksuApp).isFile) {
+                settingRepo.useSystemWallpaper = false
+            }
+            _uiState.value = readUiState()
+        }
+    }
+
     private fun readUiState(): MainActivityUiState {
+        val useSystemWallpaper = settingRepo.useSystemWallpaper
+        val systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
+            .takeIf { it.isFile }?.absolutePath.orEmpty()
         return MainActivityUiState(
             appSettings = ThemeController.getAppSettings(),
             pageScale = settingRepo.pageScale,
@@ -53,7 +81,12 @@ class MainActivityViewModel(
             enableSwipeDismiss = settingRepo.enableSwipeDismiss,
             pagerInterceptionMode = settingRepo.pagerInterceptionMode,
             moduleDescriptionMaxLines = settingRepo.moduleDescriptionMaxLines,
-            customBackgroundUri = settingRepo.customBackgroundUri,
+            // The rest of the app only needs the effective background source.
+            customBackgroundUri = if (useSystemWallpaper && systemWallpaperPath.isNotEmpty()) {
+                systemWallpaperPath
+            } else {
+                settingRepo.customBackgroundUri
+            },
             customBackgroundUpdatedAt = settingRepo.customBackgroundUpdatedAt,
             cardBackgroundAlphaPercent = settingRepo.cardBackgroundAlphaPercent,
             customBackgroundBlurPercent = settingRepo.customBackgroundBlurPercent,
@@ -79,6 +112,7 @@ class MainActivityViewModel(
             "pager_interception_mode",
             "custom_bg_uri",
             "custom_bg_updated_at",
+            "use_system_wallpaper",
             "card_bg_alpha_percent",
             "custom_bg_blur_percent",
             "custom_bg_scrim_percent",

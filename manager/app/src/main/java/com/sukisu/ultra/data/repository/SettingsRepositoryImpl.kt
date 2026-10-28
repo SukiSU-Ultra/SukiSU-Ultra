@@ -56,6 +56,14 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getLong("custom_bg_updated_at", 0L)
         set(value) = prefs.edit { putLong("custom_bg_updated_at", value) }
 
+    override var useSystemWallpaper: Boolean
+        get() = prefs.getBoolean("use_system_wallpaper", false)
+        set(value) = prefs.edit { putBoolean("use_system_wallpaper", value) }
+
+    override var extractColorFromBackground: Boolean
+        get() = prefs.getBoolean("extract_color_from_background", true)
+        set(value) = prefs.edit { putBoolean("extract_color_from_background", value) }
+
     override var cardBackgroundAlphaPercent: Int
         get() = prefs.getInt("card_bg_alpha_percent", 60)
         set(value) = prefs.edit { putInt("card_bg_alpha_percent", value) }

@@ -96,6 +96,8 @@ fun ColorPaletteScreen() {
             }
         },
         onClearCustomBackground = viewModel::clearCustomBackground,
+        onSetUseSystemWallpaper = viewModel::setUseSystemWallpaper,
+        onSetExtractColorFromBackground = viewModel::setExtractColorFromBackground,
         onSetCardBackgroundAlphaPercent = viewModel::setCardBackgroundAlphaPercent,
         onSetCustomBackgroundBlurPercent = viewModel::setCustomBackgroundBlurPercent,
         onSetCustomBackgroundScrimPercent = viewModel::setCustomBackgroundScrimPercent,

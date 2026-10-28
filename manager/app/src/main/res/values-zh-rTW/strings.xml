@@ -738,6 +738,12 @@
 =======
     <string name="settings_custom_background">自定義背景</string>
     <string name="settings_custom_background_summary">選擇圖片後可調整裁切區域</string>
+    <string name="settings_use_system_wallpaper">使用系統桌面桌布</string>
+    <string name="settings_use_system_wallpaper_summary">將目前桌面桌布用作應用背景</string>
+    <string name="settings_use_system_wallpaper_reading">正在讀取目前桌布…</string>
+    <string name="settings_extract_background_color">從背景圖取色</string>
+    <string name="settings_extract_background_color_summary">使用目前背景圖作為主題取色來源</string>
+    <string name="settings_system_wallpaper_failed">無法讀取系統桌布</string>
     <string name="settings_crop_background">重新裁切背景</string>
     <string name="settings_crop_background_summary">調整背景可見區域，或使用相簿裁切</string>
     <string name="background_crop_title">裁切背景</string>
@@ -751,6 +757,8 @@
     <string name="background_crop_failed">裁切失敗，請重試</string>
     <string name="background_crop_gallery_failed">相簿未傳回圖片</string>
     <string name="background_crop_prepare_failed">無法讀取所選圖片</string>
+    <string name="settings_background_appearance">背景外觀</string>
+    <string name="settings_background_appearance_summary">卡片不透明度、背景模糊與遮罩</string>
     <string name="settings_card_background_alpha">卡片不透明度</string>
     <string name="settings_card_background_alpha_summary">調節背景卡片不透明度（%d%%）</string>
     <string name="settings_background_blur">背景模糊</string>

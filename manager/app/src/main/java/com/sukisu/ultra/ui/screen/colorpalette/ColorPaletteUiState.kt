@@ -40,6 +40,8 @@ data class ColorPaletteScreenActions(
     val onPickCustomBackground: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onCropCurrentBackground: (android.content.Context) -> Unit = {},
     val onClearCustomBackground: (android.content.Context) -> Unit = {},
+    val onSetUseSystemWallpaper: (android.content.Context, Boolean) -> Unit = { _, _ -> },
+    val onSetExtractColorFromBackground: (Boolean) -> Unit = {},
     val onSetCardBackgroundAlphaPercent: (Int) -> Unit = {},
     val onSetCustomBackgroundBlurPercent: (Int) -> Unit = {},
     val onSetCustomBackgroundScrimPercent: (Int) -> Unit = {},

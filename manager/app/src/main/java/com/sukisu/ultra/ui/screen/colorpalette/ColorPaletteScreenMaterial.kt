@@ -7,13 +7,16 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +52,10 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Colorize
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
@@ -65,6 +72,7 @@ import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.ViewCarousel
+import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -135,6 +143,7 @@ fun ColorPaletteScreenMaterial(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     var showResetThemeDialog by rememberSaveable { mutableStateOf(false) }
+    var appearanceExpanded by rememberSaveable { mutableStateOf(true) }
     // Kept above the list so the preview reflects the thumb position before the value commits.
     val alphaSliderState = rememberSliderState(
         value = uiState.cardBackgroundAlphaPercent.toFloat(),
@@ -209,7 +218,11 @@ fun ColorPaletteScreenMaterial(
                         isAmoled = isAmoled,
                         paletteStyle = colorStyle,
                         colorSpec = colorSpec,
-                        backgroundPath = uiState.customBackgroundUri,
+                        backgroundPath = if (uiState.useSystemWallpaper) {
+                            uiState.systemWallpaperPath
+                        } else {
+                            uiState.customBackgroundUri
+                        },
                         backgroundUpdatedAt = uiState.customBackgroundUpdatedAt,
                         cardAlpha = alphaSliderState.value / 100f,
                         backgroundBlurPercent = blurSliderState.value.roundToInt(),
@@ -229,122 +242,291 @@ fun ColorPaletteScreenMaterial(
                     uri?.let { actions.onPickCustomBackground(context, it) }
                 }
                 val hasCustomBg = uiState.customBackgroundUri.isNotEmpty()
+                val usingSystemWallpaper = uiState.useSystemWallpaper
 
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     content = buildList<@Composable () -> Unit> {
                         add {
-                            SegmentedListItem(
-                                onClick = {
-                                    pickImageLauncher.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
-                                headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
-                                supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
-                                leadingContent = { IconTile(Icons.Rounded.Image, stringResource(id = R.string.settings_custom_background)) },
-                                trailingContent = if (hasCustomBg) {
-                                    {
-                                        TextButton(onClick = { actions.onClearCustomBackground(context) }) {
-                                            Text(stringResource(id = R.string.settings_clear))
-                                        }
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Wallpaper,
+                                title = stringResource(id = R.string.settings_use_system_wallpaper),
+                                summary = stringResource(
+                                    id = if (uiState.isSystemWallpaperBusy) {
+                                        R.string.settings_use_system_wallpaper_reading
+                                    } else {
+                                        R.string.settings_use_system_wallpaper_summary
                                     }
-                                } else null
+                                ),
+                                checked = usingSystemWallpaper,
+                                enabled = !uiState.isSystemWallpaperBusy,
+                                onCheckedChange = { actions.onSetUseSystemWallpaper(context, it) },
                             )
                         }
-                        if (hasCustomBg) {
+                        if (!usingSystemWallpaper) {
                             add {
                                 SegmentedListItem(
-                                    onClick = { actions.onCropCurrentBackground(context) },
-                                    headlineContent = { Text(stringResource(id = R.string.settings_crop_background)) },
-                                    supportingContent = { Text(stringResource(id = R.string.settings_crop_background_summary)) },
-                                    leadingContent = { IconTile(Icons.Rounded.Crop, stringResource(id = R.string.settings_crop_background)) },
+                                    onClick = {
+                                        pickImageLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    },
+                                    headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
+                                    supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
+                                    leadingContent = { IconTile(Icons.Rounded.Image, stringResource(id = R.string.settings_custom_background)) },
+                                    trailingContent = if (hasCustomBg) {
+                                        {
+                                            TextButton(onClick = { actions.onClearCustomBackground(context) }) {
+                                                Text(stringResource(id = R.string.settings_clear))
+                                            }
+                                        }
+                                    } else null
+                                )
+                            }
+                            if (hasCustomBg) {
+                                add {
+                                    SegmentedListItem(
+                                        onClick = { actions.onCropCurrentBackground(context) },
+                                        headlineContent = { Text(stringResource(id = R.string.settings_crop_background)) },
+                                        supportingContent = { Text(stringResource(id = R.string.settings_crop_background_summary)) },
+                                        leadingContent = { IconTile(Icons.Rounded.Crop, stringResource(id = R.string.settings_crop_background)) },
+                                    )
+                                }
+                            }
+                        }
+                        if (usingSystemWallpaper || hasCustomBg) {
+                            add {
+                                SegmentedSwitchItem(
+                                    icon = Icons.Rounded.Colorize,
+                                    title = stringResource(id = R.string.settings_extract_background_color),
+                                    summary = stringResource(id = R.string.settings_extract_background_color_summary),
+                                    checked = uiState.extractColorFromBackground,
+                                    onCheckedChange = actions.onSetExtractColorFromBackground,
                                 )
                             }
                         }
                     }
                 )
 
-                if (hasCustomBg) {
+                if (usingSystemWallpaper || hasCustomBg) {
                     Spacer(Modifier.height(12.dp))
                     TonalCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            BackgroundSliderHeader(
-                                icon = Icons.Rounded.Opacity,
-                                title = stringResource(id = R.string.settings_card_background_alpha),
-                                summary = stringResource(
-                                    id = R.string.settings_card_background_alpha_summary,
-                                    alphaSliderState.value.roundToInt(),
-                                ),
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            CapsuleSlider(
-                                state = alphaSliderState,
-                                onValueChangeFinished = {
-                                    val percent = alphaSliderState.value.roundToInt()
-                                    alphaSliderState.value = percent.toFloat()
-                                    actions.onSetCardBackgroundAlphaPercent(percent)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                            BackgroundSliderHeader(
-                                icon = Icons.Rounded.BlurOn,
-                                title = stringResource(id = R.string.settings_background_blur),
-                                summary = stringResource(
-                                    id = R.string.settings_background_blur_summary,
-                                    blurSliderState.value.roundToInt(),
-                                ),
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            CapsuleSlider(
-                                state = blurSliderState,
-                                onValueChangeFinished = {
-                                    val percent = blurSliderState.value.roundToInt()
-                                    blurSliderState.value = percent.toFloat()
-                                    actions.onSetCustomBackgroundBlurPercent(percent)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                            BackgroundSliderHeader(
-                                icon = Icons.Rounded.Contrast,
-                                title = stringResource(id = R.string.settings_background_scrim),
-                                summary = stringResource(
-                                    id = R.string.settings_background_scrim_summary,
-                                    scrimSliderState.value.roundToInt(),
-                                ),
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            CapsuleSlider(
-                                state = scrimSliderState,
-                                onValueChangeFinished = {
-                                    val percent = scrimSliderState.value.roundToInt()
-                                    scrimSliderState.value = percent.toFloat()
-                                    actions.onSetCustomBackgroundScrimPercent(percent)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Row(modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    text = stringResource(id = R.string.settings_background_scrim_darker),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                                    .clickable { appearanceExpanded = !appearanceExpanded }
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Tune,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = stringResource(id = R.string.settings_background_scrim_lighter),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                Spacer(Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.settings_background_appearance),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.settings_background_appearance_summary),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Icon(
+                                    imageVector = if (appearanceExpanded) {
+                                        Icons.Rounded.KeyboardArrowUp
+                                    } else {
+                                        Icons.Rounded.KeyboardArrowDown
+                                    },
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                            }
+                            AnimatedVisibility(
+                                visible = appearanceExpanded,
+                                enter = expandVertically() + fadeIn(),
+                                exit = shrinkVertically() + fadeOut(),
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                                ) {
+                                    BackgroundSliderHeader(
+                                        icon = Icons.Rounded.Opacity,
+                                        title = stringResource(id = R.string.settings_card_background_alpha),
+                                        summary = stringResource(
+                                            id = R.string.settings_card_background_alpha_summary,
+                                            alphaSliderState.value.roundToInt(),
+                                        ),
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    CapsuleSlider(
+                                        state = alphaSliderState,
+                                        onValueChangeFinished = {
+                                            val percent = alphaSliderState.value.roundToInt()
+                                            alphaSliderState.value = percent.toFloat()
+                                            actions.onSetCardBackgroundAlphaPercent(percent)
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                                    BackgroundSliderHeader(
+                                        icon = Icons.Rounded.BlurOn,
+                                        title = stringResource(id = R.string.settings_background_blur),
+                                        summary = stringResource(
+                                            id = R.string.settings_background_blur_summary,
+                                            blurSliderState.value.roundToInt(),
+                                        ),
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    CapsuleSlider(
+                                        state = blurSliderState,
+                                        onValueChangeFinished = {
+                                            val percent = blurSliderState.value.roundToInt()
+                                            blurSliderState.value = percent.toFloat()
+                                            actions.onSetCustomBackgroundBlurPercent(percent)
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                                    BackgroundSliderHeader(
+                                        icon = Icons.Rounded.Contrast,
+                                        title = stringResource(id = R.string.settings_background_scrim),
+                                        summary = stringResource(
+                                            id = R.string.settings_background_scrim_summary,
+                                            scrimSliderState.value.roundToInt(),
+                                        ),
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    CapsuleSlider(
+                                        state = scrimSliderState,
+                                        onValueChangeFinished = {
+                                            val percent = scrimSliderState.value.roundToInt()
+                                            scrimSliderState.value = percent.toFloat()
+                                            actions.onSetCustomBackgroundScrimPercent(percent)
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        Text(
+                                            text = stringResource(id = R.string.settings_background_scrim_darker),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Text(
+                                            text = stringResource(id = R.string.settings_background_scrim_lighter),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            item {
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
+                                },
+                                headlineContent = { Text(stringResource(id = R.string.theme_export)) },
+                                supportingContent = { Text(stringResource(id = R.string.theme_export_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.FileUpload, stringResource(id = R.string.theme_export)) },
+                            )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    importThemeLauncher.launch(
+                                        arrayOf("application/zip", "application/x-zip-compressed")
+                                    )
+                                },
+                                headlineContent = { Text(stringResource(id = R.string.theme_import)) },
+                                supportingContent = { Text(stringResource(id = R.string.theme_import_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.theme_import)) },
+                            )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = { showResetThemeDialog = true },
+                                headlineContent = { Text(stringResource(id = R.string.theme_reset)) },
+                                supportingContent = { Text(stringResource(id = R.string.theme_reset_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.Restore, stringResource(id = R.string.theme_reset)) },
+                            )
+                        }
+                    )
+                )
+            }
+            item {
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    content = listOf(
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Fingerprint,
+                                title = stringResource(id = R.string.settings_show_fullstatus),
+                                summary = stringResource(id = R.string.settings_show_fullstatus_summary),
+                                checked = state.showFullStatus,
+                                onCheckedChange = actions.onSetShowFullStatus
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Warning,
+                                title = stringResource(id = R.string.settings_hide_home_warnings),
+                                summary = stringResource(id = R.string.settings_hide_home_warnings_summary),
+                                checked = state.hideHomeWarnings,
+                                onCheckedChange = actions.onSetHideHomeWarnings
+                            )
+                        },
+                        {
+                            val currentIcon = BuiltinAppIcons.find(uiState.appIconId)
+                            SegmentedListItem(
+                                onClick = actions.onOpenAppIcon,
+                                headlineContent = { Text(stringResource(R.string.app_icon_title)) },
+                                supportingContent = {
+                                    Text(stringResource(R.string.app_icon_summary))
+                                },
+                                leadingContent = {
+                                    BuiltinAppIconPreview(
+                                        icon = currentIcon,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
+                                    )
+                                },
+                                trailingContent = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = stringResource(currentIcon.nameRes),
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Rounded.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    )
+                )
             }
 
             item {
@@ -515,62 +697,6 @@ fun ColorPaletteScreenMaterial(
                 }
             }
 
-            item {
-                SegmentedColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.Fingerprint,
-                                title = stringResource(id = R.string.settings_show_fullstatus),
-                                summary = stringResource(id = R.string.settings_show_fullstatus_summary),
-                                checked = state.showFullStatus,
-                                onCheckedChange = actions.onSetShowFullStatus
-                            )
-                        },
-                        {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.Warning,
-                                title = stringResource(id = R.string.settings_hide_home_warnings),
-                                summary = stringResource(id = R.string.settings_hide_home_warnings_summary),
-                                checked = state.hideHomeWarnings,
-                                onCheckedChange = actions.onSetHideHomeWarnings
-                            )
-                        },
-                        {
-                            val currentIcon = BuiltinAppIcons.find(uiState.appIconId)
-                            SegmentedListItem(
-                                onClick = actions.onOpenAppIcon,
-                                headlineContent = { Text(stringResource(R.string.app_icon_title)) },
-                                supportingContent = {
-                                    Text(stringResource(R.string.app_icon_summary))
-                                },
-                                leadingContent = {
-                                    BuiltinAppIconPreview(
-                                        icon = currentIcon,
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .clip(RoundedCornerShape(12.dp)),
-                                    )
-                                },
-                                trailingContent = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = stringResource(currentIcon.nameRes),
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Icon(
-                                            imageVector = Icons.Rounded.ChevronRight,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                },
-                            )
-                        }
-                    )
-                )
-            }
 
             item {
                 SegmentedColumn(
@@ -707,43 +833,6 @@ fun ColorPaletteScreenMaterial(
                 }
             }
 
-            item {
-                SegmentedColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
-                        {
-                            SegmentedListItem(
-                                onClick = {
-                                    exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
-                                },
-                                headlineContent = { Text(stringResource(id = R.string.theme_export)) },
-                                supportingContent = { Text(stringResource(id = R.string.theme_export_summary)) },
-                                leadingContent = { IconTile(Icons.Rounded.FileUpload, stringResource(id = R.string.theme_export)) },
-                            )
-                        },
-                        {
-                            SegmentedListItem(
-                                onClick = {
-                                    importThemeLauncher.launch(
-                                        arrayOf("application/zip", "application/x-zip-compressed")
-                                    )
-                                },
-                                headlineContent = { Text(stringResource(id = R.string.theme_import)) },
-                                supportingContent = { Text(stringResource(id = R.string.theme_import_summary)) },
-                                leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.theme_import)) },
-                            )
-                        },
-                        {
-                            SegmentedListItem(
-                                onClick = { showResetThemeDialog = true },
-                                headlineContent = { Text(stringResource(id = R.string.theme_reset)) },
-                                supportingContent = { Text(stringResource(id = R.string.theme_reset_summary)) },
-                                leadingContent = { IconTile(Icons.Rounded.Restore, stringResource(id = R.string.theme_reset)) },
-                            )
-                        }
-                    )
-                )
-            }
 
             item {
                 Spacer(modifier = Modifier.height(16.dp + navBars.calculateBottomPadding() + captionBar.calculateBottomPadding()))
