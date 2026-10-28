@@ -256,9 +256,9 @@ private fun TopBar(
     backdrop: LayerBackdrop?,
     barColor: Color,
 ) {
-    BlurredBar(backdrop) {
+    BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
         TopAppBar(
-            color = barColor,
+            color = Color.Transparent,
             title = stringResource(R.string.app_name),
             actions = {
                 RebootListPopupMiuix()

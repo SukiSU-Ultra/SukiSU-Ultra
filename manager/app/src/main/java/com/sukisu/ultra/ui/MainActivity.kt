@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.core.animation.doOnEnd
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
 import java.io.File
@@ -408,8 +410,13 @@ class MainActivity : ComponentActivity() {
                         val hasCustomBackground = uiState.customBackgroundUri.isNotEmpty()
                         Crossfade(targetState = uiState.customBackgroundUri, label = "global_background") { path ->
                             if (path.isNotEmpty()) {
+                                val context = LocalContext.current
                                 AsyncImage(
-                                    model = File(path),
+                                    model = ImageRequest.Builder(context)
+                                        .data(File(path))
+                                        .crossfade(true)
+                                        .setParameter("mtime", File(path).lastModified(), memoryCacheKey = null)
+                                        .build(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier

@@ -97,9 +97,9 @@ fun SettingPagerMiuix(
     Scaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
         topBar = {
-            BlurredBar(backdrop) {
+            BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
                 TopAppBar(
-                    color = barColor,
+                    color = Color.Transparent,
                     title = stringResource(R.string.settings),
                     scrollBehavior = scrollBehavior
                 )

@@ -194,10 +194,10 @@ fun SuperUserPagerMiuix(
     Scaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
         topBar = {
-            BlurredBar(backdrop) {
-                searchStatus.TopAppBarAnim(backgroundColor = barColor) {
+            BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
+                searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
                     TopAppBar(
-                        color = barColor,
+                        color = Color.Transparent,
                         title = stringResource(R.string.superuser),
                         navigationIcon = {
                             IconButton(

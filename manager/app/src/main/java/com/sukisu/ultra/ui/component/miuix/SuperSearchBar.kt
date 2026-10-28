@@ -66,6 +66,8 @@ import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.sukisu.ultra.ui.component.SearchStatus
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
+import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.Text
@@ -128,8 +130,10 @@ fun SearchStatus.SearchPager(
     ) {
         onSearchStatusChange(searchStatus.onAnimationComplete())
     }
+    val hasBackgroundImage = LocalBackgroundImagePath.current.isNotEmpty()
+    val cardAlpha = LocalCardBackgroundAlpha.current
     val surfaceAlpha by animateFloatAsState(
-        if (searchStatus.shouldExpand()) 1f else 0f,
+        if (searchStatus.shouldExpand()) if (hasBackgroundImage) cardAlpha else 1f else 0f,
         animationSpec = tween(200, easing = FastOutSlowInEasing),
         label = "SearchPagerSurfaceAlpha"
     )
@@ -158,8 +162,10 @@ fun SearchStatus.SearchPager(
                 .fillMaxWidth()
                 .padding(top = topPadding)
                 .then(
-                    if (!searchStatus.isCollapsed()) Modifier.background(colorScheme.surface)
-                    else Modifier
+                    if (!searchStatus.isCollapsed()) {
+                        if (hasBackgroundImage) Modifier.background(surfaceColor.copy(alpha = cardAlpha))
+                        else Modifier.background(surfaceColor)
+                    } else Modifier
                 ),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
@@ -168,7 +174,7 @@ fun SearchStatus.SearchPager(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .background(colorScheme.surface)
+                        .background(if (hasBackgroundImage) surfaceColor.copy(alpha = cardAlpha) else surfaceColor)
                 ) {
                     expandBar(searchStatus, onSearchStatusChange, searchBarTopPadding)
                 }
