@@ -48,7 +48,6 @@ import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.getSELinuxStatusRaw
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -172,7 +171,7 @@ private fun SelinuxToggleSectionMiuix(
 private fun KernelModulesSectionMiuix(
     onOpen: () -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(top = 12.dp)
             .fillMaxWidth(),
