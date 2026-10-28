@@ -24,6 +24,14 @@
 
     <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur" />
 
+    <!-- Android 11 package visibility: needed to resolve the vendor gallery's crop screen. -->
+    <queries>
+        <intent>
+            <action android:name="com.android.camera.action.CROP" />
+            <data android:mimeType="image/*" />
+        </intent>
+    </queries>
+
     <application
         android:name=".KernelSUApplication"
         android:allowBackup="true"

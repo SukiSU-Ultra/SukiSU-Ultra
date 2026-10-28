@@ -4,6 +4,8 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,7 +15,9 @@ import com.sukisu.ultra.KernelSUApplication
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
+import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.theme.ColorMode
+import com.sukisu.ultra.ui.util.BgStorage
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 
 @Composable
@@ -23,6 +27,10 @@ fun ColorPaletteScreen() {
     val activity = LocalActivity.current
     val viewModel = viewModel<SettingsViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.refreshBackgroundAppearance()
+    }
     val currentPaletteStyle = try {
         PaletteStyle.valueOf(uiState.colorStyle)
     } catch (_: Exception) {
@@ -65,7 +73,28 @@ fun ColorPaletteScreen() {
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetHideHomeWarnings = viewModel::setHideHomeWarnings,
         onSetAlternativeIcon = { enabled -> viewModel.setAlternativeIcon(context, enabled) },
-        onSetCustomBackground = viewModel::setCustomBackground,
+        onPickCustomBackground = { ctx, uri ->
+            viewModel.stagePickedBackground(ctx, uri) { path ->
+                if (path != null) {
+                    if (navigator.current() == Route.ColorPalette) {
+                        navigator.push(Route.BackgroundCrop(path))
+                    } else {
+                        BgStorage.discardStaged(path)
+                    }
+                }
+            }
+        },
+        onCropCurrentBackground = { ctx ->
+            viewModel.stageCurrentBackground(ctx) { path ->
+                if (path != null) {
+                    if (navigator.current() == Route.ColorPalette) {
+                        navigator.push(Route.BackgroundCrop(path))
+                    } else {
+                        BgStorage.discardStaged(path)
+                    }
+                }
+            }
+        },
         onClearCustomBackground = viewModel::clearCustomBackground,
         onSetCardBackgroundAlphaPercent = viewModel::setCardBackgroundAlphaPercent,
         onSetCustomBackgroundBlurPercent = viewModel::setCustomBackgroundBlurPercent,

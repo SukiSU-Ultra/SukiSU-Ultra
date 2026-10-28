@@ -23,8 +23,7 @@ fun setSelinuxPermissive(permissive: Boolean): Boolean {
 suspend fun backupAllowlistToUri(context: Context, targetUri: Uri): Boolean = withContext(Dispatchers.IO) {
     val tempFile = File(context.cacheDir, "allowlist_backup_tmp.bin")
     try {
-        if (!copyAllowlistToFile(tempFile)) return@withContext false
-        return@withContext runCatching {
+        return@withContext copyAllowlistToFile(tempFile) && runCatching {
             context.contentResolver.openOutputStream(targetUri, "w")?.use { output ->
                 tempFile.inputStream().use { input ->
                     input.copyTo(output)
@@ -48,8 +47,7 @@ suspend fun restoreAllowlistFromUri(context: Context, sourceUri: Uri): Boolean =
                 true
             } ?: false
         }.getOrElse { false }
-        if (!downloaded) return@withContext false
-        return@withContext copyFileToAllowlist(tempFile)
+        return@withContext downloaded && copyFileToAllowlist(tempFile)
     } finally {
         tempFile.delete()
     }

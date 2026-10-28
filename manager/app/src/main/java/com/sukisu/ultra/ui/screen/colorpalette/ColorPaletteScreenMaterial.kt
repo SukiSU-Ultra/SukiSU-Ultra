@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -56,6 +57,7 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.FileDownload
@@ -189,18 +191,22 @@ fun ColorPaletteScreenMaterial(
 
             item {
                 val pickImageLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.OpenDocument()
+                    contract = ActivityResultContracts.PickVisualMedia()
                 ) { uri: Uri? ->
-                    uri?.let { actions.onSetCustomBackground(context, it) }
+                    uri?.let { actions.onPickCustomBackground(context, it) }
                 }
                 val hasCustomBg = uiState.customBackgroundUri.isNotEmpty()
 
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
-                        {
+                    content = buildList<@Composable () -> Unit> {
+                        add {
                             SegmentedListItem(
-                                onClick = { pickImageLauncher.launch(arrayOf("image/*")) },
+                                onClick = {
+                                    pickImageLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
                                 headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
                                 supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
                                 leadingContent = { IconTile(Icons.Rounded.Image, stringResource(id = R.string.settings_custom_background)) },
@@ -213,7 +219,17 @@ fun ColorPaletteScreenMaterial(
                                 } else null
                             )
                         }
-                    )
+                        if (hasCustomBg) {
+                            add {
+                                SegmentedListItem(
+                                    onClick = { actions.onCropCurrentBackground(context) },
+                                    headlineContent = { Text(stringResource(id = R.string.settings_crop_background)) },
+                                    supportingContent = { Text(stringResource(id = R.string.settings_crop_background_summary)) },
+                                    leadingContent = { IconTile(Icons.Rounded.Crop, stringResource(id = R.string.settings_crop_background)) },
+                                )
+                            }
+                        }
+                    }
                 )
 
                 if (hasCustomBg) {

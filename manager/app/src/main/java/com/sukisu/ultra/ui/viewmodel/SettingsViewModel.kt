@@ -171,14 +171,78 @@ class SettingsViewModel(
         }
     }
 
-    fun setCustomBackground(context: Context, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val savedPath = BgStorage.persist(context, uri) ?: return@launch
-            val seed = BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
-            repo.customBackgroundUri = savedPath
-            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
-            repo.keyColor = seed
-            _uiState.update { it.copy(customBackgroundUri = savedPath, keyColor = seed) }
+    /** Copies a newly picked image into the crop cache and hands its path to the crop screen. */
+    fun stagePickedBackground(context: Context, uri: Uri, onReady: (String?) -> Unit) {
+        viewModelScope.launch {
+            val path = BgStorage.stageUri(context, uri)
+            if (path == null) {
+                Toast.makeText(
+                    ksuApp,
+                    R.string.background_crop_prepare_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+            onReady(path)
+        }
+    }
+
+    /** Copies the current background so the user can re-crop it without losing the original. */
+    fun stageCurrentBackground(context: Context, onReady: (String?) -> Unit) {
+        viewModelScope.launch {
+            val current = repo.customBackgroundUri
+            val path = if (current.isNotEmpty()) {
+                BgStorage.stageFile(context, File(current))
+            } else {
+                null
+            }
+            if (path == null) {
+                Toast.makeText(
+                    ksuApp,
+                    R.string.background_crop_prepare_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+            onReady(path)
+        }
+    }
+
+    /** Applies the in-app or gallery crop result and refreshes the dynamic color seed. */
+    suspend fun finishBackgroundCrop(
+        context: Context,
+        output: File,
+        sourcePath: String?,
+    ): Boolean = withContext(Dispatchers.IO) {
+        val savedPath = BgStorage.replace(context, output) ?: return@withContext false
+        runCatching { if (output.isFile) output.delete() }
+        BgStorage.discardStaged(sourcePath)
+        val seed = BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
+        repo.customBackgroundUri = savedPath
+        repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+        repo.keyColor = seed
+        _uiState.update { it.copy(customBackgroundUri = savedPath, keyColor = seed) }
+        true
+    }
+
+    suspend fun applyOriginalBackground(context: Context, sourcePath: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val source = File(sourcePath)
+            if (!source.isFile) return@withContext false
+            finishBackgroundCrop(context, source, null)
+        }
+
+    /**
+     * Re-reads the appearance preferences. The crop screen owns a separate view model
+     * instance, so the theme screen needs this when it is resumed from the cropper.
+     */
+    fun refreshBackgroundAppearance() {
+        _uiState.update {
+            it.copy(
+                customBackgroundUri = repo.customBackgroundUri,
+                cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
+                customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
+                customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
+                keyColor = repo.keyColor,
+            )
         }
     }
 

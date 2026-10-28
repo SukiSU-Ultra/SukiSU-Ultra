@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
+import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.DesignServices
@@ -201,9 +203,9 @@ fun ColorPaletteScreenMiuix(
                     Spacer(modifier = Modifier.height(72.dp))
 
                     val pickImageLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.OpenDocument()
+                        contract = ActivityResultContracts.PickVisualMedia()
                     ) { uri: Uri? ->
-                        uri?.let { actions.onSetCustomBackground(context, it) }
+                        uri?.let { actions.onPickCustomBackground(context, it) }
                     }
                     val hasCustomBg = uiState.customBackgroundUri.isNotEmpty()
 
@@ -232,10 +234,29 @@ fun ColorPaletteScreenMiuix(
                                     )
                                 }
                             },
-                            onClick = { pickImageLauncher.launch(arrayOf("image/*")) }
+                            onClick = {
+                                pickImageLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
                         )
 
                         if (hasCustomBg) {
+                            HorizontalDivider()
+                            BasicComponent(
+                                title = stringResource(id = R.string.settings_crop_background),
+                                summary = stringResource(id = R.string.settings_crop_background_summary),
+                                startAction = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Crop,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_crop_background),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                onClick = { actions.onCropCurrentBackground(context) }
+                            )
+
                             // Drag locally so the thumb tracks the finger; commit to the preference
                             // once the gesture ends instead of on every frame.
                             var alphaPercent by remember(uiState.cardBackgroundAlphaPercent) {

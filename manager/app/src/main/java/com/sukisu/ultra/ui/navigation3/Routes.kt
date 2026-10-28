@@ -53,6 +53,11 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ColorPalette : Route
 
+    /** In-app background cropper. [sourcePath] is a private cache copy of the picked image. */
+    @Parcelize
+    @Serializable
+    data class BackgroundCrop(val sourcePath: String) : Route
+
     @Parcelize
     @Serializable
     data object AppProfileTemplate : Route

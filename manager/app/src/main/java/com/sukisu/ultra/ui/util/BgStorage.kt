@@ -9,10 +9,10 @@ import com.materialkolor.score.Score
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.IOException
 
 object BgStorage {
     private const val DIR_NAME = "backgrounds"
+    private const val CROP_DIR_NAME = "background_crop"
     private const val FILE_NAME = "bg_image"
 
     const val CARD_ALPHA_MIN = 10
@@ -31,23 +31,65 @@ object BgStorage {
     const val BACKGROUND_SCRIM_MAX = 100
     const val DEFAULT_BACKGROUND_SCRIM = -35
 
-    suspend fun persist(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
-        runCatching {
-            val targetFile = prepareFile(context)
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                targetFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            } ?: return@runCatching null
-            targetFile.absolutePath
-        }.getOrNull()
-    }
-
     suspend fun clear(context: Context) = withContext(Dispatchers.IO) {
         val targetFile = prepareFile(context)
         if (targetFile.exists()) {
             targetFile.delete()
         }
+    }
+
+    /**
+     * Copies a picked image into the crop cache. The crop screen and the vendor gallery
+     * both work on this private copy so a picker URI never has to stay readable.
+     */
+    suspend fun stageUri(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val target = File.createTempFile("source_", ".img", cropCacheDir(context))
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                target.outputStream().use { output -> input.copyTo(output) }
+            } ?: run {
+                target.delete()
+                return@runCatching null
+            }
+            if (target.length() == 0L) {
+                target.delete()
+                null
+            } else {
+                target.absolutePath
+            }
+        }.getOrNull()
+    }
+
+    /** Copies an already stored image (for example the current background) into the crop cache. */
+    suspend fun stageFile(context: Context, source: File): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            if (!source.isFile) return@runCatching null
+            val target = File.createTempFile("source_", ".img", cropCacheDir(context))
+            source.inputStream().use { input ->
+                target.outputStream().use { output -> input.copyTo(output) }
+            }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    /** Creates the destination the vendor gallery cropper should write its result to. */
+    fun newCropOutput(context: Context): File =
+        File.createTempFile("crop_", ".jpg", cropCacheDir(context))
+
+    fun discardStaged(path: String?) {
+        if (path.isNullOrEmpty()) return
+        runCatching {
+            val file = File(path)
+            if (file.isFile) file.delete()
+        }
+    }
+
+    private fun cropCacheDir(context: Context): File {
+        val dir = File(context.cacheDir, CROP_DIR_NAME)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        return dir
     }
 
     /** Moves [source] over the stored background image and returns the new path. */

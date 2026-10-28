@@ -708,6 +708,46 @@
     <string name="temporary_root_custom_range">請輸入 1～10080 分鐘（最多 7 天）</string>
     <string name="settings_check_ci_update">檢查 CI 版本更新</string>
     <string name="settings_check_ci_update_summary">在首頁檢查 main 分支的 CI 建置，有新版本時提示更新</string>
+<<<<<<< HEAD
+=======
+    <string name="settings_custom_background">自定義背景</string>
+    <string name="settings_custom_background_summary">選擇圖片後可調整裁切區域</string>
+    <string name="settings_crop_background">重新裁切背景</string>
+    <string name="settings_crop_background_summary">調整背景可見區域，或使用相簿裁切</string>
+    <string name="background_crop_title">裁切背景</string>
+    <string name="background_crop_done">完成</string>
+    <string name="background_crop_use_original">使用原圖</string>
+    <string name="background_crop_gallery">相簿裁切</string>
+    <string name="background_crop_rotate">旋轉</string>
+    <string name="background_crop_reset">重設</string>
+    <string name="background_crop_hint">拖曳調整位置，雙指縮放</string>
+    <string name="background_crop_ratio_screen">螢幕</string>
+    <string name="background_crop_failed">裁切失敗，請重試</string>
+    <string name="background_crop_gallery_failed">相簿未傳回圖片</string>
+    <string name="background_crop_prepare_failed">無法讀取所選圖片</string>
+    <string name="settings_card_background_alpha">卡片不透明度</string>
+    <string name="settings_card_background_alpha_summary">調節背景卡片不透明度（%d%%）</string>
+    <string name="settings_background_blur">背景模糊</string>
+    <string name="settings_background_blur_summary">調節自定義背景的模糊程度（%d%%）</string>
+    <string name="settings_background_scrim">背景遮罩</string>
+    <string name="settings_background_scrim_summary">調節背景遮罩的明暗（%d%%）</string>
+    <string name="settings_background_scrim_darker">變暗</string>
+    <string name="settings_background_scrim_lighter">變亮</string>
+    <string name="theme_export">匯出主題包</string>
+    <string name="theme_export_summary">將目前主題與背景儲存為 .zip 主題包</string>
+    <string name="theme_import">匯入主題包</string>
+    <string name="theme_import_summary">套用由 SukiSU 匯出的主題包</string>
+    <string name="theme_reset">恢復預設</string>
+    <string name="theme_reset_summary">重設卡片不透明度、背景模糊與遮罩</string>
+    <string name="theme_reset_confirm_title">恢復預設外觀？</string>
+    <string name="theme_reset_confirm_message">卡片不透明度、背景模糊與遮罩將恢復預設，主題配色、動態顏色與自訂背景圖片會保留。</string>
+    <string name="theme_export_success">已匯出主題包</string>
+    <string name="theme_export_failed">匯出主題包失敗</string>
+    <string name="theme_import_success">已匯入主題包</string>
+    <string name="theme_import_failed">無效的主題包</string>
+    <string name="theme_reset_done">已恢復預設外觀</string>
+    <string name="settings_clear">清除</string>
+>>>>>>> 9910f6dfe (manager: add built-in and gallery cropping for custom backgrounds)
     <string name="version_spoof_warning">注意：這些設定會改變核心實際回傳的 SukiSU 版本資訊，不只是修改介面顯示。版本號或 UAPI 與編譯值不一致，可能導致 Manager 誤判相容性，並影響安裝與更新。可隨時還原核心編譯值。</string>
     <string name="version_spoof_hint">欄位顯示目前生效值，下方會標示核心編譯時的原始值。修改後會儲存，並在開機時重新套用（安全模式除外）。其他應用程式可能會快取版本資訊；若顯示未更新，請重新啟動該應用程式。完整版本字串最長 254 個 UTF-8 位元組。</string>
     <string name="version_spoof_code">SukiSU 數字版本號</string>
