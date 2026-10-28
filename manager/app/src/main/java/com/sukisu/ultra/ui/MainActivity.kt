@@ -586,7 +586,11 @@ fun MainScreen(
         UiMode.Material -> MaterialTheme.colorScheme.surfaceContainer // Matches the Material page background behind the glass bar
         UiMode.Miuix -> MiuixTheme.colorScheme.surface
     }
-    val blurBackdrop = rememberBlurBackdrop(enableBlur)
+    // This backdrop only feeds the standard Miuix navigation bar. The floating bars use
+    // `backdrop` for their liquid glass, and Material never consumes it; attaching it there
+    // would record the pager into a full-screen layer every frame with no reader.
+    val needsStandardMiuixBarBackdrop = uiMode == UiMode.Miuix && !enableFloatingBottomBar
+    val blurBackdrop = rememberBlurBackdrop(enableBlur && needsStandardMiuixBarBackdrop)
 
     val backdrop = rememberLayerBackdrop {
         if (!hasCustomBackground) {

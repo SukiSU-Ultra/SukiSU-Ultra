@@ -20,6 +20,10 @@ private const val MAX_SOURCE_DIMENSION = 2560
 /** Crops are rendered at most at this longest edge. */
 private const val MAX_OUTPUT_DIMENSION = 2560
 
+/** Keep the transient bitmaps smaller on low-RAM devices. */
+private const val LOW_RAM_SOURCE_DIMENSION = 2048
+private const val LOW_RAM_OUTPUT_DIMENSION = 2048
+
 private const val JPEG_QUALITY = 95
 
 const val CROP_MAX_ZOOM = 8f
@@ -30,16 +34,6 @@ data class CropTransform(
 )
 
 data class OrientedImageSize(val width: Int, val height: Int)
-
-data class CropRect(
-    val left: Float,
-    val top: Float,
-    val right: Float,
-    val bottom: Float,
-) {
-    val width: Float get() = right - left
-    val height: Float get() = bottom - top
-}
 
 fun orientedImageSize(bitmap: Bitmap, quarterTurns: Int): OrientedImageSize {
     val turns = normalizeTurns(quarterTurns)
@@ -83,15 +77,16 @@ fun clampCropTransform(
  * Loads a crop source, applying the EXIF orientation so the editor and both crop paths
  * see the same upright image.
  */
-fun loadCropSource(file: File): Bitmap? {
+fun loadCropSource(file: File, lowRam: Boolean = false): Bitmap? {
     if (!file.isFile) return null
+    val maxDimension = if (lowRam) LOW_RAM_SOURCE_DIMENSION else MAX_SOURCE_DIMENSION
     return runCatching {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
 
         var sampleSize = 1
-        while (max(bounds.outWidth, bounds.outHeight) / sampleSize > MAX_SOURCE_DIMENSION) {
+        while (max(bounds.outWidth, bounds.outHeight) / sampleSize > maxDimension) {
             sampleSize *= 2
         }
         val options = BitmapFactory.Options().apply {
@@ -110,45 +105,59 @@ fun loadCropSource(file: File): Bitmap? {
     }.getOrNull()
 }
 
-/** Produces the bitmap for the current viewport, up to [MAX_OUTPUT_DIMENSION] on its longest edge. */
+/**
+ * Renders exactly what the crop editor shows, without allocating an intermediate rotated
+ * bitmap. The source is drawn once into the output through the same transform used by
+ * [CropViewport]; on a rotated crop the old implementation kept a rotated copy plus a
+ * cropped copy alive, which was the main memory peak for large images.
+ */
 fun renderCroppedBitmap(
     source: Bitmap,
     quarterTurns: Int,
     transform: CropTransform,
     viewport: Size,
+    lowRam: Boolean = false,
 ): Bitmap? {
     if (source.isRecycled || viewport.width <= 0f || viewport.height <= 0f) return null
     val turns = normalizeTurns(quarterTurns)
-    val oriented = runCatching {
-        if (turns == 0) source else rotateBitmap(source, turns)
-    }.getOrNull() ?: return null
+    val imageSize = orientedImageSize(source, turns)
+    val scale = coverScale(viewport, imageSize) * transform.zoom
+    if (!scale.isFinite() || scale <= 0f) return null
 
-    val result = runCatching {
-        val imageSize = OrientedImageSize(oriented.width, oriented.height)
-        val matrix = cropMatrix(viewport, imageSize, transform, turns)
-        val inverse = Matrix()
-        if (!matrix.invert(inverse)) return@runCatching null
-        val crop = viewportCropRect(inverse, viewport, imageSize)
-        if (crop.width < 1f || crop.height < 1f) return@runCatching null
+    val viewportMax = max(viewport.width, viewport.height)
+    val maxOutput = (if (lowRam) LOW_RAM_OUTPUT_DIMENSION else MAX_OUTPUT_DIMENSION).toFloat()
+    // Do not upscale beyond the source pixels that are visible in the crop frame.
+    val visibleSourceMax = viewportMax / scale
+    val outputScale = min(maxOutput, visibleSourceMax) / viewportMax
+    if (!outputScale.isFinite() || outputScale <= 0f) return null
 
-        val outputScale = min(1f, MAX_OUTPUT_DIMENSION / max(crop.width, crop.height))
-        val outWidth = (crop.width * outputScale).roundToInt().coerceAtLeast(1)
-        val outHeight = (crop.height * outputScale).roundToInt().coerceAtLeast(1)
+    val outWidth = (viewport.width * outputScale).roundToInt().coerceAtLeast(1)
+    val outHeight = (viewport.height * outputScale).roundToInt().coerceAtLeast(1)
+
+    return runCatching {
         val output = Bitmap.createBitmap(outWidth, outHeight, Bitmap.Config.ARGB_8888)
-        val drawMatrix = Matrix().apply {
-            postTranslate(-crop.left, -crop.top)
-            postScale(outWidth / crop.width, outHeight / crop.height)
+        val canvas = Canvas(output)
+        // Map output pixels back to the editor's viewport, then apply the same source transform
+        // the editor uses: centre the source, scale to cover, rotate, place in the viewport.
+        canvas.scale(outputScale, outputScale)
+        val matrix = Matrix().apply {
+            postTranslate(-source.width / 2f, -source.height / 2f)
+            postScale(scale, scale)
+            postRotate(turns * 90f)
+            postTranslate(
+                viewport.width / 2f + transform.offset.x,
+                viewport.height / 2f + transform.offset.y,
+            )
         }
-        Canvas(output).drawBitmap(
-            oriented,
-            drawMatrix,
+        canvas.concat(matrix)
+        canvas.drawBitmap(
+            source,
+            0f,
+            0f,
             Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG),
         )
         output
     }.getOrNull()
-
-    if (oriented !== source) oriented.recycle()
-    return result
 }
 
 fun saveCropBitmap(bitmap: Bitmap, file: File): Boolean = runCatching {
@@ -158,64 +167,7 @@ fun saveCropBitmap(bitmap: Bitmap, file: File): Boolean = runCatching {
     }
 }.getOrDefault(false)
 
-private fun cropMatrix(
-    viewport: Size,
-    image: OrientedImageSize,
-    transform: CropTransform,
-    quarterTurns: Int,
-): Matrix {
-    val scale = coverScale(viewport, image) * transform.zoom
-    return Matrix().apply {
-        postTranslate(-image.width / 2f, -image.height / 2f)
-        postScale(scale, scale)
-        postRotate(quarterTurns * 90f)
-        postTranslate(
-            viewport.width / 2f + transform.offset.x,
-            viewport.height / 2f + transform.offset.y,
-        )
-    }
-}
-
-private fun viewportCropRect(
-    inverse: Matrix,
-    viewport: Size,
-    image: OrientedImageSize,
-): CropRect {
-    val points = floatArrayOf(
-        0f, 0f,
-        viewport.width, 0f,
-        viewport.width, viewport.height,
-        0f, viewport.height,
-    )
-    inverse.mapPoints(points)
-    var left = points[0]
-    var top = points[1]
-    var right = points[0]
-    var bottom = points[1]
-    var index = 2
-    while (index < points.size) {
-        val x = points[index]
-        val y = points[index + 1]
-        left = min(left, x)
-        top = min(top, y)
-        right = max(right, x)
-        bottom = max(bottom, y)
-        index += 2
-    }
-    return CropRect(
-        left = left.coerceIn(0f, image.width.toFloat()),
-        top = top.coerceIn(0f, image.height.toFloat()),
-        right = right.coerceIn(0f, image.width.toFloat()),
-        bottom = bottom.coerceIn(0f, image.height.toFloat()),
-    )
-}
-
 private fun normalizeTurns(turns: Int): Int = ((turns % 4) + 4) % 4
-
-private fun rotateBitmap(source: Bitmap, quarterTurns: Int): Bitmap {
-    val matrix = Matrix().apply { postRotate(quarterTurns * 90f) }
-    return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
-}
 
 private fun readExifOrientation(file: File): Int = runCatching {
     ExifInterface(file.absolutePath).getAttributeInt(

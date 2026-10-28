@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.util
 
+import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -41,6 +42,17 @@ object BgStorage {
 
     /** Blur radius applied to the background image at 100%. */
     const val BACKGROUND_BLUR_MAX_RADIUS_DP = 40f
+
+    /**
+     * Full-screen wallpaper blur is a noticeable GPU cost on low-RAM devices, so new installs
+     * and "restore defaults" start without it there. Existing preferences are left untouched.
+     */
+    fun defaultBackgroundBlurPercent(context: Context): Int =
+        if ((context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager)?.isLowRamDevice == true) {
+            0
+        } else {
+            DEFAULT_BACKGROUND_BLUR_PERCENT
+        }
 
     /** Scrim opacity: negative values darken with black, positive values brighten with white. */
     const val BACKGROUND_SCRIM_MIN = -100

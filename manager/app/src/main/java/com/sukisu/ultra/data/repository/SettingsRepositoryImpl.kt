@@ -69,7 +69,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) = prefs.edit { putInt("card_bg_alpha_percent", value) }
 
     override var customBackgroundBlurPercent: Int
-        get() = prefs.getInt("custom_bg_blur_percent", BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT)
+        get() = prefs.getInt(
+            "custom_bg_blur_percent",
+            BgStorage.defaultBackgroundBlurPercent(ksuApp),
+        )
         set(value) = prefs.edit {
             putInt(
                 "custom_bg_blur_percent",

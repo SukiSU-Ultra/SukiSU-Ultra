@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.backgroundcrop
 
 import android.app.Activity
+import android.app.ActivityManager
+import android.content.Context
 import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -111,6 +113,9 @@ fun BackgroundCropScreen(sourcePath: String) {
     val (aspectX, aspectY) = selectedRatio.aspectPair(screenWidth, screenHeight)
     val viewportAspect = aspectX.toFloat() / aspectY.toFloat()
     val galleryCropAvailable = remember(context) { ExternalCropper.isAvailable(context) }
+    val lowRam = remember(context) {
+        (context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager)?.isLowRamDevice == true
+    }
 
     BackHandler(enabled = saving) {}
 
@@ -119,7 +124,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     }
 
     LaunchedEffect(sourcePath) {
-        val loaded = withContext(Dispatchers.IO) { loadCropSource(File(sourcePath)) }
+        val loaded = withContext(Dispatchers.IO) { loadCropSource(File(sourcePath), lowRam) }
         loading = false
         if (loaded == null) {
             Toast.makeText(context, R.string.background_crop_failed, Toast.LENGTH_SHORT).show()
@@ -192,8 +197,13 @@ fun BackgroundCropScreen(sourcePath: String) {
             val transform = controller.transform
             scope.launch {
                 val output = withContext(Dispatchers.IO) {
-                    val cropped = renderCroppedBitmap(current, turns, transform, viewport)
-                        ?: return@withContext null
+                    val cropped = renderCroppedBitmap(
+                        source = current,
+                        quarterTurns = turns,
+                        transform = transform,
+                        viewport = viewport,
+                        lowRam = lowRam,
+                    ) ?: return@withContext null
                     val file = BgStorage.newCropOutput(context)
                     val saved = saveCropBitmap(cropped, file)
                     cropped.recycle()

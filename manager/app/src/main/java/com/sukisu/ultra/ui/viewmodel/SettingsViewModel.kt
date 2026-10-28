@@ -493,15 +493,16 @@ class SettingsViewModel(
 
     fun resetBackgroundAppearance() {
         viewModelScope.launch {
+            val defaultBlur = BgStorage.defaultBackgroundBlurPercent(ksuApp)
             repo.cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA
-            repo.customBackgroundBlurPercent = BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT
+            repo.customBackgroundBlurPercent = defaultBlur
             repo.customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM
 
             // Theme colors, dynamic color and the custom background image are user choices.
             _uiState.update {
                 it.copy(
                     cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA,
-                    customBackgroundBlurPercent = BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT,
+                    customBackgroundBlurPercent = defaultBlur,
                     customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM,
                 )
             }
