@@ -22,15 +22,16 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
@@ -50,11 +51,13 @@ fun UmountManagerMiuix(
     actions: UmountManagerActions,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             TopAppBar(
                 title = stringResource(R.string.umount_path_manager),
+                color = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
                 navigationIcon = {
                     IconButton(onClick = actions.onBack) {
                         val layoutDirection = LocalLayoutDirection.current
@@ -98,7 +101,7 @@ fun UmountManagerMiuix(
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            Card(
+            AppCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
@@ -188,7 +191,7 @@ private fun UmountPathCardMiuix(
 ) {
     val context = LocalContext.current
 
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(

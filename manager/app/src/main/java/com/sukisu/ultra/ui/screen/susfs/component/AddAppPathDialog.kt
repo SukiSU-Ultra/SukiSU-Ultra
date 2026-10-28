@@ -18,7 +18,9 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.AppIconImage
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.screen.susfs.util.AppInfo
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TextField as MiuixTextField
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
@@ -107,8 +109,8 @@ fun AddAppPathDialog(
                         }
                     }
                     if (miuix) {
-                        top.yukonga.miuix.kmp.basic.Card(
-                            colors = top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(color = if (checked) MiuixTheme.colorScheme.secondaryContainer else MiuixTheme.colorScheme.surfaceContainer),
+                        AppCard(
+                            colors = top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(color = if (checked) MiuixTheme.colorScheme.secondaryContainer else backgroundAwareColor(MiuixTheme.colorScheme.surfaceContainer)),
                         ) { row() }
                     } else {
                         Surface(shape = RoundedCornerShape(20.dp), color = if (checked) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow) { row() }

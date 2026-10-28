@@ -16,8 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
@@ -167,7 +167,7 @@ fun DescriptionCardMiuix(
     warning: String? = null,
     additionalInfo: String? = null
 ) {
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(
             color = colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -248,7 +248,7 @@ fun EmptyStateCardMiuix(
     message: String,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(
             color = colorScheme.surfaceVariant.copy(alpha = 0.15f)
@@ -278,7 +278,7 @@ fun SectionHeaderMiuix(
     icon: ImageVector,
     count: Int
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(
             color = colorScheme.surfaceVariant.copy(alpha = 0.25f)

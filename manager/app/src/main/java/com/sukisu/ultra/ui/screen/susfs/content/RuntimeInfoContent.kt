@@ -11,8 +11,9 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.screen.susfs.SuSFSRuntimeInfo
-import top.yukonga.miuix.kmp.basic.Card
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -47,6 +48,10 @@ internal fun RuntimeInfoContent(info: SuSFSRuntimeInfo?) {
             }
         }
     }
-    if (miuix) Card(Modifier.fillMaxWidth()) { body() }
-    else Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerLow) { body() }
+    if (miuix) AppCard(Modifier.fillMaxWidth()) { body() }
+    else Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerLow),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) { body() }
 }

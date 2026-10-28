@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.BackupRestoreComponentMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.DescriptionCardMiuix
 import com.sukisu.ultra.ui.screen.susfs.component.miuix.ResetButtonMiuix
@@ -86,7 +87,7 @@ fun BasicSettingsContentMiuix(
         enabled = !isLoading
     )
 
-    Card(
+    AppCard(
         modifier = Modifier
 
             .fillMaxWidth(),
@@ -119,7 +120,7 @@ fun BasicSettingsContentMiuix(
     }
 
     if (isAbDevice) {
-        Card(
+        AppCard(
             modifier = Modifier
 
                 .fillMaxWidth(),
@@ -169,7 +170,7 @@ fun BasicSettingsContentMiuix(
     }
 
     // Cmdline / Bootconfig 卡片
-    Card(
+    AppCard(
         modifier = Modifier
 
             .fillMaxWidth(),
@@ -189,7 +190,7 @@ fun BasicSettingsContentMiuix(
                 color = colorScheme.onSurfaceVariantSummary,
                 lineHeight = 16.sp
             )
-            Card(
+            AppCard(
                 colors = CardDefaults.defaultColors(
                     color = colorScheme.surfaceVariant.copy(alpha = 0.3f)
                 )

@@ -45,7 +45,10 @@ import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.script.PreparedScript
 import com.sukisu.ultra.data.script.ScriptParam
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.EditText
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.ShellHighlightColors
@@ -53,12 +56,10 @@ import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.rememberShellHighlight
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
@@ -84,9 +85,10 @@ internal fun ScriptRunScreenMiuix(
     val enableBlur = LocalEnableBlur.current
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop(enableBlur)
-    val barColor = if (backdrop != null) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (backdrop != null || hasCustomBackground) Color.Transparent else colorScheme.surface
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             TopBar(
                 onBack = actions.onBack,
@@ -127,7 +129,7 @@ internal fun ScriptRunScreenMiuix(
             ) {
                 item {
                     if (prepared == null) {
-                        Card(modifier = Modifier.fillMaxWidth()) {
+                        AppCard(modifier = Modifier.fillMaxWidth()) {
                             BasicComponent(
                                 title = stringResource(R.string.script_error_title),
                                 summary = state.error,
@@ -164,7 +166,7 @@ internal fun ScriptRunScreenMiuix(
 private fun ScriptInfoMiuix(state: ScriptRunUiState, prepared: PreparedScript, actions: ScriptRunActions) {
     val context = LocalContext.current
     val manifest = prepared.manifest
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         BasicComponent(
             title = manifest.name,
             summary = buildString {
@@ -186,7 +188,7 @@ private fun ScriptInfoMiuix(state: ScriptRunUiState, prepared: PreparedScript, a
 /** A local ZIP can still be installed as a module, also when it cannot be run as a script. */
 @Composable
 private fun InstallAnywayCardMiuix(actions: ScriptRunActions) {
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(top = 12.dp)
             .fillMaxWidth()
@@ -207,7 +209,7 @@ private fun ParamsFormMiuix(state: ScriptRunUiState, prepared: PreparedScript, a
     val params = prepared.params.params
     if (params.isEmpty()) return
     SmallTitle(text = stringResource(R.string.script_params), modifier = Modifier.padding(top = 6.dp))
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         params.forEach { param ->
             val value = state.values[param.key] ?: param.defaultValue
             val error = state.errors[param.key]
@@ -249,7 +251,7 @@ private fun ParamsFormMiuix(state: ScriptRunUiState, prepared: PreparedScript, a
 @Composable
 private fun SourceSectionMiuix(prepared: PreparedScript) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(top = 12.dp)
             .fillMaxWidth()

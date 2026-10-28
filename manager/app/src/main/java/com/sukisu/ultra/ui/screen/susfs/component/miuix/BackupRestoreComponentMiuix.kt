@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.screen.susfs.util.BackupData
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import kotlinx.coroutines.launch
@@ -185,7 +186,7 @@ fun BackupRestoreComponentMiuix(
         }
     )
 
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(top = 12.dp)
             .fillMaxWidth(),
@@ -356,7 +357,7 @@ private fun RestoreConfirmDialogMiuix(
                 ) {
                     Text(stringResource(R.string.susfs_restore_confirm_description))
 
-                    Card(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Column(

@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
@@ -34,14 +35,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KeyEventBlocker
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.kernelFlash.state.FlashState
-import top.yukonga.miuix.kmp.basic.Card
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -59,6 +61,7 @@ fun KernelFlashMiuix(
     kpmUndoPatch: Boolean
 ) {
     val scrollState = rememberScrollState()
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
 
     BackHandler {
         actions.onBack()
@@ -68,7 +71,7 @@ fun KernelFlashMiuix(
         it.key == Key.VolumeDown || it.key == Key.VolumeUp
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             SmallTopAppBar(
                 title = stringResource(
@@ -78,6 +81,7 @@ fun KernelFlashMiuix(
                         else -> R.string.kernel_flashing
                     }
                 ),
+                color = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
                 navigationIcon = {
                     IconButton(
                         modifier = Modifier.padding(start = 16.dp),
@@ -130,12 +134,11 @@ fun KernelFlashMiuix(
                 .scrollEndHaptic(),
         ) {
             FlashProgressIndicatorMiuix(state, kpmPatchEnabled, kpmUndoPatch)
-            Card(
+            AppCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                colors = CardDefaults.defaultColors(color = colorScheme.surfaceContainer),
             ) {
                 Box(modifier = Modifier.verticalScroll(scrollState)) {
                     LaunchedEffect(logText) {
@@ -171,7 +174,7 @@ private fun FlashProgressIndicatorMiuix(
         label = "FlashProgress"
     )
 
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)

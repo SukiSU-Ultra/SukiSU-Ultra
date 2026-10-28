@@ -9,7 +9,7 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
-import top.yukonga.miuix.kmp.basic.Card
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 @Composable
@@ -93,7 +93,7 @@ fun FeatureTogglesContent(
 
         }
         UiMode.Miuix -> {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            AppCard(modifier = Modifier.fillMaxWidth()) {
                 SwitchPreference(
                     title = stringResource(R.string.susfs_enable_log_label),
                     summary = stringResource(R.string.susfs_log_config_description),

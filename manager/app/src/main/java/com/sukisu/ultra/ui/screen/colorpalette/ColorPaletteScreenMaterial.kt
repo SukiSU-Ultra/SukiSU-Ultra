@@ -75,7 +75,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -112,7 +111,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
 import com.sukisu.ultra.ui.component.material.ExpressiveConfirmDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
-import com.sukisu.ultra.ui.component.material.ExpressiveSlider
+import com.sukisu.ultra.ui.component.material.CapsuleSlider
 import com.sukisu.ultra.ui.component.material.ExpressiveToggleButton
 import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
@@ -262,7 +261,7 @@ fun ColorPaletteScreenMaterial(
                                 ),
                             )
                             Spacer(Modifier.height(8.dp))
-                            ExpressiveSlider(
+                            CapsuleSlider(
                                 state = alphaSliderState,
                                 onValueChangeFinished = {
                                     val percent = alphaSliderState.value.roundToInt()
@@ -281,7 +280,7 @@ fun ColorPaletteScreenMaterial(
                                 ),
                             )
                             Spacer(Modifier.height(8.dp))
-                            ExpressiveSlider(
+                            CapsuleSlider(
                                 state = blurSliderState,
                                 onValueChangeFinished = {
                                     val percent = blurSliderState.value.roundToInt()
@@ -300,7 +299,7 @@ fun ColorPaletteScreenMaterial(
                                 ),
                             )
                             Spacer(Modifier.height(8.dp))
-                            ExpressiveSlider(
+                            CapsuleSlider(
                                 state = scrimSliderState,
                                 onValueChangeFinished = {
                                     val percent = scrimSliderState.value.roundToInt()
@@ -602,7 +601,7 @@ fun ColorPaletteScreenMaterial(
                             )
                         }
 
-                        Slider(
+                        CapsuleSlider(
                             state = sliderState,
                             onValueChangeFinished = { actions.onSetPageScale(sliderState.value) },
                             modifier = Modifier.fillMaxWidth()
@@ -654,7 +653,7 @@ fun ColorPaletteScreenMaterial(
                             )
                         }
 
-                        Slider(
+                        CapsuleSlider(
                             state = sliderState,
                             onValueChangeFinished = {
                                 actions.onSetModuleDescriptionMaxLines(sliderState.value.roundToInt())

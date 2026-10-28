@@ -18,6 +18,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 
 @Composable
 internal fun VersionSpoofMaterial(
@@ -84,7 +85,11 @@ internal fun VersionSpoofMaterial(
 
 @Composable
 private fun MaterialVersionSection(title: Int, content: @Composable ColumnScope.() -> Unit) {
-    Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+    Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerLow),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(stringResource(title), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             content()

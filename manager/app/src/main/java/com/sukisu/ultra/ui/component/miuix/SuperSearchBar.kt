@@ -68,6 +68,7 @@ import androidx.navigationevent.compose.rememberNavigationEventState
 import com.sukisu.ultra.ui.component.SearchStatus
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.Text
@@ -272,7 +273,7 @@ fun SearchBar(
             .padding(horizontal = 12.dp)
             .padding(top = searchBarTopPadding, bottom = 6.dp)
             .heightIn(min = 45.dp)
-            .background(colorScheme.surfaceContainerHigh, CircleShape)
+            .background(backgroundAwareColor(colorScheme.surfaceContainerHigh), CircleShape)
             .focusRequester(focusRequester),
         decorationBox = { innerTextField ->
             Row(
@@ -345,6 +346,7 @@ fun SearchBarFake(
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
             .padding(top = searchBarTopPadding, bottom = 6.dp),
+        color = backgroundAwareColor(colorScheme.surfaceContainerHigh),
         onSearch = { },
         enabled = false,
         expanded = false,

@@ -27,19 +27,21 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.viewmodel.ExtensionItem
 import com.sukisu.ultra.ui.viewmodel.ExtensionsUiState
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -57,11 +59,13 @@ fun ExtensionsScreenMiuix(
     onToggle: (ExtensionItem, Boolean) -> Unit,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             TopAppBar(
                 title = stringResource(R.string.extension_section_title),
+                color = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -106,7 +110,7 @@ fun ExtensionsScreenMiuix(
                     color = colorScheme.onBackground.copy(alpha = 0.75f),
                 )
             }
-            return@Scaffold
+            return@AppScaffold
         }
 
         val listState = rememberLazyListState()
@@ -173,7 +177,7 @@ private fun ExtensionCardMiuix(
         colorScheme.disabledOnSecondaryVariant
     }
 
-    Card(
+    AppCard(
         modifier = modifier
             .padding(top = 12.dp)
             .fillMaxWidth(),

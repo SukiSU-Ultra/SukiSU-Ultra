@@ -17,6 +17,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.component.material.BackupRestoreComponentMaterial
 import com.sukisu.ultra.ui.screen.susfs.component.material.DescriptionCardMaterial
 import com.sukisu.ultra.ui.screen.susfs.component.material.ResetButtonMaterial
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.isAbDevice
 
 @Composable
@@ -73,14 +74,20 @@ fun BasicSettingsContentMaterial(
                     onClick = { onExecuteInPostFsDataChange(false) },
                     label = { Text(stringResource(R.string.susfs_execution_location_service)) },
                     enabled = !isLoading,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = backgroundAwareColor(MaterialTheme.colorScheme.secondaryContainer),
+                    ),
                 )
                 FilterChip(
                     selected = executeInPostFsData,
                     onClick = { onExecuteInPostFsDataChange(true) },
                     label = { Text(stringResource(R.string.susfs_execution_location_post_fs_data)) },
                     enabled = !isLoading,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = backgroundAwareColor(MaterialTheme.colorScheme.secondaryContainer),
+                    ),
                 )
             }
         }
@@ -93,7 +100,11 @@ fun BasicSettingsContentMaterial(
         label = { Text(stringResource(R.string.susfs_uname_label)) },
         modifier = Modifier.fillMaxWidth(),
         enabled = !isLoading,
-        singleLine = true
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+        ),
     )
 
     // 构建时间输入框
@@ -103,7 +114,11 @@ fun BasicSettingsContentMaterial(
         label = { Text(stringResource(R.string.susfs_build_time_label)) },
         modifier = Modifier.fillMaxWidth(),
         enabled = !isLoading,
-        singleLine = true
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+        ),
     )
 
     // 当前值显示

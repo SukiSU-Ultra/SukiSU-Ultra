@@ -84,7 +84,10 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.ScaleDialog
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.keyColorOptions
 import com.sukisu.ultra.ui.util.BlurredBar
@@ -92,18 +95,18 @@ import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SliderDefaults
 import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -125,7 +128,8 @@ fun ColorPaletteScreenMiuix(
     val enableBlurState = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlurState)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
     val uiState = state.uiState
     val currentColorMode = state.currentColorMode
     val isDark = currentColorMode.isDark || currentColorMode.isSystem && isSystemInDarkTheme()
@@ -141,7 +145,7 @@ fun ColorPaletteScreenMiuix(
         uri?.let { actions.onImportTheme(context, it) }
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
@@ -203,7 +207,7 @@ fun ColorPaletteScreenMiuix(
                     }
                     val hasCustomBg = uiState.customBackgroundUri.isNotEmpty()
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(bottom = 12.dp)
                             .fillMaxWidth(),
@@ -308,9 +312,13 @@ fun ColorPaletteScreenMiuix(
                         onTabSelected = { index ->
                             actions.onSetThemeMode(index)
                         },
+                        colors = TabRowDefaults.tabRowColors(
+                            backgroundColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
+                            selectedBackgroundColor = backgroundAwareColor(colorScheme.surfaceContainer),
+                        ),
                     )
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
@@ -416,7 +424,7 @@ fun ColorPaletteScreenMiuix(
                         }
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
@@ -491,7 +499,7 @@ fun ColorPaletteScreenMiuix(
                         )
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
@@ -643,7 +651,7 @@ fun ColorPaletteScreenMiuix(
                         )
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
@@ -685,7 +693,7 @@ fun ColorPaletteScreenMiuix(
                         )
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),

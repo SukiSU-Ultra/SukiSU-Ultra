@@ -18,6 +18,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
+import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
@@ -26,6 +30,7 @@ import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
@@ -41,9 +46,24 @@ internal fun SuSFSMiuix(
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
+    val cardAlpha = LocalCardBackgroundAlpha.current
+    val baseColors = colorScheme
+    // TextField and secondary Button defaults use these two roles; make them follow the
+    // card opacity so SuSFS controls don't render as opaque boxes over a custom background.
+    val contentColors = remember(baseColors, hasCustomBackground, cardAlpha) {
+        if (!hasCustomBackground) {
+            baseColors
+        } else {
+            baseColors.copy(
+                secondaryContainer = baseColors.secondaryContainer.copy(alpha = cardAlpha),
+                secondaryVariant = baseColors.secondaryVariant.copy(alpha = cardAlpha),
+            )
+        }
+    }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
@@ -80,7 +100,7 @@ internal fun SuSFSMiuix(
             overscrollEffect = null,
         ) {
             item {
-                Card(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                AppCard(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                     OverlayDropdownPreference(
                         title = stringResource(R.string.susfs_config_title),
                         items = SuSFSTab.entries.map { stringResource(it.displayNameRes) },
@@ -94,11 +114,15 @@ internal fun SuSFSMiuix(
                     }
                 }
                 uiState.error?.let {
-                    Card(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    AppCard(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                         Text(it.localizedMessage ?: stringResource(R.string.operation_failed), Modifier.padding(16.dp), color = colorScheme.error)
                     }
                 }
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { content() }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MiuixTheme(colors = contentColors) {
+                        content()
+                    }
+                }
                 Spacer(Modifier.height(24.dp))
             }
         }

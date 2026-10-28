@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -37,6 +36,7 @@ import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -44,7 +44,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun TemporaryRootPreferencesMiuix(labels: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
     // Settings' LazyColumn already supplies the 12 dp horizontal page inset.
     Column(Modifier.padding(top = 12.dp)) {
-        Card(
+        AppCard(
             modifier = Modifier.fillMaxWidth(),
             colors = backgroundAwareCardColors(),
         ) {
@@ -69,7 +69,7 @@ internal fun TemporaryRootControlsMiuix(
     onChoose: (Long?) -> Unit,
 ) {
     Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-        Card(Modifier.fillMaxWidth()) {
+        AppCard(Modifier.fillMaxWidth()) {
             SwitchPreference(
                 title = stringResource(R.string.temporary_root_title),
                 summary = stringResource(R.string.temporary_root_switch_summary),

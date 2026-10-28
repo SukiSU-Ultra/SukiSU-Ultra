@@ -5,6 +5,8 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -61,10 +63,8 @@ import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -94,7 +94,7 @@ fun SettingPagerMiuix(
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(
+    AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
@@ -120,7 +120,7 @@ fun SettingPagerMiuix(
                 overscrollEffect = null,
             ) {
                 item {
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
@@ -178,7 +178,7 @@ fun SettingPagerMiuix(
                     }
 
                     KsuIsValid {
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
@@ -199,7 +199,7 @@ fun SettingPagerMiuix(
                                 onClick = actions.onOpenProfileTemplate
                             )
                         }
-                        Card(
+                        AppCard(
                             modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
                         ) {
@@ -219,7 +219,7 @@ fun SettingPagerMiuix(
                             )
                         }
                         val toolsTitle = stringResource(id = R.string.settings_tools)
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
@@ -251,7 +251,7 @@ fun SettingPagerMiuix(
                             stringResource(id = R.string.settings_mode_disable_always),
                         )
 
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
@@ -450,7 +450,7 @@ fun SettingPagerMiuix(
                             )
                         }
 
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
@@ -518,7 +518,7 @@ fun SettingPagerMiuix(
                     }
 
                     if (uiState.isLkmMode) {
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
@@ -545,7 +545,7 @@ fun SettingPagerMiuix(
                         }
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .padding(vertical = 12.dp)
                             .fillMaxWidth(),

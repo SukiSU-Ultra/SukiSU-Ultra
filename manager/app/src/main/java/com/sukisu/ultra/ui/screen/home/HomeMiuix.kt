@@ -54,6 +54,8 @@ import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.WarningLevel
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopupMiuix
 import com.sukisu.ultra.ui.component.statustag.StatusTag
@@ -66,12 +68,10 @@ import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -98,7 +98,7 @@ fun HomePagerMiuix(
     val blurActive = backdrop != null
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
-    Scaffold(
+    AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             TopBar(
@@ -313,7 +313,7 @@ private fun ActiveStatusCard(
         else -> "Built-in"
     }
 
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(
             color = backgroundAwareColor(
@@ -406,7 +406,7 @@ private fun InactiveStatusCard(
     notInstalled: Boolean,
     onClick: () -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         colors = backgroundAwareCardColors(),
         onClick = onClick,
@@ -480,7 +480,7 @@ private fun StatsRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         tiles.forEach { (count, label, onClick) ->
-            Card(
+            AppCard(
                 modifier = Modifier.weight(1f),
                 colors = backgroundAwareCardColors(),
                 onClick = onClick,
@@ -518,7 +518,7 @@ private fun SupportLinks(
 ) {
     val learnMoreUrl = stringResource(R.string.home_learn_kernelsu_url)
 
-    Card(
+    AppCard(
         modifier = modifier,
         colors = backgroundAwareCardColors(),
     ) {
@@ -556,7 +556,7 @@ private fun SpecSheet(
     rows: List<Pair<String, String>>,
     modifier: Modifier = Modifier,
 ) {
-    Card(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
         colors = backgroundAwareCardColors(),
     ) {

@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.susfs.component.material
 
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -32,6 +33,10 @@ fun BottomActionButtonsMaterial(
                 onClick = onSecondaryClick,
                 enabled = !isLoading && enabled,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = backgroundAwareColor(MaterialTheme.colorScheme.secondaryContainer),
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
             ) { Text(secondaryButtonText) }
         }
     }
@@ -65,7 +70,8 @@ fun SectionHeaderMaterial(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerLow),
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Row(
@@ -116,7 +122,8 @@ fun EmptyStateCardMaterial(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerLow),
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Box(
@@ -156,7 +163,8 @@ fun DescriptionCardMaterial(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerLow),
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(

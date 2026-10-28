@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
@@ -42,8 +43,26 @@ fun MaterialKernelSUTheme(
 
     val animatedColorScheme = colorScheme.animateAsState()
 
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val cardAlpha = LocalCardBackgroundAlpha.current
+    // Default Card/Surface containers bypass backgroundAwareColor(), so apply the card opacity
+    // to the card surface roles themselves. Menu/dialog/sheet tokens stay opaque: making them
+    // translucent lets their elevation shadow show through (a dark rectangular halo behind the
+    // rounded popup).
+    val surfaceAwareColorScheme = remember(animatedColorScheme, hasCustomBackground, cardAlpha) {
+        if (!hasCustomBackground) {
+            animatedColorScheme
+        } else {
+            animatedColorScheme.copy(
+                surfaceBright = animatedColorScheme.surfaceBright.copy(alpha = cardAlpha),
+                surfaceContainerLowest = animatedColorScheme.surfaceContainerLowest.copy(alpha = cardAlpha),
+                surfaceContainerHighest = animatedColorScheme.surfaceContainerHighest.copy(alpha = cardAlpha),
+            )
+        }
+    }
+
     MaterialExpressiveTheme(
-        colorScheme = animatedColorScheme,
+        colorScheme = surfaceAwareColorScheme,
         motionScheme = MotionScheme.expressive(),
         shapes = Shapes,
         typography = Typography,

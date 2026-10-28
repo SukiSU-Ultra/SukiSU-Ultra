@@ -11,10 +11,14 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
@@ -23,8 +27,11 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun VersionSpoofMiuix(s: VersionSpoofState, a: VersionSpoofActions, version: String, uapi: String) {
     val scroll = MiuixScrollBehavior()
-    Scaffold(topBar = {
-        TopAppBar(title = stringResource(R.string.extension_version_spoof_title), scrollBehavior = scroll,
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    AppScaffold(topBar = {
+        TopAppBar(title = stringResource(R.string.extension_version_spoof_title),
+            color = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface,
+            scrollBehavior = scroll,
             navigationIcon = { IconButton(onClick = a.onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.version_spoof_back))
             } })
@@ -77,7 +84,7 @@ private fun VersionFeedbackMiuix(success: Boolean, message: String) {
     } else {
         MiuixTheme.colorScheme.onErrorContainer
     }
-    Card(
+    AppCard(
         insideMargin = PaddingValues(12.dp),
         colors = CardDefaults.defaultColors(color = container),
     ) {
@@ -104,7 +111,7 @@ private fun VersionFeedbackMiuix(success: Boolean, message: String) {
 
 @Composable
 private fun MiuixVersionSection(title: Int, content: @Composable ColumnScope.() -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    AppCard(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(stringResource(title), style = MiuixTheme.textStyles.title4, color = MiuixTheme.colorScheme.primary)
             content()

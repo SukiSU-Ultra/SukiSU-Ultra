@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.install
 
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.kernelFlash.KpmPatchOption
 
 import androidx.compose.animation.AnimatedVisibility
@@ -55,19 +57,19 @@ import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.LkmSelection
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.util.isAbDevice
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.SnackbarHost
@@ -107,7 +109,8 @@ internal fun InstallScreenMiuix(
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
     val isAbDevice by produceState(initialValue = false) {
         value = isAbDevice()
     }
@@ -115,7 +118,7 @@ internal fun InstallScreenMiuix(
         value = getKernelVersion().isGKI()
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             TopBar(
                 onBack = actions.onBack,
@@ -146,7 +149,7 @@ internal fun InstallScreenMiuix(
                 overscrollEffect = null,
             ) {
                 item {
-                    Card(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         SelectInstallMethod(
@@ -172,7 +175,7 @@ internal fun InstallScreenMiuix(
                         } else {
                             uiState.partitionSelectionIndex
                         }
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
@@ -202,7 +205,7 @@ internal fun InstallScreenMiuix(
                         enter = expandVertically(),
                         exit = shrinkVertically()
                     ) {
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
@@ -218,7 +221,7 @@ internal fun InstallScreenMiuix(
 
                     // LKM 上传（仅 GKI）
                     if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) {
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
@@ -271,7 +274,7 @@ internal fun InstallScreenMiuix(
                     }
 
                     if (uiState.canPatchKpm) {
-                        Card(
+                        AppCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
@@ -321,7 +324,7 @@ internal fun InstallScreenMiuix(
                         }
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp),
@@ -431,7 +434,7 @@ internal fun InstallScreenMiuix(
                     // AnyKernel3 刷写
                     (uiState.installMethod as? InstallMethod.HorizonKernel)?.let { method ->
                         if (isAbDevice && method.slot != null) {
-                            Card(
+                            AppCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 12.dp),
@@ -512,12 +515,12 @@ private fun SelectInstallMethod(
     ) {
         state.installMethodOptions.forEach { option ->
             val selected = state.installMethod?.let { option::class == it::class } ?: false
-            Card(
+            AppCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { role = Role.RadioButton; this.selected = selected },
                 colors = CardDefaults.defaultColors(
-                    color = if (selected) colorScheme.secondaryContainer else colorScheme.surfaceContainer
+                    color = if (selected) colorScheme.secondaryContainer else backgroundAwareColor(colorScheme.surfaceContainer)
                 ),
                 insideMargin = PaddingValues(0.dp),
                 onClick = { onClick(option) },

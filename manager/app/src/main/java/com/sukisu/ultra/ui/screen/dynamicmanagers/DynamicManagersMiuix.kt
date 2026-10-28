@@ -65,12 +65,15 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.AppIconImage
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.DynamicManagerState
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.FloatingActionButtonDefaults
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
@@ -78,10 +81,11 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PullToRefresh
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Switch
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TextFieldDefaults
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -107,9 +111,10 @@ internal fun DynamicManagersMiuix(
 
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
-    val barColor = if (blurActive) Color.Transparent else colorScheme.surface
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
@@ -255,9 +260,13 @@ internal fun DynamicManagersMiuix(
             properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
             LaunchedEffect(Unit) { searchFocusRequester.requestFocus() }
-            Card(
+            AppCard(
                 modifier = Modifier.fillMaxSize(),
                 insideMargin = PaddingValues(0.dp),
+                colors = CardDefaults.defaultColors(
+                    color = colorScheme.surface,
+                    contentColor = colorScheme.onSurface,
+                ),
                 onClick = null,
             ) {
                 Column(modifier = Modifier.fillMaxSize().imePadding()) {
@@ -282,6 +291,9 @@ internal fun DynamicManagersMiuix(
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(searchFocusRequester),
+                            colors = TextFieldDefaults.textFieldColors(
+                                backgroundColor = backgroundAwareColor(colorScheme.secondaryContainer),
+                            ),
                         )
                     }
                     if (busy && apps.isEmpty()) {
@@ -327,7 +339,7 @@ private fun StatusCard(
     error: String?,
     onSetEnabled: (Boolean) -> Unit,
 ) {
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .padding(bottom = 12.dp),
@@ -394,7 +406,7 @@ private fun ManagerCard(
     val tagBg = colorScheme.tertiaryContainer.copy(alpha = 0.6f)
     val tagTint = colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
 
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .padding(bottom = 12.dp),
@@ -506,7 +518,7 @@ private fun AppCandidateCard(
     val secondaryContainer = colorScheme.secondaryContainer.copy(alpha = 0.8f)
     val actionIconTint = colorScheme.onSurface.copy(alpha = if (isInDarkTheme()) 0.7f else 0.9f)
 
-    Card(
+    AppCard(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .padding(bottom = 12.dp),

@@ -17,6 +17,7 @@ import com.sukisu.ultra.ui.screen.susfs.component.material.DescriptionCardMateri
 import com.sukisu.ultra.ui.screen.susfs.component.material.EmptyStateCardMaterial
 import com.sukisu.ultra.ui.screen.susfs.component.material.ResetButtonMaterial
 import com.sukisu.ultra.ui.screen.susfs.component.material.SectionHeaderMaterial
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 
 @Composable
 fun PriorityUidFilterContentMaterial(
@@ -44,7 +45,10 @@ fun PriorityUidFilterContentMaterial(
             packages.sorted().forEach { name ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    colors = CardDefaults.cardColors(
+                        containerColor = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerLow),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
                 ) {
                     Text(name, Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         style = MaterialTheme.typography.bodyMedium)

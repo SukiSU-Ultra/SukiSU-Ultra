@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
@@ -106,7 +107,7 @@ fun SlotInfoDialog(
                     }
                 }
                 if (miuix) {
-                    top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth()) { slotContent() }
+                    AppCard(modifier = Modifier.fillMaxWidth()) { slotContent() }
                 } else {
                     Surface(
                         shape = MaterialTheme.shapes.extraLarge,

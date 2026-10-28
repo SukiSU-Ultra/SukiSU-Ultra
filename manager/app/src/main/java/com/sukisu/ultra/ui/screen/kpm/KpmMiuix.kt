@@ -32,6 +32,9 @@ import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ConfigResults
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
@@ -49,17 +52,18 @@ fun KpmMiuix(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: D
     val listState = rememberLazyListState()
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop(LocalEnableBlur.current)
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     val layoutDirection = LocalLayoutDirection.current
     val preferences = LocalContext.current.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     var noticeClosed by remember { mutableStateOf(preferences.getBoolean("is_notice_closed", false)) }
     val modules = remember(state.moduleList, state.searchQuery) { state.visibleModules }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
                     title = stringResource(R.string.kpm_title),
-                    color = if (backdrop != null) Color.Transparent else colorScheme.surface,
+                    color = if (backdrop != null || hasCustomBackground) Color.Transparent else colorScheme.surface,
                     scrollBehavior = scrollBehavior,
                     actions = {
                         IconButton(onClick = actions.onRefresh, enabled = !state.isRefreshing && !state.isBusy) {
@@ -109,7 +113,7 @@ fun KpmMiuix(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: D
                     overscrollEffect = null
                 ) {
                     item(key = "overview") {
-                        Card(insideMargin = PaddingValues(20.dp)) {
+                        AppCard(insideMargin = PaddingValues(20.dp)) {
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 Box(Modifier.clip(RoundedCornerShape(18.dp)).background(colorScheme.primaryContainer).padding(16.dp)) {
                                     Icon(Icons.Rounded.Extension, null, Modifier.size(28.dp), tint = colorScheme.onPrimaryContainer)
@@ -142,7 +146,7 @@ fun KpmMiuix(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: D
                         Card { ConfigResults(state.operationResults) }
                     }
                     state.error?.let { error -> item(key = "error") {
-                        Card(insideMargin = PaddingValues(20.dp)) {
+                        AppCard(insideMargin = PaddingValues(20.dp)) {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(stringResource(R.string.kpm_refresh_failed), fontWeight = FontWeight.SemiBold, color = colorScheme.onSurface)
                                 Text(error.localizedMessage.orEmpty(), color = colorScheme.onSurfaceVariantSummary)
@@ -151,7 +155,7 @@ fun KpmMiuix(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: D
                         }
                     } }
                     if (!noticeClosed) item(key = "notice") {
-                        Card(insideMargin = PaddingValues(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)) {
+                        AppCard(insideMargin = PaddingValues(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Icon(Icons.Rounded.Info, null, tint = colorScheme.primary)
                                 Text(stringResource(R.string.kernel_module_notice), modifier = Modifier.weight(1f), fontSize = 13.sp, color = colorScheme.onSurfaceVariantSummary)
@@ -193,7 +197,7 @@ fun KpmMiuix(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: D
 
 @Composable
 private fun KpmMiuixModule(module: KpmViewModel.ModuleInfo, busy: Boolean, actions: KpmActions, modifier: Modifier) {
-    Card(modifier = modifier.fillMaxWidth(), insideMargin = PaddingValues(20.dp)) {
+    AppCard(modifier = modifier.fillMaxWidth(), insideMargin = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.clip(RoundedCornerShape(14.dp)).background(colorScheme.secondaryContainer).padding(12.dp)) {

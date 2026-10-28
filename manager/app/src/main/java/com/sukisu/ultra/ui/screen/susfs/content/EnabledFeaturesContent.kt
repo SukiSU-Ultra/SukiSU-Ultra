@@ -13,7 +13,8 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -39,8 +40,12 @@ fun EnabledFeaturesContent(
                 }
             }
         }
-        if (miuix) MiuixCard(Modifier.fillMaxWidth()) { overview() }
-        else Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.secondaryContainer) { overview() }
+        if (miuix) AppCard(Modifier.fillMaxWidth()) { overview() }
+        else Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = backgroundAwareColor(MaterialTheme.colorScheme.secondaryContainer),
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ) { overview() }
 
         if (enabledFeatures.isEmpty() && !isLoading) {
             FeatureLabel(stringResource(R.string.susfs_no_features_found), miuix)
@@ -51,7 +56,7 @@ fun EnabledFeaturesContent(
                 val label = stringResource(if (enabled) R.string.susfs_feature_enabled else R.string.susfs_feature_disabled)
                 FeatureLabel("$label (${features.size})", miuix)
                 if (miuix) {
-                    MiuixCard(Modifier.fillMaxWidth()) {
+                    AppCard(Modifier.fillMaxWidth()) {
                         features.forEach { feature ->
                                 Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                     MiuixText(feature.name, modifier = Modifier.weight(1f))
@@ -78,7 +83,15 @@ fun EnabledFeaturesContent(
         if (miuix) {
             MiuixTextButton(stringResource(R.string.refresh), onClick = onRefresh, enabled = !isLoading, modifier = Modifier.fillMaxWidth())
         } else {
-            FilledTonalButton(onClick = onRefresh, enabled = !isLoading, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            FilledTonalButton(
+                onClick = onRefresh,
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = backgroundAwareColor(MaterialTheme.colorScheme.secondaryContainer),
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
+            ) {
                 Text(stringResource(R.string.refresh))
             }
         }

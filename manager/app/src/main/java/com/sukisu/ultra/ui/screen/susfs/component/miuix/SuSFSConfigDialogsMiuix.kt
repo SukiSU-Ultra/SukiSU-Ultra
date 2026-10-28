@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.screen.susfs.util.AppInfoCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,7 +32,6 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults as MiuixButtonDefaults
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
@@ -159,7 +159,7 @@ fun AppPathGroupCardMiuix(
         }
     }
 
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(
             color = colorScheme.surface
@@ -473,7 +473,7 @@ fun AddKstatStaticallyDialogMiuix(
                         }
                     }
 
-                    Card(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.defaultColors(color = colorScheme.secondaryContainer)
                     ) {
@@ -536,7 +536,7 @@ private fun KstatSectionMiuix(
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.defaultColors(color = colorScheme.surfaceContainer)
     ) {
@@ -586,7 +586,7 @@ fun PathItemCardMiuix(
     isLoading: Boolean = false,
     additionalInfo: String? = null
 ) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
@@ -669,7 +669,7 @@ fun KstatConfigItemCardMiuix(
     onEdit: (() -> Unit)? = null,
     isLoading: Boolean = false
 ) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
@@ -764,7 +764,7 @@ fun AddKstatPathItemCardMiuix(
     onUpdateFullClone: () -> Unit,
     isLoading: Boolean = false
 ) {
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
