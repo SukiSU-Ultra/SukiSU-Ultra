@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
@@ -80,11 +81,29 @@ fun MiuixKernelSUTheme(
                     isAppearanceLightNavigationBars = !darkTheme
                 }
             }
-            MonetColorsProvider.UpdateCss()
-            CompositionLocalProvider(
-                LocalContentColor provides MiuixTheme.colorScheme.onBackground,
-            ) {
-                content()
+            val baseColors = MiuixTheme.colorScheme
+            val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+            // Miuix mutes disabled text to ~38% alpha. Over a translucent card on top of a
+            // custom background that is barely legible, so keep the disabled look but raise
+            // the contrast.
+            val readableColors = remember(baseColors, hasCustomBackground) {
+                if (!hasCustomBackground) {
+                    baseColors
+                } else {
+                    baseColors.copy(
+                        disabledOnSurface = baseColors.onSurface.copy(alpha = 0.85f),
+                        disabledOnSecondary = baseColors.onSecondary.copy(alpha = 0.85f),
+                        disabledOnSecondaryVariant = baseColors.onSurface.copy(alpha = 0.85f),
+                    )
+                }
+            }
+            MiuixTheme(readableColors) {
+                MonetColorsProvider.UpdateCss()
+                CompositionLocalProvider(
+                    LocalContentColor provides MiuixTheme.colorScheme.onBackground,
+                ) {
+                    content()
+                }
             }
         }
     )

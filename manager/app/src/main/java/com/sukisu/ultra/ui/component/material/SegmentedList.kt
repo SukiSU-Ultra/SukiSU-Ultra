@@ -78,6 +78,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.zIndex
@@ -94,11 +95,23 @@ private const val SegmentedSpringDamping = 0.9f
 annotation class SegmentedColumnDsl
 
 @Composable
-private fun defaultSegmentedColors(): ListItemColors = ListItemDefaults.segmentedColors(
-    containerColor = backgroundAwareColor(colorScheme.surfaceBright),
-    disabledContainerColor = backgroundAwareColor(colorScheme.surfaceBright),
-    supportingContentColor = colorScheme.onSurfaceVariant
-)
+private fun defaultSegmentedColors(): ListItemColors {
+    val base = ListItemDefaults.segmentedColors(
+        containerColor = backgroundAwareColor(colorScheme.surfaceBright),
+        disabledContainerColor = backgroundAwareColor(colorScheme.surfaceBright),
+        supportingContentColor = colorScheme.onSurfaceVariant
+    )
+    if (LocalBackgroundImagePath.current.isEmpty()) return base
+    // The default disabled foreground is ~38% alpha. On a translucent card above a custom
+    // background that is hard to read, so keep the muted look but raise the contrast.
+    return base.copy(
+        disabledContentColor = colorScheme.onSurface.copy(alpha = 0.85f),
+        disabledLeadingContentColor = colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+        disabledTrailingContentColor = colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+        disabledOverlineContentColor = colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+        disabledSupportingContentColor = colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+    )
+}
 
 @Composable
 private fun defaultSingleSegmentedShape(index: Int, count: Int): ListItemShapes {
