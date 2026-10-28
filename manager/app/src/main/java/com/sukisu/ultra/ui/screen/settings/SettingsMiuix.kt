@@ -95,7 +95,7 @@ fun SettingPagerMiuix(
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
                 TopAppBar(

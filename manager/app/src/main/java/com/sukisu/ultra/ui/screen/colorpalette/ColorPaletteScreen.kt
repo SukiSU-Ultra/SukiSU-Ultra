@@ -72,7 +72,7 @@ fun ColorPaletteScreen() {
         onSetCustomBackgroundScrimPercent = viewModel::setCustomBackgroundScrimPercent,
         onExportTheme = viewModel::exportTheme,
         onImportTheme = viewModel::importTheme,
-        onResetThemeDefaults = viewModel::resetThemeDefaults,
+        onResetBackgroundAppearance = viewModel::resetBackgroundAppearance,
     )
 
     when (LocalUiMode.current) {

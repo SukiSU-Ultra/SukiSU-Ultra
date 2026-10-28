@@ -44,5 +44,5 @@ data class ColorPaletteScreenActions(
     val onSetCustomBackgroundScrimPercent: (Int) -> Unit = {},
     val onExportTheme: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onImportTheme: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
-    val onResetThemeDefaults: (android.content.Context) -> Unit = {},
+    val onResetBackgroundAppearance: () -> Unit = {},
 )

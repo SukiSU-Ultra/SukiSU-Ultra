@@ -271,7 +271,7 @@ fun ModulePagerMiuix(
     val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
     Scaffold(
-        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.background,
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
                 searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {

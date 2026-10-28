@@ -456,7 +456,7 @@ class MainActivity : ComponentActivity() {
                             ) { navDisplay() }
 
                             UiMode.Miuix -> Scaffold(
-                                containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.background
+                                containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
                             ) { navDisplay() }
                         }
                     }
@@ -648,7 +648,7 @@ fun MainScreen(
                 }
 
                 UiMode.Miuix -> Scaffold(
-                    containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.background
+                    containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
                 ) { _ ->
                     Row {
                         SideRail(navigationBadge)
@@ -686,7 +686,7 @@ fun MainScreen(
 
                 UiMode.Miuix -> Scaffold(
                     bottomBar = bottomBar,
-                    containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.background
+                    containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
                 ) { innerPadding ->
                     pagerContent(innerPadding.calculateBottomPadding())
                 }

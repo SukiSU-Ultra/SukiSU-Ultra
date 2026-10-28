@@ -767,7 +767,7 @@ fun ColorPaletteScreenMiuix(
                             text = stringResource(R.string.theme_reset),
                             onClick = {
                                 showResetThemeDialog.value = false
-                                actions.onResetThemeDefaults(context)
+                                actions.onResetBackgroundAppearance()
                             },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.textButtonColorsPrimary(),

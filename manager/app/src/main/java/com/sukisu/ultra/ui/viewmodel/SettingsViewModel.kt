@@ -299,32 +299,18 @@ class SettingsViewModel(
         }
     }
 
-    fun resetThemeDefaults(context: Context) {
+    fun resetBackgroundAppearance() {
         viewModelScope.launch {
-            BgStorage.clear(context)
-
-            repo.themeMode = 0
-            repo.miuixMonet = false
-            repo.keyColor = 0
-            repo.colorStyle = PaletteStyle.TonalSpot.name
-            repo.colorSpec = ColorSpec.SpecVersion.SPEC_2025.name
             repo.cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA
             repo.customBackgroundBlurPercent = BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT
             repo.customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM
-            repo.customBackgroundUri = ""
-            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
 
+            // Theme colors, dynamic color and the custom background image are user choices.
             _uiState.update {
                 it.copy(
-                    themeMode = 0,
-                    miuixMonet = false,
-                    keyColor = 0,
-                    colorStyle = PaletteStyle.TonalSpot.name,
-                    colorSpec = ColorSpec.SpecVersion.SPEC_2025.name,
                     cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA,
                     customBackgroundBlurPercent = BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT,
                     customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM,
-                    customBackgroundUri = "",
                 )
             }
 

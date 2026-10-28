@@ -717,7 +717,7 @@ fun ColorPaletteScreenMaterial(
             dismissText = stringResource(android.R.string.cancel),
             onConfirm = {
                 showResetThemeDialog = false
-                actions.onResetThemeDefaults(context)
+                actions.onResetBackgroundAppearance()
             },
             onDismiss = { showResetThemeDialog = false },
         )
