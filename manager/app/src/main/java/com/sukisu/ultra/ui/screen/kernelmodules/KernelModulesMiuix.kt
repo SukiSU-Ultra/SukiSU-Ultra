@@ -49,16 +49,20 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.WarningLevel
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
+import com.sukisu.ultra.ui.theme.LocalEnableBlur
+import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -71,6 +75,7 @@ import top.yukonga.miuix.kmp.icon.extended.ExpandMore
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
@@ -80,35 +85,43 @@ fun KernelModulesMiuix(
     actions: KernelModulesActions,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val enableBlur = LocalEnableBlur.current
+    val backdrop = rememberBlurBackdrop(enableBlur)
+    val blurActive = backdrop != null
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
-    Scaffold(
+    AppScaffold(
         topBar = {
-            TopAppBar(
-                title = stringResource(R.string.kernel_modules_title),
-                navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        val layoutDirection = LocalLayoutDirection.current
-                        Icon(
-                            modifier = Modifier.graphicsLayer {
-                                if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
-                            },
-                            imageVector = MiuixIcons.Back,
-                            contentDescription = null,
-                            tint = colorScheme.onBackground,
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = actions.onRefresh, enabled = !state.isLoading) {
-                        Icon(
-                            imageVector = MiuixIcons.Refresh,
-                            contentDescription = stringResource(R.string.refresh),
-                            tint = colorScheme.onBackground,
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
+                TopAppBar(
+                    title = stringResource(R.string.kernel_modules_title),
+                    color = barColor,
+                    navigationIcon = {
+                        IconButton(onClick = actions.onBack) {
+                            val layoutDirection = LocalLayoutDirection.current
+                            Icon(
+                                modifier = Modifier.graphicsLayer {
+                                    if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                                },
+                                imageVector = MiuixIcons.Back,
+                                contentDescription = null,
+                                tint = colorScheme.onBackground,
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = actions.onRefresh, enabled = !state.isLoading) {
+                            Icon(
+                                imageVector = MiuixIcons.Refresh,
+                                contentDescription = stringResource(R.string.refresh),
+                                tint = colorScheme.onBackground,
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                )
+            }
         },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout)
             .only(WindowInsetsSides.Horizontal),
@@ -147,13 +160,14 @@ fun KernelModulesMiuix(
                             .fillMaxSize()
                             .padding(padding),
                     )
-                    return@Scaffold
+                    return@AppScaffold
                 }
 
                 val sourceNotice = kernelModulesSourceNotice(snapshot)
 
                 LazyColumn(
                     modifier = Modifier
+                        .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier)
                         .fillMaxHeight()
                         .scrollEndHaptic()
                         .overScrollVertical()
@@ -281,7 +295,7 @@ private fun SummaryCardMiuix(snapshot: KernelModulesSnapshot) {
     } else {
         pluralStringResource(R.plurals.kernel_modules_summary_configured, count, count)
     }
-    Card(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp),
@@ -363,7 +377,7 @@ private fun ModuleCardMiuix(
     onToggle: () -> Unit,
 ) {
     val (badgeBackground, badgeContent) = statusColorsMiuix(entry.status)
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         BasicComponent(
             title = entry.name,
             summary = kernelModuleSummary(entry, activeAvailable),
@@ -558,7 +572,7 @@ private fun DependentRowMiuix(dependent: KernelModuleDependent) {
 
 @Composable
 private fun SuggestedCardMiuix(names: List<String>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -583,7 +597,7 @@ private fun ParamsCardMiuix(
     snapshot: KernelModulesSnapshot,
     onCopy: (String) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
