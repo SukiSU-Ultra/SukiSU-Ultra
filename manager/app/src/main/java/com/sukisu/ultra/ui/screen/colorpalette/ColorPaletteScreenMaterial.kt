@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -12,25 +11,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.captionBar
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,7 +45,6 @@ import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Brightness3
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Brightness7
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Check
@@ -97,7 +90,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -110,7 +102,6 @@ import kotlin.math.roundToInt
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
 import com.sukisu.ultra.ui.component.material.ExpressiveConfirmDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.CapsuleSlider
@@ -144,6 +135,35 @@ fun ColorPaletteScreenMaterial(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     var showResetThemeDialog by rememberSaveable { mutableStateOf(false) }
+    // Kept above the list so the preview reflects the thumb position before the value commits.
+    val alphaSliderState = rememberSliderState(
+        value = uiState.cardBackgroundAlphaPercent.toFloat(),
+        trackRange = 10f..91f,
+    )
+    val blurSliderState = rememberSliderState(
+        value = uiState.customBackgroundBlurPercent.toFloat(),
+        trackRange = 0f..100f,
+    )
+    val scrimSliderState = rememberSliderState(
+        value = uiState.customBackgroundScrimPercent.toFloat(),
+        trackRange = -100f..100f,
+    )
+    // Imported/reset values change outside the sliders, whose states are remembered.
+    LaunchedEffect(
+        uiState.cardBackgroundAlphaPercent,
+        uiState.customBackgroundBlurPercent,
+        uiState.customBackgroundScrimPercent,
+    ) {
+        if (alphaSliderState.value.roundToInt() != uiState.cardBackgroundAlphaPercent) {
+            alphaSliderState.value = uiState.cardBackgroundAlphaPercent.toFloat()
+        }
+        if (blurSliderState.value.roundToInt() != uiState.customBackgroundBlurPercent) {
+            blurSliderState.value = uiState.customBackgroundBlurPercent.toFloat()
+        }
+        if (scrimSliderState.value.roundToInt() != uiState.customBackgroundScrimPercent) {
+            scrimSliderState.value = uiState.customBackgroundScrimPercent.toFloat()
+        }
+    }
     val exportThemeLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/zip")
     ) { uri: Uri? ->
@@ -182,12 +202,23 @@ fun ColorPaletteScreenMaterial(
             verticalArrangement = Arrangement.spacedBy(13.dp)
         ) {
             item {
-                ThemePreviewCard(
-                    keyColor = currentKeyColor,
-                    isDark = isDark,
-                    isAmoled = isAmoled,
-                    paletteStyle = colorStyle,
-                    colorSpec = colorSpec,
+                ThemePreviewMaterial(
+                    spec = ThemePreviewSpec(
+                        keyColor = currentKeyColor,
+                        isDark = isDark,
+                        isAmoled = isAmoled,
+                        paletteStyle = colorStyle,
+                        colorSpec = colorSpec,
+                        backgroundPath = uiState.customBackgroundUri,
+                        backgroundUpdatedAt = uiState.customBackgroundUpdatedAt,
+                        cardAlpha = alphaSliderState.value / 100f,
+                        backgroundBlurPercent = blurSliderState.value.roundToInt(),
+                        backgroundScrimPercent = scrimSliderState.value.roundToInt(),
+                        floatingBottomBar = true,
+                        floatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
+                        navigationBadge = uiState.enableNavigationBadge,
+                        pageScale = uiState.pageScale,
+                    ),
                 )
             }
 
@@ -237,34 +268,6 @@ fun ColorPaletteScreenMaterial(
                 if (hasCustomBg) {
                     Spacer(Modifier.height(12.dp))
                     TonalCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        val alphaSliderState = rememberSliderState(
-                            value = uiState.cardBackgroundAlphaPercent.toFloat(),
-                            trackRange = 10f..91f,
-                        )
-                        val blurSliderState = rememberSliderState(
-                            value = uiState.customBackgroundBlurPercent.toFloat(),
-                            trackRange = 0f..100f,
-                        )
-                        val scrimSliderState = rememberSliderState(
-                            value = uiState.customBackgroundScrimPercent.toFloat(),
-                            trackRange = -100f..100f,
-                        )
-                        // Imported/reset values change outside the sliders, whose states are remembered.
-                        LaunchedEffect(
-                            uiState.cardBackgroundAlphaPercent,
-                            uiState.customBackgroundBlurPercent,
-                            uiState.customBackgroundScrimPercent,
-                        ) {
-                            if (alphaSliderState.value.roundToInt() != uiState.cardBackgroundAlphaPercent) {
-                                alphaSliderState.value = uiState.cardBackgroundAlphaPercent.toFloat()
-                            }
-                            if (blurSliderState.value.roundToInt() != uiState.customBackgroundBlurPercent) {
-                                blurSliderState.value = uiState.customBackgroundBlurPercent.toFloat()
-                            }
-                            if (scrimSliderState.value.roundToInt() != uiState.customBackgroundScrimPercent) {
-                                scrimSliderState.value = uiState.customBackgroundScrimPercent.toFloat()
-                            }
-                        }
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -795,146 +798,6 @@ private fun BackgroundSliderHeader(
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
-@Composable
-private fun ThemePreviewCard(
-    keyColor: Int,
-    isDark: Boolean,
-    isAmoled: Boolean = false,
-    paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
-    colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
-) {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.toFloat()
-    val screenHeight = configuration.screenHeightDp.toFloat()
-    val screenRatio = screenWidth / screenHeight
-    val useRail = useNavigationRail(enableFloatingBottomBar = false)
-
-    val colorScheme = rememberKernelSUColorScheme(
-        seedColor = if (keyColor == 0) Color.Unspecified else Color(keyColor),
-        isDark = isDark,
-        isAmoled = isAmoled,
-        paletteStyle = paletteStyle,
-        colorSpec = colorSpec,
-    )
-
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(0.4f)
-                .aspectRatio(screenRatio),
-            color = colorScheme.surfaceContainer,
-            shape = RoundedCornerShape(20.dp),
-            border = BorderStroke(1.dp, color = colorScheme.outlineVariant)
-        ) {
-            val content: @Composable ColumnScope.() -> Unit = {
-                // top bar
-                Box(
-                    modifier = Modifier
-                        .height(if (useRail) 36.dp else 48.dp)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.TopStart
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(start = 12.dp, top = if (useRail) 8.dp else 16.dp, bottom = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colorScheme.onSurface
-                        )
-                    }
-                }
-
-                BoxWithConstraints(modifier = Modifier.weight(1f)) {
-                    val showInfoCard = maxHeight >= 72.dp
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        TonalCard(
-                            containerColor = colorScheme.primary,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            content = { }
-                        )
-                        if (showInfoCard) {
-                            TonalCard(
-                                containerColor = colorScheme.surfaceBright,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                content = { }
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (useRail) {
-                Row {
-                    Surface(
-                        color = colorScheme.surfaceContainer,
-                        modifier = Modifier.fillMaxHeight()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .width(36.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(Icons.Filled.Home, null, tint = colorScheme.primary)
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) { content() }
-                }
-            } else {
-                Column {
-                    content()
-
-                    // floating bottom bar
-                    Surface(
-                        color = colorScheme.surfaceContainerHighest,
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .height(28.dp)
-                                .padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(width = 30.dp, height = 20.dp)
-                                    .background(colorScheme.primary, CircleShape)
-                            )
-                            repeat(3) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(colorScheme.onSurfaceVariant, CircleShape)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun ColorButtonMaterial(

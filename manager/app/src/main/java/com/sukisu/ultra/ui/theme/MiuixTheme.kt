@@ -8,7 +8,6 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
@@ -86,16 +85,18 @@ fun MiuixKernelSUTheme(
             // Miuix mutes disabled text to ~38% alpha. Over a translucent card on top of a
             // custom background that is barely legible, so keep the disabled look but raise
             // the contrast.
-            val readableColors = remember(baseColors, hasCustomBackground) {
-                if (!hasCustomBackground) {
-                    baseColors
-                } else {
-                    baseColors.copy(
-                        disabledOnSurface = baseColors.onSurface.copy(alpha = 0.85f),
-                        disabledOnSecondary = baseColors.onSecondary.copy(alpha = 0.85f),
-                        disabledOnSecondaryVariant = baseColors.onSurface.copy(alpha = 0.85f),
-                    )
-                }
+            //
+            // Always hand a fresh Colors instance to the nested theme. MiuixTheme() copies into
+            // a remembered Colors object and a remembered snapshot here would keep the palette
+            // from before a light/dark, key color or monet change (until the app is restarted).
+            val readableColors = if (hasCustomBackground) {
+                baseColors.copy(
+                    disabledOnSurface = baseColors.onSurface.copy(alpha = 0.85f),
+                    disabledOnSecondary = baseColors.onSecondary.copy(alpha = 0.85f),
+                    disabledOnSecondaryVariant = baseColors.onSurface.copy(alpha = 0.85f),
+                )
+            } else {
+                baseColors.copy()
             }
             MiuixTheme(readableColors) {
                 MonetColorsProvider.UpdateCss()

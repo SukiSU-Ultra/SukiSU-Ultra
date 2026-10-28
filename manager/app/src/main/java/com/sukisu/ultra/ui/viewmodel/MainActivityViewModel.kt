@@ -65,6 +65,7 @@ class MainActivityViewModel(
     private companion object {
         val observedKeys = setOf(
             "color_mode",
+            "miuix_monet",
             "key_color",
             "color_style",
             "color_spec",

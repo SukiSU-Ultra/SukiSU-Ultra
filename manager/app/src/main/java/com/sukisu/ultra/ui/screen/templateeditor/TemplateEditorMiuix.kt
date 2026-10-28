@@ -72,18 +72,19 @@ fun TemplateEditorScreenMiuix(
     val baseColors = colorScheme
     // In the read-only viewer every field is disabled for input, but its content must stay
     // readable. Replace the muted disabled foreground colors with their normal counterparts.
-    val viewColors = remember(baseColors, state.readOnly) {
-        if (!state.readOnly) {
-            baseColors
-        } else {
-            baseColors.copy(
-                disabledOnPrimary = baseColors.onPrimary,
-                disabledOnPrimaryButton = baseColors.onPrimary,
-                disabledOnSecondary = baseColors.onSecondary,
-                disabledOnSecondaryVariant = baseColors.onSurface,
-                disabledOnSurface = baseColors.onSurface,
-            )
-        }
+    //
+    // Do not remember the copy by Colors identity: the theme mutates the same instance, so a
+    // remembered snapshot would keep the palette from before a light/dark or dynamic color change.
+    val viewColors = if (state.readOnly) {
+        baseColors.copy(
+            disabledOnPrimary = baseColors.onPrimary,
+            disabledOnPrimaryButton = baseColors.onPrimary,
+            disabledOnSecondary = baseColors.onSecondary,
+            disabledOnSecondaryVariant = baseColors.onSurface,
+            disabledOnSurface = baseColors.onSurface,
+        )
+    } else {
+        baseColors
     }
 
     AppScaffold(

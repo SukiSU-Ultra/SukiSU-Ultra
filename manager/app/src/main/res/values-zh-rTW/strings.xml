@@ -759,6 +759,9 @@
     <string name="settings_background_scrim_summary">調節背景遮罩的明暗（%d%%）</string>
     <string name="settings_background_scrim_darker">變暗</string>
     <string name="settings_background_scrim_lighter">變亮</string>
+    <string name="theme_preview_caption_miuix">預覽 · Miuix</string>
+    <string name="theme_preview_caption_material">預覽 · Material 3 Expressive</string>
+    <string name="theme_preview_description">使用目前主題與背景的首頁預覽</string>
     <string name="theme_export">匯出主題包</string>
     <string name="theme_export_summary">將目前主題與背景儲存為 .zip 主題包</string>
     <string name="theme_import">匯入主題包</string>

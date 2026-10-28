@@ -79,6 +79,7 @@ data class SettingsUiState(
     val useSoftReboot: Boolean = false,
 
     val customBackgroundUri: String = "",
+    val customBackgroundUpdatedAt: Long = 0L,
     val cardBackgroundAlphaPercent: Int = 60,
     val customBackgroundBlurPercent: Int = 50,
     val customBackgroundScrimPercent: Int = -35,

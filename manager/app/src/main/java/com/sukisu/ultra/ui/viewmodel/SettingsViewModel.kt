@@ -164,6 +164,7 @@ class SettingsViewModel(
                     useSoftReboot = useSoftReboot,
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
+                    customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
                     cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                     customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
                     customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
@@ -220,7 +221,13 @@ class SettingsViewModel(
         repo.customBackgroundUri = savedPath
         repo.customBackgroundUpdatedAt = System.currentTimeMillis()
         repo.keyColor = seed
-        _uiState.update { it.copy(customBackgroundUri = savedPath, keyColor = seed) }
+        _uiState.update {
+            it.copy(
+                customBackgroundUri = savedPath,
+                customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                keyColor = seed,
+            )
+        }
         true
     }
 
@@ -239,6 +246,7 @@ class SettingsViewModel(
         _uiState.update {
             it.copy(
                 customBackgroundUri = repo.customBackgroundUri,
+                customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
                 cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                 customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
                 customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
@@ -252,7 +260,12 @@ class SettingsViewModel(
             BgStorage.clear(context)
             repo.customBackgroundUri = ""
             repo.customBackgroundUpdatedAt = System.currentTimeMillis()
-            _uiState.update { it.copy(customBackgroundUri = "") }
+            _uiState.update {
+                it.copy(
+                    customBackgroundUri = "",
+                    customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                )
+            }
         }
     }
 
@@ -360,6 +373,7 @@ class SettingsViewModel(
                 customBackgroundBlurPercent = blurPercent,
                 customBackgroundScrimPercent = scrimPercent,
                 customBackgroundUri = backgroundUri,
+                customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
             )
         }
     }

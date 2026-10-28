@@ -1,31 +1,24 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -66,13 +59,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import kotlin.math.roundToInt
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -82,9 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
-import com.materialkolor.rememberDynamicColorScheme
 import com.sukisu.ultra.R
-import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.ScaleDialog
@@ -137,6 +126,16 @@ fun ColorPaletteScreenMiuix(
     val currentColorMode = state.currentColorMode
     val isDark = currentColorMode.isDark || currentColorMode.isSystem && isSystemInDarkTheme()
     val context = LocalContext.current
+    // Live drag values: the preview follows the sliders before they commit to the repository.
+    var cardAlphaDraft by remember(uiState.cardBackgroundAlphaPercent) {
+        mutableFloatStateOf(uiState.cardBackgroundAlphaPercent.toFloat())
+    }
+    var blurDraft by remember(uiState.customBackgroundBlurPercent) {
+        mutableFloatStateOf(uiState.customBackgroundBlurPercent.toFloat())
+    }
+    var scrimDraft by remember(uiState.customBackgroundScrimPercent) {
+        mutableFloatStateOf(uiState.customBackgroundScrimPercent.toFloat())
+    }
     val exportThemeLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/zip")
     ) { uri: Uri? ->
@@ -150,7 +149,9 @@ fun ColorPaletteScreenMiuix(
 
     AppScaffold(
         topBar = {
-            BlurredBar(backdrop) {
+            // Hand the scroll behavior to BlurredBar: without it the bar blurs/tints at the
+            // top of the list as if it were already scrolled.
+            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
                 TopAppBar(
                     color = barColor,
                     title = stringResource(R.string.settings_theme),
@@ -191,17 +192,26 @@ fun ColorPaletteScreenMiuix(
                 overscrollEffect = null,
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(32.dp))
-                    ThemePreviewCardMiuix(
-                        keyColor = uiState.keyColor,
-                        isDark = isDark,
-                        miuixMonet = uiState.miuixMonet,
-                        enableFloatingBottomBar = uiState.enableFloatingBottomBar,
-                        enableFloatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
-                        paletteStyle = state.currentPaletteStyle,
-                        colorSpec = state.currentColorSpec,
+                    Spacer(modifier = Modifier.height(20.dp))
+                    ThemePreviewMiuix(
+                        spec = ThemePreviewSpec(
+                            keyColor = uiState.keyColor,
+                            isDark = isDark,
+                            miuixMonet = uiState.miuixMonet,
+                            paletteStyle = state.currentPaletteStyle,
+                            colorSpec = state.currentColorSpec,
+                            backgroundPath = uiState.customBackgroundUri,
+                            backgroundUpdatedAt = uiState.customBackgroundUpdatedAt,
+                            cardAlpha = cardAlphaDraft / 100f,
+                            backgroundBlurPercent = blurDraft.roundToInt(),
+                            backgroundScrimPercent = scrimDraft.roundToInt(),
+                            floatingBottomBar = uiState.enableFloatingBottomBar,
+                            floatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
+                            navigationBadge = uiState.enableNavigationBadge,
+                            pageScale = uiState.pageScale,
+                        ),
                     )
-                    Spacer(modifier = Modifier.height(72.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     val pickImageLauncher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.PickVisualMedia()
@@ -258,31 +268,21 @@ fun ColorPaletteScreenMiuix(
                                 onClick = { actions.onCropCurrentBackground(context) }
                             )
 
-                            // Drag locally so the thumb tracks the finger; commit to the preference
-                            // once the gesture ends instead of on every frame.
-                            var alphaPercent by remember(uiState.cardBackgroundAlphaPercent) {
-                                mutableFloatStateOf(uiState.cardBackgroundAlphaPercent.toFloat())
-                            }
-                            var blurPercent by remember(uiState.customBackgroundBlurPercent) {
-                                mutableFloatStateOf(uiState.customBackgroundBlurPercent.toFloat())
-                            }
-                            var scrimPercent by remember(uiState.customBackgroundScrimPercent) {
-                                mutableFloatStateOf(uiState.customBackgroundScrimPercent.toFloat())
-                            }
-
+                            // The draft values live above the list so the preview follows the
+                            // thumb while dragging; the preference is only written on release.
                             HorizontalDivider()
                             MiuixBackgroundSliderSection(
                                 title = stringResource(id = R.string.settings_card_background_alpha),
                                 summary = stringResource(
                                     id = R.string.settings_card_background_alpha_summary,
-                                    alphaPercent.roundToInt(),
+                                    cardAlphaDraft.roundToInt(),
                                 ),
-                                value = alphaPercent,
+                                value = cardAlphaDraft,
                                 valueRange = 10f..91f,
-                                onValueChange = { alphaPercent = it },
+                                onValueChange = { cardAlphaDraft = it },
                                 onValueChangeFinished = {
-                                    val percent = alphaPercent.roundToInt()
-                                    alphaPercent = percent.toFloat()
+                                    val percent = cardAlphaDraft.roundToInt()
+                                    cardAlphaDraft = percent.toFloat()
                                     actions.onSetCardBackgroundAlphaPercent(percent)
                                 },
                             )
@@ -291,14 +291,14 @@ fun ColorPaletteScreenMiuix(
                                 title = stringResource(id = R.string.settings_background_blur),
                                 summary = stringResource(
                                     id = R.string.settings_background_blur_summary,
-                                    blurPercent.roundToInt(),
+                                    blurDraft.roundToInt(),
                                 ),
-                                value = blurPercent,
+                                value = blurDraft,
                                 valueRange = 0f..100f,
-                                onValueChange = { blurPercent = it },
+                                onValueChange = { blurDraft = it },
                                 onValueChangeFinished = {
-                                    val percent = blurPercent.roundToInt()
-                                    blurPercent = percent.toFloat()
+                                    val percent = blurDraft.roundToInt()
+                                    blurDraft = percent.toFloat()
                                     actions.onSetCustomBackgroundBlurPercent(percent)
                                 },
                             )
@@ -307,14 +307,14 @@ fun ColorPaletteScreenMiuix(
                                 title = stringResource(id = R.string.settings_background_scrim),
                                 summary = stringResource(
                                     id = R.string.settings_background_scrim_summary,
-                                    scrimPercent.roundToInt(),
+                                    scrimDraft.roundToInt(),
                                 ),
-                                value = scrimPercent,
+                                value = scrimDraft,
                                 valueRange = -100f..100f,
-                                onValueChange = { scrimPercent = it },
+                                onValueChange = { scrimDraft = it },
                                 onValueChangeFinished = {
-                                    val percent = scrimPercent.roundToInt()
-                                    scrimPercent = percent.toFloat()
+                                    val percent = scrimDraft.roundToInt()
+                                    scrimDraft = percent.toFloat()
                                     actions.onSetCustomBackgroundScrimPercent(percent)
                                 },
                                 startLabel = stringResource(id = R.string.settings_background_scrim_darker),
@@ -863,211 +863,3 @@ private fun MiuixBackgroundSliderSection(
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
-@Composable
-private fun ThemePreviewCardMiuix(
-    keyColor: Int,
-    isDark: Boolean,
-    miuixMonet: Boolean,
-    enableFloatingBottomBar: Boolean = false,
-    enableFloatingBottomBarBlur: Boolean = false,
-    paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
-    colorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2021,
-) {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.toFloat()
-    val screenHeight = configuration.screenHeightDp.toFloat()
-    val screenRatio = screenWidth / screenHeight
-    val useRail = useNavigationRail(enableFloatingBottomBar)
-
-    val seedColor = if (keyColor == 0) colorScheme.primary else Color(keyColor)
-    val effectiveStyle = if (keyColor == 0) PaletteStyle.TonalSpot else paletteStyle
-    val effectiveSpec = if (keyColor == 0) ColorSpec.SpecVersion.Default else colorSpec
-    val dynamicCs = rememberDynamicColorScheme(
-        seedColor = seedColor,
-        isDark = isDark,
-        style = effectiveStyle,
-        specVersion = effectiveSpec,
-    )
-
-    val bgColor = if (miuixMonet) dynamicCs.background else colorScheme.surface
-    val textColor = if (miuixMonet) dynamicCs.onSurface else colorScheme.onBackground
-    val accentCardColor = when {
-        miuixMonet -> dynamicCs.secondaryContainer
-        isDark -> Color(0xFF1A3825)
-        else -> Color(0xFFDFFAE4)
-    }
-    val cardColor = if (miuixMonet) dynamicCs.surfaceContainerHighest else colorScheme.surfaceVariant
-    val navBarColor = if (miuixMonet) dynamicCs.surfaceContainer else colorScheme.surface
-    val iconColor = if (miuixMonet) dynamicCs.primary else colorScheme.primary
-    val navSelectedColor = colorScheme.onSurfaceContainer
-    val navUnselectedColor = colorScheme.onSurfaceContainer.copy(alpha = 0.5f)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.4f)
-                .aspectRatio(screenRatio)
-                .clip(RoundedCornerShape(20.dp))
-                .background(bgColor)
-                .border(1.dp, colorScheme.outline, RoundedCornerShape(20.dp))
-        ) {
-            val content = @Composable {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .height(if (useRail) 36.dp else 48.dp)
-                            .fillMaxWidth()
-                            .padding(start = 12.dp, top = if (useRail) 12.dp else 24.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            fontSize = 12.sp,
-                            color = textColor
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(45.dp)
-                            .padding(horizontal = 8.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(accentCardColor)
-                    )
-
-                    BoxWithConstraints(modifier = Modifier.weight(1f)) {
-                        val smallCardHeight = 12.dp
-                        val smallCardCount = when {
-                            maxHeight >= 96.dp -> 2
-                            maxHeight >= 72.dp -> 1
-                            else -> 0
-                        }
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 8.dp, vertical = 6.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(cardColor)
-                            )
-                            repeat(smallCardCount) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(smallCardHeight)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(cardColor)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (useRail) {
-                Row {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(30.dp)
-                            .background(navBarColor),
-                        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        repeat(4) {
-                            Box(
-                                modifier = Modifier
-                                    .size(13.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(if (it == 0) navSelectedColor else navUnselectedColor)
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(0.5.dp)
-                            .background(textColor.copy(alpha = 0.1f))
-                    )
-                    Box(modifier = Modifier.weight(1f)) { content() }
-                }
-            } else {
-                content()
-            }
-
-            if (!useRail && enableFloatingBottomBar) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 8.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .height(28.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(
-                                if (enableFloatingBottomBarBlur) navBarColor.copy(alpha = 0.5f)
-                                else navBarColor
-                            )
-                            .border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(4) {
-                            Box(
-                                modifier = Modifier
-                                    .size(13.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(if (it == 0) iconColor else textColor)
-                            )
-                        }
-                    }
-                }
-            } else if (!useRail) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(0.5.dp)
-                            .background(textColor.copy(alpha = 0.1f))
-                    )
-                    Row(
-                        modifier = Modifier
-                            .height(36.dp)
-                            .fillMaxWidth()
-                            .background(navBarColor)
-                            .padding(top = 2.dp, bottom = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(4) {
-                            Box(
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(if (it == 0) navSelectedColor else navUnselectedColor)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

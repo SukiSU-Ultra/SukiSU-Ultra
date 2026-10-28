@@ -52,15 +52,16 @@ internal fun SuSFSMiuix(
     val baseColors = colorScheme
     // TextField and secondary Button defaults use these two roles; make them follow the
     // card opacity so SuSFS controls don't render as opaque boxes over a custom background.
-    val contentColors = remember(baseColors, hasCustomBackground, cardAlpha) {
-        if (!hasCustomBackground) {
-            baseColors
-        } else {
-            baseColors.copy(
-                secondaryContainer = baseColors.secondaryContainer.copy(alpha = cardAlpha),
-                secondaryVariant = baseColors.secondaryVariant.copy(alpha = cardAlpha),
-            )
-        }
+    //
+    // Do not remember by Colors identity: the theme mutates the same instance, so a remembered
+    // copy would keep the palette from before a light/dark or dynamic color change.
+    val contentColors = if (hasCustomBackground) {
+        baseColors.copy(
+            secondaryContainer = baseColors.secondaryContainer.copy(alpha = cardAlpha),
+            secondaryVariant = baseColors.secondaryVariant.copy(alpha = cardAlpha),
+        )
+    } else {
+        baseColors
     }
 
     AppScaffold(
