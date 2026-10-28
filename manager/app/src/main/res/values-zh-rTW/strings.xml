@@ -597,7 +597,7 @@
     <string name="sus_maps_warning">重要提示：對於具備完善注入檢測機制的應用，此功能可能無法有效繞過檢測。</string>
     <string name="sus_maps_debug_info">首先通過 ps -enf 查找目標應用的 PID 和 UID，然後檢查 /proc/&lt;pid&gt;/maps 中的相關路徑，並與 /proc/1/mountinfo 中的設備號進行比對以確保一致性。只有當設備號一致時，隱藏映射才能正常工作。</string>
     <string name="icon_switch_title">備選圖標</string>
-    <string name="icon_switch_summary">更換為 SukiSU 圖標</string>
+    <string name="icon_switch_summary">更換為 KernelSU 圖標</string>
     <string name="refresh">刷新</string>
     <string name="close">關閉</string>
     <string name="group_contains_apps">包含 %d 個應用</string>

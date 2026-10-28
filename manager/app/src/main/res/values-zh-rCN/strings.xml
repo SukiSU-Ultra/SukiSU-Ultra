@@ -728,7 +728,7 @@
     <string name="sus_maps_warning">重要提示：对于具备完善注入检测机制的应用，此功能可能无法有效绕过检测。</string>
     <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
     <string name="icon_switch_title">备选图标</string>
-    <string name="icon_switch_summary">更换为 SukiSU 图标</string>
+    <string name="icon_switch_summary">更换为 KernelSU 图标</string>
     <string name="refresh">刷新</string>
     <string name="home_kernel_full_version">内核完整版本</string>
     <string name="settings_show_fullstatus">显示完整状态</string>
