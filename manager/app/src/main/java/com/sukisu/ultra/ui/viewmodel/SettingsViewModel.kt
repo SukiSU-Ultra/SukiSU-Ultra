@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.SettingsRepository
@@ -22,6 +24,9 @@ import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImportedTheme
+import com.sukisu.ultra.ui.util.ThemePackageData
+import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.findActivity
 import java.io.File
 
@@ -159,6 +164,8 @@ class SettingsViewModel(
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
                     cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
+                    customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
+                    customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
                 )
             }
         }
@@ -169,6 +176,7 @@ class SettingsViewModel(
             val savedPath = BgStorage.persist(context, uri) ?: return@launch
             val seed = BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
             repo.customBackgroundUri = savedPath
+            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
             repo.keyColor = seed
             _uiState.update { it.copy(customBackgroundUri = savedPath, keyColor = seed) }
         }
@@ -178,6 +186,7 @@ class SettingsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             BgStorage.clear(context)
             repo.customBackgroundUri = ""
+            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
             _uiState.update { it.copy(customBackgroundUri = "") }
         }
     }
@@ -185,6 +194,142 @@ class SettingsViewModel(
     fun setCardBackgroundAlphaPercent(percent: Int) {
         repo.cardBackgroundAlphaPercent = percent
         _uiState.update { it.copy(cardBackgroundAlphaPercent = percent) }
+    }
+
+    fun setCustomBackgroundBlurPercent(percent: Int) {
+        repo.customBackgroundBlurPercent = percent
+        _uiState.update { it.copy(customBackgroundBlurPercent = percent) }
+    }
+
+    fun setCustomBackgroundScrimPercent(percent: Int) {
+        repo.customBackgroundScrimPercent = percent
+        _uiState.update { it.copy(customBackgroundScrimPercent = percent) }
+    }
+
+    fun exportTheme(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val backgroundFile = state.customBackgroundUri
+                .takeIf { it.isNotEmpty() }
+                ?.let { path -> File(path).takeIf { it.isFile } }
+            val data = ThemePackageData(
+                themeMode = state.themeMode,
+                miuixMonet = state.miuixMonet,
+                keyColor = state.keyColor,
+                colorStyle = state.colorStyle,
+                colorSpec = state.colorSpec,
+                cardBackgroundAlphaPercent = state.cardBackgroundAlphaPercent,
+                customBackgroundBlurPercent = state.customBackgroundBlurPercent,
+                customBackgroundScrimPercent = state.customBackgroundScrimPercent,
+                hasBackground = backgroundFile != null,
+            )
+            ThemePackageStorage.export(context, uri, data, backgroundFile)
+                .onSuccess {
+                    Toast.makeText(ksuApp, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
+                }
+                .onFailure {
+                    Toast.makeText(ksuApp, R.string.theme_export_failed, Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
+    fun importTheme(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            ThemePackageStorage.import(context, uri)
+                .onSuccess { imported ->
+                    applyImportedTheme(context, imported)
+                    Toast.makeText(ksuApp, R.string.theme_import_success, Toast.LENGTH_SHORT).show()
+                }
+                .onFailure {
+                    Toast.makeText(ksuApp, R.string.theme_import_failed, Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
+    private suspend fun applyImportedTheme(context: Context, imported: ImportedTheme) {
+        val current = _uiState.value
+        val data = imported.data
+        val themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
+        val miuixMonet = data.miuixMonet ?: current.miuixMonet
+        val keyColor = data.keyColor ?: current.keyColor
+        val colorStyle = data.colorStyle
+            ?.takeIf { name -> runCatching { PaletteStyle.valueOf(name) }.isSuccess }
+            ?: current.colorStyle
+        val colorSpec = data.colorSpec
+            ?.takeIf { name -> runCatching { ColorSpec.SpecVersion.valueOf(name) }.isSuccess }
+            ?: current.colorSpec
+        val cardAlpha = (data.cardBackgroundAlphaPercent ?: current.cardBackgroundAlphaPercent)
+            .coerceIn(BgStorage.CARD_ALPHA_MIN, BgStorage.CARD_ALPHA_MAX)
+        val blurPercent = (data.customBackgroundBlurPercent ?: current.customBackgroundBlurPercent)
+            .coerceIn(BgStorage.BACKGROUND_BLUR_PERCENT_MIN, BgStorage.BACKGROUND_BLUR_PERCENT_MAX)
+        val scrimPercent = (data.customBackgroundScrimPercent ?: current.customBackgroundScrimPercent)
+            .coerceIn(BgStorage.BACKGROUND_SCRIM_MIN, BgStorage.BACKGROUND_SCRIM_MAX)
+        val backgroundUri = if (imported.backgroundPath != null) {
+            imported.backgroundPath
+        } else {
+            BgStorage.clear(context)
+            ""
+        }
+
+        repo.themeMode = themeMode
+        repo.miuixMonet = miuixMonet
+        repo.keyColor = keyColor
+        repo.colorStyle = colorStyle
+        repo.colorSpec = colorSpec
+        repo.cardBackgroundAlphaPercent = cardAlpha
+        repo.customBackgroundBlurPercent = blurPercent
+        repo.customBackgroundScrimPercent = scrimPercent
+        repo.customBackgroundUri = backgroundUri
+        if (imported.backgroundPath != null) {
+            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+        }
+
+        _uiState.update {
+            it.copy(
+                themeMode = themeMode,
+                miuixMonet = miuixMonet,
+                keyColor = keyColor,
+                colorStyle = colorStyle,
+                colorSpec = colorSpec,
+                cardBackgroundAlphaPercent = cardAlpha,
+                customBackgroundBlurPercent = blurPercent,
+                customBackgroundScrimPercent = scrimPercent,
+                customBackgroundUri = backgroundUri,
+            )
+        }
+    }
+
+    fun resetThemeDefaults(context: Context) {
+        viewModelScope.launch {
+            BgStorage.clear(context)
+
+            repo.themeMode = 0
+            repo.miuixMonet = false
+            repo.keyColor = 0
+            repo.colorStyle = PaletteStyle.TonalSpot.name
+            repo.colorSpec = ColorSpec.SpecVersion.SPEC_2025.name
+            repo.cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA
+            repo.customBackgroundBlurPercent = BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT
+            repo.customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM
+            repo.customBackgroundUri = ""
+            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+
+            _uiState.update {
+                it.copy(
+                    themeMode = 0,
+                    miuixMonet = false,
+                    keyColor = 0,
+                    colorStyle = PaletteStyle.TonalSpot.name,
+                    colorSpec = ColorSpec.SpecVersion.SPEC_2025.name,
+                    cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA,
+                    customBackgroundBlurPercent = BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT,
+                    customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM,
+                    customBackgroundUri = "",
+                )
+            }
+
+            Toast.makeText(ksuApp, R.string.theme_reset_done, Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun setCheckCiUpdate(enabled: Boolean) {

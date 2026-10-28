@@ -79,6 +79,8 @@ data class SettingsUiState(
 
     val customBackgroundUri: String = "",
     val cardBackgroundAlphaPercent: Int = 60,
+    val customBackgroundBlurPercent: Int = 50,
+    val customBackgroundScrimPercent: Int = -35,
 )
 
 @Immutable

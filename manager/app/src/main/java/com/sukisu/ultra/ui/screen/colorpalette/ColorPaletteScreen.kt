@@ -68,6 +68,11 @@ fun ColorPaletteScreen() {
         onSetCustomBackground = viewModel::setCustomBackground,
         onClearCustomBackground = viewModel::clearCustomBackground,
         onSetCardBackgroundAlphaPercent = viewModel::setCardBackgroundAlphaPercent,
+        onSetCustomBackgroundBlurPercent = viewModel::setCustomBackgroundBlurPercent,
+        onSetCustomBackgroundScrimPercent = viewModel::setCustomBackgroundScrimPercent,
+        onExportTheme = viewModel::exportTheme,
+        onImportTheme = viewModel::importTheme,
+        onResetThemeDefaults = viewModel::resetThemeDefaults,
     )
 
     when (LocalUiMode.current) {

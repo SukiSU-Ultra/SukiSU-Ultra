@@ -620,7 +620,7 @@ pub fn list_extensions() {
         let id = *extension_id as u32;
         let row = rows.iter().find(|row| row.id == id);
         let state = row.map(|row| row.state).unwrap_or_default();
-        let supported = row.is_some_and(&really_supported);
+        let supported = row.is_some_and(really_supported);
         let managed = extension_to_modules
             .get(extension_id.name())
             .is_some_and(|v| !v.is_empty());

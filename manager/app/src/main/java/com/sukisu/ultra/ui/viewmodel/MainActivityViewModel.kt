@@ -54,7 +54,10 @@ class MainActivityViewModel(
             pagerInterceptionMode = settingRepo.pagerInterceptionMode,
             moduleDescriptionMaxLines = settingRepo.moduleDescriptionMaxLines,
             customBackgroundUri = settingRepo.customBackgroundUri,
+            customBackgroundUpdatedAt = settingRepo.customBackgroundUpdatedAt,
             cardBackgroundAlphaPercent = settingRepo.cardBackgroundAlphaPercent,
+            customBackgroundBlurPercent = settingRepo.customBackgroundBlurPercent,
+            customBackgroundScrimPercent = settingRepo.customBackgroundScrimPercent,
             uiMode = UiMode.fromValue(settingRepo.uiMode),
         )
     }
@@ -74,7 +77,10 @@ class MainActivityViewModel(
             "enable_swipe_dismiss",
             "pager_interception_mode",
             "custom_bg_uri",
+            "custom_bg_updated_at",
             "card_bg_alpha_percent",
+            "custom_bg_blur_percent",
+            "custom_bg_scrim_percent",
             "ui_mode",
         )
     }

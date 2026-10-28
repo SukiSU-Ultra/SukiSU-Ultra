@@ -19,6 +19,18 @@ object BgStorage {
     const val CARD_ALPHA_MAX = 91
     const val DEFAULT_CARD_ALPHA = 60
 
+    const val BACKGROUND_BLUR_PERCENT_MIN = 0
+    const val BACKGROUND_BLUR_PERCENT_MAX = 100
+    const val DEFAULT_BACKGROUND_BLUR_PERCENT = 50
+
+    /** Blur radius applied to the background image at 100%. */
+    const val BACKGROUND_BLUR_MAX_RADIUS_DP = 40f
+
+    /** Scrim opacity: negative values darken with black, positive values brighten with white. */
+    const val BACKGROUND_SCRIM_MIN = -100
+    const val BACKGROUND_SCRIM_MAX = 100
+    const val DEFAULT_BACKGROUND_SCRIM = -35
+
     suspend fun persist(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
         runCatching {
             val targetFile = prepareFile(context)
@@ -36,6 +48,20 @@ object BgStorage {
         if (targetFile.exists()) {
             targetFile.delete()
         }
+    }
+
+    /** Moves [source] over the stored background image and returns the new path. */
+    suspend fun replace(context: Context, source: File): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val targetFile = prepareFile(context)
+            if (targetFile.exists() && !targetFile.delete()) return@runCatching null
+            if (!source.renameTo(targetFile)) {
+                source.inputStream().use { input ->
+                    targetFile.outputStream().use { output -> input.copyTo(output) }
+                }
+            }
+            targetFile.absolutePath
+        }.getOrNull()
     }
 
     suspend fun extractSeedColor(

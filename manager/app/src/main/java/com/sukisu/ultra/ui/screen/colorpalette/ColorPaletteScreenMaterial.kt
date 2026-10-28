@@ -53,10 +53,16 @@ import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Brightness7
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AspectRatio
+import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.Pin
+import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Warning
@@ -65,6 +71,7 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -76,12 +83,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
@@ -98,7 +110,9 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
+import com.sukisu.ultra.ui.component.material.ExpressiveConfirmDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
+import com.sukisu.ultra.ui.component.material.ExpressiveSlider
 import com.sukisu.ultra.ui.component.material.ExpressiveToggleButton
 import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
@@ -111,7 +125,7 @@ import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.keyColorOptions
 import com.sukisu.ultra.ui.theme.rememberKernelSUColorScheme
-import kotlin.math.roundToInt
+import com.sukisu.ultra.ui.util.ThemePackageStorage
 
 @Composable
 fun ColorPaletteScreenMaterial(
@@ -125,6 +139,18 @@ fun ColorPaletteScreenMaterial(
     val colorStyle = state.currentPaletteStyle
     val colorSpec = state.currentColorSpec
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+    var showResetThemeDialog by rememberSaveable { mutableStateOf(false) }
+    val exportThemeLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri: Uri? ->
+        uri?.let { actions.onExportTheme(context, it) }
+    }
+    val importThemeLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { actions.onImportTheme(context, it) }
+    }
 
     ExpressiveScaffold(
         topBar = {
@@ -163,7 +189,6 @@ fun ColorPaletteScreenMaterial(
             }
 
             item {
-                val context = LocalContext.current
                 val pickImageLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.OpenDocument()
                 ) { uri: Uri? ->
@@ -195,28 +220,108 @@ fun ColorPaletteScreenMaterial(
                 if (hasCustomBg) {
                     Spacer(Modifier.height(12.dp))
                     TonalCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        val alphaSliderState = rememberSliderState(
+                            value = uiState.cardBackgroundAlphaPercent.toFloat(),
+                            trackRange = 10f..91f,
+                        )
+                        val blurSliderState = rememberSliderState(
+                            value = uiState.customBackgroundBlurPercent.toFloat(),
+                            trackRange = 0f..100f,
+                        )
+                        val scrimSliderState = rememberSliderState(
+                            value = uiState.customBackgroundScrimPercent.toFloat(),
+                            trackRange = -100f..100f,
+                        )
+                        // Imported/reset values change outside the sliders, whose states are remembered.
+                        LaunchedEffect(
+                            uiState.cardBackgroundAlphaPercent,
+                            uiState.customBackgroundBlurPercent,
+                            uiState.customBackgroundScrimPercent,
+                        ) {
+                            if (alphaSliderState.value.roundToInt() != uiState.cardBackgroundAlphaPercent) {
+                                alphaSliderState.value = uiState.cardBackgroundAlphaPercent.toFloat()
+                            }
+                            if (blurSliderState.value.roundToInt() != uiState.customBackgroundBlurPercent) {
+                                blurSliderState.value = uiState.customBackgroundBlurPercent.toFloat()
+                            }
+                            if (scrimSliderState.value.roundToInt() != uiState.customBackgroundScrimPercent) {
+                                scrimSliderState.value = uiState.customBackgroundScrimPercent.toFloat()
+                            }
+                        }
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text(
-                                text = stringResource(id = R.string.settings_card_background_alpha),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium,
-                            )
-                            Text(
-                                text = stringResource(id = R.string.settings_card_background_alpha_summary, uiState.cardBackgroundAlphaPercent),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            BackgroundSliderHeader(
+                                icon = Icons.Rounded.Opacity,
+                                title = stringResource(id = R.string.settings_card_background_alpha),
+                                summary = stringResource(
+                                    id = R.string.settings_card_background_alpha_summary,
+                                    alphaSliderState.value.roundToInt(),
+                                ),
                             )
                             Spacer(Modifier.height(8.dp))
-                            Slider(
-                                value = uiState.cardBackgroundAlphaPercent.toFloat(),
-                                onValueChange = { actions.onSetCardBackgroundAlphaPercent(it.roundToInt()) },
-                                valueRange = 10f..91f,
-                                steps = 80,
+                            ExpressiveSlider(
+                                state = alphaSliderState,
+                                onValueChangeFinished = {
+                                    val percent = alphaSliderState.value.roundToInt()
+                                    alphaSliderState.value = percent.toFloat()
+                                    actions.onSetCardBackgroundAlphaPercent(percent)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
                             )
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                            BackgroundSliderHeader(
+                                icon = Icons.Rounded.BlurOn,
+                                title = stringResource(id = R.string.settings_background_blur),
+                                summary = stringResource(
+                                    id = R.string.settings_background_blur_summary,
+                                    blurSliderState.value.roundToInt(),
+                                ),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            ExpressiveSlider(
+                                state = blurSliderState,
+                                onValueChangeFinished = {
+                                    val percent = blurSliderState.value.roundToInt()
+                                    blurSliderState.value = percent.toFloat()
+                                    actions.onSetCustomBackgroundBlurPercent(percent)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                            BackgroundSliderHeader(
+                                icon = Icons.Rounded.Contrast,
+                                title = stringResource(id = R.string.settings_background_scrim),
+                                summary = stringResource(
+                                    id = R.string.settings_background_scrim_summary,
+                                    scrimSliderState.value.roundToInt(),
+                                ),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            ExpressiveSlider(
+                                state = scrimSliderState,
+                                onValueChangeFinished = {
+                                    val percent = scrimSliderState.value.roundToInt()
+                                    scrimSliderState.value = percent.toFloat()
+                                    actions.onSetCustomBackgroundScrimPercent(percent)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = stringResource(id = R.string.settings_background_scrim_darker),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                Text(
+                                    text = stringResource(id = R.string.settings_background_scrim_lighter),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
@@ -561,8 +666,92 @@ fun ColorPaletteScreenMaterial(
             }
 
             item {
+                SegmentedColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    content = listOf(
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
+                                },
+                                headlineContent = { Text(stringResource(id = R.string.theme_export)) },
+                                supportingContent = { Text(stringResource(id = R.string.theme_export_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.FileUpload, stringResource(id = R.string.theme_export)) },
+                            )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    importThemeLauncher.launch(
+                                        arrayOf("application/zip", "application/x-zip-compressed")
+                                    )
+                                },
+                                headlineContent = { Text(stringResource(id = R.string.theme_import)) },
+                                supportingContent = { Text(stringResource(id = R.string.theme_import_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.theme_import)) },
+                            )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = { showResetThemeDialog = true },
+                                headlineContent = { Text(stringResource(id = R.string.theme_reset)) },
+                                supportingContent = { Text(stringResource(id = R.string.theme_reset_summary)) },
+                                leadingContent = { IconTile(Icons.Rounded.Restore, stringResource(id = R.string.theme_reset)) },
+                            )
+                        }
+                    )
+                )
+            }
+
+            item {
                 Spacer(modifier = Modifier.height(16.dp + navBars.calculateBottomPadding() + captionBar.calculateBottomPadding()))
             }
+        }
+    }
+
+    if (showResetThemeDialog) {
+        ExpressiveConfirmDialog(
+            title = stringResource(R.string.theme_reset_confirm_title),
+            message = stringResource(R.string.theme_reset_confirm_message),
+            confirmText = stringResource(R.string.theme_reset),
+            dismissText = stringResource(android.R.string.cancel),
+            onConfirm = {
+                showResetThemeDialog = false
+                actions.onResetThemeDefaults(context)
+            },
+            onDismiss = { showResetThemeDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun BackgroundSliderHeader(
+    icon: ImageVector,
+    title: String,
+    summary: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = title,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

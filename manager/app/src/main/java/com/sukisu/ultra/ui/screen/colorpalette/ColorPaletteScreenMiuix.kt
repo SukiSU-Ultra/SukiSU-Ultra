@@ -45,7 +45,10 @@ import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Pin
+import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Fingerprint
@@ -85,8 +88,10 @@ import com.sukisu.ultra.ui.component.miuix.ScaleDialog
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.keyColorOptions
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
@@ -103,6 +108,7 @@ import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -123,6 +129,17 @@ fun ColorPaletteScreenMiuix(
     val uiState = state.uiState
     val currentColorMode = state.currentColorMode
     val isDark = currentColorMode.isDark || currentColorMode.isSystem && isSystemInDarkTheme()
+    val context = LocalContext.current
+    val exportThemeLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri: Uri? ->
+        uri?.let { actions.onExportTheme(context, it) }
+    }
+    val importThemeLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { actions.onImportTheme(context, it) }
+    }
 
     Scaffold(
         topBar = {
@@ -153,6 +170,7 @@ fun ColorPaletteScreenMiuix(
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         val showScaleDialog = rememberSaveable { mutableStateOf(false) }
+        val showResetThemeDialog = rememberSaveable { mutableStateOf(false) }
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
@@ -178,7 +196,6 @@ fun ColorPaletteScreenMiuix(
                     )
                     Spacer(modifier = Modifier.height(72.dp))
 
-                    val context = LocalContext.current
                     val pickImageLauncher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.OpenDocument()
                     ) { uri: Uri? ->
@@ -215,31 +232,68 @@ fun ColorPaletteScreenMiuix(
                         )
 
                         if (hasCustomBg) {
-                            HorizontalDivider()
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.settings_card_background_alpha),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colorScheme.onSurface
-                                )
-                                Text(
-                                    text = stringResource(id = R.string.settings_card_background_alpha_summary, uiState.cardBackgroundAlphaPercent),
-                                    fontSize = 13.sp,
-                                    color = colorScheme.onSurfaceVariantSummary
-                                )
-                                Spacer(Modifier.height(8.dp))
-                                Slider(
-                                    value = uiState.cardBackgroundAlphaPercent.toFloat(),
-                                    onValueChange = { actions.onSetCardBackgroundAlphaPercent(it.roundToInt()) },
-                                    valueRange = 10f..91f,
-                                    steps = 80,
-                                )
+                            // Drag locally so the thumb tracks the finger; commit to the preference
+                            // once the gesture ends instead of on every frame.
+                            var alphaPercent by remember(uiState.cardBackgroundAlphaPercent) {
+                                mutableFloatStateOf(uiState.cardBackgroundAlphaPercent.toFloat())
                             }
+                            var blurPercent by remember(uiState.customBackgroundBlurPercent) {
+                                mutableFloatStateOf(uiState.customBackgroundBlurPercent.toFloat())
+                            }
+                            var scrimPercent by remember(uiState.customBackgroundScrimPercent) {
+                                mutableFloatStateOf(uiState.customBackgroundScrimPercent.toFloat())
+                            }
+
+                            HorizontalDivider()
+                            MiuixBackgroundSliderSection(
+                                title = stringResource(id = R.string.settings_card_background_alpha),
+                                summary = stringResource(
+                                    id = R.string.settings_card_background_alpha_summary,
+                                    alphaPercent.roundToInt(),
+                                ),
+                                value = alphaPercent,
+                                valueRange = 10f..91f,
+                                onValueChange = { alphaPercent = it },
+                                onValueChangeFinished = {
+                                    val percent = alphaPercent.roundToInt()
+                                    alphaPercent = percent.toFloat()
+                                    actions.onSetCardBackgroundAlphaPercent(percent)
+                                },
+                            )
+                            HorizontalDivider()
+                            MiuixBackgroundSliderSection(
+                                title = stringResource(id = R.string.settings_background_blur),
+                                summary = stringResource(
+                                    id = R.string.settings_background_blur_summary,
+                                    blurPercent.roundToInt(),
+                                ),
+                                value = blurPercent,
+                                valueRange = 0f..100f,
+                                onValueChange = { blurPercent = it },
+                                onValueChangeFinished = {
+                                    val percent = blurPercent.roundToInt()
+                                    blurPercent = percent.toFloat()
+                                    actions.onSetCustomBackgroundBlurPercent(percent)
+                                },
+                            )
+                            HorizontalDivider()
+                            MiuixBackgroundSliderSection(
+                                title = stringResource(id = R.string.settings_background_scrim),
+                                summary = stringResource(
+                                    id = R.string.settings_background_scrim_summary,
+                                    scrimPercent.roundToInt(),
+                                ),
+                                value = scrimPercent,
+                                valueRange = -100f..100f,
+                                onValueChange = { scrimPercent = it },
+                                onValueChangeFinished = {
+                                    val percent = scrimPercent.roundToInt()
+                                    scrimPercent = percent.toFloat()
+                                    actions.onSetCustomBackgroundScrimPercent(percent)
+                                },
+                                startLabel = stringResource(id = R.string.settings_background_scrim_darker),
+                                endLabel = stringResource(id = R.string.settings_background_scrim_lighter),
+                            )
                         }
                     }
 
@@ -630,6 +684,58 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                     }
+
+                    Card(
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .fillMaxWidth(),
+                    ) {
+                        BasicComponent(
+                            title = stringResource(id = R.string.theme_export),
+                            summary = stringResource(id = R.string.theme_export_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.FileUpload,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.theme_export),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            onClick = {
+                                exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
+                            },
+                        )
+                        BasicComponent(
+                            title = stringResource(id = R.string.theme_import),
+                            summary = stringResource(id = R.string.theme_import_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.FileDownload,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.theme_import),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            onClick = {
+                                importThemeLauncher.launch(
+                                    arrayOf("application/zip", "application/x-zip-compressed")
+                                )
+                            },
+                        )
+                        BasicComponent(
+                            title = stringResource(id = R.string.theme_reset),
+                            summary = stringResource(id = R.string.theme_reset_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Restore,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.theme_reset),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            onClick = { showResetThemeDialog.value = true },
+                        )
+                    }
                 }
                 item {
                     Spacer(
@@ -640,6 +746,86 @@ fun ColorPaletteScreenMiuix(
                         )
                     )
                 }
+            }
+        }
+
+        if (showResetThemeDialog.value) {
+            OverlayDialog(
+                show = true,
+                title = stringResource(R.string.theme_reset_confirm_title),
+                summary = stringResource(R.string.theme_reset_confirm_message),
+                onDismissRequest = { showResetThemeDialog.value = false },
+                content = {
+                    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                        TextButton(
+                            text = stringResource(android.R.string.cancel),
+                            onClick = { showResetThemeDialog.value = false },
+                            modifier = Modifier.weight(1f),
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = stringResource(R.string.theme_reset),
+                            onClick = {
+                                showResetThemeDialog.value = false
+                                actions.onResetThemeDefaults(context)
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColorsPrimary(),
+                        )
+                    }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun MiuixBackgroundSliderSection(
+    title: String,
+    summary: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+    startLabel: String? = null,
+    endLabel: String? = null,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = colorScheme.onSurface
+        )
+        Text(
+            text = summary,
+            fontSize = 13.sp,
+            color = colorScheme.onSurfaceVariantSummary
+        )
+        Spacer(Modifier.height(8.dp))
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            onValueChangeFinished = onValueChangeFinished,
+            valueRange = valueRange,
+        )
+        if (startLabel != null && endLabel != null) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = startLabel,
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariantSummary
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = endLabel,
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariantSummary
+                )
             }
         }
     }

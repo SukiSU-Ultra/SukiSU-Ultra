@@ -4,7 +4,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -125,6 +124,7 @@ import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.theme.LocalEnableNavigationBadge
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
+import com.sukisu.ultra.ui.util.BgStorage
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.install
@@ -146,6 +146,7 @@ import top.yukonga.miuix.kmp.utils.PagerGestureNestedScrollConnection
 import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
 import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import top.yukonga.miuix.kmp.utils.pagerGestureOverride
+import androidx.core.graphics.drawable.toDrawable
 
 private enum class SplashPhase { Covered, Revealing, Done }
 
@@ -251,9 +252,7 @@ class MainActivity : ComponentActivity() {
             val windowDark = if (splashPhase == SplashPhase.Done) darkMode else isSystemInDarkTheme()
             LaunchedEffect(windowDark) {
                 window.setBackgroundDrawable(
-                    ColorDrawable(
-                        getColor(if (windowDark) android.R.color.background_dark else android.R.color.background_light)
-                    )
+                    getColor(if (windowDark) android.R.color.background_dark else android.R.color.background_light).toDrawable()
                 )
             }
 
@@ -408,7 +407,13 @@ class MainActivity : ComponentActivity() {
                             }
                     ) {
                         val hasCustomBackground = uiState.customBackgroundUri.isNotEmpty()
-                        Crossfade(targetState = uiState.customBackgroundUri, label = "global_background") { path ->
+                        val backgroundBlurRadius = (
+                            BgStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * uiState.customBackgroundBlurPercent / 100f
+                        ).dp
+                        Crossfade(
+                            targetState = uiState.customBackgroundUri to uiState.customBackgroundUpdatedAt,
+                            label = "global_background",
+                        ) { (path, _) ->
                             if (path.isNotEmpty()) {
                                 val context = LocalContext.current
                                 AsyncImage(
@@ -421,13 +426,27 @@ class MainActivity : ComponentActivity() {
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .blur(20.dp)
+                                        .then(
+                                            if (backgroundBlurRadius > 0.dp) {
+                                                Modifier.blur(backgroundBlurRadius)
+                                            } else {
+                                                Modifier
+                                            }
+                                        )
                                 )
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = 0.35f))
-                                )
+                                val scrimPercent = uiState.customBackgroundScrimPercent
+                                if (scrimPercent != 0) {
+                                    val scrimColor = if (scrimPercent < 0) {
+                                        Color.Black.copy(alpha = -scrimPercent / 100f)
+                                    } else {
+                                        Color.White.copy(alpha = scrimPercent / 100f)
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(scrimColor)
+                                    )
+                                }
                             }
                         }
 

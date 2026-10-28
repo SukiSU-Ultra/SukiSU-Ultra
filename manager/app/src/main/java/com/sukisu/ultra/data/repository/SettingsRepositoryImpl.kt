@@ -14,6 +14,7 @@ import com.sukisu.ultra.magica.BootCompletedReceiver
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
+import com.sukisu.ultra.ui.util.BgStorage
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
 import com.sukisu.ultra.ui.util.getFeatureValue
@@ -50,9 +51,31 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getString("custom_bg_uri", "") ?: ""
         set(value) = prefs.edit { putString("custom_bg_uri", value) }
 
+    override var customBackgroundUpdatedAt: Long
+        get() = prefs.getLong("custom_bg_updated_at", 0L)
+        set(value) = prefs.edit { putLong("custom_bg_updated_at", value) }
+
     override var cardBackgroundAlphaPercent: Int
         get() = prefs.getInt("card_bg_alpha_percent", 60)
         set(value) = prefs.edit { putInt("card_bg_alpha_percent", value) }
+
+    override var customBackgroundBlurPercent: Int
+        get() = prefs.getInt("custom_bg_blur_percent", BgStorage.DEFAULT_BACKGROUND_BLUR_PERCENT)
+        set(value) = prefs.edit {
+            putInt(
+                "custom_bg_blur_percent",
+                value.coerceIn(BgStorage.BACKGROUND_BLUR_PERCENT_MIN, BgStorage.BACKGROUND_BLUR_PERCENT_MAX),
+            )
+        }
+
+    override var customBackgroundScrimPercent: Int
+        get() = prefs.getInt("custom_bg_scrim_percent", BgStorage.DEFAULT_BACKGROUND_SCRIM)
+        set(value) = prefs.edit {
+            putInt(
+                "custom_bg_scrim_percent",
+                value.coerceIn(BgStorage.BACKGROUND_SCRIM_MIN, BgStorage.BACKGROUND_SCRIM_MAX),
+            )
+        }
 
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->
