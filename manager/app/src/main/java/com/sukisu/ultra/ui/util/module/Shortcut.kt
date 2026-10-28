@@ -18,6 +18,7 @@ import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
+import com.sukisu.ultra.ui.AppIconShortcutActivity
 import com.sukisu.ultra.ui.MainActivity
 import com.sukisu.ultra.ui.screen.module.ShortcutType
 import com.sukisu.ultra.ui.util.getRootShell
@@ -59,7 +60,6 @@ object Shortcut {
         }
         createModuleShortcut(
             context = context,
-            moduleId = moduleId,
             name = name,
             iconUri = iconUri,
             shortcutId = shortcutId,
@@ -82,7 +82,6 @@ object Shortcut {
         }
         createModuleShortcut(
             context = context,
-            moduleId = moduleId,
             name = name,
             iconUri = iconUri,
             shortcutId = shortcutId,
@@ -93,16 +92,12 @@ object Shortcut {
 
     private fun createModuleShortcut(
         context: Context,
-        moduleId: String,
         name: String,
         iconUri: String?,
         shortcutId: String,
         shortcutIntent: Intent,
         logPrefix: String
     ) {
-        val hasPinned = hasPinnedShortcut(context, shortcutId)
-        Log.d(TAG, "$logPrefix: shortcutId=$shortcutId, hasPinned=$hasPinned")
-
         val iconCompat = createShortcutIcon(context, iconUri)
         val finalIcon = iconCompat ?: IconCompat.createWithResource(context, R.mipmap.ic_launcher)
 
@@ -112,11 +107,41 @@ object Shortcut {
             .setIcon(finalIcon)
             .build()
 
+        publishAndPinShortcut(context, shortcut, logPrefix)
+    }
+
+    /** Pins the app itself to the home screen using an arbitrary [bitmap] as the shortcut icon. */
+    fun createAppIconShortcut(context: Context, key: String, label: String, bitmap: Bitmap) {
+        val shortcutId = "app_icon_$key"
+        val shortcutIntent = Intent(context, AppIconShortcutActivity::class.java).apply {
+            action = Intent.ACTION_MAIN
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        val shortcut = ShortcutInfoCompat.Builder(context, shortcutId)
+            .setShortLabel(label)
+            .setLongLabel(label)
+            .setIntent(shortcutIntent)
+            .setIcon(IconCompat.createWithAdaptiveBitmap(bitmap))
+            .build()
+
+        publishAndPinShortcut(context, shortcut, "createAppIconShortcut")
+    }
+
+    private fun publishAndPinShortcut(
+        context: Context,
+        shortcut: ShortcutInfoCompat,
+        logPrefix: String,
+    ) {
+        val shortcutId = shortcut.id
+        val hasPinned = hasPinnedShortcut(context, shortcutId)
+        Log.d(TAG, "$logPrefix: shortcutId=$shortcutId, hasPinned=$hasPinned")
+
         try {
-            Log.d(TAG, "$logPrefix: pushDynamicShortcut() called for moduleId=$moduleId")
+            Log.d(TAG, "$logPrefix: pushDynamicShortcut() called for $shortcutId")
             ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
         } catch (t: Throwable) {
-            Log.w(TAG, "$logPrefix: pushDynamicShortcut() threw exception for moduleId=$moduleId: ${t.message}", t)
+            Log.w(TAG, "$logPrefix: pushDynamicShortcut() threw exception for $shortcutId: ${t.message}", t)
         }
 
         if (hasPinned) {
@@ -154,24 +179,24 @@ object Shortcut {
         }
 
         val pinned = try {
-            Log.d(TAG, "$logPrefix: requestPinShortcut() called for moduleId=$moduleId")
+            Log.d(TAG, "$logPrefix: requestPinShortcut() called for $shortcutId")
             val result = ShortcutManagerCompat.requestPinShortcut(context, shortcut, null)
             Log.d(TAG, "$logPrefix: requestPinShortcut() result=$result")
             result
         } catch (t: Throwable) {
-            Log.w(TAG, "$logPrefix: requestPinShortcut() threw exception for moduleId=$moduleId: ${t.message}", t)
+            Log.w(TAG, "$logPrefix: requestPinShortcut() threw exception for $shortcutId: ${t.message}", t)
             false
         }
 
         if (pinned) {
-            Log.d(TAG, "$logPrefix: pinned shortcut created successfully for moduleId=$moduleId")
+            Log.d(TAG, "$logPrefix: pinned shortcut created successfully for $shortcutId")
             Toast.makeText(
                 context,
                 context.getString(R.string.module_shortcut_created),
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-            Log.w(TAG, "$logPrefix: pinned shortcut not created, showing permission hint for moduleId=$moduleId")
+            Log.w(TAG, "$logPrefix: pinned shortcut not created, showing permission hint for $shortcutId")
             showShortcutPermissionHint(context)
         }
     }

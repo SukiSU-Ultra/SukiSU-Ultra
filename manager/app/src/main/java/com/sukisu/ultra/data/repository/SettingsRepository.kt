@@ -12,7 +12,8 @@ interface SettingsRepository {
     var checkCiUpdate: Boolean
     var checkModuleUpdate: Boolean
     var autoDeleteModuleZip: Boolean
-    var alternativeIcon : Boolean
+    /** Id of the selected launcher icon (see [com.sukisu.ultra.ui.util.BuiltinAppIcons]). */
+    var appIconId: String
     var themeMode: Int
     var miuixMonet: Boolean
     var keyColor: Int

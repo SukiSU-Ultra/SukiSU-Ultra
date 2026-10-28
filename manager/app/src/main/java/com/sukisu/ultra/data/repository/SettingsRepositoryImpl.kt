@@ -15,6 +15,7 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
 import com.sukisu.ultra.ui.util.getFeatureValue
@@ -112,9 +113,19 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean(KEY_AUTO_DELETE_MODULE_ZIP, false)
         set(value) = prefs.edit { putBoolean(KEY_AUTO_DELETE_MODULE_ZIP, value) }
 
-    override var alternativeIcon : Boolean
-        get() = prefs.getBoolean("use_alt_icon", false)
-        set(value) = prefs.edit { putBoolean("use_alt_icon", value)}
+    override var appIconId: String
+        get() = prefs.getString("app_icon_id", null)
+            ?: if (prefs.getBoolean("use_alt_icon", false)) {
+                BuiltinAppIcons.KERNELSU_ID
+            } else {
+                BuiltinAppIcons.DEFAULT_ID
+            }
+        // Commit synchronously: changing components can restart the process before an async write lands.
+        set(value) = prefs.edit(commit = true) {
+            putString("app_icon_id", value)
+            // Keep the legacy flag in sync so downgrading still restores the KernelSU icon.
+            putBoolean("use_alt_icon", value == BuiltinAppIcons.KERNELSU_ID)
+        }
 
     override var themeMode: Int
         get() = prefs.getInt("color_mode", 0)

@@ -72,7 +72,7 @@ fun ColorPaletteScreen() {
         onSetModuleDescriptionMaxLines = viewModel::setModuleDescriptionMaxLines,
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetHideHomeWarnings = viewModel::setHideHomeWarnings,
-        onSetAlternativeIcon = { enabled -> viewModel.setAlternativeIcon(context, enabled) },
+        onOpenAppIcon = { navigator.push(Route.AppIcon) },
         onPickCustomBackground = { ctx, uri ->
             viewModel.stagePickedBackground(ctx, uri) { path ->
                 if (path != null) {

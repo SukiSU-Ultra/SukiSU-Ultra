@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 
 @Immutable
 data class SettingsUiState(
@@ -13,7 +14,7 @@ data class SettingsUiState(
     val checkCiUpdate: Boolean = false,
     val checkModuleUpdate: Boolean = true,
     val autoDeleteModuleZip: Boolean = false,
-    val alternativeIcon : Boolean = false,
+    val appIconId: String = BuiltinAppIcons.DEFAULT_ID,
     val themeMode: Int = 0,
     val miuixMonet: Boolean = false,
     val keyColor: Int = 0,

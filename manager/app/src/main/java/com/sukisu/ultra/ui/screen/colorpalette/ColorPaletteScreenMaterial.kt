@@ -46,7 +46,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Brightness3
@@ -56,6 +55,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
@@ -123,9 +123,11 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.screen.appicon.BuiltinAppIconPreview
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.keyColorOptions
 import com.sukisu.ultra.ui.theme.rememberKernelSUColorScheme
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.ThemePackageStorage
 
 @Composable
@@ -533,12 +535,34 @@ fun ColorPaletteScreenMaterial(
                             )
                         },
                         {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.Android,
-                                title = stringResource(id = R.string.icon_switch_title),
-                                summary = stringResource(id = R.string.icon_switch_summary),
-                                checked = uiState.alternativeIcon,
-                                onCheckedChange = actions.onSetAlternativeIcon
+                            val currentIcon = BuiltinAppIcons.find(uiState.appIconId)
+                            SegmentedListItem(
+                                onClick = actions.onOpenAppIcon,
+                                headlineContent = { Text(stringResource(R.string.app_icon_title)) },
+                                supportingContent = {
+                                    Text(stringResource(R.string.app_icon_summary))
+                                },
+                                leadingContent = {
+                                    BuiltinAppIconPreview(
+                                        icon = currentIcon,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
+                                    )
+                                },
+                                trailingContent = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = stringResource(currentIcon.nameRes),
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Rounded.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                },
                             )
                         }
                     )

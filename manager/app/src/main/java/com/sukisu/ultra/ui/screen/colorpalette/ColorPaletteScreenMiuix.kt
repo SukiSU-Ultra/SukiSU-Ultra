@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
@@ -89,10 +88,12 @@ import com.sukisu.ultra.ui.component.bottombar.useNavigationRail
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.ScaleDialog
+import com.sukisu.ultra.ui.screen.appicon.BuiltinAppIconPreview
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.keyColorOptions
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -610,19 +611,21 @@ fun ColorPaletteScreenMiuix(
                             }
                         )
 
-                        SwitchPreference(
-                            title = stringResource(id = R.string.icon_switch_title),
-                            summary = stringResource(id = R.string.icon_switch_summary),
+                        ArrowPreference(
+                            title = stringResource(id = R.string.app_icon_title),
+                            summary = stringResource(
+                                id = BuiltinAppIcons.find(uiState.appIconId).nameRes
+                            ),
                             startAction = {
-                                Icon(
-                                    Icons.Rounded.Android,
-                                    modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.icon_switch_title),
-                                    tint = colorScheme.onBackground
+                                BuiltinAppIconPreview(
+                                    icon = BuiltinAppIcons.find(uiState.appIconId),
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(28.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
                                 )
                             },
-                            checked = uiState.alternativeIcon,
-                            onCheckedChange = actions.onSetAlternativeIcon
+                            onClick = actions.onOpenAppIcon,
                         )
 
                         var sliderValue by remember(uiState.pageScale) { mutableFloatStateOf(uiState.pageScale) }

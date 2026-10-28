@@ -24,6 +24,7 @@ import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.ImportedTheme
 import com.sukisu.ultra.ui.util.ThemePackageData
 import com.sukisu.ultra.ui.util.ThemePackageStorage
@@ -47,7 +48,7 @@ class SettingsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            val alternativeIcon = repo.alternativeIcon
+            val appIconId = repo.appIconId
             val themeMode = repo.themeMode
             val miuixMonet = repo.miuixMonet
             val keyColor = repo.keyColor
@@ -121,7 +122,7 @@ class SettingsViewModel(
                     checkUpdate = repo.checkUpdate,
                     checkCiUpdate = repo.checkCiUpdate,
                     checkModuleUpdate = repo.checkModuleUpdate,
-                    alternativeIcon = alternativeIcon,
+                    appIconId = appIconId,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -440,10 +441,11 @@ class SettingsViewModel(
         repo.autoDeleteModuleZip = enabled
         _uiState.update { it.copy(autoDeleteModuleZip = enabled) }
     }
-    fun setAlternativeIcon(context: Context, enabled: Boolean) {
-        repo.alternativeIcon = enabled
-        _uiState.update { it.copy(alternativeIcon = enabled) }
-        com.sukisu.ultra.ui.util.toggleLauncherIcon(context, enabled)
+    fun setAppIcon(context: Context, iconId: String) {
+        val icon = BuiltinAppIcons.find(iconId)
+        repo.appIconId = icon.id
+        _uiState.update { it.copy(appIconId = icon.id) }
+        BuiltinAppIcons.apply(context, icon)
     }
 
     fun setThemeMode(mode: Int) {

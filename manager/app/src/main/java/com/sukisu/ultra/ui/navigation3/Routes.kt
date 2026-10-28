@@ -53,6 +53,11 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ColorPalette : Route
 
+    /** Launcher icon picker and icon pack manager. */
+    @Parcelize
+    @Serializable
+    data object AppIcon : Route
+
     /** In-app background cropper. [sourcePath] is a private cache copy of the picked image. */
     @Parcelize
     @Serializable
