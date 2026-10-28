@@ -734,8 +734,6 @@
     <string name="temporary_root_custom_range">請輸入 1～10080 分鐘（最多 7 天）</string>
     <string name="settings_check_ci_update">檢查 CI 版本更新</string>
     <string name="settings_check_ci_update_summary">在首頁檢查 main 分支的 CI 建置，有新版本時提示更新</string>
-<<<<<<< HEAD
-=======
     <string name="settings_custom_background">自定義背景</string>
     <string name="settings_custom_background_summary">選擇圖片後可調整裁切區域</string>
     <string name="settings_use_system_wallpaper">使用系統桌面桌布</string>
@@ -784,7 +782,6 @@
     <string name="theme_import_failed">無效的主題包</string>
     <string name="theme_reset_done">已恢復預設外觀</string>
     <string name="settings_clear">清除</string>
->>>>>>> 9910f6dfe (manager: add built-in and gallery cropping for custom backgrounds)
     <string name="version_spoof_warning">注意：這些設定會改變核心實際回傳的 SukiSU 版本資訊，不只是修改介面顯示。版本號或 UAPI 與編譯值不一致，可能導致 Manager 誤判相容性，並影響安裝與更新。可隨時還原核心編譯值。</string>
     <string name="version_spoof_hint">欄位顯示目前生效值，下方會標示核心編譯時的原始值。修改後會儲存，並在開機時重新套用（安全模式除外）。其他應用程式可能會快取版本資訊；若顯示未更新，請重新啟動該應用程式。完整版本字串最長 254 個 UTF-8 位元組。</string>
     <string name="version_spoof_code">SukiSU 數字版本號</string>
@@ -876,9 +873,4 @@
     <string name="kernel_modules_expand">顯示依賴鏈</string>
     <string name="kernel_modules_collapse">隱藏依賴鏈</string>
     <string name="tools_kernel_modules_summary">查看被封鎖的模組、依賴關係和刷機參數</string>
-    <string name="settings_custom_background">自定義背景</string>
-    <string name="settings_custom_background_summary">為應用主頁面設定自定義背景圖片</string>
-    <string name="settings_card_background_alpha">卡片不透明度</string>
-    <string name="settings_card_background_alpha_summary">調節背景卡片不透明度（%d%%）</string>
-    <string name="settings_clear">清除</string>
 </resources>

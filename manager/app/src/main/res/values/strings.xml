@@ -865,6 +865,54 @@
     <string name="ci_update_install_success">Update installed successfully.</string>
     <string name="ci_update_install_failed">Update installation failed or was cancelled.</string>
     <string name="ci_update_available">New CI build available (#%1$d)</string>
+    <string name="settings_custom_background">Custom Background</string>
+    <string name="settings_custom_background_summary">Pick an image, then adjust its crop for main pages</string>
+    <string name="settings_use_system_wallpaper">Use System Wallpaper</string>
+    <string name="settings_use_system_wallpaper_summary">Use the current launcher wallpaper as the app background</string>
+    <string name="settings_use_system_wallpaper_reading">Reading the current wallpaper…</string>
+    <string name="settings_extract_background_color">Extract Colors from Background</string>
+    <string name="settings_extract_background_color_summary">Use the current background image for the theme key color</string>
+    <string name="settings_system_wallpaper_failed">Couldn\'t read the system wallpaper</string>
+    <string name="settings_crop_background">Re-crop Background</string>
+    <string name="settings_crop_background_summary">Adjust the visible area, or crop with your gallery</string>
+    <string name="background_crop_title">Crop Background</string>
+    <string name="background_crop_done">Done</string>
+    <string name="background_crop_use_original">Use original</string>
+    <string name="background_crop_gallery">Gallery crop</string>
+    <string name="background_crop_rotate">Rotate</string>
+    <string name="background_crop_reset">Reset</string>
+    <string name="background_crop_hint">Drag to reposition · Pinch to zoom</string>
+    <string name="background_crop_ratio_screen">Screen</string>
+    <string name="background_crop_failed">Couldn\'t crop the image. Try again.</string>
+    <string name="background_crop_gallery_failed">The gallery didn\'t return an image.</string>
+    <string name="background_crop_prepare_failed">Couldn\'t read the selected image.</string>
+    <string name="settings_background_appearance">Background Appearance</string>
+    <string name="settings_background_appearance_summary">Card opacity, background blur and scrim</string>
+    <string name="settings_card_background_alpha">Card Opacity</string>
+    <string name="settings_card_background_alpha_summary">Adjust background card opacity (%d%%)</string>
+    <string name="settings_background_blur">Background Blur</string>
+    <string name="settings_background_blur_summary">Adjust the blur strength of the custom background (%d%%)</string>
+    <string name="settings_background_scrim">Background Scrim</string>
+    <string name="settings_background_scrim_summary">Adjust the background scrim brightness (%d%%)</string>
+    <string name="settings_background_scrim_darker">Darker</string>
+    <string name="settings_background_scrim_lighter">Lighter</string>
+    <string name="theme_preview_caption_miuix">Preview · Miuix</string>
+    <string name="theme_preview_caption_material">Preview · Material 3 Expressive</string>
+    <string name="theme_preview_description">Home screen preview with the current theme and background</string>
+    <string name="theme_export">Export Theme</string>
+    <string name="theme_export_summary">Save the current theme and background as a .zip package</string>
+    <string name="theme_import">Import Theme</string>
+    <string name="theme_import_summary">Apply a theme package exported from SukiSU</string>
+    <string name="theme_reset">Restore Defaults</string>
+    <string name="theme_reset_summary">Reset card opacity, background blur and scrim</string>
+    <string name="theme_reset_confirm_title">Restore the default appearance?</string>
+    <string name="theme_reset_confirm_message">Card opacity, background blur and scrim will be reset. Theme colors, dynamic color and the custom background image are kept.</string>
+    <string name="theme_export_success">Theme package exported</string>
+    <string name="theme_export_failed">Failed to export the theme package</string>
+    <string name="theme_import_success">Theme package imported</string>
+    <string name="theme_import_failed">Invalid theme package</string>
+    <string name="theme_reset_done">Default appearance restored</string>
+    <string name="settings_clear">Clear</string>
     <string name="version_spoof_warning">Warning: these are real kernel API response overrides, not cosmetic labels. Changing UAPI or version values can break Manager compatibility checks, installation and updates. Reset remains available through ksud.</string>
     <string name="version_spoof_hint">Blank fields use build values. Saved overrides are restored at boot except in safe mode. Other apps may cache versions; restart them after changing values. Full version: up to 254 UTF-8 bytes.</string>
     <string name="version_spoof_code">Working version code</string>
@@ -883,7 +931,6 @@
     <string name="version_spoof_section_fields">Reported versions</string>
     <string name="version_spoof_section_recovery">Warning preferences and recovery</string>
     <string name="version_spoof_recovery">Restore kernel versions: delete /data/adb/ksu/.version_spoof_config as root, then reboot the device.\n\nShow warnings again: delete /data/adb/ksu/.version_spoof_warning_hidden as root, then restart Manager or reboot. Removing this file does not reset version overrides. If Manager cannot open, use another available root or recovery environment.</string>
-
     <!-- Kernel module blacklist (block_modules=) page. The page reads the
          kernel core_param and the module tables; it never changes them. -->
     <string name="kernel_modules_title">Kernel module blacklist</string>
@@ -957,10 +1004,4 @@
     <string name="kernel_modules_expand">Show dependency chain</string>
     <string name="kernel_modules_collapse">Hide dependency chain</string>
     <string name="tools_kernel_modules_summary">Review blocked modules, dependencies and flash parameters</string>
-    <string name="settings_custom_background">Custom Background</string>
-    <string name="settings_custom_background_summary">Set a custom background image for main pages</string>
-    <string name="settings_card_background_alpha">Card Opacity</string>
-    <string name="settings_card_background_alpha_summary">Adjust background card opacity (%d%%)</string>
-    <string name="settings_clear">Clear</string>
-
 </resources>
