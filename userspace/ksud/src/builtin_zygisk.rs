@@ -218,7 +218,10 @@ pub fn bootstrap() -> Result<()> {
             error!("Failed to spawn BuiltZygisk monitor: {e}");
         }
     } else {
-        warn!("BuiltZygisk tracer binary not found in {}", work_dir.display());
+        warn!(
+            "BuiltZygisk tracer binary not found in {}",
+            work_dir.display()
+        );
     }
 
     Ok(())
