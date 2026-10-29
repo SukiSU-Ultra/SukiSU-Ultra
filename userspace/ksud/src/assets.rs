@@ -19,7 +19,6 @@ mod android {
                 || file.ends_with(".ko")
                 || file.starts_with("zygisk")
                 || file.starts_with("libzygisk")
-                || file.starts_with("webroot")
             {
                 // don't extract internal executables, kernel modules, and built-in zygisk assets
                 continue;
