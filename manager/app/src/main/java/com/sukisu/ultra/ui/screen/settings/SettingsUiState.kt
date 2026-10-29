@@ -85,6 +85,9 @@ data class SettingsUiState(
     // Auto Jailbreak
     val autoJailbreak: Boolean = false,
 
+    // Built-in Zygisk
+    val builtinZygisk: Boolean = false,
+
     // Soft Reboot
     val useSoftReboot: Boolean = false,
 
@@ -246,6 +249,7 @@ data class SettingsScreenActions(
     val onSetDefaultUmountModules: (Boolean) -> Unit,
     val onSetEnableWebDebugging: (Boolean) -> Unit,
     val onSetAutoJailbreak: (Boolean) -> Unit,
+    val onSetBuiltinZygisk: (Boolean) -> Unit,
     val onSetUseSoftReboot: (Boolean) -> Unit,
     val onOpenAbout: () -> Unit,
     val onOpenTools: () -> Unit,

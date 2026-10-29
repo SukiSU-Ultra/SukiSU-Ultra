@@ -1691,4 +1691,10 @@
     <string name="theme_store_comments_format_link">插入連結</string>
     <string name="theme_store_comments_login_to_reply">登入後回覆</string>
     <string name="theme_store_device_reauthorize">重設裝置授權（下次連線時重新申請）</string>
+    <!-- Built-in Zygisk -->
+    <string name="settings_builtin_zygisk">內建 Zygisk</string>
+    <string name="settings_builtin_zygisk_summary">提供內建 Zygisk 支援 (BuiltZygisk)，開啟後自動接管並抑制外部 Zygisk 模組，需重新開機生效</string>
+    <string name="settings_builtin_zygisk_webui">BuiltZygisk 設定</string>
+    <string name="settings_builtin_zygisk_webui_summary">開啟 BuiltZygisk WebUI 設定介面</string>
+    <string name="module_suppressed_by_builtin">已由內建接管</string>
 </resources>

@@ -1439,3 +1439,29 @@ suspend fun getDynamicManagerSignature(apkPath: String): DynamicManagerSignature
 suspend fun addDynamicManager(packageName: String, signature: DynamicManagerSignature) {
     runDynamicManagerCommand("manager", "add", packageName, signature.certSize.toString(), signature.hash)
 }
+
+data class BuiltinZygiskStatus(
+    val enabled: Boolean = false,
+    val monitorRunning: Boolean = false,
+    val daemonRunning: Boolean = false,
+)
+
+fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk status").trim()
+        val json = org.json.JSONObject(out)
+        BuiltinZygiskStatus(
+            enabled = json.optBoolean("enabled", false),
+            monitorRunning = json.optBoolean("monitor_running", false),
+            daemonRunning = json.optBoolean("daemon_running", false)
+        )
+    }.getOrDefault(BuiltinZygiskStatus())
+}
+
+fun setBuiltinZygiskEnabled(enabled: Boolean): Boolean {
+    val shell = getRootShell()
+    val action = if (enabled) "on" else "off"
+    val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk $action").trim()
+    return out == "true"
+}

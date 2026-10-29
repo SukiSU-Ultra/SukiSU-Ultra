@@ -217,6 +217,7 @@ class SettingsViewModel(
             val uiMode = repo.uiMode
             val appLanguage = repo.appLanguage
             val autoJailbreak = repo.autoJailbreak
+            val builtinZygisk = repo.builtinZygisk
             val useSoftReboot = repo.useSoftReboot
             val isLateLoadMode = Natives.isLateLoadMode
             val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
@@ -304,6 +305,7 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
                     isDefaultUmountModules = isDefaultUmountModules,
                     isLkmMode = isLkmMode,
                     autoJailbreak = autoJailbreak,
+                    builtinZygisk = builtinZygisk,
                     useSoftReboot = useSoftReboot,
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
@@ -2962,6 +2964,13 @@ homePillScale = repo.homePillScale,
     fun setAutoJailbreak(enabled: Boolean) {
         repo.autoJailbreak = enabled
         _uiState.update { it.copy(autoJailbreak = enabled) }
+    }
+
+    fun setBuiltinZygisk(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.builtinZygisk = enabled
+            _uiState.update { it.copy(builtinZygisk = enabled) }
+        }
     }
 
     fun setUseSoftReboot(enabled: Boolean) {
