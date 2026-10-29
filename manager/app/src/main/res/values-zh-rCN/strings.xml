@@ -996,4 +996,11 @@
     <string name="kernel_modules_expand">显示依赖链</string>
     <string name="kernel_modules_collapse">隐藏依赖链</string>
     <string name="tools_kernel_modules_summary">查看被阻止的模块、依赖关系和刷机参数</string>
+
+    <!-- Built-in Zygisk -->
+    <string name="settings_builtin_zygisk">内置 Zygisk</string>
+    <string name="settings_builtin_zygisk_summary">提供内置 Zygisk 支持 (BuiltZygisk)，开启后自动接管并抑制外部 Zygisk 模块，需重启生效</string>
+    <string name="settings_builtin_zygisk_webui">BuiltZygisk 设置</string>
+    <string name="settings_builtin_zygisk_webui_summary">打开 BuiltZygisk WebUI 配置界面</string>
+    <string name="module_suppressed_by_builtin">已由内置接管</string>
 </resources>

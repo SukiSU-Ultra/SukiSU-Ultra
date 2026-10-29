@@ -1001,4 +1001,11 @@
     <string name="settings_adb_root">ADB Root</string>
     <string name="mnt_detach">MNT_DETACH</string>
     <string name="zip_file_unknown">unknown.zip</string>
+
+    <!-- Built-in Zygisk -->
+    <string name="settings_builtin_zygisk">內建 Zygisk</string>
+    <string name="settings_builtin_zygisk_summary">提供內建 Zygisk 支援 (BuiltZygisk)，開啟後自動接管並抑制外部 Zygisk 模組，需重新開機生效</string>
+    <string name="settings_builtin_zygisk_webui">BuiltZygisk 設定</string>
+    <string name="settings_builtin_zygisk_webui_summary">開啟 BuiltZygisk WebUI 設定介面</string>
+    <string name="module_suppressed_by_builtin">已由內建接管</string>
 </resources>

@@ -48,25 +48,36 @@ internal suspend fun prepareWebView(
 ) {
     withContext(Dispatchers.IO) {
         val repo = ModuleRepositoryImpl()
-        val modules = repo.getModules().getOrDefault(emptyList())
-        val moduleInfo = modules.find { info -> info.id == moduleId }
+        val moduleName: String
+        val modDir: String
 
-        if (moduleInfo == null) {
-            withContext(Dispatchers.Main) {
-                webUIState.uiEvent = WebUIEvent.Error(activity.getString(R.string.no_such_module, moduleId))
+        if (moduleId == "builtin_zygisk") {
+            moduleName = activity.getString(R.string.settings_builtin_zygisk)
+            modDir = "/data/adb/nyazygisk"
+        } else {
+            val modules = repo.getModules().getOrDefault(emptyList())
+            val moduleInfo = modules.find { info -> info.id == moduleId }
+
+            if (moduleInfo == null) {
+                withContext(Dispatchers.Main) {
+                    webUIState.uiEvent = WebUIEvent.Error(activity.getString(R.string.no_such_module, moduleId))
+                }
+                return@withContext
             }
-            return@withContext
+
+            if (!moduleInfo.hasWebUi || !moduleInfo.enabled || moduleInfo.update || moduleInfo.remove) {
+                withContext(Dispatchers.Main) {
+                    webUIState.uiEvent = WebUIEvent.Error(activity.getString(R.string.module_unavailable, moduleInfo.name))
+                }
+                return@withContext
+            }
+
+            moduleName = moduleInfo.name
+            modDir = "/data/adb/modules/${moduleId}"
         }
 
-        if (!moduleInfo.hasWebUi || !moduleInfo.enabled || moduleInfo.update || moduleInfo.remove) {
-            withContext(Dispatchers.Main) {
-                webUIState.uiEvent = WebUIEvent.Error(activity.getString(R.string.module_unavailable, moduleInfo.name))
-            }
-            return@withContext
-        }
-
-        webUIState.moduleName = moduleInfo.name
-        webUIState.modDir = "/data/adb/modules/${moduleId}"
+        webUIState.moduleName = moduleName
+        webUIState.modDir = modDir
 
         if (SuperUserViewModel.apps.isEmpty()) {
             SuperUserViewModel().fetchAppList()
@@ -75,7 +86,7 @@ internal suspend fun prepareWebView(
         webUIState.rootShell = shell
 
         withContext(Dispatchers.Main) {
-            activity.setTaskDescription(activity.getString(R.string.app_name) + " - ${moduleInfo.name}")
+            activity.setTaskDescription(activity.getString(R.string.app_name) + " - $moduleName")
 
             val webView = WebView(activity)
             webView.setBackgroundColor(Color.TRANSPARENT)

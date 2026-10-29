@@ -1006,4 +1006,11 @@
     <string name="kernel_modules_expand">Show dependency chain</string>
     <string name="kernel_modules_collapse">Hide dependency chain</string>
     <string name="tools_kernel_modules_summary">Review blocked modules, dependencies and flash parameters</string>
+
+    <!-- Built-in Zygisk -->
+    <string name="settings_builtin_zygisk">Built-in Zygisk</string>
+    <string name="settings_builtin_zygisk_summary">Provide built-in Zygisk support (BuiltZygisk) and suppress external Zygisk modules. Requires reboot.</string>
+    <string name="settings_builtin_zygisk_webui">BuiltZygisk Settings</string>
+    <string name="settings_builtin_zygisk_webui_summary">Open BuiltZygisk WebUI configuration</string>
+    <string name="module_suppressed_by_builtin">SUPPRESSED</string>
 </resources>

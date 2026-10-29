@@ -931,7 +931,7 @@ fun ModuleItem(
                     SubcomposeLayout { constraints ->
                         val spacingPx = 6.dp.roundToPx()
                         var nameTextLayout: TextLayoutResult? = null
-                        val tagsPlaceable = if (module.metamodule || module.zygisk) {
+                        val tagsPlaceable = if (module.metamodule || module.zygisk || module.suppressedByBuiltin) {
                             subcompose("tags") {
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -954,6 +954,20 @@ fun ModuleItem(
                                     if (module.zygisk) {
                                         Text(
                                             text = "ZYGISK",
+                                            fontSize = 12.sp,
+                                            color = updateTint,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(updateBg)
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontWeight = FontWeight(750),
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
+                                    if (module.suppressedByBuiltin) {
+                                        Text(
+                                            text = stringResource(R.string.module_suppressed_by_builtin),
                                             fontSize = 12.sp,
                                             color = updateTint,
                                             modifier = Modifier

@@ -113,6 +113,7 @@ class SettingsViewModel(
             val uiMode = repo.uiMode
             val appLanguage = repo.appLanguage
             val autoJailbreak = repo.autoJailbreak
+            val builtinZygisk = repo.builtinZygisk
             val useSoftReboot = repo.useSoftReboot
             val isLateLoadMode = Natives.isLateLoadMode
 
@@ -162,6 +163,7 @@ class SettingsViewModel(
                     isDefaultUmountModules = isDefaultUmountModules,
                     isLkmMode = isLkmMode,
                     autoJailbreak = autoJailbreak,
+                    builtinZygisk = builtinZygisk,
                     useSoftReboot = useSoftReboot,
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
@@ -845,6 +847,13 @@ class SettingsViewModel(
     fun setAutoJailbreak(enabled: Boolean) {
         repo.autoJailbreak = enabled
         _uiState.update { it.copy(autoJailbreak = enabled) }
+    }
+
+    fun setBuiltinZygisk(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.builtinZygisk = enabled
+            _uiState.update { it.copy(builtinZygisk = enabled) }
+        }
     }
 
     fun setUseSoftReboot(enabled: Boolean) {
