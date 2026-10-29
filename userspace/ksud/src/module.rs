@@ -159,6 +159,15 @@ pub fn foreach_module(
             continue;
         }
 
+        if module_type == Active && crate::builtin_zygisk::is_enabled() {
+            let id = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+            let prop_id = parse_module_prop(&path).ok().and_then(|m| m.get("id").cloned()).unwrap_or_default();
+            if is_zygisk_provider(id) || (!prop_id.is_empty() && is_zygisk_provider(&prop_id)) {
+                info!("{} is suppressed by built-in zygisk, skip", path.display());
+                continue;
+            }
+        }
+
         f(&path)?;
     }
 
@@ -874,18 +883,18 @@ fn install_module_to_system(zip: &str) -> Result<String> {
 
     // Check if it's safe to install regular module
     if !is_metamodule && let Err(is_disabled) = metamodule::check_install_safety() {
-        println!("\n❌ Installation Blocked");
-        println!("┌────────────────────────────────");
-        println!("│ A metamodule with custom installer is active");
-        println!("│");
+        println!("\n鉂?Installation Blocked");
+        println!("鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€");
+        println!("鈹?A metamodule with custom installer is active");
+        println!("鈹?);
         if is_disabled {
-            println!("│ Current state: Disabled");
-            println!("│ Action required: Re-enable or uninstall it, then reboot");
+            println!("鈹?Current state: Disabled");
+            println!("鈹?Action required: Re-enable or uninstall it, then reboot");
         } else {
-            println!("│ Current state: Pending changes");
-            println!("│ Action required: Reboot to apply changes first");
+            println!("鈹?Current state: Pending changes");
+            println!("鈹?Action required: Reboot to apply changes first");
         }
-        println!("└─────────────────────────────────\n");
+        println!("鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€\n");
         bail!("Metamodule installation blocked");
     }
 
@@ -905,18 +914,18 @@ fn install_module_to_system(zip: &str) -> Result<String> {
                 .unwrap_or_else(|| "unknown".to_string());
 
             if existing_id != module_id {
-                println!("\n❌ Installation Failed");
-                println!("┌────────────────────────────────");
-                println!("│ A metamodule is already installed");
-                println!("│   Current metamodule: {existing_id}");
-                println!("│");
-                println!("│ Only one metamodule can be active at a time.");
-                println!("│");
-                println!("│ To install this metamodule:");
-                println!("│   1. Uninstall the current metamodule");
-                println!("│   2. Reboot your device");
-                println!("│   3. Install the new metamodule");
-                println!("└─────────────────────────────────\n");
+                println!("\n鉂?Installation Failed");
+                println!("鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€");
+                println!("鈹?A metamodule is already installed");
+                println!("鈹?  Current metamodule: {existing_id}");
+                println!("鈹?);
+                println!("鈹?Only one metamodule can be active at a time.");
+                println!("鈹?);
+                println!("鈹?To install this metamodule:");
+                println!("鈹?  1. Uninstall the current metamodule");
+                println!("鈹?  2. Reboot your device");
+                println!("鈹?  3. Install the new metamodule");
+                println!("鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€\n");
                 bail!("Cannot install multiple metamodules");
             }
         }
@@ -1215,7 +1224,7 @@ pub fn is_zygisk_provider(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
     matches!(
         id_lower.as_str(),
-        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk"
+        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk" | "yukisu"
     )
 }
 
@@ -1412,6 +1421,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         };
         let need_mount = path.join("system").exists() && !path.join("skip_mount").exists();
 
+        let suppressed_by_builtin = is_provider && crate::builtin_zygisk::is_enabled();
         module_prop_map.insert("enabled".to_owned(), enabled.to_string());
         module_prop_map.insert("update".to_owned(), update.to_string());
         module_prop_map.insert("remove".to_owned(), remove.to_string());
@@ -1420,6 +1430,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         module_prop_map.insert("zygisk".to_owned(), is_provider.to_string());
         module_prop_map.insert("zygisk_provider".to_owned(), is_provider.to_string());
         module_prop_map.insert("zygisk_running".to_owned(), zygisk_running.to_string());
+        module_prop_map.insert("suppressed_by_builtin".to_owned(), suppressed_by_builtin.to_string());
         module_prop_map.insert("mount".to_owned(), need_mount.to_string());
         if let Some(state) = module_prop_map
             .get("id")

@@ -149,6 +149,12 @@ pub fn run(
     }
 
     // 8. Execute late-load stage scripts with a shared boot deadline
+    if let Err(e) = crate::builtin_zygisk::apply_sepolicy() {
+        warn!("late-load: apply builtin zygisk sepolicy failed: {e}");
+    }
+    if let Err(e) = crate::builtin_zygisk::bootstrap() {
+        warn!("late-load: bootstrap builtin zygisk failed: {e}");
+    }
     let wait = ScriptWait::Until(Instant::now() + defs::BOOT_STAGE_TIMEOUT);
     init_event::run_stage("late-load", wait);
 
@@ -164,6 +170,9 @@ pub fn run(
 
     // 11. Execute post-mount stage scripts using the same deadline
     init_event::run_stage("post-mount", wait);
+    if let Err(e) = crate::builtin_zygisk::rearm() {
+        warn!("late-load: rearm builtin zygisk failed: {e}");
+    }
 
     // 12. Execute service stage scripts (non-blocking)
     init_event::run_stage("service", ScriptWait::NoWait);
