@@ -1,0 +1,113 @@
+name: Build BuiltZygisk
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: false
+        type: string
+        default: ubuntu-latest
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4.0.1
+        with:
+          cmdline-tools-version: 14742923
+          packages: ''
+
+      - name: Accept licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install SDK 37 & NDK
+        run: |
+          sdkmanager "platforms;android-37.0"
+          sdkmanager "build-tools;37.0.0"
+          sdkmanager "ndk;27.2.12479018"
+
+      - name: Setup Rust toolchain
+        run: |
+          rustup override set nightly
+          rustup component add rust-src
+          rustup target add aarch64-linux-android
+          rustup target add x86_64-linux-android
+          rustup target add armv7-linux-androideabi
+
+      - name: Install cargo-ndk
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-ndk
+
+      - name: Build BuiltZygisk
+        working-directory: external/BuiltZygisk
+        run: |
+          chmod +x ./gradlew
+          ./gradlew zipRelease -Porg.gradle.parallel=true -Porg.gradle.vfs.watch=true -Dorg.gradle.jvmargs=-Xmx2048m
+
+      - name: Organize BuiltZygisk artifacts
+        run: |
+          RELEASE_ZIP=$(find external/BuiltZygisk/module/build/outputs/release -type f -name 'NyaZygisk-v*-release.zip' | head -n 1)
+          test -f "$RELEASE_ZIP"
+          mkdir -p extracted_zip
+          unzip "$RELEASE_ZIP" -d extracted_zip
+
+          mkdir -p builtzygisk-aarch64 builtzygisk-arm builtzygisk-x86_64 builtzygisk-riscv64
+
+          # aarch64
+          [ -f extracted_zip/bin/arm64-v8a/zygiskd ] && cp extracted_zip/bin/arm64-v8a/zygiskd builtzygisk-aarch64/zygiskd
+          [ -f extracted_zip/lib/arm64-v8a/libzygisk_ptrace.so ] && cp extracted_zip/lib/arm64-v8a/libzygisk_ptrace.so builtzygisk-aarch64/zygisk-ptrace
+          [ -f extracted_zip/lib/arm64-v8a/libzygisk.so ] && cp extracted_zip/lib/arm64-v8a/libzygisk.so builtzygisk-aarch64/libzygisk.so
+          [ -f extracted_zip/lib/armeabi-v7a/libzygisk.so ] && cp extracted_zip/lib/armeabi-v7a/libzygisk.so builtzygisk-aarch64/libzygisk32.so
+
+          # arm
+          [ -f extracted_zip/bin/armeabi-v7a/zygiskd ] && cp extracted_zip/bin/armeabi-v7a/zygiskd builtzygisk-arm/zygiskd
+          [ -f extracted_zip/lib/armeabi-v7a/libzygisk_ptrace.so ] && cp extracted_zip/lib/armeabi-v7a/libzygisk_ptrace.so builtzygisk-arm/zygisk-ptrace
+          [ -f extracted_zip/lib/armeabi-v7a/libzygisk.so ] && cp extracted_zip/lib/armeabi-v7a/libzygisk.so builtzygisk-arm/libzygisk.so
+
+          # x86_64
+          [ -f extracted_zip/bin/x86_64/zygiskd ] && cp extracted_zip/bin/x86_64/zygiskd builtzygisk-x86_64/zygiskd
+          [ -f extracted_zip/lib/x86_64/libzygisk_ptrace.so ] && cp extracted_zip/lib/x86_64/libzygisk_ptrace.so builtzygisk-x86_64/zygisk-ptrace
+          [ -f extracted_zip/lib/x86_64/libzygisk.so ] && cp extracted_zip/lib/x86_64/libzygisk.so builtzygisk-x86_64/libzygisk.so
+          [ -f extracted_zip/lib/x86/libzygisk.so ] && cp extracted_zip/lib/x86/libzygisk.so builtzygisk-x86_64/libzygisk32.so
+
+          # riscv64
+          [ -f extracted_zip/bin/riscv64/zygiskd ] && cp extracted_zip/bin/riscv64/zygiskd builtzygisk-riscv64/zygiskd
+          [ -f extracted_zip/lib/riscv64/libzygisk_ptrace.so ] && cp extracted_zip/lib/riscv64/libzygisk_ptrace.so builtzygisk-riscv64/zygisk-ptrace
+          [ -f extracted_zip/lib/riscv64/libzygisk.so ] && cp extracted_zip/lib/riscv64/libzygisk.so builtzygisk-riscv64/libzygisk.so
+
+      - name: Upload aarch64 BuiltZygisk
+        uses: actions/upload-artifact@v7
+        with:
+          name: builtzygisk-aarch64
+          path: builtzygisk-aarch64/
+
+      - name: Upload arm BuiltZygisk
+        uses: actions/upload-artifact@v7
+        with:
+          name: builtzygisk-arm
+          path: builtzygisk-arm/
+
+      - name: Upload x86_64 BuiltZygisk
+        uses: actions/upload-artifact@v7
+        with:
+          name: builtzygisk-x86_64
+          path: builtzygisk-x86_64/
+
+      - name: Upload riscv64 BuiltZygisk
+        uses: actions/upload-artifact@v7
+        with:
+          name: builtzygisk-riscv64
+          path: builtzygisk-riscv64/

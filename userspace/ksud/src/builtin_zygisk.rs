@@ -39,6 +39,15 @@ allow system_server su memfd_file {getattr read write map execute}
 allow system_server system_server_tmpfs file {getattr read write map execute}
 "#;
 
+const WEBROOT_INDEX_HTML: &str =
+    include_str!("../../../external/BuiltZygisk/module/src/webroot/index.html");
+const WEBROOT_KERNELSU_JS: &str =
+    include_str!("../../../external/BuiltZygisk/module/src/webroot/kernelsu.js");
+const WEBROOT_SCRIPT_JS: &str =
+    include_str!("../../../external/BuiltZygisk/module/src/webroot/script.js");
+const WEBROOT_STYLE_CSS: &str =
+    include_str!("../../../external/BuiltZygisk/module/src/webroot/style.css");
+
 pub fn is_enabled() -> bool {
     Path::new(BUILTIN_ZYGISK_FLAG).exists()
 }
@@ -139,14 +148,39 @@ pub fn bootstrap() -> Result<()> {
     let module_prop_content = "id=zygisksu\nname=Built-in Zygisk\nversion=v2.5\nversionCode=100\nauthor=SukiSU-Ultra\ndescription=Built-in Zygisk powered by BuiltZygisk\n";
     let _ = fs::write(module_prop_path, module_prop_content);
 
+    // Deploy WebUI files for Manager WebUIActivity
+    let webroot_dir = work_dir.join("webroot");
+    ensure_dir_exists(&webroot_dir)?;
+    let _ = fs::write(webroot_dir.join("index.html"), WEBROOT_INDEX_HTML);
+    let _ = fs::write(webroot_dir.join("kernelsu.js"), WEBROOT_KERNELSU_JS);
+    let _ = fs::write(webroot_dir.join("script.js"), WEBROOT_SCRIPT_JS);
+    let _ = fs::write(webroot_dir.join("style.css"), WEBROOT_STYLE_CSS);
+
     // Extract assets if present in binary assets
+    let is_64bit = cfg!(target_pointer_width = "64");
     if let Ok(data) = crate::assets::get_asset_data("zygisk-ptrace") {
-        let tracer_dst = work_dir.join("bin/zygisk-ptrace64");
+        let tracer_dst = if is_64bit {
+            work_dir.join("bin/zygisk-ptrace64")
+        } else {
+            work_dir.join("bin/zygisk-ptrace32")
+        };
         let _ = ensure_executable(&tracer_dst, &data);
     }
     if let Ok(data) = crate::assets::get_asset_data("zygiskd") {
-        let daemon_dst = work_dir.join("bin/zygiskd64");
+        let daemon_dst = if is_64bit {
+            work_dir.join("bin/zygiskd64")
+        } else {
+            work_dir.join("bin/zygiskd32")
+        };
         let _ = ensure_executable(&daemon_dst, &data);
+    }
+    if let Ok(data) = crate::assets::get_asset_data("libzygisk.so") {
+        let lib_dst = if is_64bit {
+            work_dir.join("lib64/libzygisk.so")
+        } else {
+            work_dir.join("lib/libzygisk.so")
+        };
+        let _ = install_lib(&lib_dst, &data);
     }
     if let Ok(data) = crate::assets::get_asset_data("libzygisk64.so") {
         let lib_dst = work_dir.join("lib64/libzygisk.so");
