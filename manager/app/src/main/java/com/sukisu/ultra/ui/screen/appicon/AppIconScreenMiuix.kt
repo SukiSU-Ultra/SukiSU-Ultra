@@ -91,7 +91,7 @@ fun AppIconScreenMiuix(
 
     AppScaffold(
         topBar = {
-            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
+            BlurredBar(backdrop) {
                 TopAppBar(
                     title = stringResource(R.string.app_icon_title),
                     color = barColor,

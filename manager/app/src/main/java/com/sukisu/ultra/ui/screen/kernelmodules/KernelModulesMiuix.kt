@@ -93,7 +93,7 @@ fun KernelModulesMiuix(
 
     AppScaffold(
         topBar = {
-            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
+            BlurredBar(backdrop) {
                 TopAppBar(
                     title = stringResource(R.string.kernel_modules_title),
                     color = barColor,

@@ -34,13 +34,16 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ConfigResults
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TonalCard
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.viewmodel.KpmViewModel
 
 @Composable
 fun KpmMaterial(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: Dp = 0.dp) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigator = LocalNavigator.current
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var expandInstallFab by remember { mutableStateOf(true) }
@@ -81,8 +84,11 @@ fun KpmMaterial(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding
     ExpressiveScaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.kpm_title)) },
+                navigationIcon = {
+                    TopBarBackButton(onClick = { navigator.pop() })
+                },
                 actions = {
                     IconButton(onClick = actions.onRefresh, enabled = !state.isRefreshing && !state.isBusy) {
                         Icon(Icons.Rounded.Refresh, stringResource(R.string.refresh))

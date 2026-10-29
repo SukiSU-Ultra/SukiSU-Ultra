@@ -63,7 +63,7 @@ fun UmountManagerMiuix(
 
     AppScaffold(
         topBar = {
-            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
+            BlurredBar(backdrop) {
                 TopAppBar(
                     title = stringResource(R.string.umount_path_manager),
                     color = barColor,

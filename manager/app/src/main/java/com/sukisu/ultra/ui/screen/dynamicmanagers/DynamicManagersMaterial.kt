@@ -38,13 +38,13 @@ import androidx.compose.material3.ExpandedFullScreenContainedSearchBar
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -76,6 +76,7 @@ import com.sukisu.ultra.ui.component.AppIconImage
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.ExpressiveSwitch
 import com.sukisu.ultra.ui.component.material.TonalCard
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.DynamicManagerState
@@ -98,12 +99,10 @@ internal fun DynamicManagersMaterial(
 
     ExpressiveScaffold(
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.dynamic_manager_title)) },
                 navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
-                    }
+                    TopBarBackButton(onClick = actions.onBack)
                 },
                 colors = expressiveTopAppBarColors(),
                 scrollBehavior = scrollBehavior,

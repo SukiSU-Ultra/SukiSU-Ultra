@@ -20,17 +20,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Memory
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.miuix.AppCard
@@ -49,6 +50,9 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -71,29 +75,32 @@ fun ExtensionsScreenMiuix(
 
     AppScaffold(
         topBar = {
-            BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
+            BlurredBar(backdrop) {
                 TopAppBar(
                     title = stringResource(R.string.extension_section_title),
                     color = barColor,
                     navigationIcon = {
                         IconButton(onClick = onBack) {
+                            val layoutDirection = LocalLayoutDirection.current
                             Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                modifier = Modifier.graphicsLayer {
+                                    if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                                },
+                                imageVector = MiuixIcons.Back,
                                 contentDescription = null,
+                                tint = colorScheme.onBackground,
                             )
                         }
                     },
                     actions = {
                         IconButton(onClick = onRefresh) {
                             Icon(
-                                imageVector = Icons.Rounded.Refresh,
+                                imageVector = MiuixIcons.Refresh,
                                 contentDescription = null,
+                                tint = colorScheme.onBackground,
                             )
                         }
                     },
-                    // Without this the list's nestedScroll drives a behavior the
-                    // bar never reads, so the large title stays pinned instead of
-                    // collapsing like Home.
                     scrollBehavior = scrollBehavior,
                 )
             }
@@ -138,6 +145,12 @@ fun ExtensionsScreenMiuix(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             overscrollEffect = null,
         ) {
+            // Without a leading item the list settles at a non-zero initial scroll offset on
+            // entry, which tucks the first card under the expanded large title until the user
+            // scrolls. A zero-height item keeps the entry position at offset 0.
+            item(key = "top-inset") {
+                Spacer(Modifier.height(0.dp))
+            }
             items(state.items, key = { it.wireName }) { item ->
                 val extState = item.state
                 val canOpen = extState.supported && item.descriptor.entry !is ExtensionEntry.Generic

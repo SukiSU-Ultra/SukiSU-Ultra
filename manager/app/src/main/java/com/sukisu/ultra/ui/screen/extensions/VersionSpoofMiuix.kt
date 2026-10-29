@@ -5,15 +5,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.miuix.AppCard
@@ -24,6 +26,8 @@ import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.*
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -37,13 +41,25 @@ internal fun VersionSpoofMiuix(s: VersionSpoofState, a: VersionSpoofActions, ver
     val blurActive = backdrop != null
     val barColor = if (blurActive || hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
     AppScaffold(topBar = {
-        BlurredBar(backdrop, scrollBehavior = scroll) {
-            TopAppBar(title = stringResource(R.string.extension_version_spoof_title),
+        BlurredBar(backdrop) {
+            TopAppBar(
+                title = stringResource(R.string.extension_version_spoof_title),
                 color = barColor,
+                navigationIcon = {
+                    IconButton(onClick = a.onBack) {
+                        val layoutDirection = LocalLayoutDirection.current
+                        Icon(
+                            modifier = Modifier.graphicsLayer {
+                                if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                            },
+                            imageVector = MiuixIcons.Back,
+                            contentDescription = null,
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    }
+                },
                 scrollBehavior = scroll,
-                navigationIcon = { IconButton(onClick = a.onBack) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.version_spoof_back))
-                } })
+            )
         }
     }) { padding ->
         Column(Modifier

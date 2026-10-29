@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Refresh
@@ -41,6 +40,7 @@ import com.sukisu.ultra.ui.component.material.ExpressiveSwitch
 import com.sukisu.ultra.ui.component.material.IconTile
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
+import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.viewmodel.ExtensionItem
 import com.sukisu.ultra.ui.viewmodel.ExtensionsUiState
@@ -124,12 +124,7 @@ private fun TopBar(
     LargeFlexibleTopAppBar(
         title = { Text(stringResource(R.string.extension_section_title)) },
         navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = null,
-                )
-            }
+            TopBarBackButton(onClick = onBack)
         },
         actions = {
             IconButton(onClick = onRefresh) {
