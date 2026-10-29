@@ -184,18 +184,10 @@ suspend fun readCurrentCpuIdentity(): CpuInfo? = withContext(Dispatchers.IO) {
         val coreCount = Runtime.getRuntime().availableProcessors()
 
         val hwcapResult = Shell.cmd("getprop ro.hwcap").exec()
-        val hwcap = if (hwcapResult.isSuccess && hwcapResult.out.isNotEmpty()) {
-            hwcapResult.out.first().trim()
-        } else {
-            "0x0"
-        }
+        val hwcap = hwcapResult.out.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: "0x0"
 
         val hwcap2Result = Shell.cmd("getprop ro.hwcap2").exec()
-        val hwcap2 = if (hwcap2Result.isSuccess && hwcap2Result.out.isNotEmpty()) {
-            hwcap2Result.out.first().trim()
-        } else {
-            "0x0"
-        }
+        val hwcap2 = hwcap2Result.out.firstOrNull()?.trim().takeUnless { it.isNullOrBlank() } ?: "0x0"
 
         CpuInfo(
             midrHex = midrHex,

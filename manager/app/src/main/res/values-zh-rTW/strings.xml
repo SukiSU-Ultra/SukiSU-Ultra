@@ -423,6 +423,9 @@
     <string name="spoof_cpu_apply_failed">CPU 偽裝應用失敗</string>
     <string name="spoof_cpu_apply_partial_failure">部分成功：%1$d 成功，%2$d 失敗</string>
     <string name="spoof_cpu_warning">將影響所有後續進程的 CPU 識別。請謹慎操作。</string>
+    <string name="spoof_cpu_section_current">目前 CPU 身分</string>
+    <string name="spoof_cpu_section_params">偽裝參數</string>
+    <string name="spoof_cpu_current_unavailable">無法讀取目前 CPU 身分</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (模塊)</string>
     <!-- Zip Install Prompts -->
@@ -961,7 +964,6 @@
     <string name="spoof_cpu_core_big">%1$s · 大核心</string>
     <string name="spoof_cpu_core_prime">%1$s · 超大核心</string>
     <string name="spoof_cpu_advanced">進階參數</string>
-    <string name="spoof_cpu_restore">一鍵還原原始 CPU 資訊</string>
     <string name="settings_avc_spoof">AVC 記錄偽裝</string>
     <string name="settings_avc_spoof_summary">防止 AVC 拒絕記錄洩漏 SELinux 上下文</string>
     <string name="settings_avc_spoof_failed">套用 AVC 記錄偽裝失敗</string>

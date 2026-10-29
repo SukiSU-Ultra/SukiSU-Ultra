@@ -8,15 +8,13 @@ import com.sukisu.ultra.ui.navigation3.Route
 /**
  * What opening an extension card does.
  *
- * [Screen] and [CpuSpoofDialog] are the entry points this build knows how
- * to render; [Generic] is the fallback for a handler that only exists in
- * the kernel so far. A generic sticky extension is toggled inline from its
- * card, which is what makes a new extension usable without touching this
- * screen.
+ * [Screen] is the entry point this build knows how to render; [Generic] is
+ * the fallback for a handler that only exists in the kernel so far. A generic
+ * sticky extension is toggled inline from its card, which is what makes a new
+ * extension usable without touching this screen.
  */
 sealed interface ExtensionEntry {
     data class Screen(val route: Route) : ExtensionEntry
-    data object CpuSpoofDialog : ExtensionEntry
     data object Generic : ExtensionEntry
 }
 
@@ -55,7 +53,7 @@ object ExtensionCatalog {
             wireName = "cpu_spoof",
             titleRes = R.string.extension_cpu_spoof_title,
             summaryRes = R.string.extension_cpu_spoof_summary,
-            entry = ExtensionEntry.CpuSpoofDialog,
+            entry = ExtensionEntry.Screen(Route.CpuSpoof),
         ),
         ExtensionDescriptor(
             wireName = "umount_paths",

@@ -547,13 +547,15 @@
     <string name="spoof_cpu_core_big">%1$s · big core</string>
     <string name="spoof_cpu_core_prime">%1$s · prime core</string>
     <string name="spoof_cpu_advanced">Advanced parameters</string>
-    <string name="spoof_cpu_restore">Restore original CPU identity</string>
     <string name="spoof_cpu_cores_all">All cores</string>
     <string name="spoof_cpu_cores_format">CPU %d</string>
     <string name="spoof_cpu_apply_success">CPU spoofing applied successfully</string>
     <string name="spoof_cpu_apply_failed">Failed to apply CPU spoofing</string>
     <string name="spoof_cpu_apply_partial_failure">Partial success: %1$d succeeded, %2$d failed</string>
     <string name="spoof_cpu_warning">Will affect CPU identification for all subsequent processes. Proceed with caution.</string>
+    <string name="spoof_cpu_section_current">Current CPU identity</string>
+    <string name="spoof_cpu_section_params">Spoof parameters</string>
+    <string name="spoof_cpu_current_unavailable">Unable to read the current CPU identity</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (Module)</string>
     <string name="zip_file_unknown" translatable="false">unknown.zip</string>

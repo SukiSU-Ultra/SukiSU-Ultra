@@ -544,13 +544,15 @@
     <string name="spoof_cpu_core_big">%1$s · 大核</string>
     <string name="spoof_cpu_core_prime">%1$s · 超大核</string>
     <string name="spoof_cpu_advanced">高级参数</string>
-    <string name="spoof_cpu_restore">一键恢复原始 CPU 信息</string>
     <string name="spoof_cpu_cores_all">所有核心</string>
     <string name="spoof_cpu_cores_format">CPU %d</string>
     <string name="spoof_cpu_apply_success">CPU 伪装应用成功</string>
     <string name="spoof_cpu_apply_failed">CPU 伪装应用失败</string>
     <string name="spoof_cpu_apply_partial_failure">部分成功：%1$d 成功，%2$d 失败</string>
     <string name="spoof_cpu_warning">将影响所有后续进程的 CPU 识别。请谨慎操作。</string>
+    <string name="spoof_cpu_section_current">当前 CPU 身份</string>
+    <string name="spoof_cpu_section_params">伪装参数</string>
+    <string name="spoof_cpu_current_unavailable">无法读取当前 CPU 身份</string>
     <!-- Zip File Type Labels -->
     <string name="zip_type_module"> (模块)</string>
     <!-- Zip Install Prompts -->
