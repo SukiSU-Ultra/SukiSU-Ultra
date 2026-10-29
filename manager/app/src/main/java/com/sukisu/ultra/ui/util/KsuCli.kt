@@ -1465,3 +1465,11 @@ fun setBuiltinZygiskEnabled(enabled: Boolean): Boolean {
     val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk $action").trim()
     return out == "true"
 }
+
+fun rearmBuiltinZygisk(): Boolean {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk rearm").trim()
+        out == "true"
+    }.getOrDefault(false)
+}

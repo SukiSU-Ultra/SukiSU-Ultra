@@ -255,4 +255,5 @@ data class SettingsScreenActions(
     val onOpenTools: () -> Unit,
     val onOpenSusfsConfig: () -> Unit,
     val onOpenExtensions: () -> Unit,
+    val onOpenBuiltinZygisk: () -> Unit,
 )
