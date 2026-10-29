@@ -35,6 +35,20 @@ data class ThemePackageData(
     val customBackgroundBlurPercent: Int? = null,
     val customBackgroundScrimPercent: Int? = null,
     val hasBackground: Boolean? = null,
+    val uiMode: String? = null,
+    val appIconId: String? = null,
+    val enableFloatingBottomBar: Boolean? = null,
+    val enableFloatingBottomBarBlur: Boolean? = null,
+    val enableNavigationBadge: Boolean? = null,
+    val enablePredictiveBack: Boolean? = null,
+    val enableSwipeDismiss: Boolean? = null,
+    val moduleSortEnabledFirst: Boolean? = null,
+    val moduleSortActionFirst: Boolean? = null,
+    val moduleSortWebUiFirst: Boolean? = null,
+    val moduleSortZygiskFirst: Boolean? = null,
+    val moduleSortMetamoduleFirst: Boolean? = null,
+    val moduleSortNameOrder: String? = null,
+    val moduleSortManual: Boolean? = null,
 )
 
 /** Parsed theme package plus the background file path when the package contains an image. */

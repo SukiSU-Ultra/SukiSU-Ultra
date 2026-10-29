@@ -24,6 +24,7 @@ import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.ImportedTheme
 import com.sukisu.ultra.ui.util.ThemePackageData
@@ -399,6 +400,17 @@ class SettingsViewModel(
             val backgroundFile = state.customBackgroundUri
                 .takeIf { it.isNotEmpty() }
                 ?.let { path -> File(path).takeIf { it.isFile } }
+            val builtinIconIds = setOf(
+                BuiltinAppIcons.DEFAULT_ID,
+                BuiltinAppIcons.KERNELSU_ID,
+                BuiltinAppIcons.LOGO_ID,
+                BuiltinAppIcons.ZAKO_ID,
+            )
+            val exportedIconId = if (state.appIconId in builtinIconIds) {
+                state.appIconId
+            } else {
+                BuiltinAppIcons.DEFAULT_ID
+            }
             val data = ThemePackageData(
                 themeMode = state.themeMode,
                 miuixMonet = state.miuixMonet,
@@ -409,6 +421,20 @@ class SettingsViewModel(
                 customBackgroundBlurPercent = state.customBackgroundBlurPercent,
                 customBackgroundScrimPercent = state.customBackgroundScrimPercent,
                 hasBackground = backgroundFile != null,
+                uiMode = state.uiMode,
+                appIconId = exportedIconId,
+                enableFloatingBottomBar = state.enableFloatingBottomBar,
+                enableFloatingBottomBarBlur = state.enableFloatingBottomBarBlur,
+                enableNavigationBadge = state.enableNavigationBadge,
+                enablePredictiveBack = repo.enablePredictiveBack,
+                enableSwipeDismiss = repo.enableSwipeDismiss,
+                moduleSortEnabledFirst = repo.moduleSortEnabledFirst,
+                moduleSortActionFirst = repo.moduleSortActionFirst,
+                moduleSortWebUiFirst = repo.moduleSortWebUiFirst,
+                moduleSortZygiskFirst = repo.moduleSortZygiskFirst,
+                moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst,
+                moduleSortNameOrder = repo.moduleSortNameOrder,
+                moduleSortManual = repo.moduleSortManual,
             )
             ThemePackageStorage.export(context, uri, data, backgroundFile)
                 .onSuccess {
@@ -458,6 +484,10 @@ class SettingsViewModel(
             ""
         }
 
+        // UI Mode
+        val targetUiMode = data.uiMode?.takeIf { it == "miuix" || it == "material" } ?: current.uiMode
+        repo.uiMode = targetUiMode
+
         repo.themeMode = themeMode
         repo.miuixMonet = miuixMonet
         repo.keyColor = keyColor
@@ -473,8 +503,52 @@ class SettingsViewModel(
             repo.customBackgroundUpdatedAt = System.currentTimeMillis()
         }
 
+        // App Icon (builtin icons only)
+        val builtinIconIds = setOf(
+            BuiltinAppIcons.DEFAULT_ID,
+            BuiltinAppIcons.KERNELSU_ID,
+            BuiltinAppIcons.LOGO_ID,
+            BuiltinAppIcons.ZAKO_ID,
+        )
+        val targetIconId = data.appIconId?.takeIf { it in builtinIconIds }
+        if (targetIconId != null) {
+            repo.appIconId = targetIconId
+            val icon = BuiltinAppIcons.find(targetIconId)
+            BuiltinAppIcons.apply(context, icon)
+        }
+        val effectiveIconId = targetIconId ?: current.appIconId
+
+        // Visual Appearance (Bottom Bar)
+        val floatingBottomBar = data.enableFloatingBottomBar ?: current.enableFloatingBottomBar
+        val floatingBottomBarBlur = data.enableFloatingBottomBarBlur ?: current.enableFloatingBottomBarBlur
+        val navigationBadge = data.enableNavigationBadge ?: current.enableNavigationBadge
+        repo.enableFloatingBottomBar = floatingBottomBar
+        repo.enableFloatingBottomBarBlur = floatingBottomBarBlur
+        repo.enableNavigationBadge = navigationBadge
+
+        // Gestures / Fluidity
+        val predictiveBack = data.enablePredictiveBack ?: repo.enablePredictiveBack
+        val swipeDismiss = data.enableSwipeDismiss ?: repo.enableSwipeDismiss
+        repo.enablePredictiveBack = predictiveBack
+        repo.enableSwipeDismiss = swipeDismiss
+
+        // Module Sorting
+        data.moduleSortEnabledFirst?.let { repo.moduleSortEnabledFirst = it }
+        data.moduleSortActionFirst?.let { repo.moduleSortActionFirst = it }
+        data.moduleSortWebUiFirst?.let { repo.moduleSortWebUiFirst = it }
+        data.moduleSortZygiskFirst?.let { repo.moduleSortZygiskFirst = it }
+        data.moduleSortMetamoduleFirst?.let { repo.moduleSortMetamoduleFirst = it }
+        data.moduleSortNameOrder?.let { order ->
+            if (runCatching { ModuleNameSort.valueOf(order) }.isSuccess) {
+                repo.moduleSortNameOrder = order
+            }
+        }
+        data.moduleSortManual?.let { repo.moduleSortManual = it }
+
         _uiState.update {
             it.copy(
+                uiMode = targetUiMode,
+                appIconId = effectiveIconId,
                 themeMode = themeMode,
                 miuixMonet = miuixMonet,
                 keyColor = keyColor,
@@ -487,6 +561,11 @@ class SettingsViewModel(
                 customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
                 useSystemWallpaper = false,
                 systemWallpaperPath = "",
+                enableFloatingBottomBar = floatingBottomBar,
+                enableFloatingBottomBarBlur = floatingBottomBarBlur,
+                enableNavigationBadge = navigationBadge,
+                enablePredictiveBack = predictiveBack,
+                enableSwipeDismiss = swipeDismiss,
             )
         }
     }
