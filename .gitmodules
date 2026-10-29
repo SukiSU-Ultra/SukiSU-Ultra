@@ -1,0 +1,4 @@
+[submodule "external/NyaZygisk"]
+	path = external/NyaZygisk
+	url = https://github.com/HSSkyBoy/NyaZygisk.git
+	branch = feat/sukisu-ksud
