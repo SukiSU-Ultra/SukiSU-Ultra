@@ -61,7 +61,7 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) = prefs.edit { putBoolean("use_system_wallpaper", value) }
 
     override var extractColorFromBackground: Boolean
-        get() = prefs.getBoolean("extract_color_from_background", true)
+        get() = prefs.getBoolean("extract_color_from_background", false)
         set(value) = prefs.edit { putBoolean("extract_color_from_background", value) }
 
     override var cardBackgroundAlphaPercent: Int
