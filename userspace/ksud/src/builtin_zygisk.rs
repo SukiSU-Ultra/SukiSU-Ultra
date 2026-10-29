@@ -1,4 +1,4 @@
-use crate::defs::{self, BUILTIN_ZYGISK_DIR, BUILTIN_ZYGISK_FLAG};
+use crate::defs::{BUILTIN_ZYGISK_DIR, BUILTIN_ZYGISK_FLAG};
 use crate::restorecon::setsyscon;
 use crate::utils::{ensure_dir_exists, ensure_file_exists};
 use anyhow::{Context, Result};
@@ -6,10 +6,10 @@ use log::{error, info, warn};
 use std::fs::{self, File, Permissions};
 use std::io::Write;
 use std::os::unix::fs::{PermissionsExt, lchown};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
-const BUILTIN_ZYGISK_SEPOLICY: &str = r#"
+const BUILTIN_ZYGISK_SEPOLICY: &str = r"
 type zygisk_file file_type
 typeattribute zygisk_file mlstrustedobject
 allow domain zygisk_file dir {search getattr}
@@ -37,7 +37,7 @@ allow system_server tmpfs file {getattr read write map execute}
 allow system_server magisk memfd_file {getattr read write map execute}
 allow system_server su memfd_file {getattr read write map execute}
 allow system_server system_server_tmpfs file {getattr read write map execute}
-"#;
+";
 
 const WEBROOT_INDEX_HTML: &str =
     include_str!("../../../external/BuiltZygisk/module/src/webroot/index.html");

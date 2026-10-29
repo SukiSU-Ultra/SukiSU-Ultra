@@ -161,7 +161,7 @@ pub fn foreach_module(
 
         if module_type == Active && crate::builtin_zygisk::is_enabled() {
             let id = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-            let prop_id = parse_module_prop(&path)
+            let prop_id = read_module_prop(&path)
                 .ok()
                 .and_then(|m| m.get("id").cloned())
                 .unwrap_or_default();
