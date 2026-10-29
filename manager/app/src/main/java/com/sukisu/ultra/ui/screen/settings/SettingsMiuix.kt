@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Settings
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.rounded.Policy
@@ -552,6 +553,7 @@ fun SettingPagerMiuix(
                                     onClick = {
                                         context.startActivity(
                                             Intent(context, com.sukisu.ultra.ui.webui.WebUIActivity::class.java).apply {
+                                                data = Uri.parse("kernelsu://webui?id=builtin_zygisk")
                                                 putExtra("id", "builtin_zygisk")
                                             }
                                         )

@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import android.net.Uri
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -423,6 +424,7 @@ fun SettingPagerMaterial(
                                 onClick = {
                                     context.startActivity(
                                         Intent(context, com.sukisu.ultra.ui.webui.WebUIActivity::class.java).apply {
+                                            data = Uri.parse("kernelsu://webui?id=builtin_zygisk")
                                             putExtra("id", "builtin_zygisk")
                                         }
                                     )
