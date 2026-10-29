@@ -99,6 +99,7 @@ import com.sukisu.ultra.ui.screen.about.AboutScreen
 import com.sukisu.ultra.ui.screen.appicon.AppIconScreen
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.backgroundcrop.BackgroundCropScreen
+import com.sukisu.ultra.ui.screen.builtinzygisk.BuiltinZygiskScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
 import com.sukisu.ultra.ui.screen.dynamicmanagers.DynamicManagersScreen
 import com.sukisu.ultra.ui.screen.extensions.ExtensionsScreen
@@ -398,6 +399,7 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.Extensions>(swipeDismiss = swipeDismiss) { ExtensionsScreen() }
                                 entry<Route.CpuSpoof>(swipeDismiss = swipeDismiss) { CpuSpoofScreen() }
                                 entry<Route.VersionSpoof>(swipeDismiss = swipeDismiss) { VersionSpoofScreen() }
+                                entry<Route.BuiltinZygisk>(swipeDismiss = swipeDismiss) { BuiltinZygiskScreen() }
                         }
                     }
 

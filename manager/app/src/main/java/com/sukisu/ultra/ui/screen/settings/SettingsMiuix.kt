@@ -540,24 +540,17 @@ fun SettingPagerMiuix(
                             )
                             if (uiState.builtinZygisk) {
                                 ArrowPreference(
-                                    title = stringResource(id = R.string.settings_builtin_zygisk_webui),
-                                    summary = stringResource(id = R.string.settings_builtin_zygisk_webui_summary),
+                                    title = stringResource(id = R.string.settings_builtin_zygisk_dashboard),
+                                    summary = stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary),
                                     startAction = {
                                         Icon(
                                             Icons.Rounded.Settings,
                                             modifier = Modifier.padding(end = 6.dp),
-                                            contentDescription = stringResource(id = R.string.settings_builtin_zygisk_webui),
+                                            contentDescription = stringResource(id = R.string.settings_builtin_zygisk_dashboard),
                                             tint = colorScheme.onBackground
                                         )
                                     },
-                                    onClick = {
-                                        context.startActivity(
-                                            Intent(context, com.sukisu.ultra.ui.webui.WebUIActivity::class.java).apply {
-                                                data = Uri.parse("kernelsu://webui?id=builtin_zygisk")
-                                                putExtra("id", "builtin_zygisk")
-                                            }
-                                        )
-                                    }
+                                    onClick = actions.onOpenBuiltinZygisk
                                 )
                             }
                         }

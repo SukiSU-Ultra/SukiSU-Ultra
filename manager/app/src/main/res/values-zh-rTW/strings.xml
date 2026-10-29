@@ -1005,7 +1005,17 @@
     <!-- Built-in Zygisk -->
     <string name="settings_builtin_zygisk">內建 Zygisk</string>
     <string name="settings_builtin_zygisk_summary">提供內建 Zygisk 支援 (BuiltZygisk)，開啟後自動接管並抑制外部 Zygisk 模組，需重新開機生效</string>
-    <string name="settings_builtin_zygisk_webui">BuiltZygisk 設定</string>
-    <string name="settings_builtin_zygisk_webui_summary">開啟 BuiltZygisk WebUI 設定介面</string>
+    <string name="settings_builtin_zygisk_dashboard">BuiltZygisk 面板</string>
+    <string name="settings_builtin_zygisk_dashboard_summary">檢視內建 Zygisk 運作狀態與已載入模組</string>
+    <string name="builtin_zygisk_status_title">運作狀態</string>
+    <string name="builtin_zygisk_daemon_status">常駐進程 (Daemon)</string>
+    <string name="builtin_zygisk_monitor_status">監控進程 (Monitor)</string>
+    <string name="builtin_zygisk_status_running">運作中</string>
+    <string name="builtin_zygisk_status_stopped">未運作</string>
+    <string name="builtin_zygisk_rearm">重新載入 (Rearm)</string>
+    <string name="builtin_zygisk_rearm_success">重新載入完成</string>
+    <string name="builtin_zygisk_modules_title">Zygisk 模組</string>
+    <string name="builtin_zygisk_no_modules">未偵測到使用中的 Zygisk 模組</string>
+    <string name="builtin_zygisk_suppressed_hint">此模組為外部 Zygisk 實作，已被內建 Zygisk 自動抑制接管</string>
     <string name="module_suppressed_by_builtin">已由內建接管</string>
 </resources>

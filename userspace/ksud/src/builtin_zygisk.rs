@@ -1,3 +1,5 @@
+#![allow(clippy::missing_errors_doc, clippy::must_use_candidate)]
+
 use crate::defs::{BUILTIN_ZYGISK_DIR, BUILTIN_ZYGISK_FLAG};
 use crate::restorecon::setsyscon;
 use crate::utils::{ensure_dir_exists, ensure_file_exists};

@@ -225,6 +225,8 @@ enum ZygiskCommand {
     Off,
     /// Check built-in Zygisk status
     Status,
+    /// Reload built-in Zygisk
+    Rearm,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1281,9 +1283,13 @@ pub fn run() -> Result<()> {
                 let monitor = crate::builtin_zygisk::is_monitor_running();
                 let daemon = crate::builtin_zygisk::is_daemon_running();
                 println!(
-                    r#"{{"enabled":{},"monitor_running":{},"daemon_running":{}}}"#,
-                    enabled, monitor, daemon
+                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon}}}"#
                 );
+                Ok(())
+            }
+            ZygiskCommand::Rearm => {
+                crate::builtin_zygisk::rearm()?;
+                println!("true");
                 Ok(())
             }
         },

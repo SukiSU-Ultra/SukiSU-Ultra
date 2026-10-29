@@ -1010,7 +1010,17 @@
     <!-- Built-in Zygisk -->
     <string name="settings_builtin_zygisk">Built-in Zygisk</string>
     <string name="settings_builtin_zygisk_summary">Provide built-in Zygisk support (BuiltZygisk) and suppress external Zygisk modules. Requires reboot.</string>
-    <string name="settings_builtin_zygisk_webui">BuiltZygisk Settings</string>
-    <string name="settings_builtin_zygisk_webui_summary">Open BuiltZygisk WebUI configuration</string>
+    <string name="settings_builtin_zygisk_dashboard">BuiltZygisk Dashboard</string>
+    <string name="settings_builtin_zygisk_dashboard_summary">View built-in Zygisk status and loaded modules</string>
+    <string name="builtin_zygisk_status_title">Status</string>
+    <string name="builtin_zygisk_daemon_status">Daemon Service</string>
+    <string name="builtin_zygisk_monitor_status">Monitor Service</string>
+    <string name="builtin_zygisk_status_running">Running</string>
+    <string name="builtin_zygisk_status_stopped">Stopped</string>
+    <string name="builtin_zygisk_rearm">Reload (Rearm)</string>
+    <string name="builtin_zygisk_rearm_success">Reload completed</string>
+    <string name="builtin_zygisk_modules_title">Zygisk Modules</string>
+    <string name="builtin_zygisk_no_modules">No active Zygisk modules detected</string>
+    <string name="builtin_zygisk_suppressed_hint">External Zygisk provider suppressed by built-in Zygisk</string>
     <string name="module_suppressed_by_builtin">SUPPRESSED</string>
 </resources>

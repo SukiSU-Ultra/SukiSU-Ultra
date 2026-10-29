@@ -421,17 +421,10 @@ fun SettingPagerMaterial(
                         },
                         *(if (uiState.builtinZygisk) arrayOf<@Composable () -> Unit>({
                             SegmentedListItem(
-                                onClick = {
-                                    context.startActivity(
-                                        Intent(context, com.sukisu.ultra.ui.webui.WebUIActivity::class.java).apply {
-                                            data = Uri.parse("kernelsu://webui?id=builtin_zygisk")
-                                            putExtra("id", "builtin_zygisk")
-                                        }
-                                    )
-                                },
-                                headlineContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_webui)) },
-                                supportingContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_webui_summary)) },
-                                leadingContent = { IconTile(Icons.Filled.Settings, stringResource(id = R.string.settings_builtin_zygisk_webui)) }
+                                onClick = actions.onOpenBuiltinZygisk,
+                                headlineContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard)) },
+                                supportingContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary)) },
+                                leadingContent = { IconTile(Icons.Filled.Settings, stringResource(id = R.string.settings_builtin_zygisk_dashboard)) }
                             )
                         }) else emptyArray())
                     )
