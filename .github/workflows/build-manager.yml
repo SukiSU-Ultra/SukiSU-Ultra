@@ -3,7 +3,7 @@ name: Build Manager
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "dev", "ci" ]
+    branches: [ "main", "dev" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
@@ -179,15 +179,14 @@ jobs:
 
     if: always() &&
         needs.generate-key.result == 'success' &&
-        needs.build-ksud.result == 'success' &&
-        (matrix.spoofed == 'false' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+        needs.build-ksud.result == 'success'
 
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        spoofed: ["false", "true"]
+        spoofed: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && fromJson('["false", "true"]') || fromJson('["false"]') }}
 
     defaults:
       run:
@@ -505,15 +504,14 @@ jobs:
     if: always() &&
         needs.build-manager.result == 'success' &&
         needs.build-ksud.result == 'success' &&
-        needs.generate-key.result == 'success' &&
-        (matrix.spoofed == 'false' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+        needs.generate-key.result == 'success'
 
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        spoofed: ["false", "true"]
+        spoofed: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && fromJson('["false", "true"]') || fromJson('["false"]') }}
 
     steps:
 
