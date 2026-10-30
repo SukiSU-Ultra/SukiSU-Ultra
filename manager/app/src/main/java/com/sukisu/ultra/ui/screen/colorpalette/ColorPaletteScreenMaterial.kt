@@ -489,9 +489,31 @@ fun ColorPaletteScreenMaterial(
                 )
             }
             item {
+                val homeCardEntries: List<@Composable () -> Unit> =
+                    if (uiState.homeCardImagePath.isNotBlank()) {
+                        listOf(
+                            {
+                                SegmentedListItem(
+                                    onClick = actions.onClearHomeCardImage,
+                                    headlineContent = { Text(stringResource(R.string.settings_home_card_image_clear)) },
+                                    supportingContent = {
+                                        Text(stringResource(R.string.settings_home_card_image_clear_summary))
+                                    },
+                                    leadingContent = {
+                                        IconTile(
+                                            Icons.Rounded.Restore,
+                                            stringResource(R.string.settings_home_card_image_clear),
+                                        )
+                                    },
+                                )
+                            }
+                        )
+                    } else {
+                        emptyList()
+                    }
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
+                    content = listOf<@Composable () -> Unit>(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Rounded.Fingerprint,
@@ -660,27 +682,7 @@ fun ColorPaletteScreenMaterial(
                                 },
                             )
                         }
-                    ) + if (uiState.homeCardImagePath.isNotBlank()) {
-                        listOf<@Composable () -> Unit>(
-                            {
-                                SegmentedListItem(
-                                    onClick = actions.onClearHomeCardImage,
-                                    headlineContent = { Text(stringResource(R.string.settings_home_card_image_clear)) },
-                                    supportingContent = {
-                                        Text(stringResource(R.string.settings_home_card_image_clear_summary))
-                                    },
-                                    leadingContent = {
-                                        IconTile(
-                                            Icons.Rounded.Restore,
-                                            stringResource(R.string.settings_home_card_image_clear),
-                                        )
-                                    },
-                                )
-                            }
-                        )
-                    } else {
-                        emptyList()
-                    }
+                    ) + homeCardEntries
                 )
             }
 

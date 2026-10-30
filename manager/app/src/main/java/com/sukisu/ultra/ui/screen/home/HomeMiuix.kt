@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -333,7 +333,8 @@ private fun ActiveStatusCard(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(File(path))
                 .crossfade(true)
-                .build()
+                .build(),
+            contentScale = ContentScale.Crop,
         )
     }
 
@@ -343,7 +344,7 @@ private fun ActiveStatusCard(
             .clip(RoundedCornerShape(CardDefaults.CornerRadius))
             .then(
                 if (cardImagePainter != null) {
-                    Modifier.background(cardImagePainter, contentScale = ContentScale.Crop)
+                    Modifier.drawBehind { with(cardImagePainter) { draw(size) } }
                 } else {
                     Modifier
                 }
