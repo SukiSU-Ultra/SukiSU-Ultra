@@ -17,7 +17,7 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.theme.ColorMode
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import com.sukisu.ultra.ui.component.themeimport.ThemeImportDialog
 
@@ -82,7 +82,7 @@ fun ColorPaletteScreen() {
                     if (navigator.current() == Route.ColorPalette) {
                         navigator.push(Route.BackgroundCrop(path))
                     } else {
-                        BgStorage.discardStaged(path)
+                        ImageStorage.discardStaged(path)
                     }
                 }
             }
@@ -93,12 +93,14 @@ fun ColorPaletteScreen() {
                     if (navigator.current() == Route.ColorPalette) {
                         navigator.push(Route.BackgroundCrop(path))
                     } else {
-                        BgStorage.discardStaged(path)
+                        ImageStorage.discardStaged(path)
                     }
                 }
             }
         },
         onClearCustomBackground = viewModel::clearCustomBackground,
+        onPickHomeCardImage = viewModel::pickHomeCardImage,
+        onClearHomeCardImage = viewModel::clearHomeCardImage,
         onSetUseSystemWallpaper = viewModel::setUseSystemWallpaper,
         onSetExtractColorFromBackground = viewModel::setExtractColorFromBackground,
         onSetCardBackgroundAlphaPercent = viewModel::setCardBackgroundAlphaPercent,

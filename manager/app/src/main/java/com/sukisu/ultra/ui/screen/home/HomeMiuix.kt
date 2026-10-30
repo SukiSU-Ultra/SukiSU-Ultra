@@ -39,7 +39,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import java.io.File
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -317,16 +325,39 @@ private fun ActiveStatusCard(
         else -> "Built-in"
     }
 
+    val cardImagePainter = state.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(File(path))
+                .crossfade(true)
+                .build(),
+            contentScale = ContentScale.Crop,
+        )
+    }
+
     AppCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.defaultColors(
-            color = backgroundAwareColor(
-                when {
-                    isDynamicColor -> colorScheme.secondaryContainer
-                    isDark -> Color(0xFF1A3825)
-                    else -> Color(0xFFDFFAE4)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(CardDefaults.CornerRadius))
+            .then(
+                if (cardImagePainter != null) {
+                    Modifier.drawBehind { with(cardImagePainter) { draw(size) } }
+                } else {
+                    Modifier
                 }
-            )
+            ),
+        colors = CardDefaults.defaultColors(
+            color = if (cardImagePainter != null) {
+                Color.Transparent
+            } else {
+                backgroundAwareColor(
+                    when {
+                        isDynamicColor -> colorScheme.secondaryContainer
+                        isDark -> Color(0xFF1A3825)
+                        else -> Color(0xFFDFFAE4)
+                    }
+                )
+            }
         ),
         onClick = onClick,
         showIndication = !state.isLateLoadMode,

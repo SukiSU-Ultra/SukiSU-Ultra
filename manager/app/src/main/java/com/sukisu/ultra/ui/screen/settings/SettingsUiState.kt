@@ -92,6 +92,7 @@ data class SettingsUiState(
     val backgroundAppearanceExpanded: Boolean = true,
     val customHomeTitle: String = "",
     val customTexts: Map<String, String> = emptyMap(),
+    val homeCardImagePath: String = "",
     val pendingImportTheme: com.sukisu.ultra.ui.util.ImportedTheme? = null,
     val showThemeImportDialog: Boolean = false,
 )

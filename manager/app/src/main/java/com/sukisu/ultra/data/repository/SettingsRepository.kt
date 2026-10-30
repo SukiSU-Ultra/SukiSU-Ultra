@@ -13,6 +13,7 @@ interface SettingsRepository {
     var backgroundAppearanceExpanded: Boolean
     var customHomeTitle: String
     var customTexts: Map<String, String>
+    var homeCardImagePath: String
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean

@@ -195,6 +195,11 @@ fun ColorPaletteScreenMaterial(
     ) { uri: Uri? ->
         uri?.let { actions.onImportTheme(context, it) }
     }
+    val homeCardImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let { actions.onPickHomeCardImage(context, it) }
+    }
 
     ExpressiveScaffold(
         topBar = {
@@ -244,6 +249,7 @@ fun ColorPaletteScreenMaterial(
                         navigationBadge = uiState.enableNavigationBadge,
                         pageScale = uiState.pageScale,
                         customHomeTitle = uiState.customHomeTitle,
+                        homeCardImagePath = uiState.homeCardImagePath,
                     ),
                 )
             }
@@ -463,7 +469,7 @@ fun ColorPaletteScreenMaterial(
             item {
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
+                    content = listOf<@Composable () -> Unit>(
                         {
                             SegmentedListItem(
                                 onClick = {
@@ -500,7 +506,7 @@ fun ColorPaletteScreenMaterial(
             item {
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
+                    content = listOf<@Composable () -> Unit>(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Rounded.Fingerprint,
@@ -569,8 +575,53 @@ fun ColorPaletteScreenMaterial(
                                     )
                                 },
                             )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    homeCardImageLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_home_card_image)) },
+                                supportingContent = {
+                                    Text(
+                                        if (uiState.homeCardImagePath.isBlank()) {
+                                            stringResource(R.string.settings_home_card_image_default)
+                                        } else {
+                                            stringResource(R.string.settings_home_card_image_set)
+                                        }
+                                    )
+                                },
+                                leadingContent = {
+                                    IconTile(
+                                        Icons.Rounded.Image,
+                                        stringResource(R.string.settings_home_card_image),
+                                    )
+                                },
+                            )
                         }
-                    )
+                    ) + if (uiState.homeCardImagePath.isNotBlank()) {
+                        listOf<@Composable () -> Unit>(
+                            {
+                                SegmentedListItem(
+                                    onClick = actions.onClearHomeCardImage,
+                                    headlineContent = { Text(stringResource(R.string.settings_home_card_image_clear)) },
+                                    supportingContent = {
+                                        Text(stringResource(R.string.settings_home_card_image_clear_summary))
+                                    },
+                                    leadingContent = {
+                                        IconTile(
+                                            Icons.Rounded.Restore,
+                                            stringResource(R.string.settings_home_card_image_clear),
+                                        )
+                                    },
+                                )
+                            }
+                        )
+                    } else {
+                        emptyList()
+                    }
                 )
             }
 
@@ -667,7 +718,7 @@ fun ColorPaletteScreenMaterial(
             item {
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
+                    content = listOf<@Composable () -> Unit>(
                         {
                             val styles = PaletteStyle.entries
                             SegmentedDropdownItem(
@@ -727,7 +778,7 @@ fun ColorPaletteScreenMaterial(
                 item {
                     SegmentedColumn(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        content = listOf(
+                        content = listOf<@Composable () -> Unit>(
                             {
                                 SegmentedSwitchItem(
                                     icon = Icons.AutoMirrored.Rounded.MenuOpen,
@@ -746,7 +797,7 @@ fun ColorPaletteScreenMaterial(
             item {
                 SegmentedColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    content = listOf(
+                    content = listOf<@Composable () -> Unit>(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Rounded.Swipe,

@@ -14,7 +14,7 @@ import com.sukisu.ultra.magica.BootCompletedReceiver
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
@@ -30,6 +30,7 @@ private const val KEY_USE_SOFT_REBOOT = "soft_reboot"
 private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
 internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
 internal const val KEY_CUSTOM_TEXTS = "custom_texts"
+internal const val KEY_HOME_CARD_IMAGE_PATH = "home_card_image_path"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -75,21 +76,21 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var customBackgroundBlurPercent: Int
         get() = prefs.getInt(
             "custom_bg_blur_percent",
-            BgStorage.defaultBackgroundBlurPercent(ksuApp),
+            ImageStorage.defaultBackgroundBlurPercent(ksuApp),
         )
         set(value) = prefs.edit {
             putInt(
                 "custom_bg_blur_percent",
-                value.coerceIn(BgStorage.BACKGROUND_BLUR_PERCENT_MIN, BgStorage.BACKGROUND_BLUR_PERCENT_MAX),
+                value.coerceIn(ImageStorage.BACKGROUND_BLUR_PERCENT_MIN, ImageStorage.BACKGROUND_BLUR_PERCENT_MAX),
             )
         }
 
     override var customBackgroundScrimPercent: Int
-        get() = prefs.getInt("custom_bg_scrim_percent", BgStorage.DEFAULT_BACKGROUND_SCRIM)
+        get() = prefs.getInt("custom_bg_scrim_percent", ImageStorage.DEFAULT_BACKGROUND_SCRIM)
         set(value) = prefs.edit {
             putInt(
                 "custom_bg_scrim_percent",
-                value.coerceIn(BgStorage.BACKGROUND_SCRIM_MIN, BgStorage.BACKGROUND_SCRIM_MAX),
+                value.coerceIn(ImageStorage.BACKGROUND_SCRIM_MIN, ImageStorage.BACKGROUND_SCRIM_MAX),
             )
         }
 
@@ -113,6 +114,10 @@ class SettingsRepositoryImpl : SettingsRepository {
             val jsonStr = Json.encodeToString(filtered)
             prefs.edit { putString(KEY_CUSTOM_TEXTS, jsonStr) }
         }
+
+    override var homeCardImagePath: String
+        get() = prefs.getString(KEY_HOME_CARD_IMAGE_PATH, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_HOME_CARD_IMAGE_PATH, value) }
 
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->

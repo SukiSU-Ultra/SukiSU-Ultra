@@ -132,7 +132,7 @@ import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.theme.LocalEnableNavigationBadge
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
 import com.sukisu.ultra.ui.util.BackgroundNavTransition
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.install
@@ -440,7 +440,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val hasCustomBackground = uiState.customBackgroundUri.isNotEmpty()
                         val backgroundBlurRadius = (
-                            BgStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * uiState.customBackgroundBlurPercent / 100f
+                            ImageStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * uiState.customBackgroundBlurPercent / 100f
                         ).dp
                         Crossfade(
                             targetState = uiState.customBackgroundUri to uiState.customBackgroundUpdatedAt,

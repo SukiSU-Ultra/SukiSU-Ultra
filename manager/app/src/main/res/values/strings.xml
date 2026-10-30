@@ -901,6 +901,12 @@
     <string name="settings_system_wallpaper_failed">Couldn\'t read the system wallpaper</string>
     <string name="settings_crop_background">Re-crop Background</string>
     <string name="settings_crop_background_summary">Adjust the visible area, or crop with your gallery</string>
+    <string name="settings_home_card_image">Status card background</string>
+    <string name="settings_home_card_image_default">Using the card color</string>
+    <string name="settings_home_card_image_set">Image selected</string>
+    <string name="settings_home_card_image_clear">Remove card background</string>
+    <string name="settings_home_card_image_clear_summary">Restore the solid card color</string>
+    <string name="home_card_image_failed">Could not load that image</string>
     <string name="background_crop_title">Crop Background</string>
     <string name="background_crop_done">Done</string>
     <string name="background_crop_use_original">Use original</string>

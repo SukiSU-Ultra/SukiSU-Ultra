@@ -147,7 +147,7 @@ object ThemePackageStorage {
                 }
 
                 val backgroundPath = when {
-                    hasBackground -> BgStorage.replace(context, tempBackground)
+                    hasBackground -> ImageStorage.replace(context, tempBackground)
                         ?: error("Cannot store the background image")
 
                     else -> null

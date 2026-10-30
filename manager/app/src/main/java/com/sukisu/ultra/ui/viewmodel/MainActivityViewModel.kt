@@ -14,7 +14,7 @@ import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.theme.ThemeController
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import java.io.File
 
 class MainActivityViewModel(
@@ -61,12 +61,12 @@ class MainActivityViewModel(
     fun refreshSystemWallpaper() {
         if (!settingRepo.useSystemWallpaper) return
         viewModelScope.launch {
-            val result = BgStorage.captureSystemWallpaper(ksuApp, force = false)
+            val result = ImageStorage.captureSystemWallpaper(ksuApp, force = false)
             systemWallpaperCacheValidated = result.path != null
             if (result.changed) {
                 settingRepo.customBackgroundUpdatedAt = System.currentTimeMillis()
                 if (settingRepo.extractColorFromBackground && result.path != null) {
-                    settingRepo.keyColor = BgStorage.extractSeedColor(File(result.path), settingRepo.keyColor)
+                    settingRepo.keyColor = ImageStorage.extractSeedColor(File(result.path), settingRepo.keyColor)
                 }
             }
             if (result.path == null) {
@@ -78,7 +78,7 @@ class MainActivityViewModel(
 
     private fun readUiState(): MainActivityUiState {
         val useSystemWallpaper = settingRepo.useSystemWallpaper
-        val systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
+        val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
             .takeIf { it.isFile }?.absolutePath.orEmpty()
         return MainActivityUiState(
             appSettings = ThemeController.getAppSettings(),

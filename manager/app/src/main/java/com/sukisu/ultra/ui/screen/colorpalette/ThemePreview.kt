@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.draw.clip
+import coil.compose.rememberAsyncImagePainter
+import java.io.File
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -113,7 +116,7 @@ import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.theme.effectiveFor
 import com.sukisu.ultra.ui.theme.rememberKernelSUColorScheme
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import top.yukonga.miuix.kmp.basic.Badge as MiuixBadge
 import top.yukonga.miuix.kmp.basic.BadgedBox as MiuixBadgedBox
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -130,7 +133,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeColorSpec
 import top.yukonga.miuix.kmp.theme.ThemeController
 import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
-import java.io.File
 
 /**
  * Everything the theme preview renders. It is built from the committed settings plus the
@@ -154,6 +156,7 @@ internal data class ThemePreviewSpec(
     val navigationBadge: Boolean = true,
     val pageScale: Float = 1f,
     val customHomeTitle: String = "",
+    val homeCardImagePath: String = "",
 )
 
 private const val PreviewDesignWidthDp = 360f
@@ -415,7 +418,7 @@ private fun PreviewDevice(
 private fun PreviewBackgroundImage(spec: ThemePreviewSpec) {
     if (spec.backgroundPath.isEmpty()) return
     val context = LocalContext.current
-    val blurRadius = (BgStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * spec.backgroundBlurPercent / 100f).dp
+    val blurRadius = (ImageStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * spec.backgroundBlurPercent / 100f).dp
     val request = remember(spec.backgroundPath, spec.backgroundUpdatedAt) {
         // Same recipe as the real background: the mtime parameter invalidates the cache after a
         // re-crop even though the file path stays the same.
@@ -595,12 +598,30 @@ private fun MiuixPreviewHeroCard(spec: ThemePreviewSpec) {
         else -> Color(0xFF164A29)
     }
 
+    val cardImagePainter = spec.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(File(path))
+                .crossfade(true)
+                .build(),
+            contentScale = ContentScale.Crop,
+        )
+    }
+
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
-            .height(168.dp),
+            .height(168.dp)
+            .clip(RoundedCornerShape(CardDefaults.CornerRadius))
+            .then(
+                if (cardImagePainter != null) {
+                    Modifier.drawBehind { with(cardImagePainter) { draw(size) } }
+                } else {
+                    Modifier
+                }
+            ),
         colors = CardDefaults.defaultColors(
-            color = backgroundAwareColor(heroColor),
+            color = if (cardImagePainter != null) Color.Transparent else backgroundAwareColor(heroColor),
             contentColor = colors.onSurface,
         ),
     ) {
@@ -963,17 +984,40 @@ private fun MaterialPreviewTopBar(spec: ThemePreviewSpec) {
 @Composable
 private fun MaterialPreviewHeroCard(spec: ThemePreviewSpec) {
     val colors = MaterialTheme.colorScheme
+    val cardImagePainter = spec.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(File(path))
+                .crossfade(true)
+                .build(),
+            contentScale = ContentScale.Crop,
+        )
+    }
+
+    val heroShape = RoundedCornerShape(26.dp)
     MaterialSurface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(148.dp),
-        shape = RoundedCornerShape(26.dp),
-        color = backgroundAwareColor(colors.primary),
+            .height(148.dp)
+            .clip(heroShape)
+            .then(
+                if (cardImagePainter != null) {
+                    Modifier.drawBehind { with(cardImagePainter) { draw(size) } }
+                } else {
+                    Modifier
+                }
+            ),
+        shape = heroShape,
+        color = if (cardImagePainter != null) Color.Transparent else backgroundAwareColor(colors.primary),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawBehind { drawHeroRings(colors.onPrimary.copy(alpha = 0.16f)) }
+            modifier = if (cardImagePainter != null) {
+                Modifier.fillMaxSize()
+            } else {
+                Modifier
+                    .fillMaxSize()
+                    .drawBehind { drawHeroRings(colors.onPrimary.copy(alpha = 0.16f)) }
+            }
         ) {
             Column(
                 modifier = Modifier

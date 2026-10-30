@@ -24,7 +24,7 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
@@ -45,6 +45,7 @@ class SettingsViewModel(
         backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
         customHomeTitle = repo.customHomeTitle,
         customTexts = repo.customTexts,
+        homeCardImagePath = repo.homeCardImagePath,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -134,6 +135,7 @@ class SettingsViewModel(
                     backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
                     customHomeTitle = repo.customHomeTitle,
                     customTexts = repo.customTexts,
+        homeCardImagePath = repo.homeCardImagePath,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -176,7 +178,7 @@ class SettingsViewModel(
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
                     customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
-                    useSystemWallpaper = repo.useSystemWallpaper && BgStorage.systemWallpaperFile(ksuApp).isFile,
+                    useSystemWallpaper = repo.useSystemWallpaper && ImageStorage.systemWallpaperFile(ksuApp).isFile,
                     systemWallpaperPath = "",
                     extractColorFromBackground = repo.extractColorFromBackground,
                     cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
@@ -190,7 +192,7 @@ class SettingsViewModel(
     /** Copies a newly picked image into the crop cache and hands its path to the crop screen. */
     fun stagePickedBackground(context: Context, uri: Uri, onReady: (String?) -> Unit) {
         viewModelScope.launch {
-            val path = BgStorage.stageUri(context, uri)
+            val path = ImageStorage.stageUri(context, uri)
             if (path == null) {
                 Toast.makeText(
                     ksuApp,
@@ -207,7 +209,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             val current = repo.customBackgroundUri
             val path = if (current.isNotEmpty()) {
-                BgStorage.stageFile(context, File(current))
+                ImageStorage.stageFile(context, File(current))
             } else {
                 null
             }
@@ -228,11 +230,11 @@ class SettingsViewModel(
         output: File,
         sourcePath: String?,
     ): Boolean = withContext(Dispatchers.IO) {
-        val savedPath = BgStorage.replace(context, output) ?: return@withContext false
+        val savedPath = ImageStorage.replace(context, output) ?: return@withContext false
         runCatching { if (output.isFile) output.delete() }
-        BgStorage.discardStaged(sourcePath)
+        ImageStorage.discardStaged(sourcePath)
         val seed = if (repo.extractColorFromBackground) {
-            BgStorage.extractSeedColor(File(savedPath), repo.keyColor)
+            ImageStorage.extractSeedColor(File(savedPath), repo.keyColor)
         } else {
             repo.keyColor
         }
@@ -273,11 +275,11 @@ class SettingsViewModel(
 
     /** Re-copies the launcher wallpaper when it changed since the last capture. */
     private suspend fun refreshSystemWallpaperCache() {
-        val result = BgStorage.captureSystemWallpaper(ksuApp, force = false)
+        val result = ImageStorage.captureSystemWallpaper(ksuApp, force = false)
         if (result.changed) {
             repo.customBackgroundUpdatedAt = System.currentTimeMillis()
             if (repo.extractColorFromBackground && result.path != null) {
-                repo.keyColor = BgStorage.extractSeedColor(File(result.path), repo.keyColor)
+                repo.keyColor = ImageStorage.extractSeedColor(File(result.path), repo.keyColor)
             }
         }
         if (result.path == null) {
@@ -288,7 +290,7 @@ class SettingsViewModel(
 
     private fun updateBackgroundAppearanceState() {
         val useSystemWallpaper = repo.useSystemWallpaper
-        val systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
+        val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
             .takeIf { it.isFile }?.absolutePath.orEmpty()
         _uiState.update {
             it.copy(
@@ -322,7 +324,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    BgStorage.captureSystemWallpaper(context, force = true)
+                    ImageStorage.captureSystemWallpaper(context, force = true)
                 }
                 if (result.path == null) {
                     Toast.makeText(
@@ -335,7 +337,7 @@ class SettingsViewModel(
 
                 val keyColor = if (repo.extractColorFromBackground) {
                     withContext(Dispatchers.IO) {
-                        BgStorage.extractSeedColor(File(result.path), repo.keyColor)
+                        ImageStorage.extractSeedColor(File(result.path), repo.keyColor)
                     }
                 } else {
                     repo.keyColor
@@ -376,14 +378,14 @@ class SettingsViewModel(
         if (!enabled) return
 
         val backgroundPath = if (repo.useSystemWallpaper) {
-            BgStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }?.absolutePath
+            ImageStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }?.absolutePath
         } else {
             repo.customBackgroundUri.takeIf { it.isNotEmpty() }
         } ?: return
         val background = File(backgroundPath).takeIf { it.isFile } ?: return
 
         viewModelScope.launch {
-            val seed = BgStorage.extractSeedColor(background, repo.keyColor)
+            val seed = ImageStorage.extractSeedColor(background, repo.keyColor)
             repo.keyColor = seed
             _uiState.update { it.copy(keyColor = seed) }
         }
@@ -391,7 +393,7 @@ class SettingsViewModel(
 
     fun clearCustomBackground(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            BgStorage.clear(context)
+            ImageStorage.clear(context)
             repo.customBackgroundUri = ""
             repo.customBackgroundUpdatedAt = System.currentTimeMillis()
             _uiState.update {
@@ -416,6 +418,26 @@ class SettingsViewModel(
     fun setCustomBackgroundScrimPercent(percent: Int) {
         repo.customBackgroundScrimPercent = percent
         _uiState.update { it.copy(customBackgroundScrimPercent = percent) }
+    }
+
+    fun pickHomeCardImage(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val path = ImageStorage.saveHomeCardImage(context, uri)
+            if (path != null) {
+                repo.homeCardImagePath = path
+                _uiState.update { it.copy(homeCardImagePath = path) }
+            } else {
+                Toast.makeText(context, R.string.home_card_image_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun clearHomeCardImage() {
+        viewModelScope.launch {
+            ImageStorage.clearHomeCardImage(ksuApp)
+            repo.homeCardImagePath = ""
+            _uiState.update { it.copy(homeCardImagePath = "") }
+        }
     }
 
     fun exportCustomBackground(context: Context, uri: Uri) {
@@ -450,7 +472,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             val backgroundFile = if (state.useSystemWallpaper) {
-                BgStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }
+                ImageStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }
             } else {
                 state.customBackgroundUri
                     .takeIf { it.isNotEmpty() }
@@ -582,11 +604,11 @@ class SettingsViewModel(
                 ?.takeIf { name -> runCatching { ColorSpec.SpecVersion.valueOf(name) }.isSuccess }
                 ?: current.colorSpec
             cardAlpha = (data.cardBackgroundAlphaPercent ?: current.cardBackgroundAlphaPercent)
-                .coerceIn(BgStorage.CARD_ALPHA_MIN, BgStorage.CARD_ALPHA_MAX)
+                .coerceIn(ImageStorage.CARD_ALPHA_MIN, ImageStorage.CARD_ALPHA_MAX)
             blurPercent = (data.customBackgroundBlurPercent ?: current.customBackgroundBlurPercent)
-                .coerceIn(BgStorage.BACKGROUND_BLUR_PERCENT_MIN, BgStorage.BACKGROUND_BLUR_PERCENT_MAX)
+                .coerceIn(ImageStorage.BACKGROUND_BLUR_PERCENT_MIN, ImageStorage.BACKGROUND_BLUR_PERCENT_MAX)
             scrimPercent = (data.customBackgroundScrimPercent ?: current.customBackgroundScrimPercent)
-                .coerceIn(BgStorage.BACKGROUND_SCRIM_MIN, BgStorage.BACKGROUND_SCRIM_MAX)
+                .coerceIn(ImageStorage.BACKGROUND_SCRIM_MIN, ImageStorage.BACKGROUND_SCRIM_MAX)
 
             targetUiMode = data.uiMode?.takeIf { it == "miuix" || it == "material" } ?: current.uiMode
             repo.uiMode = targetUiMode
@@ -617,7 +639,7 @@ class SettingsViewModel(
             backgroundUri = if (imported.backgroundPath != null) {
                 imported.backgroundPath
             } else {
-                BgStorage.clear(context)
+                ImageStorage.clear(context)
                 ""
             }
             repo.customBackgroundUri = backgroundUri
@@ -712,17 +734,17 @@ class SettingsViewModel(
 
     fun resetBackgroundAppearance() {
         viewModelScope.launch {
-            val defaultBlur = BgStorage.defaultBackgroundBlurPercent(ksuApp)
-            repo.cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA
+            val defaultBlur = ImageStorage.defaultBackgroundBlurPercent(ksuApp)
+            repo.cardBackgroundAlphaPercent = ImageStorage.DEFAULT_CARD_ALPHA
             repo.customBackgroundBlurPercent = defaultBlur
-            repo.customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM
+            repo.customBackgroundScrimPercent = ImageStorage.DEFAULT_BACKGROUND_SCRIM
 
             // Theme colors, dynamic color and the custom background image are user choices.
             _uiState.update {
                 it.copy(
-                    cardBackgroundAlphaPercent = BgStorage.DEFAULT_CARD_ALPHA,
+                    cardBackgroundAlphaPercent = ImageStorage.DEFAULT_CARD_ALPHA,
                     customBackgroundBlurPercent = defaultBlur,
-                    customBackgroundScrimPercent = BgStorage.DEFAULT_BACKGROUND_SCRIM,
+                    customBackgroundScrimPercent = ImageStorage.DEFAULT_BACKGROUND_SCRIM,
                 )
             }
 

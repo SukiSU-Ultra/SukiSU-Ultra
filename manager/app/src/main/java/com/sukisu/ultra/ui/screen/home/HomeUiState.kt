@@ -51,6 +51,7 @@ data class HomeUiState(
     val moduleCount: Int? = null,
     val kpmCount: Int? = null,
     val customHomeTitle: String = "",
+    val homeCardImagePath: String = "",
 ) {
     val isSELinuxPermissive: Boolean
         get() = systemInfo.selinuxStatus == "Permissive"

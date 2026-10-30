@@ -892,6 +892,12 @@
     <string name="settings_system_wallpaper_failed">无法读取系统壁纸</string>
     <string name="settings_crop_background">重新剪裁背景</string>
     <string name="settings_crop_background_summary">调整背景可见区域，或使用相册剪裁</string>
+    <string name="settings_home_card_image">首页状态卡背景图</string>
+    <string name="settings_home_card_image_default">使用卡片底色</string>
+    <string name="settings_home_card_image_set">已选择图片</string>
+    <string name="settings_home_card_image_clear">移除卡片背景图</string>
+    <string name="settings_home_card_image_clear_summary">恢复纯色卡片背景</string>
+    <string name="home_card_image_failed">无法读取该图片</string>
     <string name="background_crop_title">剪裁背景</string>
     <string name="background_crop_done">完成</string>
     <string name="background_crop_use_original">使用原图</string>

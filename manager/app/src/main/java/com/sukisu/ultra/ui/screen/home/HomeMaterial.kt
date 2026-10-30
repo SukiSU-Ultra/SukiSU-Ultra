@@ -57,7 +57,13 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.UriHandler
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import java.io.File
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -284,14 +290,39 @@ private fun ActiveStatusCard(
         else -> "Built-in"
     }
 
+    val cardImagePainter = state.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(File(path))
+                .crossfade(true)
+                .build(),
+            contentScale = ContentScale.Crop,
+        )
+    }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = containerColor,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(HeroShape)
+            .then(
+                if (cardImagePainter != null) {
+                    Modifier.drawBehind { with(cardImagePainter) { draw(size) } }
+                } else {
+                    Modifier
+                }
+            ),
+        color = if (cardImagePainter != null) Color.Transparent else containerColor,
         contentColor = contentColor,
         shape = HeroShape,
         onClick = onClick,
     ) {
-        Box(modifier = Modifier.drawBehind { drawStatusRings(contentColor.copy(alpha = 0.18f)) }) {
+        Box(
+            modifier = if (cardImagePainter != null) {
+                Modifier
+            } else {
+                Modifier.drawBehind { drawStatusRings(contentColor.copy(alpha = 0.18f)) }
+            }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

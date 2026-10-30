@@ -26,7 +26,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.ExternalCropper
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -120,7 +120,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     BackHandler(enabled = saving) {}
 
     DisposableEffect(sourcePath) {
-        onDispose { BgStorage.discardStaged(sourcePath) }
+        onDispose { ImageStorage.discardStaged(sourcePath) }
     }
 
     LaunchedEffect(sourcePath) {
@@ -204,7 +204,7 @@ fun BackgroundCropScreen(sourcePath: String) {
                         viewport = viewport,
                         lowRam = lowRam,
                     ) ?: return@withContext null
-                    val file = BgStorage.newCropOutput(context)
+                    val file = ImageStorage.newCropOutput(context)
                     val saved = saveCropBitmap(cropped, file)
                     cropped.recycle()
                     if (saved) {
@@ -249,7 +249,7 @@ fun BackgroundCropScreen(sourcePath: String) {
 
     val onCropWithGallery: () -> Unit = {
         if (!saving && galleryCropAvailable) {
-            val output = BgStorage.newCropOutput(context)
+            val output = ImageStorage.newCropOutput(context)
             val intent = ExternalCropper.createIntent(
                 context = context,
                 source = File(sourcePath),

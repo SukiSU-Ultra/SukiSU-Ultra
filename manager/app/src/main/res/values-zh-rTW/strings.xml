@@ -771,6 +771,12 @@
     <string name="settings_system_wallpaper_failed">無法讀取系統桌布</string>
     <string name="settings_crop_background">重新裁切背景</string>
     <string name="settings_crop_background_summary">調整背景可見區域，或使用相簿裁切</string>
+    <string name="settings_home_card_image">首頁狀態卡背景圖</string>
+    <string name="settings_home_card_image_default">使用卡片底色</string>
+    <string name="settings_home_card_image_set">已選擇圖片</string>
+    <string name="settings_home_card_image_clear">移除卡片背景圖</string>
+    <string name="settings_home_card_image_clear_summary">恢復純色卡片背景</string>
+    <string name="home_card_image_failed">無法讀取該圖片</string>
     <string name="background_crop_title">裁切背景</string>
     <string name="background_crop_done">完成</string>
     <string name="background_crop_use_original">使用原圖</string>
