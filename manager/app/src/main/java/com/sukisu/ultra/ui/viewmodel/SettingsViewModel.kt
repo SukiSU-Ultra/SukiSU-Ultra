@@ -440,33 +440,36 @@ class SettingsViewModel(
         }
     }
 
-    fun exportCustomBackground(context: Context, uri: Uri) {
+    fun exportImages(context: Context, uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             val state = _uiState.value
-            val sourceFile = state.customBackgroundUri
+            val backgroundFile = if (!state.useSystemWallpaper && state.customBackgroundUri.isNotEmpty()) {
+                File(state.customBackgroundUri).takeIf { it.isFile }
+            } else null
+            val cardBackgroundFile = state.homeCardImagePath
                 .takeIf { it.isNotEmpty() }
                 ?.let { File(it).takeIf { f -> f.isFile } }
-            if (sourceFile == null) {
+            if (backgroundFile == null && cardBackgroundFile == null) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(ksuApp, R.string.theme_export_failed, Toast.LENGTH_SHORT).show()
                 }
                 return@launch
             }
-            val success = runCatching {
-                val output = context.contentResolver.openOutputStream(uri)
-                    ?: error("Cannot open destination")
-                java.io.BufferedOutputStream(output).use { out ->
-                    sourceFile.inputStream().use { input ->
-                        input.copyTo(out)
+            ImageStorage.exportImages(context, uri, backgroundFile, cardBackgroundFile)
+                .onSuccess {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(ksuApp, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
                     }
                 }
-            }.isSuccess
-            withContext(Dispatchers.Main) {
-                val msg = if (success) R.string.theme_export_success else R.string.theme_export_failed
-                Toast.makeText(ksuApp, msg, Toast.LENGTH_SHORT).show()
-            }
+                .onFailure {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(ksuApp, R.string.theme_export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
         }
     }
+
+    fun exportCustomBackground(context: Context, uri: Uri) = exportImages(context, uri)
 
     fun exportTheme(context: Context, uri: Uri) {
         viewModelScope.launch {
@@ -478,6 +481,9 @@ class SettingsViewModel(
                     .takeIf { it.isNotEmpty() }
                     ?.let { path -> File(path).takeIf { it.isFile } }
             }
+            val cardBackgroundFile = state.homeCardImagePath
+                .takeIf { it.isNotEmpty() }
+                ?.let { path -> File(path).takeIf { it.isFile } }
             val builtinIconIds = setOf(
                 BuiltinAppIcons.DEFAULT_ID,
                 BuiltinAppIcons.KERNELSU_ID,
@@ -499,6 +505,7 @@ class SettingsViewModel(
                 customBackgroundBlurPercent = state.customBackgroundBlurPercent,
                 customBackgroundScrimPercent = state.customBackgroundScrimPercent,
                 hasBackground = backgroundFile != null,
+                hasCardBackground = cardBackgroundFile != null,
                 uiMode = state.uiMode,
                 appIconId = exportedIconId,
                 enableFloatingBottomBar = state.enableFloatingBottomBar,
@@ -516,7 +523,7 @@ class SettingsViewModel(
                 customHomeTitle = state.customHomeTitle.takeIf { it.isNotBlank() },
                 customTexts = state.customTexts.takeIf { it.isNotEmpty() },
             )
-            ThemePackageStorage.export(context, uri, data, backgroundFile)
+            ThemePackageStorage.export(context, uri, data, backgroundFile, cardBackgroundFile)
                 .onSuccess {
                     Toast.makeText(ksuApp, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
                 }
@@ -547,6 +554,9 @@ class SettingsViewModel(
         val pending = _uiState.value.pendingImportTheme
         if (pending?.backgroundPath != null) {
             runCatching { File(pending.backgroundPath).delete() }
+        }
+        if (pending?.cardBackgroundPath != null) {
+            runCatching { File(pending.cardBackgroundPath).delete() }
         }
         _uiState.update {
             it.copy(
@@ -587,11 +597,6 @@ class SettingsViewModel(
         var blurPercent = current.customBackgroundBlurPercent
         var scrimPercent = current.customBackgroundScrimPercent
         var targetUiMode = current.uiMode
-        var floatingBottomBar = current.enableFloatingBottomBar
-        var floatingBottomBarBlur = current.enableFloatingBottomBarBlur
-        var navigationBadge = current.enableNavigationBadge
-        var predictiveBack = repo.enablePredictiveBack
-        var swipeDismiss = repo.enableSwipeDismiss
 
         if (options.importAppearance) {
             themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
@@ -620,7 +625,15 @@ class SettingsViewModel(
             repo.cardBackgroundAlphaPercent = cardAlpha
             repo.customBackgroundBlurPercent = blurPercent
             repo.customBackgroundScrimPercent = scrimPercent
+        }
 
+        var floatingBottomBar = current.enableFloatingBottomBar
+        var floatingBottomBarBlur = current.enableFloatingBottomBarBlur
+        var navigationBadge = current.enableNavigationBadge
+        var predictiveBack = repo.enablePredictiveBack
+        var swipeDismiss = repo.enableSwipeDismiss
+
+        if (options.importCustomConfig) {
             floatingBottomBar = data.enableFloatingBottomBar ?: current.enableFloatingBottomBar
             floatingBottomBarBlur = data.enableFloatingBottomBarBlur ?: current.enableFloatingBottomBarBlur
             navigationBadge = data.enableNavigationBadge ?: current.enableNavigationBadge
@@ -632,24 +645,38 @@ class SettingsViewModel(
             swipeDismiss = data.enableSwipeDismiss ?: repo.enableSwipeDismiss
             repo.enablePredictiveBack = predictiveBack
             repo.enableSwipeDismiss = swipeDismiss
+
+            data.moduleSortEnabledFirst?.let { repo.moduleSortEnabledFirst = it }
+            data.moduleSortActionFirst?.let { repo.moduleSortActionFirst = it }
+            data.moduleSortWebUiFirst?.let { repo.moduleSortWebUiFirst = it }
+            data.moduleSortZygiskFirst?.let { repo.moduleSortZygiskFirst = it }
+            data.moduleSortMetamoduleFirst?.let { repo.moduleSortMetamoduleFirst = it }
+            data.moduleSortNameOrder?.let { order ->
+                if (runCatching { ModuleNameSort.valueOf(order) }.isSuccess) {
+                    repo.moduleSortNameOrder = order
+                }
+            }
+            data.moduleSortManual?.let { repo.moduleSortManual = it }
         }
 
         var backgroundUri = current.customBackgroundUri
-        if (options.importBackground) {
-            backgroundUri = if (imported.backgroundPath != null) {
-                imported.backgroundPath
-            } else {
-                ImageStorage.clear(context)
-                ""
-            }
-            repo.customBackgroundUri = backgroundUri
-            repo.useSystemWallpaper = false
+        var homeCardImagePath = current.homeCardImagePath
+        if (options.importImages) {
             if (imported.backgroundPath != null) {
+                backgroundUri = ImageStorage.replace(context, File(imported.backgroundPath)) ?: ""
+                repo.customBackgroundUri = backgroundUri
+                repo.useSystemWallpaper = false
                 repo.customBackgroundUpdatedAt = System.currentTimeMillis()
             }
-        } else if (imported.backgroundPath != null) {
-            // Discard unselected imported background
-            runCatching { File(imported.backgroundPath).delete() }
+            if (imported.cardBackgroundPath != null) {
+                val cardPath = ImageStorage.replaceHomeCardImage(context, File(imported.cardBackgroundPath)) ?: ""
+                repo.homeCardImagePath = cardPath
+                homeCardImagePath = cardPath
+            }
+        } else {
+            // Discard unselected imported images
+            imported.backgroundPath?.let { runCatching { File(it).delete() } }
+            imported.cardBackgroundPath?.let { runCatching { File(it).delete() } }
         }
 
         var effectiveIconId = current.appIconId
@@ -671,20 +698,6 @@ class SettingsViewModel(
                 )
                 effectiveIconId = targetIconId
             }
-        }
-
-        if (options.importModuleSort) {
-            data.moduleSortEnabledFirst?.let { repo.moduleSortEnabledFirst = it }
-            data.moduleSortActionFirst?.let { repo.moduleSortActionFirst = it }
-            data.moduleSortWebUiFirst?.let { repo.moduleSortWebUiFirst = it }
-            data.moduleSortZygiskFirst?.let { repo.moduleSortZygiskFirst = it }
-            data.moduleSortMetamoduleFirst?.let { repo.moduleSortMetamoduleFirst = it }
-            data.moduleSortNameOrder?.let { order ->
-                if (runCatching { ModuleNameSort.valueOf(order) }.isSuccess) {
-                    repo.moduleSortNameOrder = order
-                }
-            }
-            data.moduleSortManual?.let { repo.moduleSortManual = it }
         }
 
         var effectiveHomeTitle = current.customHomeTitle
@@ -721,8 +734,9 @@ class SettingsViewModel(
                 customBackgroundScrimPercent = scrimPercent,
                 customBackgroundUri = backgroundUri,
                 customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
-                useSystemWallpaper = if (options.importBackground) false else it.useSystemWallpaper,
-                systemWallpaperPath = if (options.importBackground) "" else it.systemWallpaperPath,
+                homeCardImagePath = homeCardImagePath,
+                useSystemWallpaper = if (options.importImages && imported.backgroundPath != null) false else it.useSystemWallpaper,
+                systemWallpaperPath = if (options.importImages && imported.backgroundPath != null) "" else it.systemWallpaperPath,
                 enableFloatingBottomBar = floatingBottomBar,
                 enableFloatingBottomBarBlur = floatingBottomBarBlur,
                 enableNavigationBadge = navigationBadge,

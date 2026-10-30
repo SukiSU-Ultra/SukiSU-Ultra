@@ -742,13 +742,17 @@
     <string name="settings_home_title_hint">Enter a name; leave blank to restore the app name.</string>
     <string name="settings_export_background">Export background image</string>
     <string name="settings_export_background_summary">Save active custom background to device storage</string>
+    <string name="settings_export_images">Export theme images</string>
+    <string name="settings_export_images_summary">Save custom background and home status card images to storage</string>
     <string name="theme_import_dialog_title">Apply theme package</string>
     <string name="theme_import_dialog_message">Choose which options from this theme package to apply.</string>
     <string name="theme_import_opt_appearance">Colors and appearance style</string>
     <string name="theme_import_opt_background">Background wallpaper</string>
+    <string name="theme_import_opt_images">Background and card images</string>
     <string name="theme_import_opt_app_icon">Launcher app icon</string>
     <string name="theme_import_opt_custom_texts">Custom interface texts</string>
     <string name="theme_import_opt_module_sort">Module sorting preferences</string>
+    <string name="theme_import_opt_custom_config">Custom configurations (gestures and module sorting)</string>
     <string name="settings_custom_texts">Interface texts</string>
     <string name="settings_custom_texts_summary">Customize home content and page titles</string>
     <string name="custom_text_restore_all">Restore all</string>

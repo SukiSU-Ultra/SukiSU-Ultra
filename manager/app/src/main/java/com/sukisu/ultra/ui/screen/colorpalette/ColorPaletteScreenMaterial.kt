@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
 import android.net.Uri
+import java.io.File
 import android.os.Build
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
@@ -185,10 +186,10 @@ fun ColorPaletteScreenMaterial(
     ) { uri: Uri? ->
         uri?.let { actions.onExportTheme(context, it) }
     }
-    val exportBackgroundLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("image/png")
+    val exportImagesLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*")
     ) { uri: Uri? ->
-        uri?.let { actions.onExportCustomBackground(context, it) }
+        uri?.let { actions.onExportImages(context, it) }
     }
     val importThemeLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -312,13 +313,22 @@ fun ColorPaletteScreenMaterial(
                                     )
                                 }
                             }
-                            if (hasCustomBg && !usingSystemWallpaper) {
+                            val hasCustomBgFile = hasCustomBg && !usingSystemWallpaper
+                            val hasCardBgFile = uiState.homeCardImagePath.isNotBlank() && File(uiState.homeCardImagePath).isFile
+                            if (hasCustomBgFile || hasCardBgFile) {
                                 add {
                                     SegmentedListItem(
-                                        onClick = { exportBackgroundLauncher.launch("SukiSU-background.png") },
-                                        headlineContent = { Text(stringResource(id = R.string.settings_export_background)) },
-                                        supportingContent = { Text(stringResource(id = R.string.settings_export_background_summary)) },
-                                        leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.settings_export_background)) },
+                                        onClick = {
+                                            val fileName = when {
+                                                hasCustomBgFile && hasCardBgFile -> "SukiSU-images.zip"
+                                                hasCardBgFile -> "SukiSU-home-card.png"
+                                                else -> "SukiSU-background.png"
+                                            }
+                                            exportImagesLauncher.launch(fileName)
+                                        },
+                                        headlineContent = { Text(stringResource(id = R.string.settings_export_images)) },
+                                        supportingContent = { Text(stringResource(id = R.string.settings_export_images_summary)) },
+                                        leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.settings_export_images)) },
                                     )
                                 }
                             }

@@ -100,10 +100,10 @@ data class SettingsUiState(
 @Immutable
 data class ThemeImportOptions(
     val importAppearance: Boolean = true,
-    val importBackground: Boolean = true,
+    val importImages: Boolean = true,
     val importAppIcon: Boolean = true,
     val importCustomTexts: Boolean = true,
-    val importModuleSort: Boolean = true,
+    val importCustomConfig: Boolean = true,
 )
 
 @Immutable

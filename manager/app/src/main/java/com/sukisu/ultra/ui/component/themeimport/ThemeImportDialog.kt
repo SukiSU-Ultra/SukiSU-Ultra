@@ -22,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
@@ -45,22 +44,22 @@ fun ThemeImportDialog(
 ) {
     if (!show || theme == null) return
 
-    val hasBackground = theme.backgroundPath != null
+    val hasImages = theme.backgroundPath != null || theme.cardBackgroundPath != null
     val hasAppIcon = theme.data.appIconId != null
     val hasTexts = !theme.data.customTexts.isNullOrEmpty() || !theme.data.customHomeTitle.isNullOrBlank()
 
     var importAppearance by remember(theme) { mutableStateOf(true) }
-    var importBackground by remember(theme) { mutableStateOf(hasBackground) }
+    var importImages by remember(theme) { mutableStateOf(hasImages) }
     var importAppIcon by remember(theme) { mutableStateOf(hasAppIcon) }
     var importCustomTexts by remember(theme) { mutableStateOf(hasTexts) }
-    var importModuleSort by remember(theme) { mutableStateOf(true) }
+    var importCustomConfig by remember(theme) { mutableStateOf(true) }
 
     val options = ThemeImportOptions(
         importAppearance = importAppearance,
-        importBackground = importBackground && hasBackground,
+        importImages = importImages && hasImages,
         importAppIcon = importAppIcon && hasAppIcon,
         importCustomTexts = importCustomTexts && hasTexts,
-        importModuleSort = importModuleSort,
+        importCustomConfig = importCustomConfig,
     )
 
     when (LocalUiMode.current) {
@@ -87,11 +86,11 @@ fun ThemeImportDialog(
                             checked = importAppearance,
                             onCheckedChange = { importAppearance = it },
                         )
-                        if (hasBackground) {
+                        if (hasImages) {
                             CheckboxPreference(
-                                title = stringResource(R.string.theme_import_opt_background),
-                                checked = importBackground,
-                                onCheckedChange = { importBackground = it },
+                                title = stringResource(R.string.theme_import_opt_images),
+                                checked = importImages,
+                                onCheckedChange = { importImages = it },
                             )
                         }
                         if (hasAppIcon) {
@@ -109,9 +108,9 @@ fun ThemeImportDialog(
                             )
                         }
                         CheckboxPreference(
-                            title = stringResource(R.string.theme_import_opt_module_sort),
-                            checked = importModuleSort,
-                            onCheckedChange = { importModuleSort = it },
+                            title = stringResource(R.string.theme_import_opt_custom_config),
+                            checked = importCustomConfig,
+                            onCheckedChange = { importCustomConfig = it },
                         )
                         Spacer(Modifier.height(12.dp))
                         Row(
@@ -153,11 +152,11 @@ fun ThemeImportDialog(
                             checked = importAppearance,
                             onCheckedChange = { importAppearance = it },
                         )
-                        if (hasBackground) {
+                        if (hasImages) {
                             MaterialCheckboxRow(
-                                title = stringResource(R.string.theme_import_opt_background),
-                                checked = importBackground,
-                                onCheckedChange = { importBackground = it },
+                                title = stringResource(R.string.theme_import_opt_images),
+                                checked = importImages,
+                                onCheckedChange = { importImages = it },
                             )
                         }
                         if (hasAppIcon) {
@@ -175,9 +174,9 @@ fun ThemeImportDialog(
                             )
                         }
                         MaterialCheckboxRow(
-                            title = stringResource(R.string.theme_import_opt_module_sort),
-                            checked = importModuleSort,
-                            onCheckedChange = { importModuleSort = it },
+                            title = stringResource(R.string.theme_import_opt_custom_config),
+                            checked = importCustomConfig,
+                            onCheckedChange = { importCustomConfig = it },
                         )
                     }
                 },

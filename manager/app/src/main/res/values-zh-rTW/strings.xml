@@ -615,6 +615,10 @@
     <string name="theme_import_opt_app_icon">桌面圖示</string>
     <string name="theme_import_opt_custom_texts">自訂介面文字</string>
     <string name="theme_import_opt_module_sort">模組排序偏好</string>
+    <string name="settings_export_images">導出主題圖片</string>
+    <string name="settings_export_images_summary">導出目前自訂背景與狀態卡圖片至儲存空間</string>
+    <string name="theme_import_opt_images">自訂背景與狀態卡圖片</string>
+    <string name="theme_import_opt_custom_config">自訂配置（手勢與模組排序等）</string>
     <string name="settings_custom_texts">介面文字自訂</string>
     <string name="settings_custom_texts_summary">自訂首頁展示文字與各頁面抬頭</string>
     <string name="custom_text_restore_all">全部還原</string>
