@@ -19,6 +19,7 @@ import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.util.BgStorage
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
+import com.sukisu.ultra.ui.component.themeimport.ThemeImportDialog
 
 @Composable
 fun ColorPaletteScreen() {
@@ -105,7 +106,22 @@ fun ColorPaletteScreen() {
         onSetCustomBackgroundScrimPercent = viewModel::setCustomBackgroundScrimPercent,
         onExportTheme = viewModel::exportTheme,
         onImportTheme = viewModel::importTheme,
+        onExportCustomBackground = viewModel::exportCustomBackground,
+        onConfirmImportTheme = viewModel::confirmImportTheme,
+        onDismissImportThemeDialog = viewModel::dismissImportThemeDialog,
+        onSetCustomText = viewModel::setCustomText,
+        onResetAllCustomTexts = viewModel::resetAllCustomTexts,
+        onOpenCustomTexts = { navigator.push(Route.CustomTexts) },
         onResetBackgroundAppearance = viewModel::resetBackgroundAppearance,
+    )
+
+    ThemeImportDialog(
+        show = uiState.showThemeImportDialog,
+        theme = uiState.pendingImportTheme,
+        onDismissRequest = viewModel::dismissImportThemeDialog,
+        onConfirm = { options ->
+            viewModel.confirmImportTheme(context, options)
+        }
     )
 
     when (LocalUiMode.current) {

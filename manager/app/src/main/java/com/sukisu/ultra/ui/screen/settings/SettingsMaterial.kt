@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.settings
 
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -470,7 +472,7 @@ private fun TopBar(
 ) {
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.settings)) },
+        title = { Text(customText(CustomTextKey.PAGE_SETTINGS)) },
         colors = expressiveTopAppBarColors(
             containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
             scrolledContainerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,

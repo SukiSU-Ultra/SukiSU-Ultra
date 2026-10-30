@@ -103,6 +103,7 @@ class MainActivityViewModel(
             customBackgroundBlurPercent = settingRepo.customBackgroundBlurPercent,
             customBackgroundScrimPercent = settingRepo.customBackgroundScrimPercent,
             uiMode = UiMode.fromValue(settingRepo.uiMode),
+            customTexts = settingRepo.customTexts,
         )
     }
 
@@ -128,6 +129,7 @@ class MainActivityViewModel(
             "custom_bg_blur_percent",
             "custom_bg_scrim_percent",
             "ui_mode",
+            "custom_texts",
         )
     }
 }

@@ -12,6 +12,7 @@ interface SettingsRepository {
     var customBackgroundScrimPercent: Int
     var backgroundAppearanceExpanded: Boolean
     var customHomeTitle: String
+    var customTexts: Map<String, String>
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean

@@ -22,4 +22,5 @@ data class MainActivityUiState(
     val customBackgroundBlurPercent: Int = 50,
     val customBackgroundScrimPercent: Int = -35,
     val uiMode: UiMode,
+    val customTexts: Map<String, String> = emptyMap(),
 )

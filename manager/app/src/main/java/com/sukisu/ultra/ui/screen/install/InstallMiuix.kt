@@ -3,6 +3,8 @@ package com.sukisu.ultra.ui.screen.install
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.kernelFlash.KpmPatchOption
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -576,7 +578,7 @@ private fun TopBar(
     BlurredBar(backdrop) {
         TopAppBar(
             color = barColor,
-            title = stringResource(R.string.install),
+            title = customText(CustomTextKey.PAGE_INSTALL),
             navigationIcon = {
                 IconButton(
                     onClick = onBack

@@ -22,11 +22,14 @@ import com.sukisu.ultra.ui.util.getFeatureValue
 import com.sukisu.ultra.ui.util.getFeatureStatus
 import com.sukisu.ultra.ui.util.LocaleHelper
 import java.security.SecureRandom
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
 private const val SETTINGS_PREFS = "settings"
 private const val KEY_USE_SOFT_REBOOT = "soft_reboot"
 private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
 internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
+internal const val KEY_CUSTOM_TEXTS = "custom_texts"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -97,6 +100,19 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var customHomeTitle: String
         get() = prefs.getString(KEY_CUSTOM_HOME_TITLE, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CUSTOM_HOME_TITLE, value.trim()) }
+
+    override var customTexts: Map<String, String>
+        get() {
+            val jsonStr = prefs.getString(KEY_CUSTOM_TEXTS, null) ?: return emptyMap()
+            return runCatching {
+                Json.decodeFromString<Map<String, String>>(jsonStr)
+            }.getOrDefault(emptyMap())
+        }
+        set(value) {
+            val filtered = value.filterValues { it.isNotBlank() }
+            val jsonStr = Json.encodeToString(filtered)
+            prefs.edit { putString(KEY_CUSTOM_TEXTS, jsonStr) }
+        }
 
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->

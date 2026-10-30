@@ -144,7 +144,7 @@ fun InstallScreen(
         }
     }
 
-    // AnyKernel3 状态
+    // AnyKernel3 状�?
     val anyKernel3State = rememberAnyKernel3State(
         installMethodState = installMethodState,
         preselectedKernelUri = preselectedKernelUri?.toString(),
@@ -154,7 +154,7 @@ fun InstallScreen(
 
     val showSlotSelectionDialog = anyKernel3State.showSlotSelectionDialog && isAbDevice
 
-    // 槽位选择对话框
+    // 槽位选择对话�?
     if (showSlotSelectionDialog) {
         SlotSelectionDialog(
             show = true,
@@ -338,7 +338,7 @@ fun InstallScreen(
         }
         option?.let { opt ->
             installMethod = opt
-            // 对于 HorizonKernel，需要触发 AnyKernel3 流程（槽位选择和KPM修补）
+            // 对于 HorizonKernel，需要触�?AnyKernel3 流程（槽位选择和KPM修补�?
             if (opt is InstallMethod.HorizonKernel) {
                 anyKernel3State.onHorizonKernelSelected(opt)
             }
@@ -395,7 +395,7 @@ fun InstallScreen(
         },
         onDownloadFile = { downloadDialogShown = true },
         onSelectBootImage = { method ->
-            // 在打开文件选择器之前，先设置 installMethod
+            // 在打开文件选择器之前，先设�?installMethod
             installMethod = method
             selectImageLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "application/*"
@@ -456,7 +456,7 @@ fun InstallScreen(
         onSpoofEnabledChange = {
             spoofEnabled = it
             if (!it) {
-                // 关闭开关时清空已填写的值
+                // 关闭开关时清空已填写的�?
                 spoofRelease = ""
                 spoofVersion = ""
                 scope.launch {

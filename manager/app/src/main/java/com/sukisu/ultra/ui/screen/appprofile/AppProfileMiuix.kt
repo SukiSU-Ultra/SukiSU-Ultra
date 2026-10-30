@@ -48,6 +48,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -513,7 +515,7 @@ private fun TopBar(
     BlurredBar(backdrop) {
         TopAppBar(
             color = barColor,
-            title = stringResource(R.string.profile),
+            title = customText(CustomTextKey.PAGE_APP_PROFILE),
             navigationIcon = {
                 IconButton(
                     onClick = onBack
@@ -616,7 +618,7 @@ private fun ProfileBox(
             .padding(horizontal = 12.dp),
     ) {
         OverlayDropdownPreference(
-            title = stringResource(R.string.profile),
+            title = customText(CustomTextKey.PAGE_APP_PROFILE),
             items = list,
             startAction = {
                 Icon(

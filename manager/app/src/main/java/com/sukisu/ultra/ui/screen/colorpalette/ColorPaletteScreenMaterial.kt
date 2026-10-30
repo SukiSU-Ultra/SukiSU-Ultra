@@ -2,6 +2,8 @@ package com.sukisu.ultra.ui.screen.colorpalette
 
 import android.net.Uri
 import android.os.Build
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -179,9 +181,14 @@ fun ColorPaletteScreenMaterial(
         }
     }
     val exportThemeLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/zip")
+        contract = ActivityResultContracts.CreateDocument("*/*")
     ) { uri: Uri? ->
         uri?.let { actions.onExportTheme(context, it) }
+    }
+    val exportBackgroundLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("image/png")
+    ) { uri: Uri? ->
+        uri?.let { actions.onExportCustomBackground(context, it) }
     }
     val importThemeLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -195,7 +202,7 @@ fun ColorPaletteScreenMaterial(
                 navigationIcon = {
                     TopBarBackButton(onClick = actions.onBack)
                 },
-                title = { Text(stringResource(R.string.settings_theme)) },
+                title = { Text(customText(CustomTextKey.PAGE_APPEARANCE)) },
                 colors = expressiveTopAppBarColors(),
                 windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 scrollBehavior = scrollBehavior
@@ -296,6 +303,16 @@ fun ColorPaletteScreenMaterial(
                                         headlineContent = { Text(stringResource(id = R.string.settings_crop_background)) },
                                         supportingContent = { Text(stringResource(id = R.string.settings_crop_background_summary)) },
                                         leadingContent = { IconTile(Icons.Rounded.Crop, stringResource(id = R.string.settings_crop_background)) },
+                                    )
+                                }
+                            }
+                            if (hasCustomBg && !usingSystemWallpaper) {
+                                add {
+                                    SegmentedListItem(
+                                        onClick = { exportBackgroundLauncher.launch("SukiSU-background.png") },
+                                        headlineContent = { Text(stringResource(id = R.string.settings_export_background)) },
+                                        supportingContent = { Text(stringResource(id = R.string.settings_export_background_summary)) },
+                                        leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.settings_export_background)) },
                                     )
                                 }
                             }
@@ -535,22 +552,13 @@ fun ColorPaletteScreenMaterial(
                         },
                         {
                             SegmentedListItem(
-                                onClick = {
-                                    homeTitleDraft = uiState.customHomeTitle
-                                    showHomeTitleDialog = true
-                                },
-                                headlineContent = { Text(stringResource(R.string.settings_home_title)) },
-                                supportingContent = {
-                                    Text(
-                                        uiState.customHomeTitle.ifBlank {
-                                            stringResource(R.string.settings_home_title_default)
-                                        }
-                                    )
-                                },
+                                onClick = actions.onOpenCustomTexts,
+                                headlineContent = { Text(stringResource(R.string.settings_custom_texts)) },
+                                supportingContent = { Text(stringResource(R.string.settings_custom_texts_summary)) },
                                 leadingContent = {
                                     IconTile(
                                         Icons.Rounded.Edit,
-                                        stringResource(R.string.settings_home_title),
+                                        stringResource(R.string.settings_custom_texts),
                                     )
                                 },
                                 trailingContent = {

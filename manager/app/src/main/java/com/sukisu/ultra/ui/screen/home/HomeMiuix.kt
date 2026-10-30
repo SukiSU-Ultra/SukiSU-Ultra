@@ -63,6 +63,8 @@ import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
@@ -102,7 +104,7 @@ fun HomePagerMiuix(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             TopBar(
-                title = state.customHomeTitle,
+                title = customText(CustomTextKey.HOME_TITLE),
                 scrollBehavior = scrollBehavior,
                 backdrop = backdrop,
                 barColor = barColor,
@@ -134,7 +136,7 @@ fun HomePagerMiuix(
                         )
                 if (state.showVersionMismatchWarning) {
                     WarningCard(
-                        stringResource(R.string.version_spoof_home_warning),
+                        customText(CustomTextKey.HOME_WARN_VERSION_SPOOF),
                         onClick = actions.onOpenVersionSpoof,
                     )
                 }
@@ -206,7 +208,7 @@ private fun UpdateCard(
 ) {
     val ciInfo = state.ciLatestVersionInfo
     val ciDialog = rememberConfirmDialog(onConfirm = actions.onCiUpdateClick)
-    val ciTitle = stringResource(R.string.settings_check_ci_update)
+    val ciTitle = customText(CustomTextKey.HOME_UPDATE_NEW_VERSION)
     val ciConfirm = stringResource(R.string.module_update)
     val ciContent = ciInfo.changelog
     if (state.checkCiUpdateEnabled && ciInfo.versionCode > state.currentManagerVersionCode) {
@@ -261,7 +263,7 @@ private fun TopBar(
     BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
         TopAppBar(
             color = Color.Transparent,
-            title = title.ifBlank { stringResource(R.string.app_name) },
+            title = customText(CustomTextKey.HOME_TITLE),
             actions = {
                 RebootListPopupMiuix()
             },
@@ -360,14 +362,14 @@ private fun ActiveStatusCard(
                     }
                     if (state.showCustomLkmBadge) {
                         StatusTag(
-                            label = stringResource(R.string.home_lkm_custom),
+                            label = customText(CustomTextKey.HOME_TAG_LKM),
                             contentColor = tagContent,
                             backgroundColor = tagBackground,
                         )
                     }
                     if (state.isSafeMode) {
                         StatusTag(
-                            label = stringResource(id = R.string.safe_mode),
+                            label = customText(CustomTextKey.HOME_TAG_SAFEMODE),
                             contentColor = colorScheme.onErrorContainer,
                             backgroundColor = colorScheme.errorContainer,
                         )
@@ -382,7 +384,7 @@ private fun ActiveStatusCard(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = stringResource(R.string.home_working),
+                        text = customText(CustomTextKey.HOME_STATUS_WORKING),
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -501,8 +503,13 @@ private fun StatsRow(
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface,
                     )
+                    val labelText = when (label) {
+                        R.string.superuser -> customText(CustomTextKey.HOME_STATS_SUPERUSER)
+                        R.string.module -> customText(CustomTextKey.HOME_STATS_MODULE)
+                        else -> stringResource(label)
+                    }
                     Text(
-                        text = stringResource(label),
+                        text = labelText,
                         fontSize = MiuixTheme.textStyles.body2.fontSize,
                         color = colorScheme.onSurfaceVariantSummary,
                         maxLines = 1,
@@ -624,27 +631,27 @@ private fun InfoCard(
     val hookTypeLabel = rememberHookTypeLabel(manualHookText, inlineHookText, tracepointHookText, unknownHookText)
 
     val systemRows = buildList {
-        add(stringResource(R.string.home_manager_version) to systemInfo.managerVersion)
-        add(stringResource(R.string.home_kernel) to systemInfo.kernelVersion)
+        add(customText(CustomTextKey.HOME_INFO_MANAGER_VERSION) to systemInfo.managerVersion)
+        add(customText(CustomTextKey.HOME_INFO_KERNEL) to systemInfo.kernelVersion)
         if (showFullStatus) {
             if (!systemInfo.kernelFullVersion.isNullOrBlank()) {
-                add(stringResource(R.string.home_kernel_full_version) to systemInfo.kernelFullVersion)
+                add(customText(CustomTextKey.HOME_INFO_KERNEL_FULL) to systemInfo.kernelFullVersion)
             }
             if (isSusfsSupported) {
                 add(stringResource(R.string.home_susfs_version) to susfsInfo.detail)
             } else if (!hookTypeLabel.isNullOrBlank()) {
-                add(stringResource(R.string.hook_type) to hookTypeLabel)
+                add(customText(CustomTextKey.HOME_INFO_HOOK_TYPE) to hookTypeLabel)
             }
             if (!systemInfo.zygiskImplementation.isNullOrBlank()) {
-                add(stringResource(R.string.home_zygisk_implementation) to systemInfo.zygiskImplementation)
+                add(customText(CustomTextKey.HOME_INFO_ZYGISK) to systemInfo.zygiskImplementation)
             }
         }
-        add(stringResource(R.string.home_device_model) to systemInfo.deviceModel)
-        add(stringResource(R.string.home_fingerprint) to systemInfo.fingerprint)
+        add(customText(CustomTextKey.HOME_INFO_DEVICE_MODEL) to systemInfo.deviceModel)
+        add(customText(CustomTextKey.HOME_INFO_FINGERPRINT) to systemInfo.fingerprint)
     }
     val securityRows = listOf(
-        stringResource(R.string.home_selinux_status) to selinuxDisplay,
-        stringResource(R.string.home_seccomp_status) to seccompDisplay,
+        customText(CustomTextKey.HOME_INFO_SELINUX) to selinuxDisplay,
+        customText(CustomTextKey.HOME_INFO_SECCOMP) to seccompDisplay,
     )
 
     Column(

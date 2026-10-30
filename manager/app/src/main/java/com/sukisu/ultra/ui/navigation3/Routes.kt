@@ -53,6 +53,10 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ColorPalette : Route
 
+    @Parcelize
+    @Serializable
+    data object CustomTexts : Route
+
     /** Launcher icon picker and icon pack manager. */
     @Parcelize
     @Serializable

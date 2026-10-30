@@ -44,6 +44,7 @@ class SettingsViewModel(
         checkModuleUpdate = repo.checkModuleUpdate,
         backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
         customHomeTitle = repo.customHomeTitle,
+        customTexts = repo.customTexts,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -132,6 +133,7 @@ class SettingsViewModel(
                     appIconDynamicColor = appIconDynamicColor,
                     backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
                     customHomeTitle = repo.customHomeTitle,
+                    customTexts = repo.customTexts,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -416,12 +418,44 @@ class SettingsViewModel(
         _uiState.update { it.copy(customBackgroundScrimPercent = percent) }
     }
 
+    fun exportCustomBackground(context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val state = _uiState.value
+            val sourceFile = state.customBackgroundUri
+                .takeIf { it.isNotEmpty() }
+                ?.let { File(it).takeIf { f -> f.isFile } }
+            if (sourceFile == null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(ksuApp, R.string.theme_export_failed, Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+            val success = runCatching {
+                val output = context.contentResolver.openOutputStream(uri)
+                    ?: error("Cannot open destination")
+                java.io.BufferedOutputStream(output).use { out ->
+                    sourceFile.inputStream().use { input ->
+                        input.copyTo(out)
+                    }
+                }
+            }.isSuccess
+            withContext(Dispatchers.Main) {
+                val msg = if (success) R.string.theme_export_success else R.string.theme_export_failed
+                Toast.makeText(ksuApp, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     fun exportTheme(context: Context, uri: Uri) {
         viewModelScope.launch {
             val state = _uiState.value
-            val backgroundFile = state.customBackgroundUri
-                .takeIf { it.isNotEmpty() }
-                ?.let { path -> File(path).takeIf { it.isFile } }
+            val backgroundFile = if (state.useSystemWallpaper) {
+                BgStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }
+            } else {
+                state.customBackgroundUri
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { path -> File(path).takeIf { it.isFile } }
+            }
             val builtinIconIds = setOf(
                 BuiltinAppIcons.DEFAULT_ID,
                 BuiltinAppIcons.KERNELSU_ID,
@@ -458,6 +492,7 @@ class SettingsViewModel(
                 moduleSortNameOrder = repo.moduleSortNameOrder,
                 moduleSortManual = repo.moduleSortManual,
                 customHomeTitle = state.customHomeTitle.takeIf { it.isNotBlank() },
+                customTexts = state.customTexts.takeIf { it.isNotEmpty() },
             )
             ThemePackageStorage.export(context, uri, data, backgroundFile)
                 .onSuccess {
@@ -473,8 +508,12 @@ class SettingsViewModel(
         viewModelScope.launch {
             ThemePackageStorage.import(context, uri)
                 .onSuccess { imported ->
-                    applyImportedTheme(context, imported)
-                    Toast.makeText(ksuApp, R.string.theme_import_success, Toast.LENGTH_SHORT).show()
+                    _uiState.update {
+                        it.copy(
+                            pendingImportTheme = imported,
+                            showThemeImportDialog = true,
+                        )
+                    }
                 }
                 .onFailure {
                     Toast.makeText(ksuApp, R.string.theme_import_failed, Toast.LENGTH_SHORT).show()
@@ -482,107 +521,174 @@ class SettingsViewModel(
         }
     }
 
-    private suspend fun applyImportedTheme(context: Context, imported: ImportedTheme) {
-        val current = _uiState.value
-        val data = imported.data
-        val themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
-        val miuixMonet = data.miuixMonet ?: current.miuixMonet
-        val keyColor = data.keyColor ?: current.keyColor
-        val colorStyle = data.colorStyle
-            ?.takeIf { name -> runCatching { PaletteStyle.valueOf(name) }.isSuccess }
-            ?: current.colorStyle
-        val colorSpec = data.colorSpec
-            ?.takeIf { name -> runCatching { ColorSpec.SpecVersion.valueOf(name) }.isSuccess }
-            ?: current.colorSpec
-        val cardAlpha = (data.cardBackgroundAlphaPercent ?: current.cardBackgroundAlphaPercent)
-            .coerceIn(BgStorage.CARD_ALPHA_MIN, BgStorage.CARD_ALPHA_MAX)
-        val blurPercent = (data.customBackgroundBlurPercent ?: current.customBackgroundBlurPercent)
-            .coerceIn(BgStorage.BACKGROUND_BLUR_PERCENT_MIN, BgStorage.BACKGROUND_BLUR_PERCENT_MAX)
-        val scrimPercent = (data.customBackgroundScrimPercent ?: current.customBackgroundScrimPercent)
-            .coerceIn(BgStorage.BACKGROUND_SCRIM_MIN, BgStorage.BACKGROUND_SCRIM_MAX)
-        val backgroundUri = if (imported.backgroundPath != null) {
-            imported.backgroundPath
-        } else {
-            BgStorage.clear(context)
-            ""
+    fun dismissImportThemeDialog() {
+        val pending = _uiState.value.pendingImportTheme
+        if (pending?.backgroundPath != null) {
+            runCatching { File(pending.backgroundPath).delete() }
         }
-
-        // UI Mode
-        val targetUiMode = data.uiMode?.takeIf { it == "miuix" || it == "material" } ?: current.uiMode
-        repo.uiMode = targetUiMode
-
-        repo.themeMode = themeMode
-        repo.miuixMonet = miuixMonet
-        repo.keyColor = keyColor
-        repo.colorStyle = colorStyle
-        repo.colorSpec = colorSpec
-        repo.cardBackgroundAlphaPercent = cardAlpha
-        repo.customBackgroundBlurPercent = blurPercent
-        repo.customBackgroundScrimPercent = scrimPercent
-        repo.customBackgroundUri = backgroundUri
-        // The imported appearance owns the background; the device wallpaper is a local choice.
-        repo.useSystemWallpaper = false
-        if (imported.backgroundPath != null) {
-            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
-        }
-
-        // App Icon (builtin icons only)
-        val builtinIconIds = setOf(
-            BuiltinAppIcons.DEFAULT_ID,
-            BuiltinAppIcons.KERNELSU_ID,
-            BuiltinAppIcons.LOGO_ID,
-            BuiltinAppIcons.ZAKO_ID,
-        )
-        val targetIconId = data.appIconId?.takeIf { it in builtinIconIds }
-        if (targetIconId != null) {
-            repo.appIconId = targetIconId
-            val icon = BuiltinAppIcons.find(targetIconId)
-            BuiltinAppIcons.apply(
-                context = context,
-                icon = icon,
-                dynamicColor = repo.appIconDynamicColor,
+        _uiState.update {
+            it.copy(
+                pendingImportTheme = null,
+                showThemeImportDialog = false,
             )
         }
-        val effectiveIconId = targetIconId ?: current.appIconId
+    }
 
-        // Visual Appearance (Bottom Bar)
-        val floatingBottomBar = data.enableFloatingBottomBar ?: current.enableFloatingBottomBar
-        val floatingBottomBarBlur = data.enableFloatingBottomBarBlur ?: current.enableFloatingBottomBarBlur
-        val navigationBadge = data.enableNavigationBadge ?: current.enableNavigationBadge
-        repo.enableFloatingBottomBar = floatingBottomBar
-        repo.enableFloatingBottomBarBlur = floatingBottomBarBlur
-        repo.enableNavigationBadge = navigationBadge
+    fun confirmImportTheme(context: Context, options: com.sukisu.ultra.ui.screen.settings.ThemeImportOptions) {
+        val pending = _uiState.value.pendingImportTheme ?: return
+        viewModelScope.launch {
+            applyImportedTheme(context, pending, options)
+            _uiState.update {
+                it.copy(
+                    pendingImportTheme = null,
+                    showThemeImportDialog = false,
+                )
+            }
+            Toast.makeText(ksuApp, R.string.theme_import_success, Toast.LENGTH_SHORT).show()
+        }
+    }
 
-        // Gestures / Fluidity
-        val predictiveBack = data.enablePredictiveBack ?: repo.enablePredictiveBack
-        val swipeDismiss = data.enableSwipeDismiss ?: repo.enableSwipeDismiss
-        repo.enablePredictiveBack = predictiveBack
-        repo.enableSwipeDismiss = swipeDismiss
+    private suspend fun applyImportedTheme(
+        context: Context,
+        imported: ImportedTheme,
+        options: com.sukisu.ultra.ui.screen.settings.ThemeImportOptions,
+    ) {
+        val current = _uiState.value
+        val data = imported.data
 
-        // Module Sorting
-        data.moduleSortEnabledFirst?.let { repo.moduleSortEnabledFirst = it }
-        data.moduleSortActionFirst?.let { repo.moduleSortActionFirst = it }
-        data.moduleSortWebUiFirst?.let { repo.moduleSortWebUiFirst = it }
-        data.moduleSortZygiskFirst?.let { repo.moduleSortZygiskFirst = it }
-        data.moduleSortMetamoduleFirst?.let { repo.moduleSortMetamoduleFirst = it }
-        data.moduleSortNameOrder?.let { order ->
-            if (runCatching { ModuleNameSort.valueOf(order) }.isSuccess) {
-                repo.moduleSortNameOrder = order
+        var themeMode = current.themeMode
+        var miuixMonet = current.miuixMonet
+        var keyColor = current.keyColor
+        var colorStyle = current.colorStyle
+        var colorSpec = current.colorSpec
+        var cardAlpha = current.cardBackgroundAlphaPercent
+        var blurPercent = current.customBackgroundBlurPercent
+        var scrimPercent = current.customBackgroundScrimPercent
+        var targetUiMode = current.uiMode
+        var floatingBottomBar = current.enableFloatingBottomBar
+        var floatingBottomBarBlur = current.enableFloatingBottomBarBlur
+        var navigationBadge = current.enableNavigationBadge
+        var predictiveBack = repo.enablePredictiveBack
+        var swipeDismiss = repo.enableSwipeDismiss
+
+        if (options.importAppearance) {
+            themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
+            miuixMonet = data.miuixMonet ?: current.miuixMonet
+            keyColor = data.keyColor ?: current.keyColor
+            colorStyle = data.colorStyle
+                ?.takeIf { name -> runCatching { PaletteStyle.valueOf(name) }.isSuccess }
+                ?: current.colorStyle
+            colorSpec = data.colorSpec
+                ?.takeIf { name -> runCatching { ColorSpec.SpecVersion.valueOf(name) }.isSuccess }
+                ?: current.colorSpec
+            cardAlpha = (data.cardBackgroundAlphaPercent ?: current.cardBackgroundAlphaPercent)
+                .coerceIn(BgStorage.CARD_ALPHA_MIN, BgStorage.CARD_ALPHA_MAX)
+            blurPercent = (data.customBackgroundBlurPercent ?: current.customBackgroundBlurPercent)
+                .coerceIn(BgStorage.BACKGROUND_BLUR_PERCENT_MIN, BgStorage.BACKGROUND_BLUR_PERCENT_MAX)
+            scrimPercent = (data.customBackgroundScrimPercent ?: current.customBackgroundScrimPercent)
+                .coerceIn(BgStorage.BACKGROUND_SCRIM_MIN, BgStorage.BACKGROUND_SCRIM_MAX)
+
+            targetUiMode = data.uiMode?.takeIf { it == "miuix" || it == "material" } ?: current.uiMode
+            repo.uiMode = targetUiMode
+            repo.themeMode = themeMode
+            repo.miuixMonet = miuixMonet
+            repo.keyColor = keyColor
+            repo.colorStyle = colorStyle
+            repo.colorSpec = colorSpec
+            repo.cardBackgroundAlphaPercent = cardAlpha
+            repo.customBackgroundBlurPercent = blurPercent
+            repo.customBackgroundScrimPercent = scrimPercent
+
+            floatingBottomBar = data.enableFloatingBottomBar ?: current.enableFloatingBottomBar
+            floatingBottomBarBlur = data.enableFloatingBottomBarBlur ?: current.enableFloatingBottomBarBlur
+            navigationBadge = data.enableNavigationBadge ?: current.enableNavigationBadge
+            repo.enableFloatingBottomBar = floatingBottomBar
+            repo.enableFloatingBottomBarBlur = floatingBottomBarBlur
+            repo.enableNavigationBadge = navigationBadge
+
+            predictiveBack = data.enablePredictiveBack ?: repo.enablePredictiveBack
+            swipeDismiss = data.enableSwipeDismiss ?: repo.enableSwipeDismiss
+            repo.enablePredictiveBack = predictiveBack
+            repo.enableSwipeDismiss = swipeDismiss
+        }
+
+        var backgroundUri = current.customBackgroundUri
+        if (options.importBackground) {
+            backgroundUri = if (imported.backgroundPath != null) {
+                imported.backgroundPath
+            } else {
+                BgStorage.clear(context)
+                ""
+            }
+            repo.customBackgroundUri = backgroundUri
+            repo.useSystemWallpaper = false
+            if (imported.backgroundPath != null) {
+                repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+            }
+        } else if (imported.backgroundPath != null) {
+            // Discard unselected imported background
+            runCatching { File(imported.backgroundPath).delete() }
+        }
+
+        var effectiveIconId = current.appIconId
+        if (options.importAppIcon) {
+            val builtinIconIds = setOf(
+                BuiltinAppIcons.DEFAULT_ID,
+                BuiltinAppIcons.KERNELSU_ID,
+                BuiltinAppIcons.LOGO_ID,
+                BuiltinAppIcons.ZAKO_ID,
+            )
+            val targetIconId = data.appIconId?.takeIf { it in builtinIconIds }
+            if (targetIconId != null) {
+                repo.appIconId = targetIconId
+                val icon = BuiltinAppIcons.find(targetIconId)
+                BuiltinAppIcons.apply(
+                    context = context,
+                    icon = icon,
+                    dynamicColor = repo.appIconDynamicColor,
+                )
+                effectiveIconId = targetIconId
             }
         }
-        data.moduleSortManual?.let { repo.moduleSortManual = it }
 
-        val importedHomeTitle = data.customHomeTitle
-        if (importedHomeTitle != null) {
-            repo.customHomeTitle = importedHomeTitle
+        if (options.importModuleSort) {
+            data.moduleSortEnabledFirst?.let { repo.moduleSortEnabledFirst = it }
+            data.moduleSortActionFirst?.let { repo.moduleSortActionFirst = it }
+            data.moduleSortWebUiFirst?.let { repo.moduleSortWebUiFirst = it }
+            data.moduleSortZygiskFirst?.let { repo.moduleSortZygiskFirst = it }
+            data.moduleSortMetamoduleFirst?.let { repo.moduleSortMetamoduleFirst = it }
+            data.moduleSortNameOrder?.let { order ->
+                if (runCatching { ModuleNameSort.valueOf(order) }.isSuccess) {
+                    repo.moduleSortNameOrder = order
+                }
+            }
+            data.moduleSortManual?.let { repo.moduleSortManual = it }
         }
-        val effectiveHomeTitle = importedHomeTitle ?: current.customHomeTitle
+
+        var effectiveHomeTitle = current.customHomeTitle
+        var effectiveCustomTexts = current.customTexts
+        if (options.importCustomTexts) {
+            val textsMap = (data.customTexts ?: emptyMap()).toMutableMap()
+            val importedHomeTitle = data.customHomeTitle
+            if (importedHomeTitle != null) {
+                textsMap["home.title"] = importedHomeTitle
+                repo.customHomeTitle = importedHomeTitle
+                effectiveHomeTitle = importedHomeTitle
+            } else if (textsMap.containsKey("home.title")) {
+                val t = textsMap["home.title"].orEmpty()
+                repo.customHomeTitle = t
+                effectiveHomeTitle = t
+            }
+            repo.customTexts = textsMap
+            effectiveCustomTexts = textsMap
+        }
 
         _uiState.update {
             it.copy(
                 uiMode = targetUiMode,
                 appIconId = effectiveIconId,
                 customHomeTitle = effectiveHomeTitle,
+                customTexts = effectiveCustomTexts,
                 themeMode = themeMode,
                 miuixMonet = miuixMonet,
                 keyColor = keyColor,
@@ -593,8 +699,8 @@ class SettingsViewModel(
                 customBackgroundScrimPercent = scrimPercent,
                 customBackgroundUri = backgroundUri,
                 customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
-                useSystemWallpaper = false,
-                systemWallpaperPath = "",
+                useSystemWallpaper = if (options.importBackground) false else it.useSystemWallpaper,
+                systemWallpaperPath = if (options.importBackground) "" else it.systemWallpaperPath,
                 enableFloatingBottomBar = floatingBottomBar,
                 enableFloatingBottomBarBlur = floatingBottomBarBlur,
                 enableNavigationBadge = navigationBadge,
@@ -703,7 +809,50 @@ class SettingsViewModel(
     fun setCustomHomeTitle(title: String) {
         val normalizedTitle = title.trim()
         repo.customHomeTitle = normalizedTitle
-        _uiState.update { it.copy(customHomeTitle = normalizedTitle) }
+        val updatedTexts = repo.customTexts.toMutableMap()
+        if (normalizedTitle.isEmpty()) {
+            updatedTexts.remove("home.title")
+        } else {
+            updatedTexts["home.title"] = normalizedTitle
+        }
+        repo.customTexts = updatedTexts
+        _uiState.update {
+            it.copy(
+                customHomeTitle = normalizedTitle,
+                customTexts = updatedTexts,
+            )
+        }
+    }
+
+    fun setCustomText(key: String, value: String) {
+        val trimmed = value.trim()
+        val current = repo.customTexts.toMutableMap()
+        if (trimmed.isEmpty()) {
+            current.remove(key)
+        } else {
+            current[key] = trimmed
+        }
+        repo.customTexts = current
+        if (key == "home.title") {
+            repo.customHomeTitle = trimmed
+        }
+        _uiState.update {
+            it.copy(
+                customTexts = current,
+                customHomeTitle = if (key == "home.title") trimmed else it.customHomeTitle,
+            )
+        }
+    }
+
+    fun resetAllCustomTexts() {
+        repo.customTexts = emptyMap()
+        repo.customHomeTitle = ""
+        _uiState.update {
+            it.copy(
+                customTexts = emptyMap(),
+                customHomeTitle = "",
+            )
+        }
     }
 
     private fun applyAppIconSettings(

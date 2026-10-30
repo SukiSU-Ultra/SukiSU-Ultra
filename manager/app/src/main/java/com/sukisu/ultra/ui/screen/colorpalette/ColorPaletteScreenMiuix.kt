@@ -2,6 +2,8 @@ package com.sukisu.ultra.ui.screen.colorpalette
 
 import android.net.Uri
 import android.os.Build
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -145,9 +147,14 @@ fun ColorPaletteScreenMiuix(
         mutableFloatStateOf(uiState.customBackgroundScrimPercent.toFloat())
     }
     val exportThemeLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/zip")
+        contract = ActivityResultContracts.CreateDocument("*/*")
     ) { uri: Uri? ->
         uri?.let { actions.onExportTheme(context, it) }
+    }
+    val exportBackgroundLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("image/png")
+    ) { uri: Uri? ->
+        uri?.let { actions.onExportCustomBackground(context, it) }
     }
     val importThemeLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -162,7 +169,7 @@ fun ColorPaletteScreenMiuix(
             BlurredBar(backdrop, scrollBehavior = scrollBehavior) {
                 TopAppBar(
                     color = barColor,
-                    title = stringResource(R.string.settings_theme),
+                    title = customText(CustomTextKey.PAGE_APPEARANCE),
                     navigationIcon = {
                         IconButton(
                             onClick = actions.onBack
@@ -309,6 +316,23 @@ fun ColorPaletteScreenMiuix(
                                     onClick = { actions.onCropCurrentBackground(context) }
                                 )
                             }
+                        }
+
+                        if (hasCustomBg && !usingSystemWallpaper) {
+                            HorizontalDivider()
+                            ArrowPreference(
+                                title = stringResource(id = R.string.settings_export_background),
+                                summary = stringResource(id = R.string.settings_export_background_summary),
+                                startAction = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.FileDownload,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_export_background),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                onClick = { exportBackgroundLauncher.launch("SukiSU-background.png") }
+                            )
                         }
 
                         if (usingSystemWallpaper || hasCustomBg) {
@@ -521,22 +545,17 @@ fun ColorPaletteScreenMiuix(
                             onClick = actions.onOpenAppIcon,
                         )
                         ArrowPreference(
-                            title = stringResource(id = R.string.settings_home_title),
-                            summary = uiState.customHomeTitle.ifBlank {
-                                stringResource(R.string.settings_home_title_default)
-                            },
+                            title = stringResource(id = R.string.settings_custom_texts),
+                            summary = stringResource(id = R.string.settings_custom_texts_summary),
                             startAction = {
                                 Icon(
                                     Icons.Rounded.Edit,
                                     modifier = Modifier.padding(end = 8.dp),
-                                    contentDescription = stringResource(R.string.settings_home_title),
+                                    contentDescription = stringResource(R.string.settings_custom_texts),
                                     tint = colorScheme.onBackground,
                                 )
                             },
-                            onClick = {
-                                homeTitleDraft = uiState.customHomeTitle
-                                showHomeTitleDialog = true
-                            },
+                            onClick = actions.onOpenCustomTexts,
                         )
                     }
                     val themeItems = listOf(
