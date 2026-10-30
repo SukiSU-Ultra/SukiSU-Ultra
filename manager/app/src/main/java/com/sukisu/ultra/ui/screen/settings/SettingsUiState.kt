@@ -92,6 +92,7 @@ data class SettingsUiState(
     val backgroundAppearanceExpanded: Boolean = true,
     val customHomeTitle: String = "",
     val customWorkingTitle: String = "",
+    val customKernelModeSuffix: String = "",
 )
 
 @Immutable

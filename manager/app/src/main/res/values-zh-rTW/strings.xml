@@ -609,6 +609,9 @@
     <string name="settings_working_title">主頁狀態文字</string>
     <string name="settings_working_title_default">使用預設文字</string>
     <string name="settings_working_title_hint">輸入首頁狀態卡片顯示的文字；留空則還原為預設值。</string>
+    <string name="settings_kernel_mode_suffix">內核標籤後綴</string>
+    <string name="settings_kernel_mode_suffix_default">僅顯示模式標籤</string>
+    <string name="settings_kernel_mode_suffix_hint">在 LKM / Built-in 標籤後面追加文字，前面的模式標籤始終保留；留空則不追加。</string>
     <string name="app_icon_builtin_section">內建圖示</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

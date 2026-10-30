@@ -13,6 +13,8 @@ interface SettingsRepository {
     var backgroundAppearanceExpanded: Boolean
     var customHomeTitle: String
     var customWorkingTitle: String
+    /** Text appended after the LKM / Built-in home tag; the tag itself is never replaced. */
+    var customKernelModeSuffix: String
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean

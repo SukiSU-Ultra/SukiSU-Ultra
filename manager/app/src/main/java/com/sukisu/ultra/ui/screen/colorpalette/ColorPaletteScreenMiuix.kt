@@ -191,6 +191,8 @@ fun ColorPaletteScreenMiuix(
         var homeTitleDraft by rememberSaveable { mutableStateOf("") }
         var showWorkingTitleDialog by rememberSaveable { mutableStateOf(false) }
         var workingTitleDraft by rememberSaveable { mutableStateOf("") }
+        var showKernelModeSuffixDialog by rememberSaveable { mutableStateOf(false) }
+        var kernelModeSuffixDraft by rememberSaveable { mutableStateOf("") }
         val appearanceExpanded = uiState.backgroundAppearanceExpanded
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
@@ -555,6 +557,24 @@ fun ColorPaletteScreenMiuix(
                             onClick = {
                                 workingTitleDraft = uiState.customWorkingTitle
                                 showWorkingTitleDialog = true
+                            },
+                        )
+                        ArrowPreference(
+                            title = stringResource(id = R.string.settings_kernel_mode_suffix),
+                            summary = uiState.customKernelModeSuffix.ifBlank {
+                                stringResource(R.string.settings_kernel_mode_suffix_default)
+                            },
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Edit,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    contentDescription = stringResource(R.string.settings_kernel_mode_suffix),
+                                    tint = colorScheme.onBackground,
+                                )
+                            },
+                            onClick = {
+                                kernelModeSuffixDraft = uiState.customKernelModeSuffix
+                                showKernelModeSuffixDialog = true
                             },
                         )
                     }
@@ -979,6 +999,43 @@ fun ColorPaletteScreenMiuix(
                                 onClick = {
                                     actions.onSetCustomWorkingTitle(workingTitleDraft)
                                     showWorkingTitleDialog = false
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.textButtonColorsPrimary(),
+                            )
+                        }
+                    }
+                },
+            )
+        }
+
+        if (showKernelModeSuffixDialog) {
+            OverlayDialog(
+                show = true,
+                title = stringResource(R.string.settings_kernel_mode_suffix),
+                summary = stringResource(R.string.settings_kernel_mode_suffix_hint),
+                onDismissRequest = { showKernelModeSuffixDialog = false },
+                content = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TextField(
+                            value = kernelModeSuffixDraft,
+                            onValueChange = { kernelModeSuffixDraft = it },
+                            label = stringResource(R.string.settings_kernel_mode_suffix),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            useLabelAsPlaceholder = kernelModeSuffixDraft.isEmpty(),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(
+                                text = stringResource(android.R.string.cancel),
+                                onClick = { showKernelModeSuffixDialog = false },
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(
+                                text = stringResource(android.R.string.ok),
+                                onClick = {
+                                    actions.onSetCustomKernelModeSuffix(kernelModeSuffixDraft)
+                                    showKernelModeSuffixDialog = false
                                 },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.textButtonColorsPrimary(),

@@ -743,6 +743,9 @@
     <string name="settings_working_title">Home status text</string>
     <string name="settings_working_title_default">Using default text</string>
     <string name="settings_working_title_hint">Enter the text shown on the home status card; leave blank to restore the default.</string>
+    <string name="settings_kernel_mode_suffix">Mode tag suffix</string>
+    <string name="settings_kernel_mode_suffix_default">Using the mode tag only</string>
+    <string name="settings_kernel_mode_suffix_hint">Text appended after the LKM / Built-in tag; the tag itself always stays. Leave blank to keep it unchanged.</string>
     <string name="app_icon_builtin_section">Built-in icons</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

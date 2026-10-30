@@ -150,6 +150,8 @@ fun ColorPaletteScreenMaterial(
     var homeTitleDraft by rememberSaveable { mutableStateOf("") }
     var showWorkingTitleDialog by rememberSaveable { mutableStateOf(false) }
     var workingTitleDraft by rememberSaveable { mutableStateOf("") }
+    var showKernelModeSuffixDialog by rememberSaveable { mutableStateOf(false) }
+    var kernelModeSuffixDraft by rememberSaveable { mutableStateOf("") }
     val appearanceExpanded = uiState.backgroundAppearanceExpanded
     // Kept above the list so the preview reflects the thumb position before the value commits.
     val alphaSliderState = rememberSliderState(
@@ -591,6 +593,35 @@ fun ColorPaletteScreenMaterial(
                                     )
                                 },
                             )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    kernelModeSuffixDraft = uiState.customKernelModeSuffix
+                                    showKernelModeSuffixDialog = true
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_kernel_mode_suffix)) },
+                                supportingContent = {
+                                    Text(
+                                        uiState.customKernelModeSuffix.ifBlank {
+                                            stringResource(R.string.settings_kernel_mode_suffix_default)
+                                        }
+                                    )
+                                },
+                                leadingContent = {
+                                    IconTile(
+                                        Icons.Rounded.Edit,
+                                        stringResource(R.string.settings_kernel_mode_suffix),
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ChevronRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                },
+                            )
                         }
                     )
                 )
@@ -979,6 +1010,45 @@ fun ColorPaletteScreenMaterial(
             },
             dismissButton = {
                 TextButton(onClick = { showWorkingTitleDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+
+    if (showKernelModeSuffixDialog) {
+        AlertDialog(
+            onDismissRequest = { showKernelModeSuffixDialog = false },
+            title = { Text(stringResource(R.string.settings_kernel_mode_suffix)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_kernel_mode_suffix_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = kernelModeSuffixDraft,
+                        onValueChange = { kernelModeSuffixDraft = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.settings_kernel_mode_suffix)) },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        actions.onSetCustomKernelModeSuffix(kernelModeSuffixDraft)
+                        showKernelModeSuffixDialog = false
+                    },
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showKernelModeSuffixDialog = false }) {
                     Text(stringResource(android.R.string.cancel))
                 }
             },

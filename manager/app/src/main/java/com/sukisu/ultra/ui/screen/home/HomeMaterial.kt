@@ -280,6 +280,11 @@ private fun ActiveStatusCard(
         true -> "LKM"
         else -> "Built-in"
     }
+    // The mode word is always kept; user text is only appended after it.
+    val workingModeLabel = if (workingMode.isEmpty()) "" else {
+        val suffix = state.customKernelModeSuffix.trim()
+        if (suffix.isEmpty()) workingMode else "$workingMode $suffix"
+    }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -300,9 +305,9 @@ private fun ActiveStatusCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (workingMode.isNotEmpty()) {
+                    if (workingModeLabel.isNotEmpty()) {
                         StatusTag(
-                            label = workingMode,
+                            label = workingModeLabel,
                             contentColor = containerColor,
                             backgroundColor = contentColor,
                         )

@@ -52,6 +52,8 @@ data class HomeUiState(
     val kpmCount: Int? = null,
     val customHomeTitle: String = "",
     val customWorkingTitle: String = "",
+    /** Suffix appended to the LKM / Built-in tag, never replacing it. */
+    val customKernelModeSuffix: String = "",
 ) {
     val isSELinuxPermissive: Boolean
         get() = systemInfo.selinuxStatus == "Permissive"

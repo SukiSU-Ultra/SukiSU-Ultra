@@ -27,6 +27,7 @@ import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.KEY_CUSTOM_HOME_TITLE
 import com.sukisu.ultra.data.repository.KEY_CUSTOM_WORKING_TITLE
+import com.sukisu.ultra.data.repository.KEY_CUSTOM_KERNEL_MODE_SUFFIX
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.home.HomeLoadState
@@ -57,6 +58,9 @@ class HomeViewModel(
         }
         if (key == null || key == KEY_CUSTOM_WORKING_TITLE) {
             updateContent { it.copy(customWorkingTitle = settingsRepo.customWorkingTitle) }
+        }
+        if (key == null || key == KEY_CUSTOM_KERNEL_MODE_SUFFIX) {
+            updateContent { it.copy(customKernelModeSuffix = settingsRepo.customKernelModeSuffix) }
         }
     }
 
@@ -228,6 +232,7 @@ class HomeViewModel(
             checkCiUpdateEnabled = settingsRepo.checkUpdate && settingsRepo.checkCiUpdate,
             customHomeTitle = settingsRepo.customHomeTitle,
             customWorkingTitle = settingsRepo.customWorkingTitle,
+            customKernelModeSuffix = settingsRepo.customKernelModeSuffix,
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             hideHomeWarnings = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)

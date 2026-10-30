@@ -45,6 +45,7 @@ class SettingsViewModel(
         backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
         customHomeTitle = repo.customHomeTitle,
         customWorkingTitle = repo.customWorkingTitle,
+        customKernelModeSuffix = repo.customKernelModeSuffix,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -134,6 +135,7 @@ class SettingsViewModel(
                     backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
                     customHomeTitle = repo.customHomeTitle,
                     customWorkingTitle = repo.customWorkingTitle,
+                    customKernelModeSuffix = repo.customKernelModeSuffix,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -704,6 +706,12 @@ class SettingsViewModel(
         val normalizedTitle = title.trim()
         repo.customWorkingTitle = normalizedTitle
         _uiState.update { it.copy(customWorkingTitle = normalizedTitle) }
+    }
+
+    fun setCustomKernelModeSuffix(suffix: String) {
+        val normalizedSuffix = suffix.trim()
+        repo.customKernelModeSuffix = normalizedSuffix
+        _uiState.update { it.copy(customKernelModeSuffix = normalizedSuffix) }
     }
 
     private fun applyAppIconSettings(
