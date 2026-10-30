@@ -179,7 +179,8 @@ jobs:
 
     if: always() &&
         needs.generate-key.result == 'success' &&
-        needs.build-ksud.result == 'success'
+        needs.build-ksud.result == 'success' &&
+        (matrix.spoofed == 'false' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
 
     runs-on: ubuntu-latest
 
@@ -504,7 +505,8 @@ jobs:
     if: always() &&
         needs.build-manager.result == 'success' &&
         needs.build-ksud.result == 'success' &&
-        needs.generate-key.result == 'success'
+        needs.generate-key.result == 'success' &&
+        (matrix.spoofed == 'false' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
 
     runs-on: ubuntu-latest
 
@@ -864,7 +866,7 @@ jobs:
           path: apks/manager
 
       - name: Download manager-spoofed apk
-        if: steps.need_upload.outputs.UPLOAD == 'true'
+        if: steps.need_upload.outputs.UPLOAD == 'true' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
         uses: actions/download-artifact@v8
         with:
           name: Manager-spoofed
@@ -909,7 +911,7 @@ jobs:
             -S "$SIGN_KEY_PASSWORD"
 
       - name: Split Manager-spoofed APK by arch
-        if: steps.need_upload.outputs.UPLOAD == 'true'
+        if: steps.need_upload.outputs.UPLOAD == 'true' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: |
           APK=$(find apks/manager-spoofed -type f -name "*.apk" | head -n 1)
           test -n "$APK"
@@ -968,7 +970,7 @@ jobs:
       # --------------------------------------------------------
 
       - name: Upload Manager-spoofed to telegram
-        if: steps.need_upload.outputs.UPLOAD == 'true'
+        if: steps.need_upload.outputs.UPLOAD == 'true' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
         timeout-minutes: 10
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}
