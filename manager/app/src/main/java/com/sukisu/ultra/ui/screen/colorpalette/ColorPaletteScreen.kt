@@ -73,6 +73,8 @@ fun ColorPaletteScreen() {
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetHideHomeWarnings = viewModel::setHideHomeWarnings,
         onOpenAppIcon = { navigator.push(Route.AppIcon) },
+        onSetBackgroundAppearanceExpanded = viewModel::setBackgroundAppearanceExpanded,
+        onSetCustomHomeTitle = viewModel::setCustomHomeTitle,
         onPickCustomBackground = { ctx, uri ->
             viewModel.stagePickedBackground(ctx, uri) { path ->
                 if (path != null) {

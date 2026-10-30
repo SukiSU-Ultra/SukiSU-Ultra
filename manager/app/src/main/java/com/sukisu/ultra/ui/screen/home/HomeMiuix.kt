@@ -102,6 +102,7 @@ fun HomePagerMiuix(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             TopBar(
+                title = state.customHomeTitle,
                 scrollBehavior = scrollBehavior,
                 backdrop = backdrop,
                 barColor = barColor,
@@ -252,6 +253,7 @@ private fun UpdateCard(
 
 @Composable
 private fun TopBar(
+    title: String,
     scrollBehavior: ScrollBehavior,
     backdrop: LayerBackdrop?,
     barColor: Color,
@@ -259,7 +261,7 @@ private fun TopBar(
     BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
         TopAppBar(
             color = Color.Transparent,
-            title = stringResource(R.string.app_name),
+            title = title.ifBlank { stringResource(R.string.app_name) },
             actions = {
                 RebootListPopupMiuix()
             },

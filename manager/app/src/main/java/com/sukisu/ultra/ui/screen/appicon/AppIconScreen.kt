@@ -80,6 +80,7 @@ fun AppIconScreen() {
 
     val state = AppIconUiState(
         selectedBuiltinId = settings.appIconId,
+        dynamicColor = settings.appIconDynamicColor,
         packs = packs,
         loading = loading,
         importing = importing,
@@ -94,6 +95,7 @@ fun AppIconScreen() {
                 Toast.makeText(context, R.string.app_icon_switch_hint, Toast.LENGTH_SHORT).show()
             }
         },
+        onSetDynamicColor = { viewModel.setAppIconDynamicColor(context, it) },
         onImportPack = {
             if (!importing) {
                 importLauncher.launch(

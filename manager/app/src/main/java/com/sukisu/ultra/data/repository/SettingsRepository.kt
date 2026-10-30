@@ -10,6 +10,8 @@ interface SettingsRepository {
     var cardBackgroundAlphaPercent: Int
     var customBackgroundBlurPercent: Int
     var customBackgroundScrimPercent: Int
+    var backgroundAppearanceExpanded: Boolean
+    var customHomeTitle: String
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean
@@ -18,6 +20,7 @@ interface SettingsRepository {
     var autoDeleteModuleZip: Boolean
     /** Id of the selected launcher icon (see [com.sukisu.ultra.ui.util.BuiltinAppIcons]). */
     var appIconId: String
+    var appIconDynamicColor: Boolean
     var themeMode: Int
     var miuixMonet: Boolean
     var keyColor: Int

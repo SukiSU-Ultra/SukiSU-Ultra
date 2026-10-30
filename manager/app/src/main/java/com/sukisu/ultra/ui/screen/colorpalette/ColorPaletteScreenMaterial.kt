@@ -60,6 +60,7 @@ import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Opacity
@@ -73,11 +74,13 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.rounded.Wallpaper
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -143,7 +146,9 @@ fun ColorPaletteScreenMaterial(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     var showResetThemeDialog by rememberSaveable { mutableStateOf(false) }
-    var appearanceExpanded by rememberSaveable { mutableStateOf(true) }
+    var showHomeTitleDialog by rememberSaveable { mutableStateOf(false) }
+    var homeTitleDraft by rememberSaveable { mutableStateOf("") }
+    val appearanceExpanded = uiState.backgroundAppearanceExpanded
     // Kept above the list so the preview reflects the thumb position before the value commits.
     val alphaSliderState = rememberSliderState(
         value = uiState.cardBackgroundAlphaPercent.toFloat(),
@@ -316,7 +321,9 @@ fun ColorPaletteScreenMaterial(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                                    .clickable { appearanceExpanded = !appearanceExpanded }
+                                    .clickable {
+                                        actions.onSetBackgroundAppearanceExpanded(!appearanceExpanded)
+                                    }
                                     .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -522,6 +529,35 @@ fun ColorPaletteScreenMaterial(
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
+                                },
+                            )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    homeTitleDraft = uiState.customHomeTitle
+                                    showHomeTitleDialog = true
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_home_title)) },
+                                supportingContent = {
+                                    Text(
+                                        uiState.customHomeTitle.ifBlank {
+                                            stringResource(R.string.settings_home_title_default)
+                                        }
+                                    )
+                                },
+                                leadingContent = {
+                                    IconTile(
+                                        Icons.Rounded.Edit,
+                                        stringResource(R.string.settings_home_title),
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ChevronRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 },
                             )
                         }
@@ -838,6 +874,45 @@ fun ColorPaletteScreenMaterial(
                 Spacer(modifier = Modifier.height(16.dp + navBars.calculateBottomPadding() + captionBar.calculateBottomPadding()))
             }
         }
+    }
+
+    if (showHomeTitleDialog) {
+        AlertDialog(
+            onDismissRequest = { showHomeTitleDialog = false },
+            title = { Text(stringResource(R.string.settings_home_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_home_title_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = homeTitleDraft,
+                        onValueChange = { homeTitleDraft = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.settings_home_title)) },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        actions.onSetCustomHomeTitle(homeTitleDraft)
+                        showHomeTitleDialog = false
+                    },
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showHomeTitleDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
     }
 
     if (showResetThemeDialog) {

@@ -6,6 +6,7 @@ import android.system.OsConstants
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.util.BgStorage
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
+import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.ImportedTheme
 import com.sukisu.ultra.ui.util.ThemePackageData
@@ -40,6 +42,8 @@ class SettingsViewModel(
         checkUpdate = repo.checkUpdate,
         checkCiUpdate = repo.checkCiUpdate,
         checkModuleUpdate = repo.checkModuleUpdate,
+        backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
+        customHomeTitle = repo.customHomeTitle,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -50,6 +54,7 @@ class SettingsViewModel(
     fun refresh() {
         viewModelScope.launch {
             val appIconId = repo.appIconId
+            val appIconDynamicColor = repo.appIconDynamicColor
             val themeMode = repo.themeMode
             val miuixMonet = repo.miuixMonet
             val keyColor = repo.keyColor
@@ -125,6 +130,9 @@ class SettingsViewModel(
                     checkCiUpdate = repo.checkCiUpdate,
                     checkModuleUpdate = repo.checkModuleUpdate,
                     appIconId = appIconId,
+                    appIconDynamicColor = appIconDynamicColor,
+                    backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
+                    customHomeTitle = repo.customHomeTitle,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -169,8 +177,7 @@ class SettingsViewModel(
                     customBackgroundUri = repo.customBackgroundUri,
                     customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
                     useSystemWallpaper = repo.useSystemWallpaper && BgStorage.systemWallpaperFile(ksuApp).isFile,
-                    systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
-                        .takeIf { it.isFile }?.absolutePath.orEmpty(),
+                    systemWallpaperPath = "",
                     extractColorFromBackground = repo.extractColorFromBackground,
                     cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                     customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
@@ -273,8 +280,8 @@ class SettingsViewModel(
                 repo.keyColor = BgStorage.extractSeedColor(File(result.path), repo.keyColor)
             }
         }
-        if (!BgStorage.systemWallpaperFile(ksuApp).isFile) {
-            // The cache is gone and cannot be rebuilt; fall back to the picked image.
+        if (result.path == null) {
+            // The cache cannot be decoded or rebuilt; fall back to the picked image.
             repo.useSystemWallpaper = false
         }
     }
@@ -313,33 +320,48 @@ class SettingsViewModel(
         if (_uiState.value.isSystemWallpaperBusy) return
         _uiState.update { it.copy(isSystemWallpaperBusy = true) }
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                BgStorage.captureSystemWallpaper(context, force = true)
-            }
-            if (result.path == null) {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    BgStorage.captureSystemWallpaper(context, force = true)
+                }
+                if (result.path == null) {
+                    Toast.makeText(
+                        ksuApp,
+                        R.string.settings_system_wallpaper_failed,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    return@launch
+                }
+
+                val keyColor = if (repo.extractColorFromBackground) {
+                    withContext(Dispatchers.IO) {
+                        BgStorage.extractSeedColor(File(result.path), repo.keyColor)
+                    }
+                } else {
+                    repo.keyColor
+                }
+                val updatedAt = System.currentTimeMillis()
+                repo.useSystemWallpaper = true
+                repo.customBackgroundUpdatedAt = updatedAt
+                if (repo.extractColorFromBackground) repo.keyColor = keyColor
+                _uiState.update {
+                    it.copy(
+                        useSystemWallpaper = true,
+                        systemWallpaperPath = result.path,
+                        customBackgroundUpdatedAt = updatedAt,
+                        keyColor = keyColor,
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
                 Toast.makeText(
                     ksuApp,
                     R.string.settings_system_wallpaper_failed,
                     Toast.LENGTH_SHORT,
                 ).show()
+            } finally {
                 _uiState.update { it.copy(isSystemWallpaperBusy = false) }
-                return@launch
-            }
-            repo.useSystemWallpaper = true
-            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
-            if (repo.extractColorFromBackground) {
-                repo.keyColor = withContext(Dispatchers.IO) {
-                    BgStorage.extractSeedColor(File(result.path), repo.keyColor)
-                }
-            }
-            _uiState.update {
-                it.copy(
-                    useSystemWallpaper = true,
-                    systemWallpaperPath = result.path,
-                    customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
-                    keyColor = repo.keyColor,
-                    isSystemWallpaperBusy = false,
-                )
             }
         }
     }
@@ -516,7 +538,11 @@ class SettingsViewModel(
         if (targetIconId != null) {
             repo.appIconId = targetIconId
             val icon = BuiltinAppIcons.find(targetIconId)
-            BuiltinAppIcons.apply(context, icon)
+            BuiltinAppIcons.apply(
+                context = context,
+                icon = icon,
+                dynamicColor = repo.appIconDynamicColor,
+            )
         }
         val effectiveIconId = targetIconId ?: current.appIconId
 
@@ -654,7 +680,35 @@ class SettingsViewModel(
         val icon = BuiltinAppIcons.find(iconId)
         repo.appIconId = icon.id
         _uiState.update { it.copy(appIconId = icon.id) }
-        BuiltinAppIcons.apply(context, icon)
+        applyAppIconSettings(context, icon)
+    }
+
+    fun setAppIconDynamicColor(context: Context, enabled: Boolean) {
+        repo.appIconDynamicColor = enabled
+        _uiState.update { it.copy(appIconDynamicColor = enabled) }
+        applyAppIconSettings(context)
+    }
+
+    fun setBackgroundAppearanceExpanded(expanded: Boolean) {
+        repo.backgroundAppearanceExpanded = expanded
+        _uiState.update { it.copy(backgroundAppearanceExpanded = expanded) }
+    }
+
+    fun setCustomHomeTitle(title: String) {
+        val normalizedTitle = title.trim()
+        repo.customHomeTitle = normalizedTitle
+        _uiState.update { it.copy(customHomeTitle = normalizedTitle) }
+    }
+
+    private fun applyAppIconSettings(
+        context: Context,
+        icon: BuiltinAppIcon = BuiltinAppIcons.find(repo.appIconId),
+    ) {
+        BuiltinAppIcons.apply(
+            context = context,
+            icon = icon,
+            dynamicColor = repo.appIconDynamicColor,
+        )
     }
 
     fun setThemeMode(mode: Int) {

@@ -37,6 +37,8 @@ data class ColorPaletteScreenActions(
     val onSetShowFullStatus: (Boolean) -> Unit,
     val onSetHideHomeWarnings: (Boolean) -> Unit,
     val onOpenAppIcon: () -> Unit,
+    val onSetBackgroundAppearanceExpanded: (Boolean) -> Unit = {},
+    val onSetCustomHomeTitle: (String) -> Unit = {},
     val onPickCustomBackground: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onCropCurrentBackground: (android.content.Context) -> Unit = {},
     val onClearCustomBackground: (android.content.Context) -> Unit = {},

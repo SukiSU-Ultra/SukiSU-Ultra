@@ -6,14 +6,17 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.MainActivity
 
+@Immutable
 data class BuiltinAppIcon(
     val id: String,
     @param:StringRes val nameRes: Int,
     @param:DrawableRes val iconRes: Int,
-    /** Component enabled instead of [MainActivity] while this icon is selected. Null for the default icon. */
+    @param:DrawableRes val foregroundRes: Int,
+    /** Launcher component associated with this icon. */
     val aliasClassName: String?,
 )
 
@@ -32,49 +35,76 @@ object BuiltinAppIcons {
             id = DEFAULT_ID,
             nameRes = R.string.app_icon_builtin_default,
             iconRes = R.mipmap.ic_launcher,
-            aliasClassName = null,
+            foregroundRes = R.drawable.ic_launcher_foreground,
+            aliasClassName = mainActivityName + "AliasDefault",
         ),
         BuiltinAppIcon(
             id = KERNELSU_ID,
             nameRes = R.string.app_icon_builtin_kernelsu,
             iconRes = R.mipmap.ic_launcher_alt,
+            foregroundRes = R.drawable.ic_launcher_foreground_alt,
             aliasClassName = mainActivityName + "Alias",
         ),
         BuiltinAppIcon(
             id = LOGO_ID,
             nameRes = R.string.app_icon_builtin_logo,
             iconRes = R.mipmap.ic_launcher_logo,
+            foregroundRes = R.drawable.ic_launcher_foreground_logo,
             aliasClassName = mainActivityName + "AliasLogo",
         ),
         BuiltinAppIcon(
             id = ZAKO_ID,
             nameRes = R.string.app_icon_builtin_zako,
             iconRes = R.mipmap.ic_launcher_zako,
+            foregroundRes = R.drawable.ic_launcher_foreground_zako,
             aliasClassName = mainActivityName + "AliasZako",
         ),
     )
 
     fun find(id: String?): BuiltinAppIcon = all.firstOrNull { it.id == id } ?: all.first()
 
-    /**
-     * Switches the launcher entry to [icon]. The target component is enabled before the previous
-     * one is disabled so the launcher never observes a package without a launcher activity.
-     */
-    fun apply(context: Context, icon: BuiltinAppIcon) {
+    /** Switches the launcher entry while keeping the main activity available for deep links. */
+    fun apply(
+        context: Context,
+        icon: BuiltinAppIcon,
+        dynamicColor: Boolean = false,
+    ) {
         val pm = context.packageManager
         val main = ComponentName(context, mainActivityName)
-        val target = icon.aliasClassName?.let { ComponentName(context, it) }
+        val selectedClass = componentClassName(icon, dynamicColor)
+        val target = ComponentName(context, selectedClass)
 
-        setEnabled(pm, target ?: main, true)
-        all.mapNotNull { it.aliasClassName }
-            .filter { it != icon.aliasClassName }
+        setEnabled(pm, main, true)
+        setEnabled(pm, target, true)
+        allAliasClassNames()
+            .filter { it != selectedClass }
             .forEach { setEnabled(pm, ComponentName(context, it), false) }
-        if (target != null) {
-            setEnabled(pm, main, false)
-        } else {
-            // Re-enable the default entry even if a broken alias state disabled it earlier.
-            setEnabled(pm, main, true)
+    }
+
+    private fun componentClassName(
+        icon: BuiltinAppIcon,
+        dynamicColor: Boolean,
+    ): String {
+        if (dynamicColor) {
+            return icon.aliasClassName ?: (mainActivityName + "AliasDefault")
         }
+        return mainActivityName + "Alias" + aliasSuffix(icon) + "Static"
+    }
+
+    private fun allAliasClassNames(): List<String> = buildList {
+        all.forEach { icon ->
+            val base = mainActivityName + "Alias" + aliasSuffix(icon)
+            add(icon.aliasClassName ?: (mainActivityName + "AliasDefault"))
+            add(base + "Static")
+        }
+    }
+
+    private fun aliasSuffix(icon: BuiltinAppIcon): String = when (icon.id) {
+        DEFAULT_ID -> "Default"
+        KERNELSU_ID -> ""
+        LOGO_ID -> "Logo"
+        ZAKO_ID -> "Zako"
+        else -> "Default"
     }
 
     private fun setEnabled(pm: PackageManager, component: ComponentName, enabled: Boolean) {

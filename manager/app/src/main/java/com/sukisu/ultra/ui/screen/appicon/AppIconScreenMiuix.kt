@@ -74,6 +74,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -122,6 +123,8 @@ fun AppIconScreenMiuix(
                     .padding(horizontal = 12.dp),
                 contentPadding = innerPadding,
             ) {
+                item { Spacer(Modifier.height(12.dp)) }
+                item { DynamicColorCard(state, actions) }
                 item { Spacer(Modifier.height(12.dp)) }
                 item {
                     BuiltinIconCard(
@@ -180,6 +183,21 @@ fun AppIconScreenMiuix(
 }
 
 @Composable
+private fun DynamicColorCard(
+    state: AppIconUiState,
+    actions: AppIconActions,
+) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        SwitchPreference(
+            title = stringResource(R.string.app_icon_dynamic_color_title),
+            summary = stringResource(R.string.app_icon_dynamic_color_summary),
+            checked = state.dynamicColor,
+            onCheckedChange = actions.onSetDynamicColor,
+        )
+    }
+}
+
+@Composable
 private fun BuiltinIconCard(
     selectedId: String,
     onSelect: (BuiltinAppIcon) -> Unit,
@@ -204,12 +222,6 @@ private fun BuiltinIconCard(
                     BuiltinAppIconPreview(icon = icon, modifier = Modifier.fillMaxSize())
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = stringResource(R.string.app_icon_themed_hint),
-                fontSize = 12.sp,
-                color = colorScheme.onSurfaceVariantSummary,
-            )
         }
     }
 }

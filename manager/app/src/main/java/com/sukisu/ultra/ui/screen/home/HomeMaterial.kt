@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -96,7 +97,7 @@ fun HomePagerMaterial(
 
     ExpressiveScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
-        topBar = { TopBar(scrollBehavior = scrollBehavior) },
+        topBar = { TopBar(title = state.customHomeTitle, scrollBehavior = scrollBehavior) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -221,11 +222,18 @@ private fun UpdateCard(
 
 @Composable
 private fun TopBar(
+    title: String,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.app_name)) },
+        title = {
+            Text(
+                text = title.ifBlank { stringResource(R.string.app_name) },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         actions = { RebootListPopup() },
         colors = expressiveTopAppBarColors(
             containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,

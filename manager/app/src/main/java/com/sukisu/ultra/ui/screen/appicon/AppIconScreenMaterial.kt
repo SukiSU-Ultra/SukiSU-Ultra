@@ -41,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -100,6 +101,9 @@ fun AppIconScreenMaterial(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
+                DynamicColorSection(state, actions)
+            }
+            item {
                 BuiltinIconSection(
                     selectedId = state.selectedBuiltinId,
                     onSelect = actions.onSelectBuiltin,
@@ -148,6 +152,34 @@ fun AppIconScreenMaterial(
 }
 
 @Composable
+private fun DynamicColorSection(
+    state: AppIconUiState,
+    actions: AppIconActions,
+) {
+    TonalCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.app_icon_dynamic_color_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.app_icon_dynamic_color_summary),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = state.dynamicColor,
+                    onCheckedChange = actions.onSetDynamicColor,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun BuiltinIconSection(
     selectedId: String,
     onSelect: (BuiltinAppIcon) -> Unit,
@@ -165,12 +197,6 @@ private fun BuiltinIconSection(
                         BuiltinAppIconPreview(icon = icon, modifier = Modifier.fillMaxSize())
                     }
                 }
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = stringResource(R.string.app_icon_themed_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }

@@ -603,6 +603,9 @@
     <string name="icon_switch_summary">更換為 KernelSU 圖標</string>
     <string name="app_icon_title">應用圖示</string>
     <string name="app_icon_summary">選擇內建圖示，或匯入圖示包</string>
+    <string name="settings_home_title">首頁頂欄名稱</string>
+    <string name="settings_home_title_default">使用應用名稱</string>
+    <string name="settings_home_title_hint">輸入自訂名稱；留空則還原為應用名稱。</string>
     <string name="app_icon_builtin_section">內建圖示</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>
@@ -625,7 +628,8 @@
     <string name="app_icon_empty_custom">還沒有自訂圖示</string>
     <string name="app_icon_empty_custom_summary">匯入 ZIP 壓縮檔即可新增自己的圖示</string>
     <string name="app_icon_builtin_zako">SukiSU 線稿</string>
-    <string name="app_icon_themed_hint">內建圖示包含單色層，Android 13+ 開啟主題圖示後可依桌布動態取色。</string>
+    <string name="app_icon_dynamic_color_title">動態取色</string>
+    <string name="app_icon_dynamic_color_summary">允許支援的桌面依照桌布顏色調整圖示（Android 13+）</string>
     <string name="app_icon_selected">目前</string>
     <string name="refresh">刷新</string>
     <string name="close">關閉</string>

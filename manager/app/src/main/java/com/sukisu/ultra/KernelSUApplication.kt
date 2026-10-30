@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.SuperUserRepositoryImpl
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -53,6 +54,14 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
 
         if (!isUserUnlocked()) {
             return
+        }
+
+        SettingsRepositoryImpl().let { settings ->
+            BuiltinAppIcons.apply(
+                context = this,
+                icon = BuiltinAppIcons.find(settings.appIconId),
+                dynamicColor = settings.appIconDynamicColor,
+            )
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

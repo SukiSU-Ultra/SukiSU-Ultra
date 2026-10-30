@@ -1,6 +1,5 @@
 package com.sukisu.ultra.ui.screen.about
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,8 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.FixedScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +49,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.screen.appicon.BuiltinAppIconPreview
 
 @Composable
 fun AboutScreenMaterial(
@@ -103,10 +101,10 @@ fun AboutScreenMaterial(
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                contentDescription = null,
-                                contentScale = FixedScale(0.8f)
+                            BuiltinAppIconPreview(
+                                icon = state.icon,
+                                modifier = Modifier.fillMaxSize(),
+                                foregroundOnly = true,
                             )
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

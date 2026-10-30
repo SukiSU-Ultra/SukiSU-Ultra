@@ -3,14 +3,17 @@ package com.sukisu.ultra.ui.component.material
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -21,7 +24,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
@@ -29,23 +34,34 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
-/** Outer capsule track height; the active capsule sits inside it. */
-private val TrackHeight = 32.dp
+/** Thickness of the thin rounded track. */
+private val TrackHeight = 8.dp
 
-/** How far the outer track extends past the active capsule at both ends. */
-private val TrackInset = 6.dp
+/** Diameter of the floating knob. */
+private val ThumbSize = 24.dp
 
-/** Thumb diameter: 20dp, i.e. 0.72 of the track height like the miuix slider. */
-private val ThumbSize = 20.dp
+/** Width of the primary ring around the knob. */
+private val ThumbBorderWidth = 2.dp
 
-private const val ThumbPressedScale = 0.88f
+/** Resting shadow of the knob; dropped when the slider is disabled. */
+private val ThumbElevation = 2.dp
+
+/** Diameter of the translucent halo shown while the knob is held. */
+private val HaloSize = 40.dp
+
+/** Diameter of the step tick dots drawn on the track. */
+private val TickSize = 3.dp
+
+private const val ThumbPressedScale = 1.08f
+private const val HaloAlpha = 0.14f
+private const val InactiveTrackAlpha = 0.2f
 private const val DisabledAlpha = 0.38f
 
 /**
- * A Material slider drawn in the miuix capsule style.
+ * A Material slider with a thin track and a floating round knob.
  *
  * Material3 [Slider] still owns the gestures, semantics and RTL handling; only the track and the
- * thumb are drawn here. Use it when the M3 Expressive split-track slider is not wanted.
+ * knob are drawn here. Use it when the M3 Expressive split-track slider is not wanted.
  */
 @Composable
 fun CapsuleSlider(
@@ -74,24 +90,37 @@ private fun CapsuleThumb(
 ) {
     val pressed by interactionSource.collectIsPressedAsState()
     val dragged by interactionSource.collectIsDraggedAsState()
+    val active = enabled && (pressed || dragged)
     val scale by animateFloatAsState(
-        targetValue = if (enabled && (pressed || dragged)) ThumbPressedScale else 1f,
+        targetValue = if (active) ThumbPressedScale else 1f,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
         ),
         label = "CapsuleSliderThumbScale",
     )
-    val thumbColor = if (enabled) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = DisabledAlpha)
-    }
+    val haloAlpha by animateFloatAsState(
+        targetValue = if (active) HaloAlpha else 0f,
+        animationSpec = tween(durationMillis = 150),
+        label = "CapsuleSliderThumbHalo",
+    )
+    val colorScheme = MaterialTheme.colorScheme
+    val ringColor = if (enabled) colorScheme.primary else colorScheme.onSurface.copy(alpha = DisabledAlpha)
+    // The knob body stays opaque so it hides the track and tick dots underneath it.
+    val bodyColor = colorScheme.surfaceContainerLowest
 
     Box(
         modifier = Modifier.size(ThumbSize),
         contentAlignment = Alignment.Center,
     ) {
+        if (haloAlpha > 0f) {
+            // requiredSize lets the halo grow past the 24dp thumb slot without changing layout.
+            Box(
+                modifier = Modifier
+                    .requiredSize(HaloSize)
+                    .background(ringColor.copy(alpha = haloAlpha), CircleShape)
+            )
+        }
         Box(
             modifier = Modifier
                 .size(ThumbSize)
@@ -99,7 +128,13 @@ private fun CapsuleThumb(
                     scaleX = scale
                     scaleY = scale
                 }
-                .background(thumbColor, CircleShape)
+                .shadow(
+                    elevation = if (enabled) ThumbElevation else 0.dp,
+                    shape = CircleShape,
+                    clip = false,
+                )
+                .background(bodyColor, CircleShape)
+                .border(ThumbBorderWidth, ringColor, CircleShape)
         )
     }
 }
@@ -117,11 +152,17 @@ private fun CapsuleTrack(
     }
     // Keep the inactive track translucent so it blends with the translucent cards instead of
     // reading as a solid pastel bar.
-    val trackColor = if (enabled) {
-        colorScheme.primary.copy(alpha = 0.2f)
+    val inactiveColor = if (enabled) {
+        colorScheme.primary.copy(alpha = InactiveTrackAlpha)
     } else {
         colorScheme.onSurface.copy(alpha = 0.12f)
     }
+    val activeTickColor = if (enabled) {
+        colorScheme.onPrimary.copy(alpha = 0.7f)
+    } else {
+        colorScheme.surface.copy(alpha = 0.6f)
+    }
+    val inactiveTickColor = activeColor.copy(alpha = activeColor.alpha * 0.6f)
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     Canvas(
@@ -131,32 +172,20 @@ private fun CapsuleTrack(
     ) {
         val heightPx = size.height
         val centerY = heightPx / 2f
-        val thumbPx = ThumbSize.toPx()
-        val halfThumb = thumbPx / 2f
-        val insetPx = TrackInset.toPx()
+        val radius = CornerRadius(centerY)
+        val halfThumb = ThumbSize.toPx() / 2f
         // Material3 measures the track slot without the thumb width and offsets it by half a
-        // thumb. Extend the drawing by that half on both sides so the capsule still spans the
-        // whole slider and the thumb stays inside the track at 0% / 100%.
+        // thumb. Extend the drawing by that half on both sides so the track lines up with the
+        // slider edges and the knob never sticks out past the track ends.
         val fullLeft = -halfThumb
         val fullRight = size.width + halfThumb
-        val activeHeightPx = ThumbSize.toPx()
-        val activeTop = (heightPx - activeHeightPx) / 2f
-        val activeBottom = activeTop + activeHeightPx
 
-        // Outer track: extends past the active capsule at both ends and is taller than it, so it
-        // completely wraps the active capsule (and the thumb) with a visible border.
-        val trackPath = Path().apply {
-            addRoundRect(
-                RoundRect(
-                    left = fullLeft - insetPx,
-                    top = 0f,
-                    right = fullRight + insetPx,
-                    bottom = heightPx,
-                    cornerRadius = CornerRadius(centerY),
-                )
-            )
-        }
-        drawPath(trackPath, trackColor)
+        drawPath(
+            Path().apply {
+                addRoundRect(RoundRect(fullLeft, 0f, fullRight, heightPx, radius))
+            },
+            inactiveColor,
+        )
 
         val fraction = state.coercedValueAsFraction.coerceIn(0f, 1f)
         // Track-local coordinates: thumb center is size.width * fraction (no thumb inset).
@@ -164,21 +193,29 @@ private fun CapsuleTrack(
         val startX = if (isRtl) fullRight else fullLeft
         val activeLeft = minOf(startX, thumbCenterX)
         val activeRight = maxOf(startX, thumbCenterX)
-        val activeWidth = activeRight - activeLeft
-        if (activeWidth > 0.5f) {
-            val activeRadius = (activeHeightPx / 2f).coerceAtMost(activeWidth / 2f)
-            val activePath = Path().apply {
-                addRoundRect(
-                    RoundRect(
-                        left = activeLeft,
-                        top = activeTop,
-                        right = activeRight,
-                        bottom = activeBottom,
-                        cornerRadius = CornerRadius(activeRadius),
-                    )
+        if (activeRight - activeLeft > 0.5f) {
+            drawPath(
+                Path().apply {
+                    addRoundRect(RoundRect(activeLeft, 0f, activeRight, heightPx, radius))
+                },
+                activeColor,
+            )
+        }
+
+        // Discrete sliders get a dot per stop; the opaque knob covers the one it sits on.
+        val stops = state.steps + 1
+        if (state.steps > 0) {
+            val tickRadius = TickSize.toPx() / 2f
+            for (i in 0..stops) {
+                val tickFraction = i.toFloat() / stops
+                val x = if (isRtl) size.width * (1f - tickFraction) else size.width * tickFraction
+                val onActive = if (isRtl) x >= thumbCenterX else x <= thumbCenterX
+                drawCircle(
+                    color = if (onActive) activeTickColor else inactiveTickColor,
+                    radius = tickRadius,
+                    center = Offset(x, centerY),
                 )
             }
-            drawPath(activePath, activeColor)
         }
     }
 }

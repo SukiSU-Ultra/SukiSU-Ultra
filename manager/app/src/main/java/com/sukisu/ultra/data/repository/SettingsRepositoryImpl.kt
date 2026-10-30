@@ -26,6 +26,7 @@ import java.security.SecureRandom
 private const val SETTINGS_PREFS = "settings"
 private const val KEY_USE_SOFT_REBOOT = "soft_reboot"
 private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
+internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -89,6 +90,14 @@ class SettingsRepositoryImpl : SettingsRepository {
             )
         }
 
+    override var backgroundAppearanceExpanded: Boolean
+        get() = prefs.getBoolean("background_appearance_expanded", true)
+        set(value) = prefs.edit { putBoolean("background_appearance_expanded", value) }
+
+    override var customHomeTitle: String
+        get() = prefs.getString(KEY_CUSTOM_HOME_TITLE, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_HOME_TITLE, value.trim()) }
+
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->
             prefs.edit { putString("ui_mode", mode) }
@@ -137,6 +146,10 @@ class SettingsRepositoryImpl : SettingsRepository {
             // Keep the legacy flag in sync so downgrading still restores the KernelSU icon.
             putBoolean("use_alt_icon", value == BuiltinAppIcons.KERNELSU_ID)
         }
+
+    override var appIconDynamicColor: Boolean
+        get() = prefs.getBoolean("app_icon_dynamic_color", false)
+        set(value) = prefs.edit(commit = true) { putBoolean("app_icon_dynamic_color", value) }
 
     override var themeMode: Int
         get() = prefs.getInt("color_mode", 0)

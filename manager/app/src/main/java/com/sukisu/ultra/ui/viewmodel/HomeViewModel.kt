@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.viewmodel
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.system.Os
 import androidx.lifecycle.ViewModel
@@ -24,6 +25,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.CiManagerUpdater
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
+import com.sukisu.ultra.data.repository.KEY_CUSTOM_HOME_TITLE
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.home.HomeLoadState
@@ -47,6 +49,13 @@ class HomeViewModel(
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
+    private val settingsPrefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == null || key == KEY_CUSTOM_HOME_TITLE) {
+            updateContent { it.copy(customHomeTitle = settingsRepo.customHomeTitle) }
+        }
+    }
+
     private val _uiState = MutableStateFlow(HomeLoadState())
     val uiState: StateFlow<HomeLoadState> = _uiState.asStateFlow()
     private var refreshJob: Job? = null
@@ -54,7 +63,12 @@ class HomeViewModel(
     private var hasResumed = false
 
     init {
+        settingsPrefs.registerOnSharedPreferenceChangeListener(settingsListener)
         refresh()
+    }
+
+    override fun onCleared() {
+        settingsPrefs.unregisterOnSharedPreferenceChangeListener(settingsListener)
     }
 
     fun onResume(isCurrentPage: Boolean) {
@@ -208,6 +222,7 @@ class HomeViewModel(
             isLateLoadMode = Natives.isLateLoadMode,
             checkUpdateEnabled = settingsRepo.checkUpdate,
             checkCiUpdateEnabled = settingsRepo.checkUpdate && settingsRepo.checkCiUpdate,
+            customHomeTitle = settingsRepo.customHomeTitle,
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             hideHomeWarnings = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)

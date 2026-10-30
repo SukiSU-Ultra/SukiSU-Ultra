@@ -15,6 +15,7 @@ data class SettingsUiState(
     val checkModuleUpdate: Boolean = true,
     val autoDeleteModuleZip: Boolean = false,
     val appIconId: String = BuiltinAppIcons.DEFAULT_ID,
+    val appIconDynamicColor: Boolean = false,
     val themeMode: Int = 0,
     val miuixMonet: Boolean = false,
     val keyColor: Int = 0,
@@ -91,6 +92,8 @@ data class SettingsUiState(
     val cardBackgroundAlphaPercent: Int = 60,
     val customBackgroundBlurPercent: Int = 50,
     val customBackgroundScrimPercent: Int = -35,
+    val backgroundAppearanceExpanded: Boolean = true,
+    val customHomeTitle: String = "",
 )
 
 @Immutable

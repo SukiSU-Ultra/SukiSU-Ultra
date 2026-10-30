@@ -44,6 +44,7 @@ import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
@@ -103,6 +104,7 @@ import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -185,7 +187,9 @@ fun ColorPaletteScreenMiuix(
     ) { innerPadding ->
         val showScaleDialog = rememberSaveable { mutableStateOf(false) }
         val showResetThemeDialog = rememberSaveable { mutableStateOf(false) }
-        var appearanceExpanded by rememberSaveable { mutableStateOf(true) }
+        var showHomeTitleDialog by rememberSaveable { mutableStateOf(false) }
+        var homeTitleDraft by rememberSaveable { mutableStateOf("") }
+        val appearanceExpanded = uiState.backgroundAppearanceExpanded
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             LazyColumn(
@@ -344,7 +348,9 @@ fun ColorPaletteScreenMiuix(
                                         tint = colorScheme.onBackground
                                     )
                                 },
-                                onClick = { appearanceExpanded = !appearanceExpanded },
+                                onClick = {
+                                    actions.onSetBackgroundAppearanceExpanded(!appearanceExpanded)
+                                },
                             )
                             AnimatedVisibility(
                                 visible = appearanceExpanded,
@@ -512,6 +518,24 @@ fun ColorPaletteScreenMiuix(
                                 )
                             },
                             onClick = actions.onOpenAppIcon,
+                        )
+                        ArrowPreference(
+                            title = stringResource(id = R.string.settings_home_title),
+                            summary = uiState.customHomeTitle.ifBlank {
+                                stringResource(R.string.settings_home_title_default)
+                            },
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Edit,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    contentDescription = stringResource(R.string.settings_home_title),
+                                    tint = colorScheme.onBackground,
+                                )
+                            },
+                            onClick = {
+                                homeTitleDraft = uiState.customHomeTitle
+                                showHomeTitleDialog = true
+                            },
                         )
                     }
                     val themeItems = listOf(
@@ -869,6 +893,43 @@ fun ColorPaletteScreenMiuix(
                     )
                 }
             }
+        }
+
+        if (showHomeTitleDialog) {
+            OverlayDialog(
+                show = true,
+                title = stringResource(R.string.settings_home_title),
+                summary = stringResource(R.string.settings_home_title_hint),
+                onDismissRequest = { showHomeTitleDialog = false },
+                content = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TextField(
+                            value = homeTitleDraft,
+                            onValueChange = { homeTitleDraft = it },
+                            label = stringResource(R.string.settings_home_title),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            useLabelAsPlaceholder = homeTitleDraft.isEmpty(),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(
+                                text = stringResource(android.R.string.cancel),
+                                onClick = { showHomeTitleDialog = false },
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(
+                                text = stringResource(android.R.string.ok),
+                                onClick = {
+                                    actions.onSetCustomHomeTitle(homeTitleDraft)
+                                    showHomeTitleDialog = false
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.textButtonColorsPrimary(),
+                            )
+                        }
+                    }
+                },
+            )
         }
 
         if (showResetThemeDialog.value) {

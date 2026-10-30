@@ -24,8 +24,16 @@ class MainActivityViewModel(
     private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
     private val settingRepo: SettingsRepository = SettingsRepositoryImpl()
     private val mainPageState = MainPageState(savedStateHandle)
+    @Volatile private var systemWallpaperCacheValidated = false
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == null || key in observedKeys) {
+            if (key == "use_system_wallpaper") {
+                if (settingRepo.useSystemWallpaper) {
+                    refreshSystemWallpaper()
+                } else {
+                    systemWallpaperCacheValidated = false
+                }
+            }
             _uiState.value = readUiState()
         }
     }
@@ -54,13 +62,14 @@ class MainActivityViewModel(
         if (!settingRepo.useSystemWallpaper) return
         viewModelScope.launch {
             val result = BgStorage.captureSystemWallpaper(ksuApp, force = false)
+            systemWallpaperCacheValidated = result.path != null
             if (result.changed) {
                 settingRepo.customBackgroundUpdatedAt = System.currentTimeMillis()
                 if (settingRepo.extractColorFromBackground && result.path != null) {
                     settingRepo.keyColor = BgStorage.extractSeedColor(File(result.path), settingRepo.keyColor)
                 }
             }
-            if (!BgStorage.systemWallpaperFile(ksuApp).isFile) {
+            if (result.path == null) {
                 settingRepo.useSystemWallpaper = false
             }
             _uiState.value = readUiState()
@@ -82,7 +91,9 @@ class MainActivityViewModel(
             pagerInterceptionMode = settingRepo.pagerInterceptionMode,
             moduleDescriptionMaxLines = settingRepo.moduleDescriptionMaxLines,
             // The rest of the app only needs the effective background source.
-            customBackgroundUri = if (useSystemWallpaper && systemWallpaperPath.isNotEmpty()) {
+            customBackgroundUri = if (
+                useSystemWallpaper && systemWallpaperCacheValidated && systemWallpaperPath.isNotEmpty()
+            ) {
                 systemWallpaperPath
             } else {
                 settingRepo.customBackgroundUri

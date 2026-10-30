@@ -33,6 +33,8 @@ sealed class WebUIEvent {
 class WebUIState {
     var webView: WebView? = null
     var rootShell: Shell? = null
+    var webViewInterface: WebViewInterface? = null
+    var downloadInterface: WebUIDownloadInterface? = null
     lateinit var modDir: String
     var moduleName: String = ""
 
@@ -56,6 +58,7 @@ class WebUIState {
 
     var uiEvent by mutableStateOf<WebUIEvent>(WebUIEvent.Loading)
     var isUrlLoaded = false
+    @Volatile
     var currentInsets: Insets = Insets(0, 0, 0, 0)
     var isInsetsEnabled by mutableStateOf(false)
     var webCanGoBack by mutableStateOf(false)
@@ -100,11 +103,17 @@ class WebUIState {
         commandPage?.dispose()
         commandPage = null
         activity.setTaskDescription(activity.getString(R.string.app_name))
+        downloadInterface?.destroy()
+        downloadInterface = null
+        webViewInterface?.destroy()
+        webViewInterface = null
         webView?.let { view ->
             (view.parent as? android.view.ViewGroup)?.removeView(view)
             view.destroy()
         }
         webView = null
+        filePathCallback?.onReceiveValue(null)
+        filePathCallback = null
         runCatching { rootShell?.close() }
         rootShell = null
     }

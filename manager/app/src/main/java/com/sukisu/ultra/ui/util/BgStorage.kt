@@ -6,15 +6,20 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Process
+import android.system.Os
 import android.util.Base64
 import com.materialkolor.quantize.QuantizerCelebi
 import com.materialkolor.score.Score
+import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.ShellUtils
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
 
 object BgStorage {
     private const val DIR_NAME = "backgrounds"
@@ -22,6 +27,8 @@ object BgStorage {
     private const val FILE_NAME = "bg_image"
     private const val SYSTEM_WALLPAPER_FILE_NAME = "system_wallpaper"
     private const val SYSTEM_WALLPAPER_SIGNATURE_FILE_NAME = "system_wallpaper.sig"
+    private const val MAX_SYSTEM_WALLPAPER_PIXELS = 150_000_000L
+    private const val MAX_WALLPAPER_VALIDATION_DIMENSION = 1024
 
     private val systemWallpaperMutex = Mutex()
 
@@ -83,88 +90,130 @@ object BgStorage {
         force: Boolean = false,
     ): SystemWallpaperResult = withContext(Dispatchers.IO) {
         systemWallpaperMutex.withLock {
-            val dest = systemWallpaperFile(context)
-            val signatureFile = File(dest.parentFile, SYSTEM_WALLPAPER_SIGNATURE_FILE_NAME)
-            val source = resolveSystemWallpaperSource(systemWallpaperUserId())
-                ?: return@withLock SystemWallpaperResult(null, false)
-            val signature = systemWallpaperSignature(source)
-            val signatureKey = signature?.let { "$source|$it" }
-            val previousSignature = runCatching { signatureFile.readText() }.getOrNull()
-            if (!force && dest.isFile && signatureKey != null && previousSignature == signatureKey) {
-                return@withLock SystemWallpaperResult(dest.absolutePath, false)
-            }
+            try {
+                val dest = systemWallpaperFile(context)
+                val signatureFile = File(dest.parentFile, SYSTEM_WALLPAPER_SIGNATURE_FILE_NAME)
+                val source = resolveSystemWallpaperSource(systemWallpaperUserId())
+                    ?: return@withLock SystemWallpaperResult(
+                        path = dest.takeIf { !force && isDecodableImage(it) }?.absolutePath,
+                        changed = false,
+                    )
+                val signature = systemWallpaperSignature(source)
+                val signatureKey = signature?.let { "$source|$it" }
+                val previousSignature = runCatching { signatureFile.readText() }.getOrNull()
+                if (!force && dest.isFile && signatureKey != null && previousSignature == signatureKey &&
+                    isDecodableImage(dest)
+                ) {
+                    return@withLock SystemWallpaperResult(dest.absolutePath, false)
+                }
 
-            if (!writeSystemWallpaperWithRoot(source, dest)) {
-                return@withLock SystemWallpaperResult(null, false)
-            }
+                if (!writeSystemWallpaperWithRoot(source, dest)) {
+                    return@withLock SystemWallpaperResult(
+                        path = dest.takeIf { !force && isDecodableImage(it) }?.absolutePath,
+                        changed = false,
+                    )
+                }
 
-            if (signatureKey != null) {
-                runCatching { signatureFile.writeText(signatureKey) }
+                if (signatureKey != null) {
+                    runCatching { signatureFile.writeText(signatureKey) }
+                }
+                SystemWallpaperResult(dest.absolutePath, true)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                SystemWallpaperResult(null, false)
             }
-            SystemWallpaperResult(dest.absolutePath, true)
         }
     }
 
-    /**
-     * Copies the wallpaper into [dest]. Prefer writing directly from the root shell and mirror
-     * the directory's SELinux context so the app can read it; if that still fails, stream the
-     * bytes through the shell and let the app write its own file.
-     */
+    /** Copies a validated wallpaper into [dest], preserving the previous cache on failure. */
     private fun writeSystemWallpaperWithRoot(source: String, dest: File): Boolean {
-        val direct = runCatching {
-            ShellUtils.fastCmdResult(
-                getRootShell(),
-                "cat ${source.shellQuote()} > ${dest.absolutePath.shellQuote()} " +
-                    "&& chmod 644 ${dest.absolutePath.shellQuote()}",
-            )
-        }.getOrDefault(false)
-        if (direct && isDecodableImage(dest)) return true
-        if (direct) {
-            // Files created by root get app_data_file:s0 without the app's MLS categories, so
-            // the app may not be able to read its own copy. Mirror the directory's SELinux
-            // context; harmless when SELinux is unavailable or permissive.
-            runCatching {
-                val parent = dest.parentFile ?: return@runCatching
-                val parentContext = ShellUtils.fastCmd(
-                    getRootShell(),
-                    "stat -c '%C' ${parent.absolutePath.shellQuote()}",
-                ).trim()
-                if (parentContext.isNotEmpty() && parentContext != "?") {
-                    ShellUtils.fastCmdResult(
-                        getRootShell(),
-                        "chcon ${parentContext.shellQuote()} ${dest.absolutePath.shellQuote()}",
-                    )
-                }
-            }
-            if (isDecodableImage(dest)) return true
-        }
+        val parent = dest.parentFile ?: return false
+        val staging = runCatching {
+            File.createTempFile("wallpaper_capture_", ".tmp", parent)
+        }.getOrNull() ?: return false
 
-        val encoded = runCatching {
-            getRootShell().newJob()
-                .add("base64 ${source.shellQuote()}")
-                .exec()
-                .out
-                .joinToString("\n")
-        }.getOrNull()
-        if (encoded.isNullOrBlank()) return false
-        val bytes = runCatching { Base64.decode(encoded, Base64.DEFAULT) }.getOrNull() ?: return false
-        if (dest.exists() && !dest.delete()) {
+        return try {
+            // Create the file as the app first so its owner and SELinux label remain readable
+            // after root writes into it. This also keeps a failed capture away from the cache.
+            val copiedDirectly = runCatching {
+                ShellUtils.fastCmdResult(
+                    getRootShell(),
+                    "cat ${source.shellQuote()} > ${staging.absolutePath.shellQuote()}",
+                )
+            }.getOrDefault(false)
+            val copied = copiedDirectly || streamBase64Wallpaper(source, staging)
+            if (!copied || !isDecodableImage(staging)) return false
+
             runCatching {
-                ShellUtils.fastCmdResult(getRootShell(), "rm -f ${dest.absolutePath.shellQuote()}")
-            }
+                Os.rename(staging.absolutePath, dest.absolutePath)
+                true
+            }.getOrDefault(false)
+        } finally {
+            if (staging.exists()) staging.delete()
         }
-        return runCatching {
-            dest.outputStream().use { it.write(bytes) }
-            isDecodableImage(dest)
-        }.getOrDefault(false)
     }
 
     private fun isDecodableImage(file: File): Boolean {
         if (!file.isFile || file.length() == 0L) return false
-        // Some ROMs store an encoded or wrapped file; only use data BitmapFactory understands.
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
-        return bounds.outWidth > 0 && bounds.outHeight > 0
+        return try {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, bounds)
+            val width = bounds.outWidth
+            val height = bounds.outHeight
+            if (width <= 0 || height <= 0 || width.toLong() * height > MAX_SYSTEM_WALLPAPER_PIXELS) {
+                return false
+            }
+
+            val maxDimension = maxOf(width, height)
+            var sampleSize = 1
+            while (maxDimension / sampleSize > MAX_WALLPAPER_VALIDATION_DIMENSION) {
+                sampleSize *= 2
+            }
+            val bitmap = BitmapFactory.decodeFile(
+                file.absolutePath,
+                BitmapFactory.Options().apply {
+                    inSampleSize = sampleSize
+                    inPreferredConfig = Bitmap.Config.RGB_565
+                },
+            ) ?: return false
+            try {
+                bitmap.width > 0 && bitmap.height > 0
+            } finally {
+                bitmap.recycle()
+            }
+        } catch (_: OutOfMemoryError) {
+            false
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /** Streams shell output line by line to avoid building a wallpaper-sized Base64 string. */
+    private fun streamBase64Wallpaper(source: String, dest: File): Boolean {
+        val output = runCatching { dest.outputStream() }.getOrNull() ?: return false
+        val writeFailed = AtomicBoolean(false)
+        val stdout = object : CallbackList<String?>(Executor { it.run() }) {
+            override fun onAddElement(line: String?) {
+                if (line.isNullOrEmpty() || writeFailed.get()) return
+                try {
+                    output.write(Base64.decode(line, Base64.DEFAULT))
+                } catch (_: Exception) {
+                    writeFailed.set(true)
+                }
+            }
+        }
+        val commandSucceeded = try {
+            getRootShell().newJob()
+                .add("base64 ${source.shellQuote()} | fold -w 4096")
+                .to(stdout, null)
+                .exec()
+                .isSuccess
+        } catch (_: Exception) {
+            false
+        }
+        val closeSucceeded = runCatching { output.close() }.isSuccess
+        return commandSucceeded && closeSucceeded && !writeFailed.get()
     }
 
     /** UserHandle.myUserId()/Context.getUserId() are hidden in the SDK; the uid encodes the user. */
@@ -303,6 +352,7 @@ object BgStorage {
         fallbackColorArgb: Int = 0xFFF27297.toInt()
     ): Int = withContext(Dispatchers.IO) {
         if (!file.exists()) return@withContext fallbackColorArgb
+        var bitmapToRecycle: Bitmap? = null
         try {
             val boundsOptions = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
@@ -324,10 +374,14 @@ object BgStorage {
             }
             val sampledBitmap = BitmapFactory.decodeFile(file.absolutePath, decodeOptions)
                 ?: return@withContext fallbackColorArgb
+            bitmapToRecycle = sampledBitmap
 
             val scaledBitmap = if (sampledBitmap.width != 128 || sampledBitmap.height != 128) {
-                Bitmap.createScaledBitmap(sampledBitmap, 128, 128, true).also {
-                    if (it != sampledBitmap) sampledBitmap.recycle()
+                Bitmap.createScaledBitmap(sampledBitmap, 128, 128, true).also { scaled ->
+                    if (scaled != sampledBitmap) {
+                        sampledBitmap.recycle()
+                        bitmapToRecycle = scaled
+                    }
                 }
             } else {
                 sampledBitmap
@@ -337,13 +391,18 @@ object BgStorage {
             val height = scaledBitmap.height
             val pixels = IntArray(width * height)
             scaledBitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-            scaledBitmap.recycle()
 
             val colorToCountMap: Map<Int, Int> = QuantizerCelebi.quantize(pixels, 128)
             val sortedColors: List<Int> = Score.score(colorToCountMap, 10, fallbackColorArgb, true)
             sortedColors.firstOrNull() ?: fallbackColorArgb
+        } catch (_: OutOfMemoryError) {
+            fallbackColorArgb
         } catch (e: Exception) {
             fallbackColorArgb
+        } finally {
+            bitmapToRecycle?.let { bitmap ->
+                if (!bitmap.isRecycled) bitmap.recycle()
+            }
         }
     }
 

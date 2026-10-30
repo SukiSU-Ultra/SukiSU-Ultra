@@ -22,6 +22,7 @@ import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.theme.Typography
 import com.sukisu.ultra.ui.theme.animateAsState
 import com.sukisu.ultra.ui.theme.rememberKernelSUColorScheme
+import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 
 // Miuix's own default accent, used when the Miuix skin runs without Monet or a custom key color.
@@ -42,6 +43,7 @@ fun AboutScreen() {
         title = stringResource(R.string.about),
         appName = stringResource(R.string.app_name),
         versionName = BuildConfig.VERSION_NAME,
+        icon = BuiltinAppIcons.find(settingsState.appIconId),
         links = extractLinks(htmlString),
         checkUpdate = settingsState.checkUpdate,
         checkCiUpdate = settingsState.checkCiUpdate,

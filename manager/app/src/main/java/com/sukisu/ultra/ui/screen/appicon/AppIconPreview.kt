@@ -19,15 +19,20 @@ import com.sukisu.ultra.ui.util.AppIconPackStorage
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 
 @Composable
-fun BuiltinAppIconPreview(icon: BuiltinAppIcon, modifier: Modifier = Modifier) {
+fun BuiltinAppIconPreview(
+    icon: BuiltinAppIcon,
+    modifier: Modifier = Modifier,
+    foregroundOnly: Boolean = false,
+) {
     val context = LocalContext.current
-    val bitmap = remember(icon.iconRes) { loadDrawableBitmap(context, icon.iconRes) }
+    val drawableRes = if (foregroundOnly) icon.foregroundRes else icon.iconRes
+    val bitmap = remember(drawableRes) { loadDrawableBitmap(context, drawableRes) }
     if (bitmap != null) {
         Image(
             bitmap = bitmap,
             contentDescription = stringResource(icon.nameRes),
             modifier = modifier,
-            contentScale = ContentScale.Crop,
+            contentScale = if (foregroundOnly) ContentScale.Fit else ContentScale.Crop,
         )
     }
 }
