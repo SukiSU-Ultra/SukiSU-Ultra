@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -49,6 +50,8 @@ data class ThemePackageData(
     val moduleSortMetamoduleFirst: Boolean? = null,
     val moduleSortNameOrder: String? = null,
     val moduleSortManual: Boolean? = null,
+    val customHomeTitle: String? = null,
+    val customTexts: Map<String, String>? = null,
 )
 
 /** Parsed theme package plus the background file path when the package contains an image. */
@@ -72,7 +75,7 @@ object ThemePackageStorage {
 
     fun packageFileName(): String {
         val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmm"))
-        return "SukiSU-theme-$stamp.zip"
+        return "SukiSU-theme-$stamp.sukisu"
     }
 
     suspend fun export(
@@ -82,10 +85,8 @@ object ThemePackageStorage {
         backgroundFile: File?,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val output = context.contentResolver.openOutputStream(uri)
-                ?: error("Cannot open the destination file")
-            BufferedOutputStream(output).use { buffered ->
-                ZipOutputStream(buffered).use { zip ->
+            val zipBytes = ByteArrayOutputStream().use { byteOut ->
+                ZipOutputStream(byteOut).use { zip ->
                     zip.putNextEntry(ZipEntry(THEME_ENTRY))
                     zip.write(json.encodeToString(ThemePackageData.serializer(), data).toByteArray())
                     zip.closeEntry()
@@ -95,20 +96,28 @@ object ThemePackageStorage {
                         zip.closeEntry()
                     }
                 }
+                byteOut.toByteArray()
             }
+            val encryptedBytes = ThemePackageCrypto.encrypt(zipBytes)
+            val output = context.contentResolver.openOutputStream(uri)
+                ?: error("Cannot open the destination file")
+            BufferedOutputStream(output).use { it.write(encryptedBytes) }
         }
     }
 
     suspend fun import(context: Context, uri: Uri): Result<ImportedTheme> = withContext(Dispatchers.IO) {
         runCatching {
+            val rawBytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: error("Cannot open the theme package")
+            val zipBytes = runCatching { ThemePackageCrypto.decrypt(rawBytes) }.getOrElse {
+                error("Theme package verification or decryption failed")
+            }
             val tempBackground = File.createTempFile("theme_bg_", ".tmp", context.cacheDir)
             try {
                 var themeText: String? = null
                 var backgroundExtracted = false
-                val input = context.contentResolver.openInputStream(uri)
-                    ?: error("Cannot open the theme package")
-                BufferedInputStream(input).use { buffered ->
-                    ZipInputStream(buffered).use { zip ->
+                ByteArrayInputStream(zipBytes).use { byteIn ->
+                    ZipInputStream(byteIn).use { zip ->
                         var entry: ZipEntry? = zip.nextEntry
                         while (entry != null) {
                             when (entry.name) {

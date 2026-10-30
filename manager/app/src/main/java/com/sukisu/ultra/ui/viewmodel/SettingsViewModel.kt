@@ -457,6 +457,7 @@ class SettingsViewModel(
                 moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst,
                 moduleSortNameOrder = repo.moduleSortNameOrder,
                 moduleSortManual = repo.moduleSortManual,
+                customHomeTitle = state.customHomeTitle.takeIf { it.isNotBlank() },
             )
             ThemePackageStorage.export(context, uri, data, backgroundFile)
                 .onSuccess {
@@ -571,10 +572,17 @@ class SettingsViewModel(
         }
         data.moduleSortManual?.let { repo.moduleSortManual = it }
 
+        val importedHomeTitle = data.customHomeTitle
+        if (importedHomeTitle != null) {
+            repo.customHomeTitle = importedHomeTitle
+        }
+        val effectiveHomeTitle = importedHomeTitle ?: current.customHomeTitle
+
         _uiState.update {
             it.copy(
                 uiMode = targetUiMode,
                 appIconId = effectiveIconId,
+                customHomeTitle = effectiveHomeTitle,
                 themeMode = themeMode,
                 miuixMonet = miuixMonet,
                 keyColor = keyColor,

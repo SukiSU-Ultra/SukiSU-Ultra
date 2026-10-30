@@ -236,6 +236,7 @@ fun ColorPaletteScreenMaterial(
                         floatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
                         navigationBadge = uiState.enableNavigationBadge,
                         pageScale = uiState.pageScale,
+                        customHomeTitle = uiState.customHomeTitle,
                     ),
                 )
             }

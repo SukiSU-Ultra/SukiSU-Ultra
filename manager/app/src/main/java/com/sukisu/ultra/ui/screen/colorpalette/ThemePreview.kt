@@ -153,6 +153,7 @@ internal data class ThemePreviewSpec(
     val floatingBottomBarBlur: Boolean = false,
     val navigationBadge: Boolean = true,
     val pageScale: Float = 1f,
+    val customHomeTitle: String = "",
 )
 
 private const val PreviewDesignWidthDp = 360f
@@ -533,7 +534,7 @@ private fun PreviewCaption(
 @Composable
 private fun MiuixPreviewScreen(spec: ThemePreviewSpec, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
-        MiuixPreviewTopBar()
+        MiuixPreviewTopBar(spec)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -554,10 +555,10 @@ private fun MiuixPreviewScreen(spec: ThemePreviewSpec, modifier: Modifier = Modi
 }
 
 @Composable
-private fun MiuixPreviewTopBar() {
+private fun MiuixPreviewTopBar(spec: ThemePreviewSpec) {
     val colors = MiuixTheme.colorScheme
     TopAppBar(
-        title = stringResource(R.string.app_name),
+        title = spec.customHomeTitle.ifBlank { stringResource(R.string.app_name) },
         color = Color.Transparent,
         titleColor = colors.onSurface,
         largeTitleColor = colors.onBackground,
@@ -914,7 +915,7 @@ private fun MiuixPreviewNavIcon(
 @Composable
 private fun MaterialPreviewScreen(spec: ThemePreviewSpec, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
-        MaterialPreviewTopBar()
+        MaterialPreviewTopBar(spec)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -935,10 +936,10 @@ private fun MaterialPreviewScreen(spec: ThemePreviewSpec, modifier: Modifier = M
 }
 
 @Composable
-private fun MaterialPreviewTopBar() {
+private fun MaterialPreviewTopBar(spec: ThemePreviewSpec) {
     val colors = MaterialTheme.colorScheme
     LargeFlexibleTopAppBar(
-        title = { MaterialText(stringResource(R.string.app_name)) },
+        title = { MaterialText(spec.customHomeTitle.ifBlank { stringResource(R.string.app_name) }) },
         expandedHeight = 104.dp,
         collapsedHeight = 56.dp,
         windowInsets = WindowInsets(0, 0, 0, 0),

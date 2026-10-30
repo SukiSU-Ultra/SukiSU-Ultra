@@ -224,6 +224,7 @@ fun ColorPaletteScreenMiuix(
                             floatingBottomBarBlur = uiState.enableFloatingBottomBarBlur,
                             navigationBadge = uiState.enableNavigationBadge,
                             pageScale = uiState.pageScale,
+                            customHomeTitle = uiState.customHomeTitle,
                         ),
                     )
                     Spacer(modifier = Modifier.height(28.dp))
