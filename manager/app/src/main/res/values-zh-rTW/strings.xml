@@ -606,6 +606,9 @@
     <string name="settings_home_title">首頁頂欄名稱</string>
     <string name="settings_home_title_default">使用應用名稱</string>
     <string name="settings_home_title_hint">輸入自訂名稱；留空則還原為應用名稱。</string>
+    <string name="settings_working_title">主頁狀態文字</string>
+    <string name="settings_working_title_default">使用預設文字</string>
+    <string name="settings_working_title_hint">輸入首頁狀態卡片顯示的文字；留空則還原為預設值。</string>
     <string name="app_icon_builtin_section">內建圖示</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

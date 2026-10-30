@@ -382,7 +382,9 @@ private fun ActiveStatusCard(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = stringResource(R.string.home_working),
+                        text = state.customWorkingTitle.ifBlank {
+                            stringResource(R.string.home_working)
+                        },
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
                     )

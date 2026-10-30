@@ -75,6 +75,7 @@ fun ColorPaletteScreen() {
         onOpenAppIcon = { navigator.push(Route.AppIcon) },
         onSetBackgroundAppearanceExpanded = viewModel::setBackgroundAppearanceExpanded,
         onSetCustomHomeTitle = viewModel::setCustomHomeTitle,
+        onSetCustomWorkingTitle = viewModel::setCustomWorkingTitle,
         onPickCustomBackground = { ctx, uri ->
             viewModel.stagePickedBackground(ctx, uri) { path ->
                 if (path != null) {

@@ -26,6 +26,7 @@ import com.sukisu.ultra.data.repository.CiManagerUpdater
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.KEY_CUSTOM_HOME_TITLE
+import com.sukisu.ultra.data.repository.KEY_CUSTOM_WORKING_TITLE
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.home.HomeLoadState
@@ -53,6 +54,9 @@ class HomeViewModel(
     private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == null || key == KEY_CUSTOM_HOME_TITLE) {
             updateContent { it.copy(customHomeTitle = settingsRepo.customHomeTitle) }
+        }
+        if (key == null || key == KEY_CUSTOM_WORKING_TITLE) {
+            updateContent { it.copy(customWorkingTitle = settingsRepo.customWorkingTitle) }
         }
     }
 
@@ -223,6 +227,7 @@ class HomeViewModel(
             checkUpdateEnabled = settingsRepo.checkUpdate,
             checkCiUpdateEnabled = settingsRepo.checkUpdate && settingsRepo.checkCiUpdate,
             customHomeTitle = settingsRepo.customHomeTitle,
+            customWorkingTitle = settingsRepo.customWorkingTitle,
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             hideHomeWarnings = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)

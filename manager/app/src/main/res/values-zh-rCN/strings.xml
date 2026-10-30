@@ -736,6 +736,9 @@
     <string name="settings_home_title">主页顶栏名称</string>
     <string name="settings_home_title_default">使用应用名称</string>
     <string name="settings_home_title_hint">输入自定义名称；留空则恢复应用名称。</string>
+    <string name="settings_working_title">主页状态文字</string>
+    <string name="settings_working_title_default">使用默认文字</string>
+    <string name="settings_working_title_hint">输入首页状态卡片显示的文字；留空则恢复默认。</string>
     <string name="app_icon_builtin_section">内置图标</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

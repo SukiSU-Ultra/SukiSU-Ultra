@@ -189,6 +189,8 @@ fun ColorPaletteScreenMiuix(
         val showResetThemeDialog = rememberSaveable { mutableStateOf(false) }
         var showHomeTitleDialog by rememberSaveable { mutableStateOf(false) }
         var homeTitleDraft by rememberSaveable { mutableStateOf("") }
+        var showWorkingTitleDialog by rememberSaveable { mutableStateOf(false) }
+        var workingTitleDraft by rememberSaveable { mutableStateOf("") }
         val appearanceExpanded = uiState.backgroundAppearanceExpanded
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
@@ -535,6 +537,24 @@ fun ColorPaletteScreenMiuix(
                             onClick = {
                                 homeTitleDraft = uiState.customHomeTitle
                                 showHomeTitleDialog = true
+                            },
+                        )
+                        ArrowPreference(
+                            title = stringResource(id = R.string.settings_working_title),
+                            summary = uiState.customWorkingTitle.ifBlank {
+                                stringResource(R.string.settings_working_title_default)
+                            },
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Edit,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    contentDescription = stringResource(R.string.settings_working_title),
+                                    tint = colorScheme.onBackground,
+                                )
+                            },
+                            onClick = {
+                                workingTitleDraft = uiState.customWorkingTitle
+                                showWorkingTitleDialog = true
                             },
                         )
                     }
@@ -922,6 +942,43 @@ fun ColorPaletteScreenMiuix(
                                 onClick = {
                                     actions.onSetCustomHomeTitle(homeTitleDraft)
                                     showHomeTitleDialog = false
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.textButtonColorsPrimary(),
+                            )
+                        }
+                    }
+                },
+            )
+        }
+
+        if (showWorkingTitleDialog) {
+            OverlayDialog(
+                show = true,
+                title = stringResource(R.string.settings_working_title),
+                summary = stringResource(R.string.settings_working_title_hint),
+                onDismissRequest = { showWorkingTitleDialog = false },
+                content = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TextField(
+                            value = workingTitleDraft,
+                            onValueChange = { workingTitleDraft = it },
+                            label = stringResource(R.string.settings_working_title),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            useLabelAsPlaceholder = workingTitleDraft.isEmpty(),
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TextButton(
+                                text = stringResource(android.R.string.cancel),
+                                onClick = { showWorkingTitleDialog = false },
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(
+                                text = stringResource(android.R.string.ok),
+                                onClick = {
+                                    actions.onSetCustomWorkingTitle(workingTitleDraft)
+                                    showWorkingTitleDialog = false
                                 },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.textButtonColorsPrimary(),

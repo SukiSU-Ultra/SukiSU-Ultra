@@ -148,6 +148,8 @@ fun ColorPaletteScreenMaterial(
     var showResetThemeDialog by rememberSaveable { mutableStateOf(false) }
     var showHomeTitleDialog by rememberSaveable { mutableStateOf(false) }
     var homeTitleDraft by rememberSaveable { mutableStateOf("") }
+    var showWorkingTitleDialog by rememberSaveable { mutableStateOf(false) }
+    var workingTitleDraft by rememberSaveable { mutableStateOf("") }
     val appearanceExpanded = uiState.backgroundAppearanceExpanded
     // Kept above the list so the preview reflects the thumb position before the value commits.
     val alphaSliderState = rememberSliderState(
@@ -560,6 +562,35 @@ fun ColorPaletteScreenMaterial(
                                     )
                                 },
                             )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    workingTitleDraft = uiState.customWorkingTitle
+                                    showWorkingTitleDialog = true
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_working_title)) },
+                                supportingContent = {
+                                    Text(
+                                        uiState.customWorkingTitle.ifBlank {
+                                            stringResource(R.string.settings_working_title_default)
+                                        }
+                                    )
+                                },
+                                leadingContent = {
+                                    IconTile(
+                                        Icons.Rounded.Edit,
+                                        stringResource(R.string.settings_working_title),
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ChevronRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                },
+                            )
                         }
                     )
                 )
@@ -909,6 +940,45 @@ fun ColorPaletteScreenMaterial(
             },
             dismissButton = {
                 TextButton(onClick = { showHomeTitleDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+
+    if (showWorkingTitleDialog) {
+        AlertDialog(
+            onDismissRequest = { showWorkingTitleDialog = false },
+            title = { Text(stringResource(R.string.settings_working_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_working_title_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = workingTitleDraft,
+                        onValueChange = { workingTitleDraft = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.settings_working_title)) },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        actions.onSetCustomWorkingTitle(workingTitleDraft)
+                        showWorkingTitleDialog = false
+                    },
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showWorkingTitleDialog = false }) {
                     Text(stringResource(android.R.string.cancel))
                 }
             },

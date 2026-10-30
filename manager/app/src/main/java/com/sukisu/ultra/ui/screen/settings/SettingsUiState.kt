@@ -91,6 +91,7 @@ data class SettingsUiState(
     val customBackgroundScrimPercent: Int = -35,
     val backgroundAppearanceExpanded: Boolean = true,
     val customHomeTitle: String = "",
+    val customWorkingTitle: String = "",
 )
 
 @Immutable

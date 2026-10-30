@@ -44,6 +44,7 @@ class SettingsViewModel(
         checkModuleUpdate = repo.checkModuleUpdate,
         backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
         customHomeTitle = repo.customHomeTitle,
+        customWorkingTitle = repo.customWorkingTitle,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -132,6 +133,7 @@ class SettingsViewModel(
                     appIconDynamicColor = appIconDynamicColor,
                     backgroundAppearanceExpanded = repo.backgroundAppearanceExpanded,
                     customHomeTitle = repo.customHomeTitle,
+                    customWorkingTitle = repo.customWorkingTitle,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -696,6 +698,12 @@ class SettingsViewModel(
         val normalizedTitle = title.trim()
         repo.customHomeTitle = normalizedTitle
         _uiState.update { it.copy(customHomeTitle = normalizedTitle) }
+    }
+
+    fun setCustomWorkingTitle(title: String) {
+        val normalizedTitle = title.trim()
+        repo.customWorkingTitle = normalizedTitle
+        _uiState.update { it.copy(customWorkingTitle = normalizedTitle) }
     }
 
     private fun applyAppIconSettings(

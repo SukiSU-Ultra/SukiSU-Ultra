@@ -27,6 +27,7 @@ private const val SETTINGS_PREFS = "settings"
 private const val KEY_USE_SOFT_REBOOT = "soft_reboot"
 private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
 internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
+internal const val KEY_CUSTOM_WORKING_TITLE = "custom_working_title"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -97,6 +98,10 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var customHomeTitle: String
         get() = prefs.getString(KEY_CUSTOM_HOME_TITLE, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CUSTOM_HOME_TITLE, value.trim()) }
+
+    override var customWorkingTitle: String
+        get() = prefs.getString(KEY_CUSTOM_WORKING_TITLE, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_CUSTOM_WORKING_TITLE, value.trim()) }
 
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->
