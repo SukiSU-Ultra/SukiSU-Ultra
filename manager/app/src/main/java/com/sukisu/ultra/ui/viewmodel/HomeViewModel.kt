@@ -28,6 +28,7 @@ import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.KEY_CUSTOM_HOME_TITLE
 import com.sukisu.ultra.data.repository.KEY_CUSTOM_WORKING_TITLE
 import com.sukisu.ultra.data.repository.KEY_CUSTOM_KERNEL_MODE_SUFFIX
+import com.sukisu.ultra.data.repository.KEY_HOME_CARD_IMAGE_PATH
 import com.sukisu.ultra.getKernelVersion
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.home.HomeLoadState
@@ -46,6 +47,7 @@ import com.sukisu.ultra.ui.util.listModules
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.resolveDeviceName
 import com.sukisu.ultra.ui.util.rootAvailable
+import java.io.File
 
 class HomeViewModel(
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
@@ -62,7 +64,14 @@ class HomeViewModel(
         if (key == null || key == KEY_CUSTOM_KERNEL_MODE_SUFFIX) {
             updateContent { it.copy(customKernelModeSuffix = settingsRepo.customKernelModeSuffix) }
         }
+        if (key == null || key == KEY_HOME_CARD_IMAGE_PATH) {
+            updateContent { it.copy(homeCardImagePath = existingHomeCardImage()) }
+        }
     }
+
+    /** The stored card image only applies while its file still exists. */
+    private fun existingHomeCardImage(): String =
+        settingsRepo.homeCardImagePath.takeIf { it.isNotEmpty() && File(it).isFile } ?: ""
 
     private val _uiState = MutableStateFlow(HomeLoadState())
     val uiState: StateFlow<HomeLoadState> = _uiState.asStateFlow()
@@ -233,6 +242,7 @@ class HomeViewModel(
             customHomeTitle = settingsRepo.customHomeTitle,
             customWorkingTitle = settingsRepo.customWorkingTitle,
             customKernelModeSuffix = settingsRepo.customKernelModeSuffix,
+            homeCardImagePath = existingHomeCardImage(),
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             hideHomeWarnings = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)

@@ -93,6 +93,7 @@ data class SettingsUiState(
     val customHomeTitle: String = "",
     val customWorkingTitle: String = "",
     val customKernelModeSuffix: String = "",
+    val homeCardImagePath: String = "",
 )
 
 @Immutable

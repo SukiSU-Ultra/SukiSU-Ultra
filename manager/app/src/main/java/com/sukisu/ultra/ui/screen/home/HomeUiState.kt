@@ -54,6 +54,8 @@ data class HomeUiState(
     val customWorkingTitle: String = "",
     /** Suffix appended to the LKM / Built-in tag, never replacing it. */
     val customKernelModeSuffix: String = "",
+    /** Image drawn behind the home status card; empty when the slot is unused. */
+    val homeCardImagePath: String = "",
 ) {
     val isSELinuxPermissive: Boolean
         get() = systemInfo.selinuxStatus == "Permissive"

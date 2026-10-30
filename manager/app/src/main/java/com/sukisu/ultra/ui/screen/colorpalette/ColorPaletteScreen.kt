@@ -77,6 +77,8 @@ fun ColorPaletteScreen() {
         onSetCustomHomeTitle = viewModel::setCustomHomeTitle,
         onSetCustomWorkingTitle = viewModel::setCustomWorkingTitle,
         onSetCustomKernelModeSuffix = viewModel::setCustomKernelModeSuffix,
+        onPickHomeCardImage = viewModel::pickHomeCardImage,
+        onClearHomeCardImage = viewModel::clearHomeCardImage,
         onPickCustomBackground = { ctx, uri ->
             viewModel.stagePickedBackground(ctx, uri) { path ->
                 if (path != null) {

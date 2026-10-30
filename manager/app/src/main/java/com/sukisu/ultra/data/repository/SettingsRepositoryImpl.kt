@@ -29,6 +29,7 @@ private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
 internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
 internal const val KEY_CUSTOM_WORKING_TITLE = "custom_working_title"
 internal const val KEY_CUSTOM_KERNEL_MODE_SUFFIX = "custom_kernel_mode_suffix"
+internal const val KEY_HOME_CARD_IMAGE_PATH = "home_card_image_path"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -107,6 +108,10 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var customKernelModeSuffix: String
         get() = prefs.getString(KEY_CUSTOM_KERNEL_MODE_SUFFIX, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CUSTOM_KERNEL_MODE_SUFFIX, value.trim()) }
+
+    override var homeCardImagePath: String
+        get() = prefs.getString(KEY_HOME_CARD_IMAGE_PATH, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_HOME_CARD_IMAGE_PATH, value) }
 
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->

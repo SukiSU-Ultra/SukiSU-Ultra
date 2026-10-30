@@ -46,6 +46,7 @@ class SettingsViewModel(
         customHomeTitle = repo.customHomeTitle,
         customWorkingTitle = repo.customWorkingTitle,
         customKernelModeSuffix = repo.customKernelModeSuffix,
+        homeCardImagePath = repo.homeCardImagePath,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -136,6 +137,7 @@ class SettingsViewModel(
                     customHomeTitle = repo.customHomeTitle,
                     customWorkingTitle = repo.customWorkingTitle,
                     customKernelModeSuffix = repo.customKernelModeSuffix,
+                    homeCardImagePath = repo.homeCardImagePath,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -712,6 +714,31 @@ class SettingsViewModel(
         val normalizedSuffix = suffix.trim()
         repo.customKernelModeSuffix = normalizedSuffix
         _uiState.update { it.copy(customKernelModeSuffix = normalizedSuffix) }
+    }
+
+    /** Copies the picked image into app storage and shows it behind the home status card. */
+    fun pickHomeCardImage(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val path = BgStorage.saveHomeCardImage(context, uri)
+            if (path == null) {
+                Toast.makeText(
+                    ksuApp,
+                    R.string.home_card_image_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                return@launch
+            }
+            repo.homeCardImagePath = path
+            _uiState.update { it.copy(homeCardImagePath = path) }
+        }
+    }
+
+    fun clearHomeCardImage() {
+        viewModelScope.launch {
+            BgStorage.clearHomeCardImage(ksuApp)
+            repo.homeCardImagePath = ""
+            _uiState.update { it.copy(homeCardImagePath = "") }
+        }
     }
 
     private fun applyAppIconSettings(

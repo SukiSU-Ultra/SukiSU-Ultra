@@ -746,6 +746,12 @@
     <string name="settings_kernel_mode_suffix">Mode tag suffix</string>
     <string name="settings_kernel_mode_suffix_default">Using the mode tag only</string>
     <string name="settings_kernel_mode_suffix_hint">Text appended after the LKM / Built-in tag; the tag itself always stays. Leave blank to keep it unchanged.</string>
+    <string name="settings_home_card_image">Status card background</string>
+    <string name="settings_home_card_image_default">Using the card color</string>
+    <string name="settings_home_card_image_set">Image selected</string>
+    <string name="settings_home_card_image_clear">Remove card background</string>
+    <string name="settings_home_card_image_clear_summary">Restore the solid card color</string>
+    <string name="home_card_image_failed">Could not load that image</string>
     <string name="app_icon_builtin_section">Built-in icons</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

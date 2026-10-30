@@ -154,6 +154,11 @@ fun ColorPaletteScreenMiuix(
     ) { uri: Uri? ->
         uri?.let { actions.onImportTheme(context, it) }
     }
+    val homeCardImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let { actions.onPickHomeCardImage(context, it) }
+    }
 
     AppScaffold(
         topBar = {
@@ -577,6 +582,42 @@ fun ColorPaletteScreenMiuix(
                                 showKernelModeSuffixDialog = true
                             },
                         )
+                        ArrowPreference(
+                            title = stringResource(id = R.string.settings_home_card_image),
+                            summary = if (uiState.homeCardImagePath.isBlank()) {
+                                stringResource(R.string.settings_home_card_image_default)
+                            } else {
+                                stringResource(R.string.settings_home_card_image_set)
+                            },
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Image,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    contentDescription = stringResource(R.string.settings_home_card_image),
+                                    tint = colorScheme.onBackground,
+                                )
+                            },
+                            onClick = {
+                                homeCardImageLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                        )
+                        if (uiState.homeCardImagePath.isNotBlank()) {
+                            ArrowPreference(
+                                title = stringResource(id = R.string.settings_home_card_image_clear),
+                                summary = stringResource(R.string.settings_home_card_image_clear_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Restore,
+                                        modifier = Modifier.padding(end = 8.dp),
+                                        contentDescription = stringResource(R.string.settings_home_card_image_clear),
+                                        tint = colorScheme.onBackground,
+                                    )
+                                },
+                                onClick = actions.onClearHomeCardImage,
+                            )
+                        }
                     }
                     val themeItems = listOf(
                         stringResource(id = R.string.settings_theme_mode_system),

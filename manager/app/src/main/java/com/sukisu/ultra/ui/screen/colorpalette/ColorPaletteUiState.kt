@@ -41,6 +41,8 @@ data class ColorPaletteScreenActions(
     val onSetCustomHomeTitle: (String) -> Unit = {},
     val onSetCustomWorkingTitle: (String) -> Unit = {},
     val onSetCustomKernelModeSuffix: (String) -> Unit = {},
+    val onPickHomeCardImage: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
+    val onClearHomeCardImage: () -> Unit = {},
     val onPickCustomBackground: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onCropCurrentBackground: (android.content.Context) -> Unit = {},
     val onClearCustomBackground: (android.content.Context) -> Unit = {},

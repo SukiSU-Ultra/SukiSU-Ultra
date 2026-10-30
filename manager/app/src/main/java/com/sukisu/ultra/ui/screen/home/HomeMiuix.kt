@@ -49,6 +49,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import java.io.File
 import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
@@ -320,16 +328,38 @@ private fun ActiveStatusCard(
         if (suffix.isEmpty()) mode else "$mode $suffix"
     }
 
+    val cardImagePainter = state.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(File(path))
+                .crossfade(true)
+                .build()
+        )
+    }
+
     AppCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.defaultColors(
-            color = backgroundAwareColor(
-                when {
-                    isDynamicColor -> colorScheme.secondaryContainer
-                    isDark -> Color(0xFF1A3825)
-                    else -> Color(0xFFDFFAE4)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(CardDefaults.CornerRadius))
+            .then(
+                if (cardImagePainter != null) {
+                    Modifier.background(cardImagePainter, contentScale = ContentScale.Crop)
+                } else {
+                    Modifier
                 }
-            )
+            ),
+        colors = CardDefaults.defaultColors(
+            color = if (cardImagePainter != null) {
+                Color.Transparent
+            } else {
+                backgroundAwareColor(
+                    when {
+                        isDynamicColor -> colorScheme.secondaryContainer
+                        isDark -> Color(0xFF1A3825)
+                        else -> Color(0xFFDFFAE4)
+                    }
+                )
+            }
         ),
         onClick = onClick,
         showIndication = !state.isLateLoadMode,

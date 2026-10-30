@@ -15,6 +15,8 @@ interface SettingsRepository {
     var customWorkingTitle: String
     /** Text appended after the LKM / Built-in home tag; the tag itself is never replaced. */
     var customKernelModeSuffix: String
+    /** Absolute path of the image shown behind the home status card; empty for none. */
+    var homeCardImagePath: String
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean

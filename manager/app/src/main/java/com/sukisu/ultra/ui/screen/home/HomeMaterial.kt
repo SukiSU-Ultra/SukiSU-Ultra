@@ -66,6 +66,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import java.io.File
 import com.sukisu.ultra.KernelVersion
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.R
@@ -286,14 +293,38 @@ private fun ActiveStatusCard(
         if (suffix.isEmpty()) workingMode else "$workingMode $suffix"
     }
 
+    val cardImagePainter = state.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
+        rememberAsyncImagePainter(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(File(path))
+                .crossfade(true)
+                .build()
+        )
+    }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = containerColor,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(HeroShape)
+            .then(
+                if (cardImagePainter != null) {
+                    Modifier.background(cardImagePainter, contentScale = ContentScale.Crop)
+                } else {
+                    Modifier
+                }
+            ),
+        color = if (cardImagePainter != null) Color.Transparent else containerColor,
         contentColor = contentColor,
         shape = HeroShape,
         onClick = onClick,
     ) {
-        Box(modifier = Modifier.drawBehind { drawStatusRings(contentColor.copy(alpha = 0.18f)) }) {
+        Box(
+            modifier = if (cardImagePainter != null) {
+                Modifier
+            } else {
+                Modifier.drawBehind { drawStatusRings(contentColor.copy(alpha = 0.18f)) }
+            }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -26,6 +26,7 @@ object BgStorage {
     private const val CROP_DIR_NAME = "background_crop"
     private const val FILE_NAME = "bg_image"
     private const val SYSTEM_WALLPAPER_FILE_NAME = "system_wallpaper"
+    private const val HOME_CARD_PREFIX = "home_card_image"
     private const val SYSTEM_WALLPAPER_SIGNATURE_FILE_NAME = "system_wallpaper.sig"
     private const val MAX_SYSTEM_WALLPAPER_PIXELS = 150_000_000L
     private const val MAX_WALLPAPER_VALIDATION_DIMENSION = 1024
@@ -345,6 +346,33 @@ object BgStorage {
             }
             targetFile.absolutePath
         }.getOrNull()
+    }
+
+    /**
+     * Copies a picked image into the home status card slot and returns its path.
+     * Each save uses a fresh file name so Coil's cache never serves the previous image.
+     */
+    suspend fun saveHomeCardImage(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val dir = backgroundsDir(context)
+            val target = File(dir, HOME_CARD_PREFIX + "_" + System.currentTimeMillis())
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                target.outputStream().use { output -> input.copyTo(output) }
+            } ?: return@runCatching null
+            if (target.length() == 0L) {
+                target.delete()
+                return@runCatching null
+            }
+            dir.listFiles { file -> file.name.startsWith(HOME_CARD_PREFIX) && file != target }
+                ?.forEach { it.delete() }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    suspend fun clearHomeCardImage(context: Context) = withContext(Dispatchers.IO) {
+        backgroundsDir(context)
+            .listFiles { file -> file.name.startsWith(HOME_CARD_PREFIX) }
+            ?.forEach { it.delete() }
     }
 
     suspend fun extractSeedColor(

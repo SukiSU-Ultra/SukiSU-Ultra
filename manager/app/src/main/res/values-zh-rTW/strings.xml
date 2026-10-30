@@ -612,6 +612,12 @@
     <string name="settings_kernel_mode_suffix">內核標籤後綴</string>
     <string name="settings_kernel_mode_suffix_default">僅顯示模式標籤</string>
     <string name="settings_kernel_mode_suffix_hint">在 LKM / Built-in 標籤後面追加文字，前面的模式標籤始終保留；留空則不追加。</string>
+    <string name="settings_home_card_image">首頁狀態卡背景圖</string>
+    <string name="settings_home_card_image_default">使用卡片底色</string>
+    <string name="settings_home_card_image_set">已選擇圖片</string>
+    <string name="settings_home_card_image_clear">移除卡片背景圖</string>
+    <string name="settings_home_card_image_clear_summary">恢復純色卡片背景</string>
+    <string name="home_card_image_failed">無法讀取該圖片</string>
     <string name="app_icon_builtin_section">內建圖示</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

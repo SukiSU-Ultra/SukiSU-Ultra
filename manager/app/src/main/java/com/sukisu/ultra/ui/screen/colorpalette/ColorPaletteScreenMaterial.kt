@@ -192,6 +192,11 @@ fun ColorPaletteScreenMaterial(
     ) { uri: Uri? ->
         uri?.let { actions.onImportTheme(context, it) }
     }
+    val homeCardImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let { actions.onPickHomeCardImage(context, it) }
+    }
 
     ExpressiveScaffold(
         topBar = {
@@ -622,8 +627,60 @@ fun ColorPaletteScreenMaterial(
                                     )
                                 },
                             )
+                        },
+                        {
+                            SegmentedListItem(
+                                onClick = {
+                                    homeCardImageLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                headlineContent = { Text(stringResource(R.string.settings_home_card_image)) },
+                                supportingContent = {
+                                    Text(
+                                        if (uiState.homeCardImagePath.isBlank()) {
+                                            stringResource(R.string.settings_home_card_image_default)
+                                        } else {
+                                            stringResource(R.string.settings_home_card_image_set)
+                                        }
+                                    )
+                                },
+                                leadingContent = {
+                                    IconTile(
+                                        Icons.Rounded.Image,
+                                        stringResource(R.string.settings_home_card_image),
+                                    )
+                                },
+                                trailingContent = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ChevronRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                },
+                            )
                         }
-                    )
+                    ) + if (uiState.homeCardImagePath.isNotBlank()) {
+                        listOf<@Composable () -> Unit>(
+                            {
+                                SegmentedListItem(
+                                    onClick = actions.onClearHomeCardImage,
+                                    headlineContent = { Text(stringResource(R.string.settings_home_card_image_clear)) },
+                                    supportingContent = {
+                                        Text(stringResource(R.string.settings_home_card_image_clear_summary))
+                                    },
+                                    leadingContent = {
+                                        IconTile(
+                                            Icons.Rounded.Restore,
+                                            stringResource(R.string.settings_home_card_image_clear),
+                                        )
+                                    },
+                                )
+                            }
+                        )
+                    } else {
+                        emptyList()
+                    }
                 )
             }
 
