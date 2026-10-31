@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
+import com.sukisu.ultra.ai.api.R as AiR
+import com.sukisu.ultra.ai.api.AiFeatureBridge
 import android.net.Uri
 import java.io.File
 import android.os.Build
@@ -546,13 +548,15 @@ fun ColorPaletteScreenMaterial(
                             )
                         },
                         {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.AutoAwesome,
-                                title = stringResource(id = R.string.ai_show_home_card),
-                                summary = stringResource(id = R.string.ai_show_home_card_summary),
-                                checked = state.showAiHomeCard,
-                                onCheckedChange = actions.onSetShowAiHomeCard
-                            )
+                            if (AiFeatureBridge.isAvailable) {
+                                SegmentedSwitchItem(
+                                    icon = Icons.Rounded.AutoAwesome,
+                                    title = stringResource(id = AiR.string.ai_show_home_card),
+                                    summary = stringResource(id = AiR.string.ai_show_home_card_summary),
+                                    checked = state.showAiHomeCard,
+                                    onCheckedChange = actions.onSetShowAiHomeCard
+                                )
+                            }
                         },
                         {
                             val currentIcon = BuiltinAppIcons.find(uiState.appIconId)

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Host-side entry shown only while the optional AI library is present. -->
+    <string name="ai_show_home_card">Show AI assistant on home</string>
+    <string name="ai_show_home_card_summary">Display the home card and initialize the assistant there. Off disconnects the home entry completely.</string>
+</resources>

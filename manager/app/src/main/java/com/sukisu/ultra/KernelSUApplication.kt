@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.sukisu.ultra.ai.api.AiFeatureBridge
+import com.sukisu.ultra.ai.host.ManagerAiHost
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.SuperUserRepositoryImpl
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
@@ -51,6 +53,7 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
     override fun onCreate() {
         super.onCreate()
         ksuApp = this
+        if (AiFeatureBridge.isAvailable) AiFeatureBridge.install(ManagerAiHost(this))
 
         if (!isUserUnlocked()) {
             return

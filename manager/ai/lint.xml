@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- The assistant ships English defaults and zh-rCN; other app locales fall back to English. -->
+    <issue id="MissingTranslation">
+        <ignore regexp="ai_.*|cancel" />
+    </issue>
+</lint>

@@ -192,6 +192,20 @@ base {
 }
 
 dependencies {
+    // Stable bridge shared with the optional assistant AAR.
+    implementation(project(":ai-api"))
+
+    // The assistant itself is optional: a drop-in app/libs/ai.aar wins,
+    // otherwise the :ai module is used when it is part of the build. Without
+    // either, the host compiles and AiFeatureBridge hides every AI entry.
+    val aiAar = file("libs/ai.aar")
+    val aiProject = findProject(":ai")
+    if (aiAar.isFile) {
+        implementation(files(aiAar))
+    } else if (aiProject != null) {
+        implementation(project(":ai"))
+    }
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
 

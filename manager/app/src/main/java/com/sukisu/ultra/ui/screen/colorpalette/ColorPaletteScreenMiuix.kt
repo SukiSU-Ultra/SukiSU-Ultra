@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.colorpalette
 
+import com.sukisu.ultra.ai.api.R as AiR
+import com.sukisu.ultra.ai.api.AiFeatureBridge
 import android.net.Uri
 import java.io.File
 import android.os.Build
@@ -565,22 +567,24 @@ fun ColorPaletteScreenMiuix(
                             }
                         )
 
-                        SwitchPreference(
-                            title = stringResource(id = R.string.ai_show_home_card),
-                            summary = stringResource(id = R.string.ai_show_home_card_summary),
-                            startAction = {
-                                Icon(
-                                    Icons.Rounded.AutoAwesome,
-                                    modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.ai_show_home_card),
-                                    tint = colorScheme.onBackground
-                                )
-                            },
-                            checked = state.showAiHomeCard,
-                            onCheckedChange = {
-                                actions.onSetShowAiHomeCard(it)
-                            }
-                        )
+                        if (AiFeatureBridge.isAvailable) {
+                            SwitchPreference(
+                                title = stringResource(id = AiR.string.ai_show_home_card),
+                                summary = stringResource(id = AiR.string.ai_show_home_card_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.AutoAwesome,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = AiR.string.ai_show_home_card),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = state.showAiHomeCard,
+                                onCheckedChange = {
+                                    actions.onSetShowAiHomeCard(it)
+                                }
+                            )
+                        }
 
                         ArrowPreference(
                             title = stringResource(id = R.string.app_icon_title),

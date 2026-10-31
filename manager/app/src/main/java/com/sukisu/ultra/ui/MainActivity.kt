@@ -96,8 +96,9 @@ import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.navigation3.rememberNavigator
 import com.sukisu.ultra.ui.screen.about.AboutScreen
-import com.sukisu.ultra.ui.screen.ai.AiChatScreen
-import com.sukisu.ultra.ui.screen.ai.AiSettingsScreen
+import com.sukisu.ultra.ai.api.AiFeatureBridge
+import com.sukisu.ultra.ai.api.AiUiMode
+import com.sukisu.ultra.ai.host.ManagerAiTarget
 import com.sukisu.ultra.ui.screen.appicon.AppIconScreen
 import com.sukisu.ultra.ui.screen.customtext.CustomTextScreen
 import com.sukisu.ultra.ui.util.LocalCustomTexts
@@ -404,8 +405,43 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.Extensions>(swipeDismiss = swipeDismiss) { ExtensionsScreen() }
                                 entry<Route.CpuSpoof>(swipeDismiss = swipeDismiss) { CpuSpoofScreen() }
                                 entry<Route.VersionSpoof>(swipeDismiss = swipeDismiss) { VersionSpoofScreen() }
-                                entry<Route.AiAssistant>(swipeDismiss = swipeDismiss) { AiChatScreen() }
-                                entry<Route.AiSettings>(swipeDismiss = swipeDismiss) { AiSettingsScreen() }
+                                entry<Route.AiAssistant>(swipeDismiss = swipeDismiss) {
+                                    if (!AiFeatureBridge.isAvailable) {
+                                        LaunchedEffect(Unit) { navigator.pop() }
+                                    } else {
+                                        val assistantUiMode =
+                                            if (uiMode == UiMode.Miuix) AiUiMode.Miuix else AiUiMode.Material
+                                        AiFeatureBridge.ChatScreen(
+                                            uiMode = assistantUiMode,
+                                            onClose = {
+                                                if (navigator.current() == Route.AiAssistant) navigator.pop()
+                                            },
+                                            onOpenSettings = { navigator.push(Route.AiSettings) },
+                                            onNavigate = { target ->
+                                                when (target) {
+                                                    is ManagerAiTarget.Tab -> {
+                                                        viewModel.openMainPage(target.pageIndex, target.section)
+                                                        navigator.popUntil { it is Route.Main }
+                                                    }
+
+                                                    is ManagerAiTarget.Push -> navigator.navigateTo(target.route)
+                                                }
+                                            },
+                                        )
+                                    }
+                                }
+                                entry<Route.AiSettings>(swipeDismiss = swipeDismiss) {
+                                    if (!AiFeatureBridge.isAvailable) {
+                                        LaunchedEffect(Unit) { navigator.pop() }
+                                    } else {
+                                        val assistantUiMode =
+                                            if (uiMode == UiMode.Miuix) AiUiMode.Miuix else AiUiMode.Material
+                                        AiFeatureBridge.SettingsScreen(
+                                            uiMode = assistantUiMode,
+                                            onBack = { navigator.pop() },
+                                        )
+                                    }
+                                }
                         }
                     }
 
