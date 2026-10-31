@@ -319,6 +319,12 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
         }
 
+    override var builtinZygisk: Boolean
+        get() = com.sukisu.ultra.ui.util.getBuiltinZygiskStatus().enabled
+        set(value) {
+            com.sukisu.ultra.ui.util.setBuiltinZygiskEnabled(value)
+        }
+
     override var useSoftReboot: Boolean
         get() = prefs.getBoolean(KEY_USE_SOFT_REBOOT, false)
         set(value) = prefs.edit { putBoolean(KEY_USE_SOFT_REBOOT, value) }

@@ -1030,4 +1030,21 @@
     <string name="kernel_modules_expand">显示依赖链</string>
     <string name="kernel_modules_collapse">隐藏依赖链</string>
     <string name="tools_kernel_modules_summary">查看被阻止的模块、依赖关系和刷机参数</string>
+
+    <!-- Built-in Zygisk -->
+    <string name="settings_builtin_zygisk">内置 Zygisk</string>
+    <string name="settings_builtin_zygisk_summary">提供内置 Zygisk 支持 (BuiltZygisk)，开启后自动接管并抑制外部 Zygisk 模块，需重启生效</string>
+    <string name="settings_builtin_zygisk_dashboard">BuiltZygisk 面板</string>
+    <string name="settings_builtin_zygisk_dashboard_summary">查看内置 Zygisk 运行状态与已加载模块</string>
+    <string name="builtin_zygisk_status_title">运行状态</string>
+    <string name="builtin_zygisk_daemon_status">守护进程 (Daemon)</string>
+    <string name="builtin_zygisk_monitor_status">监控进程 (Monitor)</string>
+    <string name="builtin_zygisk_status_running">运行中</string>
+    <string name="builtin_zygisk_status_stopped">未运行</string>
+    <string name="builtin_zygisk_rearm">重新加载 (Rearm)</string>
+    <string name="builtin_zygisk_rearm_success">重新加载完成</string>
+    <string name="builtin_zygisk_modules_title">Zygisk 模块</string>
+    <string name="builtin_zygisk_no_modules">未检测到使用中的 Zygisk 模块</string>
+    <string name="builtin_zygisk_suppressed_hint">此模块为外部 Zygisk 实现，已被内置 Zygisk 自动抑制接管</string>
+    <string name="module_suppressed_by_builtin">已由内置接管</string>
 </resources>

@@ -38,6 +38,12 @@ import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Extension
+import androidx.compose.material.icons.rounded.Settings
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.VerifiedUser
@@ -87,6 +93,7 @@ fun SettingPagerMiuix(
     bottomInnerPadding: Dp,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
+    val context = LocalContext.current
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
@@ -516,6 +523,38 @@ fun SettingPagerMiuix(
                                 checked = uiState.autoJailbreak,
                                 onCheckedChange = actions.onSetAutoJailbreak
                             )
+                            SwitchPreference(
+                                title = stringResource(id = R.string.settings_builtin_zygisk),
+                                summary = stringResource(id = R.string.settings_builtin_zygisk_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Extension,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_builtin_zygisk),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = uiState.builtinZygisk,
+                                onCheckedChange = {
+                                    actions.onSetBuiltinZygisk(it)
+                                    Toast.makeText(context, R.string.reboot_to_apply, Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                            if (uiState.builtinZygisk) {
+                                ArrowPreference(
+                                    title = stringResource(id = R.string.settings_builtin_zygisk_dashboard),
+                                    summary = stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary),
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.Settings,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = stringResource(id = R.string.settings_builtin_zygisk_dashboard),
+                                            tint = colorScheme.onBackground
+                                        )
+                                    },
+                                    onClick = actions.onOpenBuiltinZygisk
+                                )
+                            }
                         }
                     }
 

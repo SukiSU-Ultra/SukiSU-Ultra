@@ -56,6 +56,7 @@ interface SettingsRepository {
     var showFullStatus: Boolean
     var hideHomeWarnings: Boolean
     var autoJailbreak: Boolean
+    var builtinZygisk: Boolean
     var useSoftReboot: Boolean
     val intentToken: String
 

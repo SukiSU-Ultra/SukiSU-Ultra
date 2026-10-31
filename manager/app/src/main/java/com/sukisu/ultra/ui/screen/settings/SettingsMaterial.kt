@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import android.net.Uri
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
@@ -69,6 +70,11 @@ import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import android.content.Intent
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Settings
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 
 /**
@@ -81,6 +87,7 @@ fun SettingPagerMaterial(
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
 ) {
+    val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = remember { SnackbarHostState() }
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
@@ -401,7 +408,27 @@ fun SettingPagerMaterial(
                                 checked = uiState.autoJailbreak,
                                 onCheckedChange = actions.onSetAutoJailbreak
                             )
-                        }
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Filled.Extension,
+                                title = stringResource(id = R.string.settings_builtin_zygisk),
+                                summary = stringResource(id = R.string.settings_builtin_zygisk_summary),
+                                checked = uiState.builtinZygisk,
+                                onCheckedChange = {
+                                    actions.onSetBuiltinZygisk(it)
+                                    Toast.makeText(context, R.string.reboot_to_apply, Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        },
+                        *(if (uiState.builtinZygisk) arrayOf<@Composable () -> Unit>({
+                            SegmentedListItem(
+                                onClick = actions.onOpenBuiltinZygisk,
+                                headlineContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard)) },
+                                supportingContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary)) },
+                                leadingContent = { IconTile(Icons.Filled.Settings, stringResource(id = R.string.settings_builtin_zygisk_dashboard)) }
+                            )
+                        }) else emptyArray())
                     )
                 )
             }

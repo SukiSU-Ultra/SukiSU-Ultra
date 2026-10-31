@@ -51,7 +51,8 @@ class ModuleRepositoryImpl : ModuleRepository {
                         actionIconPath = obj.optString("actionIcon").takeIf { it.isNotBlank() },
                         webUiIconPath = obj.optString("webuiIcon").takeIf { it.isNotBlank() },
                         preinit = obj.optString("preinit"),
-                        bannerPath = obj.optString("banner").takeIf { it.isNotBlank() }
+                        bannerPath = obj.optString("banner").takeIf { it.isNotBlank() },
+                        suppressedByBuiltin = obj.optBoolean("suppressed_by_builtin")
                     )
                 }.toList()
         }

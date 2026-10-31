@@ -37,6 +37,12 @@ enum Commands {
         command: Module,
     },
 
+    /// Manage built-in Zygisk
+    Zygisk {
+        #[command(subcommand)]
+        command: ZygiskCommand,
+    },
+
     /// Trigger `post-fs-data` event
     PostFsData,
 
@@ -209,6 +215,18 @@ enum Commands {
         #[command(subcommand)]
         command: Manager,
     },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum ZygiskCommand {
+    /// Enable built-in Zygisk
+    On,
+    /// Disable built-in Zygisk
+    Off,
+    /// Check built-in Zygisk status
+    Status,
+    /// Reload built-in Zygisk
+    Rearm,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1247,6 +1265,33 @@ pub fn run() -> Result<()> {
             Extension::Check { id } => crate::extension::check_extension(&id),
             Extension::Load => crate::extension::load_config_and_apply(),
             Extension::Save => crate::extension::save_config(),
+        },
+
+        Commands::Zygisk { command } => match command {
+            ZygiskCommand::On => {
+                crate::builtin_zygisk::enable()?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Off => {
+                crate::builtin_zygisk::disable()?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Status => {
+                let enabled = crate::builtin_zygisk::is_enabled();
+                let monitor = crate::builtin_zygisk::is_monitor_running();
+                let daemon = crate::builtin_zygisk::is_daemon_running();
+                println!(
+                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon}}}"#
+                );
+                Ok(())
+            }
+            ZygiskCommand::Rearm => {
+                crate::builtin_zygisk::rearm()?;
+                println!("true");
+                Ok(())
+            }
         },
 
         Commands::Debug { command } => match command {

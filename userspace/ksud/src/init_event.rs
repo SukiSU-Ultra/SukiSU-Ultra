@@ -91,6 +91,10 @@ pub fn on_post_fs_data() -> Result<()> {
         warn!("load sepolicy.rule failed");
     }
 
+    if let Err(e) = crate::builtin_zygisk::apply_sepolicy() {
+        warn!("apply builtin zygisk sepolicy failed: {e}");
+    }
+
     if let Err(e) = crate::profile::apply_sepolies() {
         warn!("apply root profile sepolicy failed: {e}");
     }
@@ -114,6 +118,11 @@ pub fn on_post_fs_data() -> Result<()> {
     #[cfg(target_arch = "aarch64")]
     if let Err(e) = kpm::booted_load() {
         warn!("KPM: Failed to start KPM watcher: {e}");
+    }
+
+    // bootstrap built-in zygisk before module post-fs-data
+    if let Err(e) = crate::builtin_zygisk::bootstrap() {
+        warn!("bootstrap builtin zygisk failed: {e}");
     }
 
     // execute metamodule post-fs-data script first (priority)
@@ -148,6 +157,10 @@ pub fn on_post_fs_data() -> Result<()> {
     }
 
     run_stage("post-mount", wait);
+
+    if let Err(e) = crate::builtin_zygisk::rearm() {
+        warn!("rearm builtin zygisk failed: {e}");
+    }
 
     std::env::set_current_dir("/").with_context(|| "failed to chdir to /")?;
 

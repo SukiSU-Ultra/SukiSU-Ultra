@@ -75,7 +75,7 @@ class WebUIActivity : ComponentActivity() {
 
 @Composable
 private fun MainContent(activity: ComponentActivity, onFinish: () -> Unit) {
-    val moduleId = remember { activity.intent.data?.getQueryParameter("id") }
+    val moduleId = remember { activity.intent.data?.getQueryParameter("id") ?: activity.intent.getStringExtra("id") }
     val webUIState = remember { WebUIState() }
 
     LaunchedEffect(moduleId) {

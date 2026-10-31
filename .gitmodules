@@ -1,0 +1,3 @@
+[submodule "external/BuiltZygisk"]
+	path = external/BuiltZygisk
+	url = https://github.com/SukiSU-Ultra/BuiltZygisk

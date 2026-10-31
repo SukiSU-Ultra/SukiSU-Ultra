@@ -159,6 +159,18 @@ pub fn foreach_module(
             continue;
         }
 
+        if module_type == Active && crate::builtin_zygisk::is_enabled() {
+            let id = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+            let prop_id = read_module_prop(&path)
+                .ok()
+                .and_then(|m| m.get("id").cloned())
+                .unwrap_or_default();
+            if is_zygisk_provider(id) || (!prop_id.is_empty() && is_zygisk_provider(&prop_id)) {
+                info!("{} is suppressed by built-in zygisk, skip", path.display());
+                continue;
+            }
+        }
+
         f(&path)?;
     }
 
@@ -1215,7 +1227,7 @@ pub fn is_zygisk_provider(module_id: &str) -> bool {
     let id_lower = module_id.to_ascii_lowercase();
     matches!(
         id_lower.as_str(),
-        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk"
+        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk" | "yukisu"
     )
 }
 
@@ -1412,6 +1424,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         };
         let need_mount = path.join("system").exists() && !path.join("skip_mount").exists();
 
+        let suppressed_by_builtin = is_provider && crate::builtin_zygisk::is_enabled();
         module_prop_map.insert("enabled".to_owned(), enabled.to_string());
         module_prop_map.insert("update".to_owned(), update.to_string());
         module_prop_map.insert("remove".to_owned(), remove.to_string());
@@ -1420,6 +1433,10 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         module_prop_map.insert("zygisk".to_owned(), is_provider.to_string());
         module_prop_map.insert("zygisk_provider".to_owned(), is_provider.to_string());
         module_prop_map.insert("zygisk_running".to_owned(), zygisk_running.to_string());
+        module_prop_map.insert(
+            "suppressed_by_builtin".to_owned(),
+            suppressed_by_builtin.to_string(),
+        );
         module_prop_map.insert("mount".to_owned(), need_mount.to_string());
         if let Some(state) = module_prop_map
             .get("id")

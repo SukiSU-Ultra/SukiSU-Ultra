@@ -11,6 +11,7 @@ on:
       - '.github/workflows/ksud.yml'
       - '.github/workflows/ksud-extra.yml'
       - '.github/workflows/ksuinit.yml'
+      - '.github/workflows/builtzygisk.yml'
       - '.github/scripts/setup-rust-build.sh'
       - '.github/riscv64-cargo.toml'
       - 'scripts/upload-telegram.sh'
@@ -19,6 +20,7 @@ on:
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
+      - 'external/BuiltZygisk/**'
       - 'Cargo.lock'
       - 'Cargo.toml'
 
@@ -31,6 +33,7 @@ on:
       - '.github/workflows/ksud.yml'
       - '.github/workflows/ksud-extra.yml'
       - '.github/workflows/ksuinit.yml'
+      - '.github/workflows/builtzygisk.yml'
       - '.github/scripts/setup-rust-build.sh'
       - '.github/riscv64-cargo.toml'
       - 'scripts/upload-telegram.sh'
@@ -39,6 +42,7 @@ on:
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
+      - 'external/BuiltZygisk/**'
       - 'Cargo.lock'
       - 'Cargo.toml'
 
@@ -150,9 +154,11 @@ jobs:
   build-ksuinit:
     uses: ./.github/workflows/ksuinit.yml
 
+  build-builtzygisk:
+    uses: ./.github/workflows/builtzygisk.yml
 
   build-ksud:
-    needs: [build-lkm, build-ksuinit]
+    needs: [build-lkm, build-ksuinit, build-builtzygisk]
 
     strategy:
       fail-fast: false
@@ -168,6 +174,7 @@ jobs:
       target: ${{ matrix.target }}
       pack_lkm: true
       pack_ksuinit: true
+      pack_builtzygisk: true
 
 
   # ------------------------------------------------------------

@@ -1117,7 +1117,7 @@ fun restartApp(packageName: String, userId: Int? = null) {
     launchApp(packageName, userId)
 }
 
-// KPM控制
+// KPM鎺у埗
 // KPM module names may contain spaces ("ABC EFG"): always pass names, paths and
 // args through shellQuote, otherwise the shell splits them into multiple argv and
 // ksud (clap) only takes the first token, so info/unload/control hit the wrong
@@ -1327,7 +1327,7 @@ data class BootConfig(
     val spoofVersion: String = "",
 )
 
-// 读取镜像中的 ksu_config 参数
+// 璇诲彇闀滃儚涓殑 ksu_config 鍙傛暟
 suspend fun getBootConfig(): BootConfig = withContext(Dispatchers.IO) {
     val shell = getRootShell()
     val cmd = "${getKsuDaemonPath()} boot-info read-config"
@@ -1430,4 +1430,38 @@ suspend fun getDynamicManagerSignature(apkPath: String): DynamicManagerSignature
 
 suspend fun addDynamicManager(packageName: String, signature: DynamicManagerSignature) {
     runDynamicManagerCommand("manager", "add", packageName, signature.certSize.toString(), signature.hash)
+}
+
+data class BuiltinZygiskStatus(
+    val enabled: Boolean = false,
+    val monitorRunning: Boolean = false,
+    val daemonRunning: Boolean = false,
+)
+
+fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk status").trim()
+        val json = org.json.JSONObject(out)
+        BuiltinZygiskStatus(
+            enabled = json.optBoolean("enabled", false),
+            monitorRunning = json.optBoolean("monitor_running", false),
+            daemonRunning = json.optBoolean("daemon_running", false)
+        )
+    }.getOrDefault(BuiltinZygiskStatus())
+}
+
+fun setBuiltinZygiskEnabled(enabled: Boolean): Boolean {
+    val shell = getRootShell()
+    val action = if (enabled) "on" else "off"
+    val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk $action").trim()
+    return out == "true"
+}
+
+fun rearmBuiltinZygisk(): Boolean {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk rearm").trim()
+        out == "true"
+    }.getOrDefault(false)
 }
