@@ -73,11 +73,14 @@ data class BackgroundCropUiState(
     val isHomeCardCrop: Boolean,
 )
 
-/** Matches the minimum height in HomeMiuix's status card. */
+/** Matches the minimum height in the home status card. */
 private const val HOME_CARD_MIN_HEIGHT_DP = 188f
 
-/** Page horizontal margins around the home status card (12dp on each side). */
-private const val HOME_CARD_HORIZONTAL_MARGIN_DP = 24f
+/** Miuix home page uses 12dp horizontal padding on each side. */
+private const val MIUIX_HOME_CARD_HORIZONTAL_MARGIN_DP = 24f
+
+/** Material home page uses 16dp horizontal padding on each side. */
+private const val MATERIAL_HOME_CARD_HORIZONTAL_MARGIN_DP = 32f
 
 data class BackgroundCropActions(
     val onClose: () -> Unit,
@@ -99,6 +102,7 @@ fun BackgroundCropScreen(sourcePath: String, forHomeCard: Boolean = false) {
     val windowSize = LocalWindowInfo.current.containerSize
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current
+    val uiMode = LocalUiMode.current
 
     val screenWidth = windowSize.width.takeIf { it > 0 }
         ?: configuration.screenWidthDp.takeIf { it > 0 }
@@ -121,9 +125,13 @@ fun BackgroundCropScreen(sourcePath: String, forHomeCard: Boolean = false) {
     }
     val (aspectX, aspectY) = selectedRatio.aspectPair(screenWidth, screenHeight)
     val backgroundAspect = aspectX.toFloat() / aspectY.toFloat()
-    val homeCardAspect = remember(screenWidth, density.density) {
+    val homeCardHorizontalMarginDp = when (uiMode) {
+        UiMode.Miuix -> MIUIX_HOME_CARD_HORIZONTAL_MARGIN_DP
+        UiMode.Material -> MATERIAL_HOME_CARD_HORIZONTAL_MARGIN_DP
+    }
+    val homeCardAspect = remember(screenWidth, density.density, homeCardHorizontalMarginDp) {
         val widthDp = screenWidth / density.density
-        ((widthDp - HOME_CARD_HORIZONTAL_MARGIN_DP).coerceAtLeast(1f)) / HOME_CARD_MIN_HEIGHT_DP
+        ((widthDp - homeCardHorizontalMarginDp).coerceAtLeast(1f)) / HOME_CARD_MIN_HEIGHT_DP
     }
     val viewportAspect = if (forHomeCard) homeCardAspect else backgroundAspect
     val galleryCropAvailable = remember(context) { ExternalCropper.isAvailable(context) }
@@ -335,7 +343,7 @@ fun BackgroundCropScreen(sourcePath: String, forHomeCard: Boolean = false) {
         },
     )
 
-    when (LocalUiMode.current) {
+    when (uiMode) {
         UiMode.Miuix -> BackgroundCropScreenMiuix(state, actions, controller)
         UiMode.Material -> BackgroundCropScreenMaterial(state, actions, controller)
     }
