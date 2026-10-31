@@ -506,7 +506,13 @@ fun ColorPaletteScreenMaterial(
                             SegmentedListItem(
                                 onClick = {
                                     importThemeLauncher.launch(
-                                        arrayOf("application/zip", "application/x-zip-compressed")
+                                        arrayOf(
+                                            ThemePackageStorage.THEME_MIME_TYPE,
+                                            "application/octet-stream",
+                                            "application/zip",
+                                            "application/x-zip-compressed",
+                                            "*/*"
+                                        )
                                     )
                                 },
                                 headlineContent = { Text(stringResource(id = R.string.theme_import)) },

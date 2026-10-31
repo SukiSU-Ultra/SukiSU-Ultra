@@ -149,15 +149,18 @@ private fun Intent.getStreamUris(): List<Uri>? = if (Build.VERSION.SDK_INT >= Bu
 }
 
 private fun isZipFile(context: Context, intent: Intent, uri: Uri): Boolean {
+    val fileName = uri.getFileName(context) ?: uri.lastPathSegment.orEmpty()
+    val cleanName = fileName.substringBefore('?')
+    if (cleanName.endsWith(".sukisu", ignoreCase = true)) return false
+
     val mimeType = (intent.type ?: context.contentResolver.getType(uri))
         ?.substringBefore(';')
         ?.trim()
         ?.lowercase()
+    if (mimeType == com.sukisu.ultra.ui.util.ThemePackageStorage.THEME_MIME_TYPE) return false
     if (mimeType in ZIP_MIME_TYPES || mimeType == APK_MIME_TYPE) return true
 
-    val fileName = uri.getFileName(context) ?: uri.lastPathSegment.orEmpty()
-    return fileName.substringBefore('?').endsWith(".zip", ignoreCase = true) ||
-        fileName.substringBefore('?').endsWith(".apk", ignoreCase = true)
+    return cleanName.endsWith(".zip", ignoreCase = true) || cleanName.endsWith(".apk", ignoreCase = true)
 }
 
 private fun buildFileNames(

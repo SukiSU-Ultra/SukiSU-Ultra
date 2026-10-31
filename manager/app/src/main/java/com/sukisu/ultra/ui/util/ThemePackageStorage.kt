@@ -67,6 +67,7 @@ data class ImportedTheme(
 
 object ThemePackageStorage {
     const val CURRENT_VERSION = 1
+    const val THEME_MIME_TYPE = "application/x-sukisu-theme"
 
     private const val THEME_ENTRY = "theme.json"
     private const val BACKGROUND_ENTRY = "background"

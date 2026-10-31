@@ -510,8 +510,14 @@ fun ColorPaletteScreenMiuix(
                             },
                             onClick = {
                                 importThemeLauncher.launch(
-                                    arrayOf("application/zip", "application/x-zip-compressed")
-                                )
+                                        arrayOf(
+                                            ThemePackageStorage.THEME_MIME_TYPE,
+                                            "application/octet-stream",
+                                            "application/zip",
+                                            "application/x-zip-compressed",
+                                            "*/*"
+                                        )
+                                    )
                             },
                         )
                         BasicComponent(

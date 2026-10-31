@@ -87,6 +87,45 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
 
@@ -158,6 +197,45 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <data
                     android:host="action"
                     android:scheme="ksu" />
@@ -214,6 +292,45 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <data
                     android:host="action"
                     android:scheme="ksu" />
@@ -266,6 +383,45 @@
                 <data android:mimeType="application/x-zip-compressed" />
                 <data android:mimeType="application/vnd.android.package-archive" />
                 <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-sukisu-theme" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
