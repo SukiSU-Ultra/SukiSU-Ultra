@@ -285,6 +285,9 @@ kotlin {
     }
 }
 
+// Resolved lazily at execution time; using AGP's providers also honours local.properties.
+val androidSdkDirectory = androidComponents.sdkComponents.sdkDirectory
+val androidNdkDirectory = androidComponents.sdkComponents.ndkDirectory
 val kpmToolsDir = layout.buildDirectory.dir("generated/kpmTools")
 val downloadKpmTools = tasks.register("downloadKpmTools") {
     description = "Download the latest KPM tools to bundle in the APK"
@@ -350,17 +353,30 @@ val downloadKpmTools = tasks.register("downloadKpmTools") {
             if (name == "kptools-android") {
                 val isWindows = System.getProperty("os.name").lowercase().contains("windows")
                 val stripName = if (isWindows) "llvm-strip.exe" else "llvm-strip"
-                val sdkDir = project.extensions.findByType(com.android.build.gradle.BaseExtension::class.java)?.sdkDirectory
-                    ?: file(System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT") ?: "")
-                val candidateNdks = listOfNotNull(
-                    sdkDir.resolve("ndk/$androidCompileNdkVersion").takeIf { it.isDirectory },
-                    sdkDir.resolve("ndk").listFiles()?.filter { it.isDirectory }?.sortedByDescending { it.name }?.firstOrNull(),
-                    sdkDir.resolve("ndk-bundle").takeIf { it.isDirectory }
-                )
-                val stripExe = candidateNdks.firstNotNullOfOrNull { ndk ->
-                    val prebuilt = ndk.resolve("toolchains/llvm/prebuilt")
-                    prebuilt.listFiles()?.firstOrNull { it.isDirectory }?.resolve("bin/$stripName")?.takeIf { it.isFile }
+                // Prefer AGP's NDK location, then the SDK/NDK environment variables. Never build a
+                // File from an empty string: an unset SDK simply means stripping is skipped.
+                val ndkCandidates = buildList {
+                    androidNdkDirectory.orNull?.asFile?.let(::add)
+                    val sdkDir = androidSdkDirectory.orNull?.asFile
+                        ?: System.getenv("ANDROID_HOME")?.takeIf { it.isNotBlank() }?.let { file(it) }
+                        ?: System.getenv("ANDROID_SDK_ROOT")?.takeIf { it.isNotBlank() }?.let { file(it) }
+                    if (sdkDir != null) {
+                        add(sdkDir.resolve("ndk/$androidCompileNdkVersion"))
+                        sdkDir.resolve("ndk").listFiles()?.filter { it.isDirectory }
+                            ?.sortedByDescending { it.name }?.forEach(::add)
+                        add(sdkDir.resolve("ndk-bundle"))
+                    }
+                    System.getenv("ANDROID_NDK_HOME")?.takeIf { it.isNotBlank() }?.let { file(it) }?.let(::add)
                 }
+                val stripExe = ndkCandidates.asSequence()
+                    .filter { it.isDirectory }
+                    .flatMap { ndk ->
+                        val prebuilt = ndk.resolve("toolchains/llvm/prebuilt")
+                        (prebuilt.listFiles() ?: emptyArray()).asSequence()
+                            .filter { it.isDirectory }
+                            .mapNotNull { it.resolve("bin/$stripName").takeIf { bin -> bin.isFile } }
+                    }
+                    .firstOrNull()
                 val cmd = if (stripExe != null) {
                     listOf(stripExe.absolutePath, "--strip-all", output.absolutePath)
                 } else {
