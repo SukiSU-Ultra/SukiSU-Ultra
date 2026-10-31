@@ -49,6 +49,7 @@ fun ColorPaletteScreen() {
         currentColorSpec = currentColorSpec,
         showFullStatus = uiState.showFullStatus,
         hideHomeWarnings = uiState.hideHomeWarnings,
+        showHomeStatusIcon = uiState.showHomeStatusIcon,
     )
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -73,6 +74,7 @@ fun ColorPaletteScreen() {
         onSetModuleDescriptionMaxLines = viewModel::setModuleDescriptionMaxLines,
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetHideHomeWarnings = viewModel::setHideHomeWarnings,
+        onSetShowHomeStatusIcon = viewModel::setShowHomeStatusIcon,
         onOpenAppIcon = { navigator.push(Route.AppIcon) },
         onSetBackgroundAppearanceExpanded = viewModel::setBackgroundAppearanceExpanded,
         onSetCustomHomeTitle = viewModel::setCustomHomeTitle,
@@ -99,7 +101,17 @@ fun ColorPaletteScreen() {
             }
         },
         onClearCustomBackground = viewModel::clearCustomBackground,
-        onPickHomeCardImage = viewModel::pickHomeCardImage,
+        onPickHomeCardImage = { ctx, uri ->
+            viewModel.stagePickedHomeCardImage(ctx, uri) { path ->
+                if (path != null) {
+                    if (navigator.current() == Route.ColorPalette) {
+                        navigator.push(Route.BackgroundCrop(path, forHomeCard = true))
+                    } else {
+                        ImageStorage.discardStaged(path)
+                    }
+                }
+            }
+        },
         onClearHomeCardImage = viewModel::clearHomeCardImage,
         onSetUseSystemWallpaper = viewModel::setUseSystemWallpaper,
         onSetExtractColorFromBackground = viewModel::setExtractColorFromBackground,

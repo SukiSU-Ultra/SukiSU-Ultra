@@ -31,6 +31,7 @@ private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
 internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
 internal const val KEY_CUSTOM_TEXTS = "custom_texts"
 internal const val KEY_HOME_CARD_IMAGE_PATH = "home_card_image_path"
+internal const val KEY_SHOW_HOME_STATUS_ICON = "show_home_status_icon"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -301,6 +302,10 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var hideHomeWarnings: Boolean
         get() = prefs.getBoolean("hide_home_warnings", false)
         set(value) = prefs.edit { putBoolean("hide_home_warnings", value) }
+
+    override var showHomeStatusIcon: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_HOME_STATUS_ICON, true)
+        set(value) = prefs.edit { putBoolean(KEY_SHOW_HOME_STATUS_ICON, value) }
 
     override var autoJailbreak: Boolean
         get() = prefs.getBoolean("auto_jailbreak", false)

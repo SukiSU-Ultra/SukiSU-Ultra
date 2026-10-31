@@ -364,15 +364,17 @@ private fun ActiveStatusCard(
         pressFeedbackType = PressFeedbackType.Tilt
     ) {
         Box {
-            Icon(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(27.dp, 31.dp)
-                    .size(150.dp),
-                imageVector = Icons.Rounded.CheckCircleOutline,
-                tint = accentColor.copy(alpha = if (isDynamicColor) 0.8f else 1f),
-                contentDescription = null
-            )
+            if (state.showHomeStatusIcon) {
+                Icon(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(27.dp, 31.dp)
+                        .size(150.dp),
+                    imageVector = Icons.Rounded.CheckCircleOutline,
+                    tint = accentColor.copy(alpha = if (isDynamicColor) 0.8f else 1f),
+                    contentDescription = null
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

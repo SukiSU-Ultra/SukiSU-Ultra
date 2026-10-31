@@ -14,6 +14,7 @@ data class ColorPaletteUiState(
     val currentColorSpec: ColorSpec.SpecVersion,
     val showFullStatus: Boolean,
     val hideHomeWarnings: Boolean,
+    val showHomeStatusIcon: Boolean,
 )
 
 @Immutable
@@ -36,6 +37,7 @@ data class ColorPaletteScreenActions(
     val onSetModuleDescriptionMaxLines: (Int) -> Unit,
     val onSetShowFullStatus: (Boolean) -> Unit,
     val onSetHideHomeWarnings: (Boolean) -> Unit,
+    val onSetShowHomeStatusIcon: (Boolean) -> Unit,
     val onOpenAppIcon: () -> Unit,
     val onSetBackgroundAppearanceExpanded: (Boolean) -> Unit = {},
     val onSetCustomHomeTitle: (String) -> Unit = {},

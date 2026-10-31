@@ -73,6 +73,7 @@ class SettingsViewModel(
             val autoDeleteModuleZip = repo.autoDeleteModuleZip
             val showFullStatus = repo.showFullStatus
             val hideHomeWarnings = repo.hideHomeWarnings
+            val showHomeStatusIcon = repo.showHomeStatusIcon
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
@@ -152,6 +153,7 @@ class SettingsViewModel(
                     autoDeleteModuleZip = autoDeleteModuleZip,
                     showFullStatus = showFullStatus,
                     hideHomeWarnings = hideHomeWarnings,
+                    showHomeStatusIcon = showHomeStatusIcon,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
                     suCompatStatus = suCompatStatus,
@@ -251,6 +253,35 @@ class SettingsViewModel(
         true
     }
 
+    /** Copies a newly picked image into the crop cache and hands its path to the card crop screen. */
+    fun stagePickedHomeCardImage(context: Context, uri: Uri, onReady: (String?) -> Unit) {
+        viewModelScope.launch {
+            val path = ImageStorage.stageUri(context, uri)
+            if (path == null) {
+                Toast.makeText(
+                    ksuApp,
+                    R.string.background_crop_prepare_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+            onReady(path)
+        }
+    }
+
+    /** Applies the cropped home status card background and refreshes the appearance state. */
+    suspend fun finishHomeCardCrop(
+        context: Context,
+        output: File,
+        sourcePath: String?,
+    ): Boolean = withContext(Dispatchers.IO) {
+        val savedPath = ImageStorage.replaceHomeCardImage(context, output) ?: return@withContext false
+        runCatching { if (output.isFile) output.delete() }
+        ImageStorage.discardStaged(sourcePath)
+        repo.homeCardImagePath = savedPath
+        _uiState.update { it.copy(homeCardImagePath = savedPath) }
+        true
+    }
+
     suspend fun applyOriginalBackground(context: Context, sourcePath: String): Boolean =
         withContext(Dispatchers.IO) {
             val source = File(sourcePath)
@@ -296,6 +327,7 @@ class SettingsViewModel(
             it.copy(
                 customBackgroundUri = repo.customBackgroundUri,
                 customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                homeCardImagePath = repo.homeCardImagePath,
                 cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                 customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
                 customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
@@ -420,18 +452,6 @@ class SettingsViewModel(
         _uiState.update { it.copy(customBackgroundScrimPercent = percent) }
     }
 
-    fun pickHomeCardImage(context: Context, uri: Uri) {
-        viewModelScope.launch {
-            val path = ImageStorage.saveHomeCardImage(context, uri)
-            if (path != null) {
-                repo.homeCardImagePath = path
-                _uiState.update { it.copy(homeCardImagePath = path) }
-            } else {
-                Toast.makeText(context, R.string.home_card_image_failed, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     fun clearHomeCardImage() {
         viewModelScope.launch {
             ImageStorage.clearHomeCardImage(ksuApp)
@@ -498,6 +518,7 @@ class SettingsViewModel(
             val data = ThemePackageData(
                 themeMode = state.themeMode,
                 miuixMonet = state.miuixMonet,
+                showHomeStatusIcon = state.showHomeStatusIcon,
                 keyColor = state.keyColor,
                 colorStyle = state.colorStyle,
                 colorSpec = state.colorSpec,
@@ -590,6 +611,7 @@ class SettingsViewModel(
 
         var themeMode = current.themeMode
         var miuixMonet = current.miuixMonet
+        var showHomeStatusIcon = current.showHomeStatusIcon
         var keyColor = current.keyColor
         var colorStyle = current.colorStyle
         var colorSpec = current.colorSpec
@@ -601,6 +623,7 @@ class SettingsViewModel(
         if (options.importAppearance) {
             themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
             miuixMonet = data.miuixMonet ?: current.miuixMonet
+            showHomeStatusIcon = data.showHomeStatusIcon ?: current.showHomeStatusIcon
             keyColor = data.keyColor ?: current.keyColor
             colorStyle = data.colorStyle
                 ?.takeIf { name -> runCatching { PaletteStyle.valueOf(name) }.isSuccess }
@@ -619,6 +642,7 @@ class SettingsViewModel(
             repo.uiMode = targetUiMode
             repo.themeMode = themeMode
             repo.miuixMonet = miuixMonet
+            repo.showHomeStatusIcon = showHomeStatusIcon
             repo.keyColor = keyColor
             repo.colorStyle = colorStyle
             repo.colorSpec = colorSpec
@@ -726,6 +750,7 @@ class SettingsViewModel(
                 customTexts = effectiveCustomTexts,
                 themeMode = themeMode,
                 miuixMonet = miuixMonet,
+                showHomeStatusIcon = showHomeStatusIcon,
                 keyColor = keyColor,
                 colorStyle = colorStyle,
                 colorSpec = colorSpec,
@@ -1004,6 +1029,11 @@ class SettingsViewModel(
     fun setHideHomeWarnings(enabled: Boolean) {
         repo.hideHomeWarnings = enabled
         _uiState.update { it.copy(hideHomeWarnings = enabled) }
+    }
+
+    fun setShowHomeStatusIcon(enabled: Boolean) {
+        repo.showHomeStatusIcon = enabled
+        _uiState.update { it.copy(showHomeStatusIcon = enabled) }
     }
 
     fun setSuCompatMode(mode: Int) {

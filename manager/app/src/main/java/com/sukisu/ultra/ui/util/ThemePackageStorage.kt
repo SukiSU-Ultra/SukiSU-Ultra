@@ -29,6 +29,7 @@ data class ThemePackageData(
     val version: Int = ThemePackageStorage.CURRENT_VERSION,
     val themeMode: Int? = null,
     val miuixMonet: Boolean? = null,
+    val showHomeStatusIcon: Boolean? = null,
     val keyColor: Int? = null,
     val colorStyle: String? = null,
     val colorSpec: String? = null,

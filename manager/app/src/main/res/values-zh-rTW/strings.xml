@@ -700,6 +700,8 @@
     <string name="settings_show_fullstatus_summary">在首頁信息卡中顯示設備的完整狀態</string>
     <string name="settings_hide_home_warnings">隱藏首頁警告</string>
     <string name="settings_hide_home_warnings_summary">隱藏首頁的警告卡片（PR 建置、核心/管理器更新、LKM 更新、預覽模式）</string>
+    <string name="settings_show_home_status_icon">顯示狀態卡圖示</string>
+    <string name="settings_show_home_status_icon_summary">在首頁狀態卡右下角顯示綠色圓圈對勾圖案</string>
     <string name="home_zygisk_implementation">Zygisk 實作</string>
     <string name="home_zygisk_not_installed">未安裝</string>
     <string name="home_zygisk_disabled">已停用</string>
@@ -782,6 +784,7 @@
     <string name="settings_home_card_image_clear_summary">恢復純色卡片背景</string>
     <string name="home_card_image_failed">無法讀取該圖片</string>
     <string name="background_crop_title">裁切背景</string>
+    <string name="background_crop_title_home_card">裁切狀態卡背景</string>
     <string name="background_crop_done">完成</string>
     <string name="background_crop_use_original">使用原圖</string>
     <string name="background_crop_gallery">相簿裁切</string>

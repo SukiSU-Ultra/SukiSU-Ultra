@@ -41,6 +41,7 @@ import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CallToAction
+import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
@@ -239,6 +240,7 @@ fun ColorPaletteScreenMiuix(
                             pageScale = uiState.pageScale,
                             customHomeTitle = uiState.customHomeTitle,
                             homeCardImagePath = uiState.homeCardImagePath,
+                            showHomeStatusIcon = uiState.showHomeStatusIcon,
                         ),
                     )
                     Spacer(modifier = Modifier.height(28.dp))
@@ -541,6 +543,23 @@ fun ColorPaletteScreenMiuix(
                             checked = state.hideHomeWarnings,
                             onCheckedChange = {
                                 actions.onSetHideHomeWarnings(it)
+                            }
+                        )
+
+                        SwitchPreference(
+                            title = stringResource(id = R.string.settings_show_home_status_icon),
+                            summary = stringResource(id = R.string.settings_show_home_status_icon_summary),
+                            startAction = {
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircleOutline,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.settings_show_home_status_icon),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            checked = state.showHomeStatusIcon,
+                            onCheckedChange = {
+                                actions.onSetShowHomeStatusIcon(it)
                             }
                         )
 

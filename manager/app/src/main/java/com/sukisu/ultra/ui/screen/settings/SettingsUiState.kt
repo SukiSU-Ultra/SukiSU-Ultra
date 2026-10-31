@@ -33,6 +33,7 @@ data class SettingsUiState(
     val enableWebDebugging: Boolean = false,
     val showFullStatus: Boolean = true,
     val hideHomeWarnings: Boolean = false,
+    val showHomeStatusIcon: Boolean = true,
 
     // Su Compat
     val suCompatStatus: String = "",
