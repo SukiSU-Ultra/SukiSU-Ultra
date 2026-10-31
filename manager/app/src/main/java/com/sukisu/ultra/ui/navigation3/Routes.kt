@@ -62,10 +62,16 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object AppIcon : Route
 
-    /** In-app background cropper. [sourcePath] is a private cache copy of the picked image. */
+    /**
+     * In-app background cropper. [sourcePath] is a private cache copy of the picked image.
+     * [forHomeCard] locks the aspect ratio to the home status card instead of the background.
+     */
     @Parcelize
     @Serializable
-    data class BackgroundCrop(val sourcePath: String) : Route
+    data class BackgroundCrop(
+        val sourcePath: String,
+        val forHomeCard: Boolean = false,
+    ) : Route
 
     @Parcelize
     @Serializable

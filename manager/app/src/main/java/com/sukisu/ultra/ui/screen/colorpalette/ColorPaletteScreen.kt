@@ -101,7 +101,17 @@ fun ColorPaletteScreen() {
             }
         },
         onClearCustomBackground = viewModel::clearCustomBackground,
-        onPickHomeCardImage = viewModel::pickHomeCardImage,
+        onPickHomeCardImage = { ctx, uri ->
+            viewModel.stagePickedHomeCardImage(ctx, uri) { path ->
+                if (path != null) {
+                    if (navigator.current() == Route.ColorPalette) {
+                        navigator.push(Route.BackgroundCrop(path, forHomeCard = true))
+                    } else {
+                        ImageStorage.discardStaged(path)
+                    }
+                }
+            }
+        },
         onClearHomeCardImage = viewModel::clearHomeCardImage,
         onSetUseSystemWallpaper = viewModel::setUseSystemWallpaper,
         onSetExtractColorFromBackground = viewModel::setExtractColorFromBackground,

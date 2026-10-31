@@ -914,6 +914,7 @@
     <string name="settings_home_card_image_clear_summary">Restore the solid card color</string>
     <string name="home_card_image_failed">Could not load that image</string>
     <string name="background_crop_title">Crop Background</string>
+    <string name="background_crop_title_home_card">Crop Card Background</string>
     <string name="background_crop_done">Done</string>
     <string name="background_crop_use_original">Use original</string>
     <string name="background_crop_gallery">Gallery crop</string>

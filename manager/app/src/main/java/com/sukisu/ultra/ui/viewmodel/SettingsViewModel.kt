@@ -253,6 +253,35 @@ class SettingsViewModel(
         true
     }
 
+    /** Copies a newly picked image into the crop cache and hands its path to the card crop screen. */
+    fun stagePickedHomeCardImage(context: Context, uri: Uri, onReady: (String?) -> Unit) {
+        viewModelScope.launch {
+            val path = ImageStorage.stageUri(context, uri)
+            if (path == null) {
+                Toast.makeText(
+                    ksuApp,
+                    R.string.background_crop_prepare_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+            onReady(path)
+        }
+    }
+
+    /** Applies the cropped home status card background and refreshes the appearance state. */
+    suspend fun finishHomeCardCrop(
+        context: Context,
+        output: File,
+        sourcePath: String?,
+    ): Boolean = withContext(Dispatchers.IO) {
+        val savedPath = ImageStorage.replaceHomeCardImage(context, output) ?: return@withContext false
+        runCatching { if (output.isFile) output.delete() }
+        ImageStorage.discardStaged(sourcePath)
+        repo.homeCardImagePath = savedPath
+        _uiState.update { it.copy(homeCardImagePath = savedPath) }
+        true
+    }
+
     suspend fun applyOriginalBackground(context: Context, sourcePath: String): Boolean =
         withContext(Dispatchers.IO) {
             val source = File(sourcePath)
@@ -298,6 +327,7 @@ class SettingsViewModel(
             it.copy(
                 customBackgroundUri = repo.customBackgroundUri,
                 customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                homeCardImagePath = repo.homeCardImagePath,
                 cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
                 customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
                 customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
@@ -420,18 +450,6 @@ class SettingsViewModel(
     fun setCustomBackgroundScrimPercent(percent: Int) {
         repo.customBackgroundScrimPercent = percent
         _uiState.update { it.copy(customBackgroundScrimPercent = percent) }
-    }
-
-    fun pickHomeCardImage(context: Context, uri: Uri) {
-        viewModelScope.launch {
-            val path = ImageStorage.saveHomeCardImage(context, uri)
-            if (path != null) {
-                repo.homeCardImagePath = path
-                _uiState.update { it.copy(homeCardImagePath = path) }
-            } else {
-                Toast.makeText(context, R.string.home_card_image_failed, Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     fun clearHomeCardImage() {

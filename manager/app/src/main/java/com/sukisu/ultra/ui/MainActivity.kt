@@ -351,7 +351,7 @@ class MainActivity : ComponentActivity() {
                             entry<Route.CustomTexts>(swipeDismiss = swipeDismiss) { CustomTextScreen() }
                             entry<Route.AppIcon>(swipeDismiss = swipeDismiss) { AppIconScreen() }
                             entry<Route.BackgroundCrop>(swipeDismiss = NavSwipeDirection.None) { key ->
-                                BackgroundCropScreen(key.sourcePath)
+                                BackgroundCropScreen(key.sourcePath, key.forHomeCard)
                             }
                             entry<Route.AppProfileTemplate>(swipeDismiss = swipeDismiss) { AppProfileTemplateScreen() }
                             entry<Route.TemplateEditor>(swipeDismiss = swipeDismiss) { key -> TemplateEditorScreen(key.template, key.readOnly) }

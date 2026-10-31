@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -69,7 +70,14 @@ data class BackgroundCropUiState(
     val selectedRatio: BackgroundCropRatio,
     val aspectRatio: Float,
     val galleryCropAvailable: Boolean,
+    val isHomeCardCrop: Boolean,
 )
+
+/** Matches the minimum height in HomeMiuix's status card. */
+private const val HOME_CARD_MIN_HEIGHT_DP = 188f
+
+/** Page horizontal margins around the home status card (12dp on each side). */
+private const val HOME_CARD_HORIZONTAL_MARGIN_DP = 24f
 
 data class BackgroundCropActions(
     val onClose: () -> Unit,
@@ -82,7 +90,7 @@ data class BackgroundCropActions(
 )
 
 @Composable
-fun BackgroundCropScreen(sourcePath: String) {
+fun BackgroundCropScreen(sourcePath: String, forHomeCard: Boolean = false) {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
     val viewModel = viewModel<SettingsViewModel>()
@@ -90,6 +98,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     val controller = rememberCropController()
     val windowSize = LocalWindowInfo.current.containerSize
     val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
 
     val screenWidth = windowSize.width.takeIf { it > 0 }
         ?: configuration.screenWidthDp.takeIf { it > 0 }
@@ -111,7 +120,12 @@ fun BackgroundCropScreen(sourcePath: String) {
             .getOrDefault(BackgroundCropRatio.SCREEN)
     }
     val (aspectX, aspectY) = selectedRatio.aspectPair(screenWidth, screenHeight)
-    val viewportAspect = aspectX.toFloat() / aspectY.toFloat()
+    val backgroundAspect = aspectX.toFloat() / aspectY.toFloat()
+    val homeCardAspect = remember(screenWidth, density.density) {
+        val widthDp = screenWidth / density.density
+        ((widthDp - HOME_CARD_HORIZONTAL_MARGIN_DP).coerceAtLeast(1f)) / HOME_CARD_MIN_HEIGHT_DP
+    }
+    val viewportAspect = if (forHomeCard) homeCardAspect else backgroundAspect
     val galleryCropAvailable = remember(context) { ExternalCropper.isAvailable(context) }
     val lowRam = remember(context) {
         (context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager)?.isLowRamDevice == true
@@ -131,6 +145,14 @@ fun BackgroundCropScreen(sourcePath: String) {
             navigator.pop()
         } else {
             bitmap = loaded
+        }
+    }
+
+    val applyCrop: suspend (File) -> Boolean = { output ->
+        if (forHomeCard) {
+            viewModel.finishHomeCardCrop(context, output, sourcePath)
+        } else {
+            viewModel.finishBackgroundCrop(context, output, sourcePath)
         }
     }
 
@@ -163,7 +185,7 @@ fun BackgroundCropScreen(sourcePath: String) {
                 saving = false
                 return@launch
             }
-            val applied = viewModel.finishBackgroundCrop(context, output, sourcePath)
+            val applied = applyCrop(output)
             if (applied) {
                 navigator.pop()
             } else {
@@ -177,7 +199,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     fun finishWithOutput(output: File) {
         saving = true
         scope.launch {
-            val applied = viewModel.finishBackgroundCrop(context, output, sourcePath)
+            val applied = applyCrop(output)
             if (applied) {
                 navigator.pop()
             } else {
@@ -229,7 +251,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     }
 
     val onUseOriginal: () -> Unit = {
-        if (!saving) {
+        if (!forHomeCard && !saving) {
             saving = true
             scope.launch {
                 val applied = viewModel.applyOriginalBackground(context, sourcePath)
@@ -248,7 +270,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     }
 
     val onCropWithGallery: () -> Unit = {
-        if (!saving && galleryCropAvailable) {
+        if (!forHomeCard && !saving && galleryCropAvailable) {
             val output = ImageStorage.newCropOutput(context)
             val intent = ExternalCropper.createIntent(
                 context = context,
@@ -281,7 +303,7 @@ fun BackgroundCropScreen(sourcePath: String) {
     }
 
     val onSelectRatio: (BackgroundCropRatio) -> Unit = { ratio ->
-        if (!saving && ratio != selectedRatio) {
+        if (!forHomeCard && !saving && ratio != selectedRatio) {
             ratioName = ratio.name
             controller.resetTransform()
         }
@@ -293,7 +315,8 @@ fun BackgroundCropScreen(sourcePath: String) {
         saving = saving,
         selectedRatio = selectedRatio,
         aspectRatio = viewportAspect,
-        galleryCropAvailable = galleryCropAvailable,
+        galleryCropAvailable = galleryCropAvailable && !forHomeCard,
+        isHomeCardCrop = forHomeCard,
     )
     val actions = BackgroundCropActions(
         onClose = { if (!saving) navigator.pop() },
@@ -304,7 +327,9 @@ fun BackgroundCropScreen(sourcePath: String) {
         onRotate = { if (!saving) controller.rotate() },
         onReset = {
             if (!saving) {
-                ratioName = BackgroundCropRatio.SCREEN.name
+                if (!forHomeCard) {
+                    ratioName = BackgroundCropRatio.SCREEN.name
+                }
                 controller.resetAll()
             }
         },

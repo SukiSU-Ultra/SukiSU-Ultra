@@ -65,7 +65,13 @@ fun BackgroundCropScreenMiuix(
         containerColor = surface,
         topBar = {
             SmallTopAppBar(
-                title = stringResource(R.string.background_crop_title),
+                title = stringResource(
+                    if (state.isHomeCardCrop) {
+                        R.string.background_crop_title_home_card
+                    } else {
+                        R.string.background_crop_title
+                    },
+                ),
                 color = colorScheme.surface,
                 navigationIcon = {
                     IconButton(
@@ -80,15 +86,17 @@ fun BackgroundCropScreenMiuix(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = actions.onUseOriginal,
-                        enabled = !state.saving && state.bitmap != null,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Image,
-                            contentDescription = stringResource(R.string.background_crop_use_original),
-                            tint = colorScheme.onSurface,
-                        )
+                    if (!state.isHomeCardCrop) {
+                        IconButton(
+                            onClick = actions.onUseOriginal,
+                            enabled = !state.saving && state.bitmap != null,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Image,
+                                contentDescription = stringResource(R.string.background_crop_use_original),
+                                tint = colorScheme.onSurface,
+                            )
+                        }
                     }
                     TextButton(
                         text = stringResource(R.string.background_crop_done),
@@ -124,7 +132,7 @@ fun BackgroundCropScreenMiuix(
                         bitmap = bitmap,
                         aspectRatio = state.aspectRatio,
                         controller = controller,
-                        cornerRadius = 20.dp,
+                        cornerRadius = if (state.isHomeCardCrop) 16.dp else 20.dp,
                         modifier = Modifier.fillMaxSize(),
                     )
 
@@ -145,14 +153,16 @@ fun BackgroundCropScreenMiuix(
                         fontSize = 13.sp,
                         color = colorScheme.onSurfaceVariantSummary,
                     )
-                    Spacer(Modifier.height(10.dp))
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(BackgroundCropRatio.entries) { ratio ->
-                            MiuixRatioChip(
-                                label = ratio.label(),
-                                selected = ratio == state.selectedRatio,
-                                onClick = { actions.onSelectRatio(ratio) },
-                            )
+                    if (!state.isHomeCardCrop) {
+                        Spacer(Modifier.height(10.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(BackgroundCropRatio.entries) { ratio ->
+                                MiuixRatioChip(
+                                    label = ratio.label(),
+                                    selected = ratio == state.selectedRatio,
+                                    onClick = { actions.onSelectRatio(ratio) },
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.height(14.dp))

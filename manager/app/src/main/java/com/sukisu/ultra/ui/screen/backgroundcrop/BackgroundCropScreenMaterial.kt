@@ -62,7 +62,17 @@ fun BackgroundCropScreenMaterial(
         containerColor = surface,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.background_crop_title)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (state.isHomeCardCrop) {
+                                R.string.background_crop_title_home_card
+                            } else {
+                                R.string.background_crop_title
+                            },
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(
                         onClick = actions.onClose,
@@ -75,14 +85,16 @@ fun BackgroundCropScreenMaterial(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = actions.onUseOriginal,
-                        enabled = !state.saving && state.bitmap != null,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Image,
-                            contentDescription = stringResource(R.string.background_crop_use_original),
-                        )
+                    if (!state.isHomeCardCrop) {
+                        IconButton(
+                            onClick = actions.onUseOriginal,
+                            enabled = !state.saving && state.bitmap != null,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Image,
+                                contentDescription = stringResource(R.string.background_crop_use_original),
+                            )
+                        }
                     }
                     Button(
                         onClick = actions.onConfirm,
@@ -126,7 +138,7 @@ fun BackgroundCropScreenMaterial(
                         bitmap = bitmap,
                         aspectRatio = state.aspectRatio,
                         controller = controller,
-                        cornerRadius = 28.dp,
+                        cornerRadius = if (state.isHomeCardCrop) 16.dp else 28.dp,
                         modifier = Modifier.fillMaxSize(),
                     )
 
@@ -143,28 +155,30 @@ fun BackgroundCropScreenMaterial(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Spacer(Modifier.height(10.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(BackgroundCropRatio.entries) { ratio ->
-                            FilterChip(
-                                selected = ratio == state.selectedRatio,
-                                onClick = { actions.onSelectRatio(ratio) },
-                                label = { Text(ratio.label()) },
-                                leadingIcon = if (ratio == state.selectedRatio) {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Check,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp),
-                                        )
-                                    }
-                                } else {
-                                    null
-                                },
-                                shape = CircleShape,
-                            )
+                    if (!state.isHomeCardCrop) {
+                        Spacer(Modifier.height(10.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(BackgroundCropRatio.entries) { ratio ->
+                                FilterChip(
+                                    selected = ratio == state.selectedRatio,
+                                    onClick = { actions.onSelectRatio(ratio) },
+                                    label = { Text(ratio.label()) },
+                                    leadingIcon = if (ratio == state.selectedRatio) {
+                                        {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                    shape = CircleShape,
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.height(14.dp))
