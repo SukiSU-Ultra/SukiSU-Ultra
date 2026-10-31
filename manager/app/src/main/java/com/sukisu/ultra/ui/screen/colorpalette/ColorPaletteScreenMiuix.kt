@@ -16,6 +16,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +39,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.rounded.AspectRatio
 import androidx.compose.material.icons.rounded.BlurOn
@@ -61,6 +64,7 @@ import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Swipe
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -126,8 +130,22 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 fun ColorPaletteScreenMiuix(
     state: ColorPaletteUiState,
     actions: ColorPaletteScreenActions,
+    section: String? = null,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
+    val sectionRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
+    fun sectionRequester(anchor: String): BringIntoViewRequester =
+        sectionRequesters.getOrPut(anchor) { BringIntoViewRequester() }
+
+    LaunchedEffect(section) {
+        val anchor = section?.trim()?.lowercase()?.replace('-', '_')?.takeIf { it.isNotEmpty() }
+            ?: return@LaunchedEffect
+        kotlinx.coroutines.delay(120)
+        val target = sectionRequesters[anchor]
+            ?: sectionRequesters["appearance"]
+            ?: return@LaunchedEffect
+        target.bringIntoView()
+    }
     val enableBlurState = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlurState)
     val blurActive = backdrop != null
@@ -253,6 +271,7 @@ fun ColorPaletteScreenMiuix(
 
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(sectionRequester("background"))
                             .padding(bottom = 12.dp)
                             .fillMaxWidth(),
                         colors = backgroundAwareCardColors(),
@@ -456,6 +475,7 @@ fun ColorPaletteScreenMiuix(
 
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(sectionRequester("theme_package"))
                             .padding(bottom = 12.dp)
                             .fillMaxWidth(),
                     ) {
@@ -507,6 +527,7 @@ fun ColorPaletteScreenMiuix(
                     }
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(sectionRequester("appearance"))
                             .padding(bottom = 12.dp)
                             .fillMaxWidth(),
                     ) {
@@ -541,6 +562,23 @@ fun ColorPaletteScreenMiuix(
                             checked = state.hideHomeWarnings,
                             onCheckedChange = {
                                 actions.onSetHideHomeWarnings(it)
+                            }
+                        )
+
+                        SwitchPreference(
+                            title = stringResource(id = R.string.ai_show_home_card),
+                            summary = stringResource(id = R.string.ai_show_home_card_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.AutoAwesome,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = stringResource(id = R.string.ai_show_home_card),
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            checked = state.showAiHomeCard,
+                            onCheckedChange = {
+                                actions.onSetShowAiHomeCard(it)
                             }
                         )
 
@@ -629,6 +667,7 @@ fun ColorPaletteScreenMiuix(
 
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(sectionRequester("colors"))
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
                     ) {
@@ -736,6 +775,7 @@ fun ColorPaletteScreenMiuix(
                     AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
+                            .bringIntoViewRequester(sectionRequester("chrome"))
                             .fillMaxWidth(),
                     ) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -811,6 +851,7 @@ fun ColorPaletteScreenMiuix(
                     AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
+                            .bringIntoViewRequester(sectionRequester("behavior"))
                             .fillMaxWidth(),
                     ) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -915,6 +956,7 @@ fun ColorPaletteScreenMiuix(
                     AppCard(
                         modifier = Modifier
                             .padding(top = 12.dp)
+                            .bringIntoViewRequester(sectionRequester("module_description"))
                             .fillMaxWidth(),
                     ) {
                         var linesValue by remember(uiState.moduleDescriptionMaxLines) { mutableIntStateOf(uiState.moduleDescriptionMaxLines) }

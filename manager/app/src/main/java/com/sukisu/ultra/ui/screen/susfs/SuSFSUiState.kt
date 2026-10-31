@@ -97,6 +97,19 @@ enum class SuSFSTab(val displayNameRes: Int) {
         fun getAllTabs(): List<SuSFSTab> {
             return entries.toList()
         }
+
+        /** Map the route/AI tab id to a tab. */
+        fun fromRouteId(id: String): SuSFSTab? = when (id.trim().lowercase().replace('-', '_')) {
+            "basic", "basic_settings" -> BASIC_SETTINGS
+            "features", "feature_toggles" -> FEATURE_TOGGLES
+            "sus_paths" -> SUS_PATHS
+            "sus_loop_paths" -> SUS_LOOP_PATHS
+            "sus_maps" -> SUS_MAPS
+            "kstat", "kstat_config" -> KSTAT_CONFIG
+            "priority_uid", "priority_uid_filter" -> PRIORITY_UID_FILTER
+            "enabled_features" -> ENABLED_FEATURES
+            else -> null
+        }
     }
 }
 

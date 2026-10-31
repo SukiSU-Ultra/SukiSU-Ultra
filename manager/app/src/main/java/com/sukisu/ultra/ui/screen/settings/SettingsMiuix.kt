@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.automirrored.rounded.Rule
@@ -42,6 +44,7 @@ import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -65,6 +68,8 @@ import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
+import com.sukisu.ultra.ui.viewmodel.MainPageRequest
+import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -85,8 +90,23 @@ fun SettingPagerMiuix(
     uiState: SettingsUiState,
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
+    sectionRequest: MainPageRequest? = null,
+    onSectionConsumed: (Long) -> Unit = {},
 ) {
     val scrollBehavior = MiuixScrollBehavior()
+    val anchorRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
+    fun requester(anchor: String): BringIntoViewRequester =
+        anchorRequesters.getOrPut(anchor) { BringIntoViewRequester() }
+
+    LaunchedEffect(sectionRequest?.token) {
+        val request = sectionRequest ?: return@LaunchedEffect
+        delay(120)
+        val anchor = SettingsSection.normalize(request.section)
+        val target = anchorRequesters[SettingsSection.cardFor(anchor)]
+            ?: anchorRequesters[SettingsSection.GENERAL]
+        target?.bringIntoView()
+        onSectionConsumed(request.token)
+    }
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
@@ -124,6 +144,7 @@ fun SettingPagerMiuix(
                 item {
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(requester(SettingsSection.GENERAL))
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
                         colors = backgroundAwareCardColors(),
@@ -182,6 +203,7 @@ fun SettingPagerMiuix(
                     KsuIsValid {
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.PROFILE_TEMPLATES))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -202,7 +224,10 @@ fun SettingPagerMiuix(
                             )
                         }
                         AppCard(
-                            modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
+                            modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.EXTENSIONS))
+                                .padding(top = 12.dp)
+                                .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
                         ) {
                             val extensionsTitle = stringResource(R.string.extension_section_title)
@@ -223,6 +248,7 @@ fun SettingPagerMiuix(
                         val toolsTitle = stringResource(id = R.string.settings_tools)
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.TOOLS))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -243,7 +269,13 @@ fun SettingPagerMiuix(
                                 }
                             )
                         }
-                        TemporaryRootPreferences()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .bringIntoViewRequester(requester(SettingsSection.TEMPORARY_ROOT))
+                        ) {
+                            TemporaryRootPreferences()
+                        }
                     }
 
                     KsuIsValid {
@@ -255,6 +287,7 @@ fun SettingPagerMiuix(
 
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.SECURITY))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -454,6 +487,7 @@ fun SettingPagerMiuix(
 
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.MODULE_BEHAVIOUR))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -522,6 +556,7 @@ fun SettingPagerMiuix(
                     if (uiState.isLkmMode) {
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.UNINSTALL))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -549,6 +584,7 @@ fun SettingPagerMiuix(
 
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(requester(SettingsSection.DIAGNOSTICS))
                             .padding(vertical = 12.dp)
                             .fillMaxWidth(),
                         colors = backgroundAwareCardColors(),

@@ -92,29 +92,51 @@ object ThemePackageStorage {
         cardBackgroundFile: File? = null,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val zipBytes = ByteArrayOutputStream().use { byteOut ->
-                ZipOutputStream(byteOut).use { zip ->
-                    zip.putNextEntry(ZipEntry(THEME_ENTRY))
-                    zip.write(json.encodeToString(ThemePackageData.serializer(), data).toByteArray())
-                    zip.closeEntry()
-                    if (data.hasBackground == true && backgroundFile != null && backgroundFile.isFile) {
-                        zip.putNextEntry(ZipEntry(BACKGROUND_ENTRY))
-                        backgroundFile.inputStream().use { it.copyTo(zip) }
-                        zip.closeEntry()
-                    }
-                    if (data.hasCardBackground == true && cardBackgroundFile != null && cardBackgroundFile.isFile) {
-                        zip.putNextEntry(ZipEntry(CARD_BACKGROUND_ENTRY))
-                        cardBackgroundFile.inputStream().use { it.copyTo(zip) }
-                        zip.closeEntry()
-                    }
-                }
-                byteOut.toByteArray()
-            }
-            val encryptedBytes = ThemePackageCrypto.encrypt(zipBytes)
+            val encryptedBytes = encode(data, backgroundFile, cardBackgroundFile)
             val output = context.contentResolver.openOutputStream(uri)
                 ?: error("Cannot open the destination file")
             BufferedOutputStream(output).use { it.write(encryptedBytes) }
         }
+    }
+
+    /** Encrypted package written to an app-private file (used for sharing). */
+    suspend fun exportToFile(
+        file: File,
+        data: ThemePackageData,
+        backgroundFile: File?,
+        cardBackgroundFile: File? = null,
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val encryptedBytes = encode(data, backgroundFile, cardBackgroundFile)
+            file.parentFile?.mkdirs()
+            BufferedOutputStream(file.outputStream()).use { it.write(encryptedBytes) }
+        }
+    }
+
+    private fun encode(
+        data: ThemePackageData,
+        backgroundFile: File?,
+        cardBackgroundFile: File?,
+    ): ByteArray {
+        val zipBytes = ByteArrayOutputStream().use { byteOut ->
+            ZipOutputStream(byteOut).use { zip ->
+                zip.putNextEntry(ZipEntry(THEME_ENTRY))
+                zip.write(json.encodeToString(ThemePackageData.serializer(), data).toByteArray())
+                zip.closeEntry()
+                if (data.hasBackground == true && backgroundFile != null && backgroundFile.isFile) {
+                    zip.putNextEntry(ZipEntry(BACKGROUND_ENTRY))
+                    backgroundFile.inputStream().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
+                if (data.hasCardBackground == true && cardBackgroundFile != null && cardBackgroundFile.isFile) {
+                    zip.putNextEntry(ZipEntry(CARD_BACKGROUND_ENTRY))
+                    cardBackgroundFile.inputStream().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
+            }
+            byteOut.toByteArray()
+        }
+        return ThemePackageCrypto.encrypt(zipBytes)
     }
 
     suspend fun import(context: Context, uri: Uri): Result<ImportedTheme> = withContext(Dispatchers.IO) {

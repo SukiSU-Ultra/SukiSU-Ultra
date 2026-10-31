@@ -87,6 +87,7 @@ import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopup
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.screen.ai.AiHomeCardMaterial
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
@@ -163,6 +164,9 @@ fun HomePagerMaterial(
             }
             if (state.isPreviewMode && !state.hideHomeWarnings) {
                 WarningCard(stringResource(id = R.string.home_preview_mode), level = WarningLevel.Notice)
+            }
+            if (state.showAiHomeCard) {
+                AiHomeCardMaterial(onOpenChat = actions.onOpenAi)
             }
             StatsRow(state = state, actions = actions)
             InfoCard(systemInfo = state.systemInfo, showFullStatus = state.showFullStatus)

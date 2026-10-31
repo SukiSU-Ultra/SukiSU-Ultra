@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">127.0.0.1</domain>
-        <domain includeSubdomains="true">0.0.0.0</domain>
-        <domain includeSubdomains="true">::1</domain>
-    </domain-config>
+    <!-- Local inference servers commonly run over plain HTTP on a LAN address.
+         Registry, update and download traffic stays on HTTPS regardless. -->
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

@@ -59,6 +59,9 @@ class HomeViewModel(
         if (key == null || key == KEY_HOME_CARD_IMAGE_PATH) {
             updateContent { it.copy(homeCardImagePath = existingHomeCardImage()) }
         }
+        if (key == null || key == "show_ai_home_card") {
+            updateContent { it.copy(showAiHomeCard = settingsRepo.showAiHomeCard) }
+        }
     }
 
     /** The stored card image only applies while its file still exists. */
@@ -233,6 +236,7 @@ class HomeViewModel(
             checkCiUpdateEnabled = settingsRepo.checkUpdate && settingsRepo.checkCiUpdate,
             customHomeTitle = settingsRepo.customHomeTitle,
             homeCardImagePath = existingHomeCardImage(),
+            showAiHomeCard = settingsRepo.showAiHomeCard,
             showFullStatus = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getBoolean("show_fingerprint", true),
             hideHomeWarnings = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)

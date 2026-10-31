@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- The assistant strings ship with English defaults and zh-rCN first.
+         Other locales fall back to English until they are translated. -->
+    <issue id="MissingTranslation">
+        <ignore regexp="ai_.*" />
+    </issue>
+</lint>

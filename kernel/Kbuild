@@ -167,7 +167,7 @@ MDIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 REPO_OWNER  := SukiSU-Ultra
 REPO_NAME   := SukiSU-Ultra
-REPO_BRANCH := main
+REPO_BRANCH := ai_chat
 
 VERSION_BASE    := 40000
 VERSION_OFFSET  := 2815

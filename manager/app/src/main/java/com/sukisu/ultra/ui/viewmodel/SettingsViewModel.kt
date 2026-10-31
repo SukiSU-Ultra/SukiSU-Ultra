@@ -73,6 +73,7 @@ class SettingsViewModel(
             val autoDeleteModuleZip = repo.autoDeleteModuleZip
             val showFullStatus = repo.showFullStatus
             val hideHomeWarnings = repo.hideHomeWarnings
+            val showAiHomeCard = repo.showAiHomeCard
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
@@ -152,6 +153,7 @@ class SettingsViewModel(
                     autoDeleteModuleZip = autoDeleteModuleZip,
                     showFullStatus = showFullStatus,
                     hideHomeWarnings = hideHomeWarnings,
+                    showAiHomeCard = showAiHomeCard,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
                     suCompatStatus = suCompatStatus,
@@ -1004,6 +1006,11 @@ class SettingsViewModel(
     fun setHideHomeWarnings(enabled: Boolean) {
         repo.hideHomeWarnings = enabled
         _uiState.update { it.copy(hideHomeWarnings = enabled) }
+    }
+
+    fun setShowAiHomeCard(enabled: Boolean) {
+        repo.showAiHomeCard = enabled
+        _uiState.update { it.copy(showAiHomeCard = enabled) }
     }
 
     fun setSuCompatMode(mode: Int) {

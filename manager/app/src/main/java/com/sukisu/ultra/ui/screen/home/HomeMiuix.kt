@@ -67,6 +67,7 @@ import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.WarningCard
 import com.sukisu.ultra.ui.component.rebootlistpopup.RebootListPopupMiuix
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.screen.ai.AiHomeCardMiuix
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
@@ -185,6 +186,9 @@ fun HomePagerMiuix(
                         }
                         if (state.isPreviewMode && !state.hideHomeWarnings) {
                             WarningCard(stringResource(id = R.string.home_preview_mode), level = WarningLevel.Notice)
+                        }
+                        if (state.showAiHomeCard) {
+                            AiHomeCardMiuix(onOpenChat = actions.onOpenAi)
                         }
                         StatsRow(state = state, actions = actions)
                         InfoCard(

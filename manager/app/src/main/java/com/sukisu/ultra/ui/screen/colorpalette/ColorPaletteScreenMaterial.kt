@@ -43,9 +43,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Brightness3
@@ -139,10 +141,17 @@ import com.sukisu.ultra.ui.util.ThemePackageStorage
 fun ColorPaletteScreenMaterial(
     state: ColorPaletteUiState,
     actions: ColorPaletteScreenActions,
+    section: String? = null,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
     val uiState = state.uiState
     val currentColorMode = state.currentColorMode
+
+    LaunchedEffect(section) {
+        val index = appearanceSectionIndex(section) ?: return@LaunchedEffect
+        listState.animateScrollToItem(index)
+    }
     val currentKeyColor = uiState.keyColor
     val colorStyle = state.currentPaletteStyle
     val colorSpec = state.currentColorSpec
@@ -222,6 +231,7 @@ fun ColorPaletteScreenMaterial(
         val isAmoled = currentColorMode.isAmoled
 
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -533,6 +543,15 @@ fun ColorPaletteScreenMaterial(
                                 summary = stringResource(id = R.string.settings_hide_home_warnings_summary),
                                 checked = state.hideHomeWarnings,
                                 onCheckedChange = actions.onSetHideHomeWarnings
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.AutoAwesome,
+                                title = stringResource(id = R.string.ai_show_home_card),
+                                summary = stringResource(id = R.string.ai_show_home_card_summary),
+                                checked = state.showAiHomeCard,
+                                onCheckedChange = actions.onSetShowAiHomeCard
                             )
                         },
                         {
@@ -1126,5 +1145,26 @@ private fun ColorButtonMaterial(
                 }
             }
         }
+    }
+}
+
+/** Item index of an appearance section; conditional items shift later indices. */
+private fun appearanceSectionIndex(section: String?): Int? {
+    val id = section?.trim()?.lowercase()?.replace('-', '_') ?: return null
+    val hasPredictive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+    return when (id) {
+        "preview" -> 0
+        "background" -> 1
+        "theme_package" -> 2
+        "appearance" -> 3
+        "colors" -> 4
+        "color_mode" -> 5
+        "palette" -> 6
+        "chrome", "bottom_bar" -> 7
+        "predictive_back" -> if (hasPredictive) 8 else 7
+        "behavior", "gestures" -> if (hasPredictive) 9 else 8
+        "scale" -> if (hasPredictive) 10 else 9
+        "module_description" -> if (hasPredictive) 11 else 10
+        else -> null
     }
 }

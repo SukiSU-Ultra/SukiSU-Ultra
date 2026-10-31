@@ -49,9 +49,10 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object Sulog : Route
 
+    /** Material theme editor; [section] optionally scrolls to a named area. */
     @Parcelize
     @Serializable
-    data object ColorPalette : Route
+    data class ColorPalette(val section: String? = null) : Route
 
     @Parcelize
     @Serializable
@@ -114,9 +115,10 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object Kpm: Route
 
+    /** SuSFS configuration; [tab] optionally opens a specific tab. */
     @Parcelize
     @Serializable
-    data object SuSFS: Route
+    data class SuSFS(val tab: String? = null): Route
 
     @Parcelize
     @Serializable
@@ -149,4 +151,14 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data object VersionSpoof : Route
+
+    /** Local-model assistant: chat plus scoped theme/extension/module tools. */
+    @Parcelize
+    @Serializable
+    data object AiAssistant : Route
+
+    /** Full-page assistant configuration (connection, scopes, thinking, behaviour). */
+    @Parcelize
+    @Serializable
+    data object AiSettings : Route
 }

@@ -302,6 +302,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("hide_home_warnings", false)
         set(value) = prefs.edit { putBoolean("hide_home_warnings", value) }
 
+    override var showAiHomeCard: Boolean
+        get() = prefs.getBoolean("show_ai_home_card", false)
+        set(value) = prefs.edit { putBoolean("show_ai_home_card", value) }
+
     override var autoJailbreak: Boolean
         get() = prefs.getBoolean("auto_jailbreak", false)
         set(value) {

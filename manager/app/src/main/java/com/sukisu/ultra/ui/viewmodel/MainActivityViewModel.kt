@@ -2,13 +2,10 @@ package com.sukisu.ultra.ui.viewmodel
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
@@ -16,9 +13,15 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.util.ImageStorage
 import java.io.File
+import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 
 class MainActivityViewModel(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -42,6 +45,10 @@ class MainActivityViewModel(
     val uiState: StateFlow<MainActivityUiState> = _uiState.asStateFlow()
     val selectedMainPage: StateFlow<Int> = mainPageState.selectedPage
 
+    private val _pageRequest = MutableStateFlow(savedStateHandle.get<MainPageRequest>(PAGE_REQUEST_KEY))
+    val pageRequest: StateFlow<MainPageRequest?> = _pageRequest.asStateFlow()
+    private val requestToken = AtomicLong(System.currentTimeMillis())
+
     init {
         prefs.registerOnSharedPreferenceChangeListener(listener)
     }
@@ -52,6 +59,33 @@ class MainActivityViewModel(
 
     fun setSelectedMainPage(page: Int) {
         mainPageState.updateSelectedPage(page)
+    }
+
+    /**
+     * Select a main tab and, for the Settings tab, request a section scroll.
+     * The token makes repeated requests for the same page observable.
+     */
+    fun openMainPage(page: Int, section: String? = null) {
+        mainPageState.updateSelectedPage(page)
+        if (section.isNullOrBlank()) {
+            _pageRequest.value = null
+            savedStateHandle[PAGE_REQUEST_KEY] = null
+            return
+        }
+        val request = MainPageRequest(
+            page = MainPagerConfig.coercePage(page),
+            section = section,
+            token = requestToken.incrementAndGet(),
+        )
+        _pageRequest.value = request
+        savedStateHandle[PAGE_REQUEST_KEY] = request
+    }
+
+    fun consumePageRequest(token: Long) {
+        if (_pageRequest.value?.token == token) {
+            _pageRequest.value = null
+            savedStateHandle[PAGE_REQUEST_KEY] = null
+        }
     }
 
     /**
@@ -134,7 +168,15 @@ class MainActivityViewModel(
     }
 }
 
+@Parcelize
+data class MainPageRequest(
+    val page: Int,
+    val section: String,
+    val token: Long,
+) : Parcelable
+
 private const val SELECTED_MAIN_PAGE_KEY = "selected_main_page"
+private const val PAGE_REQUEST_KEY = "main_page_request"
 
 private class MainPageState(
     private val savedStateHandle: SavedStateHandle,

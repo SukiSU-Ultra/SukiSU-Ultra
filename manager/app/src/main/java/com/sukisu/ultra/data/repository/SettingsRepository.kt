@@ -55,6 +55,8 @@ interface SettingsRepository {
     var suLogFilters: Set<String>?
     var showFullStatus: Boolean
     var hideHomeWarnings: Boolean
+    /** Show the AI assistant card on the home page. Off disconnects the home entry entirely. */
+    var showAiHomeCard: Boolean
     var autoJailbreak: Boolean
     var useSoftReboot: Boolean
     val intentToken: String

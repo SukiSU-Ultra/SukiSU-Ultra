@@ -71,7 +71,7 @@ object ExtensionCatalog {
             wireName = "susfs",
             titleRes = R.string.extension_susfs_title,
             summaryRes = R.string.extension_susfs_summary,
-            entry = ExtensionEntry.Screen(Route.SuSFS),
+            entry = ExtensionEntry.Screen(Route.SuSFS()),
         ),
         ExtensionDescriptor(
             wireName = "version_spoof",

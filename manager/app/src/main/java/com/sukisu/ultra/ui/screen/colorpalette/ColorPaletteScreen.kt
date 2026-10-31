@@ -22,7 +22,7 @@ import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import com.sukisu.ultra.ui.component.themeimport.ThemeImportDialog
 
 @Composable
-fun ColorPaletteScreen() {
+fun ColorPaletteScreen(section: String? = null) {
     val navigator = LocalNavigator.current
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -49,6 +49,7 @@ fun ColorPaletteScreen() {
         currentColorSpec = currentColorSpec,
         showFullStatus = uiState.showFullStatus,
         hideHomeWarnings = uiState.hideHomeWarnings,
+        showAiHomeCard = uiState.showAiHomeCard,
     )
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -73,13 +74,14 @@ fun ColorPaletteScreen() {
         onSetModuleDescriptionMaxLines = viewModel::setModuleDescriptionMaxLines,
         onSetShowFullStatus = viewModel::setShowFullStatus,
         onSetHideHomeWarnings = viewModel::setHideHomeWarnings,
+        onSetShowAiHomeCard = viewModel::setShowAiHomeCard,
         onOpenAppIcon = { navigator.push(Route.AppIcon) },
         onSetBackgroundAppearanceExpanded = viewModel::setBackgroundAppearanceExpanded,
         onSetCustomHomeTitle = viewModel::setCustomHomeTitle,
         onPickCustomBackground = { ctx, uri ->
             viewModel.stagePickedBackground(ctx, uri) { path ->
                 if (path != null) {
-                    if (navigator.current() == Route.ColorPalette) {
+                    if (navigator.current() is Route.ColorPalette) {
                         navigator.push(Route.BackgroundCrop(path))
                     } else {
                         ImageStorage.discardStaged(path)
@@ -90,7 +92,7 @@ fun ColorPaletteScreen() {
         onCropCurrentBackground = { ctx ->
             viewModel.stageCurrentBackground(ctx) { path ->
                 if (path != null) {
-                    if (navigator.current() == Route.ColorPalette) {
+                    if (navigator.current() is Route.ColorPalette) {
                         navigator.push(Route.BackgroundCrop(path))
                     } else {
                         ImageStorage.discardStaged(path)
@@ -128,7 +130,7 @@ fun ColorPaletteScreen() {
     )
 
     when (LocalUiMode.current) {
-        UiMode.Miuix -> ColorPaletteScreenMiuix(state, actions)
-        UiMode.Material -> ColorPaletteScreenMaterial(state, actions)
+        UiMode.Miuix -> ColorPaletteScreenMiuix(state, actions, section)
+        UiMode.Material -> ColorPaletteScreenMaterial(state, actions, section)
     }
 }

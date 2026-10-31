@@ -3,7 +3,9 @@ package com.sukisu.ultra.ui.screen.settings
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -42,7 +44,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,6 +76,8 @@ import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
+import com.sukisu.ultra.ui.viewmodel.MainPageRequest
+import kotlinx.coroutines.delay
 
 /**
  * @author weishu
@@ -80,8 +88,21 @@ fun SettingPagerMaterial(
     uiState: SettingsUiState,
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
+    sectionRequest: MainPageRequest? = null,
+    onSectionConsumed: (Long) -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val anchorRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
+
+    LaunchedEffect(sectionRequest?.token) {
+        val request = sectionRequest ?: return@LaunchedEffect
+        delay(120)
+        val anchor = SettingsSection.normalize(request.section)
+        val requester = anchorRequesters[SettingsSection.cardFor(anchor)]
+            ?: anchorRequesters[SettingsSection.GENERAL]
+        requester?.bringIntoView()
+        onSectionConsumed(request.token)
+    }
     val snackBarHost = remember { SnackbarHostState() }
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -106,6 +127,7 @@ fun SettingPagerMaterial(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
         ) {
+            SettingsAnchor(SettingsSection.GENERAL, anchorRequesters) {
             SegmentedColumn(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                 content = buildList {
@@ -151,9 +173,11 @@ fun SettingPagerMaterial(
 
                 }
             )
+            }
 
             val profileTemplate = stringResource(id = R.string.settings_profile_template)
             KsuIsValid {
+                SettingsAnchor(SettingsSection.PROFILE_TEMPLATES, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
@@ -171,6 +195,8 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
+                }
+                SettingsAnchor(SettingsSection.EXTENSIONS, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
@@ -189,7 +215,9 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
+                }
                 val toolsTitle = stringResource(id = R.string.settings_tools)
+                SettingsAnchor(SettingsSection.TOOLS, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
@@ -207,7 +235,10 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
-                TemporaryRootPreferences()
+                }
+                SettingsAnchor(SettingsSection.TEMPORARY_ROOT, anchorRequesters) {
+                    TemporaryRootPreferences()
+                }
             }
 
             KsuIsValid {
@@ -217,6 +248,7 @@ fun SettingPagerMaterial(
                     stringResource(id = R.string.settings_mode_disable_always),
                 )
 
+                SettingsAnchor(SettingsSection.SECURITY, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
@@ -362,6 +394,8 @@ fun SettingPagerMaterial(
                     )
                 )
 
+                }
+                SettingsAnchor(SettingsSection.MODULE_BEHAVIOUR, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
@@ -404,9 +438,11 @@ fun SettingPagerMaterial(
                         }
                     )
                 )
+                }
             }
 
             if (uiState.isLkmMode) {
+                SettingsAnchor(SettingsSection.UNINSTALL, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
@@ -421,8 +457,10 @@ fun SettingPagerMaterial(
                         }
                     )
                 )
+                }
             }
 
+            SettingsAnchor(SettingsSection.DIAGNOSTICS, anchorRequesters) {
             SegmentedColumn(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                 content = listOf(
@@ -452,6 +490,7 @@ fun SettingPagerMaterial(
                     }
                 )
             )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -463,6 +502,19 @@ fun SettingPagerMaterial(
             }
             Spacer(modifier = Modifier.height(bottomInnerPadding))
         }
+    }
+}
+
+@Composable
+private fun SettingsAnchor(
+    anchor: String,
+    registry: MutableMap<String, BringIntoViewRequester>,
+    content: @Composable () -> Unit,
+) {
+    val requester = remember { BringIntoViewRequester() }
+    SideEffect { registry[anchor] = requester }
+    Box(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requester)) {
+        content()
     }
 }
 

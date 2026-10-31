@@ -1063,8 +1063,9 @@ fun getSepolicy(pkg: String): String {
 
 fun setSepolicy(pkg: String, rules: String): Boolean {
     val shell = getRootShell()
-    val result = shell.newJob().add("${getKsuDaemonPath()} profile set-sepolicy $pkg '$rules'")
-        .to(ArrayList(), null).exec()
+    val result = shell.newJob().add(
+        "${getKsuDaemonPath()} profile set-sepolicy ${pkg.ksuShellQuote()} ${rules.ksuShellQuote()}"
+    ).to(ArrayList(), null).exec()
     Log.i(TAG, "set sepolicy result: ${result.code}")
     return result.isSuccess
 }
@@ -1272,7 +1273,7 @@ fun spoofCpu(
 fun addUmountPath(path: String, flags: Int): Boolean {
     val shell = getRootShell()
     val flagsArg = if (flags >= 0) "--flags $flags" else ""
-    val cmd = "${getKsuDaemonPath()} umount add $path $flagsArg"
+    val cmd = "${getKsuDaemonPath()} umount add ${path.ksuShellQuote()} $flagsArg"
     val result = ShellUtils.fastCmdResult(shell, cmd)
     Log.i(TAG, "add umount path $path result: $result")
     return result
@@ -1280,11 +1281,14 @@ fun addUmountPath(path: String, flags: Int): Boolean {
 
 fun removeUmountPath(path: String): Boolean {
     val shell = getRootShell()
-    val cmd = "${getKsuDaemonPath()} umount remove $path"
+    val cmd = "${getKsuDaemonPath()} umount remove ${path.ksuShellQuote()}"
     val result = ShellUtils.fastCmdResult(shell, cmd)
     Log.i(TAG, "remove umount path $path result: $result")
     return result
 }
+
+/** Quote a value for the root shell; paths may contain spaces or metacharacters. */
+private fun String.ksuShellQuote(): String = "'" + replace("'", "'\\''") + "'"
 
 fun listUmountPaths(): String {
     val shell = getRootShell()
