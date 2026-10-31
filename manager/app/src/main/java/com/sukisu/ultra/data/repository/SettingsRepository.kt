@@ -55,6 +55,8 @@ interface SettingsRepository {
     var suLogFilters: Set<String>?
     var showFullStatus: Boolean
     var hideHomeWarnings: Boolean
+    /** Show the decorative check mark on the Miuix home status card. */
+    var showHomeStatusIcon: Boolean
     var autoJailbreak: Boolean
     var useSoftReboot: Boolean
     val intentToken: String

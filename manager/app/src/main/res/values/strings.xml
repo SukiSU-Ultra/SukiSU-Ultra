@@ -795,6 +795,8 @@
     <string name="settings_show_fullstatus_summary">Display device FullStatus in home page info card</string>
     <string name="settings_hide_home_warnings">Hide Home Warnings</string>
     <string name="settings_hide_home_warnings_summary">Hide warning cards on the home page (PR build, kernel/manager update, LKM update, preview mode)</string>
+    <string name="settings_show_home_status_icon">Show status card icon</string>
+    <string name="settings_show_home_status_icon_summary">Show the green circled check mark on the home status card</string>
     <string name="home_zygisk_implementation">Zygisk implementation</string>
     <string name="home_zygisk_not_installed">Not installed</string>
     <string name="home_zygisk_disabled">Disabled</string>

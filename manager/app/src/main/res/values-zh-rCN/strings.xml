@@ -791,6 +791,8 @@
     <string name="settings_show_fullstatus_summary">在首页信息卡中显示设备的完整状态</string>
     <string name="settings_hide_home_warnings">隐藏主页警告</string>
     <string name="settings_hide_home_warnings_summary">隐藏首页的警告卡片（PR 构建、内核/管理器更新、LKM 更新、预览模式）</string>
+    <string name="settings_show_home_status_icon">显示状态卡图标</string>
+    <string name="settings_show_home_status_icon_summary">在首页状态卡右下角显示绿色圆圈对勾图案</string>
     <string name="home_zygisk_implementation">Zygisk 实现</string>
     <string name="home_zygisk_not_installed">未安装</string>
     <string name="home_zygisk_disabled">已禁用</string>

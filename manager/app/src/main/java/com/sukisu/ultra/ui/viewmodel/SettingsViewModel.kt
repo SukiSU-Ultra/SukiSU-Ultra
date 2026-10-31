@@ -73,6 +73,7 @@ class SettingsViewModel(
             val autoDeleteModuleZip = repo.autoDeleteModuleZip
             val showFullStatus = repo.showFullStatus
             val hideHomeWarnings = repo.hideHomeWarnings
+            val showHomeStatusIcon = repo.showHomeStatusIcon
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
             val isLkmMode = repo.isLkmMode()
@@ -152,6 +153,7 @@ class SettingsViewModel(
                     autoDeleteModuleZip = autoDeleteModuleZip,
                     showFullStatus = showFullStatus,
                     hideHomeWarnings = hideHomeWarnings,
+                    showHomeStatusIcon = showHomeStatusIcon,
                     colorStyle = colorStyle,
                     colorSpec = colorSpec,
                     suCompatStatus = suCompatStatus,
@@ -498,6 +500,7 @@ class SettingsViewModel(
             val data = ThemePackageData(
                 themeMode = state.themeMode,
                 miuixMonet = state.miuixMonet,
+                showHomeStatusIcon = state.showHomeStatusIcon,
                 keyColor = state.keyColor,
                 colorStyle = state.colorStyle,
                 colorSpec = state.colorSpec,
@@ -590,6 +593,7 @@ class SettingsViewModel(
 
         var themeMode = current.themeMode
         var miuixMonet = current.miuixMonet
+        var showHomeStatusIcon = current.showHomeStatusIcon
         var keyColor = current.keyColor
         var colorStyle = current.colorStyle
         var colorSpec = current.colorSpec
@@ -601,6 +605,7 @@ class SettingsViewModel(
         if (options.importAppearance) {
             themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
             miuixMonet = data.miuixMonet ?: current.miuixMonet
+            showHomeStatusIcon = data.showHomeStatusIcon ?: current.showHomeStatusIcon
             keyColor = data.keyColor ?: current.keyColor
             colorStyle = data.colorStyle
                 ?.takeIf { name -> runCatching { PaletteStyle.valueOf(name) }.isSuccess }
@@ -619,6 +624,7 @@ class SettingsViewModel(
             repo.uiMode = targetUiMode
             repo.themeMode = themeMode
             repo.miuixMonet = miuixMonet
+            repo.showHomeStatusIcon = showHomeStatusIcon
             repo.keyColor = keyColor
             repo.colorStyle = colorStyle
             repo.colorSpec = colorSpec
@@ -726,6 +732,7 @@ class SettingsViewModel(
                 customTexts = effectiveCustomTexts,
                 themeMode = themeMode,
                 miuixMonet = miuixMonet,
+                showHomeStatusIcon = showHomeStatusIcon,
                 keyColor = keyColor,
                 colorStyle = colorStyle,
                 colorSpec = colorSpec,
@@ -1004,6 +1011,11 @@ class SettingsViewModel(
     fun setHideHomeWarnings(enabled: Boolean) {
         repo.hideHomeWarnings = enabled
         _uiState.update { it.copy(hideHomeWarnings = enabled) }
+    }
+
+    fun setShowHomeStatusIcon(enabled: Boolean) {
+        repo.showHomeStatusIcon = enabled
+        _uiState.update { it.copy(showHomeStatusIcon = enabled) }
     }
 
     fun setSuCompatMode(mode: Int) {

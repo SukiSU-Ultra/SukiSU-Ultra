@@ -157,6 +157,7 @@ internal data class ThemePreviewSpec(
     val pageScale: Float = 1f,
     val customHomeTitle: String = "",
     val homeCardImagePath: String = "",
+    val showHomeStatusIcon: Boolean = true,
 )
 
 private const val PreviewDesignWidthDp = 360f
@@ -626,15 +627,17 @@ private fun MiuixPreviewHeroCard(spec: ThemePreviewSpec) {
         ),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            MiuixIcon(
-                imageVector = Icons.Rounded.CheckCircleOutline,
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(x = 20.dp, y = 22.dp)
-                    .size(112.dp),
-                tint = accentColor.copy(alpha = if (spec.miuixMonet) 0.8f else 1f),
-            )
+            if (spec.showHomeStatusIcon) {
+                MiuixIcon(
+                    imageVector = Icons.Rounded.CheckCircleOutline,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(x = 20.dp, y = 22.dp)
+                        .size(112.dp),
+                    tint = accentColor.copy(alpha = if (spec.miuixMonet) 0.8f else 1f),
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
