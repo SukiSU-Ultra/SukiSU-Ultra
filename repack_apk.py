@@ -294,6 +294,15 @@ def repack_apk(
                         continue
 
                 data = zin.read(name)
+                if strip_tool is not None and name.startswith("lib/") and name.endswith(".so"):
+                    if data.startswith(b"\x7fELF") and len(data) > 200_000:
+                        tmp_so = Path(tmp_dir) / Path(name).name
+                        tmp_so.write_bytes(data)
+                        try:
+                            run_cmd([str(strip_tool), "--strip-all", str(tmp_so)], "strip failed")
+                            data = tmp_so.read_bytes()
+                        except Exception:
+                            pass
                 new_info = ZipInfo(filename=name, date_time=info.date_time)
                 new_info.compress_type = info.compress_type
                 new_info.external_attr = info.external_attr

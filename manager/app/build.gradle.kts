@@ -181,7 +181,14 @@ android {
 
 androidComponents {
     onVariants(selector().withBuildType("release")) {
-        it.packaging.resources.excludes.addAll(listOf("META-INF/**", "kotlin/**", "**.bin"))
+        it.packaging.resources.excludes.addAll(listOf(
+            "META-INF/**",
+            "kotlin/**",
+            "**.bin",
+            // Strip protobuf source files bundled by the protobuf runtime jar
+            "google/**",
+            "src/**",
+        ))
     }
 }
 
@@ -210,7 +217,8 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(files("libs/material-icons-custom.jar"))
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -339,6 +347,37 @@ val downloadKpmTools = tasks.register("downloadKpmTools") {
             val output = root.resolve(relativePath)
             check(output.parentFile.isDirectory || output.parentFile.mkdirs()) { "Cannot create $output" }
             source.copyTo(output, overwrite = true)
+            if (name == "kptools-android") {
+                val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+                val stripName = if (isWindows) "llvm-strip.exe" else "llvm-strip"
+                val sdkDir = project.extensions.findByType(com.android.build.gradle.BaseExtension::class.java)?.sdkDirectory
+                    ?: file(System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT") ?: "")
+                val candidateNdks = listOfNotNull(
+                    sdkDir.resolve("ndk/$androidCompileNdkVersion").takeIf { it.isDirectory },
+                    sdkDir.resolve("ndk").listFiles()?.filter { it.isDirectory }?.sortedByDescending { it.name }?.firstOrNull(),
+                    sdkDir.resolve("ndk-bundle").takeIf { it.isDirectory }
+                )
+                val stripExe = candidateNdks.firstNotNullOfOrNull { ndk ->
+                    val prebuilt = ndk.resolve("toolchains/llvm/prebuilt")
+                    prebuilt.listFiles()?.firstOrNull { it.isDirectory }?.resolve("bin/$stripName")?.takeIf { it.isFile }
+                }
+                val cmd = if (stripExe != null) {
+                    listOf(stripExe.absolutePath, "--strip-all", output.absolutePath)
+                } else {
+                    listOf(stripName, "--strip-all", output.absolutePath)
+                }
+                runCatching {
+                    val proc = ProcessBuilder(cmd).redirectErrorStream(true).start()
+                    val procOutput = proc.inputStream.bufferedReader().use { it.readText() }
+                    if (proc.waitFor() == 0) {
+                        logger.lifecycle("Stripped $name: ${output.length()} bytes")
+                    } else {
+                        logger.warn("Strip failed on $name: $procOutput")
+                    }
+                }.onFailure {
+                    logger.warn("Could not execute strip on $name", it)
+                }
+            }
         }
     }
 }
