@@ -55,7 +55,7 @@
  */
 
 static DEFINE_MUTEX(ksu_mount_hide_mutex);
-static bool ksu_mount_hide_enabled __read_mostly = true;
+static bool ksu_mount_hide_enabled __read_mostly = false;
 static bool ksu_mount_hide_running __read_mostly = false;
 
 #define KSU_PROC_MAGIC_NAME_MAX 32
