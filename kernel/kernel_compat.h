@@ -1,6 +1,10 @@
 #ifndef __KSU_H_KERNEL_COMPAT
 #define __KSU_H_KERNEL_COMPAT
 
+#ifndef __nocfi
+#define __nocfi
+#endif
+
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)) ||              \
     (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0))
 #ifdef HISI_SELINUX_EBITMAP_RO
@@ -154,7 +158,16 @@ static inline void ksu_kvfree(void *buf)
     else
         kfree(buf);
 }
+
+static inline void *ksu_kvmalloc_array(size_t n, size_t size, gfp_t flags)
+{
+    if (size && n > ((size_t)-1) / size)
+        return NULL;
+    return ksu_kvmalloc(n * size, flags);
+}
+
 #define kvmalloc ksu_kvmalloc
+#define kvmalloc_array ksu_kvmalloc_array
 #define kvfree ksu_kvfree
 #endif
 
