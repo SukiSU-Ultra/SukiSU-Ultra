@@ -36,9 +36,7 @@ static struct policydb *get_policydb(void) { return &policydb; }
 // rwlock
 #if defined(KSU_COMPAT_USE_SELINUX_STATE)
 static inline rwlock_t *ksu_get_policy_rwlock() { return &selinux_state.ss->policy_rwlock; }
-#elif defined(KSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK)
-static inline rwlock_t *ksu_get_policy_rwlock() { extern rwlock_t policy_rwlock; return &policy_rwlock; }
-#elif defined(CONFIG_KALLSYMS)
+#elif defined(CONFIG_KALLSYMS_ALL)
 static noinline rwlock_t *ksu_get_policy_rwlock()
 {
 	static rwlock_t *lock = nullptr;
@@ -59,7 +57,11 @@ lock_null:
 	return nullptr;	
 }
 #else
-static inline rwlock_t *ksu_get_policy_rwlock() { return nullptr; }
+static rwlock_t *ksu_get_policy_rwlock()
+{
+	extern rwlock_t policy_rwlock __weak;
+	return &policy_rwlock;
+}
 #endif
 
 #endif // < 5.10

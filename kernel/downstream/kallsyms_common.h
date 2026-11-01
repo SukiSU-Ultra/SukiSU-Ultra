@@ -179,11 +179,15 @@ scan_start:
 	// cut it with these to make sure its a match
 	// .llvm.505034 or .lto_priv.0
 	char *dot_ptr = strchr(symbol_buf, '.');
-	if (!dot_ptr)
-		goto step_up;
+	if (dot_ptr)
+		dot_ptr[0] = '\0';
 
-	// terminate on first dot
-	dot_ptr[0] = '\0';
+	char *dollar_ptr = strchr(symbol_buf, '$');
+	if (dollar_ptr)
+		dollar_ptr[0] = '\0';
+
+	if (!dot_ptr && !dollar_ptr)
+		goto step_up;
 
 	insert_to_kallsyms_array(symbol_buf, curr);
 
@@ -269,6 +273,10 @@ static int kallsyms_on_each_symbol_cb(void *data, const char *name, struct modul
 	char *dot_ptr = strchr(namebuf, '.');
 	if (dot_ptr)
 		dot_ptr[0] = '\0';
+
+	char *dollar_ptr = strchr(namebuf, '$');
+	if (dollar_ptr)
+		dollar_ptr[0] = '\0';
 
 	if (!!strcmp(namebuf, args->target_name))
 		return 0;

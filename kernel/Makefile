@@ -90,11 +90,6 @@ CFLAGS_ksu.o += -DKSU_PACKAGE_NAME=\"$(KSU_PACKAGE_NAME)\"
 CFLAGS_ksu.o += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
 CFLAGS_ksu.o += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
 
-ifeq ($(shell grep -q "^struct security_operations selinux_ops" $(srctree)/security/selinux/hooks.c; echo $$?),0)
-$(info -- KernelSU/compat: exported selinux_ops found!)
-CFLAGS_ksu.o += -DKSU_HAS_EXPORTED_SELINUX_OPS
-endif
-
 ifeq ($(shell grep -q " current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
 CFLAGS_ksu.o += -DKSU_COMPAT_HAS_CURRENT_SID
 endif
@@ -118,11 +113,6 @@ ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct_array;" $(srctre
 CFLAGS_ksu.o += -DKSU_TYPE_VAL_TO_STRUCT_ARRAY
 endif
 
-ifeq ($(shell grep -q "^DEFINE_RWLOCK(policy_rwlock);" $(srctree)/security/selinux/ss/services.c; echo $$?),0)
-$(info -- KernelSU/compat: exported policy_rwlock found!)
-CFLAGS_ksu.o += -DKSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK
-endif
-
 # branch link hook vfs_statx, this newer version uses struct filename
 ifeq ($(shell grep "int vfs_statx" $(srctree)/fs/stat.c 2>/dev/null | grep -q "struct filename" 2>/dev/null; echo $$?),0)
 # $(info -- KernelSU/compat: vfs_statx has struct filename argument!)
@@ -141,6 +131,7 @@ $(info -- KernelSU/compat: f_op->read_iter found!)
 CFLAGS_ksu.o += -DKSU_HAS_FOP_READ_ITER
 endif
 
+# KPM
 # Vendor backports may change these fields independently of LINUX_VERSION_CODE.
 # Inspect the actual target source header, not the host kernel or KMI label.
 ksu_netlink_cfg := $(shell sed -n '/struct netlink_kernel_cfg {/,/^};/p' $(srctree)/include/linux/netlink.h)

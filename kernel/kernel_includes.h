@@ -65,6 +65,7 @@
 #include <linux/input.h>
 #include <linux/ioctl.h>
 #include <linux/jump_label.h>
+#include <linux/kallsyms.h>
 #include <linux/kernel.h>
 #include <linux/key.h>
 #include <linux/kobject.h>
@@ -317,8 +318,8 @@ typedef typeof(nullptr) nullptr_t;
  */
 #if defined(__clang__)
 #define assume(expr) __builtin_assume(expr)
-#elif defined(__GNUC__) && (__GNUC__ >= 13)
-#define assume(expr) __attribute__((assume(expr)))
+//#elif defined(__GNUC__) && (__GNUC__ >= 13)
+//#define assume(expr) __attribute__((assume(expr)))
 #else
 #define assume(expr) do {			\
 	if (unlikely(!(expr)))			\

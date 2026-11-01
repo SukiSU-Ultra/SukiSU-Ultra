@@ -1,5 +1,4 @@
 #pragma once
-
 #include <sys/syscall.h>
 
 // hint: -Wl,--entry=__start
@@ -94,37 +93,44 @@ static long __syscall_raw(long n, long a, long b, long c, long d, long e, long f
 }
 #endif
 
-int __snall_rt_errno;
-
+#ifdef small_rt_use_errno
+int __small_rt_errno;
 __attribute__((noinline))
 static long __syscall_gate(long n, long a, long b, long c, long d, long e, long f)
 {
 	long ret = __syscall_raw(n, a, b, c, d, e, f);
 	if (ret < 0 && ret >= -4095) {
-		__snall_rt_errno = (int)(-ret);
+		__small_rt_errno = (int)(-ret);
 		return -1;
 	}
 	return ret;
 }
-#define errno __snall_rt_errno
+#define errno __small_rt_errno
+#else
+__attribute__((noinline))
+static long __syscall_gate(long n, long a, long b, long c, long d, long e, long f)
+{
+	return __syscall_raw(n, a, b, c, d, e, f);
+}
+#endif
 
-#define __syscall_0(name) 			__syscall_gate(name, 0, 0, 0, 0, 0, 0)
-#define __syscall_1(name, a) 			__syscall_gate(name, a, 0, 0, 0, 0, 0)
-#define __syscall_2(name, a, b)			__syscall_gate(name, a, b, 0, 0, 0, 0)
-#define __syscall_3(name, a, b, c)		__syscall_gate(name, a, b, c, 0, 0, 0)
-#define __syscall_4(name, a, b, c, d)		__syscall_gate(name, a, b, c, d, 0, 0)
-#define __syscall_5(name, a, b, c, d, e)	__syscall_gate(name, a, b, c, d, e, 0)
-#define __syscall_6(name, a, b, c, d, e, f)	__syscall_gate(name, a, b, c, d, e, f)
+static __attribute__((noinline)) long __syscall_0(long n) { return __syscall_gate(n, 0, 0, 0, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_1(long n, long a) { return __syscall_gate(n, a, 0, 0, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_2(long n, long a, long b) { return __syscall_gate(n, a, b, 0, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_3(long n, long a, long b, long c) { return __syscall_gate(n, a, b, c, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_4(long n, long a, long b, long c, long d) { return __syscall_gate(n, a, b, c, d, 0, 0); }
+static __attribute__((noinline)) long __syscall_5(long n, long a, long b, long c, long d, long e) { return __syscall_gate(n, a, b, c, d, e, 0); }
+#define __syscall_6(n, a, b, c, d, e, f) __syscall_gate(n, a, b, c, d, e, f)
 
 #define __syscall_arg_n(_1, _2, _3, _4, _5, _6, _7, N, ...) N
 #define __syscall_count_args(...) __syscall_arg_n(__VA_ARGS__, 6, 5, 4, 3, 2, 1, 0)
 #define __syscall_concat(a, b) a##b
 #define __syscall_exp(func, arg) __syscall_concat(func, arg)
 
-// usage: syscall(SYS_getuid), syscall(SYS_newuname, &buf)
+// usage: __syscall(SYS_getuid), __syscall(SYS_newuname, &buf)
 #define __syscall(...) __syscall_exp(__syscall_, __syscall_count_args(__VA_ARGS__))(__VA_ARGS__)
 
-extern int main(int argc, char **argv, char **envp);
+static int main(int argc, char **argv, char **envp);
 __attribute__((used))
 void prep_main(long *sp)
 {

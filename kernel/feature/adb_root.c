@@ -101,6 +101,8 @@ envp_count_done:
 	if (IS_ERR_VALUE(mmap_page))
 		return -ENOMEM;
 
+	pr_info("%s: vm_mmap: 0x%lx page to userspace \n", __func__, mmap_page);
+
 	/**
 	 *  PLAN:
 	 * 	on 0, we put kLdPreload

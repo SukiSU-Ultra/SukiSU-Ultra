@@ -32,7 +32,7 @@ static inline void patch_ptr_slot_kick_cpu(void **target_slot, void *new_ptr)
 	kick_all_cpus_sync();
 }
 
-static noinline int ksu_write_to_readonly_slot(uintptr_t slot_ptr, uintptr_t new_ptr)
+nodiscard static noinline int ksu_write_to_readonly_slot(uintptr_t slot_ptr, uintptr_t new_ptr)
 {
 	if (!slot_ptr || !new_ptr)
 		return -EINVAL;

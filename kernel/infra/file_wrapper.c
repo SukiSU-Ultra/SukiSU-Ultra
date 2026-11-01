@@ -17,6 +17,8 @@ static int ksu_wrapper_open(struct inode *ino, struct file *fp)
 		filp_close(orig_file, current->files);
 		return PTR_ERR(wrapper);
 	}
+	// The wrapper holds its own reference to orig_file.
+	fput(orig_file);
 	fp->private_data = wrapper;
 	const struct file_operations *new_fops = fops_get(&wrapper->ops);
 	replace_fops(fp, new_fops);
@@ -135,11 +137,13 @@ static int ksu_wrapper_flush(struct file *fp, fl_owner_t id) {
 }
 
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 1, 0)
 static int ksu_wrapper_fsync(struct file *fp, loff_t off1, loff_t off2, int datasync) {
 	struct ksu_file_wrapper* data = fp->private_data;
 	struct file* orig = data->orig;
 	return orig->f_op->fsync(orig, off1, off2, datasync);
 }
+#endif
 
 static int ksu_wrapper_fasync(int arg, struct file *fp, int arg2) {
 	struct ksu_file_wrapper* data = fp->private_data;
@@ -373,7 +377,9 @@ static struct ksu_file_wrapper* ksu_create_file_wrapper(struct file* fp) {
 #endif
 	p->ops.flush = fp->f_op->flush ? ksu_wrapper_flush : NULL;
 	p->ops.release = ksu_wrapper_release;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 1, 0)
 	p->ops.fsync = fp->f_op->fsync ? ksu_wrapper_fsync : NULL;
+#endif
 	p->ops.fasync = fp->f_op->fasync ? ksu_wrapper_fasync : NULL;
 	p->ops.lock = fp->f_op->lock ? ksu_wrapper_lock : NULL;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
@@ -438,6 +444,46 @@ static const struct dentry_operations ksu_file_wrapper_d_ops = {
 #define ksu_anon_inode_create_getfile_compat(a, b, c, d, e) anon_inode_getfile(a, b, c, d)
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0) && defined(MODULE)
+static bool use_default_offset __read_mostly = true;
+
+static void test_selinux_blob_size(void)
+{
+	constexpr long compiled_sz = sizeof(struct lsm_blob_sizes);
+	uintptr_t sym_addr = kallsyms_lookup_name("selinux_blob_sizes");
+	if (!sym_addr)
+		return;
+
+	long offset = 0;
+	long runtime_sz = 0;
+	kallsyms_lookup_size_offset(sym_addr, &runtime_sz, &offset);
+	if (!runtime_sz && !offset)
+		return;
+
+	pr_info("%s: compiled: %ld runtime: %ld \n", __func__, compiled_sz, runtime_sz);
+	if (runtime_sz != compiled_sz)
+		use_default_offset = false;
+
+	pr_info("%s: use_default_offset: %d \n", __func__, use_default_offset);
+}
+
+static struct inode_security_struct *ksu_selinux_inode(const struct inode *inode)
+{
+	if (unlikely(!inode->i_security))
+		return NULL;
+
+	if (use_default_offset)
+		return inode->i_security + selinux_blob_sizes.lbs_inode;
+
+	// grab 4th int
+	int *p = (int *)&selinux_blob_sizes;
+	return inode->i_security + p[3];
+}
+#else
+#define test_selinux_blob_size() do { } while (0)
+#define ksu_selinux_inode selinux_inode
+#endif
+
 int ksu_install_file_wrapper(int fd)
 {
 	int out_fd, ret;
@@ -483,13 +529,18 @@ int ksu_install_file_wrapper(int fd)
 	struct inode *wrapper_inode = file_inode(wrapper_file);
 	// libc's stdio relies on the fstat() result of the fd to determine its buffer type.
 	wrapper_inode->i_mode = file_inode(orig_file)->i_mode;
-	struct inode_security_struct *wrapper_sec = selinux_inode(wrapper_inode);
-	// Use ksu_file_sid to bypass SELinux check.
-	// When we call `su` from terminal app, this is useful.
-	if (wrapper_sec) {
-		wrapper_sec->sid = ksu_file_sid;
+	// Use ksu_file_sid to bypass SELinux check
+
+	// We use ksu_selinux_inode and lookup btf to workaround 6.6's ABI changes
+	// See more: https://android.googlesource.com/kernel/common/+/41c5b269af8b1f0bffcab7766a793f294ae6764e
+	struct inode_security_struct *wrapper_sec = ksu_selinux_inode(wrapper_inode);
+	if (IS_ERR(wrapper_sec)) {
+		ret = PTR_ERR(wrapper_sec);
+		goto out_put_wrapper_file;
 	}
-	// Install open file operation for inode.
+	if (wrapper_sec)
+		wrapper_sec->sid = ksu_file_sid;
+        // Install open file operation for inode.
 	wrapper_inode->i_fop = &ksu_file_wrapper_inode_fops;
 
 	struct path *orig_path = kmalloc(sizeof(struct path), GFP_KERNEL);
@@ -522,4 +573,7 @@ done:
 	return ret;
 }
 
-void __init ksu_file_wrapper_init(void) { }
+void __init ksu_file_wrapper_init(void)
+{
+	test_selinux_blob_size();
+}

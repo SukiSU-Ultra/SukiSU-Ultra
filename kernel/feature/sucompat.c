@@ -196,7 +196,7 @@ static __always_inline void ksu_sucompat_user_common(const char __user **filenam
 		goto no_escalate;
 
 #ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, NULL, GFP_KERNEL);
+	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
 #endif
 	if (!!escape_with_root_profile())
 		return;
@@ -245,7 +245,7 @@ SUCOMPAT_HOOK_TYPE ksu_handle_stat(int *dfd, const char __user **filename_user, 
 SUCOMPAT_HOOK_TYPE ksu_handle_sys_execve(const char __user **filename_user, void *argv, void *envp)
 {
 	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
-	ksu_preinit_user_execve_hook(filename_user, argv);
+	ksu_preinit_user_execve_hook(filename_user, argv, envp);
 
 	if (!is_su_allowed((const void **)filename_user))
 		return 0;
@@ -258,7 +258,7 @@ SUCOMPAT_HOOK_TYPE ksu_handle_sys_execve(const char __user **filename_user, void
 SUCOMPAT_HOOK_TYPE ksu_handle_sys_execveat(int *fd, const char __user **filename_user, void *argv, void *envp, int *flags)
 {
 	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
-	ksu_preinit_user_execve_hook(filename_user, argv);
+	ksu_preinit_user_execve_hook(filename_user, argv, envp);
 
 	if (!is_su_allowed((const void **)filename_user))
 		return 0;
@@ -270,8 +270,8 @@ SUCOMPAT_HOOK_TYPE ksu_handle_sys_execveat(int *fd, const char __user **filename
 static __always_inline void ksu_sucompat_kernel_common(int *restrict fd, void **restrict filename_ptr, void *restrict argv, void *restrict envp, int *restrict flags, const char *function_name)
 {
 	ksu_adb_root_execve_kernel((void *)filename_ptr, (void *)envp);
-#ifdef CONFIG_KSU_HACK_ARM64_BRANCH_LINK
-	ksu_preinit_kernel_execve_hook(filename_ptr, argv);
+#if !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+	ksu_preinit_kernel_execve_hook(filename_ptr, argv, envp);
 #endif // we defer hooking on branch link it should be caught by sys_execve first
 
 	if (!is_su_allowed((const void **)filename_ptr))
@@ -302,7 +302,7 @@ static __always_inline void ksu_sucompat_kernel_common(int *restrict fd, void **
 	write_sulog('x');
 
 #ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, NULL, GFP_KERNEL);
+	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
 #endif
 	if (!!escape_with_root_profile())
 		return;
