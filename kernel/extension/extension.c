@@ -449,7 +449,7 @@ void ksu_extension_apply_forced(void)
              * later it must be replayed explicitly.
              */
             pr_warn("extension: force_extension=%s=%llu pending: handler not registered\n",
-                    extension_names[id], forced_values[id]);
+                    extension_names[id], extension_forced_values[id]);
             clear_bit(id, forced_pending);
             continue;
         }

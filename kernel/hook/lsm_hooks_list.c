@@ -39,6 +39,7 @@ static __nocfi void ksu_bprm_committing_creds(struct linux_binprm *bprm)
 	bprm_committing_creds_fn(bprm); // NOTE: void LSM hook
 }
 
+static int (*file_open_fn)(struct file *file) __read_mostly = nullptr;
 static int (*file_permission_fn)(struct file *file, int mask) __read_mostly = nullptr;
 static __nocfi int ksu_file_permission(struct file *file, int mask)
 {
@@ -317,7 +318,7 @@ static __init void ksu_lsm_hook_init(void)
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
-	LSM_HACK_INIT(file_open, ksu_mount_hide_file_open),
+	LSM_HACK_INIT(file_open, ksu_mount_hide_file_open);
 #endif
 
 #if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)

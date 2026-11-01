@@ -67,7 +67,7 @@ typedef int (*ksu_extension_io_fn)(u32 extension_id, void __user *arg);
  * Forced-by-config callback. Invoked by ksu_extension_apply_forced()
  * to apply a saved value to an io-flavoured handler on every boot.
  *
- * Kernel-side entry point: the value is forced_values[id] (raw u64,
+ * Kernel-side entry point: the value is extension_forced_values[id] (raw u64,
  * never a userspace pointer). No access_ok, no copy_from_user.
  * io_handler() is strictly a userspace entry point and must not
  * branch on "this is a forced sentinel".
@@ -188,7 +188,7 @@ void ksu_extension_register_all(void);
  * # Replay order
  *
  *   1. ops->set      — value-flavoured handlers, replay the raw u64
- *                       forced_values[id].
+ *                       extension_forced_values[id].
  *   2. apply_forced  — io-flavoured handlers, kernel-side callback
  *                       that receives the raw u64. No user pointer
  *                       is fabricated.
