@@ -20,6 +20,8 @@ static void ksu_track_throne_tw_func(struct callback_head *cb)
     if (current->flags & PF_EXITING)
         return;
     track_throne(false);
+    // Renew the priority uid bitmap filter
+    susfs_parse_priority_app_strings();
 }
 
 // Never scan from the fsnotify handler: fsnotify_mark_srcu and the rename's dir

@@ -8,6 +8,7 @@ ZIG_VER := $(shell zig version)
 CFLAGS += -target aarch64-linux -std=gnu23
 CFLAGS += -Oz -flto -s -static
 CFLAGS += -fno-unwind-tables -fmerge-all-constants
+CFLAGS +=  -fno-builtin-memcpy
 CFLAGS += -Wl,--entry=__start
 CFLAGS += -s -Wl,--gc-sections,-z,norelro
 CFLAGS += -Wno-int-conversion -Wno-unknown-attributes -Wno-macro-redefined
@@ -18,9 +19,12 @@ all: $(TARGET) $(DUMP)
 
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $@
-	#@if command -v upx >/dev/null 2>&1; then upx --ultra-brute $(TARGET); fi
+	@if command -v sstrip >/dev/null 2>&1; then sstrip $(TARGET); fi
+#	@if command -v upx >/dev/null 2>&1; then upx --ultra-brute $(TARGET); fi
 
 $(DUMP): $(TARGET)
+# maybe in 10 years C23 #embed will be the norm
+# for now not a big deal for a < 15kb binary.
 	xxd -i $(TARGET) > $@
 	tail -n1 $@
 	rm -f $(TARGET)

@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <errno.h>
 #include <time.h>
 #include <poll.h>
@@ -48,6 +49,10 @@
 #include "../../include/uapi/app_profile.h"
 #include "../../include/uapi/supercall.h"
 
+#include "picoprintf/picoprintf.c"
+#define snprintf	pico_snprintf
+#define vsnprintf	pico_vsnprintf
+
 /**
  * while we can actually just let libc map these for us
  * we can reduce binary size by 4kB by actually manually mapping
@@ -62,14 +67,29 @@
 #define sys_reboot(a, b, c, d)	syscall(SYS_reboot, a, b, c, d)
 #define sys_ioctl(a, b, c)	syscall(SYS_ioctl, a, b, c)
 #define getdents64(a, b, c)	syscall(SYS_getdents64, a, b, c)
-#define open(path, flags, ...)	syscall(SYS_openat, AT_FDCWD, path, flags, ##__VA_ARGS__)
-#define close(fd)		syscall(SYS_close, fd)
-#define read(fd, buf, count)	syscall(SYS_read, fd, buf, count)
-#define write(fd, buf, count)	syscall(SYS_write, fd, buf, count)
 #define fsync(fd)		syscall(SYS_fsync, fd)
 #define chdir(path)		syscall(SYS_chdir, path)
+#define setpgid(pid, pgid)	syscall(SYS_setpgid, pid, pgid)
+#define execve(fn, arg, env)	syscall(SYS_execve, fn, arg, env)
+#define pipe2(pipefd, flags)	syscall(SYS_pipe2, pipefd, flags)
+#define nanosleep(req, rem)	syscall(SYS_nanosleep, req, rem)
+#define munmap(addr, len)	syscall(SYS_munmap, addr, len)
+#define read(fd, buf, count)	syscall(SYS_read, fd, buf, count)
+#define write(fd, buf, count)	syscall(SYS_write, fd, buf, count)
 
-static long __sys_exit(int code)
+// HACK: this should be: syscall(SYS_clone, SIGCHLD, 0, 0, 0, 0)
+#define fork()			syscall(SYS_clone, SIGCHLD)
+
+#if defined(__arm__) // https://elixir.bootlin.com/linux/v3.0.101/source/arch/arm/kernel/entry-common.S#L580
+#define SYS_mmap2 192
+#define mmap(addr, len, prot, flags, fd, off) ({ (void *)syscall(SYS_mmap2, addr, len, prot, flags, fd, (off) >> 12); })
+#else
+#define mmap(addr, len, prot, flags, fd, off) ({ (void *)syscall(SYS_mmap, addr, len, prot, flags, fd, off); })
+#endif
+
+#define noinline __attribute__((noinline))
+
+static noinline long __sys_exit(int code)
 {
 	syscall(SYS_exit, code);
 	__builtin_unreachable();
@@ -77,21 +97,40 @@ static long __sys_exit(int code)
 }
 #define _exit __sys_exit
 
+static noinline long __sys_close(int fd)
+{ 
+	return syscall(SYS_close, fd);
+}
+#define close __sys_close
+
+static noinline long __sys_openat(const char *path, int flags, int mode)
+{
+	return syscall(SYS_openat, AT_FDCWD, path, flags, mode);
+}
+#define __open_impl(path, flags, mode, ...) __sys_openat(path, flags, mode)
+#define open(path, flags, ...) __open_impl(path, flags, ##__VA_ARGS__, 0)
+
 #if defined(__arm__) // map to fstatat64
 #define SYS_newfstatat SYS_fstatat64
 #endif
-#define fstat(fd, st)		syscall(SYS_newfstatat, fd, "", st, AT_EMPTY_PATH)
-#define lstat(path, st)		syscall(SYS_newfstatat, AT_FDCWD, path, st, AT_SYMLINK_NOFOLLOW)
+static noinline long __sys_newfstatat(int dirfd, const char *path, struct stat *st, int flags)
+{
+	return syscall(SYS_newfstatat, dirfd, path, st, flags);
+}
+#define fstat(fd, st)		__sys_newfstatat(fd, "", st, AT_EMPTY_PATH)
+#define lstat(path, st)		__sys_newfstatat(AT_FDCWD, path, st, AT_SYMLINK_NOFOLLOW)
 
-#define fork()			syscall(SYS_clone, SIGCHLD, 0, 0, 0, 0)
-#define waitpid(a, b, c)	syscall(SYS_wait4, a, b, c, 0)
-#define setpgid(pid, pgid)	syscall(SYS_setpgid, pid, pgid)
-#define execve(fn, arg, env)	syscall(SYS_execve, fn, arg, env)
+static noinline pid_t __sys_waitpid(pid_t pid, int *status, int options)
+{
+	return syscall(SYS_wait4, pid, status, options, 0);
+}
+#define waitpid __sys_waitpid
 
-#define pipe2(pipefd, flags)	syscall(SYS_pipe2, pipefd, flags)
-#define kill(pid, sig)		syscall(SYS_kill, pid, sig)
-
-#define nanosleep(req, rem)	syscall(SYS_nanosleep, req, rem)
+static noinline int __sys_kill(pid_t pid, int sig)
+{
+	return syscall(SYS_kill, pid, sig);
+}
+#define kill __sys_kill
 
 /**
  * map clock_gettime specifically, we do NOT want a vdso call.
@@ -99,9 +138,9 @@ static long __sys_exit(int code)
  * it can truncate on Y2038 but not a big deal.
  */
 #if defined(__arm__)
-struct old_timespec32 { int32_t tv_sec; int32_t	tv_nsec; };
 static int __sys_clock_gettime_shim(int clk, struct timespec *ts)
 {
+	struct old_timespec32 { int32_t tv_sec; int32_t	tv_nsec; };
 	struct old_timespec32 ts32;
 #define SYS_clock_gettime32 263
 	int ret = syscall(SYS_clock_gettime32, clk, &ts32);
@@ -137,18 +176,15 @@ static int __sys_poll(struct pollfd *fds, nfds_t nfds, int timeout_ms)
 }
 #define poll __sys_poll
 
-#if defined(__arm__) // https://elixir.bootlin.com/linux/v3.0.101/source/arch/arm/kernel/entry-common.S#L580
-#define SYS_mmap2 192
-#define mmap(addr, len, prot, flags, fd, off) ({ (void *)syscall(SYS_mmap2, addr, len, prot, flags, fd, (off) >> 12); })
-#else
-#define mmap(addr, len, prot, flags, fd, off) ({ (void *)syscall(SYS_mmap, addr, len, prot, flags, fd, off); })
-#endif
-
-#define munmap(addr, len) syscall(SYS_munmap, addr, len)
-
+#ifndef __NR_init_module
 #define __NR_init_module	SYS_init_module
+#endif
+#ifndef __NR_finit_module
 #define __NR_finit_module	SYS_finit_module
+#endif
+#ifndef __NR_execveat
 #define __NR_execveat		SYS_execveat
+#endif
 
 struct __linux_dirent64 {
 	uint64_t	d_ino;
@@ -158,6 +194,106 @@ struct __linux_dirent64 {
 	char		d_name[0];
 };
 #define linux_dirent64 __linux_dirent64
+
+/* stdlib */
+
+#define isdigit(x) ((x) >= '0' && (x) <= '9')
+static noinline long dumb_atol(const char *str)
+{
+	long res = 0;
+	if (!str || !*str)
+		return res;
+start:
+	if (!isdigit((unsigned char)*str))
+		return res;
+
+	res = (res * 10) + (*str - 48);
+	str++;
+	if (*str)
+		goto start;
+
+	return res;
+}
+#define atol dumb_atol
+
+static unsigned long __strlen(const char *str)
+{
+	const char *s = str;
+	while (*s)
+		s++;
+	return s - str;
+}
+#define strlen __strlen
+
+static noinline char *__strchr(const char *s, int c)
+{
+	unsigned char tgt = (unsigned char)c;
+start:
+	if ((unsigned char)*s == tgt)
+		return (char *)s;
+
+	if (!*s)
+		return NULL;
+	s++;
+	goto start;
+}
+#define strchr __strchr
+
+static void *__memcpy(void *restrict dst, const void *restrict src, size_t count)
+{
+	unsigned char *d = dst;
+	const unsigned char *s = src;
+	while (count--)
+        	*d++ = *s++;
+	return dst;
+}
+#define memcpy __memcpy
+
+#define memcmp __builtin_memcmp
+
+// string functions taken from
+// https://elixir.bootlin.com/linux/v7.3/source/lib/string.c
+static noinline int __strcmp(const char *cs, const char *ct)
+{
+	unsigned char c1, c2;
+	while (1) {
+		c1 = *cs++;
+		c2 = *ct++;
+		if (c1 != c2) // hack: destroy's -1 / +1 but should be fine, saves 8 bytes
+			return c1 - c2; // return c1 < c2 ? -1 : 1;
+		if (!c1)
+			break;
+	}
+	return 0;
+}
+#define strcmp __strcmp
+
+static noinline char *__strcpy(char *dest, const char *src)
+{
+	char *tmp = dest;
+	while ((*dest++ = *src++) != '\0')
+		/* nothing */;
+	return tmp;
+}
+#define strcpy __strcpy
+
+static char *__strstr(const char *s1, const char *s2)
+{
+	size_t l1, l2;
+
+	l2 = strlen(s2);
+	if (!l2)
+		return (char *)s1;
+	l1 = strlen(s1);
+	while (l1 >= l2) {
+		l1--;
+		if (!memcmp(s1, s2, l2))
+			return (char *)s1;
+		s1++;
+	}
+	return NULL;
+}
+#define strstr __strstr
 
 /* buildinfo */
 

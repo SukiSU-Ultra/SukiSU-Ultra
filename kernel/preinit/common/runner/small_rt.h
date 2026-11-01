@@ -114,13 +114,13 @@ static long __syscall_gate(long n, long a, long b, long c, long d, long e, long 
 }
 #endif
 
-#define __syscall_0(name) 			__syscall_gate(name, 0, 0, 0, 0, 0, 0)
-#define __syscall_1(name, a) 			__syscall_gate(name, a, 0, 0, 0, 0, 0)
-#define __syscall_2(name, a, b)			__syscall_gate(name, a, b, 0, 0, 0, 0)
-#define __syscall_3(name, a, b, c)		__syscall_gate(name, a, b, c, 0, 0, 0)
-#define __syscall_4(name, a, b, c, d)		__syscall_gate(name, a, b, c, d, 0, 0)
-#define __syscall_5(name, a, b, c, d, e)	__syscall_gate(name, a, b, c, d, e, 0)
-#define __syscall_6(name, a, b, c, d, e, f)	__syscall_gate(name, a, b, c, d, e, f)
+static __attribute__((noinline)) long __syscall_0(long n) { return __syscall_gate(n, 0, 0, 0, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_1(long n, long a) { return __syscall_gate(n, a, 0, 0, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_2(long n, long a, long b) { return __syscall_gate(n, a, b, 0, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_3(long n, long a, long b, long c) { return __syscall_gate(n, a, b, c, 0, 0, 0); }
+static __attribute__((noinline)) long __syscall_4(long n, long a, long b, long c, long d) { return __syscall_gate(n, a, b, c, d, 0, 0); }
+static __attribute__((noinline)) long __syscall_5(long n, long a, long b, long c, long d, long e) { return __syscall_gate(n, a, b, c, d, e, 0); }
+#define __syscall_6(n, a, b, c, d, e, f) __syscall_gate(n, a, b, c, d, e, f)
 
 #define __syscall_arg_n(_1, _2, _3, _4, _5, _6, _7, N, ...) N
 #define __syscall_count_args(...) __syscall_arg_n(__VA_ARGS__, 6, 5, 4, 3, 2, 1, 0)
@@ -130,7 +130,7 @@ static long __syscall_gate(long n, long a, long b, long c, long d, long e, long 
 // usage: __syscall(SYS_getuid), __syscall(SYS_newuname, &buf)
 #define __syscall(...) __syscall_exp(__syscall_, __syscall_count_args(__VA_ARGS__))(__VA_ARGS__)
 
-extern int main(int argc, char **argv, char **envp);
+static int main(int argc, char **argv, char **envp);
 __attribute__((used))
 void prep_main(long *sp)
 {

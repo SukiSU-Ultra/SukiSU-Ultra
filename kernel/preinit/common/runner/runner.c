@@ -966,7 +966,7 @@ static void supervise(pid_t worker)
         ;
 }
 
-int main(int argc, char **argv, char **envp)
+static int main(int argc, char **argv, char **envp)
 {
     pid_t pid;
 
