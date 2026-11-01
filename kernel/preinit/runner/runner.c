@@ -12,7 +12,10 @@
  * that can fail runs in the worker, so a crash there only costs the preinit
  * actions, never the boot.
  */
-#include "runner_oot.h"
+#include "nolibc.h"
+#include <linux/elf.h>
+
+#include "uapi/supercall.h"
 
 /* Overridable for host testing. */
 #ifndef INIT_PATH
@@ -736,11 +739,6 @@ static int do_exec(const struct module_ctx *m, int argc, char **argv)
         dup2(pfd[1], 2);
         /* Static ELF only, so a close-on-exec fd is fine for AT_EMPTY_PATH. */
         syscall(__NR_execveat, fd, "", argv + idx, envp, AT_EMPTY_PATH);
-/* execve fallback start */
-        char fd_path[32];
-        snprintf(fd_path, sizeof(fd_path), "/proc/self/fd/%d", fd);
-        execve(fd_path, argv + idx, envp);
-/* execve fallback done */
         _exit(127);
     }
     close(fd);
@@ -966,11 +964,9 @@ static void supervise(pid_t worker)
         ;
 }
 
-static int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv, char **envp)
 {
     pid_t pid;
-
-    klog(__runner_BUILD_INFO);
 
     (void)argc;
     pid = fork();
