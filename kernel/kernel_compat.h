@@ -61,6 +61,15 @@ static void *ksu_kvmalloc(size_t bytes, gfp_t flags)
 }
 #define kvmalloc ksu_kvmalloc
 
+static inline void *ksu_kvmalloc_array(size_t n, size_t size, gfp_t flags)
+{
+    if (size && n > ((size_t)-1) / size)
+        return NULL;
+    return ksu_kvmalloc(n * size, flags);
+}
+
+#define kvmalloc_array ksu_kvmalloc_array
+
 static void ksu_kvfree(const void *buf)
 {
 	if (is_vmalloc_addr(buf))
