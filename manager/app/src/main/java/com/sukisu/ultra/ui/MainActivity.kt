@@ -31,6 +31,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import com.sukisu.ultra.ui.theme.LocalAppBackgroundBackdrop
+import com.sukisu.ultra.ui.theme.LocalAppSettings
+import com.sukisu.ultra.ui.theme.MaterialExpressivePalette
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
 import java.io.File
@@ -101,6 +103,8 @@ import com.sukisu.ultra.ai.api.AiFeatureBridge
 import com.sukisu.ultra.ai.host.ManagerAiTarget
 import com.sukisu.ultra.ui.screen.appicon.AppIconScreen
 import com.sukisu.ultra.ui.screen.customtext.CustomTextScreen
+import com.sukisu.ultra.ui.screen.themestore.ThemeStoreScreen
+import com.sukisu.ultra.ui.screen.themestore.ThemeStoreSourcesScreen
 import com.sukisu.ultra.ui.util.LocalCustomTexts
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.backgroundcrop.BackgroundCropScreen
@@ -286,10 +290,14 @@ class MainActivity : ComponentActivity() {
             val captureAppBackground = uiMode == UiMode.Miuix && uiState.enableBlur &&
                 uiState.customBackgroundUri.isNotEmpty()
 
+            val themedAppSettings = remember(appSettings, uiState.keyColorOverride) {
+                uiState.keyColorOverride?.let { appSettings.copy(keyColor = it) } ?: appSettings
+            }
             CompositionLocalProvider(
                 LocalNavigator provides navigator,
                 LocalDensity provides density,
                 LocalColorMode provides appSettings.colorMode.value,
+                LocalAppSettings provides themedAppSettings,
                 LocalEnableBlur provides uiState.enableBlur,
                 LocalEnableFloatingBottomBar provides uiState.enableFloatingBottomBar,
                 LocalEnableFloatingBottomBarBlur provides uiState.enableFloatingBottomBarBlur,
@@ -301,9 +309,6 @@ class MainActivity : ComponentActivity() {
                 LocalUiMode provides uiMode,
                 LocalCustomTexts provides uiState.customTexts,
             ) {
-                val themedAppSettings = remember(appSettings, uiState.keyColorOverride) {
-                    uiState.keyColorOverride?.let { appSettings.copy(keyColor = it) } ?: appSettings
-                }
                 KernelSUTheme(appSettings = themedAppSettings, uiMode = uiMode) {
                     IntentDispatcher(intentChannel = intentChannel)
                     val swipeDismiss = if (uiState.enableSwipeDismiss) {
@@ -363,6 +368,12 @@ class MainActivity : ComponentActivity() {
                             entry<Route.Sulog>(swipeDismiss = swipeDismiss) { SulogScreen() }
                             entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) { key -> ColorPaletteScreen(key.section) }
                             entry<Route.CustomTexts>(swipeDismiss = swipeDismiss) { CustomTextScreen() }
+                            entry<Route.ThemeStore>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { ThemeStoreScreen() }
+                            }
+                            entry<Route.ThemeStoreSources>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { ThemeStoreSourcesScreen() }
+                            }
                             entry<Route.AppIcon>(swipeDismiss = swipeDismiss) { AppIconScreen() }
                             entry<Route.BackgroundCrop>(swipeDismiss = NavSwipeDirection.None) { key ->
                                 BackgroundCropScreen(key.sourcePath)

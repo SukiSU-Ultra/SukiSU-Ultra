@@ -70,8 +70,13 @@ data class ImportedTheme(
 )
 
 object ThemePackageStorage {
-    const val CURRENT_VERSION = 1
+    /** v2 is the current package format; v1 packages remain importable. */
+    const val CURRENT_VERSION = 2
+    const val MIN_SUPPORTED_VERSION = 1
     const val THEME_MIME_TYPE = "application/x-sukisu-theme"
+
+    fun isSupportedVersion(version: Int): Boolean =
+        version in MIN_SUPPORTED_VERSION..CURRENT_VERSION
 
     private const val THEME_ENTRY = "theme.json"
     private const val BACKGROUND_ENTRY = "background"
@@ -212,7 +217,7 @@ object ThemePackageStorage {
 
                 val text = themeText ?: error("theme.json is missing")
                 val data = json.decodeFromString(ThemePackageData.serializer(), text)
-                if (data.version > CURRENT_VERSION) error("Unsupported theme package version")
+                if (!isSupportedVersion(data.version)) error("Unsupported theme package version")
 
                 val hasBackground = data.hasBackground ?: backgroundExtracted
                 if (hasBackground && !backgroundExtracted) error("Background image is missing")
@@ -260,6 +265,16 @@ object ThemePackageStorage {
                 tempStickers.forEach { (_, file) -> file.delete() }
                 throw e
             }
+        }
+    }
+
+    /** Validates and parses a package without keeping its extracted image files. */
+    suspend fun validate(context: Context, uri: Uri): Result<ThemePackageData> = withContext(Dispatchers.IO) {
+        import(context, uri).map { imported ->
+            imported.backgroundPath?.let { File(it).delete() }
+            imported.cardBackgroundPath?.let { File(it).delete() }
+            imported.stickerPaths.forEach { File(it).delete() }
+            imported.data
         }
     }
 

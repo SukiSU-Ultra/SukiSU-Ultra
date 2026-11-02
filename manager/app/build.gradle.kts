@@ -201,6 +201,7 @@ base {
 dependencies {
     // Stable bridge shared with the optional assistant AAR.
     implementation(project(":ai-api"))
+    implementation(libs.androidx.exifinterface)
 
     // The assistant itself is optional: a drop-in app/libs/ai.aar wins,
     // otherwise the :ai module is used when it is part of the build. Without

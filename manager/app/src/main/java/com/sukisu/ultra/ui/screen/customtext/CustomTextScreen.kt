@@ -149,7 +149,6 @@ fun CustomTextScreen(
 
     if (showResetAllConfirm) {
         ResetAllConfirmDialog(
-            onDismiss = { showResetAllConfirm = false },
             onConfirm = {
                 viewModel.resetAllCustomTexts()
                 showResetAllConfirm = false
@@ -412,7 +411,7 @@ private fun CustomTextEditDialog(
                         Text(
                             text = stringResource(hintRes),
                             style = MiuixTheme.textStyles.body2,
-                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            color = colorScheme.onSurfaceVariantSummary,
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -516,15 +515,15 @@ private fun MiuixVariableRow(arg: CustomTextArg) {
         Text(
             text = stringResource(R.string.custom_text_variable),
             style = MiuixTheme.textStyles.body2,
-            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            color = colorScheme.onSurfaceVariantSummary,
         )
         Text(
             text = stringResource(arg.labelRes),
             style = MiuixTheme.textStyles.body2,
-            color = MiuixTheme.colorScheme.onPrimaryContainer,
+            color = colorScheme.onPrimaryContainer,
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(MiuixTheme.colorScheme.primaryContainer)
+                .background(colorScheme.primaryContainer)
                 .padding(horizontal = 8.dp, vertical = 2.dp),
         )
     }
@@ -559,7 +558,6 @@ private fun MaterialVariableRow(arg: CustomTextArg, modifier: Modifier = Modifie
 
 @Composable
 private fun ResetAllConfirmDialog(
-    onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
     val confirmDialog = rememberConfirmDialog(onConfirm = onConfirm)

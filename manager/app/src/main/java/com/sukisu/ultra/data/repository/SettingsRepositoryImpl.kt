@@ -139,6 +139,42 @@ class SettingsRepositoryImpl : SettingsRepository {
             prefs.edit { putString(KEY_CUSTOM_TEXTS, jsonStr) }
         }
 
+    override var themeStoreBaseUrl: String
+        get() = prefs.getString("theme_store_base_url", "") ?: ""
+        set(value) = prefs.edit { putString("theme_store_base_url", value.trim()) }
+
+    override var themeStoreToken: String
+        get() = prefs.getString("theme_store_token", "") ?: ""
+        set(value) = prefs.edit { putString("theme_store_token", value.trim()) }
+
+    override var themeStoreAuthorId: String
+        get() = prefs.getString("theme_store_author_id", "") ?: ""
+        set(value) = prefs.edit { putString("theme_store_author_id", value.trim()) }
+
+    override var themeStoreAuthorName: String
+        get() = prefs.getString("theme_store_author_name", "") ?: ""
+        set(value) = prefs.edit { putString("theme_store_author_name", value.trim()) }
+
+    override var themeStoreAdminUrl: String
+        get() = prefs.getString("theme_store_admin_url", "") ?: ""
+        set(value) = prefs.edit { putString("theme_store_admin_url", value.trim()) }
+
+    override var themeStoreExtraSources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>
+        get() {
+            val raw = prefs.getString("theme_store_extra_sources", null) ?: return emptyList()
+            return runCatching {
+                Json.decodeFromString<List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>>(raw)
+            }.getOrDefault(emptyList())
+        }
+        set(value) {
+            prefs.edit {
+                putString(
+                    "theme_store_extra_sources",
+                    Json.encodeToString(value),
+                )
+            }
+        }
+
     override var homeCardImagePath: String
         get() = prefs.getString(KEY_HOME_CARD_IMAGE_PATH, "") ?: ""
         set(value) = prefs.edit { putString(KEY_HOME_CARD_IMAGE_PATH, value) }

@@ -330,7 +330,7 @@ fun ColorPaletteScreenMiuix(
         val colorsSectionExpanded = state.colorsSectionExpanded
         var stickerEditorExpanded by rememberSaveable { mutableStateOf(false) }
         var stickerDraft by remember { mutableStateOf(state.homeCardStickers) }
-        var selectedSticker by rememberSaveable { mutableStateOf(0) }
+        var selectedSticker by rememberSaveable { mutableIntStateOf(0) }
         var lastStickerCount by remember { mutableIntStateOf(state.homeCardStickers.size) }
         LaunchedEffect(state.homeCardStickers) {
             stickerDraft = state.homeCardStickers
@@ -609,7 +609,6 @@ fun ColorPaletteScreenMiuix(
                     AppCard(
                         modifier = Modifier
                             .bringIntoViewRequester(sectionRequester("appearance"))
-                            .padding(bottom = 12.dp)
                             .fillMaxWidth(),
                     ) {
                         MiuixSectionHeader(
@@ -1144,6 +1143,19 @@ fun ColorPaletteScreenMiuix(
                         ) {
                             Column {
                                 HorizontalDivider()
+                                BasicComponent(
+                                    title = customText(CustomTextKey.PAGE_THEME_STORE),
+                                    summary = stringResource(id = R.string.theme_store_summary),
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.Palette,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = customText(CustomTextKey.PAGE_THEME_STORE),
+                                            tint = colorScheme.onBackground
+                                        )
+                                    },
+                                    onClick = actions.onOpenThemeStore,
+                                )
                                 BasicComponent(
                                     title = stringResource(id = R.string.theme_reset),
                                     summary = stringResource(id = R.string.theme_reset_summary),

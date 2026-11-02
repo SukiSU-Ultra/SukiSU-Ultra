@@ -14,6 +14,7 @@ fun ThemeImportDialog(
     theme: ImportedTheme?,
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
+    forceMaterial: Boolean = true,
 ) {
     if (!show || theme == null) return
 
@@ -32,5 +33,7 @@ fun ThemeImportDialog(
         availableCustomTextGroups = customTextGroups,
         onDismissRequest = onDismissRequest,
         onConfirm = onConfirm,
+        formatVersion = theme.data.version,
+        forceMaterial = forceMaterial,
     )
 }

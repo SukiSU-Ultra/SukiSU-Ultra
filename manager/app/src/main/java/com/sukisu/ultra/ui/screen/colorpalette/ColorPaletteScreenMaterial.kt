@@ -1112,6 +1112,15 @@ fun ColorPaletteScreenMaterial(
                         )
                     }
                     item(visible = themePackageSectionExpanded) {
+                        val storeTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+                        SegmentedListItem(
+                            onClick = actions.onOpenThemeStore,
+                            headlineContent = { Text(storeTitle) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_store_summary)) },
+                            leadingContent = { IconTile(Icons.Rounded.Palette, storeTitle) },
+                        )
+                    }
+                    item(visible = themePackageSectionExpanded) {
                         SegmentedListItem(
                             onClick = { showResetThemeDialog = true },
                             headlineContent = { Text(stringResource(id = R.string.theme_reset)) },

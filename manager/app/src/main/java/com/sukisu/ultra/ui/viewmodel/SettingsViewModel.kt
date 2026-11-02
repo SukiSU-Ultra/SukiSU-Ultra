@@ -46,6 +46,13 @@ import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.findActivity
 import java.io.File
 
+private data class CurrentThemePayload(
+    val data: ThemePackageData,
+    val backgroundFile: File?,
+    val cardBackgroundFile: File?,
+    val stickerFiles: List<File>,
+)
+
 class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
@@ -62,6 +69,12 @@ class SettingsViewModel(
         colorsSectionExpanded = repo.colorsSectionExpanded,
         customHomeTitle = repo.customHomeTitle,
         customTexts = repo.customTexts,
+        themeStoreBaseUrl = repo.themeStoreBaseUrl,
+        themeStoreToken = repo.themeStoreToken,
+        themeStoreAuthorId = repo.themeStoreAuthorId,
+        themeStoreAuthorName = repo.themeStoreAuthorName,
+        themeStoreAdminUrl = repo.themeStoreAdminUrl,
+        themeStoreExtraSources = repo.themeStoreExtraSources,
         homeCardImagePath = repo.homeCardImagePath,
         hideHomeCardStatusText = repo.hideHomeCardStatusText,
         hideHomeCardDecoration = repo.hideHomeCardDecoration,
@@ -610,83 +623,8 @@ class SettingsViewModel(
 
     fun exportTheme(context: Context, uri: Uri, options: ThemePackageOptions) {
         viewModelScope.launch {
-            val state = _uiState.value
-            val backgroundFile = if (options.backgroundImage) {
-                if (state.useSystemWallpaper) {
-                    ImageStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }
-                } else {
-                    state.customBackgroundUri
-                        .takeIf { it.isNotEmpty() }
-                        ?.let { path -> File(path).takeIf { it.isFile } }
-                }
-            } else null
-            val cardBackgroundFile = if (options.homeCardImage) {
-                state.homeCardImagePath
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { path -> File(path).takeIf { it.isFile } }
-            } else null
-            val stickerEntries = if (options.stickers) {
-                state.homeCardStickers.filter { File(it.path).isFile }
-            } else {
-                emptyList()
-            }
-            val cardStickerFiles = stickerEntries.map { File(it.path) }
-            val builtinIconIds = setOf(
-                BuiltinAppIcons.DEFAULT_ID,
-                BuiltinAppIcons.KERNELSU_ID,
-                BuiltinAppIcons.LOGO_ID,
-                BuiltinAppIcons.ZAKO_ID,
-            )
-            val exportedIconId = if (state.appIconId in builtinIconIds) {
-                state.appIconId
-            } else {
-                BuiltinAppIcons.DEFAULT_ID
-            }
-            val data = ThemePackageData(
-                themeMode = state.themeMode.takeIf { options.colors },
-                miuixMonet = state.miuixMonet.takeIf { options.colors },
-                keyColor = state.keyColor.takeIf { options.colors },
-                colorStyle = state.colorStyle.takeIf { options.colors },
-                colorSpec = state.colorSpec.takeIf { options.colors },
-                cardBackgroundAlphaPercent = state.cardBackgroundAlphaPercent.takeIf { options.backgroundAppearance },
-                customBackgroundBlurPercent = state.customBackgroundBlurPercent.takeIf { options.backgroundAppearance },
-                customBackgroundScrimPercent = state.customBackgroundScrimPercent.takeIf { options.backgroundAppearance },
-                hasBackground = if (options.backgroundImage) backgroundFile != null else null,
-                hasCardBackground = if (options.homeCardImage) cardBackgroundFile != null else null,
-                hideHomeCardStatusText = state.hideHomeCardStatusText.takeIf { options.homeCardDisplay },
-                hideHomeCardDecoration = state.hideHomeCardDecoration.takeIf { options.homeCardDisplay },
-                homeCardStickerTransforms = if (options.stickers) {
-                    stickerEntries.map { it.transform }
-                } else {
-                    null
-                },
-                uiMode = state.uiMode.takeIf { options.customConfig },
-                appIconId = exportedIconId.takeIf { options.appIcon },
-                enableFloatingBottomBar = state.enableFloatingBottomBar.takeIf { options.customConfig },
-                enableFloatingBottomBarBlur = state.enableFloatingBottomBarBlur.takeIf { options.customConfig },
-                enableNavigationBadge = state.enableNavigationBadge.takeIf { options.customConfig },
-                enablePredictiveBack = repo.enablePredictiveBack.takeIf { options.customConfig },
-                enableSwipeDismiss = repo.enableSwipeDismiss.takeIf { options.customConfig },
-                moduleSortEnabledFirst = repo.moduleSortEnabledFirst.takeIf { options.customConfig },
-                moduleSortActionFirst = repo.moduleSortActionFirst.takeIf { options.customConfig },
-                moduleSortWebUiFirst = repo.moduleSortWebUiFirst.takeIf { options.customConfig },
-                moduleSortZygiskFirst = repo.moduleSortZygiskFirst.takeIf { options.customConfig },
-                moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst.takeIf { options.customConfig },
-                moduleSortNameOrder = repo.moduleSortNameOrder.takeIf { options.customConfig },
-                moduleSortManual = repo.moduleSortManual.takeIf { options.customConfig },
-                customHomeTitle = if (options.customTexts && CustomTextGroup.HOME in options.customTextGroups) {
-                    state.customHomeTitle.takeIf { it.isNotBlank() }
-                } else {
-                    null
-                },
-                customTexts = if (options.customTexts) {
-                    customTextsInGroups(state.customTexts, options.customTextGroups)
-                        .takeIf { it.isNotEmpty() }
-                } else {
-                    null
-                },
-            )
-            ThemePackageStorage.export(context, uri, data, backgroundFile, cardBackgroundFile, cardStickerFiles)
+            val payload = currentThemePayload(options)
+            ThemePackageStorage.export(context, uri, payload.data, payload.backgroundFile, payload.cardBackgroundFile, payload.stickerFiles)
                 .onSuccess {
                     Toast.makeText(ksuApp, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
                 }
@@ -694,6 +632,102 @@ class SettingsViewModel(
                     Toast.makeText(ksuApp, R.string.theme_export_failed, Toast.LENGTH_SHORT).show()
                 }
         }
+    }
+
+    /** Builds a .sukisu package from the current device appearance for store submission. */
+    suspend fun createCurrentThemePackage(context: Context): Result<File> = withContext(Dispatchers.IO) {
+        runCatching {
+            val payload = currentThemePayload(ThemePackageOptions())
+            val file = File(context.cacheDir, "theme_upload_preset.sukisu")
+            ThemePackageStorage.exportToFile(
+                file = file,
+                data = payload.data,
+                backgroundFile = payload.backgroundFile,
+                cardBackgroundFile = payload.cardBackgroundFile,
+                cardStickerFiles = payload.stickerFiles,
+            ).getOrThrow()
+            file
+        }
+    }
+
+    private fun currentThemePayload(options: ThemePackageOptions): CurrentThemePayload {
+        val state = _uiState.value
+        val backgroundFile = if (options.backgroundImage) {
+            if (state.useSystemWallpaper) {
+                ImageStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }
+            } else {
+                state.customBackgroundUri
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { path -> File(path).takeIf { it.isFile } }
+            }
+        } else null
+        val cardBackgroundFile = if (options.homeCardImage) {
+            state.homeCardImagePath
+                .takeIf { it.isNotEmpty() }
+                ?.let { path -> File(path).takeIf { it.isFile } }
+        } else null
+        val stickerEntries = if (options.stickers) {
+            state.homeCardStickers.filter { File(it.path).isFile }
+        } else {
+            emptyList()
+        }
+        val cardStickerFiles = stickerEntries.map { File(it.path) }
+        val builtinIconIds = setOf(
+            BuiltinAppIcons.DEFAULT_ID,
+            BuiltinAppIcons.KERNELSU_ID,
+            BuiltinAppIcons.LOGO_ID,
+            BuiltinAppIcons.ZAKO_ID,
+        )
+        val exportedIconId = if (state.appIconId in builtinIconIds) {
+            state.appIconId
+        } else {
+            BuiltinAppIcons.DEFAULT_ID
+        }
+        val data = ThemePackageData(
+            themeMode = state.themeMode.takeIf { options.colors },
+            miuixMonet = state.miuixMonet.takeIf { options.colors },
+            keyColor = state.keyColor.takeIf { options.colors },
+            colorStyle = state.colorStyle.takeIf { options.colors },
+            colorSpec = state.colorSpec.takeIf { options.colors },
+            cardBackgroundAlphaPercent = state.cardBackgroundAlphaPercent.takeIf { options.backgroundAppearance },
+            customBackgroundBlurPercent = state.customBackgroundBlurPercent.takeIf { options.backgroundAppearance },
+            customBackgroundScrimPercent = state.customBackgroundScrimPercent.takeIf { options.backgroundAppearance },
+            hasBackground = if (options.backgroundImage) backgroundFile != null else null,
+            hasCardBackground = if (options.homeCardImage) cardBackgroundFile != null else null,
+            hideHomeCardStatusText = state.hideHomeCardStatusText.takeIf { options.homeCardDisplay },
+            hideHomeCardDecoration = state.hideHomeCardDecoration.takeIf { options.homeCardDisplay },
+            homeCardStickerTransforms = if (options.stickers) {
+                stickerEntries.map { it.transform }
+            } else {
+                null
+            },
+            uiMode = state.uiMode.takeIf { options.customConfig },
+            appIconId = exportedIconId.takeIf { options.appIcon },
+            enableFloatingBottomBar = state.enableFloatingBottomBar.takeIf { options.customConfig },
+            enableFloatingBottomBarBlur = state.enableFloatingBottomBarBlur.takeIf { options.customConfig },
+            enableNavigationBadge = state.enableNavigationBadge.takeIf { options.customConfig },
+            enablePredictiveBack = repo.enablePredictiveBack.takeIf { options.customConfig },
+            enableSwipeDismiss = repo.enableSwipeDismiss.takeIf { options.customConfig },
+            moduleSortEnabledFirst = repo.moduleSortEnabledFirst.takeIf { options.customConfig },
+            moduleSortActionFirst = repo.moduleSortActionFirst.takeIf { options.customConfig },
+            moduleSortWebUiFirst = repo.moduleSortWebUiFirst.takeIf { options.customConfig },
+            moduleSortZygiskFirst = repo.moduleSortZygiskFirst.takeIf { options.customConfig },
+            moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst.takeIf { options.customConfig },
+            moduleSortNameOrder = repo.moduleSortNameOrder.takeIf { options.customConfig },
+            moduleSortManual = repo.moduleSortManual.takeIf { options.customConfig },
+            customHomeTitle = if (options.customTexts && CustomTextGroup.HOME in options.customTextGroups) {
+                state.customHomeTitle.takeIf { it.isNotBlank() }
+            } else {
+                null
+            },
+            customTexts = if (options.customTexts) {
+                customTextsInGroups(state.customTexts, options.customTextGroups)
+                    .takeIf { it.isNotEmpty() }
+            } else {
+                null
+            },
+        )
+        return CurrentThemePayload(data, backgroundFile, cardBackgroundFile, cardStickerFiles)
     }
 
     fun importTheme(context: Context, uri: Uri) {
@@ -710,6 +744,25 @@ class SettingsViewModel(
                 .onFailure {
                     Toast.makeText(ksuApp, R.string.theme_import_failed, Toast.LENGTH_SHORT).show()
                 }
+        }
+    }
+
+    /** Imports a package downloaded by the theme store. */
+    fun importThemeFile(context: Context, file: File) {
+        viewModelScope.launch {
+            ThemePackageStorage.import(context, Uri.fromFile(file))
+                .onSuccess { imported ->
+                    _uiState.update {
+                        it.copy(
+                            pendingImportTheme = imported,
+                            showThemeImportDialog = true,
+                        )
+                    }
+                }
+                .onFailure {
+                    Toast.makeText(ksuApp, R.string.theme_import_failed, Toast.LENGTH_SHORT).show()
+                }
+            runCatching { file.delete() }
         }
     }
 
@@ -1194,6 +1247,41 @@ class SettingsViewModel(
                 customHomeTitle = if (key == "home.title") trimmed else it.customHomeTitle,
             )
         }
+    }
+
+    fun setThemeStoreBaseUrl(url: String) {
+        val trimmed = url.trim()
+        repo.themeStoreBaseUrl = trimmed
+        _uiState.update { it.copy(themeStoreBaseUrl = trimmed) }
+    }
+
+    fun setThemeStoreToken(token: String) {
+        val trimmed = token.trim()
+        repo.themeStoreToken = trimmed
+        _uiState.update { it.copy(themeStoreToken = trimmed) }
+    }
+
+    fun setThemeStoreAuthorId(id: String) {
+        val trimmed = id.trim()
+        repo.themeStoreAuthorId = trimmed
+        _uiState.update { it.copy(themeStoreAuthorId = trimmed) }
+    }
+
+    fun setThemeStoreAuthorName(name: String) {
+        val trimmed = name.trim()
+        repo.themeStoreAuthorName = trimmed
+        _uiState.update { it.copy(themeStoreAuthorName = trimmed) }
+    }
+
+    fun setThemeStoreAdminUrl(url: String) {
+        val trimmed = url.trim()
+        repo.themeStoreAdminUrl = trimmed
+        _uiState.update { it.copy(themeStoreAdminUrl = trimmed) }
+    }
+
+    fun setThemeStoreExtraSources(sources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>) {
+        repo.themeStoreExtraSources = sources
+        _uiState.update { it.copy(themeStoreExtraSources = sources) }
     }
 
     fun resetAllCustomTexts() {

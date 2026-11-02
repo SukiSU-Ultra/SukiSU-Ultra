@@ -58,6 +58,16 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object CustomTexts : Route
 
+    /** Online theme catalog served by the theme mirror. */
+    @Parcelize
+    @Serializable
+    data object ThemeStore : Route
+
+    /** Full-page theme source configuration: default source, extra sources and endpoints. */
+    @Parcelize
+    @Serializable
+    data object ThemeStoreSources : Route
+
     /** Launcher icon picker and icon pack manager. */
     @Parcelize
     @Serializable

@@ -34,15 +34,16 @@ fun AiAssistantMaterialTheme(
 
 /**
  * Material 3 Expressive colours for pages that stay MD3 inside the Miuix shell
- * (the AI assistant). Same pipeline as [MaterialKernelSUTheme] so light/dark,
- * AMOLED, key colour and monet follow the manager's appearance settings, but
- * without touching the window bars that the outer shell already owns.
+ * (the AI assistant, theme store and source management). Same pipeline as
+ * [MaterialKernelSUTheme] so light/dark, AMOLED, key colour and monet follow the
+ * manager's appearance settings, without touching the window bars the outer
+ * shell already owns.
  */
 @Composable
 fun MaterialExpressivePalette(
     content: @Composable () -> Unit,
 ) {
-    val appSettings = remember { ThemeController.getAppSettings() }
+    val appSettings = LocalAppSettings.current ?: ThemeController.getAppSettings()
     val systemDarkTheme = isSystemInDarkTheme()
     val darkTheme = appSettings.colorMode.isDark || (appSettings.colorMode.isSystem && systemDarkTheme)
     val colorScheme = rememberKernelSUColorScheme(

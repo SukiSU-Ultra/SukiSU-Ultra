@@ -87,6 +87,7 @@ enum class CustomTextKey(
 
     // 功能與設定頁面抬頭 (排除偽裝與隱藏)
     PAGE_APPEARANCE("page.appearance", R.string.settings_theme, R.string.settings_theme, CustomTextGroup.PAGE_FEATURE),
+    PAGE_THEME_STORE("page.theme_store", R.string.theme_store_title, R.string.theme_store_title, CustomTextGroup.PAGE_FEATURE),
     PAGE_CUSTOM_TEXTS("page.custom_texts", R.string.settings_custom_texts, R.string.settings_custom_texts, CustomTextGroup.PAGE_FEATURE),
     PAGE_APP_ICON("page.app_icon", R.string.app_icon_title, R.string.app_icon_title, CustomTextGroup.PAGE_FEATURE),
     PAGE_APP_PROFILE("page.app_profile", R.string.profile, R.string.profile, CustomTextGroup.PAGE_FEATURE),

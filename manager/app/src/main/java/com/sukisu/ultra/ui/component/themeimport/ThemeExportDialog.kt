@@ -28,5 +28,7 @@ fun ThemeExportDialog(
         availableCustomTextGroups = availableCustomTextGroups,
         onDismissRequest = onDismissRequest,
         onConfirm = onConfirm,
+        formatVersion = com.sukisu.ultra.ui.util.ThemePackageStorage.CURRENT_VERSION,
+        forceMaterial = true,
     )
 }

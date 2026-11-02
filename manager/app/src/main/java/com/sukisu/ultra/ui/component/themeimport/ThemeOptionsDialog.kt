@@ -29,6 +29,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.settings.ThemePackageOptions
+import com.sukisu.ultra.ui.theme.MaterialExpressivePalette
 import com.sukisu.ultra.ui.util.CustomTextGroup
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Text
@@ -53,6 +54,8 @@ fun ThemeOptionsDialog(
     availableCustomTextGroups: Set<CustomTextGroup>,
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
+    formatVersion: Int? = null,
+    forceMaterial: Boolean = false,
 ) {
     if (!show) return
 
@@ -99,7 +102,7 @@ fun ThemeOptionsDialog(
         customConfig = customConfig,
     )
 
-    when (LocalUiMode.current) {
+    when (if (forceMaterial) UiMode.Material else LocalUiMode.current) {
         UiMode.Miuix -> {
             WindowDialog(
                 show = show,
@@ -118,6 +121,13 @@ fun ThemeOptionsDialog(
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )
+                        if (formatVersion != null) {
+                            Text(
+                                text = stringResource(R.string.theme_package_format_version, formatVersion),
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.primary,
+                            )
+                        }
                         Spacer(Modifier.height(4.dp))
                         OptionGroupLabel(stringResource(R.string.settings_section_colors))
                         CheckboxPreference(
@@ -212,7 +222,7 @@ fun ThemeOptionsDialog(
                 }
             )
         }
-        UiMode.Material -> {
+        UiMode.Material -> MaterialExpressivePalette {
             AlertDialog(
                 onDismissRequest = onDismissRequest,
                 title = { MaterialText(title) },
@@ -226,8 +236,17 @@ fun ThemeOptionsDialog(
                             text = message,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 12.dp)
                         )
+                        if (formatVersion != null) {
+                            MaterialText(
+                                text = stringResource(R.string.theme_package_format_version, formatVersion),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = 12.dp),
+                            )
+                        } else {
+                            Spacer(Modifier.height(12.dp))
+                        }
                         MaterialOptionGroupLabel(stringResource(R.string.settings_section_colors))
                         MaterialCheckboxRow(
                             title = stringResource(R.string.theme_opt_colors),

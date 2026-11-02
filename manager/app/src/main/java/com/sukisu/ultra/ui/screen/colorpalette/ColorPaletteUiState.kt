@@ -113,6 +113,7 @@ data class ColorPaletteScreenActions(
     val onSetCustomText: (String, String) -> Unit = { _, _ -> },
     val onResetAllCustomTexts: () -> Unit = {},
     val onOpenCustomTexts: () -> Unit = {},
+    val onOpenThemeStore: () -> Unit = {},
     val onResetBackgroundAppearance: () -> Unit = {},
     val onClearAllAppearance: () -> Unit = {},
 )

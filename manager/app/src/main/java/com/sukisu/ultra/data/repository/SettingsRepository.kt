@@ -25,6 +25,18 @@ interface SettingsRepository {
     var colorsSectionExpanded: Boolean
     var customHomeTitle: String
     var customTexts: Map<String, String>
+    /** Base URL of the online theme catalog, entered in the manager. */
+    var themeStoreBaseUrl: String
+    /** Access token sent to the theme mirror. */
+    var themeStoreToken: String
+    /** Local author identity used to obtain automatic theme publishing. */
+    var themeStoreAuthorId: String
+    /** Last author name entered for theme submissions. */
+    var themeStoreAuthorName: String
+    /** Optional admin console URL shown for the default theme source. */
+    var themeStoreAdminUrl: String
+    /** Additional theme sources merged into the catalog; the default source is the fields above. */
+    var themeStoreExtraSources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>
     var homeCardImagePath: String
     /** Hide the working text and version line on the home status card while a card image is set. */
     var hideHomeCardStatusText: Boolean
