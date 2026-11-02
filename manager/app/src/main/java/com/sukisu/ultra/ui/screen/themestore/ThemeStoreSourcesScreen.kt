@@ -46,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,10 +89,10 @@ private sealed interface SourceTestState {
 
 private data class SourceEndpoints(
     val catalog: String,
-    val submit: String,
+    val themes: String,
+    val previews: String,
+    val avatars: String,
     val health: String,
-    val admin: String,
-    val adminApi: String,
     val tokenHeader: String,
 )
 
@@ -104,7 +103,6 @@ fun ThemeStoreSourcesScreen(
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val navigator = LocalNavigator.current
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val repository = remember(context) { ThemeStoreRepository(context) }
     val builtInBase = remember {
@@ -116,9 +114,6 @@ fun ThemeStoreSourcesScreen(
     }
     var defaultToken by rememberSaveable(settings.themeStoreToken) {
         mutableStateOf(settings.themeStoreToken)
-    }
-    var defaultAdmin by rememberSaveable(settings.themeStoreAdminUrl) {
-        mutableStateOf(settings.themeStoreAdminUrl)
     }
     var showBuiltInToken by rememberSaveable { mutableStateOf(false) }
     var extraSources by rememberSaveable(
@@ -136,7 +131,7 @@ fun ThemeStoreSourcesScreen(
     val isBuiltIn = normalizedDefault == builtInBase
     val showDefaultToken = showBuiltInToken || !isBuiltIn || defaultToken.isNotBlank()
     val effectiveDefaultBase = defaultBase.ifBlank { ThemeStoreDefaults.BASE_URL }
-    val defaultEndpoints = endpointsFor(effectiveDefaultBase, defaultAdmin)
+    val defaultEndpoints = endpointsFor(effectiveDefaultBase)
     val effectiveDefaultToken = defaultToken.trim().ifBlank {
         if (isBuiltIn) ThemeStoreDefaults.TOKEN else ""
     }
@@ -187,17 +182,11 @@ fun ThemeStoreSourcesScreen(
             showSaveError = true
             return
         }
-        val normalizedAdmin = defaultAdmin.trim().takeIf { it.isNotEmpty() }
-            ?.let { ThemeStoreRepository.normalizeBaseUrl(it) }
-        val defaultInvalid = defaultAdmin.trim().isNotEmpty() && normalizedAdmin == null
         val extrasInvalid = extraSources.any { source ->
-            source.baseUrl.isNotBlank() && (
-                ThemeStoreRepository.normalizeBaseUrl(source.baseUrl) == null ||
-                    (source.adminUrl.trim().isNotEmpty() &&
-                        ThemeStoreRepository.normalizeBaseUrl(source.adminUrl) == null)
-                )
+            source.baseUrl.isNotBlank() &&
+                ThemeStoreRepository.normalizeBaseUrl(source.baseUrl) == null
         }
-        if (defaultInvalid || extrasInvalid) {
+        if (extrasInvalid) {
             showSaveError = true
             return
         }
@@ -208,15 +197,13 @@ fun ThemeStoreSourcesScreen(
                     name = source.name.trim(),
                     baseUrl = ThemeStoreRepository.normalizeBaseUrl(source.baseUrl).orEmpty(),
                     token = source.token.trim(),
-                    adminUrl = source.adminUrl.trim().takeIf { it.isNotEmpty() }
-                        ?.let { ThemeStoreRepository.normalizeBaseUrl(it) }
-                        .orEmpty(),
+                    adminUrl = "",
                 )
             }
             .distinctBy { it.baseUrl }
         settingsViewModel.setThemeStoreBaseUrl(normalized)
         settingsViewModel.setThemeStoreToken(defaultToken.trim())
-        settingsViewModel.setThemeStoreAdminUrl(normalizedAdmin.orEmpty())
+        settingsViewModel.setThemeStoreAdminUrl("")
         settingsViewModel.setThemeStoreExtraSources(cleaned)
         navigator.setResult(THEME_SOURCES_RESULT_KEY, true)
     }
@@ -237,12 +224,6 @@ fun ThemeStoreSourcesScreen(
         showDefaultToken = showDefaultToken,
         onShowToken = { showBuiltInToken = true },
         isBuiltIn = isBuiltIn,
-        defaultAdmin = defaultAdmin,
-        onDefaultAdminChange = {
-            defaultAdmin = it
-            tests = tests - "default"
-            showSaveError = false
-        },
         defaultEndpoints = defaultEndpoints,
         defaultTest = tests["default"],
         onTestDefault = { testSource("default", effectiveDefaultBase, effectiveDefaultToken) },
@@ -258,7 +239,6 @@ fun ThemeStoreSourcesScreen(
         },
         showSaveError = showSaveError,
         onSave = ::save,
-        onOpenAdmin = { url -> runCatching { uriHandler.openUri(url) } },
         onBack = { navigator.pop() },
     )
 }
@@ -272,8 +252,6 @@ private fun ThemeStoreSourcesMaterial(
     showDefaultToken: Boolean,
     onShowToken: () -> Unit,
     isBuiltIn: Boolean,
-    defaultAdmin: String,
-    onDefaultAdminChange: (String) -> Unit,
     defaultEndpoints: SourceEndpoints?,
     defaultTest: SourceTestState?,
     onTestDefault: () -> Unit,
@@ -285,7 +263,6 @@ private fun ThemeStoreSourcesMaterial(
     onTestExtra: (ThemeStoreSourceConfig) -> Unit,
     showSaveError: Boolean,
     onSave: () -> Unit,
-    onOpenAdmin: (String) -> Unit,
     onBack: () -> Unit,
 ) {
     ExpressiveScaffold(
@@ -369,12 +346,9 @@ private fun ThemeStoreSourcesMaterial(
                     showToken = showDefaultToken,
                     onShowToken = onShowToken,
                     isBuiltIn = isBuiltIn,
-                    adminUrl = defaultAdmin,
-                    onAdminUrlChange = onDefaultAdminChange,
                     endpoints = defaultEndpoints,
                     test = defaultTest,
                     onTest = onTestDefault,
-                    onOpenAdmin = onOpenAdmin,
                 )
             }
             if (extraSources.isNotEmpty()) {
@@ -397,12 +371,9 @@ private fun ThemeStoreSourcesMaterial(
                     showToken = true,
                     onShowToken = null,
                     isBuiltIn = false,
-                    adminUrl = source.adminUrl,
-                    onAdminUrlChange = { onUpdateExtra(index, source.copy(adminUrl = it)) },
-                    endpoints = endpointsFor(source.baseUrl, source.adminUrl),
+                    endpoints = endpointsFor(source.baseUrl),
                     test = tests[extraTestKey(source)],
                     onTest = { onTestExtra(source) },
-                    onOpenAdmin = onOpenAdmin,
                     name = source.name,
                     onNameChange = { onUpdateExtra(index, source.copy(name = it)) },
                     onRemove = { onRemoveExtra(index) },
@@ -444,12 +415,9 @@ private fun SourceCardMaterial(
     showToken: Boolean,
     onShowToken: (() -> Unit)?,
     isBuiltIn: Boolean,
-    adminUrl: String,
-    onAdminUrlChange: (String) -> Unit,
     endpoints: SourceEndpoints?,
     test: SourceTestState?,
     onTest: () -> Unit,
-    onOpenAdmin: (String) -> Unit,
     name: String? = null,
     onNameChange: ((String) -> Unit)? = null,
     onRemove: (() -> Unit)? = null,
@@ -541,14 +509,6 @@ private fun SourceCardMaterial(
                     }
                 }
             }
-            OutlinedTextField(
-                value = adminUrl,
-                onValueChange = onAdminUrlChange,
-                label = { MaterialText(stringResource(R.string.theme_store_admin_url)) },
-                singleLine = true,
-                supportingText = { MaterialText(stringResource(R.string.theme_store_admin_url_hint)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -577,7 +537,7 @@ private fun SourceCardMaterial(
                 }
             }
             if (endpointsExpanded) {
-                EndpointRowsMaterial(endpoints = endpoints, onOpenAdmin = onOpenAdmin)
+                EndpointRowsMaterial(endpoints = endpoints)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -597,7 +557,6 @@ private fun SourceCardMaterial(
 @Composable
 private fun EndpointRowsMaterial(
     endpoints: SourceEndpoints?,
-    onOpenAdmin: (String) -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -616,14 +575,11 @@ private fun EndpointRowsMaterial(
                 )
             } else {
                 EndpointRowMaterial(stringResource(R.string.theme_store_catalog_endpoint), endpoints.catalog)
-                EndpointRowMaterial(stringResource(R.string.theme_store_submit_endpoint), endpoints.submit)
+                EndpointRowMaterial(stringResource(R.string.theme_store_themes_endpoint), endpoints.themes)
+                EndpointRowMaterial(stringResource(R.string.theme_store_previews_endpoint), endpoints.previews)
+                EndpointRowMaterial(stringResource(R.string.theme_store_avatars_endpoint), endpoints.avatars)
                 EndpointRowMaterial(stringResource(R.string.theme_store_health_endpoint), endpoints.health)
-                EndpointRowMaterial(stringResource(R.string.theme_store_admin_endpoint), endpoints.admin)
-                EndpointRowMaterial(stringResource(R.string.theme_store_admin_api_endpoint), endpoints.adminApi)
                 EndpointRowMaterial(stringResource(R.string.theme_store_token_header), endpoints.tokenHeader)
-                MaterialTextButton(onClick = { onOpenAdmin(endpoints.admin) }) {
-                    MaterialText(stringResource(R.string.theme_store_admin_open))
-                }
             }
         }
     }
@@ -675,21 +631,14 @@ private fun SourceTestTextMaterial(test: SourceTestState?) {
 
 private fun extraTestKey(source: ThemeStoreSourceConfig): String = "extra:${source.id}"
 
-private fun endpointsFor(baseUrl: String, adminUrl: String): SourceEndpoints? {
+private fun endpointsFor(baseUrl: String): SourceEndpoints? {
     val base = ThemeStoreRepository.normalizeBaseUrl(baseUrl) ?: return null
-    val admin = adminUrl.trim().let { value ->
-        if (value.isEmpty()) {
-            base + "admin/"
-        } else {
-            ThemeStoreRepository.normalizeBaseUrl(value) ?: return null
-        }
-    }
     return SourceEndpoints(
         catalog = base + "catalog.json",
-        submit = base + "submit",
+        themes = base + "themes/",
+        previews = base + "previews/",
+        avatars = base + "avatars/",
         health = base + "health",
-        admin = admin,
-        adminApi = admin + "api",
         tokenHeader = ThemeStoreRepository.TOKEN_HEADER,
     )
 }

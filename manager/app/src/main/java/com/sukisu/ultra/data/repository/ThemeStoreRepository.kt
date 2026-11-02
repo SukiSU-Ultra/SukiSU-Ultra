@@ -10,11 +10,17 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.CacheControl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okio.Buffer
+import okio.BufferedSink
+import okio.ForwardingSink
+import okio.buffer
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -46,6 +52,33 @@ data class ThemeStoreSubmission(
 )
 
 class ThemeStoreUnauthorizedException : IOException("Theme store token rejected")
+
+private class ProgressRequestBody(
+    private val delegate: RequestBody,
+    private val onProgress: (Float) -> Unit,
+) : RequestBody() {
+    override fun contentType(): MediaType? = delegate.contentType()
+
+    override fun contentLength(): Long = delegate.contentLength()
+
+    override fun writeTo(sink: BufferedSink) {
+        val total = contentLength()
+        val forwarding = object : ForwardingSink(sink) {
+            private var written = 0L
+
+            override fun write(source: Buffer, byteCount: Long) {
+                super.write(source, byteCount)
+                written += byteCount
+                if (total > 0L) {
+                    onProgress((written.toFloat() / total).coerceIn(0f, 1f))
+                }
+            }
+        }
+        val buffered = forwarding.buffer()
+        delegate.writeTo(buffered)
+        buffered.flush()
+    }
+}
 
 /**
  * Downloads the public theme catalog and theme packages.
@@ -235,12 +268,18 @@ class ThemeStoreRepository(
         submission: ThemeStoreSubmission,
         baseUrl: String,
         token: String,
+        bearerToken: String? = null,
+        onProgress: (Float) -> Unit = {},
     ): Result<ThemeStoreSubmitResponse> = withContext(Dispatchers.IO) {
         runCatching {
             val base = normalizeBaseUrl(baseUrl)
                 ?: throw IOException("Invalid theme store URL")
-            if (token.isBlank()) throw IOException("Theme store token is missing")
-            require(ID_PATTERN.matches(submission.id)) { "Invalid theme id" }
+            if (bearerToken.isNullOrBlank() && token.isBlank()) {
+                throw IOException("Theme store token is missing")
+            }
+            if (submission.id.isNotBlank()) {
+                require(ID_PATTERN.matches(submission.id)) { "Invalid theme id" }
+            }
             require(submission.packageFile.isFile) { "Theme package is missing" }
             require(submission.previewFile.isFile) { "Preview image is missing" }
 
@@ -283,11 +322,15 @@ class ThemeStoreRepository(
                 )
             }
 
-            val request = Request.Builder()
-                .url(base + "submit")
-                .post(builder.build())
+            val endpoint = if (!bearerToken.isNullOrBlank()) "account/api/submit" else "submit"
+            val requestBuilder = Request.Builder()
+                .url(base + endpoint)
+                .post(ProgressRequestBody(builder.build(), onProgress))
                 .withToken(token)
-                .build()
+            if (!bearerToken.isNullOrBlank()) {
+                requestBuilder.header("Authorization", "Bearer $bearerToken")
+            }
+            val request = requestBuilder.build()
 
             uploadClient.newCall(request).execute().use { response ->
                 val raw = response.body.string()

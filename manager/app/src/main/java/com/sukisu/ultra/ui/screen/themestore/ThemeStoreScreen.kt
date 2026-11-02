@@ -1,11 +1,11 @@
 package com.sukisu.ultra.ui.screen.themestore
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,44 +18,36 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.FileDownload
-import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon as MaterialIcon
-import androidx.compose.material3.IconButton as MaterialIconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.Text as MaterialText
-import androidx.compose.material3.TextButton as MaterialTextButton
-import androidx.compose.material3.TopAppBar as MaterialTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -86,12 +78,16 @@ import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.themeimport.ThemeImportDialog
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
+import com.sukisu.ultra.ui.screen.account.AccountViewModel
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import java.util.Locale
-import kotlin.math.roundToInt
+import androidx.compose.material3.Icon as MaterialIcon
+import androidx.compose.material3.IconButton as MaterialIconButton
+import androidx.compose.material3.Text as MaterialText
+import androidx.compose.material3.TextButton as MaterialTextButton
 
 private enum class ThemeStoreSort {
     DEFAULT,
@@ -110,6 +106,7 @@ private fun List<ThemeStoreItem>.sortedFor(mode: ThemeStoreSort): List<ThemeStor
     ThemeStoreSort.SIZE -> sortedWith(compareByDescending { it.entry.size })
 }
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun ThemeStoreScreen(
     viewModel: ThemeStoreViewModel = viewModel(),
@@ -118,6 +115,9 @@ fun ThemeStoreScreen(
     val navigator = LocalNavigator.current
     val settingsViewModel = viewModel<SettingsViewModel>()
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+    val accountViewModel = viewModel<AccountViewModel>()
+    val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
+    val accountSession = accountUiState.session
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showUpload by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -134,21 +134,28 @@ fun ThemeStoreScreen(
         selectedItemKey = null
     }
 
+    LaunchedEffect(showUpload) {
+        if (showUpload) viewModel.loadUploadOptions()
+    }
+
     LaunchedEffect(state.uploadSubmitted) {
         if (state.uploadSubmitted) {
-            Toast.makeText(
-                context,
-                if (state.uploadAutoApproved) R.string.theme_store_upload_auto_approved
-                else R.string.theme_store_upload_success,
-                Toast.LENGTH_SHORT,
-            ).show()
-            showUpload = false
+            val message = state.uploadedThemeId?.let {
+                context.getString(R.string.theme_store_upload_submitted_id, it)
+            } ?: if (state.uploadAutoApproved) {
+                context.getString(R.string.theme_store_upload_auto_approved)
+            } else {
+                context.getString(R.string.theme_store_upload_success)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            accountViewModel.refresh()
             viewModel.consumeUploadSubmitted()
         }
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.load()
+        accountViewModel.refresh()
     }
 
     LaunchedEffect(Unit) {
@@ -206,23 +213,48 @@ fun ThemeStoreScreen(
             onRefresh = { viewModel.load() },
         )
 
+        showUpload && state.uploadResult != null -> ThemeStoreUploadResultScreen(
+            result = state.uploadResult!!,
+            onDone = {
+                showUpload = false
+                viewModel.clearUploadState()
+            },
+        )
+
         showUpload && uploadSource != null -> ThemeStoreUploadScreen(
             source = uploadSource,
-            initialAuthor = settingsUiState.themeStoreAuthorName,
-            initialAuthorId = settingsUiState.themeStoreAuthorId,
+            accountSession = accountSession,
+            autoThemeId = state.uploadThemeId,
+            availableThemes = state.uploadThemes,
+            optionsLoading = state.uploadOptionsLoading,
+            optionsError = state.uploadOptionsError,
+            submissions = state.submissions,
+            submissionsLoading = state.submissionsLoading,
+            submissionsError = state.submissionsError,
+            uploadPhase = state.uploadPhase,
+            uploadProgress = state.uploadProgress,
             submitting = state.submitting,
             errorText = state.uploadError,
+            withdrawnThemes = state.withdrawnThemes,
+            withdrawingThemeId = state.withdrawingThemeId,
+            withdrawError = state.withdrawError,
+            restoringThemeId = state.restoringThemeId,
+            restoreError = state.restoreError,
+            onRefreshSubmissions = { viewModel.loadUploadOptions() },
+            onWithdrawTheme = viewModel::withdrawTheme,
+            onRestoreTheme = viewModel::restoreTheme,
             onBack = {
                 if (!state.submitting) {
                     showUpload = false
                     viewModel.clearUploadState()
                 }
             },
-            onSubmit = { input ->
-                settingsViewModel.setThemeStoreAuthorName(input.author)
-                settingsViewModel.setThemeStoreAuthorId(input.authorId)
-                viewModel.submit(input, uploadSource)
+            onLogin = {
+                showUpload = false
+                viewModel.clearUploadState()
+                navigator.navigateTo(Route.ThemeAccount())
             },
+            onSubmit = { input -> viewModel.submit(input, uploadSource) },
             onExportCurrentPreset = { settingsViewModel.createCurrentThemePackage(context).getOrNull() },
         )
 
@@ -236,9 +268,14 @@ fun ThemeStoreScreen(
             onBack = { navigator.pop() },
             onRefresh = { viewModel.load() },
             onOpenSettings = { navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY) },
+            onOpenAccount = { navigator.navigateTo(Route.ThemeAccount()) },
             onOpenUpload = {
-                viewModel.clearUploadState()
-                showUpload = true
+                if (accountSession == null) {
+                    navigator.navigateTo(Route.ThemeAccount())
+                } else {
+                    viewModel.clearUploadState()
+                    showUpload = true
+                }
             },
             onSelect = { selectedItemKey = it.key },
             onDownload = viewModel::download,
@@ -390,6 +427,7 @@ private fun ThemeStoreMaterial(
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenAccount: () -> Unit,
     onOpenUpload: () -> Unit,
     onSelect: (ThemeStoreItem) -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
@@ -402,6 +440,15 @@ private fun ThemeStoreMaterial(
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 title = { MaterialText(customText(CustomTextKey.PAGE_THEME_STORE)) },
                 actions = {
+                    MaterialIconButton(
+                        onClick = onOpenAccount,
+                        colors = themeStoreTopBarIconColors(),
+                    ) {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.AccountCircle,
+                            contentDescription = stringResource(R.string.theme_store_account),
+                        )
+                    }
                     MaterialIconButton(
                         onClick = onOpenUpload,
                         enabled = !state.needsConfig && state.sources.isNotEmpty() && !state.submitting,

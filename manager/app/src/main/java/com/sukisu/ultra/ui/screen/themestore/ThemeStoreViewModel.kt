@@ -11,7 +11,10 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.model.AccountSubmission
+import com.sukisu.ultra.data.model.AccountThemeSummary
 import com.sukisu.ultra.data.model.ThemeStoreEntry
+import com.sukisu.ultra.data.repository.AccountRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.ThemeStoreDefaults
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
@@ -21,6 +24,9 @@ import com.sukisu.ultra.ui.util.ThemePackageStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -72,6 +78,25 @@ data class ThemeStoreUploadInput(
     val screenshotUris: List<Uri> = emptyList(),
 )
 
+enum class ThemeStoreUploadPhase {
+    IDLE,
+    PREPARING,
+    UPLOADING,
+    VERIFYING,
+    PENDING,
+    PUBLISHED,
+    FAILED,
+}
+
+data class ThemeStoreUploadResult(
+    val themeId: String,
+    val submissionId: String,
+    val pending: Boolean,
+    val autoApproved: Boolean,
+    val sha256: String,
+    val message: String,
+)
+
 data class ThemeStoreUiState(
     val loaded: Boolean = false,
     val loading: Boolean = false,
@@ -86,11 +111,28 @@ data class ThemeStoreUiState(
     val downloadingKey: String? = null,
     val downloadProgress: Float = 0f,
     val downloaded: DownloadedTheme? = null,
+    val verifiedThemeKey: String? = null,
     val downloadFailed: Boolean = false,
     val submitting: Boolean = false,
     val uploadError: String? = null,
     val uploadSubmitted: Boolean = false,
     val uploadAutoApproved: Boolean = false,
+    val uploadedThemeId: String? = null,
+    val uploadThemeId: String? = null,
+    val uploadThemes: List<AccountThemeSummary> = emptyList(),
+    val uploadOptionsLoading: Boolean = false,
+    val uploadOptionsError: String? = null,
+    val uploadPhase: ThemeStoreUploadPhase = ThemeStoreUploadPhase.IDLE,
+    val uploadProgress: Float = 0f,
+    val uploadResult: ThemeStoreUploadResult? = null,
+    val submissions: List<AccountSubmission> = emptyList(),
+    val submissionsLoading: Boolean = false,
+    val submissionsError: String? = null,
+    val withdrawnThemes: List<AccountThemeSummary> = emptyList(),
+    val withdrawingThemeId: String? = null,
+    val withdrawError: String? = null,
+    val restoringThemeId: String? = null,
+    val restoreError: String? = null,
 )
 
 private data class PreparedThemeUpload(
@@ -102,6 +144,7 @@ private data class PreparedThemeUpload(
 class ThemeStoreViewModel(application: Application) : AndroidViewModel(application) {
     private companion object {
         const val MAX_PACKAGE_BYTES = 16L * 1024L * 1024L
+        const val MAX_IMAGE_INPUT_BYTES = 12L * 1024L * 1024L
         const val MAX_IMAGE_BYTES = 2L * 1024L * 1024L
         const val MAX_SCREENSHOTS = 6
         const val PREVIEW_MAX_EDGE = 1280
@@ -114,6 +157,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
 
     private val repository = ThemeStoreRepository(application)
     private val settings = SettingsRepositoryImpl()
+    private val account = AccountRepository(application)
     private val _uiState = MutableStateFlow(ThemeStoreUiState())
     val uiState: StateFlow<ThemeStoreUiState> = _uiState.asStateFlow()
 
@@ -201,6 +245,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 downloadingKey = item.key,
                 downloadProgress = 0f,
                 downloadFailed = false,
+                verifiedThemeKey = null,
             )
         }
         viewModelScope.launch {
@@ -217,6 +262,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             downloadingKey = null,
                             downloadProgress = 1f,
                             downloaded = DownloadedTheme(item, file),
+                            verifiedThemeKey = item.key,
                         )
                     }
                 },
@@ -243,9 +289,11 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
 
     fun submit(input: ThemeStoreUploadInput, source: ThemeStoreSource) {
         if (_uiState.value.submitting) return
-        if (source.token.isBlank()) {
+        account.reload()
+        val accountSession = account.sessionFor(source.baseUrl)
+        if (accountSession == null) {
             _uiState.update {
-                it.copy(uploadError = getApplication<Application>().getString(R.string.theme_store_upload_token_missing))
+                it.copy(uploadError = getApplication<Application>().getString(R.string.theme_store_upload_login_required))
             }
             return
         }
@@ -255,15 +303,46 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 uploadError = null,
                 uploadSubmitted = false,
                 uploadAutoApproved = false,
+                uploadPhase = ThemeStoreUploadPhase.PREPARING,
+                uploadProgress = 0f,
+                uploadResult = null,
             )
         }
         viewModelScope.launch {
             var workDir: File? = null
             try {
-                val prepared = prepareUpload(input)
+                val prepared = prepareUpload(input, accountMode = true)
                 workDir = prepared.workDir
+                _uiState.update {
+                    it.copy(
+                        uploadPhase = ThemeStoreUploadPhase.UPLOADING,
+                        uploadProgress = 0f,
+                    )
+                }
                 val response = repository
-                    .submitTheme(prepared.submission, source.baseUrl, source.token)
+                    .submitTheme(
+                        prepared.submission,
+                        source.baseUrl,
+                        source.token,
+                        accountSession.token,
+                    ) { progress ->
+                        _uiState.update { state ->
+                            if (state.uploadPhase == ThemeStoreUploadPhase.PREPARING ||
+                                state.uploadPhase == ThemeStoreUploadPhase.UPLOADING
+                            ) {
+                                state.copy(
+                                    uploadPhase = if (progress >= 1f) {
+                                        ThemeStoreUploadPhase.VERIFYING
+                                    } else {
+                                        ThemeStoreUploadPhase.UPLOADING
+                                    },
+                                    uploadProgress = progress.coerceIn(0f, 1f),
+                                )
+                            } else {
+                                state
+                            }
+                        }
+                    }
                     .getOrThrow()
                 if (!response.ok) {
                     throw IllegalStateException(
@@ -272,14 +351,37 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                         },
                     )
                 }
+                val message = response.message.ifBlank {
+                    getApplication<Application>().getString(
+                        if (response.autoApproved) R.string.theme_store_upload_auto_approved
+                        else R.string.theme_store_upload_success,
+                    )
+                }
                 _uiState.update {
                     it.copy(
                         submitting = false,
                         uploadSubmitted = true,
                         uploadAutoApproved = response.autoApproved,
+                        uploadedThemeId = response.id,
                         uploadError = null,
+                        uploadPhase = if (response.autoApproved) {
+                            ThemeStoreUploadPhase.PUBLISHED
+                        } else {
+                            ThemeStoreUploadPhase.PENDING
+                        },
+                        uploadProgress = 1f,
+                        uploadResult = ThemeStoreUploadResult(
+                            themeId = response.id,
+                            submissionId = response.submissionId,
+                            pending = response.pending && !response.autoApproved,
+                            autoApproved = response.autoApproved,
+                            sha256 = response.sha256,
+                            message = message,
+                        ),
                     )
                 }
+                account.refreshProfile()
+                refreshSubmissions()
                 if (response.autoApproved) {
                     load()
                 }
@@ -287,6 +389,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 _uiState.update {
                     it.copy(
                         submitting = false,
+                        uploadPhase = ThemeStoreUploadPhase.FAILED,
+                        uploadProgress = 0f,
                         uploadError = getApplication<Application>().getString(R.string.theme_store_unauthorized),
                     )
                 }
@@ -294,6 +398,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 _uiState.update {
                     it.copy(
                         submitting = false,
+                        uploadPhase = ThemeStoreUploadPhase.FAILED,
+                        uploadProgress = 0f,
                         uploadError = error.message?.takeIf { message -> message.isNotBlank() }
                             ?: getApplication<Application>().getString(R.string.theme_store_upload_failed),
                     )
@@ -306,19 +412,140 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
 
     fun clearUploadState() {
         _uiState.update {
-            it.copy(uploadError = null, uploadSubmitted = false, uploadAutoApproved = false)
+            it.copy(
+                uploadError = null,
+                uploadSubmitted = false,
+                uploadAutoApproved = false,
+                uploadPhase = ThemeStoreUploadPhase.IDLE,
+                uploadProgress = 0f,
+                uploadResult = null,
+                withdrawError = null,
+                restoreError = null,
+            )
         }
     }
 
     fun consumeUploadSubmitted() {
-        _uiState.update { it.copy(uploadSubmitted = false, uploadAutoApproved = false) }
+        _uiState.update {
+            it.copy(
+                uploadSubmitted = false,
+                uploadAutoApproved = false,
+                uploadedThemeId = null,
+            )
+        }
     }
 
-    private suspend fun prepareUpload(input: ThemeStoreUploadInput): PreparedThemeUpload =
+    fun loadUploadOptions() {
+        if (_uiState.value.uploadOptionsLoading) return
+        account.reload()
+        if (account.session.value == null) {
+            _uiState.update {
+                it.copy(
+                    uploadOptionsLoading = false,
+                    submissionsLoading = false,
+                    uploadThemeId = null,
+                    uploadThemes = emptyList(),
+                    withdrawnThemes = emptyList(),
+                    submissions = emptyList(),
+                    uploadOptionsError = getApplication<Application>()
+                        .getString(R.string.theme_store_upload_login_required),
+                )
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                uploadOptionsLoading = true,
+                submissionsLoading = true,
+                uploadOptionsError = null,
+                submissionsError = null,
+            )
+        }
+        viewModelScope.launch {
+            val idResult = account.nextThemeId()
+            val themesResult = account.myThemes()
+            val submissionsResult = account.mySubmissions()
+            _uiState.update { state ->
+                val allThemes = themesResult.getOrDefault(emptyList())
+                state.copy(
+                    uploadOptionsLoading = false,
+                    submissionsLoading = false,
+                    uploadThemeId = idResult.getOrNull()?.id,
+                    uploadThemes = allThemes.filter { it.status != "withdrawn" },
+                    withdrawnThemes = allThemes.filter { it.status == "withdrawn" },
+                    submissions = submissionsResult.getOrNull() ?: state.submissions,
+                    uploadOptionsError = idResult.exceptionOrNull()?.message
+                        ?: themesResult.exceptionOrNull()?.message,
+                    submissionsError = submissionsResult.exceptionOrNull()?.message,
+                )
+            }
+        }
+    }
+
+    private suspend fun refreshSubmissions() {
+        _uiState.update { it.copy(submissionsLoading = true, submissionsError = null) }
+        val result = account.mySubmissions()
+        _uiState.update { state ->
+            state.copy(
+                submissionsLoading = false,
+                submissions = result.getOrNull() ?: state.submissions,
+                submissionsError = result.exceptionOrNull()?.message,
+            )
+        }
+    }
+
+    fun withdrawTheme(themeId: String) {
+        if (themeId.isBlank() || _uiState.value.withdrawingThemeId != null) return
+        _uiState.update { it.copy(withdrawingThemeId = themeId, withdrawError = null) }
+        viewModelScope.launch {
+            account.withdrawTheme(themeId).fold(
+                onSuccess = {
+                    _uiState.update { it.copy(withdrawingThemeId = null, withdrawError = null) }
+                    loadUploadOptions()
+                    load()
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            withdrawingThemeId = null,
+                            withdrawError = error.message,
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    fun restoreTheme(themeId: String) {
+        if (themeId.isBlank() || _uiState.value.restoringThemeId != null) return
+        _uiState.update { it.copy(restoringThemeId = themeId, restoreError = null) }
+        viewModelScope.launch {
+            account.restoreTheme(themeId).fold(
+                onSuccess = {
+                    _uiState.update { it.copy(restoringThemeId = null, restoreError = null) }
+                    loadUploadOptions()
+                    load()
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            restoringThemeId = null,
+                            restoreError = error.message,
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    private suspend fun prepareUpload(
+        input: ThemeStoreUploadInput,
+        accountMode: Boolean,
+    ): PreparedThemeUpload =
         withContext(Dispatchers.IO) {
             val app = getApplication<Application>()
             val themeId = input.id.trim()
-            if (!THEME_ID_PATTERN.matches(themeId)) {
+            if (themeId.isNotEmpty() && !THEME_ID_PATTERN.matches(themeId)) {
                 throw IllegalArgumentException(app.getString(R.string.theme_store_upload_invalid_id))
             }
             val version = input.version.trim().toIntOrNull()
@@ -329,7 +556,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 throw IllegalArgumentException(app.getString(R.string.theme_store_upload_name_required))
             }
             val authorId = input.authorId.trim()
-            if (!AUTHOR_ID_PATTERN.matches(authorId)) {
+            if (!accountMode && !AUTHOR_ID_PATTERN.matches(authorId)) {
                 throw IllegalArgumentException(app.getString(R.string.theme_store_upload_author_id_invalid))
             }
             if (name.length > 100 || input.author.trim().length > 100) {
@@ -369,30 +596,28 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 val packageData = ThemePackageStorage.validate(app, input.packageUri).getOrElse {
                     throw IllegalArgumentException(app.getString(R.string.theme_store_upload_package_invalid))
                 }
-                val previewFile = compressImage(
-                    uri = input.previewUri,
-                    directory = workDir,
-                    baseName = "preview",
-                    maxEdge = PREVIEW_MAX_EDGE,
-                    app = app,
-                )
-                val screenshots = input.screenshotUris.mapIndexed { index, uri ->
-                    compressImage(
-                        uri = uri,
-                        directory = workDir,
-                        baseName = "screenshot-${index + 1}",
-                        maxEdge = SCREENSHOT_MAX_EDGE,
-                        app = app,
-                    )
-                }
-                val avatarFile = input.avatarUri?.let { uri ->
-                    compressImage(
-                        uri = uri,
-                        directory = workDir,
-                        baseName = "avatar",
-                        maxEdge = AVATAR_MAX_EDGE,
-                        app = app,
-                    )
+                val imageSemaphore = Semaphore(2)
+                suspend fun compress(uri: Uri, baseName: String, maxEdge: Int): File =
+                    withContext(Dispatchers.Default) {
+                        imageSemaphore.withPermit {
+                            compressImage(
+                                uri = uri,
+                                directory = workDir,
+                                baseName = baseName,
+                                maxEdge = maxEdge,
+                                app = app,
+                            )
+                        }
+                    }
+                val (previewFile, screenshots, avatarFile) = coroutineScope {
+                    val preview = async { compress(input.previewUri, "preview", PREVIEW_MAX_EDGE) }
+                    val shots = input.screenshotUris.mapIndexed { index, uri ->
+                        async { compress(uri, "screenshot-${index + 1}", SCREENSHOT_MAX_EDGE) }
+                    }
+                    val avatar = input.avatarUri?.let { uri ->
+                        async { compress(uri, "avatar", AVATAR_MAX_EDGE) }
+                    }
+                    Triple(preview.await(), shots.awaitAll(), avatar?.await())
                 }
                 PreparedThemeUpload(
                     submission = ThemeStoreSubmission(
@@ -401,7 +626,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                         formatVersion = packageData.version,
                         name = name,
                         author = input.author.trim(),
-                        authorId = authorId,
+                        authorId = if (accountMode) "" else authorId,
                         description = input.description.trim(),
                         tags = tags.joinToString(", "),
                         license = input.license.trim(),
@@ -472,67 +697,107 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         maxEdge: Int,
         app: Application,
     ): File {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        app.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, bounds)
-        } ?: throw IllegalArgumentException(app.getString(R.string.theme_store_upload_image_invalid, baseName))
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-            throw IllegalArgumentException(app.getString(R.string.theme_store_upload_image_invalid, baseName))
+        val invalidMessage = when {
+            baseName == "preview" -> R.string.theme_store_upload_preview_invalid
+            baseName == "avatar" -> R.string.theme_store_upload_avatar_invalid
+            else -> R.string.theme_store_upload_screenshot_invalid
         }
-        var sampleSize = 1
-        while (max(bounds.outWidth, bounds.outHeight) / (sampleSize * 2) >= maxEdge) {
-            sampleSize *= 2
-        }
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = sampleSize
-            inPreferredConfig = Bitmap.Config.ARGB_8888
-        }
-        val decoded = app.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, options)
-        } ?: throw IllegalArgumentException(app.getString(R.string.theme_store_upload_image_invalid, baseName))
-        val oriented = applyExifOrientation(decoded, readExifOrientation(uri, app))
-
-        val scale = min(1f, maxEdge.toFloat() / max(oriented.width, oriented.height))
-        val scaled = if (scale < 1f) {
-            oriented.scale(
-                (oriented.width * scale).roundToInt().coerceAtLeast(1),
-                (oriented.height * scale).roundToInt().coerceAtLeast(1),
-            )
-        } else {
-            oriented
-        }
-        val target = File(directory, "$baseName.webp")
-        val format = webpFormat()
+        val source = copyImageToCache(uri, directory, baseName, app, invalidMessage)
         try {
-            val written = target.outputStream().use { output ->
-                scaled.compress(format, WEBP_QUALITY, output)
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(source.path, bounds)
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+                throw IllegalArgumentException(app.getString(invalidMessage))
             }
-            if (!written || !target.isFile || target.length() <= 0L) {
-                throw IllegalArgumentException(app.getString(R.string.theme_store_upload_image_invalid, baseName))
+            var sampleSize = 1
+            while (max(bounds.outWidth, bounds.outHeight) / (sampleSize * 2) >= maxEdge) {
+                sampleSize *= 2
             }
-            if (target.length() > MAX_IMAGE_BYTES) {
-                target.outputStream().use { output ->
-                    scaled.compress(format, 60, output)
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = sampleSize
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+            }
+            val decoded = BitmapFactory.decodeFile(source.path, options)
+                ?: throw IllegalArgumentException(app.getString(invalidMessage))
+            val oriented = applyExifOrientation(decoded, readExifOrientation(source))
+
+            val scale = min(1f, maxEdge.toFloat() / max(oriented.width, oriented.height))
+            val scaled = if (scale < 1f) {
+                oriented.scale(
+                    (oriented.width * scale).roundToInt().coerceAtLeast(1),
+                    (oriented.height * scale).roundToInt().coerceAtLeast(1),
+                )
+            } else {
+                oriented
+            }
+            val target = File(directory, "$baseName.webp")
+            val format = webpFormat()
+            try {
+                val written = target.outputStream().use { output ->
+                    scaled.compress(format, WEBP_QUALITY, output)
                 }
+                if (!written || !target.isFile || target.length() <= 0L) {
+                    throw IllegalArgumentException(app.getString(invalidMessage))
+                }
+                if (target.length() > MAX_IMAGE_BYTES) {
+                    target.outputStream().use { output ->
+                        scaled.compress(format, 60, output)
+                    }
+                }
+                if (target.length() > MAX_IMAGE_BYTES) {
+                    throw IllegalArgumentException(
+                        app.getString(R.string.theme_store_upload_file_too_large, baseName),
+                    )
+                }
+                return target
+            } finally {
+                if (scaled !== oriented) scaled.recycle()
+                if (oriented !== decoded) oriented.recycle()
+                decoded.recycle()
             }
-            if (target.length() > MAX_IMAGE_BYTES) {
-                throw IllegalArgumentException(app.getString(R.string.theme_store_upload_file_too_large, baseName))
-            }
-            return target
         } finally {
-            if (scaled !== oriented) scaled.recycle()
-            if (oriented !== decoded) oriented.recycle()
-            decoded.recycle()
+            source.delete()
         }
     }
 
-    private fun readExifOrientation(uri: Uri, app: Application): Int = runCatching {
-        app.contentResolver.openInputStream(uri)?.use { input ->
-            ExifInterface(input).getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL,
-            )
-        } ?: ExifInterface.ORIENTATION_NORMAL
+    private fun copyImageToCache(
+        uri: Uri,
+        directory: File,
+        baseName: String,
+        app: Application,
+        invalidMessage: Int,
+    ): File {
+        val target = File(directory, "$baseName.input")
+        val stream = app.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException(app.getString(invalidMessage))
+        stream.use { input ->
+            target.outputStream().use { output ->
+                val buffer = ByteArray(64 * 1024)
+                var total = 0L
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    total += read
+                    if (total > MAX_IMAGE_INPUT_BYTES) {
+                        throw IllegalArgumentException(
+                            app.getString(R.string.theme_store_upload_file_too_large, baseName),
+                        )
+                    }
+                    output.write(buffer, 0, read)
+                }
+                if (total <= 0L) {
+                    throw IllegalArgumentException(app.getString(invalidMessage))
+                }
+            }
+        }
+        return target
+    }
+
+    private fun readExifOrientation(file: File): Int = runCatching {
+        ExifInterface(file.absolutePath).getAttributeInt(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.ORIENTATION_NORMAL,
+        )
     }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
 
     private fun applyExifOrientation(bitmap: Bitmap, orientation: Int): Bitmap {

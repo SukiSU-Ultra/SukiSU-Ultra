@@ -57,6 +57,7 @@ data class ThemeStoreSubmitResponse(
     val id: String = "",
     val submissionId: String = "",
     val autoApproved: Boolean = false,
+    val sha256: String = "",
     val message: String = "",
     val error: String = "",
 )

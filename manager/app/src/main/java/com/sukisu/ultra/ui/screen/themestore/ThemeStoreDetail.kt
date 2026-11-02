@@ -27,7 +27,9 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
@@ -54,6 +56,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -238,6 +241,48 @@ internal fun ThemeStoreDetailScreen(
                             ),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            item(key = "integrity") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        MaterialText(
+                            text = stringResource(R.string.theme_store_integrity_title),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
+                    MaterialText(
+                        text = stringResource(R.string.theme_store_integrity_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    SelectionContainer {
+                        MaterialText(
+                            text = entry.sha256.ifBlank { "—" },
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (state.verifiedThemeKey == item.key) {
+                        MaterialText(
+                            text = stringResource(R.string.theme_store_integrity_verified),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -465,8 +510,7 @@ private fun formatBytes(bytes: Long): String {
 }
 
 private fun ThemeStoreEntry.isCompatible(): Boolean {
-    if (formatVersion > ThemePackageStorage.CURRENT_VERSION) return false
-    return minManagerVersion <= BuildConfig.VERSION_CODE.toLong()
+    return formatVersion <= ThemePackageStorage.CURRENT_VERSION && minManagerVersion <= BuildConfig.VERSION_CODE.toLong()
 }
 
 @Composable

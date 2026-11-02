@@ -103,6 +103,7 @@ import com.sukisu.ultra.ai.api.AiFeatureBridge
 import com.sukisu.ultra.ai.host.ManagerAiTarget
 import com.sukisu.ultra.ui.screen.appicon.AppIconScreen
 import com.sukisu.ultra.ui.screen.customtext.CustomTextScreen
+import com.sukisu.ultra.ui.screen.account.AccountScreen
 import com.sukisu.ultra.ui.screen.themestore.ThemeStoreScreen
 import com.sukisu.ultra.ui.screen.themestore.ThemeStoreSourcesScreen
 import com.sukisu.ultra.ui.util.LocalCustomTexts
@@ -373,6 +374,9 @@ class MainActivity : ComponentActivity() {
                             }
                             entry<Route.ThemeStoreSources>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette { ThemeStoreSourcesScreen() }
+                            }
+                            entry<Route.ThemeAccount>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { AccountScreen() }
                             }
                             entry<Route.AppIcon>(swipeDismiss = swipeDismiss) { AppIconScreen() }
                             entry<Route.BackgroundCrop>(swipeDismiss = NavSwipeDirection.None) { key ->

@@ -68,6 +68,11 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ThemeStoreSources : Route
 
+    /** Theme store account: user login, registration and author identity status. */
+    @Parcelize
+    @Serializable
+    data class ThemeAccount(val tab: String? = null) : Route
+
     /** Launcher icon picker and icon pack manager. */
     @Parcelize
     @Serializable

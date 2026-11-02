@@ -29,8 +29,29 @@ private val THEME_SITE_MENTIONS = mapOf(
 )
 
 private val INLINE_MARKDOWN = Regex(
-    """\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^\]\n]+\]\(https?://[^\s)]+\)|(?<![\w@])@[A-Za-z0-9_-]+|https?://[^\s]+|\*[^*\n]+\*""",
+    """\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^]\n]+]\(https?://[^\s)]+\)|[A-Za-z0-9._-]+@(?:github|gitee|bilibili|coolapk|telegram|weibo|xiaohongshu|xda|youtube|afdian)(?![\w.-]*\.)|(?<![\w@])@[A-Za-z0-9_-]+|https?://[^s]+|\*[^*\n]+\*""",
+    RegexOption.IGNORE_CASE,
 )
+
+private val THEME_USER_MENTIONS = setOf(
+    "github", "gitee", "bilibili", "coolapk", "telegram",
+    "weibo", "xiaohongshu", "xda", "youtube", "afdian",
+)
+
+private fun userMentionUrl(user: String, platform: String): String? = when (platform.lowercase()) {
+    "github" -> "https://github.com/$user"
+    "gitee" -> "https://gitee.com/$user"
+    "bilibili" -> if (user.all(Char::isDigit)) "https://space.bilibili.com/$user"
+    else "https://search.bilibili.com/all?keyword=$user"
+    "coolapk" -> "https://www.coolapk.com/u/$user"
+    "telegram" -> "https://t.me/$user"
+    "weibo" -> "https://weibo.com/$user"
+    "xiaohongshu" -> "https://www.xiaohongshu.com/user/profile/$user"
+    "xda" -> "https://xdaforums.com/m/$user/"
+    "youtube" -> "https://www.youtube.com/@$user"
+    "afdian" -> "https://afdian.com/a/$user"
+    else -> null
+}
 
 /** Small inline Markdown renderer for theme descriptions shown in cards. */
 @Composable
@@ -87,6 +108,20 @@ internal fun themeStoreMarkdown(text: String): AnnotatedString {
                     token.startsWith("@") -> {
                         val site = token.substring(1).lowercase()
                         val url = THEME_SITE_MENTIONS[site]
+                        if (url != null) {
+                            withLink(LinkAnnotation.Url(url, linkStyles)) {
+                                append(token)
+                            }
+                        } else {
+                            append(token)
+                        }
+                    }
+
+                    token.contains('@') -> {
+                        val split = token.lastIndexOf('@')
+                        val user = token.substring(0, split)
+                        val platform = token.substring(split + 1).lowercase()
+                        val url = if (platform in THEME_USER_MENTIONS) userMentionUrl(user, platform) else null
                         if (url != null) {
                             withLink(LinkAnnotation.Url(url, linkStyles)) {
                                 append(token)
