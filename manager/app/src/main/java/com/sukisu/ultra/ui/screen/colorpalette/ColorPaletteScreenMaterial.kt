@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.os.Build
 import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.customTextGroupsIn
 import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -636,7 +637,7 @@ fun ColorPaletteScreenMaterial(
                         val currentIcon = BuiltinAppIcons.find(uiState.appIconId)
                         SegmentedListItem(
                             onClick = actions.onOpenAppIcon,
-                            headlineContent = { Text(stringResource(R.string.app_icon_title)) },
+                            headlineContent = { Text(customText(CustomTextKey.PAGE_APP_ICON)) },
                             supportingContent = {
                                 Text(stringResource(R.string.app_icon_summary))
                             },
@@ -664,14 +665,15 @@ fun ColorPaletteScreenMaterial(
                         )
                     }
                     item(visible = appearanceSectionExpanded) {
+                        val customTextsTitle = customText(CustomTextKey.PAGE_CUSTOM_TEXTS)
                         SegmentedListItem(
                             onClick = actions.onOpenCustomTexts,
-                            headlineContent = { Text(stringResource(R.string.settings_custom_texts)) },
+                            headlineContent = { Text(customTextsTitle) },
                             supportingContent = { Text(stringResource(R.string.settings_custom_texts_summary)) },
                             leadingContent = {
                                 IconTile(
                                     Icons.Rounded.Edit,
-                                    stringResource(R.string.settings_custom_texts),
+                                    customTextsTitle,
                                 )
                             },
                             trailingContent = {
@@ -1418,7 +1420,7 @@ fun ColorPaletteScreenMaterial(
         hasCardImage = state.homeCardImagePath.isNotBlank(),
         hasStickers = state.homeCardStickers.isNotEmpty(),
         hasAppIcon = true,
-        hasCustomTexts = uiState.customTexts.isNotEmpty() || uiState.customHomeTitle.isNotBlank(),
+        availableCustomTextGroups = customTextGroupsIn(uiState.customTexts, uiState.customHomeTitle),
         onDismissRequest = { showExportDialog = false },
         onConfirm = { options ->
             showExportDialog = false

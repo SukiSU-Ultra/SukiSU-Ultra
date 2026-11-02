@@ -780,10 +780,16 @@
     <string name="custom_text_restore_default">Restore default</string>
     <string name="custom_text_edit_title">Edit text</string>
     <string name="custom_text_edit_hint">Leave blank to restore the default text.</string>
+    <string name="custom_text_variable">Auto-filled variable</string>
+    <string name="custom_text_arg_version_code">Version code</string>
+    <string name="custom_text_variable_hint">The variable is filled in by the app, so you do not need to type it.</string>
+    <string name="custom_text_part_before">Text before the variable</string>
+    <string name="custom_text_part_after">Text after the variable</string>
     <string name="custom_text_default_value">Default: %1$s</string>
     <string name="custom_text_group_home">Home screen</string>
     <string name="custom_text_group_page_main">Main page headers</string>
     <string name="custom_text_group_page_feature">Feature and settings headers</string>
+    <string name="custom_text_group_settings">Settings items</string>
     <string name="app_icon_builtin_section">Built-in icons</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

@@ -31,7 +31,10 @@ import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.screen.settings.ThemePackageOptions
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
+import com.sukisu.ultra.ui.util.CustomTextGroup
+import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.ImageStorage
+import com.sukisu.ultra.ui.util.customTextsInGroups
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
@@ -671,13 +674,14 @@ class SettingsViewModel(
                 moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst.takeIf { options.customConfig },
                 moduleSortNameOrder = repo.moduleSortNameOrder.takeIf { options.customConfig },
                 moduleSortManual = repo.moduleSortManual.takeIf { options.customConfig },
-                customHomeTitle = if (options.customTexts) {
+                customHomeTitle = if (options.customTexts && CustomTextGroup.HOME in options.customTextGroups) {
                     state.customHomeTitle.takeIf { it.isNotBlank() }
                 } else {
                     null
                 },
                 customTexts = if (options.customTexts) {
-                    state.customTexts.takeIf { it.isNotEmpty() }
+                    customTextsInGroups(state.customTexts, options.customTextGroups)
+                        .takeIf { it.isNotEmpty() }
                 } else {
                     null
                 },
@@ -903,16 +907,30 @@ class SettingsViewModel(
         var effectiveHomeTitle = current.customHomeTitle
         var effectiveCustomTexts = current.customTexts
         if (options.customTexts) {
-            val textsMap = (data.customTexts ?: emptyMap()).toMutableMap()
-            val importedHomeTitle = data.customHomeTitle
-            if (importedHomeTitle != null) {
-                textsMap["home.title"] = importedHomeTitle
-                repo.customHomeTitle = importedHomeTitle
-                effectiveHomeTitle = importedHomeTitle
-            } else if (textsMap.containsKey("home.title")) {
-                val t = textsMap["home.title"].orEmpty()
-                repo.customHomeTitle = t
-                effectiveHomeTitle = t
+            val selectedGroups = options.customTextGroups
+            // Only the selected categories are replaced; the others keep their current text.
+            val textsMap = current.customTexts.toMutableMap()
+            textsMap.keys.toList().forEach { key ->
+                val group = CustomTextKey.fromKey(key)?.group
+                if (group != null && group in selectedGroups) textsMap.remove(key)
+            }
+            (data.customTexts ?: emptyMap()).forEach { (key, value) ->
+                val group = CustomTextKey.fromKey(key)?.group
+                if (group != null && group in selectedGroups && value.isNotBlank()) {
+                    textsMap[key] = value
+                }
+            }
+            if (CustomTextGroup.HOME in selectedGroups) {
+                val homeTitle = data.customHomeTitle
+                    ?: textsMap[CustomTextKey.HOME_TITLE.key]
+                if (!homeTitle.isNullOrBlank()) {
+                    textsMap[CustomTextKey.HOME_TITLE.key] = homeTitle
+                    repo.customHomeTitle = homeTitle
+                    effectiveHomeTitle = homeTitle
+                } else {
+                    repo.customHomeTitle = ""
+                    effectiveHomeTitle = ""
+                }
             }
             repo.customTexts = textsMap
             effectiveCustomTexts = textsMap

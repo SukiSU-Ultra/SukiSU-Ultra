@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.ConfigResults
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TonalCard
@@ -85,7 +87,7 @@ fun KpmMaterial(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.kpm_title)) },
+                title = { Text(customText(CustomTextKey.EXTENSION_KPM)) },
                 navigationIcon = {
                     TopBarBackButton(onClick = { navigator.pop() })
                 },

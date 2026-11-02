@@ -157,14 +157,15 @@ private fun KernelModulesSectionMiuix(
             .padding(top = 12.dp)
             .fillMaxWidth(),
     ) {
+        val title = customText(CustomTextKey.PAGE_KERNEL_MODULES)
         ArrowPreference(
-            title = stringResource(R.string.kernel_modules_title),
+            title = title,
             summary = stringResource(R.string.tools_kernel_modules_summary),
             startAction = {
                 Icon(
                     imageVector = Icons.Rounded.Memory,
                     modifier = Modifier.padding(end = 6.dp),
-                    contentDescription = stringResource(R.string.kernel_modules_title),
+                    contentDescription = title,
                     tint = colorScheme.onBackground
                 )
             },

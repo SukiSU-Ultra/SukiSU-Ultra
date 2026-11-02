@@ -11,6 +11,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
@@ -28,7 +30,7 @@ internal fun SuSFSMaterial(
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.susfs_config_title)) },
+                title = { Text(customText(CustomTextKey.EXTENSION_SUSFS)) },
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 scrollBehavior = scrollBehavior,
                 colors = expressiveTopAppBarColors(),

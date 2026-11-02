@@ -38,6 +38,8 @@ import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -49,7 +51,7 @@ internal fun TemporaryRootPreferencesMiuix(labels: List<String>, selectedIndex: 
             colors = backgroundAwareCardColors(),
         ) {
             OverlayDropdownPreference(
-                title = stringResource(R.string.temporary_root_duration_title),
+                title = customText(CustomTextKey.SETTING_TEMPORARY_ROOT_DURATION),
                 summary = stringResource(R.string.temporary_root_duration_summary),
                 items = labels,
                 selectedIndex = selectedIndex,

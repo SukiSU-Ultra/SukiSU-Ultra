@@ -267,7 +267,7 @@ private fun TopBar(
     val haptic = LocalHapticFeedback.current
     LargeFlexibleTopAppBar(
         title = {
-            Text(stringResource(R.string.settings_profile_template))
+            Text(customText(CustomTextKey.PAGE_TEMPLATE))
         },
         navigationIcon = {
             TopBarBackButton(onClick = onBack)

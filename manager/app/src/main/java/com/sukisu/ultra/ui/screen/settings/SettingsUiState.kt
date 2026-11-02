@@ -6,6 +6,7 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
+import com.sukisu.ultra.ui.util.CustomTextGroup
 import com.sukisu.ultra.ui.util.HomeCardSticker
 
 @Immutable
@@ -123,6 +124,7 @@ data class ThemePackageOptions(
     val homeCardDisplay: Boolean = true,
     val appIcon: Boolean = true,
     val customTexts: Boolean = true,
+    val customTextGroups: Set<CustomTextGroup> = CustomTextGroup.entries.toSet(),
     val customConfig: Boolean = true,
 )
 
@@ -137,6 +139,10 @@ val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
             it.homeCardDisplay,
             it.appIcon,
             it.customTexts,
+            it.customTextGroups.contains(CustomTextGroup.HOME),
+            it.customTextGroups.contains(CustomTextGroup.PAGE_MAIN),
+            it.customTextGroups.contains(CustomTextGroup.PAGE_FEATURE),
+            it.customTextGroups.contains(CustomTextGroup.SETTINGS),
             it.customConfig,
         )
     },
@@ -150,7 +156,13 @@ val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
             homeCardDisplay = it[5],
             appIcon = it[6],
             customTexts = it[7],
-            customConfig = it[8],
+            customTextGroups = buildSet {
+                if (it.getOrElse(8) { true }) add(CustomTextGroup.HOME)
+                if (it.getOrElse(9) { true }) add(CustomTextGroup.PAGE_MAIN)
+                if (it.getOrElse(10) { true }) add(CustomTextGroup.PAGE_FEATURE)
+                if (it.getOrElse(11) { true }) add(CustomTextGroup.SETTINGS)
+            },
+            customConfig = it.getOrElse(12) { true },
         )
     },
 )

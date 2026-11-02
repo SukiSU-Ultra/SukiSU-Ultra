@@ -60,15 +60,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 
 @Composable
 fun BottomBarMaterial(
@@ -82,10 +82,10 @@ fun BottomBarMaterial(
     val mainPagerState = LocalMainPagerState.current
 
     val items = listOf(
-        Triple(R.string.home, Icons.Filled.Home, Icons.Outlined.Home),
-        Triple(R.string.superuser, Icons.Filled.Shield, Icons.Outlined.Shield),
-        Triple(R.string.module, Icons.Filled.Extension, Icons.Outlined.Extension),
-        Triple(R.string.settings, Icons.Filled.Settings, Icons.Outlined.Settings)
+        Triple(CustomTextKey.PAGE_HOME, Icons.Filled.Home, Icons.Outlined.Home),
+        Triple(CustomTextKey.PAGE_SUPERUSER, Icons.Filled.Shield, Icons.Outlined.Shield),
+        Triple(CustomTextKey.PAGE_MODULES, Icons.Filled.Extension, Icons.Outlined.Extension),
+        Triple(CustomTextKey.PAGE_SETTINGS, Icons.Filled.Settings, Icons.Outlined.Settings)
     )
 
     if (LocalEnableFloatingBottomBarBlur.current && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -129,7 +129,7 @@ fun BottomBarMaterial(
                     val selected = mainPagerState.selectedPage == index
                     FloatingNavItem(
                         selected = selected,
-                        label = stringResource(label),
+                        label = customText(label),
                         icon = if (selected) selectedIcon else unselectedIcon,
                         badge = badgeFor(index, navigationBadge),
                         onClick = {
@@ -149,7 +149,7 @@ fun BottomBarMaterial(
 @Composable
 private fun LiquidBottomBarMaterial(
     backdrop: Backdrop,
-    items: List<Triple<Int, ImageVector, ImageVector>>,
+    items: List<Triple<CustomTextKey, ImageVector, ImageVector>>,
     navigationBadge: NavigationBadgeState,
     modifier: Modifier,
 ) {
@@ -183,16 +183,16 @@ private fun LiquidBottomBarMaterial(
                 CompositionLocalProvider(LocalContentColor provides MiuixLocalContentColor.current) {
                     NavigationIconWithBadge(
                         icon = if (selected) selectedIcon else unselectedIcon,
-                        contentDescription = stringResource(label),
+                        contentDescription = customText(label),
                         badge = badgeFor(index, navigationBadge),
                     )
                     Text(
-                        text = stringResource(label),
+                        text = customText(label),
                         fontSize = 11.sp,
                         lineHeight = 14.sp,
                         maxLines = 1,
                         softWrap = false,
-                        overflow = TextOverflow.Visible
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

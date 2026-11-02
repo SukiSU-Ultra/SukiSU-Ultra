@@ -120,13 +120,14 @@ private fun KernelModulesSectionMaterial(
     SegmentedColumn(
         modifier = Modifier.padding(top = 12.dp),
         content = listOf({
+            val title = customText(CustomTextKey.PAGE_KERNEL_MODULES)
             SegmentedListItem(
-                headlineContent = { Text(stringResource(R.string.kernel_modules_title)) },
+                headlineContent = { Text(title) },
                 supportingContent = { Text(stringResource(R.string.tools_kernel_modules_summary)) },
                 leadingContent = {
                     IconTile(
                         Icons.Rounded.Memory,
-                        stringResource(R.string.kernel_modules_title),
+                        title,
                     )
                 },
                 onClick = onOpen,

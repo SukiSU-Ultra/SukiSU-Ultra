@@ -776,10 +776,16 @@
     <string name="custom_text_restore_default">恢复默认</string>
     <string name="custom_text_edit_title">编辑文本</string>
     <string name="custom_text_edit_hint">留空以恢复默认文案。</string>
+    <string name="custom_text_variable">自动填入变量</string>
+    <string name="custom_text_arg_version_code">版本号</string>
+    <string name="custom_text_variable_hint">此变量由应用自动填入，无需手动输入。</string>
+    <string name="custom_text_part_before">变量前的文本</string>
+    <string name="custom_text_part_after">变量后的文本</string>
     <string name="custom_text_default_value">默认：%1$s</string>
     <string name="custom_text_group_home">主页内容</string>
     <string name="custom_text_group_page_main">主要分页抬头</string>
     <string name="custom_text_group_page_feature">功能与设置页面抬头</string>
+    <string name="custom_text_group_settings">设置项</string>
     <string name="app_icon_builtin_section">内置图标</string>
     <string name="app_icon_builtin_default">SukiSU</string>
     <string name="app_icon_builtin_kernelsu">KernelSU</string>

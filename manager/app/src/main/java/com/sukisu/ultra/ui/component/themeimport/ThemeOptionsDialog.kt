@@ -29,6 +29,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.screen.settings.ThemePackageOptions
+import com.sukisu.ultra.ui.util.CustomTextGroup
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -49,7 +50,7 @@ fun ThemeOptionsDialog(
     hasCardImage: Boolean,
     hasStickers: Boolean,
     hasAppIcon: Boolean,
-    hasCustomTexts: Boolean,
+    availableCustomTextGroups: Set<CustomTextGroup>,
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
 ) {
@@ -63,7 +64,27 @@ fun ThemeOptionsDialog(
     var homeCardDisplay by rememberSaveable { mutableStateOf(true) }
     var appIcon by rememberSaveable { mutableStateOf(true) }
     var customTexts by rememberSaveable { mutableStateOf(true) }
+    var customTextHome by rememberSaveable { mutableStateOf(true) }
+    var customTextPageMain by rememberSaveable { mutableStateOf(true) }
+    var customTextPageFeature by rememberSaveable { mutableStateOf(true) }
+    var customTextSettings by rememberSaveable { mutableStateOf(true) }
     var customConfig by rememberSaveable { mutableStateOf(true) }
+
+    val selectedTextGroups = buildSet {
+        if (customTextHome) add(CustomTextGroup.HOME)
+        if (customTextPageMain) add(CustomTextGroup.PAGE_MAIN)
+        if (customTextPageFeature) add(CustomTextGroup.PAGE_FEATURE)
+        if (customTextSettings) add(CustomTextGroup.SETTINGS)
+    }.intersect(availableCustomTextGroups)
+
+    fun setTextGroupChecked(group: CustomTextGroup, checked: Boolean) {
+        when (group) {
+            CustomTextGroup.HOME -> customTextHome = checked
+            CustomTextGroup.PAGE_MAIN -> customTextPageMain = checked
+            CustomTextGroup.PAGE_FEATURE -> customTextPageFeature = checked
+            CustomTextGroup.SETTINGS -> customTextSettings = checked
+        }
+    }
 
     val options = ThemePackageOptions(
         colors = colors,
@@ -73,7 +94,8 @@ fun ThemeOptionsDialog(
         stickers = stickers && hasStickers,
         homeCardDisplay = homeCardDisplay,
         appIcon = appIcon && hasAppIcon,
-        customTexts = customTexts && hasCustomTexts,
+        customTexts = customTexts && availableCustomTextGroups.isNotEmpty(),
+        customTextGroups = selectedTextGroups,
         customConfig = customConfig,
     )
 
@@ -144,12 +166,24 @@ fun ThemeOptionsDialog(
                                 onCheckedChange = { appIcon = it },
                             )
                         }
-                        if (hasCustomTexts) {
+                        if (availableCustomTextGroups.isNotEmpty()) {
                             CheckboxPreference(
                                 title = stringResource(R.string.theme_opt_custom_texts),
                                 checked = customTexts,
                                 onCheckedChange = { customTexts = it },
                             )
+                            if (customTexts) {
+                                CustomTextGroup.entries
+                                    .filter { it in availableCustomTextGroups }
+                                    .forEach { group ->
+                                        CheckboxPreference(
+                                            title = stringResource(group.titleRes),
+                                            checked = group in selectedTextGroups,
+                                            onCheckedChange = { setTextGroupChecked(group, it) },
+                                            modifier = Modifier.padding(start = 12.dp),
+                                        )
+                                    }
+                            }
                         }
                         OptionGroupLabel(stringResource(R.string.theme_opt_other))
                         CheckboxPreference(
@@ -241,12 +275,24 @@ fun ThemeOptionsDialog(
                                 onCheckedChange = { appIcon = it },
                             )
                         }
-                        if (hasCustomTexts) {
+                        if (availableCustomTextGroups.isNotEmpty()) {
                             MaterialCheckboxRow(
                                 title = stringResource(R.string.theme_opt_custom_texts),
                                 checked = customTexts,
                                 onCheckedChange = { customTexts = it },
                             )
+                            if (customTexts) {
+                                CustomTextGroup.entries
+                                    .filter { it in availableCustomTextGroups }
+                                    .forEach { group ->
+                                        MaterialCheckboxRow(
+                                            title = stringResource(group.titleRes),
+                                            checked = group in selectedTextGroups,
+                                            onCheckedChange = { setTextGroupChecked(group, it) },
+                                            modifier = Modifier.padding(start = 16.dp),
+                                        )
+                                    }
+                            }
                         }
                         MaterialOptionGroupLabel(stringResource(R.string.theme_opt_other))
                         MaterialCheckboxRow(
@@ -296,9 +342,10 @@ private fun MaterialCheckboxRow(
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onCheckedChange(!checked) }
             .padding(vertical = 4.dp),

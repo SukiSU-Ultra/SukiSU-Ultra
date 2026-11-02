@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.navigation3.Route
+import com.sukisu.ultra.ui.util.CustomTextKey
 
 /**
  * What opening an extension card does.
@@ -32,6 +33,7 @@ data class ExtensionDescriptor(
     val wireName: String,
     @StringRes val titleRes: Int? = null,
     @StringRes val summaryRes: Int? = null,
+    val textKey: CustomTextKey? = null,
     val entry: ExtensionEntry = ExtensionEntry.Generic,
 )
 
@@ -47,36 +49,42 @@ object ExtensionCatalog {
             wireName = "kpm",
             titleRes = R.string.extension_kpm_title,
             summaryRes = R.string.extension_kpm_summary,
+            textKey = CustomTextKey.EXTENSION_KPM,
             entry = ExtensionEntry.Screen(Route.Kpm),
         ),
         ExtensionDescriptor(
             wireName = "cpu_spoof",
             titleRes = R.string.extension_cpu_spoof_title,
             summaryRes = R.string.extension_cpu_spoof_summary,
+            textKey = CustomTextKey.EXTENSION_CPU_SPOOF,
             entry = ExtensionEntry.Screen(Route.CpuSpoof),
         ),
         ExtensionDescriptor(
             wireName = "umount_paths",
             titleRes = R.string.extension_umount_paths_title,
             summaryRes = R.string.extension_umount_paths_summary,
+            textKey = CustomTextKey.PAGE_UMOUNT,
             entry = ExtensionEntry.Screen(Route.UmountManager),
         ),
         ExtensionDescriptor(
             wireName = "dynamic_manager",
             titleRes = R.string.extension_dynamic_manager_title,
             summaryRes = R.string.extension_dynamic_manager_summary,
+            textKey = CustomTextKey.PAGE_DYNAMIC_MANAGERS,
             entry = ExtensionEntry.Screen(Route.DynamicManagers),
         ),
         ExtensionDescriptor(
             wireName = "susfs",
             titleRes = R.string.extension_susfs_title,
             summaryRes = R.string.extension_susfs_summary,
+            textKey = CustomTextKey.EXTENSION_SUSFS,
             entry = ExtensionEntry.Screen(Route.SuSFS()),
         ),
         ExtensionDescriptor(
             wireName = "version_spoof",
             titleRes = R.string.extension_version_spoof_title,
             summaryRes = R.string.extension_version_spoof_summary,
+            textKey = CustomTextKey.EXTENSION_VERSION_SPOOF,
             entry = ExtensionEntry.Screen(Route.VersionSpoof),
         ),
     )

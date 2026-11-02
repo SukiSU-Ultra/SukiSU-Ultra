@@ -18,6 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
@@ -43,7 +45,7 @@ internal fun VersionSpoofMiuix(s: VersionSpoofState, a: VersionSpoofActions, ver
     AppScaffold(topBar = {
         BlurredBar(backdrop) {
             TopAppBar(
-                title = stringResource(R.string.extension_version_spoof_title),
+                title = customText(CustomTextKey.EXTENSION_VERSION_SPOOF),
                 color = barColor,
                 navigationIcon = {
                     IconButton(onClick = a.onBack) {

@@ -157,38 +157,37 @@ fun HomePagerMiuix(
                 }
                         if (!state.hideHomeWarnings) {
                             if (state.showManagerPrBuildWarning && state.showFullStatus) {
-                                WarningCard(stringResource(id = R.string.home_pr_build_warning), level = WarningLevel.Notice)
+                                WarningCard(customText(CustomTextKey.HOME_WARN_PR_BUILD), level = WarningLevel.Notice)
                             } else if (state.showKernelPrBuildWarning && state.showFullStatus) {
-                                WarningCard(stringResource(id = R.string.home_pr_kernel_warning), level = WarningLevel.Notice)
+                                WarningCard(customText(CustomTextKey.HOME_WARN_PR_KERNEL), level = WarningLevel.Notice)
                             }
                             if (state.requiresNewKernel && state.showFullStatus) {
                                 WarningCard(
-                                    stringResource(
-                                        id = if (state.canInstallKernelUpdate) R.string.require_kernel_version else R.string.require_kernel_version_gki
+                                    customText(
+                                        if (state.canInstallKernelUpdate) CustomTextKey.HOME_WARN_REQUIRE_KERNEL
+                                        else CustomTextKey.HOME_WARN_REQUIRE_KERNEL_GKI
                                     ),
                                     onClick = if (state.canInstallKernelUpdate) actions.onInstallClick else null
                                 )
                             }
                             if (state.requiresNewManager) {
                                 WarningCard(
-                                    stringResource(
-                                        id = R.string.require_manager_version
-                                    )
+                                    customText(CustomTextKey.HOME_WARN_REQUIRE_MANAGER)
                                 )
                             }
                             if (state.showLkmUpdate && state.showFullStatus) {
                                 WarningCard(
-                                    message = stringResource(R.string.home_lkm_update_available),
+                                    message = customText(CustomTextKey.HOME_WARN_LKM_UPDATE),
                                     level = WarningLevel.Notice,
                                     onClick = actions.onInstallClick,
                                 )
                             }
                         }
                         if (state.showRootWarning) {
-                            WarningCard(stringResource(id = R.string.grant_root_failed))
+                            WarningCard(customText(CustomTextKey.HOME_WARN_ROOT_FAILED))
                         }
                         if (state.isPreviewMode && !state.hideHomeWarnings) {
-                            WarningCard(stringResource(id = R.string.home_preview_mode), level = WarningLevel.Notice)
+                            WarningCard(customText(CustomTextKey.HOME_WARN_PREVIEW_MODE), level = WarningLevel.Notice)
                         }
                         if (state.showAiHomeCard && AiFeatureBridge.isAvailable) {
                             // MD3 card inside the Miuix page: use the MD3 scheme of the appearance settings.
@@ -226,13 +225,13 @@ private fun UpdateCard(
 ) {
     val ciInfo = state.ciLatestVersionInfo
     val ciDialog = rememberConfirmDialog(onConfirm = actions.onCiUpdateClick)
-    val ciTitle = customText(CustomTextKey.HOME_UPDATE_NEW_VERSION)
+    val ciTitle = customText(CustomTextKey.HOME_UPDATE_NEW_VERSION, ciInfo.versionCode)
     val ciConfirm = stringResource(R.string.module_update)
     val ciContent = ciInfo.changelog
     if (state.checkCiUpdateEnabled && ciInfo.versionCode > state.currentManagerVersionCode) {
         WarningCard(
-            message = if (state.ciUpdateBusy) stringResource(R.string.ci_update_busy)
-                else stringResource(R.string.ci_update_available, ciInfo.versionCode),
+            message = if (state.ciUpdateBusy) customText(CustomTextKey.HOME_CI_UPDATE_BUSY)
+            else customText(CustomTextKey.HOME_CI_UPDATE_AVAILABLE, ciInfo.versionCode),
             level = WarningLevel.Notice,
             onClick = {
                 if (!state.ciUpdateBusy) ciDialog.showConfirm(
@@ -252,7 +251,7 @@ private fun UpdateCard(
         exit = shrinkVertically() + fadeOut()
     ) {
         WarningCard(
-            message = stringResource(id = R.string.new_version_available, newVersion.versionCode),
+            message = customText(CustomTextKey.HOME_UPDATE_NEW_VERSION, newVersion.versionCode),
             level = WarningLevel.Notice,
             onClick = {
                 if (state.ciUpdateBusy) return@WarningCard
@@ -484,9 +483,11 @@ private fun InactiveStatusCard(
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
-                    text = stringResource(
-                        if (notInstalled) R.string.home_click_to_install else R.string.home_unsupported_reason
-                    ),
+                    text = if (notInstalled) {
+                        customText(CustomTextKey.HOME_STATUS_INSTALL_HINT)
+                    } else {
+                        stringResource(R.string.home_unsupported_reason)
+                    },
                     fontSize = 14.sp,
                     color = colorScheme.error,
                 )
@@ -500,7 +501,7 @@ private fun InactiveStatusCard(
             if (notInstalled) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TextButton(
-                        text = stringResource(R.string.install),
+                        text = customText(CustomTextKey.HOME_BTN_INSTALL),
                         onClick = actions.onInstallClick,
                         colors = ButtonDefaults.textButtonColorsPrimary()
                     )

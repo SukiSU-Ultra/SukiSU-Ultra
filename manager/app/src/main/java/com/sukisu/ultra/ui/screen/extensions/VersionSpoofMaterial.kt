@@ -15,6 +15,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
@@ -31,7 +33,7 @@ internal fun VersionSpoofMaterial(
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.extension_version_spoof_title)) },
+                title = { Text(customText(CustomTextKey.EXTENSION_VERSION_SPOOF)) },
                 navigationIcon = { TopBarBackButton(onClick = a.onBack) },
                 colors = expressiveTopAppBarColors(), scrollBehavior = scroll,
             )
