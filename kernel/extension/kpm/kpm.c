@@ -178,7 +178,15 @@ int do_kpm(void __user *arg)
     int result;
     /* Called only through the manager_or_root-authorized extension ioctl. */
     if (copy_from_user(&cmd, arg, sizeof(cmd))) return -EFAULT;
-    if (!access_ok(u64_to_user_ptr(cmd.result_code), sizeof(result))) return -EFAULT;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
+    if (!access_ok(VERIFY_WRITE, u64_to_user_ptr(cmd.result_code), sizeof(result)))
+        return -EFAULT;
+#else
+    if (!access_ok(u64_to_user_ptr(cmd.result_code), sizeof(result)))
+        return -EFAULT;
+#endif
+
     result = handle_kpm(&cmd);
     return copy_to_user(u64_to_user_ptr(cmd.result_code), &result, sizeof(result)) ? -EFAULT : 0;
 }

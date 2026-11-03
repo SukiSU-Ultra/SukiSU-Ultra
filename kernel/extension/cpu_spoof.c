@@ -10,6 +10,7 @@
  * is rejected with a dmesg warning and clears the forced-pending bit.
  * The default force semantics are not obvious (per-device MIDR).
  */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
 #include <linux/kernel.h>
 #include <linux/types.h>
 #include <linux/cpumask.h>
@@ -226,13 +227,18 @@ static int set_spoof_cpu(const struct ksu_set_spoof_cpu_cmd *cmd)
 			cmd->cpu_index, cmd->midr);
 	return 0;
 }
+#endif
 
 int ksu_extension_cpu_spoof_io(u32 id, void __user *raw)
 {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
 	struct ksu_set_spoof_cpu_cmd cmd;
 
 	if (copy_from_user(&cmd, raw, sizeof(cmd)))
 		return -EFAULT;
 
 	return set_spoof_cpu(&cmd);
+#else
+	return -EOPNOTSUPP;
+#endif
 }
