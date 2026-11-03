@@ -37,8 +37,8 @@ private val MENTION_PLATFORM = THEME_SITE_MENTIONS.keys
     .sortedByDescending(String::length)
     .joinToString("|") { Regex.escape(it) }
 
-// Usernames may use any language; platform keywords stay in English.
-private const val MENTION_USERNAME = """[\p{L}\p{M}\p{N}._-]+"""
+// Usernames may use any language and common symbols such as ~, ·, or +.
+private const val MENTION_USERNAME = """[\p{L}\p{M}\p{N}._·~+-]+"""
 
 // Allow CJK text and punctuation right after a mention, but not an email/domain suffix.
 private const val MENTION_END = """(?![A-Za-z0-9._-])"""

@@ -38,6 +38,24 @@ class ThemeStoreMentionTest {
     }
 
     @Test
+    fun linksUsernamesWithSpecialSymbols() {
+        assertEquals(
+            "https://t.me/${encoded("zako~")}",
+            themeMentionUrl("zako~@telegram"),
+        )
+        assertEquals(
+            "https://github.com/${encoded("a·b")}",
+            themeMentionUrl("a·b@github"),
+        )
+        assertEquals(
+            "https://github.com/${encoded("a+b")}",
+            themeMentionUrl("a+b@github"),
+        )
+        val tokens = INLINE_MARKDOWN.findAll("zako~@telegram").map { it.value }.toList()
+        assertEquals(listOf("zako~@telegram"), tokens)
+    }
+
+    @Test
     fun keepsNumericBilibiliUid() {
         assertEquals(
             "https://space.bilibili.com/12345",
