@@ -12,6 +12,7 @@ class ThemeStoreBrowseTest {
         tags: List<String> = emptyList(),
         updatedAt: String = "2026-01-01T00:00:00Z",
         baseUrl: String = "https://example.com/",
+        adaptive: Boolean = false,
     ): ThemeStoreItem = ThemeStoreItem(
         entry = ThemeStoreEntry(
             id = id,
@@ -19,6 +20,7 @@ class ThemeStoreBrowseTest {
             author = author,
             tags = tags,
             updatedAt = updatedAt,
+            adaptive = adaptive,
         ),
         source = ThemeStoreSource(
             id = baseUrl,
@@ -62,5 +64,22 @@ class ThemeStoreBrowseTest {
         assertEquals(listOf(first, second), items.forThemeAuthor("ALICE"))
         assertEquals(listOf(first, second), items.forThemeAuthor("  alice  "))
         assertTrue(items.forThemeAuthor("   ").isEmpty())
+    }
+
+    @Test
+    fun adaptiveChipFilteringUsesTheCatalogFlag() {
+        val plain = item("plain")
+        val adaptive = item("adaptive", adaptive = true)
+        val items = listOf(plain, adaptive)
+
+        assertTrue(items.hasAdaptiveThemes())
+        assertEquals(listOf(adaptive), items.filterAdaptiveThemes(selected = true))
+        assertEquals(items, items.filterAdaptiveThemes(selected = false))
+    }
+
+    @Test
+    fun catalogsWithoutAdaptiveThemesReportNone() {
+        assertTrue(listOf(item("a"), item("b")).hasAdaptiveThemes().not())
+        assertTrue(emptyList<ThemeStoreItem>().hasAdaptiveThemes().not())
     }
 }

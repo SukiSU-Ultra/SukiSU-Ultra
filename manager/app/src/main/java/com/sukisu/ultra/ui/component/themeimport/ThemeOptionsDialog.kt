@@ -55,6 +55,7 @@ fun ThemeOptionsDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
     formatVersion: Int? = null,
+    adaptive: Boolean = false,
     forceMaterial: Boolean = false,
 ) {
     if (!show) return
@@ -124,6 +125,13 @@ fun ThemeOptionsDialog(
                         if (formatVersion != null) {
                             Text(
                                 text = stringResource(R.string.theme_package_format_version, formatVersion),
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.primary,
+                            )
+                        }
+                        if (adaptive) {
+                            Text(
+                                text = stringResource(R.string.theme_adaptive_notice),
                                 style = MiuixTheme.textStyles.body2,
                                 color = MiuixTheme.colorScheme.primary,
                             )
@@ -242,9 +250,19 @@ fun ThemeOptionsDialog(
                                 text = stringResource(R.string.theme_package_format_version, formatVersion),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 12.dp),
+                                modifier = Modifier.padding(top = 4.dp),
                             )
                         } else {
+                            Spacer(Modifier.height(12.dp))
+                        }
+                        if (adaptive) {
+                            MaterialText(
+                                text = stringResource(R.string.theme_adaptive_notice),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+                            )
+                        } else if (formatVersion != null) {
                             Spacer(Modifier.height(12.dp))
                         }
                         MaterialOptionGroupLabel(stringResource(R.string.settings_section_colors))

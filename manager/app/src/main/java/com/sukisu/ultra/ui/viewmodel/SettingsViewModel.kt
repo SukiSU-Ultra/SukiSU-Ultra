@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.viewmodel
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.core.content.edit
 import android.net.Uri
 import android.system.OsConstants
@@ -10,6 +11,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,10 +35,12 @@ import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.screen.settings.ThemePackageOptions
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
+import com.sukisu.ultra.ui.util.AdaptiveThemeStore
 import com.sukisu.ultra.ui.util.CustomTextGroup
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.customTextsInGroups
+import com.sukisu.ultra.ui.util.effectiveFor
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
@@ -81,8 +86,12 @@ class SettingsViewModel(
         hideHomeCardStatusText = repo.hideHomeCardStatusText,
         hideHomeCardDecoration = repo.hideHomeCardDecoration,
         homeCardStickers = repo.homeCardStickers,
+        adaptiveThemeActive = AdaptiveThemeStore.isActive(ksuApp),
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    /** Serializes adaptive variant re-applies so startup sync and config changes never race. */
+    private val adaptiveMutex = Mutex()
 
     /**
      * The appearance page's own state. It is derived from [uiState] only when a setting actually
@@ -109,7 +118,44 @@ class SettingsViewModel(
 
     init {
         refresh()
+        // The system may have flipped light/dark while the app was stopped.
+        syncAdaptiveVariant()
     }
+
+    /** Called whenever the system night mode may have changed while the app is running. */
+    fun onSystemDarkChanged() {
+        if (!AdaptiveThemeStore.isActive(ksuApp)) return
+        viewModelScope.launch {
+            withContext(NonCancellable + Dispatchers.IO) { applyAdaptiveVariantIfNeeded() }
+        }
+    }
+
+    private fun syncAdaptiveVariant() {
+        viewModelScope.launch {
+            withContext(NonCancellable + Dispatchers.IO) { applyAdaptiveVariantIfNeeded() }
+        }
+    }
+
+    /**
+     * Re-applies the stored adaptive package when its active variant no longer matches the
+     * system night mode. Everything goes through [applyImportedTheme] so the adaptive bookkeeping
+     * stays in one place.
+     */
+    private suspend fun applyAdaptiveVariantIfNeeded() = adaptiveMutex.withLock {
+        val context = ksuApp
+        if (!AdaptiveThemeStore.isActive(context)) return@withLock
+        val dark = isSystemDarkMode(context)
+        if (AdaptiveThemeStore.appliedVariantDark(context) == dark) return@withLock
+        val saved = AdaptiveThemeStore.currentFile(context)
+        val imported = ThemePackageStorage
+            .import(context, Uri.fromFile(saved))
+            .getOrNull() ?: return@withLock
+        applyImportedTheme(context, imported, ThemePackageOptions(appIcon = false), saved)
+    }
+
+    private fun isSystemDarkMode(context: Context): Boolean =
+        (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
 
     fun refresh() {
         viewModelScope.launch {
@@ -625,8 +671,23 @@ class SettingsViewModel(
 
     fun exportTheme(context: Context, uri: Uri, options: ThemePackageOptions) {
         viewModelScope.launch {
-            val payload = currentThemePayload(options)
-            ThemePackageStorage.export(context, uri, payload.data, payload.backgroundFile, payload.cardBackgroundFile, payload.stickerFiles)
+            val adaptiveSource = AdaptiveThemeStore.activeFile(ksuApp)
+            val result = if (adaptiveSource != null) {
+                // An adaptive theme exports its stored light + dark package verbatim; per-group
+                // tweaks made after the import are not part of it.
+                runCatching {
+                    context.contentResolver.openOutputStream(uri)?.use { output ->
+                        adaptiveSource.inputStream().buffered().use { it.copyTo(output) }
+                    } ?: error("Cannot open the destination file")
+                }
+            } else {
+                val payload = currentThemePayload(options)
+                ThemePackageStorage.export(
+                    context, uri, payload.data,
+                    payload.backgroundFile, payload.cardBackgroundFile, payload.stickerFiles,
+                )
+            }
+            result
                 .onSuccess {
                     Toast.makeText(ksuApp, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
                 }
@@ -639,8 +700,12 @@ class SettingsViewModel(
     /** Builds a .sukisu package from the current device appearance for store submission. */
     suspend fun createCurrentThemePackage(context: Context): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
-            val payload = currentThemePayload(ThemePackageOptions())
             val file = File(context.cacheDir, "theme_upload_preset.sukisu")
+            AdaptiveThemeStore.activeFile(context)?.let { saved ->
+                saved.copyTo(file, overwrite = true)
+                return@runCatching file
+            }
+            val payload = currentThemePayload(ThemePackageOptions())
             ThemePackageStorage.exportToFile(
                 file = file,
                 data = payload.data,
@@ -736,9 +801,17 @@ class SettingsViewModel(
         viewModelScope.launch {
             ThemePackageStorage.import(context, uri)
                 .onSuccess { imported ->
+                    // Keep a private copy of an adaptive package so the variant can be
+                    // re-applied on system night-mode changes; promoted on confirm.
+                    val staged = if (imported.data.isAdaptive) {
+                        stageAdaptiveSource(context, uri)
+                    } else {
+                        null
+                    }
                     _uiState.update {
                         it.copy(
                             pendingImportTheme = imported,
+                            pendingAdaptiveSource = staged,
                             showThemeImportDialog = true,
                         )
                     }
@@ -749,14 +822,35 @@ class SettingsViewModel(
         }
     }
 
+    /** Copies a SAF-picked adaptive package to app-private storage before the confirm dialog. */
+    private fun stageAdaptiveSource(context: Context, uri: Uri): File? = runCatching {
+        val target = AdaptiveThemeStore.pendingFile(context)
+        target.parentFile?.mkdirs()
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            target.outputStream().buffered().use { input.copyTo(it) }
+        } ?: error("Cannot open the theme package")
+        target
+    }.getOrNull()
+
     /** Imports a package downloaded by the theme store. */
     fun importThemeFile(context: Context, file: File) {
         viewModelScope.launch {
             ThemePackageStorage.import(context, Uri.fromFile(file))
                 .onSuccess { imported ->
+                    val staged = if (imported.data.isAdaptive) {
+                        runCatching {
+                            val target = AdaptiveThemeStore.pendingFile(context)
+                            target.parentFile?.mkdirs()
+                            file.copyTo(target, overwrite = true)
+                            target
+                        }.getOrNull()
+                    } else {
+                        null
+                    }
                     _uiState.update {
                         it.copy(
                             pendingImportTheme = imported,
+                            pendingAdaptiveSource = staged,
                             showThemeImportDialog = true,
                         )
                     }
@@ -779,9 +873,14 @@ class SettingsViewModel(
         if (pending?.stickerPaths != null) {
             pending.stickerPaths.forEach { runCatching { File(it).delete() } }
         }
+        pending?.darkBackgroundPath?.let { runCatching { File(it).delete() } }
+        pending?.darkCardBackgroundPath?.let { runCatching { File(it).delete() } }
+        pending?.darkStickerPaths?.forEach { runCatching { File(it).delete() } }
+        AdaptiveThemeStore.discardPending(ksuApp)
         _uiState.update {
             it.copy(
                 pendingImportTheme = null,
+                pendingAdaptiveSource = null,
                 showThemeImportDialog = false,
             )
         }
@@ -789,13 +888,19 @@ class SettingsViewModel(
 
     fun confirmImportTheme(context: Context, options: ThemePackageOptions) {
         val pending = _uiState.value.pendingImportTheme ?: return
+        val adaptiveSource = _uiState.value.pendingAdaptiveSource
         viewModelScope.launch {
-            applyImportedTheme(context, pending, options)
+            // Serialize with adaptive variant swaps so a system flip cannot interleave
+            // two full theme applications.
+            adaptiveMutex.withLock {
+                applyImportedTheme(context, pending, options, adaptiveSource)
+            }
             // A normal import is a permanent choice; it supersedes any running trial.
             ThemeTrialManager.clear(context)
             _uiState.update {
                 it.copy(
                     pendingImportTheme = null,
+                    pendingAdaptiveSource = null,
                     showThemeImportDialog = false,
                 )
             }
@@ -833,26 +938,30 @@ class SettingsViewModel(
     ): Result<Unit> =
         withContext(NonCancellable + Dispatchers.IO) {
             runCatching {
-                if (ThemeTrialManager.activeBackup(context) == null) {
-                    val backup = createCurrentThemePackage(context).getOrThrow()
-                    val target = ThemeTrialManager.backupFile(context)
-                    target.parentFile?.mkdirs()
-                    backup.copyTo(target, overwrite = true)
-                    backup.delete()
-                    ThemeTrialManager.markActive(context, target, taskId)
-                }
-                try {
-                    val imported = ThemePackageStorage.import(context, Uri.fromFile(packageFile)).getOrThrow()
-                    // Do not switch launcher aliases for a temporary trial; it also avoids
-                    // disabling the alias that is currently hosting the task on restore.
-                    applyImportedTheme(
-                        context,
-                        imported,
-                        ThemePackageOptions(appIcon = false),
-                    )
-                } catch (error: Exception) {
-                    restoreTrialBackup(context)
-                    throw error
+                adaptiveMutex.withLock {
+                    if (ThemeTrialManager.activeBackup(context) == null) {
+                        val backup = createCurrentThemePackage(context).getOrThrow()
+                        val target = ThemeTrialManager.backupFile(context)
+                        target.parentFile?.mkdirs()
+                        backup.copyTo(target, overwrite = true)
+                        backup.delete()
+                        ThemeTrialManager.markActive(context, target, taskId)
+                    }
+                    try {
+                        val imported = ThemePackageStorage.import(context, Uri.fromFile(packageFile)).getOrThrow()
+                        // Do not switch launcher aliases for a temporary trial; it also avoids
+                        // disabling the alias that is currently hosting the task on restore.
+                        applyImportedTheme(
+                            context,
+                            imported,
+                            ThemePackageOptions(appIcon = false),
+                            packageFile,
+                        )
+                    } catch (error: Exception) {
+                        // Caller already holds [adaptiveMutex]; call the lock-free helper.
+                        restoreTrialBackup(context)
+                        throw error
+                    }
                 }
             }.also {
                 runCatching { packageFile.delete() }
@@ -865,7 +974,8 @@ class SettingsViewModel(
         val appContext = context.applicationContext
         viewModelScope.launch {
             withContext(NonCancellable + Dispatchers.IO) {
-                restoreTrialBackup(appContext)
+                // Serialize with the startup adaptive sync so both never interleave applies.
+                adaptiveMutex.withLock { restoreTrialBackup(appContext) }
             }
         }
     }
@@ -875,7 +985,7 @@ class SettingsViewModel(
         val imported = ThemePackageStorage.import(context, Uri.fromFile(backup)).getOrNull()
             ?: return false
         return runCatching {
-            applyImportedTheme(context, imported, ThemePackageOptions())
+            applyImportedTheme(context, imported, ThemePackageOptions(), backup)
         }.onSuccess {
             ThemeTrialManager.clear(context)
         }.isSuccess
@@ -885,9 +995,15 @@ class SettingsViewModel(
         context: Context,
         imported: ImportedTheme,
         options: ThemePackageOptions,
+        adaptiveSource: File? = null,
     ) {
         val current = _uiState.value
-        val data = imported.data
+        val adaptive = imported.data.isAdaptive
+        val darkApplied = adaptive && isSystemDarkMode(context)
+        // Adaptive packages carry both sets; apply the half that matches the system night mode
+        // and keep the source package so the other half can be swapped in on the next flip.
+        val effective = if (adaptive) imported.effectiveFor(darkApplied) else imported
+        val data = effective.data
 
         var themeMode = current.themeMode
         var miuixMonet = current.miuixMonet
@@ -983,8 +1099,8 @@ class SettingsViewModel(
         var backgroundUri = current.customBackgroundUri
         var homeCardImagePath = current.homeCardImagePath
         if (options.backgroundImage) {
-            if (imported.backgroundPath != null) {
-                backgroundUri = ImageStorage.replace(context, File(imported.backgroundPath)) ?: ""
+            if (effective.backgroundPath != null) {
+                backgroundUri = ImageStorage.replace(context, File(effective.backgroundPath)) ?: ""
                 repo.customBackgroundUri = backgroundUri
                 repo.useSystemWallpaper = false
                 repo.customBackgroundUpdatedAt = System.currentTimeMillis()
@@ -996,13 +1112,13 @@ class SettingsViewModel(
                 repo.useSystemWallpaper = false
                 repo.customBackgroundUpdatedAt = System.currentTimeMillis()
             }
-        } else if (imported.backgroundPath != null) {
-            runCatching { File(imported.backgroundPath).delete() }
+        } else if (effective.backgroundPath != null) {
+            runCatching { File(effective.backgroundPath).delete() }
         }
 
         if (options.homeCardImage) {
-            if (imported.cardBackgroundPath != null) {
-                val cardPath = ImageStorage.replaceHomeCardImage(context, File(imported.cardBackgroundPath)) ?: ""
+            if (effective.cardBackgroundPath != null) {
+                val cardPath = ImageStorage.replaceHomeCardImage(context, File(effective.cardBackgroundPath)) ?: ""
                 repo.homeCardImagePath = cardPath
                 homeCardImagePath = cardPath
             } else if (data.hasCardBackground == false) {
@@ -1010,14 +1126,14 @@ class SettingsViewModel(
                 repo.homeCardImagePath = ""
                 homeCardImagePath = ""
             }
-        } else if (imported.cardBackgroundPath != null) {
-            runCatching { File(imported.cardBackgroundPath).delete() }
+        } else if (effective.cardBackgroundPath != null) {
+            runCatching { File(effective.cardBackgroundPath).delete() }
         }
 
         if (options.stickers) {
-            if (imported.stickerPaths.isNotEmpty()) {
+            if (effective.stickerPaths.isNotEmpty()) {
                 val transforms = data.homeCardStickerTransforms.orEmpty()
-                val importedStickers = imported.stickerPaths.mapIndexedNotNull { index, path ->
+                val importedStickers = effective.stickerPaths.mapIndexedNotNull { index, path ->
                     val saved = ImageStorage.importHomeCardSticker(context, File(path))
                         ?: return@mapIndexedNotNull null
                     HomeCardSticker(
@@ -1037,7 +1153,7 @@ class SettingsViewModel(
                 homeCardStickers = emptyList()
             }
         } else {
-            imported.stickerPaths.forEach { runCatching { File(it).delete() } }
+            effective.stickerPaths.forEach { runCatching { File(it).delete() } }
         }
 
         var effectiveIconId = current.appIconId
@@ -1115,7 +1231,7 @@ class SettingsViewModel(
                 homeCardStickers = homeCardStickers,
                 useSystemWallpaper = if (
                     options.backgroundImage &&
-                    (imported.backgroundPath != null || data.hasBackground == false)
+                    (effective.backgroundPath != null || data.hasBackground == false)
                 ) {
                     false
                 } else {
@@ -1123,7 +1239,7 @@ class SettingsViewModel(
                 },
                 systemWallpaperPath = if (
                     options.backgroundImage &&
-                    (imported.backgroundPath != null || data.hasBackground == false)
+                    (effective.backgroundPath != null || data.hasBackground == false)
                 ) {
                     ""
                 } else {
@@ -1134,7 +1250,25 @@ class SettingsViewModel(
                 enableNavigationBadge = navigationBadge,
                 enablePredictiveBack = predictiveBack,
                 enableSwipeDismiss = swipeDismiss,
+                adaptiveThemeActive = adaptive && adaptiveSource != null,
             )
+        }
+        if (adaptive && adaptiveSource != null) {
+            AdaptiveThemeStore.save(context, adaptiveSource, darkApplied)
+        } else {
+            AdaptiveThemeStore.clear(context)
+        }
+        if (adaptive) {
+            // The set that matches the current system mode was consumed by the replacements
+            // above; drop the extracted temp images of the other set in every failure branch.
+            listOfNotNull(
+                imported.backgroundPath,
+                imported.cardBackgroundPath,
+                imported.darkBackgroundPath,
+                imported.darkCardBackgroundPath,
+            ).forEach { runCatching { File(it).delete() } }
+            imported.stickerPaths.forEach { runCatching { File(it).delete() } }
+            imported.darkStickerPaths.forEach { runCatching { File(it).delete() } }
         }
     }
 

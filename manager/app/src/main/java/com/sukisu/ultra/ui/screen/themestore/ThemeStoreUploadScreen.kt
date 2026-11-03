@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Image
@@ -55,6 +56,7 @@ import androidx.compose.material3.TextButton as MaterialTextButton
 import androidx.compose.material3.TopAppBar as MaterialTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,6 +86,8 @@ import com.sukisu.ultra.data.model.AccountThemeSummary
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
+import com.sukisu.ultra.ui.component.themeimport.ThemeMergeDialog
+import com.sukisu.ultra.ui.util.ThemePackageStorage
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.roundToInt
@@ -158,6 +162,9 @@ internal fun ThemeStoreUploadScreen(
     var screenshotUris by rememberSaveable(stateSaver = UploadUriListSaver) {
         mutableStateOf(emptyList())
     }
+    // null: not inspected yet, true/false: adaptive flag read from the chosen package.
+    var packageAdaptive by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var showMergeDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -174,6 +181,13 @@ internal fun ThemeStoreUploadScreen(
     }
     val screenshotPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) {
         screenshotUris = it.take(6)
+    }
+
+    LaunchedEffect(packageUri) {
+        val uri = packageUri
+        packageAdaptive = uri?.let {
+            ThemePackageStorage.validate(context, it).getOrNull()?.isAdaptive
+        }
     }
 
     val noFile = stringResource(R.string.theme_store_upload_no_file)
@@ -361,7 +375,7 @@ internal fun ThemeStoreUploadScreen(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        listOf("light", "dark", "pink", "cute", "minimal", "gradient", "anime", "blue", "purple", "green")
+                        listOf("light", "dark", "pink", "cute", "minimal", "gradient", "anime", "blue", "purple", "green", "自适应")
                             .forEach { tag ->
                                 FilterChip(
                                     selected = tagValues.contains(tag),
@@ -557,12 +571,32 @@ internal fun ThemeStoreUploadScreen(
                             ),
                         )
                     }
-                    UploadHint(stringResource(R.string.theme_store_upload_current_hint))
+                    MaterialTextButton(
+                        onClick = { showMergeDialog = true },
+                        enabled = !submitting && !presetBusy,
+                        modifier = Modifier.fillMaxWidth(),
+                        shapes = ButtonDefaults.shapes(),
+                    ) {
+                        MaterialText(stringResource(R.string.theme_merge_title))
+                    }
+                    UploadHint(stringResource(R.string.theme_merge_summary))
                     if (presetError != null) {
                         ThemeStoreInlineNotice(
                             text = presetError.orEmpty(),
                             isError = true,
                         )
+                    }
+                    if (packageAdaptive == true) {
+                        ThemeStoreInlineNotice(
+                            text = stringResource(R.string.theme_store_upload_adaptive_notice),
+                            icon = Icons.Rounded.DarkMode,
+                        )
+                        val minVersionValue = minManagerVersion.trim().toLongOrNull() ?: 0L
+                        if (minVersionValue < BuildConfig.VERSION_CODE.toLong()) {
+                            ThemeStoreInlineNotice(
+                                text = stringResource(R.string.theme_store_upload_adaptive_min_manager),
+                            )
+                        }
                     }
                     UploadPickerRow(
                         icon = Icons.Rounded.Image,
@@ -589,6 +623,18 @@ internal fun ThemeStoreUploadScreen(
             }
         }
     }
+
+    ThemeMergeDialog(
+        show = showMergeDialog,
+        onDismissRequest = { showMergeDialog = false },
+        onSnapshotCurrent = { onExportCurrentPreset() },
+        onUseForUpload = { file ->
+            showMergeDialog = false
+            packageUri = Uri.fromFile(file)
+            packageLabel = context.getString(R.string.theme_merge_merged_label)
+            presetError = null
+        },
+    )
 }
 
 @Composable

@@ -53,6 +53,7 @@ import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -1220,6 +1221,19 @@ fun ColorPaletteScreenMiuix(
                                         showExportDialog = true
                                     },
                                 )
+                                BasicComponent(
+                                    title = stringResource(id = R.string.theme_merge_title),
+                                    summary = stringResource(id = R.string.theme_merge_summary),
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.DarkMode,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = stringResource(id = R.string.theme_merge_title),
+                                            tint = colorScheme.onBackground
+                                        )
+                                    },
+                                    onClick = actions.onOpenAdaptiveMerge,
+                                )
                             }
                         }
                     }
@@ -1568,6 +1582,7 @@ fun ColorPaletteScreenMiuix(
             pendingExportOptions = options
             exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
         },
+        adaptive = uiState.adaptiveThemeActive,
     )
 }
 

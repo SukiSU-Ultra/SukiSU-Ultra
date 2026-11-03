@@ -114,6 +114,10 @@ data class SettingsUiState(
 
     val pendingImportTheme: com.sukisu.ultra.ui.util.ImportedTheme? = null,
     val showThemeImportDialog: Boolean = false,
+    /** True when the applied theme is an adaptive (light + dark) package. */
+    val adaptiveThemeActive: Boolean = false,
+    /** Staged source package of a pending adaptive import; promoted on confirm. */
+    val pendingAdaptiveSource: java.io.File? = null,
 )
 
 /**

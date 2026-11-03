@@ -1031,6 +1031,9 @@ internal fun ThemeStoreItem.matchesSearch(query: String): Boolean {
         append(entry.tags.joinToString(" ")).append(' ')
         append(source.name).append(' ')
         append(source.baseUrl)
+        if (entry.adaptive) {
+            append(" adaptive 自适应")
+        }
     }.lowercase(Locale.ROOT)
     return normalized.split(Regex("\\s+")).all { part -> haystack.contains(part) }
 }

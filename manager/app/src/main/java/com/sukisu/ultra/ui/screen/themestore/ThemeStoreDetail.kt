@@ -35,6 +35,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Palette
@@ -301,7 +302,7 @@ internal fun ThemeStoreDetailScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (entry.tags.isNotEmpty()) {
+                    if (entry.adaptive || entry.tags.isNotEmpty()) {
                         Spacer(Modifier.height(8.dp))
                         Row(
                             modifier = Modifier
@@ -309,10 +310,20 @@ internal fun ThemeStoreDetailScreen(
                                 .horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
+                            if (entry.adaptive) {
+                                ThemeStoreTag(stringResource(R.string.theme_adaptive_badge))
+                            }
                             entry.tags.forEach { tag ->
                                 ThemeStoreTag(tag)
                             }
                         }
+                    }
+                    if (entry.adaptive) {
+                        Spacer(Modifier.height(8.dp))
+                        ThemeStoreInlineNotice(
+                            text = stringResource(R.string.theme_store_adaptive_hint),
+                            icon = Icons.Rounded.DarkMode,
+                        )
                     }
                     if (!compatible) {
                         Spacer(Modifier.height(8.dp))

@@ -106,6 +106,7 @@ data class ColorPaletteScreenActions(
     val onSetCustomBackgroundScrimPercent: (Int) -> Unit = {},
     val onExportTheme: (android.content.Context, android.net.Uri, ThemePackageOptions) -> Unit = { _, _, _ -> },
     val onImportTheme: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
+    val onOpenAdaptiveMerge: () -> Unit = {},
     val onExportImages: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onExportCustomBackground: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onConfirmImportTheme: (android.content.Context, ThemePackageOptions) -> Unit = { _, _ -> },

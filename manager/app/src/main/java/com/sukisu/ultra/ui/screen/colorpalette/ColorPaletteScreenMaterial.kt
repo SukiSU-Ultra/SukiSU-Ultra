@@ -69,6 +69,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Edit
@@ -1164,6 +1165,14 @@ fun ColorPaletteScreenMaterial(
                             leadingContent = { IconTile(Icons.Rounded.FileUpload, stringResource(id = R.string.theme_export)) },
                         )
                     }
+                    item(visible = themePackageSectionExpanded) {
+                        SegmentedListItem(
+                            onClick = actions.onOpenAdaptiveMerge,
+                            headlineContent = { Text(stringResource(id = R.string.theme_merge_title)) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_merge_summary)) },
+                            leadingContent = { IconTile(Icons.Rounded.DarkMode, stringResource(id = R.string.theme_merge_title)) },
+                        )
+                    }
                 }
             }
 
@@ -1436,6 +1445,7 @@ fun ColorPaletteScreenMaterial(
             pendingExportOptions = options
             exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
         },
+        adaptive = uiState.adaptiveThemeActive,
     )
 }
 

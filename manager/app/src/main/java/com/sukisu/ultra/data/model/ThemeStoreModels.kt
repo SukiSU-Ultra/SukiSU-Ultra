@@ -37,6 +37,11 @@ data class ThemeStoreEntry(
     val screenshotPaths: List<String> = emptyList(),
     val updatedAt: String = "",
     val changelog: String = "",
+    /**
+     * True when the packaged theme ships a full light + dark set (format v3) that follows the
+     * system night mode. Mirrors the field the admin service derives from the package itself.
+     */
+    val adaptive: Boolean = false,
 )
 
 /** An additional store source persisted in the manager settings. */

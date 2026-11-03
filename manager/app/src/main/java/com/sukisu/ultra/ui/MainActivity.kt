@@ -188,9 +188,9 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         splashStartedAt = SystemClock.uptimeMillis()
         super.onCreate(savedInstanceState)
+        val settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         if (ThemeTrialManager.isActive(this)) {
-            ViewModelProvider(this)[SettingsViewModel::class.java]
-                .restoreThemeTrial(this, taskId)
+            settingsViewModel.restoreThemeTrial(this, taskId)
         } else {
             ThemeTrialManager.cleanupOrphan(this)
         }
@@ -257,6 +257,12 @@ class MainActivity : ComponentActivity() {
             val appSettings = uiState.appSettings
             val uiMode = uiState.uiMode
             val darkMode = appSettings.colorMode.isDark || (appSettings.colorMode.isSystem && isSystemInDarkTheme())
+
+            // Adaptive themes swap their light/dark image and style sets with the system.
+            val systemDark = isSystemInDarkTheme()
+            LaunchedEffect(systemDark) {
+                settingsViewModel.onSystemDarkChanged()
+            }
 
             // Pick up launcher wallpaper changes while the "use system wallpaper" option is on.
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {

@@ -9,8 +9,8 @@ import java.util.Locale
 internal fun List<ThemeStoreItem>.popularThemeTags(limit: Int = 18): List<String> {
     if (limit <= 0) return emptyList()
     val tags = linkedMapOf<String, Pair<String, Int>>()
-    for (item in this) {
-        for (raw in item.entry.tags) {
+    for ((entry) in this) {
+        for (raw in entry.tags) {
             val display = raw.trim()
             if (display.isEmpty() || display.length > 24) continue
             val key = display.lowercase(Locale.ROOT)
@@ -39,6 +39,13 @@ internal fun List<ThemeStoreItem>.filterByThemeTags(selected: Set<String>): List
         item.entry.tags.any { it.trim().lowercase(Locale.ROOT) in keys }
     }
 }
+
+/** True when any catalog entry carries the adaptive (light + dark) flag. */
+internal fun List<ThemeStoreItem>.hasAdaptiveThemes(): Boolean = any { it.entry.adaptive }
+
+/** Keeps only adaptive entries while the pinned adaptive filter chip is selected. */
+internal fun List<ThemeStoreItem>.filterAdaptiveThemes(selected: Boolean): List<ThemeStoreItem> =
+    if (!selected) this else filter { it.entry.adaptive }
 
 /** All catalog entries by one author, matched case-insensitively and ignoring padding. */
 internal fun List<ThemeStoreItem>.forThemeAuthor(author: String): List<ThemeStoreItem> {

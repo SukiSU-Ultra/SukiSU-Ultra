@@ -4,6 +4,7 @@ import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ThemeStoreCatalogTest {
@@ -78,5 +79,24 @@ class ThemeStoreCatalogTest {
             ThemeStoreRepository.normalizeBaseUrl("http://themes.example.com:8080"),
         )
         assertNull(ThemeStoreRepository.normalizeBaseUrl("https://example.com/catalog.json"))
+    }
+
+    @Test
+    fun `adaptive flag parses and defaults to false`() {
+        val catalog = json.decodeFromString(
+            ThemeStoreCatalog.serializer(),
+            """
+            {
+              "schema": 1,
+              "themes": [
+                { "id": "dusk", "name": "Dusk", "adaptive": true, "formatVersion": 3 },
+                { "id": "plain", "name": "Plain", "formatVersion": 2 }
+              ]
+            }
+            """.trimIndent(),
+        )
+        assertTrue(catalog.themes[0].adaptive)
+        assertEquals(3, catalog.themes[0].formatVersion)
+        assertEquals(false, catalog.themes[1].adaptive)
     }
 }

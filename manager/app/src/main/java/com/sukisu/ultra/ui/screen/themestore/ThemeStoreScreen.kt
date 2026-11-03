@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.History
@@ -160,6 +161,8 @@ fun ThemeStoreScreen(
         ),
     ) { mutableStateOf(emptySet<String>()) }
     var showAllTags by rememberSaveable { mutableStateOf(false) }
+    var adaptiveFilter by rememberSaveable { mutableStateOf(false) }
+    val hasAdaptiveItems = remember(state.items) { state.items.hasAdaptiveThemes() }
     val allTags = remember(state.items) { state.items.popularThemeTags(Int.MAX_VALUE) }
     val collapsedTags = remember(allTags, selectedTags) {
         (allTags.take(18) + selectedTags).distinct()
@@ -177,17 +180,21 @@ fun ThemeStoreScreen(
             if (pruned != selectedTags) selectedTags = pruned
         }
     }
-    val visibleItems = remember(state.items, searchQuery, sortMode, selectedTags) {
+    LaunchedEffect(hasAdaptiveItems) {
+        if (!hasAdaptiveItems) adaptiveFilter = false
+    }
+    val visibleItems = remember(state.items, searchQuery, sortMode, selectedTags, adaptiveFilter) {
         state.items
             .filter { it.matchesSearch(searchQuery) }
             .filterByThemeTags(selectedTags)
+            .filterAdaptiveThemes(adaptiveFilter)
             .sortedFor(sortMode)
     }
     val authorItems = remember(state.items, selectedAuthor) {
         selectedAuthor?.let { author ->
             state.items
                 .forThemeAuthor(author)
-                .sortedWith(compareByDescending<ThemeStoreItem> { it.entry.updatedAt })
+                .sortedWith(compareByDescending { it.entry.updatedAt })
         }.orEmpty()
     }
     val uploadAccount = state.accounts.firstOrNull {
@@ -510,7 +517,13 @@ fun ThemeStoreScreen(
             onToggleTag = { tag ->
                 selectedTags = if (tag in selectedTags) selectedTags - tag else selectedTags + tag
             },
-            onClearTags = { selectedTags = emptySet() },
+            onClearTags = {
+                selectedTags = emptySet()
+                adaptiveFilter = false
+            },
+            hasAdaptiveItems = hasAdaptiveItems,
+            adaptiveFilter = adaptiveFilter,
+            onToggleAdaptive = { adaptiveFilter = !adaptiveFilter },
             sortMode = sortMode,
             onSortChange = { sortMode = it },
             onBack = { navigator.pop() },
@@ -649,6 +662,9 @@ private fun ThemeStoreTagRow(
     onToggleAllTags: () -> Unit,
     onToggle: (String) -> Unit,
     onClear: () -> Unit,
+    hasAdaptive: Boolean,
+    adaptiveSelected: Boolean,
+    onToggleAdaptive: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Surface(
@@ -669,10 +685,17 @@ private fun ThemeStoreTagRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             ThemeSortChip(
-                selected = selected.isEmpty(),
+                selected = selected.isEmpty() && !adaptiveSelected,
                 onClick = onClear,
                 label = stringResource(R.string.theme_store_tag_all),
             )
+            if (hasAdaptive) {
+                ThemeSortChip(
+                    selected = adaptiveSelected,
+                    onClick = onToggleAdaptive,
+                    label = stringResource(R.string.theme_adaptive_badge),
+                )
+            }
             tags.forEach { tag ->
                 ThemeSortChip(
                     selected = tag in selected,
@@ -771,6 +794,9 @@ private fun ThemeStoreMaterial(
     selectedTags: Set<String>,
     onToggleTag: (String) -> Unit,
     onClearTags: () -> Unit,
+    hasAdaptiveItems: Boolean,
+    adaptiveFilter: Boolean,
+    onToggleAdaptive: () -> Unit,
     sortMode: ThemeStoreSort,
     onSortChange: (ThemeStoreSort) -> Unit,
     onBack: () -> Unit,
@@ -985,7 +1011,7 @@ private fun ThemeStoreMaterial(
                             onQueryChange = onSearchQueryChange,
                         )
                     }
-                    if (availableTags.isNotEmpty() || selectedTags.isNotEmpty()) {
+                    if (availableTags.isNotEmpty() || selectedTags.isNotEmpty() || hasAdaptiveItems) {
                         item(key = "tags") {
                             ThemeStoreTagRow(
                                 tags = availableTags,
@@ -995,6 +1021,9 @@ private fun ThemeStoreMaterial(
                                 onToggleAllTags = onToggleAllTags,
                                 onToggle = onToggleTag,
                                 onClear = onClearTags,
+                                hasAdaptive = hasAdaptiveItems,
+                                adaptiveSelected = adaptiveFilter,
+                                onToggleAdaptive = onToggleAdaptive,
                             )
                         }
                     }
@@ -1022,7 +1051,7 @@ private fun ThemeStoreMaterial(
                     }
                     if (visibleItems.isEmpty()) {
                         item(key = "empty") {
-                            if (searchQuery.isBlank() && selectedTags.isEmpty()) {
+                            if (searchQuery.isBlank() && selectedTags.isEmpty() && !adaptiveFilter) {
                                 ThemeStoreEmptyMaterial(onRefresh = onRefresh, onUpload = onOpenUpload)
                             } else {
                                 ThemeStoreSearchEmptyMaterial()
@@ -1062,10 +1091,10 @@ internal fun ThemeCardMaterial(
     item: ThemeStoreItem,
     state: ThemeStoreUiState,
     onSelect: (ThemeStoreItem) -> Unit,
-    onAuthorClick: ((ThemeStoreItem) -> Unit)? = null,
     onDownload: (ThemeStoreItem) -> Unit,
-    sourceLabel: String? = null,
     modifier: Modifier = Modifier,
+    onAuthorClick: ((ThemeStoreItem) -> Unit)? = null,
+    sourceLabel: String? = null,
 ) {
     val entry = item.entry
     val downloading = state.downloadingKey == item.key
@@ -1120,6 +1149,33 @@ internal fun ThemeCardMaterial(
                         ),
                     ),
             )
+            if (entry.adaptive) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp),
+                    shape = MaterialTheme.shapes.small,
+                    color = Color.Black.copy(alpha = 0.55f),
+                    contentColor = Color.White,
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.32f)),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.DarkMode,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        MaterialText(
+                            text = stringResource(R.string.theme_adaptive_badge),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
+                }
+            }
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomStart)

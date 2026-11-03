@@ -34,6 +34,7 @@ fun ThemeImportDialog(
         onDismissRequest = onDismissRequest,
         onConfirm = onConfirm,
         formatVersion = theme.data.version,
+        adaptive = theme.data.isAdaptive,
         forceMaterial = forceMaterial,
     )
 }

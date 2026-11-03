@@ -22,6 +22,7 @@ import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import com.sukisu.ultra.ui.component.themeimport.ThemeImportDialog
+import com.sukisu.ultra.ui.component.themeimport.ThemeMergeDialog
 
 @Composable
 fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
@@ -33,6 +34,7 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
     val state by viewModel.colorPaletteState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var consumedImportUri by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAdaptiveMerge by rememberSaveable { mutableStateOf(false) }
 
     // A package opened from another app is forwarded through the route so the dialog is shown
     // by the destination's own view model instead of the activity-scoped dispatcher one.
@@ -115,6 +117,7 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onSetCustomBackgroundScrimPercent = viewModel::setCustomBackgroundScrimPercent,
         onExportTheme = viewModel::exportTheme,
         onImportTheme = viewModel::importTheme,
+        onOpenAdaptiveMerge = { showAdaptiveMerge = true },
         onExportImages = viewModel::exportImages,
         onExportCustomBackground = viewModel::exportCustomBackground,
         onConfirmImportTheme = viewModel::confirmImportTheme,
@@ -134,6 +137,16 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onConfirm = { options ->
             viewModel.confirmImportTheme(context, options)
         }
+    )
+
+    ThemeMergeDialog(
+        show = showAdaptiveMerge,
+        onDismissRequest = { showAdaptiveMerge = false },
+        onSnapshotCurrent = { viewModel.createCurrentThemePackage(context).getOrNull() },
+        onApplyMerged = { file ->
+            showAdaptiveMerge = false
+            viewModel.importThemeFile(context, file)
+        },
     )
 
     // The first frame would otherwise render the preview from placeholder defaults.
