@@ -55,6 +55,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.ThemeStoreSourceConfig
 import com.sukisu.ultra.data.repository.ThemeStoreDefaults
+import com.sukisu.ultra.data.repository.ThemeStoreHealthError
+import com.sukisu.ultra.data.repository.ThemeStoreHealthException
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
@@ -83,8 +85,26 @@ private val ThemeStoreSourceListSaver = listSaver(
 
 private sealed interface SourceTestState {
     data object Testing : SourceTestState
-    data class Success(val themes: Int, val cached: Boolean) : SourceTestState
+    data class Success(
+        val themes: Int,
+        val cached: Boolean,
+        val notModified: Boolean,
+    ) : SourceTestState
     data class Failure(val message: String) : SourceTestState
+}
+
+private sealed interface SourceHealthState {
+    data object Checking : SourceHealthState
+    data class Success(
+        val ok: Boolean,
+        val status: String,
+        val latencyMs: Long,
+        val databaseLatencyMs: Long?,
+        val themes: Int?,
+        val pending: Int?,
+        val version: String?,
+    ) : SourceHealthState
+    data class Failure(val message: String) : SourceHealthState
 }
 
 private data class SourceEndpoints(
@@ -123,6 +143,7 @@ fun ThemeStoreSourcesScreen(
         mutableStateOf(settings.themeStoreExtraSources)
     }
     var tests by remember { mutableStateOf<Map<String, SourceTestState>>(emptyMap()) }
+    var healthChecks by remember { mutableStateOf<Map<String, SourceHealthState>>(emptyMap()) }
     var showSaveError by remember { mutableStateOf(false) }
 
     val normalizedDefault = ThemeStoreRepository.normalizeBaseUrl(
@@ -139,13 +160,17 @@ fun ThemeStoreSourcesScreen(
     fun updateExtra(index: Int, source: ThemeStoreSourceConfig) {
         extraSources = extraSources.toMutableList().also { it[index] = source }
         tests = tests - extraTestKey(source)
+        healthChecks = healthChecks - extraTestKey(source)
         showSaveError = false
     }
 
     fun removeExtra(index: Int) {
         val source = extraSources.getOrNull(index)
         extraSources = extraSources.toMutableList().also { it.removeAt(index) }
-        if (source != null) tests = tests - extraTestKey(source)
+        if (source != null) {
+            tests = tests - extraTestKey(source)
+            healthChecks = healthChecks - extraTestKey(source)
+        }
         showSaveError = false
     }
 
@@ -153,22 +178,73 @@ fun ThemeStoreSourcesScreen(
     fun testSource(key: String, baseUrl: String, token: String) {
         val normalized = ThemeStoreRepository.normalizeBaseUrl(baseUrl)
         if (normalized == null) {
-            tests = tests + (key to SourceTestState.Failure(
-                context.getString(R.string.theme_store_source_invalid),
-            ))
+            val message = context.getString(R.string.theme_store_source_invalid)
+            tests = tests + (key to SourceTestState.Failure(message))
+            healthChecks = healthChecks + (key to SourceHealthState.Failure(message))
             return
         }
         tests = tests + (key to SourceTestState.Testing)
+        healthChecks = healthChecks + (key to SourceHealthState.Checking)
+        // Catalog and health run in parallel so one click checks both.
         scope.launch {
             val result = repository.loadCatalog(normalized, token)
             tests = tests + (
                 key to result.fold(
-                    onSuccess = { SourceTestState.Success(it.catalog.themes.size, it.fromCache) },
+                    onSuccess = {
+                        SourceTestState.Success(
+                            themes = it.catalog.themes.size,
+                            cached = it.fromCache,
+                            notModified = it.notModified,
+                        )
+                    },
                     onFailure = {
                         SourceTestState.Failure(
                             it.message?.takeIf { message -> message.isNotBlank() }
                                 ?: context.getString(R.string.theme_store_source_test_failed),
                         )
+                    },
+                )
+            )
+        }
+        scope.launch {
+            val result = repository.checkHealth(normalized, token)
+            healthChecks = healthChecks + (
+                key to result.fold(
+                    onSuccess = { value ->
+                        val health = value.health
+                        SourceHealthState.Success(
+                            ok = health.ok,
+                            status = health.status.ifBlank {
+                                if (health.ok) "ok" else "down"
+                            },
+                            latencyMs = value.latencyMs,
+                            databaseLatencyMs = health.checks.database.latencyMs,
+                            themes = health.checks.catalog.themes,
+                            pending = health.checks.pending.count,
+                            version = health.version.takeIf { it.isNotBlank() },
+                        )
+                    },
+                    onFailure = { error ->
+                        val message = when (error) {
+                            is ThemeStoreHealthException -> when (error.error) {
+                                ThemeStoreHealthError.INVALID_URL ->
+                                    context.getString(R.string.theme_store_source_invalid)
+                                ThemeStoreHealthError.NON_JSON ->
+                                    context.getString(R.string.theme_store_health_non_json)
+                                ThemeStoreHealthError.EMPTY_RESPONSE ->
+                                    context.getString(R.string.theme_store_health_empty)
+                                ThemeStoreHealthError.INVALID_RESPONSE ->
+                                    context.getString(R.string.theme_store_health_invalid_response)
+                                ThemeStoreHealthError.HTTP -> context.getString(
+                                    R.string.theme_store_health_http_error,
+                                    error.httpStatus ?: 0,
+                                )
+                            }
+                            else -> context.getString(
+                                R.string.theme_store_health_network_error,
+                            )
+                        }
+                        SourceHealthState.Failure(message)
                     },
                 )
             )
@@ -213,12 +289,14 @@ fun ThemeStoreSourcesScreen(
         onDefaultBaseChange = {
             defaultBase = it
             tests = tests - "default"
+            healthChecks = healthChecks - "default"
             showSaveError = false
         },
         defaultToken = defaultToken,
         onDefaultTokenChange = {
             defaultToken = it
             tests = tests - "default"
+            healthChecks = healthChecks - "default"
             showSaveError = false
         },
         showDefaultToken = showDefaultToken,
@@ -227,6 +305,7 @@ fun ThemeStoreSourcesScreen(
         defaultEndpoints = defaultEndpoints,
         defaultTest = tests["default"],
         onTestDefault = { testSource("default", effectiveDefaultBase, effectiveDefaultToken) },
+        defaultHealth = healthChecks["default"],
         extraSources = extraSources,
         onUpdateExtra = ::updateExtra,
         onRemoveExtra = ::removeExtra,
@@ -237,6 +316,7 @@ fun ThemeStoreSourcesScreen(
         onTestExtra = { source ->
             testSource(extraTestKey(source), source.baseUrl, source.token)
         },
+        healthChecks = healthChecks,
         showSaveError = showSaveError,
         onSave = ::save,
         onBack = { navigator.pop() },
@@ -255,12 +335,14 @@ private fun ThemeStoreSourcesMaterial(
     defaultEndpoints: SourceEndpoints?,
     defaultTest: SourceTestState?,
     onTestDefault: () -> Unit,
+    defaultHealth: SourceHealthState?,
     extraSources: List<ThemeStoreSourceConfig>,
     onUpdateExtra: (Int, ThemeStoreSourceConfig) -> Unit,
     onRemoveExtra: (Int) -> Unit,
     onAddExtra: () -> Unit,
     tests: Map<String, SourceTestState>,
     onTestExtra: (ThemeStoreSourceConfig) -> Unit,
+    healthChecks: Map<String, SourceHealthState>,
     showSaveError: Boolean,
     onSave: () -> Unit,
     onBack: () -> Unit,
@@ -349,6 +431,7 @@ private fun ThemeStoreSourcesMaterial(
                     endpoints = defaultEndpoints,
                     test = defaultTest,
                     onTest = onTestDefault,
+                    health = defaultHealth,
                 )
             }
             if (extraSources.isNotEmpty()) {
@@ -374,6 +457,7 @@ private fun ThemeStoreSourcesMaterial(
                     endpoints = endpointsFor(source.baseUrl),
                     test = tests[extraTestKey(source)],
                     onTest = { onTestExtra(source) },
+                    health = healthChecks[extraTestKey(source)],
                     name = source.name,
                     onNameChange = { onUpdateExtra(index, source.copy(name = it)) },
                     onRemove = { onRemoveExtra(index) },
@@ -418,6 +502,7 @@ private fun SourceCardMaterial(
     endpoints: SourceEndpoints?,
     test: SourceTestState?,
     onTest: () -> Unit,
+    health: SourceHealthState?,
     name: String? = null,
     onNameChange: ((String) -> Unit)? = null,
     onRemove: (() -> Unit)? = null,
@@ -543,10 +628,18 @@ private fun SourceCardMaterial(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
                     SourceTestTextMaterial(test)
+                    SourceHealthTextMaterial(health)
                 }
-                MaterialTextButton(onClick = onTest) {
+                MaterialTextButton(
+                    onClick = onTest,
+                    enabled = test != SourceTestState.Testing &&
+                        health != SourceHealthState.Checking,
+                ) {
                     MaterialText(stringResource(R.string.theme_store_source_test))
                 }
             }
@@ -610,16 +703,99 @@ private fun SourceTestTextMaterial(test: SourceTestState?) {
             color = MaterialTheme.colorScheme.primary,
         )
         is SourceTestState.Success -> MaterialText(
-            text = stringResource(
-                if (test.cached) R.string.theme_store_source_test_cache
-                else R.string.theme_store_source_test_ok,
-                test.themes,
-            ),
+            text = when {
+                test.cached -> stringResource(
+                    R.string.theme_store_source_test_cache,
+                    test.themes,
+                )
+                test.notModified -> stringResource(
+                    R.string.theme_store_source_test_unchanged,
+                    test.themes,
+                )
+                else -> stringResource(
+                    R.string.theme_store_source_test_ok,
+                    test.themes,
+                )
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary,
         )
         is SourceTestState.Failure -> MaterialText(
             text = stringResource(R.string.theme_store_source_test_failed) + " · " + test.message,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        null -> Unit
+    }
+}
+
+@Composable
+private fun SourceHealthTextMaterial(health: SourceHealthState?) {
+    when (health) {
+        SourceHealthState.Checking -> MaterialText(
+            text = stringResource(R.string.theme_store_health_checking),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        is SourceHealthState.Success -> {
+            val statusLabel = when {
+                health.status.equals("ok", ignoreCase = true) ->
+                    stringResource(R.string.theme_store_health_ok)
+                health.status.equals("degraded", ignoreCase = true) ->
+                    stringResource(R.string.theme_store_health_degraded)
+                health.status.equals("down", ignoreCase = true) ->
+                    stringResource(R.string.theme_store_health_down)
+                else -> health.status.ifBlank {
+                    stringResource(R.string.theme_store_health_unknown)
+                }
+            }
+            val color = when {
+                !health.ok -> MaterialTheme.colorScheme.error
+                health.status.equals("degraded", ignoreCase = true) ->
+                    MaterialTheme.colorScheme.tertiary
+                else -> MaterialTheme.colorScheme.primary
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                MaterialText(
+                    text = "$statusLabel · ${health.latencyMs} ms",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = color,
+                )
+                val details = mutableListOf<String>()
+                if (health.themes != null) {
+                    details += stringResource(
+                        R.string.theme_store_health_details,
+                        health.themes,
+                        health.pending ?: 0,
+                    )
+                }
+                if (health.databaseLatencyMs != null) {
+                    details += stringResource(
+                        R.string.theme_store_health_database,
+                        health.databaseLatencyMs,
+                    )
+                }
+                if (health.version != null) {
+                    details += stringResource(
+                        R.string.theme_store_health_version,
+                        health.version,
+                    )
+                }
+                if (details.isNotEmpty()) {
+                    MaterialText(
+                        text = details.joinToString(" · "),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        is SourceHealthState.Failure -> MaterialText(
+            text = stringResource(R.string.theme_store_health_failed) + " · " + health.message,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
             maxLines = 2,

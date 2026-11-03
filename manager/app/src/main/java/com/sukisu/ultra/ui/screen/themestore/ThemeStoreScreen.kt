@@ -38,6 +38,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.InstallMobile
 import androidx.compose.material.icons.rounded.MoreVert
@@ -85,6 +86,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -117,6 +119,8 @@ import androidx.compose.material3.TextButton as MaterialTextButton
 
 private enum class ThemeStoreSort {
     DEFAULT,
+    HOT,
+    DOWNLOADS,
     NEWEST,
     NAME,
     SIZE,
@@ -124,12 +128,33 @@ private enum class ThemeStoreSort {
 
 private fun List<ThemeStoreItem>.sortedFor(mode: ThemeStoreSort): List<ThemeStoreItem> = when (mode) {
     ThemeStoreSort.DEFAULT -> this
+    ThemeStoreSort.HOT -> sortedWith(
+        compareByDescending<ThemeStoreItem> { it.entry.heat }
+            .thenByDescending { it.entry.downloads }
+            .thenBy { it.entry.name.lowercase(Locale.ROOT) },
+    )
+    ThemeStoreSort.DOWNLOADS -> sortedWith(
+        compareByDescending<ThemeStoreItem> { it.entry.downloads }
+            .thenByDescending { it.entry.heat }
+            .thenBy { it.entry.name.lowercase(Locale.ROOT) },
+    )
     ThemeStoreSort.NEWEST -> sortedWith(
         compareByDescending<ThemeStoreItem> { it.entry.updatedAt }
             .thenBy { it.entry.name.lowercase(Locale.ROOT) },
     )
     ThemeStoreSort.NAME -> sortedWith(compareBy { it.entry.name.lowercase(Locale.ROOT) })
     ThemeStoreSort.SIZE -> sortedWith(compareByDescending { it.entry.size })
+}
+
+/** Compact counters for the store cards: 999, 1.2k, 34k, 1.2M. */
+internal fun formatStoreCount(value: Long): String {
+    val count = value.coerceAtLeast(0)
+    return when {
+        count >= 999_500 -> String.format(Locale.ROOT, "%.1fM", count / 1_000_000.0)
+        count >= 10_000 -> String.format(Locale.ROOT, "%.0fk", count / 1_000.0)
+        count >= 1_000 -> String.format(Locale.ROOT, "%.1fk", count / 1_000.0)
+        else -> count.toString()
+    }
 }
 
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -670,6 +695,8 @@ private fun ThemeStoreSortRow(
 ) {
     val options = listOf(
         ThemeStoreSort.DEFAULT to R.string.theme_store_sort_default,
+        ThemeStoreSort.HOT to R.string.theme_store_sort_hot,
+        ThemeStoreSort.DOWNLOADS to R.string.theme_store_sort_downloads,
         ThemeStoreSort.NEWEST to R.string.theme_store_sort_newest,
         ThemeStoreSort.NAME to R.string.theme_store_sort_name,
         ThemeStoreSort.SIZE to R.string.theme_store_sort_size,
@@ -1179,6 +1206,24 @@ internal fun ThemeCardMaterial(
             }
             Row(
                 modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                ThemeStoreStatBadge(
+                    icon = Icons.Rounded.FlashOn,
+                    value = entry.heat,
+                    contentDescription = stringResource(R.string.theme_store_heat),
+                )
+                ThemeStoreStatBadge(
+                    icon = Icons.Rounded.FileDownload,
+                    value = entry.downloads,
+                    contentDescription = stringResource(R.string.theme_store_downloads),
+                )
+            }
+            Row(
+                modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 10.dp, end = 12.dp, bottom = 12.dp),
@@ -1268,6 +1313,37 @@ internal fun ThemeCardMaterial(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ThemeStoreStatBadge(
+    icon: ImageVector,
+    value: Long,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .background(
+                color = Color.Black.copy(alpha = 0.46f),
+                shape = MaterialTheme.shapes.small,
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        MaterialIcon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = Color.White.copy(alpha = 0.86f),
+            modifier = Modifier.size(13.dp),
+        )
+        MaterialText(
+            text = formatStoreCount(value),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White,
+        )
     }
 }
 

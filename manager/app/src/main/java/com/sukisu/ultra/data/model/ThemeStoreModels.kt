@@ -39,6 +39,10 @@ data class ThemeStoreEntry(
     val screenshotPaths: List<String> = emptyList(),
     val updatedAt: String = "",
     val changelog: String = "",
+    /** Cumulative package downloads reported by the mirror. */
+    val downloads: Long = 0L,
+    /** Popularity score: downloads + recent downloads weighted by the mirror. */
+    val heat: Long = 0L,
 )
 
 /** An additional store source persisted in the manager settings. */
@@ -70,6 +74,35 @@ data class ThemeStoreUploadInitRequest(
     val filename: String,
     val size: Long,
     val fingerprint: String = "",
+)
+
+/** Response from the mirror's `/health` endpoint. */
+@Serializable
+data class ThemeStoreHealth(
+    val ok: Boolean = false,
+    val status: String = "",
+    val version: String = "",
+    val uptimeSeconds: Long = 0L,
+    val checks: ThemeStoreHealthChecks = ThemeStoreHealthChecks(),
+)
+
+@Serializable
+data class ThemeStoreHealthChecks(
+    val database: ThemeStoreHealthCheck = ThemeStoreHealthCheck(),
+    val storage: ThemeStoreHealthCheck = ThemeStoreHealthCheck(),
+    val catalog: ThemeStoreHealthCheck = ThemeStoreHealthCheck(),
+    val pending: ThemeStoreHealthCheck = ThemeStoreHealthCheck(),
+)
+
+/** Loose shape shared by the database/storage/catalog/pending health blocks. */
+@Serializable
+data class ThemeStoreHealthCheck(
+    val ok: Boolean = false,
+    val latencyMs: Long? = null,
+    val themes: Int? = null,
+    val count: Int? = null,
+    val backend: String = "",
+    val generatedAt: String = "",
 )
 
 /** Session state returned by `/uploads/init`, `/uploads/{id}` and chunk uploads. */

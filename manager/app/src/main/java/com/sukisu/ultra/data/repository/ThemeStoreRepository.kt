@@ -3,6 +3,7 @@ package com.sukisu.ultra.data.repository
 import android.content.Context
 import com.sukisu.ultra.data.model.ThemeStoreCatalog
 import com.sukisu.ultra.data.model.ThemeStoreEntry
+import com.sukisu.ultra.data.model.ThemeStoreHealth
 import com.sukisu.ultra.data.model.ThemeStoreSubmitResponse
 import com.sukisu.ultra.data.model.ThemeStoreUploadInitRequest
 import com.sukisu.ultra.data.model.ThemeStoreUploadSession
@@ -34,7 +35,34 @@ import java.util.concurrent.TimeUnit
 data class ThemeCatalogLoad(
     val catalog: ThemeStoreCatalog,
     val fromCache: Boolean,
+    /** Server answered 304 and the parsed local catalog was reused. */
+    val notModified: Boolean = false,
 )
+
+private data class CatalogFetch(
+    val catalog: ThemeStoreCatalog,
+    val notModified: Boolean,
+)
+
+/** Result of `GET /health`. */
+data class ThemeStoreHealthResult(
+    val health: ThemeStoreHealth,
+    val latencyMs: Long,
+)
+
+enum class ThemeStoreHealthError {
+    INVALID_URL,
+    NON_JSON,
+    EMPTY_RESPONSE,
+    INVALID_RESPONSE,
+    HTTP,
+}
+
+/** Typed health-check failure so the UI can show a localized reason. */
+class ThemeStoreHealthException(
+    val error: ThemeStoreHealthError,
+    val httpStatus: Int? = null,
+) : IOException("theme health check failed: $error")
 
 /** A validated theme package prepared for upload to a store source. */
 data class ThemeStoreSubmission(
@@ -100,7 +128,8 @@ class ThemeStoreRepository(
     companion object {
         const val TOKEN_HEADER = "X-Sukisu-Theme-Token"
 
-        private const val MAX_CATALOG_BYTES = 1024L * 1024L
+        /** Compact catalogs are ~650 KB per 1000 themes; leave room for growth. */
+        private const val MAX_CATALOG_BYTES = 8L * 1024L * 1024L
         /** Shared client ceiling; the mirror's server-side limit remains authoritative. */
         const val MAX_PACKAGE_BYTES = 128L * 1024L * 1024L
         private const val BUFFER_SIZE = 64 * 1024
@@ -161,8 +190,11 @@ class ThemeStoreRepository(
     private val cacheDir = File(context.cacheDir, "theme_store")
     private val downloadDir = File(cacheDir, "downloads")
 
+    // Theme data has its own verified file cache; bypass OkHttp's shared cache
+    // so ETag/304 handling and download counting stay deterministic.
     private val downloadClient: OkHttpClient by lazy {
         client.newBuilder()
+            .cache(null)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -171,8 +203,17 @@ class ThemeStoreRepository(
 
     private val catalogClient: OkHttpClient by lazy {
         client.newBuilder()
+            .cache(null)
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
+            .build()
+    }
+
+    private val healthClient: OkHttpClient by lazy {
+        client.newBuilder()
+            .cache(null)
+            .connectTimeout(6, TimeUnit.SECONDS)
+            .readTimeout(8, TimeUnit.SECONDS)
             .build()
     }
 
@@ -189,11 +230,55 @@ class ThemeStoreRepository(
             val base = normalizeBaseUrl(baseUrl)
                 ?: return@withContext Result.failure(IOException("Invalid theme store URL"))
             runCatching { fetchCatalog(base, token) }
-                .map { ThemeCatalogLoad(it, fromCache = false) }
+                .map {
+                    ThemeCatalogLoad(
+                        catalog = it.catalog,
+                        fromCache = false,
+                        notModified = it.notModified,
+                    )
+                }
                 .recoverCatching { error ->
                     if (error is ThemeStoreUnauthorizedException) throw error
                     readCachedCatalog(base) ?: throw error
                 }
+        }
+
+    /** Calls the mirror's public `/health` endpoint and measures round-trip time. */
+    suspend fun checkHealth(baseUrl: String, token: String): Result<ThemeStoreHealthResult> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val base = normalizeBaseUrl(baseUrl)
+                    ?: throw ThemeStoreHealthException(ThemeStoreHealthError.INVALID_URL)
+                val request = Request.Builder()
+                    .url(base + "health")
+                    .cacheControl(CacheControl.Builder().noCache().build())
+                    .withToken(token)
+                    .build()
+                val started = System.nanoTime()
+                healthClient.newCall(request).execute().use { response ->
+                    val latencyMs = ((System.nanoTime() - started) / 1_000_000L).coerceAtLeast(0L)
+                    val raw = response.body.string().trim()
+                    val health = runCatching {
+                        json.decodeFromString(ThemeStoreHealth.serializer(), raw)
+                    }.getOrNull()?.takeIf { it.status.isNotBlank() || it.ok }
+                    when {
+                        health != null -> ThemeStoreHealthResult(health, latencyMs)
+                        !response.isSuccessful -> throw ThemeStoreHealthException(
+                            ThemeStoreHealthError.HTTP,
+                            response.code,
+                        )
+                        raw.isEmpty() -> throw ThemeStoreHealthException(
+                            ThemeStoreHealthError.EMPTY_RESPONSE,
+                        )
+                        !raw.startsWith("{") -> throw ThemeStoreHealthException(
+                            ThemeStoreHealthError.NON_JSON,
+                        )
+                        else -> throw ThemeStoreHealthException(
+                            ThemeStoreHealthError.INVALID_RESPONSE,
+                        )
+                    }
+                }
+            }
         }
 
     suspend fun downloadTheme(
@@ -629,13 +714,39 @@ class ThemeStoreRepository(
     }
 
 
-    private fun fetchCatalog(base: String, token: String): ThemeStoreCatalog {
-        val request = Request.Builder()
+    private fun fetchCatalog(base: String, token: String): CatalogFetch {
+        val cacheFile = catalogCacheFile(base)
+        val cachedEtag = catalogCacheEtagFile(base)
+            .takeIf { it.isFile }
+            ?.let { runCatching { it.readText().trim() }.getOrNull() }
+            ?.takeIf { it.isNotEmpty() }
+        val cachedCatalog = if (cacheFile.isFile && cachedEtag != null) {
+            runCatching {
+                val catalog = json.decodeFromString(
+                    ThemeStoreCatalog.serializer(),
+                    cacheFile.readText(),
+                )
+                catalog.takeIf { it.schema <= 1 }
+            }.getOrNull()
+        } else {
+            null
+        }
+        val requestBuilder = Request.Builder()
             .url(base + "catalog.json")
             .cacheControl(CacheControl.Builder().noCache().build())
             .withToken(token)
-            .build()
-        val raw = catalogClient.newCall(request).execute().use { response ->
+        if (cachedCatalog != null && cachedEtag != null) {
+            requestBuilder.header("If-None-Match", cachedEtag)
+        }
+        val response = catalogClient.newCall(requestBuilder.build()).execute()
+        response.use { response ->
+            if (response.code == 304) {
+                return CatalogFetch(
+                    catalog = cachedCatalog
+                        ?: throw IOException("HTTP 304 without cached catalog"),
+                    notModified = true,
+                )
+            }
             if (response.code == 401) throw ThemeStoreUnauthorizedException()
             if (!response.isSuccessful) throw IOException("HTTP ${response.code} for catalog")
             val body = response.body
@@ -646,16 +757,33 @@ class ThemeStoreRepository(
             if (source.request(MAX_CATALOG_BYTES + 1)) {
                 throw IOException("Theme catalog is too large")
             }
-            source.readUtf8()
+            val raw = source.readUtf8()
+            val catalog = json.decodeFromString(ThemeStoreCatalog.serializer(), raw)
+            if (catalog.schema > 1) throw IOException("Unsupported theme catalog schema")
+            writeCatalogCache(base, raw)
+            writeCatalogEtag(base, response.header("ETag"))
+            return CatalogFetch(catalog, notModified = false)
         }
-        val catalog = json.decodeFromString(ThemeStoreCatalog.serializer(), raw)
-        if (catalog.schema > 1) throw IOException("Unsupported theme catalog schema")
-        writeCatalogCache(base, raw)
-        return catalog
     }
 
     private fun catalogCacheFile(base: String): File =
         File(cacheDir, "catalog-${base.hashCode().toUInt().toString(16)}.json")
+
+    private fun catalogCacheEtagFile(base: String): File =
+        File(cacheDir, "catalog-${base.hashCode().toUInt().toString(16)}.etag")
+
+    private fun writeCatalogEtag(base: String, etag: String?) {
+        runCatching {
+            val file = catalogCacheEtagFile(base)
+            val value = etag?.trim().orEmpty()
+            if (value.isEmpty()) {
+                file.delete()
+            } else {
+                cacheDir.mkdirs()
+                file.writeText(value)
+            }
+        }
+    }
 
     private fun readCachedCatalog(base: String): ThemeCatalogLoad? {
         val file = catalogCacheFile(base)
@@ -699,7 +827,7 @@ class ThemeStoreRepository(
             if (!file.isFile) return@forEach
             when {
                 file.name.startsWith("catalog-") &&
-                    file.name.endsWith(".json") &&
+                    (file.name.endsWith(".json") || file.name.endsWith(".etag")) &&
                     file.isOlderThan(30L * day, now) -> runCatching { file.delete() }
 
                 // The upload screen's "current preset" export lives directly in cacheDir and

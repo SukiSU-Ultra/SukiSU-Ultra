@@ -294,6 +294,8 @@ internal fun ThemeStoreDetailScreen(
                         }
                     }
                     Spacer(Modifier.height(8.dp))
+                    val heatLabel = stringResource(R.string.theme_store_heat)
+                    val downloadsLabel = stringResource(R.string.theme_store_downloads)
                     MaterialText(
                         text = buildString {
                             append("v${entry.version}")
@@ -303,6 +305,14 @@ internal fun ThemeStoreDetailScreen(
                                 append(" · ")
                                 append(formatBytes(entry.size))
                             }
+                            append(" · ")
+                            append(heatLabel)
+                            append(' ')
+                            append(formatStoreCount(entry.heat))
+                            append(" · ")
+                            append(downloadsLabel)
+                            append(' ')
+                            append(formatStoreCount(entry.downloads))
                             if (state.sources.size > 1) {
                                 append(" · ")
                                 append(sourceName)
