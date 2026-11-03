@@ -5,6 +5,7 @@ package com.sukisu.ultra.ui.screen.themestore
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -31,6 +32,11 @@ private val THEME_SITE_MENTIONS = mapOf(
     "xda" to "https://xdaforums.com",
     "youtube" to "https://www.youtube.com",
     "afdian" to "https://afdian.com",
+    "twitter" to "https://x.com",
+    "x" to "https://x.com",
+    "zhihu" to "https://www.zhihu.com",
+    "threads" to "https://www.threads.net",
+    "douyin" to "https://www.douyin.com",
 )
 
 private val MENTION_PLATFORM = THEME_SITE_MENTIONS.keys
@@ -46,7 +52,7 @@ private const val MENTION_END = """(?![A-Za-z0-9._-])"""
 // The platform alternation must stay grouped so the trailing boundary applies to every alias.
 @Suppress("RegExpUnnecessaryNonCapturingGroup")
 internal val INLINE_MARKDOWN = Regex(
-    """\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^]\n]+]\(https?://[^\s)]+\)|$MENTION_USERNAME@(?:$MENTION_PLATFORM)$MENTION_END|(?<![A-Za-z0-9_@.-])@(?:$MENTION_PLATFORM)$MENTION_END|https?://\S+|\*[^*\n]+\*""",
+    """\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^]\n]+]\(https?://[^\s)]+\)|$MENTION_USERNAME@(?:$MENTION_PLATFORM)$MENTION_END|(?<![A-Za-z0-9_@.-])@(?:$MENTION_PLATFORM)$MENTION_END|(?<![A-Za-z0-9_@.-])@$MENTION_USERNAME$MENTION_END|https?://\S+|\*[^*\n]+\*""",
     RegexOption.IGNORE_CASE,
 )
 
@@ -68,6 +74,10 @@ private fun userMentionUrl(user: String, platform: String): String? = when (plat
     "xda" -> "https://xdaforums.com/m/${encodeUserSegment(user)}/"
     "youtube" -> "https://www.youtube.com/@${encodeUserSegment(user)}"
     "afdian" -> "https://afdian.com/a/${encodeUserSegment(user)}"
+    "twitter", "x" -> "https://x.com/${encodeUserSegment(user)}"
+    "zhihu" -> "https://www.zhihu.com/people/${encodeUserSegment(user)}"
+    "threads" -> "https://www.threads.net/@${encodeUserSegment(user)}"
+    "douyin" -> "https://www.douyin.com/search/${encodeUserSegment(user)}"
     else -> null
 }
 
@@ -88,7 +98,92 @@ internal fun themeMentionUrl(token: String): String? {
     return userMentionUrl(user, platform)
 }
 
-/** Small inline Markdown renderer for theme descriptions shown in cards. */
+private val FENCED_CODE = Regex("```[\\s\\S]*?```")
+
+private fun AnnotatedString.Builder.appendInlineMarkdown(
+    text: String,
+    linkColor: Color,
+    linkStyles: TextLinkStyles,
+    codeColor: Color,
+    codeBackground: Color,
+) {
+    var cursor = 0
+    INLINE_MARKDOWN.findAll(text).forEach { match ->
+        if (match.range.first > cursor) {
+            append(text.substring(cursor, match.range.first))
+        }
+        val token = match.value
+        when {
+            token.startsWith("**") && token.length > 4 -> withStyle(
+                SpanStyle(fontWeight = FontWeight.SemiBold),
+            ) {
+                append(token.substring(2, token.length - 2))
+            }
+
+            token.startsWith("`") && token.length > 2 -> withStyle(
+                SpanStyle(
+                    fontFamily = FontFamily.Monospace,
+                    color = codeColor,
+                    background = codeBackground,
+                ),
+            ) {
+                append(token.substring(1, token.length - 1))
+            }
+
+            token.startsWith("[") -> {
+                val split = token.indexOf("](")
+                if (split > 1) {
+                    val label = token.substring(1, split)
+                    val url = token.substring(split + 2, token.length - 1)
+                    withLink(LinkAnnotation.Url(url, linkStyles)) {
+                        append(label)
+                    }
+                } else {
+                    append(token)
+                }
+            }
+
+            token.startsWith("http://") || token.startsWith("https://") -> {
+                withLink(LinkAnnotation.Url(token, linkStyles)) {
+                    append(token)
+                }
+            }
+
+            token.startsWith("@") || token.contains('@') -> {
+                val url = themeMentionUrl(token)
+                if (url != null) {
+                    withLink(LinkAnnotation.Url(url, linkStyles)) {
+                        append(token)
+                    }
+                } else {
+                    // Local account mention: highlight it so it reads as a tag.
+                    withStyle(
+                        SpanStyle(
+                            color = linkColor,
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                    ) {
+                        append(token)
+                    }
+                }
+            }
+
+            token.startsWith("*") && token.length > 2 -> withStyle(
+                SpanStyle(fontStyle = FontStyle.Italic),
+            ) {
+                append(token.substring(1, token.length - 1))
+            }
+
+            else -> append(token)
+        }
+        cursor = match.range.last + 1
+    }
+    if (cursor < text.length) {
+        append(text.substring(cursor))
+    }
+}
+
+/** Markdown renderer for theme descriptions and comments. */
 @Composable
 internal fun themeStoreMarkdown(text: String): AnnotatedString {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -102,73 +197,44 @@ internal fun themeStoreMarkdown(text: String): AnnotatedString {
             ),
         )
     }
-    return remember(text, linkStyles, codeColor, codeBackground) {
+    return remember(text, linkStyles, codeColor, codeBackground, linkColor) {
         buildAnnotatedString {
             var cursor = 0
-            INLINE_MARKDOWN.findAll(text).forEach { match ->
+            FENCED_CODE.findAll(text).forEach { match ->
                 if (match.range.first > cursor) {
-                    append(text.substring(cursor, match.range.first))
+                    appendInlineMarkdown(
+                        text = text.substring(cursor, match.range.first),
+                        linkColor = linkColor,
+                        linkStyles = linkStyles,
+                        codeColor = codeColor,
+                        codeBackground = codeBackground,
+                    )
                 }
-                val token = match.value
-                when {
-                    token.startsWith("**") && token.length > 4 -> withStyle(
-                        SpanStyle(fontWeight = FontWeight.SemiBold),
-                    ) {
-                        append(token.substring(2, token.length - 2))
-                    }
-
-                    token.startsWith("`") && token.length > 2 -> withStyle(
-                        SpanStyle(
-                            fontFamily = FontFamily.Monospace,
-                            color = codeColor,
-                            background = codeBackground,
-                        ),
-                    ) {
-                        append(token.substring(1, token.length - 1))
-                    }
-
-                    token.startsWith("[") -> {
-                        val split = token.indexOf("](")
-                        if (split > 1) {
-                            val label = token.substring(1, split)
-                            val url = token.substring(split + 2, token.length - 1)
-                            withLink(LinkAnnotation.Url(url, linkStyles)) {
-                                append(label)
-                            }
-                        } else {
-                            append(token)
-                        }
-                    }
-
-                    token.startsWith("http://") || token.startsWith("https://") -> {
-                        withLink(LinkAnnotation.Url(token, linkStyles)) {
-                            append(token)
-                        }
-                    }
-
-                    token.startsWith("@") || token.contains('@') -> {
-                        val url = themeMentionUrl(token)
-                        if (url != null) {
-                            withLink(LinkAnnotation.Url(url, linkStyles)) {
-                                append(token)
-                            }
-                        } else {
-                            append(token)
-                        }
-                    }
-
-                    token.startsWith("*") && token.length > 2 -> withStyle(
-                        SpanStyle(fontStyle = FontStyle.Italic),
-                    ) {
-                        append(token.substring(1, token.length - 1))
-                    }
-
-                    else -> append(token)
+                val body = match.value
+                    .removePrefix("```")
+                    .removeSuffix("```")
+                    .trim('\n')
+                if (length > 0) append('\n')
+                withStyle(
+                    SpanStyle(
+                        fontFamily = FontFamily.Monospace,
+                        color = codeColor,
+                        background = codeBackground,
+                    ),
+                ) {
+                    append(body)
                 }
+                append('\n')
                 cursor = match.range.last + 1
             }
             if (cursor < text.length) {
-                append(text.substring(cursor))
+                appendInlineMarkdown(
+                    text = text.substring(cursor),
+                    linkColor = linkColor,
+                    linkStyles = linkStyles,
+                    codeColor = codeColor,
+                    codeBackground = codeBackground,
+                )
             }
         }
     }

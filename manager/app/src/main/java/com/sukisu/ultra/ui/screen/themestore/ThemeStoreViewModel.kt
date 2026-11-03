@@ -11,9 +11,13 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.model.AccountMessageConversation
+import com.sukisu.ultra.data.model.AccountMessagesResponse
 import com.sukisu.ultra.data.model.AccountSession
 import com.sukisu.ultra.data.model.AccountSubmission
 import com.sukisu.ultra.data.model.AccountThemeSummary
+import com.sukisu.ultra.data.model.AccountUserSummary
+import com.sukisu.ultra.data.model.ThemeComment
 import com.sukisu.ultra.data.model.ThemeStoreEntry
 import com.sukisu.ultra.data.repository.AccountRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
@@ -64,6 +68,14 @@ data class UserTheme(
     val account: ThemeStoreAccount,
 ) {
     val key: String get() = "${account.key}:${theme.id}"
+}
+
+/** A message thread for one theme on one source account. */
+data class UserMessageConversation(
+    val conversation: AccountMessageConversation,
+    val account: ThemeStoreAccount,
+) {
+    val key: String get() = "${account.key}:${conversation.themeId}"
 }
 
 /** A submission made on one source account. */
@@ -162,6 +174,26 @@ data class ThemeStoreUiState(
     val withdrawError: String? = null,
     val restoringThemeKey: String? = null,
     val restoreError: String? = null,
+    val commentsThemeKey: String? = null,
+    val comments: List<ThemeComment> = emptyList(),
+    val commentsLoading: Boolean = false,
+    val commentsError: String? = null,
+    val commentsSending: Boolean = false,
+    val commentsSentCount: Long = 0L,
+    val commentReplyTarget: ThemeComment? = null,
+    val commentVisibility: String = "public",
+    val commentsRetentionDays: Long = 0L,
+    val commentsIsThemeAuthor: Boolean = false,
+    val commentsIsAdmin: Boolean = false,
+    val mentionUsers: List<AccountUserSummary> = emptyList(),
+    val mentionLoading: Boolean = false,
+    val mentionError: String? = null,
+    val mentionQuery: String = "",
+    val messages: List<UserMessageConversation> = emptyList(),
+    val messagesLoading: Boolean = false,
+    val messagesError: String? = null,
+    val messagesSending: Boolean = false,
+    val messagesRetentionDays: Long = 0L,
 )
 
 private data class PreparedThemeUpload(
@@ -192,6 +224,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
     private val repository = ThemeStoreRepository(application)
     private val settings = SettingsRepositoryImpl()
     private val account = AccountRepository(application)
+    private var mentionRequestSeq = 0L
     private val _uiState = MutableStateFlow(ThemeStoreUiState())
     val uiState: StateFlow<ThemeStoreUiState> = _uiState.asStateFlow()
 
@@ -668,6 +701,315 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             restoreError = error.message,
                         )
                     }
+                },
+            )
+        }
+    }
+
+    /** Loads the visible comment threads for one theme from its source account. */
+    fun loadComments(item: ThemeStoreItem, force: Boolean = false) {
+        val current = _uiState.value
+        if (current.commentsLoading && !force) return
+        if (!force && current.commentsThemeKey == item.key && current.commentsError == null) return
+        account.reload()
+        val signedIn = account.sessionFor(item.source.baseUrl) != null
+        _uiState.update {
+            it.copy(
+                commentsThemeKey = item.key,
+                commentsLoading = true,
+                commentsError = null,
+                commentReplyTarget = if (signedIn) it.commentReplyTarget else null,
+            )
+        }
+        viewModelScope.launch {
+            account.comments(item.source.baseUrl, item.entry.id).fold(
+                onSuccess = { response ->
+                    _uiState.update { state ->
+                        if (state.commentsThemeKey != item.key) {
+                            state
+                        } else {
+                            state.copy(
+                                comments = response.comments,
+                                commentsLoading = false,
+                                commentsError = null,
+                                commentsRetentionDays = response.retentionDays,
+                                commentsIsThemeAuthor = response.isThemeAuthor,
+                                commentsIsAdmin = response.isAdmin,
+                                commentReplyTarget = state.commentReplyTarget?.let { target ->
+                                    findComment(response.comments, target.id)
+                                },
+                            )
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    account.reload()
+                    val accounts = accountsFor(configuredSources())
+                    val signedIn = account.sessionFor(item.source.baseUrl) != null
+                    _uiState.update { state ->
+                        if (state.commentsThemeKey != item.key) {
+                            state
+                        } else {
+                            state.copy(
+                                commentsLoading = false,
+                                commentsError = error.message,
+                                accounts = accounts,
+                                commentReplyTarget = if (signedIn) {
+                                    state.commentReplyTarget
+                                } else {
+                                    null
+                                },
+                            )
+                        }
+                    }
+                },
+            )
+        }
+    }
+
+    private fun findComment(comments: List<ThemeComment>, id: String): ThemeComment? {
+        comments.forEach { comment ->
+            if (comment.id == id) return comment
+            findComment(comment.replies, id)?.let { return it }
+        }
+        return null
+    }
+
+    fun setCommentReplyTarget(comment: ThemeComment?) {
+        _uiState.update { it.copy(commentReplyTarget = comment) }
+    }
+
+    /** Searches local accounts for the `@mention` picker. */
+    fun searchMentionUsers(source: ThemeStoreSource, query: String) {
+        val text = query.trim()
+        _uiState.update { it.copy(mentionQuery = text) }
+        if (text.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    mentionUsers = emptyList(),
+                    mentionLoading = false,
+                    mentionError = null,
+                )
+            }
+            return
+        }
+        val sequence = ++mentionRequestSeq
+        _uiState.update { it.copy(mentionLoading = true, mentionError = null) }
+        viewModelScope.launch {
+            account.searchUsers(source.baseUrl, text).fold(
+                onSuccess = { users ->
+                    if (sequence != mentionRequestSeq) return@fold
+                    _uiState.update {
+                        it.copy(
+                            mentionUsers = users,
+                            mentionLoading = false,
+                            mentionError = null,
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    if (sequence != mentionRequestSeq) return@fold
+                    _uiState.update {
+                        it.copy(
+                            mentionLoading = false,
+                            mentionError = error.message,
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    fun clearMentionSearch() {
+        mentionRequestSeq += 1
+        _uiState.update {
+            it.copy(
+                mentionUsers = emptyList(),
+                mentionLoading = false,
+                mentionError = null,
+                mentionQuery = "",
+            )
+        }
+    }
+
+    fun setCommentVisibility(value: String) {
+        val visibility = if (value == "author") "author" else "public"
+        _uiState.update { it.copy(commentVisibility = visibility) }
+    }
+
+    fun sendComment(item: ThemeStoreItem, content: String) {
+        val text = content.trim()
+        val state = _uiState.value
+        if (text.isEmpty() || state.commentsSending) return
+        account.reload()
+        if (account.sessionFor(item.source.baseUrl) == null) {
+            _uiState.update {
+                it.copy(
+                    commentsError = getApplication<Application>()
+                        .getString(R.string.theme_store_upload_login_required),
+                )
+            }
+            return
+        }
+        _uiState.update { it.copy(commentsSending = true, commentsError = null) }
+        viewModelScope.launch {
+            account.postComment(
+                baseUrl = item.source.baseUrl,
+                themeId = item.entry.id,
+                content = text,
+                visibility = state.commentVisibility,
+                parentId = state.commentReplyTarget?.id,
+            ).fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(
+                            commentsSending = false,
+                            commentsSentCount = it.commentsSentCount + 1,
+                            commentReplyTarget = null,
+                            commentVisibility = "public",
+                        )
+                    }
+                    loadComments(item, force = true)
+                    if (_uiState.value.messages.isNotEmpty()) loadMessages(force = true)
+                },
+                onFailure = { error ->
+                    account.reload()
+                    val accounts = accountsFor(configuredSources())
+                    val signedIn = account.sessionFor(item.source.baseUrl) != null
+                    _uiState.update { state ->
+                        state.copy(
+                            commentsSending = false,
+                            commentsError = error.message,
+                            accounts = accounts,
+                            commentReplyTarget = if (signedIn) {
+                                state.commentReplyTarget
+                            } else {
+                                null
+                            },
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    fun deleteComment(item: ThemeStoreItem, comment: ThemeComment) {
+        viewModelScope.launch {
+            account.deleteComment(item.source.baseUrl, comment.id).fold(
+                onSuccess = {
+                    if (_uiState.value.commentReplyTarget?.id == comment.id) {
+                        _uiState.update { it.copy(commentReplyTarget = null) }
+                    }
+                    loadComments(item, force = true)
+                    if (_uiState.value.messages.isNotEmpty()) loadMessages(force = true)
+                },
+                onFailure = { error ->
+                    account.reload()
+                    val accounts = accountsFor(configuredSources())
+                    val signedIn = account.sessionFor(item.source.baseUrl) != null
+                    _uiState.update { state ->
+                        state.copy(
+                            commentsError = error.message,
+                            accounts = accounts,
+                            commentReplyTarget = if (signedIn) {
+                                state.commentReplyTarget
+                            } else {
+                                null
+                            },
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    /** Loads the message inbox across every logged-in mirror source. */
+    fun loadMessages(force: Boolean = false) {
+        if (_uiState.value.messagesLoading && !force) return
+        account.reload()
+        val sources = configuredSources()
+        val accounts = accountsFor(sources)
+        _uiState.update { it.copy(sources = sources, accounts = accounts) }
+        if (accounts.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    messagesLoading = false,
+                    messages = emptyList(),
+                    messagesError = getApplication<Application>()
+                        .getString(R.string.theme_store_messages_login_required),
+                )
+            }
+            return
+        }
+        _uiState.update { it.copy(messagesLoading = true, messagesError = null) }
+        viewModelScope.launch {
+            val accountRepository = account
+            val results = coroutineScope {
+                accounts.map { sourceAccount ->
+                    async {
+                        sourceAccount to accountRepository.messages(sourceAccount.source.baseUrl)
+                    }
+                }.awaitAll()
+            }
+            val remaining = accountsFor(configuredSources())
+            val remainingKeys = remaining.mapTo(mutableSetOf()) { it.key }
+            val conversations = results.flatMap { (sourceAccount, result) ->
+                result.getOrDefault(AccountMessagesResponse()).conversations
+                    .filter { sourceAccount.key in remainingKeys }
+                    .map { UserMessageConversation(it, sourceAccount) }
+            }.sortedByDescending { it.conversation.lastAt }
+            val retention = results.mapNotNull { (_, result) ->
+                result.getOrNull()?.retentionDays?.takeIf { it > 0 }
+            }.firstOrNull() ?: 0L
+            _uiState.update {
+                it.copy(
+                    messagesLoading = false,
+                    accounts = remaining,
+                    messages = conversations,
+                    messagesRetentionDays = retention,
+                    messagesError = results
+                        .mapNotNull { (_, result) -> result.exceptionOrNull()?.message }
+                        .firstOrNull(),
+                )
+            }
+        }
+    }
+
+    fun sendMessageReply(
+        conversation: UserMessageConversation,
+        content: String,
+        parentId: String?,
+    ) {
+        val text = content.trim()
+        if (text.isEmpty() || _uiState.value.messagesSending) return
+        _uiState.update { it.copy(messagesSending = true, messagesError = null) }
+        viewModelScope.launch {
+            account.postComment(
+                baseUrl = conversation.account.source.baseUrl,
+                themeId = conversation.conversation.themeId,
+                content = text,
+                visibility = "public",
+                parentId = parentId,
+            ).fold(
+                onSuccess = {
+                    _uiState.update { it.copy(messagesSending = false) }
+                    loadMessages(force = true)
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(messagesSending = false, messagesError = error.message)
+                    }
+                },
+            )
+        }
+    }
+
+    fun deleteMessage(conversation: UserMessageConversation, comment: ThemeComment) {
+        viewModelScope.launch {
+            account.deleteComment(conversation.account.source.baseUrl, comment.id).fold(
+                onSuccess = { loadMessages(force = true) },
+                onFailure = { error ->
+                    _uiState.update { it.copy(messagesError = error.message) }
                 },
             )
         }

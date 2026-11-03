@@ -58,6 +58,7 @@ import androidx.compose.material3.TextButton as MaterialTextButton
 import androidx.compose.material3.TopAppBar as MaterialTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,6 +80,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.model.ThemeComment
 import com.sukisu.ultra.data.model.ThemeStoreEntry
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
@@ -96,8 +98,27 @@ internal fun ThemeStoreDetailScreen(
     onRefresh: () -> Unit,
     onAuthorClick: (ThemeStoreItem) -> Unit,
     onOpenSettings: () -> Unit,
+    onLoadComments: () -> Unit,
+    onCommentsLogin: () -> Unit,
+    onCommentsRefresh: () -> Unit,
+    onSendComment: (String) -> Unit,
+    onDeleteComment: (ThemeComment) -> Unit,
+    onCommentReplyTargetChange: (ThemeComment?) -> Unit,
+    onCommentVisibilityChange: (String) -> Unit,
+    onSearchMentions: (String) -> Unit,
+    onClearMentionSearch: () -> Unit,
 ) {
     val entry = item.entry
+    val commentsLoggedIn = state.accounts.any { account ->
+        account.source.baseUrl == item.source.baseUrl
+    }
+    LaunchedEffect(item.key, commentsLoggedIn) {
+        if (state.commentsThemeKey == item.key) {
+            onCommentsRefresh()
+        } else {
+            onLoadComments()
+        }
+    }
     var menuExpanded by remember { mutableStateOf(false) }
     val compatible = entry.isCompatible()
     val busy = state.downloadingKey != null
@@ -489,6 +510,22 @@ internal fun ThemeStoreDetailScreen(
                         }
                     }
                 }
+            }
+            item(key = "comments") {
+                ThemeStoreCommentsSection(
+                    state = state,
+                    baseUrl = item.source.baseUrl,
+                    token = item.source.token,
+                    loggedIn = commentsLoggedIn,
+                    onLogin = onCommentsLogin,
+                    onRefresh = onCommentsRefresh,
+                    onSend = onSendComment,
+                    onDelete = onDeleteComment,
+                    onReplyTargetChange = onCommentReplyTargetChange,
+                    onVisibilityChange = onCommentVisibilityChange,
+                    onSearchMentions = onSearchMentions,
+                    onClearMentionSearch = onClearMentionSearch,
+                )
             }
         }
     }

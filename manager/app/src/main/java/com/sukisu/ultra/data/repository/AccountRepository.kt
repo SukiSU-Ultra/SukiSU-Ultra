@@ -3,8 +3,10 @@ package com.sukisu.ultra.data.repository
 import android.content.Context
 import androidx.core.content.edit
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.model.AccountCommentChangeResponse
 import com.sukisu.ultra.data.model.AccountLoginRequest
 import com.sukisu.ultra.data.model.AccountLoginResponse
+import com.sukisu.ultra.data.model.AccountMessagesResponse
 import com.sukisu.ultra.data.model.AccountProfileResponse
 import com.sukisu.ultra.data.model.AccountRegisterRequest
 import com.sukisu.ultra.data.model.AccountSession
@@ -14,6 +16,12 @@ import com.sukisu.ultra.data.model.AccountSubmissionsResponse
 import com.sukisu.ultra.data.model.AccountThemeIdResponse
 import com.sukisu.ultra.data.model.AccountThemeSummary
 import com.sukisu.ultra.data.model.AccountThemesResponse
+import com.sukisu.ultra.data.model.AccountUserSearchResponse
+import com.sukisu.ultra.data.model.AccountUserSummary
+import com.sukisu.ultra.data.model.ThemeComment
+import com.sukisu.ultra.data.model.ThemeCommentCreateRequest
+import com.sukisu.ultra.data.model.ThemeCommentCreatedResponse
+import com.sukisu.ultra.data.model.ThemeCommentsResponse
 import com.sukisu.ultra.ksuApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -347,6 +355,141 @@ class AccountRepository(
             }
         }
     }
+
+    suspend fun comments(baseUrl: String, themeId: String): Result<ThemeCommentsResponse> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val api = apiBase(baseUrl)
+                    ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val current = sessionFor(baseUrl)
+                val builder = Request.Builder()
+                    .url(api + "themes/" + java.net.URLEncoder.encode(themeId, "UTF-8") + "/comments")
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .get()
+                if (current != null) {
+                    builder.header("Authorization", "Bearer ${current.token}")
+                }
+                client.newCall(builder.build()).execute().use { response ->
+                    val raw = response.body.string()
+                    if (response.code == 401) {
+                        if (current != null) removeSession(current.baseUrl)
+                        throw IOException(appContext.getString(R.string.account_session_expired))
+                    }
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    json.decodeFromString(ThemeCommentsResponse.serializer(), raw)
+                }
+            }
+        }
+
+    suspend fun postComment(
+        baseUrl: String,
+        themeId: String,
+        content: String,
+        visibility: String,
+        parentId: String?,
+    ): Result<ThemeComment> = withContext(Dispatchers.IO) {
+        runCatching {
+            val current = requireSession(baseUrl)
+            val api = apiBase(current.baseUrl)
+                ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+            val body = json.encodeToString(
+                ThemeCommentCreateRequest.serializer(),
+                ThemeCommentCreateRequest(content = content, visibility = visibility, parentId = parentId),
+            ).toRequestBody(JSON_MEDIA)
+            val request = Request.Builder()
+                .url(api + "themes/" + java.net.URLEncoder.encode(themeId, "UTF-8") + "/comments")
+                .header("Authorization", "Bearer ${current.token}")
+                .header(CSRF_HEADER, CSRF_VALUE)
+                .post(body)
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body.string()
+                if (response.code == 401) {
+                    removeSession(current.baseUrl)
+                    throw IOException(appContext.getString(R.string.account_session_expired))
+                }
+                if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                val parsed = json.decodeFromString(ThemeCommentCreatedResponse.serializer(), raw)
+                parsed.comment ?: throw IOException(parsed.error ?: "Comment failed")
+            }
+        }
+    }
+
+    suspend fun deleteComment(baseUrl: String, id: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val current = requireSession(baseUrl)
+                val api = apiBase(current.baseUrl)
+                    ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val body = kotlinx.serialization.json.buildJsonObject {
+                    put("id", kotlinx.serialization.json.JsonPrimitive(id))
+                }.toString().toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url(api + "comments/delete")
+                    .header("Authorization", "Bearer ${current.token}")
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .post(body)
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val raw = response.body.string()
+                    if (response.code == 401) {
+                        removeSession(current.baseUrl)
+                        throw IOException(appContext.getString(R.string.account_session_expired))
+                    }
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    val parsed = json.decodeFromString(AccountCommentChangeResponse.serializer(), raw)
+                    if (!parsed.ok) throw IOException(parsed.error ?: "Delete failed")
+                }
+            }
+        }
+
+    suspend fun messages(baseUrl: String): Result<AccountMessagesResponse> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val current = requireSession(baseUrl)
+                val api = apiBase(current.baseUrl)
+                    ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val request = Request.Builder()
+                    .url(api + "messages")
+                    .header("Authorization", "Bearer ${current.token}")
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val raw = response.body.string()
+                    if (response.code == 401) {
+                        removeSession(current.baseUrl)
+                        throw IOException(appContext.getString(R.string.account_session_expired))
+                    }
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    json.decodeFromString(AccountMessagesResponse.serializer(), raw)
+                }
+            }
+        }
+
+    suspend fun searchUsers(baseUrl: String, query: String): Result<List<AccountUserSummary>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val current = requireSession(baseUrl)
+                val api = apiBase(current.baseUrl)
+                    ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val request = Request.Builder()
+                    .url(api + "users/search?q=" + java.net.URLEncoder.encode(query, "UTF-8"))
+                    .header("Authorization", "Bearer ${current.token}")
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val raw = response.body.string()
+                    if (response.code == 401) {
+                        removeSession(current.baseUrl)
+                        throw IOException(appContext.getString(R.string.account_session_expired))
+                    }
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    json.decodeFromString(AccountUserSearchResponse.serializer(), raw).users
+                }
+            }
+        }
 
     suspend fun logout(baseUrl: String): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {

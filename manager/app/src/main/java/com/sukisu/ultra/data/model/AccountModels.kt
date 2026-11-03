@@ -92,6 +92,105 @@ data class AccountSubmissionsResponse(
     val error: String? = null,
 )
 
+/** One comment or reply in a theme's message thread. */
+@Serializable
+data class ThemeComment(
+    val id: String = "",
+    val themeId: String = "",
+    val themeName: String = "",
+    val themeAuthor: String = "",
+    val userId: String = "",
+    val username: String = "",
+    val displayName: String = "",
+    val parentId: String? = null,
+    val visibility: String = "public",
+    val content: String = "",
+    val createdAt: String = "",
+    val avatarUrl: String = "",
+    val isThemeAuthor: Boolean = false,
+    val isAdmin: Boolean = false,
+    val mine: Boolean = false,
+    val canDelete: Boolean = false,
+    val canReply: Boolean = false,
+    val mentionsMe: Boolean = false,
+    val replies: List<ThemeComment> = emptyList(),
+)
+
+@Serializable
+data class ThemeCommentsResponse(
+    val ok: Boolean = false,
+    val theme: AccountCommentTheme? = null,
+    val comments: List<ThemeComment> = emptyList(),
+    val isThemeAuthor: Boolean = false,
+    val isAdmin: Boolean = false,
+    val retentionDays: Long = 0L,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountCommentTheme(
+    val id: String = "",
+    val name: String = "",
+    val author: String = "",
+)
+
+@Serializable
+data class ThemeCommentCreateRequest(
+    val content: String,
+    val visibility: String = "public",
+    val parentId: String? = null,
+)
+
+@Serializable
+data class ThemeCommentCreatedResponse(
+    val ok: Boolean = false,
+    val comment: ThemeComment? = null,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountMessageConversation(
+    val themeId: String = "",
+    val themeName: String = "",
+    val themeAuthor: String = "",
+    val isThemeAuthor: Boolean = false,
+    val mentioned: Boolean = false,
+    val lastAt: String = "",
+    val comments: List<ThemeComment> = emptyList(),
+)
+
+@Serializable
+data class AccountUserSummary(
+    val username: String = "",
+    val displayName: String = "",
+    val role: String = "user",
+    val isAuthor: Boolean = false,
+)
+
+@Serializable
+data class AccountUserSearchResponse(
+    val ok: Boolean = false,
+    val users: List<AccountUserSummary> = emptyList(),
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountMessagesResponse(
+    val ok: Boolean = false,
+    val conversations: List<AccountMessageConversation> = emptyList(),
+    val retentionDays: Long = 0L,
+    val isAdmin: Boolean = false,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountCommentChangeResponse(
+    val ok: Boolean = false,
+    val deleted: Long = 0L,
+    val themeId: String = "",
+    val error: String? = null,
+)
+
 @Serializable
 data class AccountLoginResponse(
     val ok: Boolean = false,

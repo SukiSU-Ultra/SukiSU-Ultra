@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.FlashOn
+import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.InstallMobile
 import androidx.compose.material.icons.rounded.MoreVert
@@ -170,6 +171,7 @@ fun ThemeStoreScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showUpload by rememberSaveable { mutableStateOf(false) }
     var showSubmissions by rememberSaveable { mutableStateOf(false) }
+    var showMessages by rememberSaveable { mutableStateOf(false) }
     var showAccountPicker by rememberSaveable { mutableStateOf(false) }
     var pendingAdaptiveTheme by rememberSaveable { mutableStateOf(false) }
     var adaptiveUploadHandled by rememberSaveable(startAdaptiveUpload) { mutableStateOf(false) }
@@ -458,6 +460,10 @@ fun ThemeStoreScreen(
         showSubmissions = false
     }
 
+    BackHandler(enabled = showMessages && detailItem == null && currentAuthor == null) {
+        showMessages = false
+    }
+
     when {
         detailItem != null -> ThemeStoreDetailScreen(
             item = detailItem,
@@ -470,6 +476,15 @@ fun ThemeStoreScreen(
             onOpenSettings = {
                 navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY)
             },
+            onLoadComments = { viewModel.loadComments(detailItem) },
+            onCommentsLogin = { navigator.navigateTo(Route.ThemeAccount()) },
+            onCommentsRefresh = { viewModel.loadComments(detailItem, force = true) },
+            onSendComment = { content -> viewModel.sendComment(detailItem, content) },
+            onDeleteComment = { comment -> viewModel.deleteComment(detailItem, comment) },
+            onCommentReplyTargetChange = viewModel::setCommentReplyTarget,
+            onCommentVisibilityChange = viewModel::setCommentVisibility,
+            onSearchMentions = { query -> viewModel.searchMentionUsers(detailItem.source, query) },
+            onClearMentionSearch = viewModel::clearMentionSearch,
         )
 
         currentAuthor != null -> ThemeStoreAuthorScreen(
@@ -537,6 +552,27 @@ fun ThemeStoreScreen(
             onLoadAdaptiveTheme = { settingsViewModel.createAdaptiveThemePackage(context).getOrNull() },
         )
 
+        showMessages -> ThemeStoreMessagesScreen(
+            state = state,
+            onBack = { showMessages = false },
+            onRefresh = { viewModel.loadMessages(force = true) },
+            onLogin = {
+                showMessages = false
+                navigator.navigateTo(Route.ThemeAccount())
+            },
+            onReply = { conversation, content, parentId ->
+                viewModel.sendMessageReply(conversation, content, parentId)
+            },
+            onDelete = viewModel::deleteMessage,
+            mentionUsers = state.mentionUsers,
+            mentionLoading = state.mentionLoading,
+            mentionError = state.mentionError,
+            onSearchMentions = { conversation, query ->
+                viewModel.searchMentionUsers(conversation.account.source, query)
+            },
+            onClearMentionSearch = viewModel::clearMentionSearch,
+        )
+
         showSubmissions -> ThemeStoreSubmissionsScreen(
             accounts = state.accounts,
             themes = state.userThemes,
@@ -598,7 +634,17 @@ fun ThemeStoreScreen(
                 editingThemeBaseUrl = null
                 returnToSubmissions = false
                 viewModel.clearUploadState()
+                showMessages = false
                 showSubmissions = true
+            },
+            onOpenMessages = {
+                showUpload = false
+                showSubmissions = false
+                editingThemeId = null
+                editingThemeBaseUrl = null
+                returnToSubmissions = false
+                viewModel.clearUploadState()
+                showMessages = true
             },
             onOpenUpload = {
                 val preferred = viewModel.preferredUploadAccount()
@@ -855,6 +901,7 @@ private fun ThemeStoreMaterial(
     onOpenSettings: () -> Unit,
     onOpenAccount: () -> Unit,
     onOpenSubmissions: () -> Unit,
+    onOpenMessages: () -> Unit,
     onOpenUpload: () -> Unit,
     onInstallLocal: () -> Unit,
     onSelect: (ThemeStoreItem) -> Unit,
@@ -967,6 +1014,19 @@ private fun ThemeStoreMaterial(
                                 onClick = {
                                     menuExpanded = false
                                     onRefresh()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_messages_title)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.AutoMirrored.Rounded.Chat,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenMessages()
                                 },
                             )
                             DropdownMenuItem(
