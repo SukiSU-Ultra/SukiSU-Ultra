@@ -836,6 +836,12 @@
     <string name="theme_store_show_more">Show more</string>
     <string name="theme_store_show_less">Show less</string>
     <string name="theme_store_author_section">Theme author</string>
+    <string name="theme_store_author_view_all">View all</string>
+    <string name="theme_store_author_themes">%1$d themes</string>
+    <string name="theme_store_author_empty">No other themes from this author</string>
+    <string name="theme_store_more">More</string>
+    <string name="theme_store_tags">Tags</string>
+    <string name="theme_store_tag_all">All</string>
     <string name="theme_store_details">Details</string>
     <string name="theme_store_changelog">Changelog</string>
     <string name="theme_store_integrity_title">Integrity check</string>
@@ -886,7 +892,7 @@
     <string name="account_set_default_upload_source">Use for uploads</string>
     <string name="account_default_upload_source_current">Current upload source</string>
     <string name="theme_store_clear_search">Clear search</string>
-    <string name="theme_store_search_empty">No themes match your search</string>
+    <string name="theme_store_search_empty">No matching themes</string>
     <string name="theme_store_upload">Upload theme</string>
     <string name="theme_store_upload_title">Submit a theme</string>
     <string name="theme_store_upload_select_account">Choose a source to submit to</string>

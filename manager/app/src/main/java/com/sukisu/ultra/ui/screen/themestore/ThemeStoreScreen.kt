@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,11 +34,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.InstallMobile
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
@@ -50,15 +53,19 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallExtendedFloatingActionButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -69,6 +76,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -81,6 +89,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -141,10 +150,45 @@ fun ThemeStoreScreen(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var sortMode by rememberSaveable { mutableStateOf(ThemeStoreSort.DEFAULT) }
     var selectedItemKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val visibleItems = remember(state.items, searchQuery, sortMode) {
+    var selectedAuthor by rememberSaveable { mutableStateOf<String?>(null) }
+    var authorReturnItemKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var detailReturnAuthor by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedTags by rememberSaveable(
+        stateSaver = listSaver(
+            save = { it.toList() },
+            restore = { it.toSet() },
+        ),
+    ) { mutableStateOf(emptySet<String>()) }
+    var showAllTags by rememberSaveable { mutableStateOf(false) }
+    val allTags = remember(state.items) { state.items.popularThemeTags(Int.MAX_VALUE) }
+    val collapsedTags = remember(allTags, selectedTags) {
+        (allTags.take(18) + selectedTags).distinct()
+    }
+    val visibleTags = if (showAllTags) allTags else collapsedTags
+    val hasMoreTags = allTags.any { it !in collapsedTags }
+    LaunchedEffect(allTags) {
+        // Keep restored filters until the first catalog load actually provides a tag set.
+        if (allTags.isEmpty()) return@LaunchedEffect
+        if (selectedTags.isNotEmpty()) {
+            val canonical = allTags.associateBy { it.lowercase(Locale.ROOT) }
+            val pruned = selectedTags
+                .mapNotNull { canonical[it.trim().lowercase(Locale.ROOT)] }
+                .toSet()
+            if (pruned != selectedTags) selectedTags = pruned
+        }
+    }
+    val visibleItems = remember(state.items, searchQuery, sortMode, selectedTags) {
         state.items
             .filter { it.matchesSearch(searchQuery) }
+            .filterByThemeTags(selectedTags)
             .sortedFor(sortMode)
+    }
+    val authorItems = remember(state.items, selectedAuthor) {
+        selectedAuthor?.let { author ->
+            state.items
+                .forThemeAuthor(author)
+                .sortedWith(compareByDescending<ThemeStoreItem> { it.entry.updatedAt })
+        }.orEmpty()
     }
     val uploadAccount = state.accounts.firstOrNull {
         it.source.baseUrl == selectedUploadBaseUrl
@@ -171,8 +215,30 @@ fun ThemeStoreScreen(
         showUpload = true
     }
 
-    BackHandler(enabled = selectedItemKey != null && state.items.any { it.key == selectedItemKey }) {
+    fun openAuthor(item: ThemeStoreItem) {
+        val author = item.entry.author.trim()
+        if (author.isEmpty()) return
+        authorReturnItemKey = selectedItemKey
+        detailReturnAuthor = null
+        selectedAuthor = author
         selectedItemKey = null
+    }
+
+    fun closeAuthorPage() {
+        val returnKey = authorReturnItemKey
+        authorReturnItemKey = null
+        selectedAuthor = null
+        if (returnKey != null) {
+            detailReturnAuthor = null
+            selectedItemKey = returnKey
+        }
+    }
+
+    fun closeDetail() {
+        val returnToAuthor = detailReturnAuthor != null && selectedAuthor != null
+        selectedItemKey = null
+        detailReturnAuthor = null
+        if (!returnToAuthor) selectedAuthor = null
     }
 
     LaunchedEffect(showUpload, selectedUploadBaseUrl) {
@@ -297,8 +363,17 @@ fun ThemeStoreScreen(
     }
 
     val detailItem = selectedItemKey?.let { key -> state.items.firstOrNull { it.key == key } }
+    val currentAuthor = selectedAuthor
 
-    BackHandler(enabled = showUpload && detailItem == null) {
+    BackHandler(enabled = detailItem != null) {
+        closeDetail()
+    }
+
+    BackHandler(enabled = detailItem == null && currentAuthor != null) {
+        closeAuthorPage()
+    }
+
+    BackHandler(enabled = showUpload && detailItem == null && currentAuthor == null) {
         if (!state.submitting) {
             showUpload = false
             editingThemeId = null
@@ -308,7 +383,7 @@ fun ThemeStoreScreen(
         }
     }
 
-    BackHandler(enabled = showSubmissions && detailItem == null) {
+    BackHandler(enabled = showSubmissions && detailItem == null && currentAuthor == null) {
         showSubmissions = false
     }
 
@@ -316,10 +391,30 @@ fun ThemeStoreScreen(
         detailItem != null -> ThemeStoreDetailScreen(
             item = detailItem,
             state = state,
-            onBack = { selectedItemKey = null },
+            onBack = ::closeDetail,
             onDownload = viewModel::download,
             onTrial = { viewModel.download(it, trial = true) },
             onRefresh = { viewModel.load() },
+            onAuthorClick = ::openAuthor,
+            onOpenSettings = {
+                navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY)
+            },
+        )
+
+        currentAuthor != null -> ThemeStoreAuthorScreen(
+            author = currentAuthor,
+            items = authorItems,
+            state = state,
+            onBack = ::closeAuthorPage,
+            onSelect = { item ->
+                detailReturnAuthor = currentAuthor
+                selectedItemKey = item.key
+            },
+            onDownload = viewModel::download,
+            onRefresh = { viewModel.load() },
+            onOpenSettings = {
+                navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY)
+            },
         )
 
         showUpload && state.uploadResult != null -> ThemeStoreUploadResultScreen(
@@ -407,6 +502,15 @@ fun ThemeStoreScreen(
             visibleItems = visibleItems,
             searchQuery = searchQuery,
             onSearchQueryChange = { searchQuery = it },
+            availableTags = visibleTags,
+            allTagsExpanded = showAllTags,
+            hasMoreTags = hasMoreTags,
+            onToggleAllTags = { showAllTags = !showAllTags },
+            selectedTags = selectedTags,
+            onToggleTag = { tag ->
+                selectedTags = if (tag in selectedTags) selectedTags - tag else selectedTags + tag
+            },
+            onClearTags = { selectedTags = emptySet() },
             sortMode = sortMode,
             onSortChange = { sortMode = it },
             onBack = { navigator.pop() },
@@ -446,7 +550,13 @@ fun ThemeStoreScreen(
                     ),
                 )
             },
-            onSelect = { selectedItemKey = it.key },
+            onSelect = { item ->
+                selectedAuthor = null
+                detailReturnAuthor = null
+                authorReturnItemKey = null
+                selectedItemKey = item.key
+            },
+            onAuthorClick = ::openAuthor,
             onDownload = viewModel::download,
         )
     }
@@ -530,6 +640,63 @@ private fun ThemeStoreSortRow(
     }
 }
 
+@Composable
+private fun ThemeStoreTagRow(
+    tags: List<String>,
+    selected: Set<String>,
+    allTagsExpanded: Boolean,
+    hasMoreTags: Boolean,
+    onToggleAllTags: () -> Unit,
+    onToggle: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Surface(
+            shape = MaterialTheme.shapes.small,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            MaterialText(
+                text = stringResource(R.string.theme_store_tags),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ThemeSortChip(
+                selected = selected.isEmpty(),
+                onClick = onClear,
+                label = stringResource(R.string.theme_store_tag_all),
+            )
+            tags.forEach { tag ->
+                ThemeSortChip(
+                    selected = tag in selected,
+                    onClick = { onToggle(tag) },
+                    label = tag,
+                )
+            }
+            if (hasMoreTags || allTagsExpanded) {
+                ThemeSortChip(
+                    selected = false,
+                    onClick = onToggleAllTags,
+                    label = stringResource(
+                        if (allTagsExpanded) {
+                            R.string.theme_store_show_less
+                        } else {
+                            R.string.theme_store_show_more
+                        },
+                    ),
+                )
+            }
+        }
+    }
+}
+
 /**
  * MD3E filter chip with fully opaque containers so the label stays readable over a custom
  * background image.
@@ -549,12 +716,23 @@ private fun ThemeSortChip(
                 style = MaterialTheme.typography.labelLarge,
             )
         },
+        leadingIcon = if (selected) {
+            {
+                MaterialIcon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                )
+            }
+        } else {
+            null
+        },
         shapes = FilterChipDefaults.shapes(),
         colors = FilterChipDefaults.filterChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             labelColor = MaterialTheme.colorScheme.onSurface,
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
@@ -586,6 +764,13 @@ private fun ThemeStoreMaterial(
     visibleItems: List<ThemeStoreItem>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
+    availableTags: List<String>,
+    allTagsExpanded: Boolean,
+    hasMoreTags: Boolean,
+    onToggleAllTags: () -> Unit,
+    selectedTags: Set<String>,
+    onToggleTag: (String) -> Unit,
+    onClearTags: () -> Unit,
     sortMode: ThemeStoreSort,
     onSortChange: (ThemeStoreSort) -> Unit,
     onBack: () -> Unit,
@@ -596,12 +781,14 @@ private fun ThemeStoreMaterial(
     onOpenUpload: () -> Unit,
     onInstallLocal: () -> Unit,
     onSelect: (ThemeStoreItem) -> Unit,
+    onAuthorClick: (ThemeStoreItem) -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val pullToRefreshState = rememberPullToRefreshState()
     val refreshing = state.refreshing || (state.loading && state.loaded)
     val listState = rememberLazyListState()
+    var menuExpanded by remember { mutableStateOf(false) }
     val fabThreshold = with(LocalDensity.current) { 100.dp.toPx() }
     val fabExpanded by remember {
         var lastIndex = 0
@@ -669,24 +856,56 @@ private fun ThemeStoreMaterial(
                             contentDescription = stringResource(R.string.theme_store_upload),
                         )
                     }
-                    MaterialIconButton(
-                        onClick = onOpenSettings,
-                        colors = themeStoreTopBarIconColors(),
-                    ) {
-                        MaterialIcon(
-                            imageVector = Icons.Rounded.Settings,
-                            contentDescription = stringResource(R.string.theme_store_settings),
-                        )
-                    }
-                    MaterialIconButton(
-                        onClick = onRefresh,
-                        enabled = !state.needsConfig && !state.refreshing && !state.loading,
-                        colors = themeStoreTopBarIconColors(),
-                    ) {
-                        MaterialIcon(
-                            imageVector = Icons.Rounded.Refresh,
-                            contentDescription = stringResource(R.string.theme_store_refresh),
-                        )
+                    Box {
+                        MaterialIconButton(
+                            onClick = { menuExpanded = true },
+                            colors = themeStoreTopBarIconColors(),
+                        ) {
+                            MaterialIcon(
+                                imageVector = Icons.Rounded.MoreVert,
+                                contentDescription = stringResource(R.string.theme_store_more),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            shape = MaterialTheme.shapes.large,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 0.dp,
+                            shadowElevation = 3.dp,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            ),
+                        ) {
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_refresh)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Refresh,
+                                        contentDescription = null,
+                                    )
+                                },
+                                enabled = !state.needsConfig && !state.refreshing && !state.loading,
+                                onClick = {
+                                    menuExpanded = false
+                                    onRefresh()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_sources)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Settings,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenSettings()
+                                },
+                            )
+                        }
                     }
                 },
                 colors = expressiveTopAppBarColors(),
@@ -766,6 +985,19 @@ private fun ThemeStoreMaterial(
                             onQueryChange = onSearchQueryChange,
                         )
                     }
+                    if (availableTags.isNotEmpty() || selectedTags.isNotEmpty()) {
+                        item(key = "tags") {
+                            ThemeStoreTagRow(
+                                tags = availableTags,
+                                selected = selectedTags,
+                                allTagsExpanded = allTagsExpanded,
+                                hasMoreTags = hasMoreTags,
+                                onToggleAllTags = onToggleAllTags,
+                                onToggle = onToggleTag,
+                                onClear = onClearTags,
+                            )
+                        }
+                    }
                     item(key = "sort") {
                         ThemeStoreSortRow(
                             selected = sortMode,
@@ -790,7 +1022,7 @@ private fun ThemeStoreMaterial(
                     }
                     if (visibleItems.isEmpty()) {
                         item(key = "empty") {
-                            if (searchQuery.isBlank()) {
+                            if (searchQuery.isBlank() && selectedTags.isEmpty()) {
                                 ThemeStoreEmptyMaterial(onRefresh = onRefresh, onUpload = onOpenUpload)
                             } else {
                                 ThemeStoreSearchEmptyMaterial()
@@ -802,6 +1034,7 @@ private fun ThemeStoreMaterial(
                                 item = item,
                                 state = state,
                                 onSelect = onSelect,
+                                onAuthorClick = onAuthorClick,
                                 onDownload = onDownload,
                                 modifier = Modifier.animateItem(
                                     fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
@@ -825,24 +1058,21 @@ private fun ThemeStoreMaterial(
 }
 
 @Composable
-private fun ThemeCardMaterial(
+internal fun ThemeCardMaterial(
     item: ThemeStoreItem,
     state: ThemeStoreUiState,
     onSelect: (ThemeStoreItem) -> Unit,
+    onAuthorClick: ((ThemeStoreItem) -> Unit)? = null,
     onDownload: (ThemeStoreItem) -> Unit,
+    sourceLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val entry = item.entry
     val downloading = state.downloadingKey == item.key
     val date = entry.updatedAt.substringBefore('T').replace('-', '/')
-    val byline = buildString {
-        if (entry.author.isNotBlank()) {
-            append(entry.author)
-        }
-        if (date.isNotBlank()) {
-            if (isNotEmpty()) append(" · ")
-            append(date)
-        }
+    val primaryLabel = sourceLabel ?: entry.author
+    val authorClick = onAuthorClick?.takeIf {
+        sourceLabel == null && entry.author.isNotBlank()
     }
     val textShadow = Shadow(
         color = Color.Black.copy(alpha = 0.6f),
@@ -906,15 +1136,45 @@ private fun ThemeCardMaterial(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                if (byline.isNotBlank()) {
-                    MaterialText(
-                        text = byline,
-                        style = MaterialTheme.typography.labelSmall.copy(shadow = textShadow),
-                        color = Color.White.copy(alpha = 0.9f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                if (primaryLabel.isNotBlank() || date.isNotBlank()) {
+                    Row(
                         modifier = Modifier.widthIn(max = 140.dp),
-                    )
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (primaryLabel.isNotBlank()) {
+                            MaterialText(
+                                text = primaryLabel,
+                                style = MaterialTheme.typography.labelSmall.copy(shadow = textShadow),
+                                color = Color.White.copy(alpha = 0.9f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textDecoration = if (authorClick != null) {
+                                    TextDecoration.Underline
+                                } else {
+                                    TextDecoration.None
+                                },
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .then(
+                                        if (authorClick != null) {
+                                            Modifier
+                                                .minimumInteractiveComponentSize()
+                                                .clickable { authorClick(item) }
+                                        } else {
+                                            Modifier
+                                        },
+                                    ),
+                            )
+                        }
+                        if (date.isNotBlank()) {
+                            MaterialText(
+                                text = if (primaryLabel.isNotBlank()) " · $date" else date,
+                                style = MaterialTheme.typography.labelSmall.copy(shadow = textShadow),
+                                color = Color.White.copy(alpha = 0.9f),
+                                maxLines = 1,
+                            )
+                        }
+                    }
                 }
                 Button(
                     onClick = { onDownload(item) },

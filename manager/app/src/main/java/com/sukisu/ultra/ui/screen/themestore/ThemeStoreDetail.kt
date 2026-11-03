@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen.themestore
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -32,15 +33,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.IconButton as MaterialIconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -88,8 +94,11 @@ internal fun ThemeStoreDetailScreen(
     onDownload: (ThemeStoreItem) -> Unit,
     onTrial: (ThemeStoreItem) -> Unit,
     onRefresh: () -> Unit,
+    onAuthorClick: (ThemeStoreItem) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val entry = item.entry
+    var menuExpanded by remember { mutableStateOf(false) }
     val compatible = entry.isCompatible()
     val busy = state.downloadingKey != null
     val downloading = state.downloadingKey == item.key
@@ -129,23 +138,58 @@ internal fun ThemeStoreDetailScreen(
         topBar = {
             MaterialTopAppBar(
                 title = { MaterialText(stringResource(R.string.theme_store_details)) },
-                subtitle = {
-                    MaterialText(
-                        text = sourceName,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 actions = {
-                    MaterialIconButton(
-                        onClick = onRefresh,
-                        colors = themeStoreTopBarIconColors(),
-                    ) {
-                        MaterialIcon(
-                            imageVector = Icons.Rounded.Refresh,
-                            contentDescription = stringResource(R.string.theme_store_refresh),
-                        )
+                    Box {
+                        MaterialIconButton(
+                            onClick = { menuExpanded = true },
+                            colors = themeStoreTopBarIconColors(),
+                        ) {
+                            MaterialIcon(
+                                imageVector = Icons.Rounded.MoreVert,
+                                contentDescription = stringResource(R.string.theme_store_more),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            shape = MaterialTheme.shapes.large,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 0.dp,
+                            shadowElevation = 3.dp,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            ),
+                        ) {
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_refresh)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Refresh,
+                                        contentDescription = null,
+                                    )
+                                },
+                                enabled = !state.loading && !state.refreshing,
+                                onClick = {
+                                    menuExpanded = false
+                                    onRefresh()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_sources)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Settings,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenSettings()
+                                },
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -249,8 +293,10 @@ internal fun ThemeStoreDetailScreen(
                                 append(" · ")
                                 append(formatBytes(entry.size))
                             }
-                            append(" · ")
-                            append(sourceName)
+                            if (state.sources.size > 1) {
+                                append(" · ")
+                                append(sourceName)
+                            }
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -365,6 +411,7 @@ internal fun ThemeStoreDetailScreen(
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 8.dp),
                     ) {
                         Surface(
+                            onClick = { onAuthorClick(item) },
                             shape = MaterialTheme.shapes.medium,
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ) {
@@ -402,6 +449,21 @@ internal fun ThemeStoreDetailScreen(
                                 MaterialText(
                                     text = entry.author,
                                     style = MaterialTheme.typography.bodyLarge,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                MaterialText(
+                                    text = stringResource(R.string.theme_store_author_view_all),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                MaterialIcon(
+                                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp),
                                 )
                             }
                         }
@@ -589,7 +651,7 @@ internal fun ThemeBannerImage(
     )
 }
 
-private fun themeImageRequest(context: android.content.Context, url: String, token: String): ImageRequest =
+internal fun themeImageRequest(context: android.content.Context, url: String, token: String): ImageRequest =
     ImageRequest.Builder(context)
         .data(url)
         .crossfade(true)
