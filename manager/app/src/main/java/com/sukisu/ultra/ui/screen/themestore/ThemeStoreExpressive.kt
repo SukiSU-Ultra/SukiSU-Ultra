@@ -142,9 +142,26 @@ internal fun ThemeStoreTag(text: String) {
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     ) {
         Text(
-            text = text,
+            text = themeTagLabel(text),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+    }
+}
+
+/** Compact badge used on preview cards, detail headers and the upload form. */
+@Composable
+internal fun AdaptiveThemeBadge(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f),
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Text(
+            text = stringResource(R.string.theme_adaptive_title),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         )
     }
 }

@@ -227,12 +227,22 @@ internal fun ThemeStoreDetailScreen(
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp, top = 18.dp),
                 ) {
-                    MaterialText(
-                        text = entry.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        MaterialText(
+                            text = entry.name,
+                            style = MaterialTheme.typography.headlineSmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (item.isAdaptiveTheme()) {
+                            AdaptiveThemeBadge()
+                        }
+                    }
                     if (compatible) {
                         Spacer(Modifier.height(12.dp))
                         Row(

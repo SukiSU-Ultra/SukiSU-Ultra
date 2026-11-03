@@ -12,6 +12,7 @@ import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.theme.ThemeController
+import com.sukisu.ultra.ui.util.AdaptiveThemeStore
 import com.sukisu.ultra.ui.util.ImageStorage
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
@@ -112,6 +113,18 @@ class MainActivityViewModel(
         }
     }
 
+    /**
+     * Applies the light or dark half of an active adaptive theme when the system mode changes.
+     * The marker in AdaptiveThemeStore keeps this a no-op while the applied half is current.
+     */
+    fun syncAdaptiveTheme(dark: Boolean) {
+        viewModelScope.launch {
+            if (AdaptiveThemeStore.sync(settingRepo, dark)) {
+                _uiState.value = readUiState()
+            }
+        }
+    }
+
     private fun readUiState(): MainActivityUiState {
         val useSystemWallpaper = settingRepo.useSystemWallpaper
         val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
@@ -178,6 +191,12 @@ class MainActivityViewModel(
             KEY_COLOR_PENDING,
             "ui_mode",
             "custom_texts",
+            "adaptive_theme",
+            "adaptive_applied_mode",
+            "home_card_image_path",
+            "home_card_stickers",
+            "hide_home_card_status_text",
+            "hide_home_card_decoration",
         )
     }
 }

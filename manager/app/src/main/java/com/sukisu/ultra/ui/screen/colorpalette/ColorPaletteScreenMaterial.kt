@@ -1103,7 +1103,28 @@ fun ColorPaletteScreenMaterial(
                     item {
                         SegmentedSectionHeader(
                             title = stringResource(R.string.settings_section_theme_package),
-                            summary = stringResource(R.string.settings_section_theme_package_summary),
+                            summary = when {
+                                state.adaptiveDraftComplete ->
+                                    stringResource(R.string.theme_adaptive_draft_ready)
+
+                                state.adaptiveThemeActive && !state.currentColorMode.isSystem ->
+                                    stringResource(
+                                        R.string.theme_adaptive_active_forced,
+                                        stringResource(
+                                            if (state.currentColorMode.isDark) {
+                                                R.string.theme_adaptive_mode_dark
+                                            } else {
+                                                R.string.theme_adaptive_mode_light
+                                            },
+                                        ),
+                                    )
+
+                                state.adaptiveThemeActive ->
+                                    stringResource(R.string.theme_adaptive_active)
+
+                                else ->
+                                    stringResource(R.string.settings_section_theme_package_summary)
+                            },
                             icon = Icons.Rounded.Palette,
                             expanded = themePackageSectionExpanded,
                             onClick = {
@@ -1162,6 +1183,19 @@ fun ColorPaletteScreenMaterial(
                             headlineContent = { Text(stringResource(id = R.string.theme_export)) },
                             supportingContent = { Text(stringResource(id = R.string.theme_export_summary)) },
                             leadingContent = { IconTile(Icons.Rounded.FileUpload, stringResource(id = R.string.theme_export)) },
+                        )
+                    }
+                    item(visible = themePackageSectionExpanded) {
+                        SegmentedListItem(
+                            onClick = actions.onOpenAdaptiveThemeBuilder,
+                            headlineContent = { Text(stringResource(id = R.string.theme_adaptive_builder_title)) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_adaptive_builder_summary)) },
+                            leadingContent = {
+                                IconTile(
+                                    Icons.Rounded.AutoAwesome,
+                                    stringResource(id = R.string.theme_adaptive_builder_title),
+                                )
+                            },
                         )
                     }
                 }
@@ -1436,6 +1470,7 @@ fun ColorPaletteScreenMaterial(
             pendingExportOptions = options
             exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
         },
+        adaptive = state.adaptiveThemeActive || state.adaptiveDraftComplete,
     )
 }
 

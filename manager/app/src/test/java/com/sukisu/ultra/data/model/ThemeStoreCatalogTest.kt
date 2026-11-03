@@ -4,6 +4,7 @@ import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ThemeStoreCatalogTest {
@@ -26,6 +27,7 @@ class ThemeStoreCatalogTest {
                   "author": "Neko",
                   "description": "Test",
                   "tags": ["light", "pink"],
+                  "adaptive": true,
                   "minManagerVersion": 41131,
                   "formatVersion": 1,
                   "size": 16,
@@ -42,6 +44,7 @@ class ThemeStoreCatalogTest {
         assertEquals("pink-bow", theme.id)
         assertEquals(3, theme.version)
         assertEquals(listOf("light", "pink"), theme.tags)
+        assertTrue(theme.adaptive)
         assertEquals(16L, theme.size)
     }
 

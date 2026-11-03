@@ -15,6 +15,7 @@ import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.theme.ColorMode
+import com.sukisu.ultra.ui.util.AdaptiveThemeStore
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.ImageStorage
@@ -288,6 +289,7 @@ object AiThemeController : AiThemeService {
             backgroundFile = currentBackgroundFile(),
             cardBackgroundFile = currentHomeCardFile(),
             cardStickerFiles = currentStickerFiles(),
+            adaptive = AdaptiveThemeStore.exportPayload(repo),
         ).getOrThrow()
         "Theme package exported to the selected location."
     }
@@ -300,6 +302,7 @@ object AiThemeController : AiThemeService {
             backgroundFile = currentBackgroundFile(),
             cardBackgroundFile = currentHomeCardFile(),
             cardStickerFiles = currentStickerFiles(),
+            adaptive = AdaptiveThemeStore.exportPayload(repo),
         ).getOrThrow()
         val uri = FileProvider.getUriForFile(
             ksuApp,

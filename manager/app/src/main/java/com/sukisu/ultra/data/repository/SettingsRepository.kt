@@ -45,6 +45,12 @@ interface SettingsRepository {
     /** Hide the check icon (Miuix) or ring decoration (Material) on the home status card. */
     var hideHomeCardDecoration: Boolean
     var homeCardStickers: List<HomeCardSticker>
+    /** Serialized light/dark halves of the active adaptive theme; blank when none is active. */
+    var adaptiveThemeJson: String
+    /** Which adaptive half is currently applied: -1 none, 0 light, 1 dark. */
+    var adaptiveAppliedMode: Int
+    /** Serialized light/dark capture used by the in-app adaptive theme builder. */
+    var adaptiveDraftJson: String
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean

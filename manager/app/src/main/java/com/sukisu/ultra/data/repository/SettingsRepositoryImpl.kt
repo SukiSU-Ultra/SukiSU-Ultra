@@ -35,6 +35,9 @@ internal const val KEY_HOME_CARD_IMAGE_PATH = "home_card_image_path"
 internal const val KEY_HIDE_HOME_CARD_STATUS_TEXT = "hide_home_card_status_text"
 internal const val KEY_HIDE_HOME_CARD_DECORATION = "hide_home_card_decoration"
 internal const val KEY_HOME_CARD_STICKERS = "home_card_stickers"
+internal const val KEY_ADAPTIVE_THEME = "adaptive_theme"
+internal const val KEY_ADAPTIVE_APPLIED_MODE = "adaptive_applied_mode"
+internal const val KEY_ADAPTIVE_DRAFT = "adaptive_theme_draft"
 
 /** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
 fun isSoftRebootPreferred(): Boolean =
@@ -202,6 +205,18 @@ class SettingsRepositoryImpl : SettingsRepository {
             val jsonStr = Json.encodeToString(value.take(HomeCardSticker.MAX_COUNT))
             prefs.edit { putString(KEY_HOME_CARD_STICKERS, jsonStr) }
         }
+
+    override var adaptiveThemeJson: String
+        get() = prefs.getString(KEY_ADAPTIVE_THEME, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_ADAPTIVE_THEME, value) }
+
+    override var adaptiveAppliedMode: Int
+        get() = prefs.getInt(KEY_ADAPTIVE_APPLIED_MODE, -1)
+        set(value) = prefs.edit { putInt(KEY_ADAPTIVE_APPLIED_MODE, value) }
+
+    override var adaptiveDraftJson: String
+        get() = prefs.getString(KEY_ADAPTIVE_DRAFT, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_ADAPTIVE_DRAFT, value) }
 
     override var uiMode: String
         get() = prefs.getString("ui_mode", null) ?: initialUiMode().also { mode ->

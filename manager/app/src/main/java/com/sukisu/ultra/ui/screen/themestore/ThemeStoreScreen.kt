@@ -93,6 +93,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
@@ -134,6 +136,7 @@ private fun List<ThemeStoreItem>.sortedFor(mode: ThemeStoreSort): List<ThemeStor
 @Composable
 fun ThemeStoreScreen(
     viewModel: ThemeStoreViewModel = viewModel(),
+    startAdaptiveUpload: Boolean = false,
 ) {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
@@ -143,6 +146,9 @@ fun ThemeStoreScreen(
     var showUpload by rememberSaveable { mutableStateOf(false) }
     var showSubmissions by rememberSaveable { mutableStateOf(false) }
     var showAccountPicker by rememberSaveable { mutableStateOf(false) }
+    var pendingAdaptiveTheme by rememberSaveable { mutableStateOf(false) }
+    var adaptiveUploadHandled by rememberSaveable(startAdaptiveUpload) { mutableStateOf(false) }
+    var adaptiveAccountRedirected by rememberSaveable(startAdaptiveUpload) { mutableStateOf(false) }
     var selectedUploadBaseUrl by rememberSaveable { mutableStateOf<String?>(null) }
     var editingThemeId by rememberSaveable { mutableStateOf<String?>(null) }
     var editingThemeBaseUrl by rememberSaveable { mutableStateOf<String?>(null) }
@@ -170,16 +176,23 @@ fun ThemeStoreScreen(
         // Keep restored filters until the first catalog load actually provides a tag set.
         if (allTags.isEmpty()) return@LaunchedEffect
         if (selectedTags.isNotEmpty()) {
-            val canonical = allTags.associateBy { it.lowercase(Locale.ROOT) }
+            val canonical = allTags.associateBy { canonicalThemeTag(it) }
             val pruned = selectedTags
-                .mapNotNull { canonical[it.trim().lowercase(Locale.ROOT)] }
+                .mapNotNull { canonical[canonicalThemeTag(it)] }
                 .toSet()
             if (pruned != selectedTags) selectedTags = pruned
         }
     }
-    val visibleItems = remember(state.items, searchQuery, sortMode, selectedTags) {
+    val adaptiveSearchLabel = stringResource(R.string.theme_adaptive_tag)
+    val visibleItems = remember(
+        state.items,
+        searchQuery,
+        sortMode,
+        selectedTags,
+        adaptiveSearchLabel,
+    ) {
         state.items
-            .filter { it.matchesSearch(searchQuery) }
+            .filter { it.matchesSearch(searchQuery, adaptiveSearchLabel) }
             .filterByThemeTags(selectedTags)
             .sortedFor(sortMode)
     }
@@ -187,7 +200,7 @@ fun ThemeStoreScreen(
         selectedAuthor?.let { author ->
             state.items
                 .forThemeAuthor(author)
-                .sortedWith(compareByDescending<ThemeStoreItem> { it.entry.updatedAt })
+                .sortedWith(compareByDescending { it.entry.updatedAt })
         }.orEmpty()
     }
     val uploadAccount = state.accounts.firstOrNull {
@@ -213,6 +226,32 @@ fun ThemeStoreScreen(
         returnToSubmissions = false
         viewModel.clearUploadState()
         showUpload = true
+    }
+
+    // Entered from the adaptive theme builder: pick an account and open the upload form with the
+    // adaptive package generated on demand instead of asking for a file again.
+    LaunchedEffect(startAdaptiveUpload, state.loaded, state.accounts) {
+        if (!startAdaptiveUpload || adaptiveUploadHandled) return@LaunchedEffect
+        if (!state.loaded) return@LaunchedEffect
+        if (state.needsConfig) return@LaunchedEffect
+        if (!settingsViewModel.hasAdaptiveThemeForUpload()) return@LaunchedEffect
+        val accounts = state.accounts
+        if (accounts.isEmpty()) {
+            if (!adaptiveAccountRedirected) {
+                adaptiveAccountRedirected = true
+                navigator.navigateTo(Route.ThemeAccount())
+            }
+            return@LaunchedEffect
+        }
+        pendingAdaptiveTheme = true
+        adaptiveUploadHandled = true
+        // Returning from the account page after login should land directly on the upload form.
+        if (navigator.current() is Route.ThemeAccount) navigator.pop()
+        if (accounts.size == 1) {
+            openUpload(accounts.single())
+        } else {
+            showAccountPicker = true
+        }
     }
 
     fun openAuthor(item: ThemeStoreItem) {
@@ -244,6 +283,12 @@ fun ThemeStoreScreen(
     LaunchedEffect(showUpload, selectedUploadBaseUrl) {
         val baseUrl = selectedUploadBaseUrl
         if (showUpload && baseUrl != null) viewModel.loadUploadOptions(baseUrl)
+    }
+
+    // The account page can log in, log out or switch the active author while the store entry
+    // stays alive in the back stack, so re-read its sessions whenever the store is resumed.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.refreshAccounts()
     }
 
     LaunchedEffect(showSubmissions) {
@@ -344,6 +389,7 @@ fun ThemeStoreScreen(
                 MaterialTextButton(
                     onClick = {
                         showAccountPicker = false
+                        if (startAdaptiveUpload) adaptiveUploadHandled = false
                         navigator.navigateTo(Route.ThemeAccount())
                     },
                     shapes = ButtonDefaults.shapes(),
@@ -421,6 +467,7 @@ fun ThemeStoreScreen(
             result = state.uploadResult!!,
             onDone = {
                 showUpload = false
+                pendingAdaptiveTheme = false
                 editingThemeId = null
                 editingThemeBaseUrl = null
                 showSubmissions = returnToSubmissions
@@ -434,6 +481,7 @@ fun ThemeStoreScreen(
             accountSession = uploadAccount.session,
             autoThemeId = state.uploadThemeId,
             editingTheme = editingTheme,
+            initialAdaptiveTheme = pendingAdaptiveTheme,
             optionsLoading = state.uploadOptionsLoading,
             optionsError = state.uploadOptionsError,
             uploadPhase = state.uploadPhase,
@@ -443,6 +491,7 @@ fun ThemeStoreScreen(
             onBack = {
                 if (!state.submitting) {
                     showUpload = false
+                    pendingAdaptiveTheme = false
                     editingThemeId = null
                     editingThemeBaseUrl = null
                     showSubmissions = returnToSubmissions
@@ -460,6 +509,7 @@ fun ThemeStoreScreen(
             },
             onSubmit = { input -> viewModel.submit(input, uploadSource) },
             onExportCurrentPreset = { settingsViewModel.createCurrentThemePackage(context).getOrNull() },
+            onLoadAdaptiveTheme = { settingsViewModel.createAdaptiveThemePackage(context).getOrNull() },
         )
 
         showSubmissions -> ThemeStoreSubmissionsScreen(
@@ -677,7 +727,7 @@ private fun ThemeStoreTagRow(
                 ThemeSortChip(
                     selected = tag in selected,
                     onClick = { onToggle(tag) },
-                    label = tag,
+                    label = themeTagLabel(tag),
                 )
             }
             if (hasMoreTags || allTagsExpanded) {
@@ -1062,10 +1112,10 @@ internal fun ThemeCardMaterial(
     item: ThemeStoreItem,
     state: ThemeStoreUiState,
     onSelect: (ThemeStoreItem) -> Unit,
-    onAuthorClick: ((ThemeStoreItem) -> Unit)? = null,
     onDownload: (ThemeStoreItem) -> Unit,
-    sourceLabel: String? = null,
     modifier: Modifier = Modifier,
+    onAuthorClick: ((ThemeStoreItem) -> Unit)? = null,
+    sourceLabel: String? = null,
 ) {
     val entry = item.entry
     val downloading = state.downloadingKey == item.key
@@ -1120,6 +1170,13 @@ internal fun ThemeCardMaterial(
                         ),
                     ),
             )
+            if (item.isAdaptiveTheme()) {
+                AdaptiveThemeBadge(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp),
+                )
+            }
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomStart)

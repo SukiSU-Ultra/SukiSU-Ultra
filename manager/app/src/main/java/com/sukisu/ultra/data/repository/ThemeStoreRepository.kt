@@ -706,6 +706,10 @@ class ThemeStoreRepository(
                 // is not covered by the theme_import_* temporary-file rule above.
                 file.name == "theme_upload_preset.sukisu" &&
                     file.isOlderThan(day, now) -> runCatching { file.delete() }
+
+                file.name.startsWith("theme_upload_adaptive_") &&
+                    file.name.endsWith(".sukisu") &&
+                    file.isOlderThan(day, now) -> runCatching { file.delete() }
             }
         }
         cacheDir.parentFile?.listFiles()?.forEach { file ->

@@ -26,6 +26,8 @@ data class ThemeStoreEntry(
     val author: String = "",
     val description: String = "",
     val tags: List<String> = emptyList(),
+    /** The package carries separate light and dark halves; mirrors may also expose it as a tag. */
+    val adaptive: Boolean = false,
     val license: String = "",
     val minManagerVersion: Long = 0L,
     val formatVersion: Int = 1,

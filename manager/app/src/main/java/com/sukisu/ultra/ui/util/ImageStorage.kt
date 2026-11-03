@@ -28,6 +28,18 @@ object ImageStorage {
     private const val SYSTEM_WALLPAPER_FILE_NAME = "system_wallpaper"
     private const val HOME_CARD_PREFIX = "home_card_image"
     private const val HOME_CARD_STICKER_PREFIX = "home_card_sticker"
+    private const val ADAPTIVE_BACKGROUND_LIGHT = "adaptive_bg_light"
+    private const val ADAPTIVE_BACKGROUND_DARK = "adaptive_bg_dark"
+    private const val ADAPTIVE_CARD_LIGHT_PREFIX = "adaptive_card_light_"
+    private const val ADAPTIVE_CARD_DARK_PREFIX = "adaptive_card_dark_"
+    private const val ADAPTIVE_STICKER_LIGHT_PREFIX = "adaptive_sticker_light_"
+    private const val ADAPTIVE_STICKER_DARK_PREFIX = "adaptive_sticker_dark_"
+    private const val ADAPTIVE_DRAFT_BACKGROUND_LIGHT = "adaptive_draft_bg_light"
+    private const val ADAPTIVE_DRAFT_BACKGROUND_DARK = "adaptive_draft_bg_dark"
+    private const val ADAPTIVE_DRAFT_CARD_LIGHT_PREFIX = "adaptive_draft_card_light_"
+    private const val ADAPTIVE_DRAFT_CARD_DARK_PREFIX = "adaptive_draft_card_dark_"
+    private const val ADAPTIVE_DRAFT_STICKER_LIGHT_PREFIX = "adaptive_draft_sticker_light_"
+    private const val ADAPTIVE_DRAFT_STICKER_DARK_PREFIX = "adaptive_draft_sticker_dark_"
     private const val SYSTEM_WALLPAPER_SIGNATURE_FILE_NAME = "system_wallpaper.sig"
     private const val MAX_SYSTEM_WALLPAPER_PIXELS = 150_000_000L
     private const val MAX_WALLPAPER_VALIDATION_DIMENSION = 1024
@@ -508,6 +520,158 @@ object ImageStorage {
                 ?.forEach { it.delete() }
             target.absolutePath
         }.getOrNull()
+    }
+
+    private fun adaptiveBackgroundName(dark: Boolean, draft: Boolean): String = when {
+        draft && dark -> ADAPTIVE_DRAFT_BACKGROUND_DARK
+        draft -> ADAPTIVE_DRAFT_BACKGROUND_LIGHT
+        dark -> ADAPTIVE_BACKGROUND_DARK
+        else -> ADAPTIVE_BACKGROUND_LIGHT
+    }
+
+    private fun adaptiveCardPrefix(dark: Boolean, draft: Boolean): String = when {
+        draft && dark -> ADAPTIVE_DRAFT_CARD_DARK_PREFIX
+        draft -> ADAPTIVE_DRAFT_CARD_LIGHT_PREFIX
+        dark -> ADAPTIVE_CARD_DARK_PREFIX
+        else -> ADAPTIVE_CARD_LIGHT_PREFIX
+    }
+
+    private fun adaptiveStickerPrefix(dark: Boolean, draft: Boolean): String = when {
+        draft && dark -> ADAPTIVE_DRAFT_STICKER_DARK_PREFIX
+        draft -> ADAPTIVE_DRAFT_STICKER_LIGHT_PREFIX
+        dark -> ADAPTIVE_STICKER_DARK_PREFIX
+        else -> ADAPTIVE_STICKER_LIGHT_PREFIX
+    }
+
+    /**
+     * Adaptive themes keep one background per system mode. The files live beside the normal
+     * background but use their own names so a manual background change cannot delete them.
+     * [draft] uses a separate slot set for the in-app builder, so capturing a draft never
+     * overwrites the theme that is currently applied.
+     */
+    suspend fun replaceAdaptiveBackground(
+        context: Context,
+        source: File,
+        dark: Boolean,
+        draft: Boolean = false,
+    ): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val target = File(backgroundsDir(context), adaptiveBackgroundName(dark, draft))
+            if (!source.renameTo(target)) {
+                source.inputStream().use { input ->
+                    target.outputStream().use { output -> input.copyTo(output) }
+                }
+            }
+            if (target.length() == 0L) {
+                target.delete()
+                return@runCatching null
+            }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    suspend fun clearAdaptiveBackground(
+        context: Context,
+        dark: Boolean,
+        draft: Boolean = false,
+    ) = withContext(Dispatchers.IO) {
+        val file = File(backgroundsDir(context), adaptiveBackgroundName(dark, draft))
+        if (file.isFile) file.delete()
+    }
+
+    /** Adaptive card image keeps a timestamped name per mode so Coil never reuses the old bitmap. */
+    suspend fun replaceAdaptiveHomeCardImage(
+        context: Context,
+        source: File,
+        dark: Boolean,
+        draft: Boolean = false,
+    ): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val dir = backgroundsDir(context)
+            val prefix = adaptiveCardPrefix(dark, draft)
+            val target = File(dir, prefix + System.currentTimeMillis())
+            if (!source.renameTo(target)) {
+                source.inputStream().use { input ->
+                    target.outputStream().use { output -> input.copyTo(output) }
+                }
+            }
+            if (target.length() == 0L) {
+                target.delete()
+                return@runCatching null
+            }
+            dir.listFiles { file -> file.name.startsWith(prefix) && file != target }
+                ?.forEach { it.delete() }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    suspend fun clearAdaptiveHomeCardImage(
+        context: Context,
+        dark: Boolean,
+        draft: Boolean = false,
+    ) = withContext(Dispatchers.IO) {
+        val prefix = adaptiveCardPrefix(dark, draft)
+        backgroundsDir(context)
+            .listFiles { file -> file.name.startsWith(prefix) }
+            ?.forEach { it.delete() }
+    }
+
+    /** Moves one adaptive sticker into its light or dark slot. */
+    suspend fun importAdaptiveHomeCardSticker(
+        context: Context,
+        source: File,
+        dark: Boolean,
+        index: Int,
+        draft: Boolean = false,
+    ): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val dir = backgroundsDir(context)
+            val prefix = adaptiveStickerPrefix(dark, draft)
+            val target = File(
+                dir,
+                prefix + index + "_" + System.currentTimeMillis() + "_" + System.nanoTime(),
+            )
+            if (!source.renameTo(target)) {
+                source.inputStream().use { input ->
+                    target.outputStream().use { output -> input.copyTo(output) }
+                }
+            }
+            if (target.length() == 0L) {
+                target.delete()
+                return@runCatching null
+            }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    suspend fun clearAdaptiveHomeCardStickers(
+        context: Context,
+        dark: Boolean,
+        draft: Boolean = false,
+    ) = withContext(Dispatchers.IO) {
+        val prefix = adaptiveStickerPrefix(dark, draft)
+        backgroundsDir(context)
+            .listFiles { file -> file.name.startsWith(prefix) }
+            ?.forEach { it.delete() }
+    }
+
+    /** Removes every adaptive image slot, including builder drafts. */
+    suspend fun clearAdaptiveImages(context: Context) = withContext(Dispatchers.IO) {
+        val dir = backgroundsDir(context)
+        dir.listFiles { file ->
+            file.name == ADAPTIVE_BACKGROUND_LIGHT ||
+                file.name == ADAPTIVE_BACKGROUND_DARK ||
+                file.name == ADAPTIVE_DRAFT_BACKGROUND_LIGHT ||
+                file.name == ADAPTIVE_DRAFT_BACKGROUND_DARK ||
+                file.name.startsWith(ADAPTIVE_CARD_LIGHT_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_CARD_DARK_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_DRAFT_CARD_LIGHT_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_DRAFT_CARD_DARK_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_STICKER_LIGHT_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_STICKER_DARK_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_DRAFT_STICKER_LIGHT_PREFIX) ||
+                file.name.startsWith(ADAPTIVE_DRAFT_STICKER_DARK_PREFIX)
+        }?.forEach { it.delete() }
     }
 
     /**

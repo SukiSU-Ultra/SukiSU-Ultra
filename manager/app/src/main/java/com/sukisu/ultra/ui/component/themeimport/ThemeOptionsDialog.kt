@@ -55,6 +55,8 @@ fun ThemeOptionsDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
     formatVersion: Int? = null,
+    adaptive: Boolean = false,
+    adaptiveNotice: Int = R.string.theme_adaptive_import_notice,
     forceMaterial: Boolean = false,
 ) {
     if (!show) return
@@ -124,6 +126,13 @@ fun ThemeOptionsDialog(
                         if (formatVersion != null) {
                             Text(
                                 text = stringResource(R.string.theme_package_format_version, formatVersion),
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.primary,
+                            )
+                        }
+                        if (adaptive) {
+                            Text(
+                                text = stringResource(adaptiveNotice),
                                 style = MiuixTheme.textStyles.body2,
                                 color = MiuixTheme.colorScheme.primary,
                             )
@@ -246,6 +255,14 @@ fun ThemeOptionsDialog(
                             )
                         } else {
                             Spacer(Modifier.height(12.dp))
+                        }
+                        if (adaptive) {
+                            MaterialText(
+                                text = stringResource(adaptiveNotice),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = 12.dp),
+                            )
                         }
                         MaterialOptionGroupLabel(stringResource(R.string.settings_section_colors))
                         MaterialCheckboxRow(

@@ -67,6 +67,11 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ThemeStore : Route
 
+    /** Opens the store directly on the submission form with the saved adaptive theme preselected. */
+    @Parcelize
+    @Serializable
+    data object ThemeStoreAdaptiveUpload : Route
+
     /** Full-page theme source configuration: default source, extra sources and endpoints. */
     @Parcelize
     @Serializable
@@ -76,6 +81,11 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data class ThemeAccount(val tab: String? = null) : Route
+
+    /** In-app builder that captures a light and a dark appearance into one adaptive package. */
+    @Parcelize
+    @Serializable
+    data object AdaptiveThemeBuilder : Route
 
     /** Launcher icon picker and icon pack manager. */
     @Parcelize

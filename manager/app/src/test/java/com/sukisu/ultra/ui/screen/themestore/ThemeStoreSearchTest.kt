@@ -49,4 +49,16 @@ class ThemeStoreSearchTest {
         assertFalse(item.matchesSearch("dark"))
         assertFalse(item.matchesSearch("pink missing"))
     }
+
+    @Test
+    fun adaptiveFlagMatchesTheLocalizedLabelWithoutATag() {
+        val adaptive = item.copy(
+            entry = item.entry.copy(
+                tags = emptyList(),
+                adaptive = true,
+            ),
+        )
+        assertTrue(adaptive.matchesSearch("自适应", "自适应主题"))
+        assertTrue(adaptive.matchesSearch("adaptive", "自适应主题"))
+    }
 }

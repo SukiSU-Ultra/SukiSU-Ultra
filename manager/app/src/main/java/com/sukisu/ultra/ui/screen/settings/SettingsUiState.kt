@@ -114,6 +114,14 @@ data class SettingsUiState(
 
     val pendingImportTheme: com.sukisu.ultra.ui.util.ImportedTheme? = null,
     val showThemeImportDialog: Boolean = false,
+    /** An adaptive theme is bound to the system light/dark switch. */
+    val adaptiveThemeActive: Boolean = false,
+    /** In-app builder: which halves have been captured, and whether both are ready to export. */
+    val adaptiveDraftLightCaptured: Boolean = false,
+    val adaptiveDraftDarkCaptured: Boolean = false,
+    val adaptiveDraftComplete: Boolean = false,
+    /** Bumped whenever the draft is re-read, so previews can refresh after a re-capture. */
+    val adaptiveDraftRevision: Int = 0,
 )
 
 /**

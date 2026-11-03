@@ -713,6 +713,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 .split(Regex("[,，\\n]"))
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
+                .toMutableList()
             if (tags.size > 10 || tags.any { it.length > 24 }) {
                 throw IllegalArgumentException(app.getString(R.string.theme_store_upload_tags_invalid))
             }
@@ -732,6 +733,21 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 )
                 val packageData = ThemePackageStorage.validate(app, Uri.fromFile(packageFile)).getOrElse {
                     throw IllegalArgumentException(app.getString(R.string.theme_store_upload_package_invalid))
+                }
+                // Adaptive packages are always tagged so store previews and filters can badge them,
+                // even when the author did not type the tag themselves.
+                if (packageData.adaptive == true &&
+                    tags.none { canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG }
+                ) {
+                    if (tags.size >= 10) {
+                        tags.removeAt(tags.lastIndex)
+                    }
+                    tags.add(0, ThemePackageStorage.ADAPTIVE_TAG)
+                } else if (packageData.adaptive != true) {
+                    // The tag describes the package, so a plain package must not keep a stale one.
+                    tags.removeAll {
+                        canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG
+                    }
                 }
                 val imageSemaphore = Semaphore(2)
                 suspend fun compress(uri: Uri, baseName: String, maxEdge: Int): File =
@@ -1020,7 +1036,10 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             ?: (base + "admin/")
 }
 
-internal fun ThemeStoreItem.matchesSearch(query: String): Boolean {
+internal fun ThemeStoreItem.matchesSearch(
+    query: String,
+    adaptiveLabel: String = ADAPTIVE_TAG,
+): Boolean {
     val normalized = query.trim().lowercase(Locale.ROOT)
     if (normalized.isEmpty()) return true
     val haystack = buildString {
@@ -1029,6 +1048,7 @@ internal fun ThemeStoreItem.matchesSearch(query: String): Boolean {
         append(entry.author).append(' ')
         append(entry.description).append(' ')
         append(entry.tags.joinToString(" ")).append(' ')
+        if (isAdaptiveTheme()) append(adaptiveLabel).append(" adaptive ")
         append(source.name).append(' ')
         append(source.baseUrl)
     }.lowercase(Locale.ROOT)

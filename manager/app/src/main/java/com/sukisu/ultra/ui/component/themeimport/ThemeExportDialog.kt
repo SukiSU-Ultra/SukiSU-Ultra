@@ -16,6 +16,7 @@ fun ThemeExportDialog(
     availableCustomTextGroups: Set<CustomTextGroup>,
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
+    adaptive: Boolean = false,
 ) {
     ThemeOptionsDialog(
         show = show,
@@ -28,7 +29,13 @@ fun ThemeExportDialog(
         availableCustomTextGroups = availableCustomTextGroups,
         onDismissRequest = onDismissRequest,
         onConfirm = onConfirm,
-        formatVersion = com.sukisu.ultra.ui.util.ThemePackageStorage.CURRENT_VERSION,
+        formatVersion = if (adaptive) {
+            com.sukisu.ultra.ui.util.ThemePackageStorage.ADAPTIVE_VERSION
+        } else {
+            com.sukisu.ultra.ui.util.ThemePackageStorage.BASE_VERSION
+        },
+        adaptive = adaptive,
+        adaptiveNotice = R.string.theme_adaptive_export_notice,
         forceMaterial = true,
     )
 }

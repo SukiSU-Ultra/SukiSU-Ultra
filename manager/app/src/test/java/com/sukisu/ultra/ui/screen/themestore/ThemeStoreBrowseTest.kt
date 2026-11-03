@@ -36,7 +36,37 @@ class ThemeStoreBrowseTest {
             item("three", tags = listOf("AMOLED")),
         )
 
-        assertEquals(listOf("Dark", "AMOLED", "Minimal"), items.popularThemeTags())
+        assertEquals(listOf("adaptive", "Dark", "AMOLED", "Minimal"), items.popularThemeTags())
+    }
+
+    @Test
+    fun adaptiveTagIsAlwaysOfferedFirstAndCollapsesAliases() {
+        val plain = item("plain")
+        assertEquals(listOf("adaptive"), listOf(plain).popularThemeTags())
+
+        val aliased = listOf(
+            item("one", tags = listOf("自适应主题")),
+            item("two", tags = listOf("Adaptive")),
+        )
+        assertEquals(listOf("adaptive"), aliased.popularThemeTags())
+    }
+
+    @Test
+    fun adaptiveFilterUsesFlagAndTagAliases() {
+        val flagged = ThemeStoreItem(
+            entry = ThemeStoreEntry(id = "flagged", name = "flagged", adaptive = true),
+            source = ThemeStoreSource(
+                id = "https://example.com/",
+                name = "",
+                baseUrl = "https://example.com/",
+                token = "",
+            ),
+        )
+        val tagged = item("tagged", tags = listOf("自适应"))
+        val other = item("other", tags = listOf("dark"))
+
+        assertEquals(listOf(flagged, tagged), listOf(flagged, tagged, other).filterByThemeTags(setOf(ADAPTIVE_TAG)))
+        assertEquals(listOf(tagged), listOf(other, tagged).filterByThemeTags(setOf("自适应主题")))
     }
 
     @Test

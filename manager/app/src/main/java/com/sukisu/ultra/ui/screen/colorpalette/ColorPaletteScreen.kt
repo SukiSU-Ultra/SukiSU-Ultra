@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui.screen.colorpalette
 
 import android.net.Uri
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +46,11 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.refreshBackgroundAppearance()
+        viewModel.refreshAdaptiveAppearance()
+    }
+    // The activity handles uiMode itself, so re-apply the adaptive half when the system flips.
+    LaunchedEffect(isSystemInDarkTheme()) {
+        viewModel.refreshAdaptiveAppearance()
     }
     val actions = ColorPaletteScreenActions(
         onBack = dropUnlessResumed { navigator.pop() },
@@ -123,6 +129,7 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onResetAllCustomTexts = viewModel::resetAllCustomTexts,
         onOpenCustomTexts = { navigator.push(Route.CustomTexts) },
         onOpenThemeStore = { navigator.push(Route.ThemeStore) },
+        onOpenAdaptiveThemeBuilder = { navigator.push(Route.AdaptiveThemeBuilder) },
         onResetBackgroundAppearance = viewModel::resetBackgroundAppearance,
         onClearAllAppearance = viewModel::clearAllAppearance,
     )

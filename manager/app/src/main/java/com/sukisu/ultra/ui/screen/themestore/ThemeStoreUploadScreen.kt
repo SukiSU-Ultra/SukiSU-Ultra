@@ -32,16 +32,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -51,10 +54,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text as MaterialText
-import androidx.compose.material3.TextButton as MaterialTextButton
 import androidx.compose.material3.TopAppBar as MaterialTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,7 +87,10 @@ import com.sukisu.ultra.data.model.AccountThemeSummary
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
+import com.sukisu.ultra.ui.util.ThemePackageStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -109,6 +115,7 @@ internal fun ThemeStoreUploadScreen(
     accountSession: AccountSession?,
     autoThemeId: String?,
     editingTheme: AccountThemeSummary?,
+    initialAdaptiveTheme: Boolean = false,
     optionsLoading: Boolean,
     optionsError: String?,
     uploadPhase: ThemeStoreUploadPhase,
@@ -119,6 +126,7 @@ internal fun ThemeStoreUploadScreen(
     onLogin: () -> Unit,
     onSubmit: (ThemeStoreUploadInput) -> Unit,
     onExportCurrentPreset: suspend () -> File?,
+    onLoadAdaptiveTheme: suspend () -> File?,
 ) {
     val editingId = editingTheme?.id.orEmpty()
     var selectedUpdateId by rememberSaveable(editingId) { mutableStateOf(editingId) }
@@ -145,7 +153,10 @@ internal fun ThemeStoreUploadScreen(
     }
     var presetBusy by remember { mutableStateOf(false) }
     var presetError by remember { mutableStateOf<String?>(null) }
+    var adaptiveBusy by remember { mutableStateOf(false) }
     var packageLabel by rememberSaveable { mutableStateOf<String?>(null) }
+    var packageAdaptive by rememberSaveable { mutableStateOf(false) }
+    var initialPackageApplied by rememberSaveable { mutableStateOf(false) }
     var packageUri by rememberSaveable(stateSaver = UploadUriSaver) {
         mutableStateOf(null)
     }
@@ -176,8 +187,52 @@ internal fun ThemeStoreUploadScreen(
         screenshotUris = it.take(6)
     }
 
+    LaunchedEffect(packageUri) {
+        val uri = packageUri
+        packageAdaptive = false
+        if (uri == null) {
+            return@LaunchedEffect
+        }
+        val data = withContext(Dispatchers.IO) {
+            ThemePackageStorage.inspect(context, uri).getOrNull()
+        } ?: return@LaunchedEffect
+        packageAdaptive = data.adaptive == true
+        val values = tags.split(Regex("[,，\n]"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toMutableList()
+        if (packageAdaptive) {
+            val hasAdaptive = values.any {
+                canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG
+            }
+            if (!hasAdaptive) {
+                if (values.size >= 10) values.removeAt(values.lastIndex)
+                values.add(0, ThemePackageStorage.ADAPTIVE_TAG)
+                tags = values.joinToString(", ")
+            }
+        } else if (values.any { canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG }) {
+            // Drop the tag that the previous adaptive package added automatically.
+            values.removeAll { canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG }
+            tags = values.joinToString(", ")
+        }
+    }
+
     val noFile = stringResource(R.string.theme_store_upload_no_file)
     val presetName = stringResource(R.string.theme_store_upload_current_preset)
+    val adaptivePresetName = stringResource(R.string.theme_store_upload_adaptive_preset)
+    LaunchedEffect(initialAdaptiveTheme, initialPackageApplied) {
+        if (!initialAdaptiveTheme || initialPackageApplied) return@LaunchedEffect
+        adaptiveBusy = true
+        val file = runCatching { onLoadAdaptiveTheme() }.getOrNull()
+        adaptiveBusy = false
+        if (file == null) {
+            presetError = context.getString(R.string.theme_store_upload_adaptive_missing)
+            return@LaunchedEffect
+        }
+        initialPackageApplied = true
+        packageUri = Uri.fromFile(file)
+        packageLabel = adaptivePresetName
+    }
     val pickedPackageName = remember(packageUri) {
         packageUri?.let { queryDisplayName(context, it) } ?: noFile
     }
@@ -238,7 +293,13 @@ internal fun ThemeStoreUploadScreen(
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .toMutableList()
-        if (!values.remove(tag) && values.size < 10) values.add(tag)
+        val canonical = canonicalThemeTag(tag)
+        val existing = values.indexOfFirst { canonicalThemeTag(it) == canonical }
+        if (existing >= 0) {
+            values.removeAt(existing)
+        } else if (values.size < 10) {
+            values.add(tag)
+        }
         tags = values.joinToString(", ")
     }
 
@@ -361,13 +422,27 @@ internal fun ThemeStoreUploadScreen(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        listOf("light", "dark", "pink", "cute", "minimal", "gradient", "anime", "blue", "purple", "green")
+                        listOf(
+                            ThemePackageStorage.ADAPTIVE_TAG,
+                            "light",
+                            "dark",
+                            "pink",
+                            "cute",
+                            "minimal",
+                            "gradient",
+                            "anime",
+                            "blue",
+                            "purple",
+                            "green",
+                        )
                             .forEach { tag ->
                                 FilterChip(
-                                    selected = tagValues.contains(tag),
+                                    selected = tagValues.any {
+                                        canonicalThemeTag(it) == canonicalThemeTag(tag)
+                                    },
                                     onClick = { toggleTag(tag) },
                                     enabled = !submitting,
-                                    label = { MaterialText(tag) },
+                                    label = { MaterialText(themeTagLabel(tag)) },
                                     shapes = FilterChipDefaults.shapes(),
                                 )
                             }
@@ -531,7 +606,20 @@ internal fun ThemeStoreUploadScreen(
                         enabled = !submitting,
                         onClick = { packagePicker.launch(arrayOf("*/*")) },
                     )
-                    MaterialTextButton(
+                    if (packageAdaptive) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            AdaptiveThemeBadge()
+                            MaterialText(
+                                text = stringResource(R.string.theme_adaptive_upload_notice),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                    FilledTonalButton(
                         onClick = {
                             scope.launch {
                                 presetBusy = true
@@ -546,17 +634,65 @@ internal fun ThemeStoreUploadScreen(
                                 presetBusy = false
                             }
                         },
-                        enabled = !submitting && !presetBusy,
-                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !submitting && !presetBusy && !adaptiveBusy,
                         shapes = ButtonDefaults.shapes(),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.Phone,
+                            contentDescription = null,
+                        )
                         MaterialText(
                             text = stringResource(
                                 if (presetBusy) R.string.theme_store_upload_generating
                                 else R.string.theme_store_upload_use_current,
                             ),
+                            modifier = Modifier.padding(start = 8.dp),
                         )
                     }
+                    Spacer(Modifier.height(4.dp))
+                    FilledTonalButton(
+                        onClick = {
+                            scope.launch {
+                                adaptiveBusy = true
+                                presetError = null
+                                val file = runCatching { onLoadAdaptiveTheme() }.getOrNull()
+                                if (file != null) {
+                                    packageUri = Uri.fromFile(file)
+                                    packageLabel = adaptivePresetName
+                                } else {
+                                    presetError = context.getString(
+                                        R.string.theme_store_upload_adaptive_missing,
+                                    )
+                                }
+                                adaptiveBusy = false
+                            }
+                        },
+                        enabled = !submitting && !adaptiveBusy && !presetBusy,
+                        shapes = ButtonDefaults.shapes(),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                        )
+                        MaterialText(
+                            text = stringResource(
+                                if (adaptiveBusy) R.string.theme_store_upload_generating
+                                else R.string.theme_store_upload_use_adaptive,
+                            ),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                    UploadHint(stringResource(R.string.theme_store_upload_adaptive_hint))
                     UploadHint(stringResource(R.string.theme_store_upload_current_hint))
                     if (presetError != null) {
                         ThemeStoreInlineNotice(

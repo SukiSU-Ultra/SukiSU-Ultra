@@ -43,6 +43,11 @@ data class ColorPaletteUiState(
     val hideHomeCardStatusText: Boolean = false,
     val hideHomeCardDecoration: Boolean = false,
     val homeCardStickers: List<HomeCardSticker> = emptyList(),
+    /** An adaptive theme is active and follows the system light/dark mode. */
+    val adaptiveThemeActive: Boolean = false,
+    val adaptiveDraftLightCaptured: Boolean = false,
+    val adaptiveDraftDarkCaptured: Boolean = false,
+    val adaptiveDraftComplete: Boolean = false,
     // The rows below the preview.
     val themeMode: Int = 0,
     val colorStyle: String = "",
@@ -114,6 +119,7 @@ data class ColorPaletteScreenActions(
     val onResetAllCustomTexts: () -> Unit = {},
     val onOpenCustomTexts: () -> Unit = {},
     val onOpenThemeStore: () -> Unit = {},
+    val onOpenAdaptiveThemeBuilder: () -> Unit = {},
     val onResetBackgroundAppearance: () -> Unit = {},
     val onClearAllAppearance: () -> Unit = {},
 )

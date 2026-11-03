@@ -34,7 +34,15 @@ import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.ThemeController
 import com.sukisu.ultra.ui.util.CustomTextGroup
 import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.AdaptiveThemeDraft
+import com.sukisu.ultra.ui.util.AdaptiveThemeState
+import com.sukisu.ultra.ui.util.AdaptiveThemeStore
+import com.sukisu.ultra.ui.util.AdaptiveThemeVariantState
 import com.sukisu.ultra.ui.util.ImageStorage
+import com.sukisu.ultra.ui.util.ImportedThemeVariant
+import com.sukisu.ultra.ui.util.ThemePackageAdaptiveExport
+import com.sukisu.ultra.ui.util.ThemePackageVariantExport
+import com.sukisu.ultra.ui.util.ThemeVariantData
 import com.sukisu.ultra.ui.util.customTextsInGroups
 import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
@@ -53,6 +61,7 @@ private data class CurrentThemePayload(
     val backgroundFile: File?,
     val cardBackgroundFile: File?,
     val stickerFiles: List<File>,
+    val adaptive: ThemePackageAdaptiveExport? = null,
 )
 
 class SettingsViewModel(
@@ -81,6 +90,10 @@ class SettingsViewModel(
         hideHomeCardStatusText = repo.hideHomeCardStatusText,
         hideHomeCardDecoration = repo.hideHomeCardDecoration,
         homeCardStickers = repo.homeCardStickers,
+        adaptiveThemeActive = AdaptiveThemeStore.isActive(repo),
+        adaptiveDraftLightCaptured = AdaptiveThemeStore.loadDraft(repo)?.light != null,
+        adaptiveDraftDarkCaptured = AdaptiveThemeStore.loadDraft(repo)?.dark != null,
+        adaptiveDraftComplete = AdaptiveThemeStore.loadDraft(repo)?.complete == true,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -201,7 +214,11 @@ class SettingsViewModel(
                     colorsSectionExpanded = repo.colorsSectionExpanded,
                     customHomeTitle = repo.customHomeTitle,
                     customTexts = repo.customTexts,
-        homeCardImagePath = repo.homeCardImagePath,
+                    adaptiveThemeActive = AdaptiveThemeStore.isActive(repo),
+                    adaptiveDraftLightCaptured = AdaptiveThemeStore.loadDraft(repo)?.light != null,
+                    adaptiveDraftDarkCaptured = AdaptiveThemeStore.loadDraft(repo)?.dark != null,
+                    adaptiveDraftComplete = AdaptiveThemeStore.loadDraft(repo)?.complete == true,
+                    homeCardImagePath = repo.homeCardImagePath,
                     hideHomeCardStatusText = repo.hideHomeCardStatusText,
                     hideHomeCardDecoration = repo.hideHomeCardDecoration,
                     homeCardStickers = repo.homeCardStickers,
@@ -301,6 +318,7 @@ class SettingsViewModel(
         sourcePath: String?,
     ): Boolean = withContext(Dispatchers.IO) {
         val savedPath = ImageStorage.replace(context, output) ?: return@withContext false
+        deactivateAdaptiveTheme()
         runCatching { if (output.isFile) output.delete() }
         ImageStorage.discardStaged(sourcePath)
         val seed = if (repo.derivesKeyColorFromBackground()) {
@@ -419,6 +437,7 @@ class SettingsViewModel(
                     repo.keyColor
                 }
                 val updatedAt = System.currentTimeMillis()
+                deactivateAdaptiveTheme()
                 repo.useSystemWallpaper = true
                 repo.customBackgroundUpdatedAt = updatedAt
                 if (repo.derivesKeyColorFromBackground()) repo.keyColor = keyColor
@@ -477,6 +496,7 @@ class SettingsViewModel(
     }
 
     fun clearCustomBackground(context: Context) {
+        deactivateAdaptiveTheme()
         viewModelScope.launch(Dispatchers.IO) {
             ImageStorage.clear(context)
             repo.customBackgroundUri = ""
@@ -509,6 +529,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             val path = ImageStorage.saveHomeCardImage(context, uri)
             if (path != null) {
+                deactivateAdaptiveTheme()
                 repo.homeCardImagePath = path
                 _uiState.update { it.copy(homeCardImagePath = path) }
             } else {
@@ -518,6 +539,7 @@ class SettingsViewModel(
     }
 
     fun clearHomeCardImage() {
+        deactivateAdaptiveTheme()
         viewModelScope.launch {
             ImageStorage.clearHomeCardImage(ksuApp)
             repo.homeCardImagePath = ""
@@ -626,7 +648,15 @@ class SettingsViewModel(
     fun exportTheme(context: Context, uri: Uri, options: ThemePackageOptions) {
         viewModelScope.launch {
             val payload = currentThemePayload(options)
-            ThemePackageStorage.export(context, uri, payload.data, payload.backgroundFile, payload.cardBackgroundFile, payload.stickerFiles)
+            ThemePackageStorage.export(
+                context = context,
+                uri = uri,
+                data = payload.data,
+                backgroundFile = payload.backgroundFile,
+                cardBackgroundFile = payload.cardBackgroundFile,
+                cardStickerFiles = payload.stickerFiles,
+                adaptive = payload.adaptive,
+            )
                 .onSuccess {
                     Toast.makeText(ksuApp, R.string.theme_export_success, Toast.LENGTH_SHORT).show()
                 }
@@ -639,7 +669,7 @@ class SettingsViewModel(
     /** Builds a .sukisu package from the current device appearance for store submission. */
     suspend fun createCurrentThemePackage(context: Context): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
-            val payload = currentThemePayload(ThemePackageOptions())
+            val payload = currentThemePayload(ThemePackageOptions(), preferDraft = false)
             val file = File(context.cacheDir, "theme_upload_preset.sukisu")
             ThemePackageStorage.exportToFile(
                 file = file,
@@ -647,29 +677,47 @@ class SettingsViewModel(
                 backgroundFile = payload.backgroundFile,
                 cardBackgroundFile = payload.cardBackgroundFile,
                 cardStickerFiles = payload.stickerFiles,
+                adaptive = payload.adaptive,
             ).getOrThrow()
             file
         }
     }
 
-    private fun currentThemePayload(options: ThemePackageOptions): CurrentThemePayload {
-        val state = _uiState.value
+    private fun currentThemePayload(
+        options: ThemePackageOptions,
+        preferDraft: Boolean = true,
+    ): CurrentThemePayload {
+        val draft = if (preferDraft) {
+            AdaptiveThemeStore.loadDraft(repo)?.takeIf { it.complete }
+        } else {
+            null
+        }
+        val activeAdaptive = AdaptiveThemeStore.load(repo)
+        val adaptive = when {
+            draft != null -> ThemePackageAdaptiveExport(
+                light = buildVariantExport(requireNotNull(draft.light), options),
+                dark = buildVariantExport(requireNotNull(draft.dark), options),
+            )
+
+            activeAdaptive != null -> buildAdaptiveExport(activeAdaptive, options)
+            else -> null
+        }
         val backgroundFile = if (options.backgroundImage) {
-            if (state.useSystemWallpaper) {
+            if (repo.useSystemWallpaper) {
                 ImageStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }
             } else {
-                state.customBackgroundUri
+                repo.customBackgroundUri
                     .takeIf { it.isNotEmpty() }
                     ?.let { path -> File(path).takeIf { it.isFile } }
             }
         } else null
         val cardBackgroundFile = if (options.homeCardImage) {
-            state.homeCardImagePath
+            repo.homeCardImagePath
                 .takeIf { it.isNotEmpty() }
                 ?.let { path -> File(path).takeIf { it.isFile } }
         } else null
         val stickerEntries = if (options.stickers) {
-            state.homeCardStickers.filter { File(it.path).isFile }
+            repo.homeCardStickers.filter { File(it.path).isFile }
         } else {
             emptyList()
         }
@@ -680,34 +728,39 @@ class SettingsViewModel(
             BuiltinAppIcons.LOGO_ID,
             BuiltinAppIcons.ZAKO_ID,
         )
-        val exportedIconId = if (state.appIconId in builtinIconIds) {
-            state.appIconId
+        val exportedIconId = if (repo.appIconId in builtinIconIds) {
+            repo.appIconId
         } else {
             BuiltinAppIcons.DEFAULT_ID
         }
         val data = ThemePackageData(
-            themeMode = state.themeMode.takeIf { options.colors },
-            miuixMonet = state.miuixMonet.takeIf { options.colors },
-            keyColor = state.keyColor.takeIf { options.colors },
-            colorStyle = state.colorStyle.takeIf { options.colors },
-            colorSpec = state.colorSpec.takeIf { options.colors },
-            cardBackgroundAlphaPercent = state.cardBackgroundAlphaPercent.takeIf { options.backgroundAppearance },
-            customBackgroundBlurPercent = state.customBackgroundBlurPercent.takeIf { options.backgroundAppearance },
-            customBackgroundScrimPercent = state.customBackgroundScrimPercent.takeIf { options.backgroundAppearance },
+            version = if (adaptive != null) {
+                ThemePackageStorage.ADAPTIVE_VERSION
+            } else {
+                ThemePackageStorage.BASE_VERSION
+            },
+            themeMode = repo.themeMode.takeIf { options.colors },
+            miuixMonet = repo.miuixMonet.takeIf { options.colors },
+            keyColor = repo.keyColor.takeIf { options.colors },
+            colorStyle = repo.colorStyle.takeIf { options.colors },
+            colorSpec = repo.colorSpec.takeIf { options.colors },
+            cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent.takeIf { options.backgroundAppearance },
+            customBackgroundBlurPercent = repo.customBackgroundBlurPercent.takeIf { options.backgroundAppearance },
+            customBackgroundScrimPercent = repo.customBackgroundScrimPercent.takeIf { options.backgroundAppearance },
             hasBackground = if (options.backgroundImage) backgroundFile != null else null,
             hasCardBackground = if (options.homeCardImage) cardBackgroundFile != null else null,
-            hideHomeCardStatusText = state.hideHomeCardStatusText.takeIf { options.homeCardDisplay },
-            hideHomeCardDecoration = state.hideHomeCardDecoration.takeIf { options.homeCardDisplay },
+            hideHomeCardStatusText = repo.hideHomeCardStatusText.takeIf { options.homeCardDisplay },
+            hideHomeCardDecoration = repo.hideHomeCardDecoration.takeIf { options.homeCardDisplay },
             homeCardStickerTransforms = if (options.stickers) {
                 stickerEntries.map { it.transform }
             } else {
                 null
             },
-            uiMode = state.uiMode.takeIf { options.customConfig },
+            uiMode = repo.uiMode.takeIf { options.customConfig },
             appIconId = exportedIconId.takeIf { options.appIcon },
-            enableFloatingBottomBar = state.enableFloatingBottomBar.takeIf { options.customConfig },
-            enableFloatingBottomBarBlur = state.enableFloatingBottomBarBlur.takeIf { options.customConfig },
-            enableNavigationBadge = state.enableNavigationBadge.takeIf { options.customConfig },
+            enableFloatingBottomBar = repo.enableFloatingBottomBar.takeIf { options.customConfig },
+            enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur.takeIf { options.customConfig },
+            enableNavigationBadge = repo.enableNavigationBadge.takeIf { options.customConfig },
             enablePredictiveBack = repo.enablePredictiveBack.takeIf { options.customConfig },
             enableSwipeDismiss = repo.enableSwipeDismiss.takeIf { options.customConfig },
             moduleSortEnabledFirst = repo.moduleSortEnabledFirst.takeIf { options.customConfig },
@@ -718,18 +771,136 @@ class SettingsViewModel(
             moduleSortNameOrder = repo.moduleSortNameOrder.takeIf { options.customConfig },
             moduleSortManual = repo.moduleSortManual.takeIf { options.customConfig },
             customHomeTitle = if (options.customTexts && CustomTextGroup.HOME in options.customTextGroups) {
-                state.customHomeTitle.takeIf { it.isNotBlank() }
+                repo.customHomeTitle.takeIf { it.isNotBlank() }
             } else {
                 null
             },
             customTexts = if (options.customTexts) {
-                customTextsInGroups(state.customTexts, options.customTextGroups)
+                customTextsInGroups(repo.customTexts, options.customTextGroups)
                     .takeIf { it.isNotEmpty() }
             } else {
                 null
             },
         )
-        return CurrentThemePayload(data, backgroundFile, cardBackgroundFile, cardStickerFiles)
+        return CurrentThemePayload(data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
+    }
+
+    /** Masks an adaptive half down to the parts the export dialog selected. */
+    private fun buildAdaptiveExport(
+        state: AdaptiveThemeState,
+        options: ThemePackageOptions,
+    ): ThemePackageAdaptiveExport = ThemePackageAdaptiveExport(
+        light = buildVariantExport(state.light, options),
+        dark = buildVariantExport(state.dark, options),
+    )
+
+    private fun buildVariantExport(
+        variant: AdaptiveThemeVariantState,
+        options: ThemePackageOptions,
+    ): ThemePackageVariantExport {
+        val source = variant.data
+        val background = if (options.backgroundImage && source.hasBackground == true) {
+            File(variant.backgroundPath).takeIf { it.isFile }
+        } else {
+            null
+        }
+        val card = if (options.homeCardImage && source.hasCardBackground == true) {
+            File(variant.cardBackgroundPath).takeIf { it.isFile }
+        } else {
+            null
+        }
+        val stickers = if (options.stickers) {
+            variant.stickers.map { File(it.path) }.filter { it.isFile }
+        } else {
+            emptyList()
+        }
+        val backgroundFlag = when {
+            !options.backgroundImage -> null
+            source.hasBackground == false -> false
+            source.hasBackground == true && background != null -> true
+            // A missing file must not produce a package that claims to contain it.
+            else -> null
+        }
+        val cardFlag = when {
+            !options.homeCardImage -> null
+            source.hasCardBackground == false -> false
+            source.hasCardBackground == true && card != null -> true
+            else -> null
+        }
+        val stickerTransforms = when {
+            !options.stickers -> null
+            source.homeCardStickerTransforms == null -> null
+            source.homeCardStickerTransforms.isEmpty() -> source.homeCardStickerTransforms
+            stickers.isEmpty() -> null
+            else -> source.homeCardStickerTransforms
+        }
+        val data = source.copy(
+            themeMode = if (options.colors) source.themeMode else null,
+            miuixMonet = if (options.colors) source.miuixMonet else null,
+            keyColor = if (options.colors) source.keyColor else null,
+            colorStyle = if (options.colors) source.colorStyle else null,
+            colorSpec = if (options.colors) source.colorSpec else null,
+            cardBackgroundAlphaPercent = if (options.backgroundAppearance) {
+                source.cardBackgroundAlphaPercent
+            } else {
+                null
+            },
+            customBackgroundBlurPercent = if (options.backgroundAppearance) {
+                source.customBackgroundBlurPercent
+            } else {
+                null
+            },
+            customBackgroundScrimPercent = if (options.backgroundAppearance) {
+                source.customBackgroundScrimPercent
+            } else {
+                null
+            },
+            hasBackground = backgroundFlag,
+            hasCardBackground = cardFlag,
+            hideHomeCardStatusText = if (options.homeCardDisplay) {
+                source.hideHomeCardStatusText
+            } else {
+                null
+            },
+            hideHomeCardDecoration = if (options.homeCardDisplay) {
+                source.hideHomeCardDecoration
+            } else {
+                null
+            },
+            homeCardStickerTransforms = stickerTransforms,
+            uiMode = if (options.customConfig) source.uiMode else null,
+            enableFloatingBottomBar = if (options.customConfig) {
+                source.enableFloatingBottomBar
+            } else {
+                null
+            },
+            enableFloatingBottomBarBlur = if (options.customConfig) {
+                source.enableFloatingBottomBarBlur
+            } else {
+                null
+            },
+            enableNavigationBadge = if (options.customConfig) {
+                source.enableNavigationBadge
+            } else {
+                null
+            },
+            enablePredictiveBack = if (options.customConfig) {
+                source.enablePredictiveBack
+            } else {
+                null
+            },
+            enableSwipeDismiss = if (options.customConfig) {
+                source.enableSwipeDismiss
+            } else {
+                null
+            },
+        )
+        return ThemePackageVariantExport(
+            data = data,
+            backgroundFile = background,
+            cardBackgroundFile = card,
+            cardStickerFiles = stickers,
+        )
     }
 
     fun importTheme(context: Context, uri: Uri) {
@@ -770,14 +941,8 @@ class SettingsViewModel(
 
     fun dismissImportThemeDialog() {
         val pending = _uiState.value.pendingImportTheme
-        if (pending?.backgroundPath != null) {
-            runCatching { File(pending.backgroundPath).delete() }
-        }
-        if (pending?.cardBackgroundPath != null) {
-            runCatching { File(pending.cardBackgroundPath).delete() }
-        }
-        if (pending?.stickerPaths != null) {
-            pending.stickerPaths.forEach { runCatching { File(it).delete() } }
+        pending?.temporaryFiles()?.forEach { path ->
+            runCatching { File(path).delete() }
         }
         _uiState.update {
             it.copy(
@@ -790,7 +955,27 @@ class SettingsViewModel(
     fun confirmImportTheme(context: Context, options: ThemePackageOptions) {
         val pending = _uiState.value.pendingImportTheme ?: return
         viewModelScope.launch {
-            applyImportedTheme(context, pending, options)
+            val applied = runCatching { applyImportedTheme(context, pending, options) }
+            if (applied.isFailure) {
+                AdaptiveThemeStore.clear(repo)
+                if (pending.isAdaptive) {
+                    withContext(Dispatchers.IO) {
+                        runCatching { ImageStorage.clearAdaptiveImages(context) }
+                    }
+                }
+                pending.temporaryFiles().forEach { path ->
+                    runCatching { File(path).delete() }
+                }
+                _uiState.update {
+                    it.copy(
+                        pendingImportTheme = null,
+                        showThemeImportDialog = false,
+                        adaptiveThemeActive = false,
+                    )
+                }
+                Toast.makeText(ksuApp, R.string.theme_import_failed, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
             // A normal import is a permanent choice; it supersedes any running trial.
             ThemeTrialManager.clear(context)
             _uiState.update {
@@ -887,7 +1072,50 @@ class SettingsViewModel(
         options: ThemePackageOptions,
     ) {
         val current = _uiState.value
-        val data = imported.data
+        val adaptiveState = if (imported.isAdaptive) {
+            withContext(Dispatchers.IO) { buildAdaptiveState(context, imported, options) }
+        } else {
+            null
+        }
+        if (adaptiveState != null) {
+            AdaptiveThemeStore.save(repo, adaptiveState)
+        } else {
+            AdaptiveThemeStore.clear(repo)
+        }
+        // Adaptive packages keep their appearance on the two variants; the legacy sections below
+        // are masked so they cannot overwrite what AdaptiveThemeStore applies.
+        val data = if (imported.isAdaptive) {
+            imported.data.copy(
+                themeMode = null,
+                miuixMonet = null,
+                keyColor = null,
+                colorStyle = null,
+                colorSpec = null,
+                cardBackgroundAlphaPercent = null,
+                customBackgroundBlurPercent = null,
+                customBackgroundScrimPercent = null,
+                hasBackground = null,
+                hasCardBackground = null,
+                hideHomeCardStatusText = null,
+                hideHomeCardDecoration = null,
+                homeCardStickerTransforms = null,
+                uiMode = null,
+                enableFloatingBottomBar = null,
+                enableFloatingBottomBarBlur = null,
+                enableNavigationBadge = null,
+                enablePredictiveBack = null,
+                enableSwipeDismiss = null,
+                moduleSortEnabledFirst = null,
+                moduleSortActionFirst = null,
+                moduleSortWebUiFirst = null,
+                moduleSortZygiskFirst = null,
+                moduleSortMetamoduleFirst = null,
+                moduleSortNameOrder = null,
+                moduleSortManual = null,
+            )
+        } else {
+            imported.data
+        }
 
         var themeMode = current.themeMode
         var miuixMonet = current.miuixMonet
@@ -1093,6 +1321,38 @@ class SettingsViewModel(
             effectiveCustomTexts = textsMap
         }
 
+        if (adaptiveState != null) {
+            val dark = isEffectiveDarkMode(context)
+            AdaptiveThemeStore.apply(repo, adaptiveState.variant(dark))
+            repo.adaptiveAppliedMode = if (dark) 1 else 0
+            // The legacy sections above only touched non-appearance fields; mirror the applied
+            // variant back into the local state so the final update cannot publish stale values.
+            themeMode = repo.themeMode
+            miuixMonet = repo.miuixMonet
+            keyColor = repo.keyColor
+            colorStyle = repo.colorStyle
+            colorSpec = repo.colorSpec
+            cardAlpha = repo.cardBackgroundAlphaPercent
+            blurPercent = repo.customBackgroundBlurPercent
+            scrimPercent = repo.customBackgroundScrimPercent
+            targetUiMode = repo.uiMode
+            hideHomeCardDecoration = repo.hideHomeCardDecoration
+            hideHomeCardStatusText = repo.hideHomeCardStatusText
+            homeCardStickers = repo.homeCardStickers
+            backgroundUri = repo.customBackgroundUri
+            homeCardImagePath = repo.homeCardImagePath
+            floatingBottomBar = repo.enableFloatingBottomBar
+            floatingBottomBarBlur = repo.enableFloatingBottomBarBlur
+            navigationBadge = repo.enableNavigationBadge
+            predictiveBack = repo.enablePredictiveBack
+            swipeDismiss = repo.enableSwipeDismiss
+        }
+
+        // Any extracted file that was not promoted above is no longer needed.
+        imported.temporaryFiles().forEach { path ->
+            runCatching { File(path).delete() }
+        }
+
         _uiState.update {
             it.copy(
                 uiMode = targetUiMode,
@@ -1113,9 +1373,12 @@ class SettingsViewModel(
                 hideHomeCardStatusText = hideHomeCardStatusText,
                 hideHomeCardDecoration = hideHomeCardDecoration,
                 homeCardStickers = homeCardStickers,
+                adaptiveThemeActive = adaptiveState != null,
                 useSystemWallpaper = if (
                     options.backgroundImage &&
-                    (imported.backgroundPath != null || data.hasBackground == false)
+                    (imported.backgroundPath != null ||
+                        data.hasBackground == false ||
+                        (adaptiveState != null && adaptiveState.light.data.hasBackground != null))
                 ) {
                     false
                 } else {
@@ -1123,7 +1386,9 @@ class SettingsViewModel(
                 },
                 systemWallpaperPath = if (
                     options.backgroundImage &&
-                    (imported.backgroundPath != null || data.hasBackground == false)
+                    (imported.backgroundPath != null ||
+                        data.hasBackground == false ||
+                        (adaptiveState != null && adaptiveState.light.data.hasBackground != null))
                 ) {
                     ""
                 } else {
@@ -1136,6 +1401,495 @@ class SettingsViewModel(
                 enableSwipeDismiss = swipeDismiss,
             )
         }
+    }
+
+    /** Promotes both halves of an adaptive package into their own light/dark image slots. */
+    private suspend fun buildAdaptiveState(
+        context: Context,
+        imported: ImportedTheme,
+        options: ThemePackageOptions,
+    ): AdaptiveThemeState {
+        val light = imported.light ?: error("Light variant is missing")
+        val dark = imported.dark ?: error("Dark variant is missing")
+        return AdaptiveThemeState(
+            light = buildVariantState(context, light, dark = false, options = options),
+            dark = buildVariantState(context, dark, dark = true, options = options),
+        )
+    }
+
+    private suspend fun buildVariantState(
+        context: Context,
+        variant: ImportedThemeVariant,
+        dark: Boolean,
+        options: ThemePackageOptions,
+    ): AdaptiveThemeVariantState {
+        val backgroundPath = if (options.backgroundImage) {
+            if (variant.backgroundPath != null) {
+                requireNotNull(
+                    ImageStorage.replaceAdaptiveBackground(
+                        context,
+                        File(variant.backgroundPath),
+                        dark,
+                    ),
+                ) { "Failed to save adaptive background" }
+            } else {
+                ImageStorage.clearAdaptiveBackground(context, dark)
+                ""
+            }
+        } else {
+            ""
+        }
+        val cardBackgroundPath = if (options.homeCardImage) {
+            if (variant.cardBackgroundPath != null) {
+                requireNotNull(
+                    ImageStorage.replaceAdaptiveHomeCardImage(
+                        context,
+                        File(variant.cardBackgroundPath),
+                        dark,
+                    ),
+                ) { "Failed to save adaptive card background" }
+            } else {
+                ImageStorage.clearAdaptiveHomeCardImage(context, dark)
+                ""
+            }
+        } else {
+            ""
+        }
+
+        val stickerTransforms = variant.data.homeCardStickerTransforms
+        val stickers = if (options.stickers) {
+            ImageStorage.clearAdaptiveHomeCardStickers(context, dark)
+            if (variant.stickerPaths.isEmpty()) {
+                emptyList()
+            } else {
+                variant.stickerPaths.mapIndexedNotNull { index, path ->
+                    val saved = ImageStorage.importAdaptiveHomeCardSticker(
+                        context,
+                        File(path),
+                        dark,
+                        index,
+                    ) ?: return@mapIndexedNotNull null
+                    HomeCardSticker(
+                        path = saved,
+                        transform = stickerTransforms?.getOrNull(index)?.coerced()
+                            ?: HomeCardStickerTransform(),
+                    )
+                }.take(HomeCardSticker.MAX_COUNT)
+            }
+        } else {
+            emptyList()
+        }
+
+        val stickerData = when {
+            !options.stickers -> null
+            stickerTransforms != null || variant.stickerPaths.isNotEmpty() -> stickers.map { it.transform }
+            else -> null
+        }
+
+        return AdaptiveThemeVariantState(
+            data = variant.data.copy(
+                // A missing mode still binds to the system switch; only the monet flavour is kept.
+                themeMode = if (options.colors) variant.data.themeMode ?: 0 else null,
+                miuixMonet = if (options.colors) variant.data.miuixMonet else null,
+                keyColor = if (options.colors) variant.data.keyColor else null,
+                colorStyle = if (options.colors) variant.data.colorStyle else null,
+                colorSpec = if (options.colors) variant.data.colorSpec else null,
+                cardBackgroundAlphaPercent = if (options.backgroundAppearance) {
+                    variant.data.cardBackgroundAlphaPercent
+                } else {
+                    null
+                },
+                customBackgroundBlurPercent = if (options.backgroundAppearance) {
+                    variant.data.customBackgroundBlurPercent
+                } else {
+                    null
+                },
+                customBackgroundScrimPercent = if (options.backgroundAppearance) {
+                    variant.data.customBackgroundScrimPercent
+                } else {
+                    null
+                },
+                hasBackground = if (options.backgroundImage) variant.data.hasBackground else null,
+                hasCardBackground = if (options.homeCardImage) {
+                    variant.data.hasCardBackground
+                } else {
+                    null
+                },
+                hideHomeCardStatusText = if (options.homeCardDisplay) {
+                    variant.data.hideHomeCardStatusText
+                } else {
+                    null
+                },
+                hideHomeCardDecoration = if (options.homeCardDisplay) {
+                    variant.data.hideHomeCardDecoration
+                } else {
+                    null
+                },
+                homeCardStickerTransforms = stickerData,
+                uiMode = if (options.customConfig) variant.data.uiMode else null,
+                enableFloatingBottomBar = if (options.customConfig) {
+                    variant.data.enableFloatingBottomBar
+                } else {
+                    null
+                },
+                enableFloatingBottomBarBlur = if (options.customConfig) {
+                    variant.data.enableFloatingBottomBarBlur
+                } else {
+                    null
+                },
+                enableNavigationBadge = if (options.customConfig) {
+                    variant.data.enableNavigationBadge
+                } else {
+                    null
+                },
+                enablePredictiveBack = if (options.customConfig) {
+                    variant.data.enablePredictiveBack
+                } else {
+                    null
+                },
+                enableSwipeDismiss = if (options.customConfig) {
+                    variant.data.enableSwipeDismiss
+                } else {
+                    null
+                },
+            ),
+            backgroundPath = backgroundPath,
+            cardBackgroundPath = cardBackgroundPath,
+            stickers = stickers,
+        )
+    }
+
+    private fun isSystemDarkMode(context: Context): Boolean =
+        context.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+    /** Forced app dark/light wins; SYSTEM follows the device night mode. */
+    private fun isEffectiveDarkMode(context: Context): Boolean {
+        val mode = ColorMode.fromValue(repo.themeMode)
+        return mode.isDark || (mode.isSystem && isSystemDarkMode(context))
+    }
+
+    /**
+     * Ends the adaptive binding only when the user replaces or removes the background or home
+     * card image. Other appearance edits keep the theme active; the matching variant is reapplied
+     * on the next light/dark switch.
+     */
+    private fun deactivateAdaptiveTheme() {
+        if (!AdaptiveThemeStore.isActive(repo)) return
+        AdaptiveThemeStore.clear(repo)
+        _uiState.update { it.copy(adaptiveThemeActive = false) }
+    }
+
+    /**
+     * Re-applies the light/dark half for the current system mode and publishes the resulting
+     * appearance. The appearance page calls this on resume and whenever the system mode changes,
+     * since its view model does not share MainActivity's preference listener.
+     */
+    fun refreshAdaptiveAppearance() {
+        viewModelScope.launch {
+            AdaptiveThemeStore.sync(repo, isEffectiveDarkMode(ksuApp))
+            val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
+                .takeIf { it.isFile }?.absolutePath.orEmpty()
+            _uiState.update {
+                it.copy(
+                    themeMode = repo.themeMode,
+                    miuixMonet = repo.miuixMonet,
+                    keyColor = repo.keyColor,
+                    colorStyle = repo.colorStyle,
+                    colorSpec = repo.colorSpec,
+                    customBackgroundUri = repo.customBackgroundUri,
+                    customBackgroundUpdatedAt = repo.customBackgroundUpdatedAt,
+                    useSystemWallpaper = repo.useSystemWallpaper && systemWallpaperPath.isNotEmpty(),
+                    systemWallpaperPath = systemWallpaperPath,
+                    cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
+                    customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
+                    customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
+                    homeCardImagePath = repo.homeCardImagePath,
+                    hideHomeCardStatusText = repo.hideHomeCardStatusText,
+                    hideHomeCardDecoration = repo.hideHomeCardDecoration,
+                    homeCardStickers = repo.homeCardStickers,
+                    enableFloatingBottomBar = repo.enableFloatingBottomBar,
+                    enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur,
+                    enableNavigationBadge = repo.enableNavigationBadge,
+                    enablePredictiveBack = repo.enablePredictiveBack,
+                    enableSwipeDismiss = repo.enableSwipeDismiss,
+                    uiMode = repo.uiMode,
+                    adaptiveThemeActive = AdaptiveThemeStore.isActive(repo),
+                    adaptiveDraftLightCaptured = AdaptiveThemeStore.loadDraft(repo)?.light != null,
+                    adaptiveDraftDarkCaptured = AdaptiveThemeStore.loadDraft(repo)?.dark != null,
+                    adaptiveDraftComplete = AdaptiveThemeStore.loadDraft(repo)?.complete == true,
+                    adaptiveDraftRevision = it.adaptiveDraftRevision + 1,
+                )
+            }
+        }
+    }
+
+    /**
+     * Captures the current appearance into the builder draft. Images are copied (not moved), so
+     * recording a draft never disturbs the theme that is currently applied.
+     */
+    fun captureAdaptiveDraft(context: Context, dark: Boolean) {
+        viewModelScope.launch {
+            val variant = withContext(Dispatchers.IO) { buildDraftVariant(context, dark) }
+            if (variant == null) {
+                Toast.makeText(ksuApp, R.string.theme_adaptive_capture_failed, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val current = AdaptiveThemeStore.loadDraft(repo) ?: AdaptiveThemeDraft()
+            val updated = if (dark) current.copy(dark = variant) else current.copy(light = variant)
+            AdaptiveThemeStore.saveDraft(repo, updated)
+            // The previously archived package no longer matches the edited draft.
+            publishDraftFlags(updated)
+            Toast.makeText(
+                ksuApp,
+                ksuApp.getString(
+                    R.string.theme_adaptive_capture_success,
+                    ksuApp.getString(
+                        if (dark) R.string.theme_adaptive_draft_dark
+                        else R.string.theme_adaptive_draft_light,
+                    ),
+                ),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    fun clearAdaptiveDraft(context: Context) {
+        viewModelScope.launch {
+            AdaptiveThemeStore.clearDraft(repo)
+            withContext(Dispatchers.IO) {
+                ImageStorage.clearAdaptiveBackground(context, dark = false, draft = true)
+                ImageStorage.clearAdaptiveBackground(context, dark = true, draft = true)
+                ImageStorage.clearAdaptiveHomeCardImage(context, dark = false, draft = true)
+                ImageStorage.clearAdaptiveHomeCardImage(context, dark = true, draft = true)
+                ImageStorage.clearAdaptiveHomeCardStickers(context, dark = false, draft = true)
+                ImageStorage.clearAdaptiveHomeCardStickers(context, dark = true, draft = true)
+            }
+            publishDraftFlags(null)
+            Toast.makeText(ksuApp, R.string.theme_adaptive_draft_cleared, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Turns a completed draft into the live adaptive theme without exporting a package. */
+    fun applyAdaptiveDraft(context: Context) {
+        viewModelScope.launch {
+            val draft = AdaptiveThemeStore.loadDraft(repo)
+            if (draft?.complete != true) {
+                Toast.makeText(ksuApp, R.string.theme_adaptive_draft_incomplete, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val light = withContext(Dispatchers.IO) {
+                promoteDraftVariant(context, draft.light, dark = false)
+            }
+            val darkVariant = withContext(Dispatchers.IO) {
+                promoteDraftVariant(context, draft.dark, dark = true)
+            }
+            if (light == null || darkVariant == null) {
+                Toast.makeText(ksuApp, R.string.theme_adaptive_capture_failed, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val state = AdaptiveThemeState(light = light, dark = darkVariant)
+            AdaptiveThemeStore.save(repo, state)
+            val dark = isEffectiveDarkMode(context)
+            AdaptiveThemeStore.apply(repo, state.variant(dark))
+            repo.adaptiveAppliedMode = if (dark) 1 else 0
+            refreshAdaptiveAppearance()
+            Toast.makeText(ksuApp, R.string.theme_adaptive_applied, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Copies draft images into the live adaptive slots so later draft edits cannot break them. */
+    private suspend fun promoteDraftVariant(
+        context: Context,
+        variant: AdaptiveThemeVariantState?,
+        dark: Boolean,
+    ): AdaptiveThemeVariantState? = withContext(Dispatchers.IO) {
+        if (variant == null) return@withContext null
+        runCatching {
+            val backgroundSource = variant.backgroundPath
+                .takeIf { it.isNotBlank() }
+                ?.let { File(it).takeIf { file -> file.isFile } }
+            check(variant.data.hasBackground != true || backgroundSource != null) {
+                "Draft background is missing"
+            }
+            val backgroundPath = backgroundSource
+                ?.let { ImageStorage.stageFile(context, it) }
+                ?.let { staged -> ImageStorage.replaceAdaptiveBackground(context, File(staged), dark) }
+                ?: run {
+                    ImageStorage.clearAdaptiveBackground(context, dark)
+                    ""
+                }
+            val cardSource = variant.cardBackgroundPath
+                .takeIf { it.isNotBlank() }
+                ?.let { File(it).takeIf { file -> file.isFile } }
+            check(variant.data.hasCardBackground != true || cardSource != null) {
+                "Draft card background is missing"
+            }
+            val cardPath = cardSource
+                ?.let { ImageStorage.stageFile(context, it) }
+                ?.let { staged -> ImageStorage.replaceAdaptiveHomeCardImage(context, File(staged), dark) }
+                ?: run {
+                    ImageStorage.clearAdaptiveHomeCardImage(context, dark)
+                    ""
+                }
+            ImageStorage.clearAdaptiveHomeCardStickers(context, dark)
+            val stickers = variant.stickers.mapIndexedNotNull { index, sticker ->
+                val staged = ImageStorage.stageFile(context, File(sticker.path))
+                    ?: return@mapIndexedNotNull null
+                ImageStorage.importAdaptiveHomeCardSticker(
+                    context,
+                    File(staged),
+                    dark,
+                    index,
+                )?.let { path -> HomeCardSticker(path = path, transform = sticker.transform) }
+            }
+            AdaptiveThemeVariantState(
+                data = variant.data.copy(
+                    hasBackground = backgroundPath.isNotEmpty(),
+                    hasCardBackground = cardPath.isNotEmpty(),
+                    homeCardStickerTransforms = stickers.map { it.transform },
+                ),
+                backgroundPath = backgroundPath,
+                cardBackgroundPath = cardPath,
+                stickers = stickers,
+            )
+        }.getOrNull()
+    }
+
+    fun hasAdaptiveThemeForUpload(): Boolean =
+        AdaptiveThemeStore.loadDraft(repo)?.complete == true ||
+            AdaptiveThemeStore.isActive(repo)
+
+    fun loadAdaptiveDraft(): AdaptiveThemeDraft? = AdaptiveThemeStore.loadDraft(repo)
+
+    /**
+     * Builds a temporary v3 package from the completed draft, or from the active adaptive theme
+     * when there is no draft. The submission flow copies it and the cache cleaner removes it.
+     */
+    suspend fun createAdaptiveThemePackage(context: Context): Result<File> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val payload = currentThemePayload(ThemePackageOptions(), preferDraft = true)
+                requireNotNull(payload.adaptive) { "No adaptive theme available" }
+                val file = File(
+                    context.cacheDir,
+                    "theme_upload_adaptive_${System.currentTimeMillis()}.sukisu",
+                )
+                ThemePackageStorage.exportToFile(
+                    file = file,
+                    data = payload.data,
+                    backgroundFile = payload.backgroundFile,
+                    cardBackgroundFile = payload.cardBackgroundFile,
+                    cardStickerFiles = payload.stickerFiles,
+                    adaptive = payload.adaptive,
+                ).getOrThrow()
+                file
+            }
+        }
+
+    private fun publishDraftFlags(draft: AdaptiveThemeDraft?) {
+        _uiState.update {
+            it.copy(
+                adaptiveDraftLightCaptured = draft?.light != null,
+                adaptiveDraftDarkCaptured = draft?.dark != null,
+                adaptiveDraftComplete = draft?.complete == true,
+                adaptiveDraftRevision = it.adaptiveDraftRevision + 1,
+            )
+        }
+    }
+
+    private suspend fun buildDraftVariant(
+        context: Context,
+        dark: Boolean,
+    ): AdaptiveThemeVariantState? = withContext(Dispatchers.IO) {
+        runCatching {
+            // Read from the repository rather than the UI projection: the builder can be opened
+            // and used before the appearance state has finished loading.
+            val backgroundSource = when {
+                repo.useSystemWallpaper ->
+                    ImageStorage.systemWallpaperFile(context).takeIf { it.isFile }
+
+                repo.customBackgroundUri.isNotBlank() ->
+                    File(repo.customBackgroundUri).takeIf { it.isFile }
+
+                else -> null
+            }
+            val backgroundPath = if (backgroundSource != null) {
+                val staged = ImageStorage.stageFile(context, backgroundSource)
+                    ?: error("Could not stage the background")
+                ImageStorage.replaceAdaptiveBackground(
+                    context,
+                    File(staged),
+                    dark,
+                    draft = true,
+                ) ?: error("Could not save the background")
+            } else {
+                ImageStorage.clearAdaptiveBackground(context, dark, draft = true)
+                ""
+            }
+
+            val cardSource = repo.homeCardImagePath
+                .takeIf { it.isNotBlank() }
+                ?.let { File(it).takeIf { file -> file.isFile } }
+            val cardPath = if (cardSource != null) {
+                val staged = ImageStorage.stageFile(context, cardSource)
+                    ?: error("Could not stage the card image")
+                ImageStorage.replaceAdaptiveHomeCardImage(
+                    context,
+                    File(staged),
+                    dark,
+                    draft = true,
+                ) ?: error("Could not save the card image")
+            } else {
+                ImageStorage.clearAdaptiveHomeCardImage(context, dark, draft = true)
+                ""
+            }
+
+            ImageStorage.clearAdaptiveHomeCardStickers(context, dark, draft = true)
+            val stickers = repo.homeCardStickers.mapIndexedNotNull { index, sticker ->
+                val source = File(sticker.path).takeIf { it.isFile }
+                    ?: return@mapIndexedNotNull null
+                val staged = ImageStorage.stageFile(context, source)
+                    ?: return@mapIndexedNotNull null
+                ImageStorage.importAdaptiveHomeCardSticker(
+                    context,
+                    File(staged),
+                    dark,
+                    index,
+                    draft = true,
+                )?.let { path ->
+                    HomeCardSticker(path = path, transform = sticker.transform.coerced())
+                }
+            }.take(HomeCardSticker.MAX_COUNT)
+
+            AdaptiveThemeVariantState(
+                data = ThemeVariantData(
+                    themeMode = repo.themeMode,
+                    miuixMonet = repo.miuixMonet,
+                    keyColor = repo.keyColor,
+                    colorStyle = repo.colorStyle,
+                    colorSpec = repo.colorSpec,
+                    cardBackgroundAlphaPercent = repo.cardBackgroundAlphaPercent,
+                    customBackgroundBlurPercent = repo.customBackgroundBlurPercent,
+                    customBackgroundScrimPercent = repo.customBackgroundScrimPercent,
+                    hasBackground = backgroundPath.isNotEmpty(),
+                    hasCardBackground = cardPath.isNotEmpty(),
+                    hideHomeCardStatusText = repo.hideHomeCardStatusText,
+                    hideHomeCardDecoration = repo.hideHomeCardDecoration,
+                    homeCardStickerTransforms = stickers.map { it.transform },
+                    uiMode = repo.uiMode,
+                    enableFloatingBottomBar = repo.enableFloatingBottomBar,
+                    enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur,
+                    enableNavigationBadge = repo.enableNavigationBadge,
+                    enablePredictiveBack = repo.enablePredictiveBack,
+                    enableSwipeDismiss = repo.enableSwipeDismiss,
+                ),
+                backgroundPath = backgroundPath,
+                cardBackgroundPath = cardPath,
+                stickers = stickers,
+            )
+        }.getOrNull()
     }
 
     fun resetBackgroundAppearance() {
@@ -1165,6 +1919,7 @@ class SettingsViewModel(
 
     fun clearAllAppearance() {
         ThemeTrialManager.clear(ksuApp)
+        deactivateAdaptiveTheme()
         seedGeneration++
         wallpaperGeneration++
         clearPendingSeed()
@@ -1173,6 +1928,8 @@ class SettingsViewModel(
             ImageStorage.clear(ksuApp)
             ImageStorage.clearHomeCardImage(ksuApp)
             ImageStorage.clearHomeCardSticker(ksuApp)
+            ImageStorage.clearAdaptiveImages(ksuApp)
+            AdaptiveThemeStore.clearDraft(repo)
             runCatching { ImageStorage.systemWallpaperFile(ksuApp).delete() }
 
             repo.customBackgroundUri = ""
@@ -1223,6 +1980,10 @@ class SettingsViewModel(
                     customTexts = emptyMap(),
                     customHomeTitle = "",
                     appIconId = BuiltinAppIcons.DEFAULT_ID,
+                    adaptiveThemeActive = false,
+                    adaptiveDraftLightCaptured = false,
+                    adaptiveDraftDarkCaptured = false,
+                    adaptiveDraftComplete = false,
                 )
             }
 
@@ -1759,6 +2520,10 @@ class SettingsViewModel(
             hideHomeCardStatusText = hideHomeCardStatusText,
             hideHomeCardDecoration = hideHomeCardDecoration,
             homeCardStickers = homeCardStickers,
+            adaptiveThemeActive = adaptiveThemeActive,
+            adaptiveDraftLightCaptured = adaptiveDraftLightCaptured,
+            adaptiveDraftDarkCaptured = adaptiveDraftDarkCaptured,
+            adaptiveDraftComplete = adaptiveDraftComplete,
             themeMode = themeMode,
             colorStyle = colorStyle,
             colorSpec = colorSpec,

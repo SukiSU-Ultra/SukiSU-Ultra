@@ -110,6 +110,7 @@ import com.sukisu.ultra.ui.screen.themestore.ThemeStoreSourcesScreen
 import com.sukisu.ultra.ui.util.LocalCustomTexts
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.backgroundcrop.BackgroundCropScreen
+import com.sukisu.ultra.ui.screen.colorpalette.AdaptiveThemeBuilderScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
 import com.sukisu.ultra.ui.screen.dynamicmanagers.DynamicManagersScreen
 import com.sukisu.ultra.ui.screen.extensions.ExtensionsScreen
@@ -261,6 +262,14 @@ class MainActivity : ComponentActivity() {
             // Pick up launcher wallpaper changes while the "use system wallpaper" option is on.
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                 viewModel.refreshSystemWallpaper()
+                // Also covers a mode change that happened while the app was in the background.
+                viewModel.syncAdaptiveTheme(darkMode)
+            }
+
+            // Adaptive theme packages carry a light and a dark half; swap them with the effective
+            // light/dark mode (system-following or a forced app mode).
+            LaunchedEffect(darkMode) {
+                viewModel.syncAdaptiveTheme(darkMode)
             }
 
             DisposableEffect(darkMode) {
@@ -381,11 +390,19 @@ class MainActivity : ComponentActivity() {
                             entry<Route.ThemeStore>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette { ThemeStoreScreen() }
                             }
+                            entry<Route.ThemeStoreAdaptiveUpload>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette {
+                                    ThemeStoreScreen(startAdaptiveUpload = true)
+                                }
+                            }
                             entry<Route.ThemeStoreSources>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette { ThemeStoreSourcesScreen() }
                             }
                             entry<Route.ThemeAccount>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette { AccountScreen() }
+                            }
+                            entry<Route.AdaptiveThemeBuilder>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { AdaptiveThemeBuilderScreen() }
                             }
                             entry<Route.AppIcon>(swipeDismiss = swipeDismiss) { AppIconScreen() }
                             entry<Route.BackgroundCrop>(swipeDismiss = NavSwipeDirection.None) { key ->

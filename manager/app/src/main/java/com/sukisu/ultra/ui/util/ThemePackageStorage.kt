@@ -22,12 +22,43 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 /**
+ * Appearance fields shared by both halves of an adaptive theme. A variant is applied as a whole
+ * when the system switches between light and dark mode.
+ */
+@Serializable
+data class ThemeVariantData(
+    val themeMode: Int? = null,
+    val miuixMonet: Boolean? = null,
+    val keyColor: Int? = null,
+    val colorStyle: String? = null,
+    val colorSpec: String? = null,
+    val cardBackgroundAlphaPercent: Int? = null,
+    val customBackgroundBlurPercent: Int? = null,
+    val customBackgroundScrimPercent: Int? = null,
+    val hasBackground: Boolean? = null,
+    val hasCardBackground: Boolean? = null,
+    val hideHomeCardStatusText: Boolean? = null,
+    val hideHomeCardDecoration: Boolean? = null,
+    val homeCardStickerTransforms: List<HomeCardStickerTransform>? = null,
+    val uiMode: String? = null,
+    val enableFloatingBottomBar: Boolean? = null,
+    val enableFloatingBottomBarBlur: Boolean? = null,
+    val enableNavigationBadge: Boolean? = null,
+    val enablePredictiveBack: Boolean? = null,
+    val enableSwipeDismiss: Boolean? = null,
+)
+
+/**
  * Serializable part of a theme package. Fields are nullable so that packages written by newer
  * builds can still be applied by older ones as long as the known fields are valid.
+ *
+ * Format v3 adds [adaptive]: when it is set, [light] and [dark] each describe one complete
+ * appearance and the package stores the image set for each mode. Older managers reject v3 rather
+ * than applying only one half of the theme.
  */
 @Serializable
 data class ThemePackageData(
-    val version: Int = ThemePackageStorage.CURRENT_VERSION,
+    val version: Int = ThemePackageStorage.BASE_VERSION,
     val themeMode: Int? = null,
     val miuixMonet: Boolean? = null,
     val keyColor: Int? = null,
@@ -57,6 +88,18 @@ data class ThemePackageData(
     val moduleSortManual: Boolean? = null,
     val customHomeTitle: String? = null,
     val customTexts: Map<String, String>? = null,
+    /** True when [light] and [dark] carry two complete appearances for system light/dark mode. */
+    val adaptive: Boolean? = null,
+    val light: ThemeVariantData? = null,
+    val dark: ThemeVariantData? = null,
+)
+
+/** One extracted half of an adaptive package plus its temporary image files. */
+data class ImportedThemeVariant(
+    val data: ThemeVariantData,
+    val backgroundPath: String? = null,
+    val cardBackgroundPath: String? = null,
+    val stickerPaths: List<String> = emptyList(),
 )
 
 /**
@@ -68,13 +111,54 @@ data class ImportedTheme(
     val backgroundPath: String? = null,
     val cardBackgroundPath: String? = null,
     val stickerPaths: List<String> = emptyList(),
+    val light: ImportedThemeVariant? = null,
+    val dark: ImportedThemeVariant? = null,
+) {
+    val isAdaptive: Boolean
+        get() = data.adaptive == true && light != null && dark != null
+
+    /** All temporary files this import owns, for cleanup when the dialog is dismissed. */
+    fun temporaryFiles(): List<String> = buildList {
+        backgroundPath?.let(::add)
+        cardBackgroundPath?.let(::add)
+        addAll(stickerPaths)
+        light?.let { variant ->
+            variant.backgroundPath?.let(::add)
+            variant.cardBackgroundPath?.let(::add)
+            addAll(variant.stickerPaths)
+        }
+        dark?.let { variant ->
+            variant.backgroundPath?.let(::add)
+            variant.cardBackgroundPath?.let(::add)
+            addAll(variant.stickerPaths)
+        }
+    }
+}
+
+/** Files written for one half of an adaptive package. */
+data class ThemePackageVariantExport(
+    val data: ThemeVariantData,
+    val backgroundFile: File? = null,
+    val cardBackgroundFile: File? = null,
+    val cardStickerFiles: List<File> = emptyList(),
+)
+
+/** Both halves of an adaptive package, written as format v3. */
+data class ThemePackageAdaptiveExport(
+    val light: ThemePackageVariantExport,
+    val dark: ThemePackageVariantExport,
 )
 
 object ThemePackageStorage {
-    /** v2 is the current package format; v1 packages remain importable. */
-    const val CURRENT_VERSION = 2
+    /** v2 is the standard package format; v3 adds light/dark adaptive variants. */
+    const val BASE_VERSION = 2
+    const val ADAPTIVE_VERSION = 3
+    const val CURRENT_VERSION = ADAPTIVE_VERSION
     const val MIN_SUPPORTED_VERSION = 1
     const val THEME_MIME_TYPE = "application/x-sukisu-theme"
+
+    /** Canonical tag written to the theme store for adaptive packages. */
+    const val ADAPTIVE_TAG = "adaptive"
 
     fun isSupportedVersion(version: Int): Boolean =
         version in MIN_SUPPORTED_VERSION..CURRENT_VERSION
@@ -83,6 +167,12 @@ object ThemePackageStorage {
     private const val BACKGROUND_ENTRY = "background"
     private const val CARD_BACKGROUND_ENTRY = "card_background"
     private const val CARD_STICKER_ENTRY_PREFIX = "card_sticker_"
+    private const val BACKGROUND_LIGHT_ENTRY = "background_light"
+    private const val BACKGROUND_DARK_ENTRY = "background_dark"
+    private const val CARD_BACKGROUND_LIGHT_ENTRY = "card_background_light"
+    private const val CARD_BACKGROUND_DARK_ENTRY = "card_background_dark"
+    private const val CARD_STICKER_LIGHT_PREFIX = "card_sticker_light_"
+    private const val CARD_STICKER_DARK_PREFIX = "card_sticker_dark_"
     private const val MAX_JSON_BYTES = 64L * 1024
     private const val MAX_BACKGROUND_BYTES = 64L * 1024 * 1024
     /** Caps the total disk a single package can unpack to, not just each image. */
@@ -105,12 +195,13 @@ object ThemePackageStorage {
         backgroundFile: File?,
         cardBackgroundFile: File? = null,
         cardStickerFiles: List<File> = emptyList(),
+        adaptive: ThemePackageAdaptiveExport? = null,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val output = context.contentResolver.openOutputStream(uri)
                 ?: error("Cannot open the destination file")
             BufferedOutputStream(output).use {
-                writeEncryptedZip(it, data, backgroundFile, cardBackgroundFile, cardStickerFiles)
+                writeEncryptedZip(it, data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
             }
         }
     }
@@ -122,11 +213,12 @@ object ThemePackageStorage {
         backgroundFile: File?,
         cardBackgroundFile: File? = null,
         cardStickerFiles: List<File> = emptyList(),
+        adaptive: ThemePackageAdaptiveExport? = null,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             file.parentFile?.mkdirs()
             BufferedOutputStream(file.outputStream()).use {
-                writeEncryptedZip(it, data, backgroundFile, cardBackgroundFile, cardStickerFiles)
+                writeEncryptedZip(it, data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
             }
         }
     }
@@ -137,27 +229,96 @@ object ThemePackageStorage {
         backgroundFile: File?,
         cardBackgroundFile: File?,
         cardStickerFiles: List<File>,
+        adaptive: ThemePackageAdaptiveExport?,
     ) {
+        val packageData = if (adaptive != null) {
+            validateAdaptiveExport(adaptive)
+            data.copy(
+                version = ADAPTIVE_VERSION,
+                adaptive = true,
+                light = adaptive.light.data,
+                dark = adaptive.dark.data,
+                // Image presence lives on the variants; keep the top-level flags out of the way.
+                hasBackground = null,
+                hasCardBackground = null,
+                homeCardStickerTransforms = null,
+            )
+        } else {
+            data.copy(
+                version = if (data.version >= ADAPTIVE_VERSION) BASE_VERSION else data.version,
+                adaptive = false,
+                light = null,
+                dark = null,
+            )
+        }
+
         val encrypted = ThemePackageCrypto.encryptingStream(output)
         ZipOutputStream(encrypted).use { zip ->
             zip.putNextEntry(ZipEntry(THEME_ENTRY))
-            zip.write(json.encodeToString(ThemePackageData.serializer(), data).toByteArray())
+            zip.write(json.encodeToString(ThemePackageData.serializer(), packageData).toByteArray())
             zip.closeEntry()
-            if (data.hasBackground == true && backgroundFile != null && backgroundFile.isFile) {
-                zip.putNextEntry(ZipEntry(BACKGROUND_ENTRY))
-                backgroundFile.inputStream().use { it.copyTo(zip) }
-                zip.closeEntry()
+            if (adaptive != null) {
+                writeVariantEntries(zip, adaptive.light, BACKGROUND_LIGHT_ENTRY, CARD_BACKGROUND_LIGHT_ENTRY, CARD_STICKER_LIGHT_PREFIX)
+                writeVariantEntries(zip, adaptive.dark, BACKGROUND_DARK_ENTRY, CARD_BACKGROUND_DARK_ENTRY, CARD_STICKER_DARK_PREFIX)
+            } else {
+                if (data.hasBackground == true && backgroundFile != null && backgroundFile.isFile) {
+                    zip.putNextEntry(ZipEntry(BACKGROUND_ENTRY))
+                    backgroundFile.inputStream().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
+                if (data.hasCardBackground == true && cardBackgroundFile != null && cardBackgroundFile.isFile) {
+                    zip.putNextEntry(ZipEntry(CARD_BACKGROUND_ENTRY))
+                    cardBackgroundFile.inputStream().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
+                cardStickerFiles.filter { it.isFile }.forEachIndexed { index, file ->
+                    zip.putNextEntry(ZipEntry(CARD_STICKER_ENTRY_PREFIX + index))
+                    file.inputStream().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
             }
-            if (data.hasCardBackground == true && cardBackgroundFile != null && cardBackgroundFile.isFile) {
-                zip.putNextEntry(ZipEntry(CARD_BACKGROUND_ENTRY))
-                cardBackgroundFile.inputStream().use { it.copyTo(zip) }
-                zip.closeEntry()
+        }
+    }
+
+    /** Refuses to write a package whose flags promise an image that is no longer on disk. */
+    private fun validateAdaptiveExport(adaptive: ThemePackageAdaptiveExport) {
+        listOf(adaptive.light, adaptive.dark).forEach { variant ->
+            if (variant.data.hasBackground == true && variant.backgroundFile?.isFile != true) {
+                error("Adaptive background image is missing")
             }
-            cardStickerFiles.filter { it.isFile }.forEachIndexed { index, file ->
-                zip.putNextEntry(ZipEntry(CARD_STICKER_ENTRY_PREFIX + index))
-                file.inputStream().use { it.copyTo(zip) }
-                zip.closeEntry()
+            if (variant.data.hasCardBackground == true && variant.cardBackgroundFile?.isFile != true) {
+                error("Adaptive card background image is missing")
             }
+        }
+    }
+
+    private fun writeVariantEntries(
+        zip: ZipOutputStream,
+        variant: ThemePackageVariantExport,
+        backgroundEntry: String,
+        cardBackgroundEntry: String,
+        stickerPrefix: String,
+    ) {
+        if (variant.data.hasBackground == true &&
+            variant.backgroundFile != null &&
+            variant.backgroundFile.isFile
+        ) {
+            zip.putNextEntry(ZipEntry(backgroundEntry))
+            variant.backgroundFile.inputStream().use { it.copyTo(zip) }
+            zip.closeEntry()
+        }
+        if (variant.data.hasCardBackground == true &&
+            variant.cardBackgroundFile != null &&
+            variant.cardBackgroundFile.isFile
+        ) {
+            zip.putNextEntry(ZipEntry(cardBackgroundEntry))
+            variant.cardBackgroundFile.inputStream().use { it.copyTo(zip) }
+            zip.closeEntry()
+        }
+        variant.cardStickerFiles.filter { it.isFile }.forEachIndexed { index, file ->
+            zip.putNextEntry(ZipEntry(stickerPrefix + index))
+            file.inputStream().use { it.copyTo(zip) }
+            zip.closeEntry()
         }
     }
 
@@ -167,6 +328,22 @@ object ThemePackageStorage {
             try {
                 writeDecryptedZip(context, uri, zipFile)
                 parseThemeZip(context, zipFile)
+            } finally {
+                zipFile.delete()
+            }
+        }
+    }
+
+    /**
+     * Reads `theme.json` without extracting the images. Used by the store upload form to show
+     * whether the selected package is adaptive before the user submits it.
+     */
+    suspend fun inspect(context: Context, uri: Uri): Result<ThemePackageData> = withContext(Dispatchers.IO) {
+        runCatching {
+            val zipFile = File.createTempFile("theme_inspect_zip_", ".zip", context.cacheDir)
+            try {
+                writeDecryptedZip(context, uri, zipFile)
+                readThemeJson(zipFile)
             } finally {
                 zipFile.delete()
             }
@@ -201,11 +378,54 @@ object ThemePackageStorage {
         }
     }
 
+    private fun readThemeJson(zipFile: File): ThemePackageData {
+        var themeText: String? = null
+        FileInputStream(zipFile).use { fileInput ->
+            ZipInputStream(fileInput).use { zip ->
+                var entry: ZipEntry? = zip.nextEntry
+                while (entry != null) {
+                    if (entry.name == THEME_ENTRY) {
+                        themeText = readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
+                        break
+                    }
+                    zip.closeEntry()
+                    entry = zip.nextEntry
+                }
+            }
+        }
+        val text = themeText ?: error("theme.json is missing")
+        val data = json.decodeFromString(ThemePackageData.serializer(), text)
+        if (!isSupportedVersion(data.version)) error("Unsupported theme package version")
+        if (data.adaptive == true && data.version < ADAPTIVE_VERSION) {
+            error("Adaptive theme packages require format v$ADAPTIVE_VERSION")
+        }
+        return data
+    }
+
     private fun parseThemeZip(context: Context, zipFile: File): ImportedTheme {
         var tempBackground: File? = null
         var tempCardBackground: File? = null
         val tempStickers = mutableMapOf<Int, File>()
+        var lightBackground: File? = null
+        var lightCardBackground: File? = null
+        var darkBackground: File? = null
+        var darkCardBackground: File? = null
+        val lightStickers = mutableMapOf<Int, File>()
+        val darkStickers = mutableMapOf<Int, File>()
         var extractedImageBytes = 0L
+
+        fun cleanup() {
+            tempBackground?.delete()
+            tempCardBackground?.delete()
+            tempStickers.forEach { (_, file) -> file.delete() }
+            lightBackground?.delete()
+            lightCardBackground?.delete()
+            darkBackground?.delete()
+            darkCardBackground?.delete()
+            lightStickers.forEach { (_, file) -> file.delete() }
+            darkStickers.forEach { (_, file) -> file.delete() }
+        }
+
         fun copyExtractedImage(input: InputStream, output: OutputStream) {
             val remaining = MAX_EXTRACTED_IMAGE_BYTES - extractedImageBytes
             if (remaining <= 0L) error("Theme package images are too large")
@@ -215,10 +435,30 @@ object ThemePackageStorage {
                 maxBytes = minOf(MAX_BACKGROUND_BYTES, remaining),
             )
         }
+
+        fun newTemp(prefix: String): File =
+            File.createTempFile(prefix, ".tmp", context.cacheDir)
+
+        fun readImageEntry(zip: ZipInputStream, prefix: String): File {
+            val file = newTemp(prefix)
+            file.outputStream().use { copyExtractedImage(zip, it) }
+            return file
+        }
+
+        fun readStickerEntry(
+            zip: ZipInputStream,
+            prefix: String,
+            target: MutableMap<Int, File>,
+        ) {
+            val index = prefix.substringAfterLast('_').toIntOrNull()
+            if (index != null && index in 0 until HomeCardSticker.MAX_COUNT) {
+                if (target.containsKey(index)) error("Duplicate card sticker entry")
+                target[index] = readImageEntry(zip, "theme_import_sticker_")
+            }
+        }
+
         try {
             var themeText: String? = null
-            var backgroundExtracted = false
-            var cardBackgroundExtracted = false
             FileInputStream(zipFile).use { fileInput ->
                 ZipInputStream(fileInput).use { zip ->
                     var entry: ZipEntry? = zip.nextEntry
@@ -230,21 +470,51 @@ object ThemePackageStorage {
 
                             name == BACKGROUND_ENTRY -> {
                                 if (tempBackground != null) error("Duplicate background entry")
-                                val bg = File.createTempFile("theme_import_bg_", ".tmp", context.cacheDir)
-                                tempBackground = bg
-                                bg.outputStream().use { copyExtractedImage(zip, it) }
-                                backgroundExtracted = true
+                                tempBackground = readImageEntry(zip, "theme_import_bg_")
                             }
 
                             name == CARD_BACKGROUND_ENTRY -> {
                                 if (tempCardBackground != null) {
                                     error("Duplicate card background entry")
                                 }
-                                val cardBg = File.createTempFile("theme_import_card_", ".tmp", context.cacheDir)
-                                tempCardBackground = cardBg
-                                cardBg.outputStream().use { copyExtractedImage(zip, it) }
-                                cardBackgroundExtracted = true
+                                tempCardBackground = readImageEntry(zip, "theme_import_card_")
                             }
+
+                            name == BACKGROUND_LIGHT_ENTRY -> {
+                                if (lightBackground != null) error("Duplicate light background entry")
+                                lightBackground = readImageEntry(zip, "theme_import_bg_light_")
+                            }
+
+                            name == BACKGROUND_DARK_ENTRY -> {
+                                if (darkBackground != null) error("Duplicate dark background entry")
+                                darkBackground = readImageEntry(zip, "theme_import_bg_dark_")
+                            }
+
+                            name == CARD_BACKGROUND_LIGHT_ENTRY -> {
+                                if (lightCardBackground != null) {
+                                    error("Duplicate light card background entry")
+                                }
+                                lightCardBackground = readImageEntry(zip, "theme_import_card_light_")
+                            }
+
+                            name == CARD_BACKGROUND_DARK_ENTRY -> {
+                                if (darkCardBackground != null) {
+                                    error("Duplicate dark card background entry")
+                                }
+                                darkCardBackground = readImageEntry(zip, "theme_import_card_dark_")
+                            }
+
+                            name.startsWith(CARD_STICKER_LIGHT_PREFIX) -> readStickerEntry(
+                                zip,
+                                name,
+                                lightStickers,
+                            )
+
+                            name.startsWith(CARD_STICKER_DARK_PREFIX) -> readStickerEntry(
+                                zip,
+                                name,
+                                darkStickers,
+                            )
 
                             name.startsWith(CARD_STICKER_ENTRY_PREFIX) -> {
                                 val index = name.removePrefix(CARD_STICKER_ENTRY_PREFIX).toIntOrNull()
@@ -252,11 +522,10 @@ object ThemePackageStorage {
                                     if (tempStickers.containsKey(index)) {
                                         error("Duplicate card sticker entry")
                                     }
-                                    val sticker = File.createTempFile(
-                                        "theme_import_sticker_", ".tmp", context.cacheDir
+                                    tempStickers[index] = readImageEntry(
+                                        zip,
+                                        "theme_import_sticker_",
                                     )
-                                    tempStickers[index] = sticker
-                                    sticker.outputStream().use { copyExtractedImage(zip, it) }
                                 }
                             }
                         }
@@ -270,52 +539,135 @@ object ThemePackageStorage {
             val data = json.decodeFromString(ThemePackageData.serializer(), text)
             if (!isSupportedVersion(data.version)) error("Unsupported theme package version")
 
-            val hasBackground = data.hasBackground ?: backgroundExtracted
-            if (hasBackground && !backgroundExtracted) error("Background image is missing")
-            if (hasBackground && tempBackground != null) {
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(tempBackground.absolutePath, bounds)
-                if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-                    error("Background image is invalid")
+            if (data.adaptive == true) {
+                if (data.version < ADAPTIVE_VERSION) {
+                    error("Adaptive theme packages require format v$ADAPTIVE_VERSION")
                 }
+                val lightData = data.light ?: error("Light variant is missing")
+                val darkData = data.dark ?: error("Dark variant is missing")
+                val light = resolveVariant(
+                    label = "Light",
+                    data = lightData,
+                    background = lightBackground,
+                    cardBackground = lightCardBackground,
+                    stickers = lightStickers,
+                )
+                val dark = resolveVariant(
+                    label = "Dark",
+                    data = darkData,
+                    background = darkBackground,
+                    cardBackground = darkCardBackground,
+                    stickers = darkStickers,
+                )
+                // Adaptive packages do not use the legacy single image set.
+                tempBackground?.delete()
+                tempBackground = null
+                tempCardBackground?.delete()
+                tempCardBackground = null
+                tempStickers.forEach { (_, file) -> file.delete() }
+                tempStickers.clear()
+                return ImportedTheme(
+                    data = data.copy(
+                        light = light.data,
+                        dark = dark.data,
+                        hasBackground = null,
+                        hasCardBackground = null,
+                        homeCardStickerTransforms = null,
+                    ),
+                    light = light,
+                    dark = dark,
+                )
             }
 
-            val hasCardBackground = data.hasCardBackground ?: cardBackgroundExtracted
-            if (hasCardBackground && !cardBackgroundExtracted) {
+            // v1/v2 package, or a v3 package that does not use the adaptive fields.
+            lightBackground?.delete()
+            lightBackground = null
+            darkBackground?.delete()
+            darkBackground = null
+            lightCardBackground?.delete()
+            lightCardBackground = null
+            darkCardBackground?.delete()
+            darkCardBackground = null
+            lightStickers.forEach { (_, file) -> file.delete() }
+            lightStickers.clear()
+            darkStickers.forEach { (_, file) -> file.delete() }
+            darkStickers.clear()
+
+            val hasBackground = data.hasBackground ?: (tempBackground != null)
+            if (hasBackground && tempBackground == null) error("Background image is missing")
+            if (hasBackground && tempBackground != null) {
+                validateImage(tempBackground, "Background image is invalid")
+            }
+
+            val hasCardBackground = data.hasCardBackground ?: (tempCardBackground != null)
+            if (hasCardBackground && tempCardBackground == null) {
                 error("Card background image is missing")
             }
             if (hasCardBackground && tempCardBackground != null) {
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(tempCardBackground.absolutePath, bounds)
-                if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-                    error("Card background image is invalid")
-                }
+                validateImage(tempCardBackground, "Card background image is invalid")
             }
 
             tempStickers.forEach { (_, sticker) ->
-                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(sticker.absolutePath, bounds)
-                if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-                    error("Card sticker image is invalid")
-                }
+                validateImage(sticker, "Card sticker image is invalid")
             }
-
-            val orderedStickerPaths = tempStickers.entries
-                .sortedBy { it.key }
-                .map { it.value.absolutePath }
 
             return ImportedTheme(
                 data = data,
                 backgroundPath = tempBackground?.takeIf { hasBackground }?.absolutePath,
                 cardBackgroundPath = tempCardBackground?.takeIf { hasCardBackground }?.absolutePath,
-                stickerPaths = orderedStickerPaths,
+                stickerPaths = stickerPaths(tempStickers),
             )
         } catch (e: Exception) {
-            tempBackground?.delete()
-            tempCardBackground?.delete()
-            tempStickers.forEach { (_, file) -> file.delete() }
+            cleanup()
             throw e
         }
+    }
+
+    /**
+     * Validates one adaptive half and resolves `null` image flags from the extracted entries, so
+     * the applied variant always knows whether it owns a background or clears it.
+     */
+    private fun resolveVariant(
+        label: String,
+        data: ThemeVariantData,
+        background: File?,
+        cardBackground: File?,
+        stickers: MutableMap<Int, File>,
+    ): ImportedThemeVariant {
+        val hasBackground = data.hasBackground ?: (background != null)
+        if (hasBackground && background == null) error("$label background image is missing")
+        if (hasBackground && background != null) {
+            validateImage(background, "$label background image is invalid")
+        }
+        val hasCardBackground = data.hasCardBackground ?: (cardBackground != null)
+        if (hasCardBackground && cardBackground == null) {
+            error("$label card background image is missing")
+        }
+        if (hasCardBackground && cardBackground != null) {
+            validateImage(cardBackground, "$label card background image is invalid")
+        }
+        stickers.values.forEach { sticker ->
+            validateImage(sticker, "$label card sticker image is invalid")
+        }
+
+        return ImportedThemeVariant(
+            data = data.copy(
+                hasBackground = hasBackground,
+                hasCardBackground = hasCardBackground,
+            ),
+            backgroundPath = background?.takeIf { hasBackground }?.absolutePath,
+            cardBackgroundPath = cardBackground?.takeIf { hasCardBackground }?.absolutePath,
+            stickerPaths = stickerPaths(stickers),
+        )
+    }
+
+    private fun stickerPaths(stickers: Map<Int, File>): List<String> =
+        stickers.entries.sortedBy { it.key }.map { it.value.absolutePath }
+
+    private fun validateImage(file: File, message: String) {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) error(message)
     }
 
     /**
@@ -361,9 +713,9 @@ object ThemePackageStorage {
     /** Validates and parses a package without keeping its extracted image files. */
     suspend fun validate(context: Context, uri: Uri): Result<ThemePackageData> = withContext(Dispatchers.IO) {
         import(context, uri).map { imported ->
-            imported.backgroundPath?.let { File(it).delete() }
-            imported.cardBackgroundPath?.let { File(it).delete() }
-            imported.stickerPaths.forEach { File(it).delete() }
+            imported.temporaryFiles().forEach { path ->
+                runCatching { File(path).delete() }
+            }
             imported.data
         }
     }
