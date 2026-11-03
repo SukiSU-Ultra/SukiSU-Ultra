@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +44,7 @@ import com.sukisu.ultra.ui.util.HomeCardStickerTransform
 import com.sukisu.ultra.ui.util.ImportedTheme
 import com.sukisu.ultra.ui.util.ThemePackageData
 import com.sukisu.ultra.ui.util.ThemePackageStorage
+import com.sukisu.ultra.ui.util.ThemeTrialManager
 import com.sukisu.ultra.ui.util.findActivity
 import java.io.File
 
@@ -789,6 +791,8 @@ class SettingsViewModel(
         val pending = _uiState.value.pendingImportTheme ?: return
         viewModelScope.launch {
             applyImportedTheme(context, pending, options)
+            // A normal import is a permanent choice; it supersedes any running trial.
+            ThemeTrialManager.clear(context)
             _uiState.update {
                 it.copy(
                     pendingImportTheme = null,
@@ -797,6 +801,84 @@ class SettingsViewModel(
             }
             Toast.makeText(ksuApp, R.string.theme_import_success, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * Starts a store trial in the view model scope. Running it here instead of directly in a
+     * composable `LaunchedEffect` means a rotation or recomposition cannot cancel the apply
+     * halfway through and leave the trial marker with a deleted package.
+     */
+    fun startThemeTrial(context: Context, packageFile: File) {
+        val appContext = context.applicationContext
+        val taskId = context.findActivity()?.taskId
+        viewModelScope.launch {
+            val result = beginThemeTrial(appContext, packageFile, taskId)
+            Toast.makeText(
+                ksuApp,
+                if (result.isSuccess) R.string.theme_store_trial_started
+                else R.string.theme_store_trial_failed,
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+
+    /**
+     * Applies a store package as a trial. The current appearance is backed up first; a marker
+     * makes the next process start restore that backup and delete the trial cache.
+     */
+    private suspend fun beginThemeTrial(
+        context: Context,
+        packageFile: File,
+        taskId: Int?,
+    ): Result<Unit> =
+        withContext(NonCancellable + Dispatchers.IO) {
+            runCatching {
+                if (ThemeTrialManager.activeBackup(context) == null) {
+                    val backup = createCurrentThemePackage(context).getOrThrow()
+                    val target = ThemeTrialManager.backupFile(context)
+                    target.parentFile?.mkdirs()
+                    backup.copyTo(target, overwrite = true)
+                    backup.delete()
+                    ThemeTrialManager.markActive(context, target, taskId)
+                }
+                try {
+                    val imported = ThemePackageStorage.import(context, Uri.fromFile(packageFile)).getOrThrow()
+                    // Do not switch launcher aliases for a temporary trial; it also avoids
+                    // disabling the alias that is currently hosting the task on restore.
+                    applyImportedTheme(
+                        context,
+                        imported,
+                        ThemePackageOptions(appIcon = false),
+                    )
+                } catch (error: Exception) {
+                    restoreTrialBackup(context)
+                    throw error
+                }
+            }.also {
+                runCatching { packageFile.delete() }
+            }
+        }
+
+    /** Restores and clears a trial left over from a previous process or activity task. */
+    fun restoreThemeTrial(context: Context, taskId: Int? = null) {
+        if (!ThemeTrialManager.shouldRestore(context, taskId)) return
+        val appContext = context.applicationContext
+        viewModelScope.launch {
+            withContext(NonCancellable + Dispatchers.IO) {
+                restoreTrialBackup(appContext)
+            }
+        }
+    }
+
+    private suspend fun restoreTrialBackup(context: Context): Boolean {
+        val backup = ThemeTrialManager.activeBackup(context) ?: return false
+        val imported = ThemePackageStorage.import(context, Uri.fromFile(backup)).getOrNull()
+            ?: return false
+        return runCatching {
+            applyImportedTheme(context, imported, ThemePackageOptions())
+        }.onSuccess {
+            ThemeTrialManager.clear(context)
+        }.isSuccess
     }
 
     private suspend fun applyImportedTheme(
@@ -900,39 +982,61 @@ class SettingsViewModel(
 
         var backgroundUri = current.customBackgroundUri
         var homeCardImagePath = current.homeCardImagePath
-        if (options.backgroundImage && imported.backgroundPath != null) {
-            backgroundUri = ImageStorage.replace(context, File(imported.backgroundPath)) ?: ""
-            repo.customBackgroundUri = backgroundUri
-            repo.useSystemWallpaper = false
-            repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+        if (options.backgroundImage) {
+            if (imported.backgroundPath != null) {
+                backgroundUri = ImageStorage.replace(context, File(imported.backgroundPath)) ?: ""
+                repo.customBackgroundUri = backgroundUri
+                repo.useSystemWallpaper = false
+                repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+            } else if (data.hasBackground == false) {
+                // The package explicitly has no background, so restore the absence too.
+                ImageStorage.clear(context)
+                backgroundUri = ""
+                repo.customBackgroundUri = ""
+                repo.useSystemWallpaper = false
+                repo.customBackgroundUpdatedAt = System.currentTimeMillis()
+            }
         } else if (imported.backgroundPath != null) {
             runCatching { File(imported.backgroundPath).delete() }
         }
 
-        if (options.homeCardImage && imported.cardBackgroundPath != null) {
-            val cardPath = ImageStorage.replaceHomeCardImage(context, File(imported.cardBackgroundPath)) ?: ""
-            repo.homeCardImagePath = cardPath
-            homeCardImagePath = cardPath
+        if (options.homeCardImage) {
+            if (imported.cardBackgroundPath != null) {
+                val cardPath = ImageStorage.replaceHomeCardImage(context, File(imported.cardBackgroundPath)) ?: ""
+                repo.homeCardImagePath = cardPath
+                homeCardImagePath = cardPath
+            } else if (data.hasCardBackground == false) {
+                ImageStorage.clearHomeCardImage(context)
+                repo.homeCardImagePath = ""
+                homeCardImagePath = ""
+            }
         } else if (imported.cardBackgroundPath != null) {
             runCatching { File(imported.cardBackgroundPath).delete() }
         }
 
-        if (options.stickers && imported.stickerPaths.isNotEmpty()) {
-            val transforms = data.homeCardStickerTransforms.orEmpty()
-            val importedStickers = imported.stickerPaths.mapIndexedNotNull { index, path ->
-                val saved = ImageStorage.importHomeCardSticker(context, File(path))
-                    ?: return@mapIndexedNotNull null
-                HomeCardSticker(
-                    path = saved,
-                    transform = transforms.getOrNull(index)?.coerced() ?: HomeCardStickerTransform(),
-                )
-            }.take(HomeCardSticker.MAX_COUNT)
-            if (importedStickers.isNotEmpty()) {
+        if (options.stickers) {
+            if (imported.stickerPaths.isNotEmpty()) {
+                val transforms = data.homeCardStickerTransforms.orEmpty()
+                val importedStickers = imported.stickerPaths.mapIndexedNotNull { index, path ->
+                    val saved = ImageStorage.importHomeCardSticker(context, File(path))
+                        ?: return@mapIndexedNotNull null
+                    HomeCardSticker(
+                        path = saved,
+                        transform = transforms.getOrNull(index)?.coerced() ?: HomeCardStickerTransform(),
+                    )
+                }.take(HomeCardSticker.MAX_COUNT)
+                if (importedStickers.isNotEmpty()) {
+                    current.homeCardStickers.forEach { ImageStorage.deleteHomeCardSticker(ksuApp, it.path) }
+                    repo.homeCardStickers = importedStickers
+                    homeCardStickers = importedStickers
+                }
+            } else if (data.homeCardStickerTransforms != null) {
+                // A v2 package with an empty list explicitly clears the existing stickers.
                 current.homeCardStickers.forEach { ImageStorage.deleteHomeCardSticker(ksuApp, it.path) }
-                repo.homeCardStickers = importedStickers
-                homeCardStickers = importedStickers
+                repo.homeCardStickers = emptyList()
+                homeCardStickers = emptyList()
             }
-        } else if (!options.stickers) {
+        } else {
             imported.stickerPaths.forEach { runCatching { File(it).delete() } }
         }
 
@@ -1009,8 +1113,22 @@ class SettingsViewModel(
                 hideHomeCardStatusText = hideHomeCardStatusText,
                 hideHomeCardDecoration = hideHomeCardDecoration,
                 homeCardStickers = homeCardStickers,
-                useSystemWallpaper = if (options.backgroundImage && imported.backgroundPath != null) false else it.useSystemWallpaper,
-                systemWallpaperPath = if (options.backgroundImage && imported.backgroundPath != null) "" else it.systemWallpaperPath,
+                useSystemWallpaper = if (
+                    options.backgroundImage &&
+                    (imported.backgroundPath != null || data.hasBackground == false)
+                ) {
+                    false
+                } else {
+                    it.useSystemWallpaper
+                },
+                systemWallpaperPath = if (
+                    options.backgroundImage &&
+                    (imported.backgroundPath != null || data.hasBackground == false)
+                ) {
+                    ""
+                } else {
+                    it.systemWallpaperPath
+                },
                 enableFloatingBottomBar = floatingBottomBar,
                 enableFloatingBottomBarBlur = floatingBottomBarBlur,
                 enableNavigationBadge = navigationBadge,
@@ -1021,6 +1139,7 @@ class SettingsViewModel(
     }
 
     fun resetBackgroundAppearance() {
+        ThemeTrialManager.clear(ksuApp)
         viewModelScope.launch {
             val defaultBlur = ImageStorage.defaultBackgroundBlurPercent(ksuApp)
             repo.cardBackgroundAlphaPercent = ImageStorage.DEFAULT_CARD_ALPHA
@@ -1045,6 +1164,7 @@ class SettingsViewModel(
     }
 
     fun clearAllAppearance() {
+        ThemeTrialManager.clear(ksuApp)
         seedGeneration++
         wallpaperGeneration++
         clearPendingSeed()

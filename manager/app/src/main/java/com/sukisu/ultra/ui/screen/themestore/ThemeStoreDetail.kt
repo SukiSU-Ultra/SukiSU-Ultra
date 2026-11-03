@@ -1,7 +1,9 @@
 package com.sukisu.ultra.ui.screen.themestore
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,20 +27,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.IconButton as MaterialIconButton
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.material3.TextButton as MaterialTextButton
 import androidx.compose.material3.TopAppBar as MaterialTopAppBar
@@ -52,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -77,12 +86,15 @@ internal fun ThemeStoreDetailScreen(
     state: ThemeStoreUiState,
     onBack: () -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
+    onTrial: (ThemeStoreItem) -> Unit,
     onRefresh: () -> Unit,
 ) {
     val entry = item.entry
     val compatible = entry.isCompatible()
+    val busy = state.downloadingKey != null
     val downloading = state.downloadingKey == item.key
-    val downloadBusy = state.downloadingKey != null
+    val trialDownloading = downloading && state.downloadTrial
+    val normalDownloading = downloading && !state.downloadTrial
     val sourceName = if (item.source.isDefault) {
         stringResource(R.string.theme_store_default_source)
     } else {
@@ -116,7 +128,14 @@ internal fun ThemeStoreDetailScreen(
         containerColor = pageContainer,
         topBar = {
             MaterialTopAppBar(
-                title = {},
+                title = { MaterialText(stringResource(R.string.theme_store_details)) },
+                subtitle = {
+                    MaterialText(
+                        text = sourceName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 actions = {
                     MaterialIconButton(
@@ -164,28 +183,53 @@ internal fun ThemeStoreDetailScreen(
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp, top = 18.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        MaterialText(
-                            text = entry.name,
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.weight(1f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (compatible) {
-                            Spacer(Modifier.width(12.dp))
+                    MaterialText(
+                        text = entry.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (compatible) {
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = { onTrial(item) },
+                                enabled = !busy,
+                                shapes = ButtonDefaults.shapes(),
+                                contentPadding = PaddingValues(horizontal = 14.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp),
+                            ) {
+                                if (trialDownloading) {
+                                    CircularWavyProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        stroke = Stroke(width = 2f),
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    MaterialText(stringResource(R.string.theme_store_downloading_short))
+                                } else {
+                                    MaterialText(stringResource(R.string.theme_store_trial))
+                                }
+                            }
                             Button(
                                 onClick = { onDownload(item) },
-                                enabled = !downloadBusy || downloading,
-                                shape = RoundedCornerShape(99.dp),
-                                contentPadding = PaddingValues(horizontal = 18.dp),
-                                modifier = Modifier.height(44.dp),
+                                enabled = !busy,
+                                shapes = ButtonDefaults.shapes(),
+                                contentPadding = PaddingValues(horizontal = 14.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp),
                             ) {
-                                if (downloading) {
-                                    CircularProgressIndicator(
+                                if (normalDownloading) {
+                                    CircularWavyProgressIndicator(
                                         modifier = Modifier.size(16.dp),
-                                        strokeWidth = 2.dp,
                                         color = MaterialTheme.colorScheme.onPrimary,
+                                        trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.24f),
+                                        stroke = Stroke(width = 2f),
                                     )
                                     Spacer(Modifier.width(6.dp))
                                     MaterialText(stringResource(R.string.theme_store_downloading_short))
@@ -212,24 +256,28 @@ internal fun ThemeStoreDetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (entry.tags.isNotEmpty()) {
-                        Spacer(Modifier.height(6.dp))
-                        MaterialText(
-                            text = entry.tags.joinToString(" · "),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            entry.tags.forEach { tag ->
+                                ThemeStoreTag(tag)
+                            }
+                        }
                     }
                     if (!compatible) {
                         Spacer(Modifier.height(8.dp))
-                        MaterialText(
+                        ThemeStoreInlineNotice(
                             text = stringResource(R.string.theme_store_requires_manager),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error,
+                            isError = true,
                         )
                     }
                     if (downloading) {
                         Spacer(Modifier.height(12.dp))
-                        LinearProgressIndicator(
+                        LinearWavyProgressIndicator(
                             progress = { state.downloadProgress.coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -246,37 +294,29 @@ internal fun ThemeStoreDetailScreen(
                 }
             }
             item(key = "integrity") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp, top = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ThemeStoreSectionCard(
+                    title = stringResource(R.string.theme_store_integrity_title),
+                    icon = Icons.Rounded.CheckCircle,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        MaterialIcon(
-                            imageVector = Icons.Rounded.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        MaterialText(
-                            text = stringResource(R.string.theme_store_integrity_title),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
                     MaterialText(
                         text = stringResource(R.string.theme_store_integrity_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    SelectionContainer {
-                        MaterialText(
-                            text = entry.sha256.ifBlank { "—" },
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ) {
+                        SelectionContainer {
+                            MaterialText(
+                                text = entry.sha256.ifBlank { "—" },
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            )
+                        }
                     }
                     if (state.verifiedThemeKey == item.key) {
                         MaterialText(
@@ -289,27 +329,26 @@ internal fun ThemeStoreDetailScreen(
             }
             if (entry.description.isNotBlank()) {
                 item(key = "description") {
-                    ExpandableMarkdownText(
-                        text = themeStoreMarkdown(entry.description),
-                        resetKey = item.key,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp, top = 16.dp),
-                    )
+                    ThemeStoreSectionCard(
+                        title = stringResource(R.string.theme_store_description),
+                        icon = Icons.Rounded.Description,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                    ) {
+                        ExpandableMarkdownText(
+                            text = themeStoreMarkdown(entry.description),
+                            resetKey = item.key,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
             if (entry.changelog.isNotBlank()) {
                 item(key = "changelog") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp, top = 20.dp),
+                    ThemeStoreSectionCard(
+                        title = stringResource(R.string.theme_store_changelog),
+                        icon = Icons.Rounded.Schedule,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
                     ) {
-                        MaterialText(
-                            text = stringResource(R.string.theme_store_changelog),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Spacer(Modifier.height(8.dp))
                         MaterialText(
                             text = themeStoreMarkdown(entry.changelog),
                             style = MaterialTheme.typography.bodyMedium,
@@ -320,48 +359,51 @@ internal fun ThemeStoreDetailScreen(
             }
             if (entry.author.isNotBlank()) {
                 item(key = "author") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp, top = 24.dp),
+                    ThemeStoreSectionCard(
+                        title = stringResource(R.string.theme_store_author_section),
+                        icon = Icons.Rounded.Person,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 8.dp),
                     ) {
-                        MaterialText(
-                            text = stringResource(R.string.theme_store_author_section),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                                contentAlignment = Alignment.Center,
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                MaterialIcon(
-                                    imageVector = Icons.Rounded.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(26.dp),
-                                )
-                                if (avatarUrl != null) {
-                                    AsyncImage(
-                                        model = themeImageRequest(
-                                            context = LocalContext.current,
-                                            url = avatarUrl,
-                                            token = item.source.token,
-                                        ),
-                                        contentDescription = entry.author,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize(),
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.surfaceContainerLow),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Person,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(26.dp),
                                     )
+                                    if (avatarUrl != null) {
+                                        AsyncImage(
+                                            model = themeImageRequest(
+                                                context = LocalContext.current,
+                                                url = avatarUrl,
+                                                token = item.source.token,
+                                            ),
+                                            contentDescription = entry.author,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                    }
                                 }
+                                Spacer(Modifier.width(12.dp))
+                                MaterialText(
+                                    text = entry.author,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
                             }
-                            Spacer(Modifier.width(12.dp))
-                            MaterialText(
-                                text = entry.author,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
                         }
                     }
                 }
@@ -448,10 +490,15 @@ private fun ThemeStoreGallery(
         ) {
             repeat(images.size) { index ->
                 val selectedDot = pagerState.currentPage == index
+                val dotWidth by animateDpAsState(
+                    targetValue = if (selectedDot) 18.dp else 6.dp,
+                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                    label = "themeStorePageDotWidth",
+                )
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 3.dp)
-                        .width(if (selectedDot) 18.dp else 6.dp)
+                        .width(dotWidth)
                         .height(6.dp)
                         .clip(RoundedCornerShape(99.dp))
                         .background(
@@ -472,7 +519,11 @@ private fun ExpandableMarkdownText(
 ) {
     var expanded by rememberSaveable(resetKey) { mutableStateOf(false) }
     var overflowed by remember(resetKey) { mutableStateOf(false) }
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.animateContentSize(
+            MaterialTheme.motionScheme.defaultSpatialSpec(),
+        ),
+    ) {
         MaterialText(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
@@ -487,6 +538,7 @@ private fun ExpandableMarkdownText(
             MaterialTextButton(
                 onClick = { expanded = !expanded },
                 contentPadding = PaddingValues(0.dp),
+                shapes = ButtonDefaults.shapes(),
             ) {
                 MaterialText(
                     text = stringResource(
@@ -510,7 +562,8 @@ private fun formatBytes(bytes: Long): String {
 }
 
 private fun ThemeStoreEntry.isCompatible(): Boolean {
-    return formatVersion <= ThemePackageStorage.CURRENT_VERSION && minManagerVersion <= BuildConfig.VERSION_CODE.toLong()
+    return formatVersion in ThemePackageStorage.MIN_SUPPORTED_VERSION..ThemePackageStorage.CURRENT_VERSION &&
+        minManagerVersion <= BuildConfig.VERSION_CODE.toLong()
 }
 
 @Composable

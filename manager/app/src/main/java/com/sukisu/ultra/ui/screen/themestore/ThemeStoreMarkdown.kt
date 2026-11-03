@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.ui.screen.themestore
 
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 private val THEME_SITE_MENTIONS = mapOf(
     "github" to "https://github.com",
@@ -28,29 +33,59 @@ private val THEME_SITE_MENTIONS = mapOf(
     "afdian" to "https://afdian.com",
 )
 
-private val INLINE_MARKDOWN = Regex(
-    """\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^]\n]+]\(https?://[^\s)]+\)|[A-Za-z0-9._-]+@(?:github|gitee|bilibili|coolapk|telegram|weibo|xiaohongshu|xda|youtube|afdian)(?![\w.-]*\.)|(?<![\w@])@[A-Za-z0-9_-]+|https?://[^s]+|\*[^*\n]+\*""",
+private val MENTION_PLATFORM = THEME_SITE_MENTIONS.keys
+    .sortedByDescending(String::length)
+    .joinToString("|") { Regex.escape(it) }
+
+// Usernames may use any language; platform keywords stay in English.
+private const val MENTION_USERNAME = """[\p{L}\p{M}\p{N}._-]+"""
+
+// Allow CJK text and punctuation right after a mention, but not an email/domain suffix.
+private const val MENTION_END = """(?![A-Za-z0-9._-])"""
+
+// The platform alternation must stay grouped so the trailing boundary applies to every alias.
+@Suppress("RegExpUnnecessaryNonCapturingGroup")
+internal val INLINE_MARKDOWN = Regex(
+    """\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^]\n]+]\(https?://[^\s)]+\)|$MENTION_USERNAME@(?:$MENTION_PLATFORM)$MENTION_END|(?<![A-Za-z0-9_@.-])@(?:$MENTION_PLATFORM)$MENTION_END|https?://\S+|\*[^*\n]+\*""",
     RegexOption.IGNORE_CASE,
 )
 
-private val THEME_USER_MENTIONS = setOf(
-    "github", "gitee", "bilibili", "coolapk", "telegram",
-    "weibo", "xiaohongshu", "xda", "youtube", "afdian",
-)
+private fun encodeUserSegment(value: String): String =
+    URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replace("+", "%20")
 
-private fun userMentionUrl(user: String, platform: String): String? = when (platform.lowercase()) {
-    "github" -> "https://github.com/$user"
-    "gitee" -> "https://gitee.com/$user"
-    "bilibili" -> if (user.all(Char::isDigit)) "https://space.bilibili.com/$user"
-    else "https://search.bilibili.com/all?keyword=$user"
-    "coolapk" -> "https://www.coolapk.com/u/$user"
-    "telegram" -> "https://t.me/$user"
-    "weibo" -> "https://weibo.com/$user"
-    "xiaohongshu" -> "https://www.xiaohongshu.com/user/profile/$user"
-    "xda" -> "https://xdaforums.com/m/$user/"
-    "youtube" -> "https://www.youtube.com/@$user"
-    "afdian" -> "https://afdian.com/a/$user"
+private fun userMentionUrl(user: String, platform: String): String? = when (platform.lowercase(Locale.ROOT)) {
+    "github" -> "https://github.com/${encodeUserSegment(user)}"
+    "gitee" -> "https://gitee.com/${encodeUserSegment(user)}"
+    "bilibili" -> if (user.all(Char::isDigit)) {
+        "https://space.bilibili.com/$user"
+    } else {
+        "https://search.bilibili.com/all?keyword=${encodeUserSegment(user)}"
+    }
+    "coolapk" -> "https://www.coolapk.com/u/${encodeUserSegment(user)}"
+    "telegram" -> "https://t.me/${encodeUserSegment(user)}"
+    "weibo" -> "https://weibo.com/${encodeUserSegment(user)}"
+    "xiaohongshu" -> "https://www.xiaohongshu.com/user/profile/${encodeUserSegment(user)}"
+    "xda" -> "https://xdaforums.com/m/${encodeUserSegment(user)}/"
+    "youtube" -> "https://www.youtube.com/@${encodeUserSegment(user)}"
+    "afdian" -> "https://afdian.com/a/${encodeUserSegment(user)}"
     else -> null
+}
+
+/**
+ * Resolves a parsed `@site` or `username@platform` token to its target URL.
+ * Returns null for plain text, unknown platforms and email-like tokens.
+ */
+internal fun themeMentionUrl(token: String): String? {
+    if (token.startsWith("@")) {
+        val site = token.substring(1).lowercase(Locale.ROOT)
+        return THEME_SITE_MENTIONS[site]
+    }
+    val split = token.lastIndexOf('@')
+    if (split <= 0) return null
+    val user = token.substring(0, split)
+    val platform = token.substring(split + 1).lowercase(Locale.ROOT)
+    if (platform !in THEME_SITE_MENTIONS) return null
+    return userMentionUrl(user, platform)
 }
 
 /** Small inline Markdown renderer for theme descriptions shown in cards. */
@@ -105,34 +140,19 @@ internal fun themeStoreMarkdown(text: String): AnnotatedString {
                         }
                     }
 
-                    token.startsWith("@") -> {
-                        val site = token.substring(1).lowercase()
-                        val url = THEME_SITE_MENTIONS[site]
-                        if (url != null) {
-                            withLink(LinkAnnotation.Url(url, linkStyles)) {
-                                append(token)
-                            }
-                        } else {
-                            append(token)
-                        }
-                    }
-
-                    token.contains('@') -> {
-                        val split = token.lastIndexOf('@')
-                        val user = token.substring(0, split)
-                        val platform = token.substring(split + 1).lowercase()
-                        val url = if (platform in THEME_USER_MENTIONS) userMentionUrl(user, platform) else null
-                        if (url != null) {
-                            withLink(LinkAnnotation.Url(url, linkStyles)) {
-                                append(token)
-                            }
-                        } else {
-                            append(token)
-                        }
-                    }
-
                     token.startsWith("http://") || token.startsWith("https://") -> {
                         withLink(LinkAnnotation.Url(token, linkStyles)) {
+                            append(token)
+                        }
+                    }
+
+                    token.startsWith("@") || token.contains('@') -> {
+                        val url = themeMentionUrl(token)
+                        if (url != null) {
+                            withLink(LinkAnnotation.Url(url, linkStyles)) {
+                                append(token)
+                            }
+                        } else {
                             append(token)
                         }
                     }

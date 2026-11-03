@@ -37,6 +37,8 @@ interface SettingsRepository {
     var themeStoreAdminUrl: String
     /** Additional theme sources merged into the catalog; the default source is the fields above. */
     var themeStoreExtraSources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>
+    /** Preferred source base URL for future uploads; blank means the default source. */
+    var themeStoreUploadSource: String
     var homeCardImagePath: String
     /** Hide the working text and version line on the home status card while a card image is set. */
     var hideHomeCardStatusText: Boolean

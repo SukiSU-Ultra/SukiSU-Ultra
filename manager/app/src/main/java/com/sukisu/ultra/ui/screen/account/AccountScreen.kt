@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.screen.account
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,16 +21,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -87,25 +94,175 @@ fun AccountScreen(viewModel: AccountViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item {
-                val session = state.session
-                if (session == null) {
-                    AuthCard(state = state, viewModel = viewModel)
-                } else {
-                    ProfileCard(
-                        session = session,
-                        state = state,
-                        onRefresh = viewModel::refresh,
-                        onLogout = viewModel::logout,
-                        onOpenWeb = {
-                            viewModel.accountUrl()?.let { url ->
-                                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                            }
-                        },
-                    )
+                SourceSelectorCard(
+                    sources = state.sources,
+                    sessions = state.sessions,
+                    selectedBaseUrl = state.baseUrl,
+                    defaultUploadBaseUrl = state.defaultUploadBaseUrl,
+                    onSelect = viewModel::selectSource,
+                    onSetDefaultUploadSource = viewModel::setDefaultUploadSource,
+                )
+            }
+            item {
+                key(state.baseUrl) {
+                    val session = state.session
+                    if (session == null) {
+                        AuthCard(state = state, viewModel = viewModel)
+                    } else {
+                        ProfileCard(
+                            session = session,
+                            state = state,
+                            onRefresh = viewModel::refresh,
+                            onLogout = viewModel::logout,
+                            onOpenWeb = {
+                                viewModel.accountUrl()?.let { url ->
+                                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun SourceSelectorCard(
+    sources: List<AccountSource>,
+    sessions: Map<String, AccountSession>,
+    selectedBaseUrl: String,
+    defaultUploadBaseUrl: String,
+    onSelect: (String) -> Unit,
+    onSetDefaultUploadSource: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = sources.firstOrNull { it.baseUrl == selectedBaseUrl }
+    val defaultUploadSource = sources.firstOrNull { it.baseUrl == defaultUploadBaseUrl }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                stringResource(R.string.account_source),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Box {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.Start,
+                    ) {
+                        Text(sourceLabel(selected), style = MaterialTheme.typography.bodyLarge)
+                        selected?.baseUrl?.takeIf { it.isNotBlank() }?.let { baseUrl ->
+                            Text(
+                                baseUrl,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = null,
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    sources.forEach { source ->
+                        val session = sessions[source.baseUrl]
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(sourceLabel(source), style = MaterialTheme.typography.bodyLarge)
+                                    Text(
+                                        if (session != null) {
+                                            stringResource(
+                                                R.string.account_source_signed_in,
+                                                session.user.username,
+                                            )
+                                        } else {
+                                            stringResource(R.string.account_source_signed_out)
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (session != null) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
+                                    )
+                                }
+                            },
+                            onClick = {
+                                expanded = false
+                                onSelect(source.baseUrl)
+                            },
+                        )
+                    }
+                }
+            }
+            Text(
+                stringResource(R.string.account_sources_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            HorizontalDivider()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.account_default_upload_source),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                    Text(
+                        sourceLabel(defaultUploadSource),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (selectedBaseUrl == defaultUploadBaseUrl) {
+                    Text(
+                        stringResource(R.string.account_default_upload_source_current),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    TextButton(
+                        onClick = { onSetDefaultUploadSource(selectedBaseUrl) },
+                        enabled = sessions[selectedBaseUrl] != null,
+                    ) {
+                        Text(stringResource(R.string.account_set_default_upload_source))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun sourceLabel(source: AccountSource?): String = when {
+    source == null -> ""
+    source.isDefault && source.name.isBlank() -> stringResource(R.string.theme_store_default_source)
+    source.name.isNotBlank() -> source.name
+    else -> source.baseUrl.removePrefix("https://").removePrefix("http://").removeSuffix("/")
 }
 
 @Composable
@@ -172,7 +329,7 @@ private fun AuthCard(state: AccountUiState, viewModel: AccountViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Button(
-                    onClick = { viewModel.login(login.trim(), password) },
+                    onClick = { viewModel.login(state.baseUrl, login.trim(), password) },
                     enabled = !state.submitting && login.isNotBlank() && password.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 ) {

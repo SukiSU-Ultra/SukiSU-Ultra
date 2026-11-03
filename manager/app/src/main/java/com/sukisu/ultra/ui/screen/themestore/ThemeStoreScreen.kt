@@ -1,8 +1,11 @@
 package com.sukisu.ultra.ui.screen.themestore
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -26,32 +29,43 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.InstallMobile
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,13 +76,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
@@ -78,9 +93,9 @@ import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.themeimport.ThemeImportDialog
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.navigation3.Route
-import com.sukisu.ultra.ui.screen.account.AccountViewModel
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import java.util.Locale
@@ -115,11 +130,14 @@ fun ThemeStoreScreen(
     val navigator = LocalNavigator.current
     val settingsViewModel = viewModel<SettingsViewModel>()
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    val accountViewModel = viewModel<AccountViewModel>()
-    val accountUiState by accountViewModel.uiState.collectAsStateWithLifecycle()
-    val accountSession = accountUiState.session
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showUpload by rememberSaveable { mutableStateOf(false) }
+    var showSubmissions by rememberSaveable { mutableStateOf(false) }
+    var showAccountPicker by rememberSaveable { mutableStateOf(false) }
+    var selectedUploadBaseUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingThemeId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editingThemeBaseUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var returnToSubmissions by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var sortMode by rememberSaveable { mutableStateOf(ThemeStoreSort.DEFAULT) }
     var selectedItemKey by rememberSaveable { mutableStateOf<String?>(null) }
@@ -128,14 +146,42 @@ fun ThemeStoreScreen(
             .filter { it.matchesSearch(searchQuery) }
             .sortedFor(sortMode)
     }
-    val uploadSource = state.sources.firstOrNull { it.isDefault } ?: state.sources.firstOrNull()
+    val uploadAccount = state.accounts.firstOrNull {
+        it.source.baseUrl == selectedUploadBaseUrl
+    }
+    val uploadSource = uploadAccount?.source
+    val editingTheme = editingThemeId?.let { id ->
+        state.userThemes.firstOrNull {
+            it.theme.id == id && it.account.source.baseUrl == editingThemeBaseUrl
+        }?.theme
+    }
+    val installPackagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri?.let { settingsViewModel.importTheme(context, it) }
+    }
+
+    fun openUpload(account: ThemeStoreAccount) {
+        showSubmissions = false
+        editingThemeId = null
+        editingThemeBaseUrl = null
+        selectedUploadBaseUrl = account.source.baseUrl
+        returnToSubmissions = false
+        viewModel.clearUploadState()
+        showUpload = true
+    }
 
     BackHandler(enabled = selectedItemKey != null && state.items.any { it.key == selectedItemKey }) {
         selectedItemKey = null
     }
 
-    LaunchedEffect(showUpload) {
-        if (showUpload) viewModel.loadUploadOptions()
+    LaunchedEffect(showUpload, selectedUploadBaseUrl) {
+        val baseUrl = selectedUploadBaseUrl
+        if (showUpload && baseUrl != null) viewModel.loadUploadOptions(baseUrl)
+    }
+
+    LaunchedEffect(showSubmissions) {
+        if (showSubmissions) viewModel.loadUserContent()
     }
 
     LaunchedEffect(state.uploadSubmitted) {
@@ -148,14 +194,8 @@ fun ThemeStoreScreen(
                 context.getString(R.string.theme_store_upload_success)
             }
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            accountViewModel.refresh()
             viewModel.consumeUploadSubmitted()
         }
-    }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        viewModel.load()
-        accountViewModel.refresh()
     }
 
     LaunchedEffect(Unit) {
@@ -164,19 +204,16 @@ fun ThemeStoreScreen(
         }
     }
 
-    LaunchedEffect(
-        settingsUiState.themeStoreBaseUrl,
-        settingsUiState.themeStoreToken,
-        settingsUiState.themeStoreAdminUrl,
-        settingsUiState.themeStoreExtraSources,
-    ) {
-        viewModel.load()
-    }
-
     LaunchedEffect(state.downloaded) {
         state.downloaded?.let { downloaded ->
-            settingsViewModel.importThemeFile(context, downloaded.file)
+            // Consume first: the trial now runs in the settings view model, so a rotation
+            // must not replay this effect with an already-deleted package file.
             viewModel.consumeDownloaded()
+            if (downloaded.trial) {
+                settingsViewModel.startThemeTrial(context, downloaded.file)
+            } else {
+                settingsViewModel.importThemeFile(context, downloaded.file)
+            }
         }
     }
 
@@ -195,13 +232,84 @@ fun ThemeStoreScreen(
         forceMaterial = true,
     )
 
+    if (showAccountPicker) {
+        AlertDialog(
+            onDismissRequest = { showAccountPicker = false },
+            shape = MaterialTheme.shapes.extraLarge,
+            title = {
+                MaterialText(stringResource(R.string.theme_store_upload_select_account))
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    MaterialText(
+                        stringResource(R.string.theme_store_upload_select_account_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    state.accounts.forEach { account ->
+                        MaterialTextButton(
+                            onClick = {
+                                showAccountPicker = false
+                                viewModel.setUploadSourcePreference(account.source.baseUrl)
+                                openUpload(account)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shapes = ButtonDefaults.shapes(),
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.Start,
+                            ) {
+                                MaterialText(
+                                    account.source.displayName(),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                MaterialText(
+                                    "@${account.session.user.username}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                MaterialTextButton(
+                    onClick = {
+                        showAccountPicker = false
+                        navigator.navigateTo(Route.ThemeAccount())
+                    },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    MaterialText(stringResource(R.string.theme_store_upload_manage_accounts))
+                }
+            },
+            dismissButton = {
+                MaterialTextButton(
+                    onClick = { showAccountPicker = false },
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    MaterialText(stringResource(R.string.theme_store_upload_cancel))
+                }
+            },
+        )
+    }
+
     val detailItem = selectedItemKey?.let { key -> state.items.firstOrNull { it.key == key } }
 
     BackHandler(enabled = showUpload && detailItem == null) {
         if (!state.submitting) {
             showUpload = false
+            editingThemeId = null
+            showSubmissions = returnToSubmissions
+            returnToSubmissions = false
             viewModel.clearUploadState()
         }
+    }
+
+    BackHandler(enabled = showSubmissions && detailItem == null) {
+        showSubmissions = false
     }
 
     when {
@@ -210,6 +318,7 @@ fun ThemeStoreScreen(
             state = state,
             onBack = { selectedItemKey = null },
             onDownload = viewModel::download,
+            onTrial = { viewModel.download(it, trial = true) },
             onRefresh = { viewModel.load() },
         )
 
@@ -217,45 +326,80 @@ fun ThemeStoreScreen(
             result = state.uploadResult!!,
             onDone = {
                 showUpload = false
+                editingThemeId = null
+                editingThemeBaseUrl = null
+                showSubmissions = returnToSubmissions
+                returnToSubmissions = false
                 viewModel.clearUploadState()
             },
         )
 
         showUpload && uploadSource != null -> ThemeStoreUploadScreen(
             source = uploadSource,
-            accountSession = accountSession,
+            accountSession = uploadAccount.session,
             autoThemeId = state.uploadThemeId,
-            availableThemes = state.uploadThemes,
+            editingTheme = editingTheme,
             optionsLoading = state.uploadOptionsLoading,
             optionsError = state.uploadOptionsError,
-            submissions = state.submissions,
-            submissionsLoading = state.submissionsLoading,
-            submissionsError = state.submissionsError,
             uploadPhase = state.uploadPhase,
             uploadProgress = state.uploadProgress,
             submitting = state.submitting,
             errorText = state.uploadError,
-            withdrawnThemes = state.withdrawnThemes,
-            withdrawingThemeId = state.withdrawingThemeId,
-            withdrawError = state.withdrawError,
-            restoringThemeId = state.restoringThemeId,
-            restoreError = state.restoreError,
-            onRefreshSubmissions = { viewModel.loadUploadOptions() },
-            onWithdrawTheme = viewModel::withdrawTheme,
-            onRestoreTheme = viewModel::restoreTheme,
             onBack = {
                 if (!state.submitting) {
                     showUpload = false
+                    editingThemeId = null
+                    editingThemeBaseUrl = null
+                    showSubmissions = returnToSubmissions
+                    returnToSubmissions = false
                     viewModel.clearUploadState()
                 }
             },
             onLogin = {
                 showUpload = false
+                editingThemeId = null
+                editingThemeBaseUrl = null
+                returnToSubmissions = false
                 viewModel.clearUploadState()
                 navigator.navigateTo(Route.ThemeAccount())
             },
             onSubmit = { input -> viewModel.submit(input, uploadSource) },
             onExportCurrentPreset = { settingsViewModel.createCurrentThemePackage(context).getOrNull() },
+        )
+
+        showSubmissions -> ThemeStoreSubmissionsScreen(
+            accounts = state.accounts,
+            themes = state.userThemes,
+            submissions = state.submissions,
+            submissionsLoading = state.submissionsLoading,
+            submissionsError = state.submissionsError,
+            withdrawnThemes = state.withdrawnThemes,
+            withdrawingThemeKey = state.withdrawingThemeKey,
+            withdrawError = state.withdrawError,
+            restoringThemeKey = state.restoringThemeKey,
+            restoreError = state.restoreError,
+            onRefresh = { viewModel.loadUserContent(force = true) },
+            onEditTheme = { theme ->
+                viewModel.clearUploadState()
+                showSubmissions = false
+                selectedUploadBaseUrl = theme.account.source.baseUrl
+                editingThemeId = theme.theme.id
+                editingThemeBaseUrl = theme.account.source.baseUrl
+                returnToSubmissions = true
+                showUpload = true
+            },
+            onWithdrawTheme = viewModel::withdrawTheme,
+            onRestoreTheme = viewModel::restoreTheme,
+            onBack = { showSubmissions = false },
+            onLogin = {
+                showSubmissions = false
+                navigator.navigateTo(Route.ThemeAccount())
+            },
+            onOpenWeb = { account ->
+                viewModel.accountUrl(account.source.baseUrl)?.let { url ->
+                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+                }
+            },
         )
 
         else -> ThemeStoreMaterial(
@@ -269,13 +413,38 @@ fun ThemeStoreScreen(
             onRefresh = { viewModel.load() },
             onOpenSettings = { navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY) },
             onOpenAccount = { navigator.navigateTo(Route.ThemeAccount()) },
+            onOpenSubmissions = {
+                showUpload = false
+                editingThemeId = null
+                editingThemeBaseUrl = null
+                returnToSubmissions = false
+                viewModel.clearUploadState()
+                showSubmissions = true
+            },
             onOpenUpload = {
-                if (accountSession == null) {
-                    navigator.navigateTo(Route.ThemeAccount())
-                } else {
-                    viewModel.clearUploadState()
-                    showUpload = true
+                val preferred = viewModel.preferredUploadAccount()
+                val accounts = viewModel.uiState.value.accounts
+                when {
+                    accounts.isEmpty() -> navigator.navigateTo(Route.ThemeAccount())
+                    preferred != null -> openUpload(preferred)
+                    accounts.size == 1 -> {
+                        viewModel.setUploadSourcePreference(accounts.single().source.baseUrl)
+                        openUpload(accounts.single())
+                    }
+
+                    else -> showAccountPicker = true
                 }
+            },
+            onInstallLocal = {
+                installPackagePicker.launch(
+                    arrayOf(
+                        ThemePackageStorage.THEME_MIME_TYPE,
+                        "application/octet-stream",
+                        "application/zip",
+                        "application/x-zip-compressed",
+                        "*/*",
+                    ),
+                )
             },
             onSelect = { selectedItemKey = it.key },
             onDownload = viewModel::download,
@@ -288,7 +457,7 @@ private fun ThemeStoreSearchMaterial(
     query: String,
     onQueryChange: (String) -> Unit,
 ) {
-    val shape = RoundedCornerShape(28.dp)
+    val shape = MaterialTheme.shapes.extraLarge
     val hasBackground = LocalBackgroundImagePath.current.isNotEmpty()
     val searchContainer = themeStoreSearchColor()
     TextField(
@@ -362,8 +531,7 @@ private fun ThemeStoreSortRow(
 }
 
 /**
- * Flat, fully opaque sort pill. Deliberately not a Material FilterChip: its translucent
- * container and interaction layers made the label look like it had a shadow over a custom
+ * MD3E filter chip with fully opaque containers so the label stays readable over a custom
  * background image.
  */
 @Composable
@@ -372,32 +540,27 @@ private fun ThemeSortChip(
     onClick: () -> Unit,
     label: String,
 ) {
-    Surface(
+    FilterChip(
         selected = selected,
         onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
+        label = {
+            MaterialText(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+            )
         },
-        contentColor = if (selected) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        },
-        border = BorderStroke(
-            1.dp,
-            if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+        shapes = FilterChipDefaults.shapes(),
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            labelColor = MaterialTheme.colorScheme.onSurface,
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
         ),
-        shadowElevation = 0.dp,
-    ) {
-        MaterialText(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-    }
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+        ),
+    )
 }
 
 @Composable
@@ -416,6 +579,7 @@ private fun ThemeStoreSearchEmptyMaterial() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ThemeStoreMaterial(
     state: ThemeStoreUiState,
@@ -428,11 +592,48 @@ private fun ThemeStoreMaterial(
     onRefresh: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAccount: () -> Unit,
+    onOpenSubmissions: () -> Unit,
     onOpenUpload: () -> Unit,
+    onInstallLocal: () -> Unit,
     onSelect: (ThemeStoreItem) -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val pullToRefreshState = rememberPullToRefreshState()
+    val refreshing = state.refreshing || (state.loading && state.loaded)
+    val listState = rememberLazyListState()
+    val fabThreshold = with(LocalDensity.current) { 100.dp.toPx() }
+    val fabExpanded by remember {
+        var lastIndex = 0
+        var lastOffset = 0
+        var scrollDelta = 0f
+        var expanded = true
+        derivedStateOf {
+            val currentIndex = listState.firstVisibleItemIndex
+            val currentOffset = listState.firstVisibleItemScrollOffset
+            val delta = if (currentIndex == lastIndex) {
+                (currentOffset - lastOffset).toFloat()
+            } else if (currentIndex > lastIndex) {
+                100f
+            } else {
+                -100f
+            }
+            scrollDelta = (scrollDelta + delta).coerceIn(-fabThreshold, fabThreshold)
+            lastIndex = currentIndex
+            lastOffset = currentOffset
+            if (currentIndex == 0) {
+                expanded = true
+                scrollDelta = 0f
+            } else if (expanded && scrollDelta >= fabThreshold) {
+                expanded = false
+                scrollDelta = 0f
+            } else if (!expanded && scrollDelta <= -fabThreshold) {
+                expanded = true
+                scrollDelta = 0f
+            }
+            expanded
+        }
+    }
 
     ExpressiveScaffold(
         topBar = {
@@ -447,6 +648,15 @@ private fun ThemeStoreMaterial(
                         MaterialIcon(
                             imageVector = Icons.Rounded.AccountCircle,
                             contentDescription = stringResource(R.string.theme_store_account),
+                        )
+                    }
+                    MaterialIconButton(
+                        onClick = onOpenSubmissions,
+                        colors = themeStoreTopBarIconColors(),
+                    ) {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.History,
+                            contentDescription = stringResource(R.string.theme_store_my_content_title),
                         )
                     }
                     MaterialIconButton(
@@ -486,6 +696,21 @@ private fun ThemeStoreMaterial(
                 scrollBehavior = scrollBehavior,
             )
         },
+        floatingActionButton = {
+            SmallExtendedFloatingActionButton(
+                onClick = onInstallLocal,
+                expanded = fabExpanded,
+                icon = {
+                    MaterialIcon(
+                        imageVector = Icons.Rounded.InstallMobile,
+                        contentDescription = null,
+                    )
+                },
+                text = {
+                    MaterialText(stringResource(R.string.theme_store_install_local))
+                },
+            )
+        },
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
         ),
@@ -502,7 +727,7 @@ private fun ThemeStoreMaterial(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator()
+                ContainedLoadingIndicator()
             }
 
             state.items.isEmpty() && state.error -> ThemeStoreErrorMaterial(
@@ -512,73 +737,87 @@ private fun ThemeStoreMaterial(
                 modifier = Modifier.padding(paddingValues),
             )
 
-            else -> LazyColumn(
+            else -> PullToRefreshBox(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(paddingValues),
+                isRefreshing = refreshing,
+                onRefresh = onRefresh,
+                state = pullToRefreshState,
+                indicator = {
+                    PullToRefreshDefaults.LoadingIndicator(
+                        state = pullToRefreshState,
+                        isRefreshing = refreshing,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                    )
+                },
             ) {
-                item(key = "search") {
-                    ThemeStoreSearchMaterial(
-                        query = searchQuery,
-                        onQueryChange = onSearchQueryChange,
-                    )
-                }
-                item(key = "sort") {
-                    ThemeStoreSortRow(
-                        selected = sortMode,
-                        onSelect = onSortChange,
-                    )
-                }
-                if (state.refreshing) {
-                    item(key = "refreshing") {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    }
-                }
-                if (state.fromCache) {
-                    item(key = "offline") {
-                        MaterialText(
-                            text = stringResource(R.string.theme_store_offline),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    state = listState,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    item(key = "search") {
+                        ThemeStoreSearchMaterial(
+                            query = searchQuery,
+                            onQueryChange = onSearchQueryChange,
                         )
                     }
-                }
-                if (state.failedSources > 0 && state.items.isNotEmpty()) {
-                    item(key = "partial-failure") {
-                        MaterialText(
-                            text = stringResource(R.string.theme_store_partial_failure),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
+                    item(key = "sort") {
+                        ThemeStoreSortRow(
+                            selected = sortMode,
+                            onSelect = onSortChange,
                         )
                     }
-                }
-                if (visibleItems.isEmpty()) {
-                    item(key = "empty") {
-                        if (searchQuery.isBlank()) {
-                            ThemeStoreEmptyMaterial(onRefresh = onRefresh, onUpload = onOpenUpload)
-                        } else {
-                            ThemeStoreSearchEmptyMaterial()
+                    if (state.fromCache) {
+                        item(key = "offline") {
+                            ThemeStoreInlineNotice(
+                                text = stringResource(R.string.theme_store_offline),
+                            )
                         }
                     }
-                } else {
-                    items(visibleItems, key = { it.key }) { item ->
-                        ThemeCardMaterial(
-                            item = item,
-                            state = state,
-                            onSelect = onSelect,
-                            onDownload = onDownload,
+                    if (state.failedSources > 0 && state.items.isNotEmpty()) {
+                        item(key = "partial-failure") {
+                            ThemeStoreInlineNotice(
+                                text = stringResource(R.string.theme_store_partial_failure),
+                                isError = true,
+                                icon = Icons.Rounded.Warning,
+                            )
+                        }
+                    }
+                    if (visibleItems.isEmpty()) {
+                        item(key = "empty") {
+                            if (searchQuery.isBlank()) {
+                                ThemeStoreEmptyMaterial(onRefresh = onRefresh, onUpload = onOpenUpload)
+                            } else {
+                                ThemeStoreSearchEmptyMaterial()
+                            }
+                        }
+                    } else {
+                        items(visibleItems, key = { it.key }) { item ->
+                            ThemeCardMaterial(
+                                item = item,
+                                state = state,
+                                onSelect = onSelect,
+                                onDownload = onDownload,
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                                    placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                                    fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                ),
+                            )
+                        }
+                    }
+                    item(key = "bottom-inset") {
+                        Spacer(
+                            Modifier.height(
+                                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 88.dp,
+                            ),
                         )
                     }
-                }
-                item(key = "bottom-inset") {
-                    Spacer(
-                        Modifier.height(
-                            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp,
-                        ),
-                    )
                 }
             }
         }
@@ -591,6 +830,7 @@ private fun ThemeCardMaterial(
     state: ThemeStoreUiState,
     onSelect: (ThemeStoreItem) -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val entry = item.entry
     val downloading = state.downloadingKey == item.key
@@ -611,10 +851,10 @@ private fun ThemeCardMaterial(
 
     Card(
         onClick = { onSelect(item) },
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(200.dp),
-        shape = RoundedCornerShape(22.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = themeStoreCardColor(),
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -679,7 +919,7 @@ private fun ThemeCardMaterial(
                 Button(
                     onClick = { onDownload(item) },
                     enabled = state.downloadingKey == null,
-                    shape = RoundedCornerShape(99.dp),
+                    shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White.copy(alpha = 0.22f),
                         contentColor = Color.White,
@@ -691,10 +931,11 @@ private fun ThemeCardMaterial(
                     modifier = Modifier.height(40.dp),
                 ) {
                     if (downloading) {
-                        CircularProgressIndicator(
+                        CircularWavyProgressIndicator(
                             modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
                             color = Color.White,
+                            trackColor = Color.Transparent,
+                            stroke = Stroke(width = 2f),
                         )
                         Spacer(Modifier.size(6.dp))
                         MaterialText(stringResource(R.string.theme_store_downloading_short))
@@ -737,10 +978,16 @@ private fun ThemeStoreEmptyMaterial(onRefresh: () -> Unit, onUpload: () -> Unit)
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = onUpload) {
+        Button(
+            onClick = onUpload,
+            shapes = ButtonDefaults.shapes(),
+        ) {
             MaterialText(stringResource(R.string.theme_store_upload))
         }
-        MaterialTextButton(onClick = onRefresh) {
+        MaterialTextButton(
+            onClick = onRefresh,
+            shapes = ButtonDefaults.shapes(),
+        ) {
             MaterialText(stringResource(R.string.theme_store_refresh))
         }
     }
@@ -776,7 +1023,10 @@ private fun ThemeStoreConfigRequiredMaterial(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(8.dp))
-        MaterialTextButton(onClick = onOpenSettings) {
+        MaterialTextButton(
+            onClick = onOpenSettings,
+            shapes = ButtonDefaults.shapes(),
+        ) {
             MaterialText(stringResource(R.string.theme_store_settings))
         }
     }
@@ -804,10 +1054,16 @@ private fun ThemeStoreErrorMaterial(
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(Modifier.height(8.dp))
-        MaterialTextButton(onClick = onOpenSettings) {
+        MaterialTextButton(
+            onClick = onOpenSettings,
+            shapes = ButtonDefaults.shapes(),
+        ) {
             MaterialText(stringResource(R.string.theme_store_settings))
         }
-        MaterialTextButton(onClick = onRetry) {
+        MaterialTextButton(
+            onClick = onRetry,
+            shapes = ButtonDefaults.shapes(),
+        ) {
             MaterialText(stringResource(R.string.theme_store_retry))
         }
     }

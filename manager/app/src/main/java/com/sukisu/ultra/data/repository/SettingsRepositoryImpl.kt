@@ -175,6 +175,10 @@ class SettingsRepositoryImpl : SettingsRepository {
             }
         }
 
+    override var themeStoreUploadSource: String
+        get() = prefs.getString("theme_store_upload_source", "") ?: ""
+        set(value) = prefs.edit { putString("theme_store_upload_source", value.trim()) }
+
     override var homeCardImagePath: String
         get() = prefs.getString(KEY_HOME_CARD_IMAGE_PATH, "") ?: ""
         set(value) = prefs.edit { putString(KEY_HOME_CARD_IMAGE_PATH, value) }

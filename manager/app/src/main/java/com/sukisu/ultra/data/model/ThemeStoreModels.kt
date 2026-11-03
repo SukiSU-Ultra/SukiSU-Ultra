@@ -61,3 +61,26 @@ data class ThemeStoreSubmitResponse(
     val message: String = "",
     val error: String = "",
 )
+
+/** Request body for the mirror's resumable package upload session. */
+@Serializable
+data class ThemeStoreUploadInitRequest(
+    val filename: String,
+    val size: Long,
+    val fingerprint: String = "",
+)
+
+/** Session state returned by `/uploads/init`, `/uploads/{id}` and chunk uploads. */
+@Serializable
+data class ThemeStoreUploadSession(
+    val ok: Boolean = false,
+    val uploadId: String = "",
+    val filename: String = "",
+    val size: Long = 0L,
+    val chunkSize: Long = 0L,
+    val totalChunks: Long = 0L,
+    val received: List<Long> = emptyList(),
+    val receivedBytes: Long = 0L,
+    val resumed: Boolean = false,
+    val error: String? = null,
+)

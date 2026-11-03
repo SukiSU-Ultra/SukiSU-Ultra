@@ -153,7 +153,8 @@ private fun isZipFile(context: Context, intent: Intent, uri: Uri): Boolean {
     val cleanName = fileName.substringBefore('?')
     if (cleanName.endsWith(".sukisu", ignoreCase = true)) return false
 
-    val mimeType = (intent.type ?: context.contentResolver.getType(uri))
+    val mimeType = runCatching { intent.type ?: context.contentResolver.getType(uri) }
+        .getOrNull()
         ?.substringBefore(';')
         ?.trim()
         ?.lowercase()

@@ -1,12 +1,17 @@
 package com.sukisu.ultra.ui.util
 
+import java.io.InputStream
+import java.io.OutputStream
 import java.security.SecureRandom
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 object ThemePackageCrypto {
     private val MAGIC = byteArrayOf('S'.code.toByte(), 'K'.code.toByte(), 'T'.code.toByte(), 'H'.code.toByte())
+    const val HEADER_SIZE = 4
     private const val IV_SIZE = 12
     private const val TAG_BIT_LENGTH = 128
 
@@ -23,6 +28,10 @@ object ThemePackageCrypto {
     private val secretKey = SecretKeySpec(HASH_BYTES.copyOfRange(0, 32), "AES")
     private val secureRandom = SecureRandom()
 
+    /** True when [bytes] starts with the encrypted theme package header. */
+    fun hasValidHeader(bytes: ByteArray): Boolean =
+        bytes.size >= MAGIC.size && MAGIC.indices.all { bytes[it] == MAGIC[it] }
+
     fun encrypt(plainBytes: ByteArray): ByteArray {
         val iv = ByteArray(IV_SIZE)
         secureRandom.nextBytes(iv)
@@ -36,6 +45,20 @@ object ThemePackageCrypto {
         System.arraycopy(iv, 0, result, MAGIC.size, IV_SIZE)
         System.arraycopy(cipherText, 0, result, MAGIC.size + IV_SIZE, cipherText.size)
         return result
+    }
+
+    /**
+     * Writes the package header/IV and returns a cipher stream for the plaintext. Closing the
+     * returned stream appends the GCM tag and closes [output].
+     */
+    fun encryptingStream(output: OutputStream): OutputStream {
+        val iv = ByteArray(IV_SIZE)
+        secureRandom.nextBytes(iv)
+        output.write(MAGIC)
+        output.write(iv)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, GCMParameterSpec(TAG_BIT_LENGTH, iv))
+        return CipherOutputStream(output, cipher)
     }
 
     fun decrypt(encryptedBytes: ByteArray): ByteArray {
@@ -56,5 +79,32 @@ object ThemePackageCrypto {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(TAG_BIT_LENGTH, iv))
         return cipher.doFinal(encryptedBytes, cipherTextOffset, cipherTextLength)
+    }
+
+    /**
+     * Streams decryption without buffering the whole package. The GCM tag is verified when
+     * the returned stream reaches EOF, so callers must read it to completion.
+     */
+    fun decryptingStream(input: InputStream): InputStream {
+        val header = ByteArray(MAGIC.size + IV_SIZE)
+        readFully(input, header)
+        for (i in MAGIC.indices) {
+            if (header[i] != MAGIC[i]) {
+                error("Invalid theme package: header mismatch")
+            }
+        }
+        val iv = header.copyOfRange(MAGIC.size, MAGIC.size + IV_SIZE)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(TAG_BIT_LENGTH, iv))
+        return CipherInputStream(input, cipher)
+    }
+
+    private fun readFully(input: InputStream, buffer: ByteArray) {
+        var offset = 0
+        while (offset < buffer.size) {
+            val read = input.read(buffer, offset, buffer.size - offset)
+            if (read < 0) error("Invalid theme package: truncated header")
+            offset += read
+        }
     }
 }

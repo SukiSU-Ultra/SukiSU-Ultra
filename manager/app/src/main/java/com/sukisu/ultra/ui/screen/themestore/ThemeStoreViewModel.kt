@@ -11,6 +11,7 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.model.AccountSession
 import com.sukisu.ultra.data.model.AccountSubmission
 import com.sukisu.ultra.data.model.AccountThemeSummary
 import com.sukisu.ultra.data.model.ThemeStoreEntry
@@ -49,6 +50,30 @@ data class ThemeStoreSource(
     val isDefault: Boolean = false,
 )
 
+/** A logged-in account bound to one configured mirror source. */
+data class ThemeStoreAccount(
+    val source: ThemeStoreSource,
+    val session: AccountSession,
+) {
+    val key: String get() = source.baseUrl
+}
+
+/** A theme owned by one source account. */
+data class UserTheme(
+    val theme: AccountThemeSummary,
+    val account: ThemeStoreAccount,
+) {
+    val key: String get() = "${account.key}:${theme.id}"
+}
+
+/** A submission made on one source account. */
+data class UserSubmission(
+    val submission: AccountSubmission,
+    val account: ThemeStoreAccount,
+) {
+    val key: String get() = "${account.key}:${submission.submissionId.ifBlank { submission.id }}"
+}
+
 data class ThemeStoreItem(
     val entry: ThemeStoreEntry,
     val source: ThemeStoreSource,
@@ -59,6 +84,7 @@ data class ThemeStoreItem(
 data class DownloadedTheme(
     val item: ThemeStoreItem,
     val file: File,
+    val trial: Boolean = false,
 )
 
 data class ThemeStoreUploadInput(
@@ -109,6 +135,7 @@ data class ThemeStoreUiState(
     val error: Boolean = false,
     val needsConfig: Boolean = false,
     val downloadingKey: String? = null,
+    val downloadTrial: Boolean = false,
     val downloadProgress: Float = 0f,
     val downloaded: DownloadedTheme? = null,
     val verifiedThemeKey: String? = null,
@@ -119,19 +146,21 @@ data class ThemeStoreUiState(
     val uploadAutoApproved: Boolean = false,
     val uploadedThemeId: String? = null,
     val uploadThemeId: String? = null,
-    val uploadThemes: List<AccountThemeSummary> = emptyList(),
+    val uploadOptionsBaseUrl: String? = null,
+    val accounts: List<ThemeStoreAccount> = emptyList(),
     val uploadOptionsLoading: Boolean = false,
     val uploadOptionsError: String? = null,
     val uploadPhase: ThemeStoreUploadPhase = ThemeStoreUploadPhase.IDLE,
     val uploadProgress: Float = 0f,
     val uploadResult: ThemeStoreUploadResult? = null,
-    val submissions: List<AccountSubmission> = emptyList(),
+    val userThemes: List<UserTheme> = emptyList(),
+    val submissions: List<UserSubmission> = emptyList(),
     val submissionsLoading: Boolean = false,
     val submissionsError: String? = null,
-    val withdrawnThemes: List<AccountThemeSummary> = emptyList(),
-    val withdrawingThemeId: String? = null,
+    val withdrawnThemes: List<UserTheme> = emptyList(),
+    val withdrawingThemeKey: String? = null,
     val withdrawError: String? = null,
-    val restoringThemeId: String? = null,
+    val restoringThemeKey: String? = null,
     val restoreError: String? = null,
 )
 
@@ -140,10 +169,15 @@ private data class PreparedThemeUpload(
     val workDir: File,
 )
 
+private data class SourceContent(
+    val account: ThemeStoreAccount,
+    val themes: Result<List<AccountThemeSummary>>,
+    val submissions: Result<List<AccountSubmission>>,
+)
+
 @Suppress("SpellCheckingInspection")
 class ThemeStoreViewModel(application: Application) : AndroidViewModel(application) {
     private companion object {
-        const val MAX_PACKAGE_BYTES = 16L * 1024L * 1024L
         const val MAX_IMAGE_INPUT_BYTES = 12L * 1024L * 1024L
         const val MAX_IMAGE_BYTES = 2L * 1024L * 1024L
         const val MAX_SCREENSHOTS = 6
@@ -163,13 +197,18 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         load()
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.cleanupStaleCache()
+        }
     }
 
     fun load() {
         val current = _uiState.value
         if (current.loading || current.refreshing) return
 
+        account.reload()
         val sources = configuredSources()
+        val accounts = accountsFor(sources)
         if (sources.isEmpty()) {
             _uiState.update {
                 it.copy(
@@ -178,6 +217,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     refreshing = false,
                     items = emptyList(),
                     sources = emptyList(),
+                    accounts = emptyList(),
                     fromCache = false,
                     failedSources = 0,
                     unauthorized = false,
@@ -198,6 +238,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 failedSources = 0,
                 needsConfig = false,
                 sources = sources,
+                accounts = accounts,
             )
         }
         viewModelScope.launch {
@@ -227,6 +268,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     refreshing = false,
                     items = items,
                     sources = sources,
+                    accounts = accounts,
                     fromCache = successes.any { it.second.getOrThrow().fromCache },
                     failedSources = failures,
                     unauthorized = unauthorized,
@@ -237,12 +279,52 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun download(item: ThemeStoreItem) {
+    /** Re-reads sessions from preferences, e.g. after returning from the account page. */
+    fun refreshAccounts() {
+        account.reload()
+        val sources = configuredSources()
+        _uiState.update {
+            it.copy(sources = sources, accounts = accountsFor(sources))
+        }
+    }
+
+    /** Remembers the source used for future uploads; the default source is stored as blank. */
+    fun setUploadSourcePreference(baseUrl: String) {
+        val normalized = ThemeStoreRepository.normalizeBaseUrl(baseUrl) ?: return
+        val defaultBase = configuredSources().firstOrNull { it.isDefault }?.baseUrl
+        settings.themeStoreUploadSource = if (normalized == defaultBase) "" else normalized
+    }
+
+    /**
+     * Resolves the account used without prompting: saved preference first, then the default
+     * source, then any logged-in account when the preferred one is unavailable.
+     */
+    fun preferredUploadAccount(): ThemeStoreAccount? {
+        account.reload()
+        val sources = configuredSources()
+        val accounts = accountsFor(sources)
+        _uiState.update {
+            it.copy(sources = sources, accounts = accounts)
+        }
+        val defaultBase = sources.firstOrNull { it.isDefault }?.baseUrl.orEmpty()
+        val preferredBase = settings.themeStoreUploadSource.ifBlank { defaultBase }
+        return accounts.preferredUploadAccount(preferredBase, defaultBase)
+    }
+
+    private fun accountsFor(sources: List<ThemeStoreSource>): List<ThemeStoreAccount> =
+        sources.mapNotNull { source ->
+            account.sessionFor(source.baseUrl)?.let { session ->
+                ThemeStoreAccount(source, session)
+            }
+        }
+
+    fun download(item: ThemeStoreItem, trial: Boolean = false) {
         val current = _uiState.value
         if (current.downloadingKey != null) return
         _uiState.update {
             it.copy(
                 downloadingKey = item.key,
+                downloadTrial = trial,
                 downloadProgress = 0f,
                 downloadFailed = false,
                 verifiedThemeKey = null,
@@ -261,7 +343,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                         it.copy(
                             downloadingKey = null,
                             downloadProgress = 1f,
-                            downloaded = DownloadedTheme(item, file),
+                            downloaded = DownloadedTheme(item, file, trial),
                             verifiedThemeKey = item.key,
                         )
                     }
@@ -270,6 +352,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     _uiState.update {
                         it.copy(
                             downloadingKey = null,
+                            downloadTrial = false,
                             downloadProgress = 0f,
                             downloadFailed = true,
                         )
@@ -280,7 +363,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun consumeDownloaded() {
-        _uiState.update { it.copy(downloaded = null) }
+        _uiState.update { it.copy(downloaded = null, downloadTrial = false) }
     }
 
     fun clearDownloadError() {
@@ -380,8 +463,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                         ),
                     )
                 }
-                account.refreshProfile()
-                refreshSubmissions()
+                account.refreshProfile(source.baseUrl)
+                loadUserContent(force = true)
                 if (response.autoApproved) {
                     load()
                 }
@@ -419,8 +502,6 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 uploadPhase = ThemeStoreUploadPhase.IDLE,
                 uploadProgress = 0f,
                 uploadResult = null,
-                withdrawError = null,
-                restoreError = null,
             )
         }
     }
@@ -435,18 +516,17 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun loadUploadOptions() {
-        if (_uiState.value.uploadOptionsLoading) return
+    fun loadUploadOptions(baseUrl: String) {
+        val normalized = ThemeStoreRepository.normalizeBaseUrl(baseUrl) ?: return
+        val current = _uiState.value
+        if (current.uploadOptionsLoading && current.uploadOptionsBaseUrl == normalized) return
         account.reload()
-        if (account.session.value == null) {
+        if (account.sessionFor(normalized) == null) {
             _uiState.update {
                 it.copy(
                     uploadOptionsLoading = false,
-                    submissionsLoading = false,
+                    uploadOptionsBaseUrl = normalized,
                     uploadThemeId = null,
-                    uploadThemes = emptyList(),
-                    withdrawnThemes = emptyList(),
-                    submissions = emptyList(),
                     uploadOptionsError = getApplication<Application>()
                         .getString(R.string.theme_store_upload_login_required),
                 )
@@ -455,59 +535,112 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
         _uiState.update {
             it.copy(
+                uploadOptionsBaseUrl = normalized,
                 uploadOptionsLoading = true,
-                submissionsLoading = true,
                 uploadOptionsError = null,
+                uploadThemeId = null,
+            )
+        }
+        viewModelScope.launch {
+            val idResult = account.nextThemeId(normalized)
+            _uiState.update { state ->
+                if (state.uploadOptionsBaseUrl != normalized) {
+                    state
+                } else {
+                    state.copy(
+                        uploadOptionsLoading = false,
+                        uploadThemeId = idResult.getOrNull()?.id,
+                        uploadOptionsError = idResult.exceptionOrNull()?.message,
+                    )
+                }
+            }
+        }
+    }
+
+    /** Loads themes and submission history for every logged-in mirror source. */
+    fun loadUserContent(force: Boolean = false) {
+        if (_uiState.value.submissionsLoading && !force) return
+        account.reload()
+        val sources = configuredSources()
+        val accounts = accountsFor(sources)
+        _uiState.update { it.copy(sources = sources, accounts = accounts) }
+        if (accounts.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    submissionsLoading = false,
+                    userThemes = emptyList(),
+                    submissions = emptyList(),
+                    withdrawnThemes = emptyList(),
+                    submissionsError = getApplication<Application>()
+                        .getString(R.string.theme_store_submissions_login_required),
+                )
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(
+                submissionsLoading = true,
                 submissionsError = null,
             )
         }
         viewModelScope.launch {
-            val idResult = account.nextThemeId()
-            val themesResult = account.myThemes()
-            val submissionsResult = account.mySubmissions()
+            val accountRepository = account
+            val results = coroutineScope {
+                accounts.map { sourceAccount ->
+                    async {
+                        SourceContent(
+                            account = sourceAccount,
+                            themes = accountRepository.myThemes(sourceAccount.source.baseUrl),
+                            submissions = accountRepository.mySubmissions(sourceAccount.source.baseUrl),
+                        )
+                    }
+                }.awaitAll()
+            }
+            val userThemes = results.flatMap { result ->
+                result.themes.getOrDefault(emptyList()).map { UserTheme(it, result.account) }
+            }
+            val userSubmissions = results.flatMap { result ->
+                result.submissions.getOrDefault(emptyList()).map {
+                    UserSubmission(it, result.account)
+                }
+            }
+            val errors = results.mapNotNull { result ->
+                result.themes.exceptionOrNull()?.message
+                    ?: result.submissions.exceptionOrNull()?.message
+            }
+            val remainingAccounts = accountsFor(configuredSources())
+            val remainingKeys = remainingAccounts.mapTo(mutableSetOf()) { it.key }
+            val visibleThemes = userThemes.filter { it.account.key in remainingKeys }
+            val visibleSubmissions = userSubmissions.filter { it.account.key in remainingKeys }
             _uiState.update { state ->
-                val allThemes = themesResult.getOrDefault(emptyList())
                 state.copy(
-                    uploadOptionsLoading = false,
                     submissionsLoading = false,
-                    uploadThemeId = idResult.getOrNull()?.id,
-                    uploadThemes = allThemes.filter { it.status != "withdrawn" },
-                    withdrawnThemes = allThemes.filter { it.status == "withdrawn" },
-                    submissions = submissionsResult.getOrNull() ?: state.submissions,
-                    uploadOptionsError = idResult.exceptionOrNull()?.message
-                        ?: themesResult.exceptionOrNull()?.message,
-                    submissionsError = submissionsResult.exceptionOrNull()?.message,
+                    accounts = remainingAccounts,
+                    userThemes = visibleThemes.filter { it.theme.status != "withdrawn" },
+                    withdrawnThemes = visibleThemes.filter { it.theme.status == "withdrawn" },
+                    submissions = visibleSubmissions,
+                    submissionsError = errors.firstOrNull(),
                 )
             }
         }
     }
 
-    private suspend fun refreshSubmissions() {
-        _uiState.update { it.copy(submissionsLoading = true, submissionsError = null) }
-        val result = account.mySubmissions()
-        _uiState.update { state ->
-            state.copy(
-                submissionsLoading = false,
-                submissions = result.getOrNull() ?: state.submissions,
-                submissionsError = result.exceptionOrNull()?.message,
-            )
-        }
-    }
-
-    fun withdrawTheme(themeId: String) {
-        if (themeId.isBlank() || _uiState.value.withdrawingThemeId != null) return
-        _uiState.update { it.copy(withdrawingThemeId = themeId, withdrawError = null) }
+    fun withdrawTheme(submission: UserSubmission) {
+        val themeId = submission.submission.id
+        if (themeId.isBlank() || _uiState.value.withdrawingThemeKey != null) return
+        val key = submission.key
+        _uiState.update { it.copy(withdrawingThemeKey = key, withdrawError = null) }
         viewModelScope.launch {
-            account.withdrawTheme(themeId).fold(
+            account.withdrawTheme(themeId, submission.account.source.baseUrl).fold(
                 onSuccess = {
-                    _uiState.update { it.copy(withdrawingThemeId = null, withdrawError = null) }
-                    loadUploadOptions()
+                    _uiState.update { it.copy(withdrawingThemeKey = null, withdrawError = null) }
+                    loadUserContent(force = true)
                     load()
                 },
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
-                            withdrawingThemeId = null,
+                            withdrawingThemeKey = null,
                             withdrawError = error.message,
                         )
                     }
@@ -516,20 +649,22 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun restoreTheme(themeId: String) {
-        if (themeId.isBlank() || _uiState.value.restoringThemeId != null) return
-        _uiState.update { it.copy(restoringThemeId = themeId, restoreError = null) }
+    fun restoreTheme(theme: UserTheme) {
+        val themeId = theme.theme.id
+        if (themeId.isBlank() || _uiState.value.restoringThemeKey != null) return
+        val key = theme.key
+        _uiState.update { it.copy(restoringThemeKey = key, restoreError = null) }
         viewModelScope.launch {
-            account.restoreTheme(themeId).fold(
+            account.restoreTheme(themeId, theme.account.source.baseUrl).fold(
                 onSuccess = {
-                    _uiState.update { it.copy(restoringThemeId = null, restoreError = null) }
-                    loadUploadOptions()
+                    _uiState.update { it.copy(restoringThemeKey = null, restoreError = null) }
+                    loadUserContent(force = true)
                     load()
                 },
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
-                            restoringThemeId = null,
+                            restoringThemeKey = null,
                             restoreError = error.message,
                         )
                     }
@@ -537,6 +672,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             )
         }
     }
+
+    fun accountUrl(baseUrl: String): String? = account.accountUrl(baseUrl)
 
     private suspend fun prepareUpload(
         input: ThemeStoreUploadInput,
@@ -593,7 +730,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     directory = workDir,
                     app = app,
                 )
-                val packageData = ThemePackageStorage.validate(app, input.packageUri).getOrElse {
+                val packageData = ThemePackageStorage.validate(app, Uri.fromFile(packageFile)).getOrElse {
                     throw IllegalArgumentException(app.getString(R.string.theme_store_upload_package_invalid))
                 }
                 val imageSemaphore = Semaphore(2)
@@ -675,7 +812,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     val read = input.read(buffer)
                     if (read < 0) break
                     total += read
-                    if (total > MAX_PACKAGE_BYTES) {
+                    if (total > ThemeStoreRepository.MAX_PACKAGE_BYTES) {
                         throw IllegalArgumentException(
                             app.getString(R.string.theme_store_upload_file_too_large, displayName),
                         )
@@ -697,9 +834,9 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         maxEdge: Int,
         app: Application,
     ): File {
-        val invalidMessage = when {
-            baseName == "preview" -> R.string.theme_store_upload_preview_invalid
-            baseName == "avatar" -> R.string.theme_store_upload_avatar_invalid
+        val invalidMessage = when (baseName) {
+            "preview" -> R.string.theme_store_upload_preview_invalid
+            "avatar" -> R.string.theme_store_upload_avatar_invalid
             else -> R.string.theme_store_upload_screenshot_invalid
         }
         val source = copyImageToCache(uri, directory, baseName, app, invalidMessage)
@@ -897,3 +1034,18 @@ internal fun ThemeStoreItem.matchesSearch(query: String): Boolean {
     }.lowercase(Locale.ROOT)
     return normalized.split(Regex("\\s+")).all { part -> haystack.contains(part) }
 }
+
+/**
+ * Newest submissions first across all mirror sources. Entries without a timestamp keep the
+ * server order at the end; the UI only shows the newest [limit] entries.
+ */
+internal fun List<UserSubmission>.latestUserSubmissions(limit: Int = 20): List<UserSubmission> =
+    sortedWith(compareByDescending { it.submission.submittedAt.orEmpty() })
+        .take(limit.coerceAtLeast(0))
+
+/** Saved upload preference first, then the default source, without prompting the user. */
+internal fun List<ThemeStoreAccount>.preferredUploadAccount(
+    preferredBaseUrl: String,
+    defaultBaseUrl: String,
+): ThemeStoreAccount? = firstOrNull { it.source.baseUrl == preferredBaseUrl }
+    ?: firstOrNull { it.source.baseUrl == defaultBaseUrl }

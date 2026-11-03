@@ -52,7 +52,11 @@ sealed interface Route : NavKey, Parcelable {
     /** Material theme editor; [section] optionally scrolls to a named area. */
     @Parcelize
     @Serializable
-    data class ColorPalette(val section: String? = null) : Route
+    data class ColorPalette(
+        val section: String? = null,
+        /** Package opened from another app; consumed once by the appearance screen. */
+        val importUri: String? = null,
+    ) : Route
 
     @Parcelize
     @Serializable
