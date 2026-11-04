@@ -634,7 +634,7 @@ private fun ProfileBox(
         }
     }
 }
-/** Local decoration for the superuser card; other Miuix switches stay unchanged. */
+
 @Composable
 private fun SuperuserSwitch(checked: Boolean) {
     // Match the thumb geometry and spring in Miuix 0.9.4. Keep the icon in

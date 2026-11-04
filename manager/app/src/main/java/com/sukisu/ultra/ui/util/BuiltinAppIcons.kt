@@ -16,11 +16,11 @@ data class BuiltinAppIcon(
     @param:StringRes val nameRes: Int,
     @param:DrawableRes val iconRes: Int,
     @param:DrawableRes val foregroundRes: Int,
-    /** Launcher component associated with this icon. */
+    
     val aliasClassName: String?,
 )
 
-/** Launcher icons that are compiled into the APK and can be applied through activity aliases. */
+
 object BuiltinAppIcons {
     const val DEFAULT_ID = "default"
     const val KERNELSU_ID = "kernelsu"
@@ -63,7 +63,7 @@ object BuiltinAppIcons {
 
     fun find(id: String?): BuiltinAppIcon = all.firstOrNull { it.id == id } ?: all.first()
 
-    /** Switches the launcher entry while keeping the main activity available for deep links. */
+    
     fun apply(
         context: Context,
         icon: BuiltinAppIcon,

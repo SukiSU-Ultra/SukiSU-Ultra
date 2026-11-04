@@ -47,6 +47,10 @@ data class ThemeVariantData(
     val enableNavigationBadge: Boolean? = null,
     val enablePredictiveBack: Boolean? = null,
     val enableSwipeDismiss: Boolean? = null,
+    val enableBlur: Boolean? = null,
+    val pagerInterceptionMode: Int? = null,
+    val pageScale: Float? = null,
+    val moduleDescriptionMaxLines: Int? = null,
 )
 
 /**
@@ -80,6 +84,10 @@ data class ThemePackageData(
     val enableNavigationBadge: Boolean? = null,
     val enablePredictiveBack: Boolean? = null,
     val enableSwipeDismiss: Boolean? = null,
+    val enableBlur: Boolean? = null,
+    val pagerInterceptionMode: Int? = null,
+    val pageScale: Float? = null,
+    val moduleDescriptionMaxLines: Int? = null,
     val moduleSortEnabledFirst: Boolean? = null,
     val moduleSortActionFirst: Boolean? = null,
     val moduleSortWebUiFirst: Boolean? = null,
@@ -89,13 +97,13 @@ data class ThemePackageData(
     val moduleSortManual: Boolean? = null,
     val customHomeTitle: String? = null,
     val customTexts: Map<String, String>? = null,
-    /** True when [light] and [dark] carry two complete appearances for system light/dark mode. */
+    
     val adaptive: Boolean? = null,
     val light: ThemeVariantData? = null,
     val dark: ThemeVariantData? = null,
 )
 
-/** One extracted half of an adaptive package plus its temporary image files. */
+
 data class ImportedThemeVariant(
     val data: ThemeVariantData,
     val backgroundPath: String? = null,
@@ -118,7 +126,7 @@ data class ImportedTheme(
     val isAdaptive: Boolean
         get() = data.adaptive == true && light != null && dark != null
 
-    /** All temporary files this import owns, for cleanup when the dialog is dismissed. */
+    
     fun temporaryFiles(): List<String> = buildList {
         backgroundPath?.let(::add)
         cardBackgroundPath?.let(::add)
@@ -136,7 +144,7 @@ data class ImportedTheme(
     }
 }
 
-/** Files written for one half of an adaptive package. */
+
 data class ThemePackageVariantExport(
     val data: ThemeVariantData,
     val backgroundFile: File? = null,
@@ -144,21 +152,21 @@ data class ThemePackageVariantExport(
     val cardStickerFiles: List<File> = emptyList(),
 )
 
-/** Both halves of an adaptive package, written as format v3. */
+
 data class ThemePackageAdaptiveExport(
     val light: ThemePackageVariantExport,
     val dark: ThemePackageVariantExport,
 )
 
 object ThemePackageStorage {
-    /** v2 is the standard package format; v3 adds light/dark adaptive variants. */
+    
     const val BASE_VERSION = 2
     const val ADAPTIVE_VERSION = 3
     const val CURRENT_VERSION = ADAPTIVE_VERSION
     const val MIN_SUPPORTED_VERSION = 1
     const val THEME_MIME_TYPE = "application/x-sukisu-theme"
 
-    /** Canonical tag written to the theme store for adaptive packages. */
+    
     const val ADAPTIVE_TAG = "adaptive"
 
     fun isSupportedVersion(version: Int): Boolean =
@@ -176,9 +184,9 @@ object ThemePackageStorage {
     private const val CARD_STICKER_DARK_PREFIX = "card_sticker_dark_"
     private const val MAX_JSON_BYTES = 64L * 1024
     private const val MAX_BACKGROUND_BYTES = 64L * 1024 * 1024
-    /** Caps the total disk a single package can unpack to, not just each image. */
+    
     private const val MAX_EXTRACTED_IMAGE_BYTES = 256L * 1024 * 1024
-    /** Large enough to absorb the 512-byte writes produced by the ZIP streams. */
+    
     private const val STREAM_BUFFER_SIZE = 256 * 1024
 
     private val json = Json {
@@ -209,7 +217,7 @@ object ThemePackageStorage {
         }
     }
 
-    /** Encrypted package written to an app-private file (used for sharing). */
+    
     suspend fun exportToFile(
         file: File,
         data: ThemePackageData,
@@ -286,7 +294,7 @@ object ThemePackageStorage {
         }
     }
 
-    /** Refuses to write a package whose flags promise an image that is no longer on disk. */
+    
     private fun validateAdaptiveExport(adaptive: ThemePackageAdaptiveExport) {
         listOf(adaptive.light, adaptive.dark).forEach { variant ->
             if (variant.data.hasBackground == true && variant.backgroundFile?.isFile != true) {
@@ -693,7 +701,7 @@ object ThemePackageStorage {
         override fun close() = input.close()
     }
 
-    /** Validates and parses a package without keeping its extracted image files. */
+    
     suspend fun validate(context: Context, uri: Uri): Result<ThemePackageData> = withContext(Dispatchers.IO) {
         import(context, uri).map { imported ->
             imported.temporaryFiles().forEach { path ->

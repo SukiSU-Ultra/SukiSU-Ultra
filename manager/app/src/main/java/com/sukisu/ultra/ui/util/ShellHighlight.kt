@@ -34,7 +34,7 @@ data class ShellHighlightColors(
             keyword = Color(0xFFFF7B72),
         )
 
-        /** Fixed code colors that stay readable on [background], independent of the app accent. */
+        
         fun forBackground(background: Color): ShellHighlightColors =
             if (background.luminance() < 0.5f) dark else light
     }
@@ -45,7 +45,7 @@ private val shellKeywords = setOf(
     "case", "esac", "select", "function", "in", "!", "{", "}",
 )
 
-/** Keywords after which the next word is a command again. */
+
 private val commandPrefixKeywords = setOf("if", "then", "else", "elif", "do", "while", "until", "!", "{")
 
 private fun isNameStart(c: Char) = c == '_' || c in 'a'..'z' || c in 'A'..'Z'

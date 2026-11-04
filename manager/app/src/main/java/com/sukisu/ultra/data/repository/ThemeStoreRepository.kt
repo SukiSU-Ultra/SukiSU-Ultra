@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong
 data class ThemeCatalogLoad(
     val catalog: ThemeStoreCatalog,
     val fromCache: Boolean,
-    /** Server answered 304 and the parsed local catalog was reused. */
+    
     val notModified: Boolean = false,
 )
 
@@ -51,7 +51,7 @@ private data class CatalogFetch(
     val notModified: Boolean,
 )
 
-/** Result of `GET /health`. */
+
 data class ThemeStoreHealthResult(
     val health: ThemeStoreHealth,
     val latencyMs: Long,
@@ -65,13 +65,13 @@ enum class ThemeStoreHealthError {
     HTTP,
 }
 
-/** Typed health-check failure so the UI can show a localized reason. */
+
 class ThemeStoreHealthException(
     val error: ThemeStoreHealthError,
     val httpStatus: Int? = null,
 ) : IOException("theme health check failed: $error")
 
-/** A validated theme package prepared for upload to a store source. */
+
 data class ThemeStoreSubmission(
     val id: String,
     val version: Int,
@@ -92,7 +92,7 @@ data class ThemeStoreSubmission(
 
 class ThemeStoreUnauthorizedException : IOException("Theme store token rejected")
 
-/** The server ignored a ranged request; restart with the single-stream fallback. */
+
 private class RangeUnsupportedException : IOException("Server does not support ranged downloads")
 
 /**
@@ -151,13 +151,13 @@ class ThemeStoreRepository(
     companion object {
         const val TOKEN_HEADER = "X-Sukisu-Theme-Token"
 
-        /** Compact catalogs are ~650 KB per 1000 themes; leave room for growth. */
+        
         private const val MAX_CATALOG_BYTES = 8L * 1024L * 1024L
-        /** Shared client ceiling; the mirror's server-side limit remains authoritative. */
+        
         const val MAX_PACKAGE_BYTES = 128L * 1024L * 1024L
         private const val BUFFER_SIZE = 64 * 1024
         private const val MAX_UPLOAD_CHUNK_BYTES = 8L * 1024L * 1024L
-        /** Parallel resumable chunks: more in-flight requests on high-latency links. */
+        
         private const val UPLOAD_WORKERS = 4
         private const val UPLOAD_RETRIES = 3
         /**
@@ -180,11 +180,11 @@ class ThemeStoreRepository(
         private const val DOWNLOAD_PROGRESS_INTERVAL_NANOS = 100_000_000L
         private const val UPLOAD_PROGRESS_INTERVAL_NANOS = 100_000_000L
         private const val STREAM_BUFFER_SIZE = 128 * 1024
-        /** Flush often enough for live progress without turning every 128 KB into a packet. */
+        
         private const val STREAM_FLUSH_BYTES = 256 * 1024
-        /** Persistent download cache ceiling; two maximum-size packages fit before eviction. */
+        
         private const val MAX_DOWNLOAD_CACHE_BYTES = 256L * 1024L * 1024L
-        /** Never trim a download that was touched recently; it may still be importing. */
+        
         private val ACTIVE_CACHE_GRACE_MS = TimeUnit.HOURS.toMillis(1)
         private val SHA256_PATTERN = Regex("^[0-9a-fA-F]{64}$")
         private val ID_PATTERN = Regex("^[a-z0-9][a-z0-9-]{0,63}$")
@@ -206,7 +206,7 @@ class ThemeStoreRepository(
                 ?.getOrNull(1)
                 ?.toLongOrNull()
 
-        /** Bytes covered by chunk [index]; the last chunk may be shorter. */
+        
         internal fun chunkLength(totalSize: Long, chunkSize: Long, index: Long): Long =
             (totalSize - index * chunkSize).coerceIn(0L, chunkSize)
 
@@ -308,7 +308,7 @@ class ThemeStoreRepository(
                 }
         }
 
-    /** Calls the mirror's public `/health` endpoint and measures round-trip time. */
+    
     suspend fun checkHealth(baseUrl: String, token: String): Result<ThemeStoreHealthResult> =
         withContext(Dispatchers.IO) {
             runCatching {
@@ -497,7 +497,7 @@ class ThemeStoreRepository(
         )
     }
 
-    /** One small ranged request that reveals both Range support and the remote size. */
+    
     private fun probePackageRange(
         entry: ThemeStoreEntry,
         url: String,

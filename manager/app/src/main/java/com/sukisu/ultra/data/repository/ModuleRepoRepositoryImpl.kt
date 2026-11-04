@@ -36,10 +36,10 @@ class ModuleRepoRepositoryImpl : ModuleRepoRepository {
     companion object {
         private const val TAG = "ModuleRepoRepository"
 
-        /** Site root of KernelSU Modules; every API path is resolved against it. */
+        
         const val REGISTRY_BASE_URL = RegistryUrls.DEFAULT_BASE_URL
 
-        /** Upper bound for a single JSON / HTML document. */
+        
         private const val MAX_DOCUMENT_BYTES = 32L * 1024 * 1024
 
         // One client per process so the list and detail screens share the same catalog.

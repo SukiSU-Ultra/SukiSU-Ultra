@@ -23,7 +23,7 @@ sealed interface ModuleConfirmRequest {
         val module: Module,
         val downloadUrl: String,
         val fileName: String,
-        /** Set when the update is a registry release: size + SHA-256 are enforced. */
+        
         val expected: ExpectedFile? = null,
     ) : ModuleConfirmRequest
 
@@ -39,7 +39,7 @@ data class ModuleConfirmDialogState(
     val content: String? = null,
     val markdown: Boolean = false,
     val html: Boolean = false,
-    /** Registry-hosted content: render with JavaScript off and network locked to the registry. */
+    
     val restricted: Boolean = false,
     val confirm: String? = null,
     val dismiss: String? = null,
@@ -71,7 +71,7 @@ data class ModuleUiState(
     val sortMetamoduleFirst: Boolean = false,
     val sortNameOrder: ModuleNameSort = ModuleNameSort.DEFAULT,
     val sortManual: Boolean = false,
-    /** Module IDs in the user-defined order, used while [sortManual] is active. */
+    
     val manualOrder: List<String> = emptyList(),
     val checkModuleUpdate: Boolean = true,
     val isSafeMode: Boolean = false,

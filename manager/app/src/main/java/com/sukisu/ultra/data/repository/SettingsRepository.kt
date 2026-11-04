@@ -5,7 +5,7 @@ import com.sukisu.ultra.ui.util.HomeCardSticker
 interface SettingsRepository {
     var customBackgroundUri: String
     var customBackgroundUpdatedAt: Long
-    /** Use the launcher wallpaper as the app background instead of [customBackgroundUri]. */
+    
     var useSystemWallpaper: Boolean
     /**
      * Derive the theme key color from the active background image. This and [keyColor] are
@@ -17,7 +17,7 @@ interface SettingsRepository {
     var customBackgroundBlurPercent: Int
     var customBackgroundScrimPercent: Int
     var backgroundAppearanceExpanded: Boolean
-    /** Expanded state of the top-level cards on the appearance page. */
+    
     var backgroundSectionExpanded: Boolean
     var themePackageSectionExpanded: Boolean
     var appearanceSectionExpanded: Boolean
@@ -25,31 +25,31 @@ interface SettingsRepository {
     var colorsSectionExpanded: Boolean
     var customHomeTitle: String
     var customTexts: Map<String, String>
-    /** Base URL of the online theme catalog, entered in the manager. */
+    
     var themeStoreBaseUrl: String
-    /** Access token sent to the theme mirror. */
+    
     var themeStoreToken: String
-    /** Local author identity used to obtain automatic theme publishing. */
+    
     var themeStoreAuthorId: String
-    /** Last author name entered for theme submissions. */
+    
     var themeStoreAuthorName: String
-    /** Optional admin console URL shown for the default theme source. */
+    
     var themeStoreAdminUrl: String
-    /** Additional theme sources merged into the catalog; the default source is the fields above. */
+    
     var themeStoreExtraSources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>
-    /** Preferred source base URL for future uploads; blank means the default source. */
+    
     var themeStoreUploadSource: String
     var homeCardImagePath: String
-    /** Hide the working text and version line on the home status card while a card image is set. */
+    
     var hideHomeCardStatusText: Boolean
-    /** Hide the check icon (Miuix) or ring decoration (Material) on the home status card. */
+    
     var hideHomeCardDecoration: Boolean
     var homeCardStickers: List<HomeCardSticker>
-    /** Serialized light/dark halves of the active adaptive theme; blank when none is active. */
+    
     var adaptiveThemeJson: String
-    /** Which adaptive half is currently applied: -1 none, 0 light, 1 dark. */
+    
     var adaptiveAppliedMode: Int
-    /** Serialized light/dark capture used by the in-app adaptive theme builder. */
+    
     var adaptiveDraftJson: String
     var uiMode: String
     var appLanguage: String
@@ -57,7 +57,7 @@ interface SettingsRepository {
     var checkCiUpdate: Boolean
     var checkModuleUpdate: Boolean
     var autoDeleteModuleZip: Boolean
-    /** Id of the selected launcher icon (see [com.sukisu.ultra.ui.util.BuiltinAppIcons]). */
+    
     var appIconId: String
     var appIconDynamicColor: Boolean
     var themeMode: Int
@@ -84,7 +84,7 @@ interface SettingsRepository {
     var moduleSortNameOrder: String
     var moduleSortManual: Boolean
     var moduleManualOrder: String
-    /** Name of the [com.sukisu.ultra.ui.screen.modulerepo.RepoSort] entry. */
+    
     var moduleRepoSortOrder: String
     var superuserShowSystemApps: Boolean
     var superuserShowOnlyPrimaryUserApps: Boolean
@@ -92,7 +92,7 @@ interface SettingsRepository {
     var suLogFilters: Set<String>?
     var showFullStatus: Boolean
     var hideHomeWarnings: Boolean
-    /** Show the AI assistant card on the home page. Off disconnects the home entry entirely. */
+    
     var showAiHomeCard: Boolean
     var autoJailbreak: Boolean
     var useSoftReboot: Boolean

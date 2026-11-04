@@ -117,7 +117,7 @@ class SettingsViewModel(
      */
     private var seedGeneration = 0
 
-    /** Invalidates an in-flight wallpaper capture when the option changes or appearance resets. */
+    
     private var wallpaperGeneration = 0
 
     init {
@@ -276,7 +276,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Copies a newly picked image into the crop cache and hands its path to the crop screen. */
     fun stagePickedBackground(context: Context, uri: Uri, onReady: (String?) -> Unit) {
         viewModelScope.launch {
             val path = ImageStorage.stageUri(context, uri)
@@ -291,7 +290,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Copies the current background so the user can re-crop it without losing the original. */
     fun stageCurrentBackground(context: Context, onReady: (String?) -> Unit) {
         viewModelScope.launch {
             val current = repo.customBackgroundUri
@@ -311,7 +309,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Applies the in-app or gallery crop result and refreshes the dynamic color seed. */
     suspend fun finishBackgroundCrop(
         context: Context,
         output: File,
@@ -346,10 +343,6 @@ class SettingsViewModel(
             finishBackgroundCrop(context, source, null)
         }
 
-    /**
-     * Re-reads the appearance preferences. The crop screen owns a separate view model
-     * instance, so the theme screen needs this when it is resumed from the cropper.
-     */
     fun refreshBackgroundAppearance() {
         if (repo.useSystemWallpaper) {
             viewModelScope.launch {
@@ -361,7 +354,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Re-copies the launcher wallpaper when it changed since the last capture. */
     private suspend fun refreshSystemWallpaperCache() {
         val generation = wallpaperGeneration
         val derivesKeyColor = repo.derivesKeyColorFromBackground()
@@ -463,11 +455,6 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * Toggles deriving the key color from the background. Enabling it commits the switch right
-     * away and re-seeds from the active background in the background; disabling leaves the
-     * current color in place for manual selection.
-     */
     fun setExtractColorFromBackground(enabled: Boolean) {
         val generation = ++seedGeneration
         repo.extractColorFromBackground = enabled
@@ -666,7 +653,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Builds a .sukisu package from the current device appearance for store submission. */
     suspend fun createCurrentThemePackage(context: Context): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
             val payload = currentThemePayload(ThemePackageOptions(), preferDraft = false)
@@ -756,20 +742,24 @@ class SettingsViewModel(
             } else {
                 null
             },
-            uiMode = repo.uiMode.takeIf { options.customConfig },
+            uiMode = repo.uiMode.takeIf { options.interfaceMode },
             appIconId = exportedIconId.takeIf { options.appIcon },
-            enableFloatingBottomBar = repo.enableFloatingBottomBar.takeIf { options.customConfig },
-            enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur.takeIf { options.customConfig },
-            enableNavigationBadge = repo.enableNavigationBadge.takeIf { options.customConfig },
-            enablePredictiveBack = repo.enablePredictiveBack.takeIf { options.customConfig },
-            enableSwipeDismiss = repo.enableSwipeDismiss.takeIf { options.customConfig },
-            moduleSortEnabledFirst = repo.moduleSortEnabledFirst.takeIf { options.customConfig },
-            moduleSortActionFirst = repo.moduleSortActionFirst.takeIf { options.customConfig },
-            moduleSortWebUiFirst = repo.moduleSortWebUiFirst.takeIf { options.customConfig },
-            moduleSortZygiskFirst = repo.moduleSortZygiskFirst.takeIf { options.customConfig },
-            moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst.takeIf { options.customConfig },
-            moduleSortNameOrder = repo.moduleSortNameOrder.takeIf { options.customConfig },
-            moduleSortManual = repo.moduleSortManual.takeIf { options.customConfig },
+            enableBlur = repo.enableBlur.takeIf { options.interfaceSwitches },
+            enableFloatingBottomBar = repo.enableFloatingBottomBar.takeIf { options.interfaceSwitches },
+            enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur.takeIf { options.interfaceSwitches },
+            enableNavigationBadge = repo.enableNavigationBadge.takeIf { options.interfaceSwitches },
+            enablePredictiveBack = repo.enablePredictiveBack.takeIf { options.interactionBehavior },
+            enableSwipeDismiss = repo.enableSwipeDismiss.takeIf { options.interactionBehavior },
+            pagerInterceptionMode = repo.pagerInterceptionMode.takeIf { options.interactionBehavior },
+            pageScale = repo.pageScale.takeIf { options.interactionBehavior },
+            moduleSortEnabledFirst = repo.moduleSortEnabledFirst.takeIf { options.moduleDisplay },
+            moduleSortActionFirst = repo.moduleSortActionFirst.takeIf { options.moduleDisplay },
+            moduleSortWebUiFirst = repo.moduleSortWebUiFirst.takeIf { options.moduleDisplay },
+            moduleSortZygiskFirst = repo.moduleSortZygiskFirst.takeIf { options.moduleDisplay },
+            moduleSortMetamoduleFirst = repo.moduleSortMetamoduleFirst.takeIf { options.moduleDisplay },
+            moduleSortNameOrder = repo.moduleSortNameOrder.takeIf { options.moduleDisplay },
+            moduleSortManual = repo.moduleSortManual.takeIf { options.moduleDisplay },
+            moduleDescriptionMaxLines = repo.moduleDescriptionMaxLines.takeIf { options.moduleDisplay },
             customHomeTitle = if (options.customTexts && CustomTextGroup.HOME in options.customTextGroups) {
                 repo.customHomeTitle.takeIf { it.isNotBlank() }
             } else {
@@ -785,7 +775,6 @@ class SettingsViewModel(
         return CurrentThemePayload(data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
     }
 
-    /** Masks an adaptive half down to the parts the export dialog selected. */
     private fun buildAdaptiveExport(
         state: AdaptiveThemeState,
         options: ThemePackageOptions,
@@ -868,32 +857,38 @@ class SettingsViewModel(
                 null
             },
             homeCardStickerTransforms = stickerTransforms,
-            uiMode = if (options.customConfig) source.uiMode else null,
-            enableFloatingBottomBar = if (options.customConfig) {
-                source.enableFloatingBottomBar
+            uiMode = if (options.interfaceMode) repo.uiMode else null,
+            // The chrome and behavior switches are global settings, not per light/dark appearance,
+            // so both halves always carry the live values instead of what the state captured.
+            enableBlur = if (options.interfaceSwitches) repo.enableBlur else null,
+            enableFloatingBottomBar = if (options.interfaceSwitches) {
+                repo.enableFloatingBottomBar
             } else {
                 null
             },
-            enableFloatingBottomBarBlur = if (options.customConfig) {
-                source.enableFloatingBottomBarBlur
+            enableFloatingBottomBarBlur = if (options.interfaceSwitches) {
+                repo.enableFloatingBottomBarBlur
             } else {
                 null
             },
-            enableNavigationBadge = if (options.customConfig) {
-                source.enableNavigationBadge
+            enableNavigationBadge = if (options.interfaceSwitches) {
+                repo.enableNavigationBadge
             } else {
                 null
             },
-            enablePredictiveBack = if (options.customConfig) {
-                source.enablePredictiveBack
+            enablePredictiveBack = if (options.interactionBehavior) {
+                repo.enablePredictiveBack
             } else {
                 null
             },
-            enableSwipeDismiss = if (options.customConfig) {
-                source.enableSwipeDismiss
+            enableSwipeDismiss = if (options.interactionBehavior) {
+                repo.enableSwipeDismiss
             } else {
                 null
             },
+            pagerInterceptionMode = if (options.interactionBehavior) repo.pagerInterceptionMode else null,
+            pageScale = if (options.interactionBehavior) repo.pageScale else null,
+            moduleDescriptionMaxLines = if (options.moduleDisplay) repo.moduleDescriptionMaxLines else null,
         )
         return ThemePackageVariantExport(
             data = data,
@@ -920,7 +915,7 @@ class SettingsViewModel(
         }
     }
 
-    /** Imports a package downloaded by the theme store. */
+    
     fun importThemeFile(context: Context, file: File) {
         viewModelScope.launch {
             ThemePackageStorage.import(context, Uri.fromFile(file))
@@ -955,10 +950,13 @@ class SettingsViewModel(
     fun confirmImportTheme(context: Context, options: ThemePackageOptions) {
         val pending = _uiState.value.pendingImportTheme ?: return
         viewModelScope.launch {
+            val rollbackPackage = runCatching {
+                withContext(Dispatchers.IO) { createCurrentThemePackage(context).getOrThrow() }
+            }.getOrNull()
             // Applying copies every extracted image and rewrites the appearance settings.
             // Keeping it off the main thread avoids an ANR while a large package is promoted.
             val applied = runCatching {
-                withContext(Dispatchers.IO) { applyImportedTheme(context, pending, options) }
+                withContext(Dispatchers.IO) { applyImportedTheme(context, pending, options, clearFirst = true) }
             }
             if (applied.isFailure) {
                 AdaptiveThemeStore.clear(repo)
@@ -977,9 +975,22 @@ class SettingsViewModel(
                         adaptiveThemeActive = false,
                     )
                 }
-                Toast.makeText(ksuApp, R.string.theme_import_failed, Toast.LENGTH_SHORT).show()
+                val rolledBack = rollbackPackage != null && runCatching {
+                    withContext(NonCancellable + Dispatchers.IO) {
+                        val restored = ThemePackageStorage.import(context, Uri.fromFile(rollbackPackage))
+                            .getOrNull() ?: return@withContext false
+                        applyImportedTheme(context, restored, ThemePackageOptions())
+                    }
+                }.isSuccess
+                rollbackPackage?.let { file -> runCatching { file.delete() } }
+                Toast.makeText(
+                    ksuApp,
+                    if (rolledBack) R.string.theme_import_failed_restored else R.string.theme_import_failed,
+                    Toast.LENGTH_LONG,
+                ).show()
                 return@launch
             }
+            rollbackPackage?.let { file -> runCatching { file.delete() } }
             // A normal import is a permanent choice; it supersedes any running trial.
             ThemeTrialManager.clear(context)
             _uiState.update {
@@ -992,11 +1003,6 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * Starts a store trial in the view model scope. Running it here instead of directly in a
-     * composable `LaunchedEffect` means a rotation or recomposition cannot cancel the apply
-     * halfway through and leave the trial marker with a deleted package.
-     */
     fun startThemeTrial(context: Context, packageFile: File) {
         val appContext = context.applicationContext
         val taskId = context.findActivity()?.taskId
@@ -1011,10 +1017,6 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * Applies a store package as a trial. The current appearance is backed up first; a marker
-     * makes the next process start restore that backup and delete the trial cache.
-     */
     private suspend fun beginThemeTrial(
         context: Context,
         packageFile: File,
@@ -1038,6 +1040,7 @@ class SettingsViewModel(
                         context,
                         imported,
                         ThemePackageOptions(appIcon = false),
+                        clearFirst = true,
                     )
                 } catch (error: Exception) {
                     restoreTrialBackup(context)
@@ -1048,7 +1051,6 @@ class SettingsViewModel(
             }
         }
 
-    /** Restores and clears a trial left over from a previous process or activity task. */
     fun restoreThemeTrial(context: Context, taskId: Int? = null) {
         if (!ThemeTrialManager.shouldRestore(context, taskId)) return
         val appContext = context.applicationContext
@@ -1070,12 +1072,108 @@ class SettingsViewModel(
         }.isSuccess
     }
 
+    private suspend fun resetAppearanceForImport(
+        context: Context,
+        state: SettingsUiState,
+        options: ThemePackageOptions,
+    ): SettingsUiState {
+        var updated = state
+        if (options.colors) {
+            seedGeneration++
+            clearPendingSeed()
+            deactivateAdaptiveTheme()
+            repo.themeMode = 0
+            repo.miuixMonet = false
+            repo.keyColor = 0
+            repo.extractColorFromBackground = false
+            repo.colorStyle = PaletteStyle.TonalSpot.name
+            repo.colorSpec = ColorSpec.SpecVersion.SPEC_2025.name
+            updated = updated.copy(
+                themeMode = 0,
+                miuixMonet = false,
+                keyColor = 0,
+                extractColorFromBackground = false,
+                colorStyle = PaletteStyle.TonalSpot.name,
+                colorSpec = ColorSpec.SpecVersion.SPEC_2025.name,
+                adaptiveThemeActive = false,
+            )
+        }
+        if (options.backgroundImage) {
+            wallpaperGeneration++
+            ImageStorage.clear(context)
+            runCatching { ImageStorage.systemWallpaperFile(context).delete() }
+            repo.customBackgroundUri = ""
+            repo.customBackgroundUpdatedAt = 0L
+            repo.useSystemWallpaper = false
+            updated = updated.copy(
+                customBackgroundUri = "",
+                customBackgroundUpdatedAt = 0L,
+                useSystemWallpaper = false,
+                systemWallpaperPath = "",
+                isSystemWallpaperBusy = false,
+            )
+        }
+        if (options.backgroundAppearance) {
+            val defaultBlur = ImageStorage.defaultBackgroundBlurPercent(context)
+            repo.cardBackgroundAlphaPercent = ImageStorage.DEFAULT_CARD_ALPHA
+            repo.customBackgroundBlurPercent = defaultBlur
+            repo.customBackgroundScrimPercent = ImageStorage.DEFAULT_BACKGROUND_SCRIM
+            updated = updated.copy(
+                cardBackgroundAlphaPercent = ImageStorage.DEFAULT_CARD_ALPHA,
+                customBackgroundBlurPercent = defaultBlur,
+                customBackgroundScrimPercent = ImageStorage.DEFAULT_BACKGROUND_SCRIM,
+            )
+        }
+        if (options.homeCardImage) {
+            ImageStorage.clearHomeCardImage(context)
+            repo.homeCardImagePath = ""
+            updated = updated.copy(homeCardImagePath = "")
+        }
+        if (options.stickers) {
+            ImageStorage.clearHomeCardSticker(context)
+            repo.homeCardStickers = emptyList()
+            updated = updated.copy(homeCardStickers = emptyList())
+        }
+        if (options.homeCardDisplay) {
+            repo.hideHomeCardStatusText = false
+            repo.hideHomeCardDecoration = false
+            updated = updated.copy(
+                hideHomeCardStatusText = false,
+                hideHomeCardDecoration = false,
+            )
+        }
+        if (options.appIcon && updated.appIconId != BuiltinAppIcons.DEFAULT_ID) {
+            repo.appIconId = BuiltinAppIcons.DEFAULT_ID
+            BuiltinAppIcons.apply(
+                context = context,
+                icon = BuiltinAppIcons.find(BuiltinAppIcons.DEFAULT_ID),
+                dynamicColor = repo.appIconDynamicColor,
+            )
+            updated = updated.copy(appIconId = BuiltinAppIcons.DEFAULT_ID)
+        }
+        if (updated != state) {
+            // Push only the fields the final apply update below does not republish.
+            _uiState.update {
+                it.copy(
+                    extractColorFromBackground = updated.extractColorFromBackground,
+                    isSystemWallpaperBusy = updated.isSystemWallpaperBusy,
+                )
+            }
+        }
+        return updated
+    }
+
     private suspend fun applyImportedTheme(
         context: Context,
         imported: ImportedTheme,
         options: ThemePackageOptions,
+        clearFirst: Boolean = false,
     ) {
-        val current = _uiState.value
+        val current = if (clearFirst) {
+            resetAppearanceForImport(context, _uiState.value, options)
+        } else {
+            _uiState.value
+        }
         val adaptiveState = if (imported.isAdaptive) {
             withContext(Dispatchers.IO) { buildAdaptiveState(context, imported, options) }
         } else {
@@ -1109,6 +1207,10 @@ class SettingsViewModel(
                 enableNavigationBadge = null,
                 enablePredictiveBack = null,
                 enableSwipeDismiss = null,
+                enableBlur = null,
+                pagerInterceptionMode = null,
+                pageScale = null,
+                moduleDescriptionMaxLines = null,
                 moduleSortEnabledFirst = null,
                 moduleSortActionFirst = null,
                 moduleSortWebUiFirst = null,
@@ -1133,6 +1235,10 @@ class SettingsViewModel(
         var hideHomeCardDecoration = current.hideHomeCardDecoration
         var hideHomeCardStatusText = current.hideHomeCardStatusText
         var homeCardStickers = current.homeCardStickers
+        var enableBlur = current.enableBlur
+        var pagerMode = current.pagerInterceptionMode
+        var pageScale = current.pageScale
+        var moduleMaxLines = current.moduleDescriptionMaxLines
 
         if (options.colors) {
             themeMode = data.themeMode?.takeIf { it in 0..6 } ?: current.themeMode
@@ -1182,23 +1288,43 @@ class SettingsViewModel(
         var predictiveBack = repo.enablePredictiveBack
         var swipeDismiss = repo.enableSwipeDismiss
 
-        if (options.customConfig) {
+        if (options.interfaceMode) {
             targetUiMode = data.uiMode?.takeIf { it == "miuix" || it == "material" } ?: current.uiMode
             repo.uiMode = targetUiMode
+        }
 
+        if (options.interfaceSwitches) {
+            data.enableBlur?.let {
+                repo.enableBlur = it
+                enableBlur = it
+            }
             floatingBottomBar = data.enableFloatingBottomBar ?: current.enableFloatingBottomBar
-
             floatingBottomBarBlur = data.enableFloatingBottomBarBlur ?: current.enableFloatingBottomBarBlur
             navigationBadge = data.enableNavigationBadge ?: current.enableNavigationBadge
             repo.enableFloatingBottomBar = floatingBottomBar
             repo.enableFloatingBottomBarBlur = floatingBottomBarBlur
             repo.enableNavigationBadge = navigationBadge
+        }
 
+        if (options.interactionBehavior) {
             predictiveBack = data.enablePredictiveBack ?: repo.enablePredictiveBack
             swipeDismiss = data.enableSwipeDismiss ?: repo.enableSwipeDismiss
             repo.enablePredictiveBack = predictiveBack
             repo.enableSwipeDismiss = swipeDismiss
 
+            data.pagerInterceptionMode?.let { mode ->
+                val coerced = mode.coerceIn(0, 2)
+                repo.pagerInterceptionMode = coerced
+                pagerMode = coerced
+            }
+            data.pageScale?.let { scale ->
+                val coerced = scale.coerceIn(0.8f, 1.1f)
+                repo.pageScale = coerced
+                pageScale = coerced
+            }
+        }
+
+        if (options.moduleDisplay) {
             data.moduleSortEnabledFirst?.let { repo.moduleSortEnabledFirst = it }
             data.moduleSortActionFirst?.let { repo.moduleSortActionFirst = it }
             data.moduleSortWebUiFirst?.let { repo.moduleSortWebUiFirst = it }
@@ -1210,6 +1336,11 @@ class SettingsViewModel(
                 }
             }
             data.moduleSortManual?.let { repo.moduleSortManual = it }
+            data.moduleDescriptionMaxLines?.let { lines ->
+                val coerced = lines.coerceIn(1, 5)
+                repo.moduleDescriptionMaxLines = coerced
+                moduleMaxLines = coerced
+            }
         }
 
         var backgroundUri = current.customBackgroundUri
@@ -1350,6 +1481,10 @@ class SettingsViewModel(
             navigationBadge = repo.enableNavigationBadge
             predictiveBack = repo.enablePredictiveBack
             swipeDismiss = repo.enableSwipeDismiss
+            enableBlur = repo.enableBlur
+            pagerMode = repo.pagerInterceptionMode
+            pageScale = repo.pageScale
+            moduleMaxLines = repo.moduleDescriptionMaxLines
         }
 
         // Any extracted file that was not promoted above is no longer needed.
@@ -1403,11 +1538,15 @@ class SettingsViewModel(
                 enableNavigationBadge = navigationBadge,
                 enablePredictiveBack = predictiveBack,
                 enableSwipeDismiss = swipeDismiss,
+                enableBlur = enableBlur,
+                pagerInterceptionMode = pagerMode,
+                pageScale = pageScale,
+                moduleDescriptionMaxLines = moduleMaxLines,
             )
         }
     }
 
-    /** Promotes both halves of an adaptive package into their own light/dark image slots. */
+    
     private suspend fun buildAdaptiveState(
         context: Context,
         imported: ImportedTheme,
@@ -1530,29 +1669,41 @@ class SettingsViewModel(
                     null
                 },
                 homeCardStickerTransforms = stickerData,
-                uiMode = if (options.customConfig) variant.data.uiMode else null,
-                enableFloatingBottomBar = if (options.customConfig) {
+                uiMode = if (options.interfaceMode) variant.data.uiMode else null,
+                enableBlur = if (options.interfaceSwitches) variant.data.enableBlur else null,
+                enableFloatingBottomBar = if (options.interfaceSwitches) {
                     variant.data.enableFloatingBottomBar
                 } else {
                     null
                 },
-                enableFloatingBottomBarBlur = if (options.customConfig) {
+                enableFloatingBottomBarBlur = if (options.interfaceSwitches) {
                     variant.data.enableFloatingBottomBarBlur
                 } else {
                     null
                 },
-                enableNavigationBadge = if (options.customConfig) {
+                enableNavigationBadge = if (options.interfaceSwitches) {
                     variant.data.enableNavigationBadge
                 } else {
                     null
                 },
-                enablePredictiveBack = if (options.customConfig) {
+                enablePredictiveBack = if (options.interactionBehavior) {
                     variant.data.enablePredictiveBack
                 } else {
                     null
                 },
-                enableSwipeDismiss = if (options.customConfig) {
+                enableSwipeDismiss = if (options.interactionBehavior) {
                     variant.data.enableSwipeDismiss
+                } else {
+                    null
+                },
+                pagerInterceptionMode = if (options.interactionBehavior) {
+                    variant.data.pagerInterceptionMode
+                } else {
+                    null
+                },
+                pageScale = if (options.interactionBehavior) variant.data.pageScale else null,
+                moduleDescriptionMaxLines = if (options.moduleDisplay) {
+                    variant.data.moduleDescriptionMaxLines
                 } else {
                     null
                 },
@@ -1568,28 +1719,17 @@ class SettingsViewModel(
             android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
             android.content.res.Configuration.UI_MODE_NIGHT_YES
 
-    /** Forced app dark/light wins; SYSTEM follows the device night mode. */
     private fun isEffectiveDarkMode(context: Context): Boolean {
         val mode = ColorMode.fromValue(repo.themeMode)
         return mode.isDark || (mode.isSystem && isSystemDarkMode(context))
     }
 
-    /**
-     * Ends the adaptive binding only when the user replaces or removes the background or home
-     * card image. Other appearance edits keep the theme active; the matching variant is reapplied
-     * on the next light/dark switch.
-     */
     private fun deactivateAdaptiveTheme() {
         if (!AdaptiveThemeStore.isActive(repo)) return
         AdaptiveThemeStore.clear(repo)
         _uiState.update { it.copy(adaptiveThemeActive = false) }
     }
 
-    /**
-     * Re-applies the light/dark half for the current system mode and publishes the resulting
-     * appearance. The appearance page calls this on resume and whenever the system mode changes,
-     * since its view model does not share MainActivity's preference listener.
-     */
     fun refreshAdaptiveAppearance() {
         viewModelScope.launch {
             AdaptiveThemeStore.sync(repo, isEffectiveDarkMode(ksuApp))
@@ -1629,10 +1769,6 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * Captures the current appearance into the builder draft. Images are copied (not moved), so
-     * recording a draft never disturbs the theme that is currently applied.
-     */
     fun captureAdaptiveDraft(context: Context, dark: Boolean) {
         viewModelScope.launch {
             val variant = withContext(Dispatchers.IO) { buildDraftVariant(context, dark) }
@@ -1675,7 +1811,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Turns a completed draft into the live adaptive theme without exporting a package. */
     fun applyAdaptiveDraft(context: Context) {
         viewModelScope.launch {
             val draft = AdaptiveThemeStore.loadDraft(repo)
@@ -1703,7 +1838,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Copies draft images into the live adaptive slots so later draft edits cannot break them. */
     private suspend fun promoteDraftVariant(
         context: Context,
         variant: AdaptiveThemeVariantState?,
@@ -1767,10 +1901,6 @@ class SettingsViewModel(
 
     fun loadAdaptiveDraft(): AdaptiveThemeDraft? = AdaptiveThemeStore.loadDraft(repo)
 
-    /**
-     * Builds a temporary v3 package from the completed draft, or from the active adaptive theme
-     * when there is no draft. The submission flow copies it and the cache cleaner removes it.
-     */
     suspend fun createAdaptiveThemePackage(context: Context): Result<File> =
         withContext(Dispatchers.IO) {
             runCatching {
@@ -2461,11 +2591,6 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * Tells the activity to stay on [keyColor] until the background seed lands, so a tap that
-     * re-seeds does not re-derive the palette for an intermediate color first. Same file the
-     * activity already listens to for every other appearance change.
-     */
     private fun publishPendingSeed(keyColor: Int) {
         ksuApp.getSharedPreferences(MainActivityViewModel.SETTINGS_PREFS, Context.MODE_PRIVATE)
             .edit() { putInt(MainActivityViewModel.KEY_COLOR_PENDING, keyColor) }
@@ -2476,14 +2601,9 @@ class SettingsViewModel(
             .edit() { remove(MainActivityViewModel.KEY_COLOR_PENDING) }
     }
 
-    /**
-     * Whether the theme seed currently comes from the background image. A manually picked key
-     * color wins over the stored flag, so both seed sources are never active at once.
-     */
     private fun SettingsRepository.derivesKeyColorFromBackground(): Boolean =
         extractColorFromBackground && keyColor == 0
 
-    /** The background image the theme colors and the app background currently use, if any. */
     private fun SettingsRepository.activeBackgroundFile(): File? {
         val path = if (useSystemWallpaper) {
             ImageStorage.systemWallpaperFile(ksuApp).takeIf { it.isFile }?.absolutePath
@@ -2495,7 +2615,6 @@ class SettingsViewModel(
 
     private fun SettingsRepository.hasActiveBackground(): Boolean = activeBackgroundFile() != null
 
-    /** One-shot mapping with the same fallbacks the screen used to apply while composing. */
     private fun SettingsUiState.toColorPaletteUiState(): ColorPaletteUiState {
         val colorMode = ColorMode.fromValue(themeMode)
         val resolvedStyle = parsePaletteStyle(colorStyle)
@@ -2545,10 +2664,6 @@ class SettingsViewModel(
         )
     }
 
-    /**
-     * Same parsing the page used to do inline, resolved off the composition. Unknown stored
-     * values fall back to the defaults at the call site instead of failing.
-     */
     private fun parsePaletteStyle(value: String): PaletteStyle? =
         runCatching { PaletteStyle.valueOf(value) }.getOrNull()
 

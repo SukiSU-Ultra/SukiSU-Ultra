@@ -163,7 +163,7 @@ class MainActivityViewModel(
     companion object {
         const val SETTINGS_PREFS = "settings"
 
-        /** Window-scoped only: holds the color to keep while a background seed is scoring. */
+        
         const val KEY_COLOR_PENDING = "key_color_pending"
 
         private const val NO_PENDING_SEED = Int.MIN_VALUE

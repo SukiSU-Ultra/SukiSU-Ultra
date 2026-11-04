@@ -14,13 +14,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** Sources are downsampled to this longest edge; it is plenty for a full-screen background. */
+
 private const val MAX_SOURCE_DIMENSION = 2560
 
-/** Crops are rendered at most at this longest edge. */
+
 private const val MAX_OUTPUT_DIMENSION = 2560
 
-/** Keep the transient bitmaps smaller on low-RAM devices. */
+
 private const val LOW_RAM_SOURCE_DIMENSION = 2048
 private const val LOW_RAM_OUTPUT_DIMENSION = 2048
 
@@ -44,7 +44,7 @@ fun orientedImageSize(bitmap: Bitmap, quarterTurns: Int): OrientedImageSize {
     }
 }
 
-/** Scale at which the oriented image exactly covers the viewport. */
+
 fun coverScale(viewport: Size, image: OrientedImageSize): Float {
     if (viewport.width <= 0f || viewport.height <= 0f || image.width <= 0 || image.height <= 0) {
         return 1f

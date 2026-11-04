@@ -3,13 +3,13 @@ package com.sukisu.ultra.data.registry
 import kotlinx.serialization.Serializable
 import java.io.IOException
 
-/** Fetches a document; throws [IOException] on network / HTTP errors. */
+
 fun interface RegistryFetcher {
     @Throws(IOException::class)
     fun fetch(url: String): String
 }
 
-/** Small key/value store for the last complete good copies. Keys are file-name safe. */
+
 interface RegistryCache {
     fun read(key: String): String?
     fun write(key: String, value: String)
@@ -39,12 +39,12 @@ class RegistryClient(
 
     data class CatalogLoad(
         val catalog: RegistryCatalog,
-        /** Non-null when the network copy could not be used and a cached copy was returned. */
+        
         val error: Throwable? = null,
     )
 
     data class DetailLoad(
-        /** Catalog the detail belongs to; may be newer than the one the caller held. */
+        
         val catalog: RegistryCatalog,
         val detail: ApiModuleDetail,
         val fromCache: Boolean = false,
@@ -60,7 +60,7 @@ class RegistryClient(
 
     fun currentCatalog(): RegistryCatalog? = current
 
-    /** Reads index + list from the network, falling back to the last complete good copy. */
+    
     fun loadCatalog(): CatalogLoad = synchronized(lock) {
         try {
             CatalogLoad(fetchCatalog())
@@ -75,7 +75,7 @@ class RegistryClient(
         }
     }
 
-    /** Returns the catalog in memory, or loads one (network, then cache). */
+    
     fun catalog(): RegistryCatalog = current ?: loadCatalog().catalog
 
     private fun fetchCatalog(): RegistryCatalog {
@@ -172,7 +172,7 @@ class RegistryClient(
         }
     }
 
-    /** Loads the README HTML, or null if the module has none. Falls back to a cached copy of the same build. */
+    
     fun loadReadme(detail: ApiModuleDetail): Readme? {
         val path = detail.readme ?: return null
         val key = "readme-${detail.id}"

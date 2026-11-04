@@ -11,7 +11,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Shared KPM install/uninstall used by the KPM screen and the AI assistant. */
+
 object KpmOperations {
 
     fun isLoaded(moduleId: String): Boolean? = try {

@@ -36,6 +36,5 @@ fun ThemeExportDialog(
         },
         adaptive = adaptive,
         adaptiveNotice = R.string.theme_adaptive_export_notice,
-        forceMaterial = true,
     )
 }

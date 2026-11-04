@@ -61,7 +61,7 @@ object BootKernelVersion {
         }
     }
 
-    /** Reads a boot image stream, including a decompressed ZIP entry. */
+    
     fun parseKmiFromBoot(input: InputStream): String? {
         val stream = DataInputStream(input)
         val header = ByteArray(HEADER_READ_SIZE)

@@ -1,10 +1,10 @@
 package com.sukisu.ultra.ui.kernelFlash.util
 
-/** Shared kptools-android invocation for AnyKernel3's `Image` and boot.img's extracted `kernel`. */
+
 object KpmPatchCommand {
     internal fun quote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
 
-    /** Reject missing input and empty/stale output before a caller replaces its kernel. */
+    
     fun buildChecked(
         tool: String,
         kernelInput: String,

@@ -147,7 +147,7 @@ private fun List<ThemeStoreItem>.sortedFor(mode: ThemeStoreSort): List<ThemeStor
     ThemeStoreSort.SIZE -> sortedWith(compareByDescending { it.entry.size })
 }
 
-/** Compact counters for the store cards: 999, 1.2k, 34k, 1.2M. */
+
 internal fun formatStoreCount(value: Long): String {
     val count = value.coerceAtLeast(0)
     return when {

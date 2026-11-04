@@ -1,6 +1,6 @@
 package com.sukisu.ultra.data.script
 
-/** What the manager knows about the running KernelSU, exported to the script like ksud does. */
+
 data class ScriptHostInfo(
     val ksuVersion: String,
     val ksuVersionCode: Int,
@@ -19,7 +19,7 @@ object ScriptCommand {
 
     private val ENV_NAME = Regex("^[A-Za-z_][A-Za-z0-9_]*$")
 
-    /** Quotes [value] for a POSIX shell: `it's` -> `'it'\''s'`. */
+    
     fun quote(value: String): String {
         require('\u0000' !in value) { "NUL cannot be passed through a shell" }
         return "'" + value.replace("'", "'\\''") + "'"
@@ -55,7 +55,7 @@ object ScriptCommand {
         return env
     }
 
-    /** `cd <dir> && <env...> PATH=... busybox sh ./action.sh </dev/null` */
+    
     fun build(dir: String, env: List<Pair<String, String>>): String = buildString {
         append("cd ").append(quote(dir)).append(" && ")
         for ((name, value) in env) {
@@ -69,11 +69,11 @@ object ScriptCommand {
     }
 }
 
-/** Result of a run, by exit code. */
+
 enum class ScriptOutcome {
     SUCCESS,
 
-    /** Exit code 2: the script decided it does not apply to this device. */
+    
     NOT_APPLICABLE,
     FAILURE;
 

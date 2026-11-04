@@ -52,7 +52,7 @@ class AccountRepository(
         val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
         val json = Json { ignoreUnknownKeys = true; isLenient = true }
         val SESSIONS_SERIALIZER = MapSerializer(String.serializer(), AccountSession.serializer())
-        /** Serializes read-modify-write access across the repository instances owned by each screen. */
+        
         val SESSION_WRITE_LOCK = Any()
     }
 

@@ -92,7 +92,7 @@ data class AccountSubmissionsResponse(
     val error: String? = null,
 )
 
-/** One comment or reply in a theme's message thread. */
+
 @Serializable
 data class ThemeComment(
     val id: String = "",

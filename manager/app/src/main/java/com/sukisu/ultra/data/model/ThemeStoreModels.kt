@@ -26,7 +26,7 @@ data class ThemeStoreEntry(
     val author: String = "",
     val description: String = "",
     val tags: List<String> = emptyList(),
-    /** The package carries separate light and dark halves; mirrors may also expose it as a tag. */
+    
     val adaptive: Boolean = false,
     val license: String = "",
     val minManagerVersion: Long = 0L,
@@ -39,13 +39,13 @@ data class ThemeStoreEntry(
     val screenshotPaths: List<String> = emptyList(),
     val updatedAt: String = "",
     val changelog: String = "",
-    /** Cumulative package downloads reported by the mirror. */
+    
     val downloads: Long = 0L,
-    /** Popularity score: downloads + recent downloads weighted by the mirror. */
+    
     val heat: Long = 0L,
 )
 
-/** An additional store source persisted in the manager settings. */
+
 @Serializable
 data class ThemeStoreSourceConfig(
     val id: String,
@@ -55,7 +55,7 @@ data class ThemeStoreSourceConfig(
     val adminUrl: String = "",
 )
 
-/** Response returned after a manager upload is queued for review. */
+
 @Serializable
 data class ThemeStoreSubmitResponse(
     val ok: Boolean = false,
@@ -68,7 +68,7 @@ data class ThemeStoreSubmitResponse(
     val error: String = "",
 )
 
-/** Request body for the mirror's resumable package upload session. */
+
 @Serializable
 data class ThemeStoreUploadInitRequest(
     val filename: String,
@@ -81,7 +81,7 @@ data class ThemeStoreUploadInitRequest(
     val chunkSize: Long? = null,
 )
 
-/** Response from the mirror's `/health` endpoint. */
+
 @Serializable
 data class ThemeStoreHealth(
     val ok: Boolean = false,
@@ -99,7 +99,7 @@ data class ThemeStoreHealthChecks(
     val pending: ThemeStoreHealthCheck = ThemeStoreHealthCheck(),
 )
 
-/** Loose shape shared by the database/storage/catalog/pending health blocks. */
+
 @Serializable
 data class ThemeStoreHealthCheck(
     val ok: Boolean = false,
@@ -110,7 +110,7 @@ data class ThemeStoreHealthCheck(
     val generatedAt: String = "",
 )
 
-/** Session state returned by `/uploads/init`, `/uploads/{id}` and chunk uploads. */
+
 @Serializable
 data class ThemeStoreUploadSession(
     val ok: Boolean = false,

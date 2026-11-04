@@ -549,7 +549,7 @@ private fun RepoSummaryText(module: RepoModule, onModuleClick: () -> Unit) {
     )
 }
 
-/** Star icon + compact count; nothing when the count is unknown or 0. */
+
 @Composable
 private fun RepoStarsMiuix(stars: Int?, modifier: Modifier = Modifier) {
     if (stars == null || stars <= 0) return
@@ -622,7 +622,7 @@ private fun RepoBadgesMiuix(
     }
 }
 
-/** Loading / not-in-index / failure placeholder; returns true when the page content can be shown. */
+
 @Composable
 private fun LazyItemScope.detailStatusMiuix(state: ModuleRepoDetailUiState, onRetry: () -> Unit): Boolean {
     when {
@@ -672,7 +672,7 @@ private fun LazyItemScope.detailStatusMiuix(state: ModuleRepoDetailUiState, onRe
     return false
 }
 
-/** The detail is the last good cached copy because it could not be refreshed. */
+
 @Composable
 private fun CachedDetailNoticeMiuix(modifier: Modifier = Modifier) {
     Text(

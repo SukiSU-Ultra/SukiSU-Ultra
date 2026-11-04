@@ -3,7 +3,7 @@ package com.sukisu.ultra.ai.api
 import java.net.URI
 import java.net.URLDecoder
 
-/** Shared validation for GitHub release download URLs accepted by module installs. */
+
 object AiGithubUrls {
 
     private val REPO_PART = Regex("^[A-Za-z0-9._-]+$")

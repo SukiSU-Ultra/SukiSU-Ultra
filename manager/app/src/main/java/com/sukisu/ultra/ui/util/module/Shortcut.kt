@@ -110,7 +110,7 @@ object Shortcut {
         publishAndPinShortcut(context, shortcut, logPrefix)
     }
 
-    /** Pins the app itself to the home screen using an arbitrary [bitmap] as the shortcut icon. */
+    
     fun createAppIconShortcut(context: Context, key: String, label: String, bitmap: Bitmap) {
         val shortcutId = "app_icon_$key"
         val shortcutIntent = Intent(context, AppIconShortcutActivity::class.java).apply {

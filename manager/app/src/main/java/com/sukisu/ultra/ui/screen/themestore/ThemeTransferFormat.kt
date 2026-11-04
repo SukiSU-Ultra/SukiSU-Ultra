@@ -2,7 +2,7 @@ package com.sukisu.ultra.ui.screen.themestore
 
 import java.util.Locale
 
-/** Compact byte count for transfer rows, e.g. `12.4 MB`. */
+
 internal fun formatTransferBytes(bytes: Long): String {
     val safe = bytes.coerceAtLeast(0L)
     if (safe < 1024L) return "$safe B"
@@ -20,7 +20,7 @@ internal fun formatTransferBytes(bytes: Long): String {
     }
 }
 
-/** `0:42` for short transfers, `12:05` for minutes, `1:02:03` when it runs long. */
+
 internal fun formatTransferEta(seconds: Long): String {
     val total = seconds.coerceAtLeast(0L)
     val hours = total / 3600L

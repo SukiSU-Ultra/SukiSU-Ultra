@@ -5,7 +5,7 @@ import androidx.compose.ui.res.stringResource
 import com.sukisu.ultra.R
 import java.util.Locale
 
-/** Canonical tag used by the catalog and the upload form for adaptive light/dark themes. */
+
 internal const val ADAPTIVE_TAG = "adaptive"
 
 private val ADAPTIVE_TAG_ALIASES = setOf(
@@ -19,7 +19,7 @@ private val ADAPTIVE_TAG_ALIASES = setOf(
     "自适应主题包",
 )
 
-/** Maps any known spelling of a special tag to its canonical catalog key. */
+
 internal fun canonicalThemeTag(tag: String): String {
     val normalized = tag.trim().lowercase(Locale.ROOT)
     return if (normalized in ADAPTIVE_TAG_ALIASES) ADAPTIVE_TAG else normalized
@@ -27,7 +27,7 @@ internal fun canonicalThemeTag(tag: String): String {
 
 internal fun isAdaptiveThemeTag(tag: String): Boolean = canonicalThemeTag(tag) == ADAPTIVE_TAG
 
-/** An entry is adaptive when the catalog says so or when any of its tags is an adaptive alias. */
+
 internal fun ThemeStoreItem.isAdaptiveTheme(): Boolean =
     entry.adaptive || entry.tags.any(::isAdaptiveThemeTag)
 
@@ -79,7 +79,7 @@ internal fun List<ThemeStoreItem>.filterByThemeTags(selected: Set<String>): List
     }
 }
 
-/** All catalog entries by one author, matched case-insensitively and ignoring padding. */
+
 internal fun List<ThemeStoreItem>.forThemeAuthor(author: String): List<ThemeStoreItem> {
     val normalized = author.trim()
     if (normalized.isEmpty()) return emptyList()

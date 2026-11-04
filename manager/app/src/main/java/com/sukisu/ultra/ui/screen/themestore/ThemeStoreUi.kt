@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.sukisu.ultra.R
 
-/** Localized display label for a mirror source, used by account pickers and aggregated rows. */
+
 @Composable
 internal fun ThemeStoreSource.displayName(): String =
     if (isDefault) {

@@ -11,7 +11,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.basic.CardDefaults
 
-/** Monospace log inside a card, shared by the flash and module action screens. */
+
 @Composable
 fun LogConsole(
     text: String,

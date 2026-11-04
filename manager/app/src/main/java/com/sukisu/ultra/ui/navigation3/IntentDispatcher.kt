@@ -27,10 +27,10 @@ private const val PARAM_TOKEN = "token"
  * Resolved intent action to execute after validation.
  */
 private sealed interface PendingAction {
-    /** Execute a module's action script — triggered by shortcut or deep link. */
+    
     data class ExecuteAction(val moduleId: String) : PendingAction
 
-    /** Open a module's WebUI — triggered by shortcut. */
+    
     data class OpenWebUI(val moduleId: String) : PendingAction
 }
 

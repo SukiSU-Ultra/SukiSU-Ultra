@@ -54,7 +54,7 @@ data class ThemeStoreSource(
     val isDefault: Boolean = false,
 )
 
-/** A logged-in account bound to one configured mirror source. */
+
 data class ThemeStoreAccount(
     val source: ThemeStoreSource,
     val session: AccountSession,
@@ -62,7 +62,7 @@ data class ThemeStoreAccount(
     val key: String get() = source.baseUrl
 }
 
-/** A theme owned by one source account. */
+
 data class UserTheme(
     val theme: AccountThemeSummary,
     val account: ThemeStoreAccount,
@@ -70,7 +70,7 @@ data class UserTheme(
     val key: String get() = "${account.key}:${theme.id}"
 }
 
-/** A message thread for one theme on one source account. */
+
 data class UserMessageConversation(
     val conversation: AccountMessageConversation,
     val account: ThemeStoreAccount,
@@ -78,7 +78,7 @@ data class UserMessageConversation(
     val key: String get() = "${account.key}:${conversation.themeId}"
 }
 
-/** A submission made on one source account. */
+
 data class UserSubmission(
     val submission: AccountSubmission,
     val account: ThemeStoreAccount,
@@ -320,7 +320,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /** Re-reads sessions from preferences, e.g. after returning from the account page. */
+    
     fun refreshAccounts() {
         account.reload()
         val sources = configuredSources()
@@ -329,7 +329,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /** Remembers the source used for future uploads; the default source is stored as blank. */
+    
     fun setUploadSourcePreference(baseUrl: String) {
         val normalized = ThemeStoreRepository.normalizeBaseUrl(baseUrl) ?: return
         val defaultBase = configuredSources().firstOrNull { it.isDefault }?.baseUrl
@@ -693,7 +693,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /** Loads themes and submission history for every logged-in mirror source. */
+    
     fun loadUserContent(force: Boolean = false) {
         if (_uiState.value.submissionsLoading && !force) return
         account.reload()
@@ -809,7 +809,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /** Loads the visible comment threads for one theme from its source account. */
+    
     fun loadComments(item: ThemeStoreItem, force: Boolean = false) {
         val current = _uiState.value
         if (current.commentsLoading && !force) return
@@ -882,7 +882,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(commentReplyTarget = comment) }
     }
 
-    /** Searches local accounts for the `@mention` picker. */
+    
     fun searchMentionUsers(source: ThemeStoreSource, query: String) {
         val text = query.trim()
         _uiState.update { it.copy(mentionQuery = text) }
@@ -1026,7 +1026,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /** Loads the message inbox across every logged-in mirror source. */
+    
     fun loadMessages(force: Boolean = false) {
         if (_uiState.value.messagesLoading && !force) return
         account.reload()
@@ -1530,7 +1530,7 @@ internal fun List<UserSubmission>.latestUserSubmissions(limit: Int = 20): List<U
     sortedWith(compareByDescending { it.submission.submittedAt.orEmpty() })
         .take(limit.coerceAtLeast(0))
 
-/** Saved upload preference first, then the default source, without prompting the user. */
+
 internal fun List<ThemeStoreAccount>.preferredUploadAccount(
     preferredBaseUrl: String,
     defaultBaseUrl: String,

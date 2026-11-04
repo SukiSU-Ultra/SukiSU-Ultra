@@ -8,7 +8,7 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 
-/** Navigation and state wiring only; no shell commands or layout logic. */
+
 @Composable
 fun VersionSpoofScreen() {
     val navigator = LocalNavigator.current

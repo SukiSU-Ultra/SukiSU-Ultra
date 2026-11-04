@@ -31,10 +31,10 @@ import java.util.UUID
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteRecursively
 
-/** A validated script, extracted and ready to run. */
+
 data class PreparedScript(
     val manifest: ScriptManifest,
-    /** Extraction directory: the script's working directory and `$MODPATH`. */
+    
     val dir: File,
     val sha256: String,
     val params: ScriptParams,
@@ -42,10 +42,10 @@ data class PreparedScript(
     val actionSourceTruncated: Boolean,
 )
 
-/** The page released the extraction while it was being prepared; nobody waits for the result. */
+
 class ReleasedException : IOException("Extraction released during preparation")
 
-/** The registry ZIP is not (or no longer) a verified download of the store. */
+
 class UnverifiedScriptException : IOException("Registry download is not verified")
 
 object ScriptRepository {
@@ -62,13 +62,13 @@ object ScriptRepository {
      */
     private val extractions = HashMap<String, File>()
 
-    /** Owners released before their preparation registered an extraction. */
+    
     private val released = HashSet<String>()
 
-    /** Deletes released extractions off the caller's (often the main) thread. */
+    
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /** Serialises preparations, so cleanup never sees another preparation's half-done files. */
+    
     private val prepareLock = Mutex()
 
     val history: ScriptRunHistory by lazy {
@@ -89,7 +89,7 @@ object ScriptRepository {
         lateLoad = Natives.isLateLoadMode,
     )
 
-    /** module.prop of [uri] if it is a one-shot script ZIP, otherwise (or when unreadable) null. */
+    
     suspend fun peekOneshot(uri: Uri): ScriptManifest? = withContext(Dispatchers.IO) {
         runCatching {
             ksuApp.contentResolver.openInputStream(uri)?.use { ScriptPackage.readOneshotManifest(it) }
@@ -197,7 +197,7 @@ object ScriptRepository {
 
     private val _runCount = MutableStateFlow(0)
 
-    /** Bumped after every recorded run, so screens showing the last run can refresh. */
+    
     val runCount: StateFlow<Int> = _runCount.asStateFlow()
 
     fun recordRun(prepared: PreparedScript, exitCode: Int) {
@@ -212,7 +212,7 @@ object ScriptRepository {
         _runCount.update { it + 1 }
     }
 
-    /** Drops extractions no page holds, e.g. left behind by a killed process. */
+    
     private fun cleanup() {
         val held = synchronized(extractions) { extractions.values.mapTo(HashSet()) { it.name } }
         root().listFiles()?.forEach { f -> if (f.name !in held) delete(f) }

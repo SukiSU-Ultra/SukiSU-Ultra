@@ -38,7 +38,7 @@ object SettingsSection {
     const val LANGUAGE = "language"
     const val THEME = "theme"
 
-    /** All valid request ids. */
+    
     val ALL: Set<String> = setOf(
         GENERAL, PROFILE_TEMPLATES, EXTENSIONS, TOOLS, TEMPORARY_ROOT, SECURITY,
         MODULE_BEHAVIOUR, UNINSTALL, DIAGNOSTICS,
@@ -48,7 +48,7 @@ object SettingsSection {
         UI_MODE, LANGUAGE, THEME,
     )
 
-    /** Map a precise setting id to the card that contains it. */
+    
     fun cardFor(anchor: String): String = when (anchor.trim().lowercase().replace('-', '_')) {
         UI_MODE, LANGUAGE, THEME -> GENERAL
         PROFILE_TEMPLATES -> PROFILE_TEMPLATES

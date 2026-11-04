@@ -100,7 +100,7 @@ private fun HomeCardStickerOverlay(
     )
 }
 
-/** Thumbnail used to select one of the stickers in the editor. */
+
 @Composable
 fun HomeCardStickerThumbnail(
     path: String,

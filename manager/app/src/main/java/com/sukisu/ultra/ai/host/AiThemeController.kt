@@ -244,7 +244,7 @@ object AiThemeController : AiThemeService {
         read()
     }
 
-    /** Equivalent to Settings > Appearance "Reset" (card alpha/blur/scrim and home card text). */
+    
     override suspend fun resetAppearance(): String = withContext(Dispatchers.IO) {
         repo.cardBackgroundAlphaPercent = ImageStorage.DEFAULT_CARD_ALPHA
         repo.customBackgroundBlurPercent = ImageStorage.defaultBackgroundBlurPercent(ksuApp)
@@ -382,7 +382,7 @@ object AiThemeController : AiThemeService {
 
     private fun hasHomeCardImage(): Boolean = repo.homeCardImagePath.isNotBlank()
 
-    /** Full list of custom text keys, so the model can choose a valid one. */
+    
     override fun customTextKeysJson(): String = buildJsonArray {
         CustomTextKey.entries.forEach { key ->
             add(
@@ -395,7 +395,7 @@ object AiThemeController : AiThemeService {
         }
     }.toString()
 
-    /** Compact appearance summary used in the environment snapshot. */
+    
     override suspend fun summaryJson(): String = withContext(Dispatchers.IO) {
         buildJsonObject {
             put("ui_mode", repo.uiMode)
@@ -423,7 +423,7 @@ object AiThemeController : AiThemeService {
         }.toString()
     }
 
-    /** Allowed values for the fixed-choice theme keys. */
+    
     override fun optionsJson(): String = buildJsonObject {
         put("keys", buildJsonArray {
             listOf(

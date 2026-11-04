@@ -1,6 +1,6 @@
 package com.sukisu.ultra.ui.screen.themestore
 
-/** Smoothed transfer rate derived from the last few seconds of progress callbacks. */
+
 internal data class TransferSpeedReading(
     val bytesPerSecond: Long,
     val etaSeconds: Long?,

@@ -183,7 +183,7 @@ private fun AnnotatedString.Builder.appendInlineMarkdown(
     }
 }
 
-/** Markdown renderer for theme descriptions and comments. */
+
 @Composable
 internal fun themeStoreMarkdown(text: String): AnnotatedString {
     val linkColor = MaterialTheme.colorScheme.primary

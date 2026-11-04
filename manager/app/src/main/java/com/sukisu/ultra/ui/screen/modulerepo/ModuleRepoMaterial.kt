@@ -583,7 +583,7 @@ fun ModuleRepoDetailScreenMaterial(
     }
 }
 
-/** Loading / not-in-index / failure placeholder; returns true when the page content can be shown. */
+
 @Composable
 private fun LazyItemScope.detailStatus(state: ModuleRepoDetailUiState, onRetry: () -> Unit): Boolean {
     when {
@@ -625,7 +625,7 @@ private fun LazyItemScope.detailStatus(state: ModuleRepoDetailUiState, onRetry: 
     return false
 }
 
-/** The detail is the last good cached copy because it could not be refreshed. */
+
 @Composable
 private fun CachedDetailNotice(modifier: Modifier = Modifier) {
     Text(

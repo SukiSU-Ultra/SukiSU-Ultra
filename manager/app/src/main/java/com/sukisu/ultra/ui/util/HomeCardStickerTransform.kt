@@ -37,7 +37,7 @@ data class HomeCardStickerTransform(
     }
 }
 
-/** One sticker image and its placement on the home status card. */
+
 @Serializable
 data class HomeCardSticker(
     val path: String,

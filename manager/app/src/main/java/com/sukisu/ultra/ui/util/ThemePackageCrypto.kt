@@ -34,7 +34,7 @@ object ThemePackageCrypto {
     private val secretKey = SecretKeySpec(HASH_BYTES.copyOfRange(0, 32), "AES")
     private val secureRandom = SecureRandom()
 
-    /** True when [bytes] starts with the encrypted theme package header. */
+    
     fun hasValidHeader(bytes: ByteArray): Boolean =
         bytes.size >= MAGIC.size && MAGIC.indices.all { bytes[it] == MAGIC[it] }
 
@@ -115,7 +115,7 @@ object ThemePackageCrypto {
         }
     }
 
-    /** Buffers plaintext writes so one `Cipher.update` handles up to 256 KB. */
+    
     private class CipherSink(
         private val output: OutputStream,
         private val cipher: Cipher,
@@ -185,7 +185,7 @@ object ThemePackageCrypto {
         }
     }
 
-    /** Buffers ciphertext reads so one `Cipher.update` handles up to 256 KB. */
+    
     private class CipherSource(
         private val input: InputStream,
         private val cipher: Cipher,

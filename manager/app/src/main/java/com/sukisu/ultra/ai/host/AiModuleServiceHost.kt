@@ -3,7 +3,7 @@ package com.sukisu.ultra.ai.host
 import com.sukisu.ultra.ai.api.AiModuleService
 import com.sukisu.ultra.ai.api.GithubModuleAsset
 
-/** Combines the read-only module data surface with registry install actions. */
+
 object AiModuleServiceHost : AiModuleService {
 
     override suspend fun installedModules(limit: Int): String =

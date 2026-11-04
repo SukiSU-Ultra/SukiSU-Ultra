@@ -35,7 +35,7 @@ object BlobDownloadHandler {
         @Volatile var completed: Boolean = false,
     )
 
-    /** Register a new blob download session and return its internal URL. */
+    
     fun registerBlobDownload(fileName: String, mimeType: String?, cacheDir: File): String {
         val downloadId = UUID.randomUUID().toString()
         val tempFile = File.createTempFile("ksu-blob-", ".download", cacheDir)
@@ -55,7 +55,7 @@ object BlobDownloadHandler {
         return "https://$BLOB_DOWNLOAD_HOST/$downloadId"
     }
 
-    /** Write one base64 encoded chunk to the session. */
+    
     fun writeChunk(downloadId: String, base64Chunk: String): Boolean {
         val download = pendingDownloads[downloadId] ?: return false
         return try {
@@ -71,7 +71,7 @@ object BlobDownloadHandler {
         }
     }
 
-    /** Mark the download complete and make the spooled file available to WebView. */
+    
     fun completeDownload(downloadId: String): Boolean {
         val download = pendingDownloads[downloadId] ?: return false
         return try {
@@ -91,7 +91,7 @@ object BlobDownloadHandler {
 
     fun cancelDownload(downloadId: String) = closeDownload(downloadId)
 
-    /** Intercept requests to the internal blob URL and serve the completed file. */
+    
     fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? {
         val url = request.url
         if (url.scheme != "https" || url.host != BLOB_DOWNLOAD_HOST) return null

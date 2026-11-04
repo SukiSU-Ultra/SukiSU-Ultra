@@ -28,7 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 
-/** Shared MD3E section container used by the theme store's secondary content blocks. */
+
 @Composable
 internal fun ThemeStoreSectionCard(
     title: String,
@@ -92,7 +92,7 @@ internal fun ThemeStoreSectionCard(
     }
 }
 
-/** Tonal inline notice for secondary hints, offline states and upload errors. */
+
 @Composable
 internal fun ThemeStoreInlineNotice(
     text: String,
@@ -136,7 +136,7 @@ internal fun ThemeStoreInlineNotice(
     }
 }
 
-/** Read-only tonal tag for theme metadata such as tags and licenses. */
+
 @Composable
 internal fun ThemeStoreTag(text: String) {
     Surface(
@@ -152,7 +152,7 @@ internal fun ThemeStoreTag(text: String) {
     }
 }
 
-/** MD3E tonal chip for a live transfer rate; hidden until the first byte arrives. */
+
 @Composable
 internal fun ThemeStoreSpeedBadge(
     bytesPerSecond: Long,
@@ -186,7 +186,7 @@ internal fun ThemeStoreSpeedBadge(
     }
 }
 
-/** Compact badge used on preview cards, detail headers and the upload form. */
+
 @Composable
 internal fun AdaptiveThemeBadge(modifier: Modifier = Modifier) {
     Surface(

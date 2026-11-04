@@ -22,7 +22,7 @@ import com.sukisu.ultra.ui.viewmodel.ExtensionItem
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** Localised card title: customised copy first, catalog copy, then the kernel wire name. */
+
 @Composable
 internal fun extensionTitle(item: ExtensionItem): String =
     item.descriptor.textKey?.let { customText(it) }

@@ -133,7 +133,7 @@ fun isInDarkTheme(): Boolean {
 
 val LocalColorMode = staticCompositionLocalOf { 0 }
 
-/** Reactively provided by MainActivity so nested Material pages follow the current appearance. */
+
 val LocalAppSettings = staticCompositionLocalOf<AppSettings?> { null }
 
 val LocalEnableBlur = staticCompositionLocalOf { false }

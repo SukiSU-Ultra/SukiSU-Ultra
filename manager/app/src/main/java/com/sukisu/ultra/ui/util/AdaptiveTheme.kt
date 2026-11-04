@@ -6,7 +6,7 @@ import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** One half of an imported adaptive theme, with its promoted image files. */
+
 @Serializable
 data class AdaptiveThemeVariantState(
     val data: ThemeVariantData,
@@ -15,7 +15,7 @@ data class AdaptiveThemeVariantState(
     val stickers: List<HomeCardSticker> = emptyList(),
 )
 
-/** Persisted light/dark halves so a system mode change can re-apply the matching appearance. */
+
 @Serializable
 data class AdaptiveThemeState(
     val light: AdaptiveThemeVariantState,
@@ -24,7 +24,7 @@ data class AdaptiveThemeState(
     fun variant(dark: Boolean): AdaptiveThemeVariantState = if (dark) this.dark else light
 }
 
-/** In-progress output of the appearance page's adaptive theme builder. */
+
 @Serializable
 data class AdaptiveThemeDraft(
     val light: AdaptiveThemeVariantState? = null,
@@ -81,7 +81,7 @@ object AdaptiveThemeStore {
         repo.adaptiveDraftJson = ""
     }
 
-    /** Full two-variant payload for callers that export the current appearance as-is. */
+    
     fun exportPayload(repo: SettingsRepository): ThemePackageAdaptiveExport? {
         val draft = loadDraft(repo)?.takeIf { it.complete }
         val state = if (draft != null) {
@@ -115,8 +115,17 @@ object AdaptiveThemeStore {
         )
     }
 
-    /** Applies the settings half selected by the current system mode. */
-    suspend fun apply(repo: SettingsRepository, variant: AdaptiveThemeVariantState) {
+    /**
+     * Applies the settings half selected by the current system mode. Mode switches pass
+     * [includeChrome] = false: the chrome, gesture and module display settings are global user
+     * choices captured at apply time, and silently rewriting them on every light/dark flip would
+     * revert whatever the user changed on the appearance page afterwards.
+     */
+    suspend fun apply(
+        repo: SettingsRepository,
+        variant: AdaptiveThemeVariantState,
+        includeChrome: Boolean = true,
+    ) {
         val data = variant.data
 
         data.miuixMonet?.let { repo.miuixMonet = it }
@@ -156,14 +165,20 @@ object AdaptiveThemeStore {
         data.hideHomeCardDecoration?.let { repo.hideHomeCardDecoration = it }
         data.hideHomeCardStatusText?.let { repo.hideHomeCardStatusText = it }
 
-        data.uiMode
-            ?.takeIf { it == "miuix" || it == "material" }
-            ?.let { repo.uiMode = it }
-        data.enableFloatingBottomBar?.let { repo.enableFloatingBottomBar = it }
-        data.enableFloatingBottomBarBlur?.let { repo.enableFloatingBottomBarBlur = it }
-        data.enableNavigationBadge?.let { repo.enableNavigationBadge = it }
-        data.enablePredictiveBack?.let { repo.enablePredictiveBack = it }
-        data.enableSwipeDismiss?.let { repo.enableSwipeDismiss = it }
+        if (includeChrome) {
+            data.uiMode
+                ?.takeIf { it == "miuix" || it == "material" }
+                ?.let { repo.uiMode = it }
+            data.enableFloatingBottomBar?.let { repo.enableFloatingBottomBar = it }
+            data.enableFloatingBottomBarBlur?.let { repo.enableFloatingBottomBarBlur = it }
+            data.enableNavigationBadge?.let { repo.enableNavigationBadge = it }
+            data.enablePredictiveBack?.let { repo.enablePredictiveBack = it }
+            data.enableSwipeDismiss?.let { repo.enableSwipeDismiss = it }
+            data.enableBlur?.let { repo.enableBlur = it }
+            data.pagerInterceptionMode?.let { repo.pagerInterceptionMode = it.coerceIn(0, 2) }
+            data.pageScale?.let { repo.pageScale = it.coerceIn(0.8f, 1.1f) }
+            data.moduleDescriptionMaxLines?.let { repo.moduleDescriptionMaxLines = it.coerceIn(1, 5) }
+        }
 
         if (data.hasBackground != null) {
             val target = if (data.hasBackground) {
@@ -199,7 +214,7 @@ object AdaptiveThemeStore {
         val state = load(repo) ?: return false
         val mode = if (dark) 1 else 0
         if (repo.adaptiveAppliedMode == mode) return false
-        apply(repo, state.variant(dark))
+        apply(repo, state.variant(dark), includeChrome = false)
         repo.adaptiveAppliedMode = mode
         return true
     }

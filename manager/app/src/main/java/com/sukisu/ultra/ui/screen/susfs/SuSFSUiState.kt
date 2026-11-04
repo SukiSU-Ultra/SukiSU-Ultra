@@ -98,7 +98,7 @@ enum class SuSFSTab(val displayNameRes: Int) {
             return entries.toList()
         }
 
-        /** Map the route/AI tab id to a tab. */
+        
         fun fromRouteId(id: String): SuSFSTab? = when (id.trim().lowercase().replace('-', '_')) {
             "basic", "basic_settings" -> BASIC_SETTINGS
             "features", "feature_toggles" -> FEATURE_TOGGLES

@@ -74,7 +74,7 @@ private val WordmarkOffsetSaver = listSaver<Offset, Float>(
     restore = { Offset(it[0], it[1]) },
 )
 
-/** Contributor-name characters fill the SUKISU letterforms; zoom in to read the names. */
+
 @Composable
 fun ContributorNameWordmark(names: List<String>, modifier: Modifier = Modifier) {
     if (names.isEmpty()) return

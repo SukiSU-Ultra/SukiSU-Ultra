@@ -813,7 +813,10 @@
     <string name="theme_opt_home_card_display">Status card display options</string>
     <string name="theme_opt_app_icon">App icon</string>
     <string name="theme_opt_custom_texts">Custom texts</string>
-    <string name="theme_opt_custom_config">Interface and gestures (incl. module sorting)</string>
+    <string name="theme_opt_interface_mode">Interface mode (Miuix / Material)</string>
+    <string name="theme_opt_interface_switches">Interface switches (blur, floating bar, glass, badge)</string>
+    <string name="theme_opt_interaction">Interaction (predictive back, swipe dismiss, pager gesture, page scale)</string>
+    <string name="theme_opt_module_display">Module display (sorting and description lines)</string>
     <string name="theme_opt_other">Other</string>
     <string name="settings_custom_texts">Interface texts</string>
     <string name="settings_custom_texts_summary">Customize home content and page titles</string>
@@ -1309,6 +1312,7 @@
     <string name="theme_export_failed">Failed to export the theme package</string>
     <string name="theme_import_success">Theme package imported</string>
     <string name="theme_import_failed">Invalid theme package</string>
+    <string name="theme_import_failed_restored">Theme import failed. Your previous appearance was restored.</string>
     <string name="theme_reset_done">Default appearance restored</string>
     <string name="settings_clear">Clear</string>
     <string name="version_spoof_warning">Warning: these are real kernel API response overrides, not cosmetic labels. Changing UAPI or version values can break Manager compatibility checks, installation and updates. Reset remains available through ksud.</string>

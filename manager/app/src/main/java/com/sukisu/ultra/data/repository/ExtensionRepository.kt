@@ -27,7 +27,7 @@ interface ExtensionRepository {
      */
     suspend fun probeAll(): List<ExtensionState>
 
-    /** Toggle a sticky extension through `ksud extension set`. */
+    
     suspend fun setEnabled(extensionId: Int, enabled: Boolean): Result<Unit>
 }
 

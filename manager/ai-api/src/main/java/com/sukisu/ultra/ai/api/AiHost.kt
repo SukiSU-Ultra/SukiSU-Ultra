@@ -15,22 +15,22 @@ import java.io.File
 interface AiHost {
     val context: Context
 
-    /** True while a custom background image is shown; the library adapts its surfaces. */
+    
     fun isBackgroundImageActive(): Boolean
 
-    /** Card opacity (0..1) used for background-image-aware surfaces. */
+    
     fun cardBackgroundAlpha(): Float
 
-    /** Launcher icon drawables used for the assistant avatar, if available. */
+    
     fun avatarDrawables(): AiAvatarDrawables?
 
-    /** Whether the host currently shows the AI home entry. */
+    
     fun showAiHomeCard(): Boolean
 
-    /** Notify when [showAiHomeCard] changes. */
+    
     fun registerShowAiHomeCardListener(listener: () -> Unit): AutoCloseable
 
-    /** Run a user-confirmed shell block with the host's root shell. */
+    
     suspend fun executeRootShell(command: String): AiShellOutput
 
     val environment: AiEnvironmentService
@@ -53,7 +53,7 @@ data class AiShellOutput(
     val timedOut: Boolean = false,
 )
 
-/** Opaque host-defined navigation destination (for example, an app route). */
+
 interface AiNavigationTarget
 
 data class AiOpenPageResult(
@@ -77,7 +77,7 @@ data class GithubModuleAsset(
     val sha256: String?,
 )
 
-/** Capability scopes copied from the library's [AiConfig] for environment probes. */
+
 data class AiEnvironmentScopes(
     val root: Boolean,
     val superuser: Boolean,
@@ -95,7 +95,7 @@ interface AiEnvironmentService {
     suspend fun snapshot(scopes: AiEnvironmentScopes, force: Boolean = false): String
 }
 
-/** Appearance read/write surface exposed to the assistant's theme tools. */
+
 interface AiThemeService {
     suspend fun read(): String
     fun optionsJson(): String
@@ -110,7 +110,7 @@ interface AiThemeService {
     suspend fun shareThemePackage(): String
 }
 
-/** Extension/KPM/SuSFS/umount/dynamic-manager operations exposed to tools. */
+
 interface AiExtensionsService {
     suspend fun readOverview(): String
     suspend fun capabilities(): String
@@ -158,7 +158,7 @@ interface AiExtensionsService {
     ): String
 }
 
-/** Superuser read/write surface exposed to tools. */
+
 interface AiSuperuserService {
     suspend fun capabilities(): String
     suspend fun readApps(limit: Int = 50, includeDenied: Boolean = false): String
@@ -175,7 +175,7 @@ interface AiSuperuserService {
     suspend fun setGlobalSu(mode: String): String
 }
 
-/** Installed-module and registry operations exposed to tools. */
+
 interface AiModuleService {
     suspend fun installedModules(limit: Int = 80): String
     fun moduleCapabilities(): String
@@ -184,7 +184,7 @@ interface AiModuleService {
     suspend fun installGithubAsset(asset: GithubModuleAsset, onProgress: (String) -> Unit = {}): String
 }
 
-/** Manager page catalogue and deep-link resolution. */
+
 interface AiFeatureService {
     suspend fun entriesJson(rootProbeAllowed: Boolean = true, extensionReadAllowed: Boolean = true): String
     suspend fun openPage(

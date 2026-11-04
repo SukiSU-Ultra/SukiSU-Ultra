@@ -175,7 +175,7 @@ private fun ScriptInfo(state: ScriptRunUiState, prepared: PreparedScript, action
     if (state.offerInstall) InstallAnywayCard(actions)
 }
 
-/** A local ZIP can still be installed as a module, also when it cannot be run as a script. */
+
 @Composable
 private fun InstallAnywayCard(actions: ScriptRunActions) {
     TonalCard(modifier = Modifier

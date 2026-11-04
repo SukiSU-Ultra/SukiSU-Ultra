@@ -39,12 +39,12 @@ internal const val KEY_ADAPTIVE_THEME = "adaptive_theme"
 internal const val KEY_ADAPTIVE_APPLIED_MODE = "adaptive_applied_mode"
 internal const val KEY_ADAPTIVE_DRAFT = "adaptive_theme_draft"
 
-/** Prefer soft reboot: always in jailbreak mode, or when the setting is enabled. */
+
 fun isSoftRebootPreferred(): Boolean =
     Natives.isLateLoadMode || ksuApp.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE)
         .getBoolean(KEY_USE_SOFT_REBOOT, false)
 
-/** Delete module ZIPs downloaded by the manager once they have been installed successfully. */
+
 fun isAutoDeleteModuleZipEnabled(): Boolean =
     ksuApp.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE)
         .getBoolean(KEY_AUTO_DELETE_MODULE_ZIP, false)

@@ -51,7 +51,7 @@ enum class ExtensionId(val id: Int, val wireName: String) {
         get() = this == DynamicManager
 }
 
-/** [legacyHasStickyBit] by wire name, for states whose id has no enum entry. */
+
 fun legacyExtensionHasStickyBit(wireName: String): Boolean =
     ExtensionId.fromWireName(wireName)?.legacyHasStickyBit == true
 

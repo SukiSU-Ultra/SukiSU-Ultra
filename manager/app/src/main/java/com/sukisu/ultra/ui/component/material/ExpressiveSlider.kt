@@ -34,20 +34,20 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
-/** Track thickness from the M3 Expressive slider spec. */
+
 private val TrackHeight = 16.dp
 
-/** Rounded handle size from the M3 Expressive slider spec. */
+
 private val HandleWidth = 4.dp
 private val HandleHeight = 44.dp
 
-/** Space between the handle and the split track segments. */
+
 private val HandleGap = 6.dp
 
-/** Corner radius of the track ends that face the handle. */
+
 private val TrackInsideCorner = 2.dp
 
-/** Diameter of the stop indicator dot at the trailing end of the track. */
+
 private val StopIndicatorSize = 4.dp
 
 private const val DisabledAlpha = 0.38f

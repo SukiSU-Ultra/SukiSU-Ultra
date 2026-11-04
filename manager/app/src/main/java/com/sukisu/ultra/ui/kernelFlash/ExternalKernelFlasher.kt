@@ -14,7 +14,7 @@ import com.sukisu.ultra.ui.util.isAbDevice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** External files use the same slot/KPM dialogs, without entering the install screen. */
+
 @Composable
 fun rememberExternalKernelFlasher(): suspend (Uri) -> Unit {
     val navigator = LocalNavigator.current

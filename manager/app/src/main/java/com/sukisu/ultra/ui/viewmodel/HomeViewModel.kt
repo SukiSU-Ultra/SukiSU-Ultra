@@ -77,7 +77,7 @@ class HomeViewModel(
         }
     }
 
-    /** The stored card image only applies while its file still exists. */
+    
     private fun existingHomeCardImage(): String =
         settingsRepo.homeCardImagePath.takeIf { it.isNotEmpty() && File(it).isFile } ?: ""
 

@@ -1631,7 +1631,7 @@ private fun ColorButtonMaterial(
     }
 }
 
-/** Item index of an appearance section; conditional items shift later indices. */
+
 private fun appearanceSectionIndex(section: String?): Int? {
     val id = section?.trim()?.lowercase()?.replace('-', '_') ?: return null
     val hasPredictive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE

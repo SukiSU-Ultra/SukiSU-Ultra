@@ -5,7 +5,7 @@ import com.sukisu.ultra.data.model.RepoModuleList
 import com.sukisu.ultra.data.registry.UpdateVerification
 
 interface ModuleRepoRepository {
-    /** Index + module list; falls back to the last complete cached copy on failure. */
+    
     suspend fun fetchModules(): Result<RepoModuleList>
 
     /**
@@ -14,7 +14,7 @@ interface ModuleRepoRepository {
      */
     suspend fun fetchDetail(moduleId: String): Result<RepoModuleDetail>
 
-    /** Sanitized changelog HTML of a release (by tag, or the stable release), or null. */
+    
     suspend fun fetchChangelogHtml(moduleId: String, tag: String?): String?
 
     /**
@@ -23,9 +23,9 @@ interface ModuleRepoRepository {
      */
     suspend fun resolveUpdate(moduleId: String, updateJsonUrl: String, zipUrl: String, versionCode: Long): UpdateVerification
 
-    /** Raw Markdown of a registry-hosted document (e.g. `changelog.md`), or null if not registry-hosted. */
+    
     suspend fun fetchRegistryText(url: String): String?
 
-    /** Whether [url] is served by the registry site (its content must use the restricted renderer). */
+    
     fun isRegistryUrl(url: String): Boolean
 }

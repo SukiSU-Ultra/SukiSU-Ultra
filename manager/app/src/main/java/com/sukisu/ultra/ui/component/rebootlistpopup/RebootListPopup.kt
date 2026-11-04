@@ -39,7 +39,7 @@ fun getRebootListOption(): List<RebootListOption> {
     }
 }
 
-/** Reboots on selection, but confirms first in jailbreak mode where a plain reboot drops root. */
+
 @Composable
 fun rememberRebootAction(): (String) -> Unit {
     val title = stringResource(R.string.reboot)

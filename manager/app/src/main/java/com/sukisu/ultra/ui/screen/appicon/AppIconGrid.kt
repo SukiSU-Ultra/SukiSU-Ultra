@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 
 internal const val APP_ICON_GRID_COLUMNS = 4
 
-/** Lays icon tiles out in fixed rows so the grid can scroll inside a LazyColumn. */
+
 @Composable
 internal fun <T> AppIconGrid(
     items: List<T>,

@@ -163,7 +163,7 @@ fun ModuleRepoDetailScreen(module: RepoModuleArg) {
     }
 }
 
-/** UI state of downloading one release ZIP. */
+
 @Stable
 class ReleaseDownloadHandle(private val sha256: String, downloadedUri: Uri?) {
     var isDownloading by mutableStateOf(false)
@@ -232,7 +232,7 @@ fun formatFileSize(size: Long): String = when {
     else -> "$size B"
 }
 
-/** "abcdef12…34567890" for compact display; the full hash is still selectable in the info text. */
+
 fun shortHash(hash: String, head: Int = 12, tail: Int = 8): String =
     if (hash.length <= head + tail + 1) hash else hash.take(head) + "…" + hash.takeLast(tail)
 
@@ -265,7 +265,7 @@ private fun loadRegistryIcon(url: String): ImageBitmap? {
     }.getOrNull()?.also { iconCache.put(url, it) }
 }
 
-/** Module icon from the registry (raster formats only); renders nothing until/unless it loads. */
+
 @Composable
 fun RepoModuleIcon(url: String?, modifier: Modifier = Modifier, size: Dp = 24.dp) {
     if (url == null) return

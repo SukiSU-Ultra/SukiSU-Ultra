@@ -70,7 +70,7 @@ internal fun kernelModulesParamsSourceLabel(source: KernelModulesParamsSource): 
     KernelModulesParamsSource.None -> R.string.kernel_modules_params_source_none
 }
 
-/** Explains which source could not be read, or null when both answered. */
+
 @Composable
 internal fun kernelModulesSourceNotice(snapshot: KernelModulesSnapshot): String? = when {
     !snapshot.activeAvailable && !snapshot.configAvailable ->

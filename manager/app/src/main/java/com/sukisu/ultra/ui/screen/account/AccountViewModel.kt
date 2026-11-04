@@ -82,7 +82,7 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(error = null, message = null) }
     }
 
-    /** Switch the account page to another mirror source without touching other source sessions. */
+    
     fun selectSource(baseUrl: String) {
         val source = _uiState.value.sources.firstOrNull { it.baseUrl == baseUrl } ?: return
         _uiState.update {
@@ -91,7 +91,7 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
         refreshSelectedProfile()
     }
 
-    /** Remember the selected source for future uploads; the default source is stored as blank. */
+    
     fun setDefaultUploadSource(baseUrl: String) {
         val sources = _uiState.value.sources
         val normalized = ThemeStoreRepository.normalizeBaseUrl(baseUrl) ?: return

@@ -181,7 +181,7 @@ object SuSFSCommands {
     }
 }
 
-/** Empty fields mean unavailable, never a value that can be applied as a spoof. */
+
 internal fun parseSlotKernelBanner(slot: String, output: String): SlotInfo {
     // Scan all matches: boot images can contain format strings before the real banner.
     val banner = Regex("Linux version ([0-9]+\\.[0-9]+[^\\s]*)[^\\r\\n]*")

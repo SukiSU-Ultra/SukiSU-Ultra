@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-/** All root I/O stays off the main thread. A failed read never hides a warning. */
+
 object VersionSpoofRepository {
     fun quote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
 

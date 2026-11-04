@@ -44,7 +44,7 @@ private fun loadAvatar(context: Context, login: String): ImageBitmap? = runCatch
 }.onFailure { Log.w(TAG, "load avatar failed: $login", it) }
     .getOrNull()?.also { avatarCache.put(login, it) }
 
-/** Main contributors bundled with the app, most recently active first. */
+
 @Composable
 fun rememberContributors(): List<Contributor> {
     val context = LocalContext.current

@@ -13,7 +13,7 @@ import com.sukisu.ultra.data.registry.ModuleNotInIndexException
 import com.sukisu.ultra.data.repository.ModuleRepoRepository
 import com.sukisu.ultra.data.repository.ModuleRepoRepositoryImpl
 
-/** Loads the registry detail (and README) of one module for the detail screen. */
+
 class ModuleRepoDetailViewModel(
     private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
 ) : ViewModel() {
@@ -22,7 +22,7 @@ class ModuleRepoDetailViewModel(
         val moduleId: String? = null,
         val detail: RepoModuleDetail? = null,
         val loaded: Boolean = false,
-        /** Not in the current index (e.g. suspended): never offer installation. */
+        
         val notInIndex: Boolean = false,
         val loadFailed: Boolean = false,
     )
@@ -32,7 +32,7 @@ class ModuleRepoDetailViewModel(
 
     private var job: Job? = null
 
-    /** Loads [moduleId] unless it is already loaded; [force] reloads (retry). */
+    
     fun load(moduleId: String, force: Boolean = false) {
         val current = _state.value
         if (!force && current.moduleId == moduleId && (current.loaded || job?.isActive == true)) return

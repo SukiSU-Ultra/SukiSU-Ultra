@@ -12,7 +12,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 
-/** Read-only superuser and installed-module detail for feature questions. */
+
 object AiManagerData {
 
     private val aiModuleActions = listOf(
@@ -24,7 +24,7 @@ object AiManagerData {
         "run_action", "open_webui", "check_update",
     )
 
-    /** Explicit declaration of what the assistant may and may not do with modules. */
+    
     fun moduleCapabilities(): String = buildJsonObject {
         put("ai_actions", buildJsonArray { aiModuleActions.forEach { add(it) } })
         put("manual_ui_actions", buildJsonArray { manualModuleActions.forEach { add(it) } })

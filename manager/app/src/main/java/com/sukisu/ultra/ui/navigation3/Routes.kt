@@ -49,12 +49,12 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object Sulog : Route
 
-    /** Material theme editor; [section] optionally scrolls to a named area. */
+    
     @Parcelize
     @Serializable
     data class ColorPalette(
         val section: String? = null,
-        /** Package opened from another app; consumed once by the appearance screen. */
+        
         val importUri: String? = null,
     ) : Route
 
@@ -62,37 +62,37 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object CustomTexts : Route
 
-    /** Online theme catalog served by the theme mirror. */
+    
     @Parcelize
     @Serializable
     data object ThemeStore : Route
 
-    /** Opens the store directly on the submission form with the saved adaptive theme preselected. */
+    
     @Parcelize
     @Serializable
     data object ThemeStoreAdaptiveUpload : Route
 
-    /** Full-page theme source configuration: default source, extra sources and endpoints. */
+    
     @Parcelize
     @Serializable
     data object ThemeStoreSources : Route
 
-    /** Theme store account: user login, registration and author identity status. */
+    
     @Parcelize
     @Serializable
     data class ThemeAccount(val tab: String? = null) : Route
 
-    /** In-app builder that captures a light and a dark appearance into one adaptive package. */
+    
     @Parcelize
     @Serializable
     data object AdaptiveThemeBuilder : Route
 
-    /** Launcher icon picker and icon pack manager. */
+    
     @Parcelize
     @Serializable
     data object AppIcon : Route
 
-    /** In-app background cropper. [sourcePath] is a private cache copy of the picked image. */
+    
     @Parcelize
     @Serializable
     data class BackgroundCrop(val sourcePath: String) : Route
@@ -144,7 +144,7 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object Kpm: Route
 
-    /** SuSFS configuration; [tab] optionally opens a specific tab. */
+    
     @Parcelize
     @Serializable
     data class SuSFS(val tab: String? = null): Route
@@ -157,7 +157,7 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object UmountManager: Route
 
-    /** Kernel module blacklist (block_modules=) overview. */
+    
     @Parcelize
     @Serializable
     data object KernelModules : Route
@@ -166,27 +166,27 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object DynamicManagers : Route
 
-    /** Extension subsystem overview (KPM, CPU spoof, umount paths, dynamic manager). */
+    
     @Parcelize
     @Serializable
     data object Extensions : Route
 
-    /** CPU identity spoofing detail form. */
+    
     @Parcelize
     @Serializable
     data object CpuSpoof : Route
 
-    /** KernelSU reported-version overrides detail page. */
+    
     @Parcelize
     @Serializable
     data object VersionSpoof : Route
 
-    /** Local-model assistant: chat plus scoped theme/extension/module tools. */
+    
     @Parcelize
     @Serializable
     data object AiAssistant : Route
 
-    /** Full-page assistant configuration (connection, scopes, thinking, behaviour). */
+    
     @Parcelize
     @Serializable
     data object AiSettings : Route

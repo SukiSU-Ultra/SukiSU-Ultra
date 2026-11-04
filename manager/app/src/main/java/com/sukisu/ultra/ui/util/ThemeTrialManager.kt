@@ -38,7 +38,7 @@ object ThemeTrialManager {
         }
     }
 
-    /** True when the trial belongs to an earlier process or a different activity task. */
+    
     fun shouldRestore(context: Context, taskId: Int? = null): Boolean {
         val prefs = prefs(context)
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return false
@@ -47,7 +47,7 @@ object ThemeTrialManager {
         return taskId != null && storedTask != NO_TASK && storedTask != taskId
     }
 
-    /** Returns the backup to restore, clearing stale markers whose file disappeared. */
+    
     fun activeBackup(context: Context): File? {
         val prefs = prefs(context)
         if (!prefs.getBoolean(KEY_ACTIVE, false)) return null
@@ -64,7 +64,7 @@ object ThemeTrialManager {
         trialDir(context).deleteRecursively()
     }
 
-    /** Removes a leftover backup directory when no trial marker is active. */
+    
     fun cleanupOrphan(context: Context) {
         if (!isActive(context)) {
             trialDir(context).deleteRecursively()

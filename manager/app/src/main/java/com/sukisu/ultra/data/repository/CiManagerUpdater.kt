@@ -23,7 +23,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.ZipFile
 
-/** Shared in-app release/CI installer. Keeps a verified APK in public Downloads before installing. */
+
 class CiManagerUpdater(private val context: Context) {
     fun updateAndInstall(update: LatestVersionInfo): Boolean {
         if (!update.downloadUrl.startsWith(RELEASE_ASSET_PREFIX)) {

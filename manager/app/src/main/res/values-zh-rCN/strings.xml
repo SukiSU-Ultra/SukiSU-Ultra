@@ -809,7 +809,10 @@
     <string name="theme_opt_home_card_display">状态卡显示选项</string>
     <string name="theme_opt_app_icon">应用图标</string>
     <string name="theme_opt_custom_texts">自定义文字</string>
-    <string name="theme_opt_custom_config">界面与手势（含模块排序）</string>
+    <string name="theme_opt_interface_mode">界面模式（Miuix / 材质）</string>
+    <string name="theme_opt_interface_switches">界面开关（模糊、悬浮底栏、玻璃、导航角标）</string>
+    <string name="theme_opt_interaction">交互行为（预测性返回、划动关闭、分页手势、页面缩放）</string>
+    <string name="theme_opt_module_display">模块显示（排序与描述最大行数）</string>
     <string name="theme_opt_other">其他</string>
     <string name="settings_custom_texts">界面文本自定义</string>
     <string name="settings_custom_texts_summary">自定义主页展示文案与各页面标题抬头</string>
@@ -1300,6 +1303,7 @@
     <string name="theme_export_failed">导出主题包失败</string>
     <string name="theme_import_success">已导入主题包</string>
     <string name="theme_import_failed">无效的主题包</string>
+    <string name="theme_import_failed_restored">主题导入失败，已恢复应用前的外观</string>
     <string name="theme_reset_done">已恢复默认外观</string>
     <string name="settings_clear">清除</string>
     <string name="version_spoof_warning">注意：这些设置会改变内核实际返回的 SukiSU 版本信息，不只是修改界面显示。版本号或 UAPI 与编译值不一致可能导致 Manager 错误判断兼容性，并影响安装和更新。可随时恢复内核编译值。</string>

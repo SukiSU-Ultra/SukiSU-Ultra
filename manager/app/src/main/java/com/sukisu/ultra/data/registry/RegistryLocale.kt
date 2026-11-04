@@ -6,11 +6,11 @@ package com.sukisu.ultra.data.registry
  */
 object RegistryLocale {
 
-    /** UI locales of the public site (https://modules.kernelsu.org/{locale}/modules/{id}/). */
+    
     const val SITE_LOCALE_EN = "en"
     const val SITE_LOCALE_ZH_CN = "zh-CN"
 
-    /** Script implied by a Chinese region (CLDR likely subtags). */
+    
     private val chineseRegionScripts = mapOf(
         "CN" to "Hans", "SG" to "Hans", "MY" to "Hans",
         "TW" to "Hant", "HK" to "Hant", "MO" to "Hant",

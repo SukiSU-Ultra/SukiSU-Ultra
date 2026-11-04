@@ -44,7 +44,7 @@ internal fun themeStoreCardBorderColor(): Color {
     }
 }
 
-/** Same filled treatment as the top-bar back button so action icons stay readable on wallpapers. */
+
 @Composable
 internal fun themeStoreTopBarIconColors(): IconButtonColors =
     IconButtonDefaults.iconButtonColors(

@@ -185,7 +185,7 @@ private fun ScriptInfoMiuix(state: ScriptRunUiState, prepared: PreparedScript, a
     if (state.offerInstall) InstallAnywayCardMiuix(actions)
 }
 
-/** A local ZIP can still be installed as a module, also when it cannot be run as a script. */
+
 @Composable
 private fun InstallAnywayCardMiuix(actions: ScriptRunActions) {
     AppCard(

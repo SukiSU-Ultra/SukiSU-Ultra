@@ -16,7 +16,7 @@ enum class CustomTextGroup(@StringRes val titleRes: Int) {
     SETTINGS(R.string.custom_text_group_settings),
 }
 
-/** A value the app fills into a custom text template at runtime. */
+
 enum class CustomTextArg(@StringRes val labelRes: Int) {
     VERSION_CODE(R.string.custom_text_arg_version_code),
 }
@@ -131,7 +131,7 @@ enum class CustomTextKey(
     }
 }
 
-/** Groups that currently have at least one customized text. */
+
 fun customTextGroupsIn(
     customTexts: Map<String, String>,
     customHomeTitle: String = "",
@@ -142,7 +142,7 @@ fun customTextGroupsIn(
     if (customHomeTitle.isNotBlank()) add(CustomTextGroup.HOME)
 }
 
-/** Keeps only the entries that belong to [groups]. */
+
 fun customTextsInGroups(
     customTexts: Map<String, String>,
     groups: Set<CustomTextGroup>,
@@ -188,7 +188,7 @@ fun CustomTextKey.splitTemplate(template: String): List<String> {
     return parts
 }
 
-/** Joins the editable pieces back into a template with canonical `%s` placeholders. */
+
 fun CustomTextKey.joinTemplate(parts: List<String>): String {
     if (formatArgs.isEmpty()) return parts.firstOrNull().orEmpty()
     if (parts.size != formatArgs.size + 1) return parts.joinToString("")

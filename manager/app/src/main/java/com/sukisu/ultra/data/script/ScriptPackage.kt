@@ -15,10 +15,10 @@ import java.util.zip.ZipInputStream
 
 class ScriptPackageException(val reason: Reason, message: String, cause: Throwable? = null) : IOException(message, cause) {
     enum class Reason {
-        /** Not a readable ZIP (or an unsupported compression / encryption). */
+        
         CORRUPT,
 
-        /** Absolute path, `..`, symlink, special file or duplicate entry. */
+        
         UNSAFE_ENTRY,
         TOO_LARGE,
         MISSING_MODULE_PROP,
@@ -30,7 +30,7 @@ class ScriptPackageException(val reason: Reason, message: String, cause: Throwab
     }
 }
 
-/** module.prop of a one-shot script. */
+
 data class ScriptManifest(
     val id: String,
     val name: String,
@@ -52,7 +52,7 @@ object ScriptPackage {
 
     const val MAX_TOTAL_BYTES = 64L * 1024 * 1024
 
-    /** Cap on the ZIP itself (contents + headers) for sources that are not size-verified. */
+    
     const val MAX_ZIP_BYTES = MAX_TOTAL_BYTES + 16L * 1024 * 1024
     const val MAX_ENTRIES = 4096
     const val MAX_PROP_BYTES = 64 * 1024
@@ -64,7 +64,7 @@ object ScriptPackage {
     private const val S_IFDIR = 0x4000
     private const val S_IXUSR = 0x40
 
-    /** Same rule as ksud's `metamodule`: trimmed value is "1" or ASCII case-insensitive "true". */
+    
     fun isOneshot(value: String?): Boolean {
         val v = value?.trim() ?: return false
         return v == "1" || v.equals("true", ignoreCase = true)
@@ -108,7 +108,7 @@ object ScriptPackage {
         return segments.joinToString("/")
     }
 
-    /** [input] capped at [limit] bytes: reading more fails with [ScriptPackageException.Reason.TOO_LARGE]. */
+    
     fun bounded(input: InputStream, limit: Long): InputStream = object : FilterInputStream(input) {
         private var count = 0L
 
@@ -179,7 +179,7 @@ object ScriptPackage {
 
     private fun isDirectory(entry: ZipArchiveEntry): Boolean = entry.name.endsWith("/")
 
-    /** Checks every entry of the central directory; returns the entries by normalized path. */
+    
     private fun checkEntries(file: ZipFile): Map<String, ZipArchiveEntry> {
         val byName = LinkedHashMap<String, ZipArchiveEntry>()
         var declared = 0L

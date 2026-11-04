@@ -32,7 +32,7 @@ sealed interface ManagerAiTarget : AiNavigationTarget {
         val destination: BottomBarDestination,
         val section: String? = null,
     ) : ManagerAiTarget {
-        /** Concrete page index used by the main pager. */
+        
         val pageIndex: Int get() = destination.ordinal
     }
 
@@ -62,7 +62,7 @@ data class AiFeatureEntry(
     val reason: String = "",
     val solution: String = "",
     val target: AiNavigationTarget? = null,
-    /** Call arguments required by open_app_page, e.g. package_name/uid/module_id. */
+    
     val requires: List<String> = emptyList(),
 )
 

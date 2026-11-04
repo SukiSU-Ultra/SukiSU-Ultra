@@ -5,12 +5,12 @@ import java.net.URLDecoder
 
 object RegistryUrls {
 
-    /** Site root of KernelSU Modules. All API paths are resolved against it. */
+    
     const val DEFAULT_BASE_URL = "https://modules.kernelsu.org/"
 
     const val INDEX_PATH = "api/v1/index.json"
 
-    /** Hosts a release download may be served from (github.com redirects to these). */
+    
     val DOWNLOAD_HOSTS: Set<String> = setOf(
         "github.com",
         "objects.githubusercontent.com",
@@ -20,7 +20,7 @@ object RegistryUrls {
     private val API_PATH = Regex("^[A-Za-z0-9._\\-/]+$")
     private val REPO_PART = Regex("^[A-Za-z0-9._-]+$")
 
-    /** Ensures an https base URL ending with '/'. */
+    
     fun normalizeBaseUrl(baseUrl: String): String {
         val trimmed = baseUrl.trim()
         val uri = runCatching { URI(trimmed) }.getOrNull()
@@ -30,11 +30,11 @@ object RegistryUrls {
         return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
     }
 
-    /** Same rule as `ApiPath` in api.ts: relative, no "..", restricted charset. */
+    
     fun isValidApiPath(path: String): Boolean =
         path.isNotEmpty() && API_PATH.matches(path) && !path.startsWith("/") && !path.contains("..")
 
-    /** Resolves a document path against the site root. Throws on unsafe paths. */
+    
     fun resolve(baseUrl: String, path: String): String {
         if (!isValidApiPath(path)) throw RegistryFormatException("Invalid path in registry document: $path")
         return normalizeBaseUrl(baseUrl) + path
@@ -42,7 +42,7 @@ object RegistryUrls {
 
     fun hostOf(url: String): String? = runCatching { URI(url).host?.lowercase() }.getOrNull()
 
-    /** An absolute https URL with an ASCII host and no user info (safe to hand to a browser). */
+    
     fun isHttpsUrl(url: String): Boolean {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
         return uri.isAbsolute && !uri.isOpaque &&
@@ -50,7 +50,7 @@ object RegistryUrls {
             !uri.host.isNullOrEmpty() && uri.rawUserInfo == null
     }
 
-    /** An absolute http(s) URL with a host and no user info (homepage / support links). */
+    
     fun isWebUrl(url: String): Boolean {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
         return uri.isAbsolute && !uri.isOpaque &&
@@ -58,14 +58,14 @@ object RegistryUrls {
             !uri.host.isNullOrEmpty() && uri.rawUserInfo == null
     }
 
-    /** A link to a `#fragment` of the document that was loaded with [documentUrl] as its URL. */
+    
     fun isInPageAnchor(url: String, documentUrl: String): Boolean {
         val hash = url.indexOf('#')
         if (hash <= 0 || hash == url.length - 1) return false
         return url.substring(0, hash) == documentUrl
     }
 
-    /** Port with the scheme default filled in, or -1 for unknown schemes. */
+    
     fun effectivePort(uri: URI): Int = when {
         uri.port != -1 -> uri.port
         uri.scheme.equals("https", ignoreCase = true) -> 443
@@ -104,7 +104,7 @@ object RegistryUrls {
     private fun decodeSegment(s: String): String? =
         runCatching { URLDecoder.decode(s.replace("+", "%2B"), "UTF-8") }.getOrNull()
 
-    /** Only `https://github.com/<owner>/<repo>/releases/download/<tag>/<file>` is accepted. */
+    
     fun isAllowedReleaseDownloadUrl(url: String): Boolean {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
         if (!uri.isAbsolute || uri.isOpaque) return false
@@ -129,7 +129,7 @@ object RegistryUrls {
         return true
     }
 
-    /** Checks one hop of a download (the initial request or any redirect target). */
+    
     fun isAllowedDownloadHop(url: String): Boolean {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
         if (!uri.scheme.equals("https", ignoreCase = true)) return false

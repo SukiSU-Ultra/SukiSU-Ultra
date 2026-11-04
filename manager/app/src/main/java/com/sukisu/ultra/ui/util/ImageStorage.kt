@@ -46,10 +46,10 @@ object ImageStorage {
 
     private val systemWallpaperMutex = Mutex()
 
-    /** Result of copying the launcher wallpaper into the app's private storage. */
+    
     data class SystemWallpaperResult(
         val path: String?,
-        /** True when the cached file was written, false when it was already current. */
+        
         val changed: Boolean,
     )
 
@@ -61,7 +61,7 @@ object ImageStorage {
     const val BACKGROUND_BLUR_PERCENT_MAX = 100
     const val DEFAULT_BACKGROUND_BLUR_PERCENT = 50
 
-    /** Blur radius applied to the background image at 100%. */
+    
     const val BACKGROUND_BLUR_MAX_RADIUS_DP = 40f
 
     /**
@@ -75,7 +75,7 @@ object ImageStorage {
             DEFAULT_BACKGROUND_BLUR_PERCENT
         }
 
-    /** Scrim opacity: negative values darken with black, positive values brighten with white. */
+    
     const val BACKGROUND_SCRIM_MIN = -100
     const val BACKGROUND_SCRIM_MAX = 100
     const val DEFAULT_BACKGROUND_SCRIM = -35
@@ -87,7 +87,7 @@ object ImageStorage {
         }
     }
 
-    /** Cached copy of the launcher wallpaper, or a non-existent file when it has not been captured. */
+    
     fun systemWallpaperFile(context: Context): File =
         File(backgroundsDir(context), SYSTEM_WALLPAPER_FILE_NAME)
 
@@ -140,7 +140,7 @@ object ImageStorage {
         }
     }
 
-    /** Copies a validated wallpaper into [dest], preserving the previous cache on failure. */
+    
     private fun writeSystemWallpaperWithRoot(source: String, dest: File): Boolean {
         val parent = dest.parentFile ?: return false
         val staging = runCatching {
@@ -203,7 +203,7 @@ object ImageStorage {
         }
     }
 
-    /** Streams shell output line by line to avoid building a wallpaper-sized Base64 string. */
+    
     private fun streamBase64Wallpaper(source: String, dest: File): Boolean {
         val output = runCatching { dest.outputStream() }.getOrNull() ?: return false
         val writeFailed = AtomicBoolean(false)
@@ -230,7 +230,7 @@ object ImageStorage {
         return commandSucceeded && closeSucceeded && !writeFailed.get()
     }
 
-    /** UserHandle.myUserId()/Context.getUserId() are hidden in the SDK; the uid encodes the user. */
+    
     private fun systemWallpaperUserId(): Int = Process.myUid() / 100000
 
     private fun resolveSystemWallpaperSource(userId: Int): String? {
@@ -275,7 +275,7 @@ object ImageStorage {
         return discoveredBest
     }
 
-    /** Returns (modifiedTimeSeconds, size) for an existing non-empty regular file. */
+    
     private fun wallpaperFileInfo(path: String): Pair<Long, Long>? = runCatching {
         val quoted = path.shellQuote()
         val out = ShellUtils.fastCmd(getRootShell(), "[ -f $quoted ] && stat -c '%Y:%s' $quoted").trim()
@@ -315,7 +315,7 @@ object ImageStorage {
         }.getOrNull()
     }
 
-    /** Copies an already stored image (for example the current background) into the crop cache. */
+    
     suspend fun stageFile(context: Context, source: File): String? = withContext(Dispatchers.IO) {
         runCatching {
             if (!source.isFile) return@runCatching null
@@ -327,7 +327,7 @@ object ImageStorage {
         }.getOrNull()
     }
 
-    /** Creates the destination the vendor gallery cropper should write its result to. */
+    
     fun newCropOutput(context: Context): File =
         File.createTempFile("crop_", ".jpg", cropCacheDir(context))
 
@@ -347,7 +347,7 @@ object ImageStorage {
         return dir
     }
 
-    /** Moves [source] over the stored background image and returns the new path. */
+    
     suspend fun replace(context: Context, source: File): String? = withContext(Dispatchers.IO) {
         runCatching {
             val targetFile = prepareFile(context)
@@ -472,7 +472,7 @@ object ImageStorage {
         }.getOrNull()
     }
 
-    /** Deletes one sticker file; files outside the app's image directory are ignored. */
+    
     suspend fun deleteHomeCardSticker(context: Context, path: String) = withContext(Dispatchers.IO) {
         val dir = backgroundsDir(context)
         File(path).takeIf { it.parentFile == dir }?.delete()
@@ -484,7 +484,7 @@ object ImageStorage {
             ?.forEach { it.delete() }
     }
 
-    /** Moves an imported sticker into app storage without touching the other sticker slots. */
+    
     suspend fun importHomeCardSticker(context: Context, source: File): String? = withContext(Dispatchers.IO) {
         runCatching {
             val dir = backgroundsDir(context)
@@ -502,7 +502,7 @@ object ImageStorage {
         }.getOrNull()
     }
 
-    /** Moves [source] over the home status card image slot and returns the new path. */
+    
     suspend fun replaceHomeCardImage(context: Context, source: File): String? = withContext(Dispatchers.IO) {
         runCatching {
             val dir = backgroundsDir(context)
@@ -579,7 +579,7 @@ object ImageStorage {
         if (file.isFile) file.delete()
     }
 
-    /** Adaptive card image keeps a timestamped name per mode so Coil never reuses the old bitmap. */
+    
     suspend fun replaceAdaptiveHomeCardImage(
         context: Context,
         source: File,
@@ -616,7 +616,7 @@ object ImageStorage {
             ?.forEach { it.delete() }
     }
 
-    /** Moves one adaptive sticker into its light or dark slot. */
+    
     suspend fun importAdaptiveHomeCardSticker(
         context: Context,
         source: File,
@@ -655,7 +655,7 @@ object ImageStorage {
             ?.forEach { it.delete() }
     }
 
-    /** Removes every adaptive image slot, including builder drafts. */
+    
     suspend fun clearAdaptiveImages(context: Context) = withContext(Dispatchers.IO) {
         val dir = backgroundsDir(context)
         dir.listFiles { file ->
@@ -718,7 +718,7 @@ object ImageStorage {
         }
     }
 
-    /** Default file name for the quick image export, based on which images are present. */
+    
     fun exportImagesFileName(
         hasBackground: Boolean,
         hasCardBackground: Boolean,
