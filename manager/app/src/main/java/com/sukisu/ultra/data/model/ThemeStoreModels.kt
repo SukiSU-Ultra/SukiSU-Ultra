@@ -74,6 +74,11 @@ data class ThemeStoreUploadInitRequest(
     val filename: String,
     val size: Long,
     val fingerprint: String = "",
+    /**
+     * Preferred chunk size. Older mirrors ignore unknown fields and return their own
+     * value; the manager always uploads using the size echoed by the server.
+     */
+    val chunkSize: Long? = null,
 )
 
 /** Response from the mirror's `/health` endpoint. */

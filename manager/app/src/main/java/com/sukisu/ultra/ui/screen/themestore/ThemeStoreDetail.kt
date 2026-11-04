@@ -1,7 +1,12 @@
 package com.sukisu.ultra.ui.screen.themestore
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -36,6 +41,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Person
@@ -362,22 +368,18 @@ internal fun ThemeStoreDetailScreen(
                             isError = true,
                         )
                     }
-                    if (downloading) {
-                        Spacer(Modifier.height(12.dp))
-                        LinearWavyProgressIndicator(
-                            progress = { state.downloadProgress.coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        MaterialText(
-                            text = stringResource(
-                                R.string.theme_store_downloading,
-                                (state.downloadProgress * 100).roundToInt(),
-                            ),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                }
+            }
+            item(key = "download_progress") {
+                AnimatedVisibility(
+                    visible = downloading,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    ThemeStoreDownloadProgressCard(
+                        state = state,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp),
+                    )
                 }
             }
             item(key = "integrity") {
@@ -527,6 +529,58 @@ internal fun ThemeStoreDetailScreen(
                     onClearMentionSearch = onClearMentionSearch,
                 )
             }
+        }
+    }
+}
+
+/**
+ * MD3E progress block for an in-flight package download. It uses the same tonal section
+ * card, wavy indicator and speed chip as the rest of the theme store instead of a plain
+ * row of text, so the store detail page keeps one visual language.
+ */
+@Composable
+private fun ThemeStoreDownloadProgressCard(
+    state: ThemeStoreUiState,
+    modifier: Modifier = Modifier,
+) {
+    val progress = state.downloadProgress.coerceIn(0f, 1f)
+    ThemeStoreSectionCard(
+        title = stringResource(
+            R.string.theme_store_downloading,
+            (progress * 100).roundToInt(),
+        ),
+        subtitle = state.downloadTotalBytes.takeIf { it > 0L }?.let { total ->
+            stringResource(
+                R.string.theme_store_transfer_bytes,
+                formatTransferBytes(state.downloadTransferredBytes),
+                formatTransferBytes(total),
+            )
+        },
+        icon = Icons.Rounded.FileDownload,
+        modifier = modifier,
+    ) {
+        LinearWavyProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            state.downloadEtaSeconds?.let { eta ->
+                MaterialText(
+                    text = stringResource(
+                        R.string.theme_store_transfer_eta,
+                        formatTransferEta(eta),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f),
+                )
+            } ?: Spacer(Modifier.weight(1f))
+            ThemeStoreSpeedBadge(state.downloadSpeedBytesPerSecond)
         }
     }
 }

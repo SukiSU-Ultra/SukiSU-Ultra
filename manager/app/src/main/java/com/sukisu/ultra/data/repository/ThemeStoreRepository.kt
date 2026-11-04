@@ -10,6 +10,8 @@ import com.sukisu.ultra.data.model.ThemeStoreUploadSession
 import com.sukisu.ultra.ksuApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.CacheControl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -17,6 +19,7 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -31,8 +34,10 @@ import java.io.IOException
 import java.io.RandomAccessFile
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 data class ThemeCatalogLoad(
     val catalog: ThemeStoreCatalog,
@@ -87,6 +92,22 @@ data class ThemeStoreSubmission(
 
 class ThemeStoreUnauthorizedException : IOException("Theme store token rejected")
 
+/** The server ignored a ranged request; restart with the single-stream fallback. */
+private class RangeUnsupportedException : IOException("Server does not support ranged downloads")
+
+/**
+ * Resume marker for a partially downloaded package. [completed] lists the chunks that
+ * were fully written, so a retry only fetches the missing ranges instead of the whole
+ * package.
+ */
+@Serializable
+private data class ParallelDownloadMeta(
+    val sha256: String,
+    val size: Long,
+    val chunkSize: Long,
+    val completed: List<Long> = emptyList(),
+)
+
 private class ProgressRequestBody(
     private val delegate: RequestBody,
     private val onProgress: (Float, Long, Long) -> Unit,
@@ -139,6 +160,25 @@ class ThemeStoreRepository(
         /** Parallel resumable chunks: more in-flight requests on high-latency links. */
         private const val UPLOAD_WORKERS = 4
         private const val UPLOAD_RETRIES = 3
+        /**
+         * A 4 MB server chunk only fills the four workers for packages of 16 MB or more.
+         * Medium packages ask for 2 MB so a 7 MB theme can use four connections instead
+         * of two; old mirrors ignore the hint and keep their own chunk size.
+         */
+        private const val SMALL_UPLOAD_CHUNK_BYTES = 2L * 1024L * 1024L
+        private const val LARGE_UPLOAD_CHUNK_BYTES = 4L * 1024L * 1024L
+        private const val SMALL_UPLOAD_THRESHOLD_BYTES = 16L * 1024L * 1024L
+        /**
+         * Theme mirrors commonly throttle a single connection. Fetching several ranges
+         * at once keeps large packages from taking a minute on those hosts while
+         * remaining gentle enough for small mirrors.
+         */
+        private const val DOWNLOAD_WORKERS = 4
+        private const val DOWNLOAD_CHUNK_BYTES = 2L * 1024L * 1024L
+        private const val DOWNLOAD_RETRIES = 3
+        private const val MIN_PARALLEL_DOWNLOAD_BYTES = 1L * 1024L * 1024L
+        private const val DOWNLOAD_PROGRESS_INTERVAL_NANOS = 100_000_000L
+        private const val UPLOAD_PROGRESS_INTERVAL_NANOS = 100_000_000L
         private const val STREAM_BUFFER_SIZE = 128 * 1024
         /** Flush often enough for live progress without turning every 128 KB into a packet. */
         private const val STREAM_FLUSH_BYTES = 256 * 1024
@@ -150,6 +190,7 @@ class ThemeStoreRepository(
         private val ID_PATTERN = Regex("^[a-z0-9][a-z0-9-]{0,63}$")
         private val UPLOAD_ID_PATTERN = Regex("^[0-9a-fA-F]{8,64}$")
         private val CONTENT_RANGE_START = Regex("""bytes\s+(\d+)-""", RegexOption.IGNORE_CASE)
+        private val CONTENT_RANGE_TOTAL = Regex("""/(\d+)\s*$""", RegexOption.IGNORE_CASE)
         private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
         private val CHUNK_MEDIA = "application/octet-stream".toMediaType()
 
@@ -158,6 +199,16 @@ class ThemeStoreRepository(
                 ?.groupValues
                 ?.getOrNull(1)
                 ?.toLongOrNull()
+
+        internal fun parseContentRangeTotal(value: String?): Long? =
+            value?.let { CONTENT_RANGE_TOTAL.find(it) }
+                ?.groupValues
+                ?.getOrNull(1)
+                ?.toLongOrNull()
+
+        /** Bytes covered by chunk [index]; the last chunk may be shorter. */
+        internal fun chunkLength(totalSize: Long, chunkSize: Long, index: Long): Long =
+            (totalSize - index * chunkSize).coerceIn(0L, chunkSize)
 
         private val json = Json {
             ignoreUnknownKeys = true
@@ -202,6 +253,10 @@ class ThemeStoreRepository(
     private val downloadClient: OkHttpClient by lazy {
         client.newBuilder()
             .cache(null)
+            // Parallel chunks need separate connections. Under HTTP/2 OkHttp would
+            // multiplex every range onto one TCP stream, which inherits the mirror's
+            // per-connection throttle and removes the benefit.
+            .protocols(listOf(Protocol.HTTP_1_1))
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -226,6 +281,9 @@ class ThemeStoreRepository(
 
     private val uploadClient: OkHttpClient by lazy {
         client.newBuilder()
+            // Chunk workers must not be multiplexed onto one connection under HTTP/2,
+            // otherwise a per-connection mirror throttle caps the whole upload.
+            .protocols(listOf(Protocol.HTTP_1_1))
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(5, TimeUnit.MINUTES)
             .writeTimeout(5, TimeUnit.MINUTES)
@@ -320,17 +378,31 @@ class ThemeStoreRepository(
             finalFile.delete()
 
             val tempFile = File(downloadDir, "${finalFile.name}.part")
+            val metaFile = File(downloadDir, "${finalFile.name}.part.meta")
             if (tempFile.isFile) {
                 when {
-                    tempFile.length() > entry.size -> tempFile.delete()
+                    tempFile.length() > entry.size -> {
+                        tempFile.delete()
+                        metaFile.delete()
+                    }
+
                     tempFile.length() == entry.size && sha256Of(tempFile) == expectedSha -> {
+                        metaFile.delete()
                         moveDownloadedFile(tempFile, finalFile)
                         onProgress(1f)
                         onTransferred(entry.size, entry.size)
                         return@runCatching finalFile
                     }
 
-                    tempFile.length() == entry.size -> tempFile.delete()
+                    tempFile.length() == entry.size -> {
+                        // A parallel attempt can leave the file at full length while
+                        // still owning holes; only a legacy sequential file is corrupt
+                        // when the checksum does not match.
+                        if (!metaFile.isFile) {
+                            tempFile.delete()
+                            metaFile.delete()
+                        }
+                    }
                 }
             }
 
@@ -340,6 +412,7 @@ class ThemeStoreRepository(
                 url = base + entry.path.removePrefix("/"),
                 token = token,
                 tempFile = tempFile,
+                metaFile = metaFile,
                 resumeFrom = resumeFrom,
                 expectedSha = expectedSha,
                 onProgress = onProgress,
@@ -354,10 +427,377 @@ class ThemeStoreRepository(
     }
 
     /**
+     * Downloads a package using parallel ranged requests when the server supports them.
+     * Mirrors often throttle a single connection, so a large package can take far longer
+     * than its size suggests; ranged workers fetch independent chunks at the same time.
+     * Servers that ignore `Range` transparently fall back to the single-stream download.
+     */
+    private fun downloadThemePackage(
+        entry: ThemeStoreEntry,
+        url: String,
+        token: String,
+        tempFile: File,
+        metaFile: File,
+        resumeFrom: Long,
+        expectedSha: String,
+        onProgress: (Float) -> Unit,
+        onTransferred: (Long, Long) -> Unit,
+        allowRestart: Boolean,
+    ): File {
+        val probe = probePackageRange(entry, url, token)
+        if (probe.totalSize > 0L && probe.totalSize != entry.size) {
+            tempFile.delete()
+            metaFile.delete()
+            throw IOException("Theme package size mismatch")
+        }
+        if (probe.rangesSupported &&
+            entry.size >= MIN_PARALLEL_DOWNLOAD_BYTES &&
+            (metaFile.isFile || resumeFrom == 0L)
+        ) {
+            return try {
+                downloadThemePackageParallel(
+                    entry = entry,
+                    url = url,
+                    token = token,
+                    tempFile = tempFile,
+                    metaFile = metaFile,
+                    expectedSha = expectedSha,
+                    onProgress = onProgress,
+                    onTransferred = onTransferred,
+                )
+            } catch (_: RangeUnsupportedException) {
+                // Some servers advertise ranges yet answer 200 on a chunk request.
+                tempFile.delete()
+                metaFile.delete()
+                downloadThemePackageSequential(
+                    entry, url, token, tempFile, 0, expectedSha,
+                    onProgress, onTransferred, false,
+                )
+            }
+        }
+        // A parallel workspace stores chunks, not a prefix, so the sequential writer
+        // cannot resume it. Start over rather than appending to the wrong offset.
+        val sequentialResume = if (metaFile.isFile) {
+            tempFile.delete()
+            metaFile.delete()
+            0L
+        } else {
+            resumeFrom
+        }
+        return downloadThemePackageSequential(
+            entry = entry,
+            url = url,
+            token = token,
+            tempFile = tempFile,
+            resumeFrom = sequentialResume,
+            expectedSha = expectedSha,
+            onProgress = onProgress,
+            onTransferred = onTransferred,
+            allowRestart = sequentialResume > 0L || allowRestart,
+        )
+    }
+
+    /** One small ranged request that reveals both Range support and the remote size. */
+    private fun probePackageRange(
+        entry: ThemeStoreEntry,
+        url: String,
+        token: String,
+    ): PackageRangeProbe {
+        val request = Request.Builder()
+            .url(url)
+            .cacheControl(CacheControl.Builder().noCache().build())
+            .header("Accept-Encoding", "identity")
+            .header("Range", "bytes=0-0")
+            .withToken(token)
+            .build()
+        downloadClient.newCall(request).execute().use { response ->
+            if (response.code == 401) throw ThemeStoreUnauthorizedException()
+            if (!response.isSuccessful) {
+                throw IOException("HTTP ${response.code} for ${entry.path}")
+            }
+            if (response.code == 206) {
+                return PackageRangeProbe(
+                    totalSize = parseContentRangeTotal(response.header("Content-Range"))
+                        ?: entry.size,
+                    rangesSupported = true,
+                )
+            }
+            // The server ignored Range and is sending the whole file; do not read it here.
+            val total = response.body.contentLength()
+            return PackageRangeProbe(
+                totalSize = if (total > 0L) total else entry.size,
+                rangesSupported = false,
+            )
+        }
+    }
+
+    private fun downloadThemePackageParallel(
+        entry: ThemeStoreEntry,
+        url: String,
+        token: String,
+        tempFile: File,
+        metaFile: File,
+        expectedSha: String,
+        onProgress: (Float) -> Unit,
+        onTransferred: (Long, Long) -> Unit,
+    ): File {
+        val totalSize = entry.size
+        val chunkSize = DOWNLOAD_CHUNK_BYTES
+        val chunkCount = (totalSize + chunkSize - 1L) / chunkSize
+        if (chunkCount <= 0L) throw IOException("Invalid theme package size")
+
+        val metaLock = Any()
+        val completed = mutableSetOf<Long>()
+        readDownloadMeta(metaFile)?.let { meta ->
+            if (meta.sha256.equals(expectedSha, ignoreCase = true) &&
+                meta.size == totalSize &&
+                meta.chunkSize == chunkSize
+            ) {
+                val claimed = meta.completed.filter { it in 0L until chunkCount }
+                // A missing or truncated data file cannot back any claimed chunk; drop
+                // the marker instead of looping on a verification failure forever.
+                val coverage = claimed.maxOfOrNull { index ->
+                    index * chunkSize + chunkLength(totalSize, chunkSize, index)
+                } ?: 0L
+                if (tempFile.isFile && tempFile.length() >= coverage) {
+                    completed.addAll(claimed)
+                }
+            }
+        }
+
+        val completedBytes = AtomicLong(
+            completed.sumOf { chunkLength(totalSize, chunkSize, it) },
+        )
+        val chunkProgress = HashMap<Long, Long>()
+        val reportLock = Any()
+        var lastReportAt = 0L
+        var lastTransferred = -1L
+
+        fun report(force: Boolean) {
+            synchronized(reportLock) {
+                val now = System.nanoTime()
+                if (!force && now - lastReportAt < DOWNLOAD_PROGRESS_INTERVAL_NANOS) return
+                val inFlight = synchronized(chunkProgress) { chunkProgress.values.sum() }
+                val transferred = (completedBytes.get() + inFlight).coerceIn(0L, totalSize)
+                if (!force && transferred == lastTransferred) return
+                lastReportAt = now
+                lastTransferred = transferred
+                onTransferred(transferred, totalSize)
+                onProgress((transferred.toFloat() / totalSize).coerceIn(0f, 1f))
+            }
+        }
+
+        synchronized(metaLock) {
+            persistDownloadMeta(metaFile, expectedSha, totalSize, chunkSize, completed)
+        }
+        report(force = true)
+
+        val pending = ConcurrentLinkedQueue<Long>()
+        for (index in 0L until chunkCount) {
+            if (index !in completed) pending.add(index)
+        }
+        if (pending.isEmpty()) {
+            verifyDownloadedPackage(tempFile, metaFile, totalSize, expectedSha)
+            metaFile.delete()
+            return tempFile
+        }
+
+        val workers = minOf(DOWNLOAD_WORKERS, pending.size.coerceAtLeast(1))
+        val pool = Executors.newFixedThreadPool(workers)
+        try {
+            val futures = (0 until workers).map {
+                pool.submit {
+                    RandomAccessFile(tempFile, "rw").use { file ->
+                        while (!Thread.currentThread().isInterrupted) {
+                            val index = pending.poll() ?: break
+                            val start = index * chunkSize
+                            val length = chunkLength(totalSize, chunkSize, index)
+                            if (length <= 0L) continue
+                            var attempt = 0
+                            while (true) {
+                                synchronized(chunkProgress) { chunkProgress[index] = 0L }
+                                try {
+                                    downloadPackageChunk(
+                                        entry = entry,
+                                        url = url,
+                                        token = token,
+                                        start = start,
+                                        length = length,
+                                        file = file,
+                                        onBytes = { delta ->
+                                            synchronized(chunkProgress) {
+                                                chunkProgress.merge(index, delta, Long::plus)
+                                            }
+                                            report(force = false)
+                                        },
+                                    )
+                                    synchronized(chunkProgress) { chunkProgress.remove(index) }
+                                    synchronized(metaLock) {
+                                        completed.add(index)
+                                        completedBytes.addAndGet(length)
+                                        persistDownloadMeta(
+                                            metaFile,
+                                            expectedSha,
+                                            totalSize,
+                                            chunkSize,
+                                            completed,
+                                        )
+                                    }
+                                    report(force = true)
+                                    break
+                                } catch (error: Exception) {
+                                    synchronized(chunkProgress) { chunkProgress.remove(index) }
+                                    report(force = true)
+                                    if (error is ThemeStoreUnauthorizedException) throw error
+                                    if (error is RangeUnsupportedException) throw error
+                                    attempt++
+                                    if (attempt >= DOWNLOAD_RETRIES) throw error
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for (future in futures) {
+                try {
+                    future.get()
+                } catch (error: ExecutionException) {
+                    val cause = error.cause
+                    if (cause != null) throw cause
+                    throw IOException(error)
+                } catch (error: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    throw IOException("Download interrupted", error)
+                }
+            }
+        } finally {
+            pool.shutdownNow()
+            runCatching { pool.awaitTermination(5, TimeUnit.SECONDS) }
+        }
+
+        report(force = true)
+        verifyDownloadedPackage(tempFile, metaFile, totalSize, expectedSha)
+        metaFile.delete()
+        return tempFile
+    }
+
+    private fun downloadPackageChunk(
+        entry: ThemeStoreEntry,
+        url: String,
+        token: String,
+        start: Long,
+        length: Long,
+        file: RandomAccessFile,
+        onBytes: (Long) -> Unit,
+    ) {
+        val end = start + length - 1L
+        val request = Request.Builder()
+            .url(url)
+            .cacheControl(CacheControl.Builder().noCache().build())
+            .header("Accept-Encoding", "identity")
+            .header("Range", "bytes=$start-$end")
+            .withToken(token)
+            .build()
+        downloadClient.newCall(request).execute().use { response ->
+            if (response.code == 401) throw ThemeStoreUnauthorizedException()
+            if (response.code == 416) {
+                throw IOException("HTTP 416 for ${entry.path}")
+            }
+            if (response.code != 206) {
+                if (response.isSuccessful) throw RangeUnsupportedException()
+                throw IOException("HTTP ${response.code} for ${entry.path}")
+            }
+            if (parseContentRangeStart(response.header("Content-Range")) != start) {
+                throw IOException("Invalid Content-Range for ${entry.path}")
+            }
+            val body = response.body
+            val declared = body.contentLength()
+            if (declared > 0L && declared > length) {
+                throw IOException("Theme package is too large")
+            }
+            file.seek(start)
+            var written = 0L
+            body.byteStream().use { input ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                while (true) {
+                    if (Thread.currentThread().isInterrupted) {
+                        throw IOException("Download cancelled")
+                    }
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    if (written + read > length) {
+                        throw IOException("Theme package chunk is too large")
+                    }
+                    file.write(buffer, 0, read)
+                    written += read
+                    onBytes(read.toLong())
+                }
+            }
+            if (written != length) {
+                throw IOException("Theme package chunk is incomplete")
+            }
+        }
+    }
+
+    private fun verifyDownloadedPackage(
+        tempFile: File,
+        metaFile: File,
+        size: Long,
+        expectedSha: String,
+    ) {
+        if (tempFile.length() != size) {
+            tempFile.delete()
+            metaFile.delete()
+            throw IOException("Theme package size mismatch")
+        }
+        if (sha256Of(tempFile) != expectedSha) {
+            tempFile.delete()
+            metaFile.delete()
+            throw IOException("Theme package checksum mismatch")
+        }
+    }
+
+    private fun chunkLength(totalSize: Long, chunkSize: Long, index: Long): Long =
+        ThemeStoreRepository.chunkLength(totalSize, chunkSize, index)
+
+    private fun readDownloadMeta(metaFile: File): ParallelDownloadMeta? =
+        runCatching {
+            if (!metaFile.isFile) return null
+            json.decodeFromString(ParallelDownloadMeta.serializer(), metaFile.readText())
+        }.getOrNull()
+
+    private fun persistDownloadMeta(
+        metaFile: File,
+        sha256: String,
+        size: Long,
+        chunkSize: Long,
+        completed: Set<Long>,
+    ) {
+        val meta = ParallelDownloadMeta(
+            sha256 = sha256,
+            size = size,
+            chunkSize = chunkSize,
+            completed = completed.sorted(),
+        )
+        val temp = File(metaFile.parentFile, metaFile.name + ".tmp")
+        temp.writeText(json.encodeToString(meta))
+        metaFile.delete()
+        if (!temp.renameTo(metaFile)) {
+            temp.copyTo(metaFile, overwrite = true)
+            temp.delete()
+        }
+    }
+
+    private class PackageRangeProbe(
+        val totalSize: Long,
+        val rangesSupported: Boolean,
+    )
+
+    /**
      * Streams a package to [tempFile], resuming from [resumeFrom] when the server honors
      * `Range`. Keeps the partial file on network failures so a later attempt can continue.
      */
-    private fun downloadThemePackage(
+    private fun downloadThemePackageSequential(
         entry: ThemeStoreEntry,
         url: String,
         token: String,
@@ -384,7 +824,7 @@ class ThemeStoreRepository(
             if (response.code == 416) {
                 tempFile.delete()
                 if (allowRestart) {
-                    return downloadThemePackage(
+                    return downloadThemePackageSequential(
                         entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                     )
                 }
@@ -402,7 +842,7 @@ class ThemeStoreRepository(
                 if (start != offset) {
                     if (allowRestart) {
                         tempFile.delete()
-                        return downloadThemePackage(
+                        return downloadThemePackageSequential(
                             entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                         )
                     }
@@ -445,7 +885,7 @@ class ThemeStoreRepository(
             if (written != entry.size) {
                 if (allowRestart && offset > 0) {
                     tempFile.delete()
-                    return downloadThemePackage(
+                    return downloadThemePackageSequential(
                         entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                     )
                 }
@@ -455,7 +895,7 @@ class ThemeStoreRepository(
             if (sha256Of(tempFile) != expectedSha) {
                 if (allowRestart && offset > 0) {
                     tempFile.delete()
-                    return downloadThemePackage(
+                    return downloadThemePackageSequential(
                         entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                     )
                 }
@@ -639,19 +1079,25 @@ class ThemeStoreRepository(
         val chunkProgress = HashMap<Long, Long>()
         val reportLock = Any()
         var lastReported = -1L
+        var lastReportAt = 0L
 
-        fun report() {
+        fun report(force: Boolean) {
             synchronized(reportLock) {
+                val now = System.nanoTime()
                 val inFlight = synchronized(chunkProgress) { chunkProgress.values.sum() }
                 val uploaded = (receivedBytes + inFlight).coerceAtMost(totalSize)
                 if (uploaded == lastReported) return
+                // Four workers each report every 128 KB; publishing every callback turns
+                // the transfer into a recomposition storm on fast links.
+                if (!force && now - lastReportAt < UPLOAD_PROGRESS_INTERVAL_NANOS) return
                 lastReported = uploaded
+                lastReportAt = now
                 onTransferred(uploaded, totalSize)
                 onProgress((uploaded.toFloat() / totalSize).coerceIn(0f, 1f))
             }
         }
 
-        report()
+        report(force = true)
         val pending = ConcurrentLinkedQueue<Long>()
         for (index in 0 until session.totalChunks) {
             if (index !in received && uploadChunkLength(totalSize, chunkSize, index) > 0L) {
@@ -686,13 +1132,13 @@ class ThemeStoreRepository(
                                             synchronized(chunkProgress) {
                                                 chunkProgress.merge(index, delta, Long::plus)
                                             }
-                                            report()
+                                            report(force = false)
                                         },
                                     )
                                     break
                                 } catch (error: Exception) {
                                     synchronized(chunkProgress) { chunkProgress.remove(index) }
-                                    report()
+                                    report(force = true)
                                     if (error is ThemeStoreUnauthorizedException) throw error
                                     attempt++
                                     if (attempt >= UPLOAD_RETRIES) throw error
@@ -705,8 +1151,10 @@ class ThemeStoreRepository(
             for (future in futures) {
                 try {
                     future.get()
-                } catch (error: java.util.concurrent.ExecutionException) {
-                    throw (error.cause as? Exception ?: IOException(error))
+                } catch (error: ExecutionException) {
+                    val cause = error.cause
+                    if (cause != null) throw cause
+                    throw IOException(error)
                 } catch (error: InterruptedException) {
                     Thread.currentThread().interrupt()
                     throw IOException("Upload interrupted", error)
@@ -714,8 +1162,9 @@ class ThemeStoreRepository(
             }
         } finally {
             pool.shutdownNow()
+            runCatching { pool.awaitTermination(5, TimeUnit.SECONDS) }
         }
-        report()
+        report(force = true)
         return session.uploadId
     }
 
@@ -734,6 +1183,11 @@ class ThemeStoreRepository(
                 // 128 MB package here only delays the first byte; the final
                 // submit still verifies the package server-side.
                 fingerprint = "${packageFile.name}:$totalSize:${packageFile.lastModified()}",
+                chunkSize = if (totalSize < SMALL_UPLOAD_THRESHOLD_BYTES) {
+                    SMALL_UPLOAD_CHUNK_BYTES
+                } else {
+                    LARGE_UPLOAD_CHUNK_BYTES
+                },
             ),
         ).toRequestBody(JSON_MEDIA)
         val request = Request.Builder()
@@ -940,7 +1394,8 @@ class ThemeStoreRepository(
 
         downloadDir.listFiles()?.forEach { file ->
             if (!file.isFile) return@forEach
-            val maxAge = if (file.name.endsWith(".part")) week else day
+            // A resumable download owns both the data file and its chunk marker.
+            val maxAge = if (file.isPartialDownload()) week else day
             if (file.isOlderThan(maxAge, now)) runCatching { file.delete() }
         }
         trimDownloadCache(now)
@@ -984,9 +1439,11 @@ class ThemeStoreRepository(
         var total = files.sumOf { it.length() }
         if (total <= MAX_DOWNLOAD_CACHE_BYTES) return
         val candidates = files
+            // The marker is deleted together with its data file.
+            .filter { !it.name.endsWith(".part.meta") }
             .filter { it.isOlderThan(ACTIVE_CACHE_GRACE_MS, now) }
             .sortedWith(
-                compareBy<File> { it.name.endsWith(".part") }
+                compareBy<File> { it.isPartialDownload() }
                     .thenBy { it.lastModified() },
             )
         for (file in candidates) {
@@ -994,9 +1451,21 @@ class ThemeStoreRepository(
             val size = file.length()
             if (runCatching { file.delete() }.getOrDefault(false)) {
                 total -= size
+                if (file.name.endsWith(".part")) {
+                    val meta = File(file.parentFile, file.name + ".meta")
+                    if (meta.isFile) {
+                        val metaSize = meta.length()
+                        if (runCatching { meta.delete() }.getOrDefault(false)) {
+                            total -= metaSize
+                        }
+                    }
+                }
             }
         }
     }
+
+    private fun File.isPartialDownload(): Boolean =
+        name.endsWith(".part") || name.endsWith(".part.meta")
 
     private fun File.isOlderThan(maxAgeMillis: Long, now: Long): Boolean {
         val modified = lastModified()

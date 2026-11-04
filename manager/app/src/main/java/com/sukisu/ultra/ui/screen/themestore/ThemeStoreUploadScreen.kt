@@ -40,7 +40,6 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.PhotoLibrary
-import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -953,32 +952,7 @@ private fun UploadSubmitBar(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            if (speedBytesPerSecond > 0L) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        MaterialIcon(
-                                            imageVector = Icons.Rounded.Speed,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(13.dp),
-                                        )
-                                        MaterialText(
-                                            text = stringResource(
-                                                R.string.theme_store_transfer_speed,
-                                                formatTransferBytes(speedBytesPerSecond),
-                                            ),
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                    }
-                                }
-                            }
+                            ThemeStoreSpeedBadge(speedBytesPerSecond)
                         }
                         if (totalBytes > 0L) {
                             Row(

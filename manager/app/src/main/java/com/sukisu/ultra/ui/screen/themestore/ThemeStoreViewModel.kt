@@ -149,6 +149,10 @@ data class ThemeStoreUiState(
     val downloadingKey: String? = null,
     val downloadTrial: Boolean = false,
     val downloadProgress: Float = 0f,
+    val downloadTransferredBytes: Long = 0L,
+    val downloadTotalBytes: Long = 0L,
+    val downloadSpeedBytesPerSecond: Long = 0L,
+    val downloadEtaSeconds: Long? = null,
     val downloaded: DownloadedTheme? = null,
     val verifiedThemeKey: String? = null,
     val downloadFailed: Boolean = false,
@@ -363,11 +367,18 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 downloadingKey = item.key,
                 downloadTrial = trial,
                 downloadProgress = 0f,
+                downloadTransferredBytes = 0L,
+                downloadTotalBytes = item.entry.size,
+                downloadSpeedBytesPerSecond = 0L,
+                downloadEtaSeconds = null,
                 downloadFailed = false,
                 verifiedThemeKey = null,
             )
         }
         viewModelScope.launch {
+            var meter: TransferSpeedMeter? = null
+            val telemetryLock = Any()
+            var lastTelemetryAt = 0L
             repository.downloadTheme(
                 entry = item.entry,
                 baseUrl = item.source.baseUrl,
@@ -375,12 +386,46 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 onProgress = { progress ->
                     _uiState.update { it.copy(downloadProgress = progress) }
                 },
+                onTransferred = { transferred, total ->
+                    synchronized(telemetryLock) {
+                        val now = System.nanoTime()
+                        val activeMeter = meter
+                        if (activeMeter == null || activeMeter.totalBytes != total) {
+                            meter = TransferSpeedMeter(total)
+                            lastTelemetryAt = now
+                            _uiState.update {
+                                it.copy(
+                                    downloadTransferredBytes = transferred.coerceIn(0L, total),
+                                    downloadTotalBytes = total,
+                                    downloadSpeedBytesPerSecond = 0L,
+                                    downloadEtaSeconds = null,
+                                )
+                            }
+                        } else if (now - lastTelemetryAt >= 200_000_000L ||
+                            (total > 0L && transferred >= total)
+                        ) {
+                            lastTelemetryAt = now
+                            val speed = activeMeter.update(transferred, now)
+                            _uiState.update {
+                                it.copy(
+                                    downloadTransferredBytes = transferred.coerceIn(0L, total),
+                                    downloadSpeedBytesPerSecond = speed.bytesPerSecond,
+                                    downloadEtaSeconds = speed.etaSeconds,
+                                )
+                            }
+                        }
+                    }
+                },
             ).fold(
                 onSuccess = { file ->
                     _uiState.update {
                         it.copy(
                             downloadingKey = null,
                             downloadProgress = 1f,
+                            downloadTransferredBytes = item.entry.size,
+                            downloadTotalBytes = item.entry.size,
+                            downloadSpeedBytesPerSecond = 0L,
+                            downloadEtaSeconds = null,
                             downloaded = DownloadedTheme(item, file, trial),
                             verifiedThemeKey = item.key,
                         )
@@ -392,6 +437,10 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             downloadingKey = null,
                             downloadTrial = false,
                             downloadProgress = 0f,
+                            downloadTransferredBytes = 0L,
+                            downloadTotalBytes = 0L,
+                            downloadSpeedBytesPerSecond = 0L,
+                            downloadEtaSeconds = null,
                             downloadFailed = true,
                         )
                     }
@@ -1122,29 +1171,6 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 throw IllegalStateException(app.getString(R.string.theme_store_upload_failed))
             }
             try {
-                val packageFile = copyPackageFile(
-                    uri = input.packageUri,
-                    directory = workDir,
-                    app = app,
-                )
-                val packageData = ThemePackageStorage.validate(app, Uri.fromFile(packageFile)).getOrElse {
-                    throw IllegalArgumentException(app.getString(R.string.theme_store_upload_package_invalid))
-                }
-                // Adaptive packages are always tagged so store previews and filters can badge them,
-                // even when the author did not type the tag themselves.
-                if (packageData.adaptive == true &&
-                    tags.none { canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG }
-                ) {
-                    if (tags.size >= 10) {
-                        tags.removeAt(tags.lastIndex)
-                    }
-                    tags.add(0, ThemePackageStorage.ADAPTIVE_TAG)
-                } else if (packageData.adaptive != true) {
-                    // The tag describes the package, so a plain package must not keep a stale one.
-                    tags.removeAll {
-                        canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG
-                    }
-                }
                 val imageSemaphore = Semaphore(2)
                 suspend fun compress(uri: Uri, baseName: String, maxEdge: Int): File =
                     withContext(Dispatchers.Default) {
@@ -1158,7 +1184,9 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             )
                         }
                     }
-                val (previewFile, screenshots, avatarFile) = coroutineScope {
+                coroutineScope {
+                    // Image encoding is CPU-bound; start it before copying and reading the
+                    // package so preparation overlaps instead of running phase by phase.
                     val preview = async { compress(input.previewUri, "preview", PREVIEW_MAX_EDGE) }
                     val shots = input.screenshotUris.mapIndexed { index, uri ->
                         async { compress(uri, "screenshot-${index + 1}", SCREENSHOT_MAX_EDGE) }
@@ -1166,28 +1194,57 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     val avatar = input.avatarUri?.let { uri ->
                         async { compress(uri, "avatar", AVATAR_MAX_EDGE) }
                     }
-                    Triple(preview.await(), shots.awaitAll(), avatar?.await())
+
+                    val packageFile = copyPackageFile(
+                        uri = input.packageUri,
+                        directory = workDir,
+                        app = app,
+                    )
+                    // Only theme.json is needed here. Extracting every image just repeats
+                    // validation the server performs and dominated preparation time for
+                    // large packages.
+                    val packageData = ThemePackageStorage.inspect(app, Uri.fromFile(packageFile))
+                        .getOrElse {
+                            throw IllegalArgumentException(
+                                app.getString(R.string.theme_store_upload_package_invalid),
+                            )
+                        }
+                    // Adaptive packages are always tagged so store previews and filters can badge them,
+                    // even when the author did not type the tag themselves.
+                    if (packageData.adaptive == true &&
+                        tags.none { canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG }
+                    ) {
+                        if (tags.size >= 10) {
+                            tags.removeAt(tags.lastIndex)
+                        }
+                        tags.add(0, ThemePackageStorage.ADAPTIVE_TAG)
+                    } else if (packageData.adaptive != true) {
+                        // The tag describes the package, so a plain package must not keep a stale one.
+                        tags.removeAll {
+                            canonicalThemeTag(it) == ThemePackageStorage.ADAPTIVE_TAG
+                        }
+                    }
+                    PreparedThemeUpload(
+                        submission = ThemeStoreSubmission(
+                            id = themeId,
+                            version = version,
+                            formatVersion = packageData.version,
+                            name = name,
+                            author = input.author.trim(),
+                            authorId = if (accountMode) "" else authorId,
+                            description = input.description.trim(),
+                            tags = tags.joinToString(", "),
+                            license = input.license.trim(),
+                            minManagerVersion = minManagerVersion,
+                            changelog = input.changelog.trim(),
+                            packageFile = packageFile,
+                            previewFile = preview.await(),
+                            avatarFile = avatar?.await(),
+                            screenshotFiles = shots.awaitAll(),
+                        ),
+                        workDir = workDir,
+                    )
                 }
-                PreparedThemeUpload(
-                    submission = ThemeStoreSubmission(
-                        id = themeId,
-                        version = version,
-                        formatVersion = packageData.version,
-                        name = name,
-                        author = input.author.trim(),
-                        authorId = if (accountMode) "" else authorId,
-                        description = input.description.trim(),
-                        tags = tags.joinToString(", "),
-                        license = input.license.trim(),
-                        minManagerVersion = minManagerVersion,
-                        changelog = input.changelog.trim(),
-                        packageFile = packageFile,
-                        previewFile = previewFile,
-                        avatarFile = avatarFile,
-                        screenshotFiles = screenshots,
-                    ),
-                    workDir = workDir,
-                )
             } catch (error: Exception) {
                 workDir.deleteRecursively()
                 throw error
@@ -1212,6 +1269,20 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         //noinspection SpellCheckingInspection
         if (suffix != "sukisu") {
             throw IllegalArgumentException(app.getString(R.string.theme_store_upload_file_invalid, displayName))
+        }
+        // Presets and adaptive exports already live in a seekable app-private file. The
+        // chunked uploader only reads it, so copying tens of megabytes first is wasted I/O.
+        val direct = uri.takeIf { it.scheme == "file" }?.path?.let(::File)
+        if (direct != null && direct.isFile) {
+            if (direct.length() <= 0L) {
+                throw IllegalArgumentException(app.getString(R.string.theme_store_upload_file_empty, displayName))
+            }
+            if (direct.length() > ThemeStoreRepository.MAX_PACKAGE_BYTES) {
+                throw IllegalArgumentException(
+                    app.getString(R.string.theme_store_upload_file_too_large, displayName),
+                )
+            }
+            return direct
         }
         val target = File(directory, "package.sukisu")
         val stream = app.contentResolver.openInputStream(uri)

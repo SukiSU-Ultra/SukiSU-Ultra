@@ -8,15 +8,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -177,6 +178,8 @@ object ThemePackageStorage {
     private const val MAX_BACKGROUND_BYTES = 64L * 1024 * 1024
     /** Caps the total disk a single package can unpack to, not just each image. */
     private const val MAX_EXTRACTED_IMAGE_BYTES = 256L * 1024 * 1024
+    /** Large enough to absorb the 512-byte writes produced by the ZIP streams. */
+    private const val STREAM_BUFFER_SIZE = 256 * 1024
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -254,6 +257,9 @@ object ThemePackageStorage {
 
         val encrypted = ThemePackageCrypto.encryptingStream(output)
         ZipOutputStream(encrypted).use { zip ->
+            // Theme images are already compressed (WebP/PNG/JPEG); deflating them again
+            // burns seconds of CPU on large packages for almost no size gain.
+            zip.setLevel(Deflater.NO_COMPRESSION)
             zip.putNextEntry(ZipEntry(THEME_ENTRY))
             zip.write(json.encodeToString(ThemePackageData.serializer(), packageData).toByteArray())
             zip.closeEntry()
@@ -324,13 +330,7 @@ object ThemePackageStorage {
 
     suspend fun import(context: Context, uri: Uri): Result<ImportedTheme> = withContext(Dispatchers.IO) {
         runCatching {
-            val zipFile = File.createTempFile("theme_import_zip_", ".zip", context.cacheDir)
-            try {
-                writeDecryptedZip(context, uri, zipFile)
-                parseThemeZip(context, zipFile)
-            } finally {
-                zipFile.delete()
-            }
+            withDecryptedZip(context, uri) { zip -> parseThemeZip(context, zip) }
         }
     }
 
@@ -340,58 +340,45 @@ object ThemePackageStorage {
      */
     suspend fun inspect(context: Context, uri: Uri): Result<ThemePackageData> = withContext(Dispatchers.IO) {
         runCatching {
-            val zipFile = File.createTempFile("theme_inspect_zip_", ".zip", context.cacheDir)
-            try {
-                writeDecryptedZip(context, uri, zipFile)
-                readThemeJson(zipFile)
-            } finally {
-                zipFile.delete()
-            }
+            withDecryptedZip(context, uri) { zip -> readThemeJson(zip) }
         }
     }
 
     /**
-     * Streams and decrypts the package into a temporary zip file. This keeps peak memory at
-     * the copy buffer instead of loading a package that may be up to 128 MB into a byte array.
+     * Decrypts and reads the ZIP in one streaming pass. The previous implementation wrote a
+     * full decrypted copy and then read it again, doubling the I/O for large packages.
+     * Closing the ZIP closes the cipher stream, which drains the remainder so the GCM tag
+     * is still verified.
      */
-    private fun writeDecryptedZip(context: Context, uri: Uri, target: File) {
+    private fun <T> withDecryptedZip(
+        context: Context,
+        uri: Uri,
+        block: (ZipInputStream) -> T,
+    ): T {
         val raw = context.contentResolver.openInputStream(uri)
             ?: error("Cannot open the theme package")
         raw.use { input ->
             val limited = LimitedInputStream(input, ThemeStoreRepository.MAX_PACKAGE_BYTES)
             ThemePackageCrypto.decryptingStream(limited).use { decrypted ->
-                target.outputStream().buffered().use { output ->
-                    val buffer = ByteArray(64 * 1024)
-                    var total = 0L
-                    while (true) {
-                        val read = decrypted.read(buffer)
-                        if (read < 0) break
-                        total += read
-                        if (total > ThemeStoreRepository.MAX_PACKAGE_BYTES) {
-                            throw IOException("Theme package is too large")
-                        }
-                        output.write(buffer, 0, read)
+                BufferedInputStream(decrypted, STREAM_BUFFER_SIZE).use { buffered ->
+                    ZipInputStream(buffered).use { zip ->
+                        return block(zip)
                     }
-                    if (total <= 0L) error("Theme package is empty")
                 }
             }
         }
     }
 
-    private fun readThemeJson(zipFile: File): ThemePackageData {
+    private fun readThemeJson(zip: ZipInputStream): ThemePackageData {
         var themeText: String? = null
-        FileInputStream(zipFile).use { fileInput ->
-            ZipInputStream(fileInput).use { zip ->
-                var entry: ZipEntry? = zip.nextEntry
-                while (entry != null) {
-                    if (entry.name == THEME_ENTRY) {
-                        themeText = readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
-                        break
-                    }
-                    zip.closeEntry()
-                    entry = zip.nextEntry
-                }
+        var entry: ZipEntry? = zip.nextEntry
+        while (entry != null) {
+            if (entry.name == THEME_ENTRY) {
+                themeText = readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
+                break
             }
+            zip.closeEntry()
+            entry = zip.nextEntry
         }
         val text = themeText ?: error("theme.json is missing")
         val data = json.decodeFromString(ThemePackageData.serializer(), text)
@@ -402,7 +389,7 @@ object ThemePackageStorage {
         return data
     }
 
-    private fun parseThemeZip(context: Context, zipFile: File): ImportedTheme {
+    private fun parseThemeZip(context: Context, zip: ZipInputStream): ImportedTheme {
         var tempBackground: File? = null
         var tempCardBackground: File? = null
         val tempStickers = mutableMapOf<Int, File>()
@@ -459,80 +446,76 @@ object ThemePackageStorage {
 
         try {
             var themeText: String? = null
-            FileInputStream(zipFile).use { fileInput ->
-                ZipInputStream(fileInput).use { zip ->
-                    var entry: ZipEntry? = zip.nextEntry
-                    while (entry != null) {
-                        val name = entry.name
-                        when {
-                            name == THEME_ENTRY -> themeText =
-                                readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
+            var entry: ZipEntry? = zip.nextEntry
+            while (entry != null) {
+                val name = entry.name
+                when {
+                    name == THEME_ENTRY -> themeText =
+                        readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
 
-                            name == BACKGROUND_ENTRY -> {
-                                if (tempBackground != null) error("Duplicate background entry")
-                                tempBackground = readImageEntry(zip, "theme_import_bg_")
-                            }
+                    name == BACKGROUND_ENTRY -> {
+                        if (tempBackground != null) error("Duplicate background entry")
+                        tempBackground = readImageEntry(zip, "theme_import_bg_")
+                    }
 
-                            name == CARD_BACKGROUND_ENTRY -> {
-                                if (tempCardBackground != null) {
-                                    error("Duplicate card background entry")
-                                }
-                                tempCardBackground = readImageEntry(zip, "theme_import_card_")
-                            }
-
-                            name == BACKGROUND_LIGHT_ENTRY -> {
-                                if (lightBackground != null) error("Duplicate light background entry")
-                                lightBackground = readImageEntry(zip, "theme_import_bg_light_")
-                            }
-
-                            name == BACKGROUND_DARK_ENTRY -> {
-                                if (darkBackground != null) error("Duplicate dark background entry")
-                                darkBackground = readImageEntry(zip, "theme_import_bg_dark_")
-                            }
-
-                            name == CARD_BACKGROUND_LIGHT_ENTRY -> {
-                                if (lightCardBackground != null) {
-                                    error("Duplicate light card background entry")
-                                }
-                                lightCardBackground = readImageEntry(zip, "theme_import_card_light_")
-                            }
-
-                            name == CARD_BACKGROUND_DARK_ENTRY -> {
-                                if (darkCardBackground != null) {
-                                    error("Duplicate dark card background entry")
-                                }
-                                darkCardBackground = readImageEntry(zip, "theme_import_card_dark_")
-                            }
-
-                            name.startsWith(CARD_STICKER_LIGHT_PREFIX) -> readStickerEntry(
-                                zip,
-                                name,
-                                lightStickers,
-                            )
-
-                            name.startsWith(CARD_STICKER_DARK_PREFIX) -> readStickerEntry(
-                                zip,
-                                name,
-                                darkStickers,
-                            )
-
-                            name.startsWith(CARD_STICKER_ENTRY_PREFIX) -> {
-                                val index = name.removePrefix(CARD_STICKER_ENTRY_PREFIX).toIntOrNull()
-                                if (index != null && index in 0 until HomeCardSticker.MAX_COUNT) {
-                                    if (tempStickers.containsKey(index)) {
-                                        error("Duplicate card sticker entry")
-                                    }
-                                    tempStickers[index] = readImageEntry(
-                                        zip,
-                                        "theme_import_sticker_",
-                                    )
-                                }
-                            }
+                    name == CARD_BACKGROUND_ENTRY -> {
+                        if (tempCardBackground != null) {
+                            error("Duplicate card background entry")
                         }
-                        zip.closeEntry()
-                        entry = zip.nextEntry
+                        tempCardBackground = readImageEntry(zip, "theme_import_card_")
+                    }
+
+                    name == BACKGROUND_LIGHT_ENTRY -> {
+                        if (lightBackground != null) error("Duplicate light background entry")
+                        lightBackground = readImageEntry(zip, "theme_import_bg_light_")
+                    }
+
+                    name == BACKGROUND_DARK_ENTRY -> {
+                        if (darkBackground != null) error("Duplicate dark background entry")
+                        darkBackground = readImageEntry(zip, "theme_import_bg_dark_")
+                    }
+
+                    name == CARD_BACKGROUND_LIGHT_ENTRY -> {
+                        if (lightCardBackground != null) {
+                            error("Duplicate light card background entry")
+                        }
+                        lightCardBackground = readImageEntry(zip, "theme_import_card_light_")
+                    }
+
+                    name == CARD_BACKGROUND_DARK_ENTRY -> {
+                        if (darkCardBackground != null) {
+                            error("Duplicate dark card background entry")
+                        }
+                        darkCardBackground = readImageEntry(zip, "theme_import_card_dark_")
+                    }
+
+                    name.startsWith(CARD_STICKER_LIGHT_PREFIX) -> readStickerEntry(
+                        zip,
+                        name,
+                        lightStickers,
+                    )
+
+                    name.startsWith(CARD_STICKER_DARK_PREFIX) -> readStickerEntry(
+                        zip,
+                        name,
+                        darkStickers,
+                    )
+
+                    name.startsWith(CARD_STICKER_ENTRY_PREFIX) -> {
+                        val index = name.removePrefix(CARD_STICKER_ENTRY_PREFIX).toIntOrNull()
+                        if (index != null && index in 0 until HomeCardSticker.MAX_COUNT) {
+                            if (tempStickers.containsKey(index)) {
+                                error("Duplicate card sticker entry")
+                            }
+                            tempStickers[index] = readImageEntry(
+                                zip,
+                                "theme_import_sticker_",
+                            )
+                        }
                     }
                 }
+                zip.closeEntry()
+                entry = zip.nextEntry
             }
 
             val text = themeText ?: error("theme.json is missing")

@@ -955,7 +955,11 @@ class SettingsViewModel(
     fun confirmImportTheme(context: Context, options: ThemePackageOptions) {
         val pending = _uiState.value.pendingImportTheme ?: return
         viewModelScope.launch {
-            val applied = runCatching { applyImportedTheme(context, pending, options) }
+            // Applying copies every extracted image and rewrites the appearance settings.
+            // Keeping it off the main thread avoids an ANR while a large package is promoted.
+            val applied = runCatching {
+                withContext(Dispatchers.IO) { applyImportedTheme(context, pending, options) }
+            }
             if (applied.isFailure) {
                 AdaptiveThemeStore.clear(repo)
                 if (pending.isAdaptive) {
