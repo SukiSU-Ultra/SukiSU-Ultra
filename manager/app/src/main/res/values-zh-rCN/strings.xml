@@ -842,6 +842,9 @@
     <string name="theme_store_download">下载</string>
     <string name="theme_store_downloading_short">下载中…</string>
     <string name="theme_store_downloading">正在下载… %1$d%%</string>
+    <string name="theme_store_transfer_bytes">%1$s / %2$s</string>
+    <string name="theme_store_transfer_speed">%1$s/s</string>
+    <string name="theme_store_transfer_eta">剩余 %1$s</string>
     <string name="theme_store_requires_manager">需要更新管理器</string>
     <string name="theme_store_download_failed">主题下载失败</string>
     <string name="theme_store_offline">正在显示缓存的目录</string>

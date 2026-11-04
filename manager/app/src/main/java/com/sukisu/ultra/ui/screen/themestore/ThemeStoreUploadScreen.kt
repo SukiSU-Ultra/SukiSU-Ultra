@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -120,6 +121,10 @@ internal fun ThemeStoreUploadScreen(
     optionsError: String?,
     uploadPhase: ThemeStoreUploadPhase,
     uploadProgress: Float,
+    uploadTransferredBytes: Long,
+    uploadTotalBytes: Long,
+    uploadSpeedBytesPerSecond: Long,
+    uploadEtaSeconds: Long?,
     submitting: Boolean,
     errorText: String?,
     onBack: () -> Unit,
@@ -344,6 +349,10 @@ internal fun ThemeStoreUploadScreen(
                 submitting = submitting,
                 phase = uploadPhase,
                 progress = uploadProgress,
+                transferredBytes = uploadTransferredBytes,
+                totalBytes = uploadTotalBytes,
+                speedBytesPerSecond = uploadSpeedBytesPerSecond,
+                etaSeconds = uploadEtaSeconds,
                 canSubmit = canSubmit,
                 errorText = errorText,
                 onSubmit = ::submit,
@@ -886,6 +895,10 @@ private fun UploadSubmitBar(
     submitting: Boolean,
     phase: ThemeStoreUploadPhase,
     progress: Float,
+    transferredBytes: Long,
+    totalBytes: Long,
+    speedBytesPerSecond: Long,
+    etaSeconds: Long?,
     canSubmit: Boolean,
     errorText: String?,
     onSubmit: () -> Unit,
@@ -907,28 +920,97 @@ private fun UploadSubmitBar(
             if (submitting) {
                 when (phase) {
                     ThemeStoreUploadPhase.PREPARING,
-                    ThemeStoreUploadPhase.VERIFYING -> LinearWavyProgressIndicator(
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    ThemeStoreUploadPhase.UPLOADING -> LinearWavyProgressIndicator(
-                        progress = { progress.coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    ThemeStoreUploadPhase.VERIFYING -> {
+                        LinearWavyProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        UploadHint(
+                            stringResource(
+                                if (phase == ThemeStoreUploadPhase.PREPARING) {
+                                    R.string.theme_store_upload_phase_preparing
+                                } else {
+                                    R.string.theme_store_upload_phase_verifying
+                                },
+                            ),
+                        )
+                    }
+
+                    ThemeStoreUploadPhase.UPLOADING -> {
+                        LinearWavyProgressIndicator(
+                            progress = { progress.coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            MaterialText(
+                                text = stringResource(
+                                    R.string.theme_store_upload_phase_uploading,
+                                    (progress.coerceIn(0f, 1f) * 100).roundToInt(),
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (speedBytesPerSecond > 0L) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        MaterialIcon(
+                                            imageVector = Icons.Rounded.Speed,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(13.dp),
+                                        )
+                                        MaterialText(
+                                            text = stringResource(
+                                                R.string.theme_store_transfer_speed,
+                                                formatTransferBytes(speedBytesPerSecond),
+                                            ),
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        if (totalBytes > 0L) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                MaterialText(
+                                    text = stringResource(
+                                        R.string.theme_store_transfer_bytes,
+                                        formatTransferBytes(transferredBytes),
+                                        formatTransferBytes(totalBytes),
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                etaSeconds?.let { eta ->
+                                    MaterialText(
+                                        text = stringResource(
+                                            R.string.theme_store_transfer_eta,
+                                            formatTransferEta(eta),
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     else -> Unit
                 }
-                UploadHint(
-                    when (phase) {
-                        ThemeStoreUploadPhase.PREPARING ->
-                            stringResource(R.string.theme_store_upload_phase_preparing)
-                        ThemeStoreUploadPhase.UPLOADING -> stringResource(
-                            R.string.theme_store_upload_phase_uploading,
-                            (progress.coerceIn(0f, 1f) * 100).roundToInt(),
-                        )
-                        ThemeStoreUploadPhase.VERIFYING ->
-                            stringResource(R.string.theme_store_upload_phase_verifying)
-                        else -> ""
-                    },
-                )
             }
             when {
                 !errorText.isNullOrBlank() -> ThemeStoreInlineNotice(

@@ -846,6 +846,9 @@
     <string name="theme_store_download">Download</string>
     <string name="theme_store_downloading_short">Downloading…</string>
     <string name="theme_store_downloading">Downloading… %1$d%%</string>
+    <string name="theme_store_transfer_bytes">%1$s / %2$s</string>
+    <string name="theme_store_transfer_speed">%1$s/s</string>
+    <string name="theme_store_transfer_eta">ETA %1$s</string>
     <string name="theme_store_requires_manager">Requires a newer manager</string>
     <string name="theme_store_download_failed">Theme download failed</string>
     <string name="theme_store_offline">Showing the cached catalog</string>

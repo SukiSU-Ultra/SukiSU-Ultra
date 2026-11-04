@@ -164,6 +164,10 @@ data class ThemeStoreUiState(
     val uploadOptionsError: String? = null,
     val uploadPhase: ThemeStoreUploadPhase = ThemeStoreUploadPhase.IDLE,
     val uploadProgress: Float = 0f,
+    val uploadTransferredBytes: Long = 0L,
+    val uploadTotalBytes: Long = 0L,
+    val uploadSpeedBytesPerSecond: Long = 0L,
+    val uploadEtaSeconds: Long? = null,
     val uploadResult: ThemeStoreUploadResult? = null,
     val userThemes: List<UserTheme> = emptyList(),
     val submissions: List<UserSubmission> = emptyList(),
@@ -368,9 +372,10 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 entry = item.entry,
                 baseUrl = item.source.baseUrl,
                 token = item.source.token,
-            ) { progress ->
-                _uiState.update { it.copy(downloadProgress = progress) }
-            }.fold(
+                onProgress = { progress ->
+                    _uiState.update { it.copy(downloadProgress = progress) }
+                },
+            ).fold(
                 onSuccess = { file ->
                     _uiState.update {
                         it.copy(
@@ -421,11 +426,18 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 uploadAutoApproved = false,
                 uploadPhase = ThemeStoreUploadPhase.PREPARING,
                 uploadProgress = 0f,
+                uploadTransferredBytes = 0L,
+                uploadTotalBytes = 0L,
+                uploadSpeedBytesPerSecond = 0L,
+                uploadEtaSeconds = null,
                 uploadResult = null,
             )
         }
         viewModelScope.launch {
             var workDir: File? = null
+            var uploadMeter: TransferSpeedMeter? = null
+            val telemetryLock = Any()
+            var lastTelemetryAt = 0L
             try {
                 val prepared = prepareUpload(input, accountMode = true)
                 workDir = prepared.workDir
@@ -437,28 +449,59 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 }
                 val response = repository
                     .submitTheme(
-                        prepared.submission,
-                        source.baseUrl,
-                        source.token,
-                        accountSession.token,
-                    ) { progress ->
-                        _uiState.update { state ->
-                            if (state.uploadPhase == ThemeStoreUploadPhase.PREPARING ||
-                                state.uploadPhase == ThemeStoreUploadPhase.UPLOADING
-                            ) {
-                                state.copy(
-                                    uploadPhase = if (progress >= 1f) {
-                                        ThemeStoreUploadPhase.VERIFYING
-                                    } else {
-                                        ThemeStoreUploadPhase.UPLOADING
-                                    },
-                                    uploadProgress = progress.coerceIn(0f, 1f),
-                                )
-                            } else {
-                                state
+                        submission = prepared.submission,
+                        baseUrl = source.baseUrl,
+                        token = source.token,
+                        bearerToken = accountSession.token,
+                        onProgress = { progress ->
+                            _uiState.update { state ->
+                                if (state.uploadPhase == ThemeStoreUploadPhase.PREPARING ||
+                                    state.uploadPhase == ThemeStoreUploadPhase.UPLOADING
+                                ) {
+                                    state.copy(
+                                        uploadPhase = if (progress >= 1f) {
+                                            ThemeStoreUploadPhase.VERIFYING
+                                        } else {
+                                            ThemeStoreUploadPhase.UPLOADING
+                                        },
+                                        uploadProgress = progress.coerceIn(0f, 1f),
+                                    )
+                                } else {
+                                    state
+                                }
                             }
-                        }
-                    }
+                        },
+                        onTransferred = { transferred, total ->
+                            synchronized(telemetryLock) {
+                                val now = System.nanoTime()
+                                val meter = uploadMeter
+                                if (meter == null || meter.totalBytes != total) {
+                                    uploadMeter = TransferSpeedMeter(total)
+                                    lastTelemetryAt = now
+                                    _uiState.update {
+                                        it.copy(
+                                            uploadTransferredBytes = transferred.coerceIn(0L, total),
+                                            uploadTotalBytes = total,
+                                            uploadSpeedBytesPerSecond = 0L,
+                                            uploadEtaSeconds = null,
+                                        )
+                                    }
+                                } else if (now - lastTelemetryAt >= 200_000_000L ||
+                                    (total > 0L && transferred >= total)
+                                ) {
+                                    lastTelemetryAt = now
+                                    val reading = meter.update(transferred, now)
+                                    _uiState.update {
+                                        it.copy(
+                                            uploadTransferredBytes = transferred.coerceIn(0L, total),
+                                            uploadSpeedBytesPerSecond = reading.bytesPerSecond,
+                                            uploadEtaSeconds = reading.etaSeconds,
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                    )
                     .getOrThrow()
                 if (!response.ok) {
                     throw IllegalStateException(
@@ -486,6 +529,9 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             ThemeStoreUploadPhase.PENDING
                         },
                         uploadProgress = 1f,
+                        uploadTransferredBytes = it.uploadTotalBytes,
+                        uploadSpeedBytesPerSecond = 0L,
+                        uploadEtaSeconds = null,
                         uploadResult = ThemeStoreUploadResult(
                             themeId = response.id,
                             submissionId = response.submissionId,
@@ -507,6 +553,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                         submitting = false,
                         uploadPhase = ThemeStoreUploadPhase.FAILED,
                         uploadProgress = 0f,
+                        uploadSpeedBytesPerSecond = 0L,
+                        uploadEtaSeconds = null,
                         uploadError = getApplication<Application>().getString(R.string.theme_store_unauthorized),
                     )
                 }
@@ -516,6 +564,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                         submitting = false,
                         uploadPhase = ThemeStoreUploadPhase.FAILED,
                         uploadProgress = 0f,
+                        uploadSpeedBytesPerSecond = 0L,
+                        uploadEtaSeconds = null,
                         uploadError = error.message?.takeIf { message -> message.isNotBlank() }
                             ?: getApplication<Application>().getString(R.string.theme_store_upload_failed),
                     )
@@ -534,6 +584,10 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 uploadAutoApproved = false,
                 uploadPhase = ThemeStoreUploadPhase.IDLE,
                 uploadProgress = 0f,
+                uploadTransferredBytes = 0L,
+                uploadTotalBytes = 0L,
+                uploadSpeedBytesPerSecond = 0L,
+                uploadEtaSeconds = null,
                 uploadResult = null,
             )
         }

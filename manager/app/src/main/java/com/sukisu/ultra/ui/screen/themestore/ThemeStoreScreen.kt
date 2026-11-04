@@ -526,6 +526,10 @@ fun ThemeStoreScreen(
             optionsError = state.uploadOptionsError,
             uploadPhase = state.uploadPhase,
             uploadProgress = state.uploadProgress,
+            uploadTransferredBytes = state.uploadTransferredBytes,
+            uploadTotalBytes = state.uploadTotalBytes,
+            uploadSpeedBytesPerSecond = state.uploadSpeedBytesPerSecond,
+            uploadEtaSeconds = state.uploadEtaSeconds,
             submitting = state.submitting,
             errorText = state.uploadError,
             onBack = {

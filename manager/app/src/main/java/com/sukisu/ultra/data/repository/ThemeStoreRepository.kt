@@ -30,6 +30,8 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 data class ThemeCatalogLoad(
@@ -87,7 +89,7 @@ class ThemeStoreUnauthorizedException : IOException("Theme store token rejected"
 
 private class ProgressRequestBody(
     private val delegate: RequestBody,
-    private val onProgress: (Float) -> Unit,
+    private val onProgress: (Float, Long, Long) -> Unit,
 ) : RequestBody() {
     override fun contentType(): MediaType? = delegate.contentType()
 
@@ -102,7 +104,7 @@ private class ProgressRequestBody(
                 super.write(source, byteCount)
                 written += byteCount
                 if (total > 0L) {
-                    onProgress((written.toFloat() / total).coerceIn(0f, 1f))
+                    onProgress((written.toFloat() / total).coerceIn(0f, 1f), written, total)
                 }
             }
         }
@@ -134,7 +136,12 @@ class ThemeStoreRepository(
         const val MAX_PACKAGE_BYTES = 128L * 1024L * 1024L
         private const val BUFFER_SIZE = 64 * 1024
         private const val MAX_UPLOAD_CHUNK_BYTES = 8L * 1024L * 1024L
-        private const val PACKAGE_PROGRESS_WEIGHT = 0.95f
+        /** Parallel resumable chunks: more in-flight requests on high-latency links. */
+        private const val UPLOAD_WORKERS = 4
+        private const val UPLOAD_RETRIES = 3
+        private const val STREAM_BUFFER_SIZE = 128 * 1024
+        /** Flush often enough for live progress without turning every 128 KB into a packet. */
+        private const val STREAM_FLUSH_BYTES = 256 * 1024
         /** Persistent download cache ceiling; two maximum-size packages fit before eviction. */
         private const val MAX_DOWNLOAD_CACHE_BYTES = 256L * 1024L * 1024L
         /** Never trim a download that was touched recently; it may still be importing. */
@@ -286,6 +293,7 @@ class ThemeStoreRepository(
         baseUrl: String,
         token: String,
         onProgress: (Float) -> Unit,
+        onTransferred: (Long, Long) -> Unit = { _, _ -> },
     ): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
             val base = normalizeBaseUrl(baseUrl)
@@ -306,6 +314,7 @@ class ThemeStoreRepository(
                 sha256Of(finalFile) == expectedSha
             ) {
                 onProgress(1f)
+                onTransferred(entry.size, entry.size)
                 return@runCatching finalFile
             }
             finalFile.delete()
@@ -317,6 +326,7 @@ class ThemeStoreRepository(
                     tempFile.length() == entry.size && sha256Of(tempFile) == expectedSha -> {
                         moveDownloadedFile(tempFile, finalFile)
                         onProgress(1f)
+                        onTransferred(entry.size, entry.size)
                         return@runCatching finalFile
                     }
 
@@ -333,10 +343,12 @@ class ThemeStoreRepository(
                 resumeFrom = resumeFrom,
                 expectedSha = expectedSha,
                 onProgress = onProgress,
+                onTransferred = onTransferred,
                 allowRestart = resumeFrom > 0,
             )
             moveDownloadedFile(downloaded, finalFile)
             onProgress(1f)
+            onTransferred(entry.size, entry.size)
             finalFile
         }
     }
@@ -353,6 +365,7 @@ class ThemeStoreRepository(
         resumeFrom: Long,
         expectedSha: String,
         onProgress: (Float) -> Unit,
+        onTransferred: (Long, Long) -> Unit,
         allowRestart: Boolean,
     ): File {
         val requestBuilder = Request.Builder()
@@ -363,6 +376,7 @@ class ThemeStoreRepository(
         if (resumeFrom > 0) {
             requestBuilder.header("Range", "bytes=$resumeFrom-")
             onProgress((resumeFrom.toFloat() / entry.size).coerceIn(0f, 1f))
+            onTransferred(resumeFrom, entry.size)
         }
 
         downloadClient.newCall(requestBuilder.build()).execute().use { response ->
@@ -371,7 +385,7 @@ class ThemeStoreRepository(
                 tempFile.delete()
                 if (allowRestart) {
                     return downloadThemePackage(
-                        entry, url, token, tempFile, 0, expectedSha, onProgress, false,
+                        entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                     )
                 }
                 throw IOException("HTTP 416 for ${entry.path}")
@@ -389,7 +403,7 @@ class ThemeStoreRepository(
                     if (allowRestart) {
                         tempFile.delete()
                         return downloadThemePackage(
-                            entry, url, token, tempFile, 0, expectedSha, onProgress, false,
+                            entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                         )
                     }
                     throw IOException("Invalid Content-Range for ${entry.path}")
@@ -402,6 +416,7 @@ class ThemeStoreRepository(
                 // The server ignored Range (or this was a fresh request): rewrite from zero.
                 offset = 0
                 onProgress(0f)
+                onTransferred(0L, entry.size)
                 if (contentLength > entry.size) {
                     tempFile.delete()
                     throw IOException("Theme package is too large")
@@ -422,6 +437,7 @@ class ThemeStoreRepository(
                         }
                         output.write(buffer, 0, read)
                         onProgress((written.toFloat() / entry.size).coerceIn(0f, 1f))
+                        onTransferred(written, entry.size)
                     }
                 }
             }
@@ -430,7 +446,7 @@ class ThemeStoreRepository(
                 if (allowRestart && offset > 0) {
                     tempFile.delete()
                     return downloadThemePackage(
-                        entry, url, token, tempFile, 0, expectedSha, onProgress, false,
+                        entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                     )
                 }
                 tempFile.delete()
@@ -440,7 +456,7 @@ class ThemeStoreRepository(
                 if (allowRestart && offset > 0) {
                     tempFile.delete()
                     return downloadThemePackage(
-                        entry, url, token, tempFile, 0, expectedSha, onProgress, false,
+                        entry, url, token, tempFile, 0, expectedSha, onProgress, onTransferred, false,
                     )
                 }
                 tempFile.delete()
@@ -463,6 +479,7 @@ class ThemeStoreRepository(
         token: String,
         bearerToken: String? = null,
         onProgress: (Float) -> Unit = {},
+        onTransferred: (Long, Long) -> Unit = { _, _ -> },
     ): Result<ThemeStoreSubmitResponse> = withContext(Dispatchers.IO) {
         runCatching {
             val base = normalizeBaseUrl(baseUrl)
@@ -492,14 +509,23 @@ class ThemeStoreRepository(
 
             // Account uploads use the mirror's chunked session so a network drop can resume
             // instead of restarting a package that may be up to 128 MB.
+            val packageSize = submission.packageFile.length()
+            val attachmentBytes = submission.previewFile.length() +
+                (submission.avatarFile?.length() ?: 0L) +
+                submission.screenshotFiles.sumOf { it.length() }
+            val overallSize = (packageSize + attachmentBytes).coerceAtLeast(1L)
             val resumableUploadId = bearerToken?.takeIf { it.isNotBlank() }?.let { bearer ->
                 uploadPackageResumable(
                     base = base,
                     bearerToken = bearer,
                     packageFile = submission.packageFile,
                     onProgress = { progress ->
-                        onProgress(progress * PACKAGE_PROGRESS_WEIGHT)
+                        onProgress(
+                            (progress * packageSize.toFloat() / overallSize.toFloat())
+                                .coerceIn(0f, 1f),
+                        )
                     },
+                    onTransferred = { uploaded, _ -> onTransferred(uploaded, overallSize) },
                 )
             }
             if (resumableUploadId != null) {
@@ -533,12 +559,16 @@ class ThemeStoreRepository(
             }
 
             val endpoint = if (!bearerToken.isNullOrBlank()) "account/api/submit" else "submit"
-            val progressBody = ProgressRequestBody(builder.build()) { progress ->
+            val progressBody = ProgressRequestBody(builder.build()) { progress, written, total ->
                 if (resumableUploadId != null) {
-                    onProgress(
-                        PACKAGE_PROGRESS_WEIGHT + progress * (1f - PACKAGE_PROGRESS_WEIGHT),
-                    )
+                    // Keep one stable total (package + attachments) instead of
+                    // jumping at the 95% boundary; the multipart progress maps to
+                    // the attachment bytes.
+                    val transferred = packageSize + (attachmentBytes * progress).toLong()
+                    onTransferred(transferred, overallSize)
+                    onProgress((transferred.toFloat() / overallSize).coerceIn(0f, 1f))
                 } else {
+                    if (total > 0L) onTransferred(written, total)
                     onProgress(progress)
                 }
             }
@@ -581,6 +611,7 @@ class ThemeStoreRepository(
         bearerToken: String,
         packageFile: File,
         onProgress: (Float) -> Unit,
+        onTransferred: (Long, Long) -> Unit,
     ): String {
         val totalSize = packageFile.length()
         if (totalSize <= 0L || totalSize > MAX_PACKAGE_BYTES) {
@@ -602,35 +633,89 @@ class ThemeStoreRepository(
         val received = session.received
             .filter { it in 0 until session.totalChunks }
             .toSet()
-        var uploadedBytes = received.sumOf { index ->
+        val receivedBytes = received.sumOf { index ->
             uploadChunkLength(totalSize, chunkSize, index)
         }
-        onProgress((uploadedBytes.toFloat() / totalSize).coerceIn(0f, 1f))
+        val chunkProgress = HashMap<Long, Long>()
+        val reportLock = Any()
+        var lastReported = -1L
 
-        RandomAccessFile(packageFile, "r").use { file ->
-            var index = 0L
-            while (index < session.totalChunks) {
-                if (index !in received) {
-                    val offset = index * chunkSize
-                    val length = uploadChunkLength(totalSize, chunkSize, index)
-                    if (length > 0L) {
-                        file.seek(offset)
-                        val data = ByteArray(length.toInt())
-                        file.readFully(data)
-                        uploadPackageChunk(
-                            base = base,
-                            bearerToken = bearerToken,
-                            uploadId = session.uploadId,
-                            index = index,
-                            data = data,
-                        )
-                        uploadedBytes += length
-                        onProgress((uploadedBytes.toFloat() / totalSize).coerceIn(0f, 1f))
-                    }
-                }
-                index++
+        fun report() {
+            synchronized(reportLock) {
+                val inFlight = synchronized(chunkProgress) { chunkProgress.values.sum() }
+                val uploaded = (receivedBytes + inFlight).coerceAtMost(totalSize)
+                if (uploaded == lastReported) return
+                lastReported = uploaded
+                onTransferred(uploaded, totalSize)
+                onProgress((uploaded.toFloat() / totalSize).coerceIn(0f, 1f))
             }
         }
+
+        report()
+        val pending = ConcurrentLinkedQueue<Long>()
+        for (index in 0 until session.totalChunks) {
+            if (index !in received && uploadChunkLength(totalSize, chunkSize, index) > 0L) {
+                pending.add(index)
+            }
+        }
+        if (pending.isEmpty()) return session.uploadId
+
+        val workers = minOf(UPLOAD_WORKERS, pending.size).coerceAtLeast(1)
+        val pool = Executors.newFixedThreadPool(workers)
+        try {
+            val futures = (0 until workers).map {
+                pool.submit {
+                    RandomAccessFile(packageFile, "r").use { file ->
+                        while (!Thread.currentThread().isInterrupted) {
+                            val index = pending.poll() ?: break
+                            val offset = index * chunkSize
+                            val length = uploadChunkLength(totalSize, chunkSize, index)
+                            if (length <= 0L) continue
+                            var attempt = 0
+                            while (true) {
+                                try {
+                                    uploadPackageChunk(
+                                        base = base,
+                                        bearerToken = bearerToken,
+                                        uploadId = session.uploadId,
+                                        index = index,
+                                        offset = offset,
+                                        length = length,
+                                        file = file,
+                                        onBytes = { delta ->
+                                            synchronized(chunkProgress) {
+                                                chunkProgress.merge(index, delta, Long::plus)
+                                            }
+                                            report()
+                                        },
+                                    )
+                                    break
+                                } catch (error: Exception) {
+                                    synchronized(chunkProgress) { chunkProgress.remove(index) }
+                                    report()
+                                    if (error is ThemeStoreUnauthorizedException) throw error
+                                    attempt++
+                                    if (attempt >= UPLOAD_RETRIES) throw error
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for (future in futures) {
+                try {
+                    future.get()
+                } catch (error: java.util.concurrent.ExecutionException) {
+                    throw (error.cause as? Exception ?: IOException(error))
+                } catch (error: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    throw IOException("Upload interrupted", error)
+                }
+            }
+        } finally {
+            pool.shutdownNow()
+        }
+        report()
         return session.uploadId
     }
 
@@ -645,7 +730,10 @@ class ThemeStoreRepository(
             ThemeStoreUploadInitRequest(
                 filename = packageFile.name,
                 size = totalSize,
-                fingerprint = sha256Of(packageFile),
+                // Cheap identity for resuming an interrupted session. Hashing a
+                // 128 MB package here only delays the first byte; the final
+                // submit still verifies the package server-side.
+                fingerprint = "${packageFile.name}:$totalSize:${packageFile.lastModified()}",
             ),
         ).toRequestBody(JSON_MEDIA)
         val request = Request.Builder()
@@ -680,11 +768,44 @@ class ThemeStoreRepository(
         bearerToken: String,
         uploadId: String,
         index: Long,
-        data: ByteArray,
+        offset: Long,
+        length: Long,
+        file: RandomAccessFile,
+        onBytes: (Long) -> Unit,
     ) {
+        val body = object : RequestBody() {
+            override fun contentType(): MediaType = CHUNK_MEDIA
+
+            override fun contentLength(): Long = length
+
+            override fun writeTo(sink: BufferedSink) {
+                file.seek(offset)
+                val buffer = ByteArray(STREAM_BUFFER_SIZE)
+                var remaining = length
+                var sinceFlush = 0L
+                while (remaining > 0L) {
+                    if (Thread.currentThread().isInterrupted) {
+                        throw IOException("Upload cancelled")
+                    }
+                    val read = file.read(buffer, 0, minOf(buffer.size.toLong(), remaining).toInt())
+                    if (read <= 0) {
+                        throw IOException("Unexpected end of package while uploading a chunk")
+                    }
+                    sink.write(buffer, 0, read)
+                    onBytes(read.toLong())
+                    remaining -= read
+                    sinceFlush += read
+                    if (sinceFlush >= STREAM_FLUSH_BYTES) {
+                        sink.flush()
+                        sinceFlush = 0
+                    }
+                }
+                sink.flush()
+            }
+        }
         val request = Request.Builder()
             .url(base + "account/api/uploads/$uploadId/$index")
-            .post(data.toRequestBody(CHUNK_MEDIA))
+            .post(body)
             .header("Authorization", "Bearer $bearerToken")
             .header("X-Requested-With", "SukiSUThemeAdmin")
             .header("X-Client", "android")
