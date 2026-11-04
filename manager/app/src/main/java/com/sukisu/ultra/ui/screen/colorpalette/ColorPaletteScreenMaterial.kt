@@ -345,6 +345,145 @@ fun ColorPaletteScreenMaterial(
             }
 
             item {
+                SegmentedColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
+
+                    item {
+                        SegmentedSectionHeader(
+                            title = stringResource(R.string.settings_section_colors),
+                            summary = stringResource(R.string.settings_section_colors_summary),
+                            icon = Icons.Rounded.Colorize,
+                            expanded = colorsSectionExpanded,
+                            onClick = {
+                                actions.onSetColorsSectionExpanded(!colorsSectionExpanded)
+                            },
+                        )
+                    }
+                    item(visible = colorsSectionExpanded) {
+                        SegmentedItemContainer {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                val options = listOf(
+                                    listOf(ColorMode.SYSTEM) to stringResource(R.string.settings_theme_mode_system),
+                                    listOf(ColorMode.LIGHT) to stringResource(R.string.settings_theme_mode_light),
+                                    listOf(ColorMode.DARK) to stringResource(R.string.settings_theme_mode_dark),
+                                    listOf(ColorMode.DARK_AMOLED) to stringResource(R.string.settings_theme_mode_dark)
+                                )
+
+                                options.chunked(4).forEach { rowOptions ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                                    ) {
+                                        rowOptions.forEachIndexed { index, (modes, label) ->
+                                            ExpressiveToggleButton(
+                                                checked = currentColorMode in modes,
+                                                onCheckedChange = {
+                                                    if (it) {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                                                        actions.onSetColorMode(modes.first())
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .semantics { role = Role.RadioButton },
+                                                shapes = when (index) {
+                                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                    rowOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                },
+                                            ) {
+                                                Icon(
+                                                    imageVector = when (modes.first()) {
+                                                        ColorMode.SYSTEM -> Icons.Filled.Brightness4
+                                                        ColorMode.LIGHT -> Icons.Filled.Brightness7
+                                                        ColorMode.DARK -> Icons.Filled.Brightness3
+                                                        ColorMode.DARK_AMOLED -> Icons.Filled.Brightness1
+                                                        else -> Icons.Filled.Brightness4
+                                                    },
+                                                    contentDescription = label
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    item(visible = colorsSectionExpanded) {
+                        val swatchShape = LocalListItemShapes.current?.shape
+                            ?: RoundedCornerShape(24.dp)
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceBright),
+                            shape = swatchShape,
+                        ) {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                item {
+                                    ColorButtonMaterial(
+                                        color = Color.Unspecified,
+                                        isSelected = currentKeyColor == 0,
+                                        isDark = isDark,
+                                        isAmoled = isAmoled,
+                                        paletteStyle = colorStyle,
+                                        colorSpec = colorSpec,
+                                        onClick = {
+                                            actions.onSetKeyColor(0)
+                                        }
+                                    )
+                                }
+
+                                items(keyColorOptions) { color ->
+                                    ColorButtonMaterial(
+                                        color = Color(color),
+                                        isSelected = currentKeyColor == color,
+                                        isDark = isDark,
+                                        isAmoled = isAmoled,
+                                        paletteStyle = colorStyle,
+                                        colorSpec = colorSpec,
+                                        onClick = {
+                                            actions.onSetKeyColor(color)
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    item(visible = colorsSectionExpanded) {
+                        val styles = PaletteStyle.entries
+                        SegmentedDropdownItem(
+                            icon = Icons.Rounded.Style,
+                            title = stringResource(R.string.settings_color_style),
+                            items = styles.map { it.name },
+                            selectedIndex = styles.indexOf(colorStyle),
+                            onItemSelected = { index ->
+                                actions.onSetColorStyle(styles[index].name)
+                            }
+                        )
+                    }
+                    item(visible = colorsSectionExpanded) {
+                        val specs = ColorSpec.SpecVersion.entries
+                        SegmentedDropdownItem(
+                            icon = Icons.Rounded.DesignServices,
+                            title = stringResource(R.string.settings_color_spec),
+                            items = specs.map { it.name },
+                            selectedIndex = specs.indexOf(colorSpec).coerceAtLeast(0),
+                            onItemSelected = { index ->
+                                actions.onSetColorSpec(specs[index].name)
+                            }
+                        )
+                    }
+                }
+            }
+
+            item {
                 val pickImageLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.PickVisualMedia()
                 ) { uri: Uri? ->
@@ -411,26 +550,6 @@ fun ColorPaletteScreenMaterial(
                                 )
                             }
                         }
-                        val hasCustomBgFile = hasCustomBg && !usingSystemWallpaper
-                        val hasCardBgFile = state.homeCardImagePath.isNotBlank() && File(state.homeCardImagePath).isFile
-                        val hasStickerFile = state.homeCardStickers.any { File(it.path).isFile }
-                        if (hasCustomBgFile || hasCardBgFile || hasStickerFile) {
-                            item(visible = backgroundSectionExpanded) {
-                                SegmentedListItem(
-                                    onClick = {
-                                        val fileName = ImageStorage.exportImagesFileName(
-                                            hasBackground = hasCustomBgFile,
-                                            hasCardBackground = hasCardBgFile,
-                                            stickerCount = state.homeCardStickers.count { File(it.path).isFile },
-                                        )
-                                        exportImagesLauncher.launch(fileName)
-                                    },
-                                    headlineContent = { Text(stringResource(id = R.string.settings_export_images)) },
-                                    supportingContent = { Text(stringResource(id = R.string.settings_export_images_summary)) },
-                                    leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.settings_export_images)) },
-                                )
-                            }
-                        }
                     }
                     if (usingSystemWallpaper || hasCustomBg) {
                         item(visible = backgroundSectionExpanded) {
@@ -450,6 +569,28 @@ fun ColorPaletteScreenMaterial(
                                 checked = state.extractColorFromBackground,
                                 onCheckedChange = actions.onSetExtractColorFromBackground,
                             )
+                        }
+                    }
+                    if (!usingSystemWallpaper) {
+                        val hasCustomBgFile = hasCustomBg && !usingSystemWallpaper
+                        val hasCardBgFile = state.homeCardImagePath.isNotBlank() && File(state.homeCardImagePath).isFile
+                        val hasStickerFile = state.homeCardStickers.any { File(it.path).isFile }
+                        if (hasCustomBgFile || hasCardBgFile || hasStickerFile) {
+                            item(visible = backgroundSectionExpanded) {
+                                SegmentedListItem(
+                                    onClick = {
+                                        val fileName = ImageStorage.exportImagesFileName(
+                                            hasBackground = hasCustomBgFile,
+                                            hasCardBackground = hasCardBgFile,
+                                            stickerCount = state.homeCardStickers.count { File(it.path).isFile },
+                                        )
+                                        exportImagesLauncher.launch(fileName)
+                                    },
+                                    headlineContent = { Text(stringResource(id = R.string.settings_export_images)) },
+                                    supportingContent = { Text(stringResource(id = R.string.settings_export_images_summary)) },
+                                    leadingContent = { IconTile(Icons.Rounded.FileDownload, stringResource(id = R.string.settings_export_images)) },
+                                )
+                            }
                         }
                     }
                 }
@@ -605,35 +746,6 @@ fun ColorPaletteScreenMaterial(
                         )
                     }
                     item(visible = appearanceSectionExpanded) {
-                        SegmentedSwitchItem(
-                            icon = Icons.Rounded.Fingerprint,
-                            title = stringResource(id = R.string.settings_show_fullstatus),
-                            summary = stringResource(id = R.string.settings_show_fullstatus_summary),
-                            checked = state.showFullStatus,
-                            onCheckedChange = actions.onSetShowFullStatus
-                        )
-                    }
-                    item(visible = appearanceSectionExpanded) {
-                        SegmentedSwitchItem(
-                            icon = Icons.Rounded.Warning,
-                            title = stringResource(id = R.string.settings_hide_home_warnings),
-                            summary = stringResource(id = R.string.settings_hide_home_warnings_summary),
-                            checked = state.hideHomeWarnings,
-                            onCheckedChange = actions.onSetHideHomeWarnings
-                        )
-                    }
-                    if (AiFeatureBridge.isAvailable) {
-                        item(visible = appearanceSectionExpanded) {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.AutoAwesome,
-                                title = stringResource(id = AiR.string.ai_show_home_card),
-                                summary = stringResource(id = AiR.string.ai_show_home_card_summary),
-                                checked = state.showAiHomeCard,
-                                onCheckedChange = actions.onSetShowAiHomeCard
-                            )
-                        }
-                    }
-                    item(visible = appearanceSectionExpanded) {
                         val currentIcon = BuiltinAppIcons.find(uiState.appIconId)
                         SegmentedListItem(
                             onClick = actions.onOpenAppIcon,
@@ -685,6 +797,35 @@ fun ColorPaletteScreenMaterial(
                             },
                         )
                     }
+                    item(visible = appearanceSectionExpanded) {
+                        SegmentedSwitchItem(
+                            icon = Icons.Rounded.Fingerprint,
+                            title = stringResource(id = R.string.settings_show_fullstatus),
+                            summary = stringResource(id = R.string.settings_show_fullstatus_summary),
+                            checked = state.showFullStatus,
+                            onCheckedChange = actions.onSetShowFullStatus
+                        )
+                    }
+                    item(visible = appearanceSectionExpanded) {
+                        SegmentedSwitchItem(
+                            icon = Icons.Rounded.Warning,
+                            title = stringResource(id = R.string.settings_hide_home_warnings),
+                            summary = stringResource(id = R.string.settings_hide_home_warnings_summary),
+                            checked = state.hideHomeWarnings,
+                            onCheckedChange = actions.onSetHideHomeWarnings
+                        )
+                    }
+                    if (AiFeatureBridge.isAvailable) {
+                        item(visible = appearanceSectionExpanded) {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.AutoAwesome,
+                                title = stringResource(id = AiR.string.ai_show_home_card),
+                                summary = stringResource(id = AiR.string.ai_show_home_card_summary),
+                                checked = state.showAiHomeCard,
+                                onCheckedChange = actions.onSetShowAiHomeCard
+                            )
+                        }
+                    }
                 }
             }
 
@@ -725,6 +866,26 @@ fun ColorPaletteScreenMaterial(
                                 )
                             },
                         )
+                    }
+                    if (state.homeCardImagePath.isNotBlank()) {
+                        item(visible = homeCardSectionExpanded) {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Star,
+                                title = stringResource(R.string.settings_hide_home_card_decoration),
+                                summary = stringResource(R.string.settings_hide_home_card_decoration_summary),
+                                checked = state.hideHomeCardDecoration,
+                                onCheckedChange = actions.onSetHideHomeCardDecoration,
+                            )
+                        }
+                        item(visible = homeCardSectionExpanded) {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.Home,
+                                title = stringResource(R.string.settings_hide_home_card_status_text),
+                                summary = stringResource(R.string.settings_hide_home_card_status_text_summary),
+                                checked = state.hideHomeCardStatusText,
+                                onCheckedChange = actions.onSetHideHomeCardStatusText,
+                            )
+                        }
                     }
                     item(visible = homeCardSectionExpanded) {
                         SegmentedListItem(
@@ -924,24 +1085,6 @@ fun ColorPaletteScreenMaterial(
                     }
                     if (state.homeCardImagePath.isNotBlank()) {
                         item(visible = homeCardSectionExpanded) {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.Star,
-                                title = stringResource(R.string.settings_hide_home_card_decoration),
-                                summary = stringResource(R.string.settings_hide_home_card_decoration_summary),
-                                checked = state.hideHomeCardDecoration,
-                                onCheckedChange = actions.onSetHideHomeCardDecoration,
-                            )
-                        }
-                        item(visible = homeCardSectionExpanded) {
-                            SegmentedSwitchItem(
-                                icon = Icons.Rounded.Home,
-                                title = stringResource(R.string.settings_hide_home_card_status_text),
-                                summary = stringResource(R.string.settings_hide_home_card_status_text_summary),
-                                checked = state.hideHomeCardStatusText,
-                                onCheckedChange = actions.onSetHideHomeCardStatusText,
-                            )
-                        }
-                        item(visible = homeCardSectionExpanded) {
                             SegmentedListItem(
                                 onClick = actions.onClearHomeCardImage,
                                 headlineContent = { Text(stringResource(R.string.settings_home_card_image_clear)) },
@@ -956,144 +1099,6 @@ fun ColorPaletteScreenMaterial(
                                 },
                             )
                         }
-                    }
-                }
-            }
-            item {
-                SegmentedColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
-
-                    item {
-                        SegmentedSectionHeader(
-                            title = stringResource(R.string.settings_section_colors),
-                            summary = stringResource(R.string.settings_section_colors_summary),
-                            icon = Icons.Rounded.Colorize,
-                            expanded = colorsSectionExpanded,
-                            onClick = {
-                                actions.onSetColorsSectionExpanded(!colorsSectionExpanded)
-                            },
-                        )
-                    }
-                    item(visible = colorsSectionExpanded) {
-                        SegmentedItemContainer {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                val options = listOf(
-                                    listOf(ColorMode.SYSTEM) to stringResource(R.string.settings_theme_mode_system),
-                                    listOf(ColorMode.LIGHT) to stringResource(R.string.settings_theme_mode_light),
-                                    listOf(ColorMode.DARK) to stringResource(R.string.settings_theme_mode_dark),
-                                    listOf(ColorMode.DARK_AMOLED) to stringResource(R.string.settings_theme_mode_dark)
-                                )
-
-                                options.chunked(4).forEach { rowOptions ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
-                                    ) {
-                                        rowOptions.forEachIndexed { index, (modes, label) ->
-                                            ExpressiveToggleButton(
-                                                checked = currentColorMode in modes,
-                                                onCheckedChange = {
-                                                    if (it) {
-                                                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                                        actions.onSetColorMode(modes.first())
-                                                    }
-                                                },
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .semantics { role = Role.RadioButton },
-                                                shapes = when (index) {
-                                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                                    rowOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                                },
-                                            ) {
-                                                Icon(
-                                                    imageVector = when (modes.first()) {
-                                                        ColorMode.SYSTEM -> Icons.Filled.Brightness4
-                                                        ColorMode.LIGHT -> Icons.Filled.Brightness7
-                                                        ColorMode.DARK -> Icons.Filled.Brightness3
-                                                        ColorMode.DARK_AMOLED -> Icons.Filled.Brightness1
-                                                        else -> Icons.Filled.Brightness4
-                                                    },
-                                                    contentDescription = label
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    item(visible = colorsSectionExpanded) {
-                        val swatchShape = LocalListItemShapes.current?.shape
-                            ?: RoundedCornerShape(24.dp)
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceBright),
-                            shape = swatchShape,
-                        ) {
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            ) {
-                                item {
-                                    ColorButtonMaterial(
-                                        color = Color.Unspecified,
-                                        isSelected = currentKeyColor == 0,
-                                        isDark = isDark,
-                                        isAmoled = isAmoled,
-                                        paletteStyle = colorStyle,
-                                        colorSpec = colorSpec,
-                                        onClick = {
-                                            actions.onSetKeyColor(0)
-                                        }
-                                    )
-                                }
-
-                                items(keyColorOptions) { color ->
-                                    ColorButtonMaterial(
-                                        color = Color(color),
-                                        isSelected = currentKeyColor == color,
-                                        isDark = isDark,
-                                        isAmoled = isAmoled,
-                                        paletteStyle = colorStyle,
-                                        colorSpec = colorSpec,
-                                        onClick = {
-                                            actions.onSetKeyColor(color)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    item(visible = colorsSectionExpanded) {
-                        val styles = PaletteStyle.entries
-                        SegmentedDropdownItem(
-                            icon = Icons.Rounded.Style,
-                            title = stringResource(R.string.settings_color_style),
-                            items = styles.map { it.name },
-                            selectedIndex = styles.indexOf(colorStyle),
-                            onItemSelected = { index ->
-                                actions.onSetColorStyle(styles[index].name)
-                            }
-                        )
-                    }
-                    item(visible = colorsSectionExpanded) {
-                        val specs = ColorSpec.SpecVersion.entries
-                        SegmentedDropdownItem(
-                            icon = Icons.Rounded.DesignServices,
-                            title = stringResource(R.string.settings_color_spec),
-                            items = specs.map { it.name },
-                            selectedIndex = specs.indexOf(colorSpec).coerceAtLeast(0),
-                            onItemSelected = { index ->
-                                actions.onSetColorSpec(specs[index].name)
-                            }
-                        )
                     }
                 }
             }
@@ -1143,22 +1148,6 @@ fun ColorPaletteScreenMaterial(
                     }
                     item(visible = themePackageSectionExpanded) {
                         SegmentedListItem(
-                            onClick = { showResetThemeDialog = true },
-                            headlineContent = { Text(stringResource(id = R.string.theme_reset)) },
-                            supportingContent = { Text(stringResource(id = R.string.theme_reset_summary)) },
-                            leadingContent = { IconTile(Icons.Rounded.Restore, stringResource(id = R.string.theme_reset)) },
-                        )
-                    }
-                    item(visible = themePackageSectionExpanded) {
-                        SegmentedListItem(
-                            onClick = { showClearAllDialog = true },
-                            headlineContent = { Text(stringResource(id = R.string.theme_clear_all)) },
-                            supportingContent = { Text(stringResource(id = R.string.theme_clear_all_summary)) },
-                            leadingContent = { IconTile(Icons.Rounded.Delete, stringResource(id = R.string.theme_clear_all)) },
-                        )
-                    }
-                    item(visible = themePackageSectionExpanded) {
-                        SegmentedListItem(
                             onClick = {
                                 importThemeLauncher.launch(
                                     arrayOf(
@@ -1196,6 +1185,22 @@ fun ColorPaletteScreenMaterial(
                                     stringResource(id = R.string.theme_adaptive_builder_title),
                                 )
                             },
+                        )
+                    }
+                    item(visible = themePackageSectionExpanded) {
+                        SegmentedListItem(
+                            onClick = { showResetThemeDialog = true },
+                            headlineContent = { Text(stringResource(id = R.string.theme_reset)) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_reset_summary)) },
+                            leadingContent = { IconTile(Icons.Rounded.Restore, stringResource(id = R.string.theme_reset)) },
+                        )
+                    }
+                    item(visible = themePackageSectionExpanded) {
+                        SegmentedListItem(
+                            onClick = { showClearAllDialog = true },
+                            headlineContent = { Text(stringResource(id = R.string.theme_clear_all)) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_clear_all_summary)) },
+                            leadingContent = { IconTile(Icons.Rounded.Delete, stringResource(id = R.string.theme_clear_all)) },
                         )
                     }
                 }
@@ -1637,10 +1642,10 @@ private fun appearanceSectionIndex(section: String?): Int? {
     val hasPredictive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
     return when (id) {
         "preview" -> 0
-        "background" -> 1
-        "appearance" -> 2
-        "home_card", "sticker" -> 3
-        "colors", "color_mode", "palette" -> 4
+        "colors", "color_mode", "palette" -> 1
+        "background" -> 2
+        "appearance" -> 3
+        "home_card", "sticker" -> 4
         "theme_package" -> 5
         "chrome", "bottom_bar" -> 6
         "predictive_back" -> if (hasPredictive) 7 else 6

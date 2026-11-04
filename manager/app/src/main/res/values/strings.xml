@@ -266,7 +266,7 @@
     <string name="settings_section_background_summary">Wallpaper, color extraction and background appearance</string>
     <string name="settings_section_theme_package">Theme package</string>
     <string name="settings_section_theme_package_summary">Export, import and reset the theme</string>
-    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_appearance">Home</string>
     <string name="settings_section_appearance_summary">Home status, icon and custom texts</string>
     <string name="settings_section_home_card">Home status card</string>
     <string name="settings_section_home_card_summary">Image, sticker and display options</string>

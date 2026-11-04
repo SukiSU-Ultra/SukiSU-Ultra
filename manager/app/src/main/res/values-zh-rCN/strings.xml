@@ -238,7 +238,7 @@
     <string name="settings_section_background_summary">壁纸、取色与背景外观</string>
     <string name="settings_section_theme_package">主题包</string>
     <string name="settings_section_theme_package_summary">导出、导入与恢复主题</string>
-    <string name="settings_section_appearance">外观</string>
+    <string name="settings_section_appearance">首页</string>
     <string name="settings_section_appearance_summary">首页状态、图标与自定义文字</string>
     <string name="settings_section_home_card">首页状态卡</string>
     <string name="settings_section_home_card_summary">背景图、贴纸与显示选项</string>
