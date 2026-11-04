@@ -47,6 +47,7 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.refreshBackgroundAppearance()
         viewModel.refreshAdaptiveAppearance()
+        viewModel.refreshCustomAppearance()
     }
     // The activity handles uiMode itself, so re-apply the adaptive half when the system flips.
     LaunchedEffect(isSystemInDarkTheme()) {
@@ -132,6 +133,7 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onOpenAdaptiveThemeBuilder = { navigator.push(Route.AdaptiveThemeBuilder) },
         onResetBackgroundAppearance = viewModel::resetBackgroundAppearance,
         onClearAllAppearance = viewModel::clearAllAppearance,
+        onOpenAppearanceEditor = { navigator.push(Route.AppearanceOverlay) },
     )
 
     ThemeImportDialog(

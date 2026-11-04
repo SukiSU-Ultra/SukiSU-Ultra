@@ -318,6 +318,7 @@ fun ColorPaletteScreenMaterial(
                     state.hideHomeCardStatusText,
                     state.hideHomeCardDecoration,
                     state.homeCardStickers,
+                    state.appearance,
                 ) {
                     ThemePreviewSpec(
                         keyColor = currentKeyColor,
@@ -339,6 +340,7 @@ fun ColorPaletteScreenMaterial(
                         hideHomeCardText = state.hideHomeCardStatusText,
                         hideHomeCardDecoration = state.hideHomeCardDecoration,
                         homeCardStickers = state.homeCardStickers,
+                        appearance = state.appearance,
                     )
                 }
                 ThemePreviewMaterial(spec = previewSpec)
@@ -478,6 +480,36 @@ fun ColorPaletteScreenMaterial(
                             onItemSelected = { index ->
                                 actions.onSetColorSpec(specs[index].name)
                             }
+                        )
+                    }
+                    item(visible = colorsSectionExpanded) {
+                        SegmentedListItem(
+                            onClick = actions.onOpenAppearanceEditor,
+                            headlineContent = { Text(stringResource(R.string.appearance_overlay_title)) },
+                            supportingContent = {
+                                Text(
+                                    stringResource(
+                                        if (state.customAppearanceJson.isNotBlank()) {
+                                            R.string.appearance_overlay_active
+                                        } else {
+                                            R.string.appearance_overlay_summary
+                                        }
+                                    )
+                                )
+                            },
+                            leadingContent = {
+                                IconTile(
+                                    Icons.Rounded.Palette,
+                                    stringResource(R.string.appearance_overlay_title),
+                                )
+                            },
+                            trailingContent = {
+                                Icon(
+                                    imageVector = Icons.Rounded.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            },
                         )
                     }
                 }
@@ -1476,6 +1508,8 @@ fun ColorPaletteScreenMaterial(
             exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
         },
         adaptive = state.adaptiveThemeActive || state.adaptiveDraftComplete,
+        hasCustomColors = state.customColorsPresent,
+        hasImageEffects = state.imageEffectsPresent,
     )
 }
 

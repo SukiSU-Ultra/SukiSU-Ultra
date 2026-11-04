@@ -122,6 +122,13 @@ data class SettingsUiState(
     val adaptiveDraftComplete: Boolean = false,
     
     val adaptiveDraftRevision: Int = 0,
+
+    /** Canonical JSON of the static colour / image-effect overlay, empty when disabled. */
+    val customAppearanceJson: String = "",
+    val customColorsPresent: Boolean = false,
+    val imageEffectsPresent: Boolean = false,
+    val appearance: com.sukisu.ultra.ui.util.ResolvedAppearance? = null,
+    val appearanceData: com.sukisu.ultra.ui.util.AppearanceOverlayData? = null,
 )
 
 /**
@@ -143,6 +150,8 @@ data class ThemePackageOptions(
     val interfaceSwitches: Boolean = true,
     val interactionBehavior: Boolean = true,
     val moduleDisplay: Boolean = true,
+    val customColors: Boolean = true,
+    val imageEffects: Boolean = true,
 )
 
 val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
@@ -164,6 +173,8 @@ val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
             it.interfaceSwitches,
             it.interactionBehavior,
             it.moduleDisplay,
+            it.customColors,
+            it.imageEffects,
         )
     },
     restore = {
@@ -186,6 +197,8 @@ val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
             interfaceSwitches = it.getOrElse(13) { true },
             interactionBehavior = it.getOrElse(14) { true },
             moduleDisplay = it.getOrElse(15) { true },
+            customColors = it.getOrElse(16) { true },
+            imageEffects = it.getOrElse(17) { true },
         )
     },
 )

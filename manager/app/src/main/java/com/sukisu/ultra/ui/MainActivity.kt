@@ -35,6 +35,7 @@ import com.sukisu.ultra.ui.theme.LocalAppSettings
 import com.sukisu.ultra.ui.theme.MaterialExpressivePalette
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
+import com.sukisu.ultra.ui.theme.appearanceImageEffects
 import java.io.File
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -112,6 +113,7 @@ import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.backgroundcrop.BackgroundCropScreen
 import com.sukisu.ultra.ui.screen.colorpalette.AdaptiveThemeBuilderScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
+import com.sukisu.ultra.ui.screen.appearanceoverlay.AppearanceOverlayScreen
 import com.sukisu.ultra.ui.screen.dynamicmanagers.DynamicManagersScreen
 import com.sukisu.ultra.ui.screen.extensions.ExtensionsScreen
 import com.sukisu.ultra.ui.screen.extensions.CpuSpoofScreen
@@ -386,6 +388,9 @@ class MainActivity : ComponentActivity() {
                             entry<Route.About>(swipeDismiss = swipeDismiss) { AboutScreen() }
                             entry<Route.Sulog>(swipeDismiss = swipeDismiss) { SulogScreen() }
                             entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) { key -> ColorPaletteScreen(key.section, key.importUri) }
+                            entry<Route.AppearanceOverlay>(swipeDismiss = swipeDismiss) {
+                                AppearanceOverlayScreen(onBack = { navigator.pop() })
+                            }
                             entry<Route.CustomTexts>(swipeDismiss = swipeDismiss) { CustomTextScreen() }
                             entry<Route.ThemeStore>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette { ThemeStoreScreen() }
@@ -534,6 +539,7 @@ class MainActivity : ComponentActivity() {
                         val backgroundBlurRadius = (
                             ImageStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * uiState.customBackgroundBlurPercent / 100f
                         ).dp
+                        val backgroundEffects = themedAppSettings.appearance?.background
                         Crossfade(
                             modifier = if (captureAppBackground) {
                                 Modifier.layerBackdrop(appBackgroundBackdrop)
@@ -563,6 +569,12 @@ class MainActivity : ComponentActivity() {
                                             } else {
                                                 Modifier
                                             }
+                                        )
+                                        // Sharpen after a blur would just fight the blur, so only
+                                        // apply it while the background is unblurred.
+                                        .appearanceImageEffects(
+                                            backgroundEffects,
+                                            allowSharpen = backgroundBlurRadius <= 0.dp,
                                         )
                                 )
                                 val scrimPercent = uiState.customBackgroundScrimPercent

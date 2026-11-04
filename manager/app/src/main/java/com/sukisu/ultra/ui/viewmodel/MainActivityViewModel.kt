@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
+import com.sukisu.ultra.data.repository.KEY_CUSTOM_APPEARANCE
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.theme.ThemeController
@@ -193,6 +194,7 @@ class MainActivityViewModel(
             "custom_texts",
             "adaptive_theme",
             "adaptive_applied_mode",
+            KEY_CUSTOM_APPEARANCE,
             "home_card_image_path",
             "home_card_stickers",
             "hide_home_card_status_text",

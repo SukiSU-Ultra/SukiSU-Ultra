@@ -60,10 +60,14 @@ fun ThemeOptionsDialog(
     adaptive: Boolean = false,
     adaptiveNotice: Int = R.string.theme_adaptive_import_notice,
     forceMaterial: Boolean = false,
+    hasCustomColors: Boolean = false,
+    hasImageEffects: Boolean = false,
 ) {
     if (!show) return
 
     var colors by rememberSaveable { mutableStateOf(true) }
+    var customColors by rememberSaveable { mutableStateOf(true) }
+    var imageEffects by rememberSaveable { mutableStateOf(true) }
     var backgroundImage by rememberSaveable { mutableStateOf(true) }
     var backgroundAppearance by rememberSaveable { mutableStateOf(true) }
     var homeCardImage by rememberSaveable { mutableStateOf(true) }
@@ -110,6 +114,8 @@ fun ThemeOptionsDialog(
         interfaceSwitches = interfaceSwitches,
         interactionBehavior = interactionBehavior,
         moduleDisplay = moduleDisplay,
+        customColors = customColors && hasCustomColors,
+        imageEffects = imageEffects && hasImageEffects,
     )
 
     when (if (forceMaterial) UiMode.Material else LocalUiMode.current) {
@@ -141,6 +147,16 @@ fun ThemeOptionsDialog(
                                     onCheckedChange = { colors = it },
                                 )
                             }
+                            if (hasCustomColors) {
+                                item {
+                                    MiuixOptionRow(
+                                        title = stringResource(R.string.theme_opt_custom_colors),
+                                        checked = customColors,
+                                        onCheckedChange = { customColors = it },
+                                        nested = true,
+                                    )
+                                }
+                            }
                             item { OptionGroupLabel(stringResource(R.string.settings_section_background)) }
                             if (hasBackgroundImage) {
                                 item {
@@ -157,6 +173,16 @@ fun ThemeOptionsDialog(
                                     checked = backgroundAppearance,
                                     onCheckedChange = { backgroundAppearance = it },
                                 )
+                            }
+                            if (hasImageEffects) {
+                                item {
+                                    MiuixOptionRow(
+                                        title = stringResource(R.string.theme_opt_image_effects),
+                                        checked = imageEffects,
+                                        onCheckedChange = { imageEffects = it },
+                                        nested = true,
+                                    )
+                                }
                             }
                             item { OptionGroupLabel(stringResource(R.string.settings_section_home_card)) }
                             if (hasCardImage) {
@@ -304,6 +330,14 @@ fun ThemeOptionsDialog(
                             checked = colors,
                             onCheckedChange = { colors = it },
                         )
+                        if (hasCustomColors) {
+                            MaterialCheckboxRow(
+                                title = stringResource(R.string.theme_opt_custom_colors),
+                                checked = customColors,
+                                onCheckedChange = { customColors = it },
+                                modifier = Modifier.padding(start = 16.dp),
+                            )
+                        }
                         MaterialOptionGroupLabel(stringResource(R.string.settings_section_background))
                         if (hasBackgroundImage) {
                             MaterialCheckboxRow(
@@ -317,6 +351,14 @@ fun ThemeOptionsDialog(
                             checked = backgroundAppearance,
                             onCheckedChange = { backgroundAppearance = it },
                         )
+                        if (hasImageEffects) {
+                            MaterialCheckboxRow(
+                                title = stringResource(R.string.theme_opt_image_effects),
+                                checked = imageEffects,
+                                onCheckedChange = { imageEffects = it },
+                                modifier = Modifier.padding(start = 16.dp),
+                            )
+                        }
                         MaterialOptionGroupLabel(stringResource(R.string.settings_section_home_card))
                         if (hasCardImage) {
                             MaterialCheckboxRow(

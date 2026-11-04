@@ -52,6 +52,8 @@ interface SettingsRepository {
     var adaptiveAppliedMode: Int
     
     var adaptiveDraftJson: String
+    /** Canonical JSON for the static colour/image-effect overlay; empty when disabled. */
+    var customAppearanceJson: String
     var uiMode: String
     var appLanguage: String
     var checkUpdate: Boolean

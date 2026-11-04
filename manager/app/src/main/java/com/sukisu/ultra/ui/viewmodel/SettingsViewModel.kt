@@ -38,6 +38,8 @@ import com.sukisu.ultra.ui.util.AdaptiveThemeDraft
 import com.sukisu.ultra.ui.util.AdaptiveThemeState
 import com.sukisu.ultra.ui.util.AdaptiveThemeStore
 import com.sukisu.ultra.ui.util.AdaptiveThemeVariantState
+import com.sukisu.ultra.ui.util.AppearanceOverlayData
+import com.sukisu.ultra.ui.util.AppearanceOverlayStore
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.ImportedThemeVariant
 import com.sukisu.ultra.ui.util.ThemePackageAdaptiveExport
@@ -68,6 +70,9 @@ class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
+    /** Parsed once when the view model is created; the store caches by raw JSON afterwards. */
+    private val initialAppearanceData = AppearanceOverlayStore.data(repo)
+
     private val _uiState = MutableStateFlow(SettingsUiState(
         checkUpdate = repo.checkUpdate,
         checkCiUpdate = repo.checkCiUpdate,
@@ -94,6 +99,11 @@ class SettingsViewModel(
         adaptiveDraftLightCaptured = AdaptiveThemeStore.loadDraft(repo)?.light != null,
         adaptiveDraftDarkCaptured = AdaptiveThemeStore.loadDraft(repo)?.dark != null,
         adaptiveDraftComplete = AdaptiveThemeStore.loadDraft(repo)?.complete == true,
+        customAppearanceJson = repo.customAppearanceJson,
+        customColorsPresent = initialAppearanceData?.colors != null,
+        imageEffectsPresent = initialAppearanceData?.image != null,
+        appearance = AppearanceOverlayStore.load(repo),
+        appearanceData = initialAppearanceData,
     ))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -147,6 +157,8 @@ class SettingsViewModel(
             val showAiHomeCard = repo.showAiHomeCard
             val colorStyle = repo.colorStyle
             val colorSpec = repo.colorSpec
+            val customAppearanceJson = repo.customAppearanceJson
+            val appearanceData = withContext(Dispatchers.IO) { AppearanceOverlayStore.data(repo) }
             val isLkmMode = repo.isLkmMode()
 
             // Async loading for natives/features
@@ -222,6 +234,11 @@ class SettingsViewModel(
                     hideHomeCardStatusText = repo.hideHomeCardStatusText,
                     hideHomeCardDecoration = repo.hideHomeCardDecoration,
                     homeCardStickers = repo.homeCardStickers,
+                    customAppearanceJson = customAppearanceJson,
+                    customColorsPresent = appearanceData?.colors != null,
+                    imageEffectsPresent = appearanceData?.image != null,
+                    appearance = AppearanceOverlayStore.load(repo),
+                    appearanceData = appearanceData,
                     themeMode = themeMode,
                     miuixMonet = miuixMonet,
                     keyColor = keyColor,
@@ -632,6 +649,54 @@ class SettingsViewModel(
 
     fun exportCustomBackground(context: Context, uri: Uri) = exportImages(context, uri)
 
+    /** Applies a validated static overlay. Parsing happens in the editor/package boundary. */
+    fun applyCustomAppearance(data: AppearanceOverlayData) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { AppearanceOverlayStore.save(repo, data) }
+            val saved = AppearanceOverlayStore.data(repo)
+            _uiState.update {
+                it.copy(
+                    customAppearanceJson = repo.customAppearanceJson,
+                    customColorsPresent = saved?.colors != null,
+                    imageEffectsPresent = saved?.image != null,
+                    appearance = AppearanceOverlayStore.load(repo),
+                    appearanceData = saved,
+                )
+            }
+        }
+    }
+
+    fun resetCustomAppearance() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { AppearanceOverlayStore.clear(repo) }
+            _uiState.update {
+                it.copy(
+                    customAppearanceJson = "",
+                    customColorsPresent = false,
+                    imageEffectsPresent = false,
+                    appearance = null,
+                    appearanceData = null,
+                )
+            }
+        }
+    }
+
+    /** Re-reads the overlay after it may have changed outside this screen (AI, packages, ...). */
+    fun refreshCustomAppearance() {
+        viewModelScope.launch {
+            val saved = withContext(Dispatchers.IO) { AppearanceOverlayStore.data(repo) }
+            _uiState.update {
+                it.copy(
+                    customAppearanceJson = repo.customAppearanceJson,
+                    customColorsPresent = saved?.colors != null,
+                    imageEffectsPresent = saved?.image != null,
+                    appearance = AppearanceOverlayStore.load(repo),
+                    appearanceData = saved,
+                )
+            }
+        }
+    }
+
     fun exportTheme(context: Context, uri: Uri, options: ThemePackageOptions) {
         viewModelScope.launch {
             val payload = currentThemePayload(options)
@@ -771,8 +836,17 @@ class SettingsViewModel(
             } else {
                 null
             },
+            appearance = currentAppearanceForExport(options),
         )
         return CurrentThemePayload(data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
+    }
+
+    private fun currentAppearanceForExport(options: ThemePackageOptions): AppearanceOverlayData? {
+        val data = AppearanceOverlayStore.data(repo) ?: return null
+        val colors = data.colors.takeIf { options.customColors }
+        val image = data.image.takeIf { options.imageEffects }
+        if (colors == null && image == null) return null
+        return AppearanceOverlayData(colors = colors, image = image)
     }
 
     private fun buildAdaptiveExport(
@@ -1456,6 +1530,24 @@ class SettingsViewModel(
             effectiveCustomTexts = textsMap
         }
 
+        if (options.customColors || options.imageEffects) {
+            // Selected sections are replaced as a whole; unselected sections keep the user's
+            // current overlay. A package without the selected section clears it, matching the
+            // "clear first, then overwrite" behaviour of the other groups.
+            val merged = AppearanceOverlayStore.merge(
+                current = AppearanceOverlayStore.data(repo),
+                incoming = data.appearance,
+                applyColors = options.customColors,
+                applyImageEffects = options.imageEffects,
+            )
+            if (merged == null) {
+                AppearanceOverlayStore.clear(repo)
+            } else {
+                AppearanceOverlayStore.save(repo, merged)
+            }
+        }
+        val savedAppearance = AppearanceOverlayStore.data(repo)
+
         if (adaptiveState != null) {
             val dark = isEffectiveDarkMode(context)
             AdaptiveThemeStore.apply(repo, adaptiveState.variant(dark))
@@ -1512,6 +1604,11 @@ class SettingsViewModel(
                 hideHomeCardStatusText = hideHomeCardStatusText,
                 hideHomeCardDecoration = hideHomeCardDecoration,
                 homeCardStickers = homeCardStickers,
+                customAppearanceJson = repo.customAppearanceJson,
+                customColorsPresent = savedAppearance?.colors != null,
+                imageEffectsPresent = savedAppearance?.image != null,
+                appearance = AppearanceOverlayStore.load(repo),
+                appearanceData = savedAppearance,
                 adaptiveThemeActive = adaptiveState != null,
                 useSystemWallpaper = if (
                     options.backgroundImage &&
@@ -2661,6 +2758,10 @@ class SettingsViewModel(
             hideHomeWarnings = hideHomeWarnings,
             showAiHomeCard = showAiHomeCard,
             moduleDescriptionMaxLines = moduleDescriptionMaxLines,
+            appearance = appearance,
+            customAppearanceJson = customAppearanceJson,
+            customColorsPresent = customColorsPresent,
+            imageEffectsPresent = imageEffectsPresent,
         )
     }
 

@@ -98,7 +98,10 @@ fun MiuixKernelSUTheme(
             } else {
                 baseColors.copy()
             }
-            MiuixTheme(readableColors) {
+            // Overlay after the background-aware contrast tweak: an explicit theme/user colour
+            // always wins. The tokens are resolved once per theme change, not per frame.
+            val overlaidColors = readableColors.withAppearance(appSettings.appearance?.colorsFor(darkTheme))
+            MiuixTheme(overlaidColors) {
                 MonetColorsProvider.UpdateCss()
                 CompositionLocalProvider(
                     LocalContentColor provides MiuixTheme.colorScheme.onBackground,

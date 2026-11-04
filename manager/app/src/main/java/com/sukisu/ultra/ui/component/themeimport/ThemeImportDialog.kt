@@ -45,5 +45,7 @@ fun ThemeImportDialog(
         formatVersion = theme.data.version,
         adaptive = theme.isAdaptive,
         forceMaterial = forceMaterial,
+        hasCustomColors = data.appearance?.colors != null,
+        hasImageEffects = data.appearance?.image != null,
     )
 }

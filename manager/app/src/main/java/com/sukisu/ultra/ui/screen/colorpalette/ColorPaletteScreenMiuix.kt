@@ -234,6 +234,7 @@ fun ColorPaletteScreenMiuix(
         state.hideHomeCardStatusText,
         state.hideHomeCardDecoration,
         state.homeCardStickers,
+        state.appearance,
     ) {
         ThemePreviewSpec(
             keyColor = state.keyColor,
@@ -255,6 +256,7 @@ fun ColorPaletteScreenMiuix(
             hideHomeCardText = state.hideHomeCardStatusText,
             hideHomeCardDecoration = state.hideHomeCardDecoration,
             homeCardStickers = state.homeCardStickers,
+            appearance = state.appearance,
         )
     }
     var showExportDialog by rememberSaveable { mutableStateOf(false) }
@@ -518,6 +520,26 @@ fun ColorPaletteScreenMiuix(
                                         }
                                     }
                                 }
+                                HorizontalDivider()
+                                ArrowPreference(
+                                    title = stringResource(R.string.appearance_overlay_title),
+                                    summary = stringResource(
+                                        if (state.customAppearanceJson.isNotBlank()) {
+                                            R.string.appearance_overlay_active
+                                        } else {
+                                            R.string.appearance_overlay_summary
+                                        }
+                                    ),
+                                    startAction = {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Palette,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = stringResource(R.string.appearance_overlay_title),
+                                            tint = colorScheme.onBackground,
+                                        )
+                                    },
+                                    onClick = actions.onOpenAppearanceEditor,
+                                )
                             }
                         }
                     }
@@ -1611,6 +1633,8 @@ fun ColorPaletteScreenMiuix(
             exportThemeLauncher.launch(ThemePackageStorage.packageFileName())
         },
         adaptive = state.adaptiveThemeActive || state.adaptiveDraftComplete,
+        hasCustomColors = state.customColorsPresent,
+        hasImageEffects = state.imageEffectsPresent,
     )
 }
 

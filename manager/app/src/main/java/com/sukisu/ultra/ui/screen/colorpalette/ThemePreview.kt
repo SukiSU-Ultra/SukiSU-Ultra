@@ -113,12 +113,15 @@ import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
 import com.sukisu.ultra.ui.theme.LocalColorMode
 import com.sukisu.ultra.ui.theme.Shapes
 import com.sukisu.ultra.ui.theme.Typography
+import com.sukisu.ultra.ui.theme.appearanceImageEffects
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.theme.effectiveFor
 import com.sukisu.ultra.ui.theme.rememberKernelSUColorScheme
+import com.sukisu.ultra.ui.theme.withAppearance
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.HomeCardSticker
+import com.sukisu.ultra.ui.util.ResolvedAppearance
 import com.sukisu.ultra.ui.util.drawPainterCover
 import top.yukonga.miuix.kmp.basic.Badge as MiuixBadge
 import top.yukonga.miuix.kmp.basic.BadgedBox as MiuixBadgedBox
@@ -163,6 +166,7 @@ internal data class ThemePreviewSpec(
     val hideHomeCardText: Boolean = false,
     val hideHomeCardDecoration: Boolean = false,
     val homeCardStickers: List<HomeCardSticker> = emptyList(),
+    val appearance: ResolvedAppearance? = null,
 )
 
 private const val PreviewDesignWidthDp = 360f
@@ -244,19 +248,23 @@ internal fun ThemePreviewMiuix(
             )
         },
     ) {
+        val overlayTokens = spec.appearance?.colorsFor(spec.isDark)
         MiuixTheme(controller = controller) {
-            CompositionLocalProvider(
-                LocalColorMode provides if (spec.isDark) ColorMode.DARK.value else ColorMode.LIGHT.value,
-                LocalBackgroundImagePath provides spec.backgroundPath,
-                LocalCardBackgroundAlpha provides spec.cardAlpha,
-            ) {
-                val colors = MiuixTheme.colorScheme
-                PreviewDevice(
-                    spec = spec,
-                    screenColor = colors.surface,
-                    contentColor = colors.onBackground,
-                ) { screenModifier ->
-                    MiuixPreviewScreen(spec, screenModifier)
+            val themedColors = MiuixTheme.colorScheme.withAppearance(overlayTokens)
+            MiuixTheme(themedColors) {
+                CompositionLocalProvider(
+                    LocalColorMode provides if (spec.isDark) ColorMode.DARK.value else ColorMode.LIGHT.value,
+                    LocalBackgroundImagePath provides spec.backgroundPath,
+                    LocalCardBackgroundAlpha provides spec.cardAlpha,
+                ) {
+                    val colors = MiuixTheme.colorScheme
+                    PreviewDevice(
+                        spec = spec,
+                        screenColor = colors.surface,
+                        contentColor = colors.onBackground,
+                    ) { screenModifier ->
+                        MiuixPreviewScreen(spec, screenModifier)
+                    }
                 }
             }
         }
@@ -292,9 +300,13 @@ internal fun ThemePreviewMaterial(
             )
         }
     }
+    val overlayTokens = spec.appearance?.colorsFor(spec.isDark)
+    val themedScheme = remember(previewScheme, overlayTokens) {
+        previewScheme.withAppearance(overlayTokens)
+    }
 
     MaterialExpressiveTheme(
-        colorScheme = previewScheme,
+        colorScheme = themedScheme,
         motionScheme = MotionScheme.expressive(),
         shapes = Shapes,
         typography = Typography,
@@ -443,7 +455,11 @@ private fun PreviewBackgroundImage(spec: ThemePreviewSpec) {
         contentScale = ContentScale.Crop,
         modifier = Modifier
             .fillMaxSize()
-            .then(if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier),
+            .then(if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier)
+            .appearanceImageEffects(
+                spec.appearance?.background,
+                allowSharpen = blurRadius <= 0.dp,
+            ),
     )
 
     val scrimPercent = spec.backgroundScrimPercent

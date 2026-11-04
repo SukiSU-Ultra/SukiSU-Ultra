@@ -17,6 +17,8 @@ fun ThemeExportDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (ThemePackageOptions) -> Unit,
     adaptive: Boolean = false,
+    hasCustomColors: Boolean = false,
+    hasImageEffects: Boolean = false,
 ) {
     ThemeOptionsDialog(
         show = show,
@@ -29,12 +31,16 @@ fun ThemeExportDialog(
         availableCustomTextGroups = availableCustomTextGroups,
         onDismissRequest = onDismissRequest,
         onConfirm = onConfirm,
-        formatVersion = if (adaptive) {
+        formatVersion = if (hasCustomColors || hasImageEffects) {
+            com.sukisu.ultra.ui.util.ThemePackageStorage.APPEARANCE_VERSION
+        } else if (adaptive) {
             com.sukisu.ultra.ui.util.ThemePackageStorage.ADAPTIVE_VERSION
         } else {
             com.sukisu.ultra.ui.util.ThemePackageStorage.BASE_VERSION
         },
         adaptive = adaptive,
         adaptiveNotice = R.string.theme_adaptive_export_notice,
+        hasCustomColors = hasCustomColors,
+        hasImageEffects = hasImageEffects,
     )
 }

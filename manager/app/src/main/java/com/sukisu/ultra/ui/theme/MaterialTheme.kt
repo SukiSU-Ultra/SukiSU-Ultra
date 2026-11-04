@@ -53,8 +53,12 @@ fun MaterialExpressivePalette(
         paletteStyle = appSettings.paletteStyle,
         colorSpec = appSettings.colorSpec,
     )
+    val overlayTokens = appSettings.appearance?.colorsFor(darkTheme)
+    val overlaidScheme = remember(colorScheme, overlayTokens) {
+        colorScheme.withAppearance(overlayTokens)
+    }
     MaterialExpressiveTheme(
-        colorScheme = colorScheme,
+        colorScheme = overlaidScheme,
         motionScheme = MotionScheme.expressive(),
         shapes = Shapes,
         typography = Typography,
@@ -108,14 +112,18 @@ fun MaterialKernelSUTheme(
             )
         }
     }
+    val overlayTokens = appSettings.appearance?.colorsFor(darkTheme)
+    val overlaidScheme = remember(surfaceAwareColorScheme, overlayTokens) {
+        surfaceAwareColorScheme.withAppearance(overlayTokens)
+    }
 
     MaterialExpressiveTheme(
-        colorScheme = surfaceAwareColorScheme,
+        colorScheme = overlaidScheme,
         motionScheme = MotionScheme.expressive(),
         shapes = Shapes,
         typography = Typography,
         content = {
-            MonetColorsProvider.UpdateCss(colorScheme)
+            MonetColorsProvider.UpdateCss(overlaidScheme)
             content()
         }
     )

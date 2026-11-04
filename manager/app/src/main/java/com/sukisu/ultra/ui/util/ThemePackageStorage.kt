@@ -97,6 +97,11 @@ data class ThemePackageData(
     val moduleSortManual: Boolean? = null,
     val customHomeTitle: String? = null,
     val customTexts: Map<String, String>? = null,
+    /**
+     * Static colour / image-effect overlay. Top-level for both adaptive and plain packages:
+     * the overlay itself carries the light/dark split. Added in package format v4.
+     */
+    val appearance: AppearanceOverlayData? = null,
     
     val adaptive: Boolean? = null,
     val light: ThemeVariantData? = null,
@@ -162,7 +167,9 @@ object ThemePackageStorage {
     
     const val BASE_VERSION = 2
     const val ADAPTIVE_VERSION = 3
-    const val CURRENT_VERSION = ADAPTIVE_VERSION
+    /** Adds the optional static [ThemePackageData.appearance] overlay. */
+    const val APPEARANCE_VERSION = 4
+    const val CURRENT_VERSION = APPEARANCE_VERSION
     const val MIN_SUPPORTED_VERSION = 1
     const val THEME_MIME_TYPE = "application/x-sukisu-theme"
 
@@ -192,6 +199,9 @@ object ThemePackageStorage {
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
+        // Keep exported theme.json compact and avoid writing explicit nulls that older/third
+        // party validators may not expect. Missing nullable fields decode as null.
+        explicitNulls = false
     }
 
     fun packageFileName(): String {
@@ -245,7 +255,7 @@ object ThemePackageStorage {
         val packageData = if (adaptive != null) {
             validateAdaptiveExport(adaptive)
             data.copy(
-                version = ADAPTIVE_VERSION,
+                version = if (data.appearance != null) APPEARANCE_VERSION else ADAPTIVE_VERSION,
                 adaptive = true,
                 light = adaptive.light.data,
                 dark = adaptive.dark.data,
@@ -256,7 +266,11 @@ object ThemePackageStorage {
             )
         } else {
             data.copy(
-                version = if (data.version >= ADAPTIVE_VERSION) BASE_VERSION else data.version,
+                version = when {
+                    data.appearance != null -> APPEARANCE_VERSION
+                    data.version >= ADAPTIVE_VERSION -> BASE_VERSION
+                    else -> data.version
+                },
                 adaptive = false,
                 light = null,
                 dark = null,
@@ -390,11 +404,32 @@ object ThemePackageStorage {
         }
         val text = themeText ?: error("theme.json is missing")
         val data = json.decodeFromString(ThemePackageData.serializer(), text)
+        validateVersionedData(data)
+        return data
+    }
+
+    /**
+     * Older managers reject newer packages instead of applying only part of the theme. Keep that
+     * rule for the overlay: a manager that cannot read it must not silently render default
+     * colours over the author's background.
+     */
+    private fun validateVersionedData(data: ThemePackageData) {
         if (!isSupportedVersion(data.version)) error("Unsupported theme package version")
         if (data.adaptive == true && data.version < ADAPTIVE_VERSION) {
             error("Adaptive theme packages require format v$ADAPTIVE_VERSION")
         }
-        return data
+        if (data.appearance != null && data.version < APPEARANCE_VERSION) {
+            error("Appearance overlays require format v$APPEARANCE_VERSION")
+        }
+        data.appearance?.let { appearance ->
+            val appearanceJson = json.encodeToString(
+                AppearanceOverlayData.serializer(),
+                appearance,
+            )
+            AppearanceOverlayStore.parse(appearanceJson).getOrElse { failure ->
+                error("Invalid appearance overlay: ${failure.message}")
+            }
+        }
     }
 
     private fun parseThemeZip(context: Context, zip: ZipInputStream): ImportedTheme {
@@ -528,12 +563,9 @@ object ThemePackageStorage {
 
             val text = themeText ?: error("theme.json is missing")
             val data = json.decodeFromString(ThemePackageData.serializer(), text)
-            if (!isSupportedVersion(data.version)) error("Unsupported theme package version")
+            validateVersionedData(data)
 
             if (data.adaptive == true) {
-                if (data.version < ADAPTIVE_VERSION) {
-                    error("Adaptive theme packages require format v$ADAPTIVE_VERSION")
-                }
                 val lightData = data.light ?: error("Light variant is missing")
                 val darkData = data.dark ?: error("Dark variant is missing")
                 val light = resolveVariant(
