@@ -432,6 +432,7 @@ internal fun ThemeStoreUploadScreen(
                     ) {
                         listOf(
                             ThemePackageStorage.ADAPTIVE_TAG,
+                            R18_TAG,
                             "light",
                             "dark",
                             "pink",

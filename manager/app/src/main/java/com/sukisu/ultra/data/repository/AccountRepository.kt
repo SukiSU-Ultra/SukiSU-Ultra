@@ -4,9 +4,18 @@ import android.content.Context
 import androidx.core.content.edit
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.AccountCommentChangeResponse
+import com.sukisu.ultra.data.model.AccountConfigResponse
+import com.sukisu.ultra.data.model.AccountDevicePollResponse
+import com.sukisu.ultra.data.model.AccountDeviceStartResponse
+import com.sukisu.ultra.data.model.AccountFollowChangeResponse
+import com.sukisu.ultra.data.model.AccountFollowRequest
+import com.sukisu.ultra.data.model.AccountFollowsResponse
+import com.sukisu.ultra.data.model.AccountForgotPasswordRequest
 import com.sukisu.ultra.data.model.AccountLoginRequest
 import com.sukisu.ultra.data.model.AccountLoginResponse
 import com.sukisu.ultra.data.model.AccountMessagesResponse
+import com.sukisu.ultra.data.model.AccountPreferencesRequest
+import com.sukisu.ultra.data.model.AccountPreferencesResponse
 import com.sukisu.ultra.data.model.AccountProfileResponse
 import com.sukisu.ultra.data.model.AccountRegisterRequest
 import com.sukisu.ultra.data.model.AccountSession
@@ -153,7 +162,8 @@ class AccountRepository(
         val specific = runCatching {
             json.parseToJsonElement(raw).jsonObject["error"]?.toString()?.trim('"')
         }.getOrNull()
-        return specific?.takeIf { it.isNotBlank() } ?: "HTTP $code"
+        return specific?.takeIf { it.isNotBlank() }
+            ?: appContext.getString(R.string.account_http_error, code)
     }
 
     suspend fun login(baseUrl: String, login: String, password: String): Result<AccountSession> =
@@ -172,9 +182,9 @@ class AccountRepository(
                     val raw = response.body.string()
                     if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
                     val parsed = json.decodeFromString(AccountLoginResponse.serializer(), raw)
-                    if (!parsed.ok || parsed.user == null) throw IOException(parsed.error ?: "Login failed")
+                    if (!parsed.ok || parsed.user == null) throw IOException(parsed.error ?: appContext.getString(R.string.account_login_failed))
                     val token = parsed.token?.takeIf { it.isNotBlank() }
-                        ?: throw IOException("Server did not return an account token")
+                        ?: throw IOException(appContext.getString(R.string.account_token_missing))
                     val session = AccountSession(
                         baseUrl = resolvedBase(baseUrl) ?: "",
                         token = token,
@@ -234,8 +244,212 @@ class AccountRepository(
                 val updated = current.copy(
                     user = user,
                     activeAuthor = parsed.activeAuthor ?: current.activeAuthor,
+                    followers = parsed.followers,
+                    following = parsed.following,
                 )
                 saveSession(updated)
+            }
+        }
+    }
+
+    suspend fun config(baseUrl: String): Result<AccountConfigResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val api = apiBase(baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+            val request = Request.Builder()
+                .url(api + "config")
+                .header(CSRF_HEADER, CSRF_VALUE)
+                .get()
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body.string()
+                if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                json.decodeFromString(AccountConfigResponse.serializer(), raw)
+            }
+        }
+    }
+
+    suspend fun forgotPassword(baseUrl: String, login: String): Result<AccountSimpleResponse> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val api = apiBase(baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val body = json.encodeToString(
+                    AccountForgotPasswordRequest.serializer(),
+                    AccountForgotPasswordRequest(login = login.trim()),
+                ).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url(api + "auth/forgot-password")
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .header(CLIENT_HEADER, "android")
+                    .post(body)
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val raw = response.body.string()
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    json.decodeFromString(AccountSimpleResponse.serializer(), raw)
+                }
+            }
+        }
+
+    suspend fun startDeviceLogin(
+        baseUrl: String,
+        deviceName: String? = null,
+    ): Result<AccountDeviceStartResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val api = apiBase(baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+            val resolvedName = deviceName ?: appContext.getString(R.string.account_device_name)
+            val body = """{"deviceName":${json.encodeToString(String.serializer(), resolvedName)}}"""
+                .toRequestBody(JSON_MEDIA)
+            val request = Request.Builder()
+                .url(api + "auth/device/start")
+                .header(CSRF_HEADER, CSRF_VALUE)
+                .header(CLIENT_HEADER, "android")
+                .post(body)
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body.string()
+                if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                val parsed = json.decodeFromString(AccountDeviceStartResponse.serializer(), raw)
+                if (!parsed.ok || parsed.deviceCode.isBlank() || parsed.userCode.isBlank()) {
+                    throw IOException(parsed.error ?: appContext.getString(R.string.account_device_unavailable))
+                }
+                parsed
+            }
+        }
+    }
+
+    suspend fun pollDeviceLogin(baseUrl: String, deviceCode: String): Result<AccountDevicePollResponse> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val api = apiBase(baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val request = Request.Builder()
+                    .url(api + "auth/device/poll?deviceCode=" + deviceCode)
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val raw = response.body.string()
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    val parsed = json.decodeFromString(AccountDevicePollResponse.serializer(), raw)
+                    if (parsed.status == "approved") {
+                        val token = parsed.token?.takeIf { it.isNotBlank() }
+                            ?: throw IOException(parsed.error ?: appContext.getString(R.string.account_token_missing))
+                        val user = parsed.user ?: throw IOException(parsed.error ?: appContext.getString(R.string.account_login_failed))
+                        saveSession(
+                            AccountSession(
+                                baseUrl = resolvedBase(baseUrl) ?: "",
+                                token = token,
+                                user = user,
+                            ),
+                        )
+                    }
+                    parsed
+                }
+            }
+        }
+
+    suspend fun follows(baseUrl: String): Result<AccountFollowsResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val current = sessionFor(baseUrl) ?: throw IOException(appContext.getString(R.string.account_login_required))
+            val api = apiBase(current.baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+            val request = Request.Builder()
+                .url(api + "follows")
+                .header("Authorization", "Bearer ${current.token}")
+                .header(CSRF_HEADER, CSRF_VALUE)
+                .get()
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body.string()
+                if (response.code == 401) {
+                    removeSession(current.baseUrl)
+                    throw IOException(appContext.getString(R.string.account_session_expired))
+                }
+                if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                json.decodeFromString(AccountFollowsResponse.serializer(), raw)
+            }
+        }
+    }
+
+    suspend fun setFollow(
+        baseUrl: String,
+        authorHash: String,
+        follow: Boolean,
+    ): Result<AccountFollowChangeResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val current = sessionFor(baseUrl) ?: throw IOException(appContext.getString(R.string.account_login_required))
+            val api = apiBase(current.baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+            val body = json.encodeToString(
+                AccountFollowRequest.serializer(),
+                AccountFollowRequest(authorHash),
+            ).toRequestBody(JSON_MEDIA)
+            val request = Request.Builder()
+                .url(api + if (follow) "follows/follow" else "follows/unfollow")
+                .header("Authorization", "Bearer ${current.token}")
+                .header(CSRF_HEADER, CSRF_VALUE)
+                .post(body)
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body.string()
+                if (response.code == 401) {
+                    removeSession(current.baseUrl)
+                    throw IOException(appContext.getString(R.string.account_session_expired))
+                }
+                if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                json.decodeFromString(AccountFollowChangeResponse.serializer(), raw)
+            }
+        }
+    }
+
+    suspend fun getPreferences(baseUrl: String): Result<AccountPreferencesResponse> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val current = sessionFor(baseUrl)
+                    ?: throw IOException(appContext.getString(R.string.account_login_required))
+                val api = apiBase(current.baseUrl)
+                    ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+                val request = Request.Builder()
+                    .url(api + "preferences")
+                    .header("Authorization", "Bearer ${current.token}")
+                    .header(CSRF_HEADER, CSRF_VALUE)
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val raw = response.body.string()
+                    if (response.code == 401) {
+                        removeSession(current.baseUrl)
+                        throw IOException(appContext.getString(R.string.account_session_expired))
+                    }
+                    if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                    json.decodeFromString(AccountPreferencesResponse.serializer(), raw)
+                }
+            }
+        }
+
+    suspend fun savePreferences(
+        baseUrl: String,
+        showR18: Boolean?,
+        consentVersion: Long?,
+    ): Result<AccountPreferencesResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val current = sessionFor(baseUrl) ?: throw IOException(appContext.getString(R.string.account_login_required))
+            val api = apiBase(current.baseUrl) ?: throw IOException(appContext.getString(R.string.theme_store_invalid_url))
+            val body = json.encodeToString(
+                AccountPreferencesRequest.serializer(),
+                AccountPreferencesRequest(showR18, consentVersion),
+            ).toRequestBody(JSON_MEDIA)
+            val request = Request.Builder()
+                .url(api + "preferences")
+                .header("Authorization", "Bearer ${current.token}")
+                .header(CSRF_HEADER, CSRF_VALUE)
+                .post(body)
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body.string()
+                if (response.code == 401) {
+                    removeSession(current.baseUrl)
+                    throw IOException(appContext.getString(R.string.account_session_expired))
+                }
+                if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
+                json.decodeFromString(AccountPreferencesResponse.serializer(), raw)
             }
         }
     }
@@ -486,7 +700,17 @@ class AccountRepository(
                         throw IOException(appContext.getString(R.string.account_session_expired))
                     }
                     if (!response.isSuccessful) throw IOException(parseError(raw, response.code))
-                    json.decodeFromString(AccountUserSearchResponse.serializer(), raw).users
+                    val base = resolvedBase(current.baseUrl) ?: current.baseUrl
+                    json.decodeFromString(AccountUserSearchResponse.serializer(), raw)
+                        .users
+                        .map { user ->
+                            user.copy(
+                                avatarUrl = user.avatarUrl
+                                    .takeIf { it.isNotBlank() }
+                                    ?.let { path -> base + path.removePrefix("/") }
+                                    .orEmpty(),
+                            )
+                        }
                 }
             }
         }

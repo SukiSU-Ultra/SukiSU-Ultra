@@ -23,6 +23,7 @@ import com.sukisu.ultra.data.repository.AccountRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.ThemeStoreDefaults
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
+import com.sukisu.ultra.data.repository.ThemeStoreConsentStore
 import com.sukisu.ultra.data.repository.ThemeStoreSubmission
 import com.sukisu.ultra.data.repository.ThemeStoreUnauthorizedException
 import com.sukisu.ultra.ui.util.ThemePackageStorage
@@ -30,7 +31,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +41,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.util.Locale
 import kotlin.math.max
@@ -139,10 +143,15 @@ data class ThemeStoreUiState(
     val loaded: Boolean = false,
     val loading: Boolean = false,
     val refreshing: Boolean = false,
+    val needsConsent: Boolean = true,
+    val showR18: Boolean = false,
     val gridLayout: Boolean = true,
+    val followedAuthorKeys: Set<String> = emptySet(),
+    val followError: String? = null,
     val items: List<ThemeStoreItem> = emptyList(),
     val sources: List<ThemeStoreSource> = emptyList(),
     val fromCache: Boolean = false,
+    val maintenance: Boolean = false,
     val failedSources: Int = 0,
     val unauthorized: Boolean = false,
     val error: Boolean = false,
@@ -233,14 +242,27 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
     private val repository = ThemeStoreRepository(application)
     private val settings = SettingsRepositoryImpl()
     private val account = AccountRepository(application)
+    private val consentStore = ThemeStoreConsentStore(application)
+    private val initialConsent = consentStore.read()
+    private var followsJob: kotlinx.coroutines.Job? = null
+    private var loadJob: kotlinx.coroutines.Job? = null
+    private var preferencesPushJob: kotlinx.coroutines.Job? = null
+    private var preferencesPullJob: kotlinx.coroutines.Job? = null
+    private var localPreferenceRevision = 0L
+    private var preferencesSyncedAccounts: String? = null
+    private val preferencesSyncLock = Mutex()
     private var mentionRequestSeq = 0L
     private val _uiState = MutableStateFlow(
-        ThemeStoreUiState(gridLayout = settings.themeStoreGridLayout),
+        ThemeStoreUiState(
+            gridLayout = settings.themeStoreGridLayout,
+            needsConsent = initialConsent == null,
+            showR18 = initialConsent?.showR18 == true,
+        ),
     )
     val uiState: StateFlow<ThemeStoreUiState> = _uiState.asStateFlow()
 
     init {
-        load()
+        if (initialConsent != null) load()
         viewModelScope.launch(Dispatchers.IO) {
             repository.cleanupStaleCache()
         }
@@ -248,6 +270,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
 
     fun load() {
         val current = _uiState.value
+        if (current.needsConsent) return
         if (current.loading || current.refreshing) return
 
         account.reload()
@@ -263,10 +286,12 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     sources = emptyList(),
                     accounts = emptyList(),
                     fromCache = false,
+                    maintenance = false,
                     failedSources = 0,
                     unauthorized = false,
                     error = false,
                     needsConfig = true,
+                    followedAuthorKeys = emptySet(),
                 )
             }
             return
@@ -285,15 +310,30 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 accounts = accounts,
             )
         }
-        viewModelScope.launch {
+        refreshFollows(accounts)
+        loadJob = viewModelScope.launch {
+            // Apply the web R18 choice before the catalog becomes visible, so a stale local
+            // choice cannot briefly reveal adult themes after sign-in. A slow mirror must not
+            // hold the store hostage; fall back to the local value after a short wait.
+            withTimeoutOrNull(5_000) {
+                preferencesSyncLock.withLock {
+                    syncPreferencesNow(accounts, force = false)
+                }
+            }
             val results = sources
                 .map { source -> async { source to repository.loadCatalog(source.baseUrl, source.token) } }
                 .awaitAll()
             val successes = results.filter { it.second.isSuccess }
+            val catalogs = successes.map { (source, result) -> source to result.getOrThrow() }
             val sourceOrder = sources.mapIndexed { index, source -> source.id to index }.toMap()
-            val items = successes
-                .flatMap { (source, result) ->
-                    result.getOrThrow().catalog.themes.map { ThemeStoreItem(it, source) }
+            // A maintenance source contributes no items. When every reachable source is under
+            // maintenance the store shows a dedicated screen instead of a misleading empty grid.
+            val maintenance = catalogs.isNotEmpty() &&
+                catalogs.all { it.second.catalog.maintenance }
+            val items = catalogs
+                .filterNot { it.second.catalog.maintenance }
+                .flatMap { (source, load) ->
+                    load.catalog.themes.map { ThemeStoreItem(it, source) }
                 }
                 .distinctBy { it.key }
                 .sortedWith(
@@ -314,6 +354,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     sources = sources,
                     accounts = accounts,
                     fromCache = successes.any { it.second.getOrThrow().fromCache },
+                    maintenance = maintenance,
                     failedSources = failures,
                     unauthorized = unauthorized,
                     error = successes.isEmpty(),
@@ -329,11 +370,239 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(gridLayout = enabled) }
     }
 
+    fun acceptConsent() {
+        val record = consentStore.accept(showR18 = _uiState.value.showR18)
+        _uiState.update { it.copy(needsConsent = false, showR18 = record.showR18) }
+        // load() pulls the web choice before showing the catalog, so the agreement is accepted
+        // first on every install while an existing web R18 preference still wins afterwards.
+        load()
+    }
+
+    fun revokeConsent() {
+        consentStore.revoke()
+        loadJob?.cancel()
+        loadJob = null
+        followsJob?.cancel()
+        followsJob = null
+        preferencesPullJob?.cancel()
+        preferencesPullJob = null
+        preferencesPushJob?.cancel()
+        preferencesPushJob = null
+        preferencesSyncedAccounts = null
+        // Clear the server consent record without overwriting an R18 choice made on the web.
+        pushPreferences(showR18 = null, consentVersion = 0L)
+        // The next agreement acceptance must pull the web preference again.
+        preferencesSyncedAccounts = null
+        _uiState.update {
+            it.copy(
+                needsConsent = true,
+                showR18 = false,
+                loaded = false,
+                loading = false,
+                refreshing = false,
+                items = emptyList(),
+                followedAuthorKeys = emptySet(),
+                fromCache = false,
+                maintenance = false,
+                failedSources = 0,
+                unauthorized = false,
+                error = false,
+                needsConfig = false,
+                downloadingKey = null,
+                downloadFailed = false,
+                downloadTrial = false,
+                verifiedThemeKey = null,
+            )
+        }
+    }
+
+    fun setShowR18(enabled: Boolean) {
+        val record = consentStore.updateShowR18(enabled) ?: return
+        _uiState.update { it.copy(showR18 = enabled) }
+        pushPreferences(record.showR18, record.version.toLong())
+    }
+
+    /**
+     * Uploads the device-local agreement (and an explicit R18 choice) to every signed-in mirror.
+     */
+    private fun pushPreferences(showR18: Boolean?, consentVersion: Long) {
+        if (consentVersion > 0 && _uiState.value.needsConsent) return
+        val accounts = _uiState.value.accounts
+        if (accounts.isEmpty()) return
+        val syncKey = accountsSyncKey(accounts)
+        // A local change is authoritative until the next explicit resume sync; otherwise a
+        // refresh racing with this upload could read the old server value and undo the toggle.
+        preferencesSyncedAccounts = syncKey
+        preferencesPullJob?.cancel()
+        localPreferenceRevision += 1
+        val revision = localPreferenceRevision
+        preferencesPushJob?.cancel()
+        preferencesPushJob = viewModelScope.launch {
+            preferencesSyncLock.withLock {
+                if (revision != localPreferenceRevision) return@withLock
+                if (consentVersion > 0 && _uiState.value.needsConsent) return@withLock
+                if (syncKey != accountsSyncKey(_uiState.value.accounts)) return@withLock
+                accounts.forEach { entry ->
+                    if (revision != localPreferenceRevision) return@withLock
+                    account.savePreferences(entry.source.baseUrl, showR18, consentVersion)
+                }
+            }
+        }
+    }
+
+    private fun accountsSyncKey(accounts: List<ThemeStoreAccount>): String =
+        accounts.joinToString("|") { "${it.source.baseUrl}:${it.session.user.id}" }
+
+    /**
+     * Pulls the web content preference after sign-in. An explicit web R18 choice wins over the
+     * local switch; when no account has set one yet, the local value is uploaded so the account
+     * starts in sync. Device-local agreement acceptance is still required first, so uninstalling
+     * the manager always asks for consent again.
+     */
+    private fun syncPreferencesFromServer(
+        accounts: List<ThemeStoreAccount>,
+        force: Boolean,
+    ) {
+        if (accounts.isEmpty()) {
+            preferencesSyncedAccounts = null
+            return
+        }
+        if (!force && accountsSyncKey(accounts) == preferencesSyncedAccounts) return
+        preferencesPullJob?.cancel()
+        preferencesPullJob = viewModelScope.launch {
+            preferencesSyncLock.withLock {
+                syncPreferencesNow(accounts, force)
+            }
+        }
+    }
+
+    private suspend fun syncPreferencesNow(
+        accounts: List<ThemeStoreAccount>,
+        force: Boolean,
+    ) {
+        if (accounts.isEmpty()) {
+            preferencesSyncedAccounts = null
+            return
+        }
+        val syncKey = accountsSyncKey(accounts)
+        if (!force && syncKey == preferencesSyncedAccounts) return
+        val local = consentStore.read() ?: return
+        val revision = localPreferenceRevision
+        var remoteShowR18: Boolean? = null
+        var reachable = false
+        val accountsWithoutPreference = mutableSetOf<String>()
+        for (entry in accounts) {
+            if (revision != localPreferenceRevision) return
+            val response = account.getPreferences(entry.source.baseUrl).getOrNull()
+                ?: continue
+            reachable = true
+            if (response.showR18Set) {
+                remoteShowR18 = response.showR18
+                break
+            }
+            accountsWithoutPreference += entry.source.baseUrl
+        }
+        if (!reachable ||
+            revision != localPreferenceRevision ||
+            _uiState.value.needsConsent
+        ) {
+            return
+        }
+        if (remoteShowR18 != null) {
+            val value = remoteShowR18
+            if (local.showR18 != value && consentStore.updateShowR18(value) != null) {
+                _uiState.update { state ->
+                    if (state.needsConsent) state else state.copy(showR18 = value)
+                }
+            }
+        }
+        val current = consentStore.read() ?: return
+        if (revision != localPreferenceRevision) return
+        // Never overwrite an explicit web choice; only upload the local R18 value to servers
+        // that have no preference yet. Accounts whose GET failed are left untouched.
+        accounts.forEach { entry ->
+            if (revision != localPreferenceRevision) return
+            val baseUrl = entry.source.baseUrl
+            val serverHasNoChoice = baseUrl in accountsWithoutPreference
+            if (remoteShowR18 == null && !serverHasNoChoice) return@forEach
+            val showR18 = if (remoteShowR18 == null) current.showR18 else null
+            account.savePreferences(baseUrl, showR18, current.version.toLong())
+        }
+        if (revision == localPreferenceRevision) {
+            preferencesSyncedAccounts = syncKey
+        }
+    }
+
     fun refreshAccounts() {
         account.reload()
         val sources = configuredSources()
+        val accounts = accountsFor(sources)
         _uiState.update {
-            it.copy(sources = sources, accounts = accountsFor(sources))
+            it.copy(sources = sources, accounts = accounts)
+        }
+        refreshFollows(accounts)
+        // ON_RESUME also runs after returning from the account screen or the web, so re-read the
+        // server choice here even when the signed-in account set itself did not change.
+        syncPreferencesFromServer(accounts, force = true)
+    }
+
+    fun hasAccountFor(baseUrl: String): Boolean =
+        _uiState.value.accounts.any { it.source.baseUrl == baseUrl }
+
+    fun toggleFollow(item: ThemeStoreItem) {
+        val authorHash = item.entry.authorHash.trim()
+        if (authorHash.isEmpty()) return
+        val baseUrl = item.source.baseUrl
+        val key = themeFollowKey(baseUrl, authorHash)
+        if (key.isEmpty()) return
+        val currentlyFollowing = key in _uiState.value.followedAuthorKeys
+        _uiState.update {
+            it.copy(
+                followedAuthorKeys = if (currentlyFollowing) {
+                    it.followedAuthorKeys - key
+                } else {
+                    it.followedAuthorKeys + key
+                },
+                followError = null,
+            )
+        }
+        viewModelScope.launch {
+            account.setFollow(baseUrl, authorHash, follow = !currentlyFollowing)
+                .onFailure { error ->
+                    // Revert the optimistic update and surface the server/network error.
+                    _uiState.update {
+                        it.copy(
+                            followedAuthorKeys = if (currentlyFollowing) {
+                                it.followedAuthorKeys + key
+                            } else {
+                                it.followedAuthorKeys - key
+                            },
+                            followError = error.message,
+                        )
+                    }
+                }
+        }
+    }
+
+    fun clearFollowError() {
+        _uiState.update { it.copy(followError = null) }
+    }
+
+    private fun refreshFollows(accounts: List<ThemeStoreAccount>) {
+        if (accounts.isEmpty()) {
+            _uiState.update { it.copy(followedAuthorKeys = emptySet()) }
+            return
+        }
+        followsJob?.cancel()
+        followsJob = viewModelScope.launch {
+            val keys = mutableSetOf<String>()
+            for (entry in accounts) {
+                account.follows(entry.source.baseUrl).getOrNull()?.authors?.forEach { author ->
+                    val key = themeFollowKey(entry.source.baseUrl, author.authorHash)
+                    if (key.isNotEmpty()) keys += key
+                }
+            }
+            _uiState.update { it.copy(followedAuthorKeys = keys) }
         }
     }
 

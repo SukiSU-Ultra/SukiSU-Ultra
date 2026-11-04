@@ -3,15 +3,19 @@ package com.sukisu.ultra.ui.screen.account
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.AccountSession
 import com.sukisu.ultra.data.repository.AccountRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.ThemeStoreDefaults
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 data class AccountSource(
@@ -19,6 +23,16 @@ data class AccountSource(
     val name: String,
     val baseUrl: String,
     val isDefault: Boolean,
+)
+
+data class AccountDeviceLogin(
+    val deviceCode: String,
+    val userCode: String,
+    val verifyUrl: String,
+    val expiresIn: Long,
+    val interval: Long,
+    val status: String = "pending",
+    val error: String? = null,
 )
 
 data class AccountUiState(
@@ -31,6 +45,12 @@ data class AccountUiState(
     val registerMode: Boolean = false,
     val error: String? = null,
     val message: String? = null,
+    val mailConfigured: Boolean? = null,
+    val forgotPasswordOpen: Boolean = false,
+    val forgotPasswordSending: Boolean = false,
+    val forgotPasswordMessage: String? = null,
+    val forgotPasswordError: String? = null,
+    val deviceLogin: AccountDeviceLogin? = null,
 ) {
     val session: AccountSession?
         get() = sessions[selectedBaseUrl]
@@ -82,6 +102,134 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(error = null, message = null) }
     }
 
+    fun openForgotPassword() {
+        _uiState.update {
+            it.copy(
+                forgotPasswordOpen = true,
+                forgotPasswordMessage = null,
+                forgotPasswordError = null,
+            )
+        }
+    }
+
+    fun dismissForgotPassword() {
+        _uiState.update {
+            it.copy(
+                forgotPasswordOpen = false,
+                forgotPasswordSending = false,
+                forgotPasswordMessage = null,
+                forgotPasswordError = null,
+            )
+        }
+    }
+
+    fun sendPasswordReset(login: String) {
+        val normalized = login.trim()
+        if (normalized.isEmpty() || _uiState.value.forgotPasswordSending) return
+        val baseUrl = _uiState.value.selectedBaseUrl
+        _uiState.update {
+            it.copy(
+                forgotPasswordSending = true,
+                forgotPasswordMessage = null,
+                forgotPasswordError = null,
+            )
+        }
+        viewModelScope.launch {
+            repository.forgotPassword(baseUrl, normalized)
+                .onSuccess { response ->
+                    _uiState.update {
+                        it.copy(
+                            forgotPasswordSending = false,
+                            forgotPasswordMessage = response.message
+                                ?: getApplication<Application>().getString(R.string.account_forgot_sent),
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            forgotPasswordSending = false,
+                            forgotPasswordError = error.message,
+                        )
+                    }
+                }
+        }
+    }
+
+    fun startDeviceLogin() {
+        if (_uiState.value.deviceLogin != null) return
+        val baseUrl = _uiState.value.selectedBaseUrl
+        _uiState.update { it.copy(error = null, message = null) }
+        viewModelScope.launch {
+            repository.startDeviceLogin(baseUrl)
+                .onSuccess { response ->
+                    val login = AccountDeviceLogin(
+                        deviceCode = response.deviceCode,
+                        userCode = response.userCode,
+                        verifyUrl = response.verifyUrl,
+                        expiresIn = response.expiresIn.coerceAtLeast(60),
+                        interval = response.interval.coerceIn(1, 10),
+                    )
+                    _uiState.update { it.copy(deviceLogin = login) }
+                    pollDeviceLogin(baseUrl, login)
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(error = error.message) }
+                }
+        }
+    }
+
+    private var devicePollJob: Job? = null
+
+    private fun pollDeviceLogin(baseUrl: String, login: AccountDeviceLogin) {
+        devicePollJob?.cancel()
+        devicePollJob = viewModelScope.launch {
+            val deadline = System.currentTimeMillis() + login.expiresIn * 1000
+            while (isActive && System.currentTimeMillis() < deadline) {
+                delay(login.interval * 1000)
+                val parsed = repository.pollDeviceLogin(baseUrl, login.deviceCode).getOrNull()
+                if (parsed == null) {
+                    // Keep the code usable; transient network errors are retried until expiry.
+                    continue
+                }
+                when (parsed.status) {
+                    "approved" -> {
+                        _uiState.update { it.copy(deviceLogin = null) }
+                        refreshSelectedProfile()
+                        return@launch
+                    }
+                    "expired", "consumed" -> {
+                        _uiState.update { state ->
+                            state.copy(deviceLogin = state.deviceLogin?.copy(status = parsed.status))
+                        }
+                        return@launch
+                    }
+                    "pending" -> Unit
+                }
+            }
+            _uiState.update { state ->
+                state.copy(deviceLogin = state.deviceLogin?.copy(status = "expired"))
+            }
+        }
+    }
+
+    fun cancelDeviceLogin() {
+        devicePollJob?.cancel()
+        devicePollJob = null
+        _uiState.update { it.copy(deviceLogin = null) }
+    }
+
+    private fun refreshConfig(baseUrl: String) {
+        if (baseUrl.isBlank()) return
+        viewModelScope.launch {
+            repository.config(baseUrl).getOrNull()?.let { config ->
+                if (_uiState.value.selectedBaseUrl == baseUrl) {
+                    _uiState.update { it.copy(mailConfigured = config.email) }
+                }
+            }
+        }
+    }
+
     
     fun selectSource(baseUrl: String) {
         val source = _uiState.value.sources.firstOrNull { it.baseUrl == baseUrl } ?: return
@@ -122,6 +270,7 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     private fun refreshSelectedProfile() {
         val baseUrl = _uiState.value.selectedBaseUrl
+        refreshConfig(baseUrl)
         if (baseUrl.isBlank() || repository.sessionFor(baseUrl) == null) {
             _uiState.update { it.copy(loading = false) }
             return
@@ -190,7 +339,8 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                         it.copy(
                             submitting = false,
                             registerMode = false,
-                            message = response.message ?: "验证邮件已发送",
+                            message = response.message ?: getApplication<Application>()
+                                .getString(R.string.account_register_verification_sent),
                         )
                     }
                 }

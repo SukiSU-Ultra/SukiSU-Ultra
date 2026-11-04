@@ -584,6 +584,14 @@ internal fun ThemeStoreMentionPickerDialog(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onPrimary,
                                     )
+                                    if (user.avatarUrl.isNotBlank()) {
+                                        AsyncImage(
+                                            model = user.avatarUrl,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                    }
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(

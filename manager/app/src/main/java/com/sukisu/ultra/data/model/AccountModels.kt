@@ -165,6 +165,7 @@ data class AccountUserSummary(
     val displayName: String = "",
     val role: String = "user",
     val isAuthor: Boolean = false,
+    val avatarUrl: String = "",
 )
 
 @Serializable
@@ -207,8 +208,95 @@ data class AccountProfileResponse(
     val authors: List<AccountAuthor> = emptyList(),
     val activeAuthor: AccountAuthor? = null,
     val github: JsonElement? = null,
+    val followers: Long = 0L,
+    val following: Long = 0L,
+    val passwordConfigured: Boolean = false,
     val mailConfigured: Boolean = false,
     val githubConfigured: Boolean = false,
+    val qqConfigured: Boolean = false,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountFollowedAuthor(
+    val authorHash: String = "",
+    val displayName: String = "",
+)
+
+@Serializable
+data class AccountFollowsResponse(
+    val ok: Boolean = false,
+    val authors: List<AccountFollowedAuthor> = emptyList(),
+    val followers: Long = 0L,
+    val following: Long = 0L,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountFollowChangeResponse(
+    val ok: Boolean = false,
+    val following: Boolean = false,
+    val followers: Long = 0L,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountFollowRequest(
+    val authorHash: String,
+)
+
+@Serializable
+data class AccountForgotPasswordRequest(
+    val login: String,
+    val email: String = login,
+)
+
+@Serializable
+data class AccountConfigResponse(
+    val ok: Boolean = false,
+    val email: Boolean = false,
+    val github: Boolean = false,
+    val qq: Boolean = false,
+    val registration: Boolean = true,
+    val accountUrl: String = "",
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountDeviceStartResponse(
+    val ok: Boolean = false,
+    val deviceCode: String = "",
+    val userCode: String = "",
+    val verifyUrl: String = "",
+    val expiresIn: Long = 0,
+    val interval: Long = 2,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountPreferencesRequest(
+    val showR18: Boolean? = null,
+    val consentVersion: Long? = null,
+)
+
+@Serializable
+data class AccountPreferencesResponse(
+    val ok: Boolean = false,
+    val showR18: Boolean = false,
+    /** True when the web account has an explicit R18 preference, not just a consent record. */
+    val showR18Set: Boolean = false,
+    val consentVersion: Long = 0,
+    val consentAt: String? = null,
+    val error: String? = null,
+)
+
+@Serializable
+data class AccountDevicePollResponse(
+    val ok: Boolean = false,
+    val status: String = "",
+    val user: AccountUser? = null,
+    val expiresIn: Long = 0,
+    val token: String? = null,
     val error: String? = null,
 )
 
@@ -227,6 +315,8 @@ data class AccountSession(
     val token: String = "",
     val user: AccountUser = AccountUser(),
     val activeAuthor: AccountAuthor? = null,
+    val followers: Long = 0L,
+    val following: Long = 0L,
 )
 
 @Serializable

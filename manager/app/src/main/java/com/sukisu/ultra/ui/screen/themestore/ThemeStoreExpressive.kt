@@ -189,6 +189,22 @@ internal fun ThemeStoreSpeedBadge(
 
 
 @Composable
+internal fun ThemeR18Badge(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.94f),
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+    ) {
+        Text(
+            text = stringResource(R.string.theme_store_r18),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+        )
+    }
+}
+
+@Composable
 internal fun AdaptiveThemeBadge(
     modifier: Modifier = Modifier,
     compact: Boolean = false,

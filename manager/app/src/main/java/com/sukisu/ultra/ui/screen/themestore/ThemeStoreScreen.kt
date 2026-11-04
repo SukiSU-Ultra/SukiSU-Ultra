@@ -56,6 +56,7 @@ import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Tag
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
@@ -106,6 +107,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -188,6 +190,8 @@ fun ThemeStoreScreen(
     var showUpload by rememberSaveable { mutableStateOf(false) }
     var showSubmissions by rememberSaveable { mutableStateOf(false) }
     var showMessages by rememberSaveable { mutableStateOf(false) }
+    var showPreferences by rememberSaveable { mutableStateOf(false) }
+    var showConsentDialog by rememberSaveable { mutableStateOf(false) }
     var showAccountPicker by rememberSaveable { mutableStateOf(false) }
     var pendingAdaptiveTheme by rememberSaveable { mutableStateOf(false) }
     var adaptiveUploadHandled by rememberSaveable(startAdaptiveUpload) { mutableStateOf(false) }
@@ -208,7 +212,11 @@ fun ThemeStoreScreen(
             restore = { it.toSet() },
         ),
     ) { mutableStateOf(emptySet<String>()) }
-    val allTags = remember(state.items) { state.items.popularThemeTags(Int.MAX_VALUE) }
+    // Adult themes are hidden from search, tags and author pages until the user opts in.
+    val catalogItems = remember(state.items, state.showR18) {
+        if (state.showR18) state.items else state.items.filterNot { it.isR18Theme() }
+    }
+    val allTags = remember(catalogItems) { catalogItems.popularThemeTags(Int.MAX_VALUE) }
     // Hoisted above the store/author switch so orientation survives detail navigation instead
     // of re-measuring every preview when the grid comes back.
     val landscapePreviewKeys = remember { mutableStateMapOf<String, Boolean>() }
@@ -225,20 +233,22 @@ fun ThemeStoreScreen(
     }
     val adaptiveSearchLabel = stringResource(R.string.theme_adaptive_tag)
     val visibleItems = remember(
-        state.items,
+        catalogItems,
         searchQuery,
         sortMode,
         selectedTags,
         adaptiveSearchLabel,
+        state.followedAuthorKeys,
     ) {
-        state.items
+        catalogItems
             .filter { it.matchesSearch(searchQuery, adaptiveSearchLabel) }
             .filterByThemeTags(selectedTags)
             .sortedFor(sortMode)
+            .followedFirst(state.followedAuthorKeys)
     }
-    val authorItems = remember(state.items, selectedAuthor) {
+    val authorItems = remember(catalogItems, selectedAuthor) {
         selectedAuthor?.let { author ->
-            state.items
+            catalogItems
                 .forThemeAuthor(author)
                 .sortedWith(compareByDescending { it.entry.updatedAt })
         }.orEmpty()
@@ -355,6 +365,13 @@ fun ThemeStoreScreen(
         }
     }
 
+    LaunchedEffect(state.followError) {
+        state.followError?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.clearFollowError()
+        }
+    }
+
     LaunchedEffect(state.downloaded) {
         state.downloaded?.let { downloaded ->
             // Consume first: the trial now runs in the settings view model, so a rotation
@@ -451,6 +468,18 @@ fun ThemeStoreScreen(
     val detailItem = selectedItemKey?.let { key -> state.items.firstOrNull { it.key == key } }
     val currentAuthor = selectedAuthor
 
+    LaunchedEffect(state.needsConsent, showPreferences) {
+        // First entry shows the agreement automatically; the settings page stays available so
+        // the user can read the agreement again and reconnect.
+        if (state.needsConsent && !showPreferences) {
+            showConsentDialog = true
+        }
+    }
+
+    BackHandler(enabled = showPreferences) {
+        showPreferences = false
+    }
+
     BackHandler(enabled = detailItem != null) {
         closeDetail()
     }
@@ -478,6 +507,15 @@ fun ThemeStoreScreen(
     }
 
     when {
+        showPreferences -> ThemeStorePreferencesScreen(
+            consentAccepted = !state.needsConsent,
+            showR18 = state.showR18,
+            onToggleShowR18 = viewModel::setShowR18,
+            onRequestConsent = { showConsentDialog = true },
+            onRevokeConsent = viewModel::revokeConsent,
+            onBack = { showPreferences = false },
+        )
+
         detailItem != null -> ThemeStoreDetailScreen(
             item = detailItem,
             state = state,
@@ -498,6 +536,15 @@ fun ThemeStoreScreen(
             onCommentVisibilityChange = viewModel::setCommentVisibility,
             onSearchMentions = { query -> viewModel.searchMentionUsers(detailItem.source, query) },
             onClearMentionSearch = viewModel::clearMentionSearch,
+            followVisible = detailItem.entry.authorHash.isNotBlank(),
+            following = detailItem.followKey() in state.followedAuthorKeys,
+            onToggleFollow = {
+                if (viewModel.hasAccountFor(detailItem.source.baseUrl)) {
+                    viewModel.toggleFollow(detailItem)
+                } else {
+                    navigator.navigateTo(Route.ThemeAccount())
+                }
+            },
         )
 
         currentAuthor != null -> ThemeStoreAuthorScreen(
@@ -516,6 +563,14 @@ fun ThemeStoreScreen(
             onRefresh = { viewModel.load() },
             onOpenSettings = {
                 navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY)
+            },
+            followedAuthorKeys = state.followedAuthorKeys,
+            onToggleFollow = { item ->
+                if (viewModel.hasAccountFor(item.source.baseUrl)) {
+                    viewModel.toggleFollow(item)
+                } else {
+                    navigator.navigateTo(Route.ThemeAccount())
+                }
             },
         )
 
@@ -699,6 +754,23 @@ fun ThemeStoreScreen(
             },
             onAuthorClick = ::openAuthor,
             onDownload = viewModel::download,
+            needsConsent = state.needsConsent,
+            onRequestConsent = { showConsentDialog = true },
+            onOpenPreferences = { showPreferences = true },
+        )
+    }
+
+    if (showConsentDialog) {
+        ThemeStoreConsentDialog(
+            alreadyAccepted = !state.needsConsent,
+            onAccept = {
+                showConsentDialog = false
+                if (state.needsConsent) viewModel.acceptConsent()
+            },
+            onDismiss = {
+                showConsentDialog = false
+                if (state.needsConsent) navigator.pop()
+            },
         )
     }
 }
@@ -1023,6 +1095,9 @@ private fun ThemeStoreMaterial(
     onSelect: (ThemeStoreItem) -> Unit,
     onAuthorClick: (ThemeStoreItem) -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
+    needsConsent: Boolean,
+    onRequestConsent: () -> Unit,
+    onOpenPreferences: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val pullToRefreshState = rememberPullToRefreshState()
@@ -1070,7 +1145,8 @@ private fun ThemeStoreMaterial(
                 actions = {
                     MaterialIconButton(
                         onClick = onOpenUpload,
-                        enabled = !state.needsConfig && state.sources.isNotEmpty() && !state.submitting,
+                        enabled = !state.needsConfig && !state.maintenance &&
+                            state.sources.isNotEmpty() && !state.submitting,
                         colors = themeStoreTopBarIconColors(),
                     ) {
                         MaterialIcon(
@@ -1108,6 +1184,7 @@ private fun ThemeStoreMaterial(
                                         contentDescription = null,
                                     )
                                 },
+                                enabled = !state.maintenance,
                                 onClick = {
                                     menuExpanded = false
                                     onOpenAccount()
@@ -1121,6 +1198,7 @@ private fun ThemeStoreMaterial(
                                         contentDescription = null,
                                     )
                                 },
+                                enabled = !state.maintenance,
                                 onClick = {
                                     menuExpanded = false
                                     onOpenSubmissions()
@@ -1134,9 +1212,23 @@ private fun ThemeStoreMaterial(
                                         contentDescription = null,
                                     )
                                 },
+                                enabled = !state.maintenance,
                                 onClick = {
                                     menuExpanded = false
                                     onOpenMessages()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_preferences)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Tune,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenPreferences()
                                 },
                             )
                             HorizontalDivider(
@@ -1200,7 +1292,19 @@ private fun ThemeStoreMaterial(
         ),
     ) { paddingValues ->
         when {
+            needsConsent -> ThemeStoreConsentRequiredMaterial(
+                onRequestConsent = onRequestConsent,
+                onOpenPreferences = onOpenPreferences,
+                modifier = Modifier.padding(paddingValues),
+            )
+
             state.needsConfig -> ThemeStoreConfigRequiredMaterial(
+                onOpenSettings = onOpenSettings,
+                modifier = Modifier.padding(paddingValues),
+            )
+
+            state.maintenance -> ThemeStoreMaintenanceMaterial(
+                onRetry = onRefresh,
                 onOpenSettings = onOpenSettings,
                 modifier = Modifier.padding(paddingValues),
             )
@@ -1406,12 +1510,21 @@ internal fun ThemeCardMaterial(
                         ),
                     ),
             )
-            if (item.isAdaptiveTheme()) {
-                AdaptiveThemeBadge(
+            if (item.isR18Theme() || item.isAdaptiveTheme()) {
+                Column(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(10.dp),
-                )
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (item.isR18Theme()) {
+                        ThemeR18Badge()
+                    }
+                    if (item.isAdaptiveTheme()) {
+                        AdaptiveThemeBadge()
+                    }
+                }
             }
             Row(
                 modifier = Modifier
@@ -1653,13 +1766,21 @@ internal fun ThemeGridCardMaterial(
                         ),
                     ),
             )
-            if (item.isAdaptiveTheme()) {
-                AdaptiveThemeBadge(
-                    compact = true,
+            if (item.isR18Theme() || item.isAdaptiveTheme()) {
+                Column(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
-                )
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (item.isR18Theme()) {
+                        ThemeR18Badge()
+                    }
+                    if (item.isAdaptiveTheme()) {
+                        AdaptiveThemeBadge(compact = true)
+                    }
+                }
             }
             Column(
                 modifier = Modifier
@@ -1835,6 +1956,53 @@ private fun ThemeStoreConfigRequiredMaterial(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(8.dp))
+        MaterialTextButton(
+            onClick = onOpenSettings,
+            shapes = ButtonDefaults.shapes(),
+        ) {
+            MaterialText(stringResource(R.string.theme_store_settings))
+        }
+    }
+}
+
+@Composable
+private fun ThemeStoreMaintenanceMaterial(
+    onRetry: () -> Unit,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        MaterialIcon(
+            imageVector = Icons.Rounded.Warning,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(40.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        MaterialText(
+            text = stringResource(R.string.theme_store_maintenance_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(Modifier.height(6.dp))
+        MaterialText(
+            text = stringResource(R.string.theme_store_maintenance_message),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = onRetry,
+            shapes = ButtonDefaults.shapes(),
+        ) {
+            MaterialText(stringResource(R.string.theme_store_retry))
+        }
         MaterialTextButton(
             onClick = onOpenSettings,
             shapes = ButtonDefaults.shapes(),

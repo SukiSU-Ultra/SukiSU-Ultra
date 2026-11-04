@@ -15,6 +15,8 @@ data class ThemeStoreCatalog(
     val minFormatVersion: Int = 1,
     val supportedFormats: List<Int> = emptyList(),
     val generatedAt: String? = null,
+    /** Site-wide maintenance switch; when true the manager should not present the catalog. */
+    val maintenance: Boolean = false,
     val themes: List<ThemeStoreEntry> = emptyList(),
 )
 
@@ -24,10 +26,12 @@ data class ThemeStoreEntry(
     val version: Int = 1,
     val name: String = "",
     val author: String = "",
+    val authorHash: String = "",
     val description: String = "",
     val tags: List<String> = emptyList(),
     
     val adaptive: Boolean = false,
+    val r18: Boolean = false,
     val license: String = "",
     val minManagerVersion: Long = 0L,
     val formatVersion: Int = 1,

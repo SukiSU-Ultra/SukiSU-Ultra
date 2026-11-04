@@ -32,14 +32,17 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.ViewCarousel
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -80,6 +83,8 @@ internal fun ThemeStoreAuthorScreen(
     onDownload: (ThemeStoreItem) -> Unit,
     onRefresh: () -> Unit,
     onOpenSettings: () -> Unit,
+    followedAuthorKeys: Set<String> = emptySet(),
+    onToggleFollow: (ThemeStoreItem) -> Unit = {},
 ) {
     val context = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
@@ -90,6 +95,11 @@ internal fun ThemeStoreAuthorScreen(
     val multipleSources = remember(items) {
         items.map { it.source.baseUrl }.distinct().size > 1
     }
+    // Following is per mirror and author identity; hide the action when this page mixes mirrors.
+    val followItem = remember(items, multipleSources) {
+        if (multipleSources) null else items.firstOrNull { it.entry.authorHash.isNotBlank() }
+    }
+    val following = followItem != null && followItem.followKey() in followedAuthorKeys
     val avatarUrl = remember(avatarItem) {
         avatarItem?.let { item ->
             ThemeStoreRepository.assetUrl(item.source.baseUrl, item.entry.avatarPath)
@@ -235,7 +245,10 @@ internal fun ThemeStoreAuthorScreen(
                             }
                         }
                         Spacer(Modifier.width(14.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             Text(
                                 text = author,
                                 style = MaterialTheme.typography.titleLarge,
@@ -247,6 +260,23 @@ internal fun ThemeStoreAuthorScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        }
+                        followItem?.let { item ->
+                            if (following) {
+                                OutlinedButton(
+                                    onClick = { onToggleFollow(item) },
+                                    shapes = ButtonDefaults.shapes(),
+                                ) {
+                                    Text(stringResource(R.string.theme_store_following))
+                                }
+                            } else {
+                                FilledTonalButton(
+                                    onClick = { onToggleFollow(item) },
+                                    shapes = ButtonDefaults.shapes(),
+                                ) {
+                                    Text(stringResource(R.string.theme_store_follow))
+                                }
+                            }
                         }
                     }
                 }

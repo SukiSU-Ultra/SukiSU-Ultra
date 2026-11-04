@@ -51,6 +51,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.IconButton as MaterialIconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -114,8 +115,15 @@ internal fun ThemeStoreDetailScreen(
     onCommentVisibilityChange: (String) -> Unit,
     onSearchMentions: (String) -> Unit,
     onClearMentionSearch: () -> Unit,
+    followVisible: Boolean = false,
+    following: Boolean = false,
+    onToggleFollow: () -> Unit = {},
 ) {
     val entry = item.entry
+    val displayTags = remember(item.key, entry.tags, entry.r18) {
+        val hasR18Tag = entry.tags.any { canonicalThemeTag(it) == R18_TAG }
+        if (item.isR18Theme() && !hasR18Tag) listOf(R18_TAG) + entry.tags else entry.tags
+    }
     val commentsLoggedIn = state.accounts.any { account ->
         account.source.baseUrl == item.source.baseUrl
     }
@@ -265,6 +273,9 @@ internal fun ThemeStoreDetailScreen(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f),
                         )
+                        if (item.isR18Theme()) {
+                            ThemeR18Badge()
+                        }
                         if (item.isAdaptiveTheme()) {
                             AdaptiveThemeBadge()
                         }
@@ -347,7 +358,7 @@ internal fun ThemeStoreDetailScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (entry.tags.isNotEmpty()) {
+                    if (displayTags.isNotEmpty()) {
                         Spacer(Modifier.height(8.dp))
                         Row(
                             modifier = Modifier
@@ -355,7 +366,7 @@ internal fun ThemeStoreDetailScreen(
                                 .horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            entry.tags.forEach { tag ->
+                            displayTags.forEach { tag ->
                                 ThemeStoreTag(tag)
                             }
                         }
@@ -507,6 +518,25 @@ internal fun ThemeStoreDetailScreen(
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp),
                                 )
+                            }
+                        }
+                        if (followVisible) {
+                            if (following) {
+                                OutlinedButton(
+                                    onClick = onToggleFollow,
+                                    shapes = ButtonDefaults.shapes(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    MaterialText(stringResource(R.string.theme_store_following))
+                                }
+                            } else {
+                                FilledTonalButton(
+                                    onClick = onToggleFollow,
+                                    shapes = ButtonDefaults.shapes(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    MaterialText(stringResource(R.string.theme_store_follow))
+                                }
                             }
                         }
                     }
