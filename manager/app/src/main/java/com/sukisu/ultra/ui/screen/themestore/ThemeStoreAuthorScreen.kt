@@ -20,14 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -68,6 +72,9 @@ internal fun ThemeStoreAuthorScreen(
     author: String,
     items: List<ThemeStoreItem>,
     state: ThemeStoreUiState,
+    gridLayout: Boolean,
+    onToggleLayout: () -> Unit,
+    landscapePreviewKeys: MutableMap<String, Boolean>,
     onBack: () -> Unit,
     onSelect: (ThemeStoreItem) -> Unit,
     onDownload: (ThemeStoreItem) -> Unit,
@@ -107,6 +114,21 @@ internal fun ThemeStoreAuthorScreen(
                 },
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 actions = {
+                    IconButton(
+                        onClick = onToggleLayout,
+                        colors = themeStoreTopBarIconColors(),
+                    ) {
+                        Icon(
+                            imageVector = if (gridLayout) Icons.Rounded.ViewCarousel else Icons.Rounded.Apps,
+                            contentDescription = stringResource(
+                                if (gridLayout) {
+                                    R.string.theme_store_layout_switch_to_list
+                                } else {
+                                    R.string.theme_store_layout_switch_to_grid
+                                },
+                            ),
+                        )
+                    }
                     Box {
                         IconButton(
                             onClick = { menuExpanded = true },
@@ -169,14 +191,16 @@ internal fun ThemeStoreAuthorScreen(
             WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
         ),
     ) { paddingValues ->
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(if (gridLayout) 2 else 1),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item(key = "author-header") {
+            item(key = "author-header", span = { GridItemSpan(maxLineSpan) }) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
@@ -228,7 +252,7 @@ internal fun ThemeStoreAuthorScreen(
                 }
             }
             if (items.isEmpty()) {
-                item(key = "empty") {
+                item(key = "empty", span = { GridItemSpan(maxLineSpan) }) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -243,22 +267,50 @@ internal fun ThemeStoreAuthorScreen(
                     }
                 }
             } else {
-                items(items, key = { it.key }) { item ->
-                    ThemeCardMaterial(
-                        item = item,
-                        state = state,
-                        onSelect = onSelect,
-                        onDownload = onDownload,
-                        sourceLabel = if (multipleSources) item.source.displayName() else null,
-                        modifier = Modifier.animateItem(
-                            fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-                            placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
-                            fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                        ),
+                items(
+                    items = items,
+                    key = { it.key },
+                    span = { item ->
+                        if (gridLayout && landscapePreviewKeys[item.key] == true) {
+                            GridItemSpan(maxLineSpan)
+                        } else {
+                            GridItemSpan(1)
+                        }
+                    },
+                ) { item ->
+                    val cardModifier = Modifier.animateItem(
+                        fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                        placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                        fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
                     )
+                    val sourceLabel = if (multipleSources) item.source.displayName() else null
+                    if (gridLayout) {
+                        ThemeGridCardMaterial(
+                            item = item,
+                            state = state,
+                            onSelect = onSelect,
+                            onDownload = onDownload,
+                            sourceLabel = sourceLabel,
+                            modifier = cardModifier,
+                            onLandscapePreviewChange = { isLandscape ->
+                                if (landscapePreviewKeys[item.key] != isLandscape) {
+                                    landscapePreviewKeys[item.key] = isLandscape
+                                }
+                            },
+                        )
+                    } else {
+                        ThemeCardMaterial(
+                            item = item,
+                            state = state,
+                            onSelect = onSelect,
+                            onDownload = onDownload,
+                            sourceLabel = sourceLabel,
+                            modifier = cardModifier,
+                        )
+                    }
                 }
             }
-            item(key = "bottom-inset") {
+            item(key = "bottom-inset", span = { GridItemSpan(maxLineSpan) }) {
                 Spacer(
                     Modifier.height(
                         WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp,

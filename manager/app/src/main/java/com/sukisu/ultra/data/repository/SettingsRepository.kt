@@ -39,6 +39,7 @@ interface SettingsRepository {
     var themeStoreExtraSources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>
     
     var themeStoreUploadSource: String
+    var themeStoreGridLayout: Boolean
     var homeCardImagePath: String
     
     var hideHomeCardStatusText: Boolean

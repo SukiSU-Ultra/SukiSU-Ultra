@@ -28,6 +28,7 @@ xz = "1.12"
 documentfile = "1.1.0"
 coil-compose = "2.7.0"
 exifinterface = "1.3.6"
+desugarJdkLibs = "2.1.5"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -106,3 +107,5 @@ xz = { module = "org.tukaani:xz", version.ref = "xz" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
+
+desugar-jdk-libs-nio = { group = "com.android.tools", name = "desugar_jdk_libs_nio", version.ref = "desugarJdkLibs" }

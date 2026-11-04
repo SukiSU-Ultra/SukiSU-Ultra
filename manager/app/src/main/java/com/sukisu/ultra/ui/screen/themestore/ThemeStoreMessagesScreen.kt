@@ -166,13 +166,14 @@ internal fun ThemeStoreMessagesScreen(
                     ThemeStoreInlineNotice(
                         text = stringResource(R.string.theme_store_messages_login_required),
                     )
-                    Spacer(Modifier.width(1.dp))
                     Button(
                         onClick = onLogin,
                         shapes = ButtonDefaults.shapes(),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                     ) {
-                        Text(stringResource(R.string.theme_store_comments_login))
+                        Text(stringResource(R.string.theme_store_messages_sign_in))
                     }
                 }
             } else if (state.messages.isEmpty() && !state.messagesLoading) {

@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -19,34 +20,43 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material.icons.automirrored.rounded.Chat
+import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.InstallMobile
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Tag
+import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -58,12 +68,13 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallExtendedFloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
@@ -76,6 +87,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
@@ -83,12 +95,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -96,11 +110,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import coil.compose.rememberAsyncImagePainter
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
@@ -192,13 +208,10 @@ fun ThemeStoreScreen(
             restore = { it.toSet() },
         ),
     ) { mutableStateOf(emptySet<String>()) }
-    var showAllTags by rememberSaveable { mutableStateOf(false) }
     val allTags = remember(state.items) { state.items.popularThemeTags(Int.MAX_VALUE) }
-    val collapsedTags = remember(allTags, selectedTags) {
-        (allTags.take(18) + selectedTags).distinct()
-    }
-    val visibleTags = if (showAllTags) allTags else collapsedTags
-    val hasMoreTags = allTags.any { it !in collapsedTags }
+    // Hoisted above the store/author switch so orientation survives detail navigation instead
+    // of re-measuring every preview when the grid comes back.
+    val landscapePreviewKeys = remember { mutableStateMapOf<String, Boolean>() }
     LaunchedEffect(allTags) {
         // Keep restored filters until the first catalog load actually provides a tag set.
         if (allTags.isEmpty()) return@LaunchedEffect
@@ -491,6 +504,9 @@ fun ThemeStoreScreen(
             author = currentAuthor,
             items = authorItems,
             state = state,
+            gridLayout = state.gridLayout,
+            onToggleLayout = { viewModel.setGridLayout(!state.gridLayout) },
+            landscapePreviewKeys = landscapePreviewKeys,
             onBack = ::closeAuthorPage,
             onSelect = { item ->
                 detailReturnAuthor = currentAuthor
@@ -617,10 +633,7 @@ fun ThemeStoreScreen(
             visibleItems = visibleItems,
             searchQuery = searchQuery,
             onSearchQueryChange = { searchQuery = it },
-            availableTags = visibleTags,
-            allTagsExpanded = showAllTags,
-            hasMoreTags = hasMoreTags,
-            onToggleAllTags = { showAllTags = !showAllTags },
+            availableTags = allTags,
             selectedTags = selectedTags,
             onToggleTag = { tag ->
                 selectedTags = if (tag in selectedTags) selectedTags - tag else selectedTags + tag
@@ -628,6 +641,9 @@ fun ThemeStoreScreen(
             onClearTags = { selectedTags = emptySet() },
             sortMode = sortMode,
             onSortChange = { sortMode = it },
+            gridLayout = state.gridLayout,
+            onToggleLayout = { viewModel.setGridLayout(!state.gridLayout) },
+            landscapePreviewKeys = landscapePreviewKeys,
             onBack = { navigator.pop() },
             onRefresh = { viewModel.load() },
             onOpenSettings = { navigator.navigateForResult(Route.ThemeStoreSources, THEME_SOURCES_RESULT_KEY) },
@@ -738,11 +754,133 @@ private fun ThemeStoreSearchMaterial(
     )
 }
 
+/**
+ * Compact single-row toolbar: tag and sort filters open anchored menus, while the view switch
+ * stays directly reachable. This keeps the chip rows off the scrolling content.
+ */
 @Composable
-private fun ThemeStoreSortRow(
+private fun ThemeStoreFilterRow(
+    tags: List<String>,
+    selectedTags: Set<String>,
+    onToggleTag: (String) -> Unit,
+    onClearTags: () -> Unit,
+    sortMode: ThemeStoreSort,
+    onSortChange: (ThemeStoreSort) -> Unit,
+    gridLayout: Boolean,
+    onToggleLayout: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (tags.isNotEmpty() || selectedTags.isNotEmpty()) {
+                ThemeTagMenuButton(
+                    tags = tags,
+                    selected = selectedTags,
+                    onToggle = onToggleTag,
+                    onClear = onClearTags,
+                )
+            }
+            ThemeSortMenuButton(
+                selected = sortMode,
+                onSelect = onSortChange,
+            )
+        }
+        FilledTonalIconButton(
+            onClick = onToggleLayout,
+            shapes = IconButtonDefaults.shapes(),
+        ) {
+            MaterialIcon(
+                imageVector = if (gridLayout) Icons.Rounded.ViewCarousel else Icons.Rounded.Apps,
+                contentDescription = stringResource(
+                    if (gridLayout) {
+                        R.string.theme_store_layout_switch_to_list
+                    } else {
+                        R.string.theme_store_layout_switch_to_grid
+                    },
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeTagMenuButton(
+    tags: List<String>,
+    selected: Set<String>,
+    onToggle: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val summary = when {
+        selected.isEmpty() -> stringResource(R.string.theme_store_tags)
+        selected.size == 1 -> themeTagLabel(selected.first())
+        else -> themeTagLabel(selected.first()) + " +${selected.size - 1}"
+    }
+    Box {
+        ThemeStoreMenuButton(
+            text = summary,
+            icon = Icons.Rounded.Tag,
+            active = selected.isNotEmpty(),
+            onClick = { expanded = true },
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            // Long catalogs would otherwise push the popup to the window edge and cover the
+            // top bar; cap the menu height and let it scroll internally.
+            modifier = Modifier.heightIn(max = 320.dp),
+            shape = MaterialTheme.shapes.large,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            tonalElevation = 0.dp,
+            shadowElevation = 3.dp,
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            ),
+        ) {
+            DropdownMenuItem(
+                text = { MaterialText(stringResource(R.string.theme_store_tag_all)) },
+                leadingIcon = if (selected.isEmpty()) {
+                    { MaterialIcon(Icons.Rounded.Check, contentDescription = null) }
+                } else {
+                    null
+                },
+                onClick = {
+                    onClear()
+                    expanded = false
+                },
+            )
+            tags.forEach { tag ->
+                val isSelected = tag in selected
+                DropdownMenuItem(
+                    text = { MaterialText(themeTagLabel(tag)) },
+                    leadingIcon = if (isSelected) {
+                        { MaterialIcon(Icons.Rounded.Check, contentDescription = null) }
+                    } else {
+                        null
+                    },
+                    // Multi-select filters stay open until the user taps outside the menu.
+                    onClick = { onToggle(tag) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeSortMenuButton(
     selected: ThemeStoreSort,
     onSelect: (ThemeStoreSort) -> Unit,
 ) {
+    var expanded by remember { mutableStateOf(false) }
     val options = listOf(
         ThemeStoreSort.DEFAULT to R.string.theme_store_sort_default,
         ThemeStoreSort.HOT to R.string.theme_store_sort_hot,
@@ -751,73 +889,42 @@ private fun ThemeStoreSortRow(
         ThemeStoreSort.NAME to R.string.theme_store_sort_name,
         ThemeStoreSort.SIZE to R.string.theme_store_sort_size,
     )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        options.forEach { (mode, label) ->
-            ThemeSortChip(
-                selected = selected == mode,
-                onClick = { onSelect(mode) },
-                label = stringResource(label),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ThemeStoreTagRow(
-    tags: List<String>,
-    selected: Set<String>,
-    allTagsExpanded: Boolean,
-    hasMoreTags: Boolean,
-    onToggleAllTags: () -> Unit,
-    onToggle: (String) -> Unit,
-    onClear: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Surface(
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    val currentLabel = stringResource(
+        options.firstOrNull { it.first == selected }?.second
+            ?: R.string.theme_store_sort_default,
+    )
+    Box {
+        ThemeStoreMenuButton(
+            text = currentLabel,
+            icon = Icons.AutoMirrored.Rounded.Sort,
+            active = selected != ThemeStoreSort.DEFAULT,
+            onClick = { expanded = true },
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 320.dp),
+            shape = MaterialTheme.shapes.large,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            tonalElevation = 0.dp,
+            shadowElevation = 3.dp,
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            ),
         ) {
-            MaterialText(
-                text = stringResource(R.string.theme_store_tags),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ThemeSortChip(
-                selected = selected.isEmpty(),
-                onClick = onClear,
-                label = stringResource(R.string.theme_store_tag_all),
-            )
-            tags.forEach { tag ->
-                ThemeSortChip(
-                    selected = tag in selected,
-                    onClick = { onToggle(tag) },
-                    label = themeTagLabel(tag),
-                )
-            }
-            if (hasMoreTags || allTagsExpanded) {
-                ThemeSortChip(
-                    selected = false,
-                    onClick = onToggleAllTags,
-                    label = stringResource(
-                        if (allTagsExpanded) {
-                            R.string.theme_store_show_less
-                        } else {
-                            R.string.theme_store_show_more
-                        },
-                    ),
+            options.forEach { (mode, label) ->
+                DropdownMenuItem(
+                    text = { MaterialText(stringResource(label)) },
+                    leadingIcon = if (selected == mode) {
+                        { MaterialIcon(Icons.Rounded.Check, contentDescription = null) }
+                    } else {
+                        null
+                    },
+                    onClick = {
+                        onSelect(mode)
+                        expanded = false
+                    },
                 )
             }
         }
@@ -825,47 +932,52 @@ private fun ThemeStoreTagRow(
 }
 
 /**
- * MD3E filter chip with fully opaque containers so the label stays readable over a custom
- * background image.
+ * MD3E filled tonal menu trigger; the container switches to the selected colors while a filter
+ * is active so the collapsed state is still visible.
  */
 @Composable
-private fun ThemeSortChip(
-    selected: Boolean,
+private fun ThemeStoreMenuButton(
+    text: String,
+    icon: ImageVector,
+    active: Boolean,
     onClick: () -> Unit,
-    label: String,
 ) {
-    FilterChip(
-        selected = selected,
+    FilledTonalButton(
         onClick = onClick,
-        label = {
-            MaterialText(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-            )
-        },
-        leadingIcon = if (selected) {
-            {
-                MaterialIcon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(FilterChipDefaults.IconSize),
-                )
-            }
-        } else {
-            null
-        },
-        shapes = FilterChipDefaults.shapes(),
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            labelColor = MaterialTheme.colorScheme.onSurface,
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        shapes = ButtonDefaults.shapes(),
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = if (active) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+            contentColor = if (active) {
+                MaterialTheme.colorScheme.onSecondaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
         ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = selected,
-        ),
-    )
+        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+    ) {
+        MaterialIcon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.size(6.dp))
+        MaterialText(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.size(2.dp))
+        MaterialIcon(
+            imageVector = Icons.Rounded.ExpandMore,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+    }
 }
 
 @Composable
@@ -892,14 +1004,14 @@ private fun ThemeStoreMaterial(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     availableTags: List<String>,
-    allTagsExpanded: Boolean,
-    hasMoreTags: Boolean,
-    onToggleAllTags: () -> Unit,
     selectedTags: Set<String>,
     onToggleTag: (String) -> Unit,
     onClearTags: () -> Unit,
     sortMode: ThemeStoreSort,
     onSortChange: (ThemeStoreSort) -> Unit,
+    gridLayout: Boolean,
+    onToggleLayout: () -> Unit,
+    landscapePreviewKeys: MutableMap<String, Boolean>,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -915,7 +1027,7 @@ private fun ThemeStoreMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val pullToRefreshState = rememberPullToRefreshState()
     val refreshing = state.refreshing || (state.loading && state.loaded)
-    val listState = rememberLazyListState()
+    val listState = rememberLazyGridState()
     var menuExpanded by remember { mutableStateOf(false) }
     val fabThreshold = with(LocalDensity.current) { 100.dp.toPx() }
     val fabExpanded by remember {
@@ -957,24 +1069,6 @@ private fun ThemeStoreMaterial(
                 title = { MaterialText(customText(CustomTextKey.PAGE_THEME_STORE)) },
                 actions = {
                     MaterialIconButton(
-                        onClick = onOpenAccount,
-                        colors = themeStoreTopBarIconColors(),
-                    ) {
-                        MaterialIcon(
-                            imageVector = Icons.Rounded.AccountCircle,
-                            contentDescription = stringResource(R.string.theme_store_account),
-                        )
-                    }
-                    MaterialIconButton(
-                        onClick = onOpenSubmissions,
-                        colors = themeStoreTopBarIconColors(),
-                    ) {
-                        MaterialIcon(
-                            imageVector = Icons.Rounded.History,
-                            contentDescription = stringResource(R.string.theme_store_my_content_title),
-                        )
-                    }
-                    MaterialIconButton(
                         onClick = onOpenUpload,
                         enabled = !state.needsConfig && state.sources.isNotEmpty() && !state.submitting,
                         colors = themeStoreTopBarIconColors(),
@@ -1007,17 +1101,29 @@ private fun ThemeStoreMaterial(
                             ),
                         ) {
                             DropdownMenuItem(
-                                text = { MaterialText(stringResource(R.string.theme_store_refresh)) },
+                                text = { MaterialText(stringResource(R.string.theme_store_account)) },
                                 leadingIcon = {
                                     MaterialIcon(
-                                        imageVector = Icons.Rounded.Refresh,
+                                        imageVector = Icons.Rounded.AccountCircle,
                                         contentDescription = null,
                                     )
                                 },
-                                enabled = !state.needsConfig && !state.refreshing && !state.loading,
                                 onClick = {
                                     menuExpanded = false
-                                    onRefresh()
+                                    onOpenAccount()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_my_content_title)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.History,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onOpenSubmissions()
                                 },
                             )
                             DropdownMenuItem(
@@ -1031,6 +1137,24 @@ private fun ThemeStoreMaterial(
                                 onClick = {
                                     menuExpanded = false
                                     onOpenMessages()
+                                },
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            )
+                            DropdownMenuItem(
+                                text = { MaterialText(stringResource(R.string.theme_store_refresh)) },
+                                leadingIcon = {
+                                    MaterialIcon(
+                                        imageVector = Icons.Rounded.Refresh,
+                                        contentDescription = null,
+                                    )
+                                },
+                                enabled = !state.needsConfig && !state.refreshing && !state.loading,
+                                onClick = {
+                                    menuExpanded = false
+                                    onRefresh()
                                 },
                             )
                             DropdownMenuItem(
@@ -1112,48 +1236,43 @@ private fun ThemeStoreMaterial(
                     )
                 },
             ) {
-                LazyColumn(
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(if (gridLayout) 2 else 1),
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     state = listState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    item(key = "search") {
+                    item(key = "search", span = { GridItemSpan(maxLineSpan) }) {
                         ThemeStoreSearchMaterial(
                             query = searchQuery,
                             onQueryChange = onSearchQueryChange,
                         )
                     }
-                    if (availableTags.isNotEmpty() || selectedTags.isNotEmpty()) {
-                        item(key = "tags") {
-                            ThemeStoreTagRow(
-                                tags = availableTags,
-                                selected = selectedTags,
-                                allTagsExpanded = allTagsExpanded,
-                                hasMoreTags = hasMoreTags,
-                                onToggleAllTags = onToggleAllTags,
-                                onToggle = onToggleTag,
-                                onClear = onClearTags,
-                            )
-                        }
-                    }
-                    item(key = "sort") {
-                        ThemeStoreSortRow(
-                            selected = sortMode,
-                            onSelect = onSortChange,
+                    item(key = "filters", span = { GridItemSpan(maxLineSpan) }) {
+                        ThemeStoreFilterRow(
+                            tags = availableTags,
+                            selectedTags = selectedTags,
+                            onToggleTag = onToggleTag,
+                            onClearTags = onClearTags,
+                            sortMode = sortMode,
+                            onSortChange = onSortChange,
+                            gridLayout = gridLayout,
+                            onToggleLayout = onToggleLayout,
                         )
                     }
                     if (state.fromCache) {
-                        item(key = "offline") {
+                        item(key = "offline", span = { GridItemSpan(maxLineSpan) }) {
                             ThemeStoreInlineNotice(
                                 text = stringResource(R.string.theme_store_offline),
                             )
                         }
                     }
                     if (state.failedSources > 0 && state.items.isNotEmpty()) {
-                        item(key = "partial-failure") {
+                        item(key = "partial-failure", span = { GridItemSpan(maxLineSpan) }) {
                             ThemeStoreInlineNotice(
                                 text = stringResource(R.string.theme_store_partial_failure),
                                 isError = true,
@@ -1162,7 +1281,7 @@ private fun ThemeStoreMaterial(
                         }
                     }
                     if (visibleItems.isEmpty()) {
-                        item(key = "empty") {
+                        item(key = "empty", span = { GridItemSpan(maxLineSpan) }) {
                             if (searchQuery.isBlank() && selectedTags.isEmpty()) {
                                 ThemeStoreEmptyMaterial(onRefresh = onRefresh, onUpload = onOpenUpload)
                             } else {
@@ -1170,22 +1289,48 @@ private fun ThemeStoreMaterial(
                             }
                         }
                     } else {
-                        items(visibleItems, key = { it.key }) { item ->
-                            ThemeCardMaterial(
-                                item = item,
-                                state = state,
-                                onSelect = onSelect,
-                                onAuthorClick = onAuthorClick,
-                                onDownload = onDownload,
-                                modifier = Modifier.animateItem(
-                                    fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-                                    placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
-                                    fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                                ),
+                        items(
+                            items = visibleItems,
+                            key = { it.key },
+                            span = { item ->
+                                if (gridLayout && landscapePreviewKeys[item.key] == true) {
+                                    GridItemSpan(maxLineSpan)
+                                } else {
+                                    GridItemSpan(1)
+                                }
+                            },
+                        ) { item ->
+                            val cardModifier = Modifier.animateItem(
+                                fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                                placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                                fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
                             )
+                            if (gridLayout) {
+                                ThemeGridCardMaterial(
+                                    item = item,
+                                    state = state,
+                                    onSelect = onSelect,
+                                    onDownload = onDownload,
+                                    modifier = cardModifier,
+                                    onLandscapePreviewChange = { isLandscape ->
+                                        if (landscapePreviewKeys[item.key] != isLandscape) {
+                                            landscapePreviewKeys[item.key] = isLandscape
+                                        }
+                                    },
+                                )
+                            } else {
+                                ThemeCardMaterial(
+                                    item = item,
+                                    state = state,
+                                    onSelect = onSelect,
+                                    onAuthorClick = onAuthorClick,
+                                    onDownload = onDownload,
+                                    modifier = cardModifier,
+                                )
+                            }
                         }
                     }
-                    item(key = "bottom-inset") {
+                    item(key = "bottom-inset", span = { GridItemSpan(maxLineSpan) }) {
                         Spacer(
                             Modifier.height(
                                 WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 88.dp,
@@ -1373,6 +1518,216 @@ internal fun ThemeCardMaterial(
                         )
                         Spacer(Modifier.size(6.dp))
                         MaterialText(stringResource(R.string.theme_store_download))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Store tile that shows the complete preview image with [ContentScale.Fit], sized to the
+ * preview's own aspect ratio so it fills the card instead of being cropped. Landscape previews
+ * keep a wide ratio and are reported to the host, which lets them span both grid columns.
+ */
+@Composable
+internal fun ThemeGridCardMaterial(
+    item: ThemeStoreItem,
+    state: ThemeStoreUiState,
+    onSelect: (ThemeStoreItem) -> Unit,
+    onDownload: (ThemeStoreItem) -> Unit,
+    modifier: Modifier = Modifier,
+    sourceLabel: String? = null,
+    onLandscapePreviewChange: ((Boolean) -> Unit)? = null,
+) {
+    val entry = item.entry
+    val context = LocalContext.current
+    val downloading = state.downloadingKey == item.key
+    val date = entry.updatedAt.substringBefore('T').replace('-', '/')
+    val primaryLabel = sourceLabel ?: entry.author
+    val meta = listOf(primaryLabel, date).filter { it.isNotBlank() }.joinToString(" · ")
+    val textShadow = Shadow(
+        color = Color.Black.copy(alpha = 0.6f),
+        blurRadius = 10f,
+    )
+    val previewUrl = remember(entry.previewPath, entry.screenshotPaths, item.source.baseUrl) {
+        val path = entry.previewPath.ifBlank { entry.screenshotPaths.firstOrNull().orEmpty() }
+        ThemeStoreRepository.assetUrl(item.source.baseUrl, path)
+    }
+    val painter = previewUrl?.let { url ->
+        rememberAsyncImagePainter(themeImageRequest(context, url, item.source.token))
+    }
+    val intrinsic = painter?.intrinsicSize
+    val rawAspectRatio = if (intrinsic != null && intrinsic.width > 0f && intrinsic.height > 0f) {
+        intrinsic.height / intrinsic.width
+    } else {
+        null
+    }
+    LaunchedEffect(rawAspectRatio) {
+        if (rawAspectRatio != null) {
+            onLandscapePreviewChange?.invoke(rawAspectRatio < 1f)
+        }
+    }
+    val aspectRatio = when {
+        rawAspectRatio == null -> 1.5f
+        // Landscape previews span both columns, so keep their own wide ratio instead of
+        // squeezing them into a portrait tile.
+        rawAspectRatio < 1f -> rawAspectRatio.coerceIn(0.5f, 0.95f)
+        else -> rawAspectRatio.coerceIn(1.15f, 2.1f)
+    }
+    // Only pay for the blurred backdrop when the fitted image cannot fill the tile itself.
+    val showBackdrop = rawAspectRatio != null &&
+        kotlin.math.abs(rawAspectRatio - aspectRatio) > 0.02f
+
+    Card(
+        onClick = { onSelect(item) },
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f / aspectRatio),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = themeStoreCardColor(),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp,
+            focusedElevation = 0.dp,
+            hoveredElevation = 0.dp,
+            draggedElevation = 0.dp,
+            disabledElevation = 0.dp,
+        ),
+        border = BorderStroke(
+            1.dp,
+            themeStoreCardBorderColor(),
+        ),
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (painter != null) {
+                // Square or landscape previews cannot fill a portrait tile on their own, so the
+                // same image is repeated as a dimmed, blurred backdrop underneath the full image.
+                if (showBackdrop) {
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(18.dp),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.38f)),
+                    )
+                }
+                Image(
+                    painter = painter,
+                    contentDescription = entry.name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    MaterialIcon(
+                        imageVector = Icons.Rounded.Palette,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.42f to Color.Transparent,
+                            0.72f to Color.Black.copy(alpha = 0.34f),
+                            1f to Color.Black.copy(alpha = 0.82f),
+                        ),
+                    ),
+            )
+            if (item.isAdaptiveTheme()) {
+                AdaptiveThemeBadge(
+                    compact = true,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                ThemeStoreStatBadge(
+                    icon = Icons.Rounded.FlashOn,
+                    value = entry.heat,
+                    contentDescription = stringResource(R.string.theme_store_heat),
+                )
+                ThemeStoreStatBadge(
+                    icon = Icons.Rounded.FileDownload,
+                    value = entry.downloads,
+                    contentDescription = stringResource(R.string.theme_store_downloads),
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                MaterialText(
+                    text = entry.name,
+                    style = MaterialTheme.typography.titleSmall.copy(shadow = textShadow),
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    MaterialText(
+                        text = meta,
+                        style = MaterialTheme.typography.labelSmall.copy(shadow = textShadow),
+                        color = Color.White.copy(alpha = 0.9f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    MaterialIconButton(
+                        onClick = { onDownload(item) },
+                        enabled = state.downloadingKey == null,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.White.copy(alpha = 0.22f),
+                            contentColor = Color.White,
+                            disabledContainerColor = Color.White.copy(alpha = 0.12f),
+                            disabledContentColor = Color.White.copy(alpha = 0.5f),
+                        ),
+                    ) {
+                        if (downloading) {
+                            CircularWavyProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = Color.White,
+                                trackColor = Color.Transparent,
+                                stroke = Stroke(width = 2f),
+                            )
+                        } else {
+                            MaterialIcon(
+                                imageVector = Icons.Rounded.FileDownload,
+                                contentDescription = stringResource(R.string.theme_store_download),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
                     }
                 }
             }

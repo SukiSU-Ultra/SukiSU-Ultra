@@ -27,7 +27,7 @@
         android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur" />
+    <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur,com.sukisu.ultra.ai" />
 
     <!-- Android 11 package visibility: needed to resolve the vendor gallery's crop screen. -->
     <queries>

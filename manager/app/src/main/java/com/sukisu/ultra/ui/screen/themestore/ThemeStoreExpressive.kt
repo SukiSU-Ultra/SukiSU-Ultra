@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -188,18 +189,31 @@ internal fun ThemeStoreSpeedBadge(
 
 
 @Composable
-internal fun AdaptiveThemeBadge(modifier: Modifier = Modifier) {
+internal fun AdaptiveThemeBadge(
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+) {
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f),
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
-        Text(
-            text = stringResource(R.string.theme_adaptive_title),
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        )
+        if (compact) {
+            Icon(
+                imageVector = Icons.Rounded.AutoAwesome,
+                contentDescription = stringResource(R.string.theme_adaptive_title),
+                modifier = Modifier
+                    .padding(5.dp)
+                    .size(14.dp),
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.theme_adaptive_title),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.appprofile
 
+import androidx.core.content.pm.PackageInfoCompat
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.profile.TemporaryRootControls
@@ -170,7 +171,7 @@ fun AppProfileScreenMiuix(
                         appUid = state.uid,
                         sharedUserId = if (state.isUidGroup) state.sharedUserId else "",
                         appVersionName = if (state.isUidGroup) "" else (state.appGroup.primary.packageInfo.versionName ?: ""),
-                        appVersionCode = if (state.isUidGroup) 0L else state.appGroup.primary.packageInfo.longVersionCode,
+                        appVersionCode = if (state.isUidGroup) 0L else PackageInfoCompat.getLongVersionCode(state.appGroup.primary.packageInfo),
                         profile = state.profile,
                         isUidGroup = state.isUidGroup,
                         isSpecialApp = state.appGroup.primary.special,

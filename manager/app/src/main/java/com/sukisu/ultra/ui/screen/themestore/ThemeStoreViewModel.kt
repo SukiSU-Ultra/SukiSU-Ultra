@@ -139,6 +139,7 @@ data class ThemeStoreUiState(
     val loaded: Boolean = false,
     val loading: Boolean = false,
     val refreshing: Boolean = false,
+    val gridLayout: Boolean = true,
     val items: List<ThemeStoreItem> = emptyList(),
     val sources: List<ThemeStoreSource> = emptyList(),
     val fromCache: Boolean = false,
@@ -233,7 +234,9 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
     private val settings = SettingsRepositoryImpl()
     private val account = AccountRepository(application)
     private var mentionRequestSeq = 0L
-    private val _uiState = MutableStateFlow(ThemeStoreUiState())
+    private val _uiState = MutableStateFlow(
+        ThemeStoreUiState(gridLayout = settings.themeStoreGridLayout),
+    )
     val uiState: StateFlow<ThemeStoreUiState> = _uiState.asStateFlow()
 
     init {
@@ -320,7 +323,12 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    
+    fun setGridLayout(enabled: Boolean) {
+        if (_uiState.value.gridLayout == enabled) return
+        settings.themeStoreGridLayout = enabled
+        _uiState.update { it.copy(gridLayout = enabled) }
+    }
+
     fun refreshAccounts() {
         account.reload()
         val sources = configuredSources()
@@ -1034,12 +1042,13 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         val accounts = accountsFor(sources)
         _uiState.update { it.copy(sources = sources, accounts = accounts) }
         if (accounts.isEmpty()) {
+            // The messages screen shows its own login-required notice and sign-in button, so
+            // leaving an error here would duplicate the same text.
             _uiState.update {
                 it.copy(
                     messagesLoading = false,
                     messages = emptyList(),
-                    messagesError = getApplication<Application>()
-                        .getString(R.string.theme_store_messages_login_required),
+                    messagesError = null,
                 )
             }
             return
@@ -1503,6 +1512,16 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             ?: (base + "admin/")
 }
 
+// Separators inside author handles ("shirk neko", "shirk_neko") and invisible format characters
+// pasted from a submission form should not stop a search from matching.
+private val SEARCH_SEPARATORS = Regex("[\\p{Cf}\\p{Zs}\\s_.\\-·]+")
+private val SEARCH_DIACRITICS = Regex("\\p{Mn}+")
+
+private fun String.searchKey(): String =
+    java.text.Normalizer.normalize(this, java.text.Normalizer.Form.NFKD)
+        .replace(SEARCH_DIACRITICS, "")
+        .replace(SEARCH_SEPARATORS, "")
+
 internal fun ThemeStoreItem.matchesSearch(
     query: String,
     adaptiveLabel: String = ADAPTIVE_TAG,
@@ -1519,7 +1538,19 @@ internal fun ThemeStoreItem.matchesSearch(
         append(source.name).append(' ')
         append(source.baseUrl)
     }.lowercase(Locale.ROOT)
-    return normalized.split(Regex("\\s+")).all { part -> haystack.contains(part) }
+    // Authors are displayed and shared as @name, so accept queries written that way too.
+    val parts = normalized.split(Regex("\\s+"))
+        .map { it.removePrefix("@") }
+        .filter { it.isNotEmpty() }
+    if (parts.isEmpty()) return true
+    if (parts.all { part -> haystack.contains(part) }) return true
+    // Fallback: compare compacted text so handles written with spaces, underscores, full-width
+    // characters or zero-width joiners still match.
+    val compactHaystack = haystack.searchKey()
+    return parts.all { part ->
+        val key = part.searchKey()
+        key.isNotEmpty() && compactHaystack.contains(key)
+    }
 }
 
 /**

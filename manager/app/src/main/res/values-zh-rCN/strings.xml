@@ -871,7 +871,7 @@
     <string name="theme_store_new_source">新源</string>
     <string name="theme_store_source_name">源名称（可选）</string>
     <string name="theme_store_remove_source">移除源</string>
-    <string name="theme_store_search">搜索主题</string>
+    <string name="theme_store_search">搜索主题、作者或标签</string>
     <string name="theme_store_sort_default">默认</string>
     <string name="theme_store_sort_hot">热度</string>
     <string name="theme_store_sort_downloads">下载量</string>
@@ -880,6 +880,8 @@
     <string name="theme_store_sort_size">大小</string>
     <string name="theme_store_heat">热度</string>
     <string name="theme_store_downloads">下载量</string>
+    <string name="theme_store_layout_switch_to_grid">切换为双列预览</string>
+    <string name="theme_store_layout_switch_to_list">切换为横幅列表</string>
     <string name="theme_store_description">描述</string>
     <string name="theme_store_show_more">更多</string>
     <string name="theme_store_show_less">收起</string>
@@ -1435,6 +1437,7 @@
     <string name="theme_store_messages_keep_forever">消息不会自动删除</string>
     <string name="theme_store_messages_long_press_hint">长按消息可复制、回复或删除</string>
     <string name="theme_store_messages_login_required">请先登录账号后查看消息。</string>
+    <string name="theme_store_messages_sign_in">登录</string>
     <string name="theme_store_messages_empty">还没有消息。到主题详情页留言后，作者回复会出现在这里。</string>
     <string name="theme_store_messages_my_theme">我的主题</string>
     <string name="theme_store_messages_select_reply">选择一条留言后点击「回复」</string>

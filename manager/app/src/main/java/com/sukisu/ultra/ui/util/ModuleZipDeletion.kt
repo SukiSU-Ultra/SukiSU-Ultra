@@ -20,6 +20,7 @@ internal fun shouldDeleteSourceAfterInstall(enabled: Boolean, installSucceeded: 
  * A provider that refuses deletion leaves the ZIP untouched.
  */
 fun deleteInstalledModuleZip(uri: Uri): Boolean {
+    if (LegacyDownloadFiles.delete(uri)) return true
     val deleted = deleteModuleZip(
         scheme = uri.scheme,
         filePath = uri.path,

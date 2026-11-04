@@ -2,12 +2,12 @@ package com.sukisu.ultra.ui.screen.themestore
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -30,12 +30,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -72,7 +70,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -80,6 +80,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -153,11 +154,10 @@ internal fun ThemeStoreDetailScreen(
     val avatarUrl = remember(entry.avatarPath, item.source.baseUrl) {
         ThemeStoreRepository.assetUrl(item.source.baseUrl, entry.avatarPath)
     }
-    // Keep the cover in the pager so every uploaded image stays browsable, then the screenshots.
+    // Keep the cover in the strip so every uploaded image stays browsable, then the screenshots.
     val galleryImages = remember(previewUrl, screenshotUrls) {
         (listOfNotNull(previewUrl) + screenshotUrls).distinct()
     }
-    val pagerState = rememberPagerState(pageCount = { galleryImages.size.coerceAtLeast(1) })
     val pageContainer = MaterialTheme.colorScheme.surface
 
     ExpressiveScaffold(
@@ -244,7 +244,6 @@ internal fun ThemeStoreDetailScreen(
             item(key = "gallery") {
                 ThemeStoreGallery(
                     images = galleryImages,
-                    pagerState = pagerState,
                     token = item.source.token,
                 )
             }
@@ -586,14 +585,13 @@ private fun ThemeStoreDownloadProgressCard(
 }
 
 /**
- * Single-image carousel for the preview and every screenshot. Each page fills the width and
- * swipes to the next image; the strip height follows the current image's aspect ratio within
- * sensible limits so the whole image stays visible.
+ * Horizontal film strip of the preview and every screenshot. Phone-shaped tiles keep two images
+ * visible at once, while landscape screenshots keep their wide ratio and fill the strip width.
+ * The strip height stays fixed so mixed orientations do not move the content below it.
  */
 @Composable
 private fun ThemeStoreGallery(
     images: List<String>,
-    pagerState: PagerState,
     token: String,
 ) {
     if (images.isEmpty()) {
@@ -613,74 +611,83 @@ private fun ThemeStoreGallery(
         }
         return
     }
-    val context = LocalContext.current
-    val currentPainter = rememberAsyncImagePainter(
-        model = themeImageRequest(
-            context = context,
-            url = images[pagerState.settledPage.coerceIn(images.indices)],
-            token = token,
-        ),
-    )
-    val intrinsic = currentPainter.intrinsicSize
-    val aspect = if (intrinsic.width > 0f && intrinsic.height > 0f) {
-        intrinsic.height / intrinsic.width
-    } else {
-        0.72f
-    }
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val targetHeight = (maxWidth * aspect).coerceIn(200.dp, 420.dp)
-        val galleryHeight by animateDpAsState(
-            targetValue = targetHeight,
-            label = "themeGalleryHeight",
-        )
-        HorizontalPager(
-            state = pagerState,
+        val portraitWidth = ((maxWidth - 40.dp - 12.dp) / 2f).coerceAtMost(200.dp)
+        val stripHeight = portraitWidth * 2.2f
+        val landscapeWidth = (maxWidth - 40.dp).coerceAtLeast(0.dp)
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(galleryHeight),
-        ) { page ->
-            AsyncImage(
-                model = themeImageRequest(
-                    context = context,
-                    url = images[page],
-                    token = token,
-                ),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-            )
-        }
-    }
-    if (images.size > 1) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp),
-            horizontalArrangement = Arrangement.Center,
+                .height(stripHeight),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            repeat(images.size) { index ->
-                val selectedDot = pagerState.currentPage == index
-                val dotWidth by animateDpAsState(
-                    targetValue = if (selectedDot) 18.dp else 6.dp,
-                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
-                    label = "themeStorePageDotWidth",
-                )
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 3.dp)
-                        .width(dotWidth)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(99.dp))
-                        .background(
-                            if (selectedDot) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant,
-                        ),
+            items(images) { url ->
+                ThemeGalleryImage(
+                    url = url,
+                    token = token,
+                    portraitWidth = portraitWidth,
+                    landscapeWidth = landscapeWidth,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ThemeGalleryImage(
+    url: String,
+    token: String,
+    portraitWidth: Dp,
+    landscapeWidth: Dp,
+) {
+    val context = LocalContext.current
+    val painter = rememberAsyncImagePainter(themeImageRequest(context, url, token))
+    val intrinsic = painter.intrinsicSize
+    val rawAspectRatio = if (intrinsic.width > 0f && intrinsic.height > 0f) {
+        intrinsic.height / intrinsic.width
+    } else {
+        null
+    }
+    val isLandscape = rawAspectRatio != null && rawAspectRatio < 1f
+    val cardWidth = if (isLandscape) landscapeWidth else portraitWidth
+    val aspectRatio = when {
+        rawAspectRatio == null -> 2.2f
+        isLandscape -> rawAspectRatio.coerceIn(0.5f, 0.95f)
+        else -> 2.2f
+    }
+    val showBackdrop = rawAspectRatio != null &&
+        kotlin.math.abs(rawAspectRatio - aspectRatio) > 0.02f
+
+    Box(
+        modifier = Modifier
+            .width(cardWidth)
+            .height(cardWidth * aspectRatio)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        if (showBackdrop) {
+            Image(
+                painter = painter,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(18.dp),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.38f)),
+            )
+        }
+        Image(
+            painter = painter,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
