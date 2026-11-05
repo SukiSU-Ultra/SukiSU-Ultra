@@ -41,6 +41,13 @@ data class ThemeVariantData(
     val hideHomeCardStatusText: Boolean? = null,
     val hideHomeCardDecoration: Boolean? = null,
     val homeCardStickerTransforms: List<HomeCardStickerTransform>? = null,
+    val homeLayout: String? = null,
+    val homeStatusAlignment: String? = null,
+    val homeStatusScale: Float? = null,
+    val homePillScale: Float? = null,
+    val homeStatusWidthFraction: Float? = null,
+    val homeCardImageStyle: String? = null,
+    val showHomeCardImageWithoutBackground: Boolean? = null,
     val uiMode: String? = null,
     val enableFloatingBottomBar: Boolean? = null,
     val enableFloatingBottomBarBlur: Boolean? = null,
@@ -77,6 +84,13 @@ data class ThemePackageData(
     val hideHomeCardStatusText: Boolean? = null,
     val hideHomeCardDecoration: Boolean? = null,
     val homeCardStickerTransforms: List<HomeCardStickerTransform>? = null,
+    val homeLayout: String? = null,
+    val homeStatusAlignment: String? = null,
+    val homeStatusScale: Float? = null,
+    val homePillScale: Float? = null,
+    val homeStatusWidthFraction: Float? = null,
+    val homeCardImageStyle: String? = null,
+    val showHomeCardImageWithoutBackground: Boolean? = null,
     val uiMode: String? = null,
     val appIconId: String? = null,
     val enableFloatingBottomBar: Boolean? = null,
@@ -97,6 +111,11 @@ data class ThemePackageData(
     val moduleSortManual: Boolean? = null,
     val customHomeTitle: String? = null,
     val customTexts: Map<String, String>? = null,
+    /**
+     * Bottom bar icon slots that carry a custom image. The images themselves live in
+     * `bottom_bar_icon_<slot>` entries. Global for both adaptive and plain packages.
+     */
+    val bottomBarIcons: List<String>? = null,
     /**
      * Static colour / image-effect overlay. Top-level for both adaptive and plain packages:
      * the overlay itself carries the light/dark split. Added in package format v4.
@@ -125,17 +144,19 @@ data class ImportedTheme(
     val backgroundPath: String? = null,
     val cardBackgroundPath: String? = null,
     val stickerPaths: List<String> = emptyList(),
+    val bottomBarIconPaths: Map<String, String> = emptyMap(),
     val light: ImportedThemeVariant? = null,
     val dark: ImportedThemeVariant? = null,
 ) {
     val isAdaptive: Boolean
         get() = data.adaptive == true && light != null && dark != null
 
-    
+
     fun temporaryFiles(): List<String> = buildList {
         backgroundPath?.let(::add)
         cardBackgroundPath?.let(::add)
         addAll(stickerPaths)
+        addAll(bottomBarIconPaths.values)
         light?.let { variant ->
             variant.backgroundPath?.let(::add)
             variant.cardBackgroundPath?.let(::add)
@@ -169,7 +190,15 @@ object ThemePackageStorage {
     const val ADAPTIVE_VERSION = 3
     /** Adds the optional static [ThemePackageData.appearance] overlay. */
     const val APPEARANCE_VERSION = 4
-    const val CURRENT_VERSION = APPEARANCE_VERSION
+    /** Adds the immersive home layout, pill/status sizing and banner image position. */
+    const val HOME_STATUS_VERSION = 5
+
+    /**
+     * v5 also carries optional custom bottom bar icons (`bottom_bar_icon_<slot>` entries).
+     * The version stays at 5 on purpose: managers that already read v5 ignore the extra
+     * entries, older ones reject v5 as usual, and the web validator accepts both.
+     */
+    const val CURRENT_VERSION = HOME_STATUS_VERSION
     const val MIN_SUPPORTED_VERSION = 1
     const val THEME_MIME_TYPE = "application/x-sukisu-theme"
 
@@ -189,6 +218,7 @@ object ThemePackageStorage {
     private const val CARD_BACKGROUND_DARK_ENTRY = "card_background_dark"
     private const val CARD_STICKER_LIGHT_PREFIX = "card_sticker_light_"
     private const val CARD_STICKER_DARK_PREFIX = "card_sticker_dark_"
+    private const val BOTTOM_BAR_ICON_ENTRY_PREFIX = "bottom_bar_icon_"
     private const val MAX_JSON_BYTES = 64L * 1024
     private const val MAX_BACKGROUND_BYTES = 64L * 1024 * 1024
     
@@ -217,12 +247,21 @@ object ThemePackageStorage {
         cardBackgroundFile: File? = null,
         cardStickerFiles: List<File> = emptyList(),
         adaptive: ThemePackageAdaptiveExport? = null,
+        bottomBarIconFiles: Map<String, File> = emptyMap(),
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val output = context.contentResolver.openOutputStream(uri)
                 ?: error("Cannot open the destination file")
             BufferedOutputStream(output).use {
-                writeEncryptedZip(it, data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
+                writeEncryptedZip(
+                    it,
+                    data,
+                    backgroundFile,
+                    cardBackgroundFile,
+                    cardStickerFiles,
+                    adaptive,
+                    bottomBarIconFiles,
+                )
             }
         }
     }
@@ -235,11 +274,20 @@ object ThemePackageStorage {
         cardBackgroundFile: File? = null,
         cardStickerFiles: List<File> = emptyList(),
         adaptive: ThemePackageAdaptiveExport? = null,
+        bottomBarIconFiles: Map<String, File> = emptyMap(),
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             file.parentFile?.mkdirs()
             BufferedOutputStream(file.outputStream()).use {
-                writeEncryptedZip(it, data, backgroundFile, cardBackgroundFile, cardStickerFiles, adaptive)
+                writeEncryptedZip(
+                    it,
+                    data,
+                    backgroundFile,
+                    cardBackgroundFile,
+                    cardStickerFiles,
+                    adaptive,
+                    bottomBarIconFiles,
+                )
             }
         }
     }
@@ -251,11 +299,22 @@ object ThemePackageStorage {
         cardBackgroundFile: File?,
         cardStickerFiles: List<File>,
         adaptive: ThemePackageAdaptiveExport?,
+        bottomBarIconFiles: Map<String, File> = emptyMap(),
     ) {
+        val usesImmersiveHome = data.homeLayout == HomeLayout.IMMERSIVE.value ||
+            adaptive?.light?.data?.homeLayout == HomeLayout.IMMERSIVE.value ||
+            adaptive?.dark?.data?.homeLayout == HomeLayout.IMMERSIVE.value
+        // Custom bottom bar icons ride on the v5 format: managers that cannot read them reject
+        // the package instead of applying everything except the icons.
+        val usesBottomBarIcons = bottomBarIconFiles.isNotEmpty()
         val packageData = if (adaptive != null) {
             validateAdaptiveExport(adaptive)
             data.copy(
-                version = if (data.appearance != null) APPEARANCE_VERSION else ADAPTIVE_VERSION,
+                version = when {
+                    usesImmersiveHome || usesBottomBarIcons -> HOME_STATUS_VERSION
+                    data.appearance != null -> APPEARANCE_VERSION
+                    else -> ADAPTIVE_VERSION
+                },
                 adaptive = true,
                 light = adaptive.light.data,
                 dark = adaptive.dark.data,
@@ -263,10 +322,18 @@ object ThemePackageStorage {
                 hasBackground = null,
                 hasCardBackground = null,
                 homeCardStickerTransforms = null,
+                homeLayout = null,
+                homeStatusAlignment = null,
+                homeStatusScale = null,
+                homePillScale = null,
+                homeStatusWidthFraction = null,
+                homeCardImageStyle = null,
+                showHomeCardImageWithoutBackground = null,
             )
         } else {
             data.copy(
                 version = when {
+                    usesImmersiveHome || usesBottomBarIcons -> HOME_STATUS_VERSION
                     data.appearance != null -> APPEARANCE_VERSION
                     data.version >= ADAPTIVE_VERSION -> BASE_VERSION
                     else -> data.version
@@ -305,6 +372,13 @@ object ThemePackageStorage {
                     zip.closeEntry()
                 }
             }
+            bottomBarIconFiles.entries
+                .filter { (slot, file) -> file.isFile && BottomBarIconSlot.fromKey(slot) != null }
+                .forEach { (slot, file) ->
+                    zip.putNextEntry(ZipEntry(BOTTOM_BAR_ICON_ENTRY_PREFIX + slot))
+                    file.inputStream().use { it.copyTo(zip) }
+                    zip.closeEntry()
+                }
         }
     }
 
@@ -421,6 +495,12 @@ object ThemePackageStorage {
         if (data.appearance != null && data.version < APPEARANCE_VERSION) {
             error("Appearance overlays require format v$APPEARANCE_VERSION")
         }
+        val usesImmersiveHome = data.homeLayout == HomeLayout.IMMERSIVE.value ||
+            data.light?.homeLayout == HomeLayout.IMMERSIVE.value ||
+            data.dark?.homeLayout == HomeLayout.IMMERSIVE.value
+        if (usesImmersiveHome && data.version < HOME_STATUS_VERSION) {
+            error("Immersive home layouts require format v$HOME_STATUS_VERSION")
+        }
         data.appearance?.let { appearance ->
             val appearanceJson = json.encodeToString(
                 AppearanceOverlayData.serializer(),
@@ -442,6 +522,7 @@ object ThemePackageStorage {
         var darkCardBackground: File? = null
         val lightStickers = mutableMapOf<Int, File>()
         val darkStickers = mutableMapOf<Int, File>()
+        val bottomBarIconPaths = mutableMapOf<String, String>()
         var extractedImageBytes = 0L
 
         fun cleanup() {
@@ -454,6 +535,7 @@ object ThemePackageStorage {
             darkCardBackground?.delete()
             lightStickers.forEach { (_, file) -> file.delete() }
             darkStickers.forEach { (_, file) -> file.delete() }
+            bottomBarIconPaths.values.forEach { runCatching { File(it).delete() } }
         }
 
         fun copyExtractedImage(input: InputStream, output: OutputStream) {
@@ -532,6 +614,17 @@ object ThemePackageStorage {
                         darkCardBackground = readImageEntry(zip, "theme_import_card_dark_")
                     }
 
+                    name.startsWith(BOTTOM_BAR_ICON_ENTRY_PREFIX) -> {
+                        val slot = name.removePrefix(BOTTOM_BAR_ICON_ENTRY_PREFIX)
+                        if (BottomBarIconSlot.fromKey(slot) != null) {
+                            if (bottomBarIconPaths.containsKey(slot)) {
+                                error("Duplicate bottom bar icon entry")
+                            }
+                            bottomBarIconPaths[slot] =
+                                readImageEntry(zip, "theme_import_bottom_bar_").absolutePath
+                        }
+                    }
+
                     name.startsWith(CARD_STICKER_LIGHT_PREFIX) -> readStickerEntry(
                         zip,
                         name,
@@ -564,6 +657,13 @@ object ThemePackageStorage {
             val text = themeText ?: error("theme.json is missing")
             val data = json.decodeFromString(ThemePackageData.serializer(), text)
             validateVersionedData(data)
+            data.bottomBarIcons?.forEach { slot ->
+                if (BottomBarIconSlot.fromKey(slot) != null &&
+                    !bottomBarIconPaths.containsKey(slot)
+                ) {
+                    error("Bottom bar icon entry is missing")
+                }
+            }
 
             if (data.adaptive == true) {
                 val lightData = data.light ?: error("Light variant is missing")
@@ -589,6 +689,9 @@ object ThemePackageStorage {
                 tempCardBackground = null
                 tempStickers.forEach { (_, file) -> file.delete() }
                 tempStickers.clear()
+                bottomBarIconPaths.values.forEach { path ->
+                    validateImage(File(path), "Bottom bar icon is invalid")
+                }
                 return ImportedTheme(
                     data = data.copy(
                         light = light.data,
@@ -597,6 +700,7 @@ object ThemePackageStorage {
                         hasCardBackground = null,
                         homeCardStickerTransforms = null,
                     ),
+                    bottomBarIconPaths = bottomBarIconPaths.toMap(),
                     light = light,
                     dark = dark,
                 )
@@ -634,11 +738,16 @@ object ThemePackageStorage {
                 validateImage(sticker, "Card sticker image is invalid")
             }
 
+            bottomBarIconPaths.values.forEach { path ->
+                validateImage(File(path), "Bottom bar icon is invalid")
+            }
+
             return ImportedTheme(
                 data = data,
                 backgroundPath = tempBackground?.takeIf { hasBackground }?.absolutePath,
                 cardBackgroundPath = tempCardBackground?.takeIf { hasCardBackground }?.absolutePath,
                 stickerPaths = stickerPaths(tempStickers),
+                bottomBarIconPaths = bottomBarIconPaths.toMap(),
             )
         } catch (e: Exception) {
             cleanup()

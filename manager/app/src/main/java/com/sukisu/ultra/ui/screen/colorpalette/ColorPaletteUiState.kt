@@ -6,9 +6,13 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.screen.settings.ThemePackageOptions
 import com.sukisu.ultra.ui.theme.ColorMode
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
 import com.sukisu.ultra.ui.util.HomeCardSticker
 import com.sukisu.ultra.ui.util.HomeCardStickerTransform
+import com.sukisu.ultra.ui.util.HomeLayout
+import com.sukisu.ultra.ui.util.HomeStatusAlignment
 import com.sukisu.ultra.ui.util.ResolvedAppearance
+import com.sukisu.ultra.ui.util.BottomBarIconSlot
 
 /**
  * Everything the appearance page renders, resolved once in
@@ -44,6 +48,13 @@ data class ColorPaletteUiState(
     val hideHomeCardStatusText: Boolean = false,
     val hideHomeCardDecoration: Boolean = false,
     val homeCardStickers: List<HomeCardSticker> = emptyList(),
+    val homeLayout: HomeLayout = HomeLayout.CLASSIC,
+    val homeStatusAlignment: HomeStatusAlignment = HomeStatusAlignment.START,
+    val homeStatusScale: Float = 1f,
+    val homePillScale: Float = 1f,
+    val homeStatusWidthFraction: Float = 1f,
+    val homeCardImageStyle: HomeCardImageStyle = HomeCardImageStyle.BANNER,
+    val showHomeCardImageWithoutBackground: Boolean = false,
     
     val adaptiveThemeActive: Boolean = false,
     val adaptiveDraftLightCaptured: Boolean = false,
@@ -60,6 +71,9 @@ data class ColorPaletteUiState(
     val appearanceSectionExpanded: Boolean = true,
     val homeCardSectionExpanded: Boolean = true,
     val colorsSectionExpanded: Boolean = true,
+    val bottomBarSectionExpanded: Boolean = true,
+    val interactionSectionExpanded: Boolean = true,
+    val detailsSectionExpanded: Boolean = true,
     val showFullStatus: Boolean = false,
     val hideHomeWarnings: Boolean = false,
     val showAiHomeCard: Boolean = false,
@@ -99,6 +113,9 @@ data class ColorPaletteScreenActions(
     val onSetAppearanceSectionExpanded: (Boolean) -> Unit = {},
     val onSetHomeCardSectionExpanded: (Boolean) -> Unit = {},
     val onSetColorsSectionExpanded: (Boolean) -> Unit = {},
+    val onSetBottomBarSectionExpanded: (Boolean) -> Unit = {},
+    val onSetInteractionSectionExpanded: (Boolean) -> Unit = {},
+    val onSetDetailsSectionExpanded: (Boolean) -> Unit = {},
     val onSetCustomHomeTitle: (String) -> Unit = {},
     val onPickCustomBackground: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onCropCurrentBackground: (android.content.Context) -> Unit = {},
@@ -107,6 +124,13 @@ data class ColorPaletteScreenActions(
     val onClearHomeCardImage: () -> Unit = {},
     val onSetHideHomeCardStatusText: (Boolean) -> Unit = {},
     val onSetHideHomeCardDecoration: (Boolean) -> Unit = {},
+    val onSetHomeLayout: (HomeLayout) -> Unit = {},
+    val onSetHomeStatusAlignment: (HomeStatusAlignment) -> Unit = {},
+    val onSetHomeStatusScale: (Float) -> Unit = {},
+    val onSetHomePillScale: (Float) -> Unit = {},
+    val onSetHomeStatusWidthFraction: (Float) -> Unit = {},
+    val onSetHomeCardImageStyle: (HomeCardImageStyle) -> Unit = {},
+    val onSetShowHomeCardImageWithoutBackground: (Boolean) -> Unit = {},
     val onPickHomeCardSticker: (android.content.Context, android.net.Uri) -> Unit = { _, _ -> },
     val onRemoveHomeCardSticker: (Int) -> Unit = {},
     val onUpdateHomeCardStickerTransform: (Int, HomeCardStickerTransform) -> Unit = { _, _ -> },
@@ -129,4 +153,8 @@ data class ColorPaletteScreenActions(
     val onResetBackgroundAppearance: () -> Unit = {},
     val onClearAllAppearance: () -> Unit = {},
     val onOpenAppearanceEditor: () -> Unit = {},
+    val onPickBottomBarIcon: (android.content.Context, BottomBarIconSlot, android.net.Uri) -> Unit =
+        { _, _, _ -> },
+    val onClearBottomBarIcon: (android.content.Context, BottomBarIconSlot) -> Unit = { _, _ -> },
+    val onUploadTheme: (android.content.Context, ThemePackageOptions) -> Unit = { _, _ -> },
 )

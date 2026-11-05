@@ -48,7 +48,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -80,12 +79,13 @@ fun BottomBarMaterial(
     if (!fullFeatured) return
 
     val mainPagerState = LocalMainPagerState.current
+    val bottomBarIcons = rememberBottomBarIconPaths()
 
     val items = listOf(
-        Triple(CustomTextKey.PAGE_HOME, Icons.Filled.Home, Icons.Outlined.Home),
-        Triple(CustomTextKey.PAGE_SUPERUSER, Icons.Filled.Shield, Icons.Outlined.Shield),
-        Triple(CustomTextKey.PAGE_MODULES, Icons.Filled.Extension, Icons.Outlined.Extension),
-        Triple(CustomTextKey.PAGE_SETTINGS, Icons.Filled.Settings, Icons.Outlined.Settings)
+        MaterialNavItem(CustomTextKey.PAGE_HOME, Icons.Filled.Home, Icons.Outlined.Home, bottomBarIcons["home"]),
+        MaterialNavItem(CustomTextKey.PAGE_SUPERUSER, Icons.Filled.Shield, Icons.Outlined.Shield, bottomBarIcons["superuser"]),
+        MaterialNavItem(CustomTextKey.PAGE_MODULES, Icons.Filled.Extension, Icons.Outlined.Extension, bottomBarIcons["module"]),
+        MaterialNavItem(CustomTextKey.PAGE_SETTINGS, Icons.Filled.Settings, Icons.Outlined.Settings, bottomBarIcons["setting"])
     )
 
     if (LocalEnableFloatingBottomBarBlur.current && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -125,12 +125,13 @@ fun BottomBarMaterial(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                items.forEachIndexed { index, (label, selectedIcon, unselectedIcon) ->
+                items.forEachIndexed { index, item ->
                     val selected = mainPagerState.selectedPage == index
                     FloatingNavItem(
                         selected = selected,
-                        label = customText(label),
-                        icon = if (selected) selectedIcon else unselectedIcon,
+                        label = customText(item.label),
+                        icon = if (selected) item.selectedIcon else item.unselectedIcon,
+                        iconPath = item.iconPath,
                         badge = badgeFor(index, navigationBadge),
                         onClick = {
                             if (!selected) {
@@ -149,7 +150,7 @@ fun BottomBarMaterial(
 @Composable
 private fun LiquidBottomBarMaterial(
     backdrop: Backdrop,
-    items: List<Triple<CustomTextKey, ImageVector, ImageVector>>,
+    items: List<MaterialNavItem>,
     navigationBadge: NavigationBadgeState,
     modifier: Modifier,
 ) {
@@ -172,7 +173,7 @@ private fun LiquidBottomBarMaterial(
         tabContentColor = MaterialTheme.colorScheme.onSurface,
         surfaceContainer = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) { activateTab ->
-        items.forEachIndexed { index, (label, selectedIcon, unselectedIcon) ->
+        items.forEachIndexed { index, item ->
             val selected = mainPagerState.selectedPage == index
             FloatingBottomBarItem(
                 selected = selected,
@@ -182,12 +183,13 @@ private fun LiquidBottomBarMaterial(
                 // The bar recolors its indicator copy through the Miuix content color; forward it to Material.
                 CompositionLocalProvider(LocalContentColor provides MiuixLocalContentColor.current) {
                     NavigationIconWithBadge(
-                        icon = if (selected) selectedIcon else unselectedIcon,
-                        contentDescription = customText(label),
+                        icon = if (selected) item.selectedIcon else item.unselectedIcon,
+                        iconPath = item.iconPath,
+                        contentDescription = customText(item.label),
                         badge = badgeFor(index, navigationBadge),
                     )
                     Text(
-                        text = customText(label),
+                        text = customText(item.label),
                         fontSize = 11.sp,
                         lineHeight = 14.sp,
                         maxLines = 1,
@@ -200,11 +202,19 @@ private fun LiquidBottomBarMaterial(
     }
 }
 
+private data class MaterialNavItem(
+    val label: CustomTextKey,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+    val iconPath: String?,
+)
+
 @Composable
 private fun FloatingNavItem(
     selected: Boolean,
     label: String,
     icon: ImageVector,
+    iconPath: String?,
     badge: NavBadge?,
     onClick: () -> Unit,
 ) {
@@ -231,6 +241,7 @@ private fun FloatingNavItem(
         ) {
             NavigationIconWithBadge(
                 icon = icon,
+                iconPath = iconPath,
                 contentDescription = if (selected) null else label,
                 badge = badge,
             )
@@ -256,6 +267,7 @@ internal fun NavigationIconWithBadge(
     icon: ImageVector,
     contentDescription: String?,
     badge: NavBadge?,
+    iconPath: String? = null,
 ) {
     if (badge != null) {
         BadgedBox(
@@ -274,9 +286,19 @@ internal fun NavigationIconWithBadge(
                 }
             }
         ) {
-            Icon(icon, contentDescription)
+            BottomBarIconContent(
+                icon = icon,
+                iconPath = iconPath,
+                contentDescription = contentDescription,
+                tint = LocalContentColor.current,
+            )
         }
     } else {
-        Icon(icon, contentDescription)
+        BottomBarIconContent(
+            icon = icon,
+            iconPath = iconPath,
+            contentDescription = contentDescription,
+            tint = LocalContentColor.current,
+        )
     }
 }

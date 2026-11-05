@@ -115,6 +115,7 @@ internal fun ThemeStoreUploadScreen(
     autoThemeId: String?,
     editingTheme: AccountThemeSummary?,
     initialAdaptiveTheme: Boolean = false,
+    initialCurrentTheme: Boolean = false,
     optionsLoading: Boolean,
     optionsError: String?,
     uploadPhase: ThemeStoreUploadPhase,
@@ -235,6 +236,19 @@ internal fun ThemeStoreUploadScreen(
         initialPackageApplied = true
         packageUri = Uri.fromFile(file)
         packageLabel = adaptivePresetName
+    }
+    LaunchedEffect(initialCurrentTheme, initialPackageApplied) {
+        if (!initialCurrentTheme || initialPackageApplied) return@LaunchedEffect
+        presetBusy = true
+        val file = runCatching { onExportCurrentPreset() }.getOrNull()
+        presetBusy = false
+        if (file == null) {
+            presetError = context.getString(R.string.theme_store_upload_preset_failed)
+            return@LaunchedEffect
+        }
+        initialPackageApplied = true
+        packageUri = Uri.fromFile(file)
+        packageLabel = presetName
     }
     val pickedPackageName = remember(packageUri) {
         packageUri?.let { queryDisplayName(context, it) } ?: noFile

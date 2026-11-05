@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -74,6 +75,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -95,6 +97,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.size.Precision
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.BuildConfig
@@ -121,6 +124,11 @@ import com.sukisu.ultra.ui.theme.rememberKernelSUColorScheme
 import com.sukisu.ultra.ui.theme.withAppearance
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.HomeCardSticker
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
+import com.sukisu.ultra.ui.util.HomeLayout
+import com.sukisu.ultra.ui.util.HomeStatusAlignment
+import com.sukisu.ultra.ui.util.HomeStatusStyle
+import com.sukisu.ultra.ui.util.shouldShowHomeCardImage
 import com.sukisu.ultra.ui.util.ResolvedAppearance
 import com.sukisu.ultra.ui.util.drawPainterCover
 import top.yukonga.miuix.kmp.basic.Badge as MiuixBadge
@@ -166,6 +174,13 @@ internal data class ThemePreviewSpec(
     val hideHomeCardText: Boolean = false,
     val hideHomeCardDecoration: Boolean = false,
     val homeCardStickers: List<HomeCardSticker> = emptyList(),
+    val homeLayout: HomeLayout = HomeLayout.CLASSIC,
+    val homeStatusAlignment: HomeStatusAlignment = HomeStatusAlignment.START,
+    val homeStatusScale: Float = 1f,
+    val homeStatusWidthFraction: Float = 1f,
+    val homePillScale: Float = 1f,
+    val homeCardImageStyle: HomeCardImageStyle = HomeCardImageStyle.BANNER,
+    val showHomeCardImageWithoutBackground: Boolean = false,
     val appearance: ResolvedAppearance? = null,
 )
 
@@ -570,7 +585,11 @@ private fun MiuixPreviewScreen(spec: ThemePreviewSpec, modifier: Modifier = Modi
                 .padding(top = 4.dp, start = 10.dp, end = 10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            MiuixPreviewHeroCard(spec)
+            if (spec.homeLayout == HomeLayout.IMMERSIVE) {
+                MiuixPreviewImmersiveStatus(spec)
+            } else {
+                MiuixPreviewHeroCard(spec)
+            }
             MiuixPreviewStatsRow()
             MiuixPreviewNoticeCard()
             MiuixPreviewLinksCard()
@@ -700,6 +719,122 @@ private fun MiuixPreviewHeroCard(spec: ThemePreviewSpec) {
                 stickers = spec.homeCardStickers,
                 cardWidth = maxWidth,
             )
+        }
+    }
+}
+
+@Composable
+private fun MiuixPreviewImmersiveStatus(spec: ThemePreviewSpec) {
+    val colors = MiuixTheme.colorScheme
+    val scale = HomeStatusStyle.coerceScale(spec.homeStatusScale)
+    val widthFraction = HomeStatusStyle.coerceWidth(spec.homeStatusWidthFraction)
+    val pillScale = HomeStatusStyle.coercePillScale(spec.homePillScale)
+    val showImage = shouldShowHomeCardImage(
+        path = spec.homeCardImagePath,
+        hasCustomBackground = spec.backgroundPath.isNotEmpty(),
+        showWithoutBackground = spec.showHomeCardImageWithoutBackground,
+    )
+    val accent = if (spec.miuixMonet) colors.primary else Color(0xFF36D167)
+    val bannerShape = RoundedCornerShape(HomeStatusStyle.BannerCorner)
+    val banner = spec.homeCardImageStyle == HomeCardImageStyle.BANNER && showImage
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = if (spec.homeStatusAlignment == HomeStatusAlignment.END) {
+            Alignment.End
+        } else {
+            Alignment.Start
+        },
+        verticalArrangement = Arrangement.spacedBy(HomeStatusStyle.ClusterGap),
+    ) {
+        AppCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = HomeStatusStyle.PillTouchTarget)
+                    .border(
+                        1.dp,
+                        colors.onSurface.copy(alpha = 0.12f),
+                        RoundedCornerShape(50),
+                    ),
+                cornerRadius = HomeStatusStyle.PillTouchTarget,
+                insideMargin = PaddingValues(0.dp),
+                colors = CardDefaults.defaultColors(
+                    color = backgroundAwareColor(colors.surfaceContainer, backgroundAlpha = 0.9f),
+                    contentColor = colors.onSurface,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .heightIn(
+                            min = maxOf(
+                                HomeStatusStyle.PillTouchTarget,
+                                HomeStatusStyle.pillDp(HomeStatusStyle.PillMinHeight, pillScale),
+                            )
+                        )
+                        .padding(
+                            horizontal = HomeStatusStyle.pillDp(
+                                HomeStatusStyle.PillHorizontalPadding,
+                                pillScale,
+                            )
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(
+                        HomeStatusStyle.pillDp(HomeStatusStyle.PillContentGap, pillScale)
+                    ),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(HomeStatusStyle.pillDp(HomeStatusStyle.DotSize, pillScale))
+                            .clip(CircleShape)
+                            .background(accent)
+                    )
+                    MiuixText(
+                        text = stringResource(R.string.home_working),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LabelSizeSp, pillScale),
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onSurface,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(HomeStatusStyle.pillDp(HomeStatusStyle.DividerWidth, pillScale))
+                            .height(HomeStatusStyle.pillDp(HomeStatusStyle.DividerHeight, pillScale))
+                            .background(colors.onSurface.copy(alpha = 0.18f))
+                    )
+                    MiuixText(
+                        text = "LKM · ${BuildConfig.VERSION_NAME}",
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.MetaSizeSp, pillScale),
+                        fontFamily = FontFamily.Monospace,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+            }
+        if (banner) {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth(widthFraction)
+                    .height(HomeStatusStyle.scaledDp(HomeStatusStyle.BannerHeight, scale))
+                    .clip(bannerShape)
+                    .background(colors.surfaceContainer)
+                    .border(1.dp, colors.onSurface.copy(alpha = 0.2f), bannerShape)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(File(spec.homeCardImagePath))
+                        .crossfade(true)
+                        .precision(Precision.EXACT)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.High,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                HomeCardStickerOverlays(
+                    stickers = spec.homeCardStickers,
+                    cardWidth = maxWidth,
+                    cardHeight = maxHeight,
+                    heightNormalized = true,
+                )
+            }
         }
     }
 }
@@ -977,7 +1112,11 @@ private fun MaterialPreviewScreen(spec: ThemePreviewSpec, modifier: Modifier = M
                 .padding(top = 4.dp, start = 14.dp, end = 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            MaterialPreviewHeroCard(spec)
+            if (spec.homeLayout == HomeLayout.IMMERSIVE) {
+                MaterialPreviewImmersiveStatus(spec)
+            } else {
+                MaterialPreviewHeroCard(spec)
+            }
             MaterialPreviewStatsRow()
             MaterialPreviewNoticeCard()
             MaterialPreviewLinksCard()
@@ -1088,6 +1227,113 @@ private fun MaterialPreviewHeroCard(spec: ThemePreviewSpec) {
                 stickers = spec.homeCardStickers,
                 cardWidth = maxWidth,
             )
+        }
+    }
+}
+
+@Composable
+private fun MaterialPreviewImmersiveStatus(spec: ThemePreviewSpec) {
+    val colors = MaterialTheme.colorScheme
+    val scale = HomeStatusStyle.coerceScale(spec.homeStatusScale)
+    val widthFraction = HomeStatusStyle.coerceWidth(spec.homeStatusWidthFraction)
+    val pillScale = HomeStatusStyle.coercePillScale(spec.homePillScale)
+    val showImage = shouldShowHomeCardImage(
+        path = spec.homeCardImagePath,
+        hasCustomBackground = spec.backgroundPath.isNotEmpty(),
+        showWithoutBackground = spec.showHomeCardImageWithoutBackground,
+    )
+    val bannerShape = RoundedCornerShape(HomeStatusStyle.BannerCorner)
+    val banner = spec.homeCardImageStyle == HomeCardImageStyle.BANNER && showImage
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = if (spec.homeStatusAlignment == HomeStatusAlignment.END) {
+            Alignment.End
+        } else {
+            Alignment.Start
+        },
+        verticalArrangement = Arrangement.spacedBy(HomeStatusStyle.ClusterGap),
+    ) {
+        MaterialSurface(
+                modifier = Modifier
+                    .heightIn(min = HomeStatusStyle.PillTouchTarget),
+                shape = CircleShape,
+                color = backgroundAwareColor(colors.surfaceContainer, backgroundAlpha = 0.9f),
+                contentColor = colors.onSurface,
+                border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.18f)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .heightIn(
+                            min = maxOf(
+                                HomeStatusStyle.PillTouchTarget,
+                                HomeStatusStyle.pillDp(HomeStatusStyle.PillMinHeight, pillScale),
+                            )
+                        )
+                        .padding(
+                            horizontal = HomeStatusStyle.pillDp(
+                                HomeStatusStyle.PillHorizontalPadding,
+                                pillScale,
+                            )
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(
+                        HomeStatusStyle.pillDp(HomeStatusStyle.PillContentGap, pillScale)
+                    ),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(HomeStatusStyle.pillDp(HomeStatusStyle.DotSize, pillScale))
+                            .clip(CircleShape)
+                            .background(colors.primary)
+                    )
+                    MaterialText(
+                        text = stringResource(R.string.home_working),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LabelSizeSp, pillScale),
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onSurface,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(HomeStatusStyle.pillDp(HomeStatusStyle.DividerWidth, pillScale))
+                            .height(HomeStatusStyle.pillDp(HomeStatusStyle.DividerHeight, pillScale))
+                            .background(colors.onSurface.copy(alpha = 0.18f))
+                    )
+                    MaterialText(
+                        text = "LKM · ${BuildConfig.VERSION_NAME}",
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.MetaSizeSp, pillScale),
+                        fontFamily = FontFamily.Monospace,
+                        color = colors.onSurfaceVariant,
+                    )
+                }
+            }
+        if (banner) {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth(widthFraction)
+                    .height(HomeStatusStyle.scaledDp(HomeStatusStyle.BannerHeight, scale))
+                    .clip(bannerShape)
+                    .background(colors.surfaceContainer)
+                    .border(1.dp, colors.outline.copy(alpha = 0.24f), bannerShape)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(File(spec.homeCardImagePath))
+                        .crossfade(true)
+                        .precision(Precision.EXACT)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.High,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                HomeCardStickerOverlays(
+                    stickers = spec.homeCardStickers,
+                    cardWidth = maxWidth,
+                    cardHeight = maxHeight,
+                    heightNormalized = true,
+                )
+            }
         }
     }
 }

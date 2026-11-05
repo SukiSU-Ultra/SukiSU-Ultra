@@ -76,6 +76,7 @@ import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.HomeLayout
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.drawPainterCover
@@ -300,6 +301,11 @@ private fun StatusCard(
         }
     }
     when {
+        state.ksuVersion != null && state.homeLayout == HomeLayout.IMMERSIVE -> ImmersiveStatusCardMiuix(
+            state = state,
+            onClick = onClick,
+        )
+
         state.ksuVersion != null -> ActiveStatusCard(state = state, onClick = onClick)
         else -> InactiveStatusCard(
             state = state,
@@ -310,7 +316,6 @@ private fun StatusCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ActiveStatusCard(
     state: HomeUiState,
@@ -522,7 +527,7 @@ private fun StatsRow(
     state: HomeUiState,
     actions: HomeActions,
 ) {
-    val tiles = buildList<Triple<Int, Int, (() -> Unit)?>> {
+    val tiles = buildList {
         state.superuserCount?.let { add(Triple(it, R.string.superuser, actions.onSuperuserClick)) }
         state.moduleCount?.let { add(Triple(it, R.string.module, actions.onModuleClick)) }
         state.kpmCount?.let { add(Triple(it, R.string.kpm_title, null)) }

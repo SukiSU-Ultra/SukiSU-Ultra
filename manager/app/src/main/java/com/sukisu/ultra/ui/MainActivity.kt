@@ -402,6 +402,11 @@ class MainActivity : ComponentActivity() {
                                     ThemeStoreScreen(startAdaptiveUpload = true)
                                 }
                             }
+                            entry<Route.ThemeStoreCurrentUpload>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette {
+                                    ThemeStoreScreen(startCurrentUpload = true)
+                                }
+                            }
                             entry<Route.ThemeStoreSources>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette { ThemeStoreSourcesScreen() }
                             }

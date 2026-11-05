@@ -84,6 +84,9 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onSetAppearanceSectionExpanded = viewModel::setAppearanceSectionExpanded,
         onSetHomeCardSectionExpanded = viewModel::setHomeCardSectionExpanded,
         onSetColorsSectionExpanded = viewModel::setColorsSectionExpanded,
+        onSetBottomBarSectionExpanded = viewModel::setBottomBarSectionExpanded,
+        onSetInteractionSectionExpanded = viewModel::setInteractionSectionExpanded,
+        onSetDetailsSectionExpanded = viewModel::setDetailsSectionExpanded,
         onSetCustomHomeTitle = viewModel::setCustomHomeTitle,
         onPickCustomBackground = { ctx, uri ->
             viewModel.stagePickedBackground(ctx, uri) { path ->
@@ -112,6 +115,13 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onClearHomeCardImage = viewModel::clearHomeCardImage,
         onSetHideHomeCardStatusText = viewModel::setHideHomeCardStatusText,
         onSetHideHomeCardDecoration = viewModel::setHideHomeCardDecoration,
+        onSetHomeLayout = viewModel::setHomeLayout,
+        onSetHomeStatusAlignment = viewModel::setHomeStatusAlignment,
+        onSetHomeStatusScale = viewModel::setHomeStatusScale,
+        onSetHomePillScale = viewModel::setHomePillScale,
+        onSetHomeStatusWidthFraction = viewModel::setHomeStatusWidthFraction,
+        onSetHomeCardImageStyle = viewModel::setHomeCardImageStyle,
+        onSetShowHomeCardImageWithoutBackground = viewModel::setShowHomeCardImageWithoutBackground,
         onPickHomeCardSticker = viewModel::addHomeCardSticker,
         onRemoveHomeCardSticker = viewModel::removeHomeCardSticker,
         onUpdateHomeCardStickerTransform = viewModel::updateHomeCardStickerTransform,
@@ -129,11 +139,20 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onSetCustomText = viewModel::setCustomText,
         onResetAllCustomTexts = viewModel::resetAllCustomTexts,
         onOpenCustomTexts = { navigator.push(Route.CustomTexts) },
-        onOpenThemeStore = { navigator.push(Route.ThemeStore()) },
+        onOpenThemeStore = {
+            viewModel.clearPendingThemeUploadOptions()
+            navigator.push(Route.ThemeStore())
+        },
         onOpenAdaptiveThemeBuilder = { navigator.push(Route.AdaptiveThemeBuilder) },
         onResetBackgroundAppearance = viewModel::resetBackgroundAppearance,
         onClearAllAppearance = viewModel::clearAllAppearance,
         onOpenAppearanceEditor = { navigator.push(Route.AppearanceOverlay) },
+        onPickBottomBarIcon = viewModel::pickBottomBarIcon,
+        onClearBottomBarIcon = viewModel::clearBottomBarIcon,
+        onUploadTheme = { _, options ->
+            viewModel.prepareThemeUpload(options)
+            navigator.push(Route.ThemeStoreCurrentUpload)
+        },
     )
 
     ThemeImportDialog(

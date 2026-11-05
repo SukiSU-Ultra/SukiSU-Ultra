@@ -16,6 +16,7 @@ import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.HomeCardSticker
+import com.sukisu.ultra.ui.util.HomeStatusStyle
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.execKsud
 import com.sukisu.ultra.ui.util.getFeaturePersistValue
@@ -35,6 +36,14 @@ internal const val KEY_HOME_CARD_IMAGE_PATH = "home_card_image_path"
 internal const val KEY_HIDE_HOME_CARD_STATUS_TEXT = "hide_home_card_status_text"
 internal const val KEY_HIDE_HOME_CARD_DECORATION = "hide_home_card_decoration"
 internal const val KEY_HOME_CARD_STICKERS = "home_card_stickers"
+internal const val KEY_BOTTOM_BAR_ICONS = "bottom_bar_icons"
+internal const val KEY_HOME_LAYOUT = "home_layout"
+internal const val KEY_HOME_STATUS_ALIGNMENT = "home_status_alignment"
+internal const val KEY_HOME_STATUS_SCALE = "home_status_scale"
+internal const val KEY_HOME_PILL_SCALE = "home_pill_scale"
+internal const val KEY_HOME_STATUS_WIDTH_FRACTION = "home_status_width_fraction"
+internal const val KEY_HOME_CARD_IMAGE_STYLE = "home_card_image_style"
+internal const val KEY_SHOW_HOME_CARD_IMAGE_WITHOUT_BACKGROUND = "home_card_image_without_background"
 internal const val KEY_ADAPTIVE_THEME = "adaptive_theme"
 internal const val KEY_ADAPTIVE_APPLIED_MODE = "adaptive_applied_mode"
 internal const val KEY_ADAPTIVE_DRAFT = "adaptive_theme_draft"
@@ -148,6 +157,18 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("colors_section_expanded", true)
         set(value) = prefs.edit { putBoolean("colors_section_expanded", value) }
 
+    override var bottomBarSectionExpanded: Boolean
+        get() = prefs.getBoolean("bottom_bar_section_expanded", true)
+        set(value) = prefs.edit { putBoolean("bottom_bar_section_expanded", value) }
+
+    override var interactionSectionExpanded: Boolean
+        get() = prefs.getBoolean("interaction_section_expanded", true)
+        set(value) = prefs.edit { putBoolean("interaction_section_expanded", value) }
+
+    override var detailsSectionExpanded: Boolean
+        get() = prefs.getBoolean("details_section_expanded", true)
+        set(value) = prefs.edit { putBoolean("details_section_expanded", value) }
+
     override var customHomeTitle: String
         get() = prefs.getString(KEY_CUSTOM_HOME_TITLE, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CUSTOM_HOME_TITLE, value.trim()) }
@@ -216,6 +237,44 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean(KEY_HIDE_HOME_CARD_DECORATION, false)
         set(value) = prefs.edit { putBoolean(KEY_HIDE_HOME_CARD_DECORATION, value) }
 
+    override var homeLayout: String
+        get() = prefs.getString(KEY_HOME_LAYOUT, "classic") ?: "classic"
+        set(value) = prefs.edit { putString(KEY_HOME_LAYOUT, value) }
+
+    override var homeStatusAlignment: String
+        get() = prefs.getString(KEY_HOME_STATUS_ALIGNMENT, "start") ?: "start"
+        set(value) = prefs.edit { putString(KEY_HOME_STATUS_ALIGNMENT, value) }
+
+    override var homeStatusScale: Float
+        get() = HomeStatusStyle.coerceScale(
+            prefs.getFloat(KEY_HOME_STATUS_SCALE, HomeStatusStyle.SCALE_DEFAULT)
+        )
+        set(value) = prefs.edit { putFloat(KEY_HOME_STATUS_SCALE, HomeStatusStyle.coerceScale(value)) }
+
+    override var homePillScale: Float
+        get() = HomeStatusStyle.coercePillScale(
+            prefs.getFloat(KEY_HOME_PILL_SCALE, HomeStatusStyle.PILL_SCALE_DEFAULT)
+        )
+        set(value) = prefs.edit {
+            putFloat(KEY_HOME_PILL_SCALE, HomeStatusStyle.coercePillScale(value))
+        }
+
+    override var homeStatusWidthFraction: Float
+        get() = HomeStatusStyle.coerceWidth(
+            prefs.getFloat(KEY_HOME_STATUS_WIDTH_FRACTION, HomeStatusStyle.WIDTH_DEFAULT)
+        )
+        set(value) = prefs.edit {
+            putFloat(KEY_HOME_STATUS_WIDTH_FRACTION, HomeStatusStyle.coerceWidth(value))
+        }
+
+    override var homeCardImageStyle: String
+        get() = prefs.getString(KEY_HOME_CARD_IMAGE_STYLE, "banner") ?: "banner"
+        set(value) = prefs.edit { putString(KEY_HOME_CARD_IMAGE_STYLE, value) }
+
+    override var showHomeCardImageWithoutBackground: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_HOME_CARD_IMAGE_WITHOUT_BACKGROUND, false)
+        set(value) = prefs.edit { putBoolean(KEY_SHOW_HOME_CARD_IMAGE_WITHOUT_BACKGROUND, value) }
+
     override var homeCardStickers: List<HomeCardSticker>
         get() {
             val jsonStr = prefs.getString(KEY_HOME_CARD_STICKERS, null) ?: return emptyList()
@@ -226,6 +285,18 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) {
             val jsonStr = Json.encodeToString(value.take(HomeCardSticker.MAX_COUNT))
             prefs.edit { putString(KEY_HOME_CARD_STICKERS, jsonStr) }
+        }
+
+    override var bottomBarIcons: Map<String, String>
+        get() {
+            val jsonStr = prefs.getString(KEY_BOTTOM_BAR_ICONS, null) ?: return emptyMap()
+            return runCatching {
+                Json.decodeFromString<Map<String, String>>(jsonStr)
+            }.getOrDefault(emptyMap()).filterValues { it.isNotBlank() }
+        }
+        set(value) {
+            val filtered = value.filterValues { it.isNotBlank() }
+            prefs.edit { putString(KEY_BOTTOM_BAR_ICONS, Json.encodeToString(filtered)) }
         }
 
     override var adaptiveThemeJson: String

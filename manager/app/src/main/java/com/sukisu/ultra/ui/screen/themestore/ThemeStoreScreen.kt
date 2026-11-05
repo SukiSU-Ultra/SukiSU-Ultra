@@ -181,6 +181,7 @@ internal fun formatStoreCount(value: Long): String {
 fun ThemeStoreScreen(
     viewModel: ThemeStoreViewModel = viewModel(),
     startAdaptiveUpload: Boolean = false,
+    startCurrentUpload: Boolean = false,
     initialThemeId: String? = null,
     initialSourceBaseUrl: String? = null,
 ) {
@@ -196,8 +197,11 @@ fun ThemeStoreScreen(
     var showConsentDialog by rememberSaveable { mutableStateOf(false) }
     var showAccountPicker by rememberSaveable { mutableStateOf(false) }
     var pendingAdaptiveTheme by rememberSaveable { mutableStateOf(false) }
+    var pendingCurrentTheme by rememberSaveable { mutableStateOf(false) }
     var adaptiveUploadHandled by rememberSaveable(startAdaptiveUpload) { mutableStateOf(false) }
     var adaptiveAccountRedirected by rememberSaveable(startAdaptiveUpload) { mutableStateOf(false) }
+    var currentUploadHandled by rememberSaveable(startCurrentUpload) { mutableStateOf(false) }
+    var currentAccountRedirected by rememberSaveable(startCurrentUpload) { mutableStateOf(false) }
     var selectedUploadBaseUrl by rememberSaveable { mutableStateOf<String?>(null) }
     var editingThemeId by rememberSaveable { mutableStateOf<String?>(null) }
     var editingThemeBaseUrl by rememberSaveable { mutableStateOf<String?>(null) }
@@ -310,6 +314,30 @@ fun ThemeStoreScreen(
         pendingAdaptiveTheme = true
         adaptiveUploadHandled = true
         // Returning from the account page after login should land directly on the upload form.
+        if (navigator.current() is Route.ThemeAccount) navigator.pop()
+        if (accounts.size == 1) {
+            openUpload(accounts.single())
+        } else {
+            showAccountPicker = true
+        }
+    }
+
+    // Entered from the theme settings export dialog: open the upload form straight away and let
+    // the form generate a package from the options the user just picked.
+    LaunchedEffect(startCurrentUpload, state.loaded, state.accounts) {
+        if (!startCurrentUpload || currentUploadHandled) return@LaunchedEffect
+        if (!state.loaded) return@LaunchedEffect
+        if (state.needsConfig) return@LaunchedEffect
+        val accounts = state.accounts
+        if (accounts.isEmpty()) {
+            if (!currentAccountRedirected) {
+                currentAccountRedirected = true
+                navigator.navigateTo(Route.ThemeAccount())
+            }
+            return@LaunchedEffect
+        }
+        pendingCurrentTheme = true
+        currentUploadHandled = true
         if (navigator.current() is Route.ThemeAccount) navigator.pop()
         if (accounts.size == 1) {
             openUpload(accounts.single())
@@ -593,6 +621,8 @@ fun ThemeStoreScreen(
             onDone = {
                 showUpload = false
                 pendingAdaptiveTheme = false
+                pendingCurrentTheme = false
+                settingsViewModel.clearPendingThemeUploadOptions()
                 editingThemeId = null
                 editingThemeBaseUrl = null
                 showSubmissions = returnToSubmissions
@@ -607,6 +637,7 @@ fun ThemeStoreScreen(
             autoThemeId = state.uploadThemeId,
             editingTheme = editingTheme,
             initialAdaptiveTheme = pendingAdaptiveTheme,
+            initialCurrentTheme = pendingCurrentTheme,
             optionsLoading = state.uploadOptionsLoading,
             optionsError = state.uploadOptionsError,
             uploadPhase = state.uploadPhase,
@@ -621,6 +652,8 @@ fun ThemeStoreScreen(
                 if (!state.submitting) {
                     showUpload = false
                     pendingAdaptiveTheme = false
+                    pendingCurrentTheme = false
+                    settingsViewModel.clearPendingThemeUploadOptions()
                     editingThemeId = null
                     editingThemeBaseUrl = null
                     showSubmissions = returnToSubmissions

@@ -47,5 +47,6 @@ fun ThemeImportDialog(
         forceMaterial = forceMaterial,
         hasCustomColors = data.appearance?.colors != null,
         hasImageEffects = data.appearance?.image != null,
+        hasBottomBarIcons = data.bottomBarIcons != null || theme.bottomBarIconPaths.isNotEmpty(),
     )
 }

@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.media.ExifInterface
+import android.os.Build
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import java.io.File
@@ -23,8 +24,6 @@ private const val MAX_OUTPUT_DIMENSION = 2560
 
 private const val LOW_RAM_SOURCE_DIMENSION = 2048
 private const val LOW_RAM_OUTPUT_DIMENSION = 2048
-
-private const val JPEG_QUALITY = 95
 
 const val CROP_MAX_ZOOM = 8f
 
@@ -163,7 +162,14 @@ fun renderCroppedBitmap(
 fun saveCropBitmap(bitmap: Bitmap, file: File): Boolean = runCatching {
     file.parentFile?.mkdirs()
     FileOutputStream(file).use { output ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)
+        // Keep the wallpaper lossless: JPEG re-encoding softened gradients and fine detail.
+        // WebP lossless is available from Android 11; PNG covers older devices.
+        val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Bitmap.CompressFormat.WEBP_LOSSLESS
+        } else {
+            Bitmap.CompressFormat.PNG
+        }
+        bitmap.compress(format, 100, output)
     }
 }.getOrDefault(false)
 

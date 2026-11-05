@@ -164,6 +164,27 @@ object AdaptiveThemeStore {
 
         data.hideHomeCardDecoration?.let { repo.hideHomeCardDecoration = it }
         data.hideHomeCardStatusText?.let { repo.hideHomeCardStatusText = it }
+        data.homeLayout?.let {
+            repo.homeLayout = HomeLayout.fromValue(it).value
+        }
+        data.homeStatusAlignment?.let {
+            repo.homeStatusAlignment = HomeStatusAlignment.fromValue(it).value
+        }
+        data.homeStatusScale?.let {
+            repo.homeStatusScale = HomeStatusStyle.coerceScale(it)
+        }
+        data.homePillScale?.let {
+            repo.homePillScale = HomeStatusStyle.coercePillScale(it)
+        }
+        data.homeStatusWidthFraction?.let {
+            repo.homeStatusWidthFraction = HomeStatusStyle.coerceWidth(it)
+        }
+        data.homeCardImageStyle?.let {
+            repo.homeCardImageStyle = HomeCardImageStyle.fromValue(it).value
+        }
+        data.showHomeCardImageWithoutBackground?.let {
+            repo.showHomeCardImageWithoutBackground = it
+        }
 
         if (includeChrome) {
             data.uiMode

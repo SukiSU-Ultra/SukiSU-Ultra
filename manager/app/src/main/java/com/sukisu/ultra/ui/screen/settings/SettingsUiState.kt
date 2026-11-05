@@ -7,7 +7,10 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.CustomTextGroup
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
 import com.sukisu.ultra.ui.util.HomeCardSticker
+import com.sukisu.ultra.ui.util.HomeLayout
+import com.sukisu.ultra.ui.util.HomeStatusAlignment
 
 @Immutable
 data class SettingsUiState(
@@ -99,6 +102,9 @@ data class SettingsUiState(
     val appearanceSectionExpanded: Boolean = true,
     val homeCardSectionExpanded: Boolean = true,
     val colorsSectionExpanded: Boolean = true,
+    val bottomBarSectionExpanded: Boolean = true,
+    val interactionSectionExpanded: Boolean = true,
+    val detailsSectionExpanded: Boolean = true,
     val customHomeTitle: String = "",
     val customTexts: Map<String, String> = emptyMap(),
     val themeStoreBaseUrl: String = "",
@@ -111,6 +117,15 @@ data class SettingsUiState(
     val hideHomeCardStatusText: Boolean = false,
     val hideHomeCardDecoration: Boolean = false,
     val homeCardStickers: List<HomeCardSticker> = emptyList(),
+    /** Custom bottom bar icon images keyed by [com.sukisu.ultra.ui.util.BottomBarIconSlot.key]. */
+    val bottomBarIcons: Map<String, String> = emptyMap(),
+    val homeLayout: HomeLayout = HomeLayout.CLASSIC,
+    val homeStatusAlignment: HomeStatusAlignment = HomeStatusAlignment.START,
+    val homeStatusScale: Float = 1f,
+    val homePillScale: Float = 1f,
+    val homeStatusWidthFraction: Float = 1f,
+    val homeCardImageStyle: HomeCardImageStyle = HomeCardImageStyle.BANNER,
+    val showHomeCardImageWithoutBackground: Boolean = false,
 
     val pendingImportTheme: com.sukisu.ultra.ui.util.ImportedTheme? = null,
     val showThemeImportDialog: Boolean = false,
@@ -152,6 +167,7 @@ data class ThemePackageOptions(
     val moduleDisplay: Boolean = true,
     val customColors: Boolean = true,
     val imageEffects: Boolean = true,
+    val bottomBarIcons: Boolean = true,
 )
 
 val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
@@ -175,6 +191,7 @@ val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
             it.moduleDisplay,
             it.customColors,
             it.imageEffects,
+            it.bottomBarIcons,
         )
     },
     restore = {
@@ -199,6 +216,7 @@ val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
             moduleDisplay = it.getOrElse(15) { true },
             customColors = it.getOrElse(16) { true },
             imageEffects = it.getOrElse(17) { true },
+            bottomBarIcons = it.getOrElse(18) { true },
         )
     },
 )

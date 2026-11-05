@@ -28,6 +28,8 @@ object ImageStorage {
     private const val SYSTEM_WALLPAPER_FILE_NAME = "system_wallpaper"
     private const val HOME_CARD_PREFIX = "home_card_image"
     private const val HOME_CARD_STICKER_PREFIX = "home_card_sticker"
+    private const val BOTTOM_BAR_ICON_PREFIX = "bottom_bar_icon_"
+    private const val BOTTOM_BAR_ICON_MAX_PX = 256
     private const val ADAPTIVE_BACKGROUND_LIGHT = "adaptive_bg_light"
     private const val ADAPTIVE_BACKGROUND_DARK = "adaptive_bg_dark"
     private const val ADAPTIVE_CARD_LIGHT_PREFIX = "adaptive_card_light_"
@@ -454,6 +456,105 @@ object ImageStorage {
     suspend fun clearHomeCardImage(context: Context) = withContext(Dispatchers.IO) {
         backgroundsDir(context)
             .listFiles { file -> file.name.startsWith(HOME_CARD_PREFIX) }
+            ?.forEach { it.delete() }
+    }
+
+    private fun bottomBarIconPrefix(slot: BottomBarIconSlot) =
+        BOTTOM_BAR_ICON_PREFIX + slot.key + "_"
+
+    /**
+     * Decodes the picked image, scales it down to an icon-sized PNG and writes it to [target].
+     * Keeping the alpha channel matters because custom icons are drawn without a tint.
+     */
+    private fun writeBottomBarIcon(target: File, openInput: () -> java.io.InputStream?): Boolean {
+        val raw = File(target.parentFile, target.name + ".raw")
+        try {
+            openInput()?.use { input -> raw.outputStream().use { input.copyTo(it) } } ?: return false
+            if (raw.length() == 0L) return false
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(raw.absolutePath, bounds)
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return false
+            var sample = 1
+            while (bounds.outWidth / (sample * 2) >= BOTTOM_BAR_ICON_MAX_PX &&
+                bounds.outHeight / (sample * 2) >= BOTTOM_BAR_ICON_MAX_PX
+            ) {
+                sample *= 2
+            }
+            val options = BitmapFactory.Options().apply { inSampleSize = sample }
+            val decoded = BitmapFactory.decodeFile(raw.absolutePath, options) ?: return false
+            val longest = maxOf(decoded.width, decoded.height)
+            val scaled = if (longest > BOTTOM_BAR_ICON_MAX_PX) {
+                val ratio = BOTTOM_BAR_ICON_MAX_PX.toFloat() / longest
+                Bitmap.createScaledBitmap(
+                    decoded,
+                    (decoded.width * ratio).toInt().coerceAtLeast(1),
+                    (decoded.height * ratio).toInt().coerceAtLeast(1),
+                    true,
+                )
+            } else {
+                decoded
+            }
+            val written = target.outputStream().use { out ->
+                scaled.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            if (scaled !== decoded) scaled.recycle()
+            decoded.recycle()
+            return written && target.length() > 0L
+        } catch (_: Exception) {
+            return false
+        } finally {
+            raw.delete()
+        }
+    }
+
+    suspend fun saveBottomBarIcon(
+        context: Context,
+        slot: BottomBarIconSlot,
+        uri: Uri,
+    ): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val dir = backgroundsDir(context)
+            val prefix = bottomBarIconPrefix(slot)
+            val target = File(dir, prefix + System.currentTimeMillis() + "_" + System.nanoTime())
+            if (!writeBottomBarIcon(target) { context.contentResolver.openInputStream(uri) }) {
+                target.delete()
+                return@runCatching null
+            }
+            dir.listFiles { file -> file.name.startsWith(prefix) && file != target }
+                ?.forEach { it.delete() }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    suspend fun importBottomBarIcon(
+        context: Context,
+        slot: BottomBarIconSlot,
+        source: File,
+    ): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val dir = backgroundsDir(context)
+            val prefix = bottomBarIconPrefix(slot)
+            val target = File(dir, prefix + System.currentTimeMillis() + "_" + System.nanoTime())
+            if (!writeBottomBarIcon(target) { source.inputStream() }) {
+                target.delete()
+                return@runCatching null
+            }
+            dir.listFiles { file -> file.name.startsWith(prefix) && file != target }
+                ?.forEach { it.delete() }
+            target.absolutePath
+        }.getOrNull()
+    }
+
+    suspend fun clearBottomBarIcon(context: Context, slot: BottomBarIconSlot) =
+        withContext(Dispatchers.IO) {
+            backgroundsDir(context)
+                .listFiles { file -> file.name.startsWith(bottomBarIconPrefix(slot)) }
+                ?.forEach { it.delete() }
+        }
+
+    suspend fun clearBottomBarIcons(context: Context) = withContext(Dispatchers.IO) {
+        backgroundsDir(context)
+            .listFiles { file -> file.name.startsWith(BOTTOM_BAR_ICON_PREFIX) }
             ?.forEach { it.delete() }
     }
 

@@ -19,6 +19,10 @@ import com.sukisu.ultra.ui.util.AdaptiveThemeStore
 import com.sukisu.ultra.ui.util.AppearanceOverlayStore
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
+import com.sukisu.ultra.ui.util.HomeLayout
+import com.sukisu.ultra.ui.util.HomeStatusAlignment
+import com.sukisu.ultra.ui.util.HomeStatusStyle
 import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.ThemePackageData
 import com.sukisu.ultra.ui.util.ThemePackageStorage
@@ -76,6 +80,13 @@ object AiThemeController : AiThemeService {
             put("show_full_status", repo.showFullStatus)
             put("hide_home_warnings", repo.hideHomeWarnings)
             put("show_ai_home_card", repo.showAiHomeCard)
+            put("home_layout", repo.homeLayout)
+            put("home_status_alignment", repo.homeStatusAlignment)
+            put("home_status_scale", repo.homeStatusScale)
+            put("home_pill_scale", repo.homePillScale)
+            put("home_status_width", repo.homeStatusWidthFraction)
+            put("home_card_image_style", repo.homeCardImageStyle)
+            put("home_card_image_without_background", repo.showHomeCardImageWithoutBackground)
             put("has_background_image", hasBackgroundImage())
             put("has_home_card_image", hasHomeCardImage())
             put("background_source", when {
@@ -205,6 +216,51 @@ object AiThemeController : AiThemeService {
                 repo.moduleDescriptionMaxLines = text.toIntRange(1, 5, normalizedKey)
             "show_full_status" -> repo.showFullStatus = text.toBooleanValue()
             "hide_home_warnings" -> repo.hideHomeWarnings = text.toBooleanValue()
+            "home_layout" -> {
+                val layout = HomeLayout.entries.firstOrNull { it.value == text.trim() }
+                    ?: throw IllegalArgumentException("home_layout must be classic or immersive")
+                repo.homeLayout = layout.value
+            }
+            "home_status_alignment" -> {
+                val alignment = HomeStatusAlignment.entries.firstOrNull { it.value == text.trim() }
+                    ?: throw IllegalArgumentException(
+                        "home_status_alignment must be start or end"
+                    )
+                repo.homeStatusAlignment = alignment.value
+            }
+            "home_status_scale" -> {
+                val scale = text.toFloatOrNull()
+                    ?: throw IllegalArgumentException("home_status_scale must be a number")
+                require(scale in HomeStatusStyle.SCALE_MIN..HomeStatusStyle.SCALE_MAX) {
+                    "home_status_scale must be between ${HomeStatusStyle.SCALE_MIN} and ${HomeStatusStyle.SCALE_MAX}"
+                }
+                repo.homeStatusScale = scale
+            }
+            "home_pill_scale" -> {
+                val scale = text.toFloatOrNull()
+                    ?: throw IllegalArgumentException("home_pill_scale must be a number")
+                require(scale in HomeStatusStyle.PILL_SCALE_MIN..HomeStatusStyle.PILL_SCALE_MAX) {
+                    "home_pill_scale must be between ${HomeStatusStyle.PILL_SCALE_MIN} and ${HomeStatusStyle.PILL_SCALE_MAX}"
+                }
+                repo.homePillScale = scale
+            }
+            "home_status_width" -> {
+                val width = text.toFloatOrNull()
+                    ?: throw IllegalArgumentException("home_status_width must be a number")
+                require(width in HomeStatusStyle.WIDTH_MIN..HomeStatusStyle.WIDTH_MAX) {
+                    "home_status_width must be between ${HomeStatusStyle.WIDTH_MIN} and ${HomeStatusStyle.WIDTH_MAX}"
+                }
+                repo.homeStatusWidthFraction = width
+            }
+            "home_card_image_style" -> {
+                val style = HomeCardImageStyle.entries.firstOrNull { it.value == text.trim() }
+                    ?: throw IllegalArgumentException(
+                        "home_card_image_style must be banner or off"
+                    )
+                repo.homeCardImageStyle = style.value
+            }
+            "home_card_image_without_background" ->
+                repo.showHomeCardImageWithoutBackground = text.toBooleanValue()
             "show_ai_home_card" -> throw IllegalArgumentException(
                 "show_ai_home_card is read-only for the assistant: disabling it would close this " +
                     "chat and remove the only AI entry. Change it manually in Settings > Appearance."
@@ -224,7 +280,10 @@ object AiThemeController : AiThemeService {
                     "extract_color_from_background, use_system_wallpaper, blur, " +
                     "floating_bottom_bar, floating_bottom_bar_blur, navigation_badge, page_scale, " +
                     "predictive_back, swipe_dismiss, pager_mode, module_description_max_lines, " +
-                    "show_full_status, hide_home_warnings"
+                    "show_full_status, hide_home_warnings, home_layout, home_status_alignment, " +
+                    "home_status_scale, " +
+                    "home_pill_scale, home_status_width, home_card_image_style, " +
+                    "home_card_image_without_background"
             )
         }
         read()
@@ -342,6 +401,13 @@ object AiThemeController : AiThemeService {
             hasCardBackground = currentHomeCardFile() != null,
             hideHomeCardStatusText = repo.hideHomeCardStatusText,
             hideHomeCardDecoration = repo.hideHomeCardDecoration,
+            homeLayout = repo.homeLayout,
+            homeStatusAlignment = repo.homeStatusAlignment,
+            homeStatusScale = repo.homeStatusScale,
+            homePillScale = repo.homePillScale,
+            homeStatusWidthFraction = repo.homeStatusWidthFraction,
+            homeCardImageStyle = repo.homeCardImageStyle,
+            showHomeCardImageWithoutBackground = repo.showHomeCardImageWithoutBackground,
             homeCardStickerTransforms = repo.homeCardStickers
                 .filter { File(it.path).isFile }
                 .map { it.transform },

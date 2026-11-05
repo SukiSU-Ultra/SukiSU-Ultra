@@ -15,6 +15,8 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.theme.AppSettings
 import com.sukisu.ultra.ui.theme.ColorMode
 import com.sukisu.ultra.ui.theme.KernelSUTheme
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
+import com.sukisu.ultra.ui.util.HomeLayout
 
 /**
  * Design-time previews for [ThemePreviewMiuix] and [ThemePreviewMaterial].
@@ -92,6 +94,47 @@ private fun ThemePreviewMaterialDark() {
                 colorSpec = ColorSpec.SpecVersion.SPEC_2025,
                 floatingBottomBar = true,
                 navigationBadge = true,
+            ),
+        )
+    }
+}
+
+@Preview(name = "Theme preview - Miuix immersive", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+private fun ThemePreviewMiuixImmersive() {
+    ThemePreviewSample(uiMode = UiMode.Miuix, isDark = false) {
+        ThemePreviewMiuix(
+            spec = ThemePreviewSpec(
+                keyColor = SampleKeyColor,
+                isDark = false,
+                miuixMonet = true,
+                paletteStyle = PaletteStyle.TonalSpot,
+                colorSpec = ColorSpec.SpecVersion.SPEC_2025,
+                navigationBadge = true,
+                homeLayout = HomeLayout.IMMERSIVE,
+                homeStatusScale = 1f,
+                homeCardImageStyle = HomeCardImageStyle.BANNER,
+            ),
+            modifier = Modifier.padding(horizontal = 12.dp),
+        )
+    }
+}
+
+@Preview(name = "Theme preview - MD3E immersive", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+private fun ThemePreviewMaterialImmersive() {
+    ThemePreviewSample(uiMode = UiMode.Material, isDark = true) {
+        ThemePreviewMaterial(
+            spec = ThemePreviewSpec(
+                keyColor = SampleKeyColor,
+                isDark = true,
+                paletteStyle = PaletteStyle.Vibrant,
+                colorSpec = ColorSpec.SpecVersion.SPEC_2025,
+                floatingBottomBar = true,
+                navigationBadge = true,
+                homeLayout = HomeLayout.IMMERSIVE,
+                homeStatusScale = 1f,
+                homeCardImageStyle = HomeCardImageStyle.BANNER,
             ),
         )
     }

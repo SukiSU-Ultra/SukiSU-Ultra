@@ -10,6 +10,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
@@ -107,6 +110,12 @@ internal fun badgeFor(index: Int, state: NavigationBadgeState): NavBadge? = when
 @Composable
 fun useNavigationRail(enableFloatingBottomBar: Boolean): Boolean {
     return shouldShowSplitPane() && !(LocalUiMode.current == UiMode.Miuix && enableFloatingBottomBar)
+}
+
+@Composable
+internal fun rememberBottomBarIconPaths(): Map<String, String> {
+    val state by viewModel<SettingsViewModel>().uiState.collectAsStateWithLifecycle()
+    return state.bottomBarIcons
 }
 
 @Composable

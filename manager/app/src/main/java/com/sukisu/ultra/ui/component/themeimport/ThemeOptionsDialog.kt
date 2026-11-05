@@ -62,6 +62,8 @@ fun ThemeOptionsDialog(
     forceMaterial: Boolean = false,
     hasCustomColors: Boolean = false,
     hasImageEffects: Boolean = false,
+    hasBottomBarIcons: Boolean = false,
+    onUpload: ((ThemePackageOptions) -> Unit)? = null,
 ) {
     if (!show) return
 
@@ -83,6 +85,7 @@ fun ThemeOptionsDialog(
     var interfaceSwitches by rememberSaveable { mutableStateOf(true) }
     var interactionBehavior by rememberSaveable { mutableStateOf(true) }
     var moduleDisplay by rememberSaveable { mutableStateOf(true) }
+    var bottomBarIcons by rememberSaveable { mutableStateOf(true) }
 
     val selectedTextGroups = buildSet {
         if (customTextHome) add(CustomTextGroup.HOME)
@@ -116,6 +119,7 @@ fun ThemeOptionsDialog(
         moduleDisplay = moduleDisplay,
         customColors = customColors && hasCustomColors,
         imageEffects = imageEffects && hasImageEffects,
+        bottomBarIcons = bottomBarIcons && hasBottomBarIcons,
     )
 
     when (if (forceMaterial) UiMode.Material else LocalUiMode.current) {
@@ -210,7 +214,7 @@ fun ThemeOptionsDialog(
                                     onCheckedChange = { homeCardDisplay = it },
                                 )
                             }
-                            item { OptionGroupLabel(stringResource(R.string.settings_section_appearance)) }
+                            item { OptionGroupLabel(stringResource(R.string.settings_section_icon_text)) }
                             if (hasAppIcon) {
                                 item {
                                     MiuixOptionRow(
@@ -239,6 +243,16 @@ fun ThemeOptionsDialog(
                                             nested = true,
                                         )
                                     }
+                                }
+                            }
+                            if (hasBottomBarIcons) {
+                                item { OptionGroupLabel(stringResource(R.string.settings_section_bottom_bar)) }
+                                item {
+                                    MiuixOptionRow(
+                                        title = stringResource(R.string.theme_opt_bottom_bar_icons),
+                                        checked = bottomBarIcons,
+                                        onCheckedChange = { bottomBarIcons = it },
+                                    )
                                 }
                             }
                             item { OptionGroupLabel(stringResource(R.string.theme_opt_other)) }
@@ -272,6 +286,15 @@ fun ThemeOptionsDialog(
                             }
                         }
                         Spacer(Modifier.height(12.dp))
+                        if (onUpload != null) {
+                            TextButton(
+                                text = stringResource(R.string.theme_upload_to_store),
+                                onClick = { onUpload(options) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp),
+                            )
+                        }
                         Row(
                             modifier = Modifier.padding(horizontal = 24.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -379,7 +402,7 @@ fun ThemeOptionsDialog(
                             checked = homeCardDisplay,
                             onCheckedChange = { homeCardDisplay = it },
                         )
-                        MaterialOptionGroupLabel(stringResource(R.string.settings_section_appearance))
+                        MaterialOptionGroupLabel(stringResource(R.string.settings_section_icon_text))
                         if (hasAppIcon) {
                             MaterialCheckboxRow(
                                 title = stringResource(R.string.theme_opt_app_icon),
@@ -406,6 +429,14 @@ fun ThemeOptionsDialog(
                                     }
                             }
                         }
+                        if (hasBottomBarIcons) {
+                            MaterialOptionGroupLabel(stringResource(R.string.settings_section_bottom_bar))
+                            MaterialCheckboxRow(
+                                title = stringResource(R.string.theme_opt_bottom_bar_icons),
+                                checked = bottomBarIcons,
+                                onCheckedChange = { bottomBarIcons = it },
+                            )
+                        }
                         MaterialOptionGroupLabel(stringResource(R.string.theme_opt_other))
                         MaterialCheckboxRow(
                             title = stringResource(R.string.theme_opt_interface_mode),
@@ -427,6 +458,16 @@ fun ThemeOptionsDialog(
                             checked = moduleDisplay,
                             onCheckedChange = { moduleDisplay = it },
                         )
+                        if (onUpload != null) {
+                            MaterialTextButton(
+                                onClick = { onUpload(options) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                            ) {
+                                MaterialText(stringResource(R.string.theme_upload_to_store))
+                            }
+                        }
                     }
                 },
                 confirmButton = {

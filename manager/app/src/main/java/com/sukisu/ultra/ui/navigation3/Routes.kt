@@ -79,6 +79,10 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object ThemeStoreAdaptiveUpload : Route
 
+    @Parcelize
+    @Serializable
+    data object ThemeStoreCurrentUpload : Route
+
     
     @Parcelize
     @Serializable
