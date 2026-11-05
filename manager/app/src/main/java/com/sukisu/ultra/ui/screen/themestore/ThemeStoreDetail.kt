@@ -804,8 +804,9 @@ internal fun themeImageRequest(context: android.content.Context, url: String, to
         .data(url)
         .crossfade(true)
         .apply {
-            if (token.isNotBlank()) {
-                addHeader(ThemeStoreRepository.TOKEN_HEADER, token)
+            val current = com.sukisu.ultra.data.repository.ThemeStoreAccessRepository.currentForUrl(url, token)
+            if (current.isNotBlank()) {
+                addHeader(ThemeStoreRepository.TOKEN_HEADER, current)
             }
         }
         .build()

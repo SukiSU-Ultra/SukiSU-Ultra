@@ -935,10 +935,10 @@
     <string name="theme_store_url_hint">支持 HTTP 或 HTTPS，例如 http://192.168.1.10:8080/</string>
     <string name="theme_store_url_invalid">请输入有效的 HTTP 或 HTTPS 基础地址</string>
     <string name="theme_store_token">访问令牌</string>
-    <string name="theme_store_token_hint">以 X-Sukisu-Theme-Token 请求头发送；服务器未启用时留空。</string>
-    <string name="theme_store_token_hidden">访问令牌已隐藏</string>
+    <string name="theme_store_token_hint">可粘贴用户中心的设备凭证 JSON，或手动令牌；留空为本机申请凭证。</string>
+    <string name="theme_store_token_hidden">独立设备凭证 · 自动刷新</string>
     <string name="theme_store_change_token">更改令牌</string>
-    <string name="theme_store_builtin_token_hint">留空使用内置令牌</string>
+    <string name="theme_store_builtin_token_hint">留空自动申请独立设备凭证并定期刷新</string>
     <string name="theme_store_config_required">主题商店还没有配置</string>
     <string name="theme_store_config_required_summary">请先填写目录地址和访问令牌。</string>
     <string name="theme_store_unauthorized">访问令牌缺失或无效</string>
@@ -1580,4 +1580,5 @@
     <string name="theme_store_comments_format_link_text">链接文字</string>
     <string name="theme_store_comments_format_link">插入链接</string>
     <string name="theme_store_comments_login_to_reply">登录后回复</string>
+    <string name="theme_store_device_reauthorize">重置设备授权（下次连接时重新申请）</string>
 </resources>

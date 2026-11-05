@@ -939,10 +939,10 @@
     <string name="theme_store_url_hint">HTTP or HTTPS base URL, e.g. http://192.168.1.10:8080/</string>
     <string name="theme_store_url_invalid">Enter a valid HTTP or HTTPS base URL</string>
     <string name="theme_store_token">Access token</string>
-    <string name="theme_store_token_hint">Sent as X-Sukisu-Theme-Token. Leave blank if the server does not require one.</string>
-    <string name="theme_store_token_hidden">Access token is hidden</string>
+    <string name="theme_store_token_hint">Paste the device credential JSON from your account, or an explicit script token. Leave blank to authorize this installation.</string>
+    <string name="theme_store_token_hidden">Individual credential · automatic refresh</string>
     <string name="theme_store_change_token">Change token</string>
-    <string name="theme_store_builtin_token_hint">Leave blank to use the built-in token</string>
+    <string name="theme_store_builtin_token_hint">Leave blank to obtain an individual device credential with automatic refresh</string>
     <string name="theme_store_config_required">Theme store is not configured</string>
     <string name="theme_store_config_required_summary">Set the catalog URL and access token in the manager first.</string>
     <string name="theme_store_unauthorized">Access token is missing or invalid</string>
@@ -1590,4 +1590,5 @@
     <string name="theme_store_comments_format_link_text">link text</string>
     <string name="theme_store_comments_format_link">Insert link</string>
     <string name="theme_store_comments_login_to_reply">Sign in to reply</string>
+    <string name="theme_store_device_reauthorize">Reset device authorization (request again on next connection)</string>
 </resources>

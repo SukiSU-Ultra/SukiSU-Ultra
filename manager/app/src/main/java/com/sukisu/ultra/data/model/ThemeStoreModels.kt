@@ -126,5 +126,31 @@ data class ThemeStoreUploadSession(
     val received: List<Long> = emptyList(),
     val receivedBytes: Long = 0L,
     val resumed: Boolean = false,
+    // null means the legacy server has neither completion nor attachment references.
+    val uploadTargets: List<ThemeStoreUploadTarget>? = null,
+    val receivedLocal: List<Long> = emptyList(),
+    val error: String? = null,
+)
+
+@Serializable
+data class ThemeStoreUploadTarget(
+    val id: String = "",
+    val name: String = "",
+    val baseUrl: String = "",
+    val ticket: String = "",
+)
+
+@Serializable
+data class ThemeStoreUploadAck(
+    val ok: Boolean = false,
+    val index: Long? = null,
+    val sha256: String = "",
+)
+
+@Serializable
+data class ThemeStoreUploadComplete(
+    val ok: Boolean = false,
+    val complete: Boolean = false,
+    val missing: List<Long> = emptyList(),
     val error: String? = null,
 )

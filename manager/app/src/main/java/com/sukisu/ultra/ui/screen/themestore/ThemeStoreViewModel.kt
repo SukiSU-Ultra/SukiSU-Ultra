@@ -27,6 +27,7 @@ import com.sukisu.ultra.data.repository.ThemeStoreConsentStore
 import com.sukisu.ultra.data.repository.ThemeStoreSubmission
 import com.sukisu.ultra.data.repository.ThemeStoreUnauthorizedException
 import com.sukisu.ultra.ui.util.ThemePackageStorage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -263,6 +264,12 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         if (initialConsent != null) load()
+        viewModelScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(10 * 60 * 1000L)
+                if (!_uiState.value.needsConsent) load()
+            }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.cleanupStaleCache()
         }
@@ -321,7 +328,11 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
             val results = sources
-                .map { source -> async { source to repository.loadCatalog(source.baseUrl, source.token) } }
+                .map { source -> async {
+                    val credential = repository.accessToken(source.baseUrl, source.token)
+                    val resolved = source.copy(token = credential.getOrNull() ?: source.token)
+                    resolved to credential.fold(onSuccess = { repository.loadCatalog(resolved.baseUrl, it) }, onFailure = { Result.failure(it) })
+                } }
                 .awaitAll()
             val successes = results.filter { it.second.isSuccess }
             val catalogs = successes.map { (source, result) -> source to result.getOrThrow() }
@@ -351,7 +362,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     loading = false,
                     refreshing = false,
                     items = items,
-                    sources = sources,
+                    sources = results.map { it.first },
                     accounts = accounts,
                     fromCache = successes.any { it.second.getOrThrow().fromCache },
                     maintenance = maintenance,
@@ -873,6 +884,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                 if (response.autoApproved) {
                     load()
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (_: ThemeStoreUnauthorizedException) {
                 _uiState.update {
                     it.copy(
@@ -1750,7 +1763,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         if (defaultBase != null) {
             val defaultToken = when {
                 settings.themeStoreToken.isNotBlank() -> settings.themeStoreToken
-                defaultBase == builtInBase -> ThemeStoreDefaults.TOKEN
+                defaultBase == builtInBase -> ""
                 else -> ""
             }
             result += ThemeStoreSource(

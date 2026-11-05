@@ -61,6 +61,28 @@ class SettingsRepositoryImpl : SettingsRepository {
         ksuApp.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE)
     }
 
+    // Imported credentials may contain refresh secrets. Keep their original
+    // settings alongside generated credentials, outside Android backup/transfer.
+    private val themeAccessPrefs by lazy {
+        ksuApp.getSharedPreferences("theme_device_access", Context.MODE_PRIVATE)
+    }
+
+    private fun themeAccessSetting(key: String): String? = synchronized(themeAccessPrefs) {
+        if (prefs.contains(key)) {
+            if (!themeAccessPrefs.contains(key)) {
+                val original = prefs.getString(key, null)
+                check(themeAccessPrefs.edit().putString(key, original).commit())
+            }
+            check(prefs.edit().remove(key).commit())
+        }
+        themeAccessPrefs.getString(key, null)
+    }
+
+    private fun saveThemeAccessSetting(key: String, value: String) = synchronized(themeAccessPrefs) {
+        check(themeAccessPrefs.edit().putString(key, value).commit())
+        if (prefs.contains(key)) check(prefs.edit().remove(key).commit())
+    }
+
     override var customBackgroundUri: String
         get() = prefs.getString("custom_bg_uri", "") ?: ""
         set(value) = prefs.edit { putString("custom_bg_uri", value) }
@@ -148,8 +170,8 @@ class SettingsRepositoryImpl : SettingsRepository {
         set(value) = prefs.edit { putString("theme_store_base_url", value.trim()) }
 
     override var themeStoreToken: String
-        get() = prefs.getString("theme_store_token", "") ?: ""
-        set(value) = prefs.edit { putString("theme_store_token", value.trim()) }
+        get() = themeAccessSetting("theme_store_token") ?: ""
+        set(value) = saveThemeAccessSetting("theme_store_token", value.trim())
 
     override var themeStoreAuthorId: String
         get() = prefs.getString("theme_store_author_id", "") ?: ""
@@ -165,18 +187,13 @@ class SettingsRepositoryImpl : SettingsRepository {
 
     override var themeStoreExtraSources: List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>
         get() {
-            val raw = prefs.getString("theme_store_extra_sources", null) ?: return emptyList()
+            val raw = themeAccessSetting("theme_store_extra_sources") ?: return emptyList()
             return runCatching {
                 Json.decodeFromString<List<com.sukisu.ultra.data.model.ThemeStoreSourceConfig>>(raw)
             }.getOrDefault(emptyList())
         }
         set(value) {
-            prefs.edit {
-                putString(
-                    "theme_store_extra_sources",
-                    Json.encodeToString(value),
-                )
-            }
+            saveThemeAccessSetting("theme_store_extra_sources", Json.encodeToString(value))
         }
 
     override var themeStoreUploadSource: String

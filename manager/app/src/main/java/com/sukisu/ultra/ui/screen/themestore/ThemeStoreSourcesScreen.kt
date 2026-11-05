@@ -153,7 +153,7 @@ fun ThemeStoreSourcesScreen(
     val effectiveDefaultBase = defaultBase.ifBlank { ThemeStoreDefaults.BASE_URL }
     val defaultEndpoints = endpointsFor(effectiveDefaultBase)
     val effectiveDefaultToken = defaultToken.trim().ifBlank {
-        if (isBuiltIn) ThemeStoreDefaults.TOKEN else ""
+        ""
     }
 
     fun updateExtra(index: Int, source: ThemeStoreSourceConfig) {
@@ -304,6 +304,20 @@ fun ThemeStoreSourcesScreen(
         defaultEndpoints = defaultEndpoints,
         defaultTest = tests["default"],
         onTestDefault = { testSource("default", effectiveDefaultBase, effectiveDefaultToken) },
+        onResetAccess = { base ->
+            scope.launch {
+                repository.resetAccess(base).onSuccess {
+                    if (ThemeStoreRepository.normalizeBaseUrl(base) == normalizedDefault) defaultToken = ""
+                    extraSources = extraSources.map { source ->
+                        if (ThemeStoreRepository.normalizeBaseUrl(source.baseUrl) == ThemeStoreRepository.normalizeBaseUrl(base)) source.copy(token = "") else source
+                    }
+                    tests = emptyMap()
+                    healthChecks = emptyMap()
+                }.onFailure { error ->
+                    tests = tests + ("default" to SourceTestState.Failure(error.message.orEmpty()))
+                }
+            }
+        },
         defaultHealth = healthChecks["default"],
         extraSources = extraSources,
         onUpdateExtra = ::updateExtra,
@@ -334,6 +348,7 @@ private fun ThemeStoreSourcesMaterial(
     defaultEndpoints: SourceEndpoints?,
     defaultTest: SourceTestState?,
     onTestDefault: () -> Unit,
+    onResetAccess: (String) -> Unit,
     defaultHealth: SourceHealthState?,
     extraSources: List<ThemeStoreSourceConfig>,
     onUpdateExtra: (Int, ThemeStoreSourceConfig) -> Unit,
@@ -430,6 +445,7 @@ private fun ThemeStoreSourcesMaterial(
                     endpoints = defaultEndpoints,
                     test = defaultTest,
                     onTest = onTestDefault,
+                    onResetAccess = { onResetAccess(defaultBase) },
                     health = defaultHealth,
                 )
             }
@@ -456,6 +472,7 @@ private fun ThemeStoreSourcesMaterial(
                     endpoints = endpointsFor(source.baseUrl),
                     test = tests[extraTestKey(source)],
                     onTest = { onTestExtra(source) },
+                    onResetAccess = { onResetAccess(source.baseUrl) },
                     health = healthChecks[extraTestKey(source)],
                     name = source.name,
                     onNameChange = { onUpdateExtra(index, source.copy(name = it)) },
@@ -501,6 +518,7 @@ private fun SourceCardMaterial(
     endpoints: SourceEndpoints?,
     test: SourceTestState?,
     onTest: () -> Unit,
+    onResetAccess: () -> Unit,
     health: SourceHealthState?,
     name: String? = null,
     onNameChange: ((String) -> Unit)? = null,
@@ -592,6 +610,9 @@ private fun SourceCardMaterial(
                         }
                     }
                 }
+            }
+            MaterialTextButton(onClick = onResetAccess) {
+                MaterialText(stringResource(R.string.theme_store_device_reauthorize))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -79,7 +79,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.sukisu.ultra.BuildConfig
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.AccountSession
@@ -774,14 +773,7 @@ private fun UploadAuthorAvatar(url: String, token: String) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(url)
-                    .apply {
-                        if (token.isNotBlank()) {
-                            addHeader(ThemeStoreRepository.TOKEN_HEADER, token)
-                        }
-                    }
-                    .build(),
+                model = themeImageRequest(LocalContext.current, url, token),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
