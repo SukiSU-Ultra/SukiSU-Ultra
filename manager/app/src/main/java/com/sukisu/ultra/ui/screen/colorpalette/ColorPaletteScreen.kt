@@ -129,7 +129,7 @@ fun ColorPaletteScreen(section: String? = null, importUri: String? = null) {
         onSetCustomText = viewModel::setCustomText,
         onResetAllCustomTexts = viewModel::resetAllCustomTexts,
         onOpenCustomTexts = { navigator.push(Route.CustomTexts) },
-        onOpenThemeStore = { navigator.push(Route.ThemeStore) },
+        onOpenThemeStore = { navigator.push(Route.ThemeStore()) },
         onOpenAdaptiveThemeBuilder = { navigator.push(Route.AdaptiveThemeBuilder) },
         onResetBackgroundAppearance = viewModel::resetBackgroundAppearance,
         onClearAllAppearance = viewModel::clearAllAppearance,

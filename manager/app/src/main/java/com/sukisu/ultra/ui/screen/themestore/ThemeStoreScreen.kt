@@ -181,6 +181,8 @@ internal fun formatStoreCount(value: Long): String {
 fun ThemeStoreScreen(
     viewModel: ThemeStoreViewModel = viewModel(),
     startAdaptiveUpload: Boolean = false,
+    initialThemeId: String? = null,
+    initialSourceBaseUrl: String? = null,
 ) {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
@@ -203,6 +205,7 @@ fun ThemeStoreScreen(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var sortMode by rememberSaveable { mutableStateOf(ThemeStoreSort.DEFAULT) }
     var selectedItemKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val themeGridState = rememberLazyGridState()
     var selectedAuthor by rememberSaveable { mutableStateOf<String?>(null) }
     var authorReturnItemKey by rememberSaveable { mutableStateOf<String?>(null) }
     var detailReturnAuthor by rememberSaveable { mutableStateOf<String?>(null) }
@@ -215,6 +218,17 @@ fun ThemeStoreScreen(
     // Adult themes are hidden from search, tags and author pages until the user opts in.
     val catalogItems = remember(state.items, state.showR18) {
         if (state.showR18) state.items else state.items.filterNot { it.isR18Theme() }
+    }
+    var deepLinkHandled by rememberSaveable(initialThemeId, initialSourceBaseUrl) { mutableStateOf(false) }
+    LaunchedEffect(initialThemeId, initialSourceBaseUrl, catalogItems, state.loaded, state.loading) {
+        if (initialThemeId.isNullOrBlank() || deepLinkHandled || !state.loaded || state.loading) return@LaunchedEffect
+        searchQuery = initialThemeId
+        val item = catalogItems.firstOrNull { candidate ->
+            candidate.entry.id == initialThemeId &&
+                (initialSourceBaseUrl == null || candidate.source.baseUrl.trimEnd('/') == initialSourceBaseUrl.trimEnd('/'))
+        }
+        if (item != null) selectedItemKey = item.key
+        deepLinkHandled = true
     }
     val allTags = remember(catalogItems) { catalogItems.popularThemeTags(Int.MAX_VALUE) }
     // Hoisted above the store/author switch so orientation survives detail navigation instead
@@ -685,6 +699,7 @@ fun ThemeStoreScreen(
 
         else -> ThemeStoreMaterial(
             state = state,
+            listState = themeGridState,
             visibleItems = visibleItems,
             searchQuery = searchQuery,
             onSearchQueryChange = { searchQuery = it },
@@ -1072,6 +1087,7 @@ private fun ThemeStoreSearchEmptyMaterial() {
 @Composable
 private fun ThemeStoreMaterial(
     state: ThemeStoreUiState,
+    listState: androidx.compose.foundation.lazy.grid.LazyGridState,
     visibleItems: List<ThemeStoreItem>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
@@ -1102,7 +1118,6 @@ private fun ThemeStoreMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val pullToRefreshState = rememberPullToRefreshState()
     val refreshing = state.refreshing || (state.loading && state.loaded)
-    val listState = rememberLazyGridState()
     var menuExpanded by remember { mutableStateOf(false) }
     val fabThreshold = with(LocalDensity.current) { 100.dp.toPx() }
     val fabExpanded by remember {

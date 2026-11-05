@@ -392,8 +392,10 @@ class MainActivity : ComponentActivity() {
                                 AppearanceOverlayScreen(onBack = { navigator.pop() })
                             }
                             entry<Route.CustomTexts>(swipeDismiss = swipeDismiss) { CustomTextScreen() }
-                            entry<Route.ThemeStore>(swipeDismiss = swipeDismiss) {
-                                MaterialExpressivePalette { ThemeStoreScreen() }
+                            entry<Route.ThemeStore>(swipeDismiss = swipeDismiss) { key ->
+                                MaterialExpressivePalette {
+                                    ThemeStoreScreen(initialThemeId = key.themeId, initialSourceBaseUrl = key.sourceBaseUrl)
+                                }
                             }
                             entry<Route.ThemeStoreAdaptiveUpload>(swipeDismiss = swipeDismiss) {
                                 MaterialExpressivePalette {
