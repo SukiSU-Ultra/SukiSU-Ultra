@@ -9,12 +9,13 @@ internal data class TransferSpeedReading(
 /**
  * Sliding-window speed meter. Callbacks from resumable uploads and peer chunk
  * writes arrive at irregular intervals, so measuring the whole transfer would
- * hide stalls and short bursts. Keeping a short window makes the number in the
- * MD3E progress block track what the network is doing right now.
+ * hide stalls and short bursts. A five-second window keeps per-chunk burstiness
+ * from making the MD3E progress block jump between extremes while still showing
+ * a real stall within a few seconds.
  */
 internal class TransferSpeedMeter(
     val totalBytes: Long,
-    private val windowNanos: Long = 2_500_000_000L,
+    private val windowNanos: Long = 5_000_000_000L,
 ) {
     private val samples = ArrayDeque<Pair<Long, Long>>()
 

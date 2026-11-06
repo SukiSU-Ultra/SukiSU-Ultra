@@ -69,6 +69,16 @@ internal fun Response.uploadJson(): String {
 
 internal data class ThemeStoreUploadedFile(val uploadId: String, val supportsAttachments: Boolean)
 
+/**
+ * A rejected chunk request. A 4xx is the server saying "this request is wrong",
+ * so switching ingress only repeats the same failure and poisons the route
+ * statistics. Only timeouts and 5xx/429 are worth another route.
+ */
+internal class ThemeUploadHttpException(val status: Int, message: String) : IOException(message) {
+    val retryable: Boolean
+        get() = status == 408 || status == 425 || status == 429 || status >= 500
+}
+
 /** Account-only, bounded multi-ingress upload. Publication and all database writes stay primary. */
 internal class ThemeStoreResumableUploader(
     primaryClient: OkHttpClient,
@@ -91,7 +101,9 @@ internal class ThemeStoreResumableUploader(
             .followRedirects(false)
             .followSslRedirects(false)
             .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            // Waiting for the edge to fsync and acknowledge a large chunk is not a
+            // dead connection; 30 s was short enough to make bursts look like failures.
+            .readTimeout(120, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .callTimeout(10, TimeUnit.MINUTES)
             .retryOnConnectionFailure(false)
@@ -156,14 +168,16 @@ internal class ThemeStoreResumableUploader(
             return route
         }
 
-        @Synchronized fun finish(route: Route, bytes: Long, elapsed: Long, success: Boolean) {
+        @Synchronized fun finish(route: Route, bytes: Long, elapsed: Long, success: Boolean, fault: Boolean) {
             val health = route.health
             health.active--
             if (success) {
                 val speed = bytes * 1_000_000_000.0 / elapsed.coerceAtLeast(1L)
                 health.speed = if (health.speed == 0.0) speed else health.speed * 0.6 + speed * 0.4
                 health.cooldownUntil = 0L
-            } else {
+            } else if (fault) {
+                // Only transport/5xx faults cool a route. A rejected 4xx is the
+                // request's fault and must not send every later chunk elsewhere.
                 health.cooldownUntil = System.nanoTime() + TimeUnit.SECONDS.toNanos(30)
             }
         }
@@ -229,6 +243,7 @@ internal class ThemeStoreResumableUploader(
                             val started = System.nanoTime()
                             val lastWrite = AtomicLong(started)
                             var success = false
+                            var fault = false
                             try {
                                 sendChunk(route, routes, session.uploadId, index, file,
                                     index * chunkSize, bytes, started, lastWrite) { delta ->
@@ -246,11 +261,17 @@ internal class ThemeStoreResumableUploader(
                                 break
                             } catch (error: Exception) {
                                 synchronized(lock) { progress.remove(index); report(true) }
-                                if (error is CancellationException || error is ThemeStoreUnauthorizedException ||
-                                    attempt == maxAttempts - 1) throw error
+                                val rejected = error is ThemeUploadHttpException && !error.retryable
+                                val abort = error is CancellationException ||
+                                    error is ThemeStoreUnauthorizedException
+                                fault = !(rejected || abort)
+                                if (abort || rejected || attempt == maxAttempts - 1) throw error
                                 attempted.add(route)
+                                // Give a transient network or edge hiccup a moment before
+                                // it is retried, instead of hammering the same queue.
+                                delay(300L * (attempt + 1))
                             } finally {
-                                scheduler.finish(route, bytes, System.nanoTime() - started, success)
+                                scheduler.finish(route, bytes, System.nanoTime() - started, success, fault)
                             }
                         }
                     }
@@ -283,11 +304,19 @@ internal class ThemeStoreResumableUploader(
         .header("X-Client", "android")
 
     private suspend fun init(file: File, size: Long): ThemeStoreUploadSession {
+        // Larger packages use 8 MB chunks: the per-request overhead (authorization,
+        // receipt check, fsync, ack) otherwise dominates on slow links and makes the
+        // displayed speed oscillate. Images stay on 2 MB so their tail is short.
+        val chunkSize = when {
+            size < 16L * MIB -> 2L * MIB
+            size >= 64L * MIB -> 8L * MIB
+            else -> 4L * MIB
+        }
         val body = json.encodeToString(ThemeStoreUploadInitRequest.serializer(), ThemeStoreUploadInitRequest(
             filename = file.name,
             size = size,
             fingerprint = "${file.name}:$size:${file.lastModified()}",
-            chunkSize = if (size < 16L * MIB) 2L * MIB else 4L * MIB,
+            chunkSize = chunkSize,
         )).toRequestBody(JSON_MEDIA)
         return executeThemeUpload(primary, accountRequest("init").post(body).build()) { response ->
             if (response.code == 401) throw ThemeStoreUnauthorizedException()
@@ -309,6 +338,7 @@ internal class ThemeStoreResumableUploader(
         route: Route, routes: List<Route>, uploadId: String, index: Long, file: File,
         offset: Long, length: Long, started: Long, lastWrite: AtomicLong, onBytes: (Long) -> Unit,
     ) = coroutineScope {
+        val sent = java.util.concurrent.atomic.AtomicBoolean(false)
         val body = object : RequestBody() {
             override fun contentType() = CHUNK_MEDIA
             override fun contentLength() = length
@@ -330,6 +360,7 @@ internal class ThemeStoreResumableUploader(
                         if (sinceFlush >= 256 * 1024) { sink.flush(); sinceFlush = 0 }
                     }
                     sink.flush()
+                    sent.set(true)
                 }
             }
         }
@@ -340,7 +371,12 @@ internal class ThemeStoreResumableUploader(
         val sending = async {
             executeThemeUpload(if (route.ticket == null) primary else edge, request) { response ->
                 if (route.ticket == null && response.code == 401) throw ThemeStoreUnauthorizedException()
-                if (!response.isSuccessful) throw IOException("Chunk upload rejected (${response.code})")
+                if (!response.isSuccessful) {
+                    throw ThemeUploadHttpException(
+                        response.code,
+                        "Chunk upload rejected (${response.code})",
+                    )
+                }
                 val ack = json.decodeFromString(ThemeStoreUploadAck.serializer(), response.uploadJson())
                 if (!ack.ok || (route.ticket != null && (ack.index != index || !HASH.matches(ack.sha256)))) {
                     throw IOException("Invalid chunk acknowledgement")
@@ -352,9 +388,15 @@ internal class ThemeStoreResumableUploader(
                 delay(1000)
                 val now = System.nanoTime()
                 val fastest = scheduler.fastestOther(routes, route)
-                val tooSlow = fastest > 0 && (now - started) / 1_000_000_000.0 >
-                    maxOf(15.0, length / fastest * 4)
-                if (now - lastWrite.get() > TimeUnit.SECONDS.toNanos(30) || tooSlow) {
+                val elapsed = (now - started) / 1_000_000_000.0
+                // Compare against a generous multiple of the best other route and
+                // require at least 25 s, so a noisy speed sample cannot abort a
+                // healthy worker and restart the chunk on yet another ingress.
+                val tooSlow = fastest > 0 && elapsed > maxOf(25.0, length / fastest * 3)
+                // Waiting for the acknowledgement is not a dead transfer; the
+                // request body has already been written and the read timeout applies.
+                val stalled = !sent.get() && now - lastWrite.get() > TimeUnit.SECONDS.toNanos(45)
+                if (stalled || tooSlow) {
                     throw IOException("Upload route stalled; retrying another ingress")
                 }
             }

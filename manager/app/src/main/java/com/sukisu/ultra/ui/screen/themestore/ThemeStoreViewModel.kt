@@ -22,6 +22,9 @@ import com.sukisu.ultra.data.model.ThemeStoreEntry
 import com.sukisu.ultra.data.repository.AccountRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.ThemeStoreDefaults
+import com.sukisu.ultra.data.repository.ThemeStoreHistoryEntry
+import com.sukisu.ultra.data.repository.ThemeStoreHistoryKind
+import com.sukisu.ultra.data.repository.ThemeStoreHistoryStore
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.data.repository.ThemeStoreConsentStore
 import com.sukisu.ultra.data.repository.ThemeStoreSubmission
@@ -151,6 +154,8 @@ data class ThemeStoreUiState(
     val followError: String? = null,
     val items: List<ThemeStoreItem> = emptyList(),
     val sources: List<ThemeStoreSource> = emptyList(),
+    val viewedHistory: List<ThemeStoreHistoryEntry> = emptyList(),
+    val downloadedHistory: List<ThemeStoreHistoryEntry> = emptyList(),
     val fromCache: Boolean = false,
     val maintenance: Boolean = false,
     val failedSources: Int = 0,
@@ -244,6 +249,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
     private val settings = SettingsRepositoryImpl()
     private val account = AccountRepository(application)
     private val consentStore = ThemeStoreConsentStore(application)
+    private val historyStore = ThemeStoreHistoryStore(application)
     private val initialConsent = consentStore.read()
     private var followsJob: kotlinx.coroutines.Job? = null
     private var loadJob: kotlinx.coroutines.Job? = null
@@ -258,6 +264,8 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             gridLayout = settings.themeStoreGridLayout,
             needsConsent = initialConsent == null,
             showR18 = initialConsent?.showR18 == true,
+            viewedHistory = historyStore.read(ThemeStoreHistoryKind.VIEWED),
+            downloadedHistory = historyStore.read(ThemeStoreHistoryKind.DOWNLOADED),
         ),
     )
     val uiState: StateFlow<ThemeStoreUiState> = _uiState.asStateFlow()
@@ -647,6 +655,51 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
+    private fun historyEntry(item: ThemeStoreItem): ThemeStoreHistoryEntry =
+        ThemeStoreHistoryEntry(
+            key = item.key,
+            themeId = item.entry.id,
+            name = item.entry.name,
+            author = item.entry.author,
+            sourceId = item.source.id,
+            baseUrl = item.source.baseUrl,
+            previewPath = item.entry.previewPath.ifBlank {
+                item.entry.screenshotPaths.firstOrNull().orEmpty()
+            },
+            createdAt = System.currentTimeMillis(),
+            r18 = item.isR18Theme(),
+            adaptive = item.isAdaptiveTheme(),
+        )
+
+    fun recordView(item: ThemeStoreItem) {
+        historyStore.record(ThemeStoreHistoryKind.VIEWED, historyEntry(item))
+        refreshHistory()
+    }
+
+    private fun recordDownload(item: ThemeStoreItem) {
+        historyStore.record(ThemeStoreHistoryKind.DOWNLOADED, historyEntry(item))
+        refreshHistory()
+    }
+
+    fun refreshHistory() {
+        _uiState.update {
+            it.copy(
+                viewedHistory = historyStore.read(ThemeStoreHistoryKind.VIEWED),
+                downloadedHistory = historyStore.read(ThemeStoreHistoryKind.DOWNLOADED),
+            )
+        }
+    }
+
+    fun clearHistory(kind: ThemeStoreHistoryKind) {
+        historyStore.clear(kind)
+        refreshHistory()
+    }
+
+    fun removeHistory(kind: ThemeStoreHistoryKind, keys: Set<String>) {
+        historyStore.remove(kind, keys)
+        refreshHistory()
+    }
+
     fun download(item: ThemeStoreItem, trial: Boolean = false) {
         val current = _uiState.value
         if (current.downloadingKey != null) return
@@ -718,6 +771,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             verifiedThemeKey = item.key,
                         )
                     }
+                    recordDownload(item)
                 },
                 onFailure = {
                     _uiState.update {
