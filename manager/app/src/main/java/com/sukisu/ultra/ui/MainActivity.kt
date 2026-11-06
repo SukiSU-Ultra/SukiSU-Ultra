@@ -1,35 +1,26 @@
 package com.sukisu.ultra.ui
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
-import android.view.View
-import android.view.animation.PathInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.core.animation.doOnEnd
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
+import com.sukisu.ultra.ui.component.splash.MiuixSplashScreen
 import com.sukisu.ultra.ui.theme.LocalAppBackgroundBackdrop
 import com.sukisu.ultra.ui.theme.LocalAppSettings
 import com.sukisu.ultra.ui.theme.MaterialExpressivePalette
@@ -172,15 +163,10 @@ import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import top.yukonga.miuix.kmp.utils.pagerGestureOverride
 import androidx.core.graphics.drawable.toDrawable
 
-private enum class SplashPhase { Covered, Revealing, Done }
+
 
 class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
-    private var contentReady = false
-    private var splashStartedAt = 0L
-    private val splashAnimationDurationMs = 600L
-    private var splashPhase by mutableStateOf(SplashPhase.Done)
-
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleHelper.wrap(newBase))
@@ -188,64 +174,13 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
-        splashStartedAt = SystemClock.uptimeMillis()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         if (ThemeTrialManager.isActive(this)) {
             ViewModelProvider(this)[SettingsViewModel::class.java]
                 .restoreThemeTrial(this, taskId)
         } else {
             ThemeTrialManager.cleanupOrphan(this)
-        }
-        splashScreen.setKeepOnScreenCondition {
-            !contentReady || SystemClock.uptimeMillis() - splashStartedAt < splashAnimationDurationMs
-        }
-        splashScreen.setOnExitAnimationListener { provider ->
-            // iconView is missing when the system splash has no icon (some OEMs, non-launcher starts)
-            val iconView = runCatching { provider.iconView }.getOrNull()
-            val splashView = provider.view
-            splashPhase = SplashPhase.Covered
-
-            // Icon anticipates, then launches forward while the splash fades out over the expanding content
-            val anticipate = AnimatorSet().apply {
-                interpolator = PathInterpolator(0.3f, 0f, 0.2f, 1f)
-                duration = 140L
-                if (iconView != null) {
-                    playTogether(
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, 0.86f),
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 0.86f),
-                    )
-                }
-                doOnEnd { splashPhase = SplashPhase.Revealing }
-            }
-
-            val launch = AnimatorSet().apply {
-                interpolator = PathInterpolator(0.4f, 0f, 0.6f, 1f)
-                duration = 320L
-                val bgAlpha = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
-                    startDelay = 40L
-                    duration = 280L
-                }
-                if (iconView != null) {
-                    playTogether(
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_X, 0.86f, 2.6f),
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 0.86f, 2.6f),
-                        ObjectAnimator.ofFloat(iconView, View.ALPHA, 1f, 0f),
-                        bgAlpha,
-                    )
-                } else {
-                    play(bgAlpha)
-                }
-            }
-
-            AnimatorSet().apply {
-                playSequentially(anticipate, launch)
-                doOnEnd {
-                    provider.remove()
-                    splashPhase = SplashPhase.Done
-                }
-                start()
-            }
         }
 
         val isManager = Natives.isManager
@@ -291,11 +226,11 @@ class MainActivity : ComponentActivity() {
                 onDispose { }
             }
 
-            // The splash follows the system night mode, so match it until the exit animation ends
-            val windowDark = if (splashPhase == SplashPhase.Done) darkMode else isSystemInDarkTheme()
-            LaunchedEffect(windowDark) {
+            LaunchedEffect(darkMode) {
                 window.setBackgroundDrawable(
-                    getColor(if (windowDark) android.R.color.background_dark else android.R.color.background_light).toDrawable()
+                    ColorDrawable(
+                        getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light)
+                    )
                 )
             }
 
@@ -509,38 +444,15 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // Only shrinks while a splash covers it, so skipped splashes and recreations stay full size
-                    val enterProgress = remember { Animatable(1f) }
-                    val splashCovered = splashPhase == SplashPhase.Covered
-                    LaunchedEffect(splashCovered) {
-                        if (splashCovered) {
-                            enterProgress.snapTo(0f)
-                        } else {
-                            enterProgress.animateTo(
-                                targetValue = 1f,
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioNoBouncy,
-                                    stiffness = Spring.StiffnessLow
-                                ),
-                            )
-                        }
+                    var appContentReady by remember { mutableStateOf(false) }
+                    var splashDismissed by remember { mutableStateOf(false) }
+
+                    SideEffect {
+                        if (!appContentReady) appContentReady = true
                     }
 
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                val enterProgress = enterProgress.value
-                                val scale = 0.86f + 0.14f * enterProgress
-                                scaleX = scale
-                                scaleY = scale
-                                if (enterProgress < 1f) {
-                                    shape = RoundedCornerShape(36.dp * (1f - enterProgress))
-                                    clip = true
-                                } else {
-                                    clip = false
-                                }
-                            }
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         val hasCustomBackground = uiState.customBackgroundUri.isNotEmpty()
                         val backgroundBlurRadius = (
@@ -609,9 +521,15 @@ class MainActivity : ComponentActivity() {
                                 containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
                             ) { navDisplay() }
                         }
+
+                        if (!splashDismissed) {
+                            MiuixSplashScreen(
+                                isReady = appContentReady,
+                                onDismissed = { splashDismissed = true }
+                            )
+                        }
                     }
                 }
-                SideEffect { contentReady = true }
             }
         }
     }
