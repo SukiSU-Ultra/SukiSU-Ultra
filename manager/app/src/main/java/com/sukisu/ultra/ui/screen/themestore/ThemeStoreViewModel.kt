@@ -345,10 +345,10 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             val successes = results.filter { it.second.isSuccess }
             val catalogs = successes.map { (source, result) -> source to result.getOrThrow() }
             val sourceOrder = sources.mapIndexed { index, source -> source.id to index }.toMap()
-            // A maintenance source contributes no items. When every reachable source is under
-            // maintenance the store shows a dedicated screen instead of a misleading empty grid.
-            val maintenance = catalogs.isNotEmpty() &&
-                catalogs.all { it.second.catalog.maintenance }
+            val liveCatalogs = catalogs.filterNot { it.second.fromCache }
+            val maintenanceCatalogs = liveCatalogs.ifEmpty { catalogs }
+            val maintenance = maintenanceCatalogs.isNotEmpty() &&
+                maintenanceCatalogs.all { it.second.catalog.maintenance }
             val items = catalogs
                 .filterNot { it.second.catalog.maintenance }
                 .flatMap { (source, load) ->
