@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.component.splash
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -60,7 +61,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 fun MiuixSplashScreen(
     isReady: Boolean,
-    minDurationMs: Long = 450L,
+    minDurationMs: Long = 850L,
     onDismissed: () -> Unit = {},
 ) {
     var contentVisible by remember { mutableStateOf(false) }
@@ -82,11 +83,11 @@ fun MiuixSplashScreen(
     LaunchedEffect(Unit) {
         contentVisible = true
         // Entrance spring animation
-        logoAlpha.animateTo(1f, tween(260))
+        logoAlpha.animateTo(1f, tween(320, easing = FastOutSlowInEasing))
         logoScale.animateTo(
             targetValue = 1f,
             animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
+                dampingRatio = Spring.DampingRatioLowBouncy,
                 stiffness = Spring.StiffnessLow
             )
         )
@@ -96,7 +97,7 @@ fun MiuixSplashScreen(
         if (isReady) {
             delay(minDurationMs)
             exitTriggered = true
-            delay(280L) // Wait for exit animation to complete
+            delay(380L) // Wait for exit animation to complete
             splashDismissed = true
             onDismissed()
         }
@@ -106,8 +107,9 @@ fun MiuixSplashScreen(
 
     AnimatedVisibility(
         visible = !exitTriggered,
-        enter = fadeIn(tween(150)),
-        exit = fadeOut(tween(260)) + scaleOut(targetScale = 1.04f, animationSpec = tween(260))
+        enter = fadeIn(tween(180)),
+        exit = fadeOut(tween(360, easing = FastOutSlowInEasing)) +
+            scaleOut(targetScale = 1.05f, animationSpec = tween(360, easing = FastOutSlowInEasing))
     ) {
         Box(
             modifier = Modifier
@@ -169,7 +171,7 @@ fun MiuixSplashScreen(
 
                     AnimatedVisibility(
                         visible = contentVisible,
-                        enter = fadeIn(tween(350, delayMillis = 150))
+                        enter = fadeIn(tween(400, delayMillis = 180, easing = FastOutSlowInEasing))
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
@@ -193,7 +195,7 @@ fun MiuixSplashScreen(
                 // Bottom Footer
                 AnimatedVisibility(
                     visible = contentVisible,
-                    enter = fadeIn(tween(400, delayMillis = 200))
+                    enter = fadeIn(tween(450, delayMillis = 260, easing = FastOutSlowInEasing))
                 ) {
                     Text(
                         text = "Miuix Design · Powered by KernelSU",
