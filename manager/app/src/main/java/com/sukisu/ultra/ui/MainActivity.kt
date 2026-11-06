@@ -2,6 +2,7 @@ package com.sukisu.ultra.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -227,7 +228,9 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(darkMode) {
                 window.setBackgroundDrawable(
-                    getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light).toDrawable()
+                    ColorDrawable(
+                        getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light)
+                    )
                 )
             }
 

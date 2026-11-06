@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.component.splash
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -32,12 +33,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.sukisu.ultra.R
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -59,6 +66,15 @@ fun MiuixSplashScreen(
     var contentVisible by remember { mutableStateOf(false) }
     var exitTriggered by remember { mutableStateOf(false) }
     var splashDismissed by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val appIconBitmap = remember(context) {
+        runCatching {
+            ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+                ?.toBitmap(width = 256, height = 256)
+                ?.asImageBitmap()
+        }.getOrNull()
+    }
 
     val logoScale = remember { Animatable(0.72f) }
     val logoAlpha = remember { Animatable(0f) }
@@ -129,13 +145,24 @@ fun MiuixSplashScreen(
                             .background(MiuixTheme.colorScheme.surface),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = R.mipmap.ic_launcher),
-                            contentDescription = stringResource(id = R.string.app_name),
-                            modifier = Modifier
-                                .size(76.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                        )
+                        if (appIconBitmap != null) {
+                            Image(
+                                bitmap = appIconBitmap,
+                                contentDescription = stringResource(id = R.string.app_name),
+                                modifier = Modifier
+                                    .size(76.dp)
+                                    .clip(RoundedCornerShape(20.dp)),
+                                contentScale = ContentScale.Crop,
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                                contentDescription = stringResource(id = R.string.app_name),
+                                modifier = Modifier
+                                    .size(76.dp)
+                                    .clip(RoundedCornerShape(20.dp)),
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(18.dp))
