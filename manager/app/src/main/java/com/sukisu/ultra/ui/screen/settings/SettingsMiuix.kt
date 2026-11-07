@@ -523,6 +523,20 @@ fun SettingPagerMiuix(
                                 onCheckedChange = actions.onSetAutoDeleteModuleZip
                             )
                             SwitchPreference(
+                                title = customText(CustomTextKey.SETTING_AUTO_DELETE_UPDATE_APK),
+                                summary = stringResource(id = R.string.settings_auto_delete_update_apk_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Delete,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = customText(CustomTextKey.SETTING_AUTO_DELETE_UPDATE_APK),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = uiState.autoDeleteUpdateApk,
+                                onCheckedChange = actions.onSetAutoDeleteUpdateApk
+                            )
+                            SwitchPreference(
                                 title = customText(CustomTextKey.SETTING_WEB_DEBUGGING),
                                 summary = stringResource(id = R.string.enable_web_debugging_summary),
                                 startAction = {

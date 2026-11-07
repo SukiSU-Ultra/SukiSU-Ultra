@@ -30,6 +30,7 @@ import kotlinx.serialization.encodeToString
 private const val SETTINGS_PREFS = "settings"
 private const val KEY_USE_SOFT_REBOOT = "soft_reboot"
 private const val KEY_AUTO_DELETE_MODULE_ZIP = "auto_delete_module_zip"
+private const val KEY_AUTO_DELETE_UPDATE_APK = "auto_delete_update_apk"
 internal const val KEY_CUSTOM_HOME_TITLE = "custom_home_title"
 internal const val KEY_CUSTOM_TEXTS = "custom_texts"
 internal const val KEY_HOME_CARD_IMAGE_PATH = "home_card_image_path"
@@ -349,6 +350,10 @@ class SettingsRepositoryImpl : SettingsRepository {
     override var autoDeleteModuleZip: Boolean
         get() = prefs.getBoolean(KEY_AUTO_DELETE_MODULE_ZIP, false)
         set(value) = prefs.edit { putBoolean(KEY_AUTO_DELETE_MODULE_ZIP, value) }
+
+    override var autoDeleteUpdateApk: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_DELETE_UPDATE_APK, false)
+        set(value) = prefs.edit { putBoolean(KEY_AUTO_DELETE_UPDATE_APK, value) }
 
     override var appIconId: String
         get() = prefs.getString("app_icon_id", null)

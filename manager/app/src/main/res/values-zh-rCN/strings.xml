@@ -174,6 +174,8 @@
     <string name="settings_module_check_update">检查模块更新</string>
     <string name="settings_auto_delete_module_zip">安装后删除模块压缩包</string>
     <string name="settings_auto_delete_module_zip_summary">安装成功后自动删除模块压缩包，包括手动选择的、模块更新和从仓库下载的</string>
+    <string name="settings_auto_delete_update_apk">更新后不保留安装包</string>
+    <string name="settings_auto_delete_update_apk_summary">管理器自行更新时直接安装，不再把 APK 保存到下载目录。关闭时保留安装包，方便重装或回滚。</string>
     <string name="module_zip_deleted">已删除模块压缩包：%1$s</string>
     <string name="module_zip_delete_failed">! 删除模块压缩包失败：%1$s</string>
     <string name="grant_root_failed">获取 Root 失败！</string>
@@ -1171,6 +1173,7 @@
     <string name="theme_store_history_empty_viewed">还没有查看记录</string>
     <string name="theme_store_history_empty_downloaded">还没有下载记录</string>
     <string name="theme_store_history_missing">主题已不在目录中</string>
+    <string name="theme_store_history_login_required">登录账号后同步最近查看与下载</string>
     <string name="theme_store_connected_sources">已连接 %1$d 个镜像源</string>
     <string name="theme_store_my_themes_title">我的主题</string>
     <string name="theme_store_my_themes_empty">还没有主题，先投稿一个吧。</string>
@@ -1179,6 +1182,8 @@
     <string name="theme_store_edit">编辑</string>
     <string name="theme_store_edit_title">编辑主题</string>
     <string name="theme_store_edit_id_hint">正在编辑已有主题，ID 保持不变，版本号自动递增。</string>
+    <string name="theme_store_edit_prefill_failed">无法下载现有主题文件，请重新选择主题包和图片。</string>
+    <string name="theme_store_edit_prefill_loading">正在载入现有主题包和图片…</string>
     <string name="theme_store_upload_submission_meta">v%1$d · %2$s · SHA-256 %3$s…</string>
     <string name="theme_store_upload_submission_meta_no_sha">v%1$d · %2$s</string>
     <string name="theme_store_upload_submission_reason">原因：%1$s</string>

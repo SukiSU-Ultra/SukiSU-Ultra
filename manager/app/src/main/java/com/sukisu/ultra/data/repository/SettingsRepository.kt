@@ -79,6 +79,8 @@ interface SettingsRepository {
     var checkCiUpdate: Boolean
     var checkModuleUpdate: Boolean
     var autoDeleteModuleZip: Boolean
+    /** When enabled, a manager self-update installs without keeping the APK in Downloads. */
+    var autoDeleteUpdateApk: Boolean
     
     var appIconId: String
     var appIconDynamicColor: Boolean

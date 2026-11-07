@@ -120,6 +120,7 @@ enum class CustomTextKey(
     SETTING_SOFT_REBOOT("settings.soft_reboot", R.string.settings_soft_reboot, R.string.settings_soft_reboot, CustomTextGroup.SETTINGS),
     SETTING_UMOUNT_MODULES_DEFAULT("settings.umount_modules_default", R.string.settings_umount_modules_default, R.string.settings_umount_modules_default, CustomTextGroup.SETTINGS),
     SETTING_AUTO_DELETE_MODULE_ZIP("settings.auto_delete_module_zip", R.string.settings_auto_delete_module_zip, R.string.settings_auto_delete_module_zip, CustomTextGroup.SETTINGS),
+    SETTING_AUTO_DELETE_UPDATE_APK("settings.auto_delete_update_apk", R.string.settings_auto_delete_update_apk, R.string.settings_auto_delete_update_apk, CustomTextGroup.SETTINGS),
     SETTING_WEB_DEBUGGING("settings.web_debugging", R.string.enable_web_debugging, R.string.enable_web_debugging, CustomTextGroup.SETTINGS),
     SETTING_AUTO_JAILBREAK("settings.auto_jailbreak", R.string.settings_auto_jailbreak, R.string.settings_auto_jailbreak, CustomTextGroup.SETTINGS),
     SETTING_TEMPORARY_ROOT_DURATION("settings.temporary_root_duration", R.string.temporary_root_duration_title, R.string.temporary_root_duration_title, CustomTextGroup.SETTINGS),

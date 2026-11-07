@@ -114,6 +114,7 @@ internal fun ThemeStoreUploadScreen(
     accountSession: AccountSession?,
     autoThemeId: String?,
     editingTheme: AccountThemeSummary?,
+    editPrefill: ThemeStoreEditPrefill? = null,
     initialAdaptiveTheme: Boolean = false,
     initialCurrentTheme: Boolean = false,
     optionsLoading: Boolean,
@@ -158,19 +159,19 @@ internal fun ThemeStoreUploadScreen(
     var presetBusy by remember { mutableStateOf(false) }
     var presetError by remember { mutableStateOf<String?>(null) }
     var adaptiveBusy by remember { mutableStateOf(false) }
-    var packageLabel by rememberSaveable { mutableStateOf<String?>(null) }
+    var packageLabel by rememberSaveable(editingId) { mutableStateOf<String?>(null) }
     var packageAdaptive by rememberSaveable { mutableStateOf(false) }
     var initialPackageApplied by rememberSaveable { mutableStateOf(false) }
-    var packageUri by rememberSaveable(stateSaver = UploadUriSaver) {
+    var packageUri by rememberSaveable(editingId, stateSaver = UploadUriSaver) {
         mutableStateOf(null)
     }
-    var previewUri by rememberSaveable(stateSaver = UploadUriSaver) {
+    var previewUri by rememberSaveable(editingId, stateSaver = UploadUriSaver) {
         mutableStateOf(null)
     }
-    var avatarUri by rememberSaveable(stateSaver = UploadUriSaver) {
+    var avatarUri by rememberSaveable(editingId, stateSaver = UploadUriSaver) {
         mutableStateOf(null)
     }
-    var screenshotUris by rememberSaveable(stateSaver = UploadUriListSaver) {
+    var screenshotUris by rememberSaveable(editingId, stateSaver = UploadUriListSaver) {
         mutableStateOf(emptyList())
     }
 
@@ -250,6 +251,17 @@ internal fun ThemeStoreUploadScreen(
         packageUri = Uri.fromFile(file)
         packageLabel = presetName
     }
+    // Editing starts from the files that are already published; the pickers only
+    // need to be touched when something actually changes.
+    LaunchedEffect(editPrefill, editingId) {
+        val prefill = editPrefill ?: return@LaunchedEffect
+        if (prefill.loading || prefill.themeId != editingId) return@LaunchedEffect
+        prefill.packageUri?.let { packageUri = it }
+        prefill.previewUri?.let { previewUri = it }
+        prefill.avatarUri?.let { avatarUri = it }
+        if (prefill.screenshotUris.isNotEmpty()) screenshotUris = prefill.screenshotUris
+    }
+
     val pickedPackageName = remember(packageUri) {
         packageUri?.let { queryDisplayName(context, it) } ?: noFile
     }
@@ -393,9 +405,19 @@ internal fun ThemeStoreUploadScreen(
                         enabled = false,
                     )
                     when {
-                        editingTheme != null -> UploadHint(
-                            stringResource(R.string.theme_store_edit_id_hint),
-                        )
+                        editingTheme != null -> {
+                            UploadHint(stringResource(R.string.theme_store_edit_id_hint))
+                            when {
+                                editPrefill?.loading == true -> UploadHint(
+                                    stringResource(R.string.theme_store_edit_prefill_loading),
+                                )
+
+                                !editPrefill?.error.isNullOrBlank() -> UploadHint(
+                                    editPrefill.error,
+                                    isError = true,
+                                )
+                            }
+                        }
 
                         optionsLoading -> UploadHint(
                             stringResource(R.string.theme_store_upload_id_loading),

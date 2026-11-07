@@ -25,7 +25,11 @@ import java.util.zip.ZipFile
 
 
 class CiManagerUpdater(private val context: Context) {
-    fun updateAndInstall(update: LatestVersionInfo): Boolean {
+    /**
+     * [keepApk] false installs straight from the private cache copy and never
+     * writes the APK to Downloads, so nothing is left behind after the update.
+     */
+    fun updateAndInstall(update: LatestVersionInfo, keepApk: Boolean = true): Boolean {
         if (!update.downloadUrl.startsWith(RELEASE_ASSET_PREFIX)) {
             throw IOException(context.getString(R.string.ci_update_request_failed))
         }
@@ -35,7 +39,9 @@ class CiManagerUpdater(private val context: Context) {
         try {
             download(update.downloadUrl, apk)
             verifyApk(apk, abi, update.versionCode)
-            saveToDownloads(apk, update.downloadUrl)
+            if (keepApk) {
+                saveToDownloads(apk, update.downloadUrl)
+            }
             if (getRootShell().isRoot) {
                 val result = withNewRootShell {
                     if (!isRoot) throw IOException(context.getString(R.string.ci_update_install_failed))

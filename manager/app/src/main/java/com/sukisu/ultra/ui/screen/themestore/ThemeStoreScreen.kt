@@ -297,6 +297,7 @@ fun ThemeStoreScreen(
         selectedUploadBaseUrl = account.source.baseUrl
         returnToSubmissions = false
         viewModel.clearUploadState()
+        viewModel.clearEditPrefill()
         showUpload = true
     }
 
@@ -381,6 +382,10 @@ fun ThemeStoreScreen(
         if (showUpload && baseUrl != null) viewModel.loadUploadOptions(baseUrl)
     }
 
+    LaunchedEffect(showUpload) {
+        if (!showUpload) viewModel.clearEditPrefill()
+    }
+
     // The account page can log in, log out or switch the active author while the store entry
     // stays alive in the back stack, so re-read its sessions whenever the store is resumed.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
@@ -389,6 +394,10 @@ fun ThemeStoreScreen(
 
     LaunchedEffect(showSubmissions) {
         if (showSubmissions) viewModel.loadUserContent()
+    }
+
+    LaunchedEffect(showHistory) {
+        if (showHistory) viewModel.refreshHistory()
     }
 
     LaunchedEffect(state.uploadSubmitted) {
@@ -645,6 +654,7 @@ fun ThemeStoreScreen(
             accountSession = uploadAccount.session,
             autoThemeId = state.uploadThemeId,
             editingTheme = editingTheme,
+            editPrefill = state.editPrefill,
             initialAdaptiveTheme = pendingAdaptiveTheme,
             initialCurrentTheme = pendingCurrentTheme,
             optionsLoading = state.uploadOptionsLoading,
@@ -689,6 +699,9 @@ fun ThemeStoreScreen(
             downloadedHistory = if (state.showR18) state.downloadedHistory
                 else state.downloadedHistory.filterNot { it.r18 },
             sources = state.sources,
+            loading = state.historyLoading,
+            error = state.historyError,
+            loginRequired = state.historyLoginRequired,
             onBack = { showHistory = false },
             onOpen = { entry ->
                 val item = state.items.firstOrNull { it.key == entry.key }
@@ -711,6 +724,11 @@ fun ThemeStoreScreen(
             },
             onClear = viewModel::clearHistory,
             onDelete = viewModel::removeHistory,
+            onLogin = {
+                showHistory = false
+                navigator.navigateTo(Route.ThemeAccount())
+            },
+            onRefresh = viewModel::refreshHistory,
         )
 
         showMessages -> ThemeStoreMessagesScreen(
@@ -748,6 +766,7 @@ fun ThemeStoreScreen(
             onRefresh = { viewModel.loadUserContent(force = true) },
             onEditTheme = { theme ->
                 viewModel.clearUploadState()
+                viewModel.loadEditPrefill(theme.theme, theme.account.source.baseUrl)
                 showSubmissions = false
                 selectedUploadBaseUrl = theme.account.source.baseUrl
                 editingThemeId = theme.theme.id
@@ -1238,6 +1257,7 @@ private fun ThemeStoreMaterial(
     }
 
     ExpressiveScaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeFlexibleTopAppBar(
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
@@ -1456,9 +1476,7 @@ private fun ThemeStoreMaterial(
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(if (gridLayout) 2 else 1),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    modifier = Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 13.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),

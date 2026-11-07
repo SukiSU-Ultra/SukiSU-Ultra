@@ -189,6 +189,8 @@
     <string name="settings_module_check_update">Check for module updates</string>
     <string name="settings_auto_delete_module_zip">Delete module zip after install</string>
     <string name="settings_auto_delete_module_zip_summary">Automatically delete module zips after a successful installation, including updates, repository installs and files you picked manually.</string>
+    <string name="settings_auto_delete_update_apk">Don\'t keep the installer after updating</string>
+    <string name="settings_auto_delete_update_apk_summary">Install manager updates without saving the APK to Downloads. Turn this off to keep the installer for reinstalling or rolling back.</string>
     <string name="module_zip_deleted">Module zip deleted: %1$s</string>
     <string name="module_zip_delete_failed">! Failed to delete module zip: %1$s</string>
     <string name="grant_root_failed">Failed to grant Root!</string>
@@ -1175,6 +1177,7 @@
     <string name="theme_store_history_empty_viewed">No viewing history yet</string>
     <string name="theme_store_history_empty_downloaded">No download history yet</string>
     <string name="theme_store_history_missing">This theme is no longer in the catalog</string>
+    <string name="theme_store_history_login_required">Sign in to sync your viewed and downloaded themes</string>
     <string name="theme_store_connected_sources">%1$d sources connected</string>
     <string name="theme_store_my_themes_title">My themes</string>
     <string name="theme_store_my_themes_empty">No themes yet. Submit one first.</string>
@@ -1183,6 +1186,8 @@
     <string name="theme_store_edit">Edit</string>
     <string name="theme_store_edit_title">Edit theme</string>
     <string name="theme_store_edit_id_hint">Editing an existing theme. The ID is kept and the version increments automatically.</string>
+    <string name="theme_store_edit_prefill_failed">Could not load the existing theme files. Pick the package and images again.</string>
+    <string name="theme_store_edit_prefill_loading">Loading the existing theme package and images…</string>
     <string name="theme_store_upload_submission_meta">v%1$d · %2$s · SHA-256 %3$s…</string>
     <string name="theme_store_upload_submission_meta_no_sha">v%1$d · %2$s</string>
     <string name="theme_store_upload_submission_reason">Reason: %1$s</string>

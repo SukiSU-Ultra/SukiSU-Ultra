@@ -11,6 +11,7 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.R
+import com.sukisu.ultra.data.model.AccountHistoryItem
 import com.sukisu.ultra.data.model.AccountMessageConversation
 import com.sukisu.ultra.data.model.AccountMessagesResponse
 import com.sukisu.ultra.data.model.AccountSession
@@ -25,7 +26,6 @@ import com.sukisu.ultra.data.repository.ThemeCatalogLoad
 import com.sukisu.ultra.data.repository.ThemeStoreDefaults
 import com.sukisu.ultra.data.repository.ThemeStoreHistoryEntry
 import com.sukisu.ultra.data.repository.ThemeStoreHistoryKind
-import com.sukisu.ultra.data.repository.ThemeStoreHistoryStore
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
 import com.sukisu.ultra.data.repository.ThemeStoreConsentStore
 import com.sukisu.ultra.data.repository.ThemeStoreSubmission
@@ -53,6 +53,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import androidx.core.graphics.scale
+import kotlin.time.Duration.Companion.milliseconds
 
 data class ThemeStoreSource(
     val id: String,
@@ -144,6 +145,17 @@ data class ThemeStoreUploadResult(
     val message: String,
 )
 
+/** Existing files of the theme being edited, downloaded so the form starts complete. */
+data class ThemeStoreEditPrefill(
+    val themeId: String = "",
+    val loading: Boolean = false,
+    val error: String? = null,
+    val packageUri: Uri? = null,
+    val previewUri: Uri? = null,
+    val avatarUri: Uri? = null,
+    val screenshotUris: List<Uri> = emptyList(),
+)
+
 data class ThemeStoreUiState(
     val loaded: Boolean = false,
     val loading: Boolean = false,
@@ -157,6 +169,9 @@ data class ThemeStoreUiState(
     val sources: List<ThemeStoreSource> = emptyList(),
     val viewedHistory: List<ThemeStoreHistoryEntry> = emptyList(),
     val downloadedHistory: List<ThemeStoreHistoryEntry> = emptyList(),
+    val historyLoading: Boolean = false,
+    val historyError: String? = null,
+    val historyLoginRequired: Boolean = false,
     val fromCache: Boolean = false,
     val maintenance: Boolean = false,
     val failedSources: Int = 0,
@@ -180,6 +195,7 @@ data class ThemeStoreUiState(
     val uploadedThemeId: String? = null,
     val uploadThemeId: String? = null,
     val uploadOptionsBaseUrl: String? = null,
+    val editPrefill: ThemeStoreEditPrefill? = null,
     val accounts: List<ThemeStoreAccount> = emptyList(),
     val uploadOptionsLoading: Boolean = false,
     val uploadOptionsError: String? = null,
@@ -250,8 +266,9 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
     private val settings = SettingsRepositoryImpl()
     private val account = AccountRepository(application)
     private val consentStore = ThemeStoreConsentStore(application)
-    private val historyStore = ThemeStoreHistoryStore(application)
     private val initialConsent = consentStore.read()
+    private var historyJob: kotlinx.coroutines.Job? = null
+    private var editPrefillJob: kotlinx.coroutines.Job? = null
     private var followsJob: kotlinx.coroutines.Job? = null
     private var loadJob: kotlinx.coroutines.Job? = null
     private var preferencesPushJob: kotlinx.coroutines.Job? = null
@@ -265,8 +282,6 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             gridLayout = settings.themeStoreGridLayout,
             needsConsent = initialConsent == null,
             showR18 = initialConsent?.showR18 == true,
-            viewedHistory = historyStore.read(ThemeStoreHistoryKind.VIEWED),
-            downloadedHistory = historyStore.read(ThemeStoreHistoryKind.DOWNLOADED),
         ),
     )
     val uiState: StateFlow<ThemeStoreUiState> = _uiState.asStateFlow()
@@ -277,7 +292,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         }
         viewModelScope.launch {
             while (true) {
-                kotlinx.coroutines.delay(10 * 60 * 1000L)
+                kotlinx.coroutines.delay((10 * 60 * 1000L).milliseconds)
                 if (!_uiState.value.needsConsent) {
                     load()
                 }
@@ -335,7 +350,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             // Apply the web R18 choice before the catalog becomes visible, so a stale local
             // choice cannot briefly reveal adult themes after sign-in. A slow mirror must not
             // hold the store hostage; fall back to the local value after a short wait.
-            withTimeoutOrNull(5_000) {
+            withTimeoutOrNull(5_000.milliseconds) {
                 preferencesSyncLock.withLock {
                     syncPreferencesNow(accounts, force = false)
                 }
@@ -703,49 +718,173 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-    private fun historyEntry(item: ThemeStoreItem): ThemeStoreHistoryEntry =
+    private fun historyEntry(source: ThemeStoreSource, item: AccountHistoryItem): ThemeStoreHistoryEntry =
         ThemeStoreHistoryEntry(
-            key = item.key,
-            themeId = item.entry.id,
-            name = item.entry.name,
-            author = item.entry.author,
-            sourceId = item.source.id,
-            baseUrl = item.source.baseUrl,
-            previewPath = item.entry.previewPath.ifBlank {
-                item.entry.screenshotPaths.firstOrNull().orEmpty()
-            },
-            createdAt = System.currentTimeMillis(),
-            r18 = item.isR18Theme(),
-            adaptive = item.isAdaptiveTheme(),
+            key = "${source.id}#${item.id}",
+            themeId = item.themeId,
+            name = item.themeName,
+            author = item.themeAuthor,
+            sourceId = source.id,
+            baseUrl = source.baseUrl,
+            previewPath = item.themePreviewPath,
+            createdAt = runCatching {
+                java.time.Instant.parse(item.createdAt).toEpochMilli()
+            }.getOrDefault(0L),
+            r18 = item.r18,
+            adaptive = item.themeAdaptive,
         )
 
+    /** History lives on the account: record every view/download for the matching source. */
     fun recordView(item: ThemeStoreItem) {
-        historyStore.record(ThemeStoreHistoryKind.VIEWED, historyEntry(item))
-        refreshHistory()
-    }
-
-    private fun recordDownload(item: ThemeStoreItem) {
-        historyStore.record(ThemeStoreHistoryKind.DOWNLOADED, historyEntry(item))
-        refreshHistory()
-    }
-
-    fun refreshHistory() {
-        _uiState.update {
-            it.copy(
-                viewedHistory = historyStore.read(ThemeStoreHistoryKind.VIEWED),
-                downloadedHistory = historyStore.read(ThemeStoreHistoryKind.DOWNLOADED),
+        if (!hasAccountFor(item.source.baseUrl)) return
+        viewModelScope.launch {
+            account.recordThemeHistory(
+                item.source.baseUrl,
+                ThemeStoreHistoryKind.VIEWED.apiKind,
+                item.entry.id,
             )
         }
     }
 
+    private fun recordDownload(item: ThemeStoreItem) {
+        if (!hasAccountFor(item.source.baseUrl)) return
+        viewModelScope.launch {
+            account.recordThemeHistory(
+                item.source.baseUrl,
+                ThemeStoreHistoryKind.DOWNLOADED.apiKind,
+                item.entry.id,
+            )
+        }
+    }
+
+    fun refreshHistory() {
+        historyJob?.cancel()
+        historyJob = viewModelScope.launch {
+            account.reload()
+            val accounts = accountsFor(configuredSources())
+            if (accounts.isEmpty()) {
+                _uiState.update {
+                    it.copy(
+                        historyLoading = false,
+                        historyError = null,
+                        historyLoginRequired = true,
+                        viewedHistory = emptyList(),
+                        downloadedHistory = emptyList(),
+                    )
+                }
+                return@launch
+            }
+            _uiState.update {
+                it.copy(historyLoading = true, historyError = null, historyLoginRequired = false)
+            }
+            val viewed = mutableListOf<ThemeStoreHistoryEntry>()
+            val downloaded = mutableListOf<ThemeStoreHistoryEntry>()
+            var failure: String? = null
+            accounts.forEach { entry ->
+                val source = entry.source
+                account.themeHistory(source.baseUrl, ThemeStoreHistoryKind.VIEWED.apiKind).fold(
+                    onSuccess = { items -> viewed += items.map { historyEntry(source, it) } },
+                    onFailure = { failure = it.message },
+                )
+                account.themeHistory(source.baseUrl, ThemeStoreHistoryKind.DOWNLOADED.apiKind).fold(
+                    onSuccess = { items -> downloaded += items.map { historyEntry(source, it) } },
+                    onFailure = { failure = it.message },
+                )
+            }
+            _uiState.update {
+                it.copy(
+                    historyLoading = false,
+                    historyError = if (viewed.isEmpty() && downloaded.isEmpty()) failure else null,
+                    viewedHistory = viewed.sortedByDescending { item -> item.createdAt }.take(100),
+                    downloadedHistory = downloaded.sortedByDescending { item -> item.createdAt }.take(100),
+                )
+            }
+        }
+    }
+
+    fun clearEditPrefill() {
+        editPrefillJob?.cancel()
+        _uiState.update { it.copy(editPrefill = null) }
+    }
+
+    /**
+     * The edit form starts from the theme that is already published: download its
+     * package plus every image so the author only changes what they want to change.
+     */
+    fun loadEditPrefill(theme: AccountThemeSummary, baseUrl: String) {
+        editPrefillJob?.cancel()
+        _uiState.update {
+            it.copy(editPrefill = ThemeStoreEditPrefill(themeId = theme.id, loading = true))
+        }
+        editPrefillJob = viewModelScope.launch {
+            val key = "edit-${theme.id}"
+            val packageFile = account.downloadMyThemePackage(baseUrl, theme.id).getOrNull()
+            val previewFile = editAsset(baseUrl, theme.previewPath, "preview", key)
+            val avatarFile = editAsset(baseUrl, theme.avatarPath.orEmpty(), "avatar", key)
+            val screenshots = mutableListOf<File>()
+            theme.screenshotPaths.forEachIndexed { index, path ->
+                editAsset(baseUrl, path, "screenshot-${index + 1}", key)?.let(screenshots::add)
+            }
+            _uiState.update {
+                it.copy(
+                    editPrefill = ThemeStoreEditPrefill(
+                        themeId = theme.id,
+                        loading = false,
+                        error = if (packageFile == null || previewFile == null) {
+                            getApplication<Application>().getString(
+                                R.string.theme_store_edit_prefill_failed,
+                            )
+                        } else {
+                            null
+                        },
+                        packageUri = packageFile?.let(Uri::fromFile),
+                        previewUri = previewFile?.let(Uri::fromFile),
+                        avatarUri = avatarFile?.let(Uri::fromFile),
+                        screenshotUris = screenshots.map(Uri::fromFile),
+                    ),
+                )
+            }
+        }
+    }
+
+    private suspend fun editAsset(
+        baseUrl: String,
+        path: String,
+        baseName: String,
+        cacheKey: String,
+    ): File? {
+        if (path.isBlank()) return null
+        val ext = path.substringAfterLast('.', "webp").lowercase()
+            .takeIf { suffix -> suffix.length in 2..5 && suffix.all(Char::isLetterOrDigit) }
+            ?: "webp"
+        return account.downloadAccountAsset(baseUrl, path, "$baseName.$ext", cacheKey).getOrNull()
+    }
+
     fun clearHistory(kind: ThemeStoreHistoryKind) {
-        historyStore.clear(kind)
-        refreshHistory()
+        viewModelScope.launch {
+            accountsFor(configuredSources()).forEach { entry ->
+                account.deleteThemeHistory(entry.source.baseUrl, kind.apiKind, all = true)
+            }
+            refreshHistory()
+        }
     }
 
     fun removeHistory(kind: ThemeStoreHistoryKind, keys: Set<String>) {
-        historyStore.remove(kind, keys)
-        refreshHistory()
+        if (keys.isEmpty()) return
+        viewModelScope.launch {
+            val sources = configuredSources()
+            val grouped = keys.mapNotNull { key ->
+                val at = key.lastIndexOf('#')
+                val sourceId = if (at > 0) key.substring(0, at) else return@mapNotNull null
+                val id = key.substring(at + 1).toLongOrNull() ?: return@mapNotNull null
+                sourceId to id
+            }.groupBy({ it.first }, { it.second })
+            grouped.forEach { (sourceId, ids) ->
+                val source = sources.firstOrNull { it.id == sourceId } ?: return@forEach
+                account.deleteThemeHistory(source.baseUrl, kind.apiKind, ids = ids)
+            }
+            refreshHistory()
+        }
     }
 
     fun download(item: ThemeStoreItem, trial: Boolean = false) {

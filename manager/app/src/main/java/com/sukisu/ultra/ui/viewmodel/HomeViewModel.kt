@@ -214,7 +214,10 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 val installed = withContext(Dispatchers.IO) {
-                    CiManagerUpdater(ksuApp).updateAndInstall(info)
+                    CiManagerUpdater(ksuApp).updateAndInstall(
+                        info,
+                        keepApk = !settingsRepo.autoDeleteUpdateApk,
+                    )
                 }
                 val message = if (installed) R.string.ci_update_install_success
                     else R.string.ci_update_install_submitted

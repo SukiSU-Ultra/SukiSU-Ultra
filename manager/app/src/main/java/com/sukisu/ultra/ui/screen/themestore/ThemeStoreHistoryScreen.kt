@@ -22,16 +22,20 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -71,10 +76,15 @@ internal fun ThemeStoreHistoryScreen(
     viewedHistory: List<ThemeStoreHistoryEntry>,
     downloadedHistory: List<ThemeStoreHistoryEntry>,
     sources: List<ThemeStoreSource>,
+    loading: Boolean,
+    error: String?,
+    loginRequired: Boolean,
     onBack: () -> Unit,
     onOpen: (ThemeStoreHistoryEntry) -> Unit,
     onClear: (ThemeStoreHistoryKind) -> Unit,
     onDelete: (ThemeStoreHistoryKind, Set<String>) -> Unit,
+    onLogin: () -> Unit,
+    onRefresh: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var selecting by rememberSaveable { mutableStateOf(false) }
@@ -99,16 +109,28 @@ internal fun ThemeStoreHistoryScreen(
     }
 
     ExpressiveScaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.theme_store_history_title)) },
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 actions = {
                     IconButton(
+                        onClick = onRefresh,
+                        enabled = !loading,
+                        colors = themeStoreTopBarIconColors(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Refresh,
+                            contentDescription = stringResource(R.string.theme_store_upload_refresh),
+                        )
+                    }
+                    IconButton(
                         onClick = {
                             selecting = !selecting
                             if (!selecting) selected = emptySet()
                         },
+                        enabled = !loginRequired,
                         colors = themeStoreTopBarIconColors(),
                     ) {
                         Icon(
@@ -154,7 +176,7 @@ internal fun ThemeStoreHistoryScreen(
                 ),
                 onTabClick = { tab = it },
             )
-            if (selecting) {
+            if (selecting && !loginRequired) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -195,41 +217,63 @@ internal fun ThemeStoreHistoryScreen(
                     }
                 }
             }
-            if (current.isEmpty()) {
-                HistoryEmpty(kind, Modifier.weight(1f))
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 36.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+            when {
+                loginRequired -> HistoryLogin(Modifier.weight(1f), onLogin = onLogin)
+
+                loading && current.isEmpty() -> Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    items(current, key = { it.key }) { entry ->
-                        HistoryCard(
-                            entry = entry,
-                            source = sources.firstOrNull {
-                                it.id == entry.sourceId || it.baseUrl == entry.baseUrl
-                            },
-                            selecting = selecting,
-                            checked = entry.key in selected,
-                            onToggle = {
-                                selected = if (entry.key in selected) {
-                                    selected - entry.key
-                                } else {
-                                    selected + entry.key
-                                }
-                            },
-                            onClick = {
-                                if (selecting) {
+                    CircularWavyProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+
+                current.isEmpty() -> Column(modifier = Modifier.weight(1f)) {
+                    HistoryError(error)
+                    HistoryEmpty(kind, Modifier.weight(1f))
+                }
+
+                else -> Column(modifier = Modifier.weight(1f)) {
+                    HistoryError(error)
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(
+                            start = 20.dp,
+                            end = 20.dp,
+                            top = 8.dp,
+                            bottom = 36.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(current, key = { it.key }) { entry ->
+                            HistoryCard(
+                                entry = entry,
+                                source = sources.firstOrNull {
+                                    it.id == entry.sourceId || it.baseUrl == entry.baseUrl
+                                },
+                                selecting = selecting,
+                                checked = entry.key in selected,
+                                onToggle = {
                                     selected = if (entry.key in selected) {
                                         selected - entry.key
                                     } else {
                                         selected + entry.key
                                     }
-                                } else {
-                                    onOpen(entry)
-                                }
-                            },
-                        )
+                                },
+                                onClick = {
+                                    if (selecting) {
+                                        selected = if (entry.key in selected) {
+                                            selected - entry.key
+                                        } else {
+                                            selected + entry.key
+                                        }
+                                    } else {
+                                        onOpen(entry)
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -368,6 +412,59 @@ private fun HistoryCard(
             }
             if (entry.r18) {
                 ThemeR18Badge()
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistoryError(error: String?) {
+    error?.takeIf { it.isNotBlank() }?.let { message ->
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+        )
+    }
+}
+
+@Composable
+private fun HistoryLogin(modifier: Modifier = Modifier, onLogin: () -> Unit) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.History,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp),
+                )
+                Text(
+                    text = stringResource(R.string.theme_store_history_login_required),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Button(
+                    onClick = onLogin,
+                    modifier = Modifier.fillMaxWidth(),
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    Text(stringResource(R.string.account_login))
+                }
             }
         }
     }

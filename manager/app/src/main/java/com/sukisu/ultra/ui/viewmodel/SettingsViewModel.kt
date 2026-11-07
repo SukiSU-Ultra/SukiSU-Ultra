@@ -163,6 +163,7 @@ class SettingsViewModel(
             val moduleDescriptionMaxLines = repo.moduleDescriptionMaxLines
             val enableWebDebugging = repo.enableWebDebugging
             val autoDeleteModuleZip = repo.autoDeleteModuleZip
+            val autoDeleteUpdateApk = repo.autoDeleteUpdateApk
             val showFullStatus = repo.showFullStatus
             val hideHomeWarnings = repo.hideHomeWarnings
             val showAiHomeCard = repo.showAiHomeCard
@@ -276,6 +277,7 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
                     moduleDescriptionMaxLines = moduleDescriptionMaxLines,
                     enableWebDebugging = enableWebDebugging,
                     autoDeleteModuleZip = autoDeleteModuleZip,
+                    autoDeleteUpdateApk = autoDeleteUpdateApk,
                     showFullStatus = showFullStatus,
                     hideHomeWarnings = hideHomeWarnings,
                     showAiHomeCard = showAiHomeCard,
@@ -2615,6 +2617,11 @@ homePillScale = repo.homePillScale,
     fun setAutoDeleteModuleZip(enabled: Boolean) {
         repo.autoDeleteModuleZip = enabled
         _uiState.update { it.copy(autoDeleteModuleZip = enabled) }
+    }
+
+    fun setAutoDeleteUpdateApk(enabled: Boolean) {
+        repo.autoDeleteUpdateApk = enabled
+        _uiState.update { it.copy(autoDeleteUpdateApk = enabled) }
     }
     fun setAppIcon(context: Context, iconId: String) {
         val icon = BuiltinAppIcons.find(iconId)
