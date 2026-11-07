@@ -35,6 +35,7 @@ import com.sukisu.ultra.ui.component.FloatingBottomBar
 import com.sukisu.ultra.ui.component.FloatingBottomBarItem
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
+import com.sukisu.ultra.ui.theme.LocalEnableProgressiveBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.BlurredBar
 import com.sukisu.ultra.ui.util.CustomTextKey
@@ -47,6 +48,8 @@ import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.ProgressiveBlur
+import top.yukonga.miuix.kmp.shader.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.theme.LocalContentColor as MiuixLocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -63,6 +66,7 @@ fun BottomBarMiuix(
     val mainState = LocalMainPagerState.current
     val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
     val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
+    val progressiveBlur = LocalEnableProgressiveBlur.current && isRuntimeShaderSupported()
 
     val bottomBarIcons = rememberBottomBarIconPaths()
     val items = BottomBarDestination.entries.map { destination ->
@@ -73,7 +77,7 @@ fun BottomBarMiuix(
         )
     }
     if (!enableFloatingBottomBar) {
-        BlurredBar(blurBackdrop) {
+        BlurredBar(blurBackdrop, progressiveGradient = ProgressiveBlur.Bottom) {
             NavigationBar(
                 modifier = modifier,
                 color = if (blurBackdrop != null) Color.Transparent else backgroundAwareColor(MiuixTheme.colorScheme.surface),
@@ -119,6 +123,7 @@ fun BottomBarMiuix(
             backdrop = backdrop,
             tabsCount = items.size,
             isBlurEnabled = enableFloatingBottomBarBlur,
+            progressiveBlur = progressiveBlur,
         ) { activateTab ->
             items.forEachIndexed { index, (destination, label, iconPath) ->
                 FloatingBottomBarItem(

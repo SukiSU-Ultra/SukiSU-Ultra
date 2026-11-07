@@ -2,7 +2,10 @@ package com.sukisu.ultra.ui.component.bottombar
 
 import top.yukonga.miuix.kmp.theme.LocalContentColor as MiuixLocalContentColor
 import top.yukonga.miuix.kmp.blur.Backdrop
+import top.yukonga.miuix.kmp.blur.ProgressiveBlur
+import top.yukonga.miuix.kmp.shader.isRuntimeShaderSupported
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
+import com.sukisu.ultra.ui.theme.LocalEnableProgressiveBlur
 import com.sukisu.ultra.ui.component.FloatingBottomBarItem
 import com.sukisu.ultra.ui.component.FloatingBottomBar
 import androidx.compose.ui.unit.sp
@@ -58,6 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +72,7 @@ import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.rememberProgressiveBarBlurModifier
 
 @Composable
 fun BottomBarMaterial(
@@ -80,6 +85,7 @@ fun BottomBarMaterial(
 
     val mainPagerState = LocalMainPagerState.current
     val bottomBarIcons = rememberBottomBarIconPaths()
+    val progressiveBlur = LocalEnableProgressiveBlur.current && isRuntimeShaderSupported()
 
     val items = listOf(
         MaterialNavItem(CustomTextKey.PAGE_HOME, Icons.Filled.Home, Icons.Outlined.Home, bottomBarIcons["home"]),
@@ -94,6 +100,7 @@ fun BottomBarMaterial(
             items = items,
             navigationBadge = navigationBadge,
             modifier = modifier,
+            progressiveBlur = progressiveBlur,
         )
         return
     }
@@ -110,10 +117,24 @@ fun BottomBarMaterial(
             .padding(horizontal = 24.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
+        val pillColor = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerHighest)
+        val progressiveModifier = if (progressiveBlur) {
+            rememberProgressiveBarBlurModifier(
+                backdrop = backdrop,
+                gradient = ProgressiveBlur.Bottom,
+                tint = MaterialTheme.colorScheme.surfaceContainerHighest,
+                tintAlpha = 0.2f,
+                shape = CircleShape,
+            )
+        } else {
+            Modifier
+        }
         Surface(
-            modifier = Modifier.widthIn(max = 480.dp),
+            modifier = Modifier.widthIn(max = 480.dp).then(progressiveModifier),
             shape = CircleShape,
-            color = backgroundAwareColor(MaterialTheme.colorScheme.surfaceContainerHighest),
+            // A translucent sheet lets the progressive blur below the pill stay visible while
+            // keeping the labels readable; the blur carries the edge gradient.
+            color = if (progressiveBlur) pillColor.copy(alpha = 0.5f) else pillColor,
             shadowElevation = 6.dp,
         ) {
             Row(
@@ -133,6 +154,7 @@ fun BottomBarMaterial(
                         icon = if (selected) item.selectedIcon else item.unselectedIcon,
                         iconPath = item.iconPath,
                         badge = badgeFor(index, navigationBadge),
+                        progressiveBlur = progressiveBlur,
                         onClick = {
                             if (!selected) {
                                 mainPagerState.animateToPage(index)
@@ -153,6 +175,7 @@ private fun LiquidBottomBarMaterial(
     items: List<MaterialNavItem>,
     navigationBadge: NavigationBadgeState,
     modifier: Modifier,
+    progressiveBlur: Boolean = false,
 ) {
     val mainPagerState = LocalMainPagerState.current
     val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -169,6 +192,7 @@ private fun LiquidBottomBarMaterial(
         backdrop = backdrop,
         tabsCount = items.size,
         isBlurEnabled = true,
+        progressiveBlur = progressiveBlur,
         accentColor = MaterialTheme.colorScheme.primary,
         tabContentColor = MaterialTheme.colorScheme.onSurface,
         surfaceContainer = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -216,10 +240,17 @@ private fun FloatingNavItem(
     icon: ImageVector,
     iconPath: String?,
     badge: NavBadge?,
+    progressiveBlur: Boolean = false,
     onClick: () -> Unit,
 ) {
+    // With the progressive pill the unselected items must not paint an opaque capsule, otherwise
+    // they would punch solid holes through the blur.
     val containerColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+        targetValue = when {
+            selected -> MaterialTheme.colorScheme.primary
+            progressiveBlur -> Color.Transparent
+            else -> MaterialTheme.colorScheme.surfaceContainerHighest
+        },
         label = "nav_item_container"
     )
     val contentColor by animateColorAsState(

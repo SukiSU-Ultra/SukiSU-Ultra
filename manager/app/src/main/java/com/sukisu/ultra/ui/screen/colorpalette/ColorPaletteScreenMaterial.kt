@@ -594,6 +594,19 @@ fun ColorPaletteScreenMaterial(
                             },
                         )
                     }
+                    // A bar treatment, not a wallpaper property: keep it available with and
+                    // without a custom background image.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        item(visible = backgroundSectionExpanded) {
+                            SegmentedSwitchItem(
+                                icon = Icons.Rounded.BlurOn,
+                                title = stringResource(id = R.string.settings_progressive_blur),
+                                summary = stringResource(id = R.string.settings_progressive_blur_summary),
+                                checked = state.enableProgressiveBlur,
+                                onCheckedChange = actions.onSetEnableProgressiveBlur,
+                            )
+                        }
+                    }
                     item(visible = backgroundSectionExpanded) {
                         SegmentedSwitchItem(
                             icon = Icons.Rounded.Wallpaper,

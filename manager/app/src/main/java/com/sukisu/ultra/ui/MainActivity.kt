@@ -134,6 +134,7 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.theme.LocalEnableNavigationBadge
+import com.sukisu.ultra.ui.theme.LocalEnableProgressiveBlur
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
 import com.sukisu.ultra.ui.util.BackgroundNavTransition
 import com.sukisu.ultra.ui.util.ImageStorage
@@ -156,6 +157,7 @@ import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
 import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import top.yukonga.miuix.kmp.nav.transition.NavTransitions
+import top.yukonga.miuix.kmp.shader.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PagerGestureNestedScrollConnection
 import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
@@ -243,8 +245,10 @@ class MainActivity : ComponentActivity() {
             // Blurring that reads as black, so over a custom background they also need the wallpaper:
             // capture it here, where only the background image is drawn, and combine it underneath.
             val appBackgroundBackdrop = rememberLayerBackdrop()
-            val captureAppBackground = uiMode == UiMode.Miuix && uiState.enableBlur &&
-                uiState.customBackgroundUri.isNotEmpty()
+            // The progressive blur covers both shells and works regardless of the plain bar blur.
+            val progressiveBlurActive = uiState.enableProgressiveBlur && isRuntimeShaderSupported()
+            val captureAppBackground = uiState.customBackgroundUri.isNotEmpty() &&
+                ((uiMode == UiMode.Miuix && uiState.enableBlur) || progressiveBlurActive)
 
             val themedAppSettings = remember(appSettings, uiState.keyColorOverride) {
                 uiState.keyColorOverride?.let { appSettings.copy(keyColor = it) } ?: appSettings
@@ -255,6 +259,7 @@ class MainActivity : ComponentActivity() {
                 LocalColorMode provides appSettings.colorMode.value,
                 LocalAppSettings provides themedAppSettings,
                 LocalEnableBlur provides uiState.enableBlur,
+                LocalEnableProgressiveBlur provides uiState.enableProgressiveBlur,
                 LocalEnableFloatingBottomBar provides uiState.enableFloatingBottomBar,
                 LocalEnableFloatingBottomBarBlur provides uiState.enableFloatingBottomBarBlur,
                 LocalEnableNavigationBadge provides uiState.enableNavigationBadge,
@@ -552,6 +557,7 @@ fun MainScreen(
 ) {
     val navController = LocalNavigator.current
     val enableBlur = LocalEnableBlur.current
+    val enableProgressiveBlur = LocalEnableProgressiveBlur.current
     val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
     val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
     val useNavigationRail = useNavigationRail(enableFloatingBottomBar)
@@ -636,10 +642,19 @@ fun MainScreen(
         UiMode.Miuix -> MiuixTheme.colorScheme.surface
     }
     // This backdrop only feeds the standard Miuix navigation bar. The floating bars use
-    // `backdrop` for their liquid glass, and Material never consumes it; attaching it there
-    // would record the pager into a full-screen layer every frame with no reader.
-    val needsStandardMiuixBarBackdrop = uiMode == UiMode.Miuix && !enableFloatingBottomBar
-    val blurBackdrop = rememberBlurBackdrop(enableBlur && needsStandardMiuixBarBackdrop)
+    // `backdrop` for their liquid glass or progressive band, so the pager is only recorded into
+    // a full-screen layer when one of those readers is active.
+    val needsStandardMiuixBarBackdrop = uiMode == UiMode.Miuix && !enableFloatingBottomBar &&
+        !useNavigationRail
+    val blurBackdrop = rememberBlurBackdrop(
+        enableBlur = enableBlur && needsStandardMiuixBarBackdrop,
+        allowProgressive = needsStandardMiuixBarBackdrop,
+    )
+    // The floating pills (Material bar, Miuix floating bar) sample this pager layer for their
+    // liquid glass and/or progressive blur. Rail layouts show no bottom bar at all.
+    val needsBottomBarBackdrop = !useNavigationRail &&
+        (uiMode == UiMode.Material || enableFloatingBottomBar) &&
+        (enableFloatingBottomBarBlur || enableProgressiveBlur)
 
     val backdrop = rememberLayerBackdrop {
         if (!hasCustomBackground) {
@@ -675,8 +690,8 @@ fun MainScreen(
                             mode = pagerMode,
                             enabled = userScrollEnabled,
                         )
-                        // Material always floats its bar, so only the glass toggle matters there.
-                        .then(if ((uiMode == UiMode.Material || enableFloatingBottomBar) && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
+                        // Material always floats its bar, so only the glass/progressive band matters there.
+                        .then(if (needsBottomBarBackdrop) Modifier.layerBackdrop(backdrop) else Modifier),
                     state = mainPagerState.pagerState,
                     beyondViewportPageCount = if (contentReady) 3 else 0,
                     overscrollEffect = null,

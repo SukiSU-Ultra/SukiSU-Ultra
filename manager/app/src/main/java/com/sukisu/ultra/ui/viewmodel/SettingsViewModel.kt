@@ -154,6 +154,7 @@ class SettingsViewModel(
             val enableSwipeDismiss = repo.enableSwipeDismiss
             val pagerInterceptionMode = repo.pagerInterceptionMode
             val enableBlur = repo.enableBlur
+            val enableProgressiveBlur = repo.enableProgressiveBlur
             val enableFloatingBottomBar = repo.enableFloatingBottomBar
             val enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur
             val enableNavigationBadge = repo.enableNavigationBadge
@@ -267,6 +268,7 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
                     enableSwipeDismiss = enableSwipeDismiss,
                     pagerInterceptionMode = pagerInterceptionMode,
                     enableBlur = enableBlur,
+                    enableProgressiveBlur = enableProgressiveBlur,
                     enableFloatingBottomBar = enableFloatingBottomBar,
                     enableFloatingBottomBarBlur = enableFloatingBottomBarBlur,
                     enableNavigationBadge = enableNavigationBadge,
@@ -934,6 +936,7 @@ homeStatusAlignment = HomeStatusAlignment.fromValue(repo.homeStatusAlignment).va
             uiMode = repo.uiMode.takeIf { options.interfaceMode },
             appIconId = exportedIconId.takeIf { options.appIcon },
             enableBlur = repo.enableBlur.takeIf { options.interfaceSwitches },
+            enableProgressiveBlur = repo.enableProgressiveBlur.takeIf { options.interfaceSwitches },
             enableFloatingBottomBar = repo.enableFloatingBottomBar.takeIf { options.interfaceSwitches },
             enableFloatingBottomBarBlur = repo.enableFloatingBottomBarBlur.takeIf { options.interfaceSwitches },
             enableNavigationBadge = repo.enableNavigationBadge.takeIf { options.interfaceSwitches },
@@ -1084,6 +1087,11 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
             // The chrome and behavior switches are global settings, not per light/dark appearance,
             // so both halves always carry the live values instead of what the state captured.
             enableBlur = if (options.interfaceSwitches) repo.enableBlur else null,
+            enableProgressiveBlur = if (options.interfaceSwitches) {
+                repo.enableProgressiveBlur
+            } else {
+                null
+            },
             enableFloatingBottomBar = if (options.interfaceSwitches) {
                 repo.enableFloatingBottomBar
             } else {
@@ -1452,6 +1460,7 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
                 enablePredictiveBack = null,
                 enableSwipeDismiss = null,
                 enableBlur = null,
+                enableProgressiveBlur = null,
                 pagerInterceptionMode = null,
                 pageScale = null,
                 moduleDescriptionMaxLines = null,
@@ -1481,6 +1490,7 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
         var homeCardStickers = current.homeCardStickers
         var bottomBarIcons = current.bottomBarIcons
         var enableBlur = current.enableBlur
+        var enableProgressiveBlur = current.enableProgressiveBlur
         var pagerMode = current.pagerInterceptionMode
         var pageScale = current.pageScale
         var moduleMaxLines = current.moduleDescriptionMaxLines
@@ -1561,6 +1571,10 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
             data.enableBlur?.let {
                 repo.enableBlur = it
                 enableBlur = it
+            }
+            data.enableProgressiveBlur?.let {
+                repo.enableProgressiveBlur = it
+                enableProgressiveBlur = it
             }
             floatingBottomBar = data.enableFloatingBottomBar ?: current.enableFloatingBottomBar
             floatingBottomBarBlur = data.enableFloatingBottomBarBlur ?: current.enableFloatingBottomBarBlur
@@ -1781,6 +1795,7 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
             predictiveBack = repo.enablePredictiveBack
             swipeDismiss = repo.enableSwipeDismiss
             enableBlur = repo.enableBlur
+            enableProgressiveBlur = repo.enableProgressiveBlur
             pagerMode = repo.pagerInterceptionMode
             pageScale = repo.pageScale
             moduleMaxLines = repo.moduleDescriptionMaxLines
@@ -1851,6 +1866,7 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
                 enablePredictiveBack = predictiveBack,
                 enableSwipeDismiss = swipeDismiss,
                 enableBlur = enableBlur,
+                enableProgressiveBlur = enableProgressiveBlur,
                 pagerInterceptionMode = pagerMode,
                 pageScale = pageScale,
                 moduleDescriptionMaxLines = moduleMaxLines,
@@ -2006,6 +2022,11 @@ homePillScale = if (options.homeCardDisplay) variant.data.homePillScale else nul
                 homeCardStickerTransforms = stickerData,
                 uiMode = if (options.interfaceMode) variant.data.uiMode else null,
                 enableBlur = if (options.interfaceSwitches) variant.data.enableBlur else null,
+                enableProgressiveBlur = if (options.interfaceSwitches) {
+                    variant.data.enableProgressiveBlur
+                } else {
+                    null
+                },
                 enableFloatingBottomBar = if (options.interfaceSwitches) {
                     variant.data.enableFloatingBottomBar
                 } else {
@@ -2779,6 +2800,11 @@ homePillScale = repo.homePillScale,
         _uiState.update { it.copy(enableBlur = enabled) }
     }
 
+    fun setEnableProgressiveBlur(enabled: Boolean) {
+        repo.enableProgressiveBlur = enabled
+        _uiState.update { it.copy(enableProgressiveBlur = enabled) }
+    }
+
     fun setEnableFloatingBottomBar(enabled: Boolean) {
         repo.enableFloatingBottomBar = enabled
         _uiState.update { it.copy(enableFloatingBottomBar = enabled) }
@@ -3008,6 +3034,7 @@ homePillScale = repo.homePillScale,
             cardBackgroundAlphaPercent = cardBackgroundAlphaPercent,
             customBackgroundBlurPercent = customBackgroundBlurPercent,
             customBackgroundScrimPercent = customBackgroundScrimPercent,
+            enableProgressiveBlur = enableProgressiveBlur,
             enableFloatingBottomBar = enableFloatingBottomBar,
             enableFloatingBottomBarBlur = enableFloatingBottomBarBlur,
             enableNavigationBadge = enableNavigationBadge,

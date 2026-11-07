@@ -69,6 +69,7 @@ object AiThemeController : AiThemeService {
             put("extract_color_from_background", repo.extractColorFromBackground)
             put("use_system_wallpaper", repo.useSystemWallpaper)
             put("blur", repo.enableBlur)
+            put("progressive_blur", repo.enableProgressiveBlur)
             put("floating_bottom_bar", repo.enableFloatingBottomBar)
             put("floating_bottom_bar_blur", repo.enableFloatingBottomBarBlur)
             put("navigation_badge", repo.enableNavigationBadge)
@@ -192,6 +193,7 @@ object AiThemeController : AiThemeService {
             "use_system_wallpaper" -> repo.useSystemWallpaper = text.toBooleanValue()
 
             "blur" -> repo.enableBlur = text.toBooleanValue()
+            "progressive_blur" -> repo.enableProgressiveBlur = text.toBooleanValue()
             "floating_bottom_bar" -> repo.enableFloatingBottomBar = text.toBooleanValue()
             "navigation_badge" -> repo.enableNavigationBadge = text.toBooleanValue()
             "page_scale" -> {
@@ -481,6 +483,7 @@ object AiThemeController : AiThemeService {
             put("app_icon", repo.appIconId)
             put("app_icon_dynamic_color", repo.appIconDynamicColor)
             put("blur", repo.enableBlur)
+            put("progressive_blur", repo.enableProgressiveBlur)
             put("page_scale", repo.pageScale)
             put("swipe_dismiss", repo.enableSwipeDismiss)
             put("pager_mode", repo.pagerInterceptionMode)
@@ -499,6 +502,7 @@ object AiThemeController : AiThemeService {
                 "color_spec", "custom_home_title", "app_icon", "app_icon_dynamic_color",
                 "card_background_alpha", "background_blur", "background_scrim",
                 "extract_color_from_background", "use_system_wallpaper", "blur",
+                "progressive_blur",
                 "floating_bottom_bar", "floating_bottom_bar_blur", "navigation_badge",
                 "page_scale", "predictive_back", "swipe_dismiss", "pager_mode",
                 "module_description_max_lines", "show_full_status", "hide_home_warnings",

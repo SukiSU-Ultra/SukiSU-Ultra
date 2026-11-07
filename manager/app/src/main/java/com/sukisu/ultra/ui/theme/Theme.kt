@@ -148,6 +148,9 @@ val LocalAppSettings = staticCompositionLocalOf<AppSettings?> { null }
 
 val LocalEnableBlur = staticCompositionLocalOf { false }
 
+/** Progressive (edge gradient) blur behind the top and bottom bars. */
+val LocalEnableProgressiveBlur = staticCompositionLocalOf { false }
+
 val LocalEnableFloatingBottomBar = staticCompositionLocalOf { false }
 
 val LocalEnableFloatingBottomBarBlur = staticCompositionLocalOf { false }

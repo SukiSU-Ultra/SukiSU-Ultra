@@ -31,6 +31,7 @@ data class SettingsUiState(
     val enableSwipeDismiss: Boolean = true,
     val pagerInterceptionMode: Int = 1,
     val enableBlur: Boolean = true,
+    val enableProgressiveBlur: Boolean = false,
     val enableFloatingBottomBar: Boolean = false,
     val enableFloatingBottomBarBlur: Boolean = false,
     val enableNavigationBadge: Boolean = true,

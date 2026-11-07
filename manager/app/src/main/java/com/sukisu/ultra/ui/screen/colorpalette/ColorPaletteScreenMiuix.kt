@@ -615,6 +615,25 @@ fun ColorPaletteScreenMiuix(
                         ) {
                             Column {
                                 HorizontalDivider()
+                                // A bar treatment, not a wallpaper property: keep it available with
+                                // and without a custom background image.
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    SwitchPreference(
+                                        title = stringResource(id = R.string.settings_progressive_blur),
+                                        summary = stringResource(id = R.string.settings_progressive_blur_summary),
+                                        startAction = {
+                                            Icon(
+                                                imageVector = Icons.Rounded.BlurOn,
+                                                modifier = Modifier.padding(end = 6.dp),
+                                                contentDescription = stringResource(id = R.string.settings_progressive_blur),
+                                                tint = colorScheme.onBackground
+                                            )
+                                        },
+                                        checked = state.enableProgressiveBlur,
+                                        onCheckedChange = actions.onSetEnableProgressiveBlur,
+                                    )
+                                    HorizontalDivider()
+                                }
                                 SwitchPreference(
                                     title = stringResource(id = R.string.settings_use_system_wallpaper),
                                     summary = stringResource(

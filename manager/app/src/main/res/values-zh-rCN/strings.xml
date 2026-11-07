@@ -308,6 +308,8 @@
     <string name="module_action_success">模块 action 执行成功。</string>
     <string name="settings_enable_blur">模糊</string>
     <string name="settings_enable_blur_summary">启用顶栏和底栏的模糊效果</string>
+    <string name="settings_progressive_blur">渐进式背景模糊</string>
+    <string name="settings_progressive_blur_summary">让顶栏和底栏背后的内容从屏幕边缘开始逐渐模糊并过渡到清晰。</string>
     <string name="settings_floating_bottom_bar">悬浮底栏</string>
     <string name="settings_floating_bottom_bar_summary">使用 Apple 风格的悬浮底栏</string>
     <string name="settings_enable_glass">液态玻璃</string>

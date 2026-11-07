@@ -404,6 +404,10 @@ class SettingsRepositoryImpl : SettingsRepository {
         get() = prefs.getBoolean("enable_blur", false)
         set(value) = prefs.edit { putBoolean("enable_blur", value) }
 
+    override var enableProgressiveBlur: Boolean
+        get() = prefs.getBoolean("enable_progressive_blur", false)
+        set(value) = prefs.edit { putBoolean("enable_progressive_blur", value) }
+
     override var enableFloatingBottomBar: Boolean
         get() = prefs.getBoolean("enable_floating_bottom_bar", false)
         set(value) = prefs.edit { putBoolean("enable_floating_bottom_bar", value) }
