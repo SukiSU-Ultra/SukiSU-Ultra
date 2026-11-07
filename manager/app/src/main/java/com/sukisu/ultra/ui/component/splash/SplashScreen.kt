@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.component.splash
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -29,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,9 +39,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,18 +51,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.sukisu.ultra.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * Modern Miuix In-App Splash Screen.
- *
- * Fully driven by Compose and Miuix theme tokens:
- * - Automatically matches light/dark background with 0ms flicker.
- * - Gentle Miuix physical spring bounce on entrance.
- * - Smooth alpha exit transition that cleanly unveils the underlying Home screen.
- */
+private const val ICON_SIZE_PX = 256
+private const val EXIT_DURATION_MS = 360
+
+
 @Composable
-fun MiuixSplashScreen(
+fun SplashScreen(
     isReady: Boolean,
     minDurationMs: Long = 850L,
     onDismissed: () -> Unit = {},
@@ -67,14 +67,13 @@ fun MiuixSplashScreen(
     var contentVisible by remember { mutableStateOf(false) }
     var exitTriggered by remember { mutableStateOf(false) }
     var splashDismissed by remember { mutableStateOf(false) }
+    val currentOnDismissed by rememberUpdatedState(onDismissed)
+
+    val isDark = MiuixTheme.colorScheme.background.luminance() < 0.5f
 
     val context = LocalContext.current
-    val appIconBitmap = remember(context) {
-        runCatching {
-            ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
-                ?.toBitmap(width = 256, height = 256)
-                ?.asImageBitmap()
-        }.getOrNull()
+    val appIconBitmap = remember(context, isDark) {
+        loadAppIcon(context.withNightMode(isDark))
     }
 
     val logoScale = remember { Animatable(0.72f) }
@@ -82,24 +81,25 @@ fun MiuixSplashScreen(
 
     LaunchedEffect(Unit) {
         contentVisible = true
-        // Entrance spring animation
-        logoAlpha.animateTo(1f, tween(320, easing = FastOutSlowInEasing))
-        logoScale.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessLow
+        launch { logoAlpha.animateTo(1f, tween(320, easing = FastOutSlowInEasing)) }
+        launch {
+            logoScale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow,
+                ),
             )
-        )
+        }
     }
 
     LaunchedEffect(isReady) {
         if (isReady) {
             delay(minDurationMs)
             exitTriggered = true
-            delay(380L) // Wait for exit animation to complete
+            delay(EXIT_DURATION_MS.toLong() + 20L)
             splashDismissed = true
-            onDismissed()
+            currentOnDismissed()
         }
     }
 
@@ -108,23 +108,27 @@ fun MiuixSplashScreen(
     AnimatedVisibility(
         visible = !exitTriggered,
         enter = fadeIn(tween(180)),
-        exit = fadeOut(tween(360, easing = FastOutSlowInEasing)) +
-            scaleOut(targetScale = 1.05f, animationSpec = tween(360, easing = FastOutSlowInEasing))
+        exit = fadeOut(tween(EXIT_DURATION_MS, easing = FastOutSlowInEasing)) +
+            scaleOut(
+                targetScale = 1.05f,
+                animationSpec = tween(EXIT_DURATION_MS, easing = FastOutSlowInEasing),
+            ),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MiuixTheme.colorScheme.background)
+                .pointerInput(Unit) {}
                 .statusBarsPadding()
                 .navigationBarsPadding(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = 36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // Top placeholder to balance the column layout
                 Spacer(modifier = Modifier.height(16.dp))
@@ -132,7 +136,7 @@ fun MiuixSplashScreen(
                 // Center Branding
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Box(
                         modifier = Modifier
@@ -145,24 +149,16 @@ fun MiuixSplashScreen(
                             .shadow(12.dp, shape = RoundedCornerShape(24.dp), clip = false)
                             .clip(RoundedCornerShape(24.dp))
                             .background(MiuixTheme.colorScheme.surface),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
-                        if (appIconBitmap != null) {
+                        appIconBitmap?.let { bitmap ->
                             Image(
-                                bitmap = appIconBitmap,
+                                bitmap = bitmap,
                                 contentDescription = stringResource(id = R.string.app_name),
                                 modifier = Modifier
                                     .size(76.dp)
                                     .clip(RoundedCornerShape(20.dp)),
                                 contentScale = ContentScale.Crop,
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                contentDescription = stringResource(id = R.string.app_name),
-                                modifier = Modifier
-                                    .size(76.dp)
-                                    .clip(RoundedCornerShape(20.dp)),
                             )
                         }
                     }
@@ -171,7 +167,7 @@ fun MiuixSplashScreen(
 
                     AnimatedVisibility(
                         visible = contentVisible,
-                        enter = fadeIn(tween(400, delayMillis = 180, easing = FastOutSlowInEasing))
+                        enter = fadeIn(tween(400, delayMillis = 180, easing = FastOutSlowInEasing)),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
@@ -179,14 +175,14 @@ fun MiuixSplashScreen(
                                 color = MiuixTheme.colorScheme.onBackground,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                letterSpacing = (-0.3).sp
+                                letterSpacing = (-0.3).sp,
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Kernel-based Root Solution",
                                 color = MiuixTheme.colorScheme.onBackground.copy(alpha = 0.55f),
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
                             )
                         }
                     }
@@ -195,16 +191,32 @@ fun MiuixSplashScreen(
                 // Bottom Footer
                 AnimatedVisibility(
                     visible = contentVisible,
-                    enter = fadeIn(tween(450, delayMillis = 260, easing = FastOutSlowInEasing))
+                    enter = fadeIn(tween(450, delayMillis = 260, easing = FastOutSlowInEasing)),
                 ) {
                     Text(
-                        text = "Miuix Design · Powered by KernelSU",
+                        text = "What you like, you permit; what you permit, you govern.",
                         color = MiuixTheme.colorScheme.onBackground.copy(alpha = 0.35f),
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }
         }
     }
 }
+
+private fun Context.withNightMode(isDark: Boolean): Context {
+    val config = Configuration(resources.configuration)
+    val nightFlag = if (isDark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+    config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or nightFlag
+    return createConfigurationContext(config)
+}
+
+private fun loadAppIcon(themedContext: Context): ImageBitmap? =
+    listOf(R.mipmap.ic_launcher, R.drawable.ic_launcher_foreground).firstNotNullOfOrNull { resId ->
+        runCatching {
+            ContextCompat.getDrawable(themedContext, resId)
+                ?.toBitmap(width = ICON_SIZE_PX, height = ICON_SIZE_PX)
+                ?.asImageBitmap()
+        }.getOrNull()
+    }

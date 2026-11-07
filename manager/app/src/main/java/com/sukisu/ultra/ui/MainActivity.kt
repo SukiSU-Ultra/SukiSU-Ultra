@@ -20,7 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
-import com.sukisu.ultra.ui.component.splash.MiuixSplashScreen
+import com.sukisu.ultra.ui.component.splash.SplashScreen
 import com.sukisu.ultra.ui.theme.LocalAppBackgroundBackdrop
 import com.sukisu.ultra.ui.theme.LocalAppSettings
 import com.sukisu.ultra.ui.theme.MaterialExpressivePalette
@@ -528,7 +528,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         if (!splashDismissed) {
-                            MiuixSplashScreen(
+                            SplashScreen(
                                 isReady = appContentReady,
                                 onDismissed = { splashDismissed = true }
                             )
