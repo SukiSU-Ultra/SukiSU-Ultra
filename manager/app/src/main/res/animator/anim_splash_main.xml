@@ -4,29 +4,26 @@
 
     <objectAnimator
         android:duration="480"
+        android:interpolator="@interpolator/interpolator_splash_main"
         android:propertyName="scaleX"
         android:valueFrom="0.78"
         android:valueTo="1.0"
-        android:valueType="floatType">
-        <pathInterpolator android:pathData="M 0.0,0.0 C 0.05,0.7 0.1,1.0 1.0,1.0" />
-    </objectAnimator>
+        android:valueType="floatType" />
 
     <objectAnimator
         android:duration="480"
+        android:interpolator="@interpolator/interpolator_splash_main"
         android:propertyName="scaleY"
         android:valueFrom="0.78"
         android:valueTo="1.0"
-        android:valueType="floatType">
-        <pathInterpolator android:pathData="M 0.0,0.0 C 0.05,0.7 0.1,1.0 1.0,1.0" />
-    </objectAnimator>
+        android:valueType="floatType" />
 
     <objectAnimator
         android:duration="480"
+        android:interpolator="@interpolator/interpolator_splash_main"
         android:propertyName="translateY"
         android:valueFrom="24.0"
         android:valueTo="0.0"
-        android:valueType="floatType">
-        <pathInterpolator android:pathData="M 0.0,0.0 C 0.05,0.7 0.1,1.0 1.0,1.0" />
-    </objectAnimator>
+        android:valueType="floatType" />
 
 </set>
