@@ -3,4 +3,16 @@
     <!-- Local inference servers commonly run over plain HTTP on a LAN address.
          Registry, update and download traffic stays on HTTPS regardless. -->
     <base-config cleartextTrafficPermitted="true" />
+
+    <!-- The tertiary mainland theme mirror (themes.shirkneko.top:41112) runs on a
+         home node behind a private root CA, so its certificate is not in the
+         system trust store. Scoping the extra anchor to that host keeps every
+         other connection validated by the normal platform roots. -->
+    <domain-config>
+        <domain includeSubdomains="false">themes.shirkneko.top</domain>
+        <trust-anchors>
+            <certificates src="@raw/sukisu_theme_ca" />
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>

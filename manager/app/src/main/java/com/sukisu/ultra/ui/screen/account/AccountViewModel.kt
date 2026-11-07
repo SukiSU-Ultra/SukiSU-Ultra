@@ -68,9 +68,9 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
     private val initialSources = configuredSources()
     private val _uiState = MutableStateFlow(
         AccountUiState(
-            sessions = repository.sessions.value,
+            sessions = aliasedSessions(),
             sources = initialSources,
-            selectedBaseUrl = initialSources.preferred(repository.sessions.value),
+            selectedBaseUrl = initialSources.preferred(aliasedSessions()),
             defaultUploadBaseUrl = resolveDefaultUploadBaseUrl(initialSources),
         ),
     )
@@ -78,13 +78,14 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         viewModelScope.launch {
-            repository.sessions.collect { sessions ->
+            repository.sessions.collect {
+                val aliased = aliasedSessions()
                 _uiState.update { state ->
                     val selected = state.selectedBaseUrl
                         .takeIf { baseUrl -> state.sources.any { it.baseUrl == baseUrl } }
-                        ?: state.sources.preferred(sessions)
+                        ?: state.sources.preferred(aliased)
                     state.copy(
-                        sessions = sessions,
+                        sessions = aliased,
                         selectedBaseUrl = selected,
                         defaultUploadBaseUrl = resolveDefaultUploadBaseUrl(state.sources),
                     )
@@ -253,19 +254,40 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     fun refresh() {
         repository.reload()
+        val sessions = aliasedSessions()
         val sources = configuredSources()
         _uiState.update { state ->
             val selected = state.selectedBaseUrl
                 .takeIf { baseUrl -> sources.any { it.baseUrl == baseUrl } }
-                ?: sources.preferred(repository.sessions.value)
+                ?: sources.preferred(sessions)
             state.copy(
                 sources = sources,
-                sessions = repository.sessions.value,
+                sessions = sessions,
                 selectedBaseUrl = selected,
                 defaultUploadBaseUrl = resolveDefaultUploadBaseUrl(sources),
             )
         }
         refreshSelectedProfile()
+    }
+
+    /**
+     * Built-in mirrors share one account; expose a session for every mirror so
+     * auto-selecting a different one does not make the UI look signed out.
+     */
+    private fun aliasedSessions(): Map<String, AccountSession> {
+        val sessions = repository.sessions.value
+        if (sessions.isEmpty()) return sessions
+        val builtIns = ThemeStoreDefaults.BASE_URLS.mapNotNull {
+            ThemeStoreRepository.normalizeBaseUrl(it)
+        }
+        val fallback = builtIns.firstNotNullOfOrNull { sessions[it] } ?: return sessions
+        val result = sessions.toMutableMap()
+        builtIns.forEach { base ->
+            if (base !in result) {
+                result[base] = fallback.copy(baseUrl = base)
+            }
+        }
+        return result
     }
 
     private fun refreshSelectedProfile() {
@@ -370,7 +392,7 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     private fun configuredSources(): List<AccountSource> {
         val defaultBase = ThemeStoreRepository.normalizeBaseUrl(
-            settings.themeStoreBaseUrl.ifBlank { ThemeStoreDefaults.BASE_URL },
+            ThemeStoreDefaults.resolveConfiguredBaseUrl(settings.themeStoreBaseUrl),
         ) ?: return emptyList()
         val sources = mutableListOf(
             AccountSource(

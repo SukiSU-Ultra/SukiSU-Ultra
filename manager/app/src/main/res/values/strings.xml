@@ -964,6 +964,7 @@
     <string name="theme_store_config_required_summary">Set the catalog URL and access token in the manager first.</string>
     <string name="theme_store_unauthorized">Access token is missing or invalid</string>
     <string name="theme_store_default_source">Default source</string>
+    <string name="theme_store_default_auto">Automatic (by region)</string>
     <string name="theme_store_partial_failure">Some sources failed to load</string>
     <string name="theme_store_add_source">Add source</string>
     <string name="theme_store_new_source">New source</string>

@@ -960,6 +960,7 @@
     <string name="theme_store_config_required_summary">请先填写目录地址和访问令牌。</string>
     <string name="theme_store_unauthorized">访问令牌缺失或无效</string>
     <string name="theme_store_default_source">默认源</string>
+    <string name="theme_store_default_auto">自动（按地区）</string>
     <string name="theme_store_partial_failure">部分源加载失败</string>
     <string name="theme_store_add_source">添加源</string>
     <string name="theme_store_new_source">新源</string>

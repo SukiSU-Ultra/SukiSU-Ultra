@@ -335,7 +335,7 @@ internal fun ThemeStoreSubmissionsScreen(
                                 WithdrawnThemeRow(
                                     theme = theme,
                                     restoring = restoringThemeKey == theme.key,
-                                    restoreEnabled = restoringThemeKey == null,
+                                    restoreEnabled = restoringThemeKey == null && theme.theme.editable,
                                     onRestore = { confirmRestore = theme },
                                 )
                                 if (index != withdrawnThemes.lastIndex) {
@@ -561,6 +561,7 @@ private fun EditableThemeRow(
         }
         TextButton(
             onClick = onEdit,
+            enabled = item.editable,
             shapes = ButtonDefaults.shapes(),
         ) {
             Text(stringResource(R.string.theme_store_edit))
