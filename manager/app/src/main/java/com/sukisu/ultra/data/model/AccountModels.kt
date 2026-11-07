@@ -60,6 +60,8 @@ data class AccountThemeSummary(
     val updatedAt: String? = null,
     val withdrawnAt: String? = null,
     val expiresAt: String? = null,
+    /** False when the author license was revoked: the theme can only be downloaded. */
+    val editable: Boolean = true,
 )
 
 @Serializable

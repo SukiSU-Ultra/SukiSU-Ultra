@@ -39,6 +39,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
@@ -75,7 +76,7 @@ internal fun ThemeStoreHistoryScreen(
     onClear: (ThemeStoreHistoryKind) -> Unit,
     onDelete: (ThemeStoreHistoryKind, Set<String>) -> Unit,
 ) {
-    var tab by rememberSaveable { mutableStateOf(0) }
+    var tab by rememberSaveable { mutableIntStateOf(0) }
     var selecting by rememberSaveable { mutableStateOf(false) }
     var selected by rememberSaveable(
         stateSaver = listSaver(
