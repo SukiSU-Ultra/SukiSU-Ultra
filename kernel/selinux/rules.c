@@ -191,6 +191,10 @@ void apply_kernelsu_rules(void)
     }
     db = &pol->policydb;
 
+    policydb->latest_granting = old_pol->latest_granting + 1;
+    if (!ksu_set_original_types(db, &old_pol->policydb, pol->latest_granting))
+        pr_warn("failed to save original type metadata, use backup lookups\n");
+
     apply_kernelsu_rules_fn((void *)db);
 
     rcu_assign_pointer(selinux_state.policy, pol);
@@ -608,6 +612,10 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
         }
         cmd_index++;
     }
+
+    pol->latest_granting = old_pol->latest_granting + 1;
+    if (!ksu_advance_original_types(db, &old_pol->policydb, old_pol->latest_granting, pol->latest_granting))
+        pr_warn("failed to carry original type metadata, use backup lookups\n");
 
     rcu_assign_pointer(selinux_state.policy, pol);
     synchronize_rcu();
