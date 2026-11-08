@@ -2,9 +2,9 @@ package com.sukisu.ultra.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -60,6 +60,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -164,7 +166,7 @@ import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
 import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import top.yukonga.miuix.kmp.utils.pagerGestureOverride
 import androidx.core.graphics.drawable.toDrawable
-
+import com.sukisu.ultra.R
 
 
 class MainActivity : ComponentActivity() {
@@ -230,13 +232,13 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(darkMode) {
                 window.setBackgroundDrawable(
-                    ColorDrawable(
-                        getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light)
-                    )
+                    getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light).toDrawable()
                 )
             }
 
             val navigator = rememberNavigator(Route.Main)
+            val context = LocalContext.current
+            val uriHandler = LocalUriHandler.current
             val systemDensity = LocalDensity.current
             val density = remember(systemDensity, uiState.pageScale) {
                 Density(systemDensity.density * uiState.pageScale, systemDensity.fontScale)
@@ -254,6 +256,15 @@ class MainActivity : ComponentActivity() {
                 uiState.keyColorOverride?.let { appSettings.copy(keyColor = it) } ?: appSettings
             }
             CompositionLocalProvider(
+                LocalUriHandler provides object : UriHandler {
+                    override fun openUri(uri: String) {
+                        try {
+                            uriHandler.openUri(uri)
+                        } catch (_: IllegalArgumentException) {
+                            Toast.makeText(context, R.string.external_link_open_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
                 LocalNavigator provides navigator,
                 LocalDensity provides density,
                 LocalColorMode provides appSettings.colorMode.value,
