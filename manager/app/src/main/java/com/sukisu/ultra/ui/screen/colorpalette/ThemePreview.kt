@@ -68,7 +68,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
@@ -227,6 +226,8 @@ private val MaterialPreviewDestinations = listOf(
 internal fun ThemePreviewMiuix(
     spec: ThemePreviewSpec,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    expanded: Boolean = false,
 ) {
     val ambientColors = MiuixTheme.colorScheme
     val paletteStyle = remember(spec.paletteStyle) {
@@ -255,6 +256,8 @@ internal fun ThemePreviewMiuix(
 
     ThemePreviewLayout(
         modifier = modifier,
+        compact = compact,
+        expanded = expanded,
         caption = {
             PreviewCaption(
                 text = stringResource(R.string.theme_preview_caption_miuix),
@@ -277,6 +280,7 @@ internal fun ThemePreviewMiuix(
                         spec = spec,
                         screenColor = colors.surface,
                         contentColor = colors.onBackground,
+                        compact = compact,
                     ) { screenModifier ->
                         MiuixPreviewScreen(spec, screenModifier)
                     }
@@ -293,6 +297,8 @@ internal fun ThemePreviewMiuix(
 internal fun ThemePreviewMaterial(
     spec: ThemePreviewSpec,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    expanded: Boolean = false,
 ) {
     val ambientColors = MaterialTheme.colorScheme
     val colorScheme = rememberKernelSUColorScheme(
@@ -333,6 +339,8 @@ internal fun ThemePreviewMaterial(
         ) {
             ThemePreviewLayout(
                 modifier = modifier,
+                compact = compact,
+                expanded = expanded,
                 caption = {
                     PreviewCaption(
                         text = stringResource(R.string.theme_preview_caption_material),
@@ -346,6 +354,7 @@ internal fun ThemePreviewMaterial(
                     spec = spec,
                     screenColor = colors.surfaceContainer,
                     contentColor = colors.onSurface,
+                    compact = compact,
                 ) { screenModifier ->
                     MaterialPreviewScreen(spec, screenModifier)
                 }
@@ -358,6 +367,8 @@ internal fun ThemePreviewMaterial(
 @Composable
 private fun ThemePreviewLayout(
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    expanded: Boolean = false,
     caption: @Composable () -> Unit,
     device: @Composable () -> Unit,
 ) {
@@ -372,28 +383,41 @@ private fun ThemePreviewLayout(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter,
     ) {
-        val frameWidth = minOf(maxWidth * 0.52f, 248.dp)
+        val frameWidth = when {
+            compact -> minOf(maxWidth * 0.92f, 80.dp)
+            expanded -> minOf(maxWidth * 0.82f, 300.dp)
+            else -> minOf(maxWidth * 0.52f, 248.dp)
+        }
         val frameHeight = frameWidth / screenRatio
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
                     .width(frameWidth)
                     .height(frameHeight)
-                    .shadow(22.dp, PreviewBezelShape, clip = false)
+                    .shadow(if (compact) 12.dp else 22.dp, PreviewBezelShape, clip = false)
                     .background(
                         Brush.linearGradient(listOf(Color(0xFF242428), PreviewBezelColor)),
                         PreviewBezelShape,
                     )
                     .border(1.dp, Color.White.copy(alpha = 0.12f), PreviewBezelShape)
-                    .padding(5.dp)
+                    .padding(if (compact) 3.dp else 5.dp)
                     .clip(PreviewScreenShape)
-                    .pointerInput(Unit) { detectTapGestures { } }
+                    // Compact cards and the full-screen viewer handle taps themselves.
+                    .then(
+                        if (compact || expanded) {
+                            Modifier
+                        } else {
+                            Modifier.pointerInput(Unit) { detectTapGestures { } }
+                        }
+                    )
                     .clearAndSetSemantics { contentDescription = description },
             ) {
                 device()
             }
-            Spacer(Modifier.height(10.dp))
-            caption()
+            if (!compact) {
+                Spacer(Modifier.height(10.dp))
+                caption()
+            }
         }
     }
 }
@@ -408,12 +432,15 @@ private fun PreviewDevice(
     spec: ThemePreviewSpec,
     screenColor: Color,
     contentColor: Color,
+    compact: Boolean = false,
     content: @Composable (Modifier) -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val baseDensity = LocalDensity.current
-        val scale = ((maxWidth.value / PreviewDesignWidthDp).coerceIn(0.4f, 1f) * spec.pageScale)
-            .coerceIn(0.3f, 1.15f)
+        // The compact card is a small thumbnail; the regular floor would crop its content.
+        val minScale = if (compact) 0.18f else 0.4f
+        val scale = ((maxWidth.value / PreviewDesignWidthDp).coerceIn(minScale, 1f) * spec.pageScale)
+            .coerceIn(if (compact) minScale - 0.03f else 0.3f, 1.15f)
         CompositionLocalProvider(
             // Font scale is pinned so an extreme system setting cannot distort this mock.
             LocalDensity provides Density(baseDensity.density * scale, fontScale = 1f),

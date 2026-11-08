@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -65,6 +66,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -91,6 +93,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.ThemeComment
 import com.sukisu.ultra.data.model.ThemeStoreEntry
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
+import com.sukisu.ultra.ui.component.FullscreenPagerDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.util.ThemePackageStorage
@@ -135,6 +138,7 @@ internal fun ThemeStoreDetailScreen(
         }
     }
     var menuExpanded by remember { mutableStateOf(false) }
+    var galleryViewerIndex by rememberSaveable { mutableIntStateOf(-1) }
     val compatible = entry.isCompatible()
     val busy = state.downloadingKey != null
     val downloading = state.downloadingKey == item.key
@@ -253,6 +257,7 @@ internal fun ThemeStoreDetailScreen(
                 ThemeStoreGallery(
                     images = galleryImages,
                     token = item.source.token,
+                    onImageClick = { galleryViewerIndex = it },
                 )
             }
             item(key = "header") {
@@ -560,6 +565,27 @@ internal fun ThemeStoreDetailScreen(
             }
         }
     }
+
+    val viewerIndex = galleryViewerIndex
+    if (viewerIndex >= 0 && galleryImages.isNotEmpty()) {
+        FullscreenPagerDialog(
+            show = true,
+            pageCount = galleryImages.size,
+            initialPage = viewerIndex.coerceIn(0, galleryImages.lastIndex),
+            onDismiss = { galleryViewerIndex = -1 },
+        ) { modifier, page ->
+            AsyncImage(
+                model = themeImageRequest(
+                    context = LocalContext.current,
+                    url = galleryImages[page],
+                    token = item.source.token,
+                ),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = modifier.padding(horizontal = 8.dp, vertical = 44.dp),
+            )
+        }
+    }
 }
 
 /**
@@ -623,6 +649,7 @@ private fun ThemeStoreDownloadProgressCard(
 private fun ThemeStoreGallery(
     images: List<String>,
     token: String,
+    onImageClick: (Int) -> Unit,
 ) {
     if (images.isEmpty()) {
         Box(
@@ -653,12 +680,13 @@ private fun ThemeStoreGallery(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            items(images) { url ->
+            itemsIndexed(images) { index, url ->
                 ThemeGalleryImage(
                     url = url,
                     token = token,
                     portraitWidth = portraitWidth,
                     landscapeWidth = landscapeWidth,
+                    onClick = { onImageClick(index) },
                 )
             }
         }
@@ -671,6 +699,7 @@ private fun ThemeGalleryImage(
     token: String,
     portraitWidth: Dp,
     landscapeWidth: Dp,
+    onClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val painter = rememberAsyncImagePainter(themeImageRequest(context, url, token))
@@ -695,7 +724,11 @@ private fun ThemeGalleryImage(
             .width(cardWidth)
             .height(cardWidth * aspectRatio)
             .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(
+                onClickLabel = stringResource(R.string.theme_store_view_image),
+                onClick = onClick,
+            ),
     ) {
         if (showBackdrop) {
             Image(

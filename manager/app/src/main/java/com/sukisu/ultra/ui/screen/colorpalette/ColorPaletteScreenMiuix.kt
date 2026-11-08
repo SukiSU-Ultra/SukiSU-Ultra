@@ -3,6 +3,7 @@ package com.sukisu.ultra.ui.screen.colorpalette
 import com.sukisu.ultra.ui.component.miuix.MiuixTextButtonAffectedByBackground
 import com.sukisu.ultra.ai.api.R as AiR
 import com.sukisu.ultra.ai.api.AiFeatureBridge
+import android.annotation.SuppressLint
 import android.net.Uri
 import java.io.File
 import android.os.Build
@@ -13,11 +14,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,17 +35,18 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -91,11 +94,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -155,10 +163,11 @@ import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import kotlin.time.Duration.Companion.milliseconds
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun ColorPaletteScreenMiuix(
     state: ColorPaletteUiState,
@@ -170,22 +179,6 @@ fun ColorPaletteScreenMiuix(
     fun sectionRequester(anchor: String): BringIntoViewRequester =
         sectionRequesters.getOrPut(anchor) { BringIntoViewRequester() }
 
-    LaunchedEffect(section) {
-        val anchor = section?.trim()?.lowercase()?.replace('-', '_')?.takeIf { it.isNotEmpty() }
-            ?: return@LaunchedEffect
-        kotlinx.coroutines.delay(120.milliseconds)
-        val target = sectionRequesters[anchor]
-            ?: sectionRequesters[when (anchor) {
-                "color_mode", "theme_mode", "palette" -> "colors"
-                "sticker" -> "home_card"
-                "chrome", "navigation" -> "bottom_bar"
-                "gestures", "predictive_back", "scale" -> "behavior"
-                else -> anchor
-            }]
-            ?: sectionRequesters["appearance"]
-            ?: return@LaunchedEffect
-        target.bringIntoView()
-    }
     val enableBlurState = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlurState)
     val blurActive = backdrop != null
@@ -298,7 +291,39 @@ fun ColorPaletteScreenMiuix(
             appearance = state.appearance,
         )
     }
+    // The category box replaces the old accordion list: only one category is composed at a time.
+    var selectedCategoryKey by rememberSaveable {
+        mutableStateOf(
+            (ThemeSettingsCategory.fromSection(section) ?: ThemeSettingsCategory.COLORS).name
+        )
+    }
+    val selectedCategory = ThemeSettingsCategory.entries
+        .firstOrNull { it.name == selectedCategoryKey }
+        ?: ThemeSettingsCategory.COLORS
+    LaunchedEffect(section) {
+        ThemeSettingsCategory.fromSection(section)?.let { selectedCategoryKey = it.name }
+    }
+    val contentListState = rememberLazyListState()
+    val pinnedHeader = LocalConfiguration.current.screenHeightDp >= 600
+    var categorySelectionSeen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(selectedCategory) {
+        if (categorySelectionSeen) {
+            // Short screens keep the preview and the category box inside the list.
+            contentListState.scrollToItem(if (pinnedHeader) 0 else 1)
+        } else {
+            categorySelectionSeen = true
+        }
+    }
+    val compactModeLabel = stringResource(
+        when {
+            state.currentColorMode.isSystem -> R.string.settings_theme_mode_system
+            state.currentColorMode.isAmoled -> R.string.theme_mode_amoled
+            state.currentColorMode.isDark -> R.string.settings_theme_mode_dark
+            else -> R.string.settings_theme_mode_light
+        }
+    ) + " · " + state.currentPaletteStyle.name
     var showExportDialog by rememberSaveable { mutableStateOf(false) }
+    var showFullPreview by rememberSaveable { mutableStateOf(false) }
     var pendingExportOptions by rememberSaveable(stateSaver = ThemePackageOptionsSaver) {
         mutableStateOf(ThemePackageOptions())
     }
@@ -397,40 +422,72 @@ fun ColorPaletteScreenMiuix(
         }
 
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
-            LazyColumn(
+            Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .scrollEndHaptic()
-                    .overScrollVertical()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    .padding(horizontal = 12.dp),
-                contentPadding = innerPadding,
-                overscrollEffect = null,
+                    .fillMaxSize()
+                    .padding(innerPadding),
             ) {
-                item {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    ThemePreviewMiuix(
+                if (pinnedHeader) {
+                    MiuixCompactPreviewCard(
                         spec = previewSpec,
-                        modifier = Modifier.bringIntoViewRequester(sectionRequester("preview")),
+                        modeLabel = compactModeLabel,
+                        onClick = { showFullPreview = true },
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 8.dp),
                     )
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    val pickImageLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.PickVisualMedia()
-                    ) { uri: Uri? ->
-                        uri?.let { actions.onPickCustomBackground(context, it) }
+                    MiuixCategoryGrid(
+                        selected = selectedCategory,
+                        onSelect = { selectedCategoryKey = it.name },
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 8.dp),
+                    )
+                }
+                LazyColumn(
+                    state = contentListState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .scrollEndHaptic()
+                        .overScrollVertical()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .padding(horizontal = 12.dp),
+                    contentPadding = PaddingValues(top = 12.dp),
+                    overscrollEffect = null,
+                ) {
+                    if (!pinnedHeader) {
+                        item {
+                            MiuixCompactPreviewCard(
+                                spec = previewSpec,
+                                modeLabel = compactModeLabel,
+                                onClick = { showFullPreview = true },
+                            )
+                            MiuixCategoryGrid(
+                                selected = selectedCategory,
+                                onSelect = { selectedCategoryKey = it.name },
+                                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                            )
+                        }
                     }
-                    val hasCustomBg = state.customBackgroundUri.isNotEmpty()
-                    val usingSystemWallpaper = state.useSystemWallpaper
+                    item {
+                        val pickImageLauncher = rememberLauncherForActivityResult(
+                            contract = ActivityResultContracts.PickVisualMedia()
+                        ) { uri: Uri? ->
+                            uri?.let { actions.onPickCustomBackground(context, it) }
+                        }
+                        val hasCustomBg = state.customBackgroundUri.isNotEmpty()
+                        val usingSystemWallpaper = state.useSystemWallpaper
 
+                    if (selectedCategory == ThemeSettingsCategory.COLORS) {
                     AppCard(
                         modifier = Modifier
                             .bringIntoViewRequester(sectionRequester("colors"))
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_colors),
-                            summary = stringResource(R.string.settings_section_colors_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.Colorize,
                             expanded = colorsSectionExpanded,
                             onClick = {
@@ -438,7 +495,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = colorsSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -592,17 +649,18 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
+                    if (selectedCategory == ThemeSettingsCategory.BACKGROUND) {
                     AppCard(
                         modifier = Modifier
                             .bringIntoViewRequester(sectionRequester("background"))
-                            .padding(top = 12.dp)
                             .fillMaxWidth(),
                         colors = backgroundAwareCardColors(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_background),
-                            summary = stringResource(R.string.settings_section_background_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.Wallpaper,
                             expanded = backgroundSectionExpanded,
                             onClick = {
@@ -610,7 +668,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = backgroundSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -848,16 +906,17 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
+                    if (selectedCategory == ThemeSettingsCategory.ICON_TEXT) {
                     AppCard(
                         modifier = Modifier
                             .bringIntoViewRequester(sectionRequester("appearance"))
-                            .padding(top = 12.dp)
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_icon_text),
-                            summary = stringResource(R.string.settings_section_icon_text_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.Home,
                             expanded = appearanceSectionExpanded,
                             onClick = {
@@ -865,7 +924,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = appearanceSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -957,15 +1016,16 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
+                    if (selectedCategory == ThemeSettingsCategory.HOME_CARD) {
                     AppCard(
                         modifier = Modifier
                             .bringIntoViewRequester(sectionRequester("home_card"))
-                            .padding(top = 12.dp)
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_home_card),
-                            summary = stringResource(R.string.settings_section_home_card_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.Home,
                             expanded = homeCardSectionExpanded,
                             onClick = {
@@ -973,7 +1033,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = homeCardSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -1217,7 +1277,7 @@ fun ColorPaletteScreenMiuix(
                                     onClick = { stickerEditorExpanded = !stickerEditorExpanded },
                                 )
                                 AnimatedVisibility(
-                                    visible = stickerEditorExpanded && canUseStickers,
+                                    visible = stickerEditorExpanded,
                                     enter = expandVertically() + fadeIn(),
                                     exit = shrinkVertically() + fadeOut(),
                                 ) {
@@ -1418,16 +1478,17 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
+                    if (selectedCategory == ThemeSettingsCategory.BOTTOM_BAR) {
                     AppCard(
                         modifier = Modifier
-                            .padding(top = 12.dp)
                             .bringIntoViewRequester(sectionRequester("bottom_bar"))
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_bottom_bar),
-                            summary = stringResource(R.string.settings_section_bottom_bar_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.CallToAction,
                             expanded = state.bottomBarSectionExpanded,
                             onClick = {
@@ -1437,7 +1498,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = state.bottomBarSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -1571,16 +1632,17 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
+                    if (selectedCategory == ThemeSettingsCategory.INTERACTION) {
                     AppCard(
                         modifier = Modifier
-                            .padding(top = 12.dp)
                             .bringIntoViewRequester(sectionRequester("behavior"))
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_interaction),
-                            summary = stringResource(R.string.settings_section_interaction_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.Swipe,
                             expanded = state.interactionSectionExpanded,
                             onClick = {
@@ -1590,7 +1652,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = state.interactionSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -1696,16 +1758,17 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
+                    if (selectedCategory == ThemeSettingsCategory.DETAILS) {
                     AppCard(
                         modifier = Modifier
-                            .padding(top = 12.dp)
                             .bringIntoViewRequester(sectionRequester("module_description"))
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_details),
-                            summary = stringResource(R.string.settings_section_details_summary),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
+                            summary = stringResource(selectedCategory.summaryRes),
                             icon = Icons.Rounded.Description,
                             expanded = state.detailsSectionExpanded,
                             onClick = {
@@ -1715,7 +1778,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = state.detailsSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -1759,15 +1822,16 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
+                    if (selectedCategory == ThemeSettingsCategory.THEME_PACKAGE) {
                     AppCard(
                         modifier = Modifier
                             .bringIntoViewRequester(sectionRequester("theme_package"))
-                            .padding(top = 12.dp)
                             .fillMaxWidth(),
                     ) {
-                        MiuixSectionHeader(
-                            title = stringResource(R.string.settings_section_theme_package),
+                        MiuixCategoryHeader(
+                            title = stringResource(selectedCategory.titleRes),
                             summary = when {
                                 state.adaptiveDraftComplete ->
                                     stringResource(R.string.theme_adaptive_draft_ready)
@@ -1788,7 +1852,7 @@ fun ColorPaletteScreenMiuix(
                                     stringResource(R.string.theme_adaptive_active)
 
                                 else ->
-                                    stringResource(R.string.settings_section_theme_package_summary)
+                                    stringResource(selectedCategory.summaryRes)
                             },
                             icon = Icons.Rounded.Palette,
                             expanded = themePackageSectionExpanded,
@@ -1797,7 +1861,7 @@ fun ColorPaletteScreenMiuix(
                             },
                         )
                         AnimatedVisibility(
-                            visible = themePackageSectionExpanded,
+                            visible = true,
                             enter = expandVertically() + fadeIn(),
                             exit = shrinkVertically() + fadeOut(),
                         ) {
@@ -1898,6 +1962,7 @@ fun ColorPaletteScreenMiuix(
                             }
                         }
                     }
+                    }
 
                 }
                 item {
@@ -1909,6 +1974,7 @@ fun ColorPaletteScreenMiuix(
                         )
                     )
                 }
+            }
             }
         }
 
@@ -2029,20 +2095,172 @@ fun ColorPaletteScreenMiuix(
             actions.onUploadTheme(context, options)
         },
     )
+
+    ThemeFullscreenPreviewDialog(
+        show = showFullPreview,
+        onDismiss = { showFullPreview = false },
+    ) { previewModifier, page ->
+        if (page == 0) {
+            ThemePreviewMiuix(
+                spec = previewSpec,
+                modifier = previewModifier,
+                expanded = true,
+            )
+        } else {
+            ThemePreviewMaterial(
+                spec = previewSpec,
+                modifier = previewModifier,
+                expanded = true,
+            )
+        }
+    }
 }
 
 @Composable
-private fun MiuixSectionHeader(
+private fun MiuixCompactPreviewCard(
+    spec: ThemePreviewSpec,
+    modeLabel: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AppCard(
+        modifier = modifier.fillMaxWidth(),
+        insideMargin = PaddingValues(0.dp),
+        onClick = onClick,
+        pressFeedbackType = PressFeedbackType.Sink,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ThemePreviewMiuix(
+                spec = spec,
+                modifier = Modifier.width(88.dp),
+                compact = true,
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.theme_preview_caption_miuix),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorScheme.onSurface,
+                )
+                Text(
+                    text = modeLabel,
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                )
+                ThemePaletteSwatches(
+                    colors = listOf(
+                        colorScheme.primary,
+                        colorScheme.secondaryContainer,
+                        colorScheme.tertiaryContainer,
+                        colorScheme.surfaceContainerHighest,
+                    ),
+                )
+                Text(
+                    text = stringResource(R.string.theme_preview_compact_summary),
+                    fontSize = 11.sp,
+                    color = colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MiuixCategoryGrid(
+    selected: ThemeSettingsCategory,
+    onSelect: (ThemeSettingsCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AppCard(
+        modifier = modifier.fillMaxWidth(),
+        insideMargin = PaddingValues(8.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            ThemeSettingsCategory.entries.chunked(4).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    row.forEach { category ->
+                        MiuixCategoryTile(
+                            category = category,
+                            selected = category == selected,
+                            onClick = { onSelect(category) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MiuixCategoryTile(
+    category: ThemeSettingsCategory,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val background by animateColorAsState(
+        targetValue = backgroundAwareColor(
+            if (selected) colorScheme.primary else colorScheme.surfaceContainerHighest
+        ),
+        label = "ThemeCategoryBackground",
+    )
+    val contentColor = if (selected) colorScheme.onPrimary else colorScheme.onSurface
+    val haptic = LocalHapticFeedback.current
+    Column(
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(background)
+            .selectable(
+                selected = selected,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    onClick()
+                },
+                role = Role.Tab,
+            )
+            .padding(horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = category.icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = stringResource(category.labelRes),
+            fontSize = 11.sp,
+            color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun MiuixCategoryHeader(
     title: String,
     summary: String,
     icon: ImageVector,
-    expanded: Boolean,
-    onClick: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") expanded: Boolean,
+    @Suppress("UNUSED_PARAMETER") onClick: () -> Unit,
 ) {
-    val rotation by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        label = "MiuixSectionChevron",
-    )
     BasicComponent(
         title = title,
         summary = summary,
@@ -2054,15 +2272,6 @@ private fun MiuixSectionHeader(
                 tint = colorScheme.onBackground,
             )
         },
-        endActions = {
-            Icon(
-                imageVector = Icons.Rounded.KeyboardArrowDown,
-                contentDescription = null,
-                modifier = Modifier.graphicsLayer { rotationZ = rotation },
-                tint = colorScheme.onBackground,
-            )
-        },
-        onClick = onClick,
     )
 }
 
