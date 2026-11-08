@@ -65,6 +65,7 @@ import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Palette
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Style
@@ -1807,7 +1808,7 @@ fun ColorPaletteScreenMiuix(
                                     summary = stringResource(id = R.string.theme_store_summary),
                                     startAction = {
                                         Icon(
-                                            Icons.Rounded.Palette,
+                                            Icons.Rounded.Storefront,
                                             modifier = Modifier.padding(end = 6.dp),
                                             contentDescription = customText(CustomTextKey.PAGE_THEME_STORE),
                                             tint = colorScheme.onBackground

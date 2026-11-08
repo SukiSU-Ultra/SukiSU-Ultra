@@ -34,6 +34,8 @@ import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -108,7 +110,7 @@ fun HomePagerMaterial(
 
     ExpressiveScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
-        topBar = { TopBar(scrollBehavior = scrollBehavior) },
+        topBar = { TopBar(scrollBehavior = scrollBehavior, onOpenThemeStore = actions.onOpenThemeStore) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(
@@ -235,7 +237,8 @@ private fun UpdateCard(
 
 @Composable
 private fun TopBar(
-    scrollBehavior: TopAppBarScrollBehavior? = null
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    onOpenThemeStore: () -> Unit = {},
 ) {
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     val displayTitle = customText(CustomTextKey.HOME_TITLE)
@@ -246,6 +249,14 @@ private fun TopBar(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        },
+        navigationIcon = {
+            IconButton(onClick = onOpenThemeStore) {
+                Icon(
+                    imageVector = Icons.Rounded.Storefront,
+                    contentDescription = customText(CustomTextKey.PAGE_THEME_STORE),
+                )
+            }
         },
         actions = { RebootListPopup() },
         colors = expressiveTopAppBarColors(

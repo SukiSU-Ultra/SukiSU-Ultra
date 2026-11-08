@@ -1205,6 +1205,7 @@
     <string name="custom_text_group_settings">設定項目</string>
     <string name="theme_store_title">主題商店</string>
     <string name="theme_store_summary">瀏覽、投稿並套用線上主題</string>
+    <string name="theme_store_open_confirm">是否前往主題商店瀏覽、投稿並套用線上主題？</string>
     <string name="theme_store_empty_title">商店還沒有主題</string>
     <string name="theme_store_empty_summary">目錄還是空的，可以稍後重新整理，或先發布一個主題。</string>
     <string name="theme_store_load_failed">主題商店載入失敗</string>

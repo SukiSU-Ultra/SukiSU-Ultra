@@ -41,7 +41,10 @@ import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.bottombar.BottomBarDestination
+import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.util.rootAvailable
@@ -120,6 +123,11 @@ fun HomePager(
     }
 
     val mainPagerState = LocalMainPagerState.current
+    val themeStoreTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+    val themeStoreConfirmContent = stringResource(R.string.theme_store_open_confirm)
+    val themeStoreConfirmDialog = rememberConfirmDialog(
+        onConfirm = { navigator.push(Route.ThemeStore()) }
+    )
     val actions = HomeActions(
         onInstallClick = { navigator.push(Route.Install()) },
         onSuperuserClick = { mainPagerState.animateToPage(BottomBarDestination.SuperUser.ordinal) },
@@ -129,6 +137,12 @@ fun HomePager(
         onReleaseUpdateClick = { startUpdate(false) },
         onOpenVersionSpoof = { navigator.push(Route.VersionSpoof) },
         onOpenAi = { navigator.push(Route.AiAssistant) },
+        onOpenThemeStore = {
+            themeStoreConfirmDialog.showConfirm(
+                title = themeStoreTitle,
+                content = themeStoreConfirmContent,
+            )
+        },
         onJailbreakClick = {
             loadingDialog.showLoading()
             context.startService(Intent(context, MagicaService::class.java))

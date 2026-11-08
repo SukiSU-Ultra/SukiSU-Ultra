@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Security
@@ -197,6 +198,20 @@ fun SettingPagerMiuix(
                                 )
                             },
                             onClick = actions.onOpenTheme
+                        )
+                        val themeStoreTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+                        ArrowPreference(
+                            title = themeStoreTitle,
+                            summary = stringResource(id = R.string.theme_store_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Storefront,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = themeStoreTitle,
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            onClick = actions.onOpenThemeStore
                         )
 
                     }

@@ -85,7 +85,9 @@ import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import com.sukisu.ultra.ui.component.Storefront
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Text
@@ -121,6 +123,7 @@ fun HomePagerMiuix(
                 scrollBehavior = scrollBehavior,
                 backdrop = backdrop,
                 barColor = barColor,
+                onOpenThemeStore = actions.onOpenThemeStore,
             )
         },
         popupHost = { },
@@ -277,11 +280,21 @@ private fun TopBar(
     scrollBehavior: ScrollBehavior,
     backdrop: LayerBackdrop?,
     barColor: Color,
+    onOpenThemeStore: () -> Unit = {},
 ) {
     BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
         TopAppBar(
             color = Color.Transparent,
             title = customText(CustomTextKey.HOME_TITLE),
+            navigationIcon = {
+                IconButton(onClick = onOpenThemeStore) {
+                    Icon(
+                        imageVector = Icons.Rounded.Storefront,
+                        contentDescription = customText(CustomTextKey.PAGE_THEME_STORE),
+                        tint = colorScheme.onBackground
+                    )
+                }
+            },
             actions = {
                 RebootListPopupMiuix()
             },

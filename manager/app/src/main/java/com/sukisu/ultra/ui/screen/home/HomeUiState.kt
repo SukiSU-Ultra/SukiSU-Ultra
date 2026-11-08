@@ -120,4 +120,5 @@ data class HomeActions(
     val onReleaseUpdateClick: () -> Unit = {},
     val onOpenVersionSpoof: () -> Unit = {},
     val onOpenAi: () -> Unit = {},
+    val onOpenThemeStore: () -> Unit = {},
 )

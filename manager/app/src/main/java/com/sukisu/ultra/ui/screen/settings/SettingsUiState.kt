@@ -231,6 +231,7 @@ data class SettingsScreenActions(
     val onSetAutoDeleteModuleZip: (Boolean) -> Unit,
     val onSetAutoDeleteUpdateApk: (Boolean) -> Unit,
     val onOpenTheme: () -> Unit,
+    val onOpenThemeStore: () -> Unit = {},
     val onSetUiModeIndex: (Int) -> Unit,
     val onOpenProfileTemplate: () -> Unit,
     val onSetLanguage: (String) -> Unit,

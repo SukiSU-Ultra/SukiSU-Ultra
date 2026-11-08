@@ -81,6 +81,7 @@ import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.Palette
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Restore
@@ -1771,7 +1772,7 @@ fun ColorPaletteScreenMaterial(
                             onClick = actions.onOpenThemeStore,
                             headlineContent = { Text(storeTitle) },
                             supportingContent = { Text(stringResource(id = R.string.theme_store_summary)) },
-                            leadingContent = { IconTile(Icons.Rounded.Palette, storeTitle) },
+                            leadingContent = { IconTile(Icons.Rounded.Storefront, storeTitle) },
                         )
                     }
                     item(visible = themePackageSectionExpanded) {

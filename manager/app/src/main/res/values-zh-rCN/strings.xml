@@ -929,6 +929,7 @@
     <string name="custom_text_group_settings">设置项</string>
     <string name="theme_store_title">主题商店</string>
     <string name="theme_store_summary">浏览、投稿并应用在线主题</string>
+    <string name="theme_store_open_confirm">是否前往主题商店浏览、投稿并应用在线主题？</string>
     <string name="theme_store_empty_title">商店还没有主题</string>
     <string name="theme_store_empty_summary">目录还是空的，可以稍后刷新，或先发布一个主题。</string>
     <string name="theme_store_load_failed">主题商店加载失败</string>

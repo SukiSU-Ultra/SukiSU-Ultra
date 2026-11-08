@@ -933,6 +933,7 @@
     <string name="custom_text_group_settings">Settings items</string>
     <string name="theme_store_title">Theme store</string>
     <string name="theme_store_summary">Browse, submit and apply online themes</string>
+    <string name="theme_store_open_confirm">Open Theme store to browse, submit and apply online themes?</string>
     <string name="theme_store_empty_title">No themes yet</string>
     <string name="theme_store_empty_summary">The catalog is empty. Refresh later or publish a theme.</string>
     <string name="theme_store_load_failed">Failed to load the theme store</string>

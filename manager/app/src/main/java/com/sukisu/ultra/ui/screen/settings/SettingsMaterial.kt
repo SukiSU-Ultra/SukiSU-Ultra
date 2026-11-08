@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
@@ -163,6 +164,21 @@ fun SettingPagerMaterial(
                             headlineContent = { Text(themeTitle) },
                             supportingContent = { Text(stringResource(id = R.string.settings_theme_summary)) },
                             leadingContent = { IconTile(Icons.Filled.Palette, themeTitle) },
+                            trailingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    null
+                                )
+                            }
+                        )
+                    }
+                    add {
+                        val themeStoreTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+                        SegmentedListItem(
+                            onClick = actions.onOpenThemeStore,
+                            headlineContent = { Text(themeStoreTitle) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_store_summary)) },
+                            leadingContent = { IconTile(Icons.Filled.Storefront, themeStoreTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
