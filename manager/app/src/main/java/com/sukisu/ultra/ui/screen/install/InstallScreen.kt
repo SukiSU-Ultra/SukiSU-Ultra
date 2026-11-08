@@ -144,7 +144,7 @@ fun InstallScreen(
         }
     }
 
-    // AnyKernel3 状�?
+    // AnyKernel3 状态
     val anyKernel3State = rememberAnyKernel3State(
         installMethodState = installMethodState,
         preselectedKernelUri = preselectedKernelUri?.toString(),
@@ -154,7 +154,7 @@ fun InstallScreen(
 
     val showSlotSelectionDialog = anyKernel3State.showSlotSelectionDialog && isAbDevice
 
-    // 槽位选择对话�?
+    // 槽位选择对话框
     if (showSlotSelectionDialog) {
         SlotSelectionDialog(
             show = true,
@@ -338,7 +338,7 @@ fun InstallScreen(
         }
         option?.let { opt ->
             installMethod = opt
-            // 对于 HorizonKernel，需要触�?AnyKernel3 流程（槽位选择和KPM修补�?
+            // 对于 HorizonKernel，需要触发 AnyKernel3 流程（槽位选择和 KPM 修补）
             if (opt is InstallMethod.HorizonKernel) {
                 anyKernel3State.onHorizonKernelSelected(opt)
             }
@@ -395,7 +395,7 @@ fun InstallScreen(
         },
         onDownloadFile = { downloadDialogShown = true },
         onSelectBootImage = { method ->
-            // 在打开文件选择器之前，先设�?installMethod
+            // 在打开文件选择器之前，先设置 installMethod
             installMethod = method
             selectImageLauncher.launch(Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "application/*"
@@ -456,25 +456,37 @@ fun InstallScreen(
         onSpoofEnabledChange = {
             spoofEnabled = it
             if (!it) {
-                // 关闭开关时清空已填写的�?
+                // 关闭开关时清空已填写的值
                 spoofRelease = ""
                 spoofVersion = ""
-                scope.launch {
-                    SuSFSManager.saveUnameValue("default")
-                    SuSFSManager.saveBuildTimeValue("default")
+                if (rootAvailable) {
+                    scope.launch {
+                        runCatching {
+                            SuSFSManager.saveUnameValue("default")
+                            SuSFSManager.saveBuildTimeValue("default")
+                        }
+                    }
                 }
             }
         },
         onSpoofReleaseChange = {
             spoofRelease = it
-            scope.launch {
-                SuSFSManager.saveUnameValue(it.trim().ifBlank { "default" })
+            if (rootAvailable) {
+                scope.launch {
+                    runCatching {
+                        SuSFSManager.saveUnameValue(it.trim().ifBlank { "default" })
+                    }
+                }
             }
         },
         onSpoofVersionChange = {
             spoofVersion = it
-            scope.launch {
-                SuSFSManager.saveBuildTimeValue(it.trim().ifBlank { "default" })
+            if (rootAvailable) {
+                scope.launch {
+                    runCatching {
+                        SuSFSManager.saveBuildTimeValue(it.trim().ifBlank { "default" })
+                    }
+                }
             }
         },
         onHorizonKernelSelected = { method ->
