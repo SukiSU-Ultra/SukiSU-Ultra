@@ -1131,6 +1131,7 @@
     <string name="theme_store_upload_generating">正在生成主题包…</string>
     <string name="theme_store_upload_preset_failed">无法生成当前设备预设</string>
     <string name="theme_store_upload_submit">提交审核</string>
+    <string name="theme_store_load_more">加载更多主题（剩余 %1$d）</string>
     <string name="theme_store_upload_submitting">正在校验并上传…</string>
     <string name="theme_store_upload_submitting_short">上传中…</string>
     <string name="theme_store_upload_success">已提交，等待管理员审核。</string>

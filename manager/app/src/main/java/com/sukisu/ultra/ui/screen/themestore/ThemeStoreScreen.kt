@@ -1222,6 +1222,15 @@ private fun ThemeStoreMaterial(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val pullToRefreshState = rememberPullToRefreshState()
     val refreshing = state.refreshing || (state.loading && state.loaded)
+    // Render the catalogue in pages so a fast scroll does not fan out hundreds of
+    // preview-image requests at once. Coil still loads only composed cards, but
+    // bounding the list keeps its prefetch window small.
+    var loadedThemeCount by remember(visibleItems) {
+        mutableStateOf(STORE_PAGE_SIZE)
+    }
+    val pagedItems = remember(visibleItems, loadedThemeCount) {
+        visibleItems.take(loadedThemeCount)
+    }
     var menuExpanded by remember { mutableStateOf(false) }
     val fabThreshold = with(LocalDensity.current) { 100.dp.toPx() }
     val fabExpanded by remember {
@@ -1526,7 +1535,7 @@ private fun ThemeStoreMaterial(
                         }
                     } else {
                         items(
-                            items = visibleItems,
+                            items = pagedItems,
                             key = { it.key },
                             span = { item ->
                                 if (gridLayout && landscapePreviewKeys[item.key] == true) {
@@ -1562,6 +1571,22 @@ private fun ThemeStoreMaterial(
                                     onAuthorClick = onAuthorClick,
                                     onDownload = onDownload,
                                     modifier = cardModifier,
+                                )
+                            }
+                        }
+                    }
+                    if (pagedItems.size < visibleItems.size) {
+                        item(key = "load-more", span = { GridItemSpan(maxLineSpan) }) {
+                            Button(
+                                onClick = { loadedThemeCount += STORE_PAGE_SIZE },
+                                modifier = Modifier.fillMaxWidth(),
+                                shapes = ButtonDefaults.shapes(),
+                            ) {
+                                MaterialText(
+                                    stringResource(
+                                        R.string.theme_store_load_more,
+                                        visibleItems.size - pagedItems.size,
+                                    ),
                                 )
                             }
                         }

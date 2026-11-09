@@ -282,8 +282,10 @@ class ThemeStoreRepository(
             // otherwise a per-connection mirror throttle caps the whole upload.
             .protocols(listOf(Protocol.HTTP_1_1))
             .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.MINUTES)
-            .writeTimeout(5, TimeUnit.MINUTES)
+            // Generous per-chunk budget: the server keeps uploads unlimited by
+            // default, so the client must not be the side that cuts a slow link.
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
             .build()
     }
 
