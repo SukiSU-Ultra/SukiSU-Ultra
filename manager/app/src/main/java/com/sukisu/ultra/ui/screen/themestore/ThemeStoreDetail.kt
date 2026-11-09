@@ -93,6 +93,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.ThemeComment
 import com.sukisu.ultra.data.model.ThemeStoreEntry
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
+import com.sukisu.ultra.data.repository.ThemeStorePreviewLoader
 import com.sukisu.ultra.ui.component.FullscreenPagerDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
@@ -824,8 +825,12 @@ internal fun ThemeBannerImage(
         )
         return
     }
+    val context = LocalContext.current
+    val previewImageLoader = remember(context) { ThemeStorePreviewLoader.get(context) }
     AsyncImage(
-        model = themeImageRequest(LocalContext.current, url, token),
+        model = themeImageRequest(context, url, token),
+        imageLoader = previewImageLoader,
+        placeholder = null,
         contentDescription = entry.name,
         contentScale = ContentScale.Crop,
         modifier = modifier,

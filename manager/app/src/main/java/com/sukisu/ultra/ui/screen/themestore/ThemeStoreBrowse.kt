@@ -9,7 +9,7 @@ import java.util.Locale
 internal const val ADAPTIVE_TAG = "adaptive"
 
 /// Store cards rendered per page; preview images load lazily as pages are opened.
-internal const val STORE_PAGE_SIZE = 40
+internal const val STORE_PAGE_SIZE = 10
 
 private val ADAPTIVE_TAG_ALIASES = setOf(
     "adaptive",

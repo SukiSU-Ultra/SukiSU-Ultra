@@ -1407,7 +1407,7 @@
     <string name="theme_store_upload_generating">正在產生主題包…</string>
     <string name="theme_store_upload_preset_failed">無法產生目前裝置預設</string>
     <string name="theme_store_upload_submit">提交審核</string>
-    <string name="theme_store_load_more">載入更多主題（剩餘 %1$d）</string>
+    <string name="theme_store_loading_more">正在載入更多主題…</string>
     <string name="theme_store_upload_submitting">正在校驗並上傳…</string>
     <string name="theme_store_upload_submitting_short">上傳中…</string>
     <string name="theme_store_upload_success">已提交，等待管理員審核。</string>
