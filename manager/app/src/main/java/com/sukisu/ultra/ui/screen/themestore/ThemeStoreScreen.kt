@@ -94,6 +94,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -119,6 +120,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
+import com.sukisu.ultra.data.repository.ThemeStorePreviewLoader
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
@@ -1231,6 +1233,22 @@ private fun ThemeStoreMaterial(
     val pagedItems = remember(visibleItems, loadedThemeCount) {
         visibleItems.take(loadedThemeCount)
     }
+    // Infinite scroll: reaching the last few cards appends the next page, so the
+    // grid keeps loading while the user drags instead of asking for a button tap.
+    // snapshotFlow emits once per real layout change, which avoids appending
+    // several pages from a single bottom-edge trigger.
+    LaunchedEffect(listState, visibleItems) {
+        snapshotFlow {
+            val info = listState.layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull()?.index ?: -1
+            info.totalItemsCount > 0 && last >= info.totalItemsCount - 6
+        }.collect { nearEnd ->
+            if (nearEnd && loadedThemeCount < visibleItems.size) {
+                loadedThemeCount =
+                    (loadedThemeCount + STORE_PAGE_SIZE).coerceAtMost(visibleItems.size)
+            }
+        }
+    }
     var menuExpanded by remember { mutableStateOf(false) }
     val fabThreshold = with(LocalDensity.current) { 100.dp.toPx() }
     val fabExpanded by remember {
@@ -1577,16 +1595,21 @@ private fun ThemeStoreMaterial(
                     }
                     if (pagedItems.size < visibleItems.size) {
                         item(key = "load-more", span = { GridItemSpan(maxLineSpan) }) {
-                            Button(
-                                onClick = { loadedThemeCount += STORE_PAGE_SIZE },
-                                modifier = Modifier.fillMaxWidth(),
-                                shapes = ButtonDefaults.shapes(),
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 14.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                CircularWavyProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                Spacer(Modifier.size(10.dp))
                                 MaterialText(
-                                    stringResource(
-                                        R.string.theme_store_load_more,
-                                        visibleItems.size - pagedItems.size,
-                                    ),
+                                    stringResource(R.string.theme_store_loading_more),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -1812,6 +1835,7 @@ internal fun ThemeGridCardMaterial(
 ) {
     val entry = item.entry
     val context = LocalContext.current
+    val previewImageLoader = remember(context) { ThemeStorePreviewLoader.get(context) }
     val downloading = state.downloadingKey == item.key
     val date = entry.updatedAt.substringBefore('T').replace('-', '/')
     val primaryLabel = sourceLabel ?: entry.author
@@ -1825,7 +1849,13 @@ internal fun ThemeGridCardMaterial(
         ThemeStoreRepository.assetUrl(item.source.baseUrl, path)
     }
     val painter = previewUrl?.let { url ->
-        rememberAsyncImagePainter(themeImageRequest(context, url, item.source.token))
+        rememberAsyncImagePainter(
+            model = themeImageRequest(context, url, item.source.token),
+            imageLoader = previewImageLoader,
+            // Disambiguates the placeholder overload (Coil also exposes a
+            // transform/onState overload with the same leading parameters).
+            placeholder = null,
+        )
     }
     val intrinsic = painter?.intrinsicSize
     val rawAspectRatio = if (intrinsic != null && intrinsic.width > 0f && intrinsic.height > 0f) {
