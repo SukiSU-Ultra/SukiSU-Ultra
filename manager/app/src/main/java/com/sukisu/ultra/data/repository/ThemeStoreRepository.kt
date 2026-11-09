@@ -77,6 +77,8 @@ data class ThemeStoreSubmission(
     val name: String,
     val author: String,
     val authorId: String,
+    /** Reason for the author licence created together with this submission. */
+    val authorApplyNote: String = "",
     val description: String,
     val tags: String,
     val license: String,
@@ -936,6 +938,7 @@ class ThemeStoreRepository(
                 .addFormDataPart("name", submission.name)
                 .addFormDataPart("author", submission.author)
                 .addFormDataPart("authorId", submission.authorId)
+                .addFormDataPart("authorApplyNote", submission.authorApplyNote)
                 .addFormDataPart("description", submission.description)
                 .addFormDataPart("tags", submission.tags)
                 .addFormDataPart("license", submission.license)

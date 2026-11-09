@@ -54,6 +54,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text as MaterialText
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar as MaterialTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -84,6 +85,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.data.model.AccountSession
 import com.sukisu.ultra.data.model.AccountThemeSummary
 import com.sukisu.ultra.data.repository.ThemeStoreRepository
+import com.sukisu.ultra.ui.component.material.ExpressiveDialog
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.util.ThemePackageStorage
@@ -174,6 +176,9 @@ internal fun ThemeStoreUploadScreen(
     var screenshotUris by rememberSaveable(editingId, stateSaver = UploadUriListSaver) {
         mutableStateOf(emptyList())
     }
+    var authorApplyOpen by rememberSaveable { mutableStateOf(false) }
+    var authorApplyNote by rememberSaveable { mutableStateOf("") }
+    var authorApplyError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -287,29 +292,63 @@ internal fun ThemeStoreUploadScreen(
     val canSubmit = !submitting && accountSession != null && name.isNotBlank() &&
         packageUri != null && previewUri != null && versionValue != null && versionValue >= 1
 
+    // A submission creates the author licence when the account has none yet.
+    // The reason is asked for at submit time (MD3 expressive dialog) instead of
+    // applying silently while the user is only previewing the upload form.
+    fun needsAuthorApplication(session: AccountSession): Boolean =
+        session.authors.none { it.status == "pending" || it.status == "active" } &&
+            session.activeAuthor == null
+
+    fun uploadInput(session: AccountSession, applyNote: String): ThemeStoreUploadInput =
+        ThemeStoreUploadInput(
+            id = selectedUpdateId,
+            version = version,
+            name = name,
+            author = session.user.displayName.ifBlank { session.user.username },
+            authorId = "",
+            authorApplyNote = applyNote,
+            description = description,
+            tags = tags,
+            license = license,
+            minManagerVersion = minManagerVersion,
+            changelog = changelog,
+            packageUri = requireNotNull(packageUri),
+            previewUri = requireNotNull(previewUri),
+            avatarUri = avatarUri,
+            screenshotUris = screenshotUris,
+        )
+
     fun submit() {
         if (submitting) return
         val session = accountSession ?: return
-        val packageFile = packageUri ?: return
-        val previewFile = previewUri ?: return
-        onSubmit(
-            ThemeStoreUploadInput(
-                id = selectedUpdateId,
-                version = version,
-                name = name,
-                author = session.user.displayName.ifBlank { session.user.username },
-                authorId = "",
-                description = description,
-                tags = tags,
-                license = license,
-                minManagerVersion = minManagerVersion,
-                changelog = changelog,
-                packageUri = packageFile,
-                previewUri = previewFile,
-                avatarUri = avatarUri,
-                screenshotUris = screenshotUris,
-            ),
-        )
+        if (packageUri == null || previewUri == null) return
+        if (needsAuthorApplication(session)) {
+            authorApplyError = null
+            authorApplyOpen = true
+            return
+        }
+        onSubmit(uploadInput(session, ""))
+    }
+
+    fun confirmAuthorApplication() {
+        val session = accountSession ?: return
+        if (packageUri == null || previewUri == null) return
+        val minimum = if (session.authors.any { it.status == "revoked" || it.status == "retired" }) {
+            10
+        } else {
+            5
+        }
+        val note = authorApplyNote.trim()
+        if (note.length < minimum) {
+            authorApplyError = context.getString(
+                R.string.theme_store_upload_author_apply_required,
+                minimum,
+            )
+            return
+        }
+        authorApplyError = null
+        authorApplyOpen = false
+        onSubmit(uploadInput(session, note))
     }
 
     fun appendMention(mention: String) {
@@ -428,7 +467,13 @@ internal fun ThemeStoreUploadScreen(
                         )
 
                         else -> UploadHint(
-                            stringResource(R.string.theme_store_upload_id_hint),
+                            stringResource(
+                                if (displayedThemeId.isBlank()) {
+                                    R.string.theme_store_upload_id_pending
+                                } else {
+                                    R.string.theme_store_upload_id_hint
+                                },
+                            ),
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -556,15 +601,23 @@ internal fun ThemeStoreUploadScreen(
                             enabled = false,
                         )
                         val activeAuthor = accountSession.activeAuthor
+                        val pendingAuthor = accountSession.authors.any {
+                            it.status == "pending"
+                        }
                         UploadHint(
-                            if (activeAuthor != null) {
-                                stringResource(
+                            when {
+                                activeAuthor != null -> stringResource(
                                     R.string.theme_store_upload_author_active,
                                     accountSession.user.username,
                                     activeAuthor.displayName ?: accountSession.user.displayName,
                                 )
-                            } else {
-                                stringResource(
+
+                                pendingAuthor -> stringResource(
+                                    R.string.theme_store_upload_author_pending,
+                                    accountSession.user.username,
+                                )
+
+                                else -> stringResource(
                                     R.string.theme_store_upload_author_new,
                                     accountSession.user.username,
                                 )
@@ -768,6 +821,111 @@ internal fun ThemeStoreUploadScreen(
                 }
             }
         }
+    }
+
+    if (authorApplyOpen) {
+        val reapply = accountSession?.authors?.any {
+            it.status == "revoked" || it.status == "retired"
+        } == true
+        val minimum = if (reapply) 10 else 5
+        ExpressiveDialog(
+            onDismissRequest = {
+                if (!submitting) {
+                    authorApplyOpen = false
+                    authorApplyError = null
+                }
+            },
+            icon = {
+                MaterialIcon(
+                    imageVector = Icons.Rounded.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            title = {
+                MaterialText(stringResource(R.string.theme_store_upload_author_apply_title))
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    MaterialText(
+                        text = stringResource(
+                            if (reapply) {
+                                R.string.theme_store_upload_author_apply_hint_reapply
+                            } else {
+                                R.string.theme_store_upload_author_apply_hint
+                            },
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = authorApplyNote,
+                        onValueChange = {
+                            authorApplyNote = it.take(500)
+                            authorApplyError = null
+                        },
+                        label = {
+                            MaterialText(stringResource(R.string.theme_store_upload_author_apply_note))
+                        },
+                        placeholder = {
+                            MaterialText(
+                                stringResource(
+                                    R.string.theme_store_upload_author_apply_note_hint,
+                                    minimum,
+                                ),
+                            )
+                        },
+                        minLines = 3,
+                        maxLines = 6,
+                        isError = authorApplyError != null,
+                        supportingText = if (authorApplyError != null) {
+                            { MaterialText(authorApplyError.orEmpty()) }
+                        } else {
+                            null
+                        },
+                        enabled = !submitting,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    MaterialText(
+                        text = stringResource(
+                            R.string.theme_store_upload_author_apply_count,
+                            authorApplyNote.length,
+                            500,
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        authorApplyOpen = false
+                        authorApplyError = null
+                    },
+                    enabled = !submitting,
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    MaterialText(stringResource(R.string.theme_store_upload_author_apply_cancel))
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = ::confirmAuthorApplication,
+                    enabled = !submitting,
+                    shapes = ButtonDefaults.shapes(),
+                ) {
+                    if (submitting) {
+                        CircularWavyProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            stroke = Stroke(width = 2f),
+                        )
+                    } else {
+                        MaterialText(stringResource(R.string.theme_store_upload_submit))
+                    }
+                }
+            },
+        )
     }
 }
 

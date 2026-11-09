@@ -348,6 +348,7 @@ data class AccountSession(
     val baseUrl: String = "",
     val token: String = "",
     val user: AccountUser = AccountUser(),
+    val authors: List<AccountAuthor> = emptyList(),
     val activeAuthor: AccountAuthor? = null,
     val followers: Long = 0L,
     val following: Long = 0L,

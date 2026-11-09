@@ -115,6 +115,8 @@ data class ThemeStoreUploadInput(
     val name: String,
     val author: String,
     val authorId: String,
+    /** Reason entered when this submission creates the author licence. */
+    val authorApplyNote: String = "",
     val description: String,
     val tags: String,
     val license: String,
@@ -1209,6 +1211,23 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             )
         }
         viewModelScope.launch {
+            // Refresh the licence list first: the submit dialog decides from it
+            // whether the account needs to apply for an author profile.
+            account.refreshProfile(normalized)
+            val refreshed = account.sessionFor(normalized)
+            if (refreshed != null) {
+                _uiState.update { state ->
+                    state.copy(
+                        accounts = state.accounts.map { accountEntry ->
+                            if (accountEntry.source.baseUrl == normalized) {
+                                accountEntry.copy(session = refreshed)
+                            } else {
+                                accountEntry
+                            }
+                        },
+                    )
+                }
+            }
             val idResult = account.nextThemeId(normalized)
             _uiState.update { state ->
                 if (state.uploadOptionsBaseUrl != normalized) {
@@ -1764,6 +1783,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                             name = name,
                             author = input.author.trim(),
                             authorId = if (accountMode) "" else authorId,
+                            authorApplyNote = if (accountMode) input.authorApplyNote.trim() else "",
                             description = input.description.trim(),
                             tags = tags.joinToString(", "),
                             license = input.license.trim(),

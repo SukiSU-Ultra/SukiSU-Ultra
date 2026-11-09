@@ -273,6 +273,7 @@ class AccountRepository(
                 val user = parsed.user ?: throw IOException(parsed.error ?: appContext.getString(R.string.account_profile_unavailable))
                 val updated = current.copy(
                     user = user,
+                    authors = parsed.authors,
                     activeAuthor = parsed.activeAuthor ?: current.activeAuthor,
                     followers = parsed.followers,
                     following = parsed.following,
