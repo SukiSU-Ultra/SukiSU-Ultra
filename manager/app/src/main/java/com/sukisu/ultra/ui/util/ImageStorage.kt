@@ -293,8 +293,6 @@ object ImageStorage {
         return "${info.first}:${info.second}"
     }
 
-    private fun String.shellQuote(): String = "'" + replace("'", "'\\''") + "'"
-
     /**
      * Copies a picked image into the crop cache. The crop screen and the vendor gallery
      * both work on this private copy so a picker URI never has to stay readable.
