@@ -255,6 +255,9 @@ do_stop_machine:
 out_flush:
     smp_mb();
     reset_avc_cache();
+#ifdef CONFIG_KSU_SUSFS
+    susfs_set_batch_sid();
+#endif
 #endif
 }
 
