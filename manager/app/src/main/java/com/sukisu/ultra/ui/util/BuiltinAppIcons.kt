@@ -81,6 +81,61 @@ object BuiltinAppIcons {
             .forEach { setEnabled(pm, ComponentName(context, it), false) }
     }
 
+    /**
+     * Applies [icon] only when the component states do not already match it.
+     *
+     * Startup must not re-apply an unchanged icon: switching launcher components while the
+     * process is starting can make the system restart it, which is why the first launch after
+     * an update used to be killed.
+     */
+    fun applyIfNeeded(
+        context: Context,
+        icon: BuiltinAppIcon,
+        dynamicColor: Boolean = false,
+    ) {
+        if (!isApplied(context, icon, dynamicColor)) {
+            apply(context, icon, dynamicColor)
+        }
+    }
+
+    fun isApplied(
+        context: Context,
+        icon: BuiltinAppIcon,
+        dynamicColor: Boolean = false,
+    ): Boolean {
+        val pm = context.packageManager
+        if (!isComponentEnabled(pm, ComponentName(context, mainActivityName))) {
+            return false
+        }
+        val selectedClass = componentClassName(icon, dynamicColor)
+        if (!isComponentEnabled(pm, ComponentName(context, selectedClass))) {
+            return false
+        }
+        return allAliasClassNames()
+            .filter { it != selectedClass }
+            .none { isComponentEnabled(pm, ComponentName(context, it)) }
+    }
+
+    private fun isComponentEnabled(pm: PackageManager, component: ComponentName): Boolean {
+        val state = try {
+            pm.getComponentEnabledSetting(component)
+        } catch (t: Throwable) {
+            Log.w(TAG, "Cannot read the enabled state of $component", t)
+            return false
+        }
+        return when (state) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> false
+            else -> try {
+                pm.getActivityInfo(component, 0).enabled
+            } catch (t: Throwable) {
+                false
+            }
+        }
+    }
+
     private fun componentClassName(
         icon: BuiltinAppIcon,
         dynamicColor: Boolean,

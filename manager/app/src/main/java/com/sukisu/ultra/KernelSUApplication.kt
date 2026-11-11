@@ -60,7 +60,9 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
         }
 
         SettingsRepositoryImpl().let { settings ->
-            BuiltinAppIcons.apply(
+            // Only touch launcher components when the state actually drifted; re-applying an
+            // unchanged alias can restart the process on some ROMs right as we are starting.
+            BuiltinAppIcons.applyIfNeeded(
                 context = this,
                 icon = BuiltinAppIcons.find(settings.appIconId),
                 dynamicColor = settings.appIconDynamicColor,
