@@ -258,7 +258,7 @@ do_stop_machine:
 
 out_flush:
     smp_mb();
-    reset_avc_cache(pol->latest_granting);
+    reset_avc_cache(0);
 #ifdef CONFIG_KSU_SUSFS
     susfs_set_batch_sid();
 #endif
@@ -779,7 +779,7 @@ out_done:
         goto out_free;
 
     smp_mb();
-    reset_avc_cache(pol->latest_granting);
+    reset_avc_cache(0);
     ret = success_cmd_count;
 
 out_free:
