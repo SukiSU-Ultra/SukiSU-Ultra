@@ -124,6 +124,14 @@ config KSU_SUSFS_SUS_MAP
 	  - It may not be able to evade detections by apps that implement a good injection detection.
 	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED
 
+config KSU_SUSFS_PRIORITY_UID_FILTER
+	bool "Enable to allow adding user-defined uids that will be hidden from getpriority/setpriority/ioprio_get/ioprio_set syscall"
+	depends on KSU_SUSFS
+	default y
+	help
+	  - Allow hiding user-defined uids from syscalls like getpriority/setpriority/ioprio_get/ioprio_set.
+	  - Effective on all processes with uid >= 10000.
+
 endmenu
 
 endmenu
