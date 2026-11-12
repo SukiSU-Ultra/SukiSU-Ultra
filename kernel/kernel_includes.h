@@ -72,6 +72,7 @@
 #include <linux/kref.h>
 #include <linux/kthread.h>
 #include <linux/limits.h>
+#include <linux/linkage.h>
 #include <linux/list.h>
 #include <linux/lockdep.h>
 #include <linux/lsm_audit.h>
@@ -142,12 +143,6 @@
 #include <uapi/linux/input.h>
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
-#include <uapi/asm-generic/errno.h>
-#else
-#include <asm-generic/errno.h>
-#endif
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 #include <crypto/sha2.h>
 #else
@@ -163,7 +158,7 @@
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
-#include <uapi/linux/eventpoll.h>
+#include <linux/eventpoll.h>
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
@@ -442,13 +437,13 @@ typedef unsigned __int128 uint128_t;
 
 // scoped lock, mutex
 static inline void mutex_unlock_byref(struct mutex **m) { mutex_unlock(*m); }
-#define deferred_mutex_unlock(lock) struct mutex *__ksu_dummy_var __cleanup(mutex_unlock_byref) = (lock)
-#define guarded_mutex_lock(lock) ({ mutex_lock(lock); deferred_mutex_unlock(lock); 1; })
+#define deferred_mutex_unlock(lock)	struct mutex *__ksu_dummy_var __cleanup(mutex_unlock_byref) = (lock)
+#define guarded_mutex_lock(lock)	mutex_lock(lock); deferred_mutex_unlock(lock)
 
 // scoped lock, spinlock
 static inline void spin_unlock_byref(spinlock_t **lock) { spin_unlock(*lock); }
-#define deferred_spin_unlock(lock) spinlock_t *__ksu_dummy_var __cleanup(spin_unlock_byref) = (lock)
-#define guarded_spin_lock(lock) ({ spin_lock(lock); deferred_spin_unlock(lock); 1; })
+#define deferred_spin_unlock(lock)	spinlock_t *__ksu_dummy_var __cleanup(spin_unlock_byref) = (lock)
+#define guarded_spin_lock(lock)		spin_lock(lock); deferred_spin_unlock(lock)
 
 // scoped allocations and basic stack offload.
 static inline void kfree_byref(void *buf) { kfree(*(void **)buf); }
@@ -504,6 +499,9 @@ static inline void kfree_byref(void *buf) { kfree(*(void **)buf); }
 #define pr_devel(...)	do { } while (0)
 #define printk(...)	do { } while (0)
 #endif // CONFIG_KSU_NOPRINTK && !CONFIG_KSU_DEBUG
+
+// no ratelimit
+#define pr_warn_ratelimited pr_warn
 
 /**
  * disallow usage of old string functions removed on newer linux kernels

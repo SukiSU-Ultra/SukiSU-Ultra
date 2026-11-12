@@ -123,7 +123,7 @@ check_ptr:
 	return true;
 }
 
-static __always_inline void ksu_sucompat_user_common(const char __user **filename_user, const char *syscall_name)
+static __always_inline bool is_user_filename_su(const char __user **filename_user)
 {
 	uintptr_t buf;
 	constexpr char su[16] = SU_PATH;
@@ -152,48 +152,51 @@ static __always_inline void ksu_sucompat_user_common(const char __user **filenam
 
 #ifdef CONFIG_64BIT
 	if (get_user(buf, &fn_p[1]))
-		return;
+		return false;
 
 	if (likely((buf & 0x00FFFFFFFFFFFFFFUL) != (su_p[1] & 0x00FFFFFFFFFFFFFFUL)))
-		return;
+		return false;
 #else
 	if (get_user(buf, &fn_p[3]))
-		return;
+		return false;
 
 	if (likely((buf & 0x00FFFFFFUL) != (su_p[3] & 0x00FFFFFFUL)))
-		return;
+		return false;
 
 	if (unlikely(get_user(buf, &fn_p[2])))
-		return;
+		return false;
 
 	if (buf != su_p[2])
-		return;
+		return false;
 
 	if (unlikely(get_user(buf, &fn_p[1])))
-		return;
+		return false;
 
 	if (unlikely(buf != su_p[1]))
-		return;
+		return false;
 #endif
 	// last word
 	if (unlikely(get_user(buf, &fn_p[0])))
-		return;
+		return false;
 
 	if (unlikely(buf != su_p[0]))
+		return false;
+
+	return true;
+}
+
+static __always_inline void ksu_sucompat_user_execve(const char __user **filename_user, void *restrict argv, void *restrict envp, const char *syscall_name)
+{
+	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
+	ksu_preinit_user_execve_hook(filename_user, argv, envp);
+
+	if (!is_su_allowed((const void **)filename_user))
 		return;
 
-	if (!__builtin_strcmp(syscall_name, "sys_faccessat"))
-		write_sulog('a');
-	if (!__builtin_strcmp(syscall_name, "sys_newfstatat"))
-		write_sulog('s');
-	if (!__builtin_strcmp(syscall_name, "sys_execve"))
-		write_sulog('x');
-	if (!__builtin_strcmp(syscall_name, "sys_execveat"))
-		write_sulog('x');
+	if (!is_user_filename_su(filename_user))
+		return;
 
-	// escalate if execve
-	if (!!__builtin_strcmp(syscall_name, "sys_execve") && !!__builtin_strcmp(syscall_name, "sys_execveat"))
-		goto no_escalate;
+	write_sulog('x');
 
 #ifdef CONFIG_KSU_FEATURE_SULOG
 	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
@@ -214,19 +217,32 @@ static __always_inline void ksu_sucompat_user_common(const char __user **filenam
 	return;
 
 no_ksud:
-no_escalate:
 	pr_info("su_compat: %s su->sh!%s\n", syscall_name, (is_compat_task()) ? " [compat]" : "" );
 	*filename_user = sh_user_path();
 	return;
+}
 
+static __always_inline void ksu_sucompat_user_common(const char __user **filename_user, const char *syscall_name)
+{
+	if (!is_su_allowed((const void **)filename_user))
+		return;
+
+	if (!is_user_filename_su(filename_user))
+		return;
+
+	if (!__builtin_strcmp(syscall_name, "sys_faccessat"))
+		write_sulog('a');
+	if (!__builtin_strcmp(syscall_name, "sys_newfstatat"))
+		write_sulog('s');
+
+	pr_info("su_compat: %s su->sh!%s\n", syscall_name, (is_compat_task()) ? " [compat]" : "" );
+	*filename_user = sh_user_path();
+	return;
 }
 
 // sys_faccessat
 SUCOMPAT_HOOK_TYPE ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *__unused_flags)
 {
-	if (!is_su_allowed((const void **)filename_user))
-		return 0;
-
 	ksu_sucompat_user_common(filename_user, "sys_faccessat");
 	return 0;
 }
@@ -234,9 +250,6 @@ SUCOMPAT_HOOK_TYPE ksu_handle_faccessat(int *dfd, const char __user **filename_u
 // sys_newfstatat, sys_fstat64
 SUCOMPAT_HOOK_TYPE ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 {
-	if (!is_su_allowed((const void **)filename_user))
-		return 0;
-
 	ksu_sucompat_user_common(filename_user, "sys_newfstatat");
 	return 0;
 }
@@ -244,26 +257,14 @@ SUCOMPAT_HOOK_TYPE ksu_handle_stat(int *dfd, const char __user **filename_user, 
 // sys_execve, compat_sys_execve
 SUCOMPAT_HOOK_TYPE ksu_handle_sys_execve(const char __user **filename_user, void *argv, void *envp)
 {
-	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
-	ksu_preinit_user_execve_hook(filename_user, argv, envp);
-
-	if (!is_su_allowed((const void **)filename_user))
-		return 0;
-
-	ksu_sucompat_user_common(filename_user, "sys_execve");
+	ksu_sucompat_user_execve(filename_user, argv, envp, "sys_execve");
 	return 0;
 }
 
 // sys_execveat, compat_sys_execveat
 SUCOMPAT_HOOK_TYPE ksu_handle_sys_execveat(int *fd, const char __user **filename_user, void *argv, void *envp, int *flags)
 {
-	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
-	ksu_preinit_user_execve_hook(filename_user, argv, envp);
-
-	if (!is_su_allowed((const void **)filename_user))
-		return 0;
-
-	ksu_sucompat_user_common(filename_user, "sys_execveat");
+	ksu_sucompat_user_execve(filename_user, argv, envp, "sys_execveat");
 	return 0;
 }
 

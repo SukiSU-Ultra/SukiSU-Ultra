@@ -10,17 +10,17 @@ extern int avc_ss_reset(u32 seqno);
 extern int avc_ss_reset(struct selinux_avc *avc, u32 seqno);
 #endif
 // reset avc cache table, otherwise the new rules will not take effect if already denied
-static void reset_avc_cache()
+static void reset_avc_cache(u32 seqno)
 {
 #if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) || LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
-	avc_ss_reset(0);
-	selnl_notify_policyload(0);
-	selinux_status_update_policyload(0);
+	avc_ss_reset(seqno);
+	selnl_notify_policyload(seqno);
+	selinux_status_update_policyload(seqno);
 #else
 	struct selinux_avc *avc = selinux_state.avc;
-	avc_ss_reset(avc, 0);
-	selnl_notify_policyload(0);
-	selinux_status_update_policyload(&selinux_state, 0);
+	avc_ss_reset(avc, seqno);
+	selnl_notify_policyload(seqno);
+	selinux_status_update_policyload(&selinux_state, seqno);
 #endif
 	selinux_xfrm_notify_policyload();
 }
@@ -29,39 +29,60 @@ static void reset_avc_cache()
 
 #if defined(KSU_COMPAT_USE_SELINUX_STATE)
 static struct policydb *get_policydb(void) { return &selinux_state.ss->policydb; }
-#else
-static struct policydb *get_policydb(void) { return &policydb; }
-#endif
-
-// rwlock
-#if defined(KSU_COMPAT_USE_SELINUX_STATE)
-static inline rwlock_t *ksu_get_policy_rwlock() { return &selinux_state.ss->policy_rwlock; }
-#elif defined(CONFIG_KALLSYMS_ALL)
-static noinline rwlock_t *ksu_get_policy_rwlock()
+static rwlock_t *get_policy_rwlock(void) { return &selinux_state.ss->policy_rwlock; }
+static u32 get_latest_granting_inc(void)
 {
-	static rwlock_t *lock = nullptr;
-	static void *label = &&bootstrap;
-	goto *label;
-
-bootstrap:;
-	lock = (rwlock_t *)kallsyms_lookup_name("policy_rwlock");
-	if (lock)
-		label = &&lock_ok;
-	else
-		label = &&lock_null;
-
-	goto *label;
-lock_ok:
-	return lock;
-lock_null:
-	return nullptr;	
+	selinux_state.ss->latest_granting++;
+	return selinux_state.ss->latest_granting;
 }
-#else
-static rwlock_t *ksu_get_policy_rwlock()
+#else /* ! KSU_COMPAT_USE_SELINUX_STATE */
+static struct policydb *get_policydb(void) { return &policydb; }
+static rwlock_t *get_policy_rwlock(void)
 {
 	extern rwlock_t policy_rwlock __weak;
 	return &policy_rwlock;
 }
+static u32 get_latest_granting_inc(void)
+{
+	extern u32 latest_granting __weak;
+	if (!&latest_granting)
+		return 0;	
+	latest_granting++;
+	return latest_granting;
+}
+#endif /* ! KSU_COMPAT_USE_SELINUX_STATE */
+
+// override if kallsyms_all
+#if !defined(KSU_COMPAT_USE_SELINUX_STATE) && defined(CONFIG_KALLSYMS_ALL)
+static noinline rwlock_t *ksym_get_policy_rwlock(void)
+{
+	static bool initialized = false;
+	static rwlock_t *lock = nullptr;
+	if (!initialized) {
+		lock = (rwlock_t *)kallsyms_lookup_name("policy_rwlock");
+		initialized = true;
+	}
+
+	return lock;
+}
+#define get_policy_rwlock ksym_get_policy_rwlock
+
+static noinline u32 ksym_get_latest_granting_inc(void)
+{
+	static bool initialized = false;
+	static u32 *granting = nullptr;
+	if (!initialized) {
+		granting = (u32 *)kallsyms_lookup_name("latest_granting");
+		initialized = true;
+	}
+
+	if (!granting)
+		return 0;
+
+	(*granting)++;
+	return *granting;
+}
+#define get_latest_granting_inc ksym_get_latest_granting_inc
 #endif
 
 #endif // < 5.10
@@ -171,18 +192,19 @@ void apply_kernelsu_rules()
 
 	apply_kernelsu_rules_fn((void *)db);
 
+	pol->latest_granting = old_pol->latest_granting + 1;
 	rcu_assign_pointer(selinux_state.policy, pol);
 	synchronize_rcu();
 	ksu_destroy_sepolicy(old_pol);
 
-	reset_avc_cache();
+	reset_avc_cache(pol->latest_granting);
 out_unlock:
 	mutex_unlock(&selinux_state.policy_mutex);
 #else
 
 	db = get_policydb();
 
-	rwlock_t *lock = ksu_get_policy_rwlock();
+	rwlock_t *lock = get_policy_rwlock();
 	if (!lock)
 		goto do_stop_machine;
 
@@ -210,7 +232,7 @@ do_stop_machine:
 
 out_flush:
 	smp_mb();
-	reset_avc_cache();
+	reset_avc_cache(get_latest_granting_inc());
 #endif
 }
 
@@ -566,11 +588,12 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
 		cmd_index++;
 	}
 
+	pol->latest_granting = old_pol->latest_granting + 1;
 	rcu_assign_pointer(selinux_state.policy, pol);
 	synchronize_rcu();
 	ksu_destroy_sepolicy(old_pol);
 
-	reset_avc_cache();
+	reset_avc_cache(pol->latest_granting);
 	ret = success_cmd_count;
 	goto out_unlock;
 
@@ -681,7 +704,7 @@ int handle_sepolicy(void __user *user_data, u64 data_len)
 	ctx.ctx_data_len = (u64)data_len;
 
 	// HACK: lock is held with preempt enabled!
-	rwlock_t *lock = ksu_get_policy_rwlock();
+	rwlock_t *lock = get_policy_rwlock();
 	if (!lock)
 		goto do_stop_machine;
 
@@ -704,7 +727,7 @@ out_done:
 		goto out_free;
 
 	smp_mb();
-	reset_avc_cache();
+	reset_avc_cache(get_latest_granting_inc());
 	ret = success_cmd_count;
 
 out_free:

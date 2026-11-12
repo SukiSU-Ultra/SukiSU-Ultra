@@ -100,7 +100,7 @@ static __nocfi ssize_t ksu_selinux_transaction_write(struct file *file, const ch
 	char kbuf[128];
 	size_t len = (size < 128) ? size : 127;
 
-	if (copy_from_user_retry(kbuf, buf, len))
+	if (!!copy_from_user(kbuf, buf, len))
 		goto skip_destroy;
 
 	kbuf[len] = '\0';
@@ -125,8 +125,8 @@ static __nocfi ssize_t ksu_selinux_transaction_write(struct file *file, const ch
 	if (sscanf(ar->data, "%x %x %x %x %u %x", &avd_allowed, &ff, &avd_auditallow, &avd_auditdeny, &avd_seqno, &avd_flags) != 6)
 		return ret;
 
-	avd_seqno = 1;
-	scnprintf(ar->data, SIMPLE_TRANSACTION_LIMIT, "%x %x %x %x %u %x", avd_allowed, ff, avd_auditallow, avd_auditdeny, avd_seqno, avd_flags);
+	avd_seqno = 1; // simple_transaction_set()
+	ar->size = scnprintf(ar->data, SIMPLE_TRANSACTION_LIMIT, "%x %x %x %x %u %x", avd_allowed, ff, avd_auditallow, avd_auditdeny, avd_seqno, avd_flags);
 
 	return ret;
 
@@ -163,7 +163,7 @@ static void ksu_init_hook_transaction_ops_write()
 	pr_info("selinux_hide: found transaction_ops->write at 0x%lx \n", (uintptr_t)fops->write);
 	selinux_transaction_write_fn = fops->write;
 
-	int ret = ksu_write_to_readonly_slot((uintptr_t)&fops->write, (uintptr_t)ksu_selinux_transaction_write);
+	int ret = patch_ro_slot((uintptr_t)&fops->write, (uintptr_t)ksu_selinux_transaction_write);
 	pr_info("selinux_hide: transaction_ops->write hijack ret: %d\n", ret);
 
 bail_out:
@@ -268,7 +268,7 @@ static void ksu_init_hook_sel_handle_status_ops_open()
 
 	sel_open_handle_status_fn = fops->open;
 
-	int ret = ksu_write_to_readonly_slot((uintptr_t)&fops->open, (uintptr_t)ksu_sel_open_handle_status);
+	int ret = patch_ro_slot((uintptr_t)&fops->open, (uintptr_t)ksu_sel_open_handle_status);
 	pr_info("selinux_hide: sel_handle_status_ops->open hijack ret: %d\n", ret);
 
 bail_out:

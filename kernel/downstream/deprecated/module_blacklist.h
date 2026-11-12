@@ -45,7 +45,7 @@ write_fresh:
 	memcpy(new_blacklist, modules, strlen(modules));
 
 write_to_slot:
-	ksu_write_to_readonly_slot((uintptr_t)blacklist_pptr, (uintptr_t)new_blacklist);
+	patch_ro_slot((uintptr_t)blacklist_pptr, (uintptr_t)new_blacklist);
 
 	return 0;
 }
@@ -109,8 +109,8 @@ cleanup:
 
 static inline void ksu_hook_syscall_init_module(void)
 {
-	read_and_replace_syscall((void *)&aarch64_init_module, __AARCH64_init_module, (void *)hook_aarch64_init_module_ret, (void *)sys_call_table);
-	read_and_replace_syscall((void *)&aarch64_finit_module, __AARCH64_finit_module, (void *)hook_aarch64_finit_module_ret, (void *)sys_call_table);
+	replace_syscall((void *)&aarch64_init_module, __AARCH64_init_module, (void *)hook_aarch64_init_module_ret, (void *)sys_call_table);
+	replace_syscall((void *)&aarch64_finit_module, __AARCH64_finit_module, (void *)hook_aarch64_finit_module_ret, (void *)sys_call_table);
 
 	kthread_run(ksu_unhook_syscall_init_module, NULL, "kthread");
 }

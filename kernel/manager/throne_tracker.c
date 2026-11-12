@@ -428,9 +428,10 @@ void track_throne(bool prune_only)
 	goto *label;
 
 first_run:
-	if (guarded_mutex_lock(&throne_tracker_mutex))
-		throne_tracker_fn(prune_only);
-	
+	mutex_lock(&throne_tracker_mutex);
+	throne_tracker_fn(prune_only);
+	mutex_unlock(&throne_tracker_mutex);
+
 	label = &&threaded;
 	return;
 threaded:

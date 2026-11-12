@@ -72,8 +72,8 @@ start: // watchdog will flip this anyway, we can loop forever
 	goto start;
 
 cleanup:
-	restore_syscall((void *)&aarch64_init_module, __AARCH64_init_module, (void *)hook_aarch64_init_module_ret, (void *)sys_call_table);
-	restore_syscall((void *)&aarch64_finit_module, __AARCH64_finit_module, (void *)hook_aarch64_finit_module_ret, (void *)sys_call_table);
+	restore_syscall((void *)&aarch64_init_module, __AARCH64_init_module, (void *)hook_aarch64_init_module_ret, native_sct);
+	restore_syscall((void *)&aarch64_finit_module, __AARCH64_finit_module, (void *)hook_aarch64_finit_module_ret, native_sct);
 
 	pr_info("%s: kthread exit!\n", __func__);
 	return 0;
@@ -81,8 +81,8 @@ cleanup:
 
 static inline void ksu_hook_syscall_init_module(void)
 {
-	read_and_replace_syscall((void *)&aarch64_init_module, __AARCH64_init_module, (void *)hook_aarch64_init_module_ret, (void *)sys_call_table);
-	read_and_replace_syscall((void *)&aarch64_finit_module, __AARCH64_finit_module, (void *)hook_aarch64_finit_module_ret, (void *)sys_call_table);
+	replace_syscall((void *)&aarch64_init_module, __AARCH64_init_module, (void *)hook_aarch64_init_module_ret, native_sct);
+	replace_syscall((void *)&aarch64_finit_module, __AARCH64_finit_module, (void *)hook_aarch64_finit_module_ret, native_sct);
 
 	kthread_run(ksu_unhook_syscall_init_module, NULL, "kthread");
 }

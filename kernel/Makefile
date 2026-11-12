@@ -1,6 +1,7 @@
 # NOTE: unity build. single unit.
 
-obj-$(CONFIG_KSU) := ksu.o
+obj-$(CONFIG_KSU) := kernelsu.o
+kernelsu-y := ksu.o
 
 CFLAGS_ksu.o += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
 CFLAGS_ksu.o += -I$(objtree)/security/selinux

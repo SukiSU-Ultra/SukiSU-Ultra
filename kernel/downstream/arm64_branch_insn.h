@@ -111,13 +111,8 @@ start_scan:
 
 	pr_info("%s: found call site at 0x%lx w/ .inst 0x%x \n", __func__, curr_addr, raw_instruction);
 
-	ptrdiff_t delta = 0;
-	if (hook_addr > curr_addr)
-		delta = hook_addr - curr_addr;
-	else
-		delta = curr_addr - hook_addr;
-		
-	if (delta >= bl_max_delta) {
+	ptrdiff_t delta = hook_addr - curr_addr;
+	if (__builtin_labs(delta) >= bl_max_delta) {
 		pr_info("%s: callsite 0x%lx to hook 0x%lx out of range! (delta: %ld bytes)\n",  __func__, curr_addr, hook_addr, delta);
 		return -ERANGE;
 	}

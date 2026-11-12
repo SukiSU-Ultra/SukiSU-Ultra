@@ -37,7 +37,7 @@ static int ksu_disable_preinit_branch(void *data)
 #define ksu_preinit_kernel_execve_hook(...)	do { } while (0)
 #define ksu_preinit_user_execve_hook(...)	do { } while (0)
 
-#define ksu_disable_preinit_branch(...)		do { } while (0)
+static int ksu_disable_preinit_branch(void *data) { return 0; }
 
 #endif // KSU_NO_PREINIT
 

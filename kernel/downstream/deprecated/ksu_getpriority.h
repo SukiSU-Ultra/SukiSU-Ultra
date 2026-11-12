@@ -199,12 +199,12 @@ static void ksu_getpriority_init()
 	pr_info("ksu_getpriority: page allocated at: 0x%lx, %u / %u bytes\n", (uintptr_t)gp_package_bitmap, gp_alloc_size, PAGE_SIZE);
 
 #ifdef CONFIG_ARM64
-	read_and_replace_syscall((void *)&aarch64_getpriority, __AARCH64_getpriority, (void *)hook_aarch64_getpriority, (void *)sys_call_table);
+	replace_syscall((void *)&aarch64_getpriority, __AARCH64_getpriority, (void *)hook_aarch64_getpriority, (void *)sys_call_table);
 #ifdef CONFIG_COMPAT
-	read_and_replace_syscall((void *)&armeabi_getpriority, __ARMEABI_getpriority, (void *)hook_armeabi_getpriority, (void *)compat_sys_call_table);
+	replace_syscall((void *)&armeabi_getpriority, __ARMEABI_getpriority, (void *)hook_armeabi_getpriority, (void *)compat_sys_call_table);
 #endif
 #else
-	read_and_replace_syscall((void *)&armeabi_getpriority, __ARMEABI_getpriority, (void *)hook_armeabi_getpriority, (void *)sys_call_table);
+	replace_syscall((void *)&armeabi_getpriority, __ARMEABI_getpriority, (void *)hook_armeabi_getpriority, (void *)sys_call_table);
 #endif
 
 	return;

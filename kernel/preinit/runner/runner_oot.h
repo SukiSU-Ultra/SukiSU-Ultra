@@ -171,7 +171,7 @@ static int __sys_poll(struct pollfd *fds, nfds_t nfds, int timeout_ms)
 {
 	typedef long ppoll_ts_t[2];
 	return syscall(SYS_ppoll, fds, nfds, timeout_ms >= 0 ?
-		((ppoll_ts_t){ timeout_ms / 1000, (timeout_ms % 1000) * 1000000L }) : NULL,
+		((ppoll_ts_t){ timeout_ms / 1000, (timeout_ms % 1000) * 1000000L }) : nullptr,
 		NULL, _NSIG / 8);
 }
 #define poll __sys_poll
@@ -233,7 +233,7 @@ start:
 		return (char *)s;
 
 	if (!*s)
-		return NULL;
+		return nullptr;
 	s++;
 	goto start;
 }
@@ -291,7 +291,7 @@ static char *__strstr(const char *s1, const char *s2)
 			return (char *)s1;
 		s1++;
 	}
-	return NULL;
+	return nullptr;
 }
 #define strstr __strstr
 

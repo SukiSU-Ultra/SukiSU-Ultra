@@ -427,7 +427,7 @@ static inline void ksu_common_newfstat_ret(unsigned int fd_int, void **statbuf_p
 		goto stat_native;
 	
 	struct stat64 k_stat64;
-	if (copy_from_user_retry(&k_stat64, statbuf, sizeof(struct stat64))) {
+	if (copy_from_user(&k_stat64, statbuf, sizeof(struct stat64))) {
 		pr_info("%s: read statbuf 0x%lx failed \n", syscall_name, (uintptr_t)statbuf);
 		goto out;
 	}
@@ -449,7 +449,7 @@ static inline void ksu_common_newfstat_ret(unsigned int fd_int, void **statbuf_p
 stat_native:;
 #endif
 	struct stat k_stat;
-	if (copy_from_user_retry(&k_stat, statbuf, sizeof(struct stat))) {
+	if (copy_from_user(&k_stat, statbuf, sizeof(struct stat))) {
 		pr_info("%s: read statbuf 0x%lx failed \n", syscall_name, (uintptr_t)statbuf);
 		goto out;
 	}

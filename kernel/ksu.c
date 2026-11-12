@@ -79,6 +79,8 @@
 #undef CONFIG_COMPAT
 #endif
 
+#include "downstream/syscall_table_common.h"
+
 #ifdef CONFIG_KPROBES
 #include "downstream/kprobes_common.h"
 #endif
@@ -203,7 +205,8 @@
 #ifdef CONFIG_KSU_HACK_ARM64_BRANCH_LINK
 #undef syscall_table_sucompat_enable
 #undef syscall_table_sucompat_disable
-#include "hook/syscall_table_hook_arm64.c" // included as fallback
+#include "hook/syscall_table_hook_arm64.c"
+#include "hook/syscall_table_mirror_arm64.c" // attempt to mirror sct
 #include "hook/branch_link_hook_arm64.c"
 #endif
 
@@ -294,9 +297,6 @@ static int __init kernelsu_init(void)
 		return -ENOSYS;
 	}
 
-#ifdef KSU_CAN_USE_MODULE_BLACKLIST
-	ksu_module_blacklist_init(); // Block modules early, before vendor modules are loaded in second stage.
-#endif
 	// register features
 	ksu_feature_init();
 	ksu_extension_init();
@@ -312,8 +312,6 @@ static int __init kernelsu_init(void)
 #endif
 	ksu_selinux_hide_init();
 	ksu_shell_su_adb_only_init();
-
-	ksu_core_init();
 	ksu_supercalls_init();
 
 #if defined(CONFIG_KSU_KPROBES_KSUD) && !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
@@ -337,6 +335,11 @@ static int __init kernelsu_init(void)
 	ksu_branch_link_patch_init();
 #endif
 
+#ifdef KSU_CAN_USE_MODULE_BLACKLIST
+	ksu_module_blacklist_init(); // Block modules early, before vendor modules are loaded in second stage.
+#endif
+
+	ksu_lsm_hook_init();
 	return 0;
 }
 
@@ -361,26 +364,29 @@ static int __init kernelsu_lkm_init(void)
 	// list_del(&THIS_MODULE->list);
 	kobject_del(&THIS_MODULE->mkobj.kobj); // tiann/KernelSU fefb02e
 
-#if 0
 	if (current->pid == 1)
 		return 0;
 
+	ksu_late_loaded = true;
 	escape_to_root_forced();
 
-	stop_vfs_read_hook();
+	stop_init_rc_hook();
 	apply_kernelsu_rules();
 	cache_sid();
 	setup_ksu_cred();
+
+	track_throne(false);
 	on_post_fs_data();
 	on_boot_completed();
+
 	ksu_feature_apply_forced();
-	ksu_extension_apply_forced();
+	kthread_run(ksu_disable_preinit_branch, nullptr, "kthread");
 
 	if (!!getenforce())
 		return 0;
 	pr_info("Permissive SELinux, enforcing\n");
 	setenforce(true);
-#endif
+
 	return 0;
 }
 

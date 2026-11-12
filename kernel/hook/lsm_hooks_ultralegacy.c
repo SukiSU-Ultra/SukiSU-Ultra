@@ -358,7 +358,7 @@ static int ksu_register_lsm_hook(void *data)
 	return 0;
 }
 
-static void ksu_lsm_hook_init(void)
+static void __init ksu_lsm_hook_init(void)
 {
 	set_selinux_ops();
 
@@ -375,9 +375,4 @@ static void ksu_lsm_hook_init(void)
 	
 	kthread_run(ksu_restore_file_permission, NULL, "kthread");
 	return;
-}
-
-static void __init ksu_core_init(void)
-{
-	ksu_lsm_hook_init();
 }

@@ -4,6 +4,7 @@
 #define KERNEL_SU_VERSION KSU_VERSION
 
 struct cred* ksu_cred;
+static bool ksu_late_loaded = false;
 
 #if defined(CONFIG_KSU_DEBUG) || defined(CONFIG_KSU_SHELL_HAS_SU_ALWAYS)
 static bool allow_shell = true;

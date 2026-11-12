@@ -194,11 +194,9 @@ static int ksu_hack_lsm_slot(void *hook_head, uintptr_t *old_ptr, uintptr_t new_
 	else
 		pr_info("LSM: 0x%lx found at slot 0x%lx\n", current_hook, hook_slot_addr);
 
-	int err = ksu_write_to_readonly_slot(hook_slot_addr, new_ptr);
-	if (err) {
-		pr_err("LSM: ksu_write_to_readonly_slot err: %d\n", err);
+	int err = patch_ro_slot(hook_slot_addr, new_ptr);
+	if (err)
 		return 1;
-	}
 
 	pr_info("LSM: 0x%lx written to slot\n", new_ptr);
 	return 0;
@@ -328,9 +326,4 @@ static __init void ksu_lsm_hook_init(void)
 	kthread_run(ksu_restore_bprm_set_creds, NULL, "kthread");
 #endif
 
-}
-
-static void __init ksu_core_init(void)
-{
-	ksu_lsm_hook_init();
 }

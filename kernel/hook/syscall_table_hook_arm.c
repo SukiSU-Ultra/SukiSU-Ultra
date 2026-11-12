@@ -109,13 +109,6 @@ asmlinkage long hook_armeabi_read(const struct pt_regs *regs)
 
 #else // END OF 4.19+ SYSCALL HANDLERS
 
-// arch/arm/include/asm/syscall.h
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
-extern const unsigned long sys_call_table[];
-#else
-extern void *sys_call_table[];
-#endif
-
 static void *armeabi_reboot __read_mostly = nullptr;
 asmlinkage long hook_armeabi_reboot(int magic1, int magic2, unsigned int cmd, void __user *arg)
 {
@@ -221,8 +214,8 @@ loop_start:
 	if (*(volatile bool *)&ksu_vfs_read_hook)
 		goto loop_start;
 
-	restore_syscall((void *)&armeabi_fstat64, __ARMEABI_fstat64, (void *)hook_armeabi_fstat64_ret, (void *)sys_call_table);
-	restore_syscall((void *)&armeabi_read, __ARMEABI_read, (void *)hook_armeabi_read, (void *)sys_call_table);
+	restore_syscall((void *)&armeabi_fstat64, __ARMEABI_fstat64, (void *)hook_armeabi_fstat64_ret, native_sct);
+	restore_syscall((void *)&armeabi_read, __ARMEABI_read, (void *)hook_armeabi_read, native_sct);
 	
 	return 0;
 }
@@ -233,31 +226,31 @@ static void syscall_table_sucompat_enable()
 {
 	guarded_mutex_lock(&sucompat_toggle_mutex);
 
-	read_and_replace_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, (void *)sys_call_table);
+	replace_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, native_sct);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
-	read_and_replace_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, (void *)sys_call_table);
+	replace_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, native_sct);
 #endif
-	read_and_replace_syscall((void *)&armeabi_faccessat, __ARMEABI_faccessat, (void *)hook_armeabi_faccessat, (void *)sys_call_table);
-	read_and_replace_syscall((void *)&armeabi_fstatat64, __ARMEABI_fstatat64, (void *)hook_armeabi_fstatat64, (void *)sys_call_table);
+	replace_syscall((void *)&armeabi_faccessat, __ARMEABI_faccessat, (void *)hook_armeabi_faccessat, native_sct);
+	replace_syscall((void *)&armeabi_fstatat64, __ARMEABI_fstatat64, (void *)hook_armeabi_fstatat64, native_sct);
 }
 
 static void syscall_table_sucompat_disable()
 {
 	guarded_mutex_lock(&sucompat_toggle_mutex);
 
-	restore_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, (void *)sys_call_table);
+	restore_syscall((void *)&armeabi_execve, __ARMEABI_execve, (void *)hook_armeabi_execve, native_sct);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
-	restore_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, (void *)sys_call_table);
+	restore_syscall((void *)&armeabi_execveat, __ARMEABI_execveat, (void *)hook_armeabi_execveat, native_sct);
 #endif
-	restore_syscall((void *)&armeabi_faccessat, __ARMEABI_faccessat, (void *)hook_armeabi_faccessat, (void *)sys_call_table);
-	restore_syscall((void *)&armeabi_fstatat64, __ARMEABI_fstatat64, (void *)hook_armeabi_fstatat64, (void *)sys_call_table);
+	restore_syscall((void *)&armeabi_faccessat, __ARMEABI_faccessat, (void *)hook_armeabi_faccessat, native_sct);
+	restore_syscall((void *)&armeabi_fstatat64, __ARMEABI_fstatat64, (void *)hook_armeabi_fstatat64, native_sct);
 }
 
 static void syscall_table_ksud_hook_init()
 {
-	read_and_replace_syscall((void *)&armeabi_reboot, __ARMEABI_reboot, (void *)hook_armeabi_reboot, (void *)sys_call_table);
-	read_and_replace_syscall((void *)&armeabi_fstat64, __ARMEABI_fstat64, (void *)hook_armeabi_fstat64_ret, (void *)sys_call_table);
-	read_and_replace_syscall((void *)&armeabi_read, __ARMEABI_read, (void *)hook_armeabi_read, (void *)sys_call_table);
+	replace_syscall((void *)&armeabi_reboot, __ARMEABI_reboot, (void *)hook_armeabi_reboot, native_sct);
+	replace_syscall((void *)&armeabi_fstat64, __ARMEABI_fstat64, (void *)hook_armeabi_fstat64_ret, native_sct);
+	replace_syscall((void *)&armeabi_read, __ARMEABI_read, (void *)hook_armeabi_read, native_sct);
 
 	// start unreg kthread
 	kthread_run(ksu_syscall_table_restore, NULL, "unhook");
