@@ -127,18 +127,24 @@ fun InstallScreen(
     val isGkiDevice by produceState(initialValue = false) { value = getKernelVersion().isGKI() }
 
     val selectFileTip = stringResource(id = R.string.select_file_tip, defaultPartition)
-    val selectFileTipNoGki = stringResource(id = R.string.select_file_tip_nogki)
 
     val downloadFileMsg = stringResource(id = R.string.download_dialog_msg)
 
     val horizonKernelSummary = stringResource(R.string.horizon_kernel_summary)
-    val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, selectFileTipNoGki, downloadFileMsg, horizonKernelSummary) {
+    val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, downloadFileMsg, horizonKernelSummary) {
         buildList {
-            add(InstallMethod.SelectFile(summary = if (isGkiDevice) selectFileTip else selectFileTipNoGki))
-            add(InstallMethod.DownloadFile(summary = downloadFileMsg))
-            if (rootAvailable && isGkiDevice) {
-                add(InstallMethod.DirectInstall)
-                if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+            // LKM boot-image patching needs a GKI 5.10+ kernel. Pre-5.10
+            // kernels cannot load the bundled module, so only AnyKernel3
+            // (kernel image replacement) is offered there.
+            if (isGkiDevice) {
+                add(InstallMethod.SelectFile(summary = selectFileTip))
+                add(InstallMethod.DownloadFile(summary = downloadFileMsg))
+                if (rootAvailable) {
+                    add(InstallMethod.DirectInstall)
+                    if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+                }
+            }
+            if (rootAvailable) {
                 add(InstallMethod.HorizonKernel(summary = horizonKernelSummary))
             }
         }
