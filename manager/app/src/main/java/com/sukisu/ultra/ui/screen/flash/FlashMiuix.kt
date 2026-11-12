@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,27 +93,51 @@ fun FlashScreenMiuix(
             )
         },
         floatingActionButton = {
-            if (state.showRebootAction) {
-                val reboot = stringResource(id = state.rebootLabelRes)
-                FloatingActionButton(
-                    modifier = Modifier
-                        .padding(
-                            bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
-                                    WindowInsets.captionBar.asPaddingValues().calculateBottomPadding() + 20.dp,
-                            end = 20.dp
-                        )
-                        .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
-                    onClick = actions.onReboot,
-                    shadowElevation = 0.dp,
-                    content = {
-                        Icon(
-                            Icons.Rounded.Refresh,
-                            reboot,
-                            Modifier.size(40.dp),
-                            tint = colorScheme.onPrimary
-                        )
-                    },
-                )
+            when {
+                state.showRebootAction -> {
+                    val reboot = stringResource(id = state.rebootLabelRes)
+                    FloatingActionButton(
+                        modifier = Modifier
+                            .padding(
+                                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                                        WindowInsets.captionBar.asPaddingValues().calculateBottomPadding() + 20.dp,
+                                end = 20.dp
+                            )
+                            .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
+                        onClick = actions.onReboot,
+                        shadowElevation = 0.dp,
+                        content = {
+                            Icon(
+                                Icons.Rounded.Refresh,
+                                reboot,
+                                Modifier.size(40.dp),
+                                tint = colorScheme.onPrimary
+                            )
+                        },
+                    )
+                }
+                state.showCloseAction -> {
+                    val close = stringResource(id = R.string.close)
+                    FloatingActionButton(
+                        modifier = Modifier
+                            .padding(
+                                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                                        WindowInsets.captionBar.asPaddingValues().calculateBottomPadding() + 20.dp,
+                                end = 20.dp
+                            )
+                            .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
+                        onClick = actions.onBack,
+                        shadowElevation = 0.dp,
+                        content = {
+                            Icon(
+                                Icons.Rounded.Close,
+                                close,
+                                Modifier.size(40.dp),
+                                tint = colorScheme.onPrimary
+                            )
+                        },
+                    )
+                }
             }
         },
         popupHost = { },

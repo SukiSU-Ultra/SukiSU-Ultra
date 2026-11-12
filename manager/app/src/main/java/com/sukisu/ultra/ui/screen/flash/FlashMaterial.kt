@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Icon
@@ -66,7 +67,7 @@ fun FlashScreenMaterial(
         snackbarHost = {
             SnackBarHost(
                 hostState = snackBarHost,
-                modifier = Modifier.let { if (state.showRebootAction) it else it.safeDrawingPadding() })
+                modifier = Modifier.let { if (state.showRebootAction || state.showCloseAction) it else it.safeDrawingPadding() })
         },
         topBar = {
             TopAppBar(
@@ -93,16 +94,29 @@ fun FlashScreenMaterial(
             )
         },
         floatingActionButton = {
-            if (state.showRebootAction) {
-                SmallExtendedFloatingActionButton(
-                    onClick = actions.onReboot,
-                    icon = { Icon(Icons.Filled.Refresh, null) },
-                    text = { Text(stringResource(state.rebootLabelRes)) },
-                    modifier = Modifier.padding(
-                        bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
-                                WindowInsets.captionBar.asPaddingValues().calculateBottomPadding(),
+            when {
+                state.showRebootAction -> {
+                    SmallExtendedFloatingActionButton(
+                        onClick = actions.onReboot,
+                        icon = { Icon(Icons.Filled.Refresh, null) },
+                        text = { Text(stringResource(state.rebootLabelRes)) },
+                        modifier = Modifier.padding(
+                            bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                                    WindowInsets.captionBar.asPaddingValues().calculateBottomPadding(),
+                        )
                     )
-                )
+                }
+                state.showCloseAction -> {
+                    SmallExtendedFloatingActionButton(
+                        onClick = actions.onBack,
+                        icon = { Icon(Icons.Filled.Close, null) },
+                        text = { Text(stringResource(R.string.close)) },
+                        modifier = Modifier.padding(
+                            bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                                    WindowInsets.captionBar.asPaddingValues().calculateBottomPadding(),
+                        )
+                    )
+                }
             }
         },
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
