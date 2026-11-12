@@ -32,16 +32,16 @@ static const char *const extension_names[KSU_EXTENSION_MAX] = {
 
 /*
  * Force-extension bitmap (parallel to policy/feature.c).
- * Each set bit in forced_mask means "userspace cannot change this
+ * Each set bit in extension_forced_mask means "userspace cannot change this
  * extension anymore"; the saved value lives in extension_forced_values[id] and
  * is replayed on every boot through either ops->set (value-flavored)
- * or handler->apply_forced (io-flavored). forced_pending is the
+ * or handler->apply_forced (io-flavored). extension_forced_pending is the
  * replay backlog: bits stay set until ksu_extension_apply_forced()
  * successfully replays them.
  */
 static u64 extension_forced_values[KSU_EXTENSION_MAX];
-static DECLARE_BITMAP(forced_mask, KSU_EXTENSION_MAX);
-static DECLARE_BITMAP(forced_pending, KSU_EXTENSION_MAX);
+static DECLARE_BITMAP(extension_forced_mask, KSU_EXTENSION_MAX);
+static DECLARE_BITMAP(extension_forced_pending, KSU_EXTENSION_MAX);
 
 /*
  * Set to true at the end of ksu_extension_register_all() so that
@@ -118,8 +118,8 @@ static int force_extension_param_set(const char *val,
         }
 
         extension_forced_values[id] = value;
-        set_bit(id, forced_mask);
-        set_bit(id, forced_pending);
+        set_bit(id, extension_forced_mask);
+        set_bit(id, extension_forced_pending);
         pr_info("extension: %s (id=%u) forced to %llu\n",
                 extension_names[id], id, value);
     }
@@ -313,7 +313,7 @@ int ksu_extension_enumerate(u32 index, struct ksu_extension_desc *desc)
         desc->id = id;
         desc->caps = KSU_FEATURE_FLAG_SUPPORTED | handler->caps;
         desc->min_api_version = handler->min_api_version;
-        desc->forced = test_bit(id, forced_mask) ? 1 : 0;
+        desc->forced = test_bit(id, extension_forced_mask) ? 1 : 0;
         strscpy(desc->name, handler->name ? handler->name : "unknown",
                 sizeof(desc->name));
         ret = 0;
@@ -333,8 +333,8 @@ int ksu_extension_set(u32 extension_id, u32 caller_api_version, u64 value)
 
     /* Forced extensions are locked for the lifetime of the boot.
      * Replay is done in ksu_extension_apply_forced(); userspace
-     * SETs are refused until reboot clears forced_pending. */
-    if (test_bit(extension_id, forced_mask)) {
+     * SETs are refused until reboot clears extension_forced_pending. */
+    if (test_bit(extension_id, extension_forced_mask)) {
         pr_warn("extension: extension %u is forced by boot config\n",
                 extension_id);
         return -EPERM;
@@ -361,7 +361,7 @@ out:
 bool ksu_extension_is_forced(u32 extension_id)
 {
     return extension_id < KSU_EXTENSION_MAX &&
-           test_bit(extension_id, forced_mask);
+           test_bit(extension_id, extension_forced_mask);
 }
 
 int ksu_extension_ioctl(u32 extension_id, u32 caller_api_version, void __user *raw)
@@ -397,7 +397,7 @@ int ksu_extension_wipe(u32 extension_id, u32 caller_api_version)
      * the same way ksu_extension_set() does. Allowing wipe while
      * userspace SET is locked would let a manager action undo the
      * kernel-side forced state until the next boot. */
-    if (test_bit(extension_id, forced_mask)) {
+    if (test_bit(extension_id, extension_forced_mask)) {
         pr_warn("extension: extension %u is forced by boot config, refusing wipe\n",
                 extension_id);
         return -EPERM;
@@ -440,7 +440,7 @@ void ksu_extension_apply_forced(void)
 
     mutex_lock(&extension_mutex);
 
-    for_each_set_bit (id, forced_pending, KSU_EXTENSION_MAX) {
+    for_each_set_bit (id, extension_forced_pending, KSU_EXTENSION_MAX) {
         handler = extension_handlers[id];
         if (!handler) {
             /*
@@ -454,7 +454,7 @@ void ksu_extension_apply_forced(void)
              */
             pr_warn("extension: force_extension=%s=%llu pending: handler not registered\n",
                     extension_names[id], extension_forced_values[id]);
-            clear_bit(id, forced_pending);
+            clear_bit(id, extension_forced_pending);
             continue;
         }
 
@@ -464,7 +464,7 @@ void ksu_extension_apply_forced(void)
          *   2. apply_forced  — io-flavoured handlers, kernel-side
          *                       callback that receives the raw u64.
          *                       No user pointer is fabricated.
-         *   3. neither       — log and clear forced_pending. The
+         *   3. neither       — log and clear extension_forced_pending. The
          *                       old io_handler(id, NULL) fallback
          *                       was unsafe (NULL is WIPE for
          *                       umount_paths, EFAULT for others)
@@ -477,7 +477,7 @@ void ksu_extension_apply_forced(void)
         } else {
             pr_warn("extension: force_extension=%s=%llu ignored: handler has no apply_forced and no ops->set\n",
                     extension_names[id], extension_forced_values[id]);
-            clear_bit(id, forced_pending);
+            clear_bit(id, extension_forced_pending);
             continue;
         }
 
@@ -486,7 +486,7 @@ void ksu_extension_apply_forced(void)
                     extension_names[id], extension_forced_values[id], ret);
             continue;
         }
-        clear_bit(id, forced_pending);
+        clear_bit(id, extension_forced_pending);
         pr_info("extension: applied forced %s=%llu\n", extension_names[id],
                 extension_forced_values[id]);
     }

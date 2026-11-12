@@ -45,9 +45,9 @@ void ksu_avc_spoof_rewrite_tsid(u32 *tsid)
 #include <linux/kprobes.h>
 #include <linux/slab.h>
 
-static struct kprobe *slow_avc_audit_kp;
+static struct kprobe *avc_spoof_slow_avc_audit_kp;
 
-static int slow_avc_audit_pre_handler(struct kprobe *p, struct pt_regs *regs)
+static int avc_spoof_slow_avc_audit_pre_handler(struct kprobe *p, struct pt_regs *regs)
 {
     u32 *tsid;
 
@@ -143,7 +143,7 @@ void ksu_avc_spoof_disable(void)
 {
 #ifdef CONFIG_KPROBES
     pr_info("avc_spoof: unregister slow_avc_audit kprobe\n");
-    destroy_avc_kprobe(&slow_avc_audit_kp);
+    destroy_avc_kprobe(&avc_spoof_slow_avc_audit_kp);
 #endif
     atomic_set(&disable_spoof, 1);
     pr_info("avc_spoof: slow_avc_audit spoofing disabled\n");
@@ -159,10 +159,10 @@ void ksu_avc_spoof_enable(void)
     }
 
 #ifdef CONFIG_KPROBES
-    if (!slow_avc_audit_kp) {
+    if (!avc_spoof_slow_avc_audit_kp) {
         pr_info("avc_spoof: register slow_avc_audit kprobe\n");
-        slow_avc_audit_kp = init_avc_kprobe("slow_avc_audit", slow_avc_audit_pre_handler);
-        if (!slow_avc_audit_kp) {
+        avc_spoof_slow_avc_audit_kp = init_avc_kprobe("slow_avc_audit", avc_spoof_slow_avc_audit_pre_handler);
+        if (!avc_spoof_slow_avc_audit_kp) {
             atomic_set(&disable_spoof, 1);
             pr_err("avc_spoof: failed to register slow_avc_audit kprobe\n");
             return;
@@ -172,11 +172,17 @@ void ksu_avc_spoof_enable(void)
     pr_info("avc_spoof: slow_avc_audit spoofing enabled\n");
 #else
     /*
-     * No kprobe available: the SIDs above still feed the shared
-     * slow_avc_audit hook in downstream/slow_avc_audit_defs.h (arm64
-     * call-site patch or a manual hook), so keep the feature enabled.
+     * No kprobe available. The SIDs above still feed the shared
+     * slow_avc_audit hook in downstream/slow_avc_audit_defs.h: the arm64
+     * call-site patch on CONFIG_AUDIT+KALLSYMS arm64 builds, or a manual
+     * hook. Other kernels (e.g. arm32 without CONFIG_KPROBES) have no
+     * automatic call site to patch.
      */
-    pr_info("avc_spoof: kprobes disabled; relying on the shared avc hook\n");
+#if defined(CONFIG_AUDIT) && defined(CONFIG_ARM64) && defined(CONFIG_KALLSYMS)
+    pr_info("avc_spoof: kprobes disabled; applied via the arm64 slow_avc_audit hook\n");
+#else
+    pr_warn("avc_spoof: kprobes disabled; only a manual slow_avc_audit hook can apply this\n");
+#endif
 #endif
 }
 
