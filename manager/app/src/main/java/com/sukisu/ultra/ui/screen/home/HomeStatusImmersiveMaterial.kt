@@ -80,11 +80,7 @@ fun ImmersiveStatusCardMaterial(
         state.isSafeMode -> customText(CustomTextKey.HOME_TAG_SAFEMODE)
         else -> customText(CustomTextKey.HOME_STATUS_WORKING)
     }
-    val mode = when (state.lkmMode) {
-        null -> ""
-        true -> "LKM"
-        else -> "Built-in"
-    }
+    val mode = state.workingModeLabel
     val version = "${state.ksuVersion}-${state.kernelUAPIVersion}"
     val meta = if (mode.isBlank()) version else "$mode · $version"
     val clickEnabled = !state.isLateLoadMode

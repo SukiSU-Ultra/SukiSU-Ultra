@@ -89,6 +89,24 @@ data class HomeUiState(
     val showCustomLkmBadge: Boolean
         get() = lkmMode == true && !isLkmBundled
 
+    /**
+     * Working-mode tag on the home status card.
+     *
+     * LKM is a 5.10+ concept; a pre-5.10 kernel always runs the built-in
+     * driver, so show "Built-in" there instead of leaving the tag blank.
+     * On 5.10+ keep the original mapping: true = LKM, false = Built-in,
+     * unknown (null) = no tag. With no active kernel (no root) there is
+     * no mode to show either.
+     */
+    val workingModeLabel: String
+        get() = when {
+            ksuVersion == null -> ""
+            !kernelVersion.isGKI() -> "Built-in"
+            lkmMode == true -> "LKM"
+            lkmMode == false -> "Built-in"
+            else -> ""
+        }
+
     val isVersionMismatch: Boolean
         get() = isManager && (kernelUAPIVersion != managerUAPIVersion || ksuVersion?.toUInt()?.toLong() != currentManagerVersionCode)
 

@@ -287,7 +287,7 @@ private fun StatusCard(
         InactiveStatusCard(
             state = state,
             actions = actions,
-            notInstalled = state.kernelVersion.isGKI(),
+            notInstalled = state.kernelVersion.isSupported(),
             onClick = onClick,
         )
     }
@@ -300,11 +300,7 @@ private fun ActiveStatusCard(
 ) {
     val containerColor = backgroundAwareColor(MaterialTheme.colorScheme.primary)
     val contentColor = MaterialTheme.colorScheme.onPrimary
-    val workingMode = when (state.lkmMode) {
-        null -> ""
-        true -> "LKM"
-        else -> "Built-in"
-    }
+    val workingMode = state.workingModeLabel
 
     val cardImagePainter = state.homeCardImagePath.takeIf { it.isNotEmpty() }?.let { path ->
         rememberAsyncImagePainter(

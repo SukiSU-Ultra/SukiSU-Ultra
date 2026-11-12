@@ -26,6 +26,23 @@ data class KernelVersion(val major: Int, val patchLevel: Int, val subLevel: Int)
 
         return false
     }
+
+    /**
+     * Whether this kernel is within the range the manager can install and
+     * manage at all.
+     *
+     * GKI-ness only selects the install method: GKI kernels can use the
+     * LKM/direct flows, while non-GKI trees fall back to boot-image
+     * patching. It must not be used as a support check, otherwise working
+     * non-GKI kernels (4.9, 5.4, vendor 3.4 ...) are reported as
+     * "Unsupported" on the home card. KernelSU's oldest supported tree is
+     * Linux 3.4.
+     */
+    fun isSupported(): Boolean {
+        // parseKernelVersion() returns (-1, -1, -1) when uname is unreadable.
+        if (major < 0 || patchLevel < 0) return false
+        return major > 3 || (major == 3 && patchLevel >= 4)
+    }
 }
 
 fun parseKernelVersion(version: String): KernelVersion {
