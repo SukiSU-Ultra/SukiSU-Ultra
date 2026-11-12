@@ -302,6 +302,10 @@ struct ksu_static_key_true_false { struct static_key key; };
 #define DEFINE_STATIC_KEY_TRUE(name)	struct ksu_static_key_true_false name = KSU_STATIC_KEY_TRUE_INIT
 #define DEFINE_STATIC_KEY_FALSE(name)	struct ksu_static_key_true_false name = KSU_STATIC_KEY_FALSE_INIT
 
+// DECLARE_STATIC_KEY_* only appeared in 4.11; provide them for older trees.
+#define DECLARE_STATIC_KEY_TRUE(name)	extern struct ksu_static_key_true_false name
+#define DECLARE_STATIC_KEY_FALSE(name)	extern struct ksu_static_key_true_false name
+
 #define static_key_enable(x)		ksu_static_key_enable(x)
 #define static_key_disable(x)		ksu_static_key_disable(x)
 
@@ -319,6 +323,27 @@ struct ksu_static_key_true_false { struct static_key key; };
 
 #endif // < 4.3
 #endif // >= 3.4 && CONFIG_JUMP_LABEL
+
+/*
+ * The typed struct static_key_{true,false} wrappers and DEFINE_STATIC_KEY_*
+ * exist since 4.3, but DECLARE_STATIC_KEY_* were not added until 4.11.
+ * Supply the declaration macros for the kernels in between.
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+#define DECLARE_STATIC_KEY_TRUE(name)	extern struct static_key_true name
+#define DECLARE_STATIC_KEY_FALSE(name)	extern struct static_key_false name
+#endif
+
+/*
+ * KPM (extension/kpm) and the CPU spoof extension rely on kernel interfaces
+ * that are only supported on 5.10+. Compile their call sites out entirely
+ * below that, regardless of CONFIG_KPM, so 3.x/4.x/5.4 trees never pull in
+ * their headers, code or runtime hooks.
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#define KSU_CAN_USE_KPM
+#define KSU_CAN_USE_CPU_SPOOF
+#endif
 
 struct user_arg_ptr {
 #ifdef CONFIG_COMPAT

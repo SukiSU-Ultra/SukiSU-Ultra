@@ -69,8 +69,14 @@ else
 $(info -- $(REPO_NAME): using Unknown)
 endif
 
+# KPM is only built on 5.10+; older kernels compile it out regardless of
+# CONFIG_KPM (see KSU_CAN_USE_KPM in kernel_compat.h).
 ifeq ($(CONFIG_KPM), y)
+ifeq ($(KERNEL_TYPE), GKI 2.0)
 $(info -- KPM is enabled)
+else
+$(info -- KPM is disabled: requires Linux 5.10+)
+endif
 else
 $(info -- KPM is disabled)
 endif

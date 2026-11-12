@@ -49,6 +49,17 @@
 #define FILLDIR_ACTOR_STOP -EINVAL
 #endif
 
+/*
+ * The actor's first parameter became struct dir_context * in 3.19; older
+ * kernels hand the context over as an opaque void *. Mirrors
+ * MY_ACTOR_CTX_ARG in manager/throne_tracker.c.
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)
+#define FB_ACTOR_CTX_ARG struct dir_context *ctx
+#else
+#define FB_ACTOR_CTX_ARG void *ctx_void
+#endif
+
 struct fb_path {
     char dirpath[DATA_PATH_LEN];
     int depth;
@@ -63,9 +74,12 @@ struct fb_dir_ctx {
     bool matched;
 };
 
-static FILLDIR_RETURN_TYPE fb_actor(struct dir_context *ctx, const char *name, int namelen, loff_t off, u64 ino,
+static FILLDIR_RETURN_TYPE fb_actor(FB_ACTOR_CTX_ARG, const char *name, int namelen, loff_t off, u64 ino,
                                     unsigned int d_type)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
+    struct dir_context *ctx = (struct dir_context *)ctx_void;
+#endif
     struct fb_dir_ctx *c = container_of(ctx, struct fb_dir_ctx, ctx);
     char dirpath[DATA_PATH_LEN];
 

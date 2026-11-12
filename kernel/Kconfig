@@ -151,6 +151,8 @@ config KPM
       Enabling this option will activate the KPM feature of SukiSU.
       This option is suitable for scenarios where you need to force KPM to be enabled.
       but it may affect system stability.
+      KPM is only built on Linux 5.10 and newer. On older kernels this
+      option is ignored and all KPM code is compiled out.
     select KALLSYMS
     select KALLSYMS_ALL
 
