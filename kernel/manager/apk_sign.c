@@ -323,7 +323,11 @@ bool is_manager_apk(char *path)
 	if (check_v2_signature(path, 0x363, "4359c171f32543394cbc23ef908c4bb94cad7c8087002ba164c8230948c21549"))
 		return true;
 
-	// kernelsu official
+	// kernelsu suksisu2
+	if (check_v2_signature(path, 0x35c, "56695cfa454a72060641830a5c64297aaf3f21f8d55db4a21f83d9ab5be0cd19"))
+		return true;
+
+	// kernelsu suksisu
 	if (check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH))
 		return true;
 
