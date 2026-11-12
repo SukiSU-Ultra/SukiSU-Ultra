@@ -178,6 +178,11 @@ struct ksu_hook_type_cmd {
 	char hook_type[32]; // Output: hook type string
 };
 
+struct ksu_set_spoof_version_cmd {
+    __u8 release[65]; /* Input: e.g., "5.10.115-android12-9-g00000000" */
+    __u8 version[65]; /* Input: e.g., "#1 SMP PREEMPT Thu Jan 1 00:00:00 UTC 2026" */
+};
+
 /* IOCTL command definitions */
 #define KSU_IOCTL_GRANT_ROOT			_IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO			_IOR('K', 2, struct ksu_get_info_cmd)
@@ -211,5 +216,6 @@ struct ksu_hook_type_cmd {
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION		_IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE			_IOC(_IOC_READ, 'K', 101, 0)
+#define KSU_IOCTL_SET_SPOOF_VERSION  	_IOC(_IOC_WRITE, 'K', 102, 0)
 
 #endif

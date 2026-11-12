@@ -32,18 +32,18 @@ static inline int ksu_selinux_get_sids()
 
 static __always_inline void ksu_slow_avc_audit_inline(u32 *tsid)
 {
-	if (unlikely(!ksu_selinux_hide_enabled))
-		return;
+	if (ksu_selinux_hide_enabled && *tsid == cached_su_sid) {
+		pr_info("selinux_hide: slow_avc_audit: replace tsid: %u with priv_app_sid: %u\n", *tsid, priv_app_sid);
+		*tsid = priv_app_sid;
+	}
 
-	// won't happen. this is unreachable if so
-	//if (unlikely(!priv_app_sid))
-	//	return;
-
-	if (*tsid != cached_su_sid)
-		return;
-
-	pr_info("selinux_hide: slow_avc_audit: replace tsid: %u with priv_app_sid: %u\n", *tsid, priv_app_sid);
-	*tsid = priv_app_sid;
+	/*
+	 * The avc_spoof feature has its own SID set and toggle. Honor it on
+	 * this path too: when arm64_bl_patch() redirects the avc_has_perm*
+	 * callers here, the kprobe avc_spoof installs on slow_avc_audit() is
+	 * bypassed (this covers most 3.4 .. 5.4 arm64 builds).
+	 */
+	ksu_avc_spoof_rewrite_tsid(tsid);
 }
 
 #if defined(CONFIG_AUDIT) && defined(CONFIG_ARM64) && defined(CONFIG_KALLSYMS)

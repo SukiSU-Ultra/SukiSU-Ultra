@@ -692,6 +692,21 @@ static int do_get_hook_type(void __user *arg)
 	return 0;
 }
 
+static int do_set_spoof_version(void __user *arg)
+{
+    struct ksu_set_spoof_version_cmd cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        return -EFAULT;
+    }
+
+    cmd.release[sizeof(cmd.release) - 1] = '\0';
+    cmd.version[sizeof(cmd.version) - 1] = '\0';
+
+    return ksu_set_spoof_version(cmd.release[0] != '\0' ? cmd.release : NULL,
+                                 cmd.version[0] != '\0' ? cmd.version : NULL);
+}
+
 /* Capability bits for a reply: handler caps plus the bits the dispatcher
  * owns. FORCED is global state, not a handler property. */
 static u32 extension_reply_caps(u32 extension_id, u32 caps)
@@ -864,6 +879,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, .name = "DISABLE_ESCAPE_TO_ROOT", .handler = do_disable_escape_to_root, .perm_check = only_root, .allow_su_session = true },
 	{ .cmd = KSU_IOCTL_LOOKUP_SYMBOLS, .name = "LOOKUP_SYMBOLS", .handler = do_lookup_symbols, .perm_check = only_root },
 	{ .cmd = KSU_IOCTL_GET_FULL_VERSION, .name = "GET_FULL_VERSION", .handler = do_get_full_version, .perm_check = always_allow },
+	{ .cmd = KSU_IOCTL_SET_SPOOF_VERSION, .name = "SET_SPOOF_VERSION", .handler = do_set_spoof_version, .perm_check = only_root },
 	{ .cmd = KSU_IOCTL_HOOK_TYPE, .name = "GET_HOOK_TYPE", .handler = do_get_hook_type, .perm_check = manager_or_root },
 	{ .cmd = KSU_IOCTL_EXTENSION, .name = "EXTENSION", .handler = do_extension, .perm_check = manager_or_root },
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel

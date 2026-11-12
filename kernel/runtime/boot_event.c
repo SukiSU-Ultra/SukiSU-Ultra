@@ -58,4 +58,6 @@ void on_boot_completed(void)
 #ifdef CONFIG_KSU_HOSTSREDIRECT
 	ksu_hostsredirect_init();
 #endif
+	// SELinux policy is fully loaded by now; resolve SIDs and arm the probe
+	ksu_avc_spoof_late_init();
 }

@@ -99,6 +99,7 @@ void on_boot_completed(void)
 #ifdef CONFIG_KSU_HOSTSREDIRECT
 	ksu_hostsredirect_init();
 #endif
+	ksu_avc_spoof_late_init();
 }
 
 static ssize_t (*orig_read)(struct file *, char __user *, size_t, loff_t *);

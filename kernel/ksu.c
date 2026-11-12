@@ -97,6 +97,8 @@
 #include "downstream/arm64_branch_insn.h"
 #endif
 
+// slow_avc_audit_defs.h calls ksu_avc_spoof_rewrite_tsid() from its inline hook
+#include "feature/avc_spoof.h"
 #include "downstream/slow_avc_audit_defs.h"
 #include "downstream/tiny_sulog.h"
 #include "downstream/toolkit.h"
@@ -120,6 +122,7 @@
 #endif
 #include "extension/dynamic_sig_fallback.h"
 #include "extension/version_spoof.h"
+#include "feature/uts_spoof.h"
 
 // unity build
 #include "extension/extension.c"
@@ -136,6 +139,8 @@
 #endif
 #include "extension/dynamic_sig_fallback.c"
 #include "extension/version_spoof.c"
+#include "feature/avc_spoof.c"
+#include "feature/uts_spoof.c"
 
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
@@ -275,6 +280,9 @@ static inline void ksu_print_build_info(void)
 
 }
 
+static char *spoof_version = NULL;
+static char *spoof_release = NULL;
+
 static int __init kernelsu_init(void)
 {
 	ksu_print_build_info();
@@ -297,6 +305,10 @@ static int __init kernelsu_init(void)
 		return -ENOSYS;
 	}
 
+	if (spoof_release || spoof_version) {
+        ksu_spoof_version(spoof_release, spoof_version);
+    }
+
 	// register features
 	ksu_feature_init();
 	ksu_extension_init();
@@ -311,6 +323,7 @@ static int __init kernelsu_init(void)
 	ksu_adb_root_init();
 #endif
 	ksu_selinux_hide_init();
+	ksu_avc_spoof_init();
 	ksu_shell_su_adb_only_init();
 	ksu_supercalls_init();
 
@@ -356,6 +369,9 @@ device_initcall(kernelsu_init);
  */
 module_param(allow_shell, bool, 0); 
 #endif
+
+module_param(spoof_release, charp, 0);
+module_param(spoof_version, charp, 0);
 
 static int __init kernelsu_lkm_init(void)
 {
