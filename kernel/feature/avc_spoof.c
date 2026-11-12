@@ -4,11 +4,13 @@
  * AVC logging receives a target SID.  This feature changes only the SID used
  * for audit rendering; it does not change the AVC decision or SELinux policy.
  *
- * The kprobe below is only one of the two entry points. Kernels without
+ * The kprobe below is only one of the entry points. Kernels without
  * CONFIG_KPROBES (KPROBES is a Kconfig option, not a version gate: it exists
- * on arm32 since 2.6 and on arm64 since 4.3) are still covered through
- * downstream/slow_avc_audit_defs.h, whose arm64 call-site patch or manual
- * hook calls ksu_avc_spoof_rewrite_tsid().
+ * on arm32 since 2.6 and on arm64 since 4.3) are covered through
+ * downstream/slow_avc_audit_defs.h instead: arm64 redirects the
+ * avc_has_perm* call sites, arm32 patches every bl/b to slow_avc_audit with
+ * the kernel's patch_text(), and both paths call ksu_avc_spoof_rewrite_tsid().
+ * A manual hook can also call ksu_slow_avc_audit() on other configs.
  */
 static u32 su_sid;
 static u32 ksu_sid;
@@ -174,12 +176,15 @@ void ksu_avc_spoof_enable(void)
     /*
      * No kprobe available. The SIDs above still feed the shared
      * slow_avc_audit hook in downstream/slow_avc_audit_defs.h: the arm64
-     * call-site patch on CONFIG_AUDIT+KALLSYMS arm64 builds, or a manual
-     * hook. Other kernels (e.g. arm32 without CONFIG_KPROBES) have no
-     * automatic call site to patch.
+     * avc_has_perm* call-site patch, or the arm32 bl/b call-site patch,
+     * both installed when the selinux_hide init thread runs. Other
+     * kernels fall back to a manual hook.
      */
 #if defined(CONFIG_AUDIT) && defined(CONFIG_ARM64) && defined(CONFIG_KALLSYMS)
     pr_info("avc_spoof: kprobes disabled; applied via the arm64 slow_avc_audit hook\n");
+#elif defined(CONFIG_AUDIT) && defined(CONFIG_ARM) && defined(CONFIG_KALLSYMS) && \
+    !defined(CONFIG_CPU_ENDIAN_BE8) && !defined(CONFIG_CPU_ENDIAN_BE32)
+    pr_info("avc_spoof: kprobes disabled; applied via the arm32 slow_avc_audit hook\n");
 #else
     pr_warn("avc_spoof: kprobes disabled; only a manual slow_avc_audit hook can apply this\n");
 #endif
@@ -234,7 +239,7 @@ void __init ksu_avc_spoof_init(void)
         pr_err("avc_spoof: failed to register feature handler\n");
 
 #ifndef CONFIG_KPROBES
-    pr_warn("avc_spoof: CONFIG_KPROBES is disabled; using the shared avc hook only\n");
+    pr_warn("avc_spoof: CONFIG_KPROBES is disabled; using the shared slow_avc_audit hook\n");
 #endif
 }
 
