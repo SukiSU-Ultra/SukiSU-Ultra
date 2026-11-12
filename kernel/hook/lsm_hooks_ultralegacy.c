@@ -51,13 +51,33 @@ static int hook_task_fix_setuid(struct cred *new, const struct cred *old, int fl
 }
 
 static int (*orig_file_permission) (struct file *file, int mask) __read_mostly = nullptr;
+
+/*
+ * mount_hide installs its /proc/<pid>/{mounts,mountinfo,mountstats} filter
+ * from security_file_permission(), which is orthogonal to the init.rc read
+ * hook: keep this layer installed even when the read hook is done from the
+ * syscall table (CONFIG_KSU_TAMPER_SYSCALL_TABLE / branch link), and after
+ * ksu_vfs_read_hook is retired. The original selinux_ops hook is always
+ * chained, so no LSM check is lost.
+ */
+static int hook_file_permission_mount(struct file *file, int mask)
+{
+	ksu_mount_hide_file_permission(file, mask);
+
+	if (orig_file_permission)
+		return orig_file_permission(file, mask);
+	return 0;
+}
+
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
 static int hook_file_permission(struct file *file, int mask)
 {
 	if (unlikely(ksu_vfs_read_hook))
 		ksu_install_rc_hook(file);
 
-	return orig_file_permission(file, mask);
+	return hook_file_permission_mount(file, mask);
 }
+#endif
 
 static int (*orig_bprm_set_creds)(struct linux_binprm *bprm) __read_mostly = nullptr;
 static int ksu_unregister_bprm_set_creds(void *data)
@@ -309,8 +329,9 @@ static int ksu_restore_file_permission_stop_machine(void *data)
 	if (!orig_file_permission)
 		return 0;
 
-	pr_info("%s: restoring file_permission 0x%lx -> 0x%lx\n", __func__, (long)ops->file_permission, (long)orig_file_permission);
-	ops->file_permission = orig_file_permission;	
+	// retire only the init.rc read hook, keep the mount_hide layer installed
+	pr_info("%s: restoring file_permission 0x%lx -> 0x%lx (mount_hide kept)\n", __func__, (long)ops->file_permission, (long)hook_file_permission_mount);
+	ops->file_permission = hook_file_permission_mount;
 	return 0;
 }
 
@@ -350,9 +371,12 @@ static int ksu_register_lsm_hook(void *data)
 	ops->bprm_check_security = hook_bprm_check_security;
 #endif
 
-#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
 	orig_file_permission = ops->file_permission;
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
 	ops->file_permission = hook_file_permission;
+#else
+	// read hook lives in the syscall table / branch link; only mount_hide here
+	ops->file_permission = hook_file_permission_mount;
 #endif
 
 	return 0;

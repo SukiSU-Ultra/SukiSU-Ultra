@@ -47,6 +47,8 @@ int ksu_file_permission(struct file *file, int mask)
 #endif
 #endif
 
+	ksu_mount_hide_file_permission(file, mask);
+
 	return 0;
 }
 

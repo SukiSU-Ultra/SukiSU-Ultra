@@ -40,12 +40,26 @@ static __nocfi void ksu_bprm_committing_creds(struct linux_binprm *bprm)
 }
 
 static int (*file_permission_fn)(struct file *file, int mask) __read_mostly = nullptr;
+
+/*
+ * Permanent file_permission layer: installs the mount_hide /proc mount
+ * filter, then chains whatever LSM hook was there before us. It stays in
+ * place after the init.rc read hook is retired, and the captured original
+ * is always called, so mount_hide never bypasses the stock LSM check.
+ */
+static __nocfi int ksu_file_permission_mount(struct file *file, int mask)
+{
+	ksu_mount_hide_file_permission(file, mask);
+
+	return file_permission_fn(file, mask);
+}
+
 static __nocfi int ksu_file_permission(struct file *file, int mask)
 {
 	if (unlikely(ksu_vfs_read_hook))
 		ksu_install_rc_hook(file);
 
-	return file_permission_fn(file, mask);
+	return ksu_file_permission_mount(file, mask);
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
@@ -281,7 +295,10 @@ loop_start:
 
 	msleep(1000);
 
-	LSM_HACK_RESTORE(file_permission);
+	// retire only the init.rc read hook, keep the mount_hide layer installed
+	void *hook_head = (void *)&security_hook_heads.file_permission;
+	uintptr_t dummy_int;
+	ksu_hack_lsm_slot(hook_head, &dummy_int, (uintptr_t)ksu_file_permission_mount, "file_permission");
 	return 0;
 }
 
@@ -314,11 +331,12 @@ static __init void ksu_lsm_hook_init(void)
 	LSM_HACK_INIT(bprm_committing_creds, ksu_bprm_committing_creds);
 #endif
 
-	LSM_HACK_INIT(file_permission, ksu_mount_hide_file_permission);
-
 #if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
 	LSM_HACK_INIT(file_permission, ksu_file_permission);
 	kthread_run(ksu_restore_file_permission, NULL, "kthread");
+#else
+	// read hook lives in the syscall table / branch link; only mount_hide here
+	LSM_HACK_INIT(file_permission, ksu_file_permission_mount);
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)

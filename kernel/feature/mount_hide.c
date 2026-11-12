@@ -69,9 +69,20 @@
  * which is where proc_mounts::show is swapped for our filter.
  *
  * That swap is a plain store to the per-file, kmalloc'd proc_mounts (NOT rodata), so
- * no text patching is involved. Once swapped, the filter runs for every record of
- * that file, including after lseek/rewind, and the file still opens and reads
- * normally - it just never shows module records.
+ * no text patching is involved. We never compare the slot against a kallsyms
+ * address: under CFI it holds the function's jump-table entry, not the function
+ * body, and a SUSFS mounts_open() replaces it with susfs_show_vfsmnt(). Instead we
+ * chain to whatever pointer is actually installed and swap in our own wrapper, so
+ * the original show (or its SUSFS replacement) still runs. Once swapped, the filter
+ * runs for every record of that file, including after lseek/rewind, and the file
+ * still opens and reads normally - it just never shows module records.
+ *
+ * struct proc_mounts moved around over the years: 3.4 .. 4.3 embed struct seq_file
+ * at the start of proc_mounts (file->private_data is &p->m, seq_file::private stays
+ * NULL), while 4.4+ use seq_open_private() and keep seq_file::private pointing at a
+ * separately allocated proc_mounts. Both shapes are handled by testing
+ * seq_file::private at runtime, so the filter covers the whole 3.4 .. 5.x range this
+ * fork supports; the seq overflow check is shimmed for kernels older than 3.19.
  *
  * HIDE DECISION.
  * ---------------------------------------------------------
@@ -95,12 +106,44 @@ struct ksu_proc_mounts {
 	/* kernel-private tail omitted */
 };
 
+/*
+ * Kernels before ~4.4 (before seq_open_private() was used by
+ * mounts_open_common()) embed struct seq_file at the start of struct
+ * proc_mounts instead of pointing seq_file::private at it. Mirror that
+ * layout so the same filter covers 3.4 .. 4.3 too; the two are told apart
+ * at runtime by seq_file::private being non-NULL on the newer layout.
+ */
+struct ksu_proc_mounts_legacy {
+	struct seq_file m;
+	void *ns;
+	struct path root;
+	int (*show)(struct seq_file *, struct vfsmount *);
+};
+
 typedef int (*ksu_show_fn)(struct seq_file *, struct vfsmount *);
+
+/* seq_has_overflowed() only appeared in 3.19; use our own name to avoid
+ * clashing with trees that backported it.
+ */
+static inline bool ksu_seq_has_overflowed(struct seq_file *m)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)
+	return seq_has_overflowed(m);
+#else
+	return m->count == m->size;
+#endif
+}
 
 static DEFINE_MUTEX(ksu_mount_hide_mutex);
 static bool ksu_mount_hide_enabled __read_mostly = false;
-static bool ksu_mount_hide_running __read_mostly = false;
 
+/*
+ * The show function each proc mount file was opened with. Set from
+ * proc_mounts::show on the first read of a file, so it is whatever
+ * mounts_open() installed: show_vfsmnt()/show_mountinfo()/show_vfsstat(),
+ * or a SUSFS replacement. Under CFI this is a jump-table entry, which is
+ * exactly what must be called back.
+ */
 static ksu_show_fn ksu_orig_show_vfsmnt;
 static ksu_show_fn ksu_orig_show_mountinfo;
 static ksu_show_fn ksu_orig_show_vfsstat;
@@ -251,6 +294,9 @@ static int __nocfi ksu_filter_show(struct seq_file *m, struct vfsmount *mnt, ksu
 	size_t start;
 	int ret;
 
+	if (unlikely(!orig))
+		return 0; /* installed before the original show was captured */
+
 	if (!m)
 		return orig(m, mnt);
 
@@ -258,10 +304,16 @@ static int __nocfi ksu_filter_show(struct seq_file *m, struct vfsmount *mnt, ksu
 	ret = orig(m, mnt);
 	if (ret)
 		return ret; /* SEQ_SKIP / error: seq layer handles the bytes */
-	if (seq_has_overflowed(m))
+	if (ksu_seq_has_overflowed(m))
 		return 0; /* record truncated; seq will realloc and retry */
 	if (m->count <= start)
 		return 0; /* nothing emitted */
+
+	// Decide on the READER at show time, not only at install time: an fd may
+	// be handed to another process, and the feature can be toggled while a
+	// file is already open.
+	if (!ksu_should_hide_mount_for_current())
+		return 0;
 
 	if (ksu_region_has_marker(m->buf + start, m->count - start) ||
 		ksu_region_has_mount_list(m->buf + start, m->count - start) || ksu_mnt_root_hidden(mnt))
@@ -316,25 +368,24 @@ static enum ksu_mount_file ksu_mount_file_type(struct file *file)
 int ksu_mount_hide_file_permission(struct file *file, int mask)
 {
 	struct seq_file *m;
-	struct ksu_proc_mounts *p;
-	ksu_show_fn expected, filter;
+	ksu_show_fn *orig, *slot, filter;
 
 	if (!(mask & MAY_READ))
 		return 0;
-	if (unlikely(!ksu_mount_hide_running || !ksu_mount_hide_enabled))
+	if (unlikely(!ksu_mount_hide_enabled))
 		return 0;
 
 	switch (ksu_mount_file_type(file)) {
 	case KSU_MOUNT_FILE_MOUNTS:
-		expected = ksu_orig_show_vfsmnt;
+		orig = &ksu_orig_show_vfsmnt;
 		filter = ksu_show_vfsmnt;
 		break;
 	case KSU_MOUNT_FILE_MOUNTINFO:
-		expected = ksu_orig_show_mountinfo;
+		orig = &ksu_orig_show_mountinfo;
 		filter = ksu_show_mountinfo;
 		break;
 	case KSU_MOUNT_FILE_MOUNTSTATS:
-		expected = ksu_orig_show_vfsstat;
+		orig = &ksu_orig_show_vfsstat;
 		filter = ksu_show_vfsstat;
 		break;
 	default:
@@ -345,43 +396,35 @@ int ksu_mount_hide_file_permission(struct file *file, int mask)
 		return 0;
 
 	m = file->private_data;
-	if (unlikely(!m || !m->private))
+	if (unlikely(!m))
 		return 0;
-	p = m->private;
-	if (p->show == filter)
+
+	if (m->private) {
+		/* 4.4+ ..: mounts_open_common() uses seq_open_private(). */
+		struct ksu_proc_mounts *p = m->private;
+
+		slot = &p->show;
+	} else {
+		/* 3.4 .. 4.3: seq_file is embedded in struct proc_mounts. */
+		struct ksu_proc_mounts_legacy *p = (void *)m;
+
+		slot = &p->show;
+	}
+
+	if (unlikely(!*slot))
+		return 0;
+	if (*slot == filter)
 		return 0; /* already installed for this file */
-	if (unlikely(p->show != expected)) {
-		pr_warn_once("mount_hide: proc_mounts show mismatch, not filtering\n");
-		return 0;
-	}
-	p->show = filter;
-	return 0;
-}
 
-static int ksu_mount_hide_resolve(void)
-{
-	static const char *const names[] = {
-		"show_vfsmnt",
-		"show_mountinfo",
-		"show_vfsstat",
-	};
-	unsigned long addrs[ARRAY_SIZE(names)] = {};
-	int ret;
-
-	ret = ksu_lookup_kernel_symbols(names, addrs, ARRAY_SIZE(names));
-	if (ret < 0) {
-		pr_err("mount_hide: symbol lookup failed: %d\n", ret);
-		return ret;
-	}
-	if (!addrs[0] || !addrs[1] || !addrs[2]) {
-		pr_err("mount_hide: show fns unresolved (vfsmnt=%d mountinfo=%d vfsstat=%d)\n", !!addrs[0], !!addrs[1],
-			   !!addrs[2]);
-		return -ENOSYS;
-	}
-
-	ksu_orig_show_vfsmnt = (ksu_show_fn)addrs[0];
-	ksu_orig_show_mountinfo = (ksu_show_fn)addrs[1];
-	ksu_orig_show_vfsstat = (ksu_show_fn)addrs[2];
+	/*
+	 * Chain to whatever mounts_open() installed. Do NOT compare it with the
+	 * kallsyms address: under CFI the slot holds the function's jump-table
+	 * entry (e.g. show_vfsmnt.<hash>.cfi_jt), and with SUSFS sus_mount on it
+	 * holds susfs_show_vfsmnt() instead. Calling the stored pointer keeps the
+	 * original filtering (and CFI) intact.
+	 */
+	WRITE_ONCE(*orig, *slot);
+	*slot = filter;
 	return 0;
 }
 
@@ -394,18 +437,12 @@ static int mount_hide_feature_get(u64 *value)
 static int mount_hide_feature_set(u64 value)
 {
 	bool enable = value != 0;
-	int ret = 0;
 
 	pr_info("mount_hide: set to %d\n", enable);
 	mutex_lock(&ksu_mount_hide_mutex);
 	ksu_mount_hide_enabled = enable;
-	if (enable && !ksu_mount_hide_running) {
-		ret = ksu_mount_hide_resolve();
-		if (!ret)
-			ksu_mount_hide_running = true;
-	}
 	mutex_unlock(&ksu_mount_hide_mutex);
-	return ret;
+	return 0;
 }
 
 static const struct ksu_feature_handler mount_hide_handler = {
@@ -419,19 +456,12 @@ void __init ksu_mount_hide_init(void)
 {
 	if (ksu_register_feature_handler(&mount_hide_handler))
 		pr_err("Failed to register mount_hide feature handler\n");
-
-	mutex_lock(&ksu_mount_hide_mutex);
-	if (ksu_mount_hide_enabled && !ksu_mount_hide_running) {
-		if (!ksu_mount_hide_resolve())
-			ksu_mount_hide_running = true;
-	}
-	mutex_unlock(&ksu_mount_hide_mutex);
 }
 
 void __exit ksu_mount_hide_exit(void)
 {
 	mutex_lock(&ksu_mount_hide_mutex);
-	ksu_mount_hide_running = false;
+	ksu_mount_hide_enabled = false;
 	mutex_unlock(&ksu_mount_hide_mutex);
 	ksu_unregister_feature_handler(KSU_FEATURE_MOUNT_HIDE);
 }
