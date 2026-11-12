@@ -16,7 +16,7 @@ static void reset_avc_cache(u32 seqno)
 #if ((!defined(KSU_COMPAT_USE_SELINUX_STATE)) || LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0))
     avc_ss_reset(seqno);
     selnl_notify_policyload(seqno);
-    selinux_status_update_policyload(seqno0);
+    selinux_status_update_policyload(seqno);
 #else
     struct selinux_avc *avc = selinux_state.avc;
     avc_ss_reset(avc, seqno);
@@ -191,7 +191,7 @@ void apply_kernelsu_rules(void)
     }
     db = &pol->policydb;
 
-    policydb->latest_granting = old_pol->latest_granting + 1;
+    pol->latest_granting = old_pol->latest_granting + 1;
     if (!ksu_set_original_types(db, &old_pol->policydb, pol->latest_granting))
         pr_warn("failed to save original type metadata, use backup lookups\n");
 
