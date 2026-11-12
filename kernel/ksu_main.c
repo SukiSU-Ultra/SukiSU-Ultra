@@ -58,13 +58,17 @@
 #endif
 
 #include "extension/extension.h"
+#ifdef KSU_CAN_USE_CPU_SPOOF
 #include "extension/cpu_spoof.h"
+#endif
 #include "extension/umount_paths.h"
 #include "extension/dynamic_manager.h"
+#ifdef KSU_CAN_USE_KPM
 #include "extension/kpm.h"
 #include "extension/kpm/kpm.h"
 #include "extension/kpm/compact.h"
 #include "extension/kpm/super_access.h"
+#endif
 #include "extension/susfs_extension.h"
 #include "extension/dynamic_sig_fallback.h"
 #include "extension/version_spoof.h"
@@ -77,13 +81,17 @@
 
 // unity build
 #include "extension/extension.c"
+#ifdef KSU_CAN_USE_CPU_SPOOF
 #include "extension/cpu_spoof.c"
+#endif
 #include "extension/umount_paths.c"
 #include "extension/dynamic_manager.c"
+#ifdef KSU_CAN_USE_KPM
 #include "extension/kpm.c"
 #include "extension/kpm/kpm.c"
 #include "extension/kpm/compact.c"
 #include "extension/kpm/super_access.c"
+#endif
 #include "extension/susfs_extension.c"
 #include "extension/dynamic_sig_fallback.c"
 #include "extension/version_spoof.c"

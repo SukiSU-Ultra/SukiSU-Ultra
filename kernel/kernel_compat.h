@@ -266,7 +266,19 @@ __weak void groups_sort(struct group_info *group_info)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0) || defined(KSU_HAS_MODERN_STATIC_KEY_INTERFACE)
 #define KSU_COMPAT_USE_STATIC_KEY
+#endif
 
+/*
+ * KPM (extension/kpm) and the CPU spoof extension rely on kernel interfaces
+ * that are only supported on 5.10+. Compile their call sites out entirely
+ * below that, regardless of CONFIG_KPM, so 3.x/4.x/5.4 trees never pull in
+ * their headers, code or runtime hooks.
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#define KSU_CAN_USE_CPU_SPOOF
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
+#define KSU_CAN_USE_KPM
 #endif
 
 #endif

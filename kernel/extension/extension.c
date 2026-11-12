@@ -23,8 +23,12 @@ static const struct ksu_extension_handler *extension_handlers[KSU_EXTENSION_MAX]
 static DEFINE_MUTEX(extension_mutex);
 
 static const char *const extension_names[KSU_EXTENSION_MAX] = {
+#ifdef KSU_CAN_USE_KPM
     [KSU_EXTENSION_KPM] = "kpm",
+#endif
+#ifdef KSU_CAN_USE_CPU_SPOOF
     [KSU_EXTENSION_CPU_SPOOF] = "cpu_spoof",
+#endif
     [KSU_EXTENSION_UMOUNT_PATHS] = "umount_paths",
     [KSU_EXTENSION_DYNAMIC_MANAGER] = "dynamic_manager",
     [KSU_EXTENSION_SUSFS] = "susfs",
@@ -129,8 +133,12 @@ static int force_extension_param_set(const char *val,
 
 static const struct kernel_param_ops force_extension_param_ops = {
     /* A bare `force_extension` would otherwise fail parse_args() and
-     * the whole module load: keep it no-arg-friendly. */
+     * the whole module load: keep it no-arg-friendly.
+     * KERNEL_PARAM_OPS_FL_NOARG (and the ops->flags member) only exists
+     * since 3.18, so old trees must not see the designator at all. */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)
     .flags = KERNEL_PARAM_OPS_FL_NOARG,
+#endif
     .set = force_extension_param_set,
 };
 module_param_cb(force_extension, &force_extension_param_ops, NULL, 0);
@@ -510,6 +518,12 @@ void __init ksu_extension_init(void)
  */
 void __init ksu_extension_register_all(void)
 {
+    /*
+     * KPM and CPU spoof are only built on 5.10+; on older kernels their
+     * headers and unity-included sources are not compiled at all, so no
+     * handler exists and userspace sees them as unsupported.
+     */
+#ifdef KSU_CAN_USE_KPM
     /* KPM exposes .get (so KSU_EXTENSION_GET reports CONFIG_KPM)
      * but no .set. Forced-by-config is applied through
      * ksu_extension_kpm_apply_forced, a kernel-side callback that
@@ -525,6 +539,8 @@ void __init ksu_extension_register_all(void)
         .io_handler = ksu_extension_kpm_io,
         .apply_forced = ksu_extension_kpm_apply_forced,
     };
+#endif /* KSU_CAN_USE_KPM */
+#ifdef KSU_CAN_USE_CPU_SPOOF
     static const struct ksu_extension_handler cpu_spoof_handler = {
         .extension_id = KSU_EXTENSION_CPU_SPOOF,
         .name = "cpu_spoof",
@@ -533,6 +549,7 @@ void __init ksu_extension_register_all(void)
         .ops = NULL,
         .io_handler = ksu_extension_cpu_spoof_io,
     };
+#endif /* KSU_CAN_USE_CPU_SPOOF */
     static const struct ksu_extension_handler umount_paths_handler = {
         .extension_id = KSU_EXTENSION_UMOUNT_PATHS,
         .name = "umount_paths",
@@ -574,10 +591,14 @@ void __init ksu_extension_register_all(void)
         .wipe = ksu_extension_version_spoof_wipe,
     };
 
+#ifdef KSU_CAN_USE_KPM
     if (ksu_register_extension_handler(&kpm_handler))
         pr_err("extension: failed to register kpm\n");
+#endif
+#ifdef KSU_CAN_USE_CPU_SPOOF
     if (ksu_register_extension_handler(&cpu_spoof_handler))
         pr_err("extension: failed to register cpu_spoof\n");
+#endif
     if (ksu_register_extension_handler(&umount_paths_handler))
         pr_err("extension: failed to register umount_paths\n");
     if (ksu_register_extension_handler(&dynamic_manager_handler))
@@ -590,8 +611,8 @@ void __init ksu_extension_register_all(void)
     /* Publish: any future ksu_extension_apply_forced() is now safe.
      * The release-store pairs with the acquire-load in
      * ksu_extension_apply_forced() so that, on the calling CPU,
-     * the four ksu_register_extension_handler() writes above are
-     * visible before the flag is observed as set. */
+     * the handler registration writes above are visible before the
+     * flag is observed as set. */
     smp_wmb();
     WRITE_ONCE(extensions_registered, true);
 }
