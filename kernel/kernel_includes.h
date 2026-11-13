@@ -521,13 +521,18 @@ static inline void kfree_byref(void *buf) { kfree(*(void **)buf); }
 
 /**
  * disallow usage of old string functions removed on newer linux kernels
- * 
+ *
  * k7.2 deprecated strncpy, torvalds/linux 079a028
  * k6.8 deprecated strlcpy, torvalds/linux d262700
  *
+ * 3.10 and older have no strscpy() at all: kernel_compat.h supplies
+ * ksu_strscpy(), and the SUSFS kernel patch may legitimately fall back
+ * to strlcpy() there, so only poison them when strscpy() exists.
  */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0)
 #define strncpy(...) static_assert(1 == 0, "strncpy has been deprecated, please use strscpy instead")
 #define strlcpy(...) static_assert(1 == 0, "strlcpy has been deprecated, please use strscpy instead")
+#endif
 
 /**
  * workaround for gcc 4.9 with -std=gnu11 enabled
