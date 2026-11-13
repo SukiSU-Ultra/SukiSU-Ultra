@@ -680,10 +680,8 @@ static int do_get_hook_type(void __user *arg)
 	type = "Syscall Table Tamper";
 #elif defined(CONFIG_KSU_KPROBES_KSUD)
 	type = "Kprobes KSUD";
-#elif defined(CONFIG_KSU_MANUAL_HOOK)
-	type = "Manual Hook";
 #else
-	type = "Unknown";
+	type = "Manual Hook";
 #endif
 
 	strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));

@@ -515,9 +515,10 @@ void __init ksu_extension_init(void)
 void __init ksu_extension_register_all(void)
 {
     /*
-     * KPM and CPU spoof are only built on 5.10+; on older kernels their
-     * headers and unity-included sources are not compiled at all, so no
-     * handler exists and userspace sees them as unsupported.
+     * KPM is only built on 5.10+; on older kernels its headers and
+     * unity-included sources are not compiled at all, so no handler
+     * exists and userspace sees it as unsupported. CPU spoof is built
+     * on every supported kernel (3.4+).
      */
 #ifdef KSU_CAN_USE_KPM
     /* KPM exposes .get (so KSU_EXTENSION_GET reports CONFIG_KPM)
@@ -536,7 +537,6 @@ void __init ksu_extension_register_all(void)
         .apply_forced = ksu_extension_kpm_apply_forced,
     };
 #endif /* KSU_CAN_USE_KPM */
-#ifdef KSU_CAN_USE_CPU_SPOOF
     static const struct ksu_extension_handler cpu_spoof_handler = {
         .extension_id = KSU_EXTENSION_CPU_SPOOF,
         .name = "cpu_spoof",
@@ -545,7 +545,6 @@ void __init ksu_extension_register_all(void)
         .ops = NULL,
         .io_handler = ksu_extension_cpu_spoof_io,
     };
-#endif /* KSU_CAN_USE_CPU_SPOOF */
     static const struct ksu_extension_handler umount_paths_handler = {
         .extension_id = KSU_EXTENSION_UMOUNT_PATHS,
         .name = "umount_paths",
@@ -585,10 +584,8 @@ void __init ksu_extension_register_all(void)
     if (ksu_register_extension_handler(&kpm_handler))
         pr_err("extension: failed to register kpm\n");
 #endif
-#ifdef KSU_CAN_USE_CPU_SPOOF
     if (ksu_register_extension_handler(&cpu_spoof_handler))
         pr_err("extension: failed to register cpu_spoof\n");
-#endif
     if (ksu_register_extension_handler(&umount_paths_handler))
         pr_err("extension: failed to register umount_paths\n");
     if (ksu_register_extension_handler(&dynamic_manager_handler))

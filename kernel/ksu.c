@@ -109,9 +109,7 @@
 #endif
 
 #include "extension/extension.h"
-#ifdef KSU_CAN_USE_CPU_SPOOF
 #include "extension/cpu_spoof.h"
-#endif
 #include "extension/umount_paths.h"
 #include "extension/dynamic_manager.h"
 #ifdef KSU_CAN_USE_KPM
@@ -127,9 +125,7 @@
 
 // unity build
 #include "extension/extension.c"
-#ifdef KSU_CAN_USE_CPU_SPOOF
 #include "extension/cpu_spoof.c"
-#endif
 #include "extension/umount_paths.c"
 #include "extension/dynamic_manager.c"
 #ifdef KSU_CAN_USE_KPM

@@ -318,14 +318,14 @@ struct ksu_static_key_true_false { struct static_key key; };
 #endif
 
 /*
- * KPM (extension/kpm) and the CPU spoof extension rely on kernel interfaces
- * that are only supported on 5.10+. Compile their call sites out entirely
- * below that, regardless of CONFIG_KPM, so 3.x/4.x/5.4 trees never pull in
- * their headers, code or runtime hooks.
+ * KPM (extension/kpm) relies on kernel interfaces that are only supported
+ * on 5.10+. Compile its call sites out entirely below that, regardless of
+ * CONFIG_KPM, so 3.x/4.x/5.4 trees never pull in its headers, code or
+ * runtime hooks. CPU spoof is not gated: cpu_spoof.c selects the kernel
+ * ABI it needs per version and works back to 3.4.
  */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #define KSU_CAN_USE_KPM
-#define KSU_CAN_USE_CPU_SPOOF
 #endif
 
 struct user_arg_ptr {
