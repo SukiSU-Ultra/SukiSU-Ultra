@@ -27,6 +27,7 @@ static const char *const extension_names[KSU_EXTENSION_MAX] = {
     [KSU_EXTENSION_CPU_SPOOF] = "cpu_spoof",
     [KSU_EXTENSION_UMOUNT_PATHS] = "umount_paths",
     [KSU_EXTENSION_DYNAMIC_MANAGER] = "dynamic_manager",
+    [KSU_EXTENSION_SUSFS] = "susfs",
     [KSU_EXTENSION_VERSION_SPOOF] = "version_spoof",
 };
 
@@ -565,6 +566,11 @@ void __init ksu_extension_register_all(void)
         .ops = &ksu_extension_dynamic_manager_ops,
         .io_handler = ksu_extension_dynamic_manager_io,
     };
+    static const struct ksu_extension_handler susfs_handler = {
+        .extension_id = KSU_EXTENSION_SUSFS,
+        .name = "susfs",
+        .ops = &ksu_extension_susfs_ops,
+    };
     static const struct ksu_extension_handler version_spoof_handler = {
         .extension_id = KSU_EXTENSION_VERSION_SPOOF,
         .name = "version_spoof",
@@ -587,6 +593,8 @@ void __init ksu_extension_register_all(void)
         pr_err("extension: failed to register umount_paths\n");
     if (ksu_register_extension_handler(&dynamic_manager_handler))
         pr_err("extension: failed to register dynamic_manager\n");
+    if (ksu_register_extension_handler(&susfs_handler))
+        pr_err("extension: failed to register susfs\n");
     if (ksu_register_extension_handler(&version_spoof_handler))
         pr_err("extension: failed to register version_spoof\n");
 

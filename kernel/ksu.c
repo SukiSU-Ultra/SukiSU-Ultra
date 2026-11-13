@@ -121,6 +121,7 @@
 #include "extension/kpm/super_access.h"
 #endif
 #include "extension/dynamic_sig_fallback.h"
+#include "extension/susfs_extension.h"
 #include "extension/version_spoof.h"
 #include "feature/uts_spoof.h"
 
@@ -138,6 +139,7 @@
 #include "extension/kpm/super_access.c"
 #endif
 #include "extension/dynamic_sig_fallback.c"
+#include "extension/susfs_extension.c"
 #include "extension/version_spoof.c"
 #include "feature/avc_spoof.c"
 #include "feature/uts_spoof.c"
