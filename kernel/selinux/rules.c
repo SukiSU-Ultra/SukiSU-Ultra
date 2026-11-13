@@ -23,6 +23,12 @@ static void reset_avc_cache(u32 seqno)
 	selinux_status_update_policyload(&selinux_state, seqno);
 #endif
 	selinux_xfrm_notify_policyload();
+
+#ifdef CONFIG_KSU_SUSFS
+	// refresh the SID cache after every policy load/update, SUSFS' avc spoof
+	// and our setresuid hook both compare against these
+	susfs_set_batch_sid();
+#endif
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)

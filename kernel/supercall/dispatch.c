@@ -97,6 +97,10 @@ static int do_report_event(void __user *arg)
 			boot_complete_lock = true;
 			pr_info("boot_complete triggered\n");
 			on_boot_completed();
+#ifdef CONFIG_KSU_SUSFS
+			// sdcard / android_data are decrypted by now, stop faking ids
+			susfs_start_sdcard_monitor_fn();
+#endif
 		}
 		break;
 	}

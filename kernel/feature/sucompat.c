@@ -7,7 +7,43 @@
 #define SU_PATH "/system/bin/su"
 #define SH_PATH "/system/bin/sh"
 
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * CONFIG_KSU_SUSFS means the susfs4ksu kernel patch is in the tree and its
+ * inline hooks call us directly. The kernel side needs a real symbol named
+ * ksu_su_compat_enabled (fs/exec.c, fs/namei.c, fs/stat.c), so this cannot
+ * stay a private bool.
+ *
+ * Kernel-side ABI by version (3.4 - 5.4 ARM64):
+ *   >= 4.3 : extern struct static_key_true ksu_su_compat_enabled;
+ *            test with static_branch_likely(&ksu_su_compat_enabled);
+ *   <  4.3 : extern bool ksu_su_compat_enabled;
+ *            test with a plain READ_ONCE().
+ * 4.3 is the first release with the typed struct static_key_{true,false}
+ * wrappers; older trees only have bare struct static_key and SukiSU's own
+ * ksu_static_key_true_false wrapper, which the kernel source cannot use.
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0)
+DEFINE_STATIC_KEY_TRUE(ksu_su_compat_enabled);
+#define ksu_su_compat_active()	static_key_enabled(&ksu_su_compat_enabled.key)
+#define ksu_su_compat_set(on)	do {					\
+	if (on)								\
+		static_branch_enable(&ksu_su_compat_enabled);		\
+	else								\
+		static_branch_disable(&ksu_su_compat_enabled);		\
+} while (0)
+#else
+bool ksu_su_compat_enabled __read_mostly = true;
+#define ksu_su_compat_active()	(READ_ONCE(ksu_su_compat_enabled))
+#define ksu_su_compat_set(on)	WRITE_ONCE(ksu_su_compat_enabled, (on))
+#endif
+
+static const char su_path[] = SU_PATH;
+static const char sh_path[] = SH_PATH;
+static const char ksud_path[] = KSUD_PATH;
+#else
 static bool ksu_su_compat_enabled __read_mostly = true;
+#endif
 
 static char __user *sh_user_path(void)
 {
@@ -20,6 +56,334 @@ static char __user *ksud_user_path(void)
 	constexpr char ksud_path[16] = KSUD_PATH;
 	return userspace_stack_buffer(ksud_path, sizeof(ksud_path));
 }
+
+#ifdef CONFIG_KSU_SUSFS
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
+/*
+ * 3.14+ ABI. Everything below is called from the inline hooks that the
+ * susfs4ksu kernel patch installs in fs/exec.c, fs/namei.c and fs/stat.c.
+ * These calls happen at the very beginning of the syscall, with a kernel
+ * struct filename that we are allowed to rewrite in place.
+ *
+ * Return convention: 0 means "this is a handled su session", any other value
+ * means "not ours, keep going".
+ */
+int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
+			void *envp, int *flags);
+
+static int ksu_handle_execveat_init(struct filename *filename, struct user_arg_ptr *argv_user,
+				    struct user_arg_ptr *envp_user)
+{
+	int ret = 0;
+
+	if (current->pid == 1)
+		return -EINVAL;
+
+	if (!is_init(get_current_cred()))
+		return -EINVAL;
+
+	if (unlikely(!strcmp(filename->name, KSUD_PATH))) {
+		pr_info("hook_manager: escape to root for init executing ksud: %d\n", current->pid);
+#ifdef CONFIG_KSU_FEATURE_SULOG
+		ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
+#endif
+		ret = escape_to_root_for_init();
+		if (ret) {
+			pr_err("escape_to_root_for_init() failed: %d\n", ret);
+			return ret;
+		}
+		return 0;
+	}
+
+	if (likely(!strstr(filename->name, "/app_process") && !strstr(filename->name, "/adbd") &&
+		   !strstr(filename->name, "/stub_zygote"))) {
+		pr_info("susfs: mark no sucompat checks for pid: '%d', exec: '%s'\n",
+			current->pid, filename->name);
+		susfs_set_current_proc_no_su();
+		/*
+		 * Marking proc umounted here is useless because only zygote spawned
+		 * processes will umount the sus mounts, tho other susfs features
+		 * still rely on the proc_umounted check. It is fine to not spoof
+		 * for init spawned processes.
+		 */
+		return 0;
+	}
+
+#ifdef CONFIG_KSU_FEATURE_ADBROOT
+#ifdef CONFIG_COMPAT
+	if (unlikely(envp_user->is_compat))
+		ret = ksu_adb_root_handle_execveat(filename->name, (void ***)&envp_user->ptr.compat);
+	else
+		ret = ksu_adb_root_handle_execveat(filename->name, (void ***)&envp_user->ptr.native);
+#else
+	ret = ksu_adb_root_handle_execveat(filename->name, (void ***)&envp_user->ptr.native);
+#endif
+#endif
+
+	if (ret)
+		pr_err("adb root failed: %d\n", ret);
+
+	return ret;
+}
+
+int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
+				 void *argv_user, void *envp_user, int *flags)
+{
+	struct filename *filename;
+	int ret;
+
+	if (unlikely(!filename_ptr))
+		return -EINVAL;
+
+	filename = *filename_ptr;
+	if (IS_ERR(filename))
+		return -EINVAL;
+
+	if (!ksu_handle_execveat_init(filename, (struct user_arg_ptr *)argv_user,
+				      (struct user_arg_ptr *)envp_user))
+		return -EINVAL;
+
+	if (likely(!__ksu_is_allow_uid_for_current(current_uid().val)))
+		return -EINVAL;
+
+	if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
+		return -EINVAL;
+
+	ret = escape_with_root_profile();
+	if (ret) {
+		pr_err("escape_with_root_profile() failed: %d\n", ret);
+		return -EINVAL;
+	}
+
+	pr_info("ksu_handle_execveat_sucompat: su->ksud!\n");
+
+#ifdef CONFIG_KSU_FEATURE_SULOG
+	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
+#endif
+
+	memcpy_inline(filename->name, ksud_path, sizeof(ksud_path));
+	return 0;
+}
+
+int ksu_handle_post_execveat_sucompat(int *fd, struct filename **filename_ptr, void *argv_user,
+				      void *envp_user, int *flags, int *retval)
+{
+	if (*retval >= 0)
+		(void)ksu_install_su_fd();
+
+	return 0;
+}
+
+int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags)
+{
+	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp, flags);
+}
+
+int ksu_handle_faccessat(int *dfd, struct filename **filename_ptr, int *mode, int *__unused_flags)
+{
+	struct filename *filename = *filename_ptr;
+
+	if (unlikely(IS_ERR(filename) || filename->name == NULL))
+		return 0;
+
+	if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
+		return 0;
+
+	pr_info("ksu_handle_faccessat: su->sh!\n");
+	memcpy_inline(filename->name, sh_path, sizeof(sh_path));
+	return 0;
+}
+
+int ksu_handle_stat(int *dfd, struct filename **filename_ptr, int *flags)
+{
+	struct filename *filename = *filename_ptr;
+
+	if (unlikely(IS_ERR(filename) || filename->name == NULL))
+		return 0;
+
+	if (likely(memcmp(filename->name, su_path, sizeof(su_path))))
+		return 0;
+
+	pr_info("ksu_handle_stat: su->sh!\n");
+	memcpy_inline(filename->name, sh_path, sizeof(sh_path));
+	return 0;
+}
+
+#else /* LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0) */
+
+/*
+ * 3.4 - 3.13 ABI. These kernels have no struct filename: do_execve_common()
+ * gets a plain kernel string, while the syscall entry points still get the
+ * user pointer. The kernel-side SUSFS port can hook either one; both use
+ * the same function names as the non-SUSFS backends so the same hook code
+ * works no matter whether CONFIG_KSU_SUSFS is set.
+ *
+ * Gating is done again here on purpose: the legacy kernels have no
+ * reliable branch patching, so the hook may stay callable after sucompat
+ * has been turned off.
+ */
+
+static bool ksu_legacy_is_su_user(const char __user *filename_user)
+{
+	char buf[sizeof(SU_PATH) + 1] = { 0 };
+
+	if (unlikely(!filename_user || IS_ERR(filename_user)))
+		return false;
+
+	if (strncpy_from_user(buf, filename_user, sizeof(SU_PATH)) < 0)
+		return false;
+
+	return !strcmp(buf, SU_PATH);
+}
+
+static bool ksu_legacy_is_su_kern(const char *filename)
+{
+	return likely(filename && !strcmp(filename, SU_PATH));
+}
+
+static bool ksu_legacy_has_ksud(void)
+{
+	struct path kpath;
+	bool found;
+
+	if (kern_path(KSUD_PATH, 0, &kpath))
+		return false;
+
+	found = true;
+	path_put(&kpath);
+	return found;
+}
+
+static bool ksu_legacy_escape(const char *syscall_name)
+{
+	pr_info("su_compat: %s su found\n", syscall_name);
+
+#ifdef CONFIG_KSU_FEATURE_SULOG
+	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
+#endif
+	if (!!escape_with_root_profile())
+		return false;
+
+	ksu_install_su_fd(); // ksu#3679
+	return true;
+}
+
+/* sys_execve / compat_sys_execve, user filename pointer */
+int ksu_handle_sys_execve(const char __user **filename_user, void *argv, void *envp)
+{
+	if (likely(!ksu_su_compat_active()))
+		return 0;
+
+	if (unlikely(!filename_user || !*filename_user))
+		return 0;
+
+	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
+
+	if (likely(!__ksu_is_allow_uid_for_current(current_uid().val)))
+		return 0;
+
+	if (!ksu_legacy_is_su_user(*filename_user))
+		return 0;
+
+	write_sulog('x');
+	if (!ksu_legacy_escape("sys_execve"))
+		return 0;
+
+	if (ksu_legacy_has_ksud()) {
+		pr_info("su_compat: sys_execve su->ksud!%s\n", is_compat_task() ? " [compat]" : "");
+		*filename_user = ksud_user_path();
+	} else {
+		pr_info("su_compat: sys_execve su->sh!%s\n", is_compat_task() ? " [compat]" : "");
+		*filename_user = sh_user_path();
+	}
+
+	return 0;
+}
+
+/* do_execve_common, kernel filename pointer */
+int ksu_legacy_execve_sucompat(const char **filename_ptr, void *argv, void *envp)
+{
+	if (likely(!ksu_su_compat_active()))
+		return 0;
+
+	ksu_adb_root_execve_kernel((void *)filename_ptr, (void *)envp);
+
+	if (likely(!filename_ptr || !*filename_ptr))
+		return 0;
+
+	if (likely(!__ksu_is_allow_uid_for_current(current_uid().val)))
+		return 0;
+
+	if (!ksu_legacy_is_su_kern(*filename_ptr))
+		return 0;
+
+	write_sulog('x');
+	if (!ksu_legacy_escape("do_execve_common"))
+		return 0;
+
+	/*
+	 * The string comes from getname(), i.e. a __getname() PATH_MAX buffer,
+	 * so it is writable and big enough for both paths (as on >= 3.14).
+	 */
+	if (ksu_legacy_has_ksud()) {
+		constexpr char ksud[16] = KSUD_PATH;
+		pr_info("su_compat: do_execve_common su->ksud!%s\n", is_compat_task() ? " [compat]" : "");
+		memcpy_inline((void *)*filename_ptr, ksud, sizeof(ksud));
+	} else {
+		constexpr char sh[16] = SH_PATH;
+		pr_info("su_compat: do_execve_common su->sh!%s\n", is_compat_task() ? " [compat]" : "");
+		memcpy_inline((void *)*filename_ptr, sh, sizeof(sh));
+	}
+
+	return 0;
+}
+
+static void ksu_legacy_filename_to_sh(const char __user **filename_user, const char *syscall_name,
+				      uint8_t sulog_sym)
+{
+	if (likely(!ksu_su_compat_active()))
+		return;
+
+	if (!ksu_legacy_is_su_user(*filename_user))
+		return;
+
+	write_sulog(sulog_sym);
+	pr_info("su_compat: %s su->sh!%s\n", syscall_name, is_compat_task() ? " [compat]" : "");
+	*filename_user = sh_user_path();
+}
+
+/* sys_faccessat */
+int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *__unused_flags)
+{
+	ksu_legacy_filename_to_sh(filename_user, "sys_faccessat", 'a');
+	return 0;
+}
+
+/* sys_newfstatat, sys_fstat64 */
+int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
+{
+	ksu_legacy_filename_to_sh(filename_user, "sys_newfstatat", 's');
+	return 0;
+}
+
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0) */
+
+static void ksu_sucompat_enable(void)
+{
+	ksu_su_compat_set(true);
+	smp_mb();
+	pr_info("%s: hooks enabled: exec, faccessat, stat\n", __func__);
+}
+
+static void ksu_sucompat_disable(void)
+{
+	ksu_su_compat_set(false);
+	smp_mb();
+	pr_info("%s: hooks disabled: exec, faccessat, stat\n", __func__);
+}
+
+#else /* !CONFIG_KSU_SUSFS */
 
 #if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && defined(KSU_CAN_USE_JUMP_LABEL)
 DEFINE_STATIC_KEY_TRUE(ksu_sucompat_key);
@@ -89,7 +453,7 @@ static __always_inline bool is_su_allowed(const void **ptr_to_check)
 uid_check:
 #ifdef CONFIG_KSU_SHELL_HAS_SU_ALWAYS
 	/**
-	 * NOTE: if shell always has su anyway, and full uid checks are disabled, 
+	 * NOTE: if shell always has su anyway, and full uid checks are disabled,
 	 * we can skip all these checks. this goto is for explicitness / code style
 	 */
 	 goto check_ptr;
@@ -97,7 +461,7 @@ uid_check:
 #else /* default behavior */
 	/**
 	 * NOTE: shell has its seccomp disabled, so we only need
-	 * to check for this thing. short-circuit if not shell! 
+	 * to check for this thing. short-circuit if not shell!
 	 * as we allow apps on setuid lsm by disabling seccomp
 	 */
 	if (likely(uid != 2000))
@@ -139,7 +503,7 @@ static __always_inline bool is_user_filename_su(const char __user **filename_use
 
 	/*
 	 * it seems this is actually the slowest part, so we peek last word first to speed it up
-	 * NOTE: get_user rets EFAULT on err, so if we are copying a pointer that points to nothing, 
+	 * NOTE: get_user rets EFAULT on err, so if we are copying a pointer that points to nothing,
 	 * we also detect that and ret fast
 	 *
 	 * first read overreads, reading 8 bytes, "bin/su\0?" /  4 bytes, "su\0?" when we only need 7/3
@@ -380,9 +744,15 @@ static void ksu_sucompat_disable()
 	pr_info("%s: hooks disabled: exec, faccessat, stat\n", __func__);
 }
 
+#endif /* CONFIG_KSU_SUSFS */
+
 static int su_compat_feature_get(u64 *value)
 {
+#ifdef CONFIG_KSU_SUSFS
+	*value = ksu_su_compat_active() ? 1 : 0;
+#else
 	*value = ksu_su_compat_enabled ? 1 : 0;
+#endif
 	return 0;
 }
 
@@ -390,7 +760,11 @@ static int su_compat_feature_set(u64 value)
 {
 	bool enable = value != 0;
 
+#ifdef CONFIG_KSU_SUSFS
+	if (enable == ksu_su_compat_active()) {
+#else
 	if (enable == ksu_su_compat_enabled) {
+#endif
 		pr_info("su_compat: no need to change\n");
 	return 0;
 	}
@@ -401,7 +775,9 @@ static int su_compat_feature_set(u64 value)
 		ksu_sucompat_disable();
 	}
 
+#ifndef CONFIG_KSU_SUSFS
 	ksu_su_compat_enabled = enable;
+#endif
 	pr_info("su_compat: set to %d\n", enable);
 
 	return 0;

@@ -38,6 +38,35 @@ static inline void ksu_disable_vfs_read_branch()
 #define ksu_disable_vfs_read_branch() do { } while (0)
 #endif
 
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * Referenced by the SUSFS fs/read_write.c, fs/stat.c and input.c inline hooks.
+ *
+ * Kernel-side ABI by version (3.4 - 5.4 ARM64):
+ *   >= 4.3 : extern struct static_key_true ksu_is_init_rc_hook_enabled;
+ *            extern struct static_key_true ksu_is_input_hook_enabled;
+ *            test with static_branch_unlikely(&key);
+ *   <  4.3 : extern bool ksu_is_init_rc_hook_enabled;
+ *            extern bool ksu_is_input_hook_enabled;
+ *            test with a plain READ_ONCE().
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0)
+DEFINE_STATIC_KEY_TRUE(ksu_is_init_rc_hook_enabled);
+DEFINE_STATIC_KEY_TRUE(ksu_is_input_hook_enabled);
+#define ksu_init_rc_hook_active()	static_key_enabled(&ksu_is_init_rc_hook_enabled.key)
+#define ksu_init_rc_hook_disable()	static_branch_disable(&ksu_is_init_rc_hook_enabled)
+#define ksu_input_hook_active()		static_key_enabled(&ksu_is_input_hook_enabled.key)
+#define ksu_input_hook_disable()	static_branch_disable(&ksu_is_input_hook_enabled)
+#else
+bool ksu_is_init_rc_hook_enabled __read_mostly = true;
+bool ksu_is_input_hook_enabled __read_mostly = true;
+#define ksu_init_rc_hook_active()	(READ_ONCE(ksu_is_init_rc_hook_enabled))
+#define ksu_init_rc_hook_disable()	WRITE_ONCE(ksu_is_init_rc_hook_enabled, false)
+#define ksu_input_hook_active()		(READ_ONCE(ksu_is_input_hook_enabled))
+#define ksu_input_hook_disable()	WRITE_ONCE(ksu_is_input_hook_enabled, false)
+#endif
+#endif
+
 static ssize_t (*orig_read)(struct file *, char __user *, size_t, loff_t *);
 static ssize_t (*orig_read_iter)(struct kiocb *, struct iov_iter *);
 static struct file_operations fops_proxy;
@@ -381,6 +410,49 @@ static noinline void ksu_handle_sys_read_fd(unsigned int fd)
 	fput(file);
 }
 
+#ifdef CONFIG_KSU_SUSFS
+/* SUSFS fs/read_write.c inline hook: SYSCALL_DEFINE3(read, ...) */
+void ksu_handle_sys_read(unsigned int fd)
+{
+	if (likely(!ksu_init_rc_hook_active()))
+		return;
+
+	ksu_handle_sys_read_fd(fd);
+}
+
+/*
+ * SUSFS fs/stat.c inline hook: vfs_fstat() after vfs_getattr(). There is no
+ * user stat buffer here, the kernel kstat is already filled, so only the
+ * size has to be extended for init.rc readers.
+ */
+void ksu_handle_vfs_fstat(int fd, loff_t *kstat_size_ptr)
+{
+	if (likely(!ksu_init_rc_hook_active()))
+		return;
+
+	if (!kstat_size_ptr)
+		return;
+
+	struct file *file = fget(fd);
+	if (!file)
+		return;
+
+	bool is_rc = is_init_rc(file);
+	fput(file);
+	if (!is_rc)
+		return;
+
+	// same preempt dance as ksu_common_newfstat_ret, we may be in a kretprobe
+	if (preemptible())
+		set_module_rc_len_vfs();
+
+	loff_t old_size = *kstat_size_ptr;
+	*kstat_size_ptr = old_size + (loff_t)ksu_rc_len + (loff_t)module_rc_len;
+	pr_info("ksu_handle_vfs_fstat: adding rc len: %lld -> %lld (static=%zu module=%zu)\n",
+		old_size, *kstat_size_ptr, ksu_rc_len, module_rc_len);
+}
+#endif // CONFIG_KSU_SUSFS
+
 #define STAT_NATIVE 0
 #define STAT_STAT64 1
 static inline void ksu_common_newfstat_ret(unsigned int fd_int, void **statbuf_ptr, 
@@ -552,6 +624,43 @@ static void vol_detector_event(struct input_handle *handle, unsigned int type, u
 	}
 }
 
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * SUSFS drivers/input/input.c inline hook. No input_handler is registered in
+ * this mode, the kernel calls us from input_event() directly.
+ */
+int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value)
+{
+	static int vol_up_cnt = 0;
+	static int vol_down_cnt = 0;
+
+	if (!type || !code || !value || !*value)
+		return 0;
+
+	if (*type != EV_KEY)
+		return 0;
+
+	if (*code == KEY_VOLUMEDOWN) {
+		vol_down_cnt++;
+		pr_info("KEY_VOLUMEDOWN press detected!\n");
+	}
+
+	if (*code == KEY_VOLUMEUP) {
+		vol_up_cnt++;
+		pr_info("KEY_VOLUMEUP press detected!\n");
+	}
+
+	pr_info("volume_pressed_count: vol_up: %d vol_down: %d\n", vol_up_cnt, vol_down_cnt);
+
+	if (vol_up_cnt >= VOLUME_PRESS_THRESHOLD_COUNT || vol_down_cnt >= VOLUME_PRESS_THRESHOLD_COUNT) {
+		pr_info("volume keys pressed max times, safe mode detected!\n");
+		safe_mode_flag = true;
+	}
+
+	return 0;
+}
+#endif // CONFIG_KSU_SUSFS
+
 static int vol_detector_connect(struct input_handler *handler, struct input_dev *dev,
 					  const struct input_device_id *id)
 {
@@ -672,6 +781,12 @@ static void stop_init_rc_hook()
 	ksu_vfs_read_hook = false;
 	pr_info("stop vfs_read_hook\n");
 	ksu_disable_vfs_read_branch();
+#ifdef CONFIG_KSU_SUSFS
+	if (ksu_init_rc_hook_active()) {
+		ksu_init_rc_hook_disable();
+		pr_info("stop init_rc inline hook\n");
+	}
+#endif
 	ksu_disable_preinit_branch(nullptr);
 
 	kthread_run(ksu_hook_watchdog, NULL, "watchdog");
@@ -682,12 +797,19 @@ static void ksu_stop_input_hook_runtime()
 	if (!ksu_input_hook) { return; }
 	ksu_input_hook = false;
 	pr_info("stop input_hook\n");
-	
+
+#ifdef CONFIG_KSU_SUSFS
+	if (ksu_input_hook_active())
+		ksu_input_hook_disable();
+#else
 	vol_detector_exit();
+#endif
 }
 
 void __init ksu_ksud_init()
 {
+#ifndef CONFIG_KSU_SUSFS
 	vol_detector_init();
+#endif
 }
 

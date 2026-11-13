@@ -53,6 +53,10 @@ static void ksu_rename_observer_slow(struct dentry *old_dentry, struct dentry *n
 
 	pr_info("renameat: %s -> %s, new path: %s\n", old_dentry->d_iname, new_dentry->d_iname, buf);
 	track_throne(false);
+#ifdef CONFIG_KSU_SUSFS_PRIORITY_UID_FILTER
+	// Renew the priority uid bitmap filter after packages.list changed
+	susfs_parse_priority_app_strings();
+#endif
 	return;
 }
 

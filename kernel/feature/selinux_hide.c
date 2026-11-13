@@ -207,11 +207,48 @@ static int ksu_prepare_fake_status_page()
 #endif
 
 	ksu_fake_status_page = new_page;
-    
+
 	pr_info("selinux_hide: ksu_fake_status_page ready! seq=%d\n", fake_status->sequence);
-            
+
 	return 0;
 }
+
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * The SUSFS kernel patch handles /sys/fs/selinux/{status,context,access}
+ * and selinux_setprocattr() in the kernel source when
+ * ksu_selinux_hide_running is set. It needs these exact symbols.
+ *
+ * fake_status_initialize_key ABI by version (3.4 - 5.4 ARM64):
+ *   >= 4.3 : extern struct static_key_false fake_status_initialize_key;
+ *            test with static_branch_unlikely(&fake_status_initialize_key);
+ *   <  4.3 : extern bool fake_status_initialize_key;
+ *            test with a plain READ_ONCE().
+ */
+bool ksu_selinux_hide_running __read_mostly = false;
+struct page *fake_status __read_mostly = NULL;
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0)
+DEFINE_STATIC_KEY_FALSE(fake_status_initialize_key);
+#define ksu_fake_status_init_pending()	static_key_enabled(&fake_status_initialize_key.key)
+#define ksu_fake_status_init_start()	static_key_enable(&fake_status_initialize_key.key)
+#define ksu_fake_status_init_stop()	static_branch_disable(&fake_status_initialize_key)
+#else
+bool fake_status_initialize_key __read_mostly = false;
+#define ksu_fake_status_init_pending()	(READ_ONCE(fake_status_initialize_key))
+#define ksu_fake_status_init_start()	WRITE_ONCE(fake_status_initialize_key, true)
+#define ksu_fake_status_init_stop()	WRITE_ONCE(fake_status_initialize_key, false)
+#endif
+
+void initialize_fake_status(void)
+{
+	if (fake_status)
+		return;
+
+	if (!ksu_prepare_fake_status_page())
+		fake_status = ksu_fake_status_page;
+}
+#endif // CONFIG_KSU_SUSFS
 
 static int (*sel_open_handle_status_fn)(struct inode *inode, struct file *filp) __read_mostly = nullptr;
 static __nocfi int ksu_sel_open_handle_status(struct inode *inode, struct file *filp)
@@ -316,11 +353,24 @@ try_again:
 	goto try_again;
 
 page_ok:
+#ifdef CONFIG_KSU_SUSFS
+	// the kernel patch serves fake_status itself, no fops hijack needed
+	initialize_fake_status();
+	if (fake_status) {
+		if (ksu_fake_status_init_pending())
+			ksu_fake_status_init_stop();
+		if (ksu_selinux_hide_enabled)
+			ksu_selinux_hide_running = true;
+	} else {
+		pr_warn("selinux_hide: fake status not ready, SUSFS status spoof disabled\n");
+	}
+#else
 	ksu_init_hook_sel_handle_status_ops_open();
 	ksu_init_hook_transaction_ops_write();
+#endif
 
 	// selinux_setprocattr hook init is on lsm.
-	
+
 	// downstream/slow_avc_audit_defs.h
 	ksu_init_slow_avc_audit_hook();
 
@@ -348,6 +398,11 @@ static int selinux_hide_feature_set(u64 value)
 	else
 		ksu_selinux_hide_enabled = false;
 
+#ifdef CONFIG_KSU_SUSFS
+	// kernel-side status/context/access spoof follows this flag
+	ksu_selinux_hide_running = ksu_selinux_hide_enabled && !!fake_status;
+#endif
+
 	return ret;
 }
 
@@ -362,6 +417,11 @@ void __init ksu_selinux_hide_init()
 {
 	ksu_selinux_hide_alloc_hazptr_slot();
 
+#ifdef CONFIG_KSU_SUSFS
+	// allow selinuxfs.c to lazily build the fake status page on first open
+	ksu_fake_status_init_start();
+#endif
+
 	// we init this on a kthread
 	kthread_run(ksu_selinux_hide_init_thread, NULL, "kthread");
 
@@ -372,6 +432,9 @@ void __init ksu_selinux_hide_init()
 
 void __exit ksu_selinux_hide_exit()
 {
+#ifdef CONFIG_KSU_SUSFS
+	ksu_selinux_hide_running = false;
+#endif
 	ksu_unregister_feature_handler(KSU_FEATURE_SELINUX_HIDE);
 }
 

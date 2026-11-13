@@ -1,5 +1,10 @@
 #define KSU_SUPPORT_ADD_TYPE
 
+#ifdef CONFIG_KSU_SUSFS
+extern int susfs_add_sus_avd_allowed_by_type(u32 s_type, u32 t_type, u32 c_type, u32 orig_avd_allowed);
+extern int susfs_add_sus_type(const char *secctx, u32 type_value);
+#endif // CONFIG_KSU_SUSFS
+
 /*
  * Adapt to Huawei HISI kernel without affecting other kernels ,
  * Huawei Hisi Kernel EBITMAP Enable or Disable Flag ,
@@ -338,6 +343,12 @@ static bool add_rule_raw(struct policydb *db, struct type_datum *src, struct typ
 			if (!node)
 				return false;
 		}
+
+#ifdef CONFIG_KSU_SUSFS
+		// track the allowed bits before inversion, SUSFS evades avc log
+		// spoofing based on this per type/class bitmap
+		susfs_add_sus_avd_allowed_by_type(src->value, tgt->value, cls->value, node->datum.u.data);
+#endif // CONFIG_KSU_SUSFS
 
 		if (invert) {
 			if (perm)
@@ -726,7 +737,7 @@ static void *ksu_kvrealloc_compat(const void *p, size_t oldsize, size_t newsize,
 #define ksu_kvrealloc(p, new_size, old_size) ksu_kvrealloc_compat(p, old_size, new_size, GFP_KERNEL)
 #endif
 
-static bool add_type(struct policydb *db, const char *type_name, bool attr)
+static bool __add_type(struct policydb *db, const char *type_name, bool attr)
 {
 #ifdef KSU_SUPPORT_ADD_TYPE
 	struct type_datum *type = symtab_search(&db->p_types, type_name);
@@ -1019,6 +1030,23 @@ static bool add_type(struct policydb *db, const char *type_name, bool attr)
 #else
 	return false;
 #endif
+}
+
+static bool add_type(struct policydb *db, const char *type_name, bool attr)
+{
+	bool ret = __add_type(db, type_name, attr);
+
+#ifdef CONFIG_KSU_SUSFS
+	if (ret) {
+		// let SUSFS track the new type so sus_avd/type based hiding keeps working
+		struct type_datum *type = symtab_search(&db->p_types, type_name);
+
+		if (type)
+			susfs_add_sus_type(type_name, type->value);
+	}
+#endif // CONFIG_KSU_SUSFS
+
+	return ret;
 }
 
 static bool set_type_state(struct policydb *db, const char *type_name,

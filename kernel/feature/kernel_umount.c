@@ -125,6 +125,48 @@ static inline int ksu_handle_umount(struct cred *new, const struct cred *old)
 	return 0;
 }
 
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * Called from ksu_handle_setresuid() when the setresuid caller is already
+ * known to be a zygote/zygote_next process (checked by SELinux domain, not by
+ * the old cred). Performs the same umount work without re-checking the old
+ * cred's domain.
+ */
+int ksu_handle_umount_from_zygote(uid_t old_uid, uid_t new_uid)
+{
+	if (!ksu_kernel_umount_enabled)
+		return 0;
+
+	if (!ksu_module_mounted)
+		return 0;
+
+	if (!is_appuid(new_uid) && new_uid != WEBVIEW_ZYGOTE_UID && !is_isolated_process(new_uid))
+		return 0;
+
+	if (!ksu_uid_should_umount(new_uid) && !is_isolated_process(new_uid))
+		return 0;
+
+	pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);
+
+	// hostsredirect and getpriority filter tracks this flag
+	set_thread_flag(TIF_KSU_UNMOUNTABLE);
+
+	const struct cred *saved = override_creds(ksu_cred);
+
+	struct mount_entry *entry;
+	down_read(&mount_list_lock);
+	list_for_each_entry (entry, &mount_list, list) {
+		pr_info("%s: unmounting: %s flags: 0x%x\n", __func__, entry->umountable, entry->flags);
+		try_umount(entry->umountable, entry->flags);
+	}
+	up_read(&mount_list_lock);
+
+	revert_creds(saved);
+
+	return 0;
+}
+#endif // CONFIG_KSU_SUSFS
+
 void __init ksu_kernel_umount_init(void)
 {
 	if (ksu_register_feature_handler(&kernel_umount_handler)) {

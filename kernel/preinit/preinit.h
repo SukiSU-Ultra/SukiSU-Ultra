@@ -1,7 +1,16 @@
 #ifndef __KSU_H_PREINIT
 #define __KSU_H_PREINIT
 
-#if !defined(CONFIG_ARM64) || !defined(KSU_CAN_USE_JUMP_LABEL)
+/*
+ * The SUSFS variant stages the runner and rewrites the kernel-side struct
+ * filename in do_execveat_common(); struct filename only exists since 3.14,
+ * so preinit is compiled out below that. A kernel-side SUSFS port for
+ * 3.4 - 3.13 must not reference ksu_setup_preinit_file() or
+ * ksu_preinit_handle_post_execveat().
+ * The non-SUSFS variant additionally needs jump labels, as before.
+ */
+#if !defined(CONFIG_ARM64) || !defined(KSU_CAN_USE_JUMP_LABEL) || \
+	(defined(CONFIG_KSU_SUSFS) && LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0))
 #define KSU_NO_PREINIT
 #endif
 

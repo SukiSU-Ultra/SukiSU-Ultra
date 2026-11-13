@@ -18,6 +18,13 @@ int escape_with_root_profile(void);
 
 void escape_to_root_forced(void);
 
+#ifdef CONFIG_KSU_SUSFS
+// switch PID 1 to the ksu domain when it executes ksud
+int escape_to_root_for_init(void);
+#endif
+
+void disable_seccomp(void);
+
 void __init ksu_app_profile_init(void);
 
 #endif

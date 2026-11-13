@@ -20,10 +20,11 @@ int ksu_inode_rename(struct inode *old_inode, struct dentry *old_dentry,
 
 int ksu_task_fix_setuid(struct cred *new, const struct cred *old, int flags)
 {
+#ifndef CONFIG_KSU_SUSFS
 	// see sys_setresuid
 	if (flags == LSM_SETID_RES)
 		ksu_handle_setresuid_cred(new, old);
-
+#endif
 	return 0;
 }
 
@@ -37,7 +38,7 @@ int ksu_bprm_check(struct linux_binprm *bprm)
 
 int ksu_file_permission(struct file *file, int mask)
 {
-#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE)
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_SUSFS)
 #ifdef KSU_CAN_USE_JUMP_LABEL
 	if (static_branch_likely(&ksud_vfs_read_key))
 		ksu_install_rc_hook(file);

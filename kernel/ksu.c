@@ -262,8 +262,13 @@
 #else
 	#define FEAT_8 ""
 #endif
+#if defined(CONFIG_KSU_SUSFS)
+	#define FEAT_9 " +susfs_inline_hook"
+#else
+	#define FEAT_9 ""
+#endif
 
-#define EXTRA_FEATURES FEAT_1 FEAT_2 FEAT_3 FEAT_4 FEAT_5 FEAT_6 FEAT_7 FEAT_8
+#define EXTRA_FEATURES FEAT_1 FEAT_2 FEAT_3 FEAT_4 FEAT_5 FEAT_6 FEAT_7 FEAT_8 FEAT_9
 
 static inline void ksu_print_build_info(void)
 {
@@ -308,6 +313,12 @@ static int __init kernelsu_init(void)
 	if (spoof_release || spoof_version) {
         ksu_spoof_version(spoof_release, spoof_version);
     }
+
+#ifdef CONFIG_KSU_SUSFS
+	// prepare susfs_extra_works and the sdcard monitor state before any
+	// inline hook can reach us
+	susfs_init();
+#endif
 
 	// register features
 	ksu_feature_init();

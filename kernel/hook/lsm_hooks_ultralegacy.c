@@ -43,9 +43,11 @@ static int hook_bprm_check_security(struct linux_binprm *bprm)
 static int (*orig_task_fix_setuid) (struct cred *new, const struct cred *old, int flags) __read_mostly = nullptr;
 static int hook_task_fix_setuid(struct cred *new, const struct cred *old, int flags)
 {
+#ifndef CONFIG_KSU_SUSFS
 	// see sys_setresuid
 	if (flags == LSM_SETID_RES)
 		ksu_handle_setresuid_cred(new, old);
+#endif
 
 	return orig_task_fix_setuid(new, old, flags);
 }
@@ -69,7 +71,7 @@ static int hook_file_permission_mount(struct file *file, int mask)
 	return 0;
 }
 
-#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
 static int hook_file_permission(struct file *file, int mask)
 {
 	if (unlikely(ksu_vfs_read_hook))
@@ -363,8 +365,10 @@ static int ksu_register_lsm_hook(void *data)
 	orig_setprocattr = ops->setprocattr;
 	ops->setprocattr = hook_setprocattr;
 
+#ifndef CONFIG_KSU_SUSFS
 	orig_task_fix_setuid = ops->task_fix_setuid;
 	ops->task_fix_setuid = hook_task_fix_setuid;
+#endif
 
 #ifdef CONFIG_KSU_FEATURE_SULOG
 	orig_bprm_check_security = ops->bprm_check_security;
@@ -372,10 +376,11 @@ static int ksu_register_lsm_hook(void *data)
 #endif
 
 	orig_file_permission = ops->file_permission;
-#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
 	ops->file_permission = hook_file_permission;
 #else
-	// read hook lives in the syscall table / branch link; only mount_hide here
+	// read hook lives in the syscall table / branch link / SUSFS inline hook;
+	// only mount_hide here
 	ops->file_permission = hook_file_permission_mount;
 #endif
 
@@ -396,7 +401,9 @@ static void __init ksu_lsm_hook_init(void)
 	pr_info("%s: selinux_ops: 0x%lx .name = %s\n", __func__, (long)ops, (const char *)ops );
 
 	stop_machine(ksu_register_lsm_hook, NULL, NULL);
-	
+
+#ifndef CONFIG_KSU_SUSFS
 	kthread_run(ksu_restore_file_permission, NULL, "kthread");
+#endif
 	return;
 }

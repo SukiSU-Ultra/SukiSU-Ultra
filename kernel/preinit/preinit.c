@@ -16,6 +16,149 @@
 static bool ksu_preinit_enabled = true;
 module_param_named(preinit, ksu_preinit_enabled, bool, 0);
 
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * SUSFS inline hook variant. The runner is staged once at init; when the
+ * kernel's fs/exec.c hook sees PID 1 exec "/system/bin/init selinux_setup",
+ * it calls ksu_setup_preinit_file() and we point the kernel filename at
+ * /proc/self/fd/<runner>. The post-exec hook retries the original init path
+ * if the runner failed to load.
+ */
+static struct file *ksu_preinit_file;
+
+static bool ksu_is_selinux_setup(struct user_arg_ptr *argv_user)
+{
+	static const char expected[] = "selinux_setup";
+	char buf[sizeof(expected) + 1] = { 0 };
+	const char __user *argv_user_ptr;
+
+	if (!argv_user)
+		return false;
+
+	argv_user_ptr = ksu_get_user_arg_ptr(*argv_user, 1);
+	if (!argv_user_ptr || IS_ERR(argv_user_ptr))
+		return false;
+
+	if (strncpy_from_user(buf, argv_user_ptr, sizeof(buf) - 1) < 0)
+		return false;
+
+	return !strcmp(buf, expected);
+}
+
+void ksu_preinit_release(void)
+{
+	struct file *file = xchg(&ksu_preinit_file, NULL);
+
+	if (file) {
+		pr_info("preinit: selinux_setup not seen, dropping runner\n");
+		fput(file);
+	}
+}
+
+void ksu_preinit_exit(void)
+{
+	ksu_preinit_release();
+}
+
+void ksu_preinit_init(void)
+{
+	size_t size = runner_binary_len;
+	struct file *file;
+	loff_t pos = 0;
+	ssize_t written;
+
+	if (!ksu_preinit_enabled) {
+		pr_info("preinit: disabled\n");
+		return;
+	}
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 19, 0)
+	file = shmem_file_setup("ksu_preinit_mem", size, EMPTY_VMA_FLAGS);
+#else
+	file = shmem_file_setup("ksu_preinit_mem", size, 0);
+#endif
+	if (IS_ERR(file)) {
+		pr_err("preinit: shmem_file_setup failed: %ld\n", PTR_ERR(file));
+		return;
+	}
+
+	written = kernel_write(file, runner_binary, size, &pos);
+	if (written != (ssize_t)size) {
+		pr_err("preinit: write runner failed: %zd\n", written);
+		fput(file);
+		return;
+	}
+
+	ksu_preinit_file = file;
+	pr_info("preinit: runner staged (%zu bytes)\n", size);
+}
+
+int ksu_setup_preinit_file(struct filename **filename_ptr, struct user_arg_ptr *argv_user)
+{
+	char fd_path[32] = { 0 };
+	struct file *file;
+	struct path path;
+	int fd, len;
+
+	if (likely(!READ_ONCE(ksu_preinit_file)))
+		return -EINVAL;
+
+	if (strcmp((*filename_ptr)->name, INIT_PATH) || !ksu_is_selinux_setup(argv_user))
+		return -EINVAL;
+
+	file = xchg(&ksu_preinit_file, NULL);
+	if (!file)
+		return -EINVAL;
+
+	fd = get_unused_fd_flags(O_CLOEXEC);
+	if (fd < 0) {
+		pr_err("preinit: get fd failed: %d\n", fd);
+		fput(file);
+		return -EINVAL;
+	}
+	// The fd owns the file from here on; close-on-exec frees it once the
+	// runner has been loaded.
+	fd_install(fd, file);
+
+	len = snprintf(fd_path, sizeof(fd_path), "/proc/self/fd/%d", fd);
+	if (kern_path(fd_path, LOOKUP_FOLLOW, &path)) {
+		pr_err("preinit: %s not reachable, booting without preinit\n", fd_path);
+		ksu_close_fd(fd);
+		return -EINVAL;
+	}
+	path_put(&path);
+
+	memset((void *)(*filename_ptr)->name, 0, strlen((*filename_ptr)->name));
+	memcpy((void *)(*filename_ptr)->name, (void *)fd_path, strlen(fd_path));
+
+	pr_info("preinit: exec runner via %s\n", fd_path);
+	return fd;
+}
+
+int ksu_preinit_handle_post_execveat(int *fd, struct filename **filename_ptr, void *argv_user,
+				     void *envp_user, int *flags, int *retval, int *preinit_fd)
+{
+	if (*retval && *preinit_fd > 0) {
+		ksu_close_fd(*preinit_fd);
+		memset((void *)(*filename_ptr)->name, 0, strlen((*filename_ptr)->name));
+		memcpy((void *)(*filename_ptr)->name, INIT_PATH, strlen(INIT_PATH));
+		return -EINVAL;
+	}
+	return 0;
+}
+
+bool ksu_preinit_handle_execve(const char __user **filename_user, const char __user *const __user *argv_user,
+			       int orig_nr, struct pt_regs *regs, long *ret)
+{
+	return false;
+}
+
+/* SUSFS uses ksu_setup_preinit_file()/ksu_preinit_handle_post_execveat(). */
+static inline void ksu_preinit_kernel_execve_hook(void **filename, void *k_argv, void *k_envp) { }
+static inline void ksu_preinit_user_execve_hook(const char __user **filename, void *u_argv, void *u_envp) { }
+
+#else /* !CONFIG_KSU_SUSFS */
+
 static bool is_selinux_setup(const char __user *const __user *argv_user)
 {
 	static const char expected[] = "selinux_setup";
@@ -281,3 +424,5 @@ void ksu_preinit_init(void)
 }
 
 void ksu_preinit_exit(void) { }
+
+#endif /* CONFIG_KSU_SUSFS */

@@ -265,6 +265,45 @@ static inline void ksu_adb_root_branch_enable() { } // no-op
 static inline void ksu_adb_root_branch_disable() { } // no-op
 #endif // KSU_CAN_USE_JUMP_LABEL
 
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * Entry point for the SUSFS fs/exec.c inline hook. At this point we still
+ * have a kernel struct filename (filename->name) and the raw envp array
+ * pointer, so we only need to replace envp, not the filename.
+ */
+long ksu_adb_root_handle_execveat(const char *filename, void ***envp_user_ptr)
+{
+#ifdef KSU_CAN_USE_JUMP_LABEL
+	if (!static_branch_unlikely(&ksu_adb_root_key))
+		return 0;
+#else
+	if (unlikely(!ksu_adb_root))
+		return 0;
+#endif
+
+	if (!filename || !envp_user_ptr)
+		return 0;
+
+	// only /apex/com.android.adbd/bin/adbd (and its apex variants)
+	if (!susfs_starts_with(filename, "/apex/") || !susfs_ends_with(filename, "/adbd"))
+		return 0;
+
+	pr_info("%s: adbd: %s \n", __func__, filename);
+
+	if (unlikely(!is_libadbroot_ok()))
+		return 0;
+
+	if (setup_ld_preload(envp_user_ptr))
+		return -EINVAL;
+
+	pr_info("escape to root for adb\n");
+	escape_to_root_for_adb_root();
+	if (escape_with_root_profile())
+		pr_err("escape_with_root_profile() failed\n");
+	return 0;
+}
+#endif // CONFIG_KSU_SUSFS
+
 static int kernel_adb_root_feature_get(u64 *value)
 {
 	*value = ksu_adb_root ? 1 : 0;

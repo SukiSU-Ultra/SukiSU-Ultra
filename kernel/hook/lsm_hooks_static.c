@@ -146,10 +146,12 @@ rename_hook_done:
 	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_task_fix_setuid);
 	pr_info("lsm_hijack: security_task_fix_setuid: ret %d \n", ret);
 #endif
+#ifndef CONFIG_KSU_SUSFS
 	replace_syscall((void *)&aarch64_setresuid, __AARCH64_setresuid, (void *)hook_aarch64_setresuid, native_sct);
 #ifdef CONFIG_COMPAT
 	replace_syscall((void *)&armeabi_setresuid, __ARMEABI_setresuid, (void *)hook_armeabi_setresuid, compat_sct);
 #endif
+#endif // CONFIG_KSU_SUSFS
 
 #ifdef CONFIG_KSU_FEATURE_SULOG
 	symbol_addr = kallsyms_lookup_retry("security_bprm_check");
@@ -176,7 +178,7 @@ bprm_done:
 	pr_info("LSM: security_bprm_check: ret %d \n", ret);
 #endif
 
-#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
 	symbol_addr = kallsyms_lookup_retry("vfs_read");
 	if (!symbol_addr)
 		goto skip_read2;

@@ -321,7 +321,9 @@ loop_start:
 
 static __init void ksu_lsm_hook_init(void)
 {
+#ifndef CONFIG_KSU_SUSFS
 	LSM_HACK_INIT(task_fix_setuid, ksu_task_fix_setuid);
+#endif
 	LSM_HACK_INIT(inode_rename, ksu_inode_rename);
 
 	ksu_do_overload_setprocattr();
@@ -331,11 +333,12 @@ static __init void ksu_lsm_hook_init(void)
 	LSM_HACK_INIT(bprm_committing_creds, ksu_bprm_committing_creds);
 #endif
 
-#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
 	LSM_HACK_INIT(file_permission, ksu_file_permission);
 	kthread_run(ksu_restore_file_permission, NULL, "kthread");
 #else
-	// read hook lives in the syscall table / branch link; only mount_hide here
+	// read hook lives in the syscall table / branch link / SUSFS inline hook;
+	// only mount_hide here
 	LSM_HACK_INIT(file_permission, ksu_file_permission_mount);
 #endif
 

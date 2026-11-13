@@ -56,7 +56,7 @@ static void setup_groups(struct root_profile *profile, struct cred *cred)
  * see: seccomp_assign_mode, secure_computing
  * - if this has repercussions, then we just restore all those refcounting shit
  */
-static void disable_seccomp(void)
+void disable_seccomp(void)
 {
 	spin_lock_irq(&current->sighand->siglock);
 
@@ -183,5 +183,25 @@ void escape_to_root_forced(void)
 	// which we likely already have on contexts where this will be used.
 	escape_to_root(true);
 }
+
+#ifdef CONFIG_KSU_SUSFS
+/*
+ * Used by the SUSFS fs/exec.c inline hook when PID 1 executes /data/adb/ksud.
+ * This mirrors the late-load path: switch init to the ksu domain without
+ * going through the root profile machinery.
+ */
+int escape_to_root_for_init(void)
+{
+	struct cred *cred = prepare_creds();
+	if (!cred) {
+		pr_err("Failed to prepare init's creds!\n");
+		return -EINVAL;
+	}
+
+	setup_selinux(KERNEL_SU_CONTEXT, cred);
+	commit_creds(cred);
+	return 0;
+}
+#endif // CONFIG_KSU_SUSFS
 
 void __init ksu_app_profile_init(void) { }

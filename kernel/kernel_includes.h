@@ -36,7 +36,17 @@
 #include <asm/current.h>
 #include <asm/syscall.h>
 #include <crypto/hash.h>
-#include <generated/compile.h>
+/* generated/compile.h may be absent in single-target builds; include if possible */
+#if defined(__has_include)
+# if __has_include(<generated/compile.h>)
+#  include <generated/compile.h>
+# endif
+#else
+# include <generated/compile.h>
+#endif
+#ifndef UTS_MACHINE
+#define UTS_MACHINE "arm64"
+#endif
 #include <generated/utsrelease.h>
 #include <linux/aio.h>
 #include <linux/anon_inodes.h>
@@ -112,6 +122,12 @@
 #include <linux/version.h>
 #include <linux/vmalloc.h>
 #include <linux/ctype.h>
+
+#ifdef CONFIG_KSU_SUSFS
+#include <linux/susfs.h>
+#include <linux/susfs_def.h>
+#include <linux/workqueue.h>
+#endif
 
 // versioned / conditional
 
