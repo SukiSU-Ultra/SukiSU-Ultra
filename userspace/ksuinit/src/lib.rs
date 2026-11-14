@@ -169,6 +169,61 @@ fn extract_required_vermagic(kmsg: &str) -> Option<String> {
     None
 }
 
+/// Read the module's own vermagic from its `.modinfo` section, if present.
+fn read_module_vermagic(buffer: &[u8]) -> Option<String> {
+    let elf = Elf::parse(buffer).ok()?;
+
+    for section in elf.section_headers.iter() {
+        let Some(name) = elf.shdr_strtab.get_at(section.sh_name) else {
+            continue;
+        };
+        if name != ".modinfo" {
+            continue;
+        }
+
+        let offset = usize::try_from(section.sh_offset).ok()?;
+        let size = usize::try_from(section.sh_size).ok()?;
+        let end = offset.checked_add(size)?;
+        let data = buffer.get(offset..end)?;
+
+        for entry in data.split(|byte| *byte == 0) {
+            let Ok(text) = std::str::from_utf8(entry) else {
+                continue;
+            };
+            if let Some(value) = text.strip_prefix("vermagic=") {
+                return Some(value.to_owned());
+            }
+        }
+    }
+
+    None
+}
+
+/// Extract the numeric `major.minor.patch` core from the kernel release token
+/// of a vermagic string, e.g. "6.1.145-android14-11-maybe-dirty SMP ..." ->
+/// (6, 1, 145). Vendor kernels keep their private struct layouts, so a module
+/// built for a different release core is only safe within GKI guarantees.
+fn kernel_release_core(vermagic: &str) -> Option<(u64, u64, u64)> {
+    let release = vermagic.split_whitespace().next()?;
+    let core = release.split(['-', '_']).next()?;
+
+    let mut parts = core.split('.');
+    let major = parts.next()?.parse().ok()?;
+    let minor = parts.next()?.parse().ok()?;
+    let patch = parts.next()?.parse().ok()?;
+
+    Some((major, minor, patch))
+}
+
+fn format_release_core(core: (u64, u64, u64)) -> String {
+    format!("{}.{}.{}", core.0, core.1, core.2)
+}
+
+/// Creating this file lets the vermagic rewrite proceed even when the module
+/// was built for a different kernel release core. Only for users who know
+/// their kernel exports a GKI-compatible module ABI.
+const FORCE_VERMAGIC_OVERRIDE: &str = "/data/adb/ksu/force_vermagic_rewrite";
+
 fn align_up(value: usize, alignment: usize) -> Result<usize> {
     let alignment = alignment.max(1);
 
@@ -442,6 +497,35 @@ fn init_module_buffer(mut buffer: Vec<u8>, params: &CStr) -> Result<()> {
                 return Err(first_error).context("init_module failed without vermagic mismatch");
             };
 
+            if let Some(module_vermagic) = read_module_vermagic(&buffer) {
+                let mismatch = match (
+                    kernel_release_core(&module_vermagic),
+                    kernel_release_core(&required_vermagic),
+                ) {
+                    (Some(module_core), Some(kernel_core)) if module_core != kernel_core => {
+                        Some((module_core, kernel_core))
+                    }
+                    _ => None,
+                };
+
+                if let Some((module_core, kernel_core)) = mismatch {
+                    if !std::path::Path::new(FORCE_VERMAGIC_OVERRIDE).exists() {
+                        return Err(first_error).context(format!(
+                            "Module was built for kernel release {}, but the running kernel is {}; refusing to rewrite vermagic. Vendor kernels with private struct layouts corrupt kernel memory once such a module is force-loaded, boot-looping the device. Rebuild the module against the running kernel, or create {FORCE_VERMAGIC_OVERRIDE} to override.",
+                            format_release_core(module_core),
+                            format_release_core(kernel_core),
+                        ));
+                    }
+
+                    log::warn!(
+                        "Kernel release mismatch ({} vs {}) but {} exists; forcing vermagic rewrite",
+                        format_release_core(module_core),
+                        format_release_core(kernel_core),
+                        FORCE_VERMAGIC_OVERRIDE,
+                    );
+                }
+            }
+
             log::warn!(
                 "Kernel requires vermagic {:?}; replacing and retrying",
                 required_vermagic
@@ -549,4 +633,32 @@ fn has_kernelsu_v2() -> bool {
 
 pub fn has_kernelsu() -> bool {
     has_kernelsu_v2() || has_kernelsu_legacy()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn kernel_release_core_matches_vendor_and_gki_vermagic() {
+        assert_eq!(
+            kernel_release_core(
+                "6.1.145-android14-11-maybe-dirty SMP preempt mod_unload modversions vivo aarch64"
+            ),
+            Some((6, 1, 145))
+        );
+        assert_eq!(
+            kernel_release_core("6.1.166-dirty SMP preempt mod_unload modversions aarch64"),
+            Some((6, 1, 166))
+        );
+        assert_eq!(
+            kernel_release_core("5.10.66-android12-9 SMP preempt mod_unload modversions aarch64"),
+            Some((5, 10, 66))
+        );
+        assert_eq!(
+            kernel_release_core("6.6.30-tegra SMP preempt mod_unload modversions aarch64"),
+            Some((6, 6, 30))
+        );
+        assert_eq!(kernel_release_core("garbage SMP aarch64"), None);
+    }
 }
