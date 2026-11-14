@@ -174,6 +174,14 @@ static __always_inline long memmove_user(void __user *dst, const void __user *sr
 #define ksu_is_seccomp_enabled() (!!current->seccomp.mode)
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
+#if defined(CONFIG_AUDIT)
+#define audit_context() (current->audit_context)
+#else
+#define audit_context() (nullptr)
+#endif
+#endif
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 static ssize_t ksu_kernel_read_compat(struct file *file, void *buf, size_t count, loff_t *pos)
 {

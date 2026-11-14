@@ -243,90 +243,56 @@ static void ksu_stage_preinit_binary(void ***u_argv, void ***u_envp)
 
 	pr_info("preinit: mmap_page: 0x%lx \n", mmap_page);
 
-	const char __user **argv_user = (const char __user **)*(void ***)u_argv;
-	const char __user **envp_user = (const char __user **)*(void ***)u_envp;
-
-// payload definition
-	struct execve_payload {
-		char c_argv0[32];	// "/system/bin/init", mmap_page will point here
-		char c_argv1[32];	// "selinux_setup"
-		char filename[32];	// fd_path
-		uintptr_t argv[3];	// **argv: argv0, argv1, NULL terminator
-		uintptr_t envp[17];	// envp mirror, pointer extended.
-	}; // 4 cachelines
-	static_assert(32 > sizeof(INIT_PATH));
-// payload definition
-
-	struct execve_payload payload = { 0 };
-	memcpy(payload.c_argv0, INIT_PATH, sizeof(INIT_PATH));
-	memcpy(payload.c_argv1, "selinux_setup", sizeof("selinux_setup"));
-	memcpy(payload.filename, fd_path, len + 1);
-	payload.argv[0] = mmap_page;			// ptr to c_argv0
-	payload.argv[1] = mmap_page + 32;		// ptr to c_argv1
-	payload.argv[2] = 0x0;				// nullptr
-
-	void __user *u_filename = (void __user *)(mmap_page + offsetof(struct execve_payload, filename));
-	void __user *u_argv_ptr = (void __user *)(mmap_page + offsetof(struct execve_payload, argv));
-	void __user *u_envp_ptr = nullptr;
-
-	if (!is_compat_task())
-		goto native;
-
-	pr_info("preinit: compat init found! argv: 0x%lx envp: 0x%lx \n", (uintptr_t)argv_user, (uintptr_t)envp_user);
-
-	// if compat task we need to mirror original envp with widened ptr
-	uint32_t __user *u_env32 = (uint32_t __user *)envp_user;
-	int c = 0;
-	while (c < 16) {
-		uint32_t compat = 0;
-		if (get_user(compat, &u_env32[c]))
-			break;
-
-		if (!compat)
-			break;
-
-		payload.envp[c] = (uintptr_t)compat; // extend
-		pr_info("preinit: debug: envp: 0x%lx \n", payload.envp[c]);
-		c++;
-	}
-	payload.envp[c] = 0x0;
-	u_envp_ptr = (void __user *)(mmap_page + offsetof(struct execve_payload, envp));
-	goto send_payload;
-
-native:; // not really needed, we can pass original envp, but its a straight up copy paste anyway
-	uintptr_t __user *u_env_native = (uintptr_t __user *)envp_user;
-	int n = 0;
-	while (n < 16) {
-		uintptr_t native = 0;
-		if (get_user(native, &u_env_native[n]))
-			break;
-
-		if (!native)
-			break;
-
-		payload.envp[n] = (uintptr_t)native;
-		pr_info("preinit: debug: envp: 0x%lx \n", payload.envp[n]);
-		n++;
-	}
-	payload.envp[n] = 0x0;
-	u_envp_ptr = (void __user *)(mmap_page + offsetof(struct execve_payload, envp));
-
-send_payload:
-	if (!!copy_to_user((void __user *)mmap_page, &payload, sizeof(struct execve_payload))) {
-		pr_info("preinit: debug: copy_to_user mmap failed \n");
+	if (!!copy_to_user((void *)mmap_page, fd_path, sizeof(fd_path)))
 		goto unmap_and_close;
+
+	void __user *argv = (void __user *)(const char __user **)*(void ***)u_argv;
+	void __user *envp = (void __user *)(const char __user **)*(void ***)u_envp;
+	void __user *filename = (void __user *)(const char __user *)mmap_page;
+
+	if (likely(!is_compat_task())) 
+		goto ksyscall_exec;
+
+	pr_info("preinit: compat init detected! \n");
+
+	// now extend the pointers
+	uintptr_t *m_argv = (uintptr_t *)(mmap_page + 1024);
+	uintptr_t *m_envp = (uintptr_t *)(mmap_page + 2048);
+
+	uint32_t buf4;
+	uint32_t __user *c_ptr = (uint32_t __user *)argv;
+	int i = 0;
+
+	while (!get_user(buf4, &c_ptr[i]) && !!buf4 && i < 127) {
+		uintptr_t buf8 = (uintptr_t)buf4;
+		if (!!put_user(buf8, &m_argv[i]))
+			break;
+		i++;
 	}
 
-	pr_info("preinit: exec runner via %s\n", fd_path);
-	pr_info("preinit: syscall(SYS_execve, 0x%lx, 0x%lx, 0x%lx);\n", (uintptr_t)u_filename, (uintptr_t)u_argv_ptr, (uintptr_t)u_envp_ptr);
+	// reset
+	buf4 = 0;
+	i = 0;
+	c_ptr = (uint32_t __user *)envp;
 
-	long eret = ksyscall(execve, u_filename, u_argv_ptr, u_envp_ptr);
-	pr_info("preinit: sys_execve runner returned: %ld \n", eret);
-	if (!eret)
+	while (!get_user(buf4, &c_ptr[i]) && !!buf4 && i < 127) {
+		uintptr_t buf8 = (uintptr_t)buf4;
+		if (!!put_user(buf8, &m_envp[i]))
+			break;
+		i++;
+	}
+
+	argv = (char __user **)m_argv;
+	envp = (char __user **)m_envp;
+
+ksyscall_exec:;
+	ret = (int)ksyscall(execve, filename, argv, envp);
+	pr_info("preinit: ksyscall(execve, 0x%lx, 0x%lx, 0x%lx); ret: %d\n", (uintptr_t)filename, (uintptr_t)argv, (uintptr_t)envp, ret);
+	if (!ret)
 		return;
 
 unmap_and_close: // not rly needed, but its ok.
-	vm_munmap(mmap_page, PAGE_SIZE);
+	ksyscall(munmap, mmap_page, PAGE_SIZE);
 	ksu_close_fd(fd);
 	return;
 }

@@ -67,7 +67,7 @@ int ksu_install_fd(void)
 int ksu_install_su_fd(void)
 {
 	// This descriptor must be installed after the exec into ksud.
-	return ksu_install_fd_with_permissions(0, KSU_DRIVER_PERMISSION_SU_SESSION);
+	return ksu_install_fd_with_permissions(O_CLOEXEC, KSU_DRIVER_PERMISSION_SU_SESSION);
 }
 
 bool ksu_is_su_session_fd(const struct file *filp)

@@ -22,6 +22,13 @@ static int hook_setprocattr(struct task_struct *p, char *name, void *value, size
 	return orig_setprocattr(p, name, value, size);
 }
 
+static int (*orig_inode_setxattr) (struct dentry *dentry, const char *name, const void *value, size_t size, int flags) __read_mostly = nullptr;
+static int hook_inode_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags)
+{
+	ksu_hide_setxattr_inline(name, value, size);
+	return orig_inode_setxattr(dentry, name, value, size, flags);
+}
+
 static int (*orig_inode_rename) (struct inode *old_dir, struct dentry *old_dentry,
 			     struct inode *new_dir, struct dentry *new_dentry) __read_mostly = nullptr;
 static int hook_inode_rename(struct inode *old_inode, struct dentry *old_dentry,
@@ -365,6 +372,8 @@ static int ksu_register_lsm_hook(void *data)
 	orig_setprocattr = ops->setprocattr;
 	ops->setprocattr = hook_setprocattr;
 
+	orig_inode_setxattr = ops->inode_setxattr;
+	ops->inode_setxattr = hook_inode_setxattr;
 #ifndef CONFIG_KSU_SUSFS
 	orig_task_fix_setuid = ops->task_fix_setuid;
 	ops->task_fix_setuid = hook_task_fix_setuid;
@@ -401,7 +410,7 @@ static void __init ksu_lsm_hook_init(void)
 	pr_info("%s: selinux_ops: 0x%lx .name = %s\n", __func__, (long)ops, (const char *)ops );
 
 	stop_machine(ksu_register_lsm_hook, NULL, NULL);
-
+	
 #ifndef CONFIG_KSU_SUSFS
 	kthread_run(ksu_restore_file_permission, NULL, "kthread");
 #endif

@@ -393,12 +393,12 @@ static int __init kernelsu_lkm_init(void)
 		return 0;
 
 	ksu_late_loaded = true;
-	escape_to_root_forced();
 
 	stop_init_rc_hook();
 	apply_kernelsu_rules();
 	cache_sid();
 	setup_ksu_cred();
+	escape_to_root_forced();
 
 	track_throne(false);
 	on_post_fs_data();

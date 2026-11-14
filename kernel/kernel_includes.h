@@ -521,7 +521,7 @@ static inline void kfree_byref(void *buf) { kfree(*(void **)buf); }
 
 /**
  * disallow usage of old string functions removed on newer linux kernels
- *
+ * 
  * k7.2 deprecated strncpy, torvalds/linux 079a028
  * k6.8 deprecated strlcpy, torvalds/linux d262700
  *

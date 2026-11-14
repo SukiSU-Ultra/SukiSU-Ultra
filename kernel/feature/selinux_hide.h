@@ -209,7 +209,7 @@ static noinline void ksu_add_shit_to_list(u32 cmd, const char *args[])
 	return;
 }
 
-static bool ksu_should_destroy_context(char *str)
+static bool ksu_should_destroy_context(char *str, size_t limit)
 {
 	if (!str)
 		return false;
@@ -223,7 +223,7 @@ static bool ksu_should_destroy_context(char *str)
 	while (type_buf->len > offset) {
 		const char *current_entry = type_buf->data + offset;
 
-		if (strstr(str, current_entry))
+		if (strnstr(str, current_entry, limit))
 			return true;
 
 		offset = offset + strlen(current_entry) + 1;
@@ -231,7 +231,7 @@ static bool ksu_should_destroy_context(char *str)
 } // scope--
 
 check_rule:; // double strstr
-	const char *str2 = strnchr(str, 128, ' ');
+	const char *str2 = strnchr(str, limit, ' ');
 	if (!str2)
 		return false;
 
@@ -248,7 +248,7 @@ check_rule:; // double strstr
 		const char *tgt_rule = src_rule + src_sz;
 		size_t tgt_sz = strlen(tgt_rule) + 1;
 
-		if (strnstr(str, src_rule, str2 - str) && strstr(str2, tgt_rule))
+		if (strnstr(str, src_rule, str2 - str) && strnstr(str2, tgt_rule, limit - (str2 - str)))
 			return true;
 
 		offset = offset + src_sz + tgt_sz;

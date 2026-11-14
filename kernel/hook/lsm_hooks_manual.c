@@ -60,6 +60,13 @@ int ksu_hide_setprocattr(const char *name, void *value, size_t size)
 	return 0;
 }
 
+// NOTE: 3-args only. other args unused.
+int ksu_hide_inode_setxattr(const char *name, void *value, size_t size)
+{
+	ksu_hide_setxattr_inline(name, value, size);
+	return 0;
+}
+
 static void __init ksu_lsm_hook_init(void)
 {
 	pr_info("%s: Automated LSM hooking disabled. Make sure manual security hooks are implemented!\n", __func__);
