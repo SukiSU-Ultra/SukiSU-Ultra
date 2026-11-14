@@ -1021,8 +1021,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             .entry_by_name("ksu_config")
             .and_then(CpioEntry::data)
             .and_then(|v| str::from_utf8(v).ok())
-            .map(split_config_tokens)
-            .unwrap_or_default();
+            .map_or_else(Vec::new, split_config_tokens);
 
         config.validate()?;
         config.apply(&mut ksu_config);
@@ -1360,8 +1359,7 @@ pub fn read_ksu_config() -> Result<Vec<String>> {
             .entry_by_name("ksu_config")
             .and_then(CpioEntry::data)
             .and_then(|v| str::from_utf8(v).ok())
-            .map(split_config_tokens)
-            .unwrap_or_default();
+            .map_or_else(Vec::new, split_config_tokens);
 
         Ok(config)
     }

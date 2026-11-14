@@ -1,8 +1,7 @@
-use std::path::{Path, PathBuf};
-
+use crate::utils::ensure_dir_exists;
+use crate::{defs, sepolicy};
 use anyhow::{Context, Result, ensure};
-
-use crate::{defs, sepolicy, utils::ensure_dir_exists};
+use std::path::{Path, PathBuf};
 
 fn profile_path(dir: &str, name: &str) -> Result<PathBuf> {
     // Keep names in one directory and on one line when listed
@@ -16,7 +15,7 @@ fn profile_path(dir: &str, name: &str) -> Result<PathBuf> {
     Ok(Path::new(dir).join(name))
 }
 
-pub fn set_sepolicy(pkg: &str, policy: &str) -> Result<()> {
+pub fn set_sepolicy(pkg: &str, policy: String) -> Result<()> {
     let policy_file = profile_path(defs::PROFILE_SELINUX_DIR, pkg)?;
     ensure_dir_exists(defs::PROFILE_SELINUX_DIR)?;
     std::fs::write(&policy_file, policy)?;
@@ -32,7 +31,7 @@ pub fn get_sepolicy(pkg: &str) -> Result<()> {
 }
 
 // ksud doesn't guarteen the correctness of template, it just save
-pub fn set_template(id: &str, template: &str) -> Result<()> {
+pub fn set_template(id: &str, template: String) -> Result<()> {
     let template_file = profile_path(defs::PROFILE_TEMPLATE_DIR, id)?;
     ensure_dir_exists(defs::PROFILE_TEMPLATE_DIR)?;
     std::fs::write(template_file, template)?;

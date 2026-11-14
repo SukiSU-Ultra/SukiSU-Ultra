@@ -460,7 +460,7 @@ pub fn load_all_lua_modules(lua: &Lua) -> LuaResult<()> {
                                 .eval::<Table>()
                             {
                                 Ok(module) => {
-                                    modules.set(id.clone(), module.clone())?;
+                                    modules.set(id, module)?;
                                 }
                                 Err(e) => {
                                     warn!("Failed to eval Lua {}: {}", lua_file.display(), e);
