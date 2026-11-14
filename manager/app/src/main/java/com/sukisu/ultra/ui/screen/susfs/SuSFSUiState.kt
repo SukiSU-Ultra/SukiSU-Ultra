@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.screen.susfs.util.AppInfo
 import com.sukisu.ultra.ui.screen.susfs.util.EnabledFeature
-import com.sukisu.ultra.ui.screen.susfs.util.ModuleConfig
 import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 
 @Immutable
@@ -94,11 +93,6 @@ enum class SuSFSTab(val displayNameRes: Int) {
     ENABLED_FEATURES(R.string.susfs_tab_enabled_features);
 
     companion object {
-        fun getAllTabs(): List<SuSFSTab> {
-            return entries.toList()
-        }
-
-        
         fun fromRouteId(id: String): SuSFSTab? = when (id.trim().lowercase().replace('-', '_')) {
             "basic", "basic_settings" -> BASIC_SETTINGS
             "features", "feature_toggles" -> FEATURE_TOGGLES

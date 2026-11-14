@@ -23,7 +23,7 @@ fun ThemeImportDialog(
         customTextGroupsIn(data.customTexts ?: emptyMap(), data.customHomeTitle.orEmpty())
     }
     ThemeOptionsDialog(
-        show = show,
+        show = true,
         title = stringResource(R.string.theme_import_dialog_title),
         message = stringResource(R.string.theme_import_dialog_message),
         hasBackgroundImage = theme.backgroundPath != null ||

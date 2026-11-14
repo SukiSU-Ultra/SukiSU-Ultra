@@ -817,7 +817,7 @@ private fun MiuixPreviewImmersiveStatus(spec: ThemePreviewSpec) {
                     )
                     MiuixText(
                         text = stringResource(R.string.home_working),
-                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LabelSizeSp, pillScale),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LABEL_SIZE_SP, pillScale),
                         fontWeight = FontWeight.SemiBold,
                         color = colors.onSurface,
                     )
@@ -829,7 +829,7 @@ private fun MiuixPreviewImmersiveStatus(spec: ThemePreviewSpec) {
                     )
                     MiuixText(
                         text = "LKM · ${BuildConfig.VERSION_NAME}",
-                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.MetaSizeSp, pillScale),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.META_SIZE_SP, pillScale),
                         fontFamily = FontFamily.Monospace,
                         color = colors.onSurfaceVariantSummary,
                     )
@@ -1316,7 +1316,7 @@ private fun MaterialPreviewImmersiveStatus(spec: ThemePreviewSpec) {
                     )
                     MaterialText(
                         text = stringResource(R.string.home_working),
-                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LabelSizeSp, pillScale),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LABEL_SIZE_SP, pillScale),
                         fontWeight = FontWeight.SemiBold,
                         color = colors.onSurface,
                     )
@@ -1328,7 +1328,7 @@ private fun MaterialPreviewImmersiveStatus(spec: ThemePreviewSpec) {
                     )
                     MaterialText(
                         text = "LKM · ${BuildConfig.VERSION_NAME}",
-                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.MetaSizeSp, pillScale),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.META_SIZE_SP, pillScale),
                         fontFamily = FontFamily.Monospace,
                         color = colors.onSurfaceVariant,
                     )

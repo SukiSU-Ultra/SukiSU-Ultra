@@ -146,7 +146,7 @@ fun ImmersiveStatusCardMiuix(
                     Text(
                         text = label,
                         color = colorScheme.onSurface,
-                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LabelSizeSp, pillScale),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.LABEL_SIZE_SP, pillScale),
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -161,7 +161,7 @@ fun ImmersiveStatusCardMiuix(
                         text = meta,
                         modifier = Modifier.weight(1f, fill = false),
                         color = colorScheme.onSurfaceVariantSummary,
-                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.MetaSizeSp, pillScale),
+                        fontSize = HomeStatusStyle.pillSp(HomeStatusStyle.META_SIZE_SP, pillScale),
                         fontFamily = FontFamily.Monospace,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

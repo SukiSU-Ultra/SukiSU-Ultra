@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.susfs
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,6 +14,7 @@ import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.screen.susfs.viewmodel.SuSFSViewModel
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun SuSFSScreen(tab: String? = null) {
     val context = LocalContext.current

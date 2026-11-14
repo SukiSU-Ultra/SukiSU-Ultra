@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.milliseconds
 
 /** Each call belongs to the coroutine, including while receiving its response body. */
 internal suspend fun <T> executeThemeUpload(
@@ -269,7 +270,7 @@ internal class ThemeStoreResumableUploader(
                                 attempted.add(route)
                                 // Give a transient network or edge hiccup a moment before
                                 // it is retried, instead of hammering the same queue.
-                                delay(300L * (attempt + 1))
+                                delay((300L * (attempt + 1)).milliseconds)
                             } finally {
                                 scheduler.finish(route, bytes, System.nanoTime() - started, success, fault)
                             }
@@ -385,7 +386,7 @@ internal class ThemeStoreResumableUploader(
         }
         val watchdog = launch {
             while (isActive) {
-                delay(1000)
+                delay(1000.milliseconds)
                 val now = System.nanoTime()
                 val fastest = scheduler.fastestOther(routes, route)
                 val elapsed = (now - started) / 1_000_000_000.0

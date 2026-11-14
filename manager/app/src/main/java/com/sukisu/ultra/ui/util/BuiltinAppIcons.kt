@@ -84,9 +84,11 @@ object BuiltinAppIcons {
     /**
      * Applies [icon] only when the component states do not already match it.
      *
-     * Startup must not re-apply an unchanged icon: switching launcher components while the
-     * process is starting can make the system restart it, which is why the first launch after
-     * an update used to be killed.
+     * Call this only while the manager is not starting or visible. Switching launcher
+     * components can restart the process on some ROMs, and disabling the alias that is
+     * currently launching the task kills the first launch after an update — restore from
+     * [com.sukisu.ultra.data.repository.AppIconUpdateReceiver] or from the background
+     * lifecycle callback in `KernelSUApplication` instead of from startup.
      */
     fun applyIfNeeded(
         context: Context,
@@ -108,10 +110,7 @@ object BuiltinAppIcons {
             return false
         }
         val selectedClass = componentClassName(icon, dynamicColor)
-        if (!isComponentEnabled(pm, ComponentName(context, selectedClass))) {
-            return false
-        }
-        return allAliasClassNames()
+        return isComponentEnabled(pm, ComponentName(context, selectedClass)) && allAliasClassNames()
             .filter { it != selectedClass }
             .none { isComponentEnabled(pm, ComponentName(context, it)) }
     }
@@ -130,7 +129,7 @@ object BuiltinAppIcons {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED -> false
             else -> try {
                 pm.getActivityInfo(component, 0).enabled
-            } catch (t: Throwable) {
+            } catch (_: Throwable) {
                 false
             }
         }

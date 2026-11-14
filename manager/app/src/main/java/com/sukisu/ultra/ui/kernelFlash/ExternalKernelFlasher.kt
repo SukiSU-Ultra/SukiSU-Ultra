@@ -59,12 +59,12 @@ fun rememberExternalKernelFlasher(): suspend (Uri) -> Unit {
         },
     )
 
-    val startFlash by rememberUpdatedState<suspend (Uri) -> Unit>({ uri ->
+    val startFlash by rememberUpdatedState<suspend (Uri) -> Unit> { uri ->
         val abDevice = withContext(Dispatchers.IO) { isAbDevice() }
         kernelUri = uri
         selectedSlot = null
         showSlotDialog = abDevice
         showKpmDialog = !abDevice
-    })
+    }
     return remember { { uri -> startFlash(uri) } }
 }

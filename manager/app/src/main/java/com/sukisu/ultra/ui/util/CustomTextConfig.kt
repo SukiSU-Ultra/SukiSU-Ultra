@@ -79,7 +79,7 @@ enum class CustomTextKey(
     HOME_WARN_ROOT_FAILED("home.warn_root_failed", R.string.grant_root_failed, R.string.grant_root_failed, CustomTextGroup.HOME),
     HOME_WARN_PREVIEW_MODE("home.warn_preview_mode", R.string.home_preview_mode, R.string.home_preview_mode, CustomTextGroup.HOME),
 
-    // 主要分頁抬頭 (底欄、側欄與對應頁面的頂部抬頭)
+    // 主要分頁抬頭 (底欄、側欄與對應頁面的頂抬頭)
     PAGE_HOME("page.home", R.string.home, R.string.home, CustomTextGroup.PAGE_MAIN),
     PAGE_SUPERUSER("page.superuser", R.string.superuser, R.string.superuser, CustomTextGroup.PAGE_MAIN),
     PAGE_MODULES("page.modules", R.string.module, R.string.module, CustomTextGroup.PAGE_MAIN),

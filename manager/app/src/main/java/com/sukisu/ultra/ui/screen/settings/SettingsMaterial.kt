@@ -79,6 +79,7 @@ import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 import com.sukisu.ultra.ui.viewmodel.MainPageRequest
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author weishu
@@ -97,7 +98,7 @@ fun SettingPagerMaterial(
 
     LaunchedEffect(sectionRequest?.token) {
         val request = sectionRequest ?: return@LaunchedEffect
-        delay(120)
+        delay(120.milliseconds)
         val anchor = SettingsSection.normalize(request.section)
         val requester = anchorRequesters[SettingsSection.cardFor(anchor)]
             ?: anchorRequesters[SettingsSection.GENERAL]

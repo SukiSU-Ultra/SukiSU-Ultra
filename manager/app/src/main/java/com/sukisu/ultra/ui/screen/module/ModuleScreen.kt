@@ -216,6 +216,10 @@ fun ModulePager(
             navigator.push(Route.ExecuteModuleAction(module.id))
             viewModel.markNeedRefresh()
         },
+        onReloadModules = {
+            // Banner edits rewrite module.prop on disk; re-read the list without a network check.
+            viewModel.fetchModuleList(checkUpdate = false, resort = false)
+        },
     )
 
     when (uiMode) {

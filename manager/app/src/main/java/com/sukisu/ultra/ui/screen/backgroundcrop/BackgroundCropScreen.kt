@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
@@ -89,14 +88,9 @@ fun BackgroundCropScreen(sourcePath: String) {
     val scope = rememberCoroutineScope()
     val controller = rememberCropController()
     val windowSize = LocalWindowInfo.current.containerSize
-    val configuration = LocalConfiguration.current
 
-    val screenWidth = windowSize.width.takeIf { it > 0 }
-        ?: configuration.screenWidthDp.takeIf { it > 0 }
-        ?: 9
-    val screenHeight = windowSize.height.takeIf { it > 0 }
-        ?: configuration.screenHeightDp.takeIf { it > 0 }
-        ?: 20
+    val screenWidth = windowSize.width.takeIf { it > 0 } ?: 9
+    val screenHeight = windowSize.height.takeIf { it > 0 } ?: 20
 
     var bitmap by remember(sourcePath) { mutableStateOf<Bitmap?>(null) }
     var loading by remember(sourcePath) { mutableStateOf(true) }

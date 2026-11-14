@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
-import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 @Stable
 data class SearchStatus(

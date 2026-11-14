@@ -28,7 +28,7 @@ internal suspend fun readKernelModulesSnapshot(): KernelModulesSnapshot =
         )
     }
 
-private val KERNEL_MODULES_SCRIPT = """
+private val KERNEL_MODULES_SCRIPT = $$"""
     echo '__KSU_SECTION__ active'
     if cat /sys/module/kernel/parameters/module_blacklist 2>/dev/null; then
       echo
@@ -51,21 +51,21 @@ private val KERNEL_MODULES_SCRIPT = """
     echo
     dep_dir=''
     for d in /lib/modules /lib/modules/* /vendor/lib/modules /vendor_dlkm/lib/modules /system/lib/modules /system_dlkm/lib/modules /odm/lib/modules; do
-      if [ -f "${'$'}d/modules.dep" ]; then
-        dep_dir="${'$'}d"
+      if [ -f "$d/modules.dep" ]; then
+        dep_dir="$d"
         break
       fi
     done
     echo '__KSU_SECTION__ dep'
-    if [ -n "${'$'}dep_dir" ] && cat "${'$'}dep_dir/modules.dep" 2>/dev/null; then
+    if [ -n "$dep_dir" ] && cat "$dep_dir/modules.dep" 2>/dev/null; then
       echo
       echo '__KSU_FLAG__ dep=1'
-      echo "__KSU_FLAG__ dir=${'$'}dep_dir"
+      echo "__KSU_FLAG__ dir=$dep_dir"
       echo '__KSU_SECTION__ load'
-      cat "${'$'}dep_dir/modules.load" 2>/dev/null
+      cat "$dep_dir/modules.load" 2>/dev/null
       echo
       echo '__KSU_SECTION__ blocklist'
-      cat "${'$'}dep_dir/modules.blocklist" 2>/dev/null
+      cat "$dep_dir/modules.blocklist" 2>/dev/null
       echo
     else
       echo '__KSU_FLAG__ dep=0'

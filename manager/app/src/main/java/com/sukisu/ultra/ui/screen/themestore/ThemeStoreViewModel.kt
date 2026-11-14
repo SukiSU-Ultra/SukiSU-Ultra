@@ -115,7 +115,7 @@ data class ThemeStoreUploadInput(
     val name: String,
     val author: String,
     val authorId: String,
-    /** Reason entered when this submission creates the author licence. */
+    /** Reason entered when this submission creates the author license. */
     val authorApplyNote: String = "",
     val description: String,
     val tags: String,
@@ -458,7 +458,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         val record = consentStore.accept(showR18 = _uiState.value.showR18)
         _uiState.update { it.copy(needsConsent = false, showR18 = record.showR18) }
         // load() pulls the web choice before showing the catalog, so the agreement is accepted
-        // first on every install while an existing web R18 preference still wins afterwards.
+        // first on every install while an existing web R18 preference still wins afterward.
         load()
     }
 
@@ -545,17 +545,15 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
      */
     private fun syncPreferencesFromServer(
         accounts: List<ThemeStoreAccount>,
-        force: Boolean,
     ) {
         if (accounts.isEmpty()) {
             preferencesSyncedAccounts = null
             return
         }
-        if (!force && accountsSyncKey(accounts) == preferencesSyncedAccounts) return
         preferencesPullJob?.cancel()
         preferencesPullJob = viewModelScope.launch {
             preferencesSyncLock.withLock {
-                syncPreferencesNow(accounts, force)
+                syncPreferencesNow(accounts, force = true)
             }
         }
     }
@@ -575,16 +573,16 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         var remoteShowR18: Boolean? = null
         var reachable = false
         val accountsWithoutPreference = mutableSetOf<String>()
-        for (entry in accounts) {
+        for ((source) in accounts) {
             if (revision != localPreferenceRevision) return
-            val response = account.getPreferences(entry.source.baseUrl).getOrNull()
+            val response = account.getPreferences(source.baseUrl).getOrNull()
                 ?: continue
             reachable = true
             if (response.showR18Set) {
                 remoteShowR18 = response.showR18
                 break
             }
-            accountsWithoutPreference += entry.source.baseUrl
+            accountsWithoutPreference += source.baseUrl
         }
         if (!reachable ||
             revision != localPreferenceRevision ||
@@ -627,7 +625,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         refreshFollows(accounts)
         // ON_RESUME also runs after returning from the account screen or the web, so re-read the
         // server choice here even when the signed-in account set itself did not change.
-        syncPreferencesFromServer(accounts, force = true)
+        syncPreferencesFromServer(accounts)
     }
 
     fun hasAccountFor(baseUrl: String): Boolean =
@@ -680,9 +678,9 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
         followsJob?.cancel()
         followsJob = viewModelScope.launch {
             val keys = mutableSetOf<String>()
-            for (entry in accounts) {
-                account.follows(entry.source.baseUrl).getOrNull()?.authors?.forEach { author ->
-                    val key = themeFollowKey(entry.source.baseUrl, author.authorHash)
+            for ((source) in accounts) {
+                account.follows(source.baseUrl).getOrNull()?.authors?.forEach { author ->
+                    val key = themeFollowKey(source.baseUrl, author.authorHash)
                     if (key.isNotEmpty()) keys += key
                 }
             }
@@ -932,7 +930,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                                 )
                             }
                         } else if (now - lastTelemetryAt >= 200_000_000L ||
-                            (total > 0L && transferred >= total)
+                            (total in 1..transferred)
                         ) {
                             lastTelemetryAt = now
                             val speed = activeMeter.update(transferred, now)
@@ -1067,7 +1065,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                                         )
                                     }
                                 } else if (now - lastTelemetryAt >= 200_000_000L ||
-                                    (total > 0L && transferred >= total)
+                                    (total in 1..transferred)
                                 ) {
                                     lastTelemetryAt = now
                                     val reading = meter.update(transferred, now)
@@ -1211,7 +1209,7 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
             )
         }
         viewModelScope.launch {
-            // Refresh the licence list first: the submit dialog decides from it
+            // Refresh the license list first: the submit dialog decides from it
             // whether the account needs to apply for an author profile.
             account.refreshProfile(normalized)
             val refreshed = account.sessionFor(normalized)
@@ -1612,18 +1610,16 @@ class ThemeStoreViewModel(application: Application) : AndroidViewModel(applicati
                     .filter { sourceAccount.key in remainingKeys }
                     .map { UserMessageConversation(it, sourceAccount) }
             }.sortedByDescending { it.conversation.lastAt }
-            val retention = results.mapNotNull { (_, result) ->
+            val retention = results.firstNotNullOfOrNull { (_, result) ->
                 result.getOrNull()?.retentionDays?.takeIf { it > 0 }
-            }.firstOrNull() ?: 0L
+            } ?: 0L
             _uiState.update {
                 it.copy(
                     messagesLoading = false,
                     accounts = remaining,
                     messages = conversations,
                     messagesRetentionDays = retention,
-                    messagesError = results
-                        .mapNotNull { (_, result) -> result.exceptionOrNull()?.message }
-                        .firstOrNull(),
+                    messagesError = results.firstNotNullOfOrNull { (_, result) -> result.exceptionOrNull()?.message },
                 )
             }
         }

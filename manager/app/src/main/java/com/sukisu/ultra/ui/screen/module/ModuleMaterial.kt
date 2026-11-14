@@ -209,6 +209,7 @@ fun ModulePagerMaterial(
 
     val shortcutState = rememberModuleShortcutState(context)
     val showShortcutDialog = remember { mutableStateOf(false) }
+    var infoModuleId by rememberSaveable { mutableStateOf<String?>(null) }
     val confirmDialog = rememberConfirmDialog(
         onConfirm = {
             when (val request = confirmDialogState?.request) {
@@ -459,6 +460,7 @@ fun ModulePagerMaterial(
                         updateInfoMap = uiState.updateInfo,
                         actions = actions,
                         onModuleAddShortcut = { module, type -> onModuleAddShortcut(module, type) },
+                        onShowInfo = { infoModuleId = it.id },
                         closeSearch = closeSearch,
                     )
                 }
@@ -571,6 +573,7 @@ fun ModulePagerMaterial(
                 updateInfoMap = uiState.updateInfo,
                 actions = actions,
                 onModuleAddShortcut = { module, type -> onModuleAddShortcut(module, type) },
+                onShowInfo = { infoModuleId = it.id },
                 reorderEnabled = uiState.sortManual,
                 header = if (uiState.moduleList.isEmpty()) null else {
                     {
@@ -604,6 +607,16 @@ fun ModulePagerMaterial(
             showShortcutDialog.value = false
         },
     )
+
+    val infoModule = infoModuleId?.let { id -> uiState.modules.firstOrNull { it.id == id } }
+    if (infoModule != null) {
+        ModuleInfoDialogMaterial(
+            module = infoModule,
+            updateInfo = uiState.updateInfo[infoModule.id],
+            onDismiss = { infoModuleId = null },
+            onBannerChanged = actions.onReloadModules,
+        )
+    }
 }
 
 @Composable
@@ -615,6 +628,7 @@ private fun ModuleList(
     updateInfoMap: Map<String, ModuleUpdateInfo>,
     actions: ModuleActions,
     onModuleAddShortcut: (Module, ShortcutType) -> Unit,
+    onShowInfo: (Module) -> Unit,
     reorderEnabled: Boolean = false,
     closeSearch: () -> Unit? = {},
     header: (@Composable () -> Unit)? = null,
@@ -677,6 +691,7 @@ private fun ModuleList(
                         }
                     },
                     onExecuteAction = { actions.onExecuteModuleAction(module) },
+                    onShowInfo = { onShowInfo(module) },
                     closeSearch = { closeSearch() },
                     dragHandleModifier = if (reorderEnabled) {
                         Modifier.draggableHandle(
@@ -709,6 +724,7 @@ private fun ModuleShortcutSheet(
     val context = LocalContext.current
     val resources = LocalResources.current
 
+    @Suppress("UsePropertyAccessSyntax")
     fun copyShortcutUrl() {
         val url = shortcutState.buildShortcutUrl() ?: return
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -849,6 +865,8 @@ private fun ModuleShortcutSheet(
     }
 }
 
+// Deliberately not called "modifier": it targets the drag handle, not the card root.
+@Suppress("ModifierParameter")
 @Composable
 private fun ModuleItem(
     module: Module,
@@ -859,6 +877,7 @@ private fun ModuleItem(
     onAddShortcut: (ShortcutType) -> Unit,
     onOpenWebUi: () -> Unit,
     onExecuteAction: () -> Unit,
+    onShowInfo: () -> Unit,
     closeSearch: () -> Unit,
     dragHandleModifier: Modifier? = null,
 ) {
@@ -882,7 +901,8 @@ private fun ModuleItem(
             } else if (hasDescription) {
                 expanded = !expanded
             }
-        }
+        },
+        onLongClick = onShowInfo,
     ) {
         val haptic = LocalHapticFeedback.current
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough
@@ -973,17 +993,19 @@ private fun ModuleItem(
                         .fillMaxWidth()
                         .then(
                             if (canOpenWebUi) {
-                                Modifier.clickable(
+                                Modifier.combinedClickable(
                                     interactionSource = descriptionInteractionSource,
-                                    indication = null
-                                ) {
-                                    if (descriptionCanExpand) {
-                                        expanded = !expanded
-                                    } else {
-                                        onOpenWebUi()
-                                        closeSearch()
-                                    }
-                                }
+                                    indication = null,
+                                    onClick = {
+                                        if (descriptionCanExpand) {
+                                            expanded = !expanded
+                                        } else {
+                                            onOpenWebUi()
+                                            closeSearch()
+                                        }
+                                    },
+                                    onLongClick = onShowInfo,
+                                )
                             } else {
                                 Modifier
                             }

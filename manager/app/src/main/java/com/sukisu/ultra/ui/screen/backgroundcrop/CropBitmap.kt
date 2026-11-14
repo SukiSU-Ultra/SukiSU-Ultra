@@ -5,7 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface
 import android.os.Build
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -14,6 +14,7 @@ import java.io.FileOutputStream
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import androidx.core.graphics.createBitmap
 
 
 private const val MAX_SOURCE_DIMENSION = 2560
@@ -134,7 +135,7 @@ fun renderCroppedBitmap(
     val outHeight = (viewport.height * outputScale).roundToInt().coerceAtLeast(1)
 
     return runCatching {
-        val output = Bitmap.createBitmap(outWidth, outHeight, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(outWidth, outHeight)
         val canvas = Canvas(output)
         // Map output pixels back to the editor's viewport, then apply the same source transform
         // the editor uses: centre the source, scale to cover, rotate, place in the viewport.

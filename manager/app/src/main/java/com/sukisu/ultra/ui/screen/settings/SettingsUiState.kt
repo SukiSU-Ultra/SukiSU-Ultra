@@ -172,7 +172,7 @@ data class ThemePackageOptions(
     val bottomBarIcons: Boolean = true,
 )
 
-val ThemePackageOptionsSaver = listSaver<ThemePackageOptions, Boolean>(
+val ThemePackageOptionsSaver = listSaver(
     save = {
         listOf(
             it.colors,

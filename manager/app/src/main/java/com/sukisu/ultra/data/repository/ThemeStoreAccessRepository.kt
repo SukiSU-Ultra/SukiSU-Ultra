@@ -2,7 +2,6 @@ package com.sukisu.ultra.data.repository
 
 import android.content.Context
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -45,10 +44,13 @@ class ThemeStoreAccessRepository internal constructor(
         object : ThemeAccessStore {
             private val prefs=context.applicationContext.getSharedPreferences("theme_device_access",Context.MODE_PRIVATE)
             override fun get(key: String)=prefs.getString(key,null)
-            override fun put(key: String,value: String?)=prefs.edit().putString(key,value).commit()
+            @Suppress("UseKtx")
+            override fun put(key: String,value: String?): Boolean =
+                prefs.edit().putString(key,value).commit()
         },
         { null },
-    ) { accountContext=context.applicationContext }
+    ) {
+        accountContext=context.applicationContext }
 
     private var accountContext: Context? = null
     companion object {

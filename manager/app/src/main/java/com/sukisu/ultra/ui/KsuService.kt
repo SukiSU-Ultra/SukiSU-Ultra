@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -62,6 +63,7 @@ class KsuService : RootService() {
     }
 
     @Suppress("UNCHECKED_CAST")
+    @SuppressLint("PrivateApi")
     private fun getInstalledPackagesAsUser(flags: Int, userId: Int): List<PackageInfo> {
         return try {
             val pm: PackageManager = packageManager

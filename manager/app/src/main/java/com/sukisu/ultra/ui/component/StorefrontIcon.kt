@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER", "UnusedReceiverParameter")
+
 package com.sukisu.ultra.ui.component
 
 import androidx.compose.material.icons.Icons
@@ -7,10 +9,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 val Icons.Rounded.Storefront: ImageVector
     get() {
-        if (_storefront != null) {
-            return _storefront!!
+        if (storefrontIcon != null) {
+            return storefrontIcon!!
         }
-        _storefront = materialIcon(name = "Rounded.Storefront") {
+        storefrontIcon = materialIcon(name = "Rounded.Storefront") {
             materialPath {
                 moveTo(20.0f, 4.0f)
                 horizontalLineTo(4.0f)
@@ -42,10 +44,10 @@ val Icons.Rounded.Storefront: ImageVector
                 close()
             }
         }
-        return _storefront!!
+        return storefrontIcon!!
     }
 
 val Icons.Filled.Storefront: ImageVector
     get() = Icons.Rounded.Storefront
 
-private var _storefront: ImageVector? = null
+private var storefrontIcon: ImageVector? = null

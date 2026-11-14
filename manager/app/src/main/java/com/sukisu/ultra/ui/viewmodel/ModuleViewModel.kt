@@ -1,7 +1,9 @@
 package com.sukisu.ultra.ui.viewmodel
 
+import android.os.Build
 import android.os.SystemClock
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
@@ -54,6 +56,7 @@ import com.sukisu.ultra.ui.util.toggleModule as toggleModuleUtil
 import com.sukisu.ultra.ui.util.undoUninstallModule as undoUninstallModuleUtil
 import com.sukisu.ultra.ui.util.uninstallModule as uninstallModuleUtil
 
+@RequiresApi(Build.VERSION_CODES.Q)
 class ModuleViewModel(
     private val repo: ModuleRepository = ModuleRepositoryImpl(),
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl(),
@@ -286,6 +289,7 @@ class ModuleViewModel(
         updateSearchStatus(_uiState.value.searchStatus.copy(searchText = text))
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun filterModules(modules: List<Module>, text: String): List<Module> {
         if (text.isEmpty()) return emptyList()
 
@@ -296,6 +300,7 @@ class ModuleViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun applySearchText(text: String) {
         _uiState.update {
             it.copy(

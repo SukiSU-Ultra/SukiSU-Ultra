@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.data.repository
 
 import android.content.ComponentName
@@ -25,7 +27,6 @@ import com.sukisu.ultra.ui.util.getFeatureStatus
 import com.sukisu.ultra.ui.util.LocaleHelper
 import java.security.SecureRandom
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 
 private const val SETTINGS_PREFS = "settings"
 private const val KEY_USE_SOFT_REBOOT = "soft_reboot"
@@ -77,6 +78,8 @@ class SettingsRepositoryImpl : SettingsRepository {
         ksuApp.getSharedPreferences("theme_device_access", Context.MODE_PRIVATE)
     }
 
+    // commit()'s Boolean is checked, so the KTX edit helper (which discards it) is not used here.
+    @Suppress("UseKtx")
     private fun themeAccessSetting(key: String): String? = synchronized(themeAccessPrefs) {
         if (prefs.contains(key)) {
             if (!themeAccessPrefs.contains(key)) {
@@ -88,6 +91,7 @@ class SettingsRepositoryImpl : SettingsRepository {
         themeAccessPrefs.getString(key, null)
     }
 
+    @Suppress("UseKtx")
     private fun saveThemeAccessSetting(key: String, value: String) = synchronized(themeAccessPrefs) {
         check(themeAccessPrefs.edit().putString(key, value).commit())
         if (prefs.contains(key)) check(prefs.edit().remove(key).commit())
@@ -322,7 +326,7 @@ class SettingsRepositoryImpl : SettingsRepository {
         }
         set(value) = prefs.edit { putString("ui_mode", value) }
 
-    // Fresh installs default to Material; upgrades that never picked a mode keep the previous Miuix default.
+    // Fresh installations default to Material; upgrades that never picked a mode keep the previous Miuix default.
     private fun initialUiMode(): String {
         val freshInstall = runCatching {
             val info = ksuApp.packageManager.getPackageInfo(ksuApp.packageName, 0)

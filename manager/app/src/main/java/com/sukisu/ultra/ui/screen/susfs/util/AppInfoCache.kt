@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.susfs.util
 
 import android.content.pm.PackageInfo
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 
 object AppInfoCache {
@@ -23,6 +25,7 @@ object AppInfoCache {
         appInfoMap.clear()
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun getAppInfoFromSuperUser(packageName: String): CachedAppInfo? {
         return SuperUserViewModel.getAppsSafely().find { it.packageName == packageName }?.let { app ->
             CachedAppInfo(appName = app.label, packageInfo = app.packageInfo, drawable = null)

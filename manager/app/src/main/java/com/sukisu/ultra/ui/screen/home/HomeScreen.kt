@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -50,6 +51,7 @@ import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.util.rootAvailable
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
 import kotlin.time.Duration.Companion.milliseconds
+import androidx.core.net.toUri
 
 @Composable
 fun HomePager(
@@ -79,11 +81,13 @@ fun HomePager(
         if (skipInitialSelection.value) skipInitialSelection.value = false else viewModel.refresh()
     }
 
+    val resources = LocalResources.current
+
     LaunchedEffect(uiState.error, isCurrentPage) {
         if (isCurrentPage && uiState.content != null && uiState.error != null) {
             Toast.makeText(
                 context,
-                "${context.getString(R.string.operation_failed)}: ${uiState.error}",
+                "${resources.getString(R.string.operation_failed)}: ${uiState.error}",
                 Toast.LENGTH_LONG,
             ).show()
         }
@@ -110,7 +114,7 @@ fun HomePager(
                 !hasRoot && installsBlocked -> {
                     Toast.makeText(context, R.string.ci_update_install_permission, Toast.LENGTH_LONG).show()
                     context.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                        android.net.Uri.parse("package:${context.packageName}")))
+                        "package:${context.packageName}".toUri()))
                 }
                 Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
                     ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED -> {

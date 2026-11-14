@@ -65,8 +65,8 @@ fun patchKpmBoot(
             // before libsu can collect the command's exit status.
             target = read(
                 "boot_device=''; for p in /dev/block/by-name/$name /dev/block/bootdevice/by-name/$name; do " +
-                    "if [ -b \"\$p\" ]; then boot_device=\$(readlink -f \"\$p\") && break; fi; done; " +
-                    "[ -n \"\$boot_device\" ] && [ -b \"\$boot_device\" ] && printf '%s\\n' \"\$boot_device\""
+                        $$"if [ -b \"$p\" ]; then boot_device=$(readlink -f \"$p\") && break; fi; done; " +
+                        $$"[ -n \"$boot_device\" ] && [ -b \"$boot_device\" ] && printf '%s\\n' \"$boot_device\""
             )
             check(target.startsWith("/dev/block/") && !target.contains('\n')) { "Invalid boot device" }
             onStdout("- Reading $name ($target)")
@@ -104,7 +104,7 @@ fun patchKpmBoot(
         onStdout("- Unpacking boot.img and decompressing kernel")
         if (useKptoolsBoot) {
             // kptools-android uses fixed names relative to cwd: boot.img -> kernel.
-            command(inSession + "$toolCommand unpack boot.img")
+            command("$inSession$toolCommand unpack boot.img")
         } else {
             command("$daemon boot-kernel extract --boot ${q(source.absolutePath)} --output ${q(kernel.absolutePath)}")
         }
@@ -116,7 +116,7 @@ fun patchKpmBoot(
             // repack reads `kernel`, not `kernel.patched`. Keep the original
             // boot.img intact and replace only the extracted kernel file.
             command("mv ${q(patched.absolutePath)} ${q(kernel.absolutePath)}")
-            command(inSession + "$toolCommand repack boot.img")
+            command("$inSession$toolCommand repack boot.img")
             val repacked = File(session, "new-boot.img")
             command("[ -s ${q(repacked.absolutePath)} ] && mv ${q(repacked.absolutePath)} ${q(output.absolutePath)}")
         } else {

@@ -111,7 +111,7 @@ object AppIconPackStorage {
             val input = context.contentResolver.openInputStream(uri)
                 ?: error("Cannot open the archive")
             input.use { source ->
-                tempZip.outputStream().use { target -> copyLimited(source, target, MAX_ZIP_BYTES) }
+                tempZip.outputStream().use { target -> copyLimited(source, target) }
             }
 
             val packId = randomId()
@@ -133,7 +133,7 @@ object AppIconPackStorage {
                         scanned++
                         if (zipEntry.isDirectory || !isImageEntry(zipEntry.name)) continue
                         val bytes = zip.getInputStream(zipEntry)
-                            .use { readLimited(it, MAX_ENTRY_BYTES, budget) }
+                            .use { readLimited(it, budget) }
                             ?: continue
                         val bitmap = normalizeBitmap(bytes) ?: continue
                         val iconId = randomId()
@@ -178,8 +178,7 @@ object AppIconPackStorage {
     private fun isImageEntry(name: String): Boolean {
         if (name.startsWith("__MACOSX/") || name.startsWith(".")) return false
         val baseName = name.substringAfterLast('/')
-        if (baseName.isEmpty() || baseName.startsWith(".")) return false
-        return baseName.substringAfterLast('.', "").lowercase(Locale.ROOT) in imageExtensions
+        return !baseName.startsWith(".") && baseName.substringAfterLast('.', "").lowercase(Locale.ROOT) in imageExtensions
     }
 
     private fun displayIconName(context: Context, entryName: String, index: Int): String {
@@ -239,20 +238,20 @@ object AppIconPackStorage {
         return scaled
     }
 
-    private fun copyLimited(input: InputStream, output: java.io.OutputStream, maxBytes: Long) {
+    private fun copyLimited(input: InputStream, output: java.io.OutputStream) {
         val buffer = ByteArray(64 * 1024)
         var total = 0L
         while (true) {
             val read = input.read(buffer)
             if (read < 0) break
             total += read
-            if (total > maxBytes) error("The archive is too large")
+            if (total > MAX_ZIP_BYTES) error("The archive is too large")
             output.write(buffer, 0, read)
         }
     }
 
     
-    private fun readLimited(input: InputStream, maxBytes: Long, budget: ReadBudget): ByteArray? {
+    private fun readLimited(input: InputStream, budget: ReadBudget): ByteArray? {
         val output = ByteArrayOutputStream()
         val buffer = ByteArray(32 * 1024)
         var total = 0L
@@ -261,7 +260,7 @@ object AppIconPackStorage {
             if (read < 0) break
             total += read
             budget.remaining -= read
-            if (total > maxBytes || budget.remaining < 0) return null
+            if (total > MAX_ENTRY_BYTES || budget.remaining < 0) return null
             output.write(buffer, 0, read)
         }
         return output.toByteArray()

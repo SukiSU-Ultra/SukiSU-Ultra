@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -112,17 +111,13 @@ fun HomePagerMiuix(
     val scrollBehavior = MiuixScrollBehavior()
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
-    val blurActive = backdrop != null
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
-    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
     AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
         topBar = {
             TopBar(
-                title = customText(CustomTextKey.HOME_TITLE),
                 scrollBehavior = scrollBehavior,
                 backdrop = backdrop,
-                barColor = barColor,
                 onOpenThemeStore = actions.onOpenThemeStore,
             )
         },
@@ -276,10 +271,8 @@ private fun UpdateCard(
 
 @Composable
 private fun TopBar(
-    title: String,
     scrollBehavior: ScrollBehavior,
     backdrop: LayerBackdrop?,
-    barColor: Color,
     onOpenThemeStore: () -> Unit = {},
 ) {
     BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {

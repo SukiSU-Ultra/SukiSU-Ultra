@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.susfs.viewmodel
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.ConfigResult
 import com.sukisu.ultra.ui.component.ConfigRuntimeStatus
@@ -376,6 +378,7 @@ class SuSFSViewModel(
         refreshConfig()
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun addAppPaths(context: Context, packages: List<String>) = performOperation {
         beginResults()
         packages.forEach { packageName ->
@@ -383,7 +386,7 @@ class SuSFSViewModel(
             if (paths.isEmpty()) report(context, packageName) { false }
             else paths.forEach { path ->
                 report(context, path) {
-                    val result = SuSFSPathManager.addSusPathWithResult(context, path)
+                    val result = SuSFSPathManager.addSusPathWithResult(path)
                     check(result.isSuccess) {
                         result.errorOutput.ifBlank { result.output }.ifBlank {
                             context.getString(R.string.config_command_rejected)

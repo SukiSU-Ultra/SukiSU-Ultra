@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
+import androidx.core.graphics.scale
 
 object ImageStorage {
     private const val DIR_NAME = "backgrounds"
@@ -171,8 +172,7 @@ object ImageStorage {
     }
 
     private fun isDecodableImage(file: File): Boolean {
-        if (!file.isFile || file.length() == 0L) return false
-        return try {
+        return !(!file.isFile || file.length() == 0L) && try {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
             val width = bounds.outWidth
@@ -391,7 +391,7 @@ object ImageStorage {
             bitmapToRecycle = sampledBitmap
 
             val scaledBitmap = if (sampledBitmap.width != 128 || sampledBitmap.height != 128) {
-                Bitmap.createScaledBitmap(sampledBitmap, 128, 128, true).also { scaled ->
+                sampledBitmap.scale(128, 128).also { scaled ->
                     if (scaled != sampledBitmap) {
                         sampledBitmap.recycle()
                         bitmapToRecycle = scaled
@@ -411,7 +411,7 @@ object ImageStorage {
             sortedColors.firstOrNull() ?: fallbackColorArgb
         } catch (_: OutOfMemoryError) {
             fallbackColorArgb
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             fallbackColorArgb
         } finally {
             bitmapToRecycle?.let { bitmap ->
@@ -483,11 +483,9 @@ object ImageStorage {
             val longest = maxOf(decoded.width, decoded.height)
             val scaled = if (longest > BOTTOM_BAR_ICON_MAX_PX) {
                 val ratio = BOTTOM_BAR_ICON_MAX_PX.toFloat() / longest
-                Bitmap.createScaledBitmap(
-                    decoded,
+                decoded.scale(
                     (decoded.width * ratio).toInt().coerceAtLeast(1),
                     (decoded.height * ratio).toInt().coerceAtLeast(1),
-                    true,
                 )
             } else {
                 decoded

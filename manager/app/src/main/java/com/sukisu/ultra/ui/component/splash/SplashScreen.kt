@@ -53,6 +53,7 @@ import com.sukisu.ultra.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val ICON_SIZE_PX = 256
 private const val EXIT_DURATION_MS = 360
@@ -95,9 +96,9 @@ fun SplashScreen(
 
     LaunchedEffect(isReady) {
         if (isReady) {
-            delay(minDurationMs)
+            delay(minDurationMs.milliseconds)
             exitTriggered = true
-            delay(EXIT_DURATION_MS.toLong() + 20L)
+            delay((EXIT_DURATION_MS.toLong() + 20L).milliseconds)
             splashDismissed = true
             currentOnDismissed()
         }

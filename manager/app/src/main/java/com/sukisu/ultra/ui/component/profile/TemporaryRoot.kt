@@ -20,6 +20,7 @@ import com.sukisu.ultra.ui.util.getRootShell
 import com.sukisu.ultra.ui.util.getKsuDaemonPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
 object TemporaryRoot {
     private const val PREFS = "temporary_root"
@@ -28,7 +29,7 @@ object TemporaryRoot {
         context.getSharedPreferences(PREFS, 0).getInt("minutes", 10).coerceIn(1, 10080)
 
     fun setDefaultMinutes(context: android.content.Context, minutes: Int) {
-        context.getSharedPreferences(PREFS, 0).edit().putInt("minutes", minutes).apply()
+        context.getSharedPreferences(PREFS, 0).edit { putInt("minutes", minutes) }
     }
 
     suspend fun status(uid: Int): String = withContext(Dispatchers.IO) {

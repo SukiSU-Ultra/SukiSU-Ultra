@@ -40,8 +40,7 @@ data class KernelVersion(val major: Int, val patchLevel: Int, val subLevel: Int)
      */
     fun isSupported(): Boolean {
         // parseKernelVersion() returns (-1, -1, -1) when uname is unreadable.
-        if (major < 0 || patchLevel < 0) return false
-        return major > 3 || (major == 3 && patchLevel >= 4)
+        return !(major < 0 || patchLevel < 0) && (major > 3 || (major == 3 && patchLevel >= 4))
     }
 }
 

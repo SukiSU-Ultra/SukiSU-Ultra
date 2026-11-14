@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
@@ -38,6 +39,7 @@ fun KernelFlashScreen(
 ) {
     val navigator = LocalNavigator.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val activity = LocalActivity.current
 
@@ -103,7 +105,7 @@ fun KernelFlashScreen(
                     kpmUndoPatch = kpmUndoPatch
                 ).start()
             } catch (e: Exception) {
-                horizonKernelState.setError(e.message ?: context.getString(R.string.horizon_unknown_error))
+                horizonKernelState.setError(e.message ?: resources.getString(R.string.horizon_unknown_error))
             }
         }
     }

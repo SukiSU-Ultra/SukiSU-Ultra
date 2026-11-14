@@ -16,6 +16,7 @@ import com.sukisu.ultra.ui.util.ThemePackageCrypto
 import com.sukisu.ultra.ui.util.ThemePackageStorage
 import com.sukisu.ultra.ui.util.getFileName
 import com.sukisu.ultra.ui.webui.WebUIActivity
+import androidx.core.net.toUri
 
 private const val SCHEME_KSU = "ksu"
 private const val HOST_ACTION = "action"
@@ -69,7 +70,7 @@ private fun parseThemeStoreLink(intent: Intent): Route.ThemeStore? {
     val id = uri.getQueryParameter("id")?.takeIf { THEME_ID_PATTERN.matches(it) } ?: return null
     // This URL only selects an already-configured source; it never installs a token or adds a server.
     val source = uri.getQueryParameter("source")?.takeIf { it.length <= 256 }
-        ?.takeIf { Uri.parse(it).scheme in setOf("http", "https") }
+        ?.takeIf { it.toUri().scheme in setOf("http", "https") }
         ?.trimEnd('/')
     return Route.ThemeStore(themeId = id, sourceBaseUrl = source)
 }

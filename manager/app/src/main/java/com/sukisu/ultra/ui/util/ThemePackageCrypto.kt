@@ -171,15 +171,13 @@ object ThemePackageCrypto {
             synchronized(lock) {
                 if (closed) return
                 closed = true
-                try {
+                output.use { output ->
                     flushBuffer()
                     val tail = cipher.doFinal()
                     if (tail != null && tail.isNotEmpty()) {
                         output.write(tail)
                     }
                     output.flush()
-                } finally {
-                    output.close()
                 }
             }
         }

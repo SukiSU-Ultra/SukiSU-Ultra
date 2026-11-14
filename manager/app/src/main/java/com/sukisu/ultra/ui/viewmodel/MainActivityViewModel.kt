@@ -3,7 +3,6 @@ package com.sukisu.ultra.ui.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Parcelable
-import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

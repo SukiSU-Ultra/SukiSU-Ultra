@@ -79,8 +79,8 @@ object HomeStatusStyle {
     val DotSize = 8.dp
     val DividerWidth = 1.dp
     val DividerHeight = 16.dp
-    const val LabelSizeSp = 15f
-    const val MetaSizeSp = 11.5f
+    const val LABEL_SIZE_SP = 15f
+    const val META_SIZE_SP = 11.5f
 
     val BannerHeight = 88.dp
     val BannerCorner = 20.dp

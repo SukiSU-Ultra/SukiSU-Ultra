@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.ui.screen.susfs.component
 
 import androidx.compose.foundation.layout.*
@@ -8,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalUiMode
@@ -50,14 +51,14 @@ fun SlotInfoDialog(
             modifier = Modifier.fillMaxWidth().heightIn(max = 540.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SlotText(stringResource(R.string.susfs_slot_draft_hint), miuix, secondary = true)
+            SlotText(stringResource(R.string.susfs_slot_draft_hint))
             if (isLoadingSlotInfo) {
                 if (miuix) top.yukonga.miuix.kmp.basic.LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 else LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
-            error?.let { SlotText(it, miuix, secondary = true) }
+            error?.let { SlotText(it) }
             if (!isLoadingSlotInfo && slotInfoList.isEmpty()) {
-                SlotText(stringResource(R.string.susfs_slot_info_unavailable), miuix, secondary = true)
+                SlotText(stringResource(R.string.susfs_slot_info_unavailable))
             }
             if (slotInfoList.isNotEmpty()) {
                 Row(
@@ -88,7 +89,7 @@ fun SlotInfoDialog(
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         SlotValue(
                             label = stringResource(R.string.susfs_uname_label), value = slot.uname,
-                            miuix = miuix, enabled = !isLoadingSlotInfo,
+                            enabled = !isLoadingSlotInfo,
                             action = stringResource(R.string.susfs_slot_use_uname),
                             selected = "${slot.slotName}:uname" in copiedFields,
                         ) {
@@ -97,7 +98,7 @@ fun SlotInfoDialog(
                         }
                         SlotValue(
                             label = stringResource(R.string.susfs_build_time_label), value = slot.buildTime,
-                            miuix = miuix, enabled = !isLoadingSlotInfo,
+                            enabled = !isLoadingSlotInfo,
                             action = stringResource(R.string.susfs_slot_use_build_time),
                             selected = "${slot.slotName}:version" in copiedFields,
                         ) {
@@ -140,37 +141,28 @@ fun SlotInfoDialog(
 }
 
 @Composable
-private fun SlotText(text: String, miuix: Boolean, secondary: Boolean = false) {
-    if (miuix) {
-        MiuixText(text, style = if (secondary) MiuixTheme.textStyles.body2 else MiuixTheme.textStyles.body1,
-            color = if (secondary) MiuixTheme.colorScheme.onSurfaceVariantSummary else MiuixTheme.colorScheme.onSurface)
-    } else {
-        Text(text, style = if (secondary) MaterialTheme.typography.bodySmall else MaterialTheme.typography.titleMedium,
-            color = if (secondary) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
-    }
+private fun SlotText(text: String) {
+    MiuixText(
+        text,
+        style = MiuixTheme.textStyles.body2,
+        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+    )
 }
 
 @Composable
 private fun SlotValue(
-    label: String, value: String, miuix: Boolean, enabled: Boolean,
+    label: String, value: String, enabled: Boolean,
     action: String, selected: Boolean, onUse: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SlotText(label, miuix, secondary = true)
+        SlotText(label)
         SelectionContainer {
             val display = value.ifBlank { stringResource(R.string.susfs_slot_info_unavailable) }
-            if (miuix) MiuixText(display, style = MiuixTheme.textStyles.body2)
-            else Text(display, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Monospace)
+            MiuixText(display, style = MiuixTheme.textStyles.body2)
         }
         if (value.isNotBlank()) {
             val text = if (selected) stringResource(R.string.susfs_slot_value_filled) else action
-            if (miuix) MiuixTextButton(text, onClick = onUse, enabled = enabled, modifier = Modifier.fillMaxWidth())
-            else TextButton(
-                onClick = onUse,
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-            ) { Text(text) }
+            MiuixTextButton(text, onClick = onUse, enabled = enabled, modifier = Modifier.fillMaxWidth())
         }
     }
 }

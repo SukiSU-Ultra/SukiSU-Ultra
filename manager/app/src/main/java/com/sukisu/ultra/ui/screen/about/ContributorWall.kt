@@ -91,7 +91,7 @@ import kotlin.math.tanh
 
 private const val MinWallZoom = 0.6f
 private const val MaxWallZoom = 3f
-private val WallOffsetSaver = listSaver<Offset, Float>(
+private val WallOffsetSaver = listSaver(
     save = { listOf(it.x, it.y) },
     restore = { Offset(it[0], it[1]) },
 )

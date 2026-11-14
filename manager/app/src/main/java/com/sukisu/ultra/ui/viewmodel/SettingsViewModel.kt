@@ -1,25 +1,14 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.ui.viewmodel
 
 import android.content.Context
-import androidx.core.content.edit
 import android.net.Uri
 import android.system.OsConstants
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.sukisu.ultra.Natives
@@ -28,39 +17,51 @@ import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteUiState
+import com.sukisu.ultra.ui.screen.module.ModuleNameSort
 import com.sukisu.ultra.ui.screen.settings.SettingsUiState
 import com.sukisu.ultra.ui.screen.settings.ThemePackageOptions
 import com.sukisu.ultra.ui.theme.ColorMode
-import com.sukisu.ultra.ui.theme.ThemeController
-import com.sukisu.ultra.ui.util.CustomTextGroup
-import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.AdaptiveThemeDraft
 import com.sukisu.ultra.ui.util.AdaptiveThemeState
 import com.sukisu.ultra.ui.util.AdaptiveThemeStore
 import com.sukisu.ultra.ui.util.AdaptiveThemeVariantState
 import com.sukisu.ultra.ui.util.AppearanceOverlayData
 import com.sukisu.ultra.ui.util.AppearanceOverlayStore
-import com.sukisu.ultra.ui.util.ImageStorage
-import com.sukisu.ultra.ui.util.ImportedThemeVariant
-import com.sukisu.ultra.ui.util.ThemePackageAdaptiveExport
-import com.sukisu.ultra.ui.util.ThemePackageVariantExport
-import com.sukisu.ultra.ui.util.ThemeVariantData
-import com.sukisu.ultra.ui.util.customTextsInGroups
-import com.sukisu.ultra.ui.screen.module.ModuleNameSort
+import com.sukisu.ultra.ui.util.BottomBarIconSlot
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
-import com.sukisu.ultra.ui.util.BottomBarIconSlot
+import com.sukisu.ultra.ui.util.CustomTextGroup
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
 import com.sukisu.ultra.ui.util.HomeCardSticker
 import com.sukisu.ultra.ui.util.HomeCardStickerTransform
-import com.sukisu.ultra.ui.util.HomeCardImageStyle
 import com.sukisu.ultra.ui.util.HomeLayout
 import com.sukisu.ultra.ui.util.HomeStatusAlignment
 import com.sukisu.ultra.ui.util.HomeStatusStyle
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.ImportedTheme
+import com.sukisu.ultra.ui.util.ImportedThemeVariant
+import com.sukisu.ultra.ui.util.ThemePackageAdaptiveExport
 import com.sukisu.ultra.ui.util.ThemePackageData
 import com.sukisu.ultra.ui.util.ThemePackageStorage
+import com.sukisu.ultra.ui.util.ThemePackageVariantExport
 import com.sukisu.ultra.ui.util.ThemeTrialManager
+import com.sukisu.ultra.ui.util.ThemeVariantData
+import com.sukisu.ultra.ui.util.customTextsInGroups
 import com.sukisu.ultra.ui.util.findActivity
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 private data class CurrentThemePayload(
@@ -76,7 +77,7 @@ class SettingsViewModel(
     private val repo: SettingsRepository = SettingsRepositoryImpl()
 ) : ViewModel() {
 
-    /** Parsed once when the view model is created; the store caches by raw JSON afterwards. */
+    /** Parsed once when the view model is created; the store caches by raw JSON afterward. */
     private val initialAppearanceData = AppearanceOverlayStore.data(repo)
 
     private val _uiState = MutableStateFlow(SettingsUiState(
@@ -573,14 +574,6 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
             val updated = _uiState.value.bottomBarIcons - slot.key
             repo.bottomBarIcons = updated
             _uiState.update { it.copy(bottomBarIcons = updated) }
-        }
-    }
-
-    fun clearAllBottomBarIcons(context: Context) {
-        viewModelScope.launch {
-            ImageStorage.clearBottomBarIcons(context)
-            repo.bottomBarIcons = emptyMap()
-            _uiState.update { it.copy(bottomBarIcons = emptyMap()) }
         }
     }
 
@@ -1380,7 +1373,7 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
             updated = updated.copy(homeCardImagePath = "")
         }
         // Same rule as the card image: a package without sticker data clears the previous
-        // stickers; the package stickers are imported afterwards when it has them.
+        // stickers; the package stickers are imported afterward when it has them.
         val stickersOptionAvailable =
             imported.stickerPaths.isNotEmpty() ||
                 imported.light?.stickerPaths?.isNotEmpty() == true ||
@@ -1806,7 +1799,7 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
         if (options.customColors || options.imageEffects) {
             // Selected sections are replaced as a whole; unselected sections keep the user's
             // current overlay. A package without the selected section clears it, matching the
-            // "clear first, then overwrite" behaviour of the other groups.
+            // "clear first, then overwrite" behavior of the other groups.
             val merged = AppearanceOverlayStore.merge(
                 current = AppearanceOverlayStore.data(repo),
                 incoming = data.appearance,
@@ -1859,6 +1852,11 @@ homePillScale = if (options.homeCardDisplay) source.homePillScale else null,
             runCatching { File(path).delete() }
         }
 
+        val replacingBackground = options.backgroundImage &&
+            (imported.backgroundPath != null ||
+                data.hasBackground == false ||
+                (adaptiveState != null && adaptiveState.light.data.hasBackground != null))
+
         _uiState.update {
             it.copy(
                 uiMode = targetUiMode,
@@ -1893,28 +1891,8 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
                 appearance = AppearanceOverlayStore.load(repo),
                 appearanceData = savedAppearance,
                 adaptiveThemeActive = adaptiveState != null,
-                useSystemWallpaper = if (
-                    options.backgroundImage &&
-                    (imported.backgroundPath != null ||
-                        data.hasBackground == false ||
-                        (adaptiveState != null && adaptiveState.light.data.hasBackground != null))
-                ) {
-                    false
-                } else {
-                    // The clear-first reset may already have turned the system wallpaper off
-                    // for a package without background data; keep that result, not the old state.
-                    current.useSystemWallpaper
-                },
-                systemWallpaperPath = if (
-                    options.backgroundImage &&
-                    (imported.backgroundPath != null ||
-                        data.hasBackground == false ||
-                        (adaptiveState != null && adaptiveState.light.data.hasBackground != null))
-                ) {
-                    ""
-                } else {
-                    current.systemWallpaperPath
-                },
+                useSystemWallpaper = !replacingBackground && current.useSystemWallpaper,
+                systemWallpaperPath = if (replacingBackground) "" else current.systemWallpaperPath,
                 enableFloatingBottomBar = floatingBottomBar,
                 enableFloatingBottomBarBlur = floatingBottomBarBlur,
                 enableNavigationBadge = navigationBadge,
@@ -2731,18 +2709,6 @@ homePillScale = repo.homePillScale,
         _uiState.update { it.copy(themeStoreToken = trimmed) }
     }
 
-    fun setThemeStoreAuthorId(id: String) {
-        val trimmed = id.trim()
-        repo.themeStoreAuthorId = trimmed
-        _uiState.update { it.copy(themeStoreAuthorId = trimmed) }
-    }
-
-    fun setThemeStoreAuthorName(name: String) {
-        val trimmed = name.trim()
-        repo.themeStoreAuthorName = trimmed
-        _uiState.update { it.copy(themeStoreAuthorName = trimmed) }
-    }
-
     fun setThemeStoreAdminUrl(url: String) {
         val trimmed = url.trim()
         repo.themeStoreAdminUrl = trimmed
@@ -3053,12 +3019,12 @@ homePillScale = repo.homePillScale,
 
     private fun publishPendingSeed(keyColor: Int) {
         ksuApp.getSharedPreferences(MainActivityViewModel.SETTINGS_PREFS, Context.MODE_PRIVATE)
-            .edit() { putInt(MainActivityViewModel.KEY_COLOR_PENDING, keyColor) }
+            .edit { putInt(MainActivityViewModel.KEY_COLOR_PENDING, keyColor) }
     }
 
     private fun clearPendingSeed() {
         ksuApp.getSharedPreferences(MainActivityViewModel.SETTINGS_PREFS, Context.MODE_PRIVATE)
-            .edit() { remove(MainActivityViewModel.KEY_COLOR_PENDING) }
+            .edit { remove(MainActivityViewModel.KEY_COLOR_PENDING) }
     }
 
     private fun SettingsRepository.derivesKeyColorFromBackground(): Boolean =

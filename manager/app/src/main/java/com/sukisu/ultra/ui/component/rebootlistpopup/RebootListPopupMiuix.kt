@@ -18,7 +18,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Close2
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-import com.sukisu.ultra.ui.component.miuix.DropdownItem
 
 @Composable
 fun RebootListPopupMiuix(

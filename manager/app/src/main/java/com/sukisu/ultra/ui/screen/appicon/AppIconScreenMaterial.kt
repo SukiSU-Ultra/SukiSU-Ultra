@@ -35,7 +35,6 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -73,7 +72,6 @@ import com.sukisu.ultra.ui.util.AppIconPack
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppIconScreenMaterial(
     state: AppIconUiState,

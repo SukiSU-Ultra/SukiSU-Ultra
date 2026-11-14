@@ -147,9 +147,9 @@ private fun rememberQuantizedGravityAngle(): State<Float> {
 
 @Composable
 private fun rememberGravityRotatedHighlight(
-    base: Highlight,
     extraDegrees: Float = 0f,
 ): State<Highlight> {
+    val base = iosIndicatorSpecular
     val baseStyle = base.style as BloomStroke
     val angle = rememberQuantizedGravityAngle()
     return remember(angle, base, extraDegrees) {
@@ -340,8 +340,8 @@ fun FloatingBottomBar(
         )
     }
 
-    val baseHighlight = rememberGravityRotatedHighlight(iosIndicatorSpecular, extraDegrees = -45f)
-    val pillHighlight = rememberGravityRotatedHighlight(iosIndicatorSpecular, extraDegrees = 90f)
+    val baseHighlight = rememberGravityRotatedHighlight(extraDegrees = -45f)
+    val pillHighlight = rememberGravityRotatedHighlight(extraDegrees = 90f)
 
     val combinedBackdrop = rememberCombinedBackdrop(backdrop, tabsBackdrop)
 
@@ -351,8 +351,8 @@ fun FloatingBottomBar(
     ) {
         Row(
             Modifier
-                .onGloballyPositioned { coords ->
-                    totalWidthPx = coords.size.width.toFloat()
+                .onGloballyPositioned { layoutCoordinates ->
+                    totalWidthPx = layoutCoordinates.size.width.toFloat()
                     val contentWidthPx = totalWidthPx - with(density) { 8.dp.toPx() }
                     tabWidthPx = (contentWidthPx / tabsCount).coerceAtLeast(0f)
                 }

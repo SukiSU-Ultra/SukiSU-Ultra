@@ -38,8 +38,6 @@ class ThemeStoreConsentStore(context: Context) {
         return record.takeIf { it.version == CURRENT_VERSION }
     }
 
-    fun isAccepted(): Boolean = read() != null
-
     fun accept(showR18: Boolean = false): ThemeStoreConsent {
         val record = ThemeStoreConsent(
             version = CURRENT_VERSION,

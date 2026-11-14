@@ -157,11 +157,13 @@ internal object KernelModulesParser {
     fun parseConfigBlockModules(raw: String?): List<String> =
         raw.orEmpty()
             .split(Regex("\\s+"))
+            .asSequence()
             .filter { it.startsWith("block_modules=") }
             .flatMap { token -> token.substringAfter('=').trim('"', '\'').split(',') }
             .map { it.trim() }
             .filter(::isSafeConfigName)
             .distinct()
+            .toList()
 
     /**
      * The kernel's own list is compared verbatim against module names, so keep
@@ -179,11 +181,13 @@ internal object KernelModulesParser {
     fun parseCmdlineBlockModules(raw: String?): List<String> =
         raw.orEmpty()
             .split(Regex("\\s+"))
+            .asSequence()
             .filter { it.startsWith("block_modules=") }
             .flatMap { token -> token.substringAfter('=').trim('"', '\'').split(',') }
             .map { it.trim() }
             .filter(::isSafeConfigName)
             .distinct()
+            .toList()
 
     
     fun parseProcModules(raw: String?): Map<String, LoadedModule> {
@@ -296,7 +300,6 @@ internal object KernelModulesParser {
 
         val configuredSet = configuredNames.toSet()
         val activeSet = activeNames.toSet()
-        val deviceSet = deviceBlocklist
 
         // Vendor modules.blocklist files are generic and often name modules
         // this build does not ship. Only keep entries that have a real row
@@ -309,11 +312,13 @@ internal object KernelModulesParser {
 
         val suggestions = if (configuredNames.isEmpty() && activeNames.isEmpty()) {
             loaded.values
+                .asSequence()
                 .filter { it.name in knownAntiRoot && it.usedBy.isEmpty() }
                 .map { it.name }
-                .filter { it !in configuredSet && it !in deviceSet }
-                .filter { name -> dependents[name].orEmpty().all { it in deviceSet } }
+                .filter { it !in configuredSet && it !in deviceBlocklist }
+                .filter { name -> dependents[name].orEmpty().all { it in deviceBlocklist } }
                 .sorted()
+                .toList()
         } else {
             emptyList()
         }
@@ -328,7 +333,7 @@ internal object KernelModulesParser {
             val active = name in activeSet
             val configured = name in configuredSet
             val isLoaded = name in loaded
-            val device = name in deviceSet
+            val device = name in deviceBlocklist
             val status = when {
                 active && isLoaded -> KernelModuleStatus.BlockedLoaded
                 active -> KernelModuleStatus.Blocked
@@ -345,7 +350,7 @@ internal object KernelModulesParser {
                         boot = dependent in bootModules,
                         blocked = dependent in activeSet ||
                             dependent in configuredSet ||
-                            dependent in deviceSet,
+                            dependent in deviceBlocklist,
                     )
                 }
                 .sortedWith(compareBy({ it.loaded }, { !it.boot }, { it.name }))

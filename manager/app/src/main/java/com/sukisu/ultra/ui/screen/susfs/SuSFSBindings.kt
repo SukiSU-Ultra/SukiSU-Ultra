@@ -1,5 +1,7 @@
 package com.sukisu.ultra.ui.screen.susfs
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.sukisu.ultra.R
@@ -8,6 +10,7 @@ import com.sukisu.ultra.ui.screen.susfs.content.*
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
 import com.sukisu.ultra.ui.screen.susfs.viewmodel.SuSFSViewModel
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 internal fun SuSFSDialogs(uiState: SuSFSUiState, viewModel: SuSFSViewModel) {
     val context = LocalContext.current

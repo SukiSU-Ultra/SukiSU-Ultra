@@ -241,11 +241,11 @@ private fun detectZipType(context: Context, uri: Uri): ZipType {
     return try {
         context.contentResolver.openInputStream(uri)?.use { inputStream ->
             ZipInputStream(inputStream).use(::detectFromZipStream)
-        } ?: defaultType(isApk)
+        } ?: defaultType()
     } catch (exception: Exception) {
         Log.w(TAG, "Unable to inspect ZIP file: $uri", exception)
-        defaultType(isApk)
+        defaultType()
     }
 }
 
-private fun defaultType(isApk: Boolean) = if (isApk) ZipType.MODULE else ZipType.UNKNOWN
+private fun defaultType() = ZipType.UNKNOWN

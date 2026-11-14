@@ -1,5 +1,7 @@
 package com.sukisu.ultra
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,8 +9,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.os.Build
+import android.os.Bundle
 import android.os.UserManager
 import android.system.Os
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
@@ -19,17 +24,28 @@ import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.SuperUserRepositoryImpl
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.sukisu.ultra.BuildConfig
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.io.File
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 lateinit var ksuApp: KernelSUApplication
 
 class KernelSUApplication : Application(), ViewModelStoreOwner {
 
     companion object {
+        private const val TAG = "KernelSUApplication"
+        private const val LAUNCHER_RESTORE_DELAY_MS = 1_500L
+
+        @SuppressLint("PrivateApi")
         fun setEnableOnBackInvokedCallback(appInfo: ApplicationInfo, enable: Boolean) {
             runCatching {
                 val applicationInfoClass = ApplicationInfo::class.java
@@ -42,6 +58,15 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
 
     lateinit var okhttpClient: OkHttpClient
     private val appViewModelStore by lazy { ViewModelStore() }
+    private val launcherRestoreScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** Number of activities in the started state, i.e. whether any manager UI is visible. */
+    @Volatile
+    private var startedActivities = 0
+
+    /** True while a manager activity is visible; launcher components must not move then. */
+    val isAppInForeground: Boolean
+        get() = startedActivities > 0
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(base))
@@ -50,6 +75,7 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
     private fun isUserUnlocked(): Boolean =
         getSystemService(UserManager::class.java)?.isUserUnlocked == true
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate() {
         super.onCreate()
         ksuApp = this
@@ -59,15 +85,45 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
             return
         }
 
-        SettingsRepositoryImpl().let { settings ->
-            // Only touch launcher components when the state actually drifted; re-applying an
-            // unchanged alias can restart the process on some ROMs right as we are starting.
-            BuiltinAppIcons.applyIfNeeded(
-                context = this,
-                icon = BuiltinAppIcons.find(settings.appIconId),
-                dynamicColor = settings.appIconDynamicColor,
-            )
-        }
+        // Launcher components are intentionally left alone while the process starts. An update
+        // resets their enabled states to the manifest defaults, so the first launch after a
+        // reinstall arrives through the default alias; disabling that alias underneath the
+        // starting task restarts (and visibly kills) the app. AppIconUpdateReceiver restores the
+        // selected icon from the update broadcast, and the lifecycle callback below repairs any
+        // state it could not fix once the manager is safely in the background.
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityStarted(activity: Activity) {
+                startedActivities++
+            }
+
+            override fun onActivityStopped(activity: Activity) {
+                startedActivities--
+                if (startedActivities > 0 || activity.isChangingConfigurations) return
+                launcherRestoreScope.launch {
+                    // Wait out the hand-over between two of our own activities (a shortcut
+                    // forwarding to the main screen stops before the target is started); moving
+                    // components in that window is the same failure as moving them at startup.
+                    delay(LAUNCHER_RESTORE_DELAY_MS.milliseconds)
+                    if (startedActivities > 0) return@launch
+                    runCatching {
+                        val settings = SettingsRepositoryImpl()
+                        BuiltinAppIcons.applyIfNeeded(
+                            context = this@KernelSUApplication,
+                            icon = BuiltinAppIcons.find(settings.appIconId),
+                            dynamicColor = settings.appIconDynamicColor,
+                        )
+                    }.onFailure {
+                        Log.w(TAG, "Cannot restore the launcher icon", it)
+                    }
+                }
+            }
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+            override fun onActivityResumed(activity: Activity) = Unit
+            override fun onActivityPaused(activity: Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+            override fun onActivityDestroyed(activity: Activity) = Unit
+        })
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val enable = SettingsRepositoryImpl().enablePredictiveBack

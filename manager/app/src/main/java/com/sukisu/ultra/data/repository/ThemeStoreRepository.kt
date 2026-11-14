@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.data.repository
 
 import android.content.Context
@@ -5,12 +7,12 @@ import com.sukisu.ultra.data.model.ThemeStoreCatalog
 import com.sukisu.ultra.data.model.ThemeStoreEntry
 import com.sukisu.ultra.data.model.ThemeStoreHealth
 import com.sukisu.ultra.data.model.ThemeStoreSubmitResponse
+import com.sukisu.ultra.data.repository.ThemeStoreRepository.Companion.MAX_DOWNLOAD_CACHE_BYTES
 import com.sukisu.ultra.ksuApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.CacheControl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -77,7 +79,7 @@ data class ThemeStoreSubmission(
     val name: String,
     val author: String,
     val authorId: String,
-    /** Reason for the author licence created together with this submission. */
+    /** Reason for the author license created together with this submission. */
     val authorApplyNote: String = "",
     val description: String,
     val tags: String,
@@ -145,7 +147,7 @@ private class ProgressRequestBody(
  * to their final name.
  */
 class ThemeStoreRepository(
-    private val context: Context,
+    context: Context,
     private val client: OkHttpClient = ksuApp.okhttpClient,
 ) {
     companion object {
@@ -166,10 +168,7 @@ class ThemeStoreRepository(
         private const val DOWNLOAD_RETRIES = 3
         private const val MIN_PARALLEL_DOWNLOAD_BYTES = 1L * 1024L * 1024L
         private const val DOWNLOAD_PROGRESS_INTERVAL_NANOS = 100_000_000L
-        private const val STREAM_BUFFER_SIZE = 128 * 1024
-        
-        private const val STREAM_FLUSH_BYTES = 256 * 1024
-        
+
         private const val MAX_DOWNLOAD_CACHE_BYTES = 256L * 1024L * 1024L
         
         private val ACTIVE_CACHE_GRACE_MS = TimeUnit.HOURS.toMillis(1)
@@ -556,7 +555,7 @@ class ThemeStoreRepository(
                 // A missing or truncated data file cannot back any claimed chunk; drop
                 // the marker instead of looping on a verification failure forever.
                 val coverage = claimed.maxOfOrNull { index ->
-                    index * chunkSize + chunkLength(totalSize, chunkSize, index)
+                    index * chunkSize + chunkLength(totalSize, index)
                 } ?: 0L
                 if (tempFile.isFile && tempFile.length() >= coverage) {
                     completed.addAll(claimed)
@@ -565,7 +564,7 @@ class ThemeStoreRepository(
         }
 
         val completedBytes = AtomicLong(
-            completed.sumOf { chunkLength(totalSize, chunkSize, it) },
+            completed.sumOf { chunkLength(totalSize, it) },
         )
         val chunkProgress = HashMap<Long, Long>()
         val reportLock = Any()
@@ -587,7 +586,7 @@ class ThemeStoreRepository(
         }
 
         synchronized(metaLock) {
-            persistDownloadMeta(metaFile, expectedSha, totalSize, chunkSize, completed)
+            persistDownloadMeta(metaFile, expectedSha, totalSize, completed)
         }
         report(force = true)
 
@@ -610,7 +609,7 @@ class ThemeStoreRepository(
                         while (!Thread.currentThread().isInterrupted) {
                             val index = pending.poll() ?: break
                             val start = index * chunkSize
-                            val length = chunkLength(totalSize, chunkSize, index)
+                            val length = chunkLength(totalSize, index)
                             if (length <= 0L) continue
                             var attempt = 0
                             while (true) {
@@ -638,7 +637,6 @@ class ThemeStoreRepository(
                                             metaFile,
                                             expectedSha,
                                             totalSize,
-                                            chunkSize,
                                             completed,
                                         )
                                     }
@@ -756,8 +754,8 @@ class ThemeStoreRepository(
         }
     }
 
-    private fun chunkLength(totalSize: Long, chunkSize: Long, index: Long): Long =
-        ThemeStoreRepository.chunkLength(totalSize, chunkSize, index)
+    private fun chunkLength(totalSize: Long, index: Long): Long =
+        chunkLength(totalSize, DOWNLOAD_CHUNK_BYTES, index)
 
     private fun readDownloadMeta(metaFile: File): ParallelDownloadMeta? =
         runCatching {
@@ -769,13 +767,12 @@ class ThemeStoreRepository(
         metaFile: File,
         sha256: String,
         size: Long,
-        chunkSize: Long,
         completed: Set<Long>,
     ) {
         val meta = ParallelDownloadMeta(
             sha256 = sha256,
             size = size,
-            chunkSize = chunkSize,
+            chunkSize = DOWNLOAD_CHUNK_BYTES,
             completed = completed.sorted(),
         )
         val temp = File(metaFile.parentFile, metaFile.name + ".tmp")
@@ -981,7 +978,7 @@ class ThemeStoreRepository(
             val referencedAttachments = packageUpload?.supportsAttachments == true
             for ((field, file) in attachments) {
                 if (referencedAttachments) {
-                    val uploaded = requireNotNull(uploader).upload(file) { bytes, _ -> reportFile(bytes) }
+                    val uploaded = uploader.upload(file) { bytes, _ -> reportFile(bytes) }
                     builder.addFormDataPart(
                         if (field == "screenshots") "screenshotUploadId" else field + "UploadId",
                         uploaded.uploadId,

@@ -60,6 +60,7 @@ import com.sukisu.ultra.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.min
+import androidx.core.graphics.withClip
 
 private const val WordmarkWord = "SUKISU"
 private const val WordmarkWidth = 1000f
@@ -125,13 +126,12 @@ fun ContributorNameWordmark(names: List<String>, modifier: Modifier = Modifier) 
             val path = layout ?: return@Canvas
             val scale = wordmarkFitScale(Size(size.width, size.height)) * zoom
             val canvas = drawContext.canvas.nativeCanvas
-            canvas.save()
-            canvas.clipRect(0f, 0f, size.width, size.height)
-            canvas.translate(size.width / 2f + offset.x, size.height / 2f + offset.y)
-            canvas.scale(scale, scale)
-            canvas.translate(-WordmarkWidth / 2f, -WordmarkHeight / 2f)
-            canvas.drawPath(path, characterPaint)
-            canvas.restore()
+            canvas.withClip(0f, 0f, size.width, size.height) {
+                translate(size.width / 2f + offset.x, size.height / 2f + offset.y)
+                scale(scale, scale)
+                translate(-WordmarkWidth / 2f, -WordmarkHeight / 2f)
+                drawPath(path, characterPaint)
+            }
         }
         Text(
             text = stringResource(R.string.about_wordmark_hint),

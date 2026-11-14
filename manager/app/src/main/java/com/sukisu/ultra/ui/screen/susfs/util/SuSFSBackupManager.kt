@@ -88,11 +88,6 @@ object SuSFSBackupManager {
     private suspend fun getCmdlineOrBootconfigPathInternal(): String =
         SuSFSConfig.get(SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH)
 
-    private fun generateBackupFileName(): String {
-        val df = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        return "SuSFS_Config_${df.format(Date())}${SuSFSConfig.BACKUP_FILE_EXTENSION}"
-    }
-
     private fun getDeviceInfo(): String =
         try { "${Build.MANUFACTURER} ${Build.MODEL} (${Build.VERSION.RELEASE})" } catch (_: Exception) { "Unknown Device" }
 
@@ -201,6 +196,4 @@ object SuSFSBackupManager {
             )
         } catch (_: Exception) { null }
     }
-
-    fun getDefaultBackupFileName(): String = generateBackupFileName()
 }

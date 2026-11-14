@@ -31,11 +31,7 @@ data class AppInfo(
         get() = !isWebViewZygote && profile != null && profile.allowSu
     val hasCustomProfile: Boolean
         get() {
-            if (profile == null) {
-                return false
-            }
-
-            return if (isWebViewZygote) {
+            return profile != null && if (isWebViewZygote) {
                 !profile.nonRootUseDefault
             } else if (profile.allowSu) {
                 !profile.rootUseDefault

@@ -367,7 +367,6 @@ private fun RepoModuleList(
             }
         }
         items(modules, key = { it.moduleId }, contentType = { "module" }) { module ->
-            val moduleAuthor = stringResource(id = R.string.module_author)
             val installState = repoInstallState(installedVersions[module.moduleId], module.latestVersionCode)
             val maxLinesLimit = LocalModuleDescriptionMaxLines.current
             var summaryExpanded by rememberSaveable(module.moduleId) { mutableStateOf(false) }

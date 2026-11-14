@@ -25,7 +25,7 @@ import com.sukisu.ultra.ui.util.HomeLayout
  * `android preview render`); the runtime screens build the same composables from live settings.
  */
 
-private val SampleKeyColor = 0xFF6750A4.toInt()
+private const val SampleKeyColor = 0xFF6750A4.toInt()
 
 @Preview(name = "Theme preview - Miuix light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable

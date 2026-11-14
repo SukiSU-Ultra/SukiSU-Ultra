@@ -401,7 +401,7 @@ private fun SulogStatusSection(
                 )
             }
 
-            "supported" if !state.isSulogEnabled -> {
+            "supported" if true -> {
                 WarningCard(
                     message = stringResource(R.string.sulog_disabled_title),
                     action = {
@@ -439,7 +439,7 @@ private fun LazyListScope.sulogEntriesSection(
             )
         }
 
-        else -> itemsIndexed(entries, key = { index, entry -> "$index-${entry.key}" }) { index, entry ->
+        else -> itemsIndexed(entries, key = { index, entry -> "$index-${entry.key}" }) { _, entry ->
             SulogEntryCard(
                 entry = entry,
                 onClick = { onEntryClick(entry) },

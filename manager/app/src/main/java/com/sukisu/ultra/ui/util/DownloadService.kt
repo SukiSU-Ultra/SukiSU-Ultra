@@ -72,11 +72,6 @@ class DownloadService : Service() {
         private const val REGISTRY_DOWNLOAD_MAX_AGE_MS = 24L * 60 * 60 * 1000
     }
 
-    private fun sanitizeFileName(raw: String): String {
-        val base = raw.substringAfterLast('/').substringAfterLast('\\')
-        return base.replace(Regex("[\\x00-\\x1F]"), "_").trim().ifBlank { "download.bin" }
-    }
-
     private val activeJobs = ConcurrentHashMap<Int, Job>()
     private val activeCalls = ConcurrentHashMap<Int, Call>()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -145,8 +140,8 @@ class DownloadService : Service() {
     }
 
     /**
-     * Registry downloads ([expected] != null) may only come from GitHub Release download URLs
-     * and their CDN redirect targets; every hop is checked.
+     * Registry downloads (those with an expected file) may only come from GitHub Release
+     * download URLs and their CDN redirect targets; every hop is checked.
      */
     private fun registryClient(): OkHttpClient = ksuApp.okhttpClient.newBuilder()
         .followSslRedirects(false)

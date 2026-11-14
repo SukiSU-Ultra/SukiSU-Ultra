@@ -35,11 +35,11 @@ class TemplateRepositoryImpl : TemplateRepository {
         runCatching {
             val array = try {
                 JSONArray(jsonString)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 try {
                     val json = JSONObject(jsonString)
                     JSONArray().apply { put(json) }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     throw Exception("invalid templates: $jsonString")
                 }
             }

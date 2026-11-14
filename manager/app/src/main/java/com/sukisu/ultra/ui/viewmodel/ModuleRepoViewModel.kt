@@ -1,7 +1,9 @@
 package com.sukisu.ultra.ui.viewmodel
 
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +30,7 @@ import com.sukisu.ultra.ui.screen.modulerepo.RepoSort
 import com.sukisu.ultra.ui.util.PinyinUtil
 import com.sukisu.ultra.ui.util.isNetworkAvailable
 
+@RequiresApi(Build.VERSION_CODES.Q)
 class ModuleRepoViewModel(
     private val repo: ModuleRepoRepository = ModuleRepoRepositoryImpl(),
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl(),
@@ -64,6 +67,7 @@ class ModuleRepoViewModel(
 
     private fun sortModules(list: List<RepoModule>, order: RepoSort): List<RepoModule> = order.sort(list)
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun filterModules(modules: List<RepoModule>, text: String): List<RepoModule> {
         if (text.isEmpty()) return emptyList()
 
@@ -77,6 +81,7 @@ class ModuleRepoViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun applySearchText(text: String) {
         _uiState.update {
             if (it.searchStatus.searchText != text) return@update it
@@ -94,6 +99,7 @@ class ModuleRepoViewModel(
     }
 
     // Call only while holding listMutex, just like all sorted list writes.
+    @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun refreshSearchResults() {
         val state = _uiState.value
         val text = state.searchStatus.searchText

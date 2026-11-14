@@ -167,7 +167,7 @@ fun SuperUserPagerMaterial(
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
 
     ExpressiveScaffold(
-        containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+        containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surfaceContainer,
         topBar = {
             SearchAppBar(
                 snackbarHostState = snackbarHostState,

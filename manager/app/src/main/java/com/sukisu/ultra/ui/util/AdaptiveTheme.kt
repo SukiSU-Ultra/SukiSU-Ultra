@@ -121,7 +121,7 @@ object AdaptiveThemeStore {
      * choices captured at apply time, and silently rewriting them on every light/dark flip would
      * revert whatever the user changed on the appearance page afterwards.
      */
-    suspend fun apply(
+    fun apply(
         repo: SettingsRepository,
         variant: AdaptiveThemeVariantState,
         includeChrome: Boolean = true,
@@ -232,7 +232,7 @@ object AdaptiveThemeStore {
      * Re-applies the variant when the system switched. Returns true when settings changed.
      * The applied-mode marker avoids writing preferences on every recomposition.
      */
-    suspend fun sync(repo: SettingsRepository, dark: Boolean): Boolean {
+    fun sync(repo: SettingsRepository, dark: Boolean): Boolean {
         val state = load(repo) ?: return false
         val mode = if (dark) 1 else 0
         if (repo.adaptiveAppliedMode == mode) return false

@@ -1,7 +1,9 @@
 package com.sukisu.ultra.ui.viewmodel
 
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
@@ -81,6 +83,7 @@ internal fun buildRecentlyInstalledGroups(
     ).map { it.first }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 class SuperUserViewModel(
     private val repo: SuperUserRepository = SuperUserRepositoryImpl(),
     private val settingsRepo: SettingsRepository = SettingsRepositoryImpl()
@@ -131,7 +134,7 @@ class SuperUserViewModel(
         fun getAppsSafely(): List<AppInfo> {
             return try {
                 synchronized(appsLock) { apps }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 emptyList()
             }
         }
@@ -211,6 +214,7 @@ class SuperUserViewModel(
         updateSearchStatus(_uiState.value.searchStatus.copy(searchText = text))
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun filterSearchResults(groups: List<GroupedApps>, text: String): List<GroupedApps> {
         if (text.isEmpty()) return emptyList()
 
@@ -235,6 +239,7 @@ class SuperUserViewModel(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun applySearchText(text: String) {
         _uiState.update {
             it.copy(
@@ -368,7 +373,7 @@ class SuperUserViewModel(
         })
     }
 
-    suspend fun fetchAppList(force: Boolean = false) {
+    suspend fun fetchAppList() {
         refreshMutex.withLock {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
 
@@ -433,7 +438,7 @@ class SuperUserViewModel(
     fun loadAppList(force: Boolean = false, resort: Boolean = true): Job {
         return viewModelScope.launch {
             if (force || _uiState.value.groupedApps.isEmpty()) {
-                fetchAppList(force)
+                fetchAppList()
             } else {
                 refreshAppList(resort)
             }

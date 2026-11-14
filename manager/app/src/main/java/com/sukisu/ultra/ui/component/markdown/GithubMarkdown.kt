@@ -7,7 +7,9 @@ import android.graphics.Color
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -56,7 +58,12 @@ private const val APP_ASSETS_ORIGIN = "https://appassets.androidplatform.net"
 private val SEMICOLON_SPLIT = ";\\s*".toRegex()
 private val EQUALS_SPLIT = "=\\s*".toRegex()
 
-@SuppressLint("JavascriptInterface", "SetJavaScriptEnabled", "WrongConstant")
+@SuppressLint(
+    "JavascriptInterface",
+    "SetJavaScriptEnabled",
+    "WrongConstant",
+    "MissingOnRenderProcessGone",
+)
 @Composable
 fun GithubMarkdown(
     modifier: Modifier = Modifier,
@@ -178,6 +185,17 @@ fun GithubMarkdown(
                         private val assetLoader = WebViewAssetLoader.Builder()
                             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
                             .build()
+
+                        override fun onRenderProcessGone(
+                            view: WebView,
+                            detail: RenderProcessGoneDetail,
+                        ): Boolean {
+                            // Return true so the framework does not kill the app; detach the
+                            // dead view so it is never reused after the renderer restarts.
+                            (view.parent as? ViewGroup)?.removeView(view)
+                            view.destroy()
+                            return true
+                        }
 
                         override fun onPageFinished(view: WebView, url: String) {
                             super.onPageFinished(view, url)

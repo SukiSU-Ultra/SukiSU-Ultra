@@ -179,7 +179,7 @@ class ReleaseDownloadHandle(private val sha256: String, downloadedUri: Uri?) {
 
 /**
  * Verified release ZIPs of this process, keyed by SHA-256, so the Install / Run button survives
- * leaving and reopening the detail page. Callers still check [isDownloadAvailable] before use.
+ * leaving and reopening the detail page. Callers still check [com.sukisu.ultra.ui.util.isDownloadAvailable] before use.
  */
 private val verifiedDownloads = ConcurrentHashMap<String, Uri>()
 

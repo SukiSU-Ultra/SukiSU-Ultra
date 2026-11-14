@@ -22,8 +22,6 @@ import java.util.*
 import androidx.compose.ui.platform.LocalLocale
 import com.sukisu.ultra.ui.screen.susfs.util.BackupData
 import com.sukisu.ultra.ui.screen.susfs.util.SuSFSManager
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun BackupRestoreComponentMaterial(

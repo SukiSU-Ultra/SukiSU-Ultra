@@ -511,7 +511,7 @@ private fun ProfileBox(
                         onModeChange(m)
                     }
                 },
-                enabled = if (m == Mode.Template) hasTemplate else true,
+                enabled = m != Mode.Template || hasTemplate,
                 modifier = Modifier
                     .weight(1f)
                     .semantics { role = Role.RadioButton },

@@ -61,8 +61,7 @@ object RegistryUrls {
     
     fun isInPageAnchor(url: String, documentUrl: String): Boolean {
         val hash = url.indexOf('#')
-        if (hash <= 0 || hash == url.length - 1) return false
-        return url.substring(0, hash) == documentUrl
+        return !(hash <= 0 || hash == url.length - 1) && url.substring(0, hash) == documentUrl
     }
 
     
@@ -83,11 +82,10 @@ object RegistryUrls {
         val b = runCatching { URI(origin) }.getOrNull() ?: return false
         val hostA = a.host ?: return false
         val hostB = b.host ?: return false
-        if (a.scheme == null || b.scheme == null) return false
-        return a.scheme.equals(b.scheme, ignoreCase = true) &&
-            hostA.equals(hostB, ignoreCase = true) &&
-            effectivePort(a) != -1 &&
-            effectivePort(a) == effectivePort(b)
+        return !(a.scheme == null || b.scheme == null) && a.scheme.equals(b.scheme, ignoreCase = true) &&
+                hostA.equals(hostB, ignoreCase = true) &&
+                effectivePort(a) != -1 &&
+                effectivePort(a) == effectivePort(b)
     }
 
     /**
@@ -97,8 +95,7 @@ object RegistryUrls {
      */
     fun isAllowedRestrictedResource(url: String, registryOrigin: String): Boolean {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
-        if (!uri.scheme.equals("https", ignoreCase = true) || uri.rawUserInfo != null) return false
-        return isSameOrigin(url, registryOrigin)
+        return !(!uri.scheme.equals("https", ignoreCase = true) || uri.rawUserInfo != null) && isSameOrigin(url, registryOrigin)
     }
 
     private fun decodeSegment(s: String): String? =

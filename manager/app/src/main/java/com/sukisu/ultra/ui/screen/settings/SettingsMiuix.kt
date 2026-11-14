@@ -1,13 +1,5 @@
 package com.sukisu.ultra.ui.screen.settings
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import com.sukisu.ultra.ui.component.miuix.AppCard
-import com.sukisu.ultra.ui.component.miuix.AppScaffold
-import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -39,9 +31,8 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
-import com.sukisu.ultra.ui.component.Storefront
-import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Policy
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.runtime.Composable
@@ -58,16 +49,20 @@ import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.KsuIsValid
+import com.sukisu.ultra.ui.component.Storefront
 import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
+import com.sukisu.ultra.ui.component.miuix.AppCard
+import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.SendLogDialog
+import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.util.BlurredBar
-import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.LocaleHelper
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.viewmodel.MainPageRequest
 import kotlinx.coroutines.delay
@@ -81,6 +76,7 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @author weishu
@@ -101,7 +97,7 @@ fun SettingPagerMiuix(
 
     LaunchedEffect(sectionRequest?.token) {
         val request = sectionRequest ?: return@LaunchedEffect
-        delay(120)
+        delay(120.milliseconds)
         val anchor = SettingsSection.normalize(request.section)
         val target = anchorRequesters[SettingsSection.cardFor(anchor)]
             ?: anchorRequesters[SettingsSection.GENERAL]
@@ -110,9 +106,7 @@ fun SettingPagerMiuix(
     }
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
-    val blurActive = backdrop != null
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
-    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
     val loadingDialog = rememberLoadingDialog()
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }

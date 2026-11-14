@@ -204,7 +204,7 @@ data class ResolvedColorTokens(
 ) {
     val isEmpty: Boolean get() = values.isEmpty()
 
-    /** [this] wins over [base], one token at a time. */
+    /** Values from this instance win over [base], one token at a time. */
     fun over(base: ResolvedColorTokens): ResolvedColorTokens =
         if (values.isEmpty()) base else ResolvedColorTokens(base.values + values)
 }

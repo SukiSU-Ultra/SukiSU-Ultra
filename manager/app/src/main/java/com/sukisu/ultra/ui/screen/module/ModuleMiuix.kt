@@ -19,7 +19,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -209,6 +208,7 @@ fun ModulePagerMiuix(
 
     val shortcutState = rememberModuleShortcutState(context)
     val showShortcutDialog = remember { mutableStateOf(false) }
+    var infoModuleId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val pickShortcutIconLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -268,9 +268,7 @@ fun ModulePagerMiuix(
     val refreshTick = remember { mutableIntStateOf(0) }
 
     val backdrop = rememberBlurBackdrop(enableBlur)
-    val blurActive = backdrop != null
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
-    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
 
     AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
@@ -510,6 +508,7 @@ fun ModulePagerMiuix(
                     updateInfoMap = uiState.updateInfo,
                     actions = actions,
                     onModuleAddShortcut = ::onModuleAddShortcut,
+                    onShowInfo = { infoModuleId = it.id },
                     contentPadding = PaddingValues(
                         top = 6.dp,
                         start = 0.dp,
@@ -621,6 +620,7 @@ fun ModulePagerMiuix(
                             onModuleAddShortcut = { module, type ->
                                 onModuleAddShortcut(module, type)
                             },
+                            onShowInfo = { infoModuleId = it.id },
                             contentPadding = contentPadding,
                             listState = listState,
                             reorderEnabled = uiState.sortManual,
@@ -649,6 +649,16 @@ fun ModulePagerMiuix(
             showShortcutDialog.value = false
         },
     )
+
+    val infoModule = infoModuleId?.let { id -> uiState.modules.firstOrNull { it.id == id } }
+    if (infoModule != null) {
+        ModuleInfoDialogMiuix(
+            module = infoModule,
+            updateInfo = uiState.updateInfo[infoModule.id],
+            onDismiss = { infoModuleId = null },
+            onBannerChanged = actions.onReloadModules,
+        )
+    }
 }
 
 @Composable
@@ -663,6 +673,7 @@ private fun ModuleShortcutDialog(
     val context = LocalContext.current
     val resources = LocalResources.current
 
+    @Suppress("UsePropertyAccessSyntax")
     fun copyShortcutUrl() {
         val url = shortcutState.buildShortcutUrl() ?: return
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -780,6 +791,7 @@ private fun ModuleList(
     updateInfoMap: Map<String, ModuleUpdateInfo>,
     actions: ModuleActions,
     onModuleAddShortcut: (Module, ShortcutType) -> Unit,
+    onShowInfo: (Module) -> Unit,
     contentPadding: PaddingValues,
     listState: LazyListState = rememberLazyListState(),
     reorderEnabled: Boolean = false,
@@ -855,6 +867,9 @@ private fun ModuleList(
                     onAddActionShortcut = { type: ShortcutType ->
                         onModuleAddShortcut(currentModuleState.value, type)
                     },
+                    onShowInfo = {
+                        onShowInfo(currentModuleState.value)
+                    },
                     onOpenWebUi = {
                         if (module.hasWebUi) {
                             actions.onOpenWebUi(module)
@@ -878,7 +893,8 @@ private fun ModuleList(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+// Deliberately not called "modifier": it targets the drag handle, not the card root.
+@Suppress("ModifierParameter")
 @Composable
 fun ModuleItem(
     module: Module,
@@ -890,6 +906,7 @@ fun ModuleItem(
     onExecuteAction: () -> Unit,
     onAddActionShortcut: (ShortcutType) -> Unit,
     onOpenWebUi: () -> Unit,
+    onShowInfo: () -> Unit,
     dragHandleModifier: Modifier? = null,
 ) {
     val secondaryContainer = colorScheme.secondaryContainer.copy(alpha = 0.8f)
@@ -910,9 +927,10 @@ fun ModuleItem(
             .padding(bottom = 12.dp),
         insideMargin = PaddingValues(0.dp),
         colors = backgroundAwareCardColors(),
-        onClick = if (hasDescription) {
-            { expanded = !expanded }
-        } else null
+        onClick = {
+            if (hasDescription) expanded = !expanded
+        },
+        onLongPress = onShowInfo,
     ) {
         Column(
             modifier = Modifier

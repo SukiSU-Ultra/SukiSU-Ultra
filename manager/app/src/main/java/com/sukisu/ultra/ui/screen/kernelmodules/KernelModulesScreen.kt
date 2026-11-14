@@ -19,6 +19,7 @@ import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
+@Suppress("UsePropertyAccessSyntax")
 @Composable
 fun KernelModulesScreen() {
     val navigator = LocalNavigator.current
@@ -33,7 +34,7 @@ fun KernelModulesScreen() {
                 readKernelModulesSnapshot()
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
             state = if (snapshot != null) {

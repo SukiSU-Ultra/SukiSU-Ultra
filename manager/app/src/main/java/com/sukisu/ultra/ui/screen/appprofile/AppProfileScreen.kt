@@ -36,6 +36,7 @@ import com.sukisu.ultra.ui.util.restartApp
 import com.sukisu.ultra.ui.util.setSepolicy
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import com.sukisu.ultra.ui.viewmodel.getTemplateInfoById
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun AppProfileScreen(uid: Int) {
@@ -58,11 +59,13 @@ fun AppProfileScreen(uid: Int) {
         if (appGroup == null) {
             viewModel.initializePreferences()
             viewModel.loadAppList()
-            for (attempt in 0 until 40) {
-                val loaded = viewModel.uiState.value.groupedApps.any { it.uid == uid } ||
-                    SuperUserViewModel.getGroupedApp(uid) != null
-                if (loaded) break
-                delay(200)
+            run loop@{
+                repeat(40) {
+                    val loaded = viewModel.uiState.value.groupedApps.any { it.uid == uid } ||
+                        SuperUserViewModel.getGroupedApp(uid) != null
+                    if (loaded) return@loop
+                    delay(200.milliseconds)
+                }
             }
         }
         resolving = false
@@ -120,7 +123,7 @@ fun AppProfileScreen(uid: Int) {
     LaunchedEffect(uid) {
         temporaryEnabled = TemporaryRoot.status(uid) in listOf("timed", "boot")
         while (true) {
-            delay(1000)
+            delay(1000.milliseconds)
             if (!saving && profile.allowSu) {
                 val current = Natives.getAppProfile(packageName, uid)
                 if (!current.allowSu) {

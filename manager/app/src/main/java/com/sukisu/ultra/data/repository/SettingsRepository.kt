@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.data.repository
 
 import com.sukisu.ultra.ui.util.HomeCardSticker
@@ -9,8 +11,8 @@ interface SettingsRepository {
     var useSystemWallpaper: Boolean
     /**
      * Derive the theme key color from the active background image. This and [keyColor] are
-     * mutually exclusive: a non-zero [keyColor] wins, so read through
-     * [com.sukisu.ultra.ui.viewmodel.derivesKeyColorFromBackground] instead of the raw flag.
+     * mutually exclusive: a non-zero [keyColor] wins, so derive the effective flag instead of
+     * reading this field directly.
      */
     var extractColorFromBackground: Boolean
     var cardBackgroundAlphaPercent: Int

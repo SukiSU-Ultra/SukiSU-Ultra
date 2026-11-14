@@ -34,7 +34,7 @@ object KpmOperations {
                 val targetPath = "/data/adb/kpm/$moduleId.kpm"
                 val copy = getRootShell().newJob().add(
                     "mkdir -p /data/adb/kpm && cp ${SuSFSConfig.shellQuote(tempFile.absolutePath)} " +
-                        "${SuSFSConfig.shellQuote(targetPath)}"
+                            SuSFSConfig.shellQuote(targetPath)
                 ).to(ArrayList(), ArrayList()).exec()
                 check(copy.isSuccess) {
                     copy.err.joinToString("\n").ifBlank {

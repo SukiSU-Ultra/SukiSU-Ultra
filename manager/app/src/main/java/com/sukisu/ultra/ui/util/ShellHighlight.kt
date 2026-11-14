@@ -91,33 +91,28 @@ fun shellTokens(src: String): List<ShellToken> {
 
     while (i < n) {
         val c = src[i]
-        when {
-            c == '\n' -> {
+        when (c) {
+            '\n' -> {
                 commandPosition = true
                 pendingIn = false
                 i++
             }
-
-            c == ' ' || c == '\t' -> i++
-
-            c == '\\' -> {
+            ' ', '\t' -> i++
+            '\\' -> {
                 i += 2
                 commandPosition = false
             }
-
-            c == '#' -> {
+            '#' -> {
                 val end = src.indexOf('\n', i).let { if (it < 0) n else it }
                 tokens += ShellToken(ShellTokenKind.COMMENT, i, end)
                 i = end
             }
-
-            c == ';' || c == '&' || c == '|' || c == '(' || c == ')' -> {
+            ';', '&', '|', '(', ')' -> {
                 commandPosition = true
                 pendingIn = false
                 i++
             }
-
-            c == '\'' -> {
+            '\'' -> {
                 val close = src.indexOf('\'', i + 1)
                 val end = if (close < 0) n else close + 1
                 tokens += ShellToken(ShellTokenKind.STRING, i, end)
@@ -125,8 +120,7 @@ fun shellTokens(src: String): List<ShellToken> {
                 commandPosition = false
                 if (pendingIn) wordsSinceFor++
             }
-
-            c == '"' -> {
+            '"' -> {
                 var segmentStart = i
                 var j = i + 1
                 while (j < n && src[j] != '"') {
@@ -153,8 +147,7 @@ fun shellTokens(src: String): List<ShellToken> {
                 commandPosition = false
                 if (pendingIn) wordsSinceFor++
             }
-
-            c == '$' -> {
+            '$' -> {
                 val end = variableEnd(i)
                 if (end > i) {
                     tokens += ShellToken(ShellTokenKind.VARIABLE, i, end)
@@ -167,7 +160,6 @@ fun shellTokens(src: String): List<ShellToken> {
                     commandPosition = false
                 }
             }
-
             else -> {
                 var j = i
                 while (j < n && src[j] !in " \t\n;&|()'\"\\$") j++
@@ -201,14 +193,14 @@ fun shellTokens(src: String): List<ShellToken> {
 
 fun highlightShell(src: String, colors: ShellHighlightColors): AnnotatedString {
     val builder = AnnotatedString.Builder(src)
-    for (token in shellTokens(src)) {
-        val style = when (token.kind) {
+    for ((kind, start, end) in shellTokens(src)) {
+        val style = when (kind) {
             ShellTokenKind.COMMENT -> SpanStyle(color = colors.comment, fontStyle = FontStyle.Italic)
             ShellTokenKind.STRING -> SpanStyle(color = colors.string)
             ShellTokenKind.VARIABLE -> SpanStyle(color = colors.variable)
             ShellTokenKind.KEYWORD -> SpanStyle(color = colors.keyword)
         }
-        builder.addStyle(style, token.start, token.end)
+        builder.addStyle(style, start, end)
     }
     return builder.toAnnotatedString()
 }

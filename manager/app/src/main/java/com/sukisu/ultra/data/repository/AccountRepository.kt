@@ -164,9 +164,7 @@ class AccountRepository(
                 ThemeStoreDefaults.BASE_URLS
                     .asSequence()
                     .mapNotNull { ThemeStoreRepository.normalizeBaseUrl(it) }
-                    .filter { it != normalized }
-                    .mapNotNull { _sessions.value[it] }
-                    .firstOrNull()
+                    .filter { it != normalized }.firstNotNullOfOrNull { _sessions.value[it] }
                     ?.copy(baseUrl = normalized)
             } else {
                 null

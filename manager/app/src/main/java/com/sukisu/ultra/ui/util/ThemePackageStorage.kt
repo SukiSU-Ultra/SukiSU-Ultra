@@ -69,6 +69,7 @@ data class ThemeVariantData(
  * appearance and the package stores the image set for each mode. Older managers reject v3 rather
  * than applying only one half of the theme.
  */
+@Suppress("SpellCheckingInspection")
 @Serializable
 data class ThemePackageData(
     val version: Int = ThemePackageStorage.BASE_VERSION,
@@ -119,7 +120,7 @@ data class ThemePackageData(
      */
     val bottomBarIcons: List<String>? = null,
     /**
-     * Static colour / image-effect overlay. Top-level for both adaptive and plain packages:
+     * Static color / image-effect overlay. Top-level for both adaptive and plain packages:
      * the overlay itself carries the light/dark split. Added in package format v4.
      */
     val appearance: AppearanceOverlayData? = null,
@@ -472,7 +473,7 @@ object ThemePackageStorage {
         var entry: ZipEntry? = zip.nextEntry
         while (entry != null) {
             if (entry.name == THEME_ENTRY) {
-                themeText = readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
+                themeText = readLimited(zip).toString(Charsets.UTF_8)
                 break
             }
             zip.closeEntry()
@@ -487,7 +488,7 @@ object ThemePackageStorage {
     /**
      * Older managers reject newer packages instead of applying only part of the theme. Keep that
      * rule for the overlay: a manager that cannot read it must not silently render default
-     * colours over the author's background.
+     * colors over the author's background.
      */
     private fun validateVersionedData(data: ThemePackageData) {
         if (!isSupportedVersion(data.version)) error("Unsupported theme package version")
@@ -578,7 +579,7 @@ object ThemePackageStorage {
                 val name = entry.name
                 when {
                     name == THEME_ENTRY -> themeText =
-                        readLimited(zip, MAX_JSON_BYTES).toString(Charsets.UTF_8)
+                        readLimited(zip).toString(Charsets.UTF_8)
 
                     name == BACKGROUND_ENTRY -> {
                         if (tempBackground != null) error("Duplicate background entry")
@@ -854,7 +855,7 @@ object ThemePackageStorage {
         }
     }
 
-    private fun readLimited(input: InputStream, maxBytes: Long): ByteArray {
+    private fun readLimited(input: InputStream): ByteArray {
         val output = ByteArrayOutputStream()
         val buffer = ByteArray(8 * 1024)
         var total = 0L
@@ -862,7 +863,7 @@ object ThemePackageStorage {
             val read = input.read(buffer)
             if (read < 0) break
             total += read
-            if (total > maxBytes) error("Theme package entry is too large")
+            if (total > MAX_JSON_BYTES) error("Theme package entry is too large")
             output.write(buffer, 0, read)
         }
         return output.toByteArray()

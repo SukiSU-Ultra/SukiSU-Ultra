@@ -77,8 +77,6 @@ object SuSFSManager {
     suspend fun createBackup(context: Context, backupFilePath: String): Boolean = SuSFSBackupManager.createBackup(context, backupFilePath)
     suspend fun restoreFromBackup(context: Context, backupFilePath: String): Boolean = SuSFSBackupManager.restoreFromBackup(context, backupFilePath)
     suspend fun validateBackupFile(backupFilePath: String): BackupData? = SuSFSBackupManager.validateBackupFile(backupFilePath)
-    fun getDefaultBackupFileName(): String = SuSFSBackupManager.getDefaultBackupFileName()
-
     suspend fun hasConfigurationForAutoStart(context: Context, config: ModuleConfig): Boolean {
         return config.hasAutoStartConfig() || SuSFSCommands.getEnabledFeatures(context).any { it.isEnabled }
     }

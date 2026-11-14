@@ -40,7 +40,7 @@ fun Modifier.appearanceImageEffects(
         0f
     }
     val shader = remember(sharpen) {
-        if (sharpen > 0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (sharpen > 0f) {
             runCatching { SharpenShader() }.getOrNull()
         } else {
             null

@@ -185,7 +185,7 @@ object ThemeStoreDefaults {
      */
     fun resolveConfiguredBaseUrl(configured: String): String {
         val trimmed = configured.trim()
-        return if (trimmed.isEmpty()) preferredBaseUrl() else trimmed
+        return trimmed.ifEmpty { preferredBaseUrl() }
     }
 
     /** The regional mirror, resolved without any network request. */

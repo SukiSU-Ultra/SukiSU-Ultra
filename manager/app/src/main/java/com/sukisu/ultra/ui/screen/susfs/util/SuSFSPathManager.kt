@@ -3,8 +3,10 @@ package com.sukisu.ultra.ui.screen.susfs.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.util.getRootShell
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
@@ -18,6 +20,7 @@ object SuSFSPathManager {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("QueryPermissionsNeeded")
     suspend fun getInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
         try {
@@ -55,6 +58,7 @@ object SuSFSPathManager {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun getAppUid(context: Context, packageName: String): Int? = withContext(Dispatchers.IO) {
         try {
             val superUserApp = SuperUserViewModel.getAppsSafely().find { it.packageName == packageName }
@@ -92,6 +96,7 @@ object SuSFSPathManager {
         return possiblePaths[0]
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("StringFormatMatches")
     suspend fun getAppPaths(context: Context, packageName: String): List<String> {
         val uid = getAppUid(context, packageName) ?: return emptyList()
@@ -102,13 +107,14 @@ object SuSFSPathManager {
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun addAppPaths(context: Context, packageName: String): Boolean {
         val paths = getAppPaths(context, packageName)
         val results = paths.map { addSusPathInternal(context, it, showToast = false) }
         return results.isNotEmpty() && results.all { it }
     }
 
-    suspend fun addSusPathWithResult(context: Context, path: String): SuSFSCommands.CommandResult {
+    suspend fun addSusPathWithResult(path: String): SuSFSCommands.CommandResult {
         val result = SuSFSCommands.executeSusfsCommandWithOutput("add-sus-path ${SuSFSConfig.shellQuote(path)}")
         val success = result.isSuccess && !result.output.contains("not found, skip adding")
         if (success) {
@@ -121,7 +127,7 @@ object SuSFSPathManager {
     }
 
     private suspend fun addSusPathInternal(context: Context, path: String, showToast: Boolean = true): Boolean {
-        val result = addSusPathWithResult(context, path)
+        val result = addSusPathWithResult(path)
         if (!result.isSuccess && showToast) {
             showToast(context, result.errorOutput.ifBlank { result.output }.ifBlank {
                 context.getString(R.string.susfs_command_failed)

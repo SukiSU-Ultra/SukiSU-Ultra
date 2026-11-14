@@ -23,8 +23,7 @@ class DownloadVerificationException(val reason: Reason, message: String) : IOExc
  * vice versa.
  */
 fun canShareDownload(url: String, expected: ExpectedFile?, otherUrl: String, otherExpected: ExpectedFile?): Boolean {
-    if (url != otherUrl) return false
-    return if (expected == null) otherExpected == null else expected.sameAs(otherExpected)
+    return url == otherUrl && expected?.sameAs(otherExpected) ?: (otherExpected == null)
 }
 
 /**

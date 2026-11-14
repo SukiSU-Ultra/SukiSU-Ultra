@@ -8,7 +8,7 @@ fun cssColorFromArgb(argb: Int): String {
     val r = (argb ushr 16) and 0xFF
     val g = (argb ushr 8) and 0xFF
     val b = argb and 0xFF
-    return "rgba(${r},${g},${b},${"%.3f".format(Locale.ROOT, a)})"
+    return "rgba($r,$g,$b,${"%.3f".format(Locale.ROOT, a)})"
 }
 
 fun mixArgb(c1: Int, c2: Int, ratio: Float): Int {
@@ -57,9 +57,9 @@ fun argbToHsl(argb: Int): Triple<Float, Float, Float> {
     val min = minOf(r, g, b)
     val l = (max + min) / 2f
     val d = max - min
-    val s = if (d == 0f) 0f else d / (1f - kotlin.math.abs(2f * l - 1f))
+    val s = if (d <= 0f) 0f else d / (1f - kotlin.math.abs(2f * l - 1f))
     val h = when {
-        d == 0f -> 0f
+        d <= 0f -> 0f
         max == r -> ((g - b) / d % 6f) * 60f
         max == g -> ((b - r) / d + 2f) * 60f
         else -> ((r - g) / d + 4f) * 60f
@@ -98,7 +98,7 @@ fun ensureVisibleByMix(original: Int, candidate: Int, minRatio: Double, mixWithW
     var lo = 0f
     var hi = 1f
     var best = candidate
-    for (i in 0 until 12) {
+    repeat(12) {
         val mid = (lo + hi) / 2f
         val mixed = mixArgb(candidate, target, mid)
         if (contrastRatio(original, mixed) >= minRatio) {

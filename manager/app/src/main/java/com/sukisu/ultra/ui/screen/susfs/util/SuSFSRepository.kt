@@ -2,7 +2,6 @@ package com.sukisu.ultra.ui.screen.susfs.util
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import com.sukisu.ultra.R
@@ -12,6 +11,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 object SuSFSRepository {
     private const val SAVE_FAILURE = "Failed to save SUSFS configuration"
@@ -42,21 +42,6 @@ object SuSFSRepository {
 
     suspend fun getEnableLogState(): Boolean =
         SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_LOG) == "true"
-
-    suspend fun getExecuteInPostFsData(): Boolean =
-        SuSFSConfig.get(SuSFSConfig.KEY_EXECUTE_IN_POST_FS_DATA) == "true"
-
-    suspend fun getHideSusMountsForAllProcs(): Boolean =
-        SuSFSConfig.get(SuSFSConfig.KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS) == "true"
-
-    suspend fun getEnableHideBl(): Boolean =
-        SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_HIDE_BL)  == "true"
-
-    suspend fun getEnableCleanupResidue(): Boolean =
-        SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_CLEANUP_RESIDUE) == "true"
-
-    suspend fun getEnableAvcLogSpoofing(): Boolean =
-        SuSFSConfig.get(SuSFSConfig.KEY_ENABLE_AVC_LOG_SPOOFING) == "true"
 
     suspend fun getCmdlineOrBootconfigPath(): String =
         SuSFSConfig.get(SuSFSConfig.KEY_CMDLINE_OR_BOOTCONFIG_PATH)
@@ -193,7 +178,7 @@ object SuSFSRepository {
         // by directly using the URI in `sh` because content:// URIs aren't
         // visible to the kernel-side SuFile reader.
         val bytes: ByteArray = try {
-            context.contentResolver.openInputStream(Uri.parse(sourceUri)).use { input ->
+            context.contentResolver.openInputStream(sourceUri.toUri()).use { input ->
                 input?.readBytes() ?: return false
             }
         } catch (e: Exception) {

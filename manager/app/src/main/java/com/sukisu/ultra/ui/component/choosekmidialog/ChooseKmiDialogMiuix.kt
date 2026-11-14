@@ -24,7 +24,6 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.util.getCurrentKmi
 import com.sukisu.ultra.ui.util.getSupportedKmis
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.CheckboxLocation

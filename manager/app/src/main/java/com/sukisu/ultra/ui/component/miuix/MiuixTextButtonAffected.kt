@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.ui.component.miuix
 
 import androidx.compose.foundation.background
@@ -21,10 +23,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 /**
  * Inline action text for Miuix list rows that follows the current key color.
  *
- * Miuix's default [TextButton] fills with `secondaryVariant`, which is usually a neutral
+ * Miuix's default `TextButton` fills with `secondaryVariant`, which is usually a neutral
  * light/dark surface, so an inline row action reads as a stray box and does not pick up the
  * palette. On top of a custom background that fill is not translucent either, so it ignores
- * the card alpha. This keeps the tap target of [TextButton] but draws a primary pill that
+ * the card alpha. This keeps the tap target of `TextButton` but draws a primary pill that
  * follows the key color and the card alpha.
  *
  * The label needs care on two fronts:

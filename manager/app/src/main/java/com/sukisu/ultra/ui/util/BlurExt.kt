@@ -93,6 +93,9 @@ fun rememberBackdropWithAppBackground(backdrop: Backdrop?): Backdrop? {
  * [shape] clips the effect, so a floating pill only blurs inside its own outline and leaves the
  * page elements around it untouched.
  */
+// Remembered conditional modifier: it cannot be a plain Modifier extension because the shader
+// support, backdrop, and remember-key composition all have to happen in the caller's scope.
+@Suppress("ModifierFactoryExtensionFunction")
 @Composable
 fun rememberProgressiveBarBlurModifier(
     backdrop: Backdrop?,

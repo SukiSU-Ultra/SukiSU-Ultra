@@ -303,7 +303,6 @@ private fun AppProfileInner(
         }
 
         if (!isSpecialApp) {
-            val checked = isRootGranted
             AppCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -311,13 +310,13 @@ private fun AppProfileInner(
                     .padding(top = 4.dp, bottom = 12.dp)
                     .semantics {
                         role = Role.Switch
-                        toggleableState = ToggleableState(checked)
+                        toggleableState = ToggleableState(isRootGranted)
                     },
                 colors = CardDefaults.defaultColors(
-                    color = if (checked) colorScheme.primary else backgroundAwareColor(colorScheme.surfaceContainer)
+                    color = if (isRootGranted) colorScheme.primary else backgroundAwareColor(colorScheme.surfaceContainer)
                 ),
                 insideMargin = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
-                onClick = { onPermanentRootChange(!checked) },
+                onClick = { onPermanentRootChange(!isRootGranted) },
                 pressFeedbackType = PressFeedbackType.Sink,
             ) {
                 Row(
@@ -329,19 +328,19 @@ private fun AppProfileInner(
                             text = stringResource(id = R.string.superuser),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (checked) colorScheme.onPrimary else colorScheme.onSurface,
+                            color = if (isRootGranted) colorScheme.onPrimary else colorScheme.onSurface,
                         )
                         Text(
                             text = if (isRootGranted && temporaryRoot) stringResource(R.string.temporary_root_active) else dropdownMode.text,
                             fontSize = 13.sp,
-                            color = if (checked) {
+                            color = if (isRootGranted) {
                                 colorScheme.onPrimary.copy(alpha = 0.75f)
                             } else {
                                 colorScheme.onSurfaceVariantSummary
                             },
                         )
                     }
-                    SuperuserSwitch(checked = checked)
+                    SuperuserSwitch(checked = isRootGranted)
                 }
             }
         }

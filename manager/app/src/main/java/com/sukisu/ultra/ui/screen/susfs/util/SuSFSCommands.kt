@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.sukisu.ultra.ui.screen.susfs.util
 
 import android.content.Context
@@ -19,7 +21,8 @@ object SuSFSCommands {
         val errorOutput: String = ""
     )
 
-    private fun runCmd(shell: Shell, cmd: String): String {
+    private fun runCmd(shell: Shell): String {
+        val cmd = "getprop ro.boot.slot_suffix"
         return shell.newJob().add(cmd).to(mutableListOf<String>(), null).exec().out.joinToString("\n")
     }
 
@@ -93,19 +96,19 @@ object SuSFSCommands {
             val errors = mutableListOf<String>()
             // Capture output explicitly. Use platform tools rather than depending
             // on whichever strings/grep implementation happens to be in PATH.
-            val command = """
+            val command = $$"""
                 block=""
-                for candidate in /dev/block/by-name/$slot /dev/block/bootdevice/by-name/$slot; do
-                    if [ -r "${'$'}candidate" ]; then block="${'$'}candidate"; break; fi
+                for candidate in /dev/block/by-name/$$slot /dev/block/bootdevice/by-name/$$slot; do
+                    if [ -r "$candidate" ]; then block="$candidate"; break; fi
                 done
-                if [ -n "${'$'}block" ]; then
+                if [ -n "$block" ]; then
                     if /system/bin/toybox strings /dev/null >/dev/null 2>&1; then
-                        /system/bin/toybox strings "${'$'}block" | /system/bin/toybox grep 'Linux version '
+                        /system/bin/toybox strings "$block" | /system/bin/toybox grep 'Linux version '
                     else
-                        strings "${'$'}block" | grep 'Linux version '
+                        strings "$block" | grep 'Linux version '
                     fi
                 else
-                    echo "Partition not readable: $slot" >&2
+                    echo "Partition not readable: $$slot" >&2
                     false
                 fi
             """.trimIndent()
@@ -118,7 +121,7 @@ object SuSFSCommands {
     }
 
     suspend fun getCurrentActiveSlot(): String = withContext(Dispatchers.IO) {
-        when (runCmd(getRootShell(), "getprop ro.boot.slot_suffix").trim()) {
+        when (runCmd(getRootShell()).trim()) {
             "_a" -> "boot_a"
             "_b" -> "boot_b"
             else -> ""
@@ -184,7 +187,7 @@ object SuSFSCommands {
 
 internal fun parseSlotKernelBanner(slot: String, output: String): SlotInfo {
     // Scan all matches: boot images can contain format strings before the real banner.
-    val banner = Regex("Linux version ([0-9]+\\.[0-9]+[^\\s]*)[^\\r\\n]*")
+    val banner = Regex("Linux version ([0-9]+\\.[0-9]+\\S*)[^\\r\\n]*")
         .findAll(output).map { it.value }.firstOrNull()
         ?: return SlotInfo(slot, "", "")
     val release = banner.removePrefix("Linux version ").substringBefore(' ')
