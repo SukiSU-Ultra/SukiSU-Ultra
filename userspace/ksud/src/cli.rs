@@ -227,6 +227,19 @@ enum ZygiskCommand {
     Status,
     /// Reload built-in Zygisk
     Rearm,
+    /// Read or change NyaZygisk options (`config.prop`)
+    Config {
+        #[command(subcommand)]
+        command: ZygiskConfigCommand,
+    },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum ZygiskConfigCommand {
+    /// Print all options as JSON
+    Get,
+    /// Set one option, e.g. `ksud zygisk config set custom_linker 1`
+    Set { key: String, value: String },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1164,13 +1177,13 @@ pub fn run() -> Result<()> {
             TemporaryRoot::Watch => crate::temporary_root::watch(),
         },
         Commands::Profile { command } => match command {
-            Profile::GetSepolicy { package } => crate::profile::get_sepolicy(package),
+            Profile::GetSepolicy { package } => crate::profile::get_sepolicy(&package),
             Profile::SetSepolicy { package, policy } => {
-                crate::profile::set_sepolicy(package, policy)
+                crate::profile::set_sepolicy(&package, &policy)
             }
-            Profile::GetTemplate { id } => crate::profile::get_template(id),
-            Profile::SetTemplate { id, template } => crate::profile::set_template(id, template),
-            Profile::DeleteTemplate { id } => crate::profile::delete_template(id),
+            Profile::GetTemplate { id } => crate::profile::get_template(&id),
+            Profile::SetTemplate { id, template } => crate::profile::set_template(&id, &template),
+            Profile::DeleteTemplate { id } => crate::profile::delete_template(&id),
             Profile::ListTemplates => crate::profile::list_templates(),
         },
 
@@ -1282,8 +1295,9 @@ pub fn run() -> Result<()> {
                 let enabled = crate::builtin_zygisk::is_enabled();
                 let monitor = crate::builtin_zygisk::is_monitor_running();
                 let daemon = crate::builtin_zygisk::is_daemon_running();
+                let (version, version_code) = crate::builtin_zygisk::version().unwrap_or_default();
                 println!(
-                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon}}}"#
+                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon},"version":"{version}","version_code":"{version_code}"}}"#
                 );
                 Ok(())
             }
@@ -1292,6 +1306,21 @@ pub fn run() -> Result<()> {
                 println!("true");
                 Ok(())
             }
+            ZygiskCommand::Config { command } => match command {
+                ZygiskConfigCommand::Get => {
+                    let fields: Vec<String> = crate::builtin_zygisk::config_get_all()
+                        .into_iter()
+                        .map(|(k, v)| format!(r#""{k}":"{v}""#))
+                        .collect();
+                    println!("{{{}}}", fields.join(","));
+                    Ok(())
+                }
+                ZygiskConfigCommand::Set { key, value } => {
+                    crate::builtin_zygisk::config_set(&key, &value)?;
+                    println!("true");
+                    Ok(())
+                }
+            },
         },
 
         Commands::Debug { command } => match command {
