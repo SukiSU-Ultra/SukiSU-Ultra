@@ -165,10 +165,10 @@ fn stage_assets(dir: &Path) {
                     .find(|l| l.starts_with("versionCode="))
                     .map(str::to_owned)
             };
-            if staged.as_deref().and_then(new_version) != new_version(&data) {
-                if let Err(e) = fs::write(&path, &*data) {
-                    warn!("write {} failed: {e}", path.display());
-                }
+            if staged.as_deref().and_then(new_version) != new_version(&data)
+                && let Err(e) = fs::write(&path, &*data)
+            {
+                warn!("write {} failed: {e}", path.display());
             }
         }
         Err(_) => warn!("built-in Zygisk module.prop asset missing"),
@@ -363,12 +363,13 @@ pub fn config_set(key: &str, value: &str) -> Result<()> {
 
     let path = config_path();
     let existing = fs::read_to_string(&path).unwrap_or_default();
+    let entry = format!("{key}={value}\n");
     let mut out = String::new();
     let mut replaced = false;
     for line in existing.lines() {
         if line.split_once('=').is_some_and(|(k, _)| k.trim() == key) {
             if !replaced {
-                out.push_str(&format!("{key}={value}\n"));
+                out.push_str(&entry);
                 replaced = true;
             }
         } else {
@@ -377,7 +378,7 @@ pub fn config_set(key: &str, value: &str) -> Result<()> {
         }
     }
     if !replaced {
-        out.push_str(&format!("{key}={value}\n"));
+        out.push_str(&entry);
     }
 
     create_sys_perm(BUILTIN_ZYGISK_WORK_DIR)?;
