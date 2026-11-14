@@ -1503,3 +1503,27 @@ fun rearmBuiltinZygisk(): Boolean {
         out == "true"
     }.getOrDefault(false)
 }
+
+data class ZygiskImplementationInfo(
+    // "running", "reboot", "disabled" or "none"; ksud decides, the app localizes.
+    val state: String = "none",
+    val name: String = "",
+    val version: String = "",
+    val builtin: Boolean = false,
+)
+
+/// The Zygisk implementation ksud reports, including its built-in one. Reading this is
+/// independent of the module list, which only describes what is on disk.
+fun getZygiskImplementationInfo(): ZygiskImplementationInfo {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk info").trim()
+        val json = org.json.JSONObject(out)
+        ZygiskImplementationInfo(
+            state = json.optString("state", "none"),
+            name = json.optString("name", ""),
+            version = json.optString("version", ""),
+            builtin = json.optBoolean("builtin", false),
+        )
+    }.getOrDefault(ZygiskImplementationInfo())
+}

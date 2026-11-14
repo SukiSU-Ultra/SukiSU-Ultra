@@ -1415,7 +1415,19 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         let is_provider = module_prop_map
             .get("id")
             .is_some_and(|id| is_zygisk_provider(id));
-        let zygisk_running = if is_provider {
+        // Built-in Zygisk runs the same zygiskd/zygisk-ptrace binaries the
+        // standalone providers use, so a suppressed provider must never be
+        // reported as running.
+        let suppressed_by_builtin = is_provider && crate::builtin_zygisk::is_enabled();
+        // A provider packs its build details into parentheses ("v1.2.0 (1234-hash)");
+        // only the version itself is worth showing.
+        if is_provider && let Some(version) = module_prop_map.get("version").cloned() {
+            module_prop_map.insert(
+                "version".to_owned(),
+                crate::builtin_zygisk::short_version(&version),
+            );
+        }
+        let zygisk_running = if is_provider && !suppressed_by_builtin {
             module_prop_map
                 .get("id")
                 .is_some_and(|id| is_zygisk_daemon_running(id))
@@ -1424,7 +1436,6 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         };
         let need_mount = path.join("system").exists() && !path.join("skip_mount").exists();
 
-        let suppressed_by_builtin = is_provider && crate::builtin_zygisk::is_enabled();
         module_prop_map.insert("enabled".to_owned(), enabled.to_string());
         module_prop_map.insert("update".to_owned(), update.to_string());
         module_prop_map.insert("remove".to_owned(), remove.to_string());
