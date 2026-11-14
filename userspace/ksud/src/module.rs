@@ -1265,7 +1265,7 @@ where
 /// `comm` from the synthetic "/dev/fd/N" path, so the process name degrades to
 /// a bare fd number and the real executable name only shows up in
 /// `cmdline`/`exe`.
-fn is_process_running_matching_paths<F>(predicate: F) -> bool
+pub fn is_process_running_matching_paths<F>(predicate: F) -> bool
 where
     F: Fn(&str) -> bool,
 {
