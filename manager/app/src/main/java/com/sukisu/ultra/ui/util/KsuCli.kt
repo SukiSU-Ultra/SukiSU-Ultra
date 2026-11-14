@@ -1444,7 +1444,36 @@ data class BuiltinZygiskStatus(
     val enabled: Boolean = false,
     val monitorRunning: Boolean = false,
     val daemonRunning: Boolean = false,
+    val version: String = "",
 )
+
+data class BuiltinZygiskConfig(
+    val anonymousMemory: Boolean = false,
+    val customLinker: Boolean = false,
+    // "bytehook" or "lsplt"
+    val pltEngine: String = "bytehook",
+)
+
+fun getBuiltinZygiskConfig(): BuiltinZygiskConfig {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk config get").trim()
+        val json = org.json.JSONObject(out)
+        BuiltinZygiskConfig(
+            anonymousMemory = json.optString("anonymous_memory") == "1",
+            customLinker = json.optString("custom_linker") == "1",
+            pltEngine = json.optString("plt_engine", "bytehook").ifEmpty { "bytehook" },
+        )
+    }.getOrDefault(BuiltinZygiskConfig())
+}
+
+fun setBuiltinZygiskConfig(key: String, value: String): Boolean {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk config set $key $value").trim()
+        out == "true"
+    }.getOrDefault(false)
+}
 
 fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
     return runCatching {
@@ -1454,7 +1483,8 @@ fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
         BuiltinZygiskStatus(
             enabled = json.optBoolean("enabled", false),
             monitorRunning = json.optBoolean("monitor_running", false),
-            daemonRunning = json.optBoolean("daemon_running", false)
+            daemonRunning = json.optBoolean("daemon_running", false),
+            version = json.optString("version", ""),
         )
     }.getOrDefault(BuiltinZygiskStatus())
 }

@@ -38,6 +38,7 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -49,6 +50,7 @@ fun BuiltinZygiskMiuix(
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onRearm: () -> Unit,
+    onSetOption: (String, String) -> Unit,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
@@ -165,6 +167,44 @@ fun BuiltinZygiskMiuix(
                             )
                         },
                         onClick = onRearm
+                    )
+                }
+            }
+
+            item {
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_options_title),
+                    style = textStyles.title4,
+                    color = colorScheme.primary,
+                    modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
+                )
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_options_hint),
+                    style = textStyles.footnote1,
+                    color = colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+                )
+
+                AppCard(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SwitchPreference(
+                        title = stringResource(R.string.builtin_zygisk_opt_anonymous_memory),
+                        summary = stringResource(R.string.builtin_zygisk_opt_anonymous_memory_summary),
+                        checked = uiState.config.anonymousMemory,
+                        onCheckedChange = { onSetOption("anonymous_memory", if (it) "1" else "0") }
+                    )
+                    SwitchPreference(
+                        title = stringResource(R.string.builtin_zygisk_opt_custom_linker),
+                        summary = stringResource(R.string.builtin_zygisk_opt_custom_linker_summary),
+                        checked = uiState.config.customLinker,
+                        onCheckedChange = { onSetOption("custom_linker", if (it) "1" else "0") }
+                    )
+                    SwitchPreference(
+                        title = stringResource(R.string.builtin_zygisk_opt_lsplt),
+                        summary = stringResource(R.string.builtin_zygisk_opt_lsplt_summary),
+                        checked = uiState.config.pltEngine == "lsplt",
+                        onCheckedChange = { onSetOption("plt_engine", if (it) "lsplt" else "bytehook") }
                     )
                 }
             }
