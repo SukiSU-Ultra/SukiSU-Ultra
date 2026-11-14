@@ -159,16 +159,9 @@ pub fn foreach_module(
             continue;
         }
 
-        if module_type == Active && crate::builtin_zygisk::is_enabled() {
-            let id = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-            let prop_id = read_module_prop(&path)
-                .ok()
-                .and_then(|m| m.get("id").cloned())
-                .unwrap_or_default();
-            if is_zygisk_provider(id) || (!prop_id.is_empty() && is_zygisk_provider(&prop_id)) {
-                info!("{} is suppressed by built-in zygisk, skip", path.display());
-                continue;
-            }
+        if module_type == Active && crate::builtin_zygisk::suppresses_module_dir(&path) {
+            info!("{} is suppressed by built-in zygisk, skip", path.display());
+            continue;
         }
 
         f(&path)?;
@@ -1222,143 +1215,6 @@ fn resolve_module_icon_path(
     }
 }
 
-/// Determine whether the provided module is a Zygisk implementation / provider
-pub fn is_zygisk_provider(module_id: &str) -> bool {
-    let id_lower = module_id.to_ascii_lowercase();
-    matches!(
-        id_lower.as_str(),
-        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk" | "yukisu"
-    )
-}
-
-/// Check whether a process whose name satisfies the predicate is running in /proc
-pub fn is_process_running_matching<F>(predicate: F) -> bool
-where
-    F: Fn(&str) -> bool,
-{
-    let Ok(entries) = std::fs::read_dir("/proc") else {
-        return false;
-    };
-    for entry in entries.flatten() {
-        let file_name = entry.file_name();
-        let file_str = file_name.to_string_lossy();
-        if file_str.chars().all(|c| c.is_ascii_digit()) {
-            let comm_path = entry.path().join("comm");
-            if let Ok(comm) = std::fs::read_to_string(&comm_path) {
-                let name = comm.trim();
-                if predicate(name) {
-                    return true;
-                }
-            }
-        }
-    }
-    false
-}
-
-/// Check whether a process is running by matching the predicate against the
-/// process `comm` as well as the basenames of its `cmdline` arguments and of
-/// its `exe` link.
-///
-/// Daemons such as YukiZygisk's `zygiskd64`/`zygiskd32` are launched through
-/// `execveat(..., AT_EMPTY_PATH)`. On kernels without `comm_from_dentry`
-/// support (not backported to most Android GKI kernels yet), the kernel derives
-/// `comm` from the synthetic "/dev/fd/N" path, so the process name degrades to
-/// a bare fd number and the real executable name only shows up in
-/// `cmdline`/`exe`.
-pub fn is_process_running_matching_paths<F>(predicate: F) -> bool
-where
-    F: Fn(&str) -> bool,
-{
-    let Ok(entries) = std::fs::read_dir("/proc") else {
-        return false;
-    };
-    for entry in entries.flatten() {
-        let file_name = entry.file_name();
-        let file_str = file_name.to_string_lossy();
-        if !file_str.chars().all(|c| c.is_ascii_digit()) {
-            continue;
-        }
-        let proc_path = entry.path();
-
-        if let Ok(comm) = std::fs::read_to_string(proc_path.join("comm"))
-            && predicate(comm.trim())
-        {
-            return true;
-        }
-
-        if let Ok(cmdline) = std::fs::read(proc_path.join("cmdline")) {
-            for arg in cmdline.split(|byte| *byte == 0) {
-                if arg.is_empty() {
-                    continue;
-                }
-                let arg = String::from_utf8_lossy(arg);
-                let basename = arg.rsplit('/').next().unwrap_or_default();
-                if predicate(basename) {
-                    return true;
-                }
-            }
-        }
-
-        if let Ok(exe) = std::fs::read_link(proc_path.join("exe"))
-            && let Some(basename) = exe.file_name().and_then(|name| name.to_str())
-            && predicate(basename)
-        {
-            return true;
-        }
-    }
-    false
-}
-
-/// Determine whether the Zygisk provider's daemon is actually running
-pub fn is_zygisk_daemon_running(module_id: &str) -> bool {
-    let id_lower = module_id.to_ascii_lowercase();
-    let result = match id_lower.as_str() {
-        "rezygisk" => is_process_running_matching(|name| {
-            name.starts_with("rezygisk") || name.contains("rezygisk")
-        }),
-        "zygisksu" => is_process_running_matching(|name| {
-            name.starts_with("zygiskd")
-                || name.starts_with("zygisk-ptrace")
-                || name.starts_with("zygisk-comp")
-                || name.starts_with("zygisk_comp")
-                // Zygisk Next >= 1.5.0 renames its daemon to "zn-daemon"/
-                // "zn-daemon64"/"zn-daemon32" for stealth, so the legacy
-                // "zygisk*" patterns no longer match it.
-                || name.starts_with("zn-daemon")
-                || name.contains("zygiskd")
-                || name.contains("zygisk")
-        }),
-        "nyazygisk" => is_process_running_matching(|name| {
-            name.starts_with("nyazygisk")
-                || name.starts_with("zygiskd")
-                || name.starts_with("zygisk-ptrace")
-                || name.contains("nyazygisk")
-                || name.contains("zygisk")
-        }),
-        "neozygisk" => is_process_running_matching(|name| {
-            name.starts_with("neozygisk")
-                || name.starts_with("zygiskd")
-                || name.starts_with("zygisk-ptrace")
-                || name.contains("neozygisk")
-                || name.contains("zygisk")
-        }),
-        // YukiZygisk launches its daemons from $MODDIR/bin/zygiskd64 / $MODDIR/bin/zygiskd32
-        // via execveat(AT_EMPTY_PATH); on Android GKI kernels the process `comm` there is
-        // just the fd number, so fall back to the cmdline/exe basenames as well.
-        "yukizygisk" => is_process_running_matching_paths(|name| {
-            name.starts_with("zygiskd") || name.contains("yukizygisk")
-        }),
-        _ => is_process_running_matching(|name| {
-            name.starts_with("zygiskd")
-                || name.starts_with("zygisk-ptrace")
-                || name.starts_with("rezygisk")
-                || name.contains("zygisk")
-        }),
-    };
-    info!("Zygisk daemon check for '{module_id}': {result}");
-    result
-}
-
 fn list_module(path: &str) -> Vec<HashMap<String, String>> {
     // Load all module configs once to minimize I/O overhead
     let all_configs = match crate::module_config::get_all_module_configs() {
@@ -1414,7 +1270,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         let action = path.join(defs::MODULE_ACTION_SH).exists();
         let is_provider = module_prop_map
             .get("id")
-            .is_some_and(|id| is_zygisk_provider(id));
+            .is_some_and(|id| crate::builtin_zygisk::is_provider_id(id));
         // Built-in Zygisk runs the same zygiskd/zygisk-ptrace binaries the
         // standalone providers use, so a suppressed provider must never be
         // reported as running.
@@ -1430,7 +1286,7 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         let zygisk_running = if is_provider && !suppressed_by_builtin {
             module_prop_map
                 .get("id")
-                .is_some_and(|id| is_zygisk_daemon_running(id))
+                .is_some_and(|id| crate::builtin_zygisk::is_provider_running(id))
         } else {
             false
         };

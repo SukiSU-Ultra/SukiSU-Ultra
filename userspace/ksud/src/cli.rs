@@ -227,6 +227,18 @@ enum ZygiskCommand {
     Status,
     /// Report the active Zygisk implementation (running, reboot, disabled or none)
     Info,
+    /// Switch to the built-in Zygisk or to an installed provider module, live
+    Switch {
+        /// `builtin` or the id of an installed Zygisk module
+        #[arg(default_value = "builtin")]
+        target: String,
+    },
+    /// List the monitor and daemon processes of an implementation as JSON
+    Processes {
+        /// `builtin` or the id of an installed Zygisk module
+        #[arg(default_value = "builtin")]
+        target: String,
+    },
     /// Reload built-in Zygisk
     Rearm,
     /// Read or change NyaZygisk options (`config.prop`)
@@ -1297,11 +1309,28 @@ pub fn run() -> Result<()> {
                 let enabled = crate::builtin_zygisk::is_enabled();
                 // The report in module.prop identifies the built-in; process names
                 // alone are shared with the standalone builds.
-                let monitor = crate::builtin_zygisk::is_monitor_active();
-                let daemon = crate::builtin_zygisk::is_daemon_active();
+                let monitor_running = crate::builtin_zygisk::is_monitor_active();
+                let daemon_running = crate::builtin_zygisk::is_daemon_active();
+                let monitor = crate::builtin_zygisk::monitor_process();
+                let daemons = crate::builtin_zygisk::daemon_processes();
                 let (version, version_code) = crate::builtin_zygisk::version().unwrap_or_default();
+                let monitor_json =
+                    monitor.map(|(pid, name)| serde_json::json!({ "name": name, "pid": pid }));
+                let daemons_json: Vec<_> = daemons
+                    .into_iter()
+                    .map(|(pid, name)| serde_json::json!({ "name": name, "pid": pid }))
+                    .collect();
                 println!(
-                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon},"version":"{version}","version_code":"{version_code}"}}"#
+                    "{}",
+                    serde_json::json!({
+                        "enabled": enabled,
+                        "monitor_running": monitor_running,
+                        "daemon_running": daemon_running,
+                        "monitor": monitor_json,
+                        "daemons": daemons_json,
+                        "version": version,
+                        "version_code": version_code,
+                    })
                 );
                 Ok(())
             }
@@ -1309,7 +1338,34 @@ pub fn run() -> Result<()> {
                 let info = crate::builtin_zygisk::implementation_info();
                 println!(
                     "{}",
-                    serde_json::json!({ "state": info.state, "name": info.name, "version": info.version })
+                    serde_json::json!({
+                        "state": info.state,
+                        "id": info.id,
+                        "name": info.name,
+                        "version": info.version,
+                    })
+                );
+                Ok(())
+            }
+            ZygiskCommand::Switch { target } => {
+                crate::builtin_zygisk::switch_to(&target)?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Processes { target } => {
+                let procs = crate::builtin_zygisk::processes(&target)?;
+                let list = |entries: Vec<(i32, String)>| {
+                    entries
+                        .into_iter()
+                        .map(|(pid, name)| serde_json::json!({ "name": name, "pid": pid }))
+                        .collect::<Vec<serde_json::Value>>()
+                };
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "monitors": list(procs.monitors),
+                        "daemons": list(procs.daemons),
+                    })
                 );
                 Ok(())
             }

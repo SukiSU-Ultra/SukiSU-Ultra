@@ -6,8 +6,11 @@ import com.sukisu.ultra.data.repository.ModuleRepository
 import com.sukisu.ultra.data.repository.ModuleRepositoryImpl
 import com.sukisu.ultra.ui.util.getBuiltinZygiskConfig
 import com.sukisu.ultra.ui.util.getBuiltinZygiskStatus
+import com.sukisu.ultra.ui.util.getZygiskImplementationInfo
+import com.sukisu.ultra.ui.util.getZygiskProcesses
 import com.sukisu.ultra.ui.util.setBuiltinZygiskConfig
-import com.sukisu.ultra.ui.util.rearmBuiltinZygisk
+import com.sukisu.ultra.ui.util.switchToZygisk
+import com.sukisu.ultra.ui.util.ZygiskProcesses
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +29,7 @@ class BuiltinZygiskViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
+            val implementation = withContext(Dispatchers.IO) { getZygiskImplementationInfo() }
             val config = withContext(Dispatchers.IO) { getBuiltinZygiskConfig() }
             val modulesResult = moduleRepo.getModules()
             val zygiskModules = modulesResult.getOrDefault(emptyList()).filter {
@@ -35,8 +39,11 @@ class BuiltinZygiskViewModel(
                 it.copy(
                     isLoading = false,
                     status = status,
+                    implementation = implementation,
                     config = config,
-                    zygiskModules = zygiskModules
+                    zygiskModules = zygiskModules,
+                    expandedModuleId = null,
+                    moduleProcesses = ZygiskProcesses()
                 )
             }
         }
@@ -52,19 +59,41 @@ class BuiltinZygiskViewModel(
         }
     }
 
-    fun rearm(onSuccess: () -> Unit) {
+    /** Hands Zygisk to `target` (`builtin` or a module id) and reloads everything after it. */
+    fun switchTo(target: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRearming = true) }
-            val ok = withContext(Dispatchers.IO) { rearmBuiltinZygisk() }
+            _uiState.update { it.copy(isSwitching = true) }
+            val ok = withContext(Dispatchers.IO) { switchToZygisk(target) }
             val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
+            val implementation = withContext(Dispatchers.IO) { getZygiskImplementationInfo() }
+            val zygiskModules = moduleRepo.getModules().getOrDefault(emptyList()).filter {
+                it.zygisk || it.suppressedByBuiltin
+            }
             _uiState.update {
                 it.copy(
-                    isRearming = false,
-                    status = status
+                    isSwitching = false,
+                    status = status,
+                    implementation = implementation,
+                    zygiskModules = zygiskModules,
+                    expandedModuleId = null,
+                    moduleProcesses = ZygiskProcesses()
                 )
             }
-            if (ok) {
-                onSuccess()
+            onResult(ok)
+        }
+    }
+
+    /** Opens or closes the process rows of the module that currently owns Zygisk. */
+    fun toggleModuleProcesses(id: String) {
+        if (_uiState.value.expandedModuleId == id) {
+            _uiState.update { it.copy(expandedModuleId = null, moduleProcesses = ZygiskProcesses()) }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(expandedModuleId = id, moduleProcesses = ZygiskProcesses()) }
+            val processes = withContext(Dispatchers.IO) { getZygiskProcesses(id) }
+            _uiState.update {
+                if (it.expandedModuleId == id) it.copy(moduleProcesses = processes) else it
             }
         }
     }

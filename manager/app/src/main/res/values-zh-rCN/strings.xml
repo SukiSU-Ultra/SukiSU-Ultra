@@ -1701,16 +1701,19 @@
     <string name="theme_store_device_reauthorize">重置设备授权（下次连接时重新申请）</string>
     <!-- Built-in Zygisk -->
     <string name="settings_builtin_zygisk">内置 Zygisk</string>
-    <string name="settings_builtin_zygisk_summary">提供内置 Zygisk 支持 (BuiltZygisk)，开启后自动接管并抑制外部 Zygisk 模块，需重启生效</string>
+    <string name="settings_builtin_zygisk_summary">提供内置 Zygisk 支持 (BuiltZygisk)，详情请见 Zygisk 面板</string>
     <string name="settings_builtin_zygisk_dashboard">BuiltZygisk 面板</string>
     <string name="settings_builtin_zygisk_dashboard_summary">查看内置 Zygisk 运行状态与已加载模块</string>
     <string name="builtin_zygisk_status_title">运行状态</string>
     <string name="builtin_zygisk_daemon_status">守护进程 (Daemon)</string>
     <string name="builtin_zygisk_monitor_status">监控进程 (Monitor)</string>
-    <string name="builtin_zygisk_status_running">运行中</string>
     <string name="builtin_zygisk_status_stopped">未运行</string>
-    <string name="builtin_zygisk_rearm">重新加载 (Rearm)</string>
-    <string name="builtin_zygisk_rearm_success">重新加载完成</string>
+    <string name="builtin_zygisk_impl_title">Zygisk 实现</string>
+    <string name="builtin_zygisk_impl_hint">点击任意实现立即切换，无需重启。</string>
+    <string name="builtin_zygisk_impl_builtin">内置 Zygisk</string>
+    <string name="builtin_zygisk_impl_builtin_summary">内置 NyaZygisk (BuiltZygisk)</string>
+    <string name="builtin_zygisk_switch_done">已切换到 %1$s</string>
+    <string name="builtin_zygisk_switch_failed">切换失败</string>
     <string name="builtin_zygisk_modules_title">Zygisk 模块</string>
     <string name="builtin_zygisk_no_modules">未检测到使用中的 Zygisk 模块</string>
     <string name="builtin_zygisk_suppressed_hint">此模块为外部 Zygisk 实现，已被内置 Zygisk 自动抑制接管</string>

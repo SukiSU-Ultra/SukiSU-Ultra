@@ -38,9 +38,15 @@ use std::time::Duration;
 const ASSET_SEPOLICY: &str = "zygisk-sepolicy.rule";
 /// The resolved `module.prop` of the BuiltZygisk release zip.
 const ASSET_MODULE_PROP: &str = "zygisk-module.prop";
+/// The loader the zygote is injected with; a live handover needs both sides identical.
+const ASSET_ZYGISK_LIB: &str = "libzygisk.so";
+/// The 32-bit loader, for devices with a 32-bit zygote.
+const ASSET_ZYGISK32_LIB: &str = "libzygisk32.so";
 
 /// How long `shutdown` waits for the monitor to die, same budget as emulated-soft-reboot.sh.
 const SHUTDOWN_WAIT_SECS: u32 = 10;
+/// How long a switch waits for the monitor, the daemon or the old processes.
+const SWITCH_WAIT_SECS: u32 = 5;
 
 /// Staging directory used by earlier ksud builds. Removed on disable so an upgrade
 /// does not leave a second copy of the binaries behind.
@@ -99,15 +105,101 @@ pub fn cleanup_disabled() -> Result<()> {
     Ok(())
 }
 
+/// `(pid, name)` of the processes running our own binaries out of the staging directory.
+/// The names are shared with the standalone providers, so the executable path is what
+/// tells ours apart.
+fn staged_processes(prefix: &str) -> Vec<(i32, String)> {
+    let Ok(entries) = fs::read_dir("/proc") else {
+        return Vec::new();
+    };
+    let mut found = Vec::new();
+    for entry in entries.flatten() {
+        let Some(pid) = entry
+            .file_name()
+            .to_str()
+            .and_then(|name| name.parse::<i32>().ok())
+        else {
+            continue;
+        };
+        let Ok(exe) = fs::read_link(entry.path().join("exe")) else {
+            continue;
+        };
+        if !exe.starts_with(BUILTIN_ZYGISK_DIR) {
+            continue;
+        }
+        let name = exe.file_name().and_then(|name| name.to_str()).unwrap_or("");
+        if name.starts_with(prefix) {
+            found.push((pid, name.to_owned()));
+        }
+    }
+    found.sort();
+    found
+}
+
+/// Our monitor, with the pid and name the app shows.
+pub fn monitor_process() -> Option<(i32, String)> {
+    staged_processes("zygisk-ptrace").into_iter().next()
+}
+
+/// Our daemons, one per injected ABI.
+pub fn daemon_processes() -> Vec<(i32, String)> {
+    staged_processes("zygiskd")
+}
+
 pub fn is_monitor_running() -> bool {
-    crate::module::is_process_running_matching(|comm| {
-        comm == "zygisk-ptrace" || comm == "zygisk-ptrace64" || comm == "zygisk-ptrace32"
-    })
+    monitor_process().is_some()
 }
 
 pub fn is_daemon_running() -> bool {
-    crate::module::is_process_running_matching(|comm| {
-        comm == "zygiskd" || comm == "zygiskd64" || comm == "zygiskd32"
+    !daemon_processes().is_empty()
+}
+
+/// Monitor and daemon processes of one implementation, for the dashboard's process rows.
+pub struct ImplementationProcesses {
+    pub monitors: Vec<(i32, String)>,
+    pub daemons: Vec<(i32, String)>,
+}
+
+/// Everything running for `target`: our staged binaries, or an installed provider's own.
+pub fn processes(target: &str) -> Result<ImplementationProcesses> {
+    if target == BUILTIN_TARGET {
+        return Ok(ImplementationProcesses {
+            monitors: monitor_process().into_iter().collect(),
+            daemons: daemon_processes(),
+        });
+    }
+
+    let dir =
+        provider_dir(target).with_context(|| format!("Zygisk provider {target} is missing"))?;
+    let mut monitors = Vec::new();
+    let mut daemons = Vec::new();
+    for pid in provider_pids(std::slice::from_ref(&dir)) {
+        let Some(name) = process_name(pid) else {
+            continue;
+        };
+        if is_monitor_name(&name) {
+            monitors.push((pid, name));
+        } else {
+            daemons.push((pid, name));
+        }
+    }
+    monitors.sort();
+    daemons.sort();
+    Ok(ImplementationProcesses { monitors, daemons })
+}
+
+fn process_name(pid: i32) -> Option<String> {
+    let exe = fs::read_link(format!("/proc/{pid}/exe")).ok()?;
+    exe.file_name()
+        .and_then(|name| name.to_str())
+        .map(str::to_owned)
+}
+
+/// Any NyaZygisk tracer, ours or a standalone provider's: a switch has to wait for the
+/// one it just asked to exit before a new one can seize init.
+fn any_tracer_running() -> bool {
+    is_process_running_matching(|comm| {
+        comm == "zygisk-ptrace" || comm == "zygisk-ptrace64" || comm == "zygisk-ptrace32"
     })
 }
 
@@ -196,7 +288,7 @@ pub fn suppresses_module_dir(path: &Path) -> bool {
         .ok()
         .and_then(|prop| prop.get("id").cloned())
         .unwrap_or_default();
-    crate::module::is_zygisk_provider(id) || crate::module::is_zygisk_provider(&prop_id)
+    is_provider_module(id, &prop_id)
 }
 
 /// `module.prop` versions usually carry build details in parentheses, e.g.
@@ -215,6 +307,8 @@ pub fn short_version(version: &str) -> String {
 pub struct ImplementationInfo {
     /// `running`, `reboot`, `disabled` or `none` for the app to localize.
     pub state: &'static str,
+    /// [`BUILTIN_TARGET`] or the provider module's id, for `zygisk switch`.
+    pub id: String,
     pub name: String,
     pub version: String,
 }
@@ -225,6 +319,7 @@ pub fn implementation_info() -> ImplementationInfo {
         let running = is_monitor_active() || is_daemon_active();
         return ImplementationInfo {
             state: if running { "running" } else { "reboot" },
+            id: BUILTIN_TARGET.to_owned(),
             name: prop.get("name").cloned().unwrap_or_default(),
             version: prop
                 .get("version")
@@ -263,12 +358,13 @@ fn provider_info() -> ImplementationInfo {
             .and_then(|name| name.to_str())
             .unwrap_or("");
         let id = prop.get("id").map_or(dir_id, String::as_str);
-        if !crate::module::is_zygisk_provider(id) && !crate::module::is_zygisk_provider(dir_id) {
+        if !is_provider_module(dir_id, id) {
             continue;
         }
 
         let info = |state| ImplementationInfo {
             state,
+            id: id.to_owned(),
             name: prop.get("name").cloned().unwrap_or_else(|| id.to_owned()),
             version: prop
                 .get("version")
@@ -276,9 +372,7 @@ fn provider_info() -> ImplementationInfo {
         };
 
         // The daemon names are shared between providers, so ask per id.
-        if crate::module::is_zygisk_daemon_running(dir_id)
-            || crate::module::is_zygisk_daemon_running(id)
-        {
+        if provider_running(dir_id, id) {
             running.get_or_insert_with(|| info("running"));
         } else if path.join(DISABLE_FILE_NAME).exists() || path.join(REMOVE_FILE_NAME).exists() {
             disabled.get_or_insert_with(|| info("disabled"));
@@ -292,9 +386,495 @@ fn provider_info() -> ImplementationInfo {
         .or(disabled)
         .unwrap_or(ImplementationInfo {
             state: "none",
+            id: String::new(),
             name: String::new(),
             version: String::new(),
         })
+}
+
+/// Target id the app uses for the built-in implementation.
+pub const BUILTIN_TARGET: &str = "builtin";
+
+/// Whether the id names a Zygisk implementation, embedded or a standalone provider.
+pub fn is_provider_id(module_id: &str) -> bool {
+    let id = module_id.to_ascii_lowercase();
+    matches!(
+        id.as_str(),
+        "zygisksu" | "rezygisk" | "nyazygisk" | "neozygisk" | "yukizygisk" | "yukisu"
+    )
+}
+
+/// Whether a module is a Zygisk provider, by directory name or `module.prop` id: the two
+/// may differ, so both are checked.
+pub fn is_provider_module(dir_id: &str, prop_id: &str) -> bool {
+    is_provider_id(dir_id) || (!prop_id.is_empty() && is_provider_id(prop_id))
+}
+
+fn module_prop_id(path: &Path) -> String {
+    crate::module::read_module_prop(path)
+        .ok()
+        .and_then(|prop| prop.get("id").cloned())
+        .unwrap_or_default()
+}
+
+/// Provider module directories that are enabled right now.
+fn active_providers() -> Vec<PathBuf> {
+    let Ok(entries) = fs::read_dir(MODULE_DIR) else {
+        return Vec::new();
+    };
+    let mut dirs: Vec<PathBuf> = entries
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect();
+    // Stable order: the scan must not depend on readdir.
+    dirs.sort();
+    dirs.retain(|path| {
+        if path.join(DISABLE_FILE_NAME).exists() {
+            return false;
+        }
+        let dir_id = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        is_provider_module(dir_id, &module_prop_id(path))
+    });
+    dirs
+}
+
+/// The installed provider module with this id, matched by directory name or `module.prop`
+/// id like the module list does.
+fn provider_dir(id: &str) -> Option<PathBuf> {
+    let entries = fs::read_dir(MODULE_DIR).ok()?;
+    entries.flatten().map(|entry| entry.path()).find(|path| {
+        if !path.is_dir() {
+            return false;
+        }
+        let dir_id = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        let prop_id = module_prop_id(path);
+        (dir_id == id || prop_id == id) && is_provider_module(dir_id, &prop_id)
+    })
+}
+
+/// Whether a provider's daemon runs, under either id it goes by.
+fn provider_running(dir_id: &str, prop_id: &str) -> bool {
+    is_provider_running(dir_id)
+        || (!prop_id.is_empty() && prop_id != dir_id && is_provider_running(prop_id))
+}
+
+/// Monitors call themselves a tracer or a ptrace helper; everything else is a daemon.
+fn is_monitor_name(name: &str) -> bool {
+    let name = name.to_ascii_lowercase();
+    name.contains("ptrace") || name.contains("monitor") || name.contains("tracer")
+}
+
+/// Whether a process whose `comm` satisfies the predicate is running.
+fn is_process_running_matching(predicate: impl Fn(&str) -> bool) -> bool {
+    let Ok(entries) = fs::read_dir("/proc") else {
+        return false;
+    };
+    for entry in entries.flatten() {
+        let file_name = entry.file_name();
+        let file_str = file_name.to_string_lossy();
+        if file_str.chars().all(|c| c.is_ascii_digit())
+            && let Ok(comm) = fs::read_to_string(entry.path().join("comm"))
+            && predicate(comm.trim())
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// Like [`is_process_running_matching`], but also tests the basenames of the `cmdline`
+/// arguments and of the `exe` link.
+///
+/// Daemons such as YukiZygisk's `zygiskd64`/`zygiskd32` are started through
+/// `execveat(..., AT_EMPTY_PATH)`; on kernels without `comm_from_dentry` the kernel
+/// derives `comm` from the synthetic "/dev/fd/N" path, so the real name only shows up in
+/// `cmdline`/`exe`.
+fn is_process_running_matching_paths(predicate: impl Fn(&str) -> bool) -> bool {
+    let Ok(entries) = fs::read_dir("/proc") else {
+        return false;
+    };
+    for entry in entries.flatten() {
+        let is_pid = entry
+            .file_name()
+            .to_str()
+            .is_some_and(|name| name.chars().all(|c| c.is_ascii_digit()));
+        if !is_pid {
+            continue;
+        }
+        let proc_path = entry.path();
+
+        if let Ok(comm) = fs::read_to_string(proc_path.join("comm"))
+            && predicate(comm.trim())
+        {
+            return true;
+        }
+
+        if let Ok(cmdline) = fs::read(proc_path.join("cmdline")) {
+            for arg in cmdline.split(|byte| *byte == 0) {
+                if arg.is_empty() {
+                    continue;
+                }
+                let arg = String::from_utf8_lossy(arg);
+                let basename = arg.rsplit('/').next().unwrap_or_default();
+                if predicate(basename) {
+                    return true;
+                }
+            }
+        }
+
+        if let Ok(exe) = fs::read_link(proc_path.join("exe"))
+            && let Some(basename) = exe.file_name().and_then(|name| name.to_str())
+            && predicate(basename)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// Whether the Zygisk provider module with this id has a running daemon.
+///
+/// Providers rename their daemons freely (`zn-daemon`, `rezygiskd`, ...) and some start
+/// them through `execveat(AT_EMPTY_PATH)`, which leaves an fd number in `comm`, so the
+/// names known per implementation are matched against more than `comm`.
+pub fn is_provider_running(module_id: &str) -> bool {
+    let id_lower = module_id.to_ascii_lowercase();
+    let result = match id_lower.as_str() {
+        "rezygisk" => is_process_running_matching(|name| {
+            name.starts_with("rezygisk") || name.contains("rezygisk")
+        }),
+        "zygisksu" => is_process_running_matching(|name| {
+            name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.starts_with("zygisk-comp")
+                || name.starts_with("zygisk_comp")
+                // Zygisk Next >= 1.5.0 renames its daemon to "zn-daemon"/
+                // "zn-daemon64"/"zn-daemon32" for stealth, so the legacy
+                // "zygisk*" patterns no longer match it.
+                || name.starts_with("zn-daemon")
+                || name.contains("zygiskd")
+                || name.contains("zygisk")
+        }),
+        "nyazygisk" => is_process_running_matching(|name| {
+            name.starts_with("nyazygisk")
+                || name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.contains("nyazygisk")
+                || name.contains("zygisk")
+        }),
+        "neozygisk" => is_process_running_matching(|name| {
+            name.starts_with("neozygisk")
+                || name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.contains("neozygisk")
+                || name.contains("zygisk")
+        }),
+        // YukiZygisk launches its daemons from $MODDIR/bin/zygiskd64 / $MODDIR/bin/zygiskd32
+        // via execveat(AT_EMPTY_PATH); on Android GKI kernels the process `comm` there is
+        // just the fd number, so fall back to the cmdline/exe basenames as well.
+        "yukizygisk" => is_process_running_matching_paths(|name| {
+            name.starts_with("zygiskd") || name.contains("yukizygisk")
+        }),
+        _ => is_process_running_matching(|name| {
+            name.starts_with("zygiskd")
+                || name.starts_with("zygisk-ptrace")
+                || name.starts_with("rezygisk")
+                || name.contains("zygisk")
+        }),
+    };
+    info!("Zygisk daemon check for '{module_id}': {result}");
+    result
+}
+
+/// Hand the live system to the built-in or to an installed provider module.
+///
+/// Both directions are userspace only: the zygote keeps whatever loader it was injected
+/// with, and the new implementation takes that zygote over.
+pub fn switch_to(target: &str) -> Result<()> {
+    if target == BUILTIN_TARGET {
+        switch_to_builtin()
+    } else {
+        switch_to_provider(target)
+    }
+}
+
+/// Switch to the built-in Zygisk.
+///
+/// Only one process may trace init, so the current monitor goes first and ours re-arms
+/// the zygote the previous implementation left behind. A handover that does not come up
+/// is rolled back to the provider that was replaced.
+fn switch_to_builtin() -> Result<()> {
+    let providers = active_providers();
+    // Already the implementation in charge, with nothing of the replaced one running.
+    if is_monitor_active() && is_daemon_active() && provider_pids(&providers).is_empty() {
+        return Ok(());
+    }
+
+    let was_enabled = is_enabled();
+    stop_current(&providers);
+
+    enable()?;
+    if let Err(e) = start_switched() {
+        rollback(was_enabled, &providers);
+        return Err(e);
+    }
+    info!("Switched to the built-in Zygisk without restarting the zygote");
+    Ok(())
+}
+
+/// Switch back to an installed provider module.
+///
+/// Our monitor and daemons stop, the staged copy goes away so the module owns its boot
+/// scripts again, and the module's own entry script starts against the running zygote.
+fn switch_to_provider(id: &str) -> Result<()> {
+    let dir = provider_dir(id).with_context(|| format!("Zygisk provider {id} is not installed"))?;
+    let dir_id = dir
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(id)
+        .to_owned();
+    if dir.join(DISABLE_FILE_NAME).exists() || dir.join(REMOVE_FILE_NAME).exists() {
+        bail!("{dir_id} is disabled");
+    }
+    if !has_start_script(&dir) {
+        bail!("{dir_id} has no Zygisk start script");
+    }
+    // By executable path, not process name: the built-in uses the same names.
+    let dirs = [dir.clone()];
+    if !is_enabled() && !provider_pids(&dirs).is_empty() {
+        return Ok(());
+    }
+
+    let was_enabled = is_enabled();
+    shutdown()?;
+    // The socket is only one way to find our monitor; its binaries are the other.
+    stop_staged_processes();
+    // Another provider may still be the one tracing init.
+    let others: Vec<PathBuf> = active_providers()
+        .into_iter()
+        .filter(|path| path != &dir)
+        .collect();
+    stop_provider_processes(&others);
+
+    disable()?;
+    // Only the staged copy: the work dir is shared with a standalone NyaZygisk module,
+    // and `cleanup_disabled` skips it once nothing of ours is staged.
+    remove_leftover(BUILTIN_ZYGISK_DIR);
+
+    let mut daemon_up = || !provider_pids(&dirs).is_empty();
+    let started = match start_provider(&dir) {
+        Ok(entry) => {
+            wait_until(&mut daemon_up, SWITCH_WAIT_SECS)
+                // Some providers start the daemon from `service.sh`, not from the entry script.
+                || (entry != "service.sh"
+                    && replay_service(&dir)
+                    && wait_until(&mut daemon_up, SWITCH_WAIT_SECS))
+        }
+        Err(_) => false,
+    };
+    if !started {
+        // Nothing took over: put the system back the way it was.
+        rollback_to_builtin(was_enabled, &dir);
+        bail!("{dir_id} did not take over the zygote");
+    }
+    info!("Switched to the {dir_id} Zygisk provider without restarting the zygote");
+    Ok(())
+}
+
+/// The scripts a provider can be started from, in the order a boot would run them.
+const PROVIDER_START_SCRIPTS: [&str; 3] = ["zygisk-init.sh", "post-fs-data.sh", "service.sh"];
+
+fn has_start_script(dir: &Path) -> bool {
+    PROVIDER_START_SCRIPTS
+        .iter()
+        .any(|name| dir.join(name).exists())
+}
+
+fn replay_service(dir: &Path) -> bool {
+    let service = dir.join("service.sh");
+    if !service.exists() {
+        return false;
+    }
+    crate::module::exec_script(&service, crate::module::ScriptWait::NoWait).is_ok()
+}
+
+/// Best effort after a failed handover: stop whatever half-started, restore the built-in
+/// when it was the one in charge.
+fn rollback_to_builtin(was_enabled: bool, dir: &Path) {
+    stop_provider_processes(&[dir.to_path_buf()]);
+    if !was_enabled {
+        return;
+    }
+    let _ = enable();
+    let _ = start_switched();
+}
+
+/// Replay a provider's own entry script, the same one its boot would run. Returns the
+/// script name it picked.
+fn start_provider(dir: &Path) -> Result<&'static str> {
+    let entry = PROVIDER_START_SCRIPTS
+        .iter()
+        .map(|name| (*name, dir.join(name)))
+        .find(|(_, path)| path.exists());
+    let Some((name, path)) = entry else {
+        bail!("{} has no Zygisk start script", dir.display());
+    };
+    info!("Starting {} to hand Zygisk over", path.display());
+    crate::module::exec_script(&path, crate::module::ScriptWait::NoWait)?;
+    Ok(name)
+}
+
+/// Start our monitor and daemon over the zygote the previous implementation left behind.
+fn start_switched() -> Result<()> {
+    bootstrap()?;
+    if !wait_until(monitor_reachable, SWITCH_WAIT_SECS) {
+        bail!("the built-in monitor did not start");
+    }
+    let tracer = tracer_path().context("built-in Zygisk tracer is missing")?;
+    send_rearm(&tracer)?;
+    if !wait_until(
+        || is_monitor_active() && is_daemon_active(),
+        SWITCH_WAIT_SECS,
+    ) {
+        bail!("the built-in daemon did not come up");
+    }
+    Ok(())
+}
+
+fn rollback(was_enabled: bool, providers: &[PathBuf]) {
+    // Our monitor may already own init; the provider's cannot start until it lets go.
+    let _ = shutdown();
+    if !was_enabled {
+        let _ = disable();
+    }
+    restore_provider(providers);
+}
+
+/// Stop whatever owns init today: a NyaZygisk monitor understands `ctl exit`, anything
+/// else is terminated by path, daemons included.
+fn stop_current(providers: &[PathBuf]) {
+    if monitor_reachable() {
+        if let Some(tracer) = tracer_path().or_else(|| provider_tracer(providers)) {
+            info!("Stopping the current Zygisk monitor");
+            let _ = Command::new(&tracer).args(["ctl", "exit"]).status();
+        }
+        // The ptrace attachment to init is released at exit, not when the socket closes,
+        // so wait for the process too: ours cannot seize init before that.
+        wait_until(
+            || !monitor_reachable() && !any_tracer_running(),
+            SHUTDOWN_WAIT_SECS,
+        );
+    }
+    stop_provider_processes(providers);
+}
+
+/// A tracer of the replaced provider, used to send `ctl exit` when nothing of ours is
+/// staged yet.
+fn provider_tracer(providers: &[PathBuf]) -> Option<PathBuf> {
+    providers.iter().find_map(|dir| {
+        ["zygisk-ptrace64", "zygisk-ptrace32"]
+            .iter()
+            .map(|name| dir.join("bin").join(*name))
+            .find(|path| path.exists())
+    })
+}
+
+fn stop_provider_processes(providers: &[PathBuf]) {
+    let victims = provider_pids(providers);
+    if victims.is_empty() {
+        return;
+    }
+    info!(
+        "Stopping {} process(es) of the replaced Zygisk provider",
+        victims.len()
+    );
+    signal_all(&victims, libc::SIGTERM);
+    if !wait_until(|| !any_alive(&victims), SWITCH_WAIT_SECS) {
+        signal_all(&victims, libc::SIGKILL);
+        wait_until(|| !any_alive(&victims), SWITCH_WAIT_SECS);
+    }
+}
+
+/// Our own processes, found by executable path so a monitor whose control socket is gone
+/// cannot keep init to itself.
+fn stop_staged_processes() {
+    let victims: Vec<i32> = staged_processes("")
+        .into_iter()
+        .map(|(pid, _)| pid)
+        .collect();
+    if victims.is_empty() {
+        return;
+    }
+    info!("Stopping {} built-in Zygisk process(es)", victims.len());
+    signal_all(&victims, libc::SIGTERM);
+    if !wait_until(|| !any_alive(&victims), SWITCH_WAIT_SECS) {
+        signal_all(&victims, libc::SIGKILL);
+        wait_until(|| !any_alive(&victims), SWITCH_WAIT_SECS);
+    }
+}
+
+/// A zombie has no executable link, so a process that lost `exe` is gone for our purposes.
+fn any_alive(pids: &[i32]) -> bool {
+    pids.iter()
+        .any(|pid| fs::read_link(format!("/proc/{pid}/exe")).is_ok())
+}
+
+/// Zygisk processes of the given providers, matched by the directory they were started
+/// from. Providers name their processes freely (`zn-daemon`, `rezygiskd`, or a bare fd
+/// number after `execveat`), so the module directory is the only reliable marker.
+fn provider_pids(providers: &[PathBuf]) -> Vec<i32> {
+    let Ok(entries) = fs::read_dir("/proc") else {
+        return Vec::new();
+    };
+    let mut pids = Vec::new();
+    for entry in entries.flatten() {
+        let Some(pid) = entry
+            .file_name()
+            .to_str()
+            .and_then(|name| name.parse::<i32>().ok())
+        else {
+            continue;
+        };
+        let Ok(exe) = fs::read_link(entry.path().join("exe")) else {
+            continue;
+        };
+        if providers.iter().any(|dir| exe.starts_with(dir)) {
+            pids.push(pid);
+        }
+    }
+    pids
+}
+
+fn signal_all(pids: &[i32], signal: i32) {
+    for &pid in pids {
+        let _ = unsafe { libc::kill(pid, signal) };
+    }
+}
+
+/// Best effort: bring the replaced provider back after a failed handover.
+fn restore_provider(providers: &[PathBuf]) {
+    for dir in providers {
+        if let Err(e) = start_provider(dir) {
+            warn!("Restoring {} failed: {e}", dir.display());
+        }
+    }
+}
+
+fn wait_until(mut condition: impl FnMut() -> bool, secs: u32) -> bool {
+    for _ in 0..secs * 10 {
+        if condition() {
+            return true;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    condition()
 }
 
 /// `(version, versionCode)` of the staged build, read from the staged `module.prop`.
@@ -430,8 +1010,8 @@ fn stage_assets(dir: &Path) {
         ("lib/libzygisk.so", "")
     };
     for (asset, dst) in [
-        ("libzygisk.so", native_lib),
-        ("libzygisk32.so", secondary_lib),
+        (ASSET_ZYGISK_LIB, native_lib),
+        (ASSET_ZYGISK32_LIB, secondary_lib),
     ] {
         if dst.is_empty() {
             continue;
@@ -513,7 +1093,7 @@ fn monitor_reachable() -> bool {
 /// A zygote rewrites its argv[0] but never sets its thread name, so its comm reads
 /// "main". Match the cmdline like `pidof` does.
 fn has_running_zygote() -> bool {
-    crate::module::is_process_running_matching_paths(|name| name == "zygote" || name == "zygote64")
+    is_process_running_matching_paths(|name| name == "zygote" || name == "zygote64")
 }
 
 /// Whether the monitor already reports a zygote as injected.

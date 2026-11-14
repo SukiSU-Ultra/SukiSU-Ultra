@@ -25,11 +25,6 @@ fun BuiltinZygiskScreen() {
     }
 
     val onBack = dropUnlessResumed { navigator.pop() }
-    val onRearm = {
-        viewModel.rearm {
-            Toast.makeText(context, R.string.builtin_zygisk_rearm_success, Toast.LENGTH_SHORT).show()
-        }
-    }
     val onRefresh = {
         viewModel.load()
     }
@@ -38,20 +33,35 @@ fun BuiltinZygiskScreen() {
             Toast.makeText(context, R.string.builtin_zygisk_option_failed, Toast.LENGTH_SHORT).show()
         }
     }
+    val onSwitch = { target: String, name: String ->
+        viewModel.switchTo(target) { ok ->
+            val message = if (ok) {
+                context.getString(R.string.builtin_zygisk_switch_done, name)
+            } else {
+                context.getString(R.string.builtin_zygisk_switch_failed)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+    val onToggleProcesses = { id: String ->
+        viewModel.toggleModuleProcesses(id)
+    }
 
     when (LocalUiMode.current) {
         UiMode.Miuix -> BuiltinZygiskMiuix(
             uiState = state,
             onBack = onBack,
             onRefresh = onRefresh,
-            onRearm = onRearm,
+            onSwitch = onSwitch,
+            onToggleProcesses = onToggleProcesses,
             onSetOption = onSetOption,
         )
         UiMode.Material -> BuiltinZygiskMaterial(
             uiState = state,
             onBack = onBack,
             onRefresh = onRefresh,
-            onRearm = onRearm,
+            onSwitch = onSwitch,
+            onToggleProcesses = onToggleProcesses,
             onSetOption = onSetOption,
         )
     }

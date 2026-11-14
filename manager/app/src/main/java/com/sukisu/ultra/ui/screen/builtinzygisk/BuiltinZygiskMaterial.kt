@@ -1,22 +1,25 @@
 package com.sukisu.ultra.ui.screen.builtinzygisk
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +31,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +39,8 @@ internal fun BuiltinZygiskMaterial(
     uiState: BuiltinZygiskUiState,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
-    onRearm: () -> Unit,
+    onSwitch: (String, String) -> Unit,
+    onToggleProcesses: (String) -> Unit,
     onSetOption: (String, String) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -61,7 +66,7 @@ internal fun BuiltinZygiskMaterial(
                 .padding(padding)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            AnimatedVisibility(visible = uiState.isLoading || uiState.isRearming) {
+            AnimatedVisibility(visible = uiState.isLoading || uiState.isSwitching) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
@@ -88,11 +93,10 @@ internal fun BuiltinZygiskMaterial(
                                     headlineContent = { Text(stringResource(R.string.builtin_zygisk_daemon_status)) },
                                     supportingContent = {
                                         Text(
-                                            if (uiState.status.daemonRunning) {
-                                                stringResource(R.string.builtin_zygisk_status_running)
-                                            } else {
-                                                stringResource(R.string.builtin_zygisk_status_stopped)
-                                            }
+                                            uiState.status.daemons
+                                                .takeIf { it.isNotEmpty() }
+                                                ?.joinToString("\n") { it.label }
+                                                ?: stringResource(R.string.builtin_zygisk_status_stopped)
                                         )
                                     },
                                     leadingContent = {
@@ -109,11 +113,8 @@ internal fun BuiltinZygiskMaterial(
                                     headlineContent = { Text(stringResource(R.string.builtin_zygisk_monitor_status)) },
                                     supportingContent = {
                                         Text(
-                                            if (uiState.status.monitorRunning) {
-                                                stringResource(R.string.builtin_zygisk_status_running)
-                                            } else {
-                                                stringResource(R.string.builtin_zygisk_status_stopped)
-                                            }
+                                            uiState.status.monitor?.label
+                                                ?: stringResource(R.string.builtin_zygisk_status_stopped)
                                         )
                                     },
                                     leadingContent = {
@@ -124,22 +125,78 @@ internal fun BuiltinZygiskMaterial(
                                         )
                                     }
                                 )
-                            },
-                            {
+                            }
+                        )
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(R.string.builtin_zygisk_impl_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.builtin_zygisk_impl_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    val builtinName = stringResource(R.string.builtin_zygisk_impl_builtin)
+                    val currentTarget = uiState.implementation.id
+                    val choices = listOf(
+                        Triple(
+                            BUILTIN_ZYGISK_TARGET,
+                            builtinName,
+                            stringResource(R.string.builtin_zygisk_impl_builtin_summary)
+                        )
+                    ) + uiState.zygiskModules
+                        .filter { it.enabled && !it.remove }
+                        .map { Triple(it.id, it.name, "${it.version} (${it.author})") }
+
+                    SegmentedColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        content = choices.map { (id, name, summary) ->
+                            val isCurrent = id == currentTarget
+                            @Composable {
                                 SegmentedListItem(
-                                    onClick = onRearm,
-                                    headlineContent = { Text(stringResource(R.string.builtin_zygisk_rearm)) },
-                                    supportingContent = { Text(stringResource(R.string.settings_builtin_zygisk_summary)) },
+                                    selected = isCurrent,
+                                    onClick = {
+                                        if (!uiState.isSwitching && !isCurrent) onSwitch(id, name)
+                                    },
+                                    headlineContent = { Text(name) },
+                                    supportingContent = { Text(summary) },
                                     leadingContent = {
                                         Icon(
-                                            Icons.Filled.RestartAlt,
+                                            if (id == BUILTIN_ZYGISK_TARGET) {
+                                                Icons.Filled.Memory
+                                            } else {
+                                                Icons.Filled.Extension
+                                            },
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
+                                            tint = if (isCurrent) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            }
                                         )
+                                    },
+                                    trailingContent = if (isCurrent) {
+                                        {
+                                            Icon(
+                                                Icons.Filled.CheckCircle,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    } else {
+                                        null
                                     }
                                 )
                             }
-                        )
+                        }
                     )
                 }
 
@@ -215,8 +272,20 @@ internal fun BuiltinZygiskMaterial(
                 } else {
                     item {
                         val itemsList = uiState.zygiskModules.map { module ->
+                            val isActive = module.id == uiState.implementation.id &&
+                                uiState.implementation.state == "running"
+                            val isExpanded = isActive && uiState.expandedModuleId == module.id
                             @Composable {
+                                val chevronRotation by animateFloatAsState(
+                                    targetValue = if (isExpanded) 180f else 0f,
+                                    label = "moduleChevron"
+                                )
                                 SegmentedListItem(
+                                    onClick = if (isActive) {
+                                        { onToggleProcesses(module.id) }
+                                    } else {
+                                        null
+                                    },
                                     headlineContent = {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(
@@ -263,6 +332,36 @@ internal fun BuiltinZygiskMaterial(
                                                     modifier = Modifier.padding(top = 4.dp)
                                                 )
                                             }
+                                            AnimatedVisibility(visible = isExpanded) {
+                                                val processes = uiState.moduleProcesses
+                                                Column {
+                                                    if (processes.monitors.isEmpty() && processes.daemons.isEmpty()) {
+                                                        Text(
+                                                            text = stringResource(R.string.builtin_zygisk_status_stopped),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            modifier = Modifier.padding(top = 4.dp)
+                                                        )
+                                                    } else {
+                                                        processes.monitors.forEach { process ->
+                                                            Text(
+                                                                text = "${stringResource(R.string.builtin_zygisk_monitor_status)}: ${process.label}",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                modifier = Modifier.padding(top = 4.dp)
+                                                            )
+                                                        }
+                                                        processes.daemons.forEach { process ->
+                                                            Text(
+                                                                text = "${stringResource(R.string.builtin_zygisk_daemon_status)}: ${process.label}",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                modifier = Modifier.padding(top = 4.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
                                     leadingContent = {
@@ -271,6 +370,18 @@ internal fun BuiltinZygiskMaterial(
                                             contentDescription = null,
                                             tint = if (module.suppressedByBuiltin) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                                         )
+                                    },
+                                    trailingContent = if (isActive) {
+                                        {
+                                            Icon(
+                                                Icons.Filled.ExpandMore,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.rotate(chevronRotation)
+                                            )
+                                        }
+                                    } else {
+                                        null
                                     }
                                 )
                             }
