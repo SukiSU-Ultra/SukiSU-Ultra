@@ -33,6 +33,11 @@ fun BuiltinZygiskScreen() {
     val onRefresh = {
         viewModel.load()
     }
+    val onSetOption = { key: String, value: String ->
+        viewModel.setOption(key, value) {
+            Toast.makeText(context, R.string.builtin_zygisk_option_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     when (LocalUiMode.current) {
         UiMode.Miuix -> BuiltinZygiskMiuix(
@@ -40,12 +45,14 @@ fun BuiltinZygiskScreen() {
             onBack = onBack,
             onRefresh = onRefresh,
             onRearm = onRearm,
+            onSetOption = onSetOption,
         )
         UiMode.Material -> BuiltinZygiskMaterial(
             uiState = state,
             onBack = onBack,
             onRefresh = onRefresh,
             onRearm = onRearm,
+            onSetOption = onSetOption,
         )
     }
 }

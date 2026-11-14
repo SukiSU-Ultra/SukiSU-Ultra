@@ -25,6 +25,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
+import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 
@@ -35,6 +36,7 @@ internal fun BuiltinZygiskMaterial(
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onRearm: () -> Unit,
+    onSetOption: (String, String) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -135,6 +137,51 @@ internal fun BuiltinZygiskMaterial(
                                             tint = MaterialTheme.colorScheme.primary
                                         )
                                     }
+                                )
+                            }
+                        )
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(R.string.builtin_zygisk_options_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.builtin_zygisk_options_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    SegmentedColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        content = listOf(
+                            {
+                                SegmentedSwitchItem(
+                                    title = stringResource(R.string.builtin_zygisk_opt_anonymous_memory),
+                                    summary = stringResource(R.string.builtin_zygisk_opt_anonymous_memory_summary),
+                                    checked = uiState.config.anonymousMemory,
+                                    onCheckedChange = { onSetOption("anonymous_memory", if (it) "1" else "0") }
+                                )
+                            },
+                            {
+                                SegmentedSwitchItem(
+                                    title = stringResource(R.string.builtin_zygisk_opt_custom_linker),
+                                    summary = stringResource(R.string.builtin_zygisk_opt_custom_linker_summary),
+                                    checked = uiState.config.customLinker,
+                                    onCheckedChange = { onSetOption("custom_linker", if (it) "1" else "0") }
+                                )
+                            },
+                            {
+                                SegmentedSwitchItem(
+                                    title = stringResource(R.string.builtin_zygisk_opt_lsplt),
+                                    summary = stringResource(R.string.builtin_zygisk_opt_lsplt_summary),
+                                    checked = uiState.config.pltEngine == "lsplt",
+                                    onCheckedChange = { onSetOption("plt_engine", if (it) "lsplt" else "bytehook") }
                                 )
                             }
                         )

@@ -1621,6 +1621,15 @@
     <string name="builtin_zygisk_no_modules">未检测到使用中的 Zygisk 模块</string>
     <string name="builtin_zygisk_suppressed_hint">此模块为外部 Zygisk 实现，已被内置 Zygisk 自动抑制接管</string>
     <string name="module_suppressed_by_builtin">已由内置接管</string>
+    <string name="builtin_zygisk_options_title">选项</string>
+    <string name="builtin_zygisk_options_hint">更改对之后启动的应用生效，请重启应用以套用。</string>
+    <string name="builtin_zygisk_option_failed">保存选项失败</string>
+    <string name="builtin_zygisk_opt_anonymous_memory">匿名内存</string>
+    <string name="builtin_zygisk_opt_anonymous_memory_summary">将 /proc/self/maps 中的模块映射转为匿名映射。若系统界面无法启动或监视器显示 NO，请先关闭此项。</string>
+    <string name="builtin_zygisk_opt_custom_linker">自定义链接器</string>
+    <string name="builtin_zygisk_opt_custom_linker_summary">使用内置 ELF 加载器加载模块，使其不进入系统链接器的 solist。模块无法这样加载时会回退到系统链接器。</string>
+    <string name="builtin_zygisk_opt_lsplt">使用 LSPLT 进行 PLT Hook</string>
+    <string name="builtin_zygisk_opt_lsplt_summary">关闭时使用 ByteHook，开启时使用 LSPLT。</string>
     <string name="theme_store_upload_preview_invalid">预览图无法读取，请选择 PNG/JPEG/WebP 图片</string>
     <string name="theme_store_upload_avatar_invalid">作者头像无法读取，请选择 PNG/JPEG/WebP 图片</string>
     <string name="theme_store_upload_screenshot_invalid">截图无法读取，请选择 PNG/JPEG/WebP 图片</string>

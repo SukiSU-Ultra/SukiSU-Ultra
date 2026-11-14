@@ -1057,6 +1057,15 @@
     <string name="builtin_zygisk_no_modules">未偵測到使用中的 Zygisk 模組</string>
     <string name="builtin_zygisk_suppressed_hint">此模組為外部 Zygisk 實作，已被內建 Zygisk 自動抑制接管</string>
     <string name="module_suppressed_by_builtin">已由內建接管</string>
+    <string name="builtin_zygisk_options_title">選項</string>
+    <string name="builtin_zygisk_options_hint">變更會套用到之後啟動的應用程式，請重新啟動應用程式以生效。</string>
+    <string name="builtin_zygisk_option_failed">儲存選項失敗</string>
+    <string name="builtin_zygisk_opt_anonymous_memory">匿名記憶體</string>
+    <string name="builtin_zygisk_opt_anonymous_memory_summary">將 /proc/self/maps 中的模組映射轉為匿名映射。若系統介面無法啟動或監視器顯示 NO，請先關閉此項。</string>
+    <string name="builtin_zygisk_opt_custom_linker">自訂連結器</string>
+    <string name="builtin_zygisk_opt_custom_linker_summary">使用內建 ELF 載入器載入模組，使其不進入系統連結器的 solist。模組無法這樣載入時會退回系統連結器。</string>
+    <string name="builtin_zygisk_opt_lsplt">使用 LSPLT 進行 PLT Hook</string>
+    <string name="builtin_zygisk_opt_lsplt_summary">關閉時使用 ByteHook，開啟時使用 LSPLT。</string>
     <string name="settings_section_background">背景</string>
     <string name="settings_section_background_summary">桌布、取色與背景外觀</string>
     <string name="settings_section_theme_package">主題包</string>

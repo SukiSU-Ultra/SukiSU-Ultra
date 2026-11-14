@@ -1631,6 +1631,15 @@
     <string name="builtin_zygisk_no_modules">No active Zygisk modules detected</string>
     <string name="builtin_zygisk_suppressed_hint">External Zygisk provider suppressed by built-in Zygisk</string>
     <string name="module_suppressed_by_builtin">SUPPRESSED</string>
+    <string name="builtin_zygisk_options_title">Options</string>
+    <string name="builtin_zygisk_options_hint">Changes apply to apps started afterwards. Restart an app to pick them up.</string>
+    <string name="builtin_zygisk_option_failed">Failed to save the option</string>
+    <string name="builtin_zygisk_opt_anonymous_memory">Anonymous memory</string>
+    <string name="builtin_zygisk_opt_anonymous_memory_summary">Turn module mappings in /proc/self/maps into anonymous mappings. If the system UI fails to start or the monitor shows NO, turn this off first.</string>
+    <string name="builtin_zygisk_opt_custom_linker">Custom linker</string>
+    <string name="builtin_zygisk_opt_custom_linker_summary">Load modules with the built-in ELF loader so they never enter the system linker's solist. Falls back to the system linker if a module cannot be loaded.</string>
+    <string name="builtin_zygisk_opt_lsplt">Use LSPLT for PLT hooks</string>
+    <string name="builtin_zygisk_opt_lsplt_summary">Off uses ByteHook, on uses LSPLT.</string>
     <string name="theme_store_upload_preview_invalid">The preview image could not be read. Choose a PNG/JPEG/WebP image.</string>
     <string name="theme_store_upload_avatar_invalid">The author avatar could not be read. Choose a PNG/JPEG/WebP image.</string>
     <string name="theme_store_upload_screenshot_invalid">A screenshot could not be read. Choose PNG/JPEG/WebP images.</string>

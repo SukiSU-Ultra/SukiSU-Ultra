@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.data.repository.ModuleRepository
 import com.sukisu.ultra.data.repository.ModuleRepositoryImpl
+import com.sukisu.ultra.ui.util.getBuiltinZygiskConfig
 import com.sukisu.ultra.ui.util.getBuiltinZygiskStatus
+import com.sukisu.ultra.ui.util.setBuiltinZygiskConfig
 import com.sukisu.ultra.ui.util.rearmBuiltinZygisk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,7 @@ class BuiltinZygiskViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
+            val config = withContext(Dispatchers.IO) { getBuiltinZygiskConfig() }
             val modulesResult = moduleRepo.getModules()
             val zygiskModules = modulesResult.getOrDefault(emptyList()).filter {
                 it.zygisk || it.suppressedByBuiltin
@@ -32,9 +35,20 @@ class BuiltinZygiskViewModel(
                 it.copy(
                     isLoading = false,
                     status = status,
+                    config = config,
                     zygiskModules = zygiskModules
                 )
             }
+        }
+    }
+
+    /** Writes one option, then re-reads the file so the UI shows what ksud actually stored. */
+    fun setOption(key: String, value: String, onFailure: () -> Unit) {
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { setBuiltinZygiskConfig(key, value) }
+            val config = withContext(Dispatchers.IO) { getBuiltinZygiskConfig() }
+            _uiState.update { it.copy(config = config) }
+            if (!ok) onFailure()
         }
     }
 
