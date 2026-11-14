@@ -128,6 +128,10 @@ pub fn on_post_fs_data() -> Result<()> {
         warn!("KPM: Failed to start KPM watcher: {e}");
     }
 
+    // A disabled built-in kept its files for the rest of the session so a running
+    // monitor was not disturbed; this boot is where they go.
+    builtin_zygisk_step("cleanup", crate::builtin_zygisk::cleanup_disabled);
+
     // bootstrap built-in zygisk before module post-fs-data
     builtin_zygisk_step("bootstrap", crate::builtin_zygisk::bootstrap);
 

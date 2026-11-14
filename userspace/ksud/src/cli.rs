@@ -1299,12 +1299,9 @@ pub fn run() -> Result<()> {
                 // alone are shared with the standalone builds.
                 let monitor = crate::builtin_zygisk::is_monitor_active();
                 let daemon = crate::builtin_zygisk::is_daemon_active();
-                let tracing = crate::builtin_zygisk::is_monitor_tracing();
-                let injected = crate::builtin_zygisk::zygote_injected();
-                let stop_reason = crate::builtin_zygisk::monitor_stop_reason();
                 let (version, version_code) = crate::builtin_zygisk::version().unwrap_or_default();
                 println!(
-                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon},"monitor_tracing":{tracing},"zygote_injected":{injected},"monitor_stop_reason":"{stop_reason}","version":"{version}","version_code":"{version_code}"}}"#
+                    r#"{{"enabled":{enabled},"monitor_running":{monitor},"daemon_running":{daemon},"version":"{version}","version_code":"{version_code}"}}"#
                 );
                 Ok(())
             }
@@ -1312,12 +1309,7 @@ pub fn run() -> Result<()> {
                 let info = crate::builtin_zygisk::implementation_info();
                 println!(
                     "{}",
-                    serde_json::json!({
-                        "state": info.state,
-                        "name": info.name,
-                        "version": info.version,
-                        "builtin": info.builtin,
-                    })
+                    serde_json::json!({ "state": info.state, "name": info.name, "version": info.version })
                 );
                 Ok(())
             }

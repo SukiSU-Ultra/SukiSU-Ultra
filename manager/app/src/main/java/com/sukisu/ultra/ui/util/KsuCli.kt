@@ -1509,7 +1509,6 @@ data class ZygiskImplementationInfo(
     val state: String = "none",
     val name: String = "",
     val version: String = "",
-    val builtin: Boolean = false,
 )
 
 /// The Zygisk implementation ksud reports, including its built-in one. Reading this is
@@ -1523,7 +1522,6 @@ fun getZygiskImplementationInfo(): ZygiskImplementationInfo {
             state = json.optString("state", "none"),
             name = json.optString("name", ""),
             version = json.optString("version", ""),
-            builtin = json.optBoolean("builtin", false),
         )
     }.getOrDefault(ZygiskImplementationInfo())
 }

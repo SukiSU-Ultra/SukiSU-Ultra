@@ -31,7 +31,6 @@ use std::io::Write;
 use std::os::unix::fs::{PermissionsExt, lchown};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::OnceLock;
 use std::time::Duration;
 
 /// Shipped next to the binaries by CI, extracted from BuiltZygisk's
@@ -67,25 +66,36 @@ fn remove_leftover(dir: &str) {
 }
 
 pub fn disable() -> Result<()> {
-    // Stop first: `shutdown` is gated on the flag, and a monitor left running would
-    // keep tracing init from a tree we are about to delete.
-    if (monitor_reachable() || is_monitor_running())
-        && let Err(e) = shutdown()
-    {
-        warn!("Failed to stop built-in Zygisk: {e}");
-    }
-
+    // Only the flag goes; the monitor and its daemons keep running so the current
+    // session is not disturbed. The module system behaves the same way: a disable file
+    // takes effect on the next boot, it does not kill a running Zygisk. They are
+    // stopped by a soft reboot and die with the system on a real one, at which point
+    // `cleanup_disabled` drops the files.
     let flag = Path::new(BUILTIN_ZYGISK_FLAG);
     if flag.exists() {
         fs::remove_file(flag).with_context(|| "Failed to remove builtin zygisk flag")?;
     }
+    info!("Built-in Zygisk disabled, its processes stop at the next reboot");
+    Ok(())
+}
 
-    // Nothing may stay staged or mounted once the built-in is off; the standalone
-    // module's uninstall.sh drops the same directories.
+/// Remove what a disabled built-in left behind.
+///
+/// Only safe with no live monitor: a boot without the flag reaches this after the reboot
+/// killed the previous session's processes, and a soft reboot calls it after `shutdown`.
+/// The work dir is shared with a standalone NyaZygisk module, so it is only dropped when
+/// something of ours was staged next to it; otherwise a built-in that was never enabled
+/// would wipe that module's settings on every boot.
+pub fn cleanup_disabled() -> Result<()> {
+    if is_enabled() {
+        return Ok(());
+    }
+    let staged = Path::new(BUILTIN_ZYGISK_DIR).exists();
     remove_leftover(BUILTIN_ZYGISK_DIR);
-    remove_leftover(BUILTIN_ZYGISK_WORK_DIR);
+    if staged {
+        remove_leftover(BUILTIN_ZYGISK_WORK_DIR);
+    }
     remove_leftover(LEGACY_BUILTIN_ZYGISK_DIR);
-    info!("Built-in Zygisk has been disabled");
     Ok(())
 }
 
@@ -124,7 +134,7 @@ fn parse_module_prop(content: &str) -> HashMap<String, String> {
 /// the pristine one it read when it started. Only the runtime copy can say whether
 /// Zygisk is actually running, so it wins whenever a monitor has written it. Before
 /// the first boot there is no runtime copy and the embedded asset describes the build.
-pub fn module_prop() -> Option<HashMap<String, String>> {
+fn module_prop() -> Option<HashMap<String, String>> {
     let runtime = Path::new(BUILTIN_ZYGISK_WORK_DIR).join("module.prop");
     if let Ok(content) = fs::read_to_string(runtime) {
         let prop = parse_module_prop(&content);
@@ -141,18 +151,9 @@ pub fn module_prop() -> Option<HashMap<String, String>> {
     Some(parse_module_prop(&String::from_utf8_lossy(&data)))
 }
 
-/// The module id the embedded BuiltZygisk declares (`zygisksu` upstream). This is
-/// the identity the app matches providers with, not an invented one.
-pub fn module_id() -> Option<String> {
-    module_prop()?
-        .get("id")
-        .map(|id| id.trim().to_owned())
-        .filter(|id| !id.is_empty())
-}
-
 /// Monitor state reported by the monitor itself. Its process names are shared
 /// with standalone builds, so a process scan cannot identify the built-in.
-pub fn is_monitor_tracing() -> bool {
+fn is_monitor_tracing() -> bool {
     module_prop().is_some_and(|prop| {
         prop.get("monitor_status")
             .is_some_and(|status| status == "tracing")
@@ -160,7 +161,7 @@ pub fn is_monitor_tracing() -> bool {
 }
 
 /// Whether any ABI's daemon is reported as running by the monitor.
-pub fn is_daemon_reported_running() -> bool {
+fn is_daemon_reported_running() -> bool {
     module_prop().is_some_and(|prop| {
         prop.iter().any(|(key, value)| {
             key.starts_with("daemon_") && key.ends_with("_status") && value == "running"
@@ -168,9 +169,10 @@ pub fn is_daemon_reported_running() -> bool {
     })
 }
 
-/// Live monitor state: the monitor's own report plus its process, because the
-/// process names are shared with standalone builds (so a scan alone is
-/// ambiguous) and the report alone can be stale after a crash.
+/// Live monitor state: the monitor's own report plus its process.
+///
+/// The process names are shared with standalone builds, so a scan alone is ambiguous,
+/// and the report alone can be stale after a crash.
 pub fn is_monitor_active() -> bool {
     is_monitor_tracing() && is_monitor_running()
 }
@@ -180,25 +182,12 @@ pub fn is_daemon_active() -> bool {
     is_daemon_reported_running() && is_daemon_running()
 }
 
-/// The id the embedded build declares, cached: it never changes while this process
-/// lives, and every module directory check compares against it.
-fn embedded_id() -> Option<&'static str> {
-    static ID: OnceLock<Option<String>> = OnceLock::new();
-    ID.get_or_init(module_id).as_deref()
-}
-
-/// The provider id the built-in owns, when it is enabled. An installed module with
-/// this id is suppressed, but keeps its own entry and stays manageable.
-pub fn owned_provider_id() -> Option<&'static str> {
-    if is_enabled() { embedded_id() } else { None }
-}
-
-/// Whether an active module directory must be skipped because the built-in takes
-/// over Zygisk: a known standalone provider, or the provider id it owns.
+/// Whether a module directory belongs to a standalone Zygisk provider, whose boot
+/// scripts must be skipped while the built-in is on.
 pub fn suppresses_module_dir(path: &Path) -> bool {
-    let Some(owned) = owned_provider_id() else {
+    if !is_enabled() {
         return false;
-    };
+    }
     let id = path
         .file_name()
         .and_then(|name| name.to_str())
@@ -207,10 +196,7 @@ pub fn suppresses_module_dir(path: &Path) -> bool {
         .ok()
         .and_then(|prop| prop.get("id").cloned())
         .unwrap_or_default();
-    crate::module::is_zygisk_provider(id)
-        || crate::module::is_zygisk_provider(&prop_id)
-        || id.eq_ignore_ascii_case(owned)
-        || prop_id.eq_ignore_ascii_case(owned)
+    crate::module::is_zygisk_provider(id) || crate::module::is_zygisk_provider(&prop_id)
 }
 
 /// `module.prop` versions usually carry build details in parentheses, e.g.
@@ -221,15 +207,16 @@ pub fn short_version(version: &str) -> String {
 }
 
 /// The Zygisk implementation this system is running, or the one it would run after a
-/// reboot. The app used to derive this from `module list`, a command that also serves
-/// the module screen and carries flags for both, so the two kept drifting apart. The
-/// answer is computed here instead and read with a single `ksud zygisk info`.
+/// reboot.
+///
+/// The app used to derive this from `module list`, a command that also serves the module
+/// screen and carries flags for both, so the two kept drifting apart. The answer is
+/// computed here instead and read with a single `ksud zygisk info`.
 pub struct ImplementationInfo {
     /// `running`, `reboot`, `disabled` or `none` for the app to localize.
     pub state: &'static str,
     pub name: String,
     pub version: String,
-    pub builtin: bool,
 }
 
 pub fn implementation_info() -> ImplementationInfo {
@@ -242,7 +229,6 @@ pub fn implementation_info() -> ImplementationInfo {
             version: prop
                 .get("version")
                 .map_or_else(String::new, |v| short_version(v)),
-            builtin: true,
         };
     }
 
@@ -287,7 +273,6 @@ fn provider_info() -> ImplementationInfo {
             version: prop
                 .get("version")
                 .map_or_else(String::new, |v| short_version(v)),
-            builtin: false,
         };
 
         // The daemon names are shared between providers, so ask per id.
@@ -309,7 +294,6 @@ fn provider_info() -> ImplementationInfo {
             state: "none",
             name: String::new(),
             version: String::new(),
-            builtin: false,
         })
 }
 
@@ -358,8 +342,9 @@ fn create_sys_perm<P: AsRef<Path>>(path: P) -> Result<()> {
     Ok(())
 }
 
-/// Publish a library without disturbing a copy a running process may have mapped:
-/// writing in place would fail with ETXTBSY or mutate the mapping, renaming over it
+/// Publish a library without disturbing a copy a running process may have mapped.
+///
+/// Writing in place would fail with ETXTBSY or mutate the mapping; renaming over it
 /// leaves existing mappings on the old inode.
 fn install_lib(dest: &Path, data: &[u8]) -> Result<()> {
     if let Some(parent) = dest.parent() {
@@ -532,19 +517,12 @@ fn has_running_zygote() -> bool {
 }
 
 /// Whether the monitor already reports a zygote as injected.
-pub fn zygote_injected() -> bool {
+fn zygote_injected() -> bool {
     module_prop().is_some_and(|prop| {
         prop.iter().any(|(key, value)| {
             key.starts_with("zygote_") && key.ends_with("_status") && value == "injected"
         })
     })
-}
-
-/// Why the monitor stopped tracing, when it did. Empty while it is tracing.
-pub fn monitor_stop_reason() -> String {
-    module_prop()
-        .and_then(|prop| prop.get("monitor_stop_reason").cloned())
-        .unwrap_or_default()
 }
 
 fn send_rearm(tracer: &Path) -> Result<()> {
@@ -559,9 +537,10 @@ fn send_rearm(tracer: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Start a monitor when none owns the control socket. Starting one is idempotent: a
-/// live monitor holds the socket and a redundant one exits before it touches anything,
-/// so every boot stage can call this without probing first.
+/// Start a monitor when none owns the control socket.
+///
+/// Starting one is idempotent: a live monitor holds the socket and a redundant one exits
+/// before it touches anything, so every boot stage can call this without probing first.
 pub fn ensure_monitor() -> Result<()> {
     if !is_enabled() || tracer_path().is_none() {
         return Ok(());
@@ -596,10 +575,11 @@ pub fn rearm() -> Result<()> {
     send_rearm(&tracer)
 }
 
-/// Boot-stage safety net for a system that is already up: start a monitor when none is
-/// alive and attach the running zygote if the early boot missed it. Once the monitor is
-/// tracing and the zygote is injected this does nothing, because a redundant `ctl rearm`
-/// blocks the monitor while it refreshes the daemon.
+/// Boot-stage safety net for a system that is already up.
+///
+/// Starts a monitor when none is alive and attaches the running zygote if the early boot
+/// missed it. Once the monitor is tracing and the zygote is injected this does nothing,
+/// because a redundant `ctl rearm` blocks the monitor while it refreshes the daemon.
 pub fn ensure_armed() -> Result<()> {
     if !is_enabled() {
         return Ok(());
@@ -618,13 +598,17 @@ pub fn ensure_armed() -> Result<()> {
     send_rearm(&tracer)
 }
 
+/// Stop the monitor that owns the control socket. Not gated on the flag: a disabled
+/// built-in keeps its processes until the reboot that is expected to end them.
 pub fn shutdown() -> Result<()> {
-    if !is_enabled() {
-        return Ok(());
-    }
     let Some(tracer) = tracer_path() else {
         return Ok(());
     };
+    // The socket is the only proof that the monitor is ours; a process scan would also
+    // match the standalone providers, which share these names.
+    if !monitor_reachable() {
+        return Ok(());
+    }
     info!("Stopping built-in Zygisk via ctl exit");
     let exited = Command::new(tracer)
         .args(["ctl", "exit"])
