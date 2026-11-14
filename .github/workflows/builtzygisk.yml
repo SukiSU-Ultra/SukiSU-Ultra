@@ -40,11 +40,15 @@ jobs:
 
       - name: Setup Rust toolchain
         run: |
+          # The hosted image only provisions stable; the override below can only select a
+          # toolchain that is already installed.
+          rustup toolchain install nightly --profile minimal --component rust-src
           rustup override set nightly
-          rustup component add rust-src
-          rustup target add aarch64-linux-android
-          rustup target add x86_64-linux-android
-          rustup target add armv7-linux-androideabi
+          # Install the targets into the toolchain cargo will actually run, not into stable.
+          rustup target add --toolchain nightly \
+            aarch64-linux-android \
+            x86_64-linux-android \
+            armv7-linux-androideabi
 
       - name: Install cargo-ndk
         uses: taiki-e/install-action@v2
