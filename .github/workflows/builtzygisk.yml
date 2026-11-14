@@ -66,6 +66,13 @@ jobs:
 
           mkdir -p builtzygisk-aarch64 builtzygisk-arm builtzygisk-x86_64 builtzygisk-riscv64
 
+          # Shared by every architecture: the SELinux rules and the resolved module.prop.
+          # ksud embeds them so the built-in mode never drifts from the loader.
+          for d in builtzygisk-aarch64 builtzygisk-arm builtzygisk-x86_64 builtzygisk-riscv64; do
+            cp external/BuiltZygisk/module/src/sepolicy.rule "$d/zygisk-sepolicy.rule"
+            cp extracted_zip/module.prop "$d/zygisk-module.prop"
+          done
+
           # aarch64
           [ -f extracted_zip/bin/arm64-v8a/zygiskd ] && cp extracted_zip/bin/arm64-v8a/zygiskd builtzygisk-aarch64/zygiskd
           [ -f extracted_zip/lib/arm64-v8a/libzygisk_ptrace.so ] && cp extracted_zip/lib/arm64-v8a/libzygisk_ptrace.so builtzygisk-aarch64/zygisk-ptrace
