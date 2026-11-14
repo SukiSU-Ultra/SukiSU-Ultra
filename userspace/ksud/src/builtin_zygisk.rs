@@ -19,13 +19,17 @@ use std::fs::{self, File, Permissions};
 use std::io::Write;
 use std::os::unix::fs::{PermissionsExt, lchown};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::time::Duration;
 
 /// Shipped next to the binaries by CI, extracted from BuiltZygisk's
 /// `module/src/sepolicy.rule` so the rules never drift from the loader.
 const ASSET_SEPOLICY: &str = "zygisk-sepolicy.rule";
 /// The resolved `module.prop` of the BuiltZygisk release zip.
 const ASSET_MODULE_PROP: &str = "zygisk-module.prop";
+
+/// How long `shutdown` waits for the monitor to die, same budget as emulated-soft-reboot.sh.
+const SHUTDOWN_WAIT_SECS: u32 = 10;
 
 pub fn is_enabled() -> bool {
     Path::new(BUILTIN_ZYGISK_FLAG).exists()
@@ -234,7 +238,12 @@ pub fn bootstrap() -> Result<()> {
     // redundant one exits immediately.
     info!("Starting built-in Zygisk monitor: {}", tracer_bin.display());
     let mut cmd = Command::new(&tracer_bin);
-    cmd.arg("monitor");
+    // Detached from our stdio, or a caller waiting on a pipe (late-load from a shell)
+    // would block for as long as the monitor lives.
+    cmd.arg("monitor")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
     #[cfg(target_os = "android")]
     unsafe {
         use std::os::unix::process::CommandExt;
@@ -256,8 +265,10 @@ pub fn rearm() -> Result<()> {
         return Ok(());
     }
 
-    let has_zygote = crate::module::is_process_running_matching(|comm| {
-        comm == "zygote" || comm == "zygote64" || comm == "app_process" || comm == "app_process64"
+    // A zygote rewrites its argv[0] but never sets its thread name, so its comm reads
+    // "main". Match the cmdline like `pidof` does.
+    let has_zygote = crate::module::is_process_running_matching_paths(|name| {
+        name == "zygote" || name == "zygote64"
     });
     if !has_zygote {
         return Ok(());
@@ -283,7 +294,21 @@ pub fn shutdown() -> Result<()> {
         return Ok(());
     };
     info!("Stopping built-in Zygisk via ctl exit");
-    let _ = Command::new(tracer).args(["ctl", "exit"]).status();
+    let exited = Command::new(tracer)
+        .args(["ctl", "exit"])
+        .status()
+        .is_ok_and(|status| status.success());
+    if exited {
+        // Only one process may trace init, and the ptrace attachment outlives the
+        // control socket, so the monitor the replayed post-fs-data starts cannot seize
+        // init until this one is gone.
+        for _ in 0..SHUTDOWN_WAIT_SECS {
+            if !is_monitor_running() {
+                break;
+            }
+            std::thread::sleep(Duration::from_secs(1));
+        }
+    }
     Ok(())
 }
 
