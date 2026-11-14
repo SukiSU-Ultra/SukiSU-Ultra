@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <issue id="MissingTranslation">
+        <ignore regexp="ai_.*" />
+    </issue>
+</lint>

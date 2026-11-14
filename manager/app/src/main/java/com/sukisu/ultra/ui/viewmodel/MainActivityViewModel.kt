@@ -2,26 +2,32 @@ package com.sukisu.ultra.ui.viewmodel
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Parcelable
+import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sukisu.ultra.data.repository.SettingsRepository
+import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
+import com.sukisu.ultra.data.repository.KEY_CUSTOM_APPEARANCE
+import com.sukisu.ultra.ksuApp
+import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.theme.ThemeController
+import com.sukisu.ultra.ui.util.AdaptiveThemeStore
+import com.sukisu.ultra.ui.util.ImageStorage
+import java.io.File
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.sukisu.ultra.data.repository.SettingsRepository
-import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
-import com.sukisu.ultra.ksuApp
-import com.sukisu.ultra.ui.UiMode
-import com.sukisu.ultra.ui.theme.ThemeController
-import com.sukisu.ultra.ui.util.BgStorage
-import java.io.File
+import kotlinx.parcelize.Parcelize
 
 class MainActivityViewModel(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val prefs = ksuApp.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val prefs = ksuApp.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE)
     private val settingRepo: SettingsRepository = SettingsRepositoryImpl()
     private val mainPageState = MainPageState(savedStateHandle)
     @Volatile private var systemWallpaperCacheValidated = false
@@ -42,6 +48,10 @@ class MainActivityViewModel(
     val uiState: StateFlow<MainActivityUiState> = _uiState.asStateFlow()
     val selectedMainPage: StateFlow<Int> = mainPageState.selectedPage
 
+    private val _pageRequest = MutableStateFlow(savedStateHandle.get<MainPageRequest>(PAGE_REQUEST_KEY))
+    val pageRequest: StateFlow<MainPageRequest?> = _pageRequest.asStateFlow()
+    private val requestToken = AtomicLong(System.currentTimeMillis())
+
     init {
         prefs.registerOnSharedPreferenceChangeListener(listener)
     }
@@ -55,18 +65,46 @@ class MainActivityViewModel(
     }
 
     /**
+     * Select a main tab and, for the Settings tab, request a section scroll.
+     * The token makes repeated requests for the same page observable.
+     */
+    fun openMainPage(page: Int, section: String? = null) {
+        mainPageState.updateSelectedPage(page)
+        if (section.isNullOrBlank()) {
+            _pageRequest.value = null
+            savedStateHandle[PAGE_REQUEST_KEY] = null
+            return
+        }
+        val request = MainPageRequest(
+            page = MainPagerConfig.coercePage(page),
+            section = section,
+            token = requestToken.incrementAndGet(),
+        )
+        _pageRequest.value = request
+        savedStateHandle[PAGE_REQUEST_KEY] = request
+    }
+
+    fun consumePageRequest(token: Long) {
+        if (_pageRequest.value?.token == token) {
+            _pageRequest.value = null
+            savedStateHandle[PAGE_REQUEST_KEY] = null
+        }
+    }
+
+    /**
      * Keeps the cached launcher wallpaper up to date while the option is enabled. The copy
      * only runs when the system wallpaper file changed, so this is cheap on every resume.
      */
     fun refreshSystemWallpaper() {
         if (!settingRepo.useSystemWallpaper) return
         viewModelScope.launch {
-            val result = BgStorage.captureSystemWallpaper(ksuApp, force = false)
+            val result = ImageStorage.captureSystemWallpaper(ksuApp, force = false)
             systemWallpaperCacheValidated = result.path != null
             if (result.changed) {
                 settingRepo.customBackgroundUpdatedAt = System.currentTimeMillis()
-                if (settingRepo.extractColorFromBackground && result.path != null) {
-                    settingRepo.keyColor = BgStorage.extractSeedColor(File(result.path), settingRepo.keyColor)
+                // A manually picked key color wins over the background, see SettingsViewModel.
+                if (settingRepo.extractColorFromBackground && settingRepo.keyColor == 0 && result.path != null) {
+                    settingRepo.keyColor = ImageStorage.extractSeedColor(File(result.path), settingRepo.keyColor)
                 }
             }
             if (result.path == null) {
@@ -76,14 +114,27 @@ class MainActivityViewModel(
         }
     }
 
+    /**
+     * Applies the light or dark half of an active adaptive theme when the system mode changes.
+     * The marker in AdaptiveThemeStore keeps this a no-op while the applied half is current.
+     */
+    fun syncAdaptiveTheme(dark: Boolean) {
+        viewModelScope.launch {
+            if (AdaptiveThemeStore.sync(settingRepo, dark)) {
+                _uiState.value = readUiState()
+            }
+        }
+    }
+
     private fun readUiState(): MainActivityUiState {
         val useSystemWallpaper = settingRepo.useSystemWallpaper
-        val systemWallpaperPath = BgStorage.systemWallpaperFile(ksuApp)
+        val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
             .takeIf { it.isFile }?.absolutePath.orEmpty()
         return MainActivityUiState(
             appSettings = ThemeController.getAppSettings(),
             pageScale = settingRepo.pageScale,
             enableBlur = settingRepo.enableBlur,
+            enableProgressiveBlur = settingRepo.enableProgressiveBlur,
             enableFloatingBottomBar = settingRepo.enableFloatingBottomBar,
             enableFloatingBottomBarBlur = settingRepo.enableFloatingBottomBarBlur,
             enableNavigationBadge = settingRepo.enableNavigationBadge,
@@ -102,12 +153,24 @@ class MainActivityViewModel(
             cardBackgroundAlphaPercent = settingRepo.cardBackgroundAlphaPercent,
             customBackgroundBlurPercent = settingRepo.customBackgroundBlurPercent,
             customBackgroundScrimPercent = settingRepo.customBackgroundScrimPercent,
+            // While the settings screen is scoring a background seed it parks the previous color
+            // here, so the palette can stay put instead of re-deriving an intermediate one.
+            keyColorOverride = prefs.getInt(KEY_COLOR_PENDING, NO_PENDING_SEED)
+                .takeIf { it != NO_PENDING_SEED },
             uiMode = UiMode.fromValue(settingRepo.uiMode),
+            customTexts = settingRepo.customTexts,
         )
     }
 
-    private companion object {
-        val observedKeys = setOf(
+    companion object {
+        const val SETTINGS_PREFS = "settings"
+
+        
+        const val KEY_COLOR_PENDING = "key_color_pending"
+
+        private const val NO_PENDING_SEED = Int.MIN_VALUE
+
+        private val observedKeys = setOf(
             "color_mode",
             "miuix_monet",
             "key_color",
@@ -116,6 +179,7 @@ class MainActivityViewModel(
             "page_scale",
             "module_description_max_lines",
             "enable_blur",
+            "enable_progressive_blur",
             "enable_floating_bottom_bar",
             "enable_floating_bottom_bar_blur",
             "enable_navigation_badge",
@@ -127,12 +191,29 @@ class MainActivityViewModel(
             "card_bg_alpha_percent",
             "custom_bg_blur_percent",
             "custom_bg_scrim_percent",
+            KEY_COLOR_PENDING,
             "ui_mode",
+            "custom_texts",
+            "adaptive_theme",
+            "adaptive_applied_mode",
+            KEY_CUSTOM_APPEARANCE,
+            "home_card_image_path",
+            "home_card_stickers",
+            "hide_home_card_status_text",
+            "hide_home_card_decoration",
         )
     }
 }
 
+@Parcelize
+data class MainPageRequest(
+    val page: Int,
+    val section: String,
+    val token: Long,
+) : Parcelable
+
 private const val SELECTED_MAIN_PAGE_KEY = "selected_main_page"
+private const val PAGE_REQUEST_KEY = "main_page_request"
 
 private class MainPageState(
     private val savedStateHandle: SavedStateHandle,

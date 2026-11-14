@@ -12,12 +12,12 @@ import kotlinx.serialization.Serializable
 
 const val REGISTRY_API_SCHEMA_VERSION = 1
 
-/** `kind` of a registry entry: an installable module or a one-shot script run by the manager. */
+
 object RegistryKind {
     const val MODULE = "module"
     const val SCRIPT = "script"
 
-    /** Kinds this client understands; entries of any other kind are hidden. */
+    
     fun isKnown(kind: String): Boolean = kind == MODULE || kind == SCRIPT
 }
 
@@ -27,7 +27,7 @@ data class ApiIndex(
     val buildId: String,
     val repoCommit: String,
     val generatedAt: String,
-    /** "api/v1/modules.json" */
+    
     val modules: String,
 )
 
@@ -47,22 +47,22 @@ data class ApiAuthor(
 @Serializable
 data class ApiModuleSummary(
     val id: String,
-    /** Module content is single-language; no locale fallback is applied. */
+    
     val name: String = "",
     val summary: String = "",
     val authors: List<ApiAuthor> = emptyList(),
     val tags: List<String> = emptyList(),
     val metamodule: Boolean = false,
-    /** [RegistryKind]; a missing value means a module. */
+    
     val kind: String = RegistryKind.MODULE,
-    /** Content-hashed icon, "assets/{hash}.{ext}". */
+    
     val icon: String? = null,
     val stable: ApiVersionRef,
-    /** GitHub stargazer count of [starsRepository], or null when unknown. */
+    
     val stars: Int? = null,
-    /** "owner/name" of the repository [stars] belongs to (may differ from the source repository). */
+    
     val starsRepository: String? = null,
-    /** "api/v1/modules/{id}.json" */
+    
     val detail: String,
     val updatedAt: String,
 )
@@ -90,7 +90,7 @@ data class ApiRelease(
     val versionCode: Int,
     val prerelease: Boolean,
     val publishedAt: String,
-    /** Sanitized HTML of the release notes, or null. */
+    
     val changelogHtml: String? = null,
     val zip: ApiZip,
     val tagCommit: String,
@@ -130,7 +130,7 @@ data class ApiModuleDetail(
     val authors: List<ApiAuthor> = emptyList(),
     val tags: List<String> = emptyList(),
     val metamodule: Boolean = false,
-    /** [RegistryKind]; a missing value means a module. */
+    
     val kind: String = RegistryKind.MODULE,
     val icon: String? = null,
     val stable: ApiVersionRef,
@@ -143,18 +143,18 @@ data class ApiModuleDetail(
     val support: String? = null,
     val compatibility: ApiCompatibility? = null,
     val source: ApiSource,
-    /** "api/v1/modules/{id}/readme" (an HTML fragment), or null when the module has no README. */
+    
     val readme: String? = null,
-    /** Newest versionCode first; the first non-prerelease entry equals `stable`. */
+    
     val releases: List<ApiRelease> = emptyList(),
     val health: ApiHealth? = null,
 )
 
-/** A consistent pair of index + module list taken from the same build. */
+
 data class RegistryCatalog(
     val index: ApiIndex,
     val modules: List<ApiModuleSummary>,
-    /** True when this copy came from the on-disk cache instead of the network. */
+    
     val fromCache: Boolean,
 ) {
     val buildId: String get() = index.buildId

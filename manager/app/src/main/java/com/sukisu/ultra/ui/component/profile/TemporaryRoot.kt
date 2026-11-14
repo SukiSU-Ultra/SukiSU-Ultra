@@ -37,7 +37,7 @@ object TemporaryRoot {
         if (result.isSuccess) result.out.lastOrNull()?.trim() ?: "unknown" else "unknown"
     }
 
-    /** ksud owns the lock across lease validation, persistence and kernel writes. */
+    
     suspend fun saveProfile(
         profile: Natives.Profile,
         expectedRoot: Boolean,

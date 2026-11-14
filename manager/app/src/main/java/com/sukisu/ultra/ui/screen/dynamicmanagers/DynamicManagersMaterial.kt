@@ -79,6 +79,8 @@ import com.sukisu.ultra.ui.component.material.TonalCard
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.component.statustag.StatusTag
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.DynamicManagerState
 import kotlinx.coroutines.flow.drop
 import top.yukonga.miuix.kmp.nav.gesture.WindowNavigationEventBridge
@@ -100,7 +102,7 @@ internal fun DynamicManagersMaterial(
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.dynamic_manager_title)) },
+                title = { Text(customText(CustomTextKey.PAGE_DYNAMIC_MANAGERS)) },
                 navigationIcon = {
                     TopBarBackButton(onClick = actions.onBack)
                 },

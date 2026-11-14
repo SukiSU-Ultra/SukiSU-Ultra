@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
@@ -69,7 +71,7 @@ internal fun SuSFSMiuix(
             BlurredBar(backdrop) {
                 TopAppBar(
                     color = barColor,
-                    title = stringResource(R.string.susfs_config_title),
+                    title = customText(CustomTextKey.EXTENSION_SUSFS),
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             val layoutDirection = LocalLayoutDirection.current

@@ -15,7 +15,7 @@ import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 
-/** Material uses a single selected slot, with details and actions in separate groups. */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SlotInfoSheetMaterial(

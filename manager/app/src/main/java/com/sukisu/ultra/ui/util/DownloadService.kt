@@ -4,16 +4,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.IBinder
-import android.provider.MediaStore
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -94,7 +90,6 @@ class DownloadService : Service() {
         createNotificationChannel()
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_DOWNLOAD -> {
@@ -167,7 +162,6 @@ class DownloadService : Service() {
         }
         .build()
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun startDownload(
         id: Int,
         url: String,
@@ -192,29 +186,21 @@ class DownloadService : Service() {
                     }.build())
                     activeCalls[id] = call
                     ensureActive()
-                    val published = call.execute()
-                        .use { resp ->
+                    call.execute().use { resp ->
                         if (!resp.isSuccessful) throw IOException("HTTP ${resp.code}")
                         val body = resp.body
                         val total = body.contentLength()
 
                         ensureActive()
-                        val values = ContentValues().apply {
-                            put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                            put(MediaStore.Downloads.MIME_TYPE, resolveDownloadMimeType(fileName, mimeType))
-                            put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                            put(MediaStore.Downloads.IS_PENDING, 1)
-                        }
-                        val downloadUri = contentResolver.insert(
-                            MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
-                            values
-                        ) ?: throw IOException("Failed to create download")
-                        pendingUri = downloadUri
-                        displayName = downloadUri.getFileName(this@DownloadService) ?: fileName
+                        val destination = DownloadDestination.create(
+                            this@DownloadService,
+                            fileName,
+                            mimeType,
+                        )
+                        pendingUri = destination.uri
+                        displayName = destination.displayName
 
-                        val output = contentResolver.openOutputStream(downloadUri)
-                            ?: throw IOException("Failed to open download")
-                        output.use { fos ->
+                        destination.openOutputStream().use { fos ->
                             val buf = ByteArray(8 * 1024)
                             var soFar = 0L
                             val progress = ProgressReporter(id, displayName, total)
@@ -230,18 +216,10 @@ class DownloadService : Service() {
                             }
                             fos.flush()
                         }
-                        downloadUri
+                        ensureActive()
+                        destination.publish()
+                        destination.uri
                     }
-
-                    ensureActive()
-                    val values = ContentValues().apply {
-                        put(MediaStore.Downloads.IS_PENDING, 0)
-                    }
-                    if (contentResolver.update(published, values, null, null) != 1) {
-                        throw IOException("Failed to publish download")
-                    }
-                    displayName = published.getFileName(this@DownloadService) ?: displayName
-                    published
                 }
                 ensureActive()
                 pendingUri = null
@@ -335,6 +313,7 @@ class DownloadService : Service() {
     }
 
     private fun deleteDownload(uri: Uri) {
+        if (LegacyDownloadFiles.delete(uri)) return
         runCatching {
             if (uri.scheme == "file") {
                 uri.path?.let { RegistryDownloadStore.delete(registryStoreRoot(), File(it)) }
@@ -450,6 +429,7 @@ class DownloadService : Service() {
     }
 
     private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.download_channel_name),

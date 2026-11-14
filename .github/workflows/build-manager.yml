@@ -3,7 +3,7 @@ name: Build Manager
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "dev", "ci" ]
+    branches: [ "main", "dev" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
@@ -193,7 +193,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        spoofed: ["false", "true"]
+        spoofed: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && fromJson('["false", "true"]') || fromJson('["false"]') }}
 
     defaults:
       run:
@@ -282,7 +282,7 @@ jobs:
 
       - name: Write key
         if: ${{ (github.event_name != 'pull_request' &&
-          (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+          (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch'))
           || github.ref_type == 'tag' }}
 
         run: |
@@ -470,6 +470,7 @@ jobs:
 
       - name: Upload Gradle APK
         if: ${{ github.event_name == 'pull_request' ||
+          github.event_name == 'workflow_dispatch' ||
           (github.event_name != 'pull_request' &&
           (github.ref == 'refs/heads/main' ||
            github.ref == 'refs/heads/dev')) ||
@@ -489,7 +490,8 @@ jobs:
       - name: Upload mappings
         if: ${{ (github.event_name != 'pull_request' &&
           (github.ref == 'refs/heads/main' ||
-           github.ref == 'refs/heads/dev'))
+           github.ref == 'refs/heads/dev' ||
+           github.event_name == 'workflow_dispatch'))
           || github.ref_type == 'tag' }}
 
         uses: actions/upload-artifact@v7
@@ -516,7 +518,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        spoofed: ["false", "true"]
+        spoofed: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && fromJson('["false", "true"]') || fromJson('["false"]') }}
 
     steps:
 
@@ -642,6 +644,7 @@ jobs:
 
       - name: Prepare signing inputs
         if: ${{ github.event_name == 'pull_request' ||
+          github.event_name == 'workflow_dispatch' ||
           (github.event_name != 'pull_request' &&
           (github.ref == 'refs/heads/main' ||
            github.ref == 'refs/heads/dev')) ||
@@ -687,6 +690,7 @@ jobs:
 
       - name: Repack and resign
         if: ${{ github.event_name == 'pull_request' ||
+          github.event_name == 'workflow_dispatch' ||
           (github.event_name != 'pull_request' &&
           (github.ref == 'refs/heads/main' ||
            github.ref == 'refs/heads/dev')) ||
@@ -721,6 +725,7 @@ jobs:
 
       - name: Upload build artifact
         if: ${{ github.event_name == 'pull_request' ||
+          github.event_name == 'workflow_dispatch' ||
           (github.event_name != 'pull_request' &&
           (github.ref == 'refs/heads/main' ||
            github.ref == 'refs/heads/dev')) ||
@@ -827,6 +832,7 @@ jobs:
     needs: repack-manager
 
     if: github.event_name != 'pull_request' &&
+        github.event_name != 'workflow_dispatch' &&
         needs.repack-manager.result == 'success'
 
     runs-on: ubuntu-latest
@@ -865,7 +871,7 @@ jobs:
           path: apks/manager
 
       - name: Download manager-spoofed apk
-        if: steps.need_upload.outputs.UPLOAD == 'true'
+        if: steps.need_upload.outputs.UPLOAD == 'true' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
         uses: actions/download-artifact@v8
         with:
           name: Manager-spoofed
@@ -910,7 +916,7 @@ jobs:
             -S "$SIGN_KEY_PASSWORD"
 
       - name: Split Manager-spoofed APK by arch
-        if: steps.need_upload.outputs.UPLOAD == 'true'
+        if: steps.need_upload.outputs.UPLOAD == 'true' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: |
           APK=$(find apks/manager-spoofed -type f -name "*.apk" | head -n 1)
           test -n "$APK"
@@ -969,7 +975,7 @@ jobs:
       # --------------------------------------------------------
 
       - name: Upload Manager-spoofed to telegram
-        if: steps.need_upload.outputs.UPLOAD == 'true'
+        if: steps.need_upload.outputs.UPLOAD == 'true' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
         timeout-minutes: 10
         env:
           CHAT_ID: ${{ secrets.CHAT_ID }}

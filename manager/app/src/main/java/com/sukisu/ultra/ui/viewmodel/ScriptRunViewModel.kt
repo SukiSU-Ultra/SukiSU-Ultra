@@ -27,19 +27,19 @@ import com.sukisu.ultra.ui.util.removeAsRoot
 import com.sukisu.ultra.ui.util.runOneshotScript
 import java.util.UUID
 
-/** Prepares a one-shot script, collects its parameters and runs it once. */
+
 class ScriptRunViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(ScriptRunUiState())
     val state: StateFlow<ScriptRunUiState> = _state.asStateFlow()
 
-    /** Full stdout + stderr, for "save log". */
+    
     val logContent = StringBuilder()
 
     private var visit: String? = null
     private var prepareJob: Job? = null
 
-    /** Token of the current preparation, owning its extraction in [ScriptRepository]. */
+    
     @Volatile
     private var owner: String? = null
 

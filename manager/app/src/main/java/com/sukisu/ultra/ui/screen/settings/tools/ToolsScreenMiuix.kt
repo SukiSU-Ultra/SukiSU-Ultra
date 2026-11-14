@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
@@ -63,7 +65,7 @@ fun ToolsMiuix(
             BlurredBar(backdrop) {
                 TopAppBar(
                     color = barColor,
-                    title = stringResource(R.string.tools),
+                    title = customText(CustomTextKey.PAGE_TOOLS),
                     scrollBehavior = scrollBehavior,
                     navigationIcon = {
                         IconButton(onClick = actions.onBack) {
@@ -155,14 +157,15 @@ private fun KernelModulesSectionMiuix(
             .padding(top = 12.dp)
             .fillMaxWidth(),
     ) {
+        val title = customText(CustomTextKey.PAGE_KERNEL_MODULES)
         ArrowPreference(
-            title = stringResource(R.string.kernel_modules_title),
+            title = title,
             summary = stringResource(R.string.tools_kernel_modules_summary),
             startAction = {
                 Icon(
                     imageVector = Icons.Rounded.Memory,
                     modifier = Modifier.padding(end = 6.dp),
-                    contentDescription = stringResource(R.string.kernel_modules_title),
+                    contentDescription = title,
                     tint = colorScheme.onBackground
                 )
             },

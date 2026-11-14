@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.component.KsuIsValid
@@ -44,7 +46,7 @@ fun ToolsMaterial(
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.tools)) },
+                title = { Text(customText(CustomTextKey.PAGE_TOOLS)) },
                 navigationIcon = {
                     TopBarBackButton(onClick = actions.onBack)
                 },
@@ -118,13 +120,14 @@ private fun KernelModulesSectionMaterial(
     SegmentedColumn(
         modifier = Modifier.padding(top = 12.dp),
         content = listOf({
+            val title = customText(CustomTextKey.PAGE_KERNEL_MODULES)
             SegmentedListItem(
-                headlineContent = { Text(stringResource(R.string.kernel_modules_title)) },
+                headlineContent = { Text(title) },
                 supportingContent = { Text(stringResource(R.string.tools_kernel_modules_summary)) },
                 leadingContent = {
                     IconTile(
                         Icons.Rounded.Memory,
-                        stringResource(R.string.kernel_modules_title),
+                        title,
                     )
                 },
                 onClick = onOpen,

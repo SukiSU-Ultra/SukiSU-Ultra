@@ -49,6 +49,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -301,7 +303,7 @@ private fun TopBar(
     onRefresh: () -> Unit,
 ) {
     LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.kernel_modules_title)) },
+        title = { Text(customText(CustomTextKey.PAGE_KERNEL_MODULES)) },
         navigationIcon = {
             TopBarBackButton(onClick = onBack)
         },

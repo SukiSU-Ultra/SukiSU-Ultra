@@ -3,12 +3,12 @@ package com.sukisu.ultra.data.script
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** The last run of a one-shot script; kept locally, scripts have no installed state. */
+
 @Serializable
 data class ScriptRunRecord(
     val id: String,
     val versionCode: Int? = null,
-    /** Epoch millis. */
+    
     val time: Long,
     val exitCode: Int,
 ) {
@@ -19,13 +19,13 @@ data class ScriptRunRecord(
     companion object {
         private val JSON = Json { ignoreUnknownKeys = true }
 
-        /** Null for missing or unreadable data, or a record of another id. */
+        
         fun decode(text: String?, id: String): ScriptRunRecord? =
             text?.let { runCatching { JSON.decodeFromString(serializer(), it) }.getOrNull() }?.takeIf { it.id == id }
     }
 }
 
-/** Key-value storage the run history is kept in (SharedPreferences on the device). */
+
 interface ScriptRunStorage {
     fun read(key: String): String?
     fun write(key: String, value: String)

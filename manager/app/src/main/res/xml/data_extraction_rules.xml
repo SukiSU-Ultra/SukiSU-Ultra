@@ -5,6 +5,7 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
+        <exclude domain="sharedpref" path="theme_device_access.xml"/>
         <!-- TODO: Use <include> and <exclude> to control what is backed up.
         <include .../>
         <exclude .../>
@@ -16,4 +17,7 @@
         <exclude .../>
     </device-transfer>
     -->
+    <device-transfer>
+        <exclude domain="sharedpref" path="theme_device_access.xml"/>
+    </device-transfer>
 </data-extraction-rules>

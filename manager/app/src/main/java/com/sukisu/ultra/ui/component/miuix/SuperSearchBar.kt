@@ -77,7 +77,7 @@ import top.yukonga.miuix.kmp.icon.basic.Search
 import top.yukonga.miuix.kmp.icon.basic.SearchCleanup
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
-/** Like `padding(top = …)` but reads [top] in the layout phase, so a frame-rate value relayouts instead of recomposing. */
+
 internal fun Modifier.deferredTopPadding(top: () -> Dp): Modifier = layout { measurable, constraints ->
     val topPx = top().roundToPx().coerceAtLeast(0)
     val placeable = measurable.measure(

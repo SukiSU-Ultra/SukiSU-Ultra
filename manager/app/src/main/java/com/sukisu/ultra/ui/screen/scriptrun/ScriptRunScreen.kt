@@ -166,13 +166,13 @@ internal fun lastRunText(context: Context, record: ScriptRunRecord?): String {
     }
 }
 
-/** "ID: foo · v1.0 (100)" */
+
 internal fun scriptSubtitle(id: String, version: String, versionCode: Int?): String = buildString {
     append("ID: ").append(id)
     if (version.isNotBlank()) append(" · ").append(version)
     if (versionCode != null) append(" (").append(versionCode).append(')')
 }
 
-/** The plain number keypad of most IMEs has no "-": use a text keyboard when negatives are allowed. */
+
 internal fun integerKeyboardType(param: ScriptParam.Integer): KeyboardType =
     if ((param.min ?: Int.MIN_VALUE) < 0) KeyboardType.Ascii else KeyboardType.Number

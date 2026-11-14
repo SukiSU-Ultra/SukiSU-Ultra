@@ -1,6 +1,7 @@
 package com.sukisu.ultra.ui.component.rebootlistpopup
 
 import android.content.Context
+import android.os.Build
 import android.os.PowerManager
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
@@ -24,7 +25,11 @@ fun getRebootListOption(): List<RebootListOption> {
     val pm = LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
 
     @Suppress("DEPRECATION")
-    val isRebootingUserspaceSupported = pm?.isRebootingUserspaceSupported == true
+    val isRebootingUserspaceSupported = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        pm?.isRebootingUserspaceSupported == true
+    } else {
+        false
+    }
 
     return buildList {
         add(RebootListOption(R.string.reboot, ""))
@@ -39,7 +44,7 @@ fun getRebootListOption(): List<RebootListOption> {
     }
 }
 
-/** Reboots on selection, but confirms first in jailbreak mode where a plain reboot drops root. */
+
 @Composable
 fun rememberRebootAction(): (String) -> Unit {
     val title = stringResource(R.string.reboot)

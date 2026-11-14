@@ -32,9 +32,9 @@ object DownloadManager {
         val status: Status = Status.PENDING,
         val resultUri: Uri? = null,
         val error: String? = null,
-        /** Set when a registry download was rejected (URL allowlist, size or SHA-256 mismatch). */
+        
         val verificationFailure: DownloadVerificationException.Reason? = null,
-        /** Size + SHA-256 a registry download is verified against; null for plain downloads. */
+        
         val expected: ExpectedFile? = null,
     )
 

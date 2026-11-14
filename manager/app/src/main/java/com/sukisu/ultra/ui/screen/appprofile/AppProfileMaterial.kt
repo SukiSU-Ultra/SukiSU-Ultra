@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.appprofile
 
+import androidx.core.content.pm.PackageInfoCompat
 import com.sukisu.ultra.ui.component.profile.TemporaryRootControls
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -57,6 +58,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -137,7 +140,7 @@ fun AppProfileScreenMaterial(
             appUid = state.uid,
             sharedUserId = if (state.isUidGroup) state.sharedUserId else "",
             appVersionName = if (state.isUidGroup) "" else (state.appGroup.primary.packageInfo.versionName ?: ""),
-            appVersionCode = if (state.isUidGroup) 0L else state.appGroup.primary.packageInfo.longVersionCode,
+            appVersionCode = if (state.isUidGroup) 0L else PackageInfoCompat.getLongVersionCode(state.appGroup.primary.packageInfo),
             profile = state.profile,
             isUidGroup = state.isUidGroup,
             isSpecialApp = state.appGroup.primary.special,
@@ -432,7 +435,7 @@ private fun TopBar(
 ) {
     val haptic = LocalHapticFeedback.current
     LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.profile)) },
+        title = { Text(customText(CustomTextKey.PAGE_APP_PROFILE)) },
         navigationIcon = {
             TopBarBackButton(onClick = onBack)
         },

@@ -2,7 +2,11 @@ package com.sukisu.ultra.ui.screen.settings
 
 import android.net.Uri
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -29,6 +33,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
@@ -41,7 +46,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,6 +83,8 @@ import android.content.Intent
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Settings
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
+import com.sukisu.ultra.ui.viewmodel.MainPageRequest
+import kotlinx.coroutines.delay
 
 /**
  * @author weishu
@@ -84,9 +95,22 @@ fun SettingPagerMaterial(
     uiState: SettingsUiState,
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
+    sectionRequest: MainPageRequest? = null,
+    onSectionConsumed: (Long) -> Unit = {},
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val anchorRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
+
+    LaunchedEffect(sectionRequest?.token) {
+        val request = sectionRequest ?: return@LaunchedEffect
+        delay(120)
+        val anchor = SettingsSection.normalize(request.section)
+        val requester = anchorRequesters[SettingsSection.cardFor(anchor)]
+            ?: anchorRequesters[SettingsSection.GENERAL]
+        requester?.bringIntoView()
+        onSectionConsumed(request.token)
+    }
     val snackBarHost = remember { SnackbarHostState() }
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -111,13 +135,14 @@ fun SettingPagerMaterial(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
         ) {
+            SettingsAnchor(SettingsSection.GENERAL, anchorRequesters) {
             SegmentedColumn(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                 content = buildList {
                     add {
                         SegmentedDropdownItem(
                             icon = Icons.Filled.DisplaySettings,
-                            title = stringResource(id = R.string.settings_ui_mode),
+                            title = customText(CustomTextKey.SETTING_UI_MODE),
                             summary = stringResource(id = R.string.settings_ui_mode_summary),
                             items = UiMode.entries.map { it.name },
                             selectedIndex = if (uiState.uiMode == UiMode.Material.value) 1 else 0,
@@ -132,7 +157,7 @@ fun SettingPagerMaterial(
                         }
                         SegmentedDropdownItem(
                             icon = Icons.Rounded.Language,
-                            title = stringResource(id = R.string.settings_language),
+                            title = customText(CustomTextKey.SETTING_LANGUAGE),
                             summary = stringResource(id = R.string.settings_language_summary),
                             items = languageNames,
                             selectedIndex = languageTags.indexOf(uiState.appLanguage).coerceAtLeast(0),
@@ -140,11 +165,27 @@ fun SettingPagerMaterial(
                         )
                     }
                     add {
+                        val themeTitle = customText(CustomTextKey.PAGE_APPEARANCE)
                         SegmentedListItem(
                             onClick = actions.onOpenTheme,
-                            headlineContent = { Text(stringResource(id = R.string.settings_theme)) },
+                            headlineContent = { Text(themeTitle) },
                             supportingContent = { Text(stringResource(id = R.string.settings_theme_summary)) },
-                            leadingContent = { IconTile(Icons.Filled.Palette, stringResource(id = R.string.settings_theme)) },
+                            leadingContent = { IconTile(Icons.Filled.Palette, themeTitle) },
+                            trailingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    null
+                                )
+                            }
+                        )
+                    }
+                    add {
+                        val themeStoreTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+                        SegmentedListItem(
+                            onClick = actions.onOpenThemeStore,
+                            headlineContent = { Text(themeStoreTitle) },
+                            supportingContent = { Text(stringResource(id = R.string.theme_store_summary)) },
+                            leadingContent = { IconTile(Icons.Filled.Storefront, themeStoreTitle) },
                             trailingContent = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -156,9 +197,11 @@ fun SettingPagerMaterial(
 
                 }
             )
+            }
 
-            val profileTemplate = stringResource(id = R.string.settings_profile_template)
+            val profileTemplate = customText(CustomTextKey.PAGE_TEMPLATE)
             KsuIsValid {
+                SettingsAnchor(SettingsSection.PROFILE_TEMPLATES, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
@@ -176,10 +219,12 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
+                }
+                SettingsAnchor(SettingsSection.EXTENSIONS, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
-                        val extensionsTitle = stringResource(R.string.extension_section_title)
+                        val extensionsTitle = customText(CustomTextKey.PAGE_EXTENSIONS)
                         SegmentedListItem(
                             onClick = actions.onOpenExtensions,
                             headlineContent = { Text(extensionsTitle) },
@@ -194,7 +239,9 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
-                val toolsTitle = stringResource(id = R.string.settings_tools)
+                }
+                val toolsTitle = customText(CustomTextKey.PAGE_TOOLS)
+                SettingsAnchor(SettingsSection.TOOLS, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf {
@@ -212,7 +259,10 @@ fun SettingPagerMaterial(
                         )
                     }
                 )
-                TemporaryRootPreferences()
+                }
+                SettingsAnchor(SettingsSection.TEMPORARY_ROOT, anchorRequesters) {
+                    TemporaryRootPreferences()
+                }
             }
 
             KsuIsValid {
@@ -222,6 +272,7 @@ fun SettingPagerMaterial(
                     stringResource(id = R.string.settings_mode_disable_always),
                 )
 
+                SettingsAnchor(SettingsSection.SECURITY, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
@@ -234,7 +285,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedDropdownItem(
                                 icon = Icons.Filled.AdminPanelSettings,
-                                title = stringResource(id = R.string.settings_sucompat),
+                                title = customText(CustomTextKey.SETTING_SUCOMPAT),
                                 summary = suSummary,
                                 items = suCompatModeItems,
                                 enabled = uiState.suCompatStatus == "supported",
@@ -251,7 +302,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.LayersClear,
-                                title = stringResource(id = R.string.settings_kernel_umount),
+                                title = customText(CustomTextKey.SETTING_KERNEL_UMOUNT),
                                 summary = umountSummary,
                                 enabled = uiState.kernelUmountStatus == "supported",
                                 checked = uiState.isKernelUmountEnabled,
@@ -267,7 +318,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.Security,
-                                title = stringResource(id = R.string.settings_selinux_hide),
+                                title = customText(CustomTextKey.SETTING_SELINUX_HIDE),
                                 summary = selinuxHideSummary,
                                 enabled = uiState.selinuxHideStatus == "supported",
                                 checked = uiState.isSelinuxHideEnabled,
@@ -283,7 +334,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.Security,
-                                title = stringResource(R.string.settings_avc_spoof),
+                                title = customText(CustomTextKey.SETTING_AVC_SPOOF),
                                 summary = summary,
                                 enabled = uiState.avcSpoofStatus == "supported",
                                 checked = uiState.isAvcSpoofEnabled,
@@ -299,7 +350,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.Policy,
-                                title = stringResource(id = R.string.settings_mount_hide),
+                                title = customText(CustomTextKey.SETTING_MOUNT_HIDE),
                                 summary = mountHideSummary,
                                 enabled = uiState.mountHideStatus == "supported",
                                 checked = uiState.isMountHideEnabled,
@@ -315,7 +366,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.AutoMirrored.Filled.Article,
-                                title = stringResource(id = R.string.settings_sulog),
+                                title = customText(CustomTextKey.SETTING_SULOG),
                                 summary = sulogSummary,
                                 enabled = uiState.sulogStatus == "supported",
                                 checked = uiState.isSulogEnabled,
@@ -331,7 +382,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.Adb,
-                                title = stringResource(id = R.string.settings_adb_root),
+                                title = customText(CustomTextKey.SETTING_ADB_ROOT),
                                 summary = adbRootSummary,
                                 enabled = uiState.adbRootStatus == "supported",
                                 checked = uiState.isAdbRootEnabled,
@@ -347,7 +398,7 @@ fun SettingPagerMaterial(
                             }
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.VerifiedUser,
-                                title = stringResource(id = R.string.settings_shell_su_adb_only),
+                                title = customText(CustomTextKey.SETTING_SHELL_SU),
                                 summary = shellSuAdbOnlySummary,
                                 enabled = uiState.shellSuAdbOnlyStatus == "supported",
                                 checked = uiState.isShellSuAdbOnlyEnabled,
@@ -357,7 +408,7 @@ fun SettingPagerMaterial(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.RestartAlt,
-                                title = stringResource(id = R.string.settings_soft_reboot),
+                                title = customText(CustomTextKey.SETTING_SOFT_REBOOT),
                                 summary = stringResource(id = R.string.settings_soft_reboot_summary),
                                 enabled = !uiState.isLateLoadMode,
                                 checked = uiState.isLateLoadMode || uiState.useSoftReboot,
@@ -367,13 +418,15 @@ fun SettingPagerMaterial(
                     )
                 )
 
+                }
+                SettingsAnchor(SettingsSection.MODULE_BEHAVIOUR, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.AutoMirrored.Filled.Rule,
-                                title = stringResource(id = R.string.settings_umount_modules_default),
+                                title = customText(CustomTextKey.SETTING_UMOUNT_MODULES_DEFAULT),
                                 summary = stringResource(id = R.string.settings_umount_modules_default_summary),
                                 checked = uiState.isDefaultUmountModules,
                                 onCheckedChange = actions.onSetDefaultUmountModules
@@ -382,7 +435,7 @@ fun SettingPagerMaterial(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.Delete,
-                                title = stringResource(id = R.string.settings_auto_delete_module_zip),
+                                title = customText(CustomTextKey.SETTING_AUTO_DELETE_MODULE_ZIP),
                                 summary = stringResource(id = R.string.settings_auto_delete_module_zip_summary),
                                 checked = uiState.autoDeleteModuleZip,
                                 onCheckedChange = actions.onSetAutoDeleteModuleZip
@@ -390,8 +443,17 @@ fun SettingPagerMaterial(
                         },
                         {
                             SegmentedSwitchItem(
+                                icon = Icons.Filled.Delete,
+                                title = customText(CustomTextKey.SETTING_AUTO_DELETE_UPDATE_APK),
+                                summary = stringResource(id = R.string.settings_auto_delete_update_apk_summary),
+                                checked = uiState.autoDeleteUpdateApk,
+                                onCheckedChange = actions.onSetAutoDeleteUpdateApk
+                            )
+                        },
+                        {
+                            SegmentedSwitchItem(
                                 icon = Icons.Filled.DeveloperMode,
-                                title = stringResource(id = R.string.enable_web_debugging),
+                                title = customText(CustomTextKey.SETTING_WEB_DEBUGGING),
                                 summary = stringResource(id = R.string.enable_web_debugging_summary),
                                 checked = uiState.enableWebDebugging,
                                 onCheckedChange = actions.onSetEnableWebDebugging
@@ -400,7 +462,7 @@ fun SettingPagerMaterial(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.FlashOn,
-                                title = stringResource(id = R.string.settings_auto_jailbreak),
+                                title = customText(CustomTextKey.SETTING_AUTO_JAILBREAK),
                                 summary = stringResource(id = R.string.settings_auto_jailbreak_summary),
                                 enabled = uiState.isLateLoadMode,
                                 checked = uiState.autoJailbreak,
@@ -429,14 +491,16 @@ fun SettingPagerMaterial(
                         }) else emptyArray())
                     )
                 )
+                }
             }
 
             if (uiState.isLkmMode) {
+                SettingsAnchor(SettingsSection.UNINSTALL, anchorRequesters) {
                 SegmentedColumn(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                     content = listOf(
                         {
-                            val uninstall = stringResource(id = R.string.settings_uninstall)
+                            val uninstall = customText(CustomTextKey.SETTING_UNINSTALL)
                             SegmentedListItem(
                                 onClick = { showUninstallDialog.value = true },
                                 enabled = !uiState.isLateLoadMode,
@@ -446,37 +510,41 @@ fun SettingPagerMaterial(
                         }
                     )
                 )
+                }
             }
 
+            SettingsAnchor(SettingsSection.DIAGNOSTICS, anchorRequesters) {
             SegmentedColumn(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 13.dp),
                 content = listOf(
                     {
                         SegmentedListItem(
                             onClick = { showBottomSheet = true },
-                            headlineContent = { Text(stringResource(id = R.string.send_log)) },
+                            headlineContent = { Text(customText(CustomTextKey.SETTING_SEND_LOG)) },
                             leadingContent = {
                                 IconTile(
                                     Icons.Filled.BugReport,
-                                    stringResource(id = R.string.send_log)
+                                    customText(CustomTextKey.SETTING_SEND_LOG)
                                 )
                             },
                         )
                     },
                     {
+                        val aboutTitle = customText(CustomTextKey.PAGE_ABOUT)
                         SegmentedListItem(
                             onClick = actions.onOpenAbout,
-                            headlineContent = { Text(stringResource(id = R.string.about)) },
+                            headlineContent = { Text(aboutTitle) },
                             leadingContent = {
                                 IconTile(
                                     Icons.Filled.Info,
-                                    stringResource(id = R.string.about)
+                                    aboutTitle
                                 )
                             },
                         )
                     }
                 )
             )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -492,12 +560,25 @@ fun SettingPagerMaterial(
 }
 
 @Composable
+private fun SettingsAnchor(
+    anchor: String,
+    registry: MutableMap<String, BringIntoViewRequester>,
+    content: @Composable () -> Unit,
+) {
+    val requester = remember { BringIntoViewRequester() }
+    SideEffect { registry[anchor] = requester }
+    Box(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requester)) {
+        content()
+    }
+}
+
+@Composable
 private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     LargeFlexibleTopAppBar(
-        title = { Text(stringResource(R.string.settings)) },
+        title = { Text(customText(CustomTextKey.PAGE_SETTINGS)) },
         colors = expressiveTopAppBarColors(
             containerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
             scrolledContainerColor = if (hasCustomBackground) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,

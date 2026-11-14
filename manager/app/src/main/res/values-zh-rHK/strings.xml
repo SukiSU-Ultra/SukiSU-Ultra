@@ -268,6 +268,8 @@
     <string name="current_device_kmi">此裝置 KMI</string>
     <string name="settings_enable_blur">模糊</string>
     <string name="settings_enable_blur_summary">啟用頂部及底部欄的模糊效果</string>
+    <string name="settings_progressive_blur">漸進式背景模糊</string>
+    <string name="settings_progressive_blur_summary">讓頂部及底部欄背後的內容從螢幕邊緣開始逐漸模糊並過渡到清晰。</string>
     <string name="settings_floating_bottom_bar">懸浮底部欄</string>
     <string name="settings_floating_bottom_bar_summary">使用 Apple 風格懸浮底部欄</string>
     <string name="settings_enable_glass">液態玻璃</string>

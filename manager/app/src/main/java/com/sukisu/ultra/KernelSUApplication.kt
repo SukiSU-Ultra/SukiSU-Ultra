@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.sukisu.ultra.ai.api.AiFeatureBridge
+import com.sukisu.ultra.ai.host.ManagerAiHost
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.data.repository.SuperUserRepositoryImpl
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
@@ -41,7 +43,7 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
     lateinit var okhttpClient: OkHttpClient
     private val appViewModelStore by lazy { ViewModelStore() }
 
-    override fun attachBaseContext(base: android.content.Context) {
+    override fun attachBaseContext(base: Context) {
         super.attachBaseContext(com.sukisu.ultra.ui.util.LocaleHelper.wrap(base))
     }
 
@@ -51,13 +53,16 @@ class KernelSUApplication : Application(), ViewModelStoreOwner {
     override fun onCreate() {
         super.onCreate()
         ksuApp = this
+        if (AiFeatureBridge.isAvailable) AiFeatureBridge.install(ManagerAiHost(this))
 
         if (!isUserUnlocked()) {
             return
         }
 
         SettingsRepositoryImpl().let { settings ->
-            BuiltinAppIcons.apply(
+            // Only touch launcher components when the state actually drifted; re-applying an
+            // unchanged alias can restart the process on some ROMs right as we are starting.
+            BuiltinAppIcons.applyIfNeeded(
                 context = this,
                 icon = BuiltinAppIcons.find(settings.appIconId),
                 dynamicColor = settings.appIconDynamicColor,

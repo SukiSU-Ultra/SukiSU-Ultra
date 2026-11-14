@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.util.ExtensionState
 
-/** Status label shown under an extension card's title. */
+
 internal enum class ExtensionPill(@StringRes val labelRes: Int) {
     Unsupported(R.string.extension_status_unsupported_short),
     Forced(R.string.extension_status_forced),

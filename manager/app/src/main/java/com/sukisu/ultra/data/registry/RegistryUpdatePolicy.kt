@@ -1,18 +1,18 @@
 package com.sukisu.ultra.data.registry
 
-/** How an `updateJson` update of an installed module is downloaded and verified. */
+
 sealed interface UpdateVerification {
-    /** Not a registry update: download as before, without registry checks. */
+    
     data object Legacy : UpdateVerification
 
-    /** The update is a registry release: enforce its URL allowlist, size and SHA-256. */
+    
     data class Registry(
         val zipUrl: String,
         val expected: ExpectedFile,
         val release: ApiRelease,
     ) : UpdateVerification
 
-    /** It claims to come from the registry but cannot be matched to a registry release. */
+    
     data class Rejected(val reason: String) : UpdateVerification
 }
 
@@ -39,7 +39,7 @@ object RegistryUpdatePolicy {
         updateJsonUrl: String,
         zipUrl: String,
         versionCode: Long,
-        /** null when the index could not be loaded at all. */
+        
         inIndex: Boolean?,
         detail: ApiModuleDetail?,
     ): UpdateVerification {
@@ -77,7 +77,7 @@ object RegistryUpdatePolicy {
     fun isUnrelatedToRegistry(registryBaseUrl: String, updateJsonUrl: String, zipUrl: String): Boolean =
         !RegistryUrls.isSameOrigin(updateJsonUrl, registryBaseUrl) && RegistryUrls.hostOf(zipUrl.trim()) != "github.com"
 
-    /** URL equality with a case-insensitive scheme/host; path and query must match exactly. */
+    
     fun sameUrl(a: String, b: String): Boolean {
         if (a == b) return true
         val ua = runCatching { java.net.URI(a.trim()) }.getOrNull() ?: return false

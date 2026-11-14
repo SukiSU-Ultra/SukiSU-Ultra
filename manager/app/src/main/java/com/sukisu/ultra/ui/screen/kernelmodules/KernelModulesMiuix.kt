@@ -42,6 +42,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -95,7 +97,7 @@ fun KernelModulesMiuix(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
-                    title = stringResource(R.string.kernel_modules_title),
+                    title = customText(CustomTextKey.PAGE_KERNEL_MODULES),
                     color = barColor,
                     navigationIcon = {
                         IconButton(onClick = actions.onBack) {

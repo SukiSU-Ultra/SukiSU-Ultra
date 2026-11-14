@@ -32,6 +32,20 @@ class Navigator(
     }
 
     /**
+     * Navigate without silently ignoring an existing destination: if the key
+     * is already on the stack, pop back to it; otherwise push it. Used by the
+     * AI assistant's precise deep links.
+     */
+    fun navigateTo(key: NavKey) {
+        if (backStack.lastOrNull() == key) return
+        if (key in backStack) {
+            popUntil { it == key }
+        } else {
+            backStack.add(key)
+        }
+    }
+
+    /**
      * Replace the top key, or push if the stack is empty.
      */
     fun replace(key: NavKey) {

@@ -664,8 +664,7 @@ fun SegmentedTextField(
 
     SegmentedListItem(
         modifier = modifier
-            .bringIntoViewRequester(bringIntoViewRequester)
-            .focusRequester(focusRequester),
+            .bringIntoViewRequester(bringIntoViewRequester),
         colors = colors,
         onClick = { focusRequester.requestFocus() },
         leadingContent = leadingContent,

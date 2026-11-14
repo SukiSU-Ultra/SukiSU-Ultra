@@ -16,7 +16,7 @@ import kotlinx.serialization.json.intOrNull
 
 class ScriptParamsException(message: String) : Exception(message)
 
-/** Why a parameter value is rejected. */
+
 enum class ParamError {
     REQUIRED,
     TOO_LONG,
@@ -37,13 +37,13 @@ sealed class ScriptParam {
     abstract val label: String
     abstract val description: String?
 
-    /** Canonical form of the default value. */
+    
     abstract val defaultValue: String
 
-    /** Returns null when [value] is acceptable. */
+    
     abstract fun validate(value: String): ParamError?
 
-    /** Canonical value passed to the script; only call with a value [validate] accepted. */
+    
     open fun canonical(value: String): String = value
 
     val envName: String get() = ENV_PREFIX + key
@@ -83,7 +83,7 @@ sealed class ScriptParam {
     ) : ScriptParam() {
         override val defaultValue: String get() = default
 
-        /** Empty is valid unless [required]. */
+        
         override fun validate(value: String): ParamError? = when {
             value.isEmpty() -> if (required) ParamError.REQUIRED else null
             value.any { it == '\u0000' || it == '\n' || it == '\r' } -> ParamError.INVALID_CHARACTERS
@@ -116,7 +116,7 @@ sealed class ScriptParam {
         companion object {
             private val INTEGER = Regex("^[+-]?[0-9]{1,10}$")
 
-            /** Values are int32 like min / max / default; anything outside is not an integer. */
+            
             fun parseInteger(value: String): Int? = value.trim().takeIf(INTEGER::matches)?.toIntOrNull()
         }
     }
@@ -129,7 +129,7 @@ sealed class ScriptParam {
 data class ScriptParams(val params: List<ScriptParam>) {
     val defaults: Map<String, String> get() = params.associate { it.key to it.defaultValue }
 
-    /** Error per key for [values] (missing values fall back to the default). */
+    
     fun validate(values: Map<String, String>): Map<String, ParamError> =
         params.mapNotNull { p -> p.validate(values[p.key] ?: p.defaultValue)?.let { p.key to it } }.toMap()
 
@@ -138,7 +138,7 @@ data class ScriptParams(val params: List<ScriptParam>) {
     }
 }
 
-/** Parses and validates params.json; any violation of schemaVersion 1 throws [ScriptParamsException]. */
+
 object ScriptParamsParser {
     const val SCHEMA_VERSION = 1
     const val MAX_PARAMS = 16
@@ -244,7 +244,7 @@ object ScriptParamsParser {
         return param
     }
 
-    /** Trimmed first, then 1..[MAX_TEXT_LENGTH] characters. */
+    
     private fun checkText(text: String, what: String): String {
         val trimmed = text.trim()
         if (trimmed.isEmpty() || trimmed.length > MAX_TEXT_LENGTH) fail("$what must be 1..$MAX_TEXT_LENGTH characters")

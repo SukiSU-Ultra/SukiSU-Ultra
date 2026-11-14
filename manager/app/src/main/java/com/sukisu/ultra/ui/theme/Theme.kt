@@ -10,6 +10,9 @@ import com.sukisu.ultra.data.repository.SettingsRepository
 import com.sukisu.ultra.data.repository.SettingsRepositoryImpl
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
+import com.sukisu.ultra.ui.util.AppearanceOverlayStore
+import com.sukisu.ultra.ui.util.ResolvedAppearance
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
 
 enum class ColorMode(val value: Int) {
     SYSTEM(0),
@@ -49,6 +52,8 @@ data class AppSettings(
     val keyColor: Int,
     val paletteStyle: PaletteStyle,
     val colorSpec: ColorSpec.SpecVersion,
+    /** Static user/theme overrides applied on top of the generated palette. */
+    val appearance: ResolvedAppearance? = null,
 )
 
 val PaletteStyle.supportsSpec2025: Boolean
@@ -96,7 +101,13 @@ object ThemeController {
             ColorSpec.SpecVersion.SPEC_2025
         }
 
-        return AppSettings(colorMode, keyColor, paletteStyle, colorSpec)
+        return AppSettings(
+            colorMode = colorMode,
+            keyColor = keyColor,
+            paletteStyle = paletteStyle,
+            colorSpec = colorSpec,
+            appearance = AppearanceOverlayStore.load(repo),
+        )
     }
 }
 
@@ -132,7 +143,13 @@ fun isInDarkTheme(): Boolean {
 
 val LocalColorMode = staticCompositionLocalOf { 0 }
 
+
+val LocalAppSettings = staticCompositionLocalOf<AppSettings?> { null }
+
 val LocalEnableBlur = staticCompositionLocalOf { false }
+
+/** Progressive (edge gradient) blur behind the top and bottom bars. */
+val LocalEnableProgressiveBlur = staticCompositionLocalOf { false }
 
 val LocalEnableFloatingBottomBar = staticCompositionLocalOf { false }
 
@@ -143,6 +160,16 @@ val LocalEnableNavigationBadge = staticCompositionLocalOf { true }
 val LocalModuleDescriptionMaxLines = staticCompositionLocalOf { 4 }
 
 val LocalBackgroundImagePath = staticCompositionLocalOf { "" }
+
+/**
+ * Captures the app background image (and its scrim) exactly as drawn behind the navigation host.
+ *
+ * `layerBackdrop` only records the page it is attached to, so over a custom background the
+ * unpainted parts of that layer are fully transparent. Miuix bar blurs sample that layer, and
+ * transparent pixels bleed black into the result, so bars combine this backdrop underneath their
+ * own page backdrop to blur what is actually on screen. Null when no capture is available.
+ */
+val LocalAppBackgroundBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 
 val LocalCardBackgroundAlpha = staticCompositionLocalOf { 0.6f }
 

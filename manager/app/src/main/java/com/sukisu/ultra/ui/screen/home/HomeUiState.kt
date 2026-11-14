@@ -2,6 +2,10 @@ package com.sukisu.ultra.ui.screen.home
 
 import androidx.compose.runtime.Immutable
 import com.sukisu.ultra.KernelVersion
+import com.sukisu.ultra.ui.util.HomeCardSticker
+import com.sukisu.ultra.ui.util.HomeCardImageStyle
+import com.sukisu.ultra.ui.util.HomeLayout
+import com.sukisu.ultra.ui.util.HomeStatusAlignment
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 
 @Immutable
@@ -50,7 +54,19 @@ data class HomeUiState(
     val superuserCount: Int? = null,
     val moduleCount: Int? = null,
     val kpmCount: Int? = null,
+    val showAiHomeCard: Boolean = false,
     val customHomeTitle: String = "",
+    val homeCardImagePath: String = "",
+    val hideHomeCardStatusText: Boolean = false,
+    val hideHomeCardDecoration: Boolean = false,
+    val homeCardStickers: List<HomeCardSticker> = emptyList(),
+    val homeLayout: HomeLayout = HomeLayout.CLASSIC,
+    val homeStatusAlignment: HomeStatusAlignment = HomeStatusAlignment.START,
+    val homeStatusScale: Float = 1f,
+    val homePillScale: Float = 1f,
+    val homeStatusWidthFraction: Float = 1f,
+    val homeCardImageStyle: HomeCardImageStyle = HomeCardImageStyle.BANNER,
+    val showHomeCardImageWithoutBackground: Boolean = false,
 ) {
     val isSELinuxPermissive: Boolean
         get() = systemInfo.selinuxStatus == "Permissive"
@@ -72,6 +88,24 @@ data class HomeUiState(
 
     val showCustomLkmBadge: Boolean
         get() = lkmMode == true && !isLkmBundled
+
+    /**
+     * Working-mode tag on the home status card.
+     *
+     * LKM is a 5.10+ concept; a pre-5.10 kernel always runs the built-in
+     * driver, so show "Built-in" there instead of leaving the tag blank.
+     * On 5.10+ keep the original mapping: true = LKM, false = Built-in,
+     * unknown (null) = no tag. With no active kernel (no root) there is
+     * no mode to show either.
+     */
+    val workingModeLabel: String
+        get() = when {
+            ksuVersion == null -> ""
+            !kernelVersion.isGKI() -> "Built-in"
+            lkmMode == true -> "LKM"
+            lkmMode == false -> "Built-in"
+            else -> ""
+        }
 
     val isVersionMismatch: Boolean
         get() = isManager && (kernelUAPIVersion != managerUAPIVersion || ksuVersion?.toUInt()?.toLong() != currentManagerVersionCode)
@@ -103,4 +137,6 @@ data class HomeActions(
     val onCiUpdateClick: () -> Unit = {},
     val onReleaseUpdateClick: () -> Unit = {},
     val onOpenVersionSpoof: () -> Unit = {},
+    val onOpenAi: () -> Unit = {},
+    val onOpenThemeStore: () -> Unit = {},
 )

@@ -34,22 +34,22 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
-/** Thickness of the thin rounded track. */
+
 private val TrackHeight = 8.dp
 
-/** Diameter of the floating knob. */
+
 private val ThumbSize = 24.dp
 
-/** Width of the primary ring around the knob. */
+
 private val ThumbBorderWidth = 2.dp
 
-/** Resting shadow of the knob; dropped when the slider is disabled. */
+
 private val ThumbElevation = 2.dp
 
-/** Diameter of the translucent halo shown while the knob is held. */
+
 private val HaloSize = 40.dp
 
-/** Diameter of the step tick dots drawn on the track. */
+
 private val TickSize = 3.dp
 
 private const val ThumbPressedScale = 1.08f

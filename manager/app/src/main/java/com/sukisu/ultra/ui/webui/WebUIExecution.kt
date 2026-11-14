@@ -45,7 +45,7 @@ internal suspend fun <T : Closeable, R> withWebUIResource(
     }
 }
 
-/** Covers cancellation both during shell creation and while its blocking job is running. */
+
 internal class WebUIResource<T : Closeable> : Closeable {
     private var closed = false
     private var resource: T? = null
@@ -70,7 +70,7 @@ internal class WebUIResource<T : Closeable> : Closeable {
     }
 }
 
-/** Owns command tasks for one page; they run concurrently, as each used its own shell before. */
+
 internal class WebUIExecution(
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val onFailure: (Exception) -> Unit,
@@ -98,7 +98,7 @@ internal class WebUIExecution(
 
 internal data class WebUIOutputLine(val stream: String, val data: String)
 
-/** Backpressure reaches libsu's reader threads rather than accumulating Main/renderer tasks. */
+
 internal class WebUIOutput(
     capacity: Int = 128,
     private val maxBatchLines: Int = 64,

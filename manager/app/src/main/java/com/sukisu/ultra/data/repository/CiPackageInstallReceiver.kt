@@ -8,7 +8,7 @@ import android.os.Build
 import android.widget.Toast
 import com.sukisu.ultra.R
 
-/** Handles Android's asynchronous result for the CI APK installation session. */
+
 class CiPackageInstallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION_INSTALL_RESULT) return

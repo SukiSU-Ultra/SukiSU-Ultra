@@ -1,11 +1,8 @@
 package com.sukisu.ultra.ui.screen.home
 
 import android.content.Context
-import android.os.Build
-import android.system.Os
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.pm.PackageInfoCompat
 import com.sukisu.ultra.Natives
 import com.sukisu.ultra.Natives.isManager

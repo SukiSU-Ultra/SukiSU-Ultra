@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 17 blocks LAN access for targetSdk 37+ until the user grants
+         the Nearby devices runtime permission; the assistant also talks to
+         local inference servers, including loopback servers in other apps. -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <uses-permission android:name="android.permission.USE_LOOPBACK_INTERFACE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -22,7 +27,7 @@
         android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur" />
+    <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur,com.sukisu.ultra.ai" />
 
     <!-- Android 11 package visibility: needed to resolve the vendor gallery's crop screen. -->
     <queries>
@@ -56,6 +61,12 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sukisu-theme" android:host="open" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:mimeType="application/zip" />
                 <data android:mimeType="application/x-zip" />
                 <data android:mimeType="application/x-zip-compressed" />
@@ -79,6 +90,45 @@
                 <data android:mimeType="application/x-zip-compressed" />
                 <data android:mimeType="application/vnd.android.package-archive" />
                 <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/x-sukisu-theme" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:pathPattern=".*\.sukisu" />
+                <data android:pathPattern=".*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\.sukisu" />
+                <data android:pathPattern=".*\..*\..*\..*\.sukisu" />
+                <data android:pathSuffix=".sukisu" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-sukisu-theme" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -103,7 +153,7 @@
             android:name=".ui.MainActivityAliasDefault"
             android:targetActivity=".ui.MainActivity"
             android:exported="true"
-            android:enabled="true"
+            android:enabled="false"
             android:icon="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -122,48 +172,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="content" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-                <data android:mimeType="application/octet-stream" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-                <data android:mimeType="application/octet-stream" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="action"
-                    android:scheme="ksu" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="webui"
-                    android:scheme="ksu" />
-            </intent-filter>
         </activity-alias>
 
         <!-- 切换图标：SukiSU 标志 -->
@@ -177,48 +185,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="content" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-                <data android:mimeType="application/octet-stream" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-                <data android:mimeType="application/octet-stream" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="action"
-                    android:scheme="ksu" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="webui"
-                    android:scheme="ksu" />
             </intent-filter>
         </activity-alias>
 
@@ -234,55 +200,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="content" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-                <data android:mimeType="application/octet-stream" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-                <data android:mimeType="application/octet-stream" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="action"
-                    android:scheme="ksu" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="webui"
-                    android:scheme="ksu" />
-            </intent-filter>
         </activity-alias>
 
         <activity-alias
             android:name=".ui.MainActivityAliasDefaultStatic"
             android:targetActivity=".ui.MainActivity"
             android:exported="true"
-            android:enabled="false"
+            android:enabled="true"
             android:icon="@mipmap/ic_launcher_static">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -367,6 +291,14 @@
             tools:targetApi="UPSIDE_DOWN_CAKE" />
 
         <receiver android:name=".data.repository.CiPackageInstallReceiver" android:exported="false" />
+
+        <receiver
+            android:name=".data.repository.AppIconUpdateReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".magica.BootCompletedReceiver"

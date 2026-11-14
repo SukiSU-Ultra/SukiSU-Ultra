@@ -9,36 +9,36 @@ import androidx.compose.runtime.Immutable
  */
 internal const val MAX_BLOCK_MODULES_LEN = 255
 
-/** How a module ended up in the list shown on the page. */
+
 enum class KernelModuleStatus {
-    /** Present in the kernel's module_blacklist and not currently loaded. */
+    
     Blocked,
 
-    /** Present in the kernel's module_blacklist but still loaded. */
+    
     BlockedLoaded,
 
-    /** Present in block_modules= but not in the kernel's active blacklist. */
+    
     ConfigPending,
 
-    /** Only present in the device's modules.blocklist. */
+    
     DeviceBlocklist,
 
-    /** Listed somewhere, but absent from modules.dep and /proc/modules. */
+    
     NotFound,
 }
 
-/** One module that depends on a blocked module. */
+
 @Immutable
 data class KernelModuleDependent(
     val name: String,
     val loaded: Boolean,
-    /** Listed in modules.load, so first stage init tries to load it. */
+    
     val boot: Boolean,
-    /** Blocked independently, so this dependency is not an extra casualty. */
+    
     val blocked: Boolean,
 )
 
-/** Everything the page shows for one module name. */
+
 @Immutable
 data class KernelModuleEntry(
     val name: String,
@@ -48,13 +48,13 @@ data class KernelModuleEntry(
     val loaded: Boolean,
     val knownAntiRoot: Boolean,
     val deviceBlocklist: Boolean,
-    /** Path from modules.dep, null when the module is not in the table. */
+    
     val path: String?,
-    /** Transitive dependents, loaded first so the interesting ones are on top. */
+    
     val dependents: List<KernelModuleDependent>,
 )
 
-/** Where the generated parameters came from. */
+
 enum class KernelModulesParamsSource {
     Config,
     Suggested,
@@ -62,7 +62,7 @@ enum class KernelModulesParamsSource {
     None,
 }
 
-/** Where the active kernel blacklist was read from. */
+
 enum class KernelModulesActiveSource {
     Sysfs,
     Cmdline,
@@ -86,19 +86,19 @@ data class KernelModulesSnapshot(
     val paramsConfigLine: String,
     val paramsCliLine: String,
     val paramsTooLong: Boolean,
-    /** The sysfs parameter or the kernel command line answered. */
+    
     val activeAvailable: Boolean,
-    /** The ramdisk ksu_config or the kernel command line answered. */
+    
     val configAvailable: Boolean,
-    /** modules.dep was found, so dependency chains are meaningful. */
+    
     val dependencyDataAvailable: Boolean,
     val activeSource: KernelModulesActiveSource,
     val currentlyLoadedCount: Int,
-    /** Boot modules that are neither loaded nor blocked but depend on a blocked one. */
+    
     val affectedBootModules: Int,
 )
 
-/** Raw text collected from the device by [readKernelModulesRaw]. */
+
 internal data class KernelModulesRaw(
     val active: String?,
     val activeReadable: Boolean,
@@ -143,7 +143,7 @@ internal object KernelModulesParser {
         return base.replace('-', '_')
     }
 
-    /** Same rule ksud applies to `--block-module`. */
+    
     fun isSafeConfigName(name: String): Boolean =
         name.length in 1..64 &&
             name.all { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '_' }
@@ -185,7 +185,7 @@ internal object KernelModulesParser {
             .filter(::isSafeConfigName)
             .distinct()
 
-    /** `/proc/modules`: name size refcount used_by state address. */
+    
     fun parseProcModules(raw: String?): Map<String, LoadedModule> {
         val result = LinkedHashMap<String, LoadedModule>()
         raw.orEmpty().lineSequence().forEach { line ->
@@ -202,7 +202,7 @@ internal object KernelModulesParser {
         return result
     }
 
-    /** `modules.dep`: path: dependency paths (depmod lists them transitively). */
+    
     fun parseModulesDep(raw: String?): Map<String, ModuleDep> {
         val result = LinkedHashMap<String, ModuleDep>()
         raw.orEmpty().lineSequence().forEach { line ->
@@ -220,7 +220,7 @@ internal object KernelModulesParser {
         return result
     }
 
-    /** modules.load and modules.blocklist are line based; no quoting. */
+    
     fun parseModuleList(raw: String?): Set<String> =
         raw.orEmpty().lineSequence()
             .map { it.substringBefore('#').trim() }

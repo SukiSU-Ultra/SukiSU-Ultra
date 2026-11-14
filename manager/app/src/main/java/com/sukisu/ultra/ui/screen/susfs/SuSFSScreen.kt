@@ -13,13 +13,16 @@ import com.sukisu.ultra.ui.navigation3.LocalNavigator
 import com.sukisu.ultra.ui.screen.susfs.viewmodel.SuSFSViewModel
 
 @Composable
-fun SuSFSScreen() {
+fun SuSFSScreen(tab: String? = null) {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
     val viewModel: SuSFSViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) { viewModel.loadInitial(context) }
+    LaunchedEffect(tab) {
+        tab?.let { id -> SuSFSTab.fromRouteId(id)?.let(viewModel::setSelectedTab) }
+    }
     LaunchedEffect(state.selectedTab) {
         if (state.selectedTab == SuSFSTab.ENABLED_FEATURES) viewModel.loadEnabledFeatures(context)
     }

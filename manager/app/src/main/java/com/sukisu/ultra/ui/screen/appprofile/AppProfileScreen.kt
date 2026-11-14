@@ -2,18 +2,23 @@ package com.sukisu.ultra.ui.screen.appprofile
 
 import com.sukisu.ultra.ui.component.profile.TemporaryRoot
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
@@ -40,16 +45,38 @@ fun AppProfileScreen(uid: Int) {
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val viewModel: SuperUserViewModel = viewModel()
-    val appGroupState = remember(uid) {
-        derivedStateOf {
-            viewModel.uiState.value.groupedApps.find { it.uid == uid } ?: SuperUserViewModel.getGroupedApp(uid)
-        }
-    }
-    val appGroup = appGroupState.value
+    val superUserState by viewModel.uiState.collectAsStateWithLifecycle()
+    val appGroup = superUserState.groupedApps.find { it.uid == uid }
+        ?: SuperUserViewModel.getGroupedApp(uid)
     val primaryAppInfo = appGroup?.primary
+    var resolving by remember(uid) { mutableStateOf(appGroup == null) }
+
+    // A deep link can arrive before the superuser list is preloaded. Load the
+    // list instead of popping immediately, then fall back to a clear exit only
+    // when the uid really cannot be resolved.
+    LaunchedEffect(uid) {
+        if (appGroup == null) {
+            viewModel.initializePreferences()
+            viewModel.loadAppList()
+            for (attempt in 0 until 40) {
+                val loaded = viewModel.uiState.value.groupedApps.any { it.uid == uid } ||
+                    SuperUserViewModel.getGroupedApp(uid) != null
+                if (loaded) break
+                delay(200)
+            }
+        }
+        resolving = false
+    }
+
     if (primaryAppInfo == null) {
-        LaunchedEffect(Unit) {
-            navigator.pop()
+        if (resolving) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LaunchedEffect(uid) {
+                if (navigator.current() is Route.AppProfile) navigator.pop()
+            }
         }
         return
     }

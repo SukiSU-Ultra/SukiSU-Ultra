@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.component.material
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ToggleButton
@@ -9,6 +10,7 @@ import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ExpressiveToggleButton(
@@ -18,6 +20,7 @@ fun ExpressiveToggleButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     colors: ToggleButtonColors = expressiveToggleButtonColors(),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
     content: @Composable RowScope.() -> Unit,
 ) {
     ToggleButton(
@@ -27,6 +30,7 @@ fun ExpressiveToggleButton(
         enabled = enabled,
         colors = colors,
         shapes = shapes,
+        contentPadding = contentPadding,
         content = content,
     )
 }

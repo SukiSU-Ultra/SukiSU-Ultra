@@ -122,7 +122,7 @@ else
 
   echo "[+] Uploading $# APKs in one Telegram media group"
   run_curl \
-    -F "media=${media};type=application/json" \
+    -F "media=${media}" \
     "${upload_args[@]}" \
     "${api}/sendMediaGroup"
 fi

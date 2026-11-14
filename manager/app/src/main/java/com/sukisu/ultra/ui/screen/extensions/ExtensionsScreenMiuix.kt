@@ -30,6 +30,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -77,7 +79,7 @@ fun ExtensionsScreenMiuix(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
-                    title = stringResource(R.string.extension_section_title),
+                    title = customText(CustomTextKey.PAGE_EXTENSIONS),
                     color = barColor,
                     navigationIcon = {
                         IconButton(onClick = onBack) {

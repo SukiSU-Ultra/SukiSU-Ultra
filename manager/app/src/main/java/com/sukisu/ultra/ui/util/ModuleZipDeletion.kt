@@ -8,7 +8,7 @@ import com.sukisu.ultra.data.registry.RegistryDownloadStore
 import com.sukisu.ultra.ksuApp
 import java.io.File
 
-/** Deletion only happens when the user opted in and ksud reported a successful install. */
+
 internal fun shouldDeleteSourceAfterInstall(enabled: Boolean, installSucceeded: Boolean): Boolean =
     enabled && installSucceeded
 
@@ -20,6 +20,7 @@ internal fun shouldDeleteSourceAfterInstall(enabled: Boolean, installSucceeded: 
  * A provider that refuses deletion leaves the ZIP untouched.
  */
 fun deleteInstalledModuleZip(uri: Uri): Boolean {
+    if (LegacyDownloadFiles.delete(uri)) return true
     val deleted = deleteModuleZip(
         scheme = uri.scheme,
         filePath = uri.path,
@@ -49,7 +50,7 @@ internal fun deleteModuleZip(
     else -> false
 }
 
-/** Only app-private ZIPs are deleted directly; canonical paths keep symlinks from escaping. */
+
 internal fun deletePrivateZip(path: String?, filesDir: File, cacheDir: File): Boolean {
     val file = path?.let(::File)?.let { runCatching { it.canonicalFile }.getOrNull() } ?: return false
     val registryRoot = runCatching { File(filesDir, RegistryDownloadStore.DIR_NAME).canonicalFile }.getOrNull()

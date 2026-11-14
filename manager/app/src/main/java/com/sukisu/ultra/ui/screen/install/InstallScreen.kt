@@ -127,18 +127,24 @@ fun InstallScreen(
     val isGkiDevice by produceState(initialValue = false) { value = getKernelVersion().isGKI() }
 
     val selectFileTip = stringResource(id = R.string.select_file_tip, defaultPartition)
-    val selectFileTipNoGki = stringResource(id = R.string.select_file_tip_nogki)
 
     val downloadFileMsg = stringResource(id = R.string.download_dialog_msg)
 
     val horizonKernelSummary = stringResource(R.string.horizon_kernel_summary)
-    val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, selectFileTipNoGki, downloadFileMsg, horizonKernelSummary) {
+    val installMethodOptions = remember(rootAvailable, isAbDevice, isGkiDevice, selectFileTip, downloadFileMsg, horizonKernelSummary) {
         buildList {
-            add(InstallMethod.SelectFile(summary = if (isGkiDevice) selectFileTip else selectFileTipNoGki))
-            add(InstallMethod.DownloadFile(summary = downloadFileMsg))
-            if (rootAvailable && isGkiDevice) {
-                add(InstallMethod.DirectInstall)
-                if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+            // LKM boot-image patching needs a GKI 5.10+ kernel. Pre-5.10
+            // kernels cannot load the bundled module, so only AnyKernel3
+            // (kernel image replacement) is offered there.
+            if (isGkiDevice) {
+                add(InstallMethod.SelectFile(summary = selectFileTip))
+                add(InstallMethod.DownloadFile(summary = downloadFileMsg))
+                if (rootAvailable) {
+                    add(InstallMethod.DirectInstall)
+                    if (isAbDevice) add(InstallMethod.DirectInstallToInactiveSlot)
+                }
+            }
+            if (rootAvailable) {
                 add(InstallMethod.HorizonKernel(summary = horizonKernelSummary))
             }
         }
@@ -338,7 +344,7 @@ fun InstallScreen(
         }
         option?.let { opt ->
             installMethod = opt
-            // 对于 HorizonKernel，需要触发 AnyKernel3 流程（槽位选择和KPM修补）
+            // 对于 HorizonKernel，需要触发 AnyKernel3 流程（槽位选择和 KPM 修补）
             if (opt is InstallMethod.HorizonKernel) {
                 anyKernel3State.onHorizonKernelSelected(opt)
             }
@@ -459,22 +465,34 @@ fun InstallScreen(
                 // 关闭开关时清空已填写的值
                 spoofRelease = ""
                 spoofVersion = ""
-                scope.launch {
-                    SuSFSManager.saveUnameValue("default")
-                    SuSFSManager.saveBuildTimeValue("default")
+                if (rootAvailable) {
+                    scope.launch {
+                        runCatching {
+                            SuSFSManager.saveUnameValue("default")
+                            SuSFSManager.saveBuildTimeValue("default")
+                        }
+                    }
                 }
             }
         },
         onSpoofReleaseChange = {
             spoofRelease = it
-            scope.launch {
-                SuSFSManager.saveUnameValue(it.trim().ifBlank { "default" })
+            if (rootAvailable) {
+                scope.launch {
+                    runCatching {
+                        SuSFSManager.saveUnameValue(it.trim().ifBlank { "default" })
+                    }
+                }
             }
         },
         onSpoofVersionChange = {
             spoofVersion = it
-            scope.launch {
-                SuSFSManager.saveBuildTimeValue(it.trim().ifBlank { "default" })
+            if (rootAvailable) {
+                scope.launch {
+                    runCatching {
+                        SuSFSManager.saveBuildTimeValue(it.trim().ifBlank { "default" })
+                    }
+                }
             }
         },
         onHorizonKernelSelected = { method ->

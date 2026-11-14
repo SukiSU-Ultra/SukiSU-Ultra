@@ -92,7 +92,7 @@ class DataSourceChannel private constructor(
         return DataSourceChannel(client, url, fileChannel, startOffset + offset, sliceSize)
     }
 
-    /** Reads up to [length] bytes at [position] into a fresh array. */
+    
     fun readFully(position: Long, length: Long): ByteArray? {
         if (length > Int.MAX_VALUE) return null
         val buffer = ByteBuffer.allocate(length.toInt())

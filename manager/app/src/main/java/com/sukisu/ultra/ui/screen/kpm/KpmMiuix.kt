@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.ConfigResults
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
@@ -62,7 +64,7 @@ fun KpmMiuix(viewModel: KpmViewModel, actions: KpmActions, bottomInnerPadding: D
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
-                    title = stringResource(R.string.kpm_title),
+                    title = customText(CustomTextKey.EXTENSION_KPM),
                     color = if (backdrop != null || hasCustomBackground) Color.Transparent else colorScheme.surface,
                     scrollBehavior = scrollBehavior,
                     actions = {

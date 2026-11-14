@@ -1,5 +1,6 @@
 package com.sukisu.ultra.ui.screen.appprofile
 
+import androidx.core.content.pm.PackageInfoCompat
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.profile.TemporaryRootControls
@@ -48,6 +49,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -168,7 +171,7 @@ fun AppProfileScreenMiuix(
                         appUid = state.uid,
                         sharedUserId = if (state.isUidGroup) state.sharedUserId else "",
                         appVersionName = if (state.isUidGroup) "" else (state.appGroup.primary.packageInfo.versionName ?: ""),
-                        appVersionCode = if (state.isUidGroup) 0L else state.appGroup.primary.packageInfo.longVersionCode,
+                        appVersionCode = if (state.isUidGroup) 0L else PackageInfoCompat.getLongVersionCode(state.appGroup.primary.packageInfo),
                         profile = state.profile,
                         isUidGroup = state.isUidGroup,
                         isSpecialApp = state.appGroup.primary.special,
@@ -513,7 +516,7 @@ private fun TopBar(
     BlurredBar(backdrop) {
         TopAppBar(
             color = barColor,
-            title = stringResource(R.string.profile),
+            title = customText(CustomTextKey.PAGE_APP_PROFILE),
             navigationIcon = {
                 IconButton(
                     onClick = onBack
@@ -616,7 +619,7 @@ private fun ProfileBox(
             .padding(horizontal = 12.dp),
     ) {
         OverlayDropdownPreference(
-            title = stringResource(R.string.profile),
+            title = customText(CustomTextKey.PAGE_APP_PROFILE),
             items = list,
             startAction = {
                 Icon(
@@ -632,7 +635,7 @@ private fun ProfileBox(
         }
     }
 }
-/** Local decoration for the superuser card; other Miuix switches stay unchanged. */
+
 @Composable
 private fun SuperuserSwitch(checked: Boolean) {
     // Match the thumb geometry and spring in Miuix 0.9.4. Keep the icon in

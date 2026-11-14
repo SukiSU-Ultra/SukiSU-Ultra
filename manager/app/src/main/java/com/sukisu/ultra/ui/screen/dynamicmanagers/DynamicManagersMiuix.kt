@@ -72,6 +72,8 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.DynamicManagerState
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
@@ -90,6 +92,8 @@ import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.utils.overScrollVertical
+import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 @Composable
 internal fun DynamicManagersMiuix(
@@ -119,7 +123,7 @@ internal fun DynamicManagersMiuix(
             BlurredBar(backdrop) {
                 TopAppBar(
                     color = barColor,
-                    title = stringResource(R.string.dynamic_manager_title),
+                    title = customText(CustomTextKey.PAGE_DYNAMIC_MANAGERS),
                     navigationIcon = {
                         IconButton(onClick = actions.onBack) {
                             Icon(
@@ -190,8 +194,11 @@ internal fun DynamicManagersMiuix(
                     state = listState,
                     modifier = Modifier
                         .fillMaxSize()
+                        .scrollEndHaptic()
+                        .overScrollVertical()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     contentPadding = contentPadding,
+                    overscrollEffect = null,
                 ) {
                     item(key = "status", contentType = "status") {
                         StatusCard(

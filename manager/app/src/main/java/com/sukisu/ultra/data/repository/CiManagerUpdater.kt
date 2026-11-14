@@ -1,5 +1,6 @@
 package com.sukisu.ultra.data.repository
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
@@ -16,6 +17,7 @@ import com.sukisu.ultra.R
 import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.getRootShell
+import com.sukisu.ultra.ui.util.shellQuote
 import com.sukisu.ultra.ui.util.withNewRootShell
 import okhttp3.Request
 import java.io.File
@@ -23,9 +25,13 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.ZipFile
 
-/** Shared in-app release/CI installer. Keeps a verified APK in public Downloads before installing. */
+
 class CiManagerUpdater(private val context: Context) {
-    fun updateAndInstall(update: LatestVersionInfo): Boolean {
+    /**
+     * [keepApk] false installs straight from the private cache copy and never
+     * writes the APK to Downloads, so nothing is left behind after the update.
+     */
+    fun updateAndInstall(update: LatestVersionInfo, keepApk: Boolean = true): Boolean {
         if (!update.downloadUrl.startsWith(RELEASE_ASSET_PREFIX)) {
             throw IOException(context.getString(R.string.ci_update_request_failed))
         }
@@ -35,7 +41,9 @@ class CiManagerUpdater(private val context: Context) {
         try {
             download(update.downloadUrl, apk)
             verifyApk(apk, abi, update.versionCode)
-            saveToDownloads(apk, update.downloadUrl)
+            if (keepApk) {
+                saveToDownloads(apk, update.downloadUrl)
+            }
             if (getRootShell().isRoot) {
                 val result = withNewRootShell {
                     if (!isRoot) throw IOException(context.getString(R.string.ci_update_install_failed))
@@ -196,6 +204,7 @@ class CiManagerUpdater(private val context: Context) {
         }
     }
 
+    @SuppressLint("RequestInstallPackagesPolicy")
     private fun submitInstall(apk: File) {
         val installer = context.packageManager.packageInstaller
         val sessionId = installer.createSession(
@@ -231,8 +240,6 @@ class CiManagerUpdater(private val context: Context) {
             if (!committed) installer.abandonSession(sessionId)
         }
     }
-
-    private fun String.shellQuote(): String = "'" + replace("'", "'\\''") + "'"
 
     companion object {
         private const val RELEASE_ASSET_PREFIX =

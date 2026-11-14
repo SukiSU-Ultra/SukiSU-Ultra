@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.media.ExifInterface
+import android.os.Build
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import java.io.File
@@ -14,17 +15,15 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** Sources are downsampled to this longest edge; it is plenty for a full-screen background. */
+
 private const val MAX_SOURCE_DIMENSION = 2560
 
-/** Crops are rendered at most at this longest edge. */
+
 private const val MAX_OUTPUT_DIMENSION = 2560
 
-/** Keep the transient bitmaps smaller on low-RAM devices. */
+
 private const val LOW_RAM_SOURCE_DIMENSION = 2048
 private const val LOW_RAM_OUTPUT_DIMENSION = 2048
-
-private const val JPEG_QUALITY = 95
 
 const val CROP_MAX_ZOOM = 8f
 
@@ -44,7 +43,7 @@ fun orientedImageSize(bitmap: Bitmap, quarterTurns: Int): OrientedImageSize {
     }
 }
 
-/** Scale at which the oriented image exactly covers the viewport. */
+
 fun coverScale(viewport: Size, image: OrientedImageSize): Float {
     if (viewport.width <= 0f || viewport.height <= 0f || image.width <= 0 || image.height <= 0) {
         return 1f
@@ -163,7 +162,14 @@ fun renderCroppedBitmap(
 fun saveCropBitmap(bitmap: Bitmap, file: File): Boolean = runCatching {
     file.parentFile?.mkdirs()
     FileOutputStream(file).use { output ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)
+        // Keep the wallpaper lossless: JPEG re-encoding softened gradients and fine detail.
+        // WebP lossless is available from Android 11; PNG covers older devices.
+        val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Bitmap.CompressFormat.WEBP_LOSSLESS
+        } else {
+            Bitmap.CompressFormat.PNG
+        }
+        bitmap.compress(format, 100, output)
     }
 }.getOrDefault(false)
 

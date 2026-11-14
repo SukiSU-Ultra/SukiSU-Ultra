@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** One card: a kernel-reported state plus the manager-side descriptor. */
+
 @Immutable
 data class ExtensionItem(
     val state: ExtensionState,
@@ -29,7 +29,7 @@ data class ExtensionItem(
 data class ExtensionsUiState(
     val loading: Boolean = false,
     val items: List<ExtensionItem> = emptyList(),
-    /** Wire names whose toggle is in flight; their switch is disabled. */
+    
     val busy: Set<String> = emptySet(),
     val error: String? = null,
 )

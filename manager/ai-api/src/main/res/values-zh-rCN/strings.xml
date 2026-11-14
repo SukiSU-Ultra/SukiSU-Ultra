@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_show_home_card">在主页显示 AI 助手</string>
+    <string name="ai_show_home_card_summary">在主页显示入口并初始化助手。关闭后主页入口会完全断开。</string>
+</resources>

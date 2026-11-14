@@ -93,6 +93,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -277,7 +279,7 @@ fun ModulePagerMiuix(
                 searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
                     TopAppBar(
                         color = Color.Transparent,
-                        title = stringResource(R.string.module),
+                        title = customText(CustomTextKey.PAGE_MODULES),
                         actions = {
                             Box {
                                 val showTopPopup = remember { mutableStateOf(false) }

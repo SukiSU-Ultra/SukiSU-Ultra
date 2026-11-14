@@ -26,7 +26,7 @@ class DownloadStoreTest {
 
     private fun root() = tmp.newFolder("registry_downloads")
 
-    /** Everything under [dir], recursively, as relative paths. */
+    
     private fun listing(dir: File): List<String> =
         dir.walkTopDown().filter { it.isFile }.map { it.relativeTo(dir).path }.sorted().toList()
 

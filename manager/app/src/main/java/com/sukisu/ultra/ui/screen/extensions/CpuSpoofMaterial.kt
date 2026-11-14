@@ -45,6 +45,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.material.ExpressiveScaffold
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
@@ -58,7 +60,7 @@ internal fun CpuSpoofMaterial(s: CpuSpoofState, a: CpuSpoofActions) {
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.spoof_cpu_dialog_title)) },
+                title = { Text(customText(CustomTextKey.EXTENSION_CPU_SPOOF)) },
                 navigationIcon = { TopBarBackButton(onClick = a.onBack) },
                 colors = expressiveTopAppBarColors(),
                 scrollBehavior = scroll,

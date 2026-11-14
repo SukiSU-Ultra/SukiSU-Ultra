@@ -13,7 +13,7 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 
-/** Runtime evidence is independent of whether persistence succeeded. */
+
 enum class ConfigRuntimeStatus(val labelRes: Int) {
     APPLIED(R.string.config_status_applied),
     REBOOT_REQUIRED(R.string.config_status_reboot),
@@ -56,7 +56,7 @@ fun ConfigResults(results: List<ConfigResult>) {
     }
 }
 
-/** A successful command alone is not evidence of a matching runtime state. */
+
 fun resolveRuntimeStatus(supported: Boolean?, expected: Boolean, actual: Boolean?): ConfigRuntimeStatus = when {
     supported == false -> ConfigRuntimeStatus.UNSUPPORTED
     actual == null -> ConfigRuntimeStatus.UNVERIFIED

@@ -260,7 +260,7 @@ fun ContributorWall(
     }
 }
 
-/** Fades all four edges of the wall so avatars dissolve into the card instead of being cut off. */
+
 private fun Modifier.wallEdgeFade(): Modifier = this
     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
     .drawWithCache {

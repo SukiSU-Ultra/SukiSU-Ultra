@@ -17,14 +17,17 @@ import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.statustag.StatusTag
 import com.sukisu.ultra.ui.util.ExtensionState
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.viewmodel.ExtensionItem
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** Localised card title: catalog copy when known, kernel wire name otherwise. */
+
 @Composable
 internal fun extensionTitle(item: ExtensionItem): String =
-    item.descriptor.titleRes?.let { stringResource(it) } ?: item.wireName
+    item.descriptor.textKey?.let { customText(it) }
+        ?: item.descriptor.titleRes?.let { stringResource(it) }
+        ?: item.wireName
 
 /**
  * One-line-ish description. Cards cap it at two lines, so a known

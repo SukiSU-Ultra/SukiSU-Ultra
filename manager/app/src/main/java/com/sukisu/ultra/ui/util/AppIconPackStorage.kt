@@ -66,7 +66,7 @@ object AppIconPackStorage {
         encodeDefaults = true
     }
 
-    /** Serializes imports and deletes so concurrent index updates cannot drop packs. */
+    
     private val writeLock = Mutex()
 
     suspend fun load(context: Context): List<AppIconPack> = withContext(Dispatchers.IO) {
@@ -251,7 +251,7 @@ object AppIconPackStorage {
         }
     }
 
-    /** Returns null when the entry exceeds [maxBytes] or the remaining archive budget. */
+    
     private fun readLimited(input: InputStream, maxBytes: Long, budget: ReadBudget): ByteArray? {
         val output = ByteArrayOutputStream()
         val buffer = ByteArray(32 * 1024)

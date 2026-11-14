@@ -24,7 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Navigation and CPU spoofing state; the two UIs only own layout and form state. */
+
 @Composable
 fun CpuSpoofScreen() {
     val navigator = LocalNavigator.current

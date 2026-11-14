@@ -53,6 +53,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
 
@@ -66,7 +68,7 @@ fun UmountManagerMaterial(
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.umount_path_manager)) },
+                title = { Text(customText(CustomTextKey.PAGE_UMOUNT)) },
                 navigationIcon = {
                     TopBarBackButton(onClick = actions.onBack)
                 },

@@ -3,7 +3,7 @@ package com.sukisu.ultra.ui.kernelFlash.util
 import android.content.Context
 import java.io.File
 
-/** Shared tools and kernel patching; callers own boot/ZIP packaging and flashing. */
+
 class KpmTools private constructor(
     private val executable: File,
     private val kpimg: File,

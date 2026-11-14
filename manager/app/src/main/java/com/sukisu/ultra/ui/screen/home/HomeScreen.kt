@@ -41,7 +41,10 @@ import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.component.bottombar.BottomBarDestination
+import com.sukisu.ultra.ui.component.dialog.rememberConfirmDialog
 import com.sukisu.ultra.ui.component.dialog.rememberLoadingDialog
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.util.rootAvailable
@@ -101,8 +104,10 @@ fun HomePager(
     val startUpdate: (Boolean) -> Unit = { isCi ->
         scope.launch {
             val hasRoot = withContext(Dispatchers.IO) { rootAvailable() }
+            val installsBlocked = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                !context.packageManager.canRequestPackageInstalls()
             when {
-                !hasRoot && !context.packageManager.canRequestPackageInstalls() -> {
+                !hasRoot && installsBlocked -> {
                     Toast.makeText(context, R.string.ci_update_install_permission, Toast.LENGTH_LONG).show()
                     context.startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                         android.net.Uri.parse("package:${context.packageName}")))
@@ -118,6 +123,11 @@ fun HomePager(
     }
 
     val mainPagerState = LocalMainPagerState.current
+    val themeStoreTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+    val themeStoreConfirmContent = stringResource(R.string.theme_store_open_confirm)
+    val themeStoreConfirmDialog = rememberConfirmDialog(
+        onConfirm = { navigator.push(Route.ThemeStore()) }
+    )
     val actions = HomeActions(
         onInstallClick = { navigator.push(Route.Install()) },
         onSuperuserClick = { mainPagerState.animateToPage(BottomBarDestination.SuperUser.ordinal) },
@@ -126,6 +136,13 @@ fun HomePager(
         onCiUpdateClick = { startUpdate(true) },
         onReleaseUpdateClick = { startUpdate(false) },
         onOpenVersionSpoof = { navigator.push(Route.VersionSpoof) },
+        onOpenAi = { navigator.push(Route.AiAssistant) },
+        onOpenThemeStore = {
+            themeStoreConfirmDialog.showConfirm(
+                title = themeStoreTitle,
+                content = themeStoreConfirmContent,
+            )
+        },
         onJailbreakClick = {
             loadingDialog.showLoading()
             context.startService(Intent(context, MagicaService::class.java))

@@ -77,6 +77,10 @@ fun DynamicManagersScreen() {
                                     info.flags and ApplicationInfo.FLAG_SYSTEM == 0
                                 } == true
                     }
+                    // Dual apps / work profile / extra users report the same package once per
+                    // user with different UIDs; authorization is per-package, and duplicate
+                    // package names crash the LazyColumn with "Key ... was already used".
+                    .distinctBy { it.packageName }
                     .sortedByDescending { it.packageInfo.firstInstallTime }
             }
         } catch (t: Throwable) {

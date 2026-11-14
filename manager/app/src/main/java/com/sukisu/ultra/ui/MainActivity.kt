@@ -1,37 +1,32 @@
 package com.sukisu.ultra.ui
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
-import android.view.View
-import android.view.animation.PathInterpolator
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.core.animation.doOnEnd
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
+import com.sukisu.ultra.ui.component.splash.SplashScreen
+import com.sukisu.ultra.ui.theme.LocalAppBackgroundBackdrop
+import com.sukisu.ultra.ui.theme.LocalAppSettings
+import com.sukisu.ultra.ui.theme.MaterialExpressivePalette
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalCardBackgroundAlpha
+import com.sukisu.ultra.ui.theme.appearanceImageEffects
 import java.io.File
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -65,11 +60,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -96,11 +94,20 @@ import com.sukisu.ultra.ui.navigation3.Navigator
 import com.sukisu.ultra.ui.navigation3.Route
 import com.sukisu.ultra.ui.navigation3.rememberNavigator
 import com.sukisu.ultra.ui.screen.about.AboutScreen
+import com.sukisu.ultra.ai.api.AiFeatureBridge
+import com.sukisu.ultra.ai.host.ManagerAiTarget
 import com.sukisu.ultra.ui.screen.appicon.AppIconScreen
+import com.sukisu.ultra.ui.screen.customtext.CustomTextScreen
+import com.sukisu.ultra.ui.screen.account.AccountScreen
+import com.sukisu.ultra.ui.screen.themestore.ThemeStoreScreen
+import com.sukisu.ultra.ui.screen.themestore.ThemeStoreSourcesScreen
+import com.sukisu.ultra.ui.util.LocalCustomTexts
 import com.sukisu.ultra.ui.screen.appprofile.AppProfileScreen
 import com.sukisu.ultra.ui.screen.backgroundcrop.BackgroundCropScreen
 import com.sukisu.ultra.ui.screen.builtinzygisk.BuiltinZygiskScreen
+import com.sukisu.ultra.ui.screen.colorpalette.AdaptiveThemeBuilderScreen
 import com.sukisu.ultra.ui.screen.colorpalette.ColorPaletteScreen
+import com.sukisu.ultra.ui.screen.appearanceoverlay.AppearanceOverlayScreen
 import com.sukisu.ultra.ui.screen.dynamicmanagers.DynamicManagersScreen
 import com.sukisu.ultra.ui.screen.extensions.ExtensionsScreen
 import com.sukisu.ultra.ui.screen.extensions.CpuSpoofScreen
@@ -123,16 +130,19 @@ import com.sukisu.ultra.ui.screen.susfs.SuSFSScreen
 import com.sukisu.ultra.ui.screen.template.AppProfileTemplateScreen
 import com.sukisu.ultra.ui.screen.templateeditor.TemplateEditorScreen
 import com.sukisu.ultra.ui.screen.umountmanager.UmountManagerScreen
+import com.sukisu.ultra.ui.theme.AiAssistantMaterialTheme
 import com.sukisu.ultra.ui.theme.KernelSUTheme
 import com.sukisu.ultra.ui.theme.LocalColorMode
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
 import com.sukisu.ultra.ui.theme.LocalEnableNavigationBadge
+import com.sukisu.ultra.ui.theme.LocalEnableProgressiveBlur
 import com.sukisu.ultra.ui.theme.LocalModuleDescriptionMaxLines
 import com.sukisu.ultra.ui.util.BackgroundNavTransition
-import com.sukisu.ultra.ui.util.BgStorage
+import com.sukisu.ultra.ui.util.ImageStorage
 import com.sukisu.ultra.ui.util.LocaleHelper
+import com.sukisu.ultra.ui.util.ThemeTrialManager
 import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.install
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
@@ -140,6 +150,7 @@ import com.sukisu.ultra.ui.util.rememberContentReady
 import com.sukisu.ultra.ui.viewmodel.MainActivityViewModel
 import com.sukisu.ultra.ui.viewmodel.MainPagerConfig
 import com.sukisu.ultra.ui.viewmodel.ModuleViewModel
+import com.sukisu.ultra.ui.viewmodel.SettingsViewModel
 import com.sukisu.ultra.ui.viewmodel.SuperUserViewModel
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -149,22 +160,18 @@ import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
 import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import top.yukonga.miuix.kmp.nav.transition.NavTransitions
+import top.yukonga.miuix.kmp.shader.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PagerGestureNestedScrollConnection
 import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
 import top.yukonga.miuix.kmp.utils.PagerNavigationSpringSpec
 import top.yukonga.miuix.kmp.utils.pagerGestureOverride
 import androidx.core.graphics.drawable.toDrawable
+import com.sukisu.ultra.R
 
-private enum class SplashPhase { Covered, Revealing, Done }
 
 class MainActivity : ComponentActivity() {
     private val intentChannel = Channel<Intent>(capacity = Channel.BUFFERED)
-    private var contentReady = false
-    private var splashStartedAt = 0L
-    private val splashAnimationDurationMs = 600L
-    private var splashPhase by mutableStateOf(SplashPhase.Done)
-
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleHelper.wrap(newBase))
@@ -172,58 +179,13 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
-        splashStartedAt = SystemClock.uptimeMillis()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
-        splashScreen.setKeepOnScreenCondition {
-            !contentReady || SystemClock.uptimeMillis() - splashStartedAt < splashAnimationDurationMs
-        }
-        splashScreen.setOnExitAnimationListener { provider ->
-            // iconView is missing when the system splash has no icon (some OEMs, non-launcher starts)
-            val iconView = runCatching { provider.iconView }.getOrNull()
-            val splashView = provider.view
-            splashPhase = SplashPhase.Covered
-
-            // Icon anticipates, then launches forward while the splash fades out over the expanding content
-            val anticipate = AnimatorSet().apply {
-                interpolator = PathInterpolator(0.3f, 0f, 0.2f, 1f)
-                duration = 140L
-                if (iconView != null) {
-                    playTogether(
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_X, 1f, 0.86f),
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 1f, 0.86f),
-                    )
-                }
-                doOnEnd { splashPhase = SplashPhase.Revealing }
-            }
-
-            val launch = AnimatorSet().apply {
-                interpolator = PathInterpolator(0.4f, 0f, 0.6f, 1f)
-                duration = 320L
-                val bgAlpha = ObjectAnimator.ofFloat(splashView, View.ALPHA, 1f, 0f).apply {
-                    startDelay = 40L
-                    duration = 280L
-                }
-                if (iconView != null) {
-                    playTogether(
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_X, 0.86f, 2.6f),
-                        ObjectAnimator.ofFloat(iconView, View.SCALE_Y, 0.86f, 2.6f),
-                        ObjectAnimator.ofFloat(iconView, View.ALPHA, 1f, 0f),
-                        bgAlpha,
-                    )
-                } else {
-                    play(bgAlpha)
-                }
-            }
-
-            AnimatorSet().apply {
-                playSequentially(anticipate, launch)
-                doOnEnd {
-                    provider.remove()
-                    splashPhase = SplashPhase.Done
-                }
-                start()
-            }
+        if (ThemeTrialManager.isActive(this)) {
+            ViewModelProvider(this)[SettingsViewModel::class.java]
+                .restoreThemeTrial(this, taskId)
+        } else {
+            ThemeTrialManager.cleanupOrphan(this)
         }
 
         val isManager = Natives.isManager
@@ -242,6 +204,14 @@ class MainActivity : ComponentActivity() {
             // Pick up launcher wallpaper changes while the "use system wallpaper" option is on.
             LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                 viewModel.refreshSystemWallpaper()
+                // Also covers a mode change that happened while the app was in the background.
+                viewModel.syncAdaptiveTheme(darkMode)
+            }
+
+            // Adaptive theme packages carry a light and a dark half; swap them with the effective
+            // light/dark mode (system-following or a forced app mode).
+            LaunchedEffect(darkMode) {
+                viewModel.syncAdaptiveTheme(darkMode)
             }
 
             DisposableEffect(darkMode) {
@@ -261,34 +231,58 @@ class MainActivity : ComponentActivity() {
                 onDispose { }
             }
 
-            // The splash follows the system night mode, so match it until the exit animation ends
-            val windowDark = if (splashPhase == SplashPhase.Done) darkMode else isSystemInDarkTheme()
-            LaunchedEffect(windowDark) {
+            LaunchedEffect(darkMode) {
                 window.setBackgroundDrawable(
-                    getColor(if (windowDark) android.R.color.background_dark else android.R.color.background_light).toDrawable()
+                    getColor(if (darkMode) android.R.color.background_dark else android.R.color.background_light).toDrawable()
                 )
             }
 
             val navigator = rememberNavigator(Route.Main)
+            val context = LocalContext.current
+            val uriHandler = LocalUriHandler.current
             val systemDensity = LocalDensity.current
             val density = remember(systemDensity, uiState.pageScale) {
                 Density(systemDensity.density * uiState.pageScale, systemDensity.fontScale)
             }
+            // Bars sample the page backdrop, which is transparent wherever the page paints nothing.
+            // Blurring that reads as black, so over a custom background they also need the wallpaper:
+            // capture it here, where only the background image is drawn, and combine it underneath.
+            val appBackgroundBackdrop = rememberLayerBackdrop()
+            // The progressive blur covers both shells and works regardless of the plain bar blur.
+            val progressiveBlurActive = uiState.enableProgressiveBlur && isRuntimeShaderSupported()
+            val captureAppBackground = uiState.customBackgroundUri.isNotEmpty() &&
+                ((uiMode == UiMode.Miuix && uiState.enableBlur) || progressiveBlurActive)
 
+            val themedAppSettings = remember(appSettings, uiState.keyColorOverride) {
+                uiState.keyColorOverride?.let { appSettings.copy(keyColor = it) } ?: appSettings
+            }
             CompositionLocalProvider(
+                LocalUriHandler provides object : UriHandler {
+                    override fun openUri(uri: String) {
+                        try {
+                            uriHandler.openUri(uri)
+                        } catch (_: IllegalArgumentException) {
+                            Toast.makeText(context, R.string.external_link_open_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
                 LocalNavigator provides navigator,
                 LocalDensity provides density,
                 LocalColorMode provides appSettings.colorMode.value,
+                LocalAppSettings provides themedAppSettings,
                 LocalEnableBlur provides uiState.enableBlur,
+                LocalEnableProgressiveBlur provides uiState.enableProgressiveBlur,
                 LocalEnableFloatingBottomBar provides uiState.enableFloatingBottomBar,
                 LocalEnableFloatingBottomBarBlur provides uiState.enableFloatingBottomBarBlur,
                 LocalEnableNavigationBadge provides uiState.enableNavigationBadge,
                 LocalModuleDescriptionMaxLines provides uiState.moduleDescriptionMaxLines,
                 LocalBackgroundImagePath provides uiState.customBackgroundUri,
+                LocalAppBackgroundBackdrop provides appBackgroundBackdrop.takeIf { captureAppBackground },
                 LocalCardBackgroundAlpha provides (uiState.cardBackgroundAlphaPercent / 100f),
                 LocalUiMode provides uiMode,
+                LocalCustomTexts provides uiState.customTexts,
             ) {
-                KernelSUTheme(appSettings = appSettings, uiMode = uiMode) {
+                KernelSUTheme(appSettings = themedAppSettings, uiMode = uiMode) {
                     IntentDispatcher(intentChannel = intentChannel)
                     val swipeDismiss = if (uiState.enableSwipeDismiss) {
                         if (LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) {
@@ -345,7 +339,35 @@ class MainActivity : ComponentActivity() {
                             entry<Route.Main>(swipeDismiss = swipeDismiss) { mainScreenEntry() }
                             entry<Route.About>(swipeDismiss = swipeDismiss) { AboutScreen() }
                             entry<Route.Sulog>(swipeDismiss = swipeDismiss) { SulogScreen() }
-                            entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) { ColorPaletteScreen() }
+                            entry<Route.ColorPalette>(swipeDismiss = swipeDismiss) { key -> ColorPaletteScreen(key.section, key.importUri) }
+                            entry<Route.AppearanceOverlay>(swipeDismiss = swipeDismiss) {
+                                AppearanceOverlayScreen(onBack = { navigator.pop() })
+                            }
+                            entry<Route.CustomTexts>(swipeDismiss = swipeDismiss) { CustomTextScreen() }
+                            entry<Route.ThemeStore>(swipeDismiss = swipeDismiss) { key ->
+                                MaterialExpressivePalette {
+                                    ThemeStoreScreen(initialThemeId = key.themeId, initialSourceBaseUrl = key.sourceBaseUrl)
+                                }
+                            }
+                            entry<Route.ThemeStoreAdaptiveUpload>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette {
+                                    ThemeStoreScreen(startAdaptiveUpload = true)
+                                }
+                            }
+                            entry<Route.ThemeStoreCurrentUpload>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette {
+                                    ThemeStoreScreen(startCurrentUpload = true)
+                                }
+                            }
+                            entry<Route.ThemeStoreSources>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { ThemeStoreSourcesScreen() }
+                            }
+                            entry<Route.ThemeAccount>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { AccountScreen() }
+                            }
+                            entry<Route.AdaptiveThemeBuilder>(swipeDismiss = swipeDismiss) {
+                                MaterialExpressivePalette { AdaptiveThemeBuilderScreen() }
+                            }
                             entry<Route.AppIcon>(swipeDismiss = swipeDismiss) { AppIconScreen() }
                             entry<Route.BackgroundCrop>(swipeDismiss = NavSwipeDirection.None) { key ->
                                 BackgroundCropScreen(key.sourcePath)
@@ -391,7 +413,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                                 entry<Route.Kpm>(swipeDismiss = swipeDismiss)  { KpmScreen() }
-                                entry<Route.SuSFS>(swipeDismiss = swipeDismiss)  { SuSFSScreen() }
+                                entry<Route.SuSFS>(swipeDismiss = swipeDismiss)  { key -> SuSFSScreen(key.tab) }
                                 entry<Route.Tool>(swipeDismiss = swipeDismiss)  { ToolsScreen() }
                                 entry<Route.UmountManager>(swipeDismiss = swipeDismiss)  { UmountManagerScreen() }
                                 entry<Route.KernelModules>(swipeDismiss = swipeDismiss)  { KernelModulesScreen() }
@@ -400,57 +422,79 @@ class MainActivity : ComponentActivity() {
                                 entry<Route.CpuSpoof>(swipeDismiss = swipeDismiss) { CpuSpoofScreen() }
                                 entry<Route.VersionSpoof>(swipeDismiss = swipeDismiss) { VersionSpoofScreen() }
                                 entry<Route.BuiltinZygisk>(swipeDismiss = swipeDismiss) { BuiltinZygiskScreen() }
+                                entry<Route.AiAssistant>(swipeDismiss = swipeDismiss) {
+                                    if (!AiFeatureBridge.isAvailable) {
+                                        LaunchedEffect(Unit) { navigator.pop() }
+                                    } else {
+                                        // The assistant is always MD3; inside the Miuix shell it needs
+                                        // the MD3 colour scheme of the current appearance settings.
+                                        AiAssistantMaterialTheme {
+                                            AiFeatureBridge.ChatScreen(
+                                                onClose = {
+                                                    if (navigator.current() == Route.AiAssistant) navigator.pop()
+                                                },
+                                                onOpenSettings = { navigator.push(Route.AiSettings) },
+                                                onNavigate = { target ->
+                                                    when (target) {
+                                                        is ManagerAiTarget.Tab -> {
+                                                            viewModel.openMainPage(target.pageIndex, target.section)
+                                                            navigator.popUntil { it is Route.Main }
+                                                        }
+
+                                                        is ManagerAiTarget.Push -> navigator.navigateTo(target.route)
+                                                    }
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                                entry<Route.AiSettings>(swipeDismiss = swipeDismiss) {
+                                    if (!AiFeatureBridge.isAvailable) {
+                                        LaunchedEffect(Unit) { navigator.pop() }
+                                    } else {
+                                        AiAssistantMaterialTheme {
+                                            AiFeatureBridge.SettingsScreen(
+                                                onBack = { navigator.pop() },
+                                            )
+                                        }
+                                    }
+                                }
                         }
                     }
 
-                    // Only shrinks while a splash covers it, so skipped splashes and recreations stay full size
-                    val enterProgress = remember { Animatable(1f) }
-                    val splashCovered = splashPhase == SplashPhase.Covered
-                    LaunchedEffect(splashCovered) {
-                        if (splashCovered) {
-                            enterProgress.snapTo(0f)
-                        } else {
-                            enterProgress.animateTo(
-                                targetValue = 1f,
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioNoBouncy,
-                                    stiffness = Spring.StiffnessLow
-                                ),
-                            )
-                        }
+                    var appContentReady by remember { mutableStateOf(false) }
+                    var splashDismissed by remember { mutableStateOf(false) }
+
+                    SideEffect {
+                        if (!appContentReady) appContentReady = true
                     }
 
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                val enterProgress = enterProgress.value
-                                val scale = 0.86f + 0.14f * enterProgress
-                                scaleX = scale
-                                scaleY = scale
-                                if (enterProgress < 1f) {
-                                    shape = RoundedCornerShape(36.dp * (1f - enterProgress))
-                                    clip = true
-                                } else {
-                                    clip = false
-                                }
-                            }
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         val hasCustomBackground = uiState.customBackgroundUri.isNotEmpty()
                         val backgroundBlurRadius = (
-                            BgStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * uiState.customBackgroundBlurPercent / 100f
+                            ImageStorage.BACKGROUND_BLUR_MAX_RADIUS_DP * uiState.customBackgroundBlurPercent / 100f
                         ).dp
+                        val backgroundEffects = themedAppSettings.appearance?.background
                         Crossfade(
+                            modifier = if (captureAppBackground) {
+                                Modifier.layerBackdrop(appBackgroundBackdrop)
+                            } else {
+                                Modifier
+                            },
                             targetState = uiState.customBackgroundUri to uiState.customBackgroundUpdatedAt,
                             label = "global_background",
                         ) { (path, _) ->
                             if (path.isNotEmpty()) {
                                 val context = LocalContext.current
+                                val stamp = File(path).lastModified()
                                 AsyncImage(
                                     model = ImageRequest.Builder(context)
                                         .data(File(path))
                                         .crossfade(true)
-                                        .setParameter("mtime", File(path).lastModified(), memoryCacheKey = null)
+                                        .memoryCacheKey("$path@$stamp")
+                                        .diskCacheKey("$path@$stamp")
                                         .build(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
@@ -462,6 +506,12 @@ class MainActivity : ComponentActivity() {
                                             } else {
                                                 Modifier
                                             }
+                                        )
+                                        // Sharpen after a blur would just fight the blur, so only
+                                        // apply it while the background is unblurred.
+                                        .appearanceImageEffects(
+                                            backgroundEffects,
+                                            allowSharpen = backgroundBlurRadius <= 0.dp,
                                         )
                                 )
                                 val scrimPercent = uiState.customBackgroundScrimPercent
@@ -489,9 +539,15 @@ class MainActivity : ComponentActivity() {
                                 containerColor = if (hasCustomBackground) Color.Transparent else MiuixTheme.colorScheme.surface
                             ) { navDisplay() }
                         }
+
+                        if (!splashDismissed) {
+                            SplashScreen(
+                                isReady = appContentReady,
+                                onDismissed = { splashDismissed = true }
+                            )
+                        }
                     }
                 }
-                SideEffect { contentReady = true }
             }
         }
     }
@@ -514,6 +570,7 @@ fun MainScreen(
 ) {
     val navController = LocalNavigator.current
     val enableBlur = LocalEnableBlur.current
+    val enableProgressiveBlur = LocalEnableProgressiveBlur.current
     val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
     val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
     val useNavigationRail = useNavigationRail(enableFloatingBottomBar)
@@ -522,6 +579,13 @@ fun MainScreen(
         pagerState = pagerState,
         animatePageChanges = !useNavigationRail,
     )
+    // The AI assistant can request a tab from outside MainScreen; follow the
+    // selected page when it changes without a pager gesture.
+    LaunchedEffect(initialPage) {
+        if (pagerState.currentPage != initialPage) {
+            mainPagerState.animateToPage(initialPage)
+        }
+    }
     val isFullFeatured = Natives.isFullFeatured()
     val pagerMode = PagerInterceptionMode.entries.getOrElse(pagerInterceptionMode) {
         PagerInterceptionMode.Native
@@ -591,10 +655,19 @@ fun MainScreen(
         UiMode.Miuix -> MiuixTheme.colorScheme.surface
     }
     // This backdrop only feeds the standard Miuix navigation bar. The floating bars use
-    // `backdrop` for their liquid glass, and Material never consumes it; attaching it there
-    // would record the pager into a full-screen layer every frame with no reader.
-    val needsStandardMiuixBarBackdrop = uiMode == UiMode.Miuix && !enableFloatingBottomBar
-    val blurBackdrop = rememberBlurBackdrop(enableBlur && needsStandardMiuixBarBackdrop)
+    // `backdrop` for their liquid glass or progressive band, so the pager is only recorded into
+    // a full-screen layer when one of those readers is active.
+    val needsStandardMiuixBarBackdrop = uiMode == UiMode.Miuix && !enableFloatingBottomBar &&
+        !useNavigationRail
+    val blurBackdrop = rememberBlurBackdrop(
+        enableBlur = enableBlur && needsStandardMiuixBarBackdrop,
+        allowProgressive = needsStandardMiuixBarBackdrop,
+    )
+    // The floating pills (Material bar, Miuix floating bar) sample this pager layer for their
+    // liquid glass and/or progressive blur. Rail layouts show no bottom bar at all.
+    val needsBottomBarBackdrop = !useNavigationRail &&
+        (uiMode == UiMode.Material || enableFloatingBottomBar) &&
+        (enableFloatingBottomBarBlur || enableProgressiveBlur)
 
     val backdrop = rememberLayerBackdrop {
         if (!hasCustomBackground) {
@@ -630,8 +703,8 @@ fun MainScreen(
                             mode = pagerMode,
                             enabled = userScrollEnabled,
                         )
-                        // Material always floats its bar, so only the glass toggle matters there.
-                        .then(if ((uiMode == UiMode.Material || enableFloatingBottomBar) && enableFloatingBottomBarBlur) Modifier.layerBackdrop(backdrop) else Modifier),
+                        // Material always floats its bar, so only the glass/progressive band matters there.
+                        .then(if (needsBottomBarBackdrop) Modifier.layerBackdrop(backdrop) else Modifier),
                     state = mainPagerState.pagerState,
                     beyondViewportPageCount = if (contentReady) 3 else 0,
                     overscrollEffect = null,

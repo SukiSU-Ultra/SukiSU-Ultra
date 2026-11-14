@@ -35,6 +35,8 @@ import com.sukisu.ultra.ui.component.material.SegmentedColumn
 import com.sukisu.ultra.ui.component.material.SegmentedDropdownItem
 import com.sukisu.ultra.ui.component.material.SegmentedListItem
 import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 
 @Composable
 internal fun TemporaryRootPreferencesMaterial(labels: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
@@ -42,7 +44,7 @@ internal fun TemporaryRootPreferencesMaterial(labels: List<String>, selectedInde
         SegmentedColumn(content = listOf {
             SegmentedDropdownItem(
                 icon = Icons.Outlined.Timer,
-                title = stringResource(R.string.temporary_root_duration_title),
+                title = customText(CustomTextKey.SETTING_TEMPORARY_ROOT_DURATION),
                 summary = stringResource(R.string.temporary_root_duration_summary),
                 items = labels,
                 selectedIndex = selectedIndex,

@@ -9,10 +9,8 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
@@ -35,6 +33,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.DownloadDestination
 import com.sukisu.ultra.ui.util.DownloadManager
 import com.sukisu.ultra.ui.util.DownloadService
 import com.sukisu.ultra.ui.util.resolveDownloadMimeType
@@ -311,7 +310,6 @@ class WebUIDownloadInterface(private val state: WebUIState) {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     @JavascriptInterface
     fun save(base64: String, fileName: String?) {
         val currentWebView = webView ?: return
@@ -324,28 +322,20 @@ class WebUIDownloadInterface(private val state: WebUIState) {
             mimeType = mimeType,
         )
 
-        ensureNotificationChannel(notificationManager, context)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ensureNotificationChannel(notificationManager, context)
+        }
         notificationManager.notify(WEBUI_NOTIFICATION_ID_BASE + downloadId, buildProgressNotification(context, displayName, 0))
 
         scope.launch {
-            var pendingUri: Uri? = null
+            var destination: DownloadDestination? = null
             val savedUri = try {
                 val decoded = Base64.decode(base64, Base64.DEFAULT)
-                val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-                val values = android.content.ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    put(MediaStore.MediaColumns.IS_PENDING, 1)
-                }
-                val uri = context.contentResolver.insert(collection, values)
-                    ?: error("Failed to create download")
-                pendingUri = uri
+                val target = DownloadDestination.create(context, displayName, mimeType)
+                destination = target
                 var lastProgress = -1
                 ByteArrayInputStream(decoded).use { input ->
-                    val output = context.contentResolver.openOutputStream(uri)
-                        ?: error("Failed to open download")
-                    output.use { stream ->
+                    target.openOutputStream().use { stream ->
                         writeWebUIDownload(input, stream) { written ->
                             val progress = if (decoded.isEmpty()) {
                                 100
@@ -363,15 +353,10 @@ class WebUIDownloadInterface(private val state: WebUIState) {
                         }
                     }
                 }
-                val published = android.content.ContentValues().apply {
-                    put(MediaStore.MediaColumns.IS_PENDING, 0)
-                }
-                if (context.contentResolver.update(uri, published, null, null) != 1) {
-                    error("Failed to publish download")
-                }
-                uri
+                target.publish()
+                target.uri
             } catch (throwable: Throwable) {
-                pendingUri?.let { context.contentResolver.delete(it, null, null) }
+                destination?.delete()
                 Log.e("WebUIDownload", "Failed to save $displayName", throwable)
                 DownloadManager.markFailed(downloadId, throwable.message ?: "Unknown error")
                 notificationManager.notify(WEBUI_NOTIFICATION_ID_BASE + downloadId, buildFailureNotification(context, displayName))
@@ -434,6 +419,7 @@ class WebUIDownloadInterface(private val state: WebUIState) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun ensureNotificationChannel(notificationManager: NotificationManager, context: Context) {
         notificationManager.createNotificationChannel(
             NotificationChannel(

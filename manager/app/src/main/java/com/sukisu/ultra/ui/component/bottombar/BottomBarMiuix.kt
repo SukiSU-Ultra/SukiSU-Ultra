@@ -1,44 +1,56 @@
 package com.sukisu.ultra.ui.component.bottombar
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cottage
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sukisu.ultra.Natives
-import com.sukisu.ultra.R
 import com.sukisu.ultra.ui.LocalMainPagerState
 import com.sukisu.ultra.ui.component.FloatingBottomBar
 import com.sukisu.ultra.ui.component.FloatingBottomBarItem
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBar
 import com.sukisu.ultra.ui.theme.LocalEnableFloatingBottomBarBlur
+import com.sukisu.ultra.ui.theme.LocalEnableProgressiveBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import top.yukonga.miuix.kmp.basic.Badge
 import top.yukonga.miuix.kmp.basic.BadgedBox
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.NavigationBar
+import top.yukonga.miuix.kmp.basic.NavigationBarDefaults
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
-import top.yukonga.miuix.kmp.basic.NavigationItem
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.ProgressiveBlur
+import top.yukonga.miuix.kmp.shader.isRuntimeShaderSupported
+import top.yukonga.miuix.kmp.theme.LocalContentColor as MiuixLocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -54,30 +66,45 @@ fun BottomBarMiuix(
     val mainState = LocalMainPagerState.current
     val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
     val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
+    val progressiveBlur = LocalEnableProgressiveBlur.current && isRuntimeShaderSupported()
 
+    val bottomBarIcons = rememberBottomBarIconPaths()
     val items = BottomBarDestination.entries.map { destination ->
-        NavigationItem(
-            label = stringResource(destination.label),
-            icon = destination.icon,
+        Triple(
+            destination,
+            customText(destination.textKey),
+            bottomBarIcons[destination.key],
         )
     }
     if (!enableFloatingBottomBar) {
-        BlurredBar(blurBackdrop) {
+        BlurredBar(blurBackdrop, progressiveGradient = ProgressiveBlur.Bottom) {
             NavigationBar(
                 modifier = modifier,
                 color = if (blurBackdrop != null) Color.Transparent else backgroundAwareColor(MiuixTheme.colorScheme.surface),
                 content = {
-                    items.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            modifier = Modifier.weight(1f),
-                            icon = item.icon,
-                            label = item.label,
-                            selected = mainState.selectedPage == index,
-                            onClick = {
-                                mainState.animateToPage(index)
-                            },
-                            badge = navigationBadgeFor(index, navigationBadge),
-                        )
+                    items.forEachIndexed { index, (destination, label, iconPath) ->
+                        val selected = mainState.selectedPage == index
+                        if (iconPath.isNullOrBlank()) {
+                            NavigationBarItem(
+                                modifier = Modifier.weight(1f),
+                                icon = destination.icon,
+                                label = label,
+                                selected = selected,
+                                onClick = {
+                                    mainState.animateToPage(index)
+                                },
+                                badge = navigationBadgeFor(index, navigationBadge),
+                            )
+                        } else {
+                            MiuixCustomNavigationBarItem(
+                                selected = selected,
+                                onClick = { mainState.animateToPage(index) },
+                                icon = destination.icon,
+                                iconPath = iconPath,
+                                label = label,
+                                badge = navigationBadgeFor(index, navigationBadge),
+                            )
+                        }
                     }
                 }
             )
@@ -96,8 +123,9 @@ fun BottomBarMiuix(
             backdrop = backdrop,
             tabsCount = items.size,
             isBlurEnabled = enableFloatingBottomBarBlur,
+            progressiveBlur = progressiveBlur,
         ) { activateTab ->
-            items.forEachIndexed { index, item ->
+            items.forEachIndexed { index, (destination, label, iconPath) ->
                 FloatingBottomBarItem(
                     selected = mainState.selectedPage == index,
                     onClick = {
@@ -109,9 +137,11 @@ fun BottomBarMiuix(
                     // can recolor them to the accent tone inside the indicator pill.
                     val badge = navigationBadgeFor(index, navigationBadge, floating = true)
                     val icon: @Composable () -> Unit = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.label,
+                        BottomBarIconContent(
+                            icon = destination.icon,
+                            iconPath = iconPath,
+                            contentDescription = label,
+                            tint = MiuixLocalContentColor.current,
                         )
                     }
                     if (badge != null) {
@@ -120,12 +150,12 @@ fun BottomBarMiuix(
                         icon()
                     }
                     Text(
-                        text = item.label,
+                        text = label,
                         fontSize = 11.sp,
                         lineHeight = 14.sp,
                         maxLines = 1,
                         softWrap = false,
-                        overflow = TextOverflow.Visible
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -133,14 +163,73 @@ fun BottomBarMiuix(
     }
 }
 
-enum class BottomBarDestination(
-    @get:StringRes val label: Int,
-    val icon: ImageVector,
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.MiuixCustomNavigationBarItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    iconPath: String,
+    label: String,
+    badge: (@Composable () -> Unit)?,
 ) {
-    Home(R.string.home, Icons.Rounded.Cottage),
-    SuperUser(R.string.superuser, Icons.Rounded.Security),
-    Module(R.string.module, Icons.Rounded.Extension),
-    Setting(R.string.settings, Icons.Rounded.Settings)
+    val tint = MiuixTheme.colorScheme.onSurfaceContainer.copy(
+        alpha = if (selected) 1f else NavigationBarDefaults.UnselectedAlpha,
+    )
+    val interactionSource = remember { MutableInteractionSource() }
+    Column(
+        modifier = Modifier
+            .height(NavigationBarDefaults.ItemHeight)
+            .weight(1f)
+            .selectable(
+                selected = selected,
+                interactionSource = interactionSource,
+                indication = null,
+                role = Role.Tab,
+                onClick = onClick,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top,
+    ) {
+        Box(modifier = Modifier.padding(top = NavigationBarDefaults.IconTopPadding)) {
+            if (badge != null) {
+                BadgedBox(badge = { badge() }) {
+                    BottomBarIconContent(
+                        icon = icon,
+                        iconPath = iconPath,
+                        contentDescription = null,
+                        tint = tint,
+                        size = NavigationBarDefaults.IconSize,
+                    )
+                }
+            } else {
+                BottomBarIconContent(
+                    icon = icon,
+                    iconPath = iconPath,
+                    contentDescription = null,
+                    tint = tint,
+                    size = NavigationBarDefaults.IconSize,
+                )
+            }
+        }
+        Text(
+            text = label,
+            color = tint,
+            fontSize = NavigationBarDefaults.LabelFontSize,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.padding(bottom = NavigationBarDefaults.BottomPadding),
+        )
+    }
+}
+
+enum class BottomBarDestination(
+    val textKey: CustomTextKey,
+    val icon: ImageVector,
+    val key: String,
+) {
+    Home(CustomTextKey.PAGE_HOME, Icons.Rounded.Cottage, "home"),
+    SuperUser(CustomTextKey.PAGE_SUPERUSER, Icons.Rounded.Security, "superuser"),
+    Module(CustomTextKey.PAGE_MODULES, Icons.Rounded.Extension, "module"),
+    Setting(CustomTextKey.PAGE_SETTINGS, Icons.Rounded.Settings, "setting")
 }
 
 internal fun navigationBadgeFor(

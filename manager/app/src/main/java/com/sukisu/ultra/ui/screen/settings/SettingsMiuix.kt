@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.automirrored.rounded.Rule
@@ -37,6 +39,7 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
+import com.sukisu.ultra.ui.component.Storefront
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Settings
@@ -48,6 +51,7 @@ import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -67,8 +71,12 @@ import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
+import com.sukisu.ultra.ui.viewmodel.MainPageRequest
+import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -89,9 +97,24 @@ fun SettingPagerMiuix(
     uiState: SettingsUiState,
     actions: SettingsScreenActions,
     bottomInnerPadding: Dp,
+    sectionRequest: MainPageRequest? = null,
+    onSectionConsumed: (Long) -> Unit = {},
 ) {
     val scrollBehavior = MiuixScrollBehavior()
     val context = LocalContext.current
+    val anchorRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
+    fun requester(anchor: String): BringIntoViewRequester =
+        anchorRequesters.getOrPut(anchor) { BringIntoViewRequester() }
+
+    LaunchedEffect(sectionRequest?.token) {
+        val request = sectionRequest ?: return@LaunchedEffect
+        delay(120)
+        val anchor = SettingsSection.normalize(request.section)
+        val target = anchorRequesters[SettingsSection.cardFor(anchor)]
+            ?: anchorRequesters[SettingsSection.GENERAL]
+        target?.bringIntoView()
+        onSectionConsumed(request.token)
+    }
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val blurActive = backdrop != null
@@ -107,7 +130,7 @@ fun SettingPagerMiuix(
             BlurredBar(backdrop = backdrop, scrollBehavior = scrollBehavior) {
                 TopAppBar(
                     color = Color.Transparent,
-                    title = stringResource(R.string.settings),
+                    title = customText(CustomTextKey.PAGE_SETTINGS),
                     scrollBehavior = scrollBehavior
                 )
             }
@@ -129,19 +152,20 @@ fun SettingPagerMiuix(
                 item {
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(requester(SettingsSection.GENERAL))
                             .padding(top = 12.dp)
                             .fillMaxWidth(),
                         colors = backgroundAwareCardColors(),
                     ) {
                         OverlayDropdownPreference(
-                            title = stringResource(id = R.string.settings_ui_mode),
+                            title = customText(CustomTextKey.SETTING_UI_MODE),
                             summary = stringResource(id = R.string.settings_ui_mode_summary),
                             items = UiMode.entries.map { it.name },
                             startAction = {
                                 Icon(
                                     Icons.Rounded.DisplaySettings,
                                     modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.settings_ui_mode),
+                                    contentDescription = customText(CustomTextKey.SETTING_UI_MODE),
                                     tint = colorScheme.onBackground
                                 )
                             },
@@ -154,32 +178,47 @@ fun SettingPagerMiuix(
                             languageTags.map { if (it.isEmpty()) languageSystemLabel else LocaleHelper.displayName(it) }
                         }
                         OverlayDropdownPreference(
-                            title = stringResource(id = R.string.settings_language),
+                            title = customText(CustomTextKey.SETTING_LANGUAGE),
                             summary = stringResource(id = R.string.settings_language_summary),
                             items = languageNames,
                             startAction = {
                                 Icon(
                                     Icons.Rounded.Language,
                                     modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.settings_language),
+                                    contentDescription = customText(CustomTextKey.SETTING_LANGUAGE),
                                     tint = colorScheme.onBackground
                                 )
                             },
                             selectedIndex = languageTags.indexOf(uiState.appLanguage).coerceAtLeast(0),
                             onSelectedIndexChange = { index -> actions.onSetLanguage(languageTags[index]) }
                         )
+                        val themeTitle = customText(CustomTextKey.PAGE_APPEARANCE)
                         ArrowPreference(
-                            title = stringResource(id = R.string.settings_theme),
+                            title = themeTitle,
                             summary = stringResource(id = R.string.settings_theme_summary),
                             startAction = {
                                 Icon(
                                     Icons.Rounded.Palette,
                                     modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.settings_theme),
+                                    contentDescription = themeTitle,
                                     tint = colorScheme.onBackground
                                 )
                             },
                             onClick = actions.onOpenTheme
+                        )
+                        val themeStoreTitle = customText(CustomTextKey.PAGE_THEME_STORE)
+                        ArrowPreference(
+                            title = themeStoreTitle,
+                            summary = stringResource(id = R.string.theme_store_summary),
+                            startAction = {
+                                Icon(
+                                    Icons.Rounded.Storefront,
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    contentDescription = themeStoreTitle,
+                                    tint = colorScheme.onBackground
+                                )
+                            },
+                            onClick = actions.onOpenThemeStore
                         )
 
                     }
@@ -187,11 +226,12 @@ fun SettingPagerMiuix(
                     KsuIsValid {
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.PROFILE_TEMPLATES))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
                         ) {
-                            val profileTemplate = stringResource(id = R.string.settings_profile_template)
+                            val profileTemplate = customText(CustomTextKey.PAGE_TEMPLATE)
                             ArrowPreference(
                                 title = profileTemplate,
                                 summary = stringResource(id = R.string.settings_profile_template_summary),
@@ -207,10 +247,13 @@ fun SettingPagerMiuix(
                             )
                         }
                         AppCard(
-                            modifier = Modifier.padding(top = 12.dp).fillMaxWidth(),
+                            modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.EXTENSIONS))
+                                .padding(top = 12.dp)
+                                .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
                         ) {
-                            val extensionsTitle = stringResource(R.string.extension_section_title)
+                            val extensionsTitle = customText(CustomTextKey.PAGE_EXTENSIONS)
                             ArrowPreference(
                                 title = extensionsTitle,
                                 summary = stringResource(R.string.extension_section_summary),
@@ -225,9 +268,10 @@ fun SettingPagerMiuix(
                                 onClick = actions.onOpenExtensions
                             )
                         }
-                        val toolsTitle = stringResource(id = R.string.settings_tools)
+                        val toolsTitle = customText(CustomTextKey.PAGE_TOOLS)
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.TOOLS))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -248,7 +292,13 @@ fun SettingPagerMiuix(
                                 }
                             )
                         }
-                        TemporaryRootPreferences()
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .bringIntoViewRequester(requester(SettingsSection.TEMPORARY_ROOT))
+                        ) {
+                            TemporaryRootPreferences()
+                        }
                     }
 
                     KsuIsValid {
@@ -260,6 +310,7 @@ fun SettingPagerMiuix(
 
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.SECURITY))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
@@ -271,14 +322,14 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_sucompat_summary)
                             }
                             OverlayDropdownPreference(
-                                title = stringResource(id = R.string.settings_sucompat),
+                                title = customText(CustomTextKey.SETTING_SUCOMPAT),
                                 summary = suSummary,
                                 items = suCompatModeItems,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.AdminPanelSettings,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_sucompat),
+                                        contentDescription = customText(CustomTextKey.SETTING_SUCOMPAT),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -294,13 +345,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_kernel_umount_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_kernel_umount),
+                                title = customText(CustomTextKey.SETTING_KERNEL_UMOUNT),
                                 summary = umountSummary,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.LayersClear,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_kernel_umount),
+                                        contentDescription = customText(CustomTextKey.SETTING_KERNEL_UMOUNT),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -316,13 +367,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_selinux_hide_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_selinux_hide),
+                                title = customText(CustomTextKey.SETTING_SELINUX_HIDE),
                                 summary = selinuxHideSummary,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.Security,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_selinux_hide),
+                                        contentDescription = customText(CustomTextKey.SETTING_SELINUX_HIDE),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -338,13 +389,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(R.string.settings_avc_spoof_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(R.string.settings_avc_spoof),
+                                title = customText(CustomTextKey.SETTING_AVC_SPOOF),
                                 summary = avcSummary,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.Security,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(R.string.settings_avc_spoof),
+                                        contentDescription = customText(CustomTextKey.SETTING_AVC_SPOOF),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -360,13 +411,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_mount_hide_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_mount_hide),
+                                title = customText(CustomTextKey.SETTING_MOUNT_HIDE),
                                 summary = mountHideSummary,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.Policy,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_mount_hide),
+                                        contentDescription = customText(CustomTextKey.SETTING_MOUNT_HIDE),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -382,13 +433,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_sulog_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_sulog),
+                                title = customText(CustomTextKey.SETTING_SULOG),
                                 summary = sulogSummary,
                                 startAction = {
                                     Icon(
                                         Icons.AutoMirrored.Rounded.Article,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_sulog),
+                                        contentDescription = customText(CustomTextKey.SETTING_SULOG),
                                         tint = if (uiState.sulogStatus == "supported") colorScheme.onBackground else colorScheme.disabledOnSecondaryVariant
                                     )
                                 },
@@ -404,13 +455,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_adb_root_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_adb_root),
+                                title = customText(CustomTextKey.SETTING_ADB_ROOT),
                                 summary = adbRootSummary,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.Adb,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_adb_root),
+                                        contentDescription = customText(CustomTextKey.SETTING_ADB_ROOT),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -426,13 +477,13 @@ fun SettingPagerMiuix(
                                 else -> stringResource(id = R.string.settings_shell_su_adb_only_summary)
                             }
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_shell_su_adb_only),
+                                title = customText(CustomTextKey.SETTING_SHELL_SU),
                                 summary = shellSuAdbOnlySummary,
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.VerifiedUser,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_shell_su_adb_only),
+                                        contentDescription = customText(CustomTextKey.SETTING_SHELL_SU),
                                         tint = if (uiState.shellSuAdbOnlyStatus == "supported") colorScheme.onBackground else colorScheme.disabledOnSecondaryVariant
                                     )
                                 },
@@ -441,13 +492,13 @@ fun SettingPagerMiuix(
                                 onCheckedChange = actions.onSetShellSuAdbOnlyEnabled
                             )
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_soft_reboot),
+                                title = customText(CustomTextKey.SETTING_SOFT_REBOOT),
                                 summary = stringResource(id = R.string.settings_soft_reboot_summary),
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.RestartAlt,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_soft_reboot),
+                                        contentDescription = customText(CustomTextKey.SETTING_SOFT_REBOOT),
                                         tint = if (uiState.isLateLoadMode) colorScheme.disabledOnSecondaryVariant else colorScheme.onBackground
                                     )
                                 },
@@ -459,18 +510,19 @@ fun SettingPagerMiuix(
 
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.MODULE_BEHAVIOUR))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
                         ) {
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_umount_modules_default),
+                                title = customText(CustomTextKey.SETTING_UMOUNT_MODULES_DEFAULT),
                                 summary = stringResource(id = R.string.settings_umount_modules_default_summary),
                                 startAction = {
                                     Icon(
                                         Icons.AutoMirrored.Rounded.Rule,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_umount_modules_default),
+                                        contentDescription = customText(CustomTextKey.SETTING_UMOUNT_MODULES_DEFAULT),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -479,13 +531,13 @@ fun SettingPagerMiuix(
                             )
 
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_auto_delete_module_zip),
+                                title = customText(CustomTextKey.SETTING_AUTO_DELETE_MODULE_ZIP),
                                 summary = stringResource(id = R.string.settings_auto_delete_module_zip_summary),
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.Delete,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_auto_delete_module_zip),
+                                        contentDescription = customText(CustomTextKey.SETTING_AUTO_DELETE_MODULE_ZIP),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -493,13 +545,27 @@ fun SettingPagerMiuix(
                                 onCheckedChange = actions.onSetAutoDeleteModuleZip
                             )
                             SwitchPreference(
-                                title = stringResource(id = R.string.enable_web_debugging),
+                                title = customText(CustomTextKey.SETTING_AUTO_DELETE_UPDATE_APK),
+                                summary = stringResource(id = R.string.settings_auto_delete_update_apk_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Delete,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = customText(CustomTextKey.SETTING_AUTO_DELETE_UPDATE_APK),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = uiState.autoDeleteUpdateApk,
+                                onCheckedChange = actions.onSetAutoDeleteUpdateApk
+                            )
+                            SwitchPreference(
+                                title = customText(CustomTextKey.SETTING_WEB_DEBUGGING),
                                 summary = stringResource(id = R.string.enable_web_debugging_summary),
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.DeveloperMode,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.enable_web_debugging),
+                                        contentDescription = customText(CustomTextKey.SETTING_WEB_DEBUGGING),
                                         tint = colorScheme.onBackground
                                     )
                                 },
@@ -507,13 +573,13 @@ fun SettingPagerMiuix(
                                 onCheckedChange = actions.onSetEnableWebDebugging
                             )
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_auto_jailbreak),
+                                title = customText(CustomTextKey.SETTING_AUTO_JAILBREAK),
                                 summary = stringResource(id = R.string.settings_auto_jailbreak_summary),
                                 startAction = {
                                     Icon(
                                         Icons.Rounded.FlashOn,
                                         modifier = Modifier.padding(end = 6.dp),
-                                        contentDescription = stringResource(id = R.string.settings_auto_jailbreak),
+                                        contentDescription = customText(CustomTextKey.SETTING_AUTO_JAILBREAK),
                                         tint = if (uiState.isLateLoadMode) colorScheme.onBackground else colorScheme.disabledOnSecondaryVariant
                                     )
                                 },
@@ -559,11 +625,12 @@ fun SettingPagerMiuix(
                     if (uiState.isLkmMode) {
                         AppCard(
                             modifier = Modifier
+                                .bringIntoViewRequester(requester(SettingsSection.UNINSTALL))
                                 .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             colors = backgroundAwareCardColors(),
                         ) {
-                            val uninstall = stringResource(id = R.string.settings_uninstall)
+                            val uninstall = customText(CustomTextKey.SETTING_UNINSTALL)
                             ArrowPreference(
                                 title = uninstall,
                                 enabled = !uiState.isLateLoadMode,
@@ -586,17 +653,18 @@ fun SettingPagerMiuix(
 
                     AppCard(
                         modifier = Modifier
+                            .bringIntoViewRequester(requester(SettingsSection.DIAGNOSTICS))
                             .padding(vertical = 12.dp)
                             .fillMaxWidth(),
                         colors = backgroundAwareCardColors(),
                     ) {
                         ArrowPreference(
-                            title = stringResource(id = R.string.send_log),
+                            title = customText(CustomTextKey.SETTING_SEND_LOG),
                             startAction = {
                                 Icon(
                                     Icons.Rounded.BugReport,
                                     modifier = Modifier.padding(end = 6.dp),
-                                    contentDescription = stringResource(id = R.string.send_log),
+                                    contentDescription = customText(CustomTextKey.SETTING_SEND_LOG),
                                     tint = colorScheme.onBackground
                                 )
                             },
@@ -607,7 +675,7 @@ fun SettingPagerMiuix(
                             onDismissRequest = { showSendLogDialog.value = false },
                             loadingDialog = loadingDialog
                         )
-                        val about = stringResource(id = R.string.about)
+                        val about = customText(CustomTextKey.PAGE_ABOUT)
                         ArrowPreference(
                             title = about,
                             startAction = {

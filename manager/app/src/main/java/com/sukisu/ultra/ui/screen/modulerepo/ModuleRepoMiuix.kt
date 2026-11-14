@@ -64,6 +64,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -166,7 +168,7 @@ fun ModuleRepoScreenMiuix(
                 searchStatus.TopAppBarAnim(backgroundColor = barColor) {
                     TopAppBar(
                         color = barColor,
-                        title = stringResource(R.string.module_repos),
+                        title = customText(CustomTextKey.PAGE_MODULE_REPO),
                         actions = {
                             val showSortPopup = remember { mutableStateOf(false) }
                             OverlayListPopup(
@@ -547,7 +549,7 @@ private fun RepoSummaryText(module: RepoModule, onModuleClick: () -> Unit) {
     )
 }
 
-/** Star icon + compact count; nothing when the count is unknown or 0. */
+
 @Composable
 private fun RepoStarsMiuix(stars: Int?, modifier: Modifier = Modifier) {
     if (stars == null || stars <= 0) return
@@ -620,7 +622,7 @@ private fun RepoBadgesMiuix(
     }
 }
 
-/** Loading / not-in-index / failure placeholder; returns true when the page content can be shown. */
+
 @Composable
 private fun LazyItemScope.detailStatusMiuix(state: ModuleRepoDetailUiState, onRetry: () -> Unit): Boolean {
     when {
@@ -670,7 +672,7 @@ private fun LazyItemScope.detailStatusMiuix(state: ModuleRepoDetailUiState, onRe
     return false
 }
 
-/** The detail is the last good cached copy because it could not be refreshed. */
+
 @Composable
 private fun CachedDetailNoticeMiuix(modifier: Modifier = Modifier) {
     Text(

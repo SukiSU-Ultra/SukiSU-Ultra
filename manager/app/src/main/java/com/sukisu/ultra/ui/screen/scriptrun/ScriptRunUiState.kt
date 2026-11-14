@@ -8,15 +8,15 @@ import com.sukisu.ultra.data.script.ParamError
 import com.sukisu.ultra.data.script.PreparedScript
 import com.sukisu.ultra.data.script.ScriptRunRecord
 
-/** Navigation argument of the script run page. */
+
 @Parcelize
 data class ScriptRunArg(
     val uri: Uri,
-    /** Registry flow: the ZIP must be a verified registry download with this module.prop id. */
+    
     val registryId: String? = null,
-    /** Local ZIP from "install from storage": also offer installing it as a module. */
+    
     val offerInstall: Boolean = false,
-    /** Shown in the title area until module.prop has been read. */
+    
     val displayName: String? = null,
 ) : Parcelable
 
@@ -34,9 +34,9 @@ data class ScriptRunUiState(
     val displayName: String? = null,
     val offerInstall: Boolean = false,
     val prepared: PreparedScript? = null,
-    /** Localized reason the script cannot be run (phase FAILED). */
+    
     val error: String? = null,
-    /** Current input per param key. */
+    
     val values: Map<String, String> = emptyMap(),
     val errors: Map<String, ParamError> = emptyMap(),
     val lastRun: ScriptRunRecord? = null,

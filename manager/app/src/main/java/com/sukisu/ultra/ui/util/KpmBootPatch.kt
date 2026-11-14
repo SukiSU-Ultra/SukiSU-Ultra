@@ -9,7 +9,7 @@ import com.topjohnwu.superuser.CallbackList
 import java.io.File
 import java.nio.file.Files
 
-/** Independent from LKM ramdisk patching: init_boot must never be used here. */
+
 fun patchKpmBoot(
     uri: Uri?,
     onStdout: (String) -> Unit,

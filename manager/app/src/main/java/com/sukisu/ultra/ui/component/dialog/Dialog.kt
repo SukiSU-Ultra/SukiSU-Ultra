@@ -36,7 +36,7 @@ interface ConfirmDialogVisuals : Parcelable {
     val confirm: String?
     val dismiss: String?
 
-    /** Registry-hosted content: rendered with JavaScript off and network locked to the registry. */
+    
     val isRestricted: Boolean get() = false
 }
 

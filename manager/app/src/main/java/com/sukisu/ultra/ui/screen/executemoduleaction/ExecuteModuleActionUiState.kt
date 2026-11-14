@@ -6,9 +6,9 @@ import androidx.compose.runtime.Immutable
 data class ExecuteModuleActionUiState(
     val text: String,
     val isComplete: Boolean = false,
-    /** Top bar title; defaults to "Action". */
+    
     val title: String? = null,
-    /** Outcome shown below the output once complete (one-shot scripts). */
+    
     val resultNotice: ActionResultNotice? = null,
 )
 

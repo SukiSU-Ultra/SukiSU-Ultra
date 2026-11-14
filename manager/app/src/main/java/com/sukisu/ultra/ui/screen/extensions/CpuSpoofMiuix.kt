@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
+import com.sukisu.ultra.ui.util.CustomTextKey
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.screen.settings.tools.SpoofCpuParams
@@ -70,7 +72,7 @@ internal fun CpuSpoofMiuix(s: CpuSpoofState, a: CpuSpoofActions) {
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
-                    title = stringResource(R.string.spoof_cpu_dialog_title),
+                    title = customText(CustomTextKey.EXTENSION_CPU_SPOOF),
                     color = barColor,
                     navigationIcon = {
                         IconButton(onClick = a.onBack) {

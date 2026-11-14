@@ -49,16 +49,61 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object Sulog : Route
 
+    
     @Parcelize
     @Serializable
-    data object ColorPalette : Route
+    data class ColorPalette(
+        val section: String? = null,
+        
+        val importUri: String? = null,
+    ) : Route
 
-    /** Launcher icon picker and icon pack manager. */
+    @Parcelize
+    @Serializable
+    data object AppearanceOverlay : Route
+
+    @Parcelize
+    @Serializable
+    data object CustomTexts : Route
+
+    
+    @Parcelize
+    @Serializable
+    data class ThemeStore(
+        val themeId: String? = null,
+        val sourceBaseUrl: String? = null,
+    ) : Route
+
+    
+    @Parcelize
+    @Serializable
+    data object ThemeStoreAdaptiveUpload : Route
+
+    @Parcelize
+    @Serializable
+    data object ThemeStoreCurrentUpload : Route
+
+    
+    @Parcelize
+    @Serializable
+    data object ThemeStoreSources : Route
+
+    
+    @Parcelize
+    @Serializable
+    data class ThemeAccount(val tab: String? = null) : Route
+
+    
+    @Parcelize
+    @Serializable
+    data object AdaptiveThemeBuilder : Route
+
+    
     @Parcelize
     @Serializable
     data object AppIcon : Route
 
-    /** In-app background cropper. [sourcePath] is a private cache copy of the picked image. */
+    
     @Parcelize
     @Serializable
     data class BackgroundCrop(val sourcePath: String) : Route
@@ -110,9 +155,10 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object Kpm: Route
 
+    
     @Parcelize
     @Serializable
-    data object SuSFS: Route
+    data class SuSFS(val tab: String? = null): Route
 
     @Parcelize
     @Serializable
@@ -122,7 +168,7 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object UmountManager: Route
 
-    /** Kernel module blacklist (block_modules=) overview. */
+    
     @Parcelize
     @Serializable
     data object KernelModules : Route
@@ -131,17 +177,17 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object DynamicManagers : Route
 
-    /** Extension subsystem overview (KPM, CPU spoof, umount paths, dynamic manager). */
+    
     @Parcelize
     @Serializable
     data object Extensions : Route
 
-    /** CPU identity spoofing detail form. */
+    
     @Parcelize
     @Serializable
     data object CpuSpoof : Route
 
-    /** KernelSU reported-version overrides detail page. */
+    
     @Parcelize
     @Serializable
     data object VersionSpoof : Route
@@ -149,4 +195,13 @@ sealed interface Route : NavKey, Parcelable {
     @Parcelize
     @Serializable
     data object BuiltinZygisk : Route
+    
+    @Parcelize
+    @Serializable
+    data object AiAssistant : Route
+
+    
+    @Parcelize
+    @Serializable
+    data object AiSettings : Route
 }

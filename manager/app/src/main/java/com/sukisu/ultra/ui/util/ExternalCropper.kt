@@ -26,7 +26,7 @@ object ExternalCropper {
     private const val ACTION_CROP = "com.android.camera.action.CROP"
     private const val MAX_EXTERNAL_OUTPUT = 2560
 
-    /** Vendor galleries first, so the system does not hand the job to a random editor. */
+    
     private val PREFERRED_PACKAGES = listOf(
         "com.miui.gallery",
         "com.coloros.gallery3d",

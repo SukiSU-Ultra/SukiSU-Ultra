@@ -88,6 +88,8 @@ import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
 import com.sukisu.ultra.ui.theme.isInDarkTheme
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.customText
+import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.ownerNameForUid
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.viewmodel.AppSortType
@@ -198,7 +200,7 @@ fun SuperUserPagerMiuix(
                 searchStatus.TopAppBarAnim(backgroundColor = Color.Transparent) {
                     TopAppBar(
                         color = Color.Transparent,
-                        title = stringResource(R.string.superuser),
+                        title = customText(CustomTextKey.PAGE_SUPERUSER),
                         navigationIcon = {
                             IconButton(
                                 onClick = actions.onOpenSulog,
