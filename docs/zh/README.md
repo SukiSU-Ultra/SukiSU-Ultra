@@ -1,48 +1,42 @@
-# SukiSU Ultra
-<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+# SukiSU Nova
+<img align='right' src='SukiSU-mini.svg' width='220px' alt="SukiSU Nova logo">
 
-> 当前分支：`main`（活跃开发中）· 基于 KernelSU 分叉，独立演进
+**简体中文** [English](./README.md) |
 
-**简体中文** [English](../README.md) | 
+一个 Android 上基于内核的 root 方案，由 [`tiann/KernelSU`](https://github.com/tiann/KernelSU) 进化而来，添加了一些有趣的变更。
 
-一个 Android 上基于内核的 root 方案，由 [`tiann/KernelSU`](https://github.com/tiann/KernelSU) 分叉而来，添加了一些有趣的变更。
-
-[![最新发行](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases/latest)
+[![最新发行](https://img.shields.io/github/v/release/SukiSU-Nova/SukiSU-Nova?label=Release&logo=github)](https://github.com/SukiSU-Nova/SukiSU-Nova/releases/latest)
 [![频道](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/Sukiksu)
-[![协议: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![GitHub 协议](https://img.shields.io/github/license/SukiSU-Ultra/SukiSU-Ultra?logo=gnu)](/LICENSE)
+[![协议: GPL 3.0 or later](https://img.shields.io/badge/License-GPL%203.0%20or%20later-orange.svg?logo=gnu)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![GitHub 协议](https://img.shields.io/github/license/SukiSU-Nova/SukiSU-Nova?logo=gnu)](/LICENSE)
 
 ## 特性
 
 1. 基于内核的 `su` 和权限管理。
 2. [App Profile](https://sukisu.org/zh/guide/app-profile)：把 Root 权限关进笼子里。
-3. 支持 non-GKI 与 GKI 1.0。
-4. KPM 支持。
-5. 内置 susfs 管理工具，支持一键配置 root 隐藏；管理器主题可自定义。
+3. KPM 支持。
+4. 内置 Zygisk（NyaZygisk），无需另装 Zygisk 模块，首页直接显示运行状态。
+5. 主题商店：浏览、安装、投稿主题，支持多来源镜像、作者授权与审核。
+6. 内核扩展中心：CPU/vvar 伪装、AVC 日志伪装、版本伪装、SUSFS 与挂载视图隐藏，集中在一个入口。
+7. 内置 SUSFS 管理工具，支持一键配置 Root 隐藏。
+8. Miuix / Material 3 Expressive 双界面；支持 Miuix 开屏、模块横幅与排序、临时 Root 授权与无内核预览。
 
 ## 兼容状态
 
-- SukiSU Ultra 支持 GKI 2.0 设备（内核版本 5.10 以上）。
+- SukiSU Nova 支持 GKI 2.0 设备（内核版本 5.10 以上）。
 - 旧内核也可兼容（最低 4.14+），但需要自行编译内核。
 - 通过更多反向移植，可支持 3.x 内核（3.4–3.18）。
-- 目前支持架构：`arm64-v8a`、`armeabi-v7a (bare)`、`X86_64`。
+- 目前支持架构：`arm64-v8a`、`armeabi-v7a (bare)`、`X86_64`、`riscv64`。
 - **注意**：本项目自 `tiann/KernelSU` 分叉后独立演进，兼容性以本仓库实测为准，不再等同于 KernelSU 官方支持范围。
 
-## 安装指导
-
-根据你的设备选择安装方式：
+## 内核兼容性状态
 
 | 场景 | 方式 | 说明 |
 |------|------|------|
-| GKI 设备（内核 5.10+） | 刷入 boot 镜像 | 详见 [`guide/installation.md`](guide/installation.md) |
-| 非 GKI / 旧内核（4.14+） | 手动编译内核 | 详见 [`guide/how-to-integrate.md`](guide/how-to-integrate.md) |
+| GKI 设备（内核 5.10+） | 推荐使用LKM模式
+| 非 GKI / 旧内核（3.0+） | 手动编译内核 | 请参考网站集成指南
 | 需要使用 KPM 功能 | 需开启 `CONFIG_KPM=y` | 见下方「KPM 支持」 |
 
-详细步骤见 [`guide/installation.md`](guide/installation.md)。
-
-## 集成指导
-
-查看 [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
 
 ## KPM 支持
 
@@ -50,7 +44,7 @@
 
 **当前状态**：
 - ✅ 基础 KPM 加载已可用（需开启 `CONFIG_KPM=y`）
-- 🚧 APatch 兼容性扩展进行中（部分功能尚未合并）
+- 🚧 APatch 兼容层仍在补齐（部分功能尚未合并）
 - ⚠️ Non-GKI 设备需额外开启 `CONFIG_KALLSYMS=y` 和 `CONFIG_KALLSYMS_ALL=y`
 - ⚠️ 内核低于 4.19 需从 4.19 的 `set_memory.h` 反向移植
 
@@ -59,21 +53,18 @@
 
 ## 故障排除
 
-1. **卸载管理器后系统卡住？**  
-   卸载 `_com.sony.playmemories.mobile_`。
-
-2. **KPM 加载失败？**  
+1. **KPM 加载失败？**  
    确认内核已开启 `CONFIG_KPM=y`；Non-GKI 设备还需 `CONFIG_KALLSYMS=y` 和 `CONFIG_KALLSYMS_ALL=y`。
 
-3. **管理器无法识别 root？**  
+2. **管理器无法识别 root？**  
    确认刷入的内核与管理器版本匹配，并检查 `su` 是否在 PATH 中。
 
-4. **内核编译报错？**  
+3. **内核编译报错？**  
    参考 [`guide/how-to-integrate.md`](guide/how-to-integrate.md)，并确认内核版本满足最低要求（4.14+）。
 
 ## 参与翻译
 
-要将 SukiSU 翻译成您的语言，或完善现有的翻译，请使用 [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/)。
+要将 SukiSU Nova 翻译成您的语言，或完善现有的翻译，请使用 [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/)。
 
 <a href="https://hosted.weblate.org/engage/sukisu-ultra/"><img src="https://hosted.weblate.org/widget/sukisu-ultra/multi-auto.svg" alt="翻译状态"></a>
 
@@ -104,12 +95,12 @@
 ## 鸣谢
 
 - [KernelSU](https://github.com/tiann/KernelSU)：上游
-- [MKSU](https://github.com/5ec1cff/KernelSU)：魔法坐骑支持
-- [RKSU](https://github.com/rsuntk/KernelsU)：non-GKI 支持
+- [/xxksu](https://github.com/backslashxx/KernelSU) 内核兼容性支持参考
 - [susfs](https://gitlab.com/simonpunk/susfs4ksu)：隐藏内核补丁以及用户空间模组的 KernelSU 附件
 - [KernelPatch](https://github.com/bmax121/KernelPatch)：KernelPatch 是内核模块 APatch 实现的关键部分
+- NyaZygisk：内置 Zygisk 实现
 
-欢迎提交 PR；翻译请前往 [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/)；问题反馈请开 [Issue](https://github.com/SukiSU-Ultra/SukiSU-Ultra/issues)。
+欢迎提交 PR；翻译请前往 [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/)；问题反馈请开 [Issue](https://github.com/SukiSU-Nova/SukiSU-Nova/issues)。
 
 <details>
 <summary>KernelSU 的鸣谢</summary>

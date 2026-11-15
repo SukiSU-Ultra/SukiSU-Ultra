@@ -14,7 +14,7 @@
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sukisu_ultra_Natives_getVersion(JNIEnv *env, jobject) {
+Java_com_sukisu_nova_Natives_getVersion(JNIEnv *env, jobject) {
     uint32_t version = get_version();
     if (version > 0) {
         return static_cast<jint>(version);
@@ -25,19 +25,19 @@ Java_com_sukisu_ultra_Natives_getVersion(JNIEnv *env, jobject) {
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sukisu_ultra_Natives_getKernelUAPIVersion(JNIEnv *env, jobject) {
+Java_com_sukisu_nova_Natives_getKernelUAPIVersion(JNIEnv *env, jobject) {
     return get_kernel_uapi_version();
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sukisu_ultra_Natives_getManagerUAPIVersion(JNIEnv *env, jobject) {
+Java_com_sukisu_nova_Natives_getManagerUAPIVersion(JNIEnv *env, jobject) {
     return get_manager_uapi_version();
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sukisu_ultra_Natives_getSuperuserCount(JNIEnv *env, jobject) {
+Java_com_sukisu_nova_Natives_getSuperuserCount(JNIEnv *env, jobject) {
     struct ksu_new_get_allow_list_cmd cmd = {
         .count = 0
     };
@@ -47,37 +47,37 @@ Java_com_sukisu_ultra_Natives_getSuperuserCount(JNIEnv *env, jobject) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isSafeMode(JNIEnv *env, jclass clazz) {
+Java_com_sukisu_nova_Natives_isSafeMode(JNIEnv *env, jclass clazz) {
     return is_safe_mode();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isLkmMode(JNIEnv *env, jclass clazz) {
+Java_com_sukisu_nova_Natives_isLkmMode(JNIEnv *env, jclass clazz) {
     return is_lkm_mode();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isLkmBundled(JNIEnv *env, jclass clazz) {
+Java_com_sukisu_nova_Natives_isLkmBundled(JNIEnv *env, jclass clazz) {
     return is_lkm_bundled();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isLateLoadMode(JNIEnv *env, jclass clazz) {
+Java_com_sukisu_nova_Natives_isLateLoadMode(JNIEnv *env, jclass clazz) {
     return is_late_load_mode();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isManager(JNIEnv *env, jclass clazz) {
+Java_com_sukisu_nova_Natives_isManager(JNIEnv *env, jclass clazz) {
     return is_manager();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isPrBuild(JNIEnv *env, jclass clazz) {
+Java_com_sukisu_nova_Natives_isPrBuild(JNIEnv *env, jclass clazz) {
     return is_pr_build();
 }
 
@@ -140,7 +140,7 @@ static void fillArrayWithList(JNIEnv *env, jobject list, int *data, int count) {
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_sukisu_ultra_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, jint uid) {
+Java_com_sukisu_nova_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, jint uid) {
     if (env->GetStringLength(pkg) > KSU_MAX_PACKAGE_NAME) {
         return nullptr;
     }
@@ -158,7 +158,7 @@ Java_com_sukisu_ultra_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, j
 
     bool useDefaultProfile = get_app_profile(&profile) != 0;
 
-    auto cls = env->FindClass("com/sukisu/ultra/Natives$Profile");
+    auto cls = env->FindClass("com/sukisu/nova/Natives$Profile");
     auto constructor = env->GetMethodID(cls, "<init>", "()V");
     auto obj = env->NewObject(cls, constructor);
     auto keyField = env->GetFieldID(cls, "name", "Ljava/lang/String;");
@@ -238,8 +238,8 @@ Java_com_sukisu_ultra_Natives_getAppProfile(JNIEnv *env, jobject, jstring pkg, j
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_setAppProfile(JNIEnv *env, jobject clazz, jobject profile) {
-    auto cls = env->FindClass("com/sukisu/ultra/Natives$Profile");
+Java_com_sukisu_nova_Natives_setAppProfile(JNIEnv *env, jobject clazz, jobject profile) {
+    auto cls = env->FindClass("com/sukisu/nova/Natives$Profile");
 
     auto keyField = env->GetFieldID(cls, "name", "Ljava/lang/String;");
     auto currentUidField = env->GetFieldID(cls, "currentUid", "I");
@@ -327,71 +327,71 @@ Java_com_sukisu_ultra_Natives_setAppProfile(JNIEnv *env, jobject clazz, jobject 
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_uidShouldUmount(JNIEnv *env, jobject thiz, jint uid) {
+Java_com_sukisu_nova_Natives_uidShouldUmount(JNIEnv *env, jobject thiz, jint uid) {
     return uid_should_umount(uid);
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isSuEnabled(JNIEnv *env, jobject thiz) {
+Java_com_sukisu_nova_Natives_isSuEnabled(JNIEnv *env, jobject thiz) {
     return is_su_enabled();
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_setSuEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+Java_com_sukisu_nova_Natives_setSuEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_su_enabled(enabled);
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isKernelUmountEnabled(JNIEnv *env, jobject thiz) {
+Java_com_sukisu_nova_Natives_isKernelUmountEnabled(JNIEnv *env, jobject thiz) {
     return is_kernel_umount_enabled();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_setKernelUmountEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+Java_com_sukisu_nova_Natives_setKernelUmountEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_kernel_umount_enabled(enabled);
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isSelinuxHideEnabled(JNIEnv *env, jobject thiz) {
+Java_com_sukisu_nova_Natives_isSelinuxHideEnabled(JNIEnv *env, jobject thiz) {
     return is_selinux_hide_enabled();
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sukisu_ultra_Natives_setSelinuxHideEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+Java_com_sukisu_nova_Natives_setSelinuxHideEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_selinux_hide_enabled(enabled);
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isMountHideEnabled(JNIEnv *env, jobject thiz) {
+Java_com_sukisu_nova_Natives_isMountHideEnabled(JNIEnv *env, jobject thiz) {
     return is_mount_hide_enabled();
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_sukisu_ultra_Natives_setMountHideEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+Java_com_sukisu_nova_Natives_setMountHideEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_mount_hide_enabled(enabled);
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_isAvcSpoofEnabled(JNIEnv *env, jobject thiz) {
+Java_com_sukisu_nova_Natives_isAvcSpoofEnabled(JNIEnv *env, jobject thiz) {
     return is_avc_spoof_enabled();
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_sukisu_ultra_Natives_setAvcSpoofEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
+Java_com_sukisu_nova_Natives_setAvcSpoofEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_avc_spoof_enabled(enabled) == 0;
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_sukisu_ultra_Natives_getUserName(JNIEnv *env, jobject thiz, jint uid) {
+Java_com_sukisu_nova_Natives_getUserName(JNIEnv *env, jobject thiz, jint uid) {
     struct passwd *pw = getpwuid((uid_t) uid);
     if (pw && pw->pw_name && pw->pw_name[0] != '\0') {
         return env->NewStringUTF(pw->pw_name);
@@ -436,7 +436,7 @@ int fork_dont_care_and_exec_ksud(const char *path, const char *pkg) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_sukisu_ultra_magica_AppZygotePreload_forkDontCareAndExecKsud(JNIEnv *env, jclass clazz,
+Java_com_sukisu_nova_magica_AppZygotePreload_forkDontCareAndExecKsud(JNIEnv *env, jclass clazz,
                                                                         jstring ksud_path, jstring pkg_name) {
     auto path = env->GetStringUTFChars(ksud_path, nullptr);
     auto pkg = env->GetStringUTFChars(pkg_name, nullptr);
@@ -449,7 +449,7 @@ Java_com_sukisu_ultra_magica_AppZygotePreload_forkDontCareAndExecKsud(JNIEnv *en
 // Custom
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_sukisu_ultra_Natives_getFullVersion(JNIEnv *env, jobject) {
+Java_com_sukisu_nova_Natives_getFullVersion(JNIEnv *env, jobject) {
     char buff[255] = {};
     if (get_full_version(buff)) {
         return env->NewStringUTF(buff);
@@ -459,7 +459,7 @@ Java_com_sukisu_ultra_Natives_getFullVersion(JNIEnv *env, jobject) {
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_sukisu_ultra_Natives_getHookType(JNIEnv *env, jobject) {
+Java_com_sukisu_nova_Natives_getHookType(JNIEnv *env, jobject) {
     char hook_type[32] = {};
     if (get_hook_type(hook_type)) {
         return env->NewStringUTF(hook_type);

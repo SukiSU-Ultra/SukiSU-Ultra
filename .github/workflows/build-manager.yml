@@ -137,7 +137,7 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           COMMIT_COUNT=$(git rev-list --count refs/remotes/origin/main)
-          VERSION_CODE=$((40000 + COMMIT_COUNT - 2815))
+          VERSION_CODE=$((30000 + COMMIT_COUNT - 4001))
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "KernelSU version code: $VERSION_CODE (main commits: $COMMIT_COUNT)"
 
@@ -251,7 +251,7 @@ jobs:
           find . -depth -type d -name 'sukisu' \
             -execdir mv {} "$word2" \;
 
-          find . -depth -type d -name 'ultra' \
+          find . -depth -type d -name 'nova' \
             -execdir mv {} "$word3" \;
 
           find . -depth -type d -name 'io' \
@@ -259,13 +259,13 @@ jobs:
 
           # Replace package references inside files.
           find . -type f -exec sed -i \
-            -e "s/com\.sukisu\.ultra/$word1.$word2.$word3/g" \
-            -e "s/io\.sukisu\.ultra/$word4.$word2.$word3/g" \
+            -e "s/com\.sukisu\.nova/$word1.$word2.$word3/g" \
+            -e "s/io\.sukisu\.nova/$word4.$word2.$word3/g" \
             -e "s/com\.sukisu\.zako/$word1.$word2.zako/g" \
-            -e "s/com\/sukisu\/ultra/$word1\/$word2\/$word3/g" \
-            -e "s/io\/sukisu\/ultra/$word4\/$word2\/$word3/g" \
-            -e "s/io_sukisu_ultra/${word4}_${word2}_${word3}/g" \
-            -e "s/com_sukisu_ultra/${word1}_${word2}_${word3}/g" \
+            -e "s/com\/sukisu\/nova/$word1\/$word2\/$word3/g" \
+            -e "s/io\/sukisu\/nova/$word4\/$word2\/$word3/g" \
+            -e "s/io_sukisu_nova/${word4}_${word2}_${word3}/g" \
+            -e "s/com_sukisu_nova/${word1}_${word2}_${word3}/g" \
             {} +
 
           # Add -spoofed to getGitDescribe().

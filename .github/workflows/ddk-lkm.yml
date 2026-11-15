@@ -58,7 +58,7 @@ jobs:
         KSU_VERSION_CODE: ${{ inputs.version_code }}
         RELEASE_BUILD: ${{ inputs.release_build }}
       run: |
-        git config --global --add safe.directory /__w/SukiSU-Ultra/SukiSU-Ultra
+        git config --global --add safe.directory /__w/SukiSU-Nova/SukiSU-Nova
         cd kernel
 
         echo "=== Building kernelsu.ko for KMI: ${{ inputs.kmi }} ==="

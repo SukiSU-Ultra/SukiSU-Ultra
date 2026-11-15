@@ -30,7 +30,7 @@ $classesJarEntry = $zip.GetEntry("classes.jar")
 $stream = $classesJarEntry.Open()
 $jarZip = New-Object System.IO.Compression.ZipArchive($stream)
 
-# Selected icons (all needed in SukiSU-Ultra + popular utility icons)
+# Selected icons (all needed in SukiSU-Nova + popular utility icons)
 $names = @(
     "Adb", "AdminPanelSettings", "Android", "Apps", "AspectRatio", "AutoAwesome", "Backup", 
     "BatteryFull", "Block", "BlurOn", "Brightness1", "Brightness3", "Brightness4", "Brightness7", 

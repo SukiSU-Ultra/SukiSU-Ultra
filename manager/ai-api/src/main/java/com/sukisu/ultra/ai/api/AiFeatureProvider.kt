@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ai.api
+package com.sukisu.nova.ai.api
 
 import androidx.compose.runtime.Composable
 
@@ -33,7 +33,7 @@ interface AiFeatureProvider {
  */
 object AiFeatureBridge {
 
-    private const val PROVIDER_CLASS = "com.sukisu.ultra.ai.AiFeatureProviderImpl"
+    private const val PROVIDER_CLASS = "com.sukisu.nova.ai.AiFeatureProviderImpl"
 
     private val provider: AiFeatureProvider? by lazy(LazyThreadSafetyMode.PUBLICATION) {
         runCatching {

@@ -1,0 +1,204 @@
+package com.sukisu.nova.ui.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.sukisu.nova.data.repository.SettingsRepository
+import com.sukisu.nova.data.repository.SettingsRepositoryImpl
+import com.sukisu.nova.ui.LocalUiMode
+import com.sukisu.nova.ui.UiMode
+import com.sukisu.nova.ui.util.AppearanceOverlayStore
+import com.sukisu.nova.ui.util.ResolvedAppearance
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+
+enum class ColorMode(val value: Int) {
+    SYSTEM(0),
+    LIGHT(1),
+    DARK(2),
+    MONET_SYSTEM(3),
+    MONET_LIGHT(4),
+    MONET_DARK(5),
+    DARK_AMOLED(6);
+
+    companion object {
+        fun fromValue(value: Int) = entries.find { it.value == value } ?: SYSTEM
+    }
+
+    val isSystem: Boolean get() = value == 0 || value == 3
+    val isDark: Boolean get() = value == 2 || value == 5 || value == 6
+    val isAmoled: Boolean get() = value == 6
+    val isMonet: Boolean get() = value >= 3
+
+    fun toNonMonetMode(): Int = when (this) {
+        MONET_SYSTEM -> 0
+        MONET_LIGHT -> 1
+        MONET_DARK, DARK_AMOLED -> 2
+        else -> value
+    }
+
+    fun toMonetMode(): Int = when (this) {
+        SYSTEM -> 3
+        LIGHT -> 4
+        DARK -> 5
+        else -> value
+    }
+}
+
+data class AppSettings(
+    val colorMode: ColorMode,
+    val keyColor: Int,
+    val paletteStyle: PaletteStyle,
+    val colorSpec: ColorSpec.SpecVersion,
+    /** Static user/theme overrides applied on top of the generated palette. */
+    val appearance: ResolvedAppearance? = null,
+)
+
+val PaletteStyle.supportsSpec2025: Boolean
+    get() = this == PaletteStyle.TonalSpot ||
+            this == PaletteStyle.Neutral ||
+            this == PaletteStyle.Vibrant ||
+            this == PaletteStyle.Expressive
+
+fun ColorSpec.SpecVersion.effectiveFor(style: PaletteStyle): ColorSpec.SpecVersion =
+    if (this == ColorSpec.SpecVersion.SPEC_2025 && !style.supportsSpec2025) {
+        ColorSpec.SpecVersion.SPEC_2021
+    } else {
+        this
+    }
+
+object ThemeController {
+    fun getAppSettings(repo: SettingsRepository = SettingsRepositoryImpl()): AppSettings {
+        val uiMode = repo.uiMode
+        var colorModeValue = repo.themeMode
+
+        if (uiMode == "miuix") {
+            val miuixMonet = repo.miuixMonet
+            val colorMode = ColorMode.fromValue(colorModeValue)
+            colorModeValue = if (!miuixMonet && colorMode.isMonet) {
+                colorMode.toNonMonetMode()
+            } else if (miuixMonet && !colorMode.isMonet) {
+                colorMode.toMonetMode()
+            } else {
+                colorModeValue
+            }
+        }
+
+        val colorMode = ColorMode.fromValue(colorModeValue)
+        val keyColor = repo.keyColor
+        val paletteStyleStr = repo.colorStyle
+        val paletteStyle = try {
+            PaletteStyle.valueOf(paletteStyleStr)
+        } catch (_: Exception) {
+            PaletteStyle.TonalSpot
+        }
+        val colorSpecStr = repo.colorSpec
+        val colorSpec = try {
+            ColorSpec.SpecVersion.valueOf(colorSpecStr)
+        } catch (_: Exception) {
+            ColorSpec.SpecVersion.SPEC_2025
+        }
+
+        return AppSettings(
+            colorMode = colorMode,
+            keyColor = keyColor,
+            paletteStyle = paletteStyle,
+            colorSpec = colorSpec,
+            appearance = AppearanceOverlayStore.load(repo),
+        )
+    }
+}
+
+@Composable
+fun KernelSUTheme(
+    appSettings: AppSettings = ThemeController.getAppSettings(),
+    uiMode: UiMode = LocalUiMode.current,
+    content: @Composable () -> Unit
+) {
+
+    when (uiMode) {
+        UiMode.Miuix -> MiuixKernelSUTheme(
+            appSettings = appSettings,
+            content = content
+        )
+
+        UiMode.Material -> MaterialKernelSUTheme(
+            appSettings = appSettings,
+            content = content
+        )
+    }
+}
+
+@Composable
+@ReadOnlyComposable
+fun isInDarkTheme(): Boolean {
+    return when (LocalColorMode.current) {
+        1, 4 -> false  // Force light mode
+        2, 5, 6 -> true   // Force dark mode
+        else -> isSystemInDarkTheme()  // Follow system (0 or default)
+    }
+}
+
+val LocalColorMode = staticCompositionLocalOf { 0 }
+
+
+val LocalAppSettings = staticCompositionLocalOf<AppSettings?> { null }
+
+val LocalEnableBlur = staticCompositionLocalOf { false }
+
+/** Progressive (edge gradient) blur behind the top and bottom bars. */
+val LocalEnableProgressiveBlur = staticCompositionLocalOf { false }
+
+val LocalEnableFloatingBottomBar = staticCompositionLocalOf { false }
+
+val LocalEnableFloatingBottomBarBlur = staticCompositionLocalOf { false }
+
+val LocalEnableNavigationBadge = staticCompositionLocalOf { true }
+
+val LocalModuleDescriptionMaxLines = staticCompositionLocalOf { 4 }
+
+val LocalBackgroundImagePath = staticCompositionLocalOf { "" }
+
+/**
+ * Captures the app background image (and its scrim) exactly as drawn behind the navigation host.
+ *
+ * `layerBackdrop` only records the page it is attached to, so over a custom background the
+ * unpainted parts of that layer are fully transparent. Miuix bar blurs sample that layer, and
+ * transparent pixels bleed black into the result, so bars combine this backdrop underneath their
+ * own page backdrop to blur what is actually on screen. Null when no capture is available.
+ */
+val LocalAppBackgroundBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
+
+val LocalCardBackgroundAlpha = staticCompositionLocalOf { 0.6f }
+
+@Composable
+fun backgroundAwareCardColors(
+    color: androidx.compose.ui.graphics.Color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer,
+    contentColor: androidx.compose.ui.graphics.Color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceContainer,
+    backgroundAlpha: Float = LocalCardBackgroundAlpha.current,
+): top.yukonga.miuix.kmp.basic.CardColors {
+    val adjusted = if (LocalBackgroundImagePath.current.isNotEmpty()) {
+        color.copy(alpha = backgroundAlpha)
+    } else {
+        color
+    }
+    return top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(
+        color = adjusted,
+        contentColor = contentColor,
+    )
+}
+
+@Composable
+fun backgroundAwareColor(
+    color: androidx.compose.ui.graphics.Color,
+    backgroundAlpha: Float = LocalCardBackgroundAlpha.current,
+): androidx.compose.ui.graphics.Color {
+    return if (LocalBackgroundImagePath.current.isNotEmpty()) {
+        color.copy(alpha = backgroundAlpha)
+    } else {
+        color
+    }
+}
+

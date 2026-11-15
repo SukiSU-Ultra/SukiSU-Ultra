@@ -1,0 +1,15 @@
+package com.sukisu.nova.data.model
+
+import androidx.compose.runtime.Immutable
+
+@Immutable
+data class ModuleUpdateInfo(
+    val downloadUrl: String,
+    val version: String,
+    val changelog: String,
+    val versionCode: Long = 0L,
+) {
+    companion object {
+        val Empty = ModuleUpdateInfo("", "", "")
+    }
+}

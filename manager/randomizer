@@ -13,19 +13,19 @@ export word1 word2 word3 word4
 # Rename directories
 find . -depth -type d -name 'com' -execdir mv {} "$word1" \;
 find . -depth -type d -name 'sukisu' -execdir mv {} "$word2" \;
-find . -depth -type d -name 'ultra' -execdir mv {} "$word3" \;
+find . -depth -type d -name 'nova' -execdir mv {} "$word3" \;
 find . -depth -type d -name 'io' -execdir mv {} "$word4" \;
 
 
 # Replace inside files
 find . -type f -exec sed -i \
-    -e "s/com\.sukisu\.ultra/$word1.$word2.$word3/g" \
-    -e "s/io\.sukisu\.ultra/$word4.$word2.$word3/g" \
+    -e "s/com\.sukisu\.nova/$word1.$word2.$word3/g" \
+    -e "s/io\.sukisu\.nova/$word4.$word2.$word3/g" \
     -e "s/com\.sukisu\.zako/$word1.$word2.zako/g" \
-    -e "s/com\/sukisu\/ultra/$word1\/$word2\/$word3/g" \
-    -e "s/io\/sukisu\/ultra/$word4\/$word2\/$word3/g" \
-    -e "s/io_sukisu_ultra/${word4}_${word2}_${word3}/g" \
-    -e "s/com_sukisu_ultra/${word1}_${word2}_${word3}/g" {} +
+    -e "s/com\/sukisu\/nova/$word1\/$word2\/$word3/g" \
+    -e "s/io\/sukisu\/nova/$word4\/$word2\/$word3/g" \
+    -e "s/io_sukisu_nova/${word4}_${word2}_${word3}/g" \
+    -e "s/com_sukisu_nova/${word1}_${word2}_${word3}/g" {} +
 
 # add -spoofed on tags
 sed -i -e '/fun getGitDescribe(): String {/,/^    }/ s/\.trim()$/.trim() + "-spoofed"/' build.gradle.kts

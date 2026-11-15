@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ai.api
+package com.sukisu.nova.ai.api
 
 import android.content.Context
 import android.net.Uri

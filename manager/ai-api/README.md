@@ -7,7 +7,7 @@ the appearance switch.
 
 The full assistant is a separate AAR (`:ai` in the `ai_chat` branch):
 
-- `AiFeatureBridge` loads `com.sukisu.ultra.ai.AiFeatureProviderImpl` by name.
+- `AiFeatureBridge` loads `com.sukisu.nova.ai.AiFeatureProviderImpl` by name.
 - When the AAR is absent, `AiFeatureBridge.isAvailable` is `false` and every
   bridge UI call is a no-op.
 - The host adapter in `app/.../ai/host` implements `AiHost` from this module and

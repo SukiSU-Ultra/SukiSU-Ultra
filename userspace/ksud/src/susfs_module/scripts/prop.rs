@@ -7,8 +7,8 @@
 pub fn module_prop() -> String {
     r"id=susfs_manager
 name=SuSFS Manager
-version=v4.0.0
-versionCode=40000
+version=v3.0.0
+versionCode=30000
 author=ShirkNeko
 description=SuSFS Manager Auto Configuration Module (自动生成请不要手动卸载或删除该模块! / Automatically generated Please do not manually uninstall or delete the module!)
 updateJson=

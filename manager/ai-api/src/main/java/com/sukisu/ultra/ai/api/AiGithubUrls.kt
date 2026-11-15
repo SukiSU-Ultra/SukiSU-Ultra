@@ -1,4 +1,4 @@
-package com.sukisu.ultra.ai.api
+package com.sukisu.nova.ai.api
 
 import java.net.URI
 import java.net.URLDecoder

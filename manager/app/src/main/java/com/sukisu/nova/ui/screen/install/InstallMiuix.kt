@@ -1,0 +1,600 @@
+package com.sukisu.nova.ui.screen.install
+
+import com.sukisu.nova.ui.component.miuix.AppCard
+import com.sukisu.nova.ui.component.miuix.AppScaffold
+import com.sukisu.nova.ui.kernelFlash.KpmPatchOption
+import com.sukisu.nova.ui.util.customText
+import com.sukisu.nova.ui.util.CustomTextKey
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.captionBar
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircleOutline
+import androidx.compose.material.icons.filled.SdStorage
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.sukisu.nova.R
+import com.sukisu.nova.getKernelVersion
+import com.sukisu.nova.ui.component.dialog.rememberConfirmDialog
+import com.sukisu.nova.ui.theme.LocalBackgroundImagePath
+import com.sukisu.nova.ui.theme.LocalEnableBlur
+import com.sukisu.nova.ui.theme.backgroundAwareColor
+import com.sukisu.nova.ui.util.BlurredBar
+import com.sukisu.nova.ui.util.LkmSelection
+import com.sukisu.nova.ui.util.rememberBlurBackdrop
+import com.sukisu.nova.ui.util.isAbDevice
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.ArrowRight
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.ConvertFile
+import top.yukonga.miuix.kmp.icon.extended.ExpandLess
+import top.yukonga.miuix.kmp.icon.extended.ExpandMore
+import top.yukonga.miuix.kmp.icon.extended.MoveFile
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
+import top.yukonga.miuix.kmp.utils.overScrollVertical
+import top.yukonga.miuix.kmp.utils.scrollEndHaptic
+
+/**
+ * @author weishu
+ * @date 2024/3/12.
+ */
+@Composable
+internal fun InstallScreenMiuix(
+    uiState: InstallUiState,
+    actions: InstallScreenActions,
+    snackbarHost: SnackbarHostState,
+) {
+    val enableBlur = LocalEnableBlur.current
+    val scrollBehavior = MiuixScrollBehavior()
+    val backdrop = rememberBlurBackdrop(enableBlur)
+    val blurActive = backdrop != null
+    val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
+    val barColor = if (blurActive || hasCustomBackground) Color.Transparent else colorScheme.surface
+    val isAbDevice by produceState(initialValue = false) {
+        value = isAbDevice()
+    }
+    val isGkiDevice by produceState(initialValue = false) {
+        value = getKernelVersion().isGKI()
+    }
+
+    AppScaffold(
+        topBar = {
+            TopBar(
+                onBack = actions.onBack,
+                scrollBehavior = scrollBehavior,
+                backdrop = backdrop,
+                barColor = barColor,
+            )
+        },
+        popupHost = { },
+        snackbarHost = {
+            SnackbarHost(
+                state = snackbarHost,
+                modifier = Modifier.padding(bottom = 20.dp),
+            )
+        },
+        contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
+    ) { innerPadding ->
+        Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .scrollEndHaptic()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(top = 12.dp)
+                    .padding(horizontal = 16.dp),
+                contentPadding = innerPadding,
+                overscrollEffect = null,
+            ) {
+                item {
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        SelectInstallMethod(
+                            state = uiState,
+                            onSelected = actions.onSelectMethod,
+                            onDownloadFile = actions.onDownloadFile,
+                            onSelectBootImage = actions.onSelectBootImage,
+                        )
+                    }
+                    AnimatedVisibility(
+                        visible = isGkiDevice && uiState.canSelectPartition,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        val isDownload = uiState.installMethod is InstallMethod.DownloadFile
+                        val partitionItems = if (isDownload) {
+                            uiState.remoteDisplayPartitions
+                        } else {
+                            uiState.displayPartitions
+                        }
+                        val partitionIndex = if (isDownload) {
+                            uiState.remotePartitionSelectionIndex
+                        } else {
+                            uiState.partitionSelectionIndex
+                        }
+                        AppCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                        ) {
+                            OverlayDropdownPreference(
+                                items = partitionItems,
+                                selectedIndex = partitionIndex,
+                                title = if (isDownload) {
+                                    stringResource(R.string.install_select_partition)
+                                } else {
+                                    "${stringResource(R.string.install_select_partition)} (${uiState.slotSuffix})"
+                                },
+                                onSelectedIndexChange = actions.onSelectPartition,
+                                startAction = {
+                                    Icon(
+                                        MiuixIcons.ConvertFile,
+                                        tint = colorScheme.onSurface,
+                                        modifier = Modifier.padding(end = 12.dp),
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = uiState.canForceBackup,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        AppCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                        ) {
+                            CheckboxPreference(
+                                title = stringResource(id = R.string.install_force_backup),
+                                checked = uiState.forceBackup,
+                                summary = stringResource(id = R.string.install_force_backup_summary),
+                                onCheckedChange = actions.onSelectForceBackup
+                            )
+                        }
+                    }
+
+                    // LKM 上传（仅 GKI）
+                    if (isGkiDevice && uiState.installMethod !is InstallMethod.HorizonKernel) {
+                        AppCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                        ) {
+                            BasicComponent(
+                                title = stringResource(id = R.string.install_upload_lkm_file),
+                                summary = (uiState.lkmSelection as? LkmSelection.LkmUri)?.let {
+                                    stringResource(
+                                        id = R.string.selected_lkm,
+                                        it.uri.lastPathSegment ?: "(file)"
+                                    )
+                                },
+                                onClick = actions.onUploadLkm,
+                                startAction = {
+                                    Icon(
+                                        MiuixIcons.MoveFile,
+                                        tint = colorScheme.onSurface,
+                                        modifier = Modifier.padding(end = 12.dp),
+                                        contentDescription = null
+                                    )
+                                },
+                                endActions = {
+                                    if (uiState.lkmSelection is LkmSelection.LkmUri) {
+                                        IconButton(onClick = actions.onClearLkm) {
+                                            Icon(
+                                                MiuixIcons.Close,
+                                                modifier = Modifier.size(16.dp),
+                                                contentDescription = stringResource(android.R.string.cancel),
+                                                tint = colorScheme.onSurfaceVariantActions
+                                            )
+                                        }
+                                    } else {
+                                        val layoutDirection = LocalLayoutDirection.current
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(width = 10.dp, height = 16.dp)
+                                                .graphicsLayer {
+                                                    scaleX =
+                                                        if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
+                                                }
+                                                .align(Alignment.CenterVertically),
+                                            imageVector = MiuixIcons.Basic.ArrowRight,
+                                            contentDescription = null,
+                                            tint = colorScheme.onSurfaceVariantActions,
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    if (uiState.canPatchKpm) {
+                        AppCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                        ) {
+                            OverlayDropdownPreference(
+                                title = stringResource(R.string.install_kpm_operation),
+                                summary = stringResource(R.string.install_kpm_summary),
+                                items = listOf(stringResource(R.string.kpm_follow_kernel_file), stringResource(R.string.enable_kpm_patch), stringResource(R.string.enable_kpm_undo_patch)),
+                                selectedIndex = KpmPatchOption.entries.indexOf(uiState.kpmPatchOption),
+                                onSelectedIndexChange = { actions.onKpmOptionChange(KpmPatchOption.entries[it]) },
+                            )
+                            AnimatedVisibility(visible = uiState.canSelectKpmBoot) {
+                                Column {
+                                    BasicComponent(
+                                        title = stringResource(R.string.install_kpm_manual),
+                                        summary = uiState.kpmBootUri?.lastPathSegment
+                                            ?: stringResource(
+                                                if (uiState.installMethod == null) R.string.install_kpm_auto_current_boot
+                                                else R.string.install_kpm_auto
+                                            ),
+                                        onClick = actions.onToggleKpmBoot,
+                                        endActions = {
+                                            Icon(
+                                                if (uiState.kpmBootExpanded) MiuixIcons.ExpandLess else MiuixIcons.ExpandMore,
+                                                contentDescription = stringResource(R.string.expand),
+                                                modifier = Modifier.size(16.dp),
+                                            )
+                                        },
+                                    )
+                                    AnimatedVisibility(visible = uiState.kpmBootExpanded) {
+                                        Column {
+                                            BasicComponent(
+                                                title = stringResource(R.string.select_file),
+                                                summary = uiState.kpmBootUri?.lastPathSegment,
+                                                onClick = actions.onPatchKpmFile,
+                                            )
+                                            if (uiState.kpmBootUri != null) {
+                                                BasicComponent(
+                                                    title = stringResource(R.string.install_kpm_clear),
+                                                    onClick = actions.onClearKpmBoot,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    AppCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                    ) {
+                        BasicComponent(
+                            title = stringResource(id = R.string.advanced_options),
+                            onClick = actions.onAdvancedOptionsClicked,
+                            endActions = {
+                                Icon(
+                                    if (uiState.advancedOptionsShown) MiuixIcons.ExpandLess else MiuixIcons.ExpandMore,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = colorScheme.onSurfaceVariantActions,
+                                    contentDescription = stringResource(R.string.expand),
+                                )
+                            }
+                        )
+                        AnimatedVisibility(
+                            visible = uiState.advancedOptionsShown,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column {
+                                CheckboxPreference(
+                                    title = stringResource(id = R.string.allow_shell),
+                                    checked = uiState.allowShell,
+                                    summary = stringResource(id = R.string.allow_shell_summary),
+                                    onCheckedChange = actions.onSelectAllowShell
+                                )
+                                CheckboxPreference(
+                                    title = stringResource(id = R.string.enable_adb),
+                                    checked = uiState.enableAdb,
+                                    summary = stringResource(id = R.string.enable_adb_summary),
+                                    onCheckedChange = actions.onSelectEnableAdb
+                                )
+                                CheckboxPreference(
+                                    title = stringResource(id = R.string.install_block_modules),
+                                    checked = uiState.blockModulesEnabled,
+                                    summary = stringResource(id = R.string.install_block_modules_warning),
+                                    onCheckedChange = actions.onSelectBlockModules
+                                )
+                                if (uiState.blockModulesEnabled) {
+                                    TextField(
+                                        value = uiState.blockModules,
+                                        onValueChange = actions.onBlockModulesChange,
+                                        label = stringResource(id = R.string.install_block_modules_list),
+                                        useLabelAsPlaceholder = true,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        singleLine = true
+                                    )
+                                    Text(
+                                        text = stringResource(
+                                            if (uiState.blockModulesValid) {
+                                                R.string.install_block_modules_summary
+                                            } else {
+                                                R.string.install_block_modules_invalid
+                                            }
+                                        ),
+                                        fontSize = 12.sp,
+                                        color = if (uiState.blockModulesValid) {
+                                            colorScheme.onSurfaceVariantSummary
+                                        } else {
+                                            colorScheme.error
+                                        },
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                    )
+                                }
+                                CheckboxPreference(
+                                    title = stringResource(id = R.string.kernel_spoof),
+                                    checked = uiState.spoofEnabled,
+                                    summary = stringResource(id = R.string.kernel_spoof_summary),
+                                    onCheckedChange = actions.onSpoofEnabledChange
+                                )
+                                AnimatedVisibility(
+                                    visible = uiState.spoofEnabled,
+                                    enter = expandVertically() + fadeIn(),
+                                    exit = shrinkVertically() + fadeOut()
+                                ) {
+                                    Column {
+                                        TextField(
+                                            value = uiState.spoofRelease,
+                                            onValueChange = actions.onSpoofReleaseChange,
+                                            label = stringResource(R.string.kernel_spoof_release),
+                                            useLabelAsPlaceholder = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            singleLine = true
+                                        )
+                                        TextField(
+                                            value = uiState.spoofVersion,
+                                            onValueChange = actions.onSpoofVersionChange,
+                                            label = stringResource(R.string.kernel_spoof_version),
+                                            useLabelAsPlaceholder = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            singleLine = true
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // AnyKernel3 刷写
+                    (uiState.installMethod as? InstallMethod.HorizonKernel)?.let { method ->
+                        if (isAbDevice && method.slot != null) {
+                            AppCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp),
+                            ) {
+                                ArrowPreference(
+                                    title = stringResource(
+                                        id = R.string.selected_slot,
+                                        if (method.slot == "a") stringResource(id = R.string.slot_a)
+                                        else stringResource(id = R.string.slot_b)
+                                    ),
+                                    onClick = {
+                                        actions.onReopenSlotDialog(method)
+                                    },
+                                    startAction = {
+                                        Icon(
+                                            Icons.Filled.SdStorage,
+                                            tint = colorScheme.primary,
+                                            modifier = Modifier.padding(end = 16.dp),
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    
+                    TextButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                            text = stringResource(id = R.string.install_next),
+                            enabled = uiState.canInstall,
+                            colors = ButtonDefaults.textButtonColorsPrimary(),
+                            onClick = actions.onNext
+                        )
+                    Spacer(
+                        Modifier.height(
+                            WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding() +
+                                    WindowInsets.captionBar.asPaddingValues()
+                                        .calculateBottomPadding()
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectInstallMethod(
+    state: InstallUiState,
+    onSelected: (InstallMethod) -> Unit,
+    onDownloadFile: () -> Unit,
+    onSelectBootImage: (InstallMethod) -> Unit,
+) {
+    val confirmDialog = rememberConfirmDialog(
+        onConfirm = {
+            onSelected(InstallMethod.DirectInstallToInactiveSlot)
+        }
+    )
+    val dialogTitle = stringResource(id = android.R.string.dialog_alert_title)
+    val dialogContent = stringResource(id = R.string.install_inactive_slot_warning)
+
+    val onClick = { option: InstallMethod ->
+        when (option) {
+            is InstallMethod.SelectFile -> onSelectBootImage(option)
+            is InstallMethod.HorizonKernel -> onSelectBootImage(option)
+            is InstallMethod.DownloadFile -> onDownloadFile()
+            is InstallMethod.DirectInstall -> onSelected(option)
+            is InstallMethod.DirectInstallToInactiveSlot -> confirmDialog.showConfirm(dialogTitle, dialogContent)
+        }
+    }
+
+    Column(
+        modifier = Modifier.selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        state.installMethodOptions.forEach { option ->
+            val selected = state.installMethod?.let { option::class == it::class } ?: false
+            AppCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { role = Role.RadioButton; this.selected = selected },
+                colors = CardDefaults.defaultColors(
+                    color = if (selected) colorScheme.secondaryContainer else backgroundAwareColor(colorScheme.surfaceContainer)
+                ),
+                insideMargin = PaddingValues(0.dp),
+                onClick = { onClick(option) },
+                pressFeedbackType = PressFeedbackType.Sink,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 2.dp,
+                            color = if (selected) colorScheme.primary else Color.Transparent,
+                            shape = RoundedCornerShape(CardDefaults.CornerRadius),
+                        )
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = stringResource(id = option.label),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.onSurface,
+                        )
+                        if (!option.summary.isNullOrBlank()) {
+                            Text(
+                                text = option.summary.orEmpty(),
+                                fontSize = 13.sp,
+                                color = colorScheme.onSurfaceVariantSummary,
+                            )
+                        }
+                    }
+                    if (selected) {
+                        Icon(
+                            imageVector = Icons.Rounded.CheckCircleOutline,
+                            contentDescription = null,
+                            tint = colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopBar(
+    onBack: () -> Unit = {},
+    scrollBehavior: ScrollBehavior,
+    backdrop: LayerBackdrop?,
+    barColor: Color,
+) {
+    BlurredBar(backdrop) {
+        TopAppBar(
+            color = barColor,
+            title = customText(CustomTextKey.PAGE_INSTALL),
+            navigationIcon = {
+                IconButton(
+                    onClick = onBack
+                ) {
+                    val layoutDirection = LocalLayoutDirection.current
+                    Icon(
+                        modifier = Modifier.graphicsLayer {
+                            if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                        },
+                        imageVector = MiuixIcons.Back,
+                        tint = colorScheme.onSurface,
+                        contentDescription = null,
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior
+        )
+    }
+}

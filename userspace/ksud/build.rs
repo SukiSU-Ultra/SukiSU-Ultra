@@ -20,7 +20,7 @@ fn get_git_version() -> Result<(u32, String), std::io::Error> {
         .trim()
         .parse()
         .map_err(|_| std::io::Error::other("Failed to parse git count"))?;
-    let version_code = 40000 - 2815 + version_code; // For historical reasons
+    let version_code = 30000 - 4001 + version_code; // For historical reasons
 
     let version_name = String::from_utf8(
         Command::new("git")
@@ -234,7 +234,7 @@ fn main() {
         }
     };
     if env::var("KSU_PACKAGE_NAME").is_err() {
-        println!("cargo:rustc-env=KSU_PACKAGE_NAME=com.sukisu.ultra");
+        println!("cargo:rustc-env=KSU_PACKAGE_NAME=com.sukisu.nova");
     }
     println!("cargo:rustc-env=VERSION_CODE={code}");
     println!("cargo:rustc-env=VERSION_NAME={name}");

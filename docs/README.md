@@ -1,121 +1,112 @@
-# SukiSU Ultra
-<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+# SukiSU Nova
+<img align='right' src='SukiSU-mini.svg' width='220px' alt="SukiSU Nova logo">
 
-> Current branch: `main` (active development) · Forked from KernelSU, independently maintained
+**English** [简体中文](./README_zh.md) |
 
-**English** | [简体中文](./zh/README.md)
+A kernel-based root solution for Android, evolved from [`tiann/KernelSU`](https://github.com/tiann/KernelSU) with some interesting changes added.
 
-A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`](https://github.com/tiann/KernelSU), with some interesting changes added.
-
-[![Latest release](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases/latest)
+[![Latest Release](https://img.shields.io/github/v/release/SukiSU-Nova/SukiSU-Nova?label=Release&logo=github)](https://github.com/SukiSU-Nova/SukiSU-Nova/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/Sukiksu)
-[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![GitHub License](https://img.shields.io/github/license/SukiSU-Ultra/SukiSU-Ultra?logo=gnu)](/LICENSE)
+[![License: GPL 3.0 or later](https://img.shields.io/badge/License-GPL%203.0%20or%20later-orange.svg?logo=gnu)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![GitHub License](https://img.shields.io/github/license/SukiSU-Nova/SukiSU-Nova?logo=gnu)](/LICENSE)
 
 ## Features
 
-1. Kernel-based `su` and root access management
-2. [App Profile](https://sukisu.org/guide/app-profile): Lock up the root power in a cage
-3. Support non-GKI and GKI 1.0
-4. KPM Support
-5. Built-in susfs management tool for one-click root hiding configuration; customizable manager theme.
+1. Kernel-based `su` and permission management.
+2. [App Profile](https://sukisu.org/guide/app-profile): keep root access in a cage.
+3. KPM support.
+4. Built-in Zygisk (NyaZygisk) — no separate Zygisk module needed; running status is shown right on the home screen.
+5. Theme Store: browse, install and submit themes, with multi-source mirrors, author authorization and review.
+6. Kernel Extension Center: CPU/vvar spoofing, AVC log spoofing, version spoofing, SUSFS and mount view hiding — all in one place.
+7. Built-in SUSFS management tools with one-tap root hiding configuration.
+8. Dual UI: Miuix / Material 3 Expressive; supports Miuix splash screen, module banners and sorting, temporary root grant, and kernel-free preview.
 
-## Compatibility Status
+## Compatibility
 
-- SukiSU Ultra supports Android GKI 2.0 devices (kernel 5.10+).
-- Older kernels (4.14+) are also compatible, but the kernel will have to be built manually.
-- With more backports, kernels 3.x (3.4–3.18) can be supported.
-- Currently, only `arm64-v8a`, `armeabi-v7a (bare)` and `X86_64` (some) are supported.
-- **Note**: Since forking from `tiann/KernelSU`, this project has evolved independently. Compatibility is based on actual testing in this repository and no longer equals KernelSU's official support scope.
+- SukiSU Nova supports GKI 2.0 devices (kernel version 5.10 and above).
+- Older kernels are also compatible (minimum 4.14+), but you need to compile the kernel yourself.
+- With additional backports, 3.x kernels (3.4–3.18) can be supported.
+- Currently supported architectures: `arm64-v8a`, `armeabi-v7a (bare)`, `X86_64`, `riscv64`.
+- **Note**: This project has evolved independently since forking from `tiann/KernelSU`; compatibility is based on testing in this repository and no longer equals the official KernelSU support scope.
 
-## Installation
-
-Choose the installation method based on your device:
+## Kernel Compatibility Status
 
 | Scenario | Method | Notes |
-|----------|--------|-------|
-| GKI device (kernel 5.10+) | Flash boot image | See [`guide/installation.md`](guide/installation.md) |
-| Non-GKI / older kernel (4.14+) | Build kernel manually | See [`guide/how-to-integrate.md`](guide/how-to-integrate.md) |
-| Need KPM features | Enable `CONFIG_KPM=y` | See "KPM Support" below |
+|------|------|------|
+| GKI devices (kernel 5.10+) | LKM mode recommended | |
+| Non-GKI / old kernels (3.0+) | Compile the kernel manually | Please refer to the integration guide on the website |
+| KPM features required | Requires `CONFIG_KPM=y` | See "KPM Support" below |
 
-Detailed steps: [`guide/installation.md`](guide/installation.md)
-
-## Integration
-
-See [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
 
 ## KPM Support
 
-Based on [KernelPatch](https://github.com/bmax121/KernelPatch), we removed features redundant with KSU and retained only KPM support.
+Developed based on [KernelPatch](https://github.com/bmax121/KernelPatch), with features duplicating KernelSU removed — only KPM support is kept.
 
 **Current status**:
 - ✅ Basic KPM loading is available (requires `CONFIG_KPM=y`)
-- 🚧 APatch compatibility expansion is in progress (some features not yet merged)
+- 🚧 The APatch compatibility layer is still being completed (some features are not yet merged)
 - ⚠️ Non-GKI devices additionally require `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`
-- ⚠️ Kernels below 4.19 require backporting `set_memory.h` from 4.19
+- ⚠️ Kernels below 4.19 need `set_memory.h` backported from 4.19
 
 **Open-source repository**: [ShirkNeko/SukiSU_KernelPatch_patch](https://github.com/ShirkNeko/SukiSU_KernelPatch_patch)  
 **KPM template**: [udochina/KPM-Build-Anywhere](https://github.com/udochina/KPM-Build-Anywhere)
 
 ## Troubleshooting
 
-1. **Device stuck after uninstalling the manager app?**  
-   Uninstall `_com.sony.playmemories.mobile_`.
+1. **KPM fails to load?**  
+   Make sure the kernel has `CONFIG_KPM=y` enabled; Non-GKI devices also need `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`.
 
-2. **KPM fails to load?**  
-   Confirm the kernel has `CONFIG_KPM=y` enabled; Non-GKI devices also need `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y`.
+2. **The manager doesn't recognize root?**  
+   Make sure the flashed kernel matches the manager version, and check whether `su` is in PATH.
 
-3. **Manager cannot detect root?**  
-   Confirm the flashed kernel matches the manager version, and check that `su` is in PATH.
+3. **Kernel compilation errors?**  
+   Refer to [`guide/how-to-integrate.md`](guide/how-to-integrate.md), and make sure the kernel version meets the minimum requirement (4.14+).
 
-4. **Kernel build errors?**  
-   Refer to [`guide/how-to-integrate.md`](guide/how-to-integrate.md), and confirm the kernel version meets the minimum requirement (4.14+).
+## Contributing Translations
 
-## Translation
-
-If you need to contribute to the translation of the manager, please go to [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/).
+To translate SukiSU Nova into your language, or improve existing translations, please use [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/).
 
 <a href="https://hosted.weblate.org/engage/sukisu-ultra/"><img src="https://hosted.weblate.org/widget/sukisu-ultra/multi-auto.svg" alt="Translation status"></a>
 
-## Sponsor
+## License
 
-- [ShirkNeko](https://afdian.com/a/shirkneko) (maintainer of SukiSU)
+- All files under the `kernel` directory are licensed under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+- The `ic_launcher(?!.*alt.*).*` icon files featuring anime character images are licensed in a special form: drawn by 怡子曰曰 (Yizi Yueyue), copyright owned by 明风OuO (Mingfeng OuO). The vectorized icons are provided by this project. See [`LICENSE_icon_English`](./LICENSE_icon_English) and [`LICENSE_icon_SC`](./LICENSE_icon_SC) for details.
+- All other parts, except the files and directories mentioned above, are licensed under [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.html).
+
+## Sponsors
+
+- [ShirkNeko](https://afdian.com/a/shirkneko) (lead maintainer of SukiSU)
 - [weishu](https://github.com/sponsors/tiann) (author of KernelSU)
 
 <details>
-<summary>ShirkNeko's sponsorship list</summary>
+<summary>ShirkNeko's sponsor list</summary>
 
-- [Ktouls](https://github.com/Ktouls) Thanks so much for bringing me support.
-- [zaoqi123](https://github.com/zaoqi123) Thanks for the milk tea.
-- [wswzgdg](https://github.com/wswzgdg) Many thanks for supporting this project.
-- [yspbwx2010](https://github.com/yspbwx2010) Many thanks.
-- [DARKWWEE](https://github.com/DARKWWEE) 100 USDT
-- [Saksham Singla](https://github.com/TypeFlu) Provide and maintain the website
-- [OukaroMF](https://github.com/OukaroMF) Donation of website domain name
+- [Ktouls](https://github.com/Ktouls) Thank you so much for your support
+- [zaoqi123](https://github.com/zaoqi123) Treating me to milk tea is nice too
+- [wswzgdg](https://github.com/wswzgdg) Thank you so much for supporting this project
+- [yspbwx2010](https://github.com/yspbwx2010) Thank you very much
+- [DARKWWEE](https://github.com/DARKWWEE) Thanks bro for the 100 USDT
+- [Saksham Singla](https://github.com/TypeFlu) Providing and maintaining the website
+- [OukaroMF](https://github.com/OukaroMF) Website domain donation
 
 </details>
 
-## License
-
-- The files in the `kernel` directory are under [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) license.
-- The images of the files `ic_launcher(?!.*alt.*).*` with anime character artwork are licensed under a special arrangement: drawn by [怡子曰曰](https://space.bilibili.com/10545509), the copyright is held by [明风 OuO](https://space.bilibili.com/274939213), and the vectorized icons are provided by this project. See [`LICENSE_icon_English`](./LICENSE_icon_English) and [`LICENSE_icon_SC`](./LICENSE_icon_SC) for details.
-- Except for the files or directories mentioned above, all other parts are under [GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) license.
-
-## Credit
+## Acknowledgements
 
 - [KernelSU](https://github.com/tiann/KernelSU): upstream
-- [MKSU](https://github.com/5ec1cff/KernelSU): Magic Mount
-- [RKSU](https://github.com/rsuntk/KernelsU): support non-GKI
-- [susfs](https://gitlab.com/simonpunk/susfs4ksu): An addon root hiding kernel patches and userspace module for KernelSU.
-- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch is a key part of the APatch implementation of the kernel module
+- [/xxksu](https://github.com/backslashxx/KernelSU): reference for kernel compatibility support
+- [susfs](https://gitlab.com/simonpunk/susfs4ksu): KernelSU addon with hiding kernel patches and userspace modules
+- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch is a key part of the kernel module implementation in APatch
+- NyaZygisk: built-in Zygisk implementation
 
-Contributions welcome via PR; translations via [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/); issues via [GitHub Issues](https://github.com/SukiSU-Ultra/SukiSU-Ultra/issues).
+PRs are welcome; for translations please go to [Weblate](https://hosted.weblate.org/projects/sukisu-ultra/); for issue reports please open an [Issue](https://github.com/SukiSU-Nova/SukiSU-Nova/issues).
 
 <details>
-<summary>KernelSU's credit</summary>
+<summary>KernelSU acknowledgements</summary>
 
-- [Kernel-Assisted Superuser](https://git.zx2c4.com/kernel-assisted-superuser/about/): The KernelSU idea.
-- [Magisk](https://github.com/topjohnwu/Magisk): The powerful root tool.
-- [genuine](https://github.com/brevent/genuine/): APK v2 signature validation.
-- [Diamorphine](https://github.com/m0nad/Diamorphine): Some rootkit skills.
+- [kernel-assisted-superuser](https://git.zx2c4.com/kernel-assisted-superuser/about/): inspiration for KernelSU.
+- [Magisk](https://github.com/topjohnwu/Magisk): the powerful root toolbox.
+- [genuine](https://github.com/brevent/genuine/): apk v2 signature verification.
+- [Diamorphine](https://github.com/m0nad/Diamorphine): some rootkit tricks.
 </details>

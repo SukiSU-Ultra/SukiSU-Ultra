@@ -13,7 +13,7 @@ val androidSourceCompatibility = rootProject.extra["androidSourceCompatibility"]
 val androidTargetCompatibility = rootProject.extra["androidTargetCompatibility"] as JavaVersion
 
 android {
-    namespace = "com.sukisu.ultra.ai.api"
+    namespace = "com.sukisu.nova.ai.api"
 
     compileSdk {
         version =
