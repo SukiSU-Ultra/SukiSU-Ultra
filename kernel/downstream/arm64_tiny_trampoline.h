@@ -17,6 +17,13 @@
 #include <linux/version.h>
 #include <linux/uaccess.h>
 #include <asm/insn.h>
+/*
+ * __entry_text_start/__entry_text_end live in asm-generic/sections.h. Do not
+ * rely on a sibling header pulling it in: older/vendor trees do not, and the
+ * symbols then show up as "use of undeclared identifier" (seen on msm 4.x
+ * trees). This header is only compiled by the 6.8+ static LSM hook backend.
+ */
+#include <asm/sections.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
 #include <asm/text-patching.h>
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
@@ -25,6 +32,16 @@
 
 #if !defined(__aarch64__)
 static_assert(1 == 0, "ARM64 only!");
+#endif
+
+/*
+ * .entry.text (ENTRY_TEXT in asm-generic/vmlinux.lds.h) is emitted on arm64
+ * since v4.8. Trees that predate it have no __entry_text_start/end symbols
+ * to reference at all, so fail early with a clear message instead of an
+ * undefined symbol at link time.
+ */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
+#error "arm64_tiny_trampoline: upstream arm64 only gained .entry.text in 4.8"
 #endif
 
 nodiscard static void *hunt_entry_text_code_cave(void)

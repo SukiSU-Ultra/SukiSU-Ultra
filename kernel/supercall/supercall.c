@@ -99,6 +99,9 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user 
 		case CMD_SUSFS_ADD_SUS_PATH_LOOP:
 			susfs_add_sus_path_loop(arg);
 			return 0;
+		case CMD_SUSFS_SET_SUS_PATH_UID_FILTER:
+			susfs_set_sus_path_uid_filter(arg);
+			return 0;
 #endif // CONFIG_KSU_SUSFS_SUS_PATH
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 		case CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS:
