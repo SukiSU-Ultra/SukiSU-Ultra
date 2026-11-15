@@ -17,13 +17,6 @@
 #include <linux/version.h>
 #include <linux/uaccess.h>
 #include <asm/insn.h>
-/*
- * __entry_text_start/__entry_text_end live in asm-generic/sections.h. Do not
- * rely on a sibling header pulling it in: older/vendor trees do not, and the
- * symbols then show up as "use of undeclared identifier" (seen on msm 4.x
- * trees). This header is only compiled by the 6.8+ static LSM hook backend.
- */
-#include <asm/sections.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
 #include <asm/text-patching.h>
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0)
@@ -34,15 +27,7 @@
 static_assert(1 == 0, "ARM64 only!");
 #endif
 
-/*
- * .entry.text (ENTRY_TEXT in asm-generic/vmlinux.lds.h) is emitted on arm64
- * since v4.8. Trees that predate it have no __entry_text_start/end symbols
- * to reference at all, so fail early with a clear message instead of an
- * undefined symbol at link time.
- */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-#error "arm64_tiny_trampoline: upstream arm64 only gained .entry.text in 4.8"
-#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 
 nodiscard static void *hunt_entry_text_code_cave(void)
 {
@@ -113,8 +98,14 @@ bail:;
  * 8:	ffffffff 	.word	0xffffffff
  * c:	12345678 	.word	0x12345678
  *
- * alternative: printf '%s\n' '.text' '.global tp' 'tp:' 'adrp x16, 0x0' 'add x16, x16, #123' 'br x16' | aarch64-linux-gnu-as -o test.o
- * hiwever encoding/decoding and offset_in_age has to be handled. maybe later.
+ * alternatives: 
+ * printf '%s\n' '.text' '.global tp' 'tp:' 'adrp x16, 0x0' 'add x16, x16, #123' 'br x16' | aarch64-linux-gnu-as -o test.o
+ * 	- needs pc-relative encoding/decoding and offset_in_page has to be handled.
+ * printf '%s\n' '.text' '.global tp' 'tp:' 'adrp x16, 0x0' 'br x16'| aarch64-linux-gnu-as -o test.o
+ * 	- needs pc-relative encoding/decoding + __attribute__((aligned(4096))) functions to jump to
+ *
+ * - nbd for now. will explore once code caves are small.
+ *
  */
 
 static inline int generate_trampoline(uint32_t buf[], uint64_t target)
@@ -181,5 +172,9 @@ nodiscard static uintptr_t create_landing_pad(uintptr_t target)
 	pr_info("%s: trampoline written to: 0x%lx ret: %d\n", __func__, trampoline_start, res);
 	return trampoline_start;
 }
+
+#else /* < 4.9 */
+#define create_landing_pad(...) ((uintptr_t)0x0)
+#endif
 
 #endif // __H_ARM64_TINY_TRAMPOLINE

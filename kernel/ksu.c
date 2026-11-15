@@ -93,15 +93,7 @@
 
 #ifdef CONFIG_ARM64
 #include "downstream/arm64_branch_insn.h"
-/*
- * The landing pad helper is only consumed by the automated LSM hook backend
- * (hook/lsm_hooks_static.c), which is 6.8+ only. It depends on .entry.text
- * boundaries and the patching API, neither of which are portable below that:
- * see the version notes in the header itself.
- */
-#if defined(CONFIG_KSU_LSM_SECURITY_HOOKS) && LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 #include "downstream/arm64_tiny_trampoline.h"
-#endif
 #endif
 
 // slow_avc_audit_defs.h calls ksu_avc_spoof_rewrite_tsid() from its inline hook
@@ -147,6 +139,7 @@
 #include "extension/version_spoof.c"
 #include "feature/avc_spoof.c"
 #include "feature/uts_spoof.c"
+#include "feature/mount_hide.c"
 
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
@@ -180,7 +173,6 @@
 #include "feature/shell_su_adb_only.c"
 #include "feature/sucompat.c"
 #include "feature/sulog.c"
-#include "feature/mount_hide.c"
 #include "runtime/boot_event.c"
 #include "runtime/ksud_integration.c"
 
