@@ -442,4 +442,12 @@
     <string name="temporary_root_custom_range">Nhập từ 1-10080 phút (lên đến 7 ngày)</string>
     <string name="theme_store_install_local">Cài đặt từ tệp</string>
     <string name="theme_store_search">Tìm kiếm các chủ đề, tác giả hoặc nhãn</string>
+    <string name="horizon_unknown_error">Lỗi không xác định</string>
+    <string name="susfs_runtime_unknown">Không xác định</string>
+    <string name="theme_store_health_unknown">Không xác định</string>
+    <string name="config_save_unknown">Trạng thái lưu chưa được xác minh</string>
+    <string name="ci_update_install_permission">Cho phép ứng dụng này cài đặt các ứng dụng không xác định, rồi kiểm tra lại.</string>
+    <string name="hook_type">Loại Hook</string>
+    <string name="home_zygisk_implementation">Triển khai Zygisk</string>
+    <string name="home_kernel_full_version">Phiên bản Kernel đầy đủ</string>
 </resources>
