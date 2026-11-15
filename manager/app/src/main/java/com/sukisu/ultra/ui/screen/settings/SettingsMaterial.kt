@@ -509,7 +509,7 @@ fun SettingPagerMaterial(
                         {
                             SegmentedSwitchItem(
                                 icon = Icons.Filled.Extension,
-                                title = stringResource(id = R.string.settings_builtin_zygisk),
+                                title = customText(CustomTextKey.ZYGISK_SETTINGS_TITLE),
                                 summary = stringResource(id = R.string.settings_builtin_zygisk_summary),
                                 checked = uiState.builtinZygisk,
                                 onCheckedChange = {
@@ -520,7 +520,7 @@ fun SettingPagerMaterial(
                         *(if (uiState.builtinZygisk) arrayOf<@Composable () -> Unit>({
                             SegmentedListItem(
                                 onClick = actions.onOpenBuiltinZygisk,
-                                headlineContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard)) },
+                                headlineContent = { Text(customText(CustomTextKey.ZYGISK_DASHBOARD_TITLE)) },
                                 supportingContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary)) },
                                 leadingContent = { IconTile(Icons.Filled.Settings, stringResource(id = R.string.settings_builtin_zygisk_dashboard)) }
                             )

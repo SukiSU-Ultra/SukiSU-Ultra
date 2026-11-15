@@ -18,8 +18,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sukisu.ultra.R
@@ -28,7 +28,9 @@ import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.InjectedZygiskModule
+import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
@@ -68,7 +70,7 @@ fun BuiltinZygiskMiuix(
         topBar = {
             BlurredBar(backdrop) {
                 TopAppBar(
-                    title = stringResource(R.string.settings_builtin_zygisk_dashboard),
+                    title = customText(CustomTextKey.ZYGISK_DASHBOARD_TITLE),
                     color = barColor,
                     navigationIcon = {
                         IconButton(onClick = onBack) {

@@ -645,7 +645,7 @@ fun SettingPagerMiuix(
                                 onCheckedChange = actions.onSetAutoJailbreak
                             )
                             SwitchPreference(
-                                title = stringResource(id = R.string.settings_builtin_zygisk),
+                                title = customText(CustomTextKey.ZYGISK_SETTINGS_TITLE),
                                 summary = stringResource(id = R.string.settings_builtin_zygisk_summary),
                                 startAction = {
                                     Icon(
@@ -662,7 +662,7 @@ fun SettingPagerMiuix(
                             )
                             if (uiState.builtinZygisk) {
                                 ArrowPreference(
-                                    title = stringResource(id = R.string.settings_builtin_zygisk_dashboard),
+                                    title = customText(CustomTextKey.ZYGISK_DASHBOARD_TITLE),
                                     summary = stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary),
                                     startAction = {
                                         Icon(

@@ -32,7 +32,9 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.theme.backgroundAwareColor
+import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.InjectedZygiskModule
+import com.sukisu.ultra.ui.util.customText
 
 @Composable
 internal fun BuiltinZygiskMaterial(
@@ -49,7 +51,7 @@ internal fun BuiltinZygiskMaterial(
     ExpressiveScaffold(
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.settings_builtin_zygisk_dashboard)) },
+                title = { Text(customText(CustomTextKey.ZYGISK_DASHBOARD_TITLE)) },
                 navigationIcon = { TopBarBackButton(onClick = onBack) },
                 scrollBehavior = scrollBehavior,
                 colors = expressiveTopAppBarColors(),
