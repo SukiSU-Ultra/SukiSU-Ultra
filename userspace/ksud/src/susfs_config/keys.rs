@@ -14,6 +14,7 @@ pub const KEY_AUTO_START_ENABLED: &str = "auto_start_enabled";
 pub const KEY_SUS_PATHS: &str = "sus_paths";
 pub const KEY_SUS_LOOP_PATHS: &str = "sus_loop_paths";
 pub const KEY_PRIORITY_UID_FILTER: &str = "priority_uid_filter";
+pub const KEY_SUS_PATH_UID_FILTER: &str = "sus_path_uid_filter";
 pub const KEY_SUS_MAPS: &str = "sus_maps";
 pub const KEY_ENABLE_LOG: &str = "enable_log";
 pub const KEY_EXECUTE_IN_POST_FS_DATA: &str = "execute_in_post_fs_data";
@@ -39,6 +40,7 @@ pub const ALL_KEYS: &[&str] = &[
     KEY_SUS_LOOP_PATHS,
     KEY_SUS_MAPS,
     KEY_PRIORITY_UID_FILTER,
+    KEY_SUS_PATH_UID_FILTER,
     KEY_ENABLE_LOG,
     KEY_EXECUTE_IN_POST_FS_DATA,
     KEY_KSTAT_CONFIGS,

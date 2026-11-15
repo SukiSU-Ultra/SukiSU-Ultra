@@ -27,3 +27,4 @@ pub use cmd::paths::*;
 pub use cmd::priority_uid_filter::*;
 pub use cmd::spoof::*;
 pub use cmd::status::*;
+pub use cmd::sus_path_uid_filter::*;

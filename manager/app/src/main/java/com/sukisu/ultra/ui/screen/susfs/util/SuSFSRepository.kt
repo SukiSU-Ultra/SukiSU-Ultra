@@ -113,6 +113,13 @@ object SuSFSRepository {
         check(SuSFSConfig.setMulti(SuSFSConfig.KEY_ADD_KSTAT_PATHS, paths, ";")) { SAVE_FAILURE }
     }
 
+    suspend fun saveSusPathUidFilter(packages: Set<String>) {
+        check(SuSFSConfig.set(
+            SuSFSConfig.KEY_SUS_PATH_UID_FILTER,
+            packages.sorted().joinToString(",")
+        )) { SAVE_FAILURE }
+    }
+
     suspend fun setEnableLog(context: Context, enabled: Boolean): Boolean {
         val success = SuSFSCommands.executeSusfsCommand(context, "enable-log ${if (enabled) 1 else 0}")
         if (success) {

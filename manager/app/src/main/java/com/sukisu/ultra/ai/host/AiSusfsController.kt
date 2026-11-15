@@ -19,7 +19,7 @@ import kotlinx.serialization.json.put
 import java.io.File
 
 /**
- * Full SuSFS configuration surface, matching the eight tabs and the backup /
+ * Full SuSFS configuration surface, matching the SuSFS tabs and the backup /
  * restore flow of the SuSFS screen. Every write is mirrored in the saved
  * module config and, when auto-start is enabled, the boot module is refreshed.
  */
@@ -41,6 +41,7 @@ object AiSusfsController {
             put("sus_loop_paths", buildJsonArray { config.susLoopPaths.sorted().forEach { add(it) } })
             put("sus_maps", buildJsonArray { config.susMaps.sorted().forEach { add(it) } })
             put("priority_uid_filter", config.priorityUidFilter.sorted().joinToString(","))
+            put("sus_path_uid_filter", config.susPathUidFilter.sorted().joinToString(","))
             put("kstat_configs", buildJsonArray { config.kstatConfigs.sorted().forEach { add(it) } })
             put("add_kstat_paths", buildJsonArray { config.addKstatPaths.sorted().forEach { add(it) } })
             put("hide_sus_mounts_for_all", config.hideSusMountsForAllProcs)
@@ -336,6 +337,19 @@ object AiSusfsController {
                 "Priority UID filter set to: ${value.ifEmpty { "(empty)" }}." + autoStartNote()
             }
 
+            "set_sus_path_uid_filter" -> {
+                val selected = packages.map { requirePackage(it) }.distinct().sorted()
+                val value = selected.joinToString(",")
+                val result = SuSFSCommands.executeSusfsCommandWithOutput(
+                    "set-sus-path-uid-filter ${SuSFSConfig.shellQuote(value.ifEmpty { "," })}"
+                )
+                check(result.isSuccess) {
+                    result.errorOutput.ifBlank { result.output }.ifBlank { "SuSFS rejected the filter." }
+                }
+                SuSFSManager.saveSusPathUidFilter(selected.toSet())
+                "Sus path UID filter set to: ${value.ifEmpty { "(empty)" }}." + autoStartNote()
+            }
+
             "set_cmdline_or_bootconfig" -> {
                 val uri = fileUri ?: throw IllegalArgumentException("file_uri is required")
                 check(SuSFSManager.setCmdlineOrBootconfigFile(ksuApp, uri.toString())) {
@@ -364,7 +378,7 @@ object AiSusfsController {
                     "reset_sus_maps, add_kstat, remove_add_kstat, edit_add_kstat, update_kstat, " +
                     "update_kstat_full_clone, add_kstat_static, remove_kstat_config, " +
                     "edit_kstat_config, reset_kstat, set_priority_uid_filter, " +
-                    "set_cmdline_or_bootconfig, backup, restore"
+                    "set_sus_path_uid_filter, set_cmdline_or_bootconfig, backup, restore"
             )
         }
     }

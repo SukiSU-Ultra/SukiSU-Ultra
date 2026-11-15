@@ -23,6 +23,7 @@ object SuSFSBackupManager {
             SuSFSConfig.KEY_SUS_LOOP_PATHS to getSusLoopPathsInternal(),
             SuSFSConfig.KEY_SUS_MAPS to getSusMapsInternal(),
             SuSFSConfig.KEY_PRIORITY_UID_FILTER to SuSFSConfig.get(SuSFSConfig.KEY_PRIORITY_UID_FILTER),
+            SuSFSConfig.KEY_SUS_PATH_UID_FILTER to SuSFSConfig.get(SuSFSConfig.KEY_SUS_PATH_UID_FILTER),
             SuSFSConfig.KEY_ENABLE_LOG to getEnableLogStateInternal(),
             SuSFSConfig.KEY_EXECUTE_IN_POST_FS_DATA to getExecuteInPostFsDataInternal(),
             SuSFSConfig.KEY_KSTAT_CONFIGS to getKstatConfigsInternal(),

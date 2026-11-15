@@ -493,6 +493,13 @@
     <string name="susfs_priority_uid_filter_empty">尚未選擇應用程式</string>
     <string name="susfs_priority_uid_filter_select">選擇應用程式</string>
     <string name="susfs_priority_uid_filter_clear">清除過濾清單</string>
+    <string name="susfs_sus_path_uid_filter">SuS 路徑 UID 過濾</string>
+    <string name="susfs_sus_path_uid_filter_description">限制哪些應用程式可以看到在「SuS 路徑」中加入的路徑。設定過濾後，只有選取的應用程式（UID 10000-19999）能看到這些路徑，其他應用程式會認為它們不存在。</string>
+    <string name="susfs_sus_path_uid_filter_warning">需要支援 Sus 路徑 UID 過濾的 SuSFS 核心。核心會從 /data/system/packages.list 解析 UID，並在應用程式安裝或解除安裝後自動重新整理。儲存的設定不代表核心即時狀態；開啟自動啟動可在重新啟動後還原。</string>
+    <string name="susfs_sus_path_uid_filter_apps">允許看到 SuS 路徑的應用程式</string>
+    <string name="susfs_sus_path_uid_filter_empty">尚未選擇應用程式，SuS 路徑將對所有應用程式隱藏</string>
+    <string name="susfs_sus_path_uid_filter_select">選擇應用程式</string>
+    <string name="susfs_sus_path_uid_filter_clear">清除過濾清單</string>
     <string name="susfs_execution_location_label">執行位置</string>
     <string name="susfs_execution_location_service">Service</string>
     <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>

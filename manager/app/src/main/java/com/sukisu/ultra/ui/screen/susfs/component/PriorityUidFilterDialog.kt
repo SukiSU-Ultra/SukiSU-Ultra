@@ -38,6 +38,7 @@ fun PriorityUidFilterDialog(
     apps: List<AppInfo> = emptyList(),
     isLoadingApps: Boolean = false,
     selectedPackages: Set<String> = emptySet(),
+    titleRes: Int = R.string.susfs_priority_uid_filter,
 ) {
     if (!showDialog) return
     val miuix = LocalUiMode.current == UiMode.Miuix
@@ -116,7 +117,7 @@ fun PriorityUidFilterDialog(
     }
     val confirmText = stringResource(R.string.susfs_save) + if (selectedList.isNotEmpty()) " (${selectedList.size})" else ""
     if (miuix) {
-        WindowDialog(show = true, title = stringResource(R.string.susfs_priority_uid_filter), onDismissRequest = { if (!isLoading) onDismiss() }) {
+        WindowDialog(show = true, title = stringResource(titleRes), onDismissRequest = { if (!isLoading) onDismiss() }) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 body()
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -128,7 +129,7 @@ fun PriorityUidFilterDialog(
     } else {
         com.sukisu.ultra.ui.component.material.ExpressiveDialog(
             onDismissRequest = { if (!isLoading) onDismiss() },
-            title = { Text(stringResource(R.string.susfs_priority_uid_filter)) },
+            title = { Text(stringResource(titleRes)) },
             text = body,
             confirmButton = { TextButton(onClick = { onConfirm(selectedList) }, enabled = enabled) { Text(confirmText) } },
             dismissButton = { TextButton(onClick = onDismiss, enabled = !isLoading) { Text(stringResource(R.string.cancel)) } },

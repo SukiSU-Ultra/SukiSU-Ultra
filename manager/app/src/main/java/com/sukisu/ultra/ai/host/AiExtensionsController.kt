@@ -204,6 +204,7 @@ object AiExtensionsController : AiExtensionsService {
                             put("sus_loop_paths", config.susLoopPaths.joinToString("\n"))
                             put("sus_maps", config.susMaps.joinToString("\n"))
                             put("priority_uid_filter", config.priorityUidFilter.joinToString(","))
+                            put("sus_path_uid_filter", config.susPathUidFilter.joinToString(","))
                             put("kstat_configs", config.kstatConfigs.joinToString("\n"))
                             put("add_kstat_paths", config.addKstatPaths.joinToString("\n"))
                             put("hide_sus_mounts_for_all", config.hideSusMountsForAllProcs)

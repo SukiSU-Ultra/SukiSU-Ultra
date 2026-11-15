@@ -300,6 +300,7 @@ pub fn boot_completed(
     sus_loop_paths: &[String],
     sus_maps: &[String],
     priority_uid_filter: &str,
+    sus_path_uid_filter: &str,
 ) -> String {
     let mut s = String::new();
 
@@ -329,6 +330,15 @@ pub fn boot_completed(
             "仅对非KSU进程隐藏"
         }
     );
+
+    if !sus_path_uid_filter.trim().is_empty() {
+        let quoted = shell_quote(sus_path_uid_filter);
+        let _ = writeln!(
+            s,
+            "# Restore sus_path UID filter\nif /data/adb/ksud susfs set-sus-path-uid-filter {quoted} >> \"$LOG_FILE\" 2>&1; then\n  echo \"$(get_current_time): sus_path UID filter restored\" >> \"$LOG_FILE\"\nelse\n  echo \"$(get_current_time): Failed to restore sus_path UID filter\" >> \"$LOG_FILE\"\nfi"
+        );
+        s.push('\n');
+    }
 
     if !sus_paths.is_empty() {
         s.push_str("# 添加SUS路径\n");

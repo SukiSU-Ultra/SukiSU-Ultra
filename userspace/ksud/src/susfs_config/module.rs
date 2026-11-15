@@ -10,7 +10,8 @@ use super::keys::{
     KEY_ADD_KSTAT_PATHS, KEY_BUILD_TIME_VALUE, KEY_CMDLINE_OR_BOOTCONFIG_PATH,
     KEY_ENABLE_AVC_LOG_SPOOFING, KEY_ENABLE_CLEANUP_RESIDUE, KEY_ENABLE_HIDE_BL, KEY_ENABLE_LOG,
     KEY_EXECUTE_IN_POST_FS_DATA, KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS, KEY_KSTAT_CONFIGS,
-    KEY_PRIORITY_UID_FILTER, KEY_SUS_LOOP_PATHS, KEY_SUS_MAPS, KEY_SUS_PATHS, KEY_UNAME_VALUE,
+    KEY_PRIORITY_UID_FILTER, KEY_SUS_LOOP_PATHS, KEY_SUS_MAPS, KEY_SUS_PATH_UID_FILTER,
+    KEY_SUS_PATHS, KEY_UNAME_VALUE,
 };
 use super::store::load_config;
 
@@ -66,6 +67,7 @@ pub fn load_module_config() -> Result<ModuleConfig> {
         sus_loop_paths: split_paths(&sus_loop_paths_raw),
         sus_maps: split_paths(&sus_maps_raw),
         priority_uid_filter: get(KEY_PRIORITY_UID_FILTER),
+        sus_path_uid_filter: get(KEY_SUS_PATH_UID_FILTER),
         enable_log: get(KEY_ENABLE_LOG) == "true",
         kstat_configs: split_kstat_configs(&kstat_configs_raw),
         add_kstat_paths: split_paths(&add_kstat_paths_raw),
@@ -89,6 +91,7 @@ pub struct ModuleConfig {
     pub sus_loop_paths: Vec<String>,
     pub sus_maps: Vec<String>,
     pub priority_uid_filter: String,
+    pub sus_path_uid_filter: String,
     pub enable_log: bool,
     pub kstat_configs: Vec<String>,
     pub add_kstat_paths: Vec<String>,
