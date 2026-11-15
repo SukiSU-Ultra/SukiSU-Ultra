@@ -172,8 +172,31 @@ pub fn monitor_process() -> Option<(i32, String)> {
 }
 
 /// Our daemons, one per injected ABI.
+///
+/// A module companion is this same binary re-executed as `zygiskd-<module>` (Zygisk Next:
+/// `zygiskd-zn-companion`), so its executable still lives in the staging directory and the
+/// path alone would report every loaded module as one more daemon. Its `argv[0]` is what
+/// tells it apart.
 pub fn daemon_processes() -> Vec<(i32, String)> {
     staged_processes("zygiskd")
+        .into_iter()
+        .filter(|(pid, _)| {
+            read_process(*pid).is_none_or(|process| companion_name(&process.argv0).is_none())
+        })
+        .collect()
+}
+
+/// The module a companion process belongs to, from its `argv[0]`: `zygiskd-<id>`
+/// (Zygisk Next: `zygiskd-zn-companion`) and, on a per-ABI build, `zygiskd32-<id>` /
+/// `zygiskd64-<id>`. The daemon itself (`zygiskd`, `zygiskd32`, `zygiskd64`) matches none.
+fn companion_name(argv0: &str) -> Option<&str> {
+    let name = argv0.rsplit('/').next().unwrap_or("");
+    let rest = name.strip_prefix("zygiskd")?;
+    let rest = rest
+        .strip_prefix("32")
+        .or_else(|| rest.strip_prefix("64"))
+        .unwrap_or(rest);
+    rest.strip_prefix('-')
 }
 
 pub fn is_monitor_running() -> bool {
@@ -396,8 +419,7 @@ fn scan_processes() -> Vec<ProcessEntry> {
 
 /// Whether `process` is this module's companion.
 fn is_companion(process: &ProcessEntry, id: &str) -> bool {
-    let name = process.argv0.rsplit('/').next().unwrap_or("");
-    let Some(name) = name.strip_prefix("zygiskd-") else {
+    let Some(name) = companion_name(&process.argv0) else {
         return false;
     };
     if name == "zn-companion" {
