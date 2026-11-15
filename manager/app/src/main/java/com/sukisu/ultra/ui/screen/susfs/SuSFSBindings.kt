@@ -23,6 +23,16 @@ internal fun SuSFSDialogs(uiState: SuSFSUiState, viewModel: SuSFSViewModel) {
         isLoadingApps = uiState.isLoadingPriorityApps,
         selectedPackages = uiState.priorityUidFilter,
     )
+    PriorityUidFilterDialog(
+        showDialog = uiState.showSusPathUidFilterDialog && uiState.selectedTab == SuSFSTab.SUS_PATH_UID_FILTER,
+        onDismiss = { viewModel.showSusPathUidFilterDialog(false) },
+        onConfirm = { viewModel.applySusPathUidFilter(context, it.toSet()) },
+        isLoading = uiState.isLoading,
+        apps = uiState.susPathUidFilterApps,
+        isLoadingApps = uiState.isLoadingSusPathUidFilterApps,
+        selectedPackages = uiState.susPathUidFilter,
+        titleRes = R.string.susfs_sus_path_uid_filter,
+    )
     SlotInfoDialog(
         showDialog = uiState.showSlotInfoDialog,
         onDismiss = { viewModel.showSlotInfoDialog(false) },
@@ -297,6 +307,16 @@ internal fun SuSFSTabContent(uiState: SuSFSUiState, viewModel: SuSFSViewModel) {
                 },
                 onEditPath = { viewModel.openAddPathDialog(it) },
                 onReset = { viewModel.toggleResetPathsDialog(true) }
+            )
+        }
+        SuSFSTab.SUS_PATH_UID_FILTER -> {
+            com.sukisu.ultra.ui.component.ConfigResults(uiState.susPathUidFilterResults)
+            SusPathUidFilterContent(
+                packages = uiState.susPathUidFilter,
+                isLoading = uiState.isLoading,
+                onSelectApps = { viewModel.showSusPathUidFilterDialog(true) },
+                onApply = { viewModel.applySusPathUidFilter(context, uiState.susPathUidFilter) },
+                onClear = { viewModel.applySusPathUidFilter(context, emptySet()) },
             )
         }
         SuSFSTab.SUS_LOOP_PATHS -> {

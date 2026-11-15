@@ -674,6 +674,13 @@
     <string name="susfs_priority_uid_filter_empty">尚未选择应用</string>
     <string name="susfs_priority_uid_filter_select">选择应用</string>
     <string name="susfs_priority_uid_filter_clear">清空过滤列表</string>
+    <string name="susfs_sus_path_uid_filter">SuS 路径 UID 过滤</string>
+    <string name="susfs_sus_path_uid_filter_description">限制哪些应用可以看到在“SuS 路径”中添加的路径。设置过滤后，只有选中的应用（UID 10000-19999）能看到这些路径，其他应用会认为它们不存在。</string>
+    <string name="susfs_sus_path_uid_filter_warning">需要支持 Sus 路径 UID 过滤的 SuSFS 内核。内核会从 /data/system/packages.list 解析 UID，并在应用安装或卸载后自动刷新。保存的配置不代表内核实时状态；开启自动启动可在重启后恢复。</string>
+    <string name="susfs_sus_path_uid_filter_apps">允许看到 SuS 路径的应用</string>
+    <string name="susfs_sus_path_uid_filter_empty">尚未选择应用，SuS 路径将对所有应用隐藏</string>
+    <string name="susfs_sus_path_uid_filter_select">选择应用</string>
+    <string name="susfs_sus_path_uid_filter_clear">清空过滤列表</string>
     <string name="susfs_execution_location_label">执行位置</string>
     <string name="susfs_execution_location_service">Service</string>
     <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>

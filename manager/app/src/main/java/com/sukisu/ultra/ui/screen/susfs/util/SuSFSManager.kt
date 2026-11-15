@@ -1,7 +1,9 @@
 package com.sukisu.ultra.ui.screen.susfs.util
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -17,6 +19,7 @@ object SuSFSManager {
     suspend fun getEnableLogState(): Boolean = SuSFSRepository.getEnableLogState()
     suspend fun getEnabledFeatures(context: Context): List<EnabledFeature> = SuSFSCommands.getEnabledFeatures(context)
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getInstalledApps(): List<AppInfo> = SuSFSPathManager.getInstalledApps()
     suspend fun getCurrentSlotInfo(): List<SlotInfo> = SuSFSCommands.getCurrentSlotInfo()
     suspend fun getCurrentActiveSlot(): String = SuSFSCommands.getCurrentActiveSlot()
@@ -34,6 +37,7 @@ object SuSFSManager {
     suspend fun saveSusMaps(maps: Set<String>) = SuSFSRepository.saveSusMaps(maps)
     suspend fun saveKstatConfigs(configs: Set<String>) = SuSFSRepository.saveKstatConfigs(configs)
     suspend fun saveAddKstatPaths(paths: Set<String>) = SuSFSRepository.saveAddKstatPaths(paths)
+    suspend fun saveSusPathUidFilter(packages: Set<String>) = SuSFSRepository.saveSusPathUidFilter(packages)
 
     suspend fun setEnableLog(context: Context, enabled: Boolean): Boolean = SuSFSRepository.setEnableLog(context, enabled)
     suspend fun setEnableAvcLogSpoofing(context: Context, enabled: Boolean): Boolean = SuSFSRepository.setEnableAvcLogSpoofing(context, enabled)
@@ -55,6 +59,7 @@ object SuSFSManager {
     suspend fun addSusMap(context: Context, map: String): Boolean = SuSFSPathManager.addSusMap(context, map)
     suspend fun removeSusMap(map: String): Boolean = SuSFSPathManager.removeSusMap(map)
     suspend fun editSusMap(context: Context, oldMap: String, newMap: String): Boolean = SuSFSPathManager.editSusMap(context, oldMap, newMap)
+    @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun addAppPaths(context: Context, packageName: String): Boolean = SuSFSPathManager.addAppPaths(context, packageName)
 
     suspend fun addKstatStatically(context: Context, path: String, ino: String, dev: String, nlink: String,

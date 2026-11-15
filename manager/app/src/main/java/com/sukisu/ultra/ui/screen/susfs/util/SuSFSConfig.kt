@@ -14,6 +14,7 @@ object SuSFSConfig {
     const val KEY_SUS_PATHS = "sus_paths"
     const val KEY_SUS_LOOP_PATHS = "sus_loop_paths"
     const val KEY_PRIORITY_UID_FILTER = "priority_uid_filter"
+    const val KEY_SUS_PATH_UID_FILTER = "sus_path_uid_filter"
     const val KEY_SUS_MAPS = "sus_maps"
     const val KEY_ENABLE_LOG = "enable_log"
     const val KEY_EXECUTE_IN_POST_FS_DATA = "execute_in_post_fs_data"

@@ -41,6 +41,8 @@ class SuSFSViewModel(
             it.copy(
                 selectedTab = tab,
                 showPriorityAppsDialog = it.showPriorityAppsDialog && tab == SuSFSTab.PRIORITY_UID_FILTER,
+                showSusPathUidFilterDialog =
+                    it.showSusPathUidFilterDialog && tab == SuSFSTab.SUS_PATH_UID_FILTER,
             )
         }
     }
@@ -69,6 +71,7 @@ class SuSFSViewModel(
                         susLoopPaths = config.susLoopPaths,
                         susMaps = config.susMaps,
                         priorityUidFilter = config.priorityUidFilter,
+                        susPathUidFilter = config.susPathUidFilter,
                         kstatConfigs = config.kstatConfigs,
                         addKstatPaths = config.addKstatPaths,
                         hideSusMountsForAllProcs = config.hideSusMountsForAllProcs,
@@ -161,14 +164,7 @@ class SuSFSViewModel(
         _uiState.update { it.copy(isLoadingPriorityApps = true) }
         viewModelScope.launch {
             try {
-                val apps = withContext(Dispatchers.IO) {
-                    com.sukisu.ultra.data.repository.SuperUserRepositoryImpl().getAppList().getOrThrow().first.mapNotNull { app ->
-                        val info = app.packageInfo.applicationInfo ?: return@mapNotNull null
-                        if (info.uid !in 10000..19999) return@mapNotNull null
-                        com.sukisu.ultra.ui.screen.susfs.util.AppInfo(app.packageName, app.label, app.packageInfo,
-                            info.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0)
-                    }.distinctBy { it.packageName }.sortedBy { it.appName.lowercase() }
-                }
+                val apps = fetchEligibleApps()
                 _uiState.update { it.copy(priorityApps = apps) }
             } catch (e: CancellationException) {
                 throw e
@@ -179,6 +175,41 @@ class SuSFSViewModel(
             }
         }
     }
+
+    fun showSusPathUidFilterDialog(show: Boolean) {
+        _uiState.update { it.copy(showSusPathUidFilterDialog = show) }
+        if (show) loadSusPathUidFilterApps()
+    }
+
+    private fun loadSusPathUidFilterApps() {
+        if (_uiState.value.isLoadingSusPathUidFilterApps) return
+        _uiState.update { it.copy(isLoadingSusPathUidFilterApps = true) }
+        viewModelScope.launch {
+            try {
+                val apps = fetchEligibleApps()
+                _uiState.update { it.copy(susPathUidFilterApps = apps) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e) }
+            } finally {
+                _uiState.update { it.copy(isLoadingSusPathUidFilterApps = false) }
+            }
+        }
+    }
+
+    private suspend fun fetchEligibleApps(): List<com.sukisu.ultra.ui.screen.susfs.util.AppInfo> =
+        withContext(Dispatchers.IO) {
+            com.sukisu.ultra.data.repository.SuperUserRepositoryImpl().getAppList()
+                .getOrThrow().first.mapNotNull { app ->
+                    val info = app.packageInfo.applicationInfo ?: return@mapNotNull null
+                    if (info.uid !in 10000..19999) return@mapNotNull null
+                    com.sukisu.ultra.ui.screen.susfs.util.AppInfo(
+                        app.packageName, app.label, app.packageInfo,
+                        info.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0
+                    )
+                }.distinctBy { it.packageName }.sortedBy { it.appName.lowercase() }
+        }
 
     fun applyPriorityUidFilter(context: Context, packages: Set<String>) = performOperation {
         _uiState.update { it.copy(priorityUidFilterResults = emptyList()) }
@@ -210,6 +241,38 @@ class SuSFSViewModel(
             throw e
         } catch (e: Exception) {
             _uiState.update { it.copy(priorityUidFilterResults = it.priorityUidFilterResults + ConfigResult(
+                name, null, ConfigRuntimeStatus.FAILED, e.localizedMessage
+            )) }
+        }
+    }
+
+    fun applySusPathUidFilter(context: Context, packages: Set<String>) = performOperation {
+        _uiState.update { it.copy(susPathUidFilterResults = emptyList()) }
+        val name = context.getString(R.string.susfs_sus_path_uid_filter)
+        try {
+            val value = packages.sorted().joinToString(",")
+            val result = SuSFSCommands.executeSusfsCommandWithOutput(
+                "set-sus-path-uid-filter ${com.sukisu.ultra.ui.screen.susfs.util.SuSFSConfig.shellQuote(value.ifEmpty { "," })}")
+            check(result.isSuccess) { result.errorOutput.ifBlank { result.output }.ifBlank {
+                context.getString(R.string.config_command_rejected)
+            } }
+            SuSFSManager.saveSusPathUidFilter(packages)
+            _uiState.update { it.copy(susPathUidFilterResults = listOf(
+                ConfigResult(name, true, ConfigRuntimeStatus.UNVERIFIED)
+            )) }
+            if (SuSFSManager.isAutoStartEnabled()) {
+                val updated = SuSFSManager.configureAutoStart(context, true)
+                _uiState.update { it.copy(susPathUidFilterResults = it.susPathUidFilterResults + ConfigResult(
+                    context.getString(R.string.susfs_autostart_title), updated,
+                    if (updated) ConfigRuntimeStatus.UNVERIFIED else ConfigRuntimeStatus.FAILED,
+                )) }
+            }
+            refreshConfig()
+            _uiState.update { it.copy(showSusPathUidFilterDialog = false) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _uiState.update { it.copy(susPathUidFilterResults = it.susPathUidFilterResults + ConfigResult(
                 name, null, ConfigRuntimeStatus.FAILED, e.localizedMessage
             )) }
         }
@@ -537,6 +600,7 @@ class SuSFSViewModel(
                 susLoopPaths = config.susLoopPaths,
                 susMaps = config.susMaps,
                 priorityUidFilter = config.priorityUidFilter,
+                susPathUidFilter = config.susPathUidFilter,
                 kstatConfigs = config.kstatConfigs,
                 addKstatPaths = config.addKstatPaths,
                 hideSusMountsForAllProcs = config.hideSusMountsForAllProcs,

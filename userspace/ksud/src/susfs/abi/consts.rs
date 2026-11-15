@@ -22,12 +22,18 @@ pub const SUSFS_MAX_VARIANT_BUFSIZE: usize = 16;
 pub const NEW_UTS_LEN: usize = 64;
 pub const SUSFS_MAX_PATHNAME: usize = 256;
 pub const SUSFS_FAKE_CMDLINE_OR_BOOTCONFIG_SIZE: usize = 8192;
-pub const SUSFS_PRIORITY_UID_FILTER_APP_STR_SIZE: usize = 65_535;
+/// Maximum app-package list length shared by the UID-filter payloads. The
+/// kernel defines it as the maximum value of a `u16`, including the NUL.
+pub const SUSFS_APP_STR_BUF_SIZE: usize = 65_535;
+/// Backwards-compatible alias for the priority UID filter payload.
+pub const SUSFS_PRIORITY_UID_FILTER_APP_STR_SIZE: usize = SUSFS_APP_STR_BUF_SIZE;
 
 // ── command IDs (internal — only the syscall dispatcher cares) ───────────────
 
 pub const CMD_SUSFS_ADD_SUS_PATH: u32 = 0x0005_5550;
 pub const CMD_SUSFS_ADD_SUS_PATH_LOOP: u32 = 0x0005_5553;
+/// Restrict which app UIDs can see paths added through `add_sus_path`.
+pub const CMD_SUSFS_SET_SUS_PATH_UID_FILTER: u32 = 0x0005_5554;
 pub const CMD_SUSFS_HIDE_SUS_MOUNTS_FOR_NON_SU_PROCS: u32 = 0x0005_5561;
 pub const CMD_SUSFS_ADD_SUS_KSTAT: u32 = 0x0005_5570;
 pub const CMD_SUSFS_UPDATE_SUS_KSTAT: u32 = 0x0005_5571;

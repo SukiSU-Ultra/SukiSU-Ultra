@@ -19,8 +19,8 @@ use libc::SYS_reboot;
 use super::consts::{ERR_CMD_NOT_SUPPORTED, KSU_INSTALL_MAGIC1, SUSFS_MAGIC};
 use super::types::{
     SusfsAvcLogSpoofing, SusfsCmdlineOrBootconfig, SusfsFeatures, SusfsHideSusMnts, SusfsKstat,
-    SusfsLog, SusfsMap, SusfsOpenRedirect, SusfsPriorityUidFilter, SusfsSusPath, SusfsUname,
-    SusfsVariant, SusfsVersion,
+    SusfsLog, SusfsMap, SusfsOpenRedirect, SusfsPriorityUidFilter, SusfsSusPath,
+    SusfsSusPathUidFilter, SusfsUname, SusfsVariant, SusfsVersion,
 };
 
 /// Dispatch a SuSFS command and return `Ok(())` when the kernel reports no
@@ -86,5 +86,6 @@ impl_has_err!(
     SusfsPriorityUidFilter,
     SusfsMap,
     SusfsSusPath,
+    SusfsSusPathUidFilter,
     SusfsCmdlineOrBootconfig,
 );

@@ -10,6 +10,7 @@ import com.sukisu.ultra.ui.screen.susfs.util.SlotInfo
 data class SuSFSUiState(
     val operationResults: List<com.sukisu.ultra.ui.component.ConfigResult> = emptyList(),
     val priorityUidFilterResults: List<com.sukisu.ultra.ui.component.ConfigResult> = emptyList(),
+    val susPathUidFilterResults: List<com.sukisu.ultra.ui.component.ConfigResult> = emptyList(),
     val isLoading: Boolean = false,
     val runtimeInfo: SuSFSRuntimeInfo? = null,
     val isNavigatingBack: Boolean = false,
@@ -45,6 +46,10 @@ data class SuSFSUiState(
     val priorityApps: List<AppInfo> = emptyList(),
     val isLoadingPriorityApps: Boolean = false,
     val showPriorityAppsDialog: Boolean = false,
+    val susPathUidFilter: Set<String> = emptySet(),
+    val susPathUidFilterApps: List<AppInfo> = emptyList(),
+    val isLoadingSusPathUidFilterApps: Boolean = false,
+    val showSusPathUidFilterDialog: Boolean = false,
 
     // Kstat 配置
     val kstatConfigs: Set<String> = emptySet(),
@@ -86,6 +91,7 @@ enum class SuSFSTab(val displayNameRes: Int) {
     BASIC_SETTINGS(R.string.susfs_tab_basic_settings),
     FEATURE_TOGGLES(R.string.susfs_tab_feature_toggles),
     SUS_PATHS(R.string.susfs_tab_sus_paths),
+    SUS_PATH_UID_FILTER(R.string.susfs_sus_path_uid_filter),
     SUS_LOOP_PATHS(R.string.susfs_tab_sus_loop_paths),
     SUS_MAPS(R.string.susfs_tab_sus_maps),
     KSTAT_CONFIG(R.string.susfs_tab_kstat_config),
@@ -97,6 +103,7 @@ enum class SuSFSTab(val displayNameRes: Int) {
             "basic", "basic_settings" -> BASIC_SETTINGS
             "features", "feature_toggles" -> FEATURE_TOGGLES
             "sus_paths" -> SUS_PATHS
+            "sus_path_uid", "sus_path_uid_filter" -> SUS_PATH_UID_FILTER
             "sus_loop_paths" -> SUS_LOOP_PATHS
             "sus_maps" -> SUS_MAPS
             "kstat", "kstat_config" -> KSTAT_CONFIG

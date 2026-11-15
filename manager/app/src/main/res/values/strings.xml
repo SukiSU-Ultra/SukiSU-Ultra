@@ -678,6 +678,13 @@
     <string name="susfs_priority_uid_filter_empty">No packages selected</string>
     <string name="susfs_priority_uid_filter_select">Select apps</string>
     <string name="susfs_priority_uid_filter_clear">Clear filter</string>
+    <string name="susfs_sus_path_uid_filter">SUS path UID filter</string>
+    <string name="susfs_sus_path_uid_filter_description">Limit which apps can see the paths added under SUS Paths. When a filter is set, only the selected apps (UID 10000-19999) can see those paths; every other app is treated as if those paths do not exist.</string>
+    <string name="susfs_sus_path_uid_filter_warning">Requires a SuSFS kernel with sus_path UID filter support. The kernel resolves UIDs from /data/system/packages.list and refreshes them when apps are installed or removed. Saved settings are not a runtime status query; enable auto-start to restore them after reboot.</string>
+    <string name="susfs_sus_path_uid_filter_apps">Apps allowed to see SUS paths</string>
+    <string name="susfs_sus_path_uid_filter_empty">No apps selected — SUS paths stay hidden from all apps</string>
+    <string name="susfs_sus_path_uid_filter_select">Select apps</string>
+    <string name="susfs_sus_path_uid_filter_clear">Clear filter</string>
     <string name="susfs_execution_location_label">Execution Location</string>
     <string name="susfs_execution_location_service">Service</string>
     <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>

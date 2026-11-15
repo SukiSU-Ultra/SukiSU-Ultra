@@ -13,7 +13,7 @@ use super::keys::{
     KEY_ADD_KSTAT_PATHS, KEY_AUTO_START_ENABLED, KEY_BUILD_TIME_VALUE, KEY_ENABLE_AVC_LOG_SPOOFING,
     KEY_ENABLE_CLEANUP_RESIDUE, KEY_ENABLE_HIDE_BL, KEY_ENABLE_LOG, KEY_EXECUTE_IN_POST_FS_DATA,
     KEY_HIDE_SUS_MOUNTS_FOR_ALL_PROCS, KEY_KSTAT_CONFIGS, KEY_PRIORITY_UID_FILTER,
-    KEY_SUS_LOOP_PATHS, KEY_SUS_MAPS, KEY_SUS_PATHS, KEY_UNAME_VALUE,
+    KEY_SUS_LOOP_PATHS, KEY_SUS_MAPS, KEY_SUS_PATH_UID_FILTER, KEY_SUS_PATHS, KEY_UNAME_VALUE,
 };
 
 /// Load the full config from disk. Returns an empty map if the file doesn't exist.
@@ -84,6 +84,7 @@ pub fn reset_to_defaults() -> Result<()> {
     config.insert(KEY_SUS_LOOP_PATHS.to_string(), String::new());
     config.insert(KEY_SUS_MAPS.to_string(), String::new());
     config.insert(KEY_PRIORITY_UID_FILTER.to_string(), String::new());
+    config.insert(KEY_SUS_PATH_UID_FILTER.to_string(), String::new());
     config.insert(KEY_ENABLE_LOG.to_string(), "false".to_string());
     config.insert(KEY_EXECUTE_IN_POST_FS_DATA.to_string(), "false".to_string());
     config.insert(KEY_KSTAT_CONFIGS.to_string(), String::new());
