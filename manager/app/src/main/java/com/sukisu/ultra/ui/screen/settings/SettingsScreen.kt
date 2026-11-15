@@ -83,6 +83,7 @@ fun SettingPager(
         onSetEnableWebDebugging = viewModel::setEnableWebDebugging,
         onSetAutoJailbreak = viewModel::setAutoJailbreak,
         onSetBuiltinZygisk = viewModel::setBuiltinZygisk,
+        onDismissBuiltinZygiskFailure = viewModel::dismissBuiltinZygiskFailure,
         onSetUseSoftReboot = viewModel::setUseSoftReboot,
         onOpenAbout = { navigator.push(Route.About) },
         onOpenTools = { navigator.push(Route.Tool) },

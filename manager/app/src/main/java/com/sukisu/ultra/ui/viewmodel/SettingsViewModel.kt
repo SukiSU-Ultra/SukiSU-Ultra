@@ -30,6 +30,7 @@ import com.sukisu.ultra.ui.util.AppearanceOverlayStore
 import com.sukisu.ultra.ui.util.BottomBarIconSlot
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
+import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 import com.sukisu.ultra.ui.util.CustomTextGroup
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.HomeCardImageStyle
@@ -49,6 +50,7 @@ import com.sukisu.ultra.ui.util.ThemeTrialManager
 import com.sukisu.ultra.ui.util.ThemeVariantData
 import com.sukisu.ultra.ui.util.customTextsInGroups
 import com.sukisu.ultra.ui.util.findActivity
+import com.sukisu.ultra.ui.util.getZygiskImplementationInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -2966,10 +2968,48 @@ homePillScale = repo.homePillScale,
         _uiState.update { it.copy(autoJailbreak = enabled) }
     }
 
+    fun dismissBuiltinZygiskFailure() {
+        _uiState.update { it.copy(builtinZygiskSwitchFailed = false) }
+    }
+
     fun setBuiltinZygisk(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
+            if (enabled) {
+                // Enabling stops the current implementation and waits for the zygote
+                // injection, so keep the UI busy until ksud answers.
+                _uiState.update { it.copy(isApplyingBuiltinZygisk = true) }
+            }
             repo.builtinZygisk = enabled
-            _uiState.update { it.copy(builtinZygisk = enabled) }
+            // Turning it on also hands the running system over; turning it off only drops
+            // the flag, so the current processes stay until the next reboot.
+            val applied = repo.builtinZygisk
+            // The flag alone can already be on while the live handover failed, so ask what
+            // is actually serving the zygote.
+            val running = enabled && withContext(Dispatchers.IO) {
+                getZygiskImplementationInfo().let {
+                    it.id == BUILTIN_ZYGISK_TARGET && it.state == "running"
+                }
+            }
+            val failed = enabled && (!applied || !running)
+            _uiState.update {
+                it.copy(
+                    builtinZygisk = applied,
+                    isApplyingBuiltinZygisk = false,
+                    builtinZygiskSwitchFailed = failed
+                )
+            }
+            if (failed) {
+                // The failure dialog offers a soft reboot instead of a toast.
+                return@launch
+            }
+            val message = if (enabled) {
+                R.string.builtin_zygisk_on_applied
+            } else {
+                R.string.builtin_zygisk_off_pending
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(ksuApp, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -1714,6 +1714,11 @@
     <string name="builtin_zygisk_impl_builtin_summary">内置 NyaZygisk (BuiltZygisk)</string>
     <string name="builtin_zygisk_switch_done">已切换到 %1$s</string>
     <string name="builtin_zygisk_switch_failed">切换失败</string>
+    <string name="builtin_zygisk_on_applied">内置 Zygisk 已启动</string>
+    <string name="builtin_zygisk_off_pending">已停用，进程将在重启后结束</string>
+    <string name="builtin_zygisk_switching_title">正在切换 Zygisk…</string>
+    <string name="builtin_zygisk_switching_message">正在停止当前实现，等待 zygote 注入完成。</string>
+    <string name="builtin_zygisk_switch_failed_message">未能在当前会话完成切换。可以关闭，或软重启后生效。</string>
     <string name="builtin_zygisk_modules_title">Zygisk 模块</string>
     <string name="builtin_zygisk_no_modules">未检测到使用中的 Zygisk 模块</string>
     <string name="builtin_zygisk_suppressed_hint">此模块为外部 Zygisk 实现，已被内置 Zygisk 自动抑制接管</string>

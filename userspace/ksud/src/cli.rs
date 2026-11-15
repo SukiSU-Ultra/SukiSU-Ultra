@@ -219,7 +219,7 @@ enum Commands {
 
 #[derive(clap::Subcommand, Debug)]
 enum ZygiskCommand {
-    /// Enable built-in Zygisk
+    /// Enable built-in Zygisk and start it now
     On,
     /// Disable built-in Zygisk
     Off,
@@ -1296,7 +1296,9 @@ pub fn run() -> Result<()> {
 
         Commands::Zygisk { command } => match command {
             ZygiskCommand::On => {
-                crate::builtin_zygisk::enable()?;
+                // The flag alone would only count from the next boot; turning it on also
+                // hands the running system over.
+                crate::builtin_zygisk::switch_to(crate::builtin_zygisk::BUILTIN_TARGET)?;
                 println!("true");
                 Ok(())
             }

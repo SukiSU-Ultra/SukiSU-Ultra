@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -11,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -34,12 +38,7 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Settings
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.rounded.Policy
-import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.runtime.Composable
@@ -73,6 +72,8 @@ import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.viewmodel.MainPageRequest
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -80,7 +81,14 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
+import androidx.compose.ui.text.style.TextAlign
+import com.sukisu.ultra.data.repository.isSoftRebootPreferred
+import com.sukisu.ultra.ui.util.reboot
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import kotlin.time.Duration.Companion.milliseconds
@@ -98,7 +106,6 @@ fun SettingPagerMiuix(
     onSectionConsumed: (Long) -> Unit = {},
 ) {
     val scrollBehavior = MiuixScrollBehavior()
-    val context = LocalContext.current
     val anchorRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
     fun requester(anchor: String): BringIntoViewRequester =
         anchorRequesters.getOrPut(anchor) { BringIntoViewRequester() }
@@ -119,6 +126,93 @@ fun SettingPagerMiuix(
     val loadingDialog = rememberLoadingDialog()
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }
+
+    // Turning the switch on hands Zygisk over live, so the wait and the failure both
+    // need a dialog rather than a toast.
+    if (uiState.isApplyingBuiltinZygisk) {
+        OverlayDialog(
+            show = true,
+            onDismissRequest = {},
+            content = {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp)
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_switching_title),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 8.dp),
+                    style = textStyles.title4,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_switching_message),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .padding(bottom = 16.dp),
+                    style = textStyles.body2,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurfaceVariantSummary
+                )
+            }
+        )
+    }
+    if (uiState.builtinZygiskSwitchFailed) {
+        val softReboot = isSoftRebootPreferred()
+        OverlayDialog(
+            show = true,
+            onDismissRequest = actions.onDismissBuiltinZygiskFailure,
+            content = {
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_switch_failed),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 8.dp),
+                    style = textStyles.title4,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_switch_failed_message),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    style = textStyles.body2,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurfaceVariantSummary
+                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp)
+                ) {
+                    TextButton(
+                        text = stringResource(R.string.close),
+                        onClick = actions.onDismissBuiltinZygiskFailure,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(20.dp))
+                    TextButton(
+                        text = stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot),
+                        onClick = {
+                            actions.onDismissBuiltinZygiskFailure()
+                            reboot(if (softReboot) "soft_reboot" else "")
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.textButtonColorsPrimary()
+                    )
+                }
+            }
+        )
+    }
 
     AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
@@ -597,7 +691,6 @@ fun SettingPagerMiuix(
                                 checked = uiState.builtinZygisk,
                                 onCheckedChange = {
                                     actions.onSetBuiltinZygisk(it)
-                                    Toast.makeText(context, R.string.reboot_to_apply, Toast.LENGTH_SHORT).show()
                                 }
                             )
                             if (uiState.builtinZygisk) {

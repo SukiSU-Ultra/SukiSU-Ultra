@@ -87,6 +87,8 @@ data class SettingsUiState(
 
     // Built-in Zygisk
     val builtinZygisk: Boolean = false,
+    val isApplyingBuiltinZygisk: Boolean = false,
+    val builtinZygiskSwitchFailed: Boolean = false,
 
     // Soft Reboot
     val useSoftReboot: Boolean = false,
@@ -250,6 +252,7 @@ data class SettingsScreenActions(
     val onSetEnableWebDebugging: (Boolean) -> Unit,
     val onSetAutoJailbreak: (Boolean) -> Unit,
     val onSetBuiltinZygisk: (Boolean) -> Unit,
+    val onDismissBuiltinZygiskFailure: () -> Unit,
     val onSetUseSoftReboot: (Boolean) -> Unit,
     val onOpenAbout: () -> Unit,
     val onOpenTools: () -> Unit,

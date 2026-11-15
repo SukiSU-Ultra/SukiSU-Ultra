@@ -89,20 +89,50 @@ pub fn disable() -> Result<()> {
 ///
 /// Only safe with no live monitor: a boot without the flag reaches this after the reboot
 /// killed the previous session's processes, and a soft reboot calls it after `shutdown`.
-/// The work dir is shared with a standalone NyaZygisk module, so it is only dropped when
-/// something of ours was staged next to it; otherwise a built-in that was never enabled
-/// would wipe that module's settings on every boot.
+/// The work dir is shared with a standalone NyaZygisk module, which keeps its options and
+/// reported status there; it is only dropped when something of ours was staged next to it
+/// and no standalone NyaZygisk stands in for the built-in.
 pub fn cleanup_disabled() -> Result<()> {
     if is_enabled() {
         return Ok(());
     }
+    // A monitor that outlived `shutdown` still runs from the staged dir. Deleting it
+    // would leave init traced by a process whose binaries are gone and would keep every
+    // provider from seizing init, so the files wait for the next boot.
+    if monitor_process().is_some() {
+        warn!("Built-in Zygisk cleanup skipped, its monitor is still running");
+        return Ok(());
+    }
     let staged = Path::new(BUILTIN_ZYGISK_DIR).exists();
     remove_leftover(BUILTIN_ZYGISK_DIR);
-    if staged {
+    if staged && !nya_module_installed() {
         remove_leftover(BUILTIN_ZYGISK_WORK_DIR);
     }
     remove_leftover(LEGACY_BUILTIN_ZYGISK_DIR);
     Ok(())
+}
+
+/// Whether a standalone NyaZygisk module exists on disk.
+///
+/// The built-in is embedded and uses its own staging dir, so a `zygisksu` module
+/// directory can only be that standalone build. Its `config.prop` lives in the shared
+/// work dir and has to survive a built-in cleanup; a module marked for removal is on its
+/// way out and does not count.
+fn nya_module_installed() -> bool {
+    let Ok(entries) = fs::read_dir(MODULE_DIR) else {
+        return false;
+    };
+    entries.flatten().any(|entry| {
+        let path = entry.path();
+        if !path.is_dir() || path.join(REMOVE_FILE_NAME).exists() {
+            return false;
+        }
+        let dir_id = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        dir_id == "zygisksu" || module_prop_id(&path) == "zygisksu"
+    })
 }
 
 /// `(pid, name)` of the processes running our own binaries out of the staging directory.
@@ -605,24 +635,32 @@ pub fn switch_to(target: &str) -> Result<()> {
     }
 }
 
-/// Switch to the built-in Zygisk.
+/// Switch to the built-in Zygisk, enabling it first.
 ///
 /// Only one process may trace init, so the current monitor goes first and ours re-arms
 /// the zygote the previous implementation left behind. A handover that does not come up
 /// is rolled back to the provider that was replaced.
 fn switch_to_builtin() -> Result<()> {
     let providers = active_providers();
+    // Only the providers that are actually running come back on a failed handover;
+    // replaying an idle one would start a second implementation next to the built-in.
+    let previous: Vec<PathBuf> = providers
+        .iter()
+        .filter(|path| provider_dir_running(path))
+        .cloned()
+        .collect();
+    let was_enabled = is_enabled();
+    // Enabling it also starts it: the flag alone only counts from the next boot.
+    enable()?;
+
     // Already the implementation in charge, with nothing of the replaced one running.
     if is_monitor_active() && is_daemon_active() && provider_pids(&providers).is_empty() {
         return Ok(());
     }
 
-    let was_enabled = is_enabled();
     stop_current(&providers);
-
-    enable()?;
     if let Err(e) = start_switched() {
-        rollback(was_enabled, &providers);
+        rollback(was_enabled, &previous);
         return Err(e);
     }
     info!("Switched to the built-in Zygisk without restarting the zygote");
@@ -653,14 +691,21 @@ fn switch_to_provider(id: &str) -> Result<()> {
     }
 
     let was_enabled = is_enabled();
-    shutdown()?;
-    // The socket is only one way to find our monitor; its binaries are the other.
-    stop_staged_processes();
     // Another provider may still be the one tracing init.
     let others: Vec<PathBuf> = active_providers()
         .into_iter()
         .filter(|path| path != &dir)
         .collect();
+    // Whoever is actually serving the zygote right now gets put back if this fails.
+    let previous: Vec<PathBuf> = others
+        .iter()
+        .filter(|path| provider_dir_running(path))
+        .cloned()
+        .collect();
+
+    shutdown()?;
+    // The socket is only one way to find our monitor; its binaries are the other.
+    stop_staged_processes();
     stop_provider_processes(&others);
 
     disable()?;
@@ -680,8 +725,8 @@ fn switch_to_provider(id: &str) -> Result<()> {
         Err(_) => false,
     };
     if !started {
-        // Nothing took over: put the system back the way it was.
-        rollback_to_builtin(was_enabled, &dir);
+        // Nothing took over: put the previous implementation back.
+        rollback_to_previous(was_enabled, &dir, &previous);
         bail!("{dir_id} did not take over the zygote");
     }
     info!("Switched to the {dir_id} Zygisk provider without restarting the zygote");
@@ -705,10 +750,26 @@ fn replay_service(dir: &Path) -> bool {
     crate::module::exec_script(&service, crate::module::ScriptWait::NoWait).is_ok()
 }
 
-/// Best effort after a failed handover: stop whatever half-started, restore the built-in
-/// when it was the one in charge.
-fn rollback_to_builtin(was_enabled: bool, dir: &Path) {
-    stop_provider_processes(&[dir.to_path_buf()]);
+/// Best effort after a failed handover: stop whatever half-started and give the system
+/// back to the implementation that owned it, a provider module or the built-in.
+///
+/// A switch from one provider to another must not leave the device without Zygisk, so
+/// the previously running provider is replayed before falling back to the built-in.
+fn rollback_to_previous(was_enabled: bool, target: &Path, previous: &[PathBuf]) {
+    stop_provider_processes(&[target.to_path_buf()]);
+    stop_staged_processes();
+    if !previous.is_empty() {
+        restore_provider(previous);
+        let up = || {
+            previous
+                .iter()
+                .any(|dir| !provider_pids(std::slice::from_ref(dir)).is_empty())
+        };
+        if wait_until(up, SWITCH_WAIT_SECS) {
+            return;
+        }
+        warn!("The replaced Zygisk provider did not come back");
+    }
     if !was_enabled {
         return;
     }
@@ -738,12 +799,20 @@ fn start_switched() -> Result<()> {
         bail!("the built-in monitor did not start");
     }
     let tracer = tracer_path().context("built-in Zygisk tracer is missing")?;
+    // The rearm is what injects the running zygote, and it only works once the monitor
+    // has taken init over; a socket that exists is not enough.
+    wait_until(is_monitor_active, SWITCH_WAIT_SECS * 2);
+
+    // Injection is the goal: a daemon can come up without the zygote being served.
+    let injected = || is_monitor_active() && is_daemon_active() && zygote_injected();
     send_rearm(&tracer)?;
-    if !wait_until(
-        || is_monitor_active() && is_daemon_active(),
-        SWITCH_WAIT_SECS,
-    ) {
-        bail!("the built-in daemon did not come up");
+    if !wait_until(injected, SWITCH_WAIT_SECS * 2) {
+        // A monitor that took init over a moment late misses the first rearm.
+        info!("Zygote was not injected by the first rearm, retrying");
+        send_rearm(&tracer)?;
+        if !wait_until(injected, SWITCH_WAIT_SECS * 2) {
+            bail!("the built-in did not inject the running zygote");
+        }
     }
     Ok(())
 }
@@ -767,10 +836,12 @@ fn stop_current(providers: &[PathBuf]) {
         }
         // The ptrace attachment to init is released at exit, not when the socket closes,
         // so wait for the process too: ours cannot seize init before that.
-        wait_until(
+        if !wait_until(
             || !monitor_reachable() && !any_tracer_running(),
             SHUTDOWN_WAIT_SECS,
-        );
+        ) {
+            warn!("The current Zygisk monitor is still running");
+        }
     }
     stop_provider_processes(providers);
 }
@@ -850,6 +921,11 @@ fn provider_pids(providers: &[PathBuf]) -> Vec<i32> {
         }
     }
     pids
+}
+
+/// Whether a provider module has any process running right now.
+fn provider_dir_running(dir: &Path) -> bool {
+    !provider_pids(&[dir.to_path_buf()]).is_empty()
 }
 
 fn signal_all(pids: &[i32], signal: i32) {
@@ -1180,6 +1256,10 @@ pub fn ensure_armed() -> Result<()> {
 
 /// Stop the monitor that owns the control socket. Not gated on the flag: a disabled
 /// built-in keeps its processes until the reboot that is expected to end them.
+///
+/// A monitor that stays alive is reported as an error: it still traces init, so a soft
+/// reboot would replay post-fs-data against a traced init and every later switch would
+/// be refused by the kernel.
 pub fn shutdown() -> Result<()> {
     let Some(tracer) = tracer_path() else {
         return Ok(());
@@ -1190,22 +1270,23 @@ pub fn shutdown() -> Result<()> {
         return Ok(());
     }
     info!("Stopping built-in Zygisk via ctl exit");
-    let exited = Command::new(tracer)
+    let exited = Command::new(&tracer)
         .args(["ctl", "exit"])
         .status()
         .is_ok_and(|status| status.success());
-    if exited {
-        // Only one process may trace init, and the ptrace attachment outlives the
-        // control socket, so the monitor the replayed post-fs-data starts cannot seize
-        // init until this one is gone.
-        for _ in 0..SHUTDOWN_WAIT_SECS {
-            if !is_monitor_running() {
-                break;
-            }
-            std::thread::sleep(Duration::from_secs(1));
-        }
+    if !exited {
+        warn!("ctl exit failed, stopping the built-in Zygisk monitor by pid");
     }
-    Ok(())
+    // Only one process may trace init, and the ptrace attachment outlives the control
+    // socket, so wait for the process rather than the socket.
+    if wait_until(|| !is_monitor_running(), SHUTDOWN_WAIT_SECS) {
+        return Ok(());
+    }
+    stop_staged_processes();
+    if wait_until(|| !is_monitor_running(), SWITCH_WAIT_SECS) {
+        return Ok(());
+    }
+    bail!("the built-in Zygisk monitor did not exit");
 }
 
 /// Options NyaZygisk reads from `config.prop`, with the values each accepts. They apply

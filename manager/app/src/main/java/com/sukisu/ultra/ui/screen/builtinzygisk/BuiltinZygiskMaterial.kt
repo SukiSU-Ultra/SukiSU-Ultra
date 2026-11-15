@@ -33,7 +33,6 @@ import com.sukisu.ultra.ui.component.material.TopBarBackButton
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BuiltinZygiskMaterial(
     uiState: BuiltinZygiskUiState,

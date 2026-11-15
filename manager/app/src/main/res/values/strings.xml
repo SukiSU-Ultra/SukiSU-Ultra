@@ -1724,6 +1724,11 @@
     <string name="builtin_zygisk_impl_builtin_summary">Embedded NyaZygisk (BuiltZygisk)</string>
     <string name="builtin_zygisk_switch_done">Switched to %1$s</string>
     <string name="builtin_zygisk_switch_failed">Switch failed</string>
+    <string name="builtin_zygisk_on_applied">Built-in Zygisk is running</string>
+    <string name="builtin_zygisk_off_pending">Disabled; its processes stop after a restart</string>
+    <string name="builtin_zygisk_switching_title">Switching Zygisk…</string>
+    <string name="builtin_zygisk_switching_message">Stopping the current implementation and waiting for the zygote injection.</string>
+    <string name="builtin_zygisk_switch_failed_message">The switch could not be finished live. Close this, or soft restart to finish it.</string>
     <string name="builtin_zygisk_modules_title">Zygisk Modules</string>
     <string name="builtin_zygisk_no_modules">No active Zygisk modules detected</string>
     <string name="builtin_zygisk_suppressed_hint">External Zygisk provider suppressed by built-in Zygisk</string>

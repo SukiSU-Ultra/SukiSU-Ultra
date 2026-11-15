@@ -6,6 +6,7 @@ import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,10 +42,13 @@ import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -57,6 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -77,8 +84,8 @@ import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
-import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
+import com.sukisu.ultra.data.repository.isSoftRebootPreferred
+import com.sukisu.ultra.ui.util.reboot
 import android.content.Intent
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Settings
@@ -99,7 +106,6 @@ fun SettingPagerMaterial(
     sectionRequest: MainPageRequest? = null,
     onSectionConsumed: (Long) -> Unit = {},
 ) {
-    val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val anchorRequesters = remember { mutableMapOf<String, BringIntoViewRequester>() }
 
@@ -120,6 +126,46 @@ fun SettingPagerMaterial(
         show = showUninstallDialog.value,
         onDismissRequest = { showUninstallDialog.value = false }
     )
+
+    // Turning the switch on hands Zygisk over live, so the wait and the failure both
+    // need a dialog rather than a toast.
+    if (uiState.isApplyingBuiltinZygisk) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.builtin_zygisk_switching_title)) },
+            text = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(12.dp))
+                    Text(stringResource(R.string.builtin_zygisk_switching_message))
+                }
+            },
+            confirmButton = {}
+        )
+    }
+    if (uiState.builtinZygiskSwitchFailed) {
+        val softReboot = isSoftRebootPreferred()
+        AlertDialog(
+            onDismissRequest = actions.onDismissBuiltinZygiskFailure,
+            title = { Text(stringResource(R.string.builtin_zygisk_switch_failed)) },
+            text = { Text(stringResource(R.string.builtin_zygisk_switch_failed_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        actions.onDismissBuiltinZygiskFailure()
+                        reboot(if (softReboot) "soft_reboot" else "")
+                    }
+                ) {
+                    Text(stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = actions.onDismissBuiltinZygiskFailure) {
+                    Text(stringResource(R.string.close))
+                }
+            }
+        )
+    }
 
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     ExpressiveScaffold(
@@ -478,7 +524,6 @@ fun SettingPagerMaterial(
                                 checked = uiState.builtinZygisk,
                                 onCheckedChange = {
                                     actions.onSetBuiltinZygisk(it)
-                                    Toast.makeText(context, R.string.reboot_to_apply, Toast.LENGTH_SHORT).show()
                                 }
                             )
                         },
