@@ -12,12 +12,12 @@ MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 $(info -- KDIR: $(KDIR))
 $(info -- MDIR: $(MDIR))
 
-REPO_OWNER  := SukiSU-Ultra
-REPO_NAME   := SukiSU-Ultra
+REPO_OWNER  := SukiSU-Nova
+REPO_NAME   := SukiSU-Nova
 REPO_BRANCH := main
 
-VERSION_BASE    := 40000
-VERSION_OFFSET  := 2815
+VERSION_BASE    := 30000
+VERSION_OFFSET  := 4001
 
 GIT_BIN  := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git
 CURL_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin curl
@@ -37,7 +37,7 @@ KSU_GITHUB_VER   := $(shell $(CURL_BIN) -s "$(GITHUB_API_BASE)/releases/latest" 
 GITHUB_COMMITS   := $(shell $(CURL_BIN) -sI "$(GITHUB_API_BASE)/commits?sha=$(REPO_BRANCH)&per_page=1" 2>/dev/null | grep -i "link:" | sed -n 's/.*page=\([0-9]*\)>; rel="last".*/\1/p')
 LOCAL_COUNT     := $(if $(GITHUB_COMMITS),$(GITHUB_COMMITS),$(git_commit_count))
 KSU_VERSION     := $(if $(LOCAL_COUNT),$(shell expr $(VERSION_BASE) + $(LOCAL_COUNT) - $(VERSION_OFFSET)),41000)
-VERSION_TAG     := $(or $(KSU_GITHUB_VER),$(git_latest_tag),4.2.1)
+VERSION_TAG     := $(or $(KSU_GITHUB_VER),$(git_latest_tag),3.0.0)
 KSU_VERSION_FULL := $(if $(call git_short_sha),v$(VERSION_TAG)-$(call git_short_sha)@$(call git_branch),v$(VERSION_TAG)-$(REPO_NAME)-unknown@unknown)
 $(info -- $(REPO_NAME) version: $(KSU_VERSION) [$(KSU_VERSION_FULL)])
 
@@ -85,7 +85,7 @@ endif
 
 # compliant to last upstream kernel change as of 96770df
 
-KSU_PACKAGE_NAME := com.sukisu.ultra
+KSU_PACKAGE_NAME := com.sukisu.nova
 KSU_EXPECTED_SIZE := 0x35c
 KSU_EXPECTED_HASH := 947ae944f3de4ed4c21a7e4f7953ecf351bfa2b36239da37a34111ad29993eef
 
