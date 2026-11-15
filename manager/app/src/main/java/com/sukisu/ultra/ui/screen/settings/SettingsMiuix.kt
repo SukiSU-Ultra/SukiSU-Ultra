@@ -1,6 +1,8 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -31,8 +34,10 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Extension
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.runtime.Composable
@@ -55,7 +60,11 @@ import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.SendLogDialog
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
+import com.sukisu.ultra.ui.component.rebootlistpopup.rememberRebootAction
+import com.sukisu.ultra.ui.component.rebootlistpopup.rememberRebootChoices
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemMessage
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemTitle
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
@@ -73,7 +82,12 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
+import androidx.compose.ui.text.style.TextAlign
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import kotlin.time.Duration.Companion.milliseconds
@@ -104,12 +118,68 @@ fun SettingPagerMiuix(
         target?.bringIntoView()
         onSectionConsumed(request.token)
     }
+    
     val enableBlur = LocalEnableBlur.current
     val backdrop = rememberBlurBackdrop(enableBlur)
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     val loadingDialog = rememberLoadingDialog()
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }
+
+    // ksud finishes the handover in the background; the dialog only asks how to finish it,
+    // with the same reboot entries the Home page's menu offers. The action is created out
+    // here so a late-load confirmation outlives this dialog.
+    val rebootAction = rememberRebootAction()
+    val rebootChoices = rememberRebootChoices()
+    uiState.builtinZygiskProblem?.let { problem ->
+        OverlayDialog(
+            show = true,
+            onDismissRequest = actions.onDismissBuiltinZygiskFailure,
+            content = {
+                Text(
+                    text = stringResource(problemTitle(problem)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 8.dp),
+                    style = textStyles.title4,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(problemMessage(problem)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    style = textStyles.body2,
+                    textAlign = TextAlign.Center,
+                    color = colorScheme.onSurfaceVariantSummary
+                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp)
+                ) {
+                    TextButton(
+                        text = stringResource(R.string.close),
+                        onClick = actions.onDismissBuiltinZygiskFailure,
+                        modifier = Modifier.weight(1f)
+                    )
+                    rebootChoices.forEach { choice ->
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = stringResource(choice.labelRes),
+                            onClick = {
+                                rebootAction(choice.reason)
+                                actions.onDismissBuiltinZygiskFailure()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        )
+    }
 
     AppScaffold(
         containerColor = if (hasCustomBackground) Color.Transparent else colorScheme.surface,
@@ -574,6 +644,37 @@ fun SettingPagerMiuix(
                                 checked = uiState.autoJailbreak,
                                 onCheckedChange = actions.onSetAutoJailbreak
                             )
+                            SwitchPreference(
+                                title = customText(CustomTextKey.ZYGISK_SETTINGS_TITLE),
+                                summary = stringResource(id = R.string.settings_builtin_zygisk_summary),
+                                startAction = {
+                                    Icon(
+                                        Icons.Rounded.Extension,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                        contentDescription = stringResource(id = R.string.settings_builtin_zygisk),
+                                        tint = colorScheme.onBackground
+                                    )
+                                },
+                                checked = uiState.builtinZygisk,
+                                onCheckedChange = {
+                                    actions.onSetBuiltinZygisk(it)
+                                }
+                            )
+                            if (uiState.builtinZygisk) {
+                                ArrowPreference(
+                                    title = customText(CustomTextKey.ZYGISK_DASHBOARD_TITLE),
+                                    summary = stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary),
+                                    startAction = {
+                                        Icon(
+                                            Icons.Rounded.Settings,
+                                            modifier = Modifier.padding(end = 6.dp),
+                                            contentDescription = stringResource(id = R.string.settings_builtin_zygisk_dashboard),
+                                            tint = colorScheme.onBackground
+                                        )
+                                    },
+                                    onClick = actions.onOpenBuiltinZygisk
+                                )
+                            }
                         }
                     }
 

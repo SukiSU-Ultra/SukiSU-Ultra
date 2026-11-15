@@ -23,4 +23,5 @@ data class Module(
     // preinit state for the next boot: "", "ok", "no_space", "error" or "bootloop"
     val preinit: String = "",
     val bannerPath: String? = null,
+    val suppressedByBuiltin: Boolean = false,
 )

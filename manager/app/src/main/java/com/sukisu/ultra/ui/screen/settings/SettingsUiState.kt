@@ -85,6 +85,11 @@ data class SettingsUiState(
     // Auto Jailbreak
     val autoJailbreak: Boolean = false,
 
+    // Built-in Zygisk
+    val builtinZygisk: Boolean = false,
+    // null, or why the switch still needs a soft restart: `pending`.
+    val builtinZygiskProblem: String? = null,
+
     // Soft Reboot
     val useSoftReboot: Boolean = false,
 
@@ -246,9 +251,12 @@ data class SettingsScreenActions(
     val onSetDefaultUmountModules: (Boolean) -> Unit,
     val onSetEnableWebDebugging: (Boolean) -> Unit,
     val onSetAutoJailbreak: (Boolean) -> Unit,
+    val onSetBuiltinZygisk: (Boolean) -> Unit,
+    val onDismissBuiltinZygiskFailure: () -> Unit,
     val onSetUseSoftReboot: (Boolean) -> Unit,
     val onOpenAbout: () -> Unit,
     val onOpenTools: () -> Unit,
     val onOpenSusfsConfig: () -> Unit,
     val onOpenExtensions: () -> Unit,
+    val onOpenBuiltinZygisk: () -> Unit,
 )

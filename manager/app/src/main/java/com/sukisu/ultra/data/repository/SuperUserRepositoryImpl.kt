@@ -14,6 +14,10 @@ import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -27,7 +31,6 @@ import com.sukisu.ultra.ksuApp
 import com.sukisu.ultra.ui.KsuService
 import com.sukisu.ultra.ui.util.KsuCli
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.resume
 
 class SuperUserRepositoryImpl : SuperUserRepository {
@@ -35,11 +38,14 @@ class SuperUserRepositoryImpl : SuperUserRepository {
     companion object {
         private const val TAG = "SuperUserRepository"
         private val scanMutex = Mutex()
-        private val packageGeneration = AtomicLong()
+        private val packageGeneration = MutableStateFlow(0L)
         private var cachedScan: AppScan? = null
 
+        /** Moves on every package change, so a list already on screen knows to rescan. */
+        val appListGeneration: StateFlow<Long> = packageGeneration.asStateFlow()
+
         fun invalidateAppList() {
-            packageGeneration.incrementAndGet()
+            packageGeneration.update { it + 1 }
         }
     }
 
@@ -55,14 +61,14 @@ class SuperUserRepositoryImpl : SuperUserRepository {
             return@withContext Result.failure(IllegalStateException("Root access is required"))
         }
         scanMutex.withLock {
-            val generation = packageGeneration.get()
+            val generation = packageGeneration.value
             val locales = ksuApp.resources.configuration.locales.toLanguageTags() + ":" + Locale.getDefault().toLanguageTag()
             val cached = cachedScan
             if (!force && cached != null && cached.generation == generation && cached.locales == locales) {
                 return@withLock refreshProfiles(cached.apps).map { it to cached.userIds }
             }
             scanAppList().onSuccess { (apps, userIds) ->
-                if (packageGeneration.get() == generation) {
+                if (packageGeneration.value == generation) {
                     cachedScan = AppScan(apps, userIds, locales, generation)
                 }
             }

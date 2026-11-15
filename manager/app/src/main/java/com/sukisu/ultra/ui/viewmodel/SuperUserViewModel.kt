@@ -9,12 +9,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -34,8 +37,10 @@ import com.sukisu.ultra.ui.util.ownerNameForUid
 import com.sukisu.ultra.ui.util.pickPrimary
 import java.text.Collator
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 internal const val RECENTLY_INSTALLED_WINDOW_MILLIS = 60 * 60 * 1000L
+private const val PACKAGE_CHANGE_DEBOUNCE_MILLIS = 500L
 
 enum class AppSortType {
     NAME, PACKAGE_NAME, INSTALL_TIME, UPDATE_TIME;
@@ -153,6 +158,22 @@ class SuperUserViewModel(
 
     init {
         viewModelScope.launchSearchQueryCollector(searchQuery, ::applySearchText)
+        collectPackageChanges()
+    }
+
+    // The package receiver only bumps the repository's generation. Rescan once the list has
+    // been shown, so installed, updated and removed apps appear without a manual refresh.
+    // Debounced because an update arrives as PACKAGE_REMOVED, PACKAGE_ADDED and PACKAGE_REPLACED.
+    @OptIn(FlowPreview::class)
+    private fun collectPackageChanges() {
+        viewModelScope.launch {
+            SuperUserRepositoryImpl.appListGeneration
+                .drop(1)
+                .debounce(PACKAGE_CHANGE_DEBOUNCE_MILLIS.milliseconds)
+                .collect {
+                    if (_uiState.value.hasLoaded) fetchAppList()
+                }
+        }
     }
 
     fun markNeedRefresh() {

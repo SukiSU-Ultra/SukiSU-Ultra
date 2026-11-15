@@ -217,6 +217,7 @@ class SettingsViewModel(
             val uiMode = repo.uiMode
             val appLanguage = repo.appLanguage
             val autoJailbreak = repo.autoJailbreak
+            val builtinZygisk = repo.builtinZygisk
             val useSoftReboot = repo.useSoftReboot
             val isLateLoadMode = Natives.isLateLoadMode
             val systemWallpaperPath = ImageStorage.systemWallpaperFile(ksuApp)
@@ -304,6 +305,7 @@ homePillScale = HomeStatusStyle.coercePillScale(repo.homePillScale),
                     isDefaultUmountModules = isDefaultUmountModules,
                     isLkmMode = isLkmMode,
                     autoJailbreak = autoJailbreak,
+                    builtinZygisk = builtinZygisk,
                     useSoftReboot = useSoftReboot,
                     isLateLoadMode = isLateLoadMode,
                     customBackgroundUri = repo.customBackgroundUri,
@@ -2962,6 +2964,24 @@ homePillScale = repo.homePillScale,
     fun setAutoJailbreak(enabled: Boolean) {
         repo.autoJailbreak = enabled
         _uiState.update { it.copy(autoJailbreak = enabled) }
+    }
+
+    fun dismissBuiltinZygiskFailure() {
+        _uiState.update { it.copy(builtinZygiskProblem = null) }
+    }
+
+    fun setBuiltinZygisk(enabled: Boolean) {
+        // Flip the switch and let ksud do the handover in the background: waiting on the
+        // zygote here only made the settings page hang, and a soft restart is what makes
+        // the result take effect anyway.
+        _uiState.update {
+            it.copy(builtinZygisk = enabled, builtinZygiskProblem = "pending")
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.builtinZygisk = enabled
+            val applied = repo.builtinZygisk
+            _uiState.update { it.copy(builtinZygisk = applied) }
+        }
     }
 
     fun setUseSoftReboot(enabled: Boolean) {

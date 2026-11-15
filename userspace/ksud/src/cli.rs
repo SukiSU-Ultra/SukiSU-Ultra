@@ -37,6 +37,12 @@ enum Commands {
         command: Module,
     },
 
+    /// Manage built-in Zygisk
+    Zygisk {
+        #[command(subcommand)]
+        command: ZygiskCommand,
+    },
+
     /// Trigger `post-fs-data` event
     PostFsData,
 
@@ -209,6 +215,47 @@ enum Commands {
         #[command(subcommand)]
         command: Manager,
     },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum ZygiskCommand {
+    /// Enable built-in Zygisk and start it now
+    On,
+    /// Disable built-in Zygisk
+    Off,
+    /// Check built-in Zygisk status
+    Status,
+    /// Report the active Zygisk implementation (running, reboot, disabled or none)
+    Info,
+    /// Switch to the built-in Zygisk or to an installed provider module, live
+    Switch {
+        /// `builtin` or the id of an installed Zygisk module
+        #[arg(default_value = "builtin")]
+        target: String,
+    },
+    /// List the monitor and daemon processes of an implementation as JSON
+    Processes {
+        /// `builtin` or the id of an installed Zygisk module
+        #[arg(default_value = "builtin")]
+        target: String,
+    },
+    /// List the Zygisk modules the built-in is serving, with their processes, as JSON
+    Modules,
+    /// Reload built-in Zygisk
+    Rearm,
+    /// Read or change NyaZygisk options (`config.prop`)
+    Config {
+        #[command(subcommand)]
+        command: ZygiskConfigCommand,
+    },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum ZygiskConfigCommand {
+    /// Print all options as JSON
+    Get,
+    /// Set one option, e.g. `ksud zygisk config set custom_linker 1`
+    Set { key: String, value: String },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1247,6 +1294,146 @@ pub fn run() -> Result<()> {
             Extension::Check { id } => crate::extension::check_extension(&id),
             Extension::Load => crate::extension::load_config_and_apply(),
             Extension::Save => crate::extension::save_config(),
+        },
+
+        Commands::Zygisk { command } => match command {
+            ZygiskCommand::On => {
+                // The flag alone would only count from the next boot; turning it on also
+                // hands the running system over.
+                crate::builtin_zygisk::switch_to(crate::builtin_zygisk::BUILTIN_TARGET)?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Off => {
+                crate::builtin_zygisk::disable()?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Status => {
+                let enabled = crate::builtin_zygisk::is_enabled();
+                // The report in module.prop identifies the built-in; process names
+                // alone are shared with the standalone builds.
+                let monitor_running = crate::builtin_zygisk::is_monitor_active();
+                let daemon_running = crate::builtin_zygisk::is_daemon_active();
+                let zygote_injected = crate::builtin_zygisk::is_zygote_injected();
+                let fully_active = crate::builtin_zygisk::is_fully_active();
+                let zygotes: Vec<_> = crate::builtin_zygisk::zygote_states()
+                    .into_iter()
+                    .map(|(abi, status)| serde_json::json!({ "abi": abi, "status": status }))
+                    .collect();
+                let monitor = crate::builtin_zygisk::monitor_process();
+                let daemons = crate::builtin_zygisk::daemon_processes();
+                let (version, version_code) = crate::builtin_zygisk::version().unwrap_or_default();
+                let monitor_json =
+                    monitor.map(|(pid, name)| serde_json::json!({ "name": name, "pid": pid }));
+                let daemons_json: Vec<_> = daemons
+                    .into_iter()
+                    .map(|(pid, name)| serde_json::json!({ "name": name, "pid": pid }))
+                    .collect();
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "enabled": enabled,
+                        "monitor_running": monitor_running,
+                        "daemon_running": daemon_running,
+                        "zygote_injected": zygote_injected,
+                        "fully_active": fully_active,
+                        "zygotes": zygotes,
+                        "monitor": monitor_json,
+                        "daemons": daemons_json,
+                        "version": version,
+                        "version_code": version_code,
+                    })
+                );
+                Ok(())
+            }
+            ZygiskCommand::Info => {
+                let info = crate::builtin_zygisk::implementation_info();
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "state": info.state,
+                        "id": info.id,
+                        "name": info.name,
+                        "version": info.version,
+                        "providers": crate::builtin_zygisk::provider_ids(),
+                    })
+                );
+                Ok(())
+            }
+            ZygiskCommand::Switch { target } => {
+                crate::builtin_zygisk::switch_to(&target)?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Processes { target } => {
+                let procs = crate::builtin_zygisk::processes(&target)?;
+                let list = |entries: Vec<(i32, String)>| {
+                    entries
+                        .into_iter()
+                        .map(|(pid, name)| serde_json::json!({ "name": name, "pid": pid }))
+                        .collect::<Vec<serde_json::Value>>()
+                };
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "monitors": list(procs.monitors),
+                        "daemons": list(procs.daemons),
+                    })
+                );
+                Ok(())
+            }
+            ZygiskCommand::Modules => {
+                let modules: Vec<serde_json::Value> = crate::builtin_zygisk::injected_modules()
+                    .into_iter()
+                    .map(|module| {
+                        let processes: Vec<serde_json::Value> = module
+                            .processes
+                            .into_iter()
+                            .map(|(name, pid, kind)| {
+                                serde_json::json!({
+                                    "name": name,
+                                    "pid": pid,
+                                    "kind": kind,
+                                })
+                            })
+                            .collect();
+                        serde_json::json!({
+                            "id": module.id,
+                            "name": module.name,
+                            "version": module.version,
+                            "type": module.kind,
+                            "abi": module.abi,
+                            "targets": module.targets,
+                            "companion": module.companion,
+                            "state": module.state,
+                            "processes": processes,
+                        })
+                    })
+                    .collect();
+                println!("{}", serde_json::json!({ "modules": modules }));
+                Ok(())
+            }
+            ZygiskCommand::Rearm => {
+                crate::builtin_zygisk::rearm()?;
+                println!("true");
+                Ok(())
+            }
+            ZygiskCommand::Config { command } => match command {
+                ZygiskConfigCommand::Get => {
+                    let fields: Vec<String> = crate::builtin_zygisk::config_get_all()
+                        .into_iter()
+                        .map(|(k, v)| format!(r#""{k}":"{v}""#))
+                        .collect();
+                    println!("{{{}}}", fields.join(","));
+                    Ok(())
+                }
+                ZygiskConfigCommand::Set { key, value } => {
+                    crate::builtin_zygisk::config_set(&key, &value)?;
+                    println!("true");
+                    Ok(())
+                }
+            },
         },
 
         Commands::Debug { command } => match command {

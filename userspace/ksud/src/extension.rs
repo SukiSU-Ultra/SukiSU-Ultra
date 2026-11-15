@@ -619,7 +619,7 @@ pub fn list_extensions() {
     for extension_id in &ExtensionId::ALL {
         let id = *extension_id as u32;
         let row = rows.iter().find(|row| row.id == id);
-        let state = row.map_or_default(|row| row.state);
+        let state = row.map_or_else(Default::default, |row| row.state);
         let supported = row.is_some_and(really_supported);
         let managed = extension_to_modules
             .get(extension_id.name())
@@ -640,7 +640,7 @@ pub fn list_extensions() {
         let state = rows
             .iter()
             .find(|row| row.id == id)
-            .map_or_default(|row| row.state);
+            .map_or_else(Default::default, |row| row.state);
         println!(
             "EXTENSION_LIST_V2 name={} id={} caps=0x{:08x} api={} sticky={} persist={} per_uid={} reboot={}",
             extension_id.name(),

@@ -192,6 +192,9 @@ sealed interface Route : NavKey, Parcelable {
     @Serializable
     data object VersionSpoof : Route
 
+    @Parcelize
+    @Serializable
+    data object BuiltinZygisk : Route
     
     @Parcelize
     @Serializable

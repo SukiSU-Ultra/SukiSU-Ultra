@@ -123,6 +123,7 @@ interface SettingsRepository {
     
     var showAiHomeCard: Boolean
     var autoJailbreak: Boolean
+    var builtinZygisk: Boolean
     var useSoftReboot: Boolean
     val intentToken: String
 

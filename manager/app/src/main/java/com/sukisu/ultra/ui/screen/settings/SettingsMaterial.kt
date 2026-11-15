@@ -1,10 +1,12 @@
 package com.sukisu.ultra.ui.screen.settings
 
+import android.net.Uri
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.CustomTextKey
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -38,10 +40,12 @@ import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -74,8 +78,15 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.SendLogBottomSheet
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.component.rebootlistpopup.rememberRebootAction
+import com.sukisu.ultra.ui.component.rebootlistpopup.rememberRebootChoices
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemMessage
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemTitle
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
+import android.content.Intent
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Settings
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 import com.sukisu.ultra.ui.viewmodel.MainPageRequest
 import kotlinx.coroutines.delay
@@ -113,6 +124,38 @@ fun SettingPagerMaterial(
         show = showUninstallDialog.value,
         onDismissRequest = { showUninstallDialog.value = false }
     )
+
+    // ksud finishes the handover in the background; the dialog only asks how to finish it,
+    // with the same reboot entries the Home page's menu offers. The action is created out
+    // here so a late-load confirmation outlives this dialog.
+    val rebootAction = rememberRebootAction()
+    val rebootChoices = rememberRebootChoices()
+    uiState.builtinZygiskProblem?.let { problem ->
+        AlertDialog(
+            onDismissRequest = actions.onDismissBuiltinZygiskFailure,
+            title = { Text(stringResource(problemTitle(problem))) },
+            text = { Text(stringResource(problemMessage(problem))) },
+            confirmButton = {
+                Row {
+                    rebootChoices.forEach { choice ->
+                        TextButton(
+                            onClick = {
+                                rebootAction(choice.reason)
+                                actions.onDismissBuiltinZygiskFailure()
+                            }
+                        ) {
+                            Text(stringResource(choice.labelRes))
+                        }
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = actions.onDismissBuiltinZygiskFailure) {
+                    Text(stringResource(R.string.close))
+                }
+            }
+        )
+    }
 
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
     ExpressiveScaffold(
@@ -462,7 +505,26 @@ fun SettingPagerMaterial(
                                 checked = uiState.autoJailbreak,
                                 onCheckedChange = actions.onSetAutoJailbreak
                             )
-                        }
+                        },
+                        {
+                            SegmentedSwitchItem(
+                                icon = Icons.Filled.Extension,
+                                title = customText(CustomTextKey.ZYGISK_SETTINGS_TITLE),
+                                summary = stringResource(id = R.string.settings_builtin_zygisk_summary),
+                                checked = uiState.builtinZygisk,
+                                onCheckedChange = {
+                                    actions.onSetBuiltinZygisk(it)
+                                }
+                            )
+                        },
+                        *(if (uiState.builtinZygisk) arrayOf<@Composable () -> Unit>({
+                            SegmentedListItem(
+                                onClick = actions.onOpenBuiltinZygisk,
+                                headlineContent = { Text(customText(CustomTextKey.ZYGISK_DASHBOARD_TITLE)) },
+                                supportingContent = { Text(stringResource(id = R.string.settings_builtin_zygisk_dashboard_summary)) },
+                                leadingContent = { IconTile(Icons.Filled.Settings, stringResource(id = R.string.settings_builtin_zygisk_dashboard)) }
+                            )
+                        }) else emptyArray())
                     )
                 )
                 }

@@ -1017,7 +1017,7 @@ private fun ModuleItem(
                 )
             }
 
-            if (module.metamodule || module.zygisk) {
+            if (module.metamodule || module.zygisk || module.suppressedByBuiltin) {
                 Row(
                     modifier = Modifier.padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1036,6 +1036,14 @@ private fun ModuleItem(
                             modifier = Modifier.padding(bottom = 4.dp),
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                             backgroundColor = MaterialTheme.colorScheme.tertiaryContainer
+                        )
+                    }
+                    if (module.suppressedByBuiltin) {
+                        StatusTag(
+                            stringResource(R.string.module_suppressed_by_builtin),
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            backgroundColor = MaterialTheme.colorScheme.errorContainer
                         )
                     }
                 }

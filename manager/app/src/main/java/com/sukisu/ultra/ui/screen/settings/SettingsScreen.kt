@@ -82,11 +82,14 @@ fun SettingPager(
         onSetDefaultUmountModules = viewModel::setDefaultUmountModules,
         onSetEnableWebDebugging = viewModel::setEnableWebDebugging,
         onSetAutoJailbreak = viewModel::setAutoJailbreak,
+        onSetBuiltinZygisk = viewModel::setBuiltinZygisk,
+        onDismissBuiltinZygiskFailure = viewModel::dismissBuiltinZygiskFailure,
         onSetUseSoftReboot = viewModel::setUseSoftReboot,
         onOpenAbout = { navigator.push(Route.About) },
         onOpenTools = { navigator.push(Route.Tool) },
         onOpenSusfsConfig = { navigator.push(Route.SuSFS()) },
         onOpenExtensions = { navigator.push(Route.Extensions) },
+        onOpenBuiltinZygisk = { navigator.push(Route.BuiltinZygisk) },
     )
 
     when (LocalUiMode.current) {

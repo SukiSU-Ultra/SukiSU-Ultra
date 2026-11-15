@@ -10,6 +10,14 @@ use anyhow::{Context, Result};
 use log::{error, info, warn};
 use std::{path::Path, time::Instant};
 
+/// Run a built-in Zygisk boot step. A failure is logged, never propagated: a broken
+/// built-in Zygisk must not abort the module stage.
+fn builtin_zygisk_step(step: &str, action: impl FnOnce() -> Result<()>) {
+    if let Err(e) = action() {
+        warn!("built-in Zygisk {step} failed: {e}");
+    }
+}
+
 pub fn on_post_fs_data() -> Result<()> {
     if let Err(e) = ksucalls::ensure_uapi_version_matched() {
         error!("{e:#}, skip on_post_fs_data");
@@ -91,6 +99,10 @@ pub fn on_post_fs_data() -> Result<()> {
         warn!("load sepolicy.rule failed");
     }
 
+    if let Err(e) = crate::builtin_zygisk::apply_sepolicy() {
+        warn!("apply builtin zygisk sepolicy failed: {e}");
+    }
+
     if let Err(e) = crate::profile::apply_sepolies() {
         warn!("apply root profile sepolicy failed: {e}");
     }
@@ -115,6 +127,13 @@ pub fn on_post_fs_data() -> Result<()> {
     if let Err(e) = kpm::booted_load() {
         warn!("KPM: Failed to start KPM watcher: {e}");
     }
+
+    // A disabled built-in kept its files for the rest of the session so a running
+    // monitor was not disturbed; this boot is where they go.
+    builtin_zygisk_step("cleanup", crate::builtin_zygisk::cleanup_disabled);
+
+    // bootstrap built-in zygisk before module post-fs-data
+    builtin_zygisk_step("bootstrap", crate::builtin_zygisk::bootstrap);
 
     // execute metamodule post-fs-data script first (priority)
     if let Err(e) = metamodule::exec_stage_script("post-fs-data", wait) {
@@ -209,6 +228,10 @@ pub fn on_services() {
     }
 
     info!("on_services triggered!");
+    // Make sure the monitor survived post-fs-data, but do not talk to it: the zygote is
+    // being started right now, and a `ctl rearm` would race the fork injection it is
+    // already performing. The late attach belongs to boot completed.
+    builtin_zygisk_step("monitor", crate::builtin_zygisk::ensure_monitor);
     run_stage("service", ScriptWait::NoWait);
 }
 
@@ -220,6 +243,11 @@ pub fn on_boot_completed() {
 
     ksucalls::report_boot_complete();
     info!("on_boot_completed triggered!");
+
+    // Safety net for a full boot: if the post-fs-data monitor never armed, start one
+    // and attach the zygote/system_server that are already running. Idempotent when
+    // the early boot already injected them.
+    builtin_zygisk_step("arm", crate::builtin_zygisk::ensure_armed);
 
     crate::preinit::on_boot_completed();
 

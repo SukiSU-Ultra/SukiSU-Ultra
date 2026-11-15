@@ -1439,3 +1439,255 @@ suspend fun getDynamicManagerSignature(apkPath: String): DynamicManagerSignature
 suspend fun addDynamicManager(packageName: String, signature: DynamicManagerSignature) {
     runDynamicManagerCommand("manager", "add", packageName, signature.certSize.toString(), signature.hash)
 }
+
+data class ZygiskProcess(
+    val name: String = "",
+    val pid: Int = 0,
+) {
+    /** "zygiskd64 · PID 1234"; name is the executable ksud found under /proc/<pid>/exe. */
+    val label: String
+        get() = when {
+            name.isEmpty() -> "PID $pid"
+            pid > 0 -> "$name · PID $pid"
+            else -> name
+        }
+}
+
+data class ZygoteAbiStatus(
+    /// `32` or `64`.
+    val abi: String = "",
+    /// `injected`, `not_injected` or `unknown`.
+    val status: String = "",
+)
+
+data class BuiltinZygiskStatus(
+    val enabled: Boolean = false,
+    val monitorRunning: Boolean = false,
+    val daemonRunning: Boolean = false,
+    /// Whether any ABI's zygote carries the loader. Without it the modules are not
+    /// usable yet, even with the monitor and a daemon running.
+    val zygoteInjected: Boolean = false,
+    /// ksud's own verdict: monitor, daemon and zygote injection all in place.
+    val fullyActive: Boolean = false,
+    /// Per-ABI zygote state, so the dashboard can tell 32-bit and 64-bit apart.
+    val zygotes: List<ZygoteAbiStatus> = emptyList(),
+    val monitor: ZygiskProcess? = null,
+    val daemons: List<ZygiskProcess> = emptyList(),
+    val version: String = "",
+)
+
+data class BuiltinZygiskConfig(
+    val anonymousMemory: Boolean = false,
+    val customLinker: Boolean = false,
+    // "bytehook" or "lsplt"
+    val pltEngine: String = "bytehook",
+)
+
+fun getBuiltinZygiskConfig(): BuiltinZygiskConfig {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk config get").trim()
+        val json = org.json.JSONObject(out)
+        BuiltinZygiskConfig(
+            anonymousMemory = json.optString("anonymous_memory") == "1",
+            customLinker = json.optString("custom_linker") == "1",
+            pltEngine = json.optString("plt_engine", "bytehook").ifEmpty { "bytehook" },
+        )
+    }.getOrDefault(BuiltinZygiskConfig())
+}
+
+fun setBuiltinZygiskConfig(key: String, value: String): Boolean {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk config set $key $value").trim()
+        out == "true"
+    }.getOrDefault(false)
+}
+
+fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk status").trim()
+        val json = org.json.JSONObject(out)
+        val daemons = json.optJSONArray("daemons")?.let { array ->
+            (0 until array.length()).mapNotNull { index ->
+                array.optJSONObject(index)?.toZygiskProcess()
+            }
+        }.orEmpty()
+        val zygotes = json.optJSONArray("zygotes")?.let { array ->
+            (0 until array.length()).mapNotNull { index ->
+                array.optJSONObject(index)?.let { zygote ->
+                    ZygoteAbiStatus(
+                        abi = zygote.optString("abi", ""),
+                        status = zygote.optString("status", ""),
+                    )
+                }
+            }
+        }.orEmpty()
+        BuiltinZygiskStatus(
+            enabled = json.optBoolean("enabled", false),
+            monitorRunning = json.optBoolean("monitor_running", false),
+            daemonRunning = json.optBoolean("daemon_running", false),
+            zygoteInjected = json.optBoolean("zygote_injected", false),
+            fullyActive = json.optBoolean("fully_active", false),
+            zygotes = zygotes,
+            monitor = json.optJSONObject("monitor")?.toZygiskProcess(),
+            daemons = daemons,
+            version = json.optString("version", ""),
+        )
+    }.getOrDefault(BuiltinZygiskStatus())
+}
+
+private fun org.json.JSONObject.toZygiskProcess(): ZygiskProcess =
+    ZygiskProcess(
+        name = optString("name", ""),
+        pid = optInt("pid", 0),
+    )
+
+data class ZygiskProcesses(
+    val monitors: List<ZygiskProcess> = emptyList(),
+    val daemons: List<ZygiskProcess> = emptyList(),
+)
+
+/// Monitor and daemon processes of `target`: `builtin` or an installed module's id.
+fun getZygiskProcesses(target: String): ZygiskProcesses {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(
+            shell,
+            "${getKsuDaemonPath()} zygisk processes ${target.ksudShellArg()}"
+        ).trim()
+        val json = org.json.JSONObject(out)
+        ZygiskProcesses(
+            monitors = json.optJSONArray("monitors").toZygiskProcessList(),
+            daemons = json.optJSONArray("daemons").toZygiskProcessList(),
+        )
+    }.getOrDefault(ZygiskProcesses())
+}
+
+private fun org.json.JSONArray?.toZygiskProcessList(): List<ZygiskProcess> =
+    this?.let { array ->
+        (0 until array.length()).mapNotNull { index ->
+            array.optJSONObject(index)?.toZygiskProcess()
+        }
+    }.orEmpty()
+
+/// One Zygisk module the built-in is serving, with the processes it reaches.
+data class InjectedZygiskModule(
+    val id: String = "",
+    val name: String = "",
+    val version: String = "",
+    /// `zygisk` for the Magisk API, `next` for the Zygisk Next API.
+    val type: String = "zygisk",
+    /// ABIs whose daemon loaded it: `32` and/or `64`.
+    val abi: List<String> = emptyList(),
+    /// Injection targets a Zygisk Next module declares, as plain names or paths.
+    val targets: List<String> = emptyList(),
+    val companion: Boolean = false,
+    /// `injected`, `loaded`, `failed` or `unknown`.
+    val state: String = "unknown",
+    val processes: List<InjectedZygiskProcess> = emptyList(),
+)
+
+data class InjectedZygiskProcess(
+    val name: String = "",
+    val pid: Int = 0,
+    /// `companion` or `target`.
+    val kind: String = "",
+) {
+    val label: String get() = "$name · PID $pid"
+}
+
+/// The modules the built-in is serving, as the monitor and the daemons report them.
+fun getInjectedZygiskModules(): List<InjectedZygiskModule> {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk modules").trim()
+        val modules = org.json.JSONObject(out).optJSONArray("modules") ?: return emptyList()
+        (0 until modules.length()).mapNotNull { index ->
+            modules.optJSONObject(index)?.toInjectedZygiskModule()
+        }
+    }.getOrDefault(emptyList())
+}
+
+private fun org.json.JSONObject.toInjectedZygiskModule(): InjectedZygiskModule =
+    InjectedZygiskModule(
+        id = optString("id", ""),
+        name = optString("name", ""),
+        version = optString("version", ""),
+        type = optString("type", "zygisk"),
+        abi = optJSONArray("abi").toStringList(),
+        targets = optJSONArray("targets").toStringList(),
+        companion = optBoolean("companion", false),
+        state = optString("state", "unknown"),
+        processes = optJSONArray("processes")?.let { array ->
+            (0 until array.length()).mapNotNull { index ->
+                array.optJSONObject(index)?.let { process ->
+                    InjectedZygiskProcess(
+                        name = process.optString("name", ""),
+                        pid = process.optInt("pid", 0),
+                        kind = process.optString("kind", ""),
+                    )
+                }
+            }
+        }.orEmpty(),
+    )
+
+private fun org.json.JSONArray?.toStringList(): List<String> =
+    this?.let { array ->
+        (0 until array.length()).mapNotNull { index ->
+            array.optString(index).ifEmpty { null }
+        }
+    }.orEmpty()
+
+fun setBuiltinZygiskEnabled(enabled: Boolean): Boolean {
+    val shell = getRootShell()
+    val action = if (enabled) "on" else "off"
+    val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk $action").trim()
+    return out == "true"
+}
+
+/// The id ksud uses for the embedded implementation in `zygisk switch`.
+const val BUILTIN_ZYGISK_TARGET = "builtin"
+
+/// Hand the running system to the built-in or to an installed provider module. The switch
+/// is userspace only, so it takes effect at once and returns whether ksud accepted it.
+fun switchToZygisk(target: String): Boolean {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(
+            shell,
+            "${getKsuDaemonPath()} zygisk switch ${target.ksudShellArg()}"
+        ).trim()
+        out == "true"
+    }.getOrDefault(false)
+}
+
+data class ZygiskImplementationInfo(
+    // "running", "reboot", "disabled" or "none"; ksud decides, the app localizes.
+    val state: String = "none",
+    // "builtin" or the provider module's id, what `switchToZygisk` takes.
+    val id: String = "",
+    val name: String = "",
+    val version: String = "",
+    // Ids (directory or declared id) of the installed provider modules: only those can
+    // be switched to.
+    val providers: List<String> = emptyList(),
+)
+
+/// The Zygisk implementation ksud reports, including its built-in one. Reading this is
+/// independent of the module list, which only describes what is on disk.
+fun getZygiskImplementationInfo(): ZygiskImplementationInfo {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk info").trim()
+        val json = org.json.JSONObject(out)
+        ZygiskImplementationInfo(
+            state = json.optString("state", "none"),
+            id = json.optString("id", ""),
+            name = json.optString("name", ""),
+            version = json.optString("version", ""),
+            providers = json.optJSONArray("providers").toStringList(),
+        )
+    }.getOrDefault(ZygiskImplementationInfo())
+}

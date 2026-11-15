@@ -125,7 +125,9 @@ enum class CustomTextKey(
     SETTING_AUTO_JAILBREAK("settings.auto_jailbreak", R.string.settings_auto_jailbreak, R.string.settings_auto_jailbreak, CustomTextGroup.SETTINGS),
     SETTING_TEMPORARY_ROOT_DURATION("settings.temporary_root_duration", R.string.temporary_root_duration_title, R.string.temporary_root_duration_title, CustomTextGroup.SETTINGS),
     SETTING_UNINSTALL("settings.uninstall", R.string.settings_uninstall, R.string.settings_uninstall, CustomTextGroup.SETTINGS),
-    SETTING_SEND_LOG("settings.send_log", R.string.send_log, R.string.send_log, CustomTextGroup.SETTINGS);
+    SETTING_SEND_LOG("settings.send_log", R.string.send_log, R.string.send_log, CustomTextGroup.SETTINGS),
+    ZYGISK_SETTINGS_TITLE("zygisk.settings_title", R.string.settings_builtin_zygisk, R.string.settings_builtin_zygisk, CustomTextGroup.SETTINGS),
+    ZYGISK_DASHBOARD_TITLE("zygisk.dashboard_title", R.string.settings_builtin_zygisk_dashboard, R.string.settings_builtin_zygisk_dashboard, CustomTextGroup.SETTINGS);
 
     companion object {
         fun fromKey(key: String): CustomTextKey? = entries.find { it.key == key }

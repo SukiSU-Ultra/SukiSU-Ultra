@@ -77,6 +77,14 @@ mod android {
     pub const DEFAULT_PACKAGE_NAME: &str = env!("KSU_PACKAGE_NAME");
 
     pub const UMOUNT_CONFIG_PATH: &str = concatcp!(WORKING_DIR, ".umount");
+
+    pub const BUILTIN_ZYGISK_FLAG: &str = concatcp!(WORKING_DIR, ".builtin_zygisk");
+    /// Where ksud stages the built-in Zygisk binaries and its `module.prop`,
+    /// the role `$MODDIR` plays for the standalone module.
+    pub const BUILTIN_ZYGISK_DIR: &str = concatcp!(WORKING_DIR, "zygisk/");
+    /// The directory the tracer, daemon and injected library use at runtime.
+    /// Must match `workDirectory` in BuiltZygisk's build.gradle.kts.
+    pub const BUILTIN_ZYGISK_WORK_DIR: &str = "/data/system/nyazygisk";
 }
 
 #[allow(unused)]

@@ -46,12 +46,13 @@ import com.sukisu.ultra.ui.screen.home.SystemInfo
 import com.sukisu.ultra.ui.screen.home.getHomeModuleCount
 import com.sukisu.ultra.ui.screen.home.getManagerVersion
 import com.sukisu.ultra.ui.util.checkNewCiVersion
-import com.sukisu.ultra.ui.screen.home.getZygiskImplementation
+import com.sukisu.ultra.ui.screen.home.formatZygiskImplementation
 import com.sukisu.ultra.ui.util.checkNewVersion
 import com.sukisu.ultra.ui.util.getKpmModuleCount
 import com.sukisu.ultra.ui.util.getKpmVersion
 import com.sukisu.ultra.ui.util.getSuperuserCount
 import com.sukisu.ultra.ui.util.getSELinuxStatusRaw
+import com.sukisu.ultra.ui.util.getZygiskImplementationInfo
 import com.sukisu.ultra.ui.util.HomeCardSticker
 import com.sukisu.ultra.ui.util.HomeCardImageStyle
 import com.sukisu.ultra.ui.util.HomeLayout
@@ -257,7 +258,7 @@ class HomeViewModel(
         val isPreviewMode = !isManager && isRootAvailable
 
         currentCoroutineContext().ensureActive()
-        // Keep the raw provider/running flags and reuse this exact snapshot for the count.
+        // Only the module count comes from the module list now.
         val modulesJson = if (isRootAvailable) runCatching { listModules() }.getOrNull() else null
         currentCoroutineContext().ensureActive()
         val counts = if (isRootAvailable) {
@@ -267,8 +268,8 @@ class HomeViewModel(
         }
         currentCoroutineContext().ensureActive()
         val zygiskImplementation = if (isManager && isRootAvailable) {
-            getZygiskImplementation(
-                modulesJson = modulesJson.orEmpty(),
+            formatZygiskImplementation(
+                info = getZygiskImplementationInfo(),
                 notInstalledText = ksuApp.getString(R.string.home_zygisk_not_installed),
                 disabledText = ksuApp.getString(R.string.home_zygisk_disabled),
                 rebootRequiredText = ksuApp.getString(R.string.home_zygisk_reboot_required),
