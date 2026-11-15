@@ -24,7 +24,7 @@
  *
  * then we can just kick all the cpus, so they see the change and refetch.
  */
-static inline void patch_ptr_slot_kick_cpu(void **target_slot, void *new_ptr)
+static void patch_ptr_slot_kick_cpu(void **target_slot, void *new_ptr)
 {
 // __atomic_store_n((uintptr_t *)target_slot, (uintptr_t)new_ptr, __ATOMIC_RELAXED);
 	assume_dereferenceable((void *)target_slot, sizeof(uintptr_t));

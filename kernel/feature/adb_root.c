@@ -162,7 +162,7 @@ envp_count_done:
 	return 0;	
 }
 
-static noinline void do_ksu_adb_root_execve_user(void *restrict filename, void *restrict envp_in)
+static noinline void do_ksu_adb_root_execve(void **restrict filename_kernel, const char __user **filename_user, void ***restrict envp_in)
 {
 	if (likely(ksu_is_seccomp_enabled()))
 		return;
@@ -170,61 +170,25 @@ static noinline void do_ksu_adb_root_execve_user(void *restrict filename, void *
 	uid_t uid = current_euid().val;
 	if (uid != 0 && uid != 2000)
         	return;
-
-	// filename is void * char __user *
-	const char __user **filename_user = (const char __user **)filename;
-
-	if (likely(!is_exec_adbd(filename_user)))
-		return;
-
-	if (unlikely(!is_libadbroot_ok()))
-		return;
-
-	if (setup_ld_preload((void ***)envp_in))
-		return;
-
-	pr_info("escape to root for adb\n");
-	escape_to_root_for_adb_root();
-	escape_with_root_profile(); // why is this needed for 3.x?
-	return;
-}
-
-static noinline void do_ksu_adb_root_execve_kernel(void *restrict filename, void *restrict envp_in)
-{
-	if (likely(ksu_is_seccomp_enabled()))
-		return;
-
-	uid_t uid = current_euid().val;
-	if (uid != 0 && uid != 2000)
-        	return;
-
-	if (!filename)
-		return;
-
-	// filename is char **
-	if (!*(void **)filename)
-		return;
-
-	if (!!endswith(*(char **)filename, "/adbd"))
-		return;
-
-	if (unlikely(!is_libadbroot_ok()))
-		return;
 
 	if (!envp_in)
 		return;
 
-	struct user_arg_ptr *envp = (struct user_arg_ptr *)envp_in;
+	if (filename_kernel) {
+		if (!*(void **)filename_kernel) // filename is char **
+			return;
 
-	void ***envp_addr = (void ***)&envp->ptr.native;
-#ifdef CONFIG_COMPAT
-	if (unlikely(envp->is_compat))
-		envp_addr = (void ***)&envp->ptr.compat;
-#endif
+		if (!!endswith(*(char **)filename_kernel, "/adbd"))
+			return;
+	} else {
+		if (!is_exec_adbd(filename_user))
+			return;
+	}
 
-	pr_info("%s: envp 0x%lx \n", __func__, (uintptr_t)*envp_addr );
+	if (!is_libadbroot_ok())
+		return;
 
-	if (setup_ld_preload(envp_addr))
+	if (setup_ld_preload(envp_in))
 		return; 
 
 	pr_info("escape to root for adb\n");
@@ -234,32 +198,19 @@ static noinline void do_ksu_adb_root_execve_kernel(void *restrict filename, void
 }
 
 #ifdef KSU_CAN_USE_JUMP_LABEL // see kernel_compat.h
-
 DEFINE_STATIC_KEY_FALSE(ksu_adb_root_key);
-
-static inline void ksu_adb_root_execve_user(void *restrict filename, void *restrict envp_in)
+static inline void ksu_adb_root_execve(void **restrict filename_kernel, const char __user **filename_user, void ***restrict envp_in)
 {
 	if (static_branch_unlikely(&ksu_adb_root_key))
-		do_ksu_adb_root_execve_user(filename, envp_in);
+		do_ksu_adb_root_execve(filename_kernel, filename_user, envp_in);
 }
-static inline void ksu_adb_root_execve_kernel(void *restrict filename, void *restrict envp_in)
-{
-	if (static_branch_unlikely(&ksu_adb_root_key))
-		do_ksu_adb_root_execve_kernel(filename, envp_in);
-}
-
 static inline void ksu_adb_root_branch_enable() { static_branch_enable(&ksu_adb_root_key); smp_mb(); }
 static inline void ksu_adb_root_branch_disable() { static_branch_disable(&ksu_adb_root_key); smp_mb(); }
 #else /* ! KSU_CAN_USE_JUMP_LABEL */
-static inline void ksu_adb_root_execve_user(void *restrict filename, void *restrict envp_in)
+static inline void ksu_adb_root_execve(void **restrict filename_kernel, const char __user **filename_user, void ***restrict envp_in)
 {
 	if (unlikely(ksu_adb_root))
-		do_ksu_adb_root_execve_user(filename, envp_in);
-}
-static inline void ksu_adb_root_execve_kernel(void *restrict filename, void *restrict envp_in)
-{
-	if (unlikely(ksu_adb_root))
-		do_ksu_adb_root_execve_kernel(filename, envp_in);
+		do_ksu_adb_root_execve(filename_kernel, filename_user, envp_in);
 }
 static inline void ksu_adb_root_branch_enable() { } // no-op
 static inline void ksu_adb_root_branch_disable() { } // no-op

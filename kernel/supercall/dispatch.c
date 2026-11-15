@@ -10,10 +10,8 @@ static int do_grant_root(void __user *arg)
 
 	pr_info("allow root for: %d\n", audit_uid);
 	ret = escape_with_root_profile();
-
-#ifdef CONFIG_KSU_FEATURE_SULOG
 	ksu_sulog_emit_grant_root(ret, audit_uid, audit_euid, GFP_KERNEL);
-#endif
+
 	return ret;
 }
 
@@ -678,8 +676,6 @@ static int do_get_hook_type(void __user *arg)
 	type = "ARM64 Branch Link Hijack";
 #elif defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE)
 	type = "Syscall Table Tamper";
-#elif defined(CONFIG_KSU_KPROBES_KSUD)
-	type = "Kprobes KSUD";
 #else
 	type = "Manual Hook";
 #endif

@@ -7,7 +7,6 @@
 #ifndef CONFIG_KSU_HEURISTIC_IN_TREE_BUILD
 	#define CONFIG_KSU_LSM_SECURITY_HOOKS 1
 	#define CONFIG_KSU_HACK_ARM64_BRANCH_LINK 1
-	#define CONFIG_KSU_FEATURE_SULOG 1
 	#define CONFIG_KSU_FEATURE_ADBROOT 1
 	#define CONFIG_KSU_THRONE_TRACKER_ALWAYS_THREADED 1
 #endif // CONFIG_KSU_HEURISTIC_IN_TREE_BUILD
@@ -66,7 +65,6 @@
 #include "feature/sucompat.h"
 #include "feature/sulog.h"
 #include "preinit/preinit.h"
-#include "feature/mount_hide.h"
 #include "runtime/ksud_boot.h"
 #include "runtime/ksud.h"
 #include "sulog/event.h"
@@ -95,6 +93,7 @@
 
 #ifdef CONFIG_ARM64
 #include "downstream/arm64_branch_insn.h"
+#include "downstream/arm64_tiny_trampoline.h"
 #endif
 
 // slow_avc_audit_defs.h calls ksu_avc_spoof_rewrite_tsid() from its inline hook
@@ -122,6 +121,7 @@
 #include "extension/susfs_extension.h"
 #include "extension/version_spoof.h"
 #include "feature/uts_spoof.h"
+#include "feature/mount_hide.h"
 
 // unity build
 #include "extension/extension.c"
@@ -213,10 +213,6 @@
 #include "hook/branch_link_hook_arm64.c"
 #endif
 
-#if defined(CONFIG_KSU_KPROBES_KSUD) && !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
-#include "hook/kp_ksud.c"
-#endif
-
 // track backports and other quirks here
 // ref: kernel_compat.c, Makefile
 // yes looks nasty
@@ -225,48 +221,43 @@
 #else
 	#define FEAT_1 ""
 #endif
-#if defined(CONFIG_KSU_KPROBES_KSUD) && !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
-	#define FEAT_2 " +kp_ksud"
+#if defined(CONFIG_KSU_EXTRAS)
+	#define FEAT_2 " +extras"
 #else
 	#define FEAT_2 ""
 #endif
-#if defined(CONFIG_KSU_EXTRAS)
-	#define FEAT_3 " +extras"
+#if defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE)
+	#define FEAT_3 " +syscall_table_hook"
 #else
 	#define FEAT_3 ""
 #endif
-#if defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE)
-	#define FEAT_4 " +syscall_table_hook"
+#if !defined(CONFIG_KSU_LSM_SECURITY_HOOKS)
+	#define FEAT_4 " -lsm_hooks"
 #else
 	#define FEAT_4 ""
 #endif
-#if !defined(CONFIG_KSU_LSM_SECURITY_HOOKS)
-	#define FEAT_5 " -lsm_hooks"
+#if defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
+	#define FEAT_5 " +arm64_branch_link"
 #else
 	#define FEAT_5 ""
 #endif
-#if defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
-	#define FEAT_6 " +arm64_branch_link"
+#if defined(KSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK)
+	#define FEAT_6 " +policy_rwlock"
 #else
 	#define FEAT_6 ""
 #endif
-#if defined(KSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK)
-	#define FEAT_7 " +policy_rwlock"
+#if defined(MODULE)
+	#define FEAT_7 " +lkm"
 #else
 	#define FEAT_7 ""
 #endif
-#if defined(MODULE)
-	#define FEAT_8 " +lkm"
+#if defined(CONFIG_KSU_SUSFS_INLINE_HOOK)
+	#define FEAT_8 " +susfs_inline_hook"
 #else
 	#define FEAT_8 ""
 #endif
-#if defined(CONFIG_KSU_SUSFS)
-	#define FEAT_9 " +susfs_inline_hook"
-#else
-	#define FEAT_9 ""
-#endif
 
-#define EXTRA_FEATURES FEAT_1 FEAT_2 FEAT_3 FEAT_4 FEAT_5 FEAT_6 FEAT_7 FEAT_8 FEAT_9
+#define EXTRA_FEATURES FEAT_1 FEAT_2 FEAT_3 FEAT_4 FEAT_5 FEAT_6 FEAT_7 FEAT_8
 
 static inline void ksu_print_build_info(void)
 {
@@ -325,9 +316,7 @@ static int __init kernelsu_init(void)
 	ksu_sucompat_init();
 	ksu_kernel_umount_init();
 	ksu_mount_hide_init();
-#ifdef CONFIG_KSU_FEATURE_SULOG	
 	ksu_sulog_init();
-#endif
 #ifdef CONFIG_KSU_FEATURE_ADBROOT
 	ksu_adb_root_init();
 #endif
@@ -335,10 +324,6 @@ static int __init kernelsu_init(void)
 	ksu_avc_spoof_init();
 	ksu_shell_su_adb_only_init();
 	ksu_supercalls_init();
-
-#if defined(CONFIG_KSU_KPROBES_KSUD) && !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
-	kp_ksud_init();
-#endif
 
 	ksu_allowlist_init();
 	// dynamic manager must be loaded before throne tracker, as throne tracker may depend on it

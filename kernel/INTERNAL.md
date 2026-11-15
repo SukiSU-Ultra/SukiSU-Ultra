@@ -53,11 +53,6 @@
 - after all we just need file pointer
 - however if theres syscall table hook, we hook it on there instead
 - we also use this for "second stage apply" instead of execve_ksud
-#### bprm LSM
-- defferent hooks for different kernels
-- think of this as "after sys_execve"
-- lockless argv pullouts for sulog
-- might be used for something later
 
 ### selinux_hide
 - we have a thin implementation downstream

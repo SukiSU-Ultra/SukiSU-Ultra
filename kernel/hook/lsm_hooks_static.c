@@ -78,34 +78,44 @@ asmlinkage long hook_armeabi_setresuid(const struct pt_regs *regs)
 }
 #endif
 
-// bprm
-extern int security_bprm_check(struct linux_binprm *bprm);
-static int ksu_bprm_check(struct linux_binprm *bprm)
+#if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
+#ifdef CONFIG_COMPAT
+#define __ARMEABI_read		3
+extern long __arm64_sys_read(const struct pt_regs *regs);
+static syscall_fn_t armeabi_read __read_mostly = nullptr;
+asmlinkage long hook_armeabi_read(const struct pt_regs *regs)
 {
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit_bprm((const char *)bprm->filename);
+	unsigned int fd = (unsigned int)regs->regs[0];	
+
+	ksu_handle_sys_read_fd(fd);
+	return __arm64_sys_read(regs);
+}
+#endif // CONFIG_COMPAT
+#define __AARCH64_read		63
+extern long __arm64_sys_read(const struct pt_regs *regs);
+static syscall_fn_t aarch64_read __read_mostly = nullptr;
+asmlinkage long hook_aarch64_read(const struct pt_regs *regs)
+{
+	unsigned int fd = (unsigned int)regs->regs[0];
+
+	ksu_handle_sys_read_fd(fd);
+	return __arm64_sys_read(regs);
+}
+static int ksu_syscall_table_restore(void *data)
+{
+	set_user_nice(current, 19); // low prio
+loop_start:
+	msleep(1000);
+	if (*(volatile bool *)&ksu_vfs_read_hook)
+		goto loop_start;
+
+#if defined(CONFIG_COMPAT)
+	restore_syscall((void *)&armeabi_read, __ARMEABI_read, (void *)hook_armeabi_read, compat_sct);
 #endif
-	return security_bprm_check(bprm);
+	restore_syscall((void *)&aarch64_read, __AARCH64_read, (void *)hook_aarch64_read, native_sct);
+	return 0;
 }
-
-// vfs_read, as security_file_permission is a bit spotty to hook!
-extern ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos);
-static ssize_t ksu_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
-{
-	if (static_branch_likely(&ksud_vfs_read_key))
-		ksu_install_rc_hook(file);
-
-	return vfs_read(file, buf, count, pos);
-}
-
-extern int security_file_permission(struct file *file, int mask);
-static int ksu_security_file_permission(struct file *file, int mask)
-{
-	if (static_branch_likely(&ksud_vfs_read_key))
-		ksu_install_rc_hook(file);
-
-	return security_file_permission(file, mask);
-}
+#endif // !CONFIG_KSU_TAMPER_SYSCALL_TABLE && !CONFIG_KSU_HACK_ARM64_BRANCH_LINK
 
 extern int security_setprocattr(int lsmid, const char *name, void *value, size_t size);
 static int ksu_setprocattr(int lsmid, const char *name, void *value, size_t size)
@@ -116,7 +126,7 @@ static int ksu_setprocattr(int lsmid, const char *name, void *value, size_t size
 
 extern int security_inode_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
 			const char *name, const void *value, size_t size, int flags);
-extern int ksu_inode_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
+static int ksu_inode_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
 			const char *name, const void *value, size_t size, int flags)
 {
 	ksu_hide_setxattr_inline(name, value, size);
@@ -128,6 +138,7 @@ static void __init ksu_lsm_hook_init(void)
 	int ret;
 	uintptr_t target_callsite;
 	uintptr_t symbol_addr;
+	uintptr_t trampoline;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 0, 0) 
 	target_callsite = kallsyms_lookup_retry("filename_renameat2");
@@ -137,12 +148,22 @@ static void __init ksu_lsm_hook_init(void)
 	symbol_addr = kallsyms_lookup_retry("vfs_rename");
 	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_vfs_rename);
 	pr_info("LSM: vfs_rename: ret %d \n", ret);
+	if (ret == -ERANGE) {
+		trampoline = create_landing_pad((uintptr_t)&ksu_vfs_rename);
+		if (!!trampoline)
+			ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, trampoline);
+	}
 	if (!ret)
 		goto rename_hook_done;
 
 	target_callsite = kallsyms_lookup_retry("vfs_rename");
 	symbol_addr = kallsyms_lookup_retry("security_inode_rename");
 	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_inode_rename);
+	if (ret == -ERANGE) {
+		trampoline = create_landing_pad((uintptr_t)&ksu_inode_rename);
+		if (!!trampoline)
+			ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, trampoline);
+	}
 	pr_info("LSM: security_inode_rename: ret %d \n", ret);
 
 rename_hook_done:
@@ -162,70 +183,32 @@ rename_hook_done:
 #endif
 #endif // CONFIG_KSU_SUSFS
 
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	symbol_addr = kallsyms_lookup_retry("security_bprm_check");
-	target_callsite = kallsyms_lookup_retry("bprm_execve");
-	if (!target_callsite)
-		goto skip_bprm1;
-	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_bprm_check);
-	if (!ret)
-		goto bprm_done;
-skip_bprm1:
-	target_callsite = kallsyms_lookup_retry("search_binary_handler");
-	if (!target_callsite)
-		goto skip_bprm2;
-	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_bprm_check);
-	if (!ret)
-		goto bprm_done;
-skip_bprm2:
-	ret = -ENXIO;
-	target_callsite = kallsyms_lookup_retry("exec_binprm");
-	if (!target_callsite)
-		goto bprm_done;
-	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 256 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_bprm_check);
-bprm_done:
-	pr_info("LSM: security_bprm_check: ret %d \n", ret);
-#endif
-
 #if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
-	symbol_addr = kallsyms_lookup_retry("vfs_read");
-	if (!symbol_addr)
-		goto skip_read2;
-	target_callsite = kallsyms_lookup_retry("__arm64_sys_read");
-	if (!target_callsite)
-		goto skip_read1;
-	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_vfs_read);
-	if (!ret)
-		goto read_hook_done;
-skip_read1:
-	target_callsite = kallsyms_lookup_retry("ksys_read");
-	if (!target_callsite)
-		goto skip_read2;
-	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_vfs_read);
-	if (!ret)
-		goto read_hook_done;
-skip_read2:
-	ret = -ENXIO;
-	symbol_addr = kallsyms_lookup_retry("security_file_permission");
-	if (!symbol_addr)
-		goto read_hook_done;
-	target_callsite = kallsyms_lookup_retry("rw_verify_area");
-	if (!target_callsite)
-		goto read_hook_done;
-	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_security_file_permission);
-
-read_hook_done:
-	pr_info("LSM: security_file_permission: ret %d \n", ret);
+#ifdef CONFIG_COMPAT
+	replace_syscall((void *)&armeabi_read, __ARMEABI_read, (void *)hook_armeabi_read, compat_sct);
 #endif
+	replace_syscall((void *)&aarch64_read, __AARCH64_read, (void *)hook_aarch64_read, native_sct);
+	kthread_run(ksu_syscall_table_restore, NULL, "unhook");
+#endif // !CONFIG_KSU_TAMPER_SYSCALL_TABLE && !CONFIG_KSU_HACK_ARM64_BRANCH_LINK
 
 	target_callsite = kallsyms_lookup_retry("proc_pid_attr_write"); // fn ptr on dispatch table
 	symbol_addr = kallsyms_lookup_retry("security_setprocattr");
 	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_setprocattr);
+	if (ret == -ERANGE) {
+		trampoline = create_landing_pad((uintptr_t)&ksu_setprocattr);
+		if (!!trampoline)
+			ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, trampoline);
+	}
 	pr_info("LSM: security_setprocattr: ret %d \n", ret);
 
 	target_callsite = kallsyms_lookup_retry("__vfs_setxattr_locked"); // exported symbol
 	symbol_addr = kallsyms_lookup_retry("security_inode_setxattr");
 	ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, (uintptr_t)&ksu_inode_setxattr);
+	if (ret == -ERANGE) {
+		trampoline = create_landing_pad((uintptr_t)&ksu_inode_setxattr);
+		if (!!trampoline)
+			ret = arm64_bl_patch(target_callsite, ksu_get_ksym_size(target_callsite, 128 * sizeof(uint32_t)), symbol_addr, trampoline);
+	}
 	pr_info("LSM: security_inode_setxattr: ret %d \n", ret);
 
 }

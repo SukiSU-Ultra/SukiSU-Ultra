@@ -30,15 +30,6 @@ static __nocfi int ksu_inode_rename(struct inode *old_inode, struct dentry *old_
 	return inode_rename_fn(old_inode, old_dentry, new_inode, new_dentry);
 }
 
-static void (*bprm_committing_creds_fn)(struct linux_binprm *bprm) __read_mostly = nullptr;
-static __nocfi void ksu_bprm_committing_creds(struct linux_binprm *bprm)
-{
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit_bprm((const char *)bprm->filename);
-#endif
-	bprm_committing_creds_fn(bprm); // NOTE: void LSM hook
-}
-
 static int (*file_permission_fn)(struct file *file, int mask) __read_mostly = nullptr;
 
 /*
@@ -164,9 +155,6 @@ static __nocfi int ksu_inode_setxattr_old(struct dentry *dentry, const char *nam
 	return ((typeof(ksu_inode_setxattr_old) *)inode_setxattr_fn)(dentry, name, value, size, flags);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-
 #define OVERLOAD_INODE_SETXATTR(fn) _Generic(					\
 (fn),										\
 	int (*)(INODE_SETXATTR_TYPE_new2)	:ksu_inode_setxattr_new2,	\
@@ -180,7 +168,6 @@ static inline void ksu_do_overload_inode_setxattr(void)
 {
 	ksu_inode_setxattr = OVERLOAD_INODE_SETXATTR(security_inode_setxattr);
 }
-#pragma GCC diagnostic pop
 #undef INODE_SETXATTR_TYPE_old
 #undef INODE_SETXATTR_TYPE_new1
 #undef INODE_SETXATTR_TYPE_new2
@@ -379,10 +366,6 @@ static __init void ksu_lsm_hook_init(void)
 
 	ksu_do_overload_inode_setxattr();
 	LSM_HACK_INIT(inode_setxattr, ksu_inode_setxattr);
-
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	LSM_HACK_INIT(bprm_committing_creds, ksu_bprm_committing_creds);
-#endif
 
 #if !defined(CONFIG_KSU_TAMPER_SYSCALL_TABLE) && !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK) && !defined(CONFIG_KSU_SUSFS)
 	LSM_HACK_INIT(file_permission, ksu_file_permission);

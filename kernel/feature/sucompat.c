@@ -669,23 +669,21 @@ ksyscall_exec:;
 
 static __always_inline void ksu_sucompat_user_execve(const char __user **filename_user, void *restrict argv, void *restrict envp, const char *syscall_name)
 {
-	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
-	ksu_preinit_user_execve_hook(filename_user, argv, envp);
+	ksu_adb_root_execve(nullptr, filename_user, envp);
+	ksu_preinit_execve(nullptr, filename_user, argv, envp);
 
 	if (!is_su_allowed((const void **)filename_user))
 		return;
 
+	ksu_sulog_emit_sucompat_pre(nullptr, *filename_user, argv);
 	if (!is_user_filename_su(filename_user))
 		return;
 
-	write_sulog('x');
-
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
-#endif
 	if (!!escape_with_root_profile())
 		return;
 
+	write_sulog('x');
+	ksu_sulog_emit_sucompat_post(nullptr, *filename_user, argv);
 	if (!ksyscall_execve_ksud(syscall_name, argv, envp))
 		return;
 
@@ -763,9 +761,15 @@ static __always_inline bool is_kernel_filename_su(const char **filename)
 
 static __always_inline void ksu_sucompat_kernel_execve(int *restrict fd, void **restrict filename_ptr, void *restrict argv, void *restrict envp, int *restrict flags, const char *function_name)
 {
-	ksu_adb_root_execve_kernel((void *)filename_ptr, (void *)envp);
+	// compat and native are unionized
+	struct user_arg_ptr *k_argv = (struct user_arg_ptr *)argv;
+	struct user_arg_ptr *k_envp = (struct user_arg_ptr *)envp;
+	void ***u_argv = (void ***)&k_argv->ptr;
+	void ***u_envp = (void ***)&k_envp->ptr;
+
+	ksu_adb_root_execve(filename_ptr, nullptr, u_envp);
 #if !defined(CONFIG_KSU_HACK_ARM64_BRANCH_LINK)
-	ksu_preinit_kernel_execve_hook(filename_ptr, argv, envp);
+	ksu_preinit_execve(filename_ptr, nullptr, u_argv, u_envp);
 #endif // we defer hooking on branch link it should be caught by sys_execve first
 
 	if (!is_su_allowed((const void **)filename_ptr))
@@ -777,32 +781,15 @@ static __always_inline void ksu_sucompat_kernel_execve(int *restrict fd, void **
 	if (!!flags && !!*flags)
 		return;
 
+	ksu_sulog_emit_sucompat_pre(*filename_ptr, nullptr, u_argv);
 	if (!is_kernel_filename_su((const char **)filename_ptr))
 		return;
 
-	// we only handle execve here after removing vfs_statx hook for >= 6.1
-	write_sulog('x');
-
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit(KSU_SULOG_EVENT_SUCOMPAT, NULL, 0, GFP_KERNEL);
-#endif
 	if (!!escape_with_root_profile())
 		return;
 
-	struct user_arg_ptr *kargv = (struct user_arg_ptr *)argv;
-	void ***u_argv = (void ***)&kargv->ptr.native;
-#ifdef CONFIG_COMPAT
-	if (kargv->is_compat)
-		u_argv = (void ***)&kargv->ptr.compat;
-#endif
-
-	struct user_arg_ptr *kenvp = (struct user_arg_ptr *)envp;
-	void ***u_envp = (void ***)&kenvp->ptr.native;
-#ifdef CONFIG_COMPAT
-	if (kenvp->is_compat)
-		u_envp = (void ***)&kenvp->ptr.compat;
-#endif
-
+	write_sulog('x');
+	ksu_sulog_emit_sucompat_post(*filename_ptr, nullptr, u_argv);
 	if (!ksyscall_execve_ksud(function_name, u_argv, u_envp))
 		return;
 

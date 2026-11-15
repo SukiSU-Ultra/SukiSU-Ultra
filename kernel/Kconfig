@@ -9,20 +9,6 @@ config KSU
 	help
 	  Enable kernel-level root privileges on Android System.
 
-config KSU_KPROBES_KSUD
-	bool "Enable dynamic kprobes for early boot hooks"
-	depends on KSU
-	depends on !KSU_SUSFS
-	depends on !KSU_TAMPER_SYSCALL_TABLE
-	depends on !KSU_HACK_ARM64_BRANCH_LINK
-	depends on KPROBES && KRETPROBES
-	depends on DEPRECATED
-	default n
-	help
-	  [deprecated] Use dynamic hooks via kprobes for functions only
-	  on early boot. Hooks are unregistered at boot complete
-	  to reduce overhead.
-
 config KSU_HACK_ARM64_BRANCH_LINK
 	bool "inline call-site hijacking (ARM64 bl insn)"
 	depends on KSU
@@ -71,13 +57,6 @@ config KSU_LSM_SECURITY_HOOKS
 	help
 	  Disabling this is mostly useful for non-ARM64 with kernel > 6.8.
 	  Make sure to implement manual hooks on security/security.c.
-
-config KSU_FEATURE_SULOG
-	bool "KernelSU SU Logging feature"
-	depends on KSU
-	default y
-	help
-	  Build KernelSU's SU Log.
 
 config KSU_FEATURE_ADBROOT
 	bool "KernelSU ADB Root feature"

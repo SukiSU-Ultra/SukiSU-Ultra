@@ -30,9 +30,6 @@ int ksu_task_fix_setuid(struct cred *new, const struct cred *old, int flags)
 
 int ksu_bprm_check(struct linux_binprm *bprm)
 {
-#ifdef CONFIG_KSU_FEATURE_SULOG
-	ksu_sulog_emit_bprm((const char *)bprm->filename);
-#endif
 	return 0;
 }
 

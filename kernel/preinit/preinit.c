@@ -297,81 +297,54 @@ unmap_and_close: // not rly needed, but its ok.
 	return;
 }
 
-static noinline void ksu_preinit_handle_kexecve(void **filename, void *kargv, void *kenvp)
+// filename_kernel is char **, filename_user is void * char __user *
+static noinline void do_ksu_preinit_execve(void **filename_kernel, const char __user **filename_user, void *u_argv, void *u_envp)
 {
 	if (!current->mm || current->pid != 1)
 		return;
 
-	assume_dereferenceable(*filename, 32);
-
-	constexpr char expected[] = INIT_PATH;
-	if (!!memcmp_inline(*(char **)filename, expected, sizeof(expected)))
-		return;
-
-	pr_info("preinit: kernel_execve: %s \n", INIT_PATH);
-
-	struct user_arg_ptr *argv = (struct user_arg_ptr *)kargv;
-	void ***u_argv = (void ***)&argv->ptr.native;
-#ifdef CONFIG_COMPAT
-	if (argv->is_compat)
-		u_argv = (void ***)&argv->ptr.compat;
-#endif
-
-	if (!is_selinux_setup((const char __user **)*(void ***)u_argv))
-		return;
-
-	struct user_arg_ptr *envp = (struct user_arg_ptr *)kenvp;
-	void ***u_envp = (void ***)&envp->ptr.native;
-#ifdef CONFIG_COMPAT
-	if (envp->is_compat)
-		u_envp = (void ***)&envp->ptr.compat;
-#endif
-
-	pr_info("preinit: kernel_execve: /system/bin/init with selinux_setup! \n");
-
-	kthread_run(ksu_disable_preinit_branch, nullptr, "kthread");
-
-	ksu_stage_preinit_binary(u_argv, u_envp);
-}
-
-// filename is void *char __user *
-static noinline void ksu_preinit_handle_uexecve(const char __user **filename, void *u_argv, void *u_envp)
-{
-	if (!current->mm || current->pid != 1)
+	if (!filename_kernel && !filename_user)
 		return;
 
 	constexpr char expected[] = INIT_PATH;
+	
+	if (filename_kernel) {
+		assume_dereferenceable(*filename_kernel, 32);
+		if (!!memcmp_inline(*(char **)filename_kernel, expected, sizeof(expected)))
+			return;
 
-	char buf[sizeof(expected) + 1];
-	buf[sizeof(buf) - 1] = 0;
-	if (!!copy_from_user(buf, *filename, sizeof(buf) - 1 ))
-		return;
+		pr_info("preinit: kernel_execve: %s \n", INIT_PATH);	
+		if (!is_selinux_setup((const char __user **)*(void ***)u_argv))
+			return;
 
-	if (!!strcmp(buf, expected))
-		return;
+		pr_info("preinit: kernel_execve: /system/bin/init with selinux_setup! \n");
 
-	pr_info("preinit: sys_execve: %s \n", INIT_PATH);
+		kthread_run(ksu_disable_preinit_branch, nullptr, "kthread");
+	} else {
+		char buf[sizeof(expected) + 1];
+		buf[sizeof(buf) - 1] = 0;
+		if (!!copy_from_user(buf, *filename_user, sizeof(buf) - 1 ))
+			return;
 
-	if (!is_selinux_setup((const char __user **)*(void ***)u_argv))
-		return;
+		if (!!strcmp(buf, expected))
+			return;
 
-	pr_info("preinit: sys_execve: %s with selinux_setup! \n", INIT_PATH);
+		pr_info("preinit: sys_execve: %s \n", INIT_PATH);
+		if (!is_selinux_setup((const char __user **)*(void ***)u_argv))
+			return;
+
+		pr_info("preinit: sys_execve: %s with selinux_setup! \n", INIT_PATH);
+	}
 
 	kthread_run(ksu_disable_preinit_branch, nullptr, "kthread");
 
 	ksu_stage_preinit_binary((void ***)u_argv, (void ***)u_envp);
 }
 
-static inline void ksu_preinit_kernel_execve_hook(void **filename, void *k_argv, void *k_envp)
+static inline void ksu_preinit_execve(void **filename_kernel, const char __user **filename_user, void *u_argv, void *u_envp)
 {
 	if (static_branch_unlikely(&ksu_preinit_key))
-		ksu_preinit_handle_kexecve(filename, k_argv, k_envp);
-}
-
-static inline void ksu_preinit_user_execve_hook(const char __user **filename, void *u_argv, void *u_envp)
-{
-	if (static_branch_unlikely(&ksu_preinit_key))
-		ksu_preinit_handle_uexecve(filename, u_argv, u_envp);
+		do_ksu_preinit_execve(filename_kernel, filename_user, u_argv, u_envp);
 }
 
 void ksu_preinit_release(void) { }

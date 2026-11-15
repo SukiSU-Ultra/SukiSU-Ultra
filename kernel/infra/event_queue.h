@@ -46,7 +46,7 @@ int ksu_event_queue_push(struct ksu_event_queue *queue, __u16 type, __u16 flags,
 void ksu_event_queue_drop(struct ksu_event_queue *queue);
 
 ssize_t ksu_event_queue_read(struct ksu_event_queue *queue, char __user *buf, size_t count, int file_flags);
-unsigned __bitwise ksu_event_queue_poll(struct ksu_event_queue *queue, struct file *file, poll_table *wait);
+__poll_t ksu_event_queue_poll(struct ksu_event_queue *queue, struct file *file, poll_table *wait);
 
 void ksu_event_queue_close(struct ksu_event_queue *queue);
 bool ksu_event_queue_has_data(struct ksu_event_queue *queue);
