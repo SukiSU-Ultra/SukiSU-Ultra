@@ -86,7 +86,6 @@ import com.sukisu.ultra.ui.screen.builtinzygisk.problemMessage
 import com.sukisu.ultra.ui.screen.builtinzygisk.problemTitle
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
-import com.sukisu.ultra.data.repository.isSoftRebootPreferred
 import com.sukisu.ultra.ui.util.reboot
 import android.content.Intent
 import androidx.compose.material.icons.filled.Extension
@@ -146,7 +145,6 @@ fun SettingPagerMaterial(
         )
     }
     uiState.builtinZygiskProblem?.let { problem ->
-        val softReboot = isSoftRebootPreferred()
         AlertDialog(
             onDismissRequest = actions.onDismissBuiltinZygiskFailure,
             title = { Text(stringResource(problemTitle(problem))) },
@@ -155,10 +153,11 @@ fun SettingPagerMaterial(
                 TextButton(
                     onClick = {
                         actions.onDismissBuiltinZygiskFailure()
-                        reboot(if (softReboot) "soft_reboot" else "")
+                        // Only the user space has to restart: a hard reboot gains nothing.
+                        reboot("soft_reboot")
                     }
                 ) {
-                    Text(stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot))
+                    Text(stringResource(R.string.reboot_soft))
                 }
             },
             dismissButton = {

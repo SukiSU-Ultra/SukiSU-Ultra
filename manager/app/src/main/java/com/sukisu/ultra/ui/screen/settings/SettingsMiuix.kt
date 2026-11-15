@@ -89,7 +89,6 @@ import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
 import androidx.compose.ui.text.style.TextAlign
-import com.sukisu.ultra.data.repository.isSoftRebootPreferred
 import com.sukisu.ultra.ui.util.reboot
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
@@ -167,7 +166,6 @@ fun SettingPagerMiuix(
         )
     }
     uiState.builtinZygiskProblem?.let { problem ->
-        val softReboot = isSoftRebootPreferred()
         OverlayDialog(
             show = true,
             onDismissRequest = actions.onDismissBuiltinZygiskFailure,
@@ -203,10 +201,11 @@ fun SettingPagerMiuix(
                     )
                     Spacer(Modifier.width(20.dp))
                     TextButton(
-                        text = stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot),
+                        text = stringResource(R.string.reboot_soft),
                         onClick = {
                             actions.onDismissBuiltinZygiskFailure()
-                            reboot(if (softReboot) "soft_reboot" else "")
+                            // Only the user space has to restart: a hard reboot gains nothing.
+                            reboot("soft_reboot")
                         },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.textButtonColorsPrimary()

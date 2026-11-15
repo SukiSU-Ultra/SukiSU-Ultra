@@ -269,7 +269,7 @@ fn daemon_reported_modules(content: &str) -> Vec<(String, DaemonModule)> {
             .strip_prefix("daemon_")
             .and_then(|key| key.strip_suffix("_status"))
         {
-            abi = (value.trim() == "running").then(|| name.to_owned());
+            abi = (value.trim() == "running").then_some(name.to_owned());
             continue;
         }
         if key != "modules_list" {
@@ -282,7 +282,7 @@ fn daemon_reported_modules(content: &str) -> Vec<(String, DaemonModule)> {
             continue;
         };
         for entry in entries {
-            let Some(id) = entry.get("name").and_then(|value| value.as_str()) else {
+            let Some(id) = entry.get("name").and_then(serde_json::Value::as_str) else {
                 continue;
             };
             found.push((
@@ -291,17 +291,17 @@ fn daemon_reported_modules(content: &str) -> Vec<(String, DaemonModule)> {
                     id: id.to_owned(),
                     kind: entry
                         .get("type")
-                        .and_then(|value| value.as_str())
+                        .and_then(serde_json::Value::as_str)
                         .unwrap_or("zygisk")
                         .to_owned(),
                     target: entry
                         .get("target")
-                        .and_then(|value| value.as_str())
+                        .and_then(serde_json::Value::as_str)
                         .unwrap_or("")
                         .to_owned(),
                     companion: entry
                         .get("companion")
-                        .and_then(|value| value.as_bool())
+                        .and_then(serde_json::Value::as_bool)
                         .unwrap_or(false),
                 },
             ));
@@ -313,8 +313,7 @@ fn daemon_reported_modules(content: &str) -> Vec<(String, DaemonModule)> {
 /// Display name and version of an installed module, falling back to its directory id.
 fn module_identity(id: &str) -> (String, String) {
     let prop = fs::read_to_string(Path::new(MODULE_DIR).join(id).join("module.prop"))
-        .map(|content| parse_module_prop(&content))
-        .unwrap_or_default();
+        .map_or_else(|_| HashMap::new(), |content| parse_module_prop(&content));
     let name = prop.get("name").cloned().unwrap_or_else(|| id.to_owned());
     let version = prop
         .get("version")
@@ -464,7 +463,7 @@ pub fn injected_modules() -> Vec<InjectedModule> {
             module.abi.push(abi);
         }
         if entry.kind == "next" {
-            module.kind = "next".to_owned();
+            "next".clone_into(&mut module.kind);
         }
         module.companion |= entry.companion;
         for target in entry
@@ -1097,16 +1096,13 @@ fn switch_to_provider(id: &str) -> Result<()> {
     remove_leftover(BUILTIN_ZYGISK_DIR);
 
     let mut daemon_up = || !provider_pids(&dirs).is_empty();
-    let started = match start_provider(&dir) {
-        Ok(entry) => {
-            wait_until(&mut daemon_up, SWITCH_WAIT_SECS)
-                // Some providers start the daemon from `service.sh`, not from the entry script.
-                || (entry != "service.sh"
-                    && replay_service(&dir)
-                    && wait_until(&mut daemon_up, SWITCH_WAIT_SECS))
-        }
-        Err(_) => false,
-    };
+    let started = start_provider(&dir).is_ok_and(|entry| {
+        wait_until(&mut daemon_up, SWITCH_WAIT_SECS)
+            // Some providers start the daemon from `service.sh`, not from the entry script.
+            || (entry != "service.sh"
+                && replay_service(&dir)
+                && wait_until(&mut daemon_up, SWITCH_WAIT_SECS))
+    });
     if !started {
         // Nothing took over: put the previous implementation back.
         rollback_to_previous(was_enabled, &dir, &previous);

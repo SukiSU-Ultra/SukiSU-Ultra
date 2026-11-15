@@ -28,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukisu.ultra.R
-import com.sukisu.ultra.data.repository.isSoftRebootPreferred
 import com.sukisu.ultra.ui.LocalUiMode
 import com.sukisu.ultra.ui.UiMode
 import com.sukisu.ultra.ui.navigation3.LocalNavigator
@@ -169,12 +168,12 @@ private fun SwitchingDialog() {
 /// still needs a reboot): let the user close this or soft reboot to finish it.
 @Composable
 private fun ZygiskProblemDialog(problem: String, onClose: () -> Unit) {
-    val softReboot = isSoftRebootPreferred()
     val title = problemTitle(problem)
     val message = problemMessage(problem)
+    // Only the user space has to restart: a hard reboot would gain nothing here.
     val rebootNow = {
         onClose()
-        reboot(if (softReboot) "soft_reboot" else "")
+        reboot("soft_reboot")
     }
     when (LocalUiMode.current) {
         UiMode.Material -> AlertDialog(
@@ -183,7 +182,7 @@ private fun ZygiskProblemDialog(problem: String, onClose: () -> Unit) {
             text = { Text(stringResource(message)) },
             confirmButton = {
                 TextButton(onClick = rebootNow) {
-                    Text(stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot))
+                    Text(stringResource(R.string.reboot_soft))
                 }
             },
             dismissButton = {
@@ -227,7 +226,7 @@ private fun ZygiskProblemDialog(problem: String, onClose: () -> Unit) {
                     )
                     Spacer(Modifier.width(20.dp))
                     MiuixTextButton(
-                        text = stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot),
+                        text = stringResource(R.string.reboot_soft),
                         onClick = rebootNow,
                         modifier = Modifier.weight(1f),
                         colors = MiuixButtonDefaults.textButtonColorsPrimary()
