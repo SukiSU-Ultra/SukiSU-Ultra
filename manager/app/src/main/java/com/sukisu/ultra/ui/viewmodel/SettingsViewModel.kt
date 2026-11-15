@@ -30,7 +30,6 @@ import com.sukisu.ultra.ui.util.AppearanceOverlayStore
 import com.sukisu.ultra.ui.util.BottomBarIconSlot
 import com.sukisu.ultra.ui.util.BuiltinAppIcon
 import com.sukisu.ultra.ui.util.BuiltinAppIcons
-import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 import com.sukisu.ultra.ui.util.CustomTextGroup
 import com.sukisu.ultra.ui.util.CustomTextKey
 import com.sukisu.ultra.ui.util.HomeCardImageStyle
@@ -50,7 +49,7 @@ import com.sukisu.ultra.ui.util.ThemeTrialManager
 import com.sukisu.ultra.ui.util.ThemeVariantData
 import com.sukisu.ultra.ui.util.customTextsInGroups
 import com.sukisu.ultra.ui.util.findActivity
-import com.sukisu.ultra.ui.util.getZygiskImplementationInfo
+import com.sukisu.ultra.ui.util.getBuiltinZygiskStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -2969,7 +2968,7 @@ homePillScale = repo.homePillScale,
     }
 
     fun dismissBuiltinZygiskFailure() {
-        _uiState.update { it.copy(builtinZygiskSwitchFailed = false) }
+        _uiState.update { it.copy(builtinZygiskProblem = null) }
     }
 
     fun setBuiltinZygisk(enabled: Boolean) {
@@ -2983,23 +2982,25 @@ homePillScale = repo.homePillScale,
             // Turning it on also hands the running system over; turning it off only drops
             // the flag, so the current processes stay until the next reboot.
             val applied = repo.builtinZygisk
-            // The flag alone can already be on while the live handover failed, so ask what
-            // is actually serving the zygote.
-            val running = enabled && withContext(Dispatchers.IO) {
-                getZygiskImplementationInfo().let {
-                    it.id == BUILTIN_ZYGISK_TARGET && it.state == "running"
-                }
+            val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
+            // A live monitor and daemon are not enough: without an injected zygote the
+            // modules stay dead until a restart, so that state keeps the dialog open.
+            val problem = when {
+                enabled && !applied -> "failed"
+                enabled && !status.fullyActive -> "incomplete"
+                !enabled && (status.monitorRunning || status.daemonRunning ||
+                    status.monitor != null || status.daemons.isNotEmpty()) -> "off_pending"
+                else -> null
             }
-            val failed = enabled && (!applied || !running)
             _uiState.update {
                 it.copy(
                     builtinZygisk = applied,
                     isApplyingBuiltinZygisk = false,
-                    builtinZygiskSwitchFailed = failed
+                    builtinZygiskProblem = problem
                 )
             }
-            if (failed) {
-                // The failure dialog offers a soft reboot instead of a toast.
+            if (problem != null) {
+                // The dialog offers a soft reboot instead of a toast.
                 return@launch
             }
             val message = if (enabled) {

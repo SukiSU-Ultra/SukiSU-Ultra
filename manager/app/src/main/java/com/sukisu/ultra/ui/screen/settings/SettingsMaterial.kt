@@ -82,6 +82,8 @@ import com.sukisu.ultra.ui.component.material.SegmentedSwitchItem
 import com.sukisu.ultra.ui.component.material.SendLogBottomSheet
 import com.sukisu.ultra.ui.component.material.SnackBarHost
 import com.sukisu.ultra.ui.component.material.expressiveTopAppBarColors
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemMessage
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemTitle
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.util.LocaleHelper
 import com.sukisu.ultra.data.repository.isSoftRebootPreferred
@@ -143,12 +145,12 @@ fun SettingPagerMaterial(
             confirmButton = {}
         )
     }
-    if (uiState.builtinZygiskSwitchFailed) {
+    uiState.builtinZygiskProblem?.let { problem ->
         val softReboot = isSoftRebootPreferred()
         AlertDialog(
             onDismissRequest = actions.onDismissBuiltinZygiskFailure,
-            title = { Text(stringResource(R.string.builtin_zygisk_switch_failed)) },
-            text = { Text(stringResource(R.string.builtin_zygisk_switch_failed_message)) },
+            title = { Text(stringResource(problemTitle(problem))) },
+            text = { Text(stringResource(problemMessage(problem))) },
             confirmButton = {
                 TextButton(
                     onClick = {

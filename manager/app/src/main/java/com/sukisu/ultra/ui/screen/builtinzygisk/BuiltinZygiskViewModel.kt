@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.data.repository.ModuleRepository
 import com.sukisu.ultra.data.repository.ModuleRepositoryImpl
+import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 import com.sukisu.ultra.ui.util.getBuiltinZygiskConfig
 import com.sukisu.ultra.ui.util.getBuiltinZygiskStatus
+import com.sukisu.ultra.ui.util.getInjectedZygiskModules
 import com.sukisu.ultra.ui.util.getZygiskImplementationInfo
 import com.sukisu.ultra.ui.util.getZygiskProcesses
 import com.sukisu.ultra.ui.util.setBuiltinZygiskConfig
@@ -31,6 +33,7 @@ class BuiltinZygiskViewModel(
             val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
             val implementation = withContext(Dispatchers.IO) { getZygiskImplementationInfo() }
             val config = withContext(Dispatchers.IO) { getBuiltinZygiskConfig() }
+            val injectedModules = withContext(Dispatchers.IO) { getInjectedZygiskModules() }
             val modulesResult = moduleRepo.getModules()
             val zygiskModules = modulesResult.getOrDefault(emptyList()).filter {
                 it.zygisk || it.suppressedByBuiltin
@@ -41,7 +44,9 @@ class BuiltinZygiskViewModel(
                     status = status,
                     implementation = implementation,
                     config = config,
+                    injectedModules = injectedModules,
                     zygiskModules = zygiskModules,
+                    expandedInjectedId = null,
                     expandedModuleId = null,
                     moduleProcesses = ZygiskProcesses()
                 )
@@ -59,13 +64,20 @@ class BuiltinZygiskViewModel(
         }
     }
 
-    /** Hands Zygisk to `target` (`builtin` or a module id) and reloads everything after it. */
-    fun switchTo(target: String, onResult: (Boolean) -> Unit) {
+    /**
+     * Hands Zygisk to `target` (`builtin` or a module id) and reloads everything after it.
+     *
+     * `onResult` gets both what ksud answered and whether Zygisk is actually usable:
+     * a live monitor and daemon are not enough, the zygote has to be injected or the
+     * modules stay dead until a soft reboot.
+     */
+    fun switchTo(target: String, onResult: (Boolean, Boolean) -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSwitching = true) }
             val ok = withContext(Dispatchers.IO) { switchToZygisk(target) }
             val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
             val implementation = withContext(Dispatchers.IO) { getZygiskImplementationInfo() }
+            val injectedModules = withContext(Dispatchers.IO) { getInjectedZygiskModules() }
             val zygiskModules = moduleRepo.getModules().getOrDefault(emptyList()).filter {
                 it.zygisk || it.suppressedByBuiltin
             }
@@ -74,12 +86,29 @@ class BuiltinZygiskViewModel(
                     isSwitching = false,
                     status = status,
                     implementation = implementation,
+                    injectedModules = injectedModules,
                     zygiskModules = zygiskModules,
+                    expandedInjectedId = null,
                     expandedModuleId = null,
                     moduleProcesses = ZygiskProcesses()
                 )
             }
-            onResult(ok)
+            // A provider is usable once its own processes are up; the built-in also has to
+            // report an injected zygote, which is what `fully_active` covers.
+            val fullyActive = if (target == BUILTIN_ZYGISK_TARGET) {
+                status.fullyActive
+            } else {
+                implementation.state == "running" && implementation.id == target
+            }
+            onResult(ok, fullyActive)
+        }
+    }
+
+    /// Opens or closes the process rows of an injected module; the list already carries
+    /// them, so this only changes what is visible.
+    fun toggleInjectedModule(id: String) {
+        _uiState.update {
+            it.copy(expandedInjectedId = if (it.expandedInjectedId == id) null else id)
         }
     }
 

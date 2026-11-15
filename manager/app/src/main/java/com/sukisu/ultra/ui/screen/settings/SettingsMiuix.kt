@@ -62,6 +62,8 @@ import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.SendLogDialog
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemMessage
+import com.sukisu.ultra.ui.screen.builtinzygisk.problemTitle
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
 import com.sukisu.ultra.ui.theme.backgroundAwareCardColors
@@ -164,14 +166,14 @@ fun SettingPagerMiuix(
             }
         )
     }
-    if (uiState.builtinZygiskSwitchFailed) {
+    uiState.builtinZygiskProblem?.let { problem ->
         val softReboot = isSoftRebootPreferred()
         OverlayDialog(
             show = true,
             onDismissRequest = actions.onDismissBuiltinZygiskFailure,
             content = {
                 Text(
-                    text = stringResource(R.string.builtin_zygisk_switch_failed),
+                    text = stringResource(problemTitle(problem)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 8.dp),
@@ -180,7 +182,7 @@ fun SettingPagerMiuix(
                     color = colorScheme.onSurface
                 )
                 Text(
-                    text = stringResource(R.string.builtin_zygisk_switch_failed_message),
+                    text = stringResource(problemMessage(problem)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 8.dp),

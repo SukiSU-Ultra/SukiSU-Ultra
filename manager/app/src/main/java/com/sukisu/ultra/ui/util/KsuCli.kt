@@ -1457,6 +1457,11 @@ data class BuiltinZygiskStatus(
     val enabled: Boolean = false,
     val monitorRunning: Boolean = false,
     val daemonRunning: Boolean = false,
+    /// Whether any ABI's zygote carries the loader. Without it the modules are not
+    /// usable yet, even with the monitor and a daemon running.
+    val zygoteInjected: Boolean = false,
+    /// ksud's own verdict: monitor, daemon and zygote injection all in place.
+    val fullyActive: Boolean = false,
     val monitor: ZygiskProcess? = null,
     val daemons: List<ZygiskProcess> = emptyList(),
     val version: String = "",
@@ -1504,6 +1509,8 @@ fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
             enabled = json.optBoolean("enabled", false),
             monitorRunning = json.optBoolean("monitor_running", false),
             daemonRunning = json.optBoolean("daemon_running", false),
+            zygoteInjected = json.optBoolean("zygote_injected", false),
+            fullyActive = json.optBoolean("fully_active", false),
             monitor = json.optJSONObject("monitor")?.toZygiskProcess(),
             daemons = daemons,
             version = json.optString("version", ""),
@@ -1542,6 +1549,74 @@ private fun org.json.JSONArray?.toZygiskProcessList(): List<ZygiskProcess> =
     this?.let { array ->
         (0 until array.length()).mapNotNull { index ->
             array.optJSONObject(index)?.toZygiskProcess()
+        }
+    }.orEmpty()
+
+/// One Zygisk module the built-in is serving, with the processes it reaches.
+data class InjectedZygiskModule(
+    val id: String = "",
+    val name: String = "",
+    val version: String = "",
+    /// `zygisk` for the Magisk API, `next` for the Zygisk Next API.
+    val type: String = "zygisk",
+    /// ABIs whose daemon loaded it: `32` and/or `64`.
+    val abi: List<String> = emptyList(),
+    /// Injection targets a Zygisk Next module declares, as plain names or paths.
+    val targets: List<String> = emptyList(),
+    val companion: Boolean = false,
+    /// `injected`, `loaded`, `failed` or `unknown`.
+    val state: String = "unknown",
+    val processes: List<InjectedZygiskProcess> = emptyList(),
+)
+
+data class InjectedZygiskProcess(
+    val name: String = "",
+    val pid: Int = 0,
+    /// `companion` or `target`.
+    val kind: String = "",
+) {
+    val label: String get() = "$name · PID $pid"
+}
+
+/// The modules the built-in is serving, as the monitor and the daemons report them.
+fun getInjectedZygiskModules(): List<InjectedZygiskModule> {
+    return runCatching {
+        val shell = getRootShell()
+        val out = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} zygisk modules").trim()
+        val modules = org.json.JSONObject(out).optJSONArray("modules") ?: return emptyList()
+        (0 until modules.length()).mapNotNull { index ->
+            modules.optJSONObject(index)?.toInjectedZygiskModule()
+        }
+    }.getOrDefault(emptyList())
+}
+
+private fun org.json.JSONObject.toInjectedZygiskModule(): InjectedZygiskModule =
+    InjectedZygiskModule(
+        id = optString("id", ""),
+        name = optString("name", ""),
+        version = optString("version", ""),
+        type = optString("type", "zygisk"),
+        abi = optJSONArray("abi").toStringList(),
+        targets = optJSONArray("targets").toStringList(),
+        companion = optBoolean("companion", false),
+        state = optString("state", "unknown"),
+        processes = optJSONArray("processes")?.let { array ->
+            (0 until array.length()).mapNotNull { index ->
+                array.optJSONObject(index)?.let { process ->
+                    InjectedZygiskProcess(
+                        name = process.optString("name", ""),
+                        pid = process.optInt("pid", 0),
+                        kind = process.optString("kind", ""),
+                    )
+                }
+            }
+        }.orEmpty(),
+    )
+
+private fun org.json.JSONArray?.toStringList(): List<String> =
+    this?.let { array ->
+        (0 until array.length()).mapNotNull { index ->
+            array.optString(index).ifEmpty { null }
         }
     }.orEmpty()
 

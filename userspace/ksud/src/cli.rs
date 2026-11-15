@@ -239,6 +239,8 @@ enum ZygiskCommand {
         #[arg(default_value = "builtin")]
         target: String,
     },
+    /// List the Zygisk modules the built-in is serving, with their processes, as JSON
+    Modules,
     /// Reload built-in Zygisk
     Rearm,
     /// Read or change NyaZygisk options (`config.prop`)
@@ -1313,6 +1315,8 @@ pub fn run() -> Result<()> {
                 // alone are shared with the standalone builds.
                 let monitor_running = crate::builtin_zygisk::is_monitor_active();
                 let daemon_running = crate::builtin_zygisk::is_daemon_active();
+                let zygote_injected = crate::builtin_zygisk::is_zygote_injected();
+                let fully_active = crate::builtin_zygisk::is_fully_active();
                 let monitor = crate::builtin_zygisk::monitor_process();
                 let daemons = crate::builtin_zygisk::daemon_processes();
                 let (version, version_code) = crate::builtin_zygisk::version().unwrap_or_default();
@@ -1328,6 +1332,8 @@ pub fn run() -> Result<()> {
                         "enabled": enabled,
                         "monitor_running": monitor_running,
                         "daemon_running": daemon_running,
+                        "zygote_injected": zygote_injected,
+                        "fully_active": fully_active,
                         "monitor": monitor_json,
                         "daemons": daemons_json,
                         "version": version,
@@ -1369,6 +1375,37 @@ pub fn run() -> Result<()> {
                         "daemons": list(procs.daemons),
                     })
                 );
+                Ok(())
+            }
+            ZygiskCommand::Modules => {
+                let modules: Vec<serde_json::Value> = crate::builtin_zygisk::injected_modules()
+                    .into_iter()
+                    .map(|module| {
+                        let processes: Vec<serde_json::Value> = module
+                            .processes
+                            .into_iter()
+                            .map(|(name, pid, kind)| {
+                                serde_json::json!({
+                                    "name": name,
+                                    "pid": pid,
+                                    "kind": kind,
+                                })
+                            })
+                            .collect();
+                        serde_json::json!({
+                            "id": module.id,
+                            "name": module.name,
+                            "version": module.version,
+                            "type": module.kind,
+                            "abi": module.abi,
+                            "targets": module.targets,
+                            "companion": module.companion,
+                            "state": module.state,
+                            "processes": processes,
+                        })
+                    })
+                    .collect();
+                println!("{}", serde_json::json!({ "modules": modules }));
                 Ok(())
             }
             ZygiskCommand::Rearm => {

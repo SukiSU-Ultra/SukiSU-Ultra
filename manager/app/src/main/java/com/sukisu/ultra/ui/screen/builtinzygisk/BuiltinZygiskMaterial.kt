@@ -40,6 +40,7 @@ internal fun BuiltinZygiskMaterial(
     onRefresh: () -> Unit,
     onSwitch: (String, String) -> Unit,
     onToggleProcesses: (String) -> Unit,
+    onToggleInjected: (String) -> Unit,
     onSetOption: (String, String) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -246,6 +247,141 @@ internal fun BuiltinZygiskMaterial(
 
                 item {
                     Text(
+                        text = stringResource(R.string.builtin_zygisk_injected_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                    )
+                }
+
+                if (uiState.injectedModules.isEmpty()) {
+                    item {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainer
+                        ) {
+                            Text(
+                                text = stringResource(R.string.builtin_zygisk_injected_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(24.dp)
+                            )
+                        }
+                    }
+                } else {
+                    item {
+                        val itemsList = uiState.injectedModules.map { module ->
+                            val isExpanded = uiState.expandedInjectedId == module.id
+                            @Composable {
+                                val chevronRotation by animateFloatAsState(
+                                    targetValue = if (isExpanded) 180f else 0f,
+                                    label = "injectedChevron"
+                                )
+                                SegmentedListItem(
+                                    onClick = { onToggleInjected(module.id) },
+                                    headlineContent = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = module.name,
+                                                fontWeight = FontWeight.SemiBold,
+                                                modifier = Modifier.weight(1f, fill = false)
+                                            )
+                                            Spacer(Modifier.width(8.dp))
+                                            ZygiskBadge(
+                                                text = stringResource(
+                                                    if (module.type == "next") {
+                                                        R.string.builtin_zygisk_type_next
+                                                    } else {
+                                                        R.string.builtin_zygisk_type_zygisk
+                                                    }
+                                                ),
+                                                container = MaterialTheme.colorScheme.secondaryContainer,
+                                                content = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
+                                            module.abi.forEach { abi ->
+                                                Spacer(Modifier.width(4.dp))
+                                                ZygiskBadge(
+                                                    text = abi,
+                                                    container = MaterialTheme.colorScheme.surfaceVariant,
+                                                    content = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    },
+                                    supportingContent = {
+                                        Column {
+                                            val state = stringResource(injectedStateText(module.state))
+                                            Text(
+                                                text = listOf(module.version, state)
+                                                    .filter { it.isNotEmpty() }
+                                                    .joinToString(" · "),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            if (module.targets.isNotEmpty()) {
+                                                Text(
+                                                    text = stringResource(
+                                                        R.string.builtin_zygisk_targets,
+                                                        module.targets.joinToString(", ")
+                                                    ),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.padding(top = 2.dp)
+                                                )
+                                            }
+                                            AnimatedVisibility(visible = isExpanded) {
+                                                Column {
+                                                    if (module.processes.isEmpty()) {
+                                                        Text(
+                                                            text = stringResource(R.string.builtin_zygisk_no_processes),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            modifier = Modifier.padding(top = 6.dp)
+                                                        )
+                                                    } else {
+                                                        Text(
+                                                            text = stringResource(
+                                                                R.string.builtin_zygisk_process_count,
+                                                                module.processes.size
+                                                            ),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.padding(top = 6.dp)
+                                                        )
+                                                        module.processes.forEach { process ->
+                                                            Text(
+                                                                text = process.label,
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                modifier = Modifier.padding(top = 2.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    trailingContent = {
+                                        Icon(
+                                            imageVector = Icons.Filled.ExpandMore,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.rotate(chevronRotation)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        SegmentedColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            content = itemsList
+                        )
+                    }
+                }
+
+                item {
+                    Text(
                         text = stringResource(R.string.builtin_zygisk_modules_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
@@ -393,5 +529,26 @@ internal fun BuiltinZygiskMaterial(
                 }
             }
         }
+    }
+}
+
+/// A small label for the module API, its ABIs and its process count.
+@Composable
+private fun ZygiskBadge(
+    text: String,
+    container: androidx.compose.ui.graphics.Color,
+    content: androidx.compose.ui.graphics.Color,
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(container)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = content
+        )
     }
 }

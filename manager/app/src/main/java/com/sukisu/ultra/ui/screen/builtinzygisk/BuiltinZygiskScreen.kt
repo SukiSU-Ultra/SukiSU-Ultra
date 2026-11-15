@@ -47,7 +47,8 @@ fun BuiltinZygiskScreen() {
     val navigator = LocalNavigator.current
     val viewModel: BuiltinZygiskViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var switchFailed by remember { mutableStateOf(false) }
+    // `failed`, `incomplete` or `off_pending`: what to tell the user after an action.
+    var switchProblem by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.load()
@@ -63,25 +64,31 @@ fun BuiltinZygiskScreen() {
         }
     }
     val onSwitch = { target: String, name: String ->
-        viewModel.switchTo(target) { ok ->
-            if (ok) {
-                val message = context.getString(R.string.builtin_zygisk_switch_done, name)
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            } else {
-                // The live handover could not finish; the dialog offers a soft reboot.
-                switchFailed = true
+        viewModel.switchTo(target) { ok, fullyActive ->
+            when {
+                // Only a monitor, a daemon and an injected zygote together make the
+                // modules usable; anything less still needs the soft reboot dialog.
+                ok && fullyActive -> {
+                    val message = context.getString(R.string.builtin_zygisk_switch_done, name)
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+                ok -> switchProblem = "incomplete"
+                else -> switchProblem = "failed"
             }
         }
     }
     val onToggleProcesses = { id: String ->
         viewModel.toggleModuleProcesses(id)
     }
+    val onToggleInjected = { id: String ->
+        viewModel.toggleInjectedModule(id)
+    }
 
     if (state.isSwitching) {
         SwitchingDialog()
     }
-    if (switchFailed) {
-        SwitchFailedDialog(onClose = { switchFailed = false })
+    switchProblem?.let { problem ->
+        ZygiskProblemDialog(problem = problem, onClose = { switchProblem = null })
     }
 
     when (LocalUiMode.current) {
@@ -91,6 +98,7 @@ fun BuiltinZygiskScreen() {
             onRefresh = onRefresh,
             onSwitch = onSwitch,
             onToggleProcesses = onToggleProcesses,
+            onToggleInjected = onToggleInjected,
             onSetOption = onSetOption,
         )
         UiMode.Material -> BuiltinZygiskMaterial(
@@ -99,6 +107,7 @@ fun BuiltinZygiskScreen() {
             onRefresh = onRefresh,
             onSwitch = onSwitch,
             onToggleProcesses = onToggleProcesses,
+            onToggleInjected = onToggleInjected,
             onSetOption = onSetOption,
         )
     }
@@ -156,10 +165,13 @@ private fun SwitchingDialog() {
     }
 }
 
-/// The handover did not finish live: let the user close this or soft reboot to finish it.
+/// Zygisk is not fully up (a failed switch, a half-injected state, or a disable that
+/// still needs a reboot): let the user close this or soft reboot to finish it.
 @Composable
-private fun SwitchFailedDialog(onClose: () -> Unit) {
+private fun ZygiskProblemDialog(problem: String, onClose: () -> Unit) {
     val softReboot = isSoftRebootPreferred()
+    val title = problemTitle(problem)
+    val message = problemMessage(problem)
     val rebootNow = {
         onClose()
         reboot(if (softReboot) "soft_reboot" else "")
@@ -167,8 +179,8 @@ private fun SwitchFailedDialog(onClose: () -> Unit) {
     when (LocalUiMode.current) {
         UiMode.Material -> AlertDialog(
             onDismissRequest = onClose,
-            title = { Text(stringResource(R.string.builtin_zygisk_switch_failed)) },
-            text = { Text(stringResource(R.string.builtin_zygisk_switch_failed_message)) },
+            title = { Text(stringResource(title)) },
+            text = { Text(stringResource(message)) },
             confirmButton = {
                 TextButton(onClick = rebootNow) {
                     Text(stringResource(if (softReboot) R.string.reboot_soft else R.string.reboot))
@@ -185,7 +197,7 @@ private fun SwitchFailedDialog(onClose: () -> Unit) {
             onDismissRequest = onClose,
             content = {
                 MiuixText(
-                    text = stringResource(R.string.builtin_zygisk_switch_failed),
+                    text = stringResource(title),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 8.dp),
@@ -194,7 +206,7 @@ private fun SwitchFailedDialog(onClose: () -> Unit) {
                     color = miuixColorScheme.onSurface
                 )
                 MiuixText(
-                    text = stringResource(R.string.builtin_zygisk_switch_failed_message),
+                    text = stringResource(message),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 8.dp),
@@ -224,4 +236,18 @@ private fun SwitchFailedDialog(onClose: () -> Unit) {
             }
         )
     }
+}
+
+/// Title for a Zygisk state that still needs a reboot to finish.
+internal fun problemTitle(problem: String): Int = when (problem) {
+    "incomplete" -> R.string.builtin_zygisk_incomplete_title
+    "off_pending" -> R.string.builtin_zygisk_off_pending_title
+    else -> R.string.builtin_zygisk_switch_failed
+}
+
+/// Body for the same state.
+internal fun problemMessage(problem: String): Int = when (problem) {
+    "incomplete" -> R.string.builtin_zygisk_incomplete_message
+    "off_pending" -> R.string.builtin_zygisk_off_pending_message
+    else -> R.string.builtin_zygisk_switch_failed_message
 }

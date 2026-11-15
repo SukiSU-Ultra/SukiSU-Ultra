@@ -218,6 +218,363 @@ pub fn processes(target: &str) -> Result<ImplementationProcesses> {
     Ok(ImplementationProcesses { monitors, daemons })
 }
 
+/// One Zygisk module the built-in is serving, as both ABI daemons and the monitor see it.
+pub struct InjectedModule {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    /// `zygisk` for the Magisk API, `next` for the Zygisk Next API.
+    pub kind: String,
+    /// ABIs whose daemon loaded the module, `32` and/or `64`.
+    pub abi: Vec<String>,
+    /// Injection targets declared by a Zygisk Next module, as plain names or paths.
+    pub targets: Vec<String>,
+    pub companion: bool,
+    /// `injected`, `loaded`, `failed` or `unknown`.
+    pub state: String,
+    /// `(name, pid, kind)` with kind `companion` or `target`.
+    pub processes: Vec<(String, i32, String)>,
+}
+
+/// One entry of a daemon's `modules_list`.
+struct DaemonModule {
+    id: String,
+    kind: String,
+    target: String,
+    companion: bool,
+}
+
+/// The live state the monitor wrote into the runtime `module.prop`.
+fn runtime_prop_content() -> Option<String> {
+    let runtime = Path::new(BUILTIN_ZYGISK_WORK_DIR).join("module.prop");
+    let content = fs::read_to_string(runtime).ok()?;
+    // The monitor truncates the file before writing, so an empty one belongs to a
+    // monitor that died mid-startup and must not hide the build's identity.
+    (!content.trim().is_empty()).then_some(content)
+}
+
+/// Every `modules_list` a daemon reported, tagged with the ABI that reported it.
+///
+/// The monitor appends each daemon's info blob right after its `daemon_<abi>_status`
+/// line, so the ABI of a list is the last status line before it.
+fn daemon_reported_modules(content: &str) -> Vec<(String, DaemonModule)> {
+    let mut abi: Option<String> = None;
+    let mut found = Vec::new();
+    for line in content.lines() {
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        let key = key.trim();
+        if let Some(name) = key
+            .strip_prefix("daemon_")
+            .and_then(|key| key.strip_suffix("_status"))
+        {
+            abi = (value.trim() == "running").then(|| name.to_owned());
+            continue;
+        }
+        if key != "modules_list" {
+            continue;
+        }
+        let Some(current) = abi.as_deref() else {
+            continue;
+        };
+        let Ok(entries) = serde_json::from_str::<Vec<serde_json::Value>>(value.trim()) else {
+            continue;
+        };
+        for entry in entries {
+            let Some(id) = entry.get("name").and_then(|value| value.as_str()) else {
+                continue;
+            };
+            found.push((
+                current.to_owned(),
+                DaemonModule {
+                    id: id.to_owned(),
+                    kind: entry
+                        .get("type")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("zygisk")
+                        .to_owned(),
+                    target: entry
+                        .get("target")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("")
+                        .to_owned(),
+                    companion: entry
+                        .get("companion")
+                        .and_then(|value| value.as_bool())
+                        .unwrap_or(false),
+                },
+            ));
+        }
+    }
+    found
+}
+
+/// Display name and version of an installed module, falling back to its directory id.
+fn module_identity(id: &str) -> (String, String) {
+    let prop = fs::read_to_string(Path::new(MODULE_DIR).join(id).join("module.prop"))
+        .map(|content| parse_module_prop(&content))
+        .unwrap_or_default();
+    let name = prop.get("name").cloned().unwrap_or_else(|| id.to_owned());
+    let version = prop
+        .get("version")
+        .map_or_else(String::new, |v| short_version(v));
+    (name, version)
+}
+
+/// What `zygiskd` last reported for a Zygisk Next module: every injected or failed load
+/// is appended to `zn_modules_state`, keyed by the module library path.
+fn zn_module_state(id: &str) -> String {
+    let state_file = Path::new(BUILTIN_ZYGISK_WORK_DIR).join("zn_modules_state");
+    let Ok(content) = fs::read_to_string(state_file) else {
+        return "unknown".to_owned();
+    };
+    let prefix = format!("/data/adb/modules/{id}/");
+    let mut failed = false;
+    for line in content.lines() {
+        let Some((state, lib)) = line.split_once(' ') else {
+            continue;
+        };
+        if !lib.starts_with(&prefix) {
+            continue;
+        }
+        match state {
+            "injected" => return "injected".to_owned(),
+            "failed" => failed = true,
+            _ => (),
+        }
+    }
+    if failed {
+        "failed".to_owned()
+    } else {
+        "unknown".to_owned()
+    }
+}
+
+/// One `/proc` entry, read once and matched against every module.
+struct ProcessEntry {
+    pid: i32,
+    /// `argv[0]`, which is what companions and targets are identified by.
+    argv0: String,
+    argv: Vec<String>,
+    exe: Option<PathBuf>,
+}
+
+fn read_process(pid: i32) -> Option<ProcessEntry> {
+    let raw = fs::read(format!("/proc/{pid}/cmdline")).ok()?;
+    if raw.is_empty() {
+        return None;
+    }
+    let mut argv: Vec<String> = raw
+        .split(|byte| *byte == 0)
+        .filter(|part| !part.is_empty())
+        .map(|part| String::from_utf8_lossy(part).into_owned())
+        .collect();
+    if argv.is_empty() {
+        return None;
+    }
+    let argv0 = argv.remove(0);
+    Some(ProcessEntry {
+        pid,
+        argv0,
+        argv,
+        exe: fs::read_link(format!("/proc/{pid}/exe")).ok(),
+    })
+}
+
+fn scan_processes() -> Vec<ProcessEntry> {
+    let Ok(entries) = fs::read_dir("/proc") else {
+        return Vec::new();
+    };
+    let mut processes: Vec<ProcessEntry> = entries
+        .flatten()
+        .filter_map(|entry| entry.file_name().to_str()?.parse::<i32>().ok())
+        .filter_map(read_process)
+        .collect();
+    processes.sort_by_key(|process| process.pid);
+    processes
+}
+
+/// Whether `process` is this module's companion.
+fn is_companion(process: &ProcessEntry, id: &str) -> bool {
+    let name = process.argv0.rsplit('/').next().unwrap_or("");
+    let Some(name) = name.strip_prefix("zygiskd-") else {
+        return false;
+    };
+    if name == "zn-companion" {
+        // `zygiskd-zn-companion zn-companion <lib> <fd>`: the library names the module.
+        return process
+            .argv
+            .get(1)
+            .is_some_and(|lib| lib.starts_with(&format!("/data/adb/modules/{id}/")));
+    }
+    name == id
+}
+
+/// Whether `process` is one of the injection targets the module declared.
+///
+/// Targets are stored without their `name=` / `path=` prefix: an absolute path matches
+/// the executable, anything else the process name.
+fn matches_target(process: &ProcessEntry, target: &str) -> bool {
+    if target.starts_with('/') {
+        return process
+            .exe
+            .as_deref()
+            .is_some_and(|exe| exe == Path::new(target));
+    }
+    let argv0 = process.argv0.rsplit('/').next().unwrap_or("");
+    argv0 == target
+}
+
+/// The Zygisk modules the built-in is serving, with the processes each one reaches.
+///
+/// A disabled or stopped built-in has no daemon report, so the installed modules are
+/// listed instead and left in the `unknown` state: the dashboard still shows what would
+/// be injected without claiming it is running.
+pub fn injected_modules() -> Vec<InjectedModule> {
+    let content = runtime_prop_content().unwrap_or_default();
+    let reported = daemon_reported_modules(&content);
+    if reported.is_empty() {
+        return installed_modules();
+    }
+    let zygote_injected = |abi: &str| {
+        let status = format!("zygote_{abi}_status=injected");
+        content.lines().any(|line| line.trim() == status)
+    };
+
+    let mut order: Vec<String> = Vec::new();
+    let mut merged: HashMap<String, InjectedModule> = HashMap::new();
+    for (abi, entry) in reported {
+        let module = merged.entry(entry.id.clone()).or_insert_with(|| {
+            order.push(entry.id.clone());
+            let (name, version) = module_identity(&entry.id);
+            InjectedModule {
+                id: entry.id.clone(),
+                name,
+                version,
+                kind: "zygisk".to_owned(),
+                abi: Vec::new(),
+                targets: Vec::new(),
+                companion: false,
+                state: "unknown".to_owned(),
+                processes: Vec::new(),
+            }
+        });
+        if !module.abi.contains(&abi) {
+            module.abi.push(abi);
+        }
+        if entry.kind == "next" {
+            module.kind = "next".to_owned();
+        }
+        module.companion |= entry.companion;
+        for target in entry
+            .target
+            .split(',')
+            .map(str::trim)
+            .filter(|target| !target.is_empty() && *target != "unknown")
+        {
+            // The prefix only tells the daemon how to match; the app shows a plain name.
+            let target = target
+                .strip_prefix("name=")
+                .or_else(|| target.strip_prefix("path="))
+                .unwrap_or(target);
+            // The zygotes are the base injection, not a per-module process.
+            if target.starts_with("zygote") {
+                continue;
+            }
+            if !module.targets.iter().any(|known| known == target) {
+                module.targets.push(target.to_owned());
+            }
+        }
+    }
+
+    let processes = scan_processes();
+    let mut modules: Vec<InjectedModule> = order
+        .into_iter()
+        .filter_map(|id| merged.remove(&id))
+        .collect();
+    for module in &mut modules {
+        module.abi.sort();
+        let state = if module.kind == "next" {
+            zn_module_state(&module.id)
+        } else if module.abi.iter().any(|abi| zygote_injected(abi)) {
+            "injected".to_owned()
+        } else {
+            "loaded".to_owned()
+        };
+        module.state = state;
+        let processes_of_module: Vec<(String, i32, String)> = processes
+            .iter()
+            .filter_map(|process| {
+                let name = process.argv0.rsplit('/').next().unwrap_or("").to_owned();
+                if is_companion(process, &module.id) {
+                    return Some((name, process.pid, "companion".to_owned()));
+                }
+                module
+                    .targets
+                    .iter()
+                    .any(|target| matches_target(process, target))
+                    .then_some((name, process.pid, "target".to_owned()))
+            })
+            .collect();
+        module.processes = processes_of_module;
+    }
+    modules.sort_by(|left, right| left.name.cmp(&right.name));
+    modules
+}
+
+/// Every enabled module that ships Zygisk code, used when no daemon report exists.
+fn installed_modules() -> Vec<InjectedModule> {
+    let Ok(entries) = fs::read_dir(MODULE_DIR) else {
+        return Vec::new();
+    };
+    let mut modules = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir()
+            || path.join(DISABLE_FILE_NAME).exists()
+            || path.join(REMOVE_FILE_NAME).exists()
+        {
+            continue;
+        }
+        let id = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("")
+            .to_owned();
+        let libs = path.join("zygisk");
+        let is_next = path.join("zn_modules.txt").exists();
+        if !is_next && !libs.is_dir() {
+            continue;
+        }
+        let mut abi = Vec::new();
+        let has = |arch: &str| libs.join(format!("{arch}.so")).exists();
+        if ["arm64-v8a", "x86_64", "riscv64"]
+            .iter()
+            .any(|arch| has(arch))
+        {
+            abi.push("64".to_owned());
+        }
+        if ["armeabi-v7a", "x86"].iter().any(|arch| has(arch)) {
+            abi.push("32".to_owned());
+        }
+        let (name, version) = module_identity(&id);
+        modules.push(InjectedModule {
+            id,
+            name,
+            version,
+            kind: if is_next { "next" } else { "zygisk" }.to_owned(),
+            abi,
+            targets: Vec::new(),
+            companion: false,
+            state: "unknown".to_owned(),
+            processes: Vec::new(),
+        });
+    }
+    modules.sort_by(|left, right| left.name.cmp(&right.name));
+    modules
+}
+
 fn process_name(pid: i32) -> Option<String> {
     let exe = fs::read_link(format!("/proc/{pid}/exe")).ok()?;
     exe.file_name()
@@ -302,6 +659,20 @@ pub fn is_monitor_active() -> bool {
 /// Live daemon state, same reasoning as [`is_monitor_active`].
 pub fn is_daemon_active() -> bool {
     is_daemon_reported_running() && is_daemon_running()
+}
+
+/// Whether any ABI's zygote carries the loader, as the monitor reports it.
+///
+/// A live monitor and daemon only mean the implementation is up; the modules become
+/// usable once a zygote was actually injected.
+pub fn is_zygote_injected() -> bool {
+    zygote_injected()
+}
+
+/// The state the dashboard calls "fully active": monitor, daemon and zygote injection all
+/// in place. Anything less leaves some Zygisk modules unusable until a soft reboot.
+pub fn is_fully_active() -> bool {
+    is_monitor_active() && is_daemon_active() && is_zygote_injected()
 }
 
 /// Whether a module directory belongs to a standalone Zygisk provider, whose boot
@@ -654,8 +1025,20 @@ fn switch_to_builtin() -> Result<()> {
     enable()?;
 
     // Already the implementation in charge, with nothing of the replaced one running.
+    // A live monitor and daemon are not enough: only an injected zygote actually serves
+    // the modules, and a handover that never got there has to be finished here.
     if is_monitor_active() && is_daemon_active() && provider_pids(&providers).is_empty() {
-        return Ok(());
+        if zygote_injected() {
+            return Ok(());
+        }
+        // The monitor already owns init, so a rearm finishes the job without restarting it.
+        if let Some(tracer) = tracer_path() {
+            let _ = send_rearm(&tracer);
+        }
+        if wait_until(zygote_injected, SWITCH_WAIT_SECS * 2) {
+            return Ok(());
+        }
+        info!("The running monitor did not inject the zygote, restarting it");
     }
 
     stop_current(&providers);

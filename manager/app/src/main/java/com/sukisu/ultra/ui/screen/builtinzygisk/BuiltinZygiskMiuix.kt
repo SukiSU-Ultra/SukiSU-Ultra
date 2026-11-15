@@ -55,6 +55,7 @@ fun BuiltinZygiskMiuix(
     onRefresh: () -> Unit,
     onSwitch: (String, String) -> Unit,
     onToggleProcesses: (String) -> Unit,
+    onToggleInjected: (String) -> Unit,
     onSetOption: (String, String) -> Unit,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
@@ -282,6 +283,100 @@ fun BuiltinZygiskMiuix(
 
             item {
                 Text(
+                    text = stringResource(R.string.builtin_zygisk_injected_title),
+                    style = textStyles.title4,
+                    color = colorScheme.primary,
+                    modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                )
+            }
+
+            if (uiState.injectedModules.isEmpty()) {
+                item {
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(R.string.builtin_zygisk_injected_empty),
+                            style = textStyles.body2,
+                            color = colorScheme.onBackground.copy(alpha = 0.75f),
+                            modifier = Modifier.padding(24.dp)
+                        )
+                    }
+                }
+            } else {
+                item {
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        uiState.injectedModules.forEachIndexed { index, module ->
+                            val isExpanded = uiState.expandedInjectedId == module.id
+                            val chevronRotation by animateFloatAsState(
+                                targetValue = if (isExpanded) 180f else 0f,
+                                label = "injectedChevron"
+                            )
+                            if (index > 0) HorizontalDivider()
+                            val moduleSummary = buildString {
+                                val state = stringResource(injectedStateText(module.state))
+                                if (module.version.isNotEmpty()) {
+                                    append(module.version).append(" · ")
+                                }
+                                append(state)
+                                if (module.targets.isNotEmpty()) {
+                                    append("\n").append(
+                                        stringResource(
+                                            R.string.builtin_zygisk_targets,
+                                            module.targets.joinToString(", ")
+                                        )
+                                    )
+                                }
+                                if (isExpanded) {
+                                    if (module.processes.isEmpty()) {
+                                        append("\n").append(
+                                            stringResource(R.string.builtin_zygisk_no_processes)
+                                        )
+                                    } else {
+                                        append("\n").append(
+                                            stringResource(
+                                                R.string.builtin_zygisk_process_count,
+                                                module.processes.size
+                                            )
+                                        )
+                                        module.processes.forEach { process ->
+                                            append("\n").append(process.label)
+                                        }
+                                    }
+                                }
+                            }
+                            val typeLabel = stringResource(
+                                if (module.type == "next") {
+                                    R.string.builtin_zygisk_type_next
+                                } else {
+                                    R.string.builtin_zygisk_type_zygisk
+                                }
+                            )
+                            BasicComponent(
+                                title = module.name,
+                                summary = moduleSummary,
+                                onClick = { onToggleInjected(module.id) },
+                                endActions = {
+                                    ZygiskBadgeMiuix(typeLabel, primary = true)
+                                    module.abi.forEach { abi ->
+                                        Spacer(Modifier.width(4.dp))
+                                        ZygiskBadgeMiuix(abi, primary = false)
+                                    }
+                                    androidx.compose.material3.Icon(
+                                        imageVector = Icons.Rounded.ExpandMore,
+                                        contentDescription = null,
+                                        tint = colorScheme.onSurfaceVariantSummary,
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .rotate(chevronRotation)
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Text(
                     text = stringResource(R.string.builtin_zygisk_modules_title),
                     style = textStyles.title4,
                     color = colorScheme.primary,
@@ -398,5 +493,23 @@ fun BuiltinZygiskMiuix(
                 }
             }
         }
+    }
+}
+
+/// A small label for the module API and its ABIs, matching the Material rows.
+@Composable
+private fun ZygiskBadgeMiuix(text: String, primary: Boolean) {
+    val colors = androidx.compose.material3.MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (primary) colors.secondaryContainer else colors.surfaceVariant)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    ) {
+        Text(
+            text = text,
+            style = textStyles.body2,
+            color = if (primary) colors.onSecondaryContainer else colors.onSurfaceVariant
+        )
     }
 }
