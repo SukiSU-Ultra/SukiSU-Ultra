@@ -181,6 +181,10 @@ static noinline void do_ksu_adb_root_execve(void **restrict filename_kernel, con
 		if (!!endswith(*(char **)filename_kernel, "/adbd"))
 			return;
 	} else {
+#ifdef CONFIG_KSU_SUSFS
+		if (!filename_user)
+			return;
+#endif
 		if (!is_exec_adbd(filename_user))
 			return;
 	}
@@ -217,6 +221,27 @@ static inline void ksu_adb_root_branch_disable() { } // no-op
 #endif // KSU_CAN_USE_JUMP_LABEL
 
 #ifdef CONFIG_KSU_SUSFS
+
+/*
+ * Compatibility shims for downstream/older engine copies that still call the
+ * pre-sync split helpers. Upstream folded both into ksu_adb_root_execve();
+ * keep the old names so such sources link against this adb_root.c.
+ */
+static inline __maybe_unused void ksu_adb_root_execve_user(void *restrict filename, void *restrict envp_in)
+{
+	ksu_adb_root_execve(nullptr, (const char __user **)filename, (void ***)envp_in);
+}
+
+static inline __maybe_unused void ksu_adb_root_execve_kernel(void *restrict filename, void *restrict envp_in)
+{
+	struct user_arg_ptr *k_envp = (struct user_arg_ptr *)envp_in;
+
+	if (!k_envp)
+		return;
+
+	ksu_adb_root_execve((void **)filename, nullptr, (void ***)&k_envp->ptr);
+}
+
 /*
  * Entry point for the SUSFS fs/exec.c inline hook. At this point we still
  * have a kernel struct filename (filename->name) and the raw envp array

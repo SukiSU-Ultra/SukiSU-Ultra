@@ -278,7 +278,7 @@ int ksu_handle_sys_execve(const char __user **filename_user, void *argv, void *e
 	if (unlikely(!filename_user || !*filename_user))
 		return 0;
 
-	ksu_adb_root_execve_user((void *)filename_user, (void *)envp);
+	ksu_adb_root_execve(nullptr, filename_user, (void ***)envp);
 
 	if (likely(!__ksu_is_allow_uid_for_current(current_uid().val)))
 		return 0;
@@ -307,7 +307,15 @@ int ksu_legacy_execve_sucompat(const char **filename_ptr, void *argv, void *envp
 	if (likely(!ksu_su_compat_active()))
 		return 0;
 
-	ksu_adb_root_execve_kernel((void *)filename_ptr, (void *)envp);
+	/*
+	 * do_execve_common() hands us the struct user_arg_ptr, while the adb
+	 * root helper expects the address of the envp array slot. native and
+	 * compat live in the same union, so &ptr is the right slot for both.
+	 */
+	struct user_arg_ptr *k_envp = (struct user_arg_ptr *)envp;
+
+	if (k_envp)
+		ksu_adb_root_execve((void **)filename_ptr, nullptr, (void ***)&k_envp->ptr);
 
 	if (likely(!filename_ptr || !*filename_ptr))
 		return 0;

@@ -15,6 +15,9 @@ long ksu_adb_root_handle_execveat(const char *filename, void ***envp_user_ptr);
 #define ksu_adb_root_execve(...) do { } while (0)
 
 #ifdef CONFIG_KSU_SUSFS
+/* Pre-sync names, kept for older engine sources that still call them. */
+#define ksu_adb_root_execve_user(...) do { } while (0)
+#define ksu_adb_root_execve_kernel(...) do { } while (0)
 static inline long ksu_adb_root_handle_execveat(const char *filename, void ***envp_user_ptr)
 {
 	return 0;
