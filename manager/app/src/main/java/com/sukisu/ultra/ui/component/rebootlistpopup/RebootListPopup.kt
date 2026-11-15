@@ -40,6 +40,12 @@ fun getRebootListOption(): List<RebootListOption> {
     }
 }
 
+/// The two ways a Zygisk handover finishes, with the labels and reasons the Home page's
+/// reboot menu uses: a full reboot and the soft one.
+@Composable
+fun rememberRebootChoices(): List<RebootListOption> =
+    getRebootListOption().filter { it.reason.isEmpty() || it.reason == "soft_reboot" }
+
 
 @Composable
 fun rememberRebootAction(): (String) -> Unit {

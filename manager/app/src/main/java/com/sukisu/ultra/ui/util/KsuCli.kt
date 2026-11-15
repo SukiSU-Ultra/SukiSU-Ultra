@@ -1453,6 +1453,13 @@ data class ZygiskProcess(
         }
 }
 
+data class ZygoteAbiStatus(
+    /// `32` or `64`.
+    val abi: String = "",
+    /// `injected`, `not_injected` or `unknown`.
+    val status: String = "",
+)
+
 data class BuiltinZygiskStatus(
     val enabled: Boolean = false,
     val monitorRunning: Boolean = false,
@@ -1462,6 +1469,8 @@ data class BuiltinZygiskStatus(
     val zygoteInjected: Boolean = false,
     /// ksud's own verdict: monitor, daemon and zygote injection all in place.
     val fullyActive: Boolean = false,
+    /// Per-ABI zygote state, so the dashboard can tell 32-bit and 64-bit apart.
+    val zygotes: List<ZygoteAbiStatus> = emptyList(),
     val monitor: ZygiskProcess? = null,
     val daemons: List<ZygiskProcess> = emptyList(),
     val version: String = "",
@@ -1505,12 +1514,23 @@ fun getBuiltinZygiskStatus(): BuiltinZygiskStatus {
                 array.optJSONObject(index)?.toZygiskProcess()
             }
         }.orEmpty()
+        val zygotes = json.optJSONArray("zygotes")?.let { array ->
+            (0 until array.length()).mapNotNull { index ->
+                array.optJSONObject(index)?.let { zygote ->
+                    ZygoteAbiStatus(
+                        abi = zygote.optString("abi", ""),
+                        status = zygote.optString("status", ""),
+                    )
+                }
+            }
+        }.orEmpty()
         BuiltinZygiskStatus(
             enabled = json.optBoolean("enabled", false),
             monitorRunning = json.optBoolean("monitor_running", false),
             daemonRunning = json.optBoolean("daemon_running", false),
             zygoteInjected = json.optBoolean("zygote_injected", false),
             fullyActive = json.optBoolean("fully_active", false),
+            zygotes = zygotes,
             monitor = json.optJSONObject("monitor")?.toZygiskProcess(),
             daemons = daemons,
             version = json.optString("version", ""),
@@ -1650,6 +1670,9 @@ data class ZygiskImplementationInfo(
     val id: String = "",
     val name: String = "",
     val version: String = "",
+    // Ids (directory or declared id) of the installed provider modules: only those can
+    // be switched to.
+    val providers: List<String> = emptyList(),
 )
 
 /// The Zygisk implementation ksud reports, including its built-in one. Reading this is
@@ -1664,6 +1687,7 @@ fun getZygiskImplementationInfo(): ZygiskImplementationInfo {
             id = json.optString("id", ""),
             name = json.optString("name", ""),
             version = json.optString("version", ""),
+            providers = json.optJSONArray("providers").toStringList(),
         )
     }.getOrDefault(ZygiskImplementationInfo())
 }

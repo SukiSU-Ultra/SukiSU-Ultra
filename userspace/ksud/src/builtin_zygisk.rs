@@ -674,6 +674,50 @@ pub fn is_fully_active() -> bool {
     is_monitor_active() && is_daemon_active() && is_zygote_injected()
 }
 
+/// `(abi, status)` for every zygote the monitor reported, e.g. `("64", "injected")`.
+///
+/// The monitor writes one `zygote_<abi>_status` key per supported ABI, so this is also
+/// what tells 32-bit and 64-bit zygotes apart on a mixed device.
+pub fn zygote_states() -> Vec<(String, String)> {
+    let Some(content) = runtime_prop_content() else {
+        return Vec::new();
+    };
+    let mut states: Vec<(String, String)> = content
+        .lines()
+        .filter_map(|line| {
+            let (key, value) = line.split_once('=')?;
+            let abi = key
+                .trim()
+                .strip_prefix("zygote_")?
+                .strip_suffix("_status")?;
+            Some((abi.to_owned(), value.trim().to_owned()))
+        })
+        .collect();
+    states.sort();
+    states
+}
+
+/// Ids of the installed Zygisk provider modules the built-in can hand over to.
+///
+/// Both the directory name and the declared `id` are reported: `zygisk switch` accepts
+/// either, and modules do not always name the directory after their id.
+pub fn provider_ids() -> Vec<String> {
+    let mut ids: Vec<String> = Vec::new();
+    for dir in active_providers() {
+        if let Some(name) = dir.file_name().and_then(|name| name.to_str()) {
+            let name = name.to_owned();
+            if !ids.contains(&name) {
+                ids.push(name);
+            }
+        }
+        let prop_id = module_prop_id(&dir);
+        if !prop_id.is_empty() && !ids.contains(&prop_id) {
+            ids.push(prop_id);
+        }
+    }
+    ids
+}
+
 /// Whether a module directory belongs to a standalone Zygisk provider, whose boot
 /// scripts must be skipped while the built-in is on.
 pub fn suppresses_module_dir(path: &Path) -> bool {

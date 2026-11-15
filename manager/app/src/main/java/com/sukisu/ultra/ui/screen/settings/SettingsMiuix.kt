@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -61,6 +60,8 @@ import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.component.miuix.SendLogDialog
 import com.sukisu.ultra.ui.component.profile.TemporaryRootPreferences
+import com.sukisu.ultra.ui.component.rebootlistpopup.rememberRebootAction
+import com.sukisu.ultra.ui.component.rebootlistpopup.rememberRebootChoices
 import com.sukisu.ultra.ui.component.uninstalldialog.UninstallDialog
 import com.sukisu.ultra.ui.screen.builtinzygisk.problemMessage
 import com.sukisu.ultra.ui.screen.builtinzygisk.problemTitle
@@ -74,8 +75,6 @@ import com.sukisu.ultra.ui.util.customText
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import com.sukisu.ultra.ui.viewmodel.MainPageRequest
 import kotlinx.coroutines.delay
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
@@ -89,7 +88,6 @@ import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
 import androidx.compose.ui.text.style.TextAlign
-import com.sukisu.ultra.ui.util.reboot
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import kotlin.time.Duration.Companion.milliseconds
@@ -128,43 +126,11 @@ fun SettingPagerMiuix(
     val showUninstallDialog = rememberSaveable { mutableStateOf(false) }
     val showSendLogDialog = rememberSaveable { mutableStateOf(false) }
 
-    // Turning the switch on hands Zygisk over live, so the wait and the failure both
-    // need a dialog rather than a toast.
-    if (uiState.isApplyingBuiltinZygisk) {
-        OverlayDialog(
-            show = true,
-            onDismissRequest = {},
-            content = {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp)
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                }
-                Text(
-                    text = stringResource(R.string.builtin_zygisk_switching_title),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, bottom = 8.dp),
-                    style = textStyles.title4,
-                    textAlign = TextAlign.Center,
-                    color = colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.builtin_zygisk_switching_message),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 8.dp)
-                        .padding(bottom = 16.dp),
-                    style = textStyles.body2,
-                    textAlign = TextAlign.Center,
-                    color = colorScheme.onSurfaceVariantSummary
-                )
-            }
-        )
-    }
+    // ksud finishes the handover in the background; the dialog only asks how to finish it,
+    // with the same reboot entries the Home page's menu offers. The action is created out
+    // here so a late-load confirmation outlives this dialog.
+    val rebootAction = rememberRebootAction()
+    val rebootChoices = rememberRebootChoices()
     uiState.builtinZygiskProblem?.let { problem ->
         OverlayDialog(
             show = true,
@@ -199,17 +165,17 @@ fun SettingPagerMiuix(
                         onClick = actions.onDismissBuiltinZygiskFailure,
                         modifier = Modifier.weight(1f)
                     )
-                    Spacer(Modifier.width(20.dp))
-                    TextButton(
-                        text = stringResource(R.string.reboot_soft),
-                        onClick = {
-                            actions.onDismissBuiltinZygiskFailure()
-                            // Only the user space has to restart: a hard reboot gains nothing.
-                            reboot("soft_reboot")
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.textButtonColorsPrimary()
-                    )
+                    rebootChoices.forEach { choice ->
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = stringResource(choice.labelRes),
+                            onClick = {
+                                rebootAction(choice.reason)
+                                actions.onDismissBuiltinZygiskFailure()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         )

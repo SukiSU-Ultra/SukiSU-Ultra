@@ -87,8 +87,7 @@ data class SettingsUiState(
 
     // Built-in Zygisk
     val builtinZygisk: Boolean = false,
-    val isApplyingBuiltinZygisk: Boolean = false,
-    // null, or why the switch still needs a restart: `failed`, `incomplete`, `off_pending`.
+    // null, or why the switch still needs a soft restart: `pending`.
     val builtinZygiskProblem: String? = null,
 
     // Soft Reboot

@@ -1317,6 +1317,10 @@ pub fn run() -> Result<()> {
                 let daemon_running = crate::builtin_zygisk::is_daemon_active();
                 let zygote_injected = crate::builtin_zygisk::is_zygote_injected();
                 let fully_active = crate::builtin_zygisk::is_fully_active();
+                let zygotes: Vec<_> = crate::builtin_zygisk::zygote_states()
+                    .into_iter()
+                    .map(|(abi, status)| serde_json::json!({ "abi": abi, "status": status }))
+                    .collect();
                 let monitor = crate::builtin_zygisk::monitor_process();
                 let daemons = crate::builtin_zygisk::daemon_processes();
                 let (version, version_code) = crate::builtin_zygisk::version().unwrap_or_default();
@@ -1334,6 +1338,7 @@ pub fn run() -> Result<()> {
                         "daemon_running": daemon_running,
                         "zygote_injected": zygote_injected,
                         "fully_active": fully_active,
+                        "zygotes": zygotes,
                         "monitor": monitor_json,
                         "daemons": daemons_json,
                         "version": version,
@@ -1351,6 +1356,7 @@ pub fn run() -> Result<()> {
                         "id": info.id,
                         "name": info.name,
                         "version": info.version,
+                        "providers": crate::builtin_zygisk::provider_ids(),
                     })
                 );
                 Ok(())

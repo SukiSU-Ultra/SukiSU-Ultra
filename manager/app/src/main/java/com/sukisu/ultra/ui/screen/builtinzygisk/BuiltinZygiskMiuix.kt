@@ -9,10 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.Extension
-import androidx.compose.material.icons.rounded.Memory
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -28,8 +27,8 @@ import com.sukisu.ultra.ui.component.miuix.AppCard
 import com.sukisu.ultra.ui.component.miuix.AppScaffold
 import com.sukisu.ultra.ui.theme.LocalBackgroundImagePath
 import com.sukisu.ultra.ui.theme.LocalEnableBlur
-import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 import com.sukisu.ultra.ui.util.BlurredBar
+import com.sukisu.ultra.ui.util.InjectedZygiskModule
 import com.sukisu.ultra.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
@@ -54,9 +53,9 @@ fun BuiltinZygiskMiuix(
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onSwitch: (String, String) -> Unit,
-    onToggleProcesses: (String) -> Unit,
     onToggleInjected: (String) -> Unit,
     onSetOption: (String, String) -> Unit,
+    onToggleGroup: () -> Unit,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
     val hasCustomBackground = LocalBackgroundImagePath.current.isNotEmpty()
@@ -84,15 +83,6 @@ fun BuiltinZygiskMiuix(
                             )
                         }
                     },
-                    actions = {
-                        IconButton(onClick = onRefresh) {
-                            Icon(
-                                imageVector = MiuixIcons.Refresh,
-                                contentDescription = null,
-                                tint = colorScheme.onBackground,
-                            )
-                        }
-                    },
                     scrollBehavior = scrollBehavior,
                 )
             }
@@ -113,132 +103,179 @@ fun BuiltinZygiskMiuix(
             contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp),
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.builtin_zygisk_status_title),
-                    style = textStyles.title4,
-                    color = colorScheme.primary,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
-                )
+                val status = uiState.status
 
+                // One card: the live state first, then the modules each daemon is serving.
                 AppCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    val daemons = uiState.status.daemons
-                    val daemonText = if (daemons.isEmpty()) {
-                        stringResource(R.string.builtin_zygisk_status_stopped)
-                    } else {
-                        daemons.joinToString("\n") { it.label }
-                    }
-                    val isDaemonOk = uiState.status.daemonRunning
-                    BasicComponent(
-                        title = stringResource(R.string.builtin_zygisk_daemon_status),
-                        summary = daemonText,
-                        startAction = {
-                            androidx.compose.material3.Icon(
-                                imageVector = if (isDaemonOk) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.builtin_zygisk_status_title),
+                            style = textStyles.title4,
+                            color = colorScheme.primary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = onRefresh) {
+                            Icon(
+                                imageVector = MiuixIcons.Refresh,
                                 contentDescription = null,
-                                tint = if (isDaemonOk) androidx.compose.material3.MaterialTheme.colorScheme.primary else androidx.compose.material3.MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(end = 12.dp)
+                                tint = colorScheme.onBackground,
                             )
                         }
-                    )
+                    }
 
-                    val monitorText = uiState.status.monitor?.label
-                        ?: stringResource(R.string.builtin_zygisk_status_stopped)
-                    val isMonitorOk = uiState.status.monitorRunning
+                    HorizontalDivider()
                     BasicComponent(
                         title = stringResource(R.string.builtin_zygisk_monitor_status),
-                        summary = monitorText,
-                        startAction = {
-                            androidx.compose.material3.Icon(
-                                imageVector = if (isMonitorOk) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
-                                contentDescription = null,
-                                tint = if (isMonitorOk) androidx.compose.material3.MaterialTheme.colorScheme.primary else androidx.compose.material3.MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(end = 12.dp)
-                            )
-                        }
-                    )
-                }
-            }
-
-            item {
-                Text(
-                    text = stringResource(R.string.builtin_zygisk_impl_title),
-                    style = textStyles.title4,
-                    color = colorScheme.primary,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
-                )
-                Text(
-                    text = stringResource(R.string.builtin_zygisk_impl_hint),
-                    style = textStyles.footnote1,
-                    color = colorScheme.onSurfaceVariantSummary,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
-                )
-
-                AppCard(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    val builtinName = stringResource(R.string.builtin_zygisk_impl_builtin)
-                    val currentTarget = uiState.implementation.id
-                    val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
-                    val idleColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
-
-                    BasicComponent(
-                        title = builtinName,
-                        summary = stringResource(R.string.builtin_zygisk_impl_builtin_summary),
-                        onClick = {
-                            if (!uiState.isSwitching && currentTarget != BUILTIN_ZYGISK_TARGET) {
-                                onSwitch(BUILTIN_ZYGISK_TARGET, builtinName)
-                            }
-                        },
-                        startAction = {
-                            androidx.compose.material3.Icon(
-                                imageVector = Icons.Rounded.Memory,
-                                contentDescription = null,
-                                tint = if (currentTarget == BUILTIN_ZYGISK_TARGET) primaryColor else idleColor,
-                                modifier = Modifier.padding(end = 12.dp)
-                            )
-                        },
+                        summary = status.monitor?.label
+                            ?: stringResource(R.string.builtin_zygisk_status_stopped),
                         endActions = {
-                            if (currentTarget == BUILTIN_ZYGISK_TARGET) {
-                                androidx.compose.material3.Icon(
-                                    imageVector = Icons.Rounded.CheckCircle,
-                                    contentDescription = null,
-                                    tint = primaryColor
-                                )
-                            }
+                            StatusChipMiuix(
+                                text = stringResource(
+                                    if (status.monitorRunning) {
+                                        R.string.builtin_zygisk_status_running
+                                    } else {
+                                        R.string.builtin_zygisk_status_stopped
+                                    }
+                                ),
+                                ok = status.monitorRunning
+                            )
                         }
                     )
 
-                    uiState.zygiskModules.filter { it.enabled && !it.remove }.forEach { module ->
-                        val isCurrent = module.id == currentTarget
+                    // One row per zygote ABI: which zygotes actually carry the loader.
+                    status.zygotes.forEach { zygote ->
                         HorizontalDivider()
                         BasicComponent(
-                            title = module.name,
-                            summary = "${module.version} (${module.author})",
-                            onClick = {
-                                if (!uiState.isSwitching && !isCurrent) {
-                                    onSwitch(module.id, module.name)
-                                }
-                            },
-                            startAction = {
-                                androidx.compose.material3.Icon(
-                                    imageVector = Icons.Rounded.Extension,
-                                    contentDescription = null,
-                                    tint = if (isCurrent) primaryColor else idleColor,
-                                    modifier = Modifier.padding(end = 12.dp)
-                                )
-                            },
+                            title = stringResource(R.string.builtin_zygisk_zygote_status, zygote.abi),
                             endActions = {
-                                if (isCurrent) {
-                                    androidx.compose.material3.Icon(
-                                        imageVector = Icons.Rounded.CheckCircle,
-                                        contentDescription = null,
-                                        tint = primaryColor
-                                    )
-                                }
+                                StatusChipMiuix(
+                                    text = stringResource(zygoteStateText(zygote.status)),
+                                    ok = zygote.status == "injected"
+                                )
                             }
                         )
+                    }
+
+                    HorizontalDivider()
+                    BasicComponent(
+                        title = stringResource(R.string.builtin_zygisk_daemon_status),
+                        summary = status.daemons
+                            .takeIf { it.isNotEmpty() }
+                            ?.joinToString("\n") { it.label }
+                            ?: stringResource(R.string.builtin_zygisk_status_stopped),
+                        endActions = {
+                            StatusChipMiuix(
+                                text = stringResource(
+                                    if (status.daemonRunning) {
+                                        R.string.builtin_zygisk_status_running
+                                    } else {
+                                        R.string.builtin_zygisk_status_stopped
+                                    }
+                                ),
+                                ok = status.daemonRunning
+                            )
+                        }
+                    )
+
+                    if (uiState.injectedModules.isEmpty()) {
+                        HorizontalDivider()
+                        BasicComponent(
+                            title = stringResource(R.string.builtin_zygisk_injected_empty)
+                        )
+                    }
+
+                    if (uiState.injectedModules.isNotEmpty()) {
+                        HorizontalDivider()
+                        GroupRowMiuix(
+                            title = stringResource(
+                                R.string.builtin_zygisk_injected_group,
+                                uiState.injectedModules.size
+                            ),
+                            expanded = uiState.injectedGroupExpanded,
+                            onClick = onToggleGroup
+                        )
+                        if (uiState.injectedGroupExpanded) {
+                            uiState.injectedModules.forEach { module ->
+                                val isNext = module.type == "next"
+                                val isExpanded = isNext &&
+                                    uiState.expandedInjectedId == module.id
+                                val chevronRotation by animateFloatAsState(
+                                    targetValue = if (isExpanded) 180f else 0f,
+                                    label = "moduleChevron"
+                                )
+                                HorizontalDivider()
+                                BasicComponent(
+                                    title = module.name,
+                                    summary = buildString {
+                                        append(moduleSummaryMiuix(module))
+                                        if (module.targets.isNotEmpty()) {
+                                            append("\n").append(
+                                                stringResource(
+                                                    R.string.builtin_zygisk_targets,
+                                                    module.targets.joinToString(", ")
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onClick = if (isNext) {
+                                        { onToggleInjected(module.id) }
+                                    } else {
+                                        null
+                                    },
+                                    endActions = {
+                                        if (isNext && module.processes.isNotEmpty()) {
+                                            ZygiskBadgeMiuix(
+                                                stringResource(
+                                                    R.string.builtin_zygisk_process_count,
+                                                    module.processes.size
+                                                ),
+                                                primary = true
+                                            )
+                                            Spacer(Modifier.width(6.dp))
+                                        }
+                                        module.abi.forEach { abi ->
+                                            ZygiskBadgeMiuix(abi, primary = false)
+                                            Spacer(Modifier.width(4.dp))
+                                        }
+                                        if (isNext) {
+                                            androidx.compose.material3.Icon(
+                                                imageVector = Icons.Rounded.ExpandMore,
+                                                contentDescription = null,
+                                                tint = colorScheme.onSurfaceVariantSummary,
+                                                modifier = Modifier.rotate(chevronRotation)
+                                            )
+                                        }
+                                    }
+                                )
+                                if (isExpanded) {
+                                    if (module.processes.isEmpty()) {
+                                        HorizontalDivider()
+                                        BasicComponent(
+                                            title = stringResource(R.string.builtin_zygisk_no_processes),
+                                            modifier = Modifier.padding(start = 16.dp)
+                                        )
+                                    } else {
+                                        module.processes.forEach { process ->
+                                            HorizontalDivider()
+                                            BasicComponent(
+                                                title = process.name,
+                                                modifier = Modifier.padding(start = 16.dp),
+                                                endActions = {
+                                                    PidTagMiuix(process.pid)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -283,104 +320,16 @@ fun BuiltinZygiskMiuix(
 
             item {
                 Text(
-                    text = stringResource(R.string.builtin_zygisk_injected_title),
-                    style = textStyles.title4,
-                    color = colorScheme.primary,
-                    modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
-                )
-            }
-
-            if (uiState.injectedModules.isEmpty()) {
-                item {
-                    AppCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = stringResource(R.string.builtin_zygisk_injected_empty),
-                            style = textStyles.body2,
-                            color = colorScheme.onBackground.copy(alpha = 0.75f),
-                            modifier = Modifier.padding(24.dp)
-                        )
-                    }
-                }
-            } else {
-                item {
-                    AppCard(modifier = Modifier.fillMaxWidth()) {
-                        uiState.injectedModules.forEachIndexed { index, module ->
-                            val isExpanded = uiState.expandedInjectedId == module.id
-                            val chevronRotation by animateFloatAsState(
-                                targetValue = if (isExpanded) 180f else 0f,
-                                label = "injectedChevron"
-                            )
-                            if (index > 0) HorizontalDivider()
-                            val moduleSummary = buildString {
-                                val state = stringResource(injectedStateText(module.state))
-                                if (module.version.isNotEmpty()) {
-                                    append(module.version).append(" · ")
-                                }
-                                append(state)
-                                if (module.targets.isNotEmpty()) {
-                                    append("\n").append(
-                                        stringResource(
-                                            R.string.builtin_zygisk_targets,
-                                            module.targets.joinToString(", ")
-                                        )
-                                    )
-                                }
-                                if (isExpanded) {
-                                    if (module.processes.isEmpty()) {
-                                        append("\n").append(
-                                            stringResource(R.string.builtin_zygisk_no_processes)
-                                        )
-                                    } else {
-                                        append("\n").append(
-                                            stringResource(
-                                                R.string.builtin_zygisk_process_count,
-                                                module.processes.size
-                                            )
-                                        )
-                                        module.processes.forEach { process ->
-                                            append("\n").append(process.label)
-                                        }
-                                    }
-                                }
-                            }
-                            val typeLabel = stringResource(
-                                if (module.type == "next") {
-                                    R.string.builtin_zygisk_type_next
-                                } else {
-                                    R.string.builtin_zygisk_type_zygisk
-                                }
-                            )
-                            BasicComponent(
-                                title = module.name,
-                                summary = moduleSummary,
-                                onClick = { onToggleInjected(module.id) },
-                                endActions = {
-                                    ZygiskBadgeMiuix(typeLabel, primary = true)
-                                    module.abi.forEach { abi ->
-                                        Spacer(Modifier.width(4.dp))
-                                        ZygiskBadgeMiuix(abi, primary = false)
-                                    }
-                                    androidx.compose.material3.Icon(
-                                        imageVector = Icons.Rounded.ExpandMore,
-                                        contentDescription = null,
-                                        tint = colorScheme.onSurfaceVariantSummary,
-                                        modifier = Modifier
-                                            .padding(start = 8.dp)
-                                            .rotate(chevronRotation)
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
-                Text(
                     text = stringResource(R.string.builtin_zygisk_modules_title),
                     style = textStyles.title4,
                     color = colorScheme.primary,
-                    modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(start = 12.dp, bottom = 4.dp)
+                )
+                Text(
+                    text = stringResource(R.string.builtin_zygisk_impl_hint),
+                    style = textStyles.footnote1,
+                    color = colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
                 )
             }
 
@@ -402,14 +351,14 @@ fun BuiltinZygiskMiuix(
                     AppCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        val providers = uiState.implementation.providers
+                        val currentId = uiState.implementation.id
+                        val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+                        val errorColor = androidx.compose.material3.MaterialTheme.colorScheme.error
                         uiState.zygiskModules.forEachIndexed { index, module ->
-                            val isActive = module.id == uiState.implementation.id &&
+                            val isProvider = providers.contains(module.id)
+                            val isCurrent = module.id == currentId &&
                                 uiState.implementation.state == "running"
-                            val isExpanded = isActive && uiState.expandedModuleId == module.id
-                            val chevronRotation by animateFloatAsState(
-                                targetValue = if (isExpanded) 180f else 0f,
-                                label = "moduleChevron"
-                            )
                             if (index > 0) HorizontalDivider()
                             val moduleSummary = buildString {
                                 append("${module.version} (${module.author})\n")
@@ -418,38 +367,17 @@ fun BuiltinZygiskMiuix(
                                 } else if (module.description.isNotEmpty()) {
                                     append(module.description)
                                 }
-                                if (isExpanded) {
-                                    val processes = uiState.moduleProcesses
-                                    if (processes.monitors.isEmpty() && processes.daemons.isEmpty()) {
-                                        append("\n").append(stringResource(R.string.builtin_zygisk_status_stopped))
-                                    } else {
-                                        processes.monitors.forEach { process ->
-                                            append("\n")
-                                                .append(stringResource(R.string.builtin_zygisk_monitor_status))
-                                                .append(": ")
-                                                .append(process.label)
-                                        }
-                                        processes.daemons.forEach { process ->
-                                            append("\n")
-                                                .append(stringResource(R.string.builtin_zygisk_daemon_status))
-                                                .append(": ")
-                                                .append(process.label)
-                                        }
-                                    }
-                                }
                             }.trimEnd()
                             val isSuppressed = module.suppressedByBuiltin
                             val suppressedTag = stringResource(R.string.module_suppressed_by_builtin)
                             val errorContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.errorContainer
                             val onErrorContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.onErrorContainer
-                            val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
-                            val errorColor = androidx.compose.material3.MaterialTheme.colorScheme.error
 
                             BasicComponent(
                                 title = module.name,
                                 summary = moduleSummary,
-                                onClick = if (isActive) {
-                                    { onToggleProcesses(module.id) }
+                                onClick = if (isProvider && !isCurrent) {
+                                    { onSwitch(module.id, module.name) }
                                 } else {
                                     null
                                 },
@@ -476,14 +404,11 @@ fun BuiltinZygiskMiuix(
                                             )
                                         }
                                     }
-                                    if (isActive) {
+                                    if (isCurrent) {
                                         androidx.compose.material3.Icon(
-                                            imageVector = Icons.Rounded.ExpandMore,
+                                            imageVector = Icons.Rounded.CheckCircle,
                                             contentDescription = null,
-                                            tint = colorScheme.onSurfaceVariantSummary,
-                                            modifier = Modifier
-                                                .padding(start = 8.dp)
-                                                .rotate(chevronRotation)
+                                            tint = primaryColor
                                         )
                                     }
                                 }
@@ -502,14 +427,77 @@ private fun ZygiskBadgeMiuix(text: String, primary: Boolean) {
     val colors = androidx.compose.material3.MaterialTheme.colorScheme
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
+            .clip(RoundedCornerShape(8.dp))
             .background(if (primary) colors.secondaryContainer else colors.surfaceVariant)
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
         Text(
             text = text,
             style = textStyles.body2,
             color = if (primary) colors.onSecondaryContainer else colors.onSurfaceVariant
+        )
+    }
+}
+
+/// The tag carrying a process id: Miuix labels are rounded rectangles, not pills.
+@Composable
+private fun PidTagMiuix(pid: Int) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(colorScheme.surfaceContainerHigh)
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = "PID $pid",
+            style = textStyles.footnote1,
+            color = colorScheme.onSurfaceVariantSummary
+        )
+    }
+}
+
+/// A collapsible group of served modules inside the status card.
+@Composable
+private fun GroupRowMiuix(title: String, expanded: Boolean, onClick: () -> Unit) {
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "groupChevron"
+    )
+    BasicComponent(
+        title = title,
+        onClick = onClick,
+        endActions = {
+            androidx.compose.material3.Icon(
+                imageVector = Icons.Rounded.ExpandMore,
+                contentDescription = null,
+                tint = colorScheme.onSurfaceVariantSummary,
+                modifier = Modifier.rotate(rotation)
+            )
+        }
+    )
+}
+
+/// The version and state line shared by both module groups.
+@Composable
+private fun moduleSummaryMiuix(module: InjectedZygiskModule): String =
+    listOf(module.version, stringResource(injectedStateText(module.state)))
+        .filter { it.isNotEmpty() }
+        .joinToString(" · ")
+
+/// The rounded state chip of the live rows.
+@Composable
+private fun StatusChipMiuix(text: String, ok: Boolean) {
+    val colors = androidx.compose.material3.MaterialTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(if (ok) colors.primaryContainer else colors.errorContainer)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = textStyles.body2,
+            color = if (ok) colors.onPrimaryContainer else colors.onErrorContainer
         )
     }
 }

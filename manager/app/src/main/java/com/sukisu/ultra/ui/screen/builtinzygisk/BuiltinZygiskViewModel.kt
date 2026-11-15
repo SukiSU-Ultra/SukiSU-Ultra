@@ -4,15 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sukisu.ultra.data.repository.ModuleRepository
 import com.sukisu.ultra.data.repository.ModuleRepositoryImpl
-import com.sukisu.ultra.ui.util.BUILTIN_ZYGISK_TARGET
 import com.sukisu.ultra.ui.util.getBuiltinZygiskConfig
 import com.sukisu.ultra.ui.util.getBuiltinZygiskStatus
 import com.sukisu.ultra.ui.util.getInjectedZygiskModules
 import com.sukisu.ultra.ui.util.getZygiskImplementationInfo
-import com.sukisu.ultra.ui.util.getZygiskProcesses
 import com.sukisu.ultra.ui.util.setBuiltinZygiskConfig
 import com.sukisu.ultra.ui.util.switchToZygisk
-import com.sukisu.ultra.ui.util.ZygiskProcesses
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,9 +43,7 @@ class BuiltinZygiskViewModel(
                     config = config,
                     injectedModules = injectedModules,
                     zygiskModules = zygiskModules,
-                    expandedInjectedId = null,
-                    expandedModuleId = null,
-                    moduleProcesses = ZygiskProcesses()
+                    expandedInjectedId = null
                 )
             }
         }
@@ -65,65 +60,29 @@ class BuiltinZygiskViewModel(
     }
 
     /**
-     * Hands Zygisk to `target` (`builtin` or a module id) and reloads everything after it.
+     * Hands Zygisk to `target` and leaves the panel to the caller.
      *
-     * `onResult` gets both what ksud answered and whether Zygisk is actually usable:
-     * a live monitor and daemon are not enough, the zygote has to be injected or the
-     * modules stay dead until a soft reboot.
+     * The switch runs in the background: selecting a provider closes this dashboard and
+     * asks for a restart anyway, so waiting here would only keep a panel the user cannot
+     * use any more on screen.
      */
-    fun switchTo(target: String, onResult: (Boolean, Boolean) -> Unit) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSwitching = true) }
-            val ok = withContext(Dispatchers.IO) { switchToZygisk(target) }
-            val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
-            val implementation = withContext(Dispatchers.IO) { getZygiskImplementationInfo() }
-            val injectedModules = withContext(Dispatchers.IO) { getInjectedZygiskModules() }
-            val zygiskModules = moduleRepo.getModules().getOrDefault(emptyList()).filter {
-                it.zygisk || it.suppressedByBuiltin
-            }
-            _uiState.update {
-                it.copy(
-                    isSwitching = false,
-                    status = status,
-                    implementation = implementation,
-                    injectedModules = injectedModules,
-                    zygiskModules = zygiskModules,
-                    expandedInjectedId = null,
-                    expandedModuleId = null,
-                    moduleProcesses = ZygiskProcesses()
-                )
-            }
-            // A provider is usable once its own processes are up; the built-in also has to
-            // report an injected zygote, which is what `fully_active` covers.
-            val fullyActive = if (target == BUILTIN_ZYGISK_TARGET) {
-                status.fullyActive
-            } else {
-                implementation.state == "running" && implementation.id == target
-            }
-            onResult(ok, fullyActive)
+    fun switchInBackground(target: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val ok = switchToZygisk(target)
+            // Toasts and Compose state belong to the main thread.
+            withContext(Dispatchers.Main) { onResult(ok) }
         }
     }
 
-    /// Opens or closes the process rows of an injected module; the list already carries
-    /// them, so this only changes what is visible.
+    /** Opens or closes the process rows of an injected module. */
     fun toggleInjectedModule(id: String) {
         _uiState.update {
             it.copy(expandedInjectedId = if (it.expandedInjectedId == id) null else id)
         }
     }
 
-    /** Opens or closes the process rows of the module that currently owns Zygisk. */
-    fun toggleModuleProcesses(id: String) {
-        if (_uiState.value.expandedModuleId == id) {
-            _uiState.update { it.copy(expandedModuleId = null, moduleProcesses = ZygiskProcesses()) }
-            return
-        }
-        viewModelScope.launch {
-            _uiState.update { it.copy(expandedModuleId = id, moduleProcesses = ZygiskProcesses()) }
-            val processes = withContext(Dispatchers.IO) { getZygiskProcesses(id) }
-            _uiState.update {
-                if (it.expandedModuleId == id) it.copy(moduleProcesses = processes) else it
-            }
-        }
+    /** Opens or closes the served-module rows of the status card. */
+    fun toggleInjectedGroup() {
+        _uiState.update { it.copy(injectedGroupExpanded = !it.injectedGroupExpanded) }
     }
 }

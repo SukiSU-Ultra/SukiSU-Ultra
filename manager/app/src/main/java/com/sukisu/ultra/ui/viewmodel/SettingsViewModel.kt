@@ -49,7 +49,6 @@ import com.sukisu.ultra.ui.util.ThemeTrialManager
 import com.sukisu.ultra.ui.util.ThemeVariantData
 import com.sukisu.ultra.ui.util.customTextsInGroups
 import com.sukisu.ultra.ui.util.findActivity
-import com.sukisu.ultra.ui.util.getBuiltinZygiskStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -2972,45 +2971,16 @@ homePillScale = repo.homePillScale,
     }
 
     fun setBuiltinZygisk(enabled: Boolean) {
+        // Flip the switch and let ksud do the handover in the background: waiting on the
+        // zygote here only made the settings page hang, and a soft restart is what makes
+        // the result take effect anyway.
+        _uiState.update {
+            it.copy(builtinZygisk = enabled, builtinZygiskProblem = "pending")
+        }
         viewModelScope.launch(Dispatchers.IO) {
-            if (enabled) {
-                // Enabling stops the current implementation and waits for the zygote
-                // injection, so keep the UI busy until ksud answers.
-                _uiState.update { it.copy(isApplyingBuiltinZygisk = true) }
-            }
             repo.builtinZygisk = enabled
-            // Turning it on also hands the running system over; turning it off only drops
-            // the flag, so the current processes stay until the next reboot.
             val applied = repo.builtinZygisk
-            val status = withContext(Dispatchers.IO) { getBuiltinZygiskStatus() }
-            // A live monitor and daemon are not enough: without an injected zygote the
-            // modules stay dead until a restart, so that state keeps the dialog open.
-            val problem = when {
-                enabled && !applied -> "failed"
-                enabled && !status.fullyActive -> "incomplete"
-                !enabled && (status.monitorRunning || status.daemonRunning ||
-                    status.monitor != null || status.daemons.isNotEmpty()) -> "off_pending"
-                else -> null
-            }
-            _uiState.update {
-                it.copy(
-                    builtinZygisk = applied,
-                    isApplyingBuiltinZygisk = false,
-                    builtinZygiskProblem = problem
-                )
-            }
-            if (problem != null) {
-                // The dialog offers a soft reboot instead of a toast.
-                return@launch
-            }
-            val message = if (enabled) {
-                R.string.builtin_zygisk_on_applied
-            } else {
-                R.string.builtin_zygisk_off_pending
-            }
-            withContext(Dispatchers.Main) {
-                Toast.makeText(ksuApp, message, Toast.LENGTH_SHORT).show()
-            }
+            _uiState.update { it.copy(builtinZygisk = applied) }
         }
     }
 
